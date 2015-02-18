@@ -3,6 +3,22 @@ rust-clippy
 
 A collection of lints that give helpful tips to newbies.
 
+To use clippy on your cargo project:
+ 1. Clone clippy (`git clone https://github.com/Manishearth/rust-clippy.git`)
+ 2. Add clippy as a dependency with an explicit path. Sample code for `Cargo.toml`:
+    
+        [dependencies.clippy]
+        path = "/path/to/clippy/"
+   
+   Place this immediately after your `[dependencies]` section.
+ 3. Add to your main file code to turn on clippy:
+
+        #![feature(plugin)]
+        #![plugin(clippy)]
+ 
+ 4. Build, and observe the suggestions.
+
+Be aware that if you use Travis or other autobuild services, your build will not work unless you clone clippy in the Travis commands, as it is not on `crates.io` yet.
 
 Lints included in this crate:
 
