@@ -172,7 +172,7 @@ fn fetch_int_literal(cx: &Context, lit : &Expr) -> Option<u64> {
                     _ => None
                 }
             }
-            .and_then(|def_id| lookup_const_by_id(cx.tcx, def_id, Option::None))
+            .and_then(|def_id| lookup_const_by_id(cx.tcx, def_id))
             .and_then(|l| fetch_int_literal(cx, l)),
 		_ => Option::None
 	}
