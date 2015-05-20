@@ -70,7 +70,7 @@ fn have_lit(cx: &Context, e : &Expr, m: i8) -> bool {
 		&ExprPath(_, _) => {
                 match cx.tcx.def_map.borrow().get(&e.id) {
                     Some(&PathResolution { base_def: DefConst(def_id), ..}) => 
-						match lookup_const_by_id(cx.tcx, def_id, Option::None) {
+						match lookup_const_by_id(cx.tcx, def_id) {
 							Some(l) => have_lit(cx, l, m),
 							None => false
 						},
