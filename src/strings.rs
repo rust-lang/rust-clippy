@@ -14,7 +14,7 @@ use utils::{match_def_path, span_lint, walk_ptrs_ty, get_parent_expr};
 declare_lint! {
     pub STRING_ADD_ASSIGN,
     Allow,
-    "using `x = x + ..` where x is a `String`; suggests using `push_str()` instead"
+    "uusing `x = x + ..` where x is a `String`; suggests using `push_str()` instead"
 }
 
 declare_lint! {
