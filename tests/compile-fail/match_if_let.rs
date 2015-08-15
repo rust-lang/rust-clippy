@@ -23,4 +23,20 @@ fn main(){
         (2...3, 7...9) => println!("{:?}", z),
         _ => {}
     }
+
+    // Not linted (pattern guards used)
+    match x {
+        Some(y) if y == 0 => println!("{:?}", y),
+        _ => ()
+    }
+
+    match z { //~ ERROR you seem to be trying to use match
+              //~^ HELP try
+        (2...3, 7...9) => {
+            println!("{:?}", z);
+        }
+        _ => {
+            println!("nope");
+        },
+    }
 }
