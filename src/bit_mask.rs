@@ -168,20 +168,21 @@ fn fetch_int_literal(cx: &Context, lit : &Expr) -> Option<u64> {
     match &lit.node {
         &ExprLit(ref lit_ptr) => {
             if let &LitInt(value, _) = &lit_ptr.node {
-                Option::Some(value) //TODO: Handle sign
-            } else { Option::None }
+                Some(value) //TODO: Handle sign
+            } else { None }
         },
         &ExprPath(_, _) => {
             // Important to let the borrow expire before the const lookup to avoid double
             // borrowing.
             let def_map = cx.tcx.def_map.borrow();
-            match def_map.get(&lit.id) {
-                Some(&PathResolution { base_def: DefConst(def_id), ..}) => Some(def_id),
-                _ => None
+            if let Some(&PathResolution { base_def: DefConst(def_id), ..}) = def_map.get(&lit.id) {
+                Some(def_id)
+            } else {
+                None
             }
         }
-        .and_then(|def_id| lookup_const_by_id(cx.tcx, def_id, Option::None))
+        .and_then(|def_id| lookup_const_by_id(cx.tcx, def_id, None))
         .and_then(|l| fetch_int_literal(cx, l)),
-        _ => Option::None
+        _ => None
     }
 }
