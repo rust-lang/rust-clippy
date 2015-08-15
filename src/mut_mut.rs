@@ -32,9 +32,10 @@ fn check_expr_expd(cx: &Context, expr: &Expr, info: Option<&ExpnInfo>) {
     if in_macro(cx, info) { return; }
 
     fn unwrap_addr(expr : &Expr) -> Option<&Expr> {
-        match expr.node {
-            ExprAddrOf(MutMutable, ref e) => Option::Some(e),
-            _ => Option::None
+        if let ExprAddrOf(MutMutable, ref e) = expr.node {
+            Some(e)
+        } else {
+            None
         }
     }
 

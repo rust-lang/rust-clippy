@@ -49,10 +49,9 @@ fn is_relevant_item(item: &Item) -> bool {
 }
 
 fn is_relevant_impl(item: &ImplItem) -> bool {
-    match item.node {
-        MethodImplItem(_, ref block) => is_relevant_block(block),
-        _ => false
-    }
+    if let MethodImplItem(_, ref block) = item.node {
+        is_relevant_block(block)
+    } else { false }
 }
 
 fn is_relevant_trait(item: &TraitItem) -> bool {

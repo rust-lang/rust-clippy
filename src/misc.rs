@@ -26,36 +26,49 @@ impl LintPass for MiscPass {
 
     fn check_expr(&mut self, cx: &Context, expr: &Expr) {
         if let ExprMatch(ref ex, ref arms, ast::MatchSource::Normal) = expr.node {
-            if arms.len() == 2 {
-                if arms[0].guard.is_none() && arms[1].pats.len() == 1 {
-                    match arms[1].body.node {
-                        ExprTup(ref v) if v.is_empty() && arms[1].guard.is_none() => (),
-                        ExprBlock(ref b) if b.stmts.is_empty() && arms[1].guard.is_none() => (),
-                         _ => return
-                    }
-                    // In some cases, an exhaustive match is preferred to catch situations when
-                    // an enum is extended. So we only consider cases where a `_` wildcard is used
-                    if arms[1].pats[0].node == PatWild(PatWildSingle) &&
-                            arms[0].pats.len() == 1 {
-                        let body_code = snippet_block(cx, arms[0].body.span, "..");
-                        let suggestion = if let ExprBlock(_) = arms[0].body.node {
-                            body_code.into_owned()
-                        } else {
-                            format!("{{ {} }}", body_code)
-                        };
-                        span_help_and_lint(cx, SINGLE_MATCH, expr.span,
-                              "you seem to be trying to use match for \
-                              destructuring a single pattern. Did you mean to \
-                              use `if let`?",
-                              &*format!("try\nif let {} = {} {}",
-                                        snippet(cx, arms[0].pats[0].span, ".."),
-                                        snippet(cx, ex.span, ".."),
-                                        suggestion)
-                        );
-                    }
-                }
+            // check preconditions: only two arms
+            if arms.len() == 2 &&
+                // both of the arms have a single pattern and no guard
+                arms[0].pats.len() == 1 && arms[0].guard.is_none() &&
+                arms[1].pats.len() == 1 && arms[1].guard.is_none() &&
+                // and the second pattern is a `_` wildcard: this is not strictly necessary,
+                // since the exhaustiveness check will ensure the last one is a catch-all,
+                // but in some cases, an explicit match is preferred to catch situations
+                // when an enum is extended, so we don't consider these cases
+                arms[1].pats[0].node == PatWild(PatWildSingle)
+            {
+                // check if we have content for an "else" block
+                let has_else_content = match arms[1].body.node {
+                    ExprTup(ref v) if v.is_empty() => false,
+                    ExprBlock(ref b) if b.stmts.is_empty() && b.expr.is_none() => false,
+                    _ => true,
+                };
+                let true_block = format_as_block(cx, &*arms[0].body, "");
+                let else_clause = if has_else_content {
+                    format_as_block(cx, &*arms[1].body, " else ")
+                } else {
+                    "".into()
+                };
+                span_help_and_lint(cx, SINGLE_MATCH, expr.span,
+                      "you seem to be trying to use match for \
+                      destructuring a single pattern. Did you mean to \
+                      use `if let`?",
+                      &*format!("try\nif let {} = {} {}{}",
+                                snippet(cx, arms[0].pats[0].span, ".."),
+                                snippet(cx, ex.span, ".."),
+                                true_block, else_clause)
+                );
             }
         }
+    }
+}
+
+fn format_as_block(cx: &Context, expr: &Expr, prefix: &str) -> String {
+    let code = snippet_block(cx, expr.span, "..");
+    if let ExprBlock(_) = expr.node {
+        format!("{}{}", prefix, code)
+    } else {
+        format!("{}{{ {} }}", prefix, code)
     }
 }
 
@@ -176,9 +189,10 @@ impl LintPass for Precedence {
 }
 
 fn is_arith_expr(expr : &Expr) -> bool {
-    match expr.node {
-        ExprBinary(Spanned { node: op, ..}, _, _) => is_arith_op(op),
-        _ => false
+    if let ExprBinary(Spanned { node: op, ..}, _, _) = expr.node {
+        is_arith_op(op)
+    } else {
+        false
     }
 }
 

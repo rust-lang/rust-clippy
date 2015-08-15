@@ -69,11 +69,11 @@ fn have_lit(cx: &Context, e : &Expr, m: i8) -> bool {
         },
         &ExprParen(ref p) => have_lit(cx, p, m),
         &ExprPath(_, _) => {
-            match cx.tcx.def_map.borrow().get(&e.id) {
-                Some(&PathResolution { base_def: DefConst(id), ..}) =>
-                        lookup_const_by_id(cx.tcx, id, Option::None)
-                        .map_or(false, |l| have_lit(cx, l, m)),
-                _ => false
+            if let Some(&PathResolution { base_def: DefConst(id), ..}) = cx.tcx.def_map.borrow().get(&e.id) {
+                lookup_const_by_id(cx.tcx, id, Option::None)
+                    .map_or(false, |l| have_lit(cx, l, m))
+            } else {
+                false
             }
         },
         _ => false
