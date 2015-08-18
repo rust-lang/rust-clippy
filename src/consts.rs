@@ -300,8 +300,8 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
             &ExprIf(ref cond, ref then, ref otherwise) =>
                 self.ifthenelse(&*cond, &*then, &*otherwise),
             &ExprLit(ref lit) => Some(lit_to_constant(&lit.node)),
-            &ExprVec(ref vec) => self.vec(&vec[..]),
-            &ExprTup(ref tup) => self.tup(&tup[..]),
+            &ExprVec(ref vec) => self.multi(&vec[..]).map(ConstantVec),
+            &ExprTup(ref tup) => self.multi(&tup[..]).map(ConstantTuple),
             &ExprRepeat(ref value, ref number) =>
                 self.binop_apply(value, number,|v, n|
                     Some(ConstantRepeat(Box::new(v), n.as_u64() as usize))),
@@ -318,9 +318,10 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
         }
     }
 
-    /// create `Some(ConstantVec(..))` of all constants, unless there is any
+    /// create `Some(Vec![..])` of all constants, unless there is any
     /// non-constant part
-    fn vec<E: Deref<Target=Expr> + Sized>(&mut self, vec: &[E]) -> Option<Constant> {
+    fn multi<E: Deref<Target=Expr> + Sized>(&mut self, vec: &[E])
+            -> Option<Vec<Constant>> {
         let mut parts = Vec::new();
         for opt_part in vec {
             match self.expr(opt_part) {
@@ -330,20 +331,7 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
                 None => { return None; },
             }
         }
-        Some(ConstantVec(parts))
-    }
-
-    fn tup<E: Deref<Target=Expr> + Sized>(&mut self, tup: &[E]) -> Option<Constant> {
-        let mut parts = Vec::new();
-        for opt_part in tup {
-            match self.expr(opt_part) {
-                Some(p) => {
-                    parts.push(p)
-                },
-                None => { return None; },
-            }
-        }
-        Some(ConstantTuple(parts),)
+        Some(parts)
     }
 
     /// lookup a possibly constant expression from a ExprPath

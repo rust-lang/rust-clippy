@@ -52,14 +52,20 @@ fn test_lit() {
 
 #[test]
 fn test_ops() {
+    check(TRUE, &expr(ExprUnary(UnNot, P(lit(LitBool(false))))));
+
     check(TRUE, &binop(BiOr, lit(LitBool(false)), lit(LitBool(true))));
     check(FALSE, &binop(BiAnd, lit(LitBool(false)), lit(LitBool(true))));
 
     let litzero = lit(LitInt(0, UnsuffixedIntLit(Plus)));
+    let litone = lit(LitInt(1, UnsuffixedIntLit(Plus)));
     check(TRUE, &binop(BiEq, litzero.clone(), litzero.clone()));
     check(TRUE, &binop(BiGe, litzero.clone(), litzero.clone()));
     check(TRUE, &binop(BiLe, litzero.clone(), litzero.clone()));
     check(FALSE, &binop(BiNe, litzero.clone(), litzero.clone()));
     check(FALSE, &binop(BiGt, litzero.clone(), litzero.clone()));
     check(FALSE, &binop(BiLt, litzero.clone(), litzero.clone()));
+
+    check(ZERO, &binop(BiAdd, litzero.clone(), litzero.clone()));
+    check(ZERO, &binop(BiSub, litone.clone(), litone.clone()));
 }
