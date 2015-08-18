@@ -59,7 +59,7 @@ impl Constant {
     ///
     /// if the constant could not be converted to u64 losslessly
     fn as_u64(&self) -> u64 {
-        if let ConstantInt(val, _) = *self {
+        if let &ConstantInt(val, _) = self {
             val // TODO we may want to check the sign if any
         } else {
             panic!("Could not convert a {:?} to u64");
