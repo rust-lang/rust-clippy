@@ -149,15 +149,15 @@ impl PartialOrd for Constant {
 
 
 fn lit_to_constant(lit: &Lit_) -> Constant {
-    match lit {
-        &LitStr(ref is, style) => ConstantStr(is.to_string(), style),
-        &LitBinary(ref blob) => ConstantBinary(blob.clone()),
-        &LitByte(b) => ConstantByte(b),
-        &LitChar(c) => ConstantChar(c),
-        &LitInt(value, ty) => ConstantInt(value, ty),
-        &LitFloat(ref is, ty) => ConstantFloat(is.to_string(), ty.into()),
-        &LitFloatUnsuffixed(ref is) => ConstantFloat(is.to_string(), FwAny),
-        &LitBool(b) => ConstantBool(b),
+    match *lit {
+        LitStr(ref is, style) => ConstantStr(is.to_string(), style),
+        LitBinary(ref blob) => ConstantBinary(blob.clone()),
+        LitByte(b) => ConstantByte(b),
+        LitChar(c) => ConstantChar(c),
+        LitInt(value, ty) => ConstantInt(value, ty),
+        LitFloat(ref is, ty) => ConstantFloat(is.to_string(), ty.into()),
+        LitFloatUnsuffixed(ref is) => ConstantFloat(is.to_string(), FwAny),
+        LitBool(b) => ConstantBool(b),
     }
 }
 
@@ -345,7 +345,7 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
     /// A block can only yield a constant if it only has one constant expression
     fn block(&mut self, block: &Block) -> Option<Constant> {
         if block.stmts.is_empty() {
-            block.expr.as_ref().and_then(|b| self.expr(&*b))
+            block.expr.as_ref().and_then(|ref b| self.expr(b))
         } else { None }
     }
 
