@@ -293,57 +293,36 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
 
     /// simple constant folding: Insert an expression, get a constant or none.
     fn expr(&mut self, e: &Expr) -> Option<Constant> {
-        match &e.node {
-            &ExprParen(ref inner) => self.expr(inner),
-            &ExprPath(_, _) => self.fetch_path(e),
-            &ExprBlock(ref block) => self.block(block),
-            &ExprIf(ref cond, ref then, ref otherwise) =>
+        match e.node {
+            ExprParen(ref inner) => self.expr(inner),
+            ExprPath(_, _) => self.fetch_path(e),
+            ExprBlock(ref block) => self.block(block),
+            ExprIf(ref cond, ref then, ref otherwise) =>
                 self.ifthenelse(&*cond, &*then, &*otherwise),
-            &ExprLit(ref lit) => Some(lit_to_constant(&lit.node)),
-            &ExprVec(ref vec) => self.vec(&vec[..]),
-            &ExprTup(ref tup) => self.tup(&tup[..]),
-            &ExprRepeat(ref value, ref number) =>
+            ExprLit(ref lit) => Some(lit_to_constant(&lit.node)),
+            ExprVec(ref vec) => self.multi(&vec[..]).map(ConstantVec),
+            ExprTup(ref tup) => self.multi(&tup[..]).map(ConstantTuple),
+            ExprRepeat(ref value, ref number) =>
                 self.binop_apply(value, number,|v, n|
                     Some(ConstantRepeat(Box::new(v), n.as_u64() as usize))),
-            &ExprUnary(op, ref operand) => self.expr(operand).and_then(
+            ExprUnary(op, ref operand) => self.expr(operand).and_then(
                 |o| match op {
                     UnNot => constant_not(o),
                     UnNeg => constant_negate(o),
                     UnUniq | UnDeref => Some(o),
                 }),
-            &ExprBinary(op, ref left, ref right) =>
+            ExprBinary(op, ref left, ref right) =>
                 self.binop(op, left, right),
             //TODO: add other expressions
             _ => None,
         }
     }
 
-    /// create `Some(ConstantVec(..))` of all constants, unless there is any
+    /// create `Some(Vec![..])` of all constants, unless there is any
     /// non-constant part
-    fn vec<E: Deref<Target=Expr> + Sized>(&mut self, vec: &[E]) -> Option<Constant> {
-        let mut parts = Vec::new();
-        for opt_part in vec {
-            match self.expr(opt_part) {
-                Some(p) => {
-                    parts.push(p)
-                },
-                None => { return None; },
-            }
-        }
-        Some(ConstantVec(parts))
-    }
-
-    fn tup<E: Deref<Target=Expr> + Sized>(&mut self, tup: &[E]) -> Option<Constant> {
-        let mut parts = Vec::new();
-        for opt_part in tup {
-            match self.expr(opt_part) {
-                Some(p) => {
-                    parts.push(p)
-                },
-                None => { return None; },
-            }
-        }
-        Some(ConstantTuple(parts),)
+    fn multi<E: Deref<Target=Expr> + Sized>(&mut self, vec: &[E]) -> Option<Vec<Constant>> {
+        vec.iter().map(|elem| self.expr(elem))
+                  .collect::<Option<_>>()
     }
 
     /// lookup a possibly constant expression from a ExprPath
@@ -376,7 +355,7 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
             if b {
                 self.block(then)
             } else {
-                otherwise.as_ref().and_then(|expr| self.expr(&*expr))
+                otherwise.as_ref().and_then(|ref expr| self.expr(expr))
             }
         } else { None }
     }
@@ -472,7 +451,7 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
 
     fn short_circuit(&mut self, left: &Expr, right: &Expr, b: bool) -> Option<Constant> {
         self.expr(left).and_then(|left|
-            if let &ConstantBool(lbool) = &left {
+            if let ConstantBool(lbool) = left {
                 if lbool == b {
                     Some(left)
                 } else {
