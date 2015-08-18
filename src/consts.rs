@@ -59,7 +59,7 @@ impl Constant {
     ///
     /// if the constant could not be converted to u64 losslessly
     fn as_u64(&self) -> u64 {
-        if let ConstantInt(val, _) = *self {
+        if let &ConstantInt(val, _) = self {
             val // TODO we may want to check the sign if any
         } else {
             panic!("Could not convert a {:?} to u64");
@@ -300,10 +300,10 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
             ExprIf(ref cond, ref then, ref otherwise) =>
                 self.ifthenelse(&*cond, &*then, &*otherwise),
             ExprLit(ref lit) => Some(lit_to_constant(&lit.node)),
-            ExprVec(ref vec) => self.vec(&vec),
-            ExprTup(ref tup) => self.tup(&tup),
+            ExprVec(ref vec) => self.multi(&vec[..]).map(ConstantVec),
+            ExprTup(ref tup) => self.multi(&tup[..]).map(ConstantTuple),
             ExprRepeat(ref value, ref number) =>
-                self.binop_apply(value, number, |v, n|
+                self.binop_apply(value, number,|v, n|
                     Some(ConstantRepeat(Box::new(v), n.as_u64() as usize))),
             ExprUnary(op, ref operand) => self.expr(operand).and_then(
                 |o| match op {
@@ -318,18 +318,11 @@ impl<'c, 'cc> ConstEvalContext<'c, 'cc> {
         }
     }
 
-    /// create `Some(ConstantVec(..))` of all constants, unless there is any
+    /// create `Some(Vec![..])` of all constants, unless there is any
     /// non-constant part
-    fn vec<E: Deref<Target=Expr> + Sized>(&mut self, vec: &[E]) -> Option<Constant> {
+    fn multi<E: Deref<Target=Expr> + Sized>(&mut self, vec: &[E]) -> Option<Vec<Constant>> {
         vec.iter().map(|elem| self.expr(elem))
                   .collect::<Option<_>>()
-                  .map(ConstantVec)
-    }
-
-    fn tup<E: Deref<Target=Expr> + Sized>(&mut self, tup: &[E]) -> Option<Constant> {
-        tup.iter().map(|elem| self.expr(elem))
-                  .collect::<Option<_>>()
-                  .map(ConstantTuple)
     }
 
     /// lookup a possibly constant expression from a ExprPath
