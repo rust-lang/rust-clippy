@@ -4,7 +4,7 @@
 A collection of lints that give helpful tips to newbies and catch oversights.
 
 ##Lints
-There are 51 lints included in this crate:
+There are 52 lints included in this crate:
 
 name                                                                                                 | default | meaning
 -----------------------------------------------------------------------------------------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
