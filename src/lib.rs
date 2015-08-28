@@ -130,6 +130,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
         types::TYPE_COMPLEXITY,
         types::UNIT_CMP,
         unicode::NON_ASCII_LITERAL,
+        unicode::UNICODE_NOT_NFC,
         unicode::ZERO_WIDTH_SPACE,
     ]);
 }

@@ -8,9 +8,9 @@ fn zero() {
                             //~^^ ERROR zero-width space detected. Consider using `\u{200B}`
 }
 
-//#[deny(unicode_canon)]
+#[deny(unicode_not_nfc)]
 fn canon() {
-    print!("̀ah?"); //not yet ~ERROR non-canonical unicode sequence detected. Consider using à
+    print!("̀àh?"); //~ERROR non NFC-normal unicode sequence found.
 }
 
 #[deny(non_ascii_literal)]
