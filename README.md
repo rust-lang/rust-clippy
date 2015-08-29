@@ -57,6 +57,7 @@ name                                                                            
 [type_complexity](https://github.com/Manishearth/rust-clippy/wiki#type_complexity)                   | warn    | usage of very complex types; recommends factoring out parts into `type` definitions
 [unicode_not_nfc](https://github.com/Manishearth/rust-clippy/wiki#unicode_not_nfc)                   | allow   | using a unicode literal not in NFC normal form (see http://www.unicode.org/reports/tr15/ for further information)
 [unit_cmp](https://github.com/Manishearth/rust-clippy/wiki#unit_cmp)                                 | warn    | comparing unit values (which is always `true` or `false`, respectively)
+[while_let_loop](https://github.com/Manishearth/rust-clippy/wiki#while_let_loop)                     | warn    | `loop { if let { ... } else break }` can be written as a `while let` loop
 [zero_width_space](https://github.com/Manishearth/rust-clippy/wiki#zero_width_space)                 | deny    | using a zero-width space in a string literal, which is confusing
 
 More to come, please [file an issue](https://github.com/Manishearth/rust-clippy/issues) if you have ideas!
