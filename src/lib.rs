@@ -111,7 +111,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
         misc::CMP_OWNED,
         misc::FLOAT_CMP,
         misc::MODULO_ONE,
-        misc::REDUNDANT_PATTERN
+        misc::REDUNDANT_PATTERN,
         misc::TOPLEVEL_REF_ARG,
         mut_mut::MUT_MUT,
         needless_bool::NEEDLESS_BOOL,
