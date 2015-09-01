@@ -60,6 +60,7 @@ name                                                                            
 [unit_cmp](https://github.com/Manishearth/rust-clippy/wiki#unit_cmp)                                 | warn    | comparing unit values (which is always `true` or `false`, respectively)
 [unused_collect](https://github.com/Manishearth/rust-clippy/wiki#unused_collect)                     | warn    | `collect()`ing an iterator without using the result; this is usually better written as a for loop
 [while_let_loop](https://github.com/Manishearth/rust-clippy/wiki#while_let_loop)                     | warn    | `loop { if let { ... } else break }` can be written as a `while let` loop
+[wrong_self_convention](https://github.com/Manishearth/rust-clippy/wiki#wrong_self_convention)       | warn    | defining a method named with an established prefix (like "into_") that takes `self` with the wrong convention
 [zero_width_space](https://github.com/Manishearth/rust-clippy/wiki#zero_width_space)                 | deny    | using a zero-width space in a string literal, which is confusing
 
 More to come, please [file an issue](https://github.com/Manishearth/rust-clippy/issues) if you have ideas!
