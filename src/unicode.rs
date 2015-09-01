@@ -82,13 +82,13 @@ where F: Fn(&str) -> String, {
         x => {
             let mut repls = String::new();
             for (from, until) in ranges {
-                if let Some(u) = until {
+                let _ = if let Some(u) = until {
                     write!(&mut repls, "\n{}..{} => {}",
-                        from, u, &multi_fun(&string[from..u])).expect("");
+                        from, u, &multi_fun(&string[from..u]));
                 } else {
                     write!(&mut repls, "\n{}.. => {}",
-                        from, &multi_fun(&string[from..])).expect("");
-                }
+                        from, &multi_fun(&string[from..]));
+                };
             }
             span_lint(cx, lint, span, &format!(
                 "{} {} ranges detected. Consider the following replacements:{}",
