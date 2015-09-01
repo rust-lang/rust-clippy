@@ -90,7 +90,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
         types::CAST_PRECISION_LOSS,
         types::CAST_SIGN_LOSS,
         unicode::NON_ASCII_LITERAL,
-        unicode::UNICODE_NON_NFC,
+        unicode::UNICODE_NOT_NFC,
     ]);
 
     reg.register_lint_group("clippy", vec![
