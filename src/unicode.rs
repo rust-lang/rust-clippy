@@ -3,7 +3,7 @@ extern crate unicode_normalization;
 use std::fmt::Write;
 use rustc::lint::*;
 use syntax::ast::*;
-use syntax::codemap::{Pos, BytePos, CharPos, Span};
+use syntax::codemap::{Pos, BytePos, Span};
 use self::unicode_normalization::char::canonical_combining_class;
 use self::unicode_normalization::UnicodeNormalization;
 
@@ -36,7 +36,7 @@ impl LintPass for Unicode {
 }
 
 fn pos(base: BytePos, i: usize) -> BytePos {
-    if i == 0 { base } else { base + BytePos::from_usize(i + 1) }
+    if i == 0 { base } else { base + Pos::from_usize(i + 1) }
 }
 
 #[allow(cast_possible_truncation)]
@@ -84,10 +84,10 @@ where F: Fn(&str) -> String, {
             for (from, until) in ranges {
                 if let Some(u) = until {
                     write!(&mut repls, "\n{}..{} => {}",
-                        from, u, &multi_fun(&string[from..u])).unwrap();
+                        from, u, &multi_fun(&string[from..u])).expect("");
                 } else {
                     write!(&mut repls, "\n{}.. => {}",
-                        from, &multi_fun(&string[from..])).unwrap();
+                        from, &multi_fun(&string[from..])).expect("");
                 }
             }
             span_lint(cx, lint, span, &format!(
