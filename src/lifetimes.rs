@@ -1,7 +1,7 @@
 use syntax::ast::*;
 use rustc::lint::*;
 use syntax::codemap::Span;
-use syntax::visit::{Visitor, walk_ty, walk_ty_param_bound};
+use syntax::visit::{Visitor, walk_ty, walk_ty_param_bound, walk_ty_param_bounds_helper};
 use std::collections::HashSet;
 
 use utils::{in_external_macro, span_lint};
@@ -53,14 +53,14 @@ fn check_fn_inner(cx: &Context, decl: &FnDecl, slf: Option<&ExplicitSelf>,
     if in_external_macro(cx, span) || has_where_lifetimes(&generics.where_clause) {
         return;
     }
-    if could_use_elision(decl, slf, &generics.lifetimes) {
+    if could_use_elision(decl, slf, generics) {
         span_lint(cx, NEEDLESS_LIFETIMES, span,
                   "explicit lifetimes given in parameter types where they could be elided");
     }
 }
 
 fn could_use_elision(func: &FnDecl, slf: Option<&ExplicitSelf>,
-                     named_lts: &[LifetimeDef]) -> bool {
+                     generics: &Generics) -> bool {
     // There are two scenarios where elision works:
     // * no output references, all input references have different LT
     // * output references, exactly one input reference with same LT
@@ -68,7 +68,10 @@ fn could_use_elision(func: &FnDecl, slf: Option<&ExplicitSelf>,
     // level of the current item.
 
     // check named LTs
-    let allowed_lts = allowed_lts_from(named_lts);
+    let Generics {ref lifetimes, ref ty_params, ..} = *generics;
+    let allowed_lts = allowed_lts_from(lifetimes);
+
+    if params_contain_lts(ty_params) {return false;}
 
     // these will collect all the lifetimes for references in arg/return types
     let mut input_visitor = RefVisitor(Vec::new());
@@ -147,6 +150,14 @@ fn allowed_lts_from(named_lts: &[LifetimeDef]) -> HashSet<RefLt> {
     allowed_lts
 }
 
+fn params_contain_lts(params: &[TyParam]) -> bool {
+    let mut param_vis = RefVisitor(Vec::new());
+    for param in params {
+        walk_ty_param_bounds_helper(&mut param_vis, &param.bounds);
+    }
+    !param_vis.0.is_empty()
+}
+
 /// Number of unique lifetimes in the given vector.
 fn unique_lifetimes(lts: &[RefLt]) -> usize {
     lts.iter().collect::<HashSet<_>>().len()
@@ -183,9 +194,6 @@ impl<'v> Visitor<'v> for RefVisitor {
     fn visit_lifetime_ref(&mut self, lifetime: &'v Lifetime) {
         self.record(&Some(*lifetime));
     }
-
-    // for lifetime bounds; the default impl calls visit_lifetime_ref
-    fn visit_lifetime_bound(&mut self, _: &'v Lifetime) { }
 }
 
 /// Are any lifetimes mentioned in the `where` clause? If yes, we don't try to
