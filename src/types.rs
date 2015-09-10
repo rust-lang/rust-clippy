@@ -55,7 +55,7 @@ fn check_let_unit(cx: &Context, decl: &Decl) {
     if let DeclLocal(ref local) = decl.node {
         let bindtype = &cx.tcx.pat_ty(&local.pat).sty;
         if *bindtype == ty::TyTuple(vec![]) {
-            if in_external_macro(cx, decl.span) { return; }
+            if in_macro(cx, decl.span) { return; }
             span_lint(cx, LET_UNIT_VALUE, decl.span, &format!(
                 "this let-binding has unit value. Consider omitting `let {} =`",
                 snippet(cx, local.pat.span, "..")));
