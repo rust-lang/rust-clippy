@@ -53,13 +53,19 @@ impl ReturnPass {
                     self.check_final_expr(cx, &arm.body);
                 }
             }
-            _ => { }
+            _ => {
+            }
         }
     }
 
     fn emit_return_lint(&mut self, cx: &LateContext, spans: (Span, Span)) {
-        if in_external_macro(cx, spans.1) {return;}
-        span_lint(cx, NEEDLESS_RETURN, spans.0, &format!(
+        if in_external_macro(cx, spans.1) {
+            return;
+        }
+        span_lint(cx,
+                  NEEDLESS_RETURN,
+                  spans.0,
+                  &format!(
             "unneeded return statement. Consider using `{}` \
              without the return and trailing semicolon",
             snippet(cx, spans.1, "..")))
@@ -85,13 +91,16 @@ impl ReturnPass {
     }
 
     fn emit_let_lint(&mut self, cx: &LateContext, lint_span: Span, note_span: Span) {
-        if in_external_macro(cx, note_span) {return;}
-        span_lint(cx, LET_AND_RETURN, lint_span,
-                  "returning the result of a let binding from a block. \
-                   Consider returning the expression directly.");
+        if in_external_macro(cx, note_span) {
+            return;
+        }
+        span_lint(cx,
+                  LET_AND_RETURN,
+                  lint_span,
+                  "returning the result of a let binding from a block. Consider returning the \
+                   expression directly.");
         if cx.current_level(LET_AND_RETURN) != Level::Allow {
-            cx.sess().span_note(note_span,
-                                "this expression can be directly returned");
+            cx.sess().span_note(note_span, "this expression can be directly returned");
         }
     }
 }
@@ -103,8 +112,13 @@ impl LintPass for ReturnPass {
 }
 
 impl LateLintPass for ReturnPass {
-    fn check_fn(&mut self, cx: &LateContext, _: FnKind, _: &FnDecl,
-                block: &Block, _: Span, _: NodeId) {
+    fn check_fn(&mut self,
+                cx: &LateContext,
+                _: FnKind,
+                _: &FnDecl,
+                block: &Block,
+                _: Span,
+                _: NodeId) {
         self.check_block_return(cx, block);
     }
 

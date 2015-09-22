@@ -20,9 +20,11 @@ impl EarlyLintPass for Precedence {
     fn check_expr(&mut self, cx: &EarlyContext, expr: &Expr) {
         if let ExprBinary(Spanned { node: op, ..}, ref left, ref right) = expr.node {
             if is_bit_op(op) && (is_arith_expr(left) || is_arith_expr(right)) {
-                span_lint(cx, PRECEDENCE, expr.span,
-                    "operator precedence can trip the unwary. Consider adding parentheses \
-                     to the subexpression");
+                span_lint(cx,
+                          PRECEDENCE,
+                          expr.span,
+                          "operator precedence can trip the unwary. Consider adding parentheses \
+                           to the subexpression");
             }
         }
 
@@ -32,10 +34,12 @@ impl EarlyLintPass for Precedence {
                     if let ExprLit(ref lit) = slf.node {
                         match lit.node {
                             LitInt(..) | LitFloat(..) | LitFloatUnsuffixed(..) =>
-                                span_lint(cx, PRECEDENCE, expr.span,
-                                    "unary minus has lower precedence than method call. Consider \
-                                     adding parentheses to clarify your intent"),
-                                _ => ()
+                                span_lint(cx,
+                                      PRECEDENCE,
+                                      expr.span,
+                                      "unary minus has lower precedence than method call. \
+                                       Consider adding parentheses to clarify your intent"),
+                            _ => (),
                         }
                     }
                 }
@@ -44,23 +48,23 @@ impl EarlyLintPass for Precedence {
     }
 }
 
-fn is_arith_expr(expr : &Expr) -> bool {
+fn is_arith_expr(expr: &Expr) -> bool {
     match expr.node {
         ExprBinary(Spanned { node: op, ..}, _, _) => is_arith_op(op),
-        _ => false
+        _ => false,
     }
 }
 
-fn is_bit_op(op : BinOp_) -> bool {
+fn is_bit_op(op: BinOp_) -> bool {
     match op {
         BiBitXor | BiBitAnd | BiBitOr | BiShl | BiShr => true,
-        _ => false
+        _ => false,
     }
 }
 
-fn is_arith_op(op : BinOp_) -> bool {
+fn is_arith_op(op: BinOp_) -> bool {
     match op {
         BiAdd | BiSub | BiMul | BiDiv | BiRem => true,
-        _ => false
+        _ => false,
     }
 }

@@ -43,17 +43,21 @@ fn check_lit(cx: &LateContext, lit: &Lit, e: &Expr) {
     match lit.node {
         LitFloat(ref str, TyF32) => check_known_consts(cx, e, str, "f32"),
         LitFloat(ref str, TyF64) => check_known_consts(cx, e, str, "f64"),
-        LitFloatUnsuffixed(ref str) =>
-            check_known_consts(cx, e, str, "f{32, 64}"),
-        _ => ()
+        LitFloatUnsuffixed(ref str) => check_known_consts(cx, e, str, "f{32, 64}"),
+        _ => (),
     }
 }
 
 fn check_known_consts(cx: &LateContext, e: &Expr, str: &str, module: &str) {
     if let Ok(value) = str.parse::<f64>() {
         for &(constant, name) in KNOWN_CONSTS {
-            if !within_epsilon(constant, value) { continue; }
-            span_lint(cx, APPROX_CONSTANT, e.span, &format!(
+            if !within_epsilon(constant, value) {
+                continue;
+            }
+            span_lint(cx,
+                      APPROX_CONSTANT,
+                      e.span,
+                      &format!(
                 "approximate value of `{}::{}` found. \
                 Consider using it directly", module, &name));
         }
@@ -61,7 +65,10 @@ fn check_known_consts(cx: &LateContext, e: &Expr, str: &str, module: &str) {
 }
 
 fn within_epsilon(target: f64, value: f64) -> bool {
-    f64::abs(value - target) < f64::abs(if target > value {
-                                            target
-                                        } else { value }) / EPSILON_DIVISOR
+    f64::abs(value - target) <
+    f64::abs(if target > value {
+        target
+    } else {
+        value
+    }) / EPSILON_DIVISOR
 }

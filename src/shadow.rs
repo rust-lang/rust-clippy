@@ -28,9 +28,16 @@ impl LintPass for ShadowPass {
 }
 
 impl LateLintPass for ShadowPass {
-    fn check_fn(&mut self, cx: &LateContext, _: FnKind, decl: &FnDecl,
-            block: &Block, _: Span, _: NodeId) {
-        if in_external_macro(cx, block.span) { return; }
+    fn check_fn(&mut self,
+                cx: &LateContext,
+                _: FnKind,
+                decl: &FnDecl,
+                block: &Block,
+                _: Span,
+                _: NodeId) {
+        if in_external_macro(cx, block.span) {
+            return;
+        }
         check_fn(cx, decl, block);
     }
 }
@@ -50,19 +57,24 @@ fn check_block(cx: &LateContext, block: &Block, bindings: &mut Vec<(Name, Span)>
     for stmt in &block.stmts {
         match stmt.node {
             StmtDecl(ref decl, _) => check_decl(cx, decl, bindings),
-            StmtExpr(ref e, _) | StmtSemi(ref e, _) =>
-                check_expr(cx, e, bindings)
+            StmtExpr(ref e, _) | StmtSemi(ref e, _) => check_expr(cx, e, bindings),
         }
     }
-    if let Some(ref o) = block.expr { check_expr(cx, o, bindings); }
+    if let Some(ref o) = block.expr {
+        check_expr(cx, o, bindings);
+    }
     bindings.truncate(len);
 }
 
 fn check_decl(cx: &LateContext, decl: &Decl, bindings: &mut Vec<(Name, Span)>) {
-    if in_external_macro(cx, decl.span) { return; }
+    if in_external_macro(cx, decl.span) {
+        return;
+    }
     if let DeclLocal(ref local) = decl.node {
         let Local{ ref pat, ref ty, ref init, id: _, span } = **local;
-        if let &Some(ref t) = ty { check_ty(cx, t, bindings) }
+        if let &Some(ref t) = ty {
+            check_ty(cx, t, bindings)
+        }
         if let &Some(ref o) = init {
             check_expr(cx, o, bindings);
             check_pat(cx, pat, &Some(o), span, bindings);
@@ -75,12 +87,15 @@ fn check_decl(cx: &LateContext, decl: &Decl, bindings: &mut Vec<(Name, Span)>) {
 fn is_binding(cx: &LateContext, pat: &Pat) -> bool {
     match cx.tcx.def_map.borrow().get(&pat.id).map(|d| d.full_def()) {
         Some(DefVariant(..)) | Some(DefStruct(..)) => false,
-        _ => true
+        _ => true,
     }
 }
 
-fn check_pat(cx: &LateContext, pat: &Pat, init: &Option<&Expr>, span: Span,
-        bindings: &mut Vec<(Name, Span)>) {
+fn check_pat(cx: &LateContext,
+             pat: &Pat,
+             init: &Option<&Expr>,
+             span: Span,
+             bindings: &mut Vec<(Name, Span)>) {
     //TODO: match more stuff / destructuring
     match pat.node {
         PatIdent(_, ref ident, ref inner) => {
@@ -99,45 +114,45 @@ fn check_pat(cx: &LateContext, pat: &Pat, init: &Option<&Expr>, span: Span,
                     bindings.push((name, ident.span));
                 }
             }
-            if let Some(ref p) = *inner { check_pat(cx, p, init, span, bindings); }
-        },
+            if let Some(ref p) = *inner {
+                check_pat(cx, p, init, span, bindings);
+            }
+        }
         //PatEnum(Path, Option<Vec<P<Pat>>>),
-        PatStruct(_, ref pfields, _) =>
-            if let Some(ref init_struct) = *init {
-                if let ExprStruct(_, ref efields, _) = init_struct.node {
-                    for field in pfields {
-                        let ident = field.node.ident;
-                        let efield = efields.iter()
-                            .find(|ref f| f.ident.node == ident)
-                            .map(|f| &*f.expr);
-                        check_pat(cx, &field.node.pat, &efield, span, bindings);
-                    }
-                } else {
-                    for field in pfields {
-                        check_pat(cx, &field.node.pat, init, span, bindings);
-                    }
+        PatStruct(_, ref pfields, _) => if let Some(ref init_struct) = *init {
+            if let ExprStruct(_, ref efields, _) = init_struct.node {
+                for field in pfields {
+                    let ident = field.node.ident;
+                    let efield = efields.iter()
+                                        .find(|ref f| f.ident.node == ident)
+                                        .map(|f| &*f.expr);
+                    check_pat(cx, &field.node.pat, &efield, span, bindings);
                 }
             } else {
                 for field in pfields {
-                    check_pat(cx, &field.node.pat, &None, span, bindings);
+                    check_pat(cx, &field.node.pat, init, span, bindings);
                 }
-            },
-        PatTup(ref inner) =>
-            if let Some(ref init_tup) = *init {
-                if let ExprTup(ref tup) = init_tup.node {
-                    for (i, p) in inner.iter().enumerate() {
-                        check_pat(cx, p, &Some(&tup[i]), p.span, bindings);
-                    }
-                } else {
-                    for p in inner {
-                        check_pat(cx, p, init, span, bindings);
-                    }
+            }
+        } else {
+            for field in pfields {
+                check_pat(cx, &field.node.pat, &None, span, bindings);
+            }
+        },
+        PatTup(ref inner) => if let Some(ref init_tup) = *init {
+            if let ExprTup(ref tup) = init_tup.node {
+                for (i, p) in inner.iter().enumerate() {
+                    check_pat(cx, p, &Some(&tup[i]), p.span, bindings);
                 }
             } else {
                 for p in inner {
-                    check_pat(cx, p, &None, span, bindings);
+                    check_pat(cx, p, init, span, bindings);
                 }
-            },
+            }
+        } else {
+            for p in inner {
+                check_pat(cx, p, &None, span, bindings);
+            }
+        },
         PatBox(ref inner) => {
             if let Some(ref initp) = *init {
                 if let ExprBox(_, ref inner_init) = initp.node {
@@ -148,16 +163,21 @@ fn check_pat(cx: &LateContext, pat: &Pat, init: &Option<&Expr>, span: Span,
             } else {
                 check_pat(cx, inner, init, span, bindings);
             }
-        },
-        PatRegion(ref inner, _) =>
-            check_pat(cx, inner, init, span, bindings),
+        }
+        PatRegion(ref inner, _) => check_pat(cx, inner, init, span, bindings),
         //PatVec(Vec<P<Pat>>, Option<P<Pat>>, Vec<P<Pat>>),
         _ => (),
     }
 }
 
-fn lint_shadow<T>(cx: &LateContext, name: Name, span: Span, lspan: Span, init:
-        &Option<T>, prev_span: Span) where T: Deref<Target=Expr> {
+fn lint_shadow<T>(cx: &LateContext,
+                  name: Name,
+                  span: Span,
+                  lspan: Span,
+                  init: &Option<T>,
+                  prev_span: Span)
+    where T: Deref<Target = Expr>
+{
     fn note_orig(cx: &LateContext, lint: &'static Lint, span: Span) {
         if cx.current_level(lint) != Level::Allow {
             cx.sess().span_note(span, "previous binding is here");
@@ -165,58 +185,84 @@ fn lint_shadow<T>(cx: &LateContext, name: Name, span: Span, lspan: Span, init:
     }
     if let Some(ref expr) = *init {
         if is_self_shadow(name, expr) {
-            span_lint(cx, SHADOW_SAME, span, &format!(
+            span_lint(cx,
+                      SHADOW_SAME,
+                      span,
+                      &format!(
                 "{} is shadowed by itself in {}",
                 snippet(cx, lspan, "_"),
                 snippet(cx, expr.span, "..")));
-                note_orig(cx, SHADOW_SAME, prev_span);
+            note_orig(cx, SHADOW_SAME, prev_span);
         } else {
             if contains_self(name, expr) {
-                span_note_and_lint(cx, SHADOW_REUSE, lspan, &format!(
+                span_note_and_lint(cx,
+                                   SHADOW_REUSE,
+                                   lspan,
+                                   &format!(
                     "{} is shadowed by {} which reuses the original value",
                     snippet(cx, lspan, "_"),
                     snippet(cx, expr.span, "..")),
-                    expr.span, "initialization happens here");
+                                   expr.span,
+                                   "initialization happens here");
                 note_orig(cx, SHADOW_REUSE, prev_span);
             } else {
-                span_note_and_lint(cx, SHADOW_UNRELATED, lspan, &format!(
+                span_note_and_lint(cx,
+                                   SHADOW_UNRELATED,
+                                   lspan,
+                                   &format!(
                     "{} is shadowed by {}",
                     snippet(cx, lspan, "_"),
                     snippet(cx, expr.span, "..")),
-                    expr.span, "initialization happens here");
+                                   expr.span,
+                                   "initialization happens here");
                 note_orig(cx, SHADOW_UNRELATED, prev_span);
             }
         }
     } else {
-        span_lint(cx, SHADOW_UNRELATED, span, &format!(
+        span_lint(cx,
+                  SHADOW_UNRELATED,
+                  span,
+                  &format!(
             "{} shadows a previous declaration", snippet(cx, lspan, "_")));
         note_orig(cx, SHADOW_UNRELATED, prev_span);
     }
 }
 
 fn check_expr(cx: &LateContext, expr: &Expr, bindings: &mut Vec<(Name, Span)>) {
-    if in_external_macro(cx, expr.span) { return; }
+    if in_external_macro(cx, expr.span) {
+        return;
+    }
     match expr.node {
-        ExprUnary(_, ref e) | ExprField(ref e, _) |
-        ExprTupField(ref e, _) | ExprAddrOf(_, ref e) | ExprBox(None, ref e)
-            => { check_expr(cx, e, bindings) },
+        ExprUnary(_, ref e) |
+        ExprField(ref e, _) |
+        ExprTupField(ref e, _) |
+        ExprAddrOf(_, ref e) |
+        ExprBox(None, ref e) => {
+            check_expr(cx, e, bindings)
+        }
         ExprBox(Some(ref place), ref e) => {
-            check_expr(cx, place, bindings); check_expr(cx, e, bindings) }
-        ExprBlock(ref block) | ExprLoop(ref block, _) =>
-            { check_block(cx, block, bindings) },
+            check_expr(cx, place, bindings);
+            check_expr(cx, e, bindings)
+        }
+        ExprBlock(ref block) | ExprLoop(ref block, _) => {
+            check_block(cx, block, bindings)
+        }
         //ExprCall
         //ExprMethodCall
-        ExprVec(ref v) | ExprTup(ref v) =>
-            for ref e in v { check_expr(cx, e, bindings) },
+        ExprVec(ref v) | ExprTup(ref v) => for ref e in v {
+            check_expr(cx, e, bindings)
+        },
         ExprIf(ref cond, ref then, ref otherwise) => {
             check_expr(cx, cond, bindings);
             check_block(cx, then, bindings);
-            if let &Some(ref o) = otherwise { check_expr(cx, o, bindings); }
-        },
+            if let &Some(ref o) = otherwise {
+                check_expr(cx, o, bindings);
+            }
+        }
         ExprWhile(ref cond, ref block, _) => {
             check_expr(cx, cond, bindings);
             check_block(cx, block, bindings);
-        },
+        }
         ExprMatch(ref init, ref arms, _) => {
             check_expr(cx, init, bindings);
             let len = bindings.len();
@@ -231,22 +277,27 @@ fn check_expr(cx: &LateContext, expr: &Expr, bindings: &mut Vec<(Name, Span)>) {
                     bindings.truncate(len);
                 }
             }
-        },
-        _ => ()
+        }
+        _ => (),
     }
 }
 
 fn check_ty(cx: &LateContext, ty: &Ty, bindings: &mut Vec<(Name, Span)>) {
     match ty.node {
-        TyParen(ref sty) | TyObjectSum(ref sty, _) |
+        TyParen(ref sty) |
+        TyObjectSum(ref sty, _) |
         TyVec(ref sty) => check_ty(cx, sty, bindings),
         TyFixedLengthVec(ref fty, ref expr) => {
             check_ty(cx, fty, bindings);
             check_expr(cx, expr, bindings);
-        },
+        }
         TyPtr(MutTy{ ty: ref mty, .. }) |
         TyRptr(_, MutTy{ ty: ref mty, .. }) => check_ty(cx, mty, bindings),
-        TyTup(ref tup) => { for ref t in tup { check_ty(cx, t, bindings) } },
+        TyTup(ref tup) => {
+            for ref t in tup {
+                check_ty(cx, t, bindings)
+            }
+        }
         TyTypeof(ref expr) => check_expr(cx, expr, bindings),
         _ => (),
     }
@@ -256,18 +307,16 @@ fn is_self_shadow(name: Name, expr: &Expr) -> bool {
     match expr.node {
         ExprBox(_, ref inner) |
         ExprAddrOf(_, ref inner) => is_self_shadow(name, inner),
-        ExprBlock(ref block) => block.stmts.is_empty() && block.expr.as_ref().
-            map_or(false, |ref e| is_self_shadow(name, e)),
-        ExprUnary(op, ref inner) => (UnUniq == op || UnDeref == op) &&
-            is_self_shadow(name, inner),
+        ExprBlock(ref block) => block.stmts.is_empty() &&
+                                block.expr.as_ref().map_or(false, |ref e| is_self_shadow(name, e)),
+        ExprUnary(op, ref inner) => (UnUniq == op || UnDeref == op) && is_self_shadow(name, inner),
         ExprPath(_, ref path) => path_eq_name(name, path),
         _ => false,
     }
 }
 
 fn path_eq_name(name: Name, path: &Path) -> bool {
-    !path.global && path.segments.len() == 1 &&
-        path.segments[0].identifier.name == name
+    !path.global && path.segments.len() == 1 && path.segments[0].identifier.name == name
 }
 
 fn contains_self(name: Name, expr: &Expr) -> bool {
@@ -277,49 +326,54 @@ fn contains_self(name: Name, expr: &Expr) -> bool {
         // no subexprs
         ExprLit(_) => false,
         // one subexpr
-        ExprUnary(_, ref e) | ExprField(ref e, _) |
-        ExprTupField(ref e, _) | ExprAddrOf(_, ref e) | ExprBox(_, ref e) |
-        ExprCast(ref e, _) =>
-            contains_self(name, e),
+        ExprUnary(_, ref e) |
+        ExprField(ref e, _) |
+        ExprTupField(ref e, _) |
+        ExprAddrOf(_, ref e) |
+        ExprBox(_, ref e) |
+        ExprCast(ref e, _) => contains_self(name, e),
         // two subexprs
-        ExprBinary(_, ref l, ref r) | ExprIndex(ref l, ref r) |
-        ExprAssign(ref l, ref r) | ExprAssignOp(_, ref l, ref r) |
-        ExprRepeat(ref l, ref r) =>
-            contains_self(name, l) || contains_self(name, r),
+        ExprBinary(_, ref l, ref r) |
+        ExprIndex(ref l, ref r) |
+        ExprAssign(ref l, ref r) |
+        ExprAssignOp(_, ref l, ref r) |
+        ExprRepeat(ref l, ref r) => contains_self(name, l) || contains_self(name, r),
         // one optional subexpr
-        ExprRet(ref oe) =>
-            oe.as_ref().map_or(false, |ref e| contains_self(name, e)),
+        ExprRet(ref oe) => oe.as_ref().map_or(false, |ref e| contains_self(name, e)),
         // two optional subexprs
-        ExprRange(ref ol, ref or) =>
-            ol.as_ref().map_or(false, |ref e| contains_self(name, e)) ||
-            or.as_ref().map_or(false, |ref e| contains_self(name, e)),
+        ExprRange(ref ol, ref or) => ol.as_ref().map_or(false, |ref e| contains_self(name, e)) ||
+                                     or.as_ref().map_or(false, |ref e| contains_self(name, e)),
         // one subblock
-        ExprBlock(ref block) | ExprLoop(ref block, _) |
-        ExprClosure(_, _, ref block) =>
-            contains_block_self(name, block),
+        ExprBlock(ref block) |
+        ExprLoop(ref block, _) |
+        ExprClosure(_, _, ref block) => contains_block_self(name, block),
         // one vec
         ExprMethodCall(_, _, ref v) | ExprVec(ref v) | ExprTup(ref v) =>
             v.iter().any(|ref a| contains_self(name, a)),
         // one expr, one vec
-        ExprCall(ref fun, ref args) =>
-            contains_self(name, fun) ||
-            args.iter().any(|ref a| contains_self(name, a)),
+        ExprCall(ref fun, ref args) => contains_self(name, fun) ||
+                                       args.iter().any(|ref a| contains_self(name, a)),
         // special ones
-        ExprIf(ref cond, ref then, ref otherwise) =>
-            contains_self(name, cond) || contains_block_self(name, then) ||
-            otherwise.as_ref().map_or(false, |ref e| contains_self(name, e)),
-        ExprWhile(ref e, ref block, _)  =>
-            contains_self(name, e) || contains_block_self(name, block),
+        ExprIf(ref cond, ref then, ref otherwise) => contains_self(name, cond) ||
+                                                     contains_block_self(name, then) ||
+                                                     otherwise.as_ref()
+                                                              .map_or(false,
+                                                                      |ref e| {
+                                                                          contains_self(name, e)
+                                                                      }),
+        ExprWhile(ref e, ref block, _) => contains_self(name, e) ||
+                                          contains_block_self(name, block),
         ExprMatch(ref e, ref arms, _) =>
             contains_self(name, e) ||
-            arms.iter().any(
-                |ref arm|
-                arm.pats.iter().any(|ref pat| contains_pat_self(name, pat)) ||
-                arm.guard.as_ref().map_or(false, |ref g| contains_self(name, g)) ||
-                contains_self(name, &arm.body)),
-        ExprStruct(_, ref fields, ref other) =>
-            fields.iter().any(|ref f| contains_self(name, &f.expr)) ||
-            other.as_ref().map_or(false, |ref e| contains_self(name, e)),
+        arms.iter().any(|ref arm| {
+            arm.pats.iter().any(|ref pat| contains_pat_self(name, pat)) ||
+            arm.guard.as_ref().map_or(false, |ref g| contains_self(name, g)) ||
+            contains_self(name, &arm.body)
+        }),
+        ExprStruct(_, ref fields, ref other) => fields.iter()
+                                                      .any(|ref f| contains_self(name, &f.expr)) ||
+                                                other.as_ref()
+                                                     .map_or(false, |ref e| contains_self(name, e)),
         _ => false,
     }
 }
@@ -327,40 +381,54 @@ fn contains_self(name: Name, expr: &Expr) -> bool {
 fn contains_block_self(name: Name, block: &Block) -> bool {
     for stmt in &block.stmts {
         match stmt.node {
-            StmtDecl(ref decl, _) =>
-            if let DeclLocal(ref local) = decl.node {
+            StmtDecl(ref decl, _) => if let DeclLocal(ref local) = decl.node {
                 //TODO: We don't currently handle the case where the name
                 //is shadowed wiithin the block; this means code including this
                 //degenerate pattern will get the wrong warning.
                 if let Some(ref init) = local.init {
-                    if contains_self(name, init) { return true; }
+                    if contains_self(name, init) {
+                        return true;
+                    }
                 }
             },
-            StmtExpr(ref e, _) | StmtSemi(ref e, _) =>
-                if contains_self(name, e) { return true }
+            StmtExpr(ref e, _) | StmtSemi(ref e, _) => if contains_self(name, e) {
+                return true
+            },
         }
     }
-    if let Some(ref e) = block.expr { contains_self(name, e) } else { false }
+    if let Some(ref e) = block.expr {
+        contains_self(name, e)
+    } else {
+        false
+    }
 }
 
 fn contains_pat_self(name: Name, pat: &Pat) -> bool {
     match pat.node {
         PatIdent(_, ref ident, ref inner) => name == ident.node.name ||
-            inner.as_ref().map_or(false, |ref p| contains_pat_self(name, p)),
-        PatEnum(_, ref opats) => opats.as_ref().map_or(false,
-            |pats| pats.iter().any(|p| contains_pat_self(name, p))),
+                                             inner.as_ref().map_or(false,
+                                                                   |ref p| {
+                                                                       contains_pat_self(name, p)
+                                                                   }),
+        PatEnum(_, ref opats) => opats.as_ref()
+                                      .map_or(false,
+                                              |pats| {
+                                                  pats.iter().any(|p| contains_pat_self(name, p))
+                                              }),
         PatQPath(_, ref path) => path_eq_name(name, path),
-        PatStruct(_, ref fieldpats, _) => fieldpats.iter().any(
-            |ref fp| contains_pat_self(name, &fp.node.pat)),
+        PatStruct(_, ref fieldpats, _) => fieldpats.iter().any(|ref fp| {
+            contains_pat_self(name, &fp.node.pat)
+        }),
         PatTup(ref ps) => ps.iter().any(|ref p| contains_pat_self(name, p)),
         PatBox(ref p) |
         PatRegion(ref p, _) => contains_pat_self(name, p),
-        PatRange(ref from, ref until) =>
-            contains_self(name, from) || contains_self(name, until),
-        PatVec(ref pre, ref opt, ref post) =>
-            pre.iter().any(|ref p| contains_pat_self(name, p)) ||
-                opt.as_ref().map_or(false, |ref p| contains_pat_self(name, p)) ||
-                post.iter().any(|ref p| contains_pat_self(name, p)),
+        PatRange(ref from, ref until) => contains_self(name, from) || contains_self(name, until),
+        PatVec(ref pre, ref opt, ref post) => pre.iter().any(|ref p| contains_pat_self(name, p)) ||
+                                              opt.as_ref().map_or(false,
+                                                                  |ref p| {
+                                                                      contains_pat_self(name, p)
+                                                                  }) ||
+                                              post.iter().any(|ref p| contains_pat_self(name, p)),
         _ => false,
     }
 }

@@ -29,15 +29,13 @@ impl LateLintPass for LifetimePass {
 
     fn check_impl_item(&mut self, cx: &LateContext, item: &ImplItem) {
         if let MethodImplItem(ref sig, _) = item.node {
-            check_fn_inner(cx, &sig.decl, Some(&sig.explicit_self),
-                           &sig.generics, item.span);
+            check_fn_inner(cx, &sig.decl, Some(&sig.explicit_self), &sig.generics, item.span);
         }
     }
 
     fn check_trait_item(&mut self, cx: &LateContext, item: &TraitItem) {
         if let MethodTraitItem(ref sig, _) = item.node {
-            check_fn_inner(cx, &sig.decl, Some(&sig.explicit_self),
-                           &sig.generics, item.span);
+            check_fn_inner(cx, &sig.decl, Some(&sig.explicit_self), &sig.generics, item.span);
         }
     }
 }
@@ -51,19 +49,23 @@ enum RefLt {
 }
 use self::RefLt::*;
 
-fn check_fn_inner(cx: &LateContext, decl: &FnDecl, slf: Option<&ExplicitSelf>,
-                  generics: &Generics, span: Span) {
+fn check_fn_inner(cx: &LateContext,
+                  decl: &FnDecl,
+                  slf: Option<&ExplicitSelf>,
+                  generics: &Generics,
+                  span: Span) {
     if in_external_macro(cx, span) || has_where_lifetimes(&generics.where_clause) {
         return;
     }
     if could_use_elision(decl, slf, &generics.lifetimes) {
-        span_lint(cx, NEEDLESS_LIFETIMES, span,
+        span_lint(cx,
+                  NEEDLESS_LIFETIMES,
+                  span,
                   "explicit lifetimes given in parameter types where they could be elided");
     }
 }
 
-fn could_use_elision(func: &FnDecl, slf: Option<&ExplicitSelf>,
-                     named_lts: &[LifetimeDef]) -> bool {
+fn could_use_elision(func: &FnDecl, slf: Option<&ExplicitSelf>, named_lts: &[LifetimeDef]) -> bool {
     // There are two scenarios where elision works:
     // * no output references, all input references have different LT
     // * output references, exactly one input reference with same LT
@@ -83,7 +85,8 @@ fn could_use_elision(func: &FnDecl, slf: Option<&ExplicitSelf>,
         match slf.node {
             SelfRegion(ref opt_lt, _, _) => input_visitor.record(opt_lt),
             SelfExplicit(ref ty, _) => walk_ty(&mut input_visitor, ty),
-            _ => { }
+            _ => {
+            }
         }
     }
     // extract lifetimes in input argument types
@@ -127,11 +130,17 @@ fn could_use_elision(func: &FnDecl, slf: Option<&ExplicitSelf>,
         }
         if input_lts.len() == 1 {
             match (&input_lts[0], &output_lts[0]) {
-                (&Named(n1), &Named(n2)) if n1 == n2 => { return true; }
-                (&Named(_), &Unnamed) => { return true; }
-                (&Unnamed, &Named(_)) => { return true; }
-                _ => { } // already elided, different named lifetimes
-                         // or something static going on
+                (&Named(n1), &Named(n2)) if n1 == n2 => {
+                    return true;
+                }
+                (&Named(_), &Unnamed) => {
+                    return true;
+                }
+                (&Unnamed, &Named(_)) => {
+                    return true;
+                }
+                _ => {
+                }
             }
         }
     }
@@ -188,7 +197,8 @@ impl<'v> Visitor<'v> for RefVisitor {
     }
 
     // for lifetime bounds; the default impl calls visit_lifetime_ref
-    fn visit_lifetime_bound(&mut self, _: &'v Lifetime) { }
+    fn visit_lifetime_bound(&mut self, _: &'v Lifetime) {
+    }
 }
 
 /// Are any lifetimes mentioned in the `where` clause? If yes, we don't try to
@@ -202,7 +212,9 @@ fn has_where_lifetimes(where_clause: &WhereClause) -> bool {
                 let mut visitor = RefVisitor(Vec::new());
                 // walk the type F, it may not contain LT refs
                 walk_ty(&mut visitor, &pred.bounded_ty);
-                if !visitor.0.is_empty() { return true; }
+                if !visitor.0.is_empty() {
+                    return true;
+                }
                 // if the bounds define new lifetimes, they are fine to occur
                 let allowed_lts = allowed_lts_from(&pred.bound_lifetimes);
                 // now walk the bounds
@@ -219,7 +231,9 @@ fn has_where_lifetimes(where_clause: &WhereClause) -> bool {
             WherePredicate::EqPredicate(ref pred) => {
                 let mut visitor = RefVisitor(Vec::new());
                 walk_ty(&mut visitor, &pred.ty);
-                if !visitor.0.is_empty() { return true; }
+                if !visitor.0.is_empty() {
+                    return true;
+                }
             }
         }
     }
