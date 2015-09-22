@@ -86,7 +86,7 @@ fn invert_cmp(cmp: BinOp_) -> BinOp_ {
         BiGt => BiLt,
         BiLe => BiGe,
         BiGe => BiLe,
-        _ => BiOr,
+        _ => BiOr, // dummy
     }
 }
 
