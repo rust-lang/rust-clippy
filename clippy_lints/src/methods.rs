@@ -521,6 +521,24 @@ declare_lint! {
     "using `.cloned().collect()` on slice to create a `Vec`"
 }
 
+/// **What it does:** Checks for calls to the main function
+///
+/// **Why is this bad?** Recursing the main function is unlikely what was intended
+///
+/// **Known problems:** None.
+///
+/// **Example:**
+/// ```rust
+/// fn foo() {
+///     ::main();
+/// }
+/// ```
+declare_lint! {
+    pub CALLING_MAIN,
+    Warn,
+    "manually called the main function"
+}
+
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(OPTION_UNWRAP_USED,
@@ -545,6 +563,7 @@ impl LintPass for Pass {
                     ITER_SKIP_NEXT,
                     GET_UNWRAP,
                     STRING_EXTEND_CHARS,
+                    CALLING_MAIN,
                     ITER_CLONED_COLLECT)
     }
 }
@@ -552,7 +571,7 @@ impl LintPass for Pass {
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     #[allow(unused_attributes)]
     // ^ required because `cyclomatic_complexity` attribute shows up as unused
-    #[cyclomatic_complexity = "30"]
+    #[cyclomatic_complexity = "31"]
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr) {
         if in_macro(cx, expr.span) {
             return;
@@ -625,6 +644,20 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             hir::ExprBinary(op, ref lhs, ref rhs) if op.node == hir::BiEq || op.node == hir::BiNe => {
                 if !lint_chars_next(cx, expr, lhs, rhs, op.node == hir::BiEq) {
                     lint_chars_next(cx, expr, rhs, lhs, op.node == hir::BiEq);
+                }
+            },
+            hir::ExprCall(ref func, ref args) => {
+                if args.is_empty() {
+                    // libs don't have a main
+                    if let Some((main, _)) = *cx.sess().entry_fn.borrow() {
+                        if let hir::ExprPath(ref qpath) = func.node {
+                            let main_did = cx.tcx.hir.local_def_id(main);
+                            let fun_did = cx.tables.qpath_def(qpath, func.id).def_id();
+                            if main_did == fun_did {
+                                span_lint(cx, CALLING_MAIN, expr.span, "called the `main` function manually");
+                            }
+                        }
+                    }
                 }
             },
             _ => (),
