@@ -26,7 +26,13 @@ impl LintPass for TopLevelRefPass {
 }
 
 impl LateLintPass for TopLevelRefPass {
-    fn check_fn(&mut self, cx: &LateContext, k: FnKind, decl: &FnDecl, _: &Block, _: Span, _: NodeId) {
+    fn check_fn(&mut self,
+                cx: &LateContext,
+                k: FnKind,
+                decl: &FnDecl,
+                _: &Block,
+                _: Span,
+                _: NodeId) {
         if let FnKind::Closure = k {
             // Does not apply to closures
             return
@@ -34,10 +40,10 @@ impl LateLintPass for TopLevelRefPass {
         for ref arg in &decl.inputs {
             if let PatIdent(BindByRef(_), _, _) = arg.pat.node {
                 span_lint(cx,
-                    TOPLEVEL_REF_ARG,
-                    arg.pat.span,
-                    "`ref` directly on a function argument is ignored. Consider using a reference type instead."
-                );
+                          TOPLEVEL_REF_ARG,
+                          arg.pat.span,
+                          "`ref` directly on a function argument is ignored. Consider using a \
+                           reference type instead.");
             }
         }
     }
@@ -94,9 +100,13 @@ impl LateLintPass for CmpNan {
 }
 
 fn check_nan(cx: &LateContext, path: &Path, span: Span) {
-    path.segments.last().map(|seg| if seg.identifier.name.as_str() == "NAN" {
-        span_lint(cx, CMP_NAN, span,
-            "doomed comparison with NAN, use `std::{f32,f64}::is_nan()` instead");
+    path.segments.last().map(|seg| {
+        if seg.identifier.name.as_str() == "NAN" {
+            span_lint(cx,
+                      CMP_NAN,
+                      span,
+                      "doomed comparison with NAN, use `std::{f32,f64}::is_nan()` instead");
+        }
     });
 }
 
@@ -119,23 +129,27 @@ impl LateLintPass for FloatCmp {
         if let ExprBinary(ref cmp, ref left, ref right) = expr.node {
             let op = cmp.node;
             if (op == BiEq || op == BiNe) && (is_float(cx, left) || is_float(cx, right)) {
-                if constant(cx, left).or_else(|| constant(cx, right)).map_or(
-                        false, |c| c.0.as_float().map_or(false, |f| f == 0.0)) {
+                if constant(cx, left)
+                       .or_else(|| constant(cx, right))
+                       .map_or(false, |c| c.0.as_float().map_or(false, |f| f == 0.0)) {
                     return;
                 }
                 if let Some(name) = get_item_name(cx, expr) {
                     let name = name.as_str();
                     if name == "eq" || name == "ne" || name == "is_nan" ||
-                            name.starts_with("eq_") ||
-                            name.ends_with("_eq") {
+                       name.starts_with("eq_") || name.ends_with("_eq") {
                         return;
                     }
                 }
-                span_lint(cx, FLOAT_CMP, expr.span, &format!(
-                    "{}-comparison of f32 or f64 detected. Consider changing this to \
-                     `abs({} - {}) < epsilon` for some suitable value of epsilon",
-                    binop_to_string(op), snippet(cx, left.span, ".."),
-                    snippet(cx, right.span, "..")));
+                span_lint(cx,
+                          FLOAT_CMP,
+                          expr.span,
+                          &format!("{}-comparison of f32 or f64 detected. Consider changing \
+                                    this to `abs({} - {}) < epsilon` for some suitable value of \
+                                    epsilon",
+                                   binop_to_string(op),
+                                   snippet(cx, left.span, ".."),
+                                   snippet(cx, right.span, "..")));
             }
         }
     }
@@ -175,32 +189,40 @@ impl LateLintPass for CmpOwned {
 fn check_to_owned(cx: &LateContext, expr: &Expr, other_span: Span) {
     match expr.node {
         ExprMethodCall(Spanned{node: ref name, ..}, _, ref args) => {
-            if name.as_str() == "to_string" ||
-                name.as_str() == "to_owned" && is_str_arg(cx, args) {
-                    span_lint(cx, CMP_OWNED, expr.span, &format!(
-                        "this creates an owned instance just for comparison. \
-                         Consider using `{}.as_slice()` to compare without allocation",
-                        snippet(cx, other_span, "..")))
-                }
-        },
+            if name.as_str() == "to_string" || name.as_str() == "to_owned" && is_str_arg(cx, args) {
+                span_lint(cx,
+                          CMP_OWNED,
+                          expr.span,
+                          &format!("this creates an owned instance just for comparison. Consider \
+                                    using `{}.as_slice()` to compare without allocation",
+                                   snippet(cx, other_span, "..")))
+            }
+        }
         ExprCall(ref path, _) => {
             if let &ExprPath(None, ref path) = &path.node {
                 if match_path(path, &["String", "from_str"]) ||
-                    match_path(path, &["String", "from"]) {
-                        span_lint(cx, CMP_OWNED, expr.span, &format!(
-                            "this creates an owned instance just for comparison. \
-                             Consider using `{}.as_slice()` to compare without allocation",
-                            snippet(cx, other_span, "..")))
-                    }
+                   match_path(path, &["String", "from"]) {
+                    span_lint(cx,
+                              CMP_OWNED,
+                              expr.span,
+                              &format!("this creates an owned instance just for comparison. \
+                                        Consider using `{}.as_slice()` to compare without \
+                                        allocation",
+                                       snippet(cx, other_span, "..")))
+                }
             }
-        },
-        _ => ()
+        }
+        _ => (),
     }
 }
 
 fn is_str_arg(cx: &LateContext, args: &[P<Expr>]) -> bool {
-    args.len() == 1 && if let ty::TyStr =
-        walk_ptrs_ty(cx.tcx.expr_ty(&args[0])).sty { true } else { false }
+    args.len() == 1 &&
+    if let ty::TyStr = walk_ptrs_ty(cx.tcx.expr_ty(&args[0])).sty {
+        true
+    } else {
+        false
+    }
 }
 
 declare_lint!(pub MODULO_ONE, Warn, "taking a number modulo 1, which always returns 0");
@@ -241,9 +263,11 @@ impl LateLintPass for PatternPass {
     fn check_pat(&mut self, cx: &LateContext, pat: &Pat) {
         if let PatIdent(_, ref ident, Some(ref right)) = pat.node {
             if right.node == PatWild(PatWildSingle) {
-                cx.span_lint(REDUNDANT_PATTERN, pat.span, &format!(
-                    "the `{} @ _` pattern can be written as just `{}`",
-                    ident.node.name, ident.node.name));
+                cx.span_lint(REDUNDANT_PATTERN,
+                             pat.span,
+                             &format!("the `{} @ _` pattern can be written as just `{}`",
+                                      ident.node.name,
+                                      ident.node.name));
             }
         }
     }

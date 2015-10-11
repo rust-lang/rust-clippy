@@ -26,7 +26,7 @@ impl LateLintPass for EtaPass {
                 for arg in args {
                     check_closure(cx, arg)
                 }
-            },
+            }
             _ => (),
         }
     }
@@ -79,9 +79,11 @@ fn check_closure(cx: &LateContext, expr: &Expr) {
                         return
                     }
                 }
-                span_lint(cx, REDUNDANT_CLOSURE, expr.span, &format!(
-                    "redundant closure found. Consider using `{}` in its place",
-                    snippet(cx, caller.span, "..")));
+                span_lint(cx,
+                          REDUNDANT_CLOSURE,
+                          expr.span,
+                          &format!("redundant closure found. Consider using `{}` in its place",
+                                   snippet(cx, caller.span, "..")));
             }
         }
     }

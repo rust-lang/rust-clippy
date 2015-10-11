@@ -89,7 +89,8 @@ pub fn plugin_registrar(reg: &mut Registry) {
     reg.register_late_lint_pass(box misc::PatternPass);
     reg.register_late_lint_pass(box minmax::MinMaxPass);
 
-    reg.register_lint_group("clippy_pedantic", vec![
+    reg.register_lint_group("clippy_pedantic",
+                            vec![
         methods::OPTION_UNWRAP_USED,
         methods::RESULT_UNWRAP_USED,
         methods::WRONG_PUB_SELF_CONVENTION,
@@ -108,7 +109,8 @@ pub fn plugin_registrar(reg: &mut Registry) {
         unicode::UNICODE_NOT_NFC,
     ]);
 
-    reg.register_lint_group("clippy", vec![
+    reg.register_lint_group("clippy",
+                            vec![
         approx_const::APPROX_CONSTANT,
         attrs::INLINE_ALWAYS,
         bit_mask::BAD_BIT_MASK,
