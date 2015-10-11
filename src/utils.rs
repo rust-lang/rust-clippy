@@ -18,12 +18,7 @@ pub const LL_PATH:     [&'static str; 3] = ["collections", "linked_list", "Linke
 /// returns true this expn_info was expanded by any macro
 pub fn in_macro(cx: &LateContext, span: Span) -> bool {
     cx.sess().codemap().with_expn_info(span.expn_id,
-            |info| info.map_or(false, |i| {
-        match i.callee.format {
-            ExpnFormat::CompilerExpansion(..) => false,
-            _ => true,
-        }
-    }))
+            |info| info.map_or(false, |_| true))
 }
 
 /// returns true if the macro that expanded the crate was outside of
@@ -35,11 +30,6 @@ pub fn in_external_macro<T: LintContext>(cx: &T, span: Span) -> bool {
         // no ExpnInfo = no macro
         opt_info.map_or(false, |info| {
             match info.callee.format {
-                ExpnFormat::CompilerExpansion(..) => {
-                    if info.callee.name().as_str() == "closure expansion" {
-                        return false;
-                    }
-                },
                 ExpnFormat::MacroAttribute(..) => {
                     // these are all plugins
                     return true;
