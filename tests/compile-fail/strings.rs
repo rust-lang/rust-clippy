@@ -1,12 +1,14 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
+#![allow(let_unit_value, let_and_return)]
+
 #[deny(string_add)]
 #[allow(string_add_assign)]
 fn add_only() { // ignores assignment distinction
     let mut x = "".to_owned();
 
-    for _ in (1..3) {
+    for _ in 1..3 {
         x = x + "."; //~ERROR you added something to a string.
     }
 
@@ -20,7 +22,7 @@ fn add_only() { // ignores assignment distinction
 fn add_assign_only() {
     let mut x = "".to_owned();
 
-    for _ in (1..3) {
+    for _ in 1..3 {
         x = x + "."; //~ERROR you assigned the result of adding something to this string.
     }
 
@@ -34,7 +36,7 @@ fn add_assign_only() {
 fn both() {
     let mut x = "".to_owned();
 
-    for _ in (1..3) {
+    for _ in 1..3 {
         x = x + "."; //~ERROR you assigned the result of adding something to this string.
     }
 
