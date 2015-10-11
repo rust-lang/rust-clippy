@@ -15,7 +15,8 @@ use self::OutType::*;
 pub struct MethodsPass;
 
 declare_lint!(pub OPTION_UNWRAP_USED, Allow,
-              "using `Option.unwrap()`, which should at least get a better message using `expect()`");
+              "using `Option.unwrap()`, which should at least get a better message using \
+               `expect()`");
 declare_lint!(pub RESULT_UNWRAP_USED, Allow,
               "using `Result.unwrap()`, which might be better handled");
 declare_lint!(pub STR_TO_STRING, Warn,
@@ -28,13 +29,17 @@ declare_lint!(pub WRONG_SELF_CONVENTION, Warn,
               "defining a method named with an established prefix (like \"into_\") that takes \
                `self` with the wrong convention");
 declare_lint!(pub WRONG_PUB_SELF_CONVENTION, Allow,
-              "defining a public method named with an established prefix (like \"into_\") that takes \
-               `self` with the wrong convention");
+              "defining a public method named with an established prefix (like \"into_\") that \
+               takes `self` with the wrong convention");
 
 impl LintPass for MethodsPass {
     fn get_lints(&self) -> LintArray {
-        lint_array!(OPTION_UNWRAP_USED, RESULT_UNWRAP_USED, STR_TO_STRING, STRING_TO_STRING,
-                    SHOULD_IMPLEMENT_TRAIT, WRONG_SELF_CONVENTION)
+        lint_array!(OPTION_UNWRAP_USED,
+                    RESULT_UNWRAP_USED,
+                    STR_TO_STRING,
+                    STRING_TO_STRING,
+                    SHOULD_IMPLEMENT_TRAIT,
+                    WRONG_SELF_CONVENTION)
     }
 }
 
@@ -44,30 +49,38 @@ impl LateLintPass for MethodsPass {
             let (obj_ty, ptr_depth) = walk_ptrs_ty_depth(cx.tcx.expr_ty(&args[0]));
             if name.node.as_str() == "unwrap" {
                 if match_type(cx, obj_ty, &OPTION_PATH) {
-                    span_lint(cx, OPTION_UNWRAP_USED, expr.span,
-                              "used unwrap() on an Option value. If you don't want \
-                               to handle the None case gracefully, consider using \
-                               expect() to provide a better panic message");
+                    span_lint(cx,
+                              OPTION_UNWRAP_USED,
+                              expr.span,
+                              "used unwrap() on an Option value. If you don't want to handle the \
+                               None case gracefully, consider using expect() to provide a better \
+                               panic message");
                 } else if match_type(cx, obj_ty, &RESULT_PATH) {
-                    span_lint(cx, RESULT_UNWRAP_USED, expr.span,
-                              "used unwrap() on a Result value. Graceful handling \
-                               of Err values is preferred");
+                    span_lint(cx,
+                              RESULT_UNWRAP_USED,
+                              expr.span,
+                              "used unwrap() on a Result value. Graceful handling of Err values \
+                               is preferred");
                 }
-            }
-            else if name.node.as_str() == "to_string" {
+            } else if name.node.as_str() == "to_string" {
                 if obj_ty.sty == ty::TyStr {
                     let mut arg_str = snippet(cx, args[0].span, "_");
                     if ptr_depth > 1 {
-                        arg_str = Cow::Owned(format!(
-                            "({}{})",
-                            iter::repeat('*').take(ptr_depth - 1).collect::<String>(),
-                            arg_str));
+                        arg_str = Cow::Owned(format!("({}{})",
+                                                     iter::repeat('*')
+                                                         .take(ptr_depth - 1)
+                                                         .collect::<String>(),
+                                                     arg_str));
                     }
-                    span_lint(cx, STR_TO_STRING, expr.span, &format!(
-                        "`{}.to_owned()` is faster", arg_str));
+                    span_lint(cx,
+                              STR_TO_STRING,
+                              expr.span,
+                              &format!("`{}.to_owned()` is faster", arg_str));
                 } else if match_type(cx, obj_ty, &STRING_PATH) {
-                    span_lint(cx, STRING_TO_STRING, expr.span, "`String.to_string()` is a no-op; use \
-                                                                `clone()` to make a copy");
+                    span_lint(cx,
+                              STRING_TO_STRING,
+                              expr.span,
+                              "`String.to_string()` is a no-op; use `clone()` to make a copy");
                 }
             }
         }
@@ -87,9 +100,14 @@ impl LateLintPass for MethodsPass {
                                 out_type.matches(&sig.decl.output),
                                 self_kind.matches(&sig.explicit_self.node, false)
                             ], {
-                                span_lint(cx, SHOULD_IMPLEMENT_TRAIT, implitem.span, &format!(
-                                    "defining a method called `{}` on this type; consider implementing \
-                                     the `{}` trait or choosing a less ambiguous name", name, trait_name));
+                                span_lint(cx,
+                                          SHOULD_IMPLEMENT_TRAIT,
+                                          implitem.span,
+                                          &format!("defining a method called `{}` on this type; \
+                                                    consider implementing the `{}` trait or \
+                                                    choosing a less ambiguous name",
+                                                    name,
+                                                    trait_name));
                             }
                         }
                     }
@@ -97,16 +115,22 @@ impl LateLintPass for MethodsPass {
                     let is_copy = is_copy(cx, &ty, &item);
                     for &(prefix, self_kinds) in &CONVENTIONS {
                         if name.as_str().starts_with(prefix) &&
-                                !self_kinds.iter().any(|k| k.matches(&sig.explicit_self.node, is_copy)) {
+                           !self_kinds.iter().any(|k| k.matches(&sig.explicit_self.node, is_copy)) {
                             let lint = if item.vis == Visibility::Public {
                                 WRONG_PUB_SELF_CONVENTION
                             } else {
                                 WRONG_SELF_CONVENTION
                             };
-                            span_lint(cx, lint, sig.explicit_self.span, &format!(
-                                "methods called `{}*` usually take {}; consider choosing a less \
-                                 ambiguous name", prefix,
-                                &self_kinds.iter().map(|k| k.description()).collect::<Vec<_>>().join(" or ")));
+                            span_lint(cx,
+                                      lint,
+                                      sig.explicit_self.span,
+                                      &format!("methods called `{}*` usually take {}; consider \
+                                                choosing a less ambiguous name",
+                                               prefix,
+                                               &self_kinds.iter()
+                                                          .map(|k| k.description())
+                                                          .collect::<Vec<_>>()
+                                                          .join(" or ")));
                         }
                     }
                 }
@@ -115,46 +139,51 @@ impl LateLintPass for MethodsPass {
     }
 }
 
-const CONVENTIONS: [(&'static str, &'static [SelfKind]); 5] = [
-    ("into_", &[ValueSelf]),
-    ("to_",   &[RefSelf]),
-    ("as_",   &[RefSelf, RefMutSelf]),
-    ("is_",   &[RefSelf, NoSelf]),
-    ("from_", &[NoSelf]),
-];
+const CONVENTIONS: [(&'static str, &'static [SelfKind]); 5] = [("into_", &[ValueSelf]),
+                                                               ("to_", &[RefSelf]),
+                                                               ("as_", &[RefSelf, RefMutSelf]),
+                                                               ("is_", &[RefSelf, NoSelf]),
+                                                               ("from_", &[NoSelf])];
 
-const TRAIT_METHODS: [(&'static str, usize, SelfKind, OutType, &'static str); 30] = [
-    ("add",        2, ValueSelf,  AnyType,  "std::ops::Add"),
-    ("sub",        2, ValueSelf,  AnyType,  "std::ops::Sub"),
-    ("mul",        2, ValueSelf,  AnyType,  "std::ops::Mul"),
-    ("div",        2, ValueSelf,  AnyType,  "std::ops::Div"),
-    ("rem",        2, ValueSelf,  AnyType,  "std::ops::Rem"),
-    ("shl",        2, ValueSelf,  AnyType,  "std::ops::Shl"),
-    ("shr",        2, ValueSelf,  AnyType,  "std::ops::Shr"),
-    ("bitand",     2, ValueSelf,  AnyType,  "std::ops::BitAnd"),
-    ("bitor",      2, ValueSelf,  AnyType,  "std::ops::BitOr"),
-    ("bitxor",     2, ValueSelf,  AnyType,  "std::ops::BitXor"),
-    ("neg",        1, ValueSelf,  AnyType,  "std::ops::Neg"),
-    ("not",        1, ValueSelf,  AnyType,  "std::ops::Not"),
-    ("drop",       1, RefMutSelf, UnitType, "std::ops::Drop"),
-    ("index",      2, RefSelf,    RefType,  "std::ops::Index"),
-    ("index_mut",  2, RefMutSelf, RefType,  "std::ops::IndexMut"),
-    ("deref",      1, RefSelf,    RefType,  "std::ops::Deref"),
-    ("deref_mut",  1, RefMutSelf, RefType,  "std::ops::DerefMut"),
-    ("clone",      1, RefSelf,    AnyType,  "std::clone::Clone"),
-    ("borrow",     1, RefSelf,    RefType,  "std::borrow::Borrow"),
-    ("borrow_mut", 1, RefMutSelf, RefType,  "std::borrow::BorrowMut"),
-    ("as_ref",     1, RefSelf,    RefType,  "std::convert::AsRef"),
-    ("as_mut",     1, RefMutSelf, RefType,  "std::convert::AsMut"),
-    ("eq",         2, RefSelf,    BoolType, "std::cmp::PartialEq"),
-    ("cmp",        2, RefSelf,    AnyType,  "std::cmp::Ord"),
-    ("default",    0, NoSelf,     AnyType,  "std::default::Default"),
-    ("hash",       2, RefSelf,    UnitType, "std::hash::Hash"),
-    ("next",       1, RefMutSelf, AnyType,  "std::iter::Iterator"),
-    ("into_iter",  1, ValueSelf,  AnyType,  "std::iter::IntoIterator"),
-    ("from_iter",  1, NoSelf,     AnyType,  "std::iter::FromIterator"),
-    ("from_str",   1, NoSelf,     AnyType,  "std::str::FromStr"),
-];
+const TRAIT_METHODS: [(&'static str, usize, SelfKind, OutType, &'static str); 30] =
+    [("add", 2, ValueSelf, AnyType, "std::ops::Add"),
+     ("sub", 2, ValueSelf, AnyType, "std::ops::Sub"),
+     ("mul", 2, ValueSelf, AnyType, "std::ops::Mul"),
+     ("div", 2, ValueSelf, AnyType, "std::ops::Div"),
+     ("rem", 2, ValueSelf, AnyType, "std::ops::Rem"),
+     ("shl", 2, ValueSelf, AnyType, "std::ops::Shl"),
+     ("shr", 2, ValueSelf, AnyType, "std::ops::Shr"),
+     ("bitand", 2, ValueSelf, AnyType, "std::ops::BitAnd"),
+     ("bitor", 2, ValueSelf, AnyType, "std::ops::BitOr"),
+     ("bitxor", 2, ValueSelf, AnyType, "std::ops::BitXor"),
+     ("neg", 1, ValueSelf, AnyType, "std::ops::Neg"),
+     ("not", 1, ValueSelf, AnyType, "std::ops::Not"),
+     ("drop", 1, RefMutSelf, UnitType, "std::ops::Drop"),
+     ("index", 2, RefSelf, RefType, "std::ops::Index"),
+     ("index_mut", 2, RefMutSelf, RefType, "std::ops::IndexMut"),
+     ("deref", 1, RefSelf, RefType, "std::ops::Deref"),
+     ("deref_mut", 1, RefMutSelf, RefType, "std::ops::DerefMut"),
+     ("clone", 1, RefSelf, AnyType, "std::clone::Clone"),
+     ("borrow", 1, RefSelf, RefType, "std::borrow::Borrow"),
+     ("borrow_mut",
+      1,
+      RefMutSelf,
+      RefType,
+      "std::borrow::BorrowMut"),
+     ("as_ref", 1, RefSelf, RefType, "std::convert::AsRef"),
+     ("as_mut", 1, RefMutSelf, RefType, "std::convert::AsMut"),
+     ("eq", 2, RefSelf, BoolType, "std::cmp::PartialEq"),
+     ("cmp", 2, RefSelf, AnyType, "std::cmp::Ord"),
+     ("default", 0, NoSelf, AnyType, "std::default::Default"),
+     ("hash", 2, RefSelf, UnitType, "std::hash::Hash"),
+     ("next", 1, RefMutSelf, AnyType, "std::iter::Iterator"),
+     ("into_iter",
+      1,
+      ValueSelf,
+      AnyType,
+      "std::iter::IntoIterator"),
+     ("from_iter", 1, NoSelf, AnyType, "std::iter::FromIterator"),
+     ("from_str", 1, NoSelf, AnyType, "std::str::FromStr")];
 
 #[derive(Clone, Copy)]
 enum SelfKind {
@@ -174,7 +203,7 @@ impl SelfKind {
             (&RefMutSelf, &SelfValue(_)) => allow_value_for_ref,
             (&NoSelf, &SelfStatic) => true,
             (_, &SelfExplicit(ref ty, _)) => self.matches_explicit_type(ty, allow_value_for_ref),
-            _ => false
+            _ => false,
         }
     }
 
@@ -185,7 +214,7 @@ impl SelfKind {
             (&RefMutSelf, &TyRptr(_, MutTy { mutbl: Mutability::MutMutable, .. })) => true,
             (&RefSelf, &TyPath(..)) => allow_value_for_ref,
             (&RefMutSelf, &TyPath(..)) => allow_value_for_ref,
-            _ => false
+            _ => false,
         }
     }
 
@@ -213,11 +242,15 @@ impl OutType {
             (&UnitType, &DefaultReturn(_)) => true,
             (&UnitType, &Return(ref ty)) if ty.node == TyTup(vec![]) => true,
             (&BoolType, &Return(ref ty)) if is_bool(ty) => true,
-            (&AnyType, &Return(ref ty)) if ty.node != TyTup(vec![])  => true,
+            (&AnyType, &Return(ref ty)) if ty.node != TyTup(vec![]) => true,
             (&RefType, &Return(ref ty)) => {
-                if let TyRptr(_, _) = ty.node { true } else { false }
+                if let TyRptr(_, _) = ty.node {
+                    true
+                } else {
+                    false
+                }
             }
-            _ => false
+            _ => false,
         }
     }
 }
