@@ -150,7 +150,7 @@ fn could_use_elision(func: &FnDecl, slf: Option<&ExplicitSelf>, named_lts: &[Lif
                     return true;
                 }
                 _ => {} // already elided, different named lifetimes
-                // or something static going on
+                        // or something static going on
             }
         }
     }

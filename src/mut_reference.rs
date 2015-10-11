@@ -33,8 +33,8 @@ impl LateLintPass for UnnecessaryMutPassed {
                         }
                     }
                     None => unreachable!(), // A function with unknown type is called.
-                    // If this happened the compiler would have aborted the
-                    // compilation long ago.
+                                            // If this happened the compiler would have aborted the
+                                            // compilation long ago.
                 };
 
 

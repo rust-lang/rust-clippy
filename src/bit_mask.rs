@@ -234,12 +234,12 @@ fn fetch_int_literal(cx: &LateContext, lit: &Expr) -> Option<u64> {
             // borrowing.
             let def_map = cx.tcx.def_map.borrow();
             match def_map.get(&lit.id) {
-                Some(&PathResolution { base_def: DefConst(def_id), ..}) => Some(def_id),
+                Some(&PathResolution { base_def: DefConst(def_id), .. }) => Some(def_id),
                 _ => None,
             }
+                .and_then(|def_id| lookup_const_by_id(cx.tcx, def_id, Option::None))
+                .and_then(|l| fetch_int_literal(cx, l))
         }
-                              .and_then(|def_id| lookup_const_by_id(cx.tcx, def_id, Option::None))
-                              .and_then(|l| fetch_int_literal(cx, l)),
         _ => Option::None,
     }
 }

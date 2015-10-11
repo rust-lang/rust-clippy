@@ -137,22 +137,24 @@ impl PartialOrd for Constant {
             (&ConstantChar(ref l), &ConstantChar(ref r)) => Some(l.cmp(r)),
             (&ConstantInt(ref lv, lty), &ConstantInt(ref rv, rty)) =>
                 Some(match (is_negative(lty) && *lv != 0, is_negative(rty) && *rv != 0) {
-                (true, true) => rv.cmp(lv),
-                (false, false) => lv.cmp(rv),
-                (true, false) => Less,
-                (false, true) => Greater,
-            }),
-            (&ConstantFloat(ref ls, lw), &ConstantFloat(ref rs, rw)) => if match (lw, rw) {
-                (FwAny, _) | (_, FwAny) | (Fw32, Fw32) | (Fw64, Fw64) => true,
-                _ => false,
-            } {
-                match (ls.parse::<f64>(), rs.parse::<f64>()) {
-                    (Ok(ref l), Ok(ref r)) => l.partial_cmp(r),
-                    _ => None,
+                    (true, true) => rv.cmp(lv),
+                    (false, false) => lv.cmp(rv),
+                    (true, false) => Less,
+                    (false, true) => Greater,
+                }),
+            (&ConstantFloat(ref ls, lw), &ConstantFloat(ref rs, rw)) => {
+                if match (lw, rw) {
+                    (FwAny, _) | (_, FwAny) | (Fw32, Fw32) | (Fw64, Fw64) => true,
+                    _ => false,
+                } {
+                    match (ls.parse::<f64>(), rs.parse::<f64>()) {
+                        (Ok(ref l), Ok(ref r)) => l.partial_cmp(r),
+                        _ => None,
+                    }
+                } else {
+                    None
                 }
-            } else {
-                None
-            },
+            }
             (&ConstantBool(ref l), &ConstantBool(ref r)) => Some(l.cmp(r)),
             (&ConstantVec(ref l), &ConstantVec(ref r)) => l.partial_cmp(&r),
             (&ConstantRepeat(ref lv, ref ls), &ConstantRepeat(ref rv, ref rs)) =>

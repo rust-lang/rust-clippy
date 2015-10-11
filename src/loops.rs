@@ -160,7 +160,9 @@ impl LateLintPass for LoopsPass {
                                                object,
                                                method_name));
                         }
-                    } else if method_name.as_str() == "next" &&
+                    }
+                    // check for looping over Iterator::next() which is not what you want
+                    else if method_name.as_str() == "next" &&
                        match_trait_method(cx, arg, &["core", "iter", "Iterator"]) {
                         span_lint(cx,
                                   ITER_NEXT_LOOP,
@@ -241,35 +243,38 @@ impl LateLintPass for LoopsPass {
                 if let ExprMatch(ref matchexpr, ref arms, ref source) = inner.node {
                     // ensure "if let" compatible match structure
                     match *source {
-                        MatchSource::Normal | MatchSource::IfLetDesugar{..} =>
+                        MatchSource::Normal | MatchSource::IfLetDesugar{..} => {
                             if arms.len() == 2 && arms[0].pats.len() == 1 &&
                                arms[0].guard.is_none() &&
                                arms[1].pats.len() == 1 &&
                                arms[1].guard.is_none() &&
+                               // finally, check for "break" in the second clause
                                is_break_expr(&arms[1].body) {
-                            if in_external_macro(cx, expr.span) {
-                                return;
+                                if in_external_macro(cx, expr.span) {
+                                    return;
+                                }
+                                let loop_body = match inner_stmt {
+                                    // FIXME: should probably be an ellipsis
+                                    // tabbing and newline is probably a bad idea,
+                                    // especially for large blocks
+                                    Some(_) => Cow::Owned(format!("{{\n    {}\n}}",
+                                                                  other_stuff.join("\n    "))),
+                                    None => expr_block(cx,
+                                                       &arms[0].body,
+                                                       Some(other_stuff.join("\n    ")),
+                                                       ".."),
+                                };
+                                span_help_and_lint(cx,
+                                                   WHILE_LET_LOOP,
+                                                   expr.span,
+                                                   "this loop could be written as a `while let` \
+                                                    loop",
+                                                   &format!("try\nwhile let {} = {} {}",
+                                                            snippet(cx, arms[0].pats[0].span, ".."),
+                                                            snippet(cx, matchexpr.span, ".."),
+                                                            loop_body));
                             }
-                            let loop_body = match inner_stmt {
-                                // FIXME: should probably be an ellipsis
-                                // tabbing and newline is probably a bad idea,
-                                // especially for large blocks
-                                Some(_) => Cow::Owned(format!("{{\n    {}\n}}",
-                                                              other_stuff.join("\n    "))),
-                                None => expr_block(cx,
-                                                   &arms[0].body,
-                                                   Some(other_stuff.join("\n    ")),
-                                                   ".."),
-                            };
-                            span_help_and_lint(cx,
-                                               WHILE_LET_LOOP,
-                                               expr.span,
-                                               "this loop could be written as a `while let` loop",
-                                               &format!("try\nwhile let {} = {} {}",
-                                                        snippet(cx, arms[0].pats[0].span, ".."),
-                                                        snippet(cx, matchexpr.span, ".."),
-                                                        loop_body));
-                        },
+                        }
                         _ => (),
                     }
                 }
@@ -542,11 +547,15 @@ impl<'v, 't> Visitor<'v> for InitializeVisitor<'v, 't> {
                     _ => (),
                 }
             }
-        } else if is_loop(expr) {
+        }
+        // If there are other loops between the declaration and the target loop, give up
+        else if is_loop(expr) {
             self.state = VarState::DontWarn;
             self.done = true;
             return;
-        } else if is_conditional(expr) {
+        }
+        // Keep track of whether we're inside a conditional expression
+        else if is_conditional(expr) {
             self.depth += 1;
             walk_expr(self, expr);
             self.depth -= 1;

@@ -58,8 +58,6 @@ fn check_trait_items(cx: &LateContext, item: &Item, trait_items: &[P<TraitItem>]
     }
 
     if !trait_items.iter().any(|i| is_named_self(i, "is_empty")) {
-        // span_lint(cx, LEN_WITHOUT_IS_EMPTY, item.span, &format!("trait {}",
-        // item.ident));
         for i in trait_items {
             if is_named_self(i, "len") {
                 span_lint(cx,
