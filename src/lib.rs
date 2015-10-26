@@ -27,6 +27,9 @@ extern crate unicode_normalization;
 // for semver check in attrs.rs
 extern crate semver;
 
+// for walking directories in src/unused_files.rs
+extern crate walkdir;
+
 extern crate rustc_plugin;
 
 use rustc_plugin::Registry;
@@ -77,6 +80,7 @@ pub mod misc_early;
 pub mod array_indexing;
 pub mod panic;
 pub mod derive;
+pub mod unused_files;
 
 mod reexport {
     pub use syntax::ast::{Name, NodeId};
@@ -140,7 +144,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
     reg.register_late_lint_pass(box panic::PanicPass);
     reg.register_late_lint_pass(box strings::StringLitAsBytes);
     reg.register_late_lint_pass(box derive::Derive);
-
+    reg.register_early_lint_pass(box unused_files::UnusedFilesPass);
 
     reg.register_lint_group("clippy_pedantic", vec![
         methods::OPTION_UNWRAP_USED,
@@ -243,6 +247,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
         types::TYPE_COMPLEXITY,
         types::UNIT_CMP,
         unicode::ZERO_WIDTH_SPACE,
+        unused_files::UNUSED_FILES,
         zero_div_zero::ZERO_DIVIDED_BY_ZERO,
     ]);
 }
