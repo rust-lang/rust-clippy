@@ -39,8 +39,7 @@ impl EarlyLintPass for BlockInIfCondition {
                 } else {
                     // move block higher
                     span_help_and_lint(cx, BLOCK_IN_IF_CONDITION_STMT, check.span,
-                        "avoid complex blocks in an 'if' condition; instead, move the block higher \
-                        and bind it with a 'let'",
+                        "avoid complex blocks in an 'if' condition; instead, move the block higher and bind it with a 'let'",
                         &format!("try\nlet res = {};\nif res {} ... ",
                         snippet_block(cx, block.span, ".."),
                         snippet_block(cx, then.span, "..")));

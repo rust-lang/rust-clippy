@@ -5,7 +5,7 @@
 #![deny(block_in_if_condition_stmt)]
 
 fn condition_has_block_with_single_expression() -> i32 {
-    if { true } { //~ERROR remove braces
+    if { true } { //~ERROR omit braces around single expression condition
         6
     } else {
         10
@@ -13,7 +13,7 @@ fn condition_has_block_with_single_expression() -> i32 {
 }
 
 fn condition_has_block() -> i32 {
-    if { //~ERROR move block higher
+    if { //~ERROR avoid complex blocks in an 'if' condition; instead, move the block higher and bind it with a 'let'
         let x = 3;
         x == 3
     } {
