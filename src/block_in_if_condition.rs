@@ -5,13 +5,13 @@ use utils::*;
 
 declare_lint! {
     pub BLOCK_IN_IF_CONDITION_EXPR, Warn,
-    "braces can be eliminated in conditions that are expressions."
+    "braces can be eliminated in conditions that are expressions, e.g `if { true } ...`"
 }
 
 declare_lint! {
     pub BLOCK_IN_IF_CONDITION_STMT, Warn,
-    "avoid complex blocks in conditions, instead the block should be moved higher and bound \
-    with 'let'."
+    "avoid complex blocks in conditions, instead move the block higher and bind it \
+    with 'let'; e.g: `if { let x = true; x } ...`"
 }
 
 #[derive(Copy,Clone)]
