@@ -1,7 +1,8 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(block_in_if)]
+#![deny(block_in_if_condition_expr)]
+#![deny(block_in_if_condition_stmt)]
 
 fn condition_has_block_with_single_expression() -> i32 {
     if { true } { //~ERROR remove braces
