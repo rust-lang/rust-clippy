@@ -44,14 +44,6 @@ fn pred_test() {
 
 }
 
-fn unit_block() -> i32 {
-    if { true; } == { false; } {
-        6
-    } else {
-        10
-    }
-}
-
 fn condition_is_normal() -> i32 {
     let x = 3;
     if true && x == 3 {
@@ -71,7 +63,6 @@ fn closure_without_block() {
 fn main() {
     assert!(condition_has_block_with_single_expression() == 6);
     assert!(condition_has_block() == 6);
-    assert!(unit_block() == 6);
     assert!(condition_is_normal() == 6);
     closure_without_block();
     pred_test();

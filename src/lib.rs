@@ -82,7 +82,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
     reg.register_late_lint_pass(box misc::CmpOwned);
     reg.register_late_lint_pass(box attrs::AttrPass);
     reg.register_late_lint_pass(box collapsible_if::CollapsibleIf);
-    reg.register_early_lint_pass(box block_in_if_condition::BlockInIfCondition);
+    reg.register_late_lint_pass(box block_in_if_condition::BlockInIfCondition);
     reg.register_late_lint_pass(box misc::ModuloOne);
     reg.register_late_lint_pass(box unicode::Unicode);
     reg.register_late_lint_pass(box strings::StringAdd);

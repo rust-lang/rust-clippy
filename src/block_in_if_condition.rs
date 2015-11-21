@@ -1,5 +1,6 @@
-use syntax::ast::*;
-use rustc::lint::{EarlyLintPass, EarlyContext, LintArray, LintPass};
+use rustc_front::hir::*;
+use rustc::lint::{LateLintPass, LateContext, LintArray, LintPass};
+use rustc_front::visit::{Visitor, walk_expr};
 
 use utils::*;
 
@@ -23,39 +24,41 @@ impl LintPass for BlockInIfCondition {
     }
 }
 
-fn find_bad_block(expr: &Expr_) -> bool {
-    match *expr {
-        ExprBinary(_, ref left, ref right) => find_bad_block(&left.node) || find_bad_block(&right.node),
-        ExprUnary(_, ref exp) => find_bad_block(&exp.node),
-        //&ExprBlock(ref block) => is_block_offensive(block), // false positive alert! don't include this
-        ExprClosure(_, _, ref block) => {
-            if !block.stmts.is_empty() {
-                true
-            } else {
-                if let Some(ref ex) = block.expr {
-                    match ex.node {
-                        ExprBlock(_) => true,
-                        _ => false
-                    }
+struct ExVisitor<'v> {
+    found_block: Option<&'v Expr>
+}
+
+impl<'v> Visitor<'v> for ExVisitor<'v> {
+    fn visit_expr(&mut self, expr: &'v Expr) {
+        if let ExprClosure(_, _, ref block) = expr.node {
+            let complex = {
+                if !block.stmts.is_empty() {
+                    true
                 } else {
-                    false
+                    if let Some(ref ex) = block.expr {
+                        match ex.node {
+                            ExprBlock(_) => true,
+                            _ => false
+                        }
+                    } else {
+                        false
+                    }
                 }
+            };
+            if complex {
+                self.found_block = Some(& expr);
+                return;
             }
-        },
-        ExprCall(_, ref args) => args.into_iter().find(|e| find_bad_block(&e.node)).is_some(),
-        ExprMethodCall(_, _, ref args) => args.into_iter().find(|e| find_bad_block(&e.node)).is_some(),
-        _ => {
-            //println!("Dropping out for {:?}", expr);
-            false
-        },
+        }
+        walk_expr(self, expr);
     }
 }
 
 const BRACED_EXPR_MESSAGE:&'static str = "omit braces around single expression condition";
 const COMPLEX_BLOCK_MESSAGE:&'static str = "in an 'if' condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a 'let'";
 
-impl EarlyLintPass for BlockInIfCondition {
-    fn check_expr(&mut self, cx: &EarlyContext, expr: &Expr) {
+impl LateLintPass for BlockInIfCondition {
+    fn check_expr(&mut self, cx: &LateContext, expr: &Expr) {
         if let ExprIf(ref check, ref then, _) = expr.node {
             if let ExprBlock(ref block) = check.node {
                 if block.stmts.is_empty() {
@@ -77,9 +80,10 @@ impl EarlyLintPass for BlockInIfCondition {
                         snippet_block(cx, then.span, "..")));
                 }
             } else {
-                // go spelunking into the expression, looking for blocks
-                if find_bad_block(&check.node) {
-                    span_help_and_lint(cx, BLOCK_IN_IF_CONDITION_STMT, check.span,
+                let mut visitor = ExVisitor { found_block: None };
+                walk_expr(&mut visitor, check);
+                if let Some(ref block) = visitor.found_block {
+                    span_help_and_lint(cx, BLOCK_IN_IF_CONDITION_STMT, block.span,
                         COMPLEX_BLOCK_MESSAGE, "");
                 }
             }
