@@ -24,18 +24,17 @@ impl LintPass for BlockInIfCondition {
 }
 
 fn find_bad_block(expr: &Expr_) -> bool {
-    match expr {
-        &ExprBinary(_, ref left, ref right) => find_bad_block(&left.node) || find_bad_block(&right.node),
-        &ExprUnary(_, ref exp) => find_bad_block(&exp.node),
+    match *expr {
+        ExprBinary(_, ref left, ref right) => find_bad_block(&left.node) || find_bad_block(&right.node),
+        ExprUnary(_, ref exp) => find_bad_block(&exp.node),
         //&ExprBlock(ref block) => is_block_offensive(block), // false positive alert! don't include this
-        &ExprClosure(_, _, ref block) => {
+        ExprClosure(_, _, ref block) => {
             if !block.stmts.is_empty() {
                 true
             } else {
                 if let Some(ref ex) = block.expr {
-                    let expr:&Expr_ = &ex.node;
-                    match expr {
-                        &ExprBlock(_) => true,
+                    match ex.node {
+                        ExprBlock(_) => true,
                         _ => false
                     }
                 } else {
@@ -43,8 +42,8 @@ fn find_bad_block(expr: &Expr_) -> bool {
                 }
             }
         },
-        &ExprCall(_, ref args) => args.into_iter().find(|e| find_bad_block(&e.node)).is_some(),
-        &ExprMethodCall(_, _, ref args) => args.into_iter().find(|e| find_bad_block(&e.node)).is_some(),
+        ExprCall(_, ref args) => args.into_iter().find(|e| find_bad_block(&e.node)).is_some(),
+        ExprMethodCall(_, _, ref args) => args.into_iter().find(|e| find_bad_block(&e.node)).is_some(),
         _ => {
             //println!("Dropping out for {:?}", expr);
             false
