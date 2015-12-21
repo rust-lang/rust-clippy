@@ -65,10 +65,15 @@ impl LateLintPass for MapClonePass {
                     ExprPath(_, ref path) => {
                         if match_path(path, &CLONE_PATH) {
                             let type_name = get_type_name(cx, expr, &args[0]).unwrap_or("_");
-                            span_help_and_lint(cx, MAP_CLONE, expr.span, &format!(
-                                "you seem to be using .map() to clone the contents of an {}, consider \
-                                using `.cloned()`", type_name),
-                                &format!("try\n{}.cloned()", snippet(cx, args[0].span, "..")));
+                            span_help_and_lint(cx,
+                                               MAP_CLONE,
+                                               expr.span,
+                                               &format!("you seem to be using .map() to clone \
+                                                         the contents of an {}, consider using \
+                                                         `.cloned()`",
+                                                        type_name),
+                                               &format!("try\n{}.cloned()",
+                                                        snippet(cx, args[0].span, "..")));
                         }
                     }
                     _ => (),
@@ -81,7 +86,10 @@ impl LateLintPass for MapClonePass {
 fn expr_eq_ident(expr: &Expr, id: Ident) -> bool {
     match expr.node {
         ExprPath(None, ref path) => {
-            let arg_segment = [PathSegment { identifier: id, parameters: PathParameters::none() }];
+            let arg_segment = [PathSegment {
+                                   identifier: id,
+                                   parameters: PathParameters::none(),
+                               }];
             !path.global && path.segments == arg_segment
         }
         _ => false,

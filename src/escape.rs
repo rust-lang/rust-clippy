@@ -70,11 +70,7 @@ impl LateLintPass for EscapePass {
 }
 
 impl<'a, 'tcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx> {
-    fn consume(&mut self,
-               _: NodeId,
-               _: Span,
-               cmt: cmt<'tcx>,
-               mode: ConsumeMode) {
+    fn consume(&mut self, _: NodeId, _: Span, cmt: cmt<'tcx>, mode: ConsumeMode) {
 
         if let Categorization::Local(lid) = cmt.cat {
             if self.set.contains(&lid) {
@@ -146,7 +142,11 @@ impl<'a, 'tcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx> {
                 } else if LoanCause::AddrOf == loan_cause {
                     // &x
                     if let Some(&AutoAdjustment::AdjustDerefRef(adj)) =
-                           self.cx.tcx.tables.borrow().adjustments
+                           self.cx
+                               .tcx
+                               .tables
+                               .borrow()
+                               .adjustments
                                .get(&self.cx.tcx.map.get_parent_node(borrow_id)) {
                         if adj.autoderefs <= 1 {
                             // foo(&x) where no extra autoreffing is happening
@@ -162,10 +162,5 @@ impl<'a, 'tcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx> {
         }
     }
     fn decl_without_init(&mut self, _: NodeId, _: Span) {}
-    fn mutate(&mut self,
-              _: NodeId,
-              _: Span,
-              _: cmt<'tcx>,
-              _: MutateMode) {
-    }
+    fn mutate(&mut self, _: NodeId, _: Span, _: cmt<'tcx>, _: MutateMode) {}
 }
