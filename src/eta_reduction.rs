@@ -73,24 +73,26 @@ fn check_closure(cx: &LateContext, expr: &Expr) {
                             }
                             if p.segments[0].identifier != ident.node {
                                 // The two idents should be the same
-                                return
+                                return;
                             }
                         } else {
-                            return
+                            return;
                         }
                     } else {
-                        return
+                        return;
                     }
                 }
-                span_lint_and_then(cx, REDUNDANT_CLOSURE, expr.span,
+                span_lint_and_then(cx,
+                                   REDUNDANT_CLOSURE,
+                                   expr.span,
                                    "redundant closure found",
                                    || {
-                    if let Some(snippet) = snippet_opt(cx, caller.span) {
-                        cx.sess().span_suggestion(expr.span,
-                                                  "remove closure as shown:",
-                                                  snippet);
-                    }
-                });
+                                       if let Some(snippet) = snippet_opt(cx, caller.span) {
+                                           cx.sess().span_suggestion(expr.span,
+                                                                     "remove closure as shown:",
+                                                                     snippet);
+                                       }
+                                   });
             }
         }
     }

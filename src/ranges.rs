@@ -37,18 +37,15 @@ impl LintPass for StepByZero {
 
 impl LateLintPass for StepByZero {
     fn check_expr(&mut self, cx: &LateContext, expr: &Expr) {
-        if let ExprMethodCall(Spanned { node: ref name, .. }, _,
-                              ref args) = expr.node {
+        if let ExprMethodCall(Spanned { node: ref name, .. }, _, ref args) = expr.node {
             // Range with step_by(0).
-            if name.as_str() == "step_by" && args.len() == 2 &&
-                is_range(cx, &args[0]) && is_integer_literal(&args[1], 0) {
-                cx.span_lint(RANGE_STEP_BY_ZERO, expr.span,
-                             "Range::step_by(0) produces an infinite iterator. \
-                              Consider using `std::iter::repeat()` instead")
-            }
-
-            // x.iter().zip(0..x.len())
-            else if name.as_str() == "zip" && args.len() == 2 {
+            if name.as_str() == "step_by" && args.len() == 2 && is_range(cx, &args[0]) &&
+               is_integer_literal(&args[1], 0) {
+                cx.span_lint(RANGE_STEP_BY_ZERO,
+                             expr.span,
+                             "Range::step_by(0) produces an infinite iterator. Consider using \
+                              `std::iter::repeat()` instead")
+            } else if name.as_str() == "zip" && args.len() == 2 {
                 let iter = &args[0].node;
                 let zip_arg = &args[1].node;
                 if_let_chain! {
@@ -82,5 +79,6 @@ fn is_range(cx: &LateContext, expr: &Expr) -> bool {
     // can't be called on a borrowed range.
     let ty = cx.tcx.expr_ty(expr);
     // Note: RangeTo and RangeFull don't have step_by
-    match_type(cx, ty, &["core", "ops", "Range"]) || match_type(cx, ty, &["core", "ops", "RangeFrom"])
+    match_type(cx, ty, &["core", "ops", "Range"]) ||
+    match_type(cx, ty, &["core", "ops", "RangeFrom"])
 }

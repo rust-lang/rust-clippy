@@ -1,4 +1,4 @@
-//use rustc_front::hir::*;
+// use rustc_front::hir::*;
 
 use rustc::lint::*;
 
@@ -36,17 +36,21 @@ impl EarlyLintPass for MiscEarly {
                 }
             }
             if !pfields.is_empty() && wilds == pfields.len() {
-                span_lint(cx, UNNEEDED_FIELD_PATTERN, pat.span,
-                          "All the struct fields are matched to a wildcard pattern, \
-                           consider using `..`.");
+                span_lint(cx,
+                          UNNEEDED_FIELD_PATTERN,
+                          pat.span,
+                          "All the struct fields are matched to a wildcard pattern, consider \
+                           using `..`.");
                 return;
             }
             if wilds > 0 {
                 for field in pfields {
                     if field.node.pat.node == PatWild {
-                        span_lint(cx, UNNEEDED_FIELD_PATTERN, field.span,
-                                  "You matched a field with a wildcard pattern. \
-                                   Consider using `..` instead");
+                        span_lint(cx,
+                                  UNNEEDED_FIELD_PATTERN,
+                                  field.span,
+                                  "You matched a field with a wildcard pattern. Consider using \
+                                   `..` instead");
                     }
                 }
             }
