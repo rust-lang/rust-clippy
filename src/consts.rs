@@ -22,7 +22,7 @@ use syntax::ast::LitIntType;
 use syntax::ast::{UintTy, FloatTy, StrStyle};
 use syntax::ast::FloatTy::*;
 use syntax::ast::Sign::{self, Plus, Minus};
-
+use syntax::ast_util::{int_ty_to_string, uint_ty_to_string};
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum FloatWidth {
@@ -193,9 +193,9 @@ impl fmt::Display for Constant {
                 let (sign, suffix) = match *ity {
                     LitIntType::SignedIntLit(ref sity, ref sign) =>
                         (if let Sign::Minus = *sign { "-" } else { "" },
-                         sity.ty_to_string()),
+                         int_ty_to_string(*sity)),
                     LitIntType::UnsignedIntLit(ref uity) =>
-                        ("", uity.ty_to_string()),
+                        ("", uint_ty_to_string(*uity)),
                     LitIntType::UnsuffixedIntLit(ref sign) =>
                         (if let Sign::Minus = *sign { "-" } else { "" },
                          "".into()),

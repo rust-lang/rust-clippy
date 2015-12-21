@@ -1,6 +1,7 @@
 use rustc::lint::*;
 use syntax::codemap::Spanned;
 use syntax::ast::*;
+use syntax::ast_util::binop_to_string;
 
 use utils::{span_lint, snippet};
 
@@ -28,6 +29,7 @@ impl LintPass for Precedence {
     }
 }
 
+
 impl EarlyLintPass for Precedence {
     fn check_expr(&mut self, cx: &EarlyContext, expr: &Expr) {
         if let ExprBinary(Spanned { node: op, ..}, ref left, ref right) = expr.node {
@@ -37,17 +39,17 @@ impl EarlyLintPass for Precedence {
                     &format!("operator precedence can trip the unwary. \
                          Consider parenthesizing your expression:\
                          `({}) {} ({})`", snippet(cx, left.span, ".."),
-                         op.to_string(), snippet(cx, right.span, ".."))),
+                         binop_to_string(op), snippet(cx, right.span, ".."))),
                 (true, false) => span_lint(cx, PRECEDENCE, expr.span, 
                     &format!("operator precedence can trip the unwary. \
                          Consider parenthesizing your expression:\
                          `({}) {} {}`", snippet(cx, left.span, ".."),
-                         op.to_string(), snippet(cx, right.span, ".."))),
+                         binop_to_string(op), snippet(cx, right.span, ".."))),
                 (false, true) => span_lint(cx, PRECEDENCE, expr.span, 
                     &format!("operator precedence can trip the unwary. \
                          Consider parenthesizing your expression:\
                          `{} {} ({})`", snippet(cx, left.span, ".."),
-                         op.to_string(), snippet(cx, right.span, ".."))),
+                         binop_to_string(op) , snippet(cx, right.span, ".."))),
                 _ => (),
             }
         }
