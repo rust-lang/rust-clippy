@@ -8,6 +8,7 @@ use rustc::middle::ty;
 use std::borrow::Cow;
 use syntax::ast::Lit_::*;
 use syntax::ast;
+use syntax::errors::DiagnosticBuilder;
 use syntax::ptr::P;
 
 use rustc::session::Session;
@@ -309,12 +310,14 @@ pub fn get_enclosing_block<'c>(cx: &'c LateContext, node: NodeId) -> Option<&'c 
 
 #[cfg(not(feature="structured_logging"))]
 pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: Span, msg: &str) {
-    cx.span_lint(lint, sp, msg);
+    let mut err = cx.lookup(lint, Some(sp), msg);
+
     if cx.current_level(lint) != Level::Allow {
-        cx.sess().fileline_help(sp, &format!("for further information visit \
+        err.fileline_help(sp, &format!("for further information visit \
             https://github.com/Manishearth/rust-clippy/wiki#{}",
-            lint.name_lower()))
+            lint.name_lower()));
     }
+    err.emit()
 }
 
 #[cfg(feature="structured_logging")]
@@ -332,38 +335,44 @@ pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: Span, msg: &st
 
 pub fn span_help_and_lint<T: LintContext>(cx: &T, lint: &'static Lint, span: Span,
         msg: &str, help: &str) {
-    cx.span_lint(lint, span, msg);
     if cx.current_level(lint) != Level::Allow {
-        cx.sess().fileline_help(span, &format!("{}\nfor further information \
+        let mut err = cx.lookup(lint, Some(span), msg);
+
+        err.fileline_help(span, &format!("{}\nfor further information \
             visit https://github.com/Manishearth/rust-clippy/wiki#{}",
-            help, lint.name_lower()))
+            help, lint.name_lower()));
+        err.emit()
     }
 }
 
 pub fn span_note_and_lint<T: LintContext>(cx: &T, lint: &'static Lint, span: Span,
         msg: &str, note_span: Span, note: &str) {
-    cx.span_lint(lint, span, msg);
     if cx.current_level(lint) != Level::Allow {
+        let mut err = cx.lookup(lint, Some(span), msg);
+
         if note_span == span {
-            cx.sess().fileline_note(note_span, note)
+            err.fileline_note(note_span, note);
         } else {
-            cx.sess().span_note(note_span, note)
+            err.span_note(note_span, note);
         }
-        cx.sess().fileline_help(span, &format!("for further information visit \
+        err.fileline_help(span, &format!("for further information visit \
             https://github.com/Manishearth/rust-clippy/wiki#{}",
-            lint.name_lower()))
+            lint.name_lower()));
+        err.emit()
     }
 }
 
 pub fn span_lint_and_then<T: LintContext, F>(cx: &T, lint: &'static Lint, sp: Span,
-        msg: &str, f: F) where F: Fn() {
-    cx.span_lint(lint, sp, msg);
+        msg: &str, f: F) where F: Fn(&mut DiagnosticBuilder) {
+    let mut err = cx.lookup(lint, Some(sp), msg);
+
     if cx.current_level(lint) != Level::Allow {
-        f();
-        cx.sess().fileline_help(sp, &format!("for further information visit \
+        f(&mut err);
+        err.fileline_help(sp, &format!("for further information visit \
             https://github.com/Manishearth/rust-clippy/wiki#{}",
-            lint.name_lower()))
+            lint.name_lower()));
     }
+    err.emit()
 }
 
 /// return the base type for references and raw pointers

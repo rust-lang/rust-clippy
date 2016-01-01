@@ -4,7 +4,7 @@ use syntax::ast::*;
 use syntax::codemap::{Span, Spanned};
 use syntax::visit::FnKind;
 
-use utils::{span_lint, span_lint_and_then, snippet_opt, match_path_ast, in_external_macro};
+use utils::{span_lint_and_then, snippet_opt, match_path_ast, in_external_macro};
 
 /// **What it does:** This lint checks for return statements at the end of a block. It is `Warn` by default.
 ///
@@ -75,11 +75,11 @@ impl ReturnPass {
         if in_external_macro(cx, spans.1) {return;}
         span_lint_and_then(cx, NEEDLESS_RETURN, spans.0,
                            "unneeded return statement",
-                           || {
+                           |err| {
             if let Some(snippet) = snippet_opt(cx, spans.1) {
-                cx.sess().span_suggestion(spans.0,
-                                          "remove `return` as shown:",
-                                          snippet);
+                err.span_suggestion(spans.0,
+                                    "remove `return` as shown:",
+                                    snippet);
             }
         });
     }
@@ -105,13 +105,14 @@ impl ReturnPass {
 
     fn emit_let_lint(&mut self, cx: &EarlyContext, lint_span: Span, note_span: Span) {
         if in_external_macro(cx, note_span) {return;}
-        span_lint(cx, LET_AND_RETURN, lint_span,
-                  "returning the result of a let binding from a block. \
-                   Consider returning the expression directly.");
+        let mut err = cx.lookup(LET_AND_RETURN, Some(lint_span),
+                            "returning the result of a let binding from a block. \
+                             Consider returning the expression directly.");
         if cx.current_level(LET_AND_RETURN) != Level::Allow {
-            cx.sess().span_note(note_span,
-                                "this expression can be directly returned");
+            err.span_note(note_span,
+                          "this expression can be directly returned");
         }
+        err.emit()
     }
 }
 

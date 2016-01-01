@@ -2,12 +2,13 @@ use std::ops::Deref;
 use rustc_front::hir::*;
 use reexport::*;
 use syntax::codemap::Span;
+use syntax::errors::DiagnosticBuilder;
 use rustc_front::intravisit::{Visitor, FnKind};
 
 use rustc::lint::*;
 use rustc::middle::def::Def::{DefVariant, DefStruct};
 
-use utils::{is_from_for_desugar, in_external_macro, snippet, span_lint, span_note_and_lint};
+use utils::{is_from_for_desugar, in_external_macro, snippet};
 
 /// **What it does:** This lint checks for bindings that shadow other bindings already in scope, while just changing reference level or mutability. It is `Allow` by default.
 ///
@@ -180,40 +181,44 @@ fn check_pat(cx: &LateContext, pat: &Pat, init: &Option<&Expr>, span: Span,
 
 fn lint_shadow<T>(cx: &LateContext, name: Name, span: Span, lspan: Span, init:
         &Option<T>, prev_span: Span) where T: Deref<Target=Expr> {
-    fn note_orig(cx: &LateContext, lint: &'static Lint, span: Span) {
+    fn note_orig(e: &mut DiagnosticBuilder, cx: &LateContext, lint: &'static Lint, span: Span) {
         if cx.current_level(lint) != Level::Allow {
-            cx.sess().span_note(span, "previous binding is here");
+            e.span_note(span, "previous binding is here");
         }
     }
     if let Some(ref expr) = *init {
         if is_self_shadow(name, expr) {
-            span_lint(cx, SHADOW_SAME, span, &format!(
+            let mut err = cx.lookup(SHADOW_SAME, Some(span), &format!(
                 "{} is shadowed by itself in {}",
                 snippet(cx, lspan, "_"),
                 snippet(cx, expr.span, "..")));
-                note_orig(cx, SHADOW_SAME, prev_span);
+            note_orig(&mut err, &cx, SHADOW_SAME, prev_span);
+            err
         } else {
             if contains_self(name, expr) {
-                span_note_and_lint(cx, SHADOW_REUSE, lspan, &format!(
+                let mut err = cx.lookup(SHADOW_REUSE, Some(lspan), &format!(
                     "{} is shadowed by {} which reuses the original value",
                     snippet(cx, lspan, "_"),
-                    snippet(cx, expr.span, "..")),
-                    expr.span, "initialization happens here");
-                note_orig(cx, SHADOW_REUSE, prev_span);
+                    snippet(cx, expr.span, "..")));
+                err.span_note(expr.span, "initialization happens here");
+                note_orig(&mut err, &cx, SHADOW_REUSE, prev_span);
+                err
             } else {
-                span_note_and_lint(cx, SHADOW_UNRELATED, lspan, &format!(
+                let mut err = cx.lookup(SHADOW_UNRELATED, Some(lspan), &format!(
                     "{} is shadowed by {}",
                     snippet(cx, lspan, "_"),
-                    snippet(cx, expr.span, "..")),
-                    expr.span, "initialization happens here");
-                note_orig(cx, SHADOW_UNRELATED, prev_span);
+                    snippet(cx, expr.span, "..")));
+                err.span_note(expr.span, "initialization happens here");
+                note_orig(&mut err, &cx, SHADOW_UNRELATED, prev_span);
+                err
             }
         }
     } else {
-        span_lint(cx, SHADOW_UNRELATED, span, &format!(
+        let mut err = cx.lookup(SHADOW_UNRELATED, Some(span), &format!(
             "{} shadows a previous declaration", snippet(cx, lspan, "_")));
-        note_orig(cx, SHADOW_UNRELATED, prev_span);
-    }
+        note_orig(&mut err, &cx, SHADOW_UNRELATED, prev_span);
+        err
+    }.emit()
 }
 
 fn check_expr(cx: &LateContext, expr: &Expr, bindings: &mut Vec<(Name, Span)>) {

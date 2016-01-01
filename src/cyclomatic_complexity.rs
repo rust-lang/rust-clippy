@@ -140,8 +140,11 @@ fn report_cc_bug(cx: &LateContext, cc: u64, narms: u64, div: u64, span: Span) {
 #[cfg(not(feature="debugging"))]
 fn report_cc_bug(cx: &LateContext, cc: u64, narms: u64, div: u64, span: Span) {
     if cx.current_level(CYCLOMATIC_COMPLEXITY) != Level::Allow {
-        cx.sess().span_note(span, &format!("Clippy encountered a bug calculating cyclomatic complexity \
-                                            (hide this message with `#[allow(cyclomatic_complexity)]`): \
-                                            cc = {}, arms = {}, div = {}. Please file a bug report.", cc, narms, div));
+        let mut err = cx.lookup(CYCLOMATIC_COMPLEXITY, None, "");
+
+        err.span_note(span, &format!("Clippy encountered a bug calculating cyclomatic complexity \
+                                      (hide this message with `#[allow(cyclomatic_complexity)]`): \
+                                      cc = {}, arms = {}, div = {}. Please file a bug report.", cc, narms, div));
+        err.emit()
     }
 }

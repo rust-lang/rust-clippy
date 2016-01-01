@@ -4,7 +4,7 @@ use rustc::lint::*;
 
 use syntax::ast::*;
 
-use utils::span_lint;
+use utils::{span_lint};
 
 /// **What it does:** This lint `Warn`s on struct field patterns bound to wildcards.
 ///
