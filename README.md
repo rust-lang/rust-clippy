@@ -98,6 +98,7 @@ name                                                                            
 [unneeded_field_pattern](https://github.com/Manishearth/rust-clippy/wiki#unneeded_field_pattern)               | warn    | Struct fields are bound to a wildcard instead of using `..`
 [unstable_as_mut_slice](https://github.com/Manishearth/rust-clippy/wiki#unstable_as_mut_slice)                 | warn    | as_mut_slice is not stable and can be replaced by &mut v[..]see https://github.com/rust-lang/rust/issues/27729
 [unstable_as_slice](https://github.com/Manishearth/rust-clippy/wiki#unstable_as_slice)                         | warn    | as_slice is not stable and can be replaced by & v[..]see https://github.com/rust-lang/rust/issues/27729
+[unused_files](https://github.com/Manishearth/rust-clippy/wiki#unused_files)                         | warn    | unused Rust files in the crate root and sub-directories 
 [unused_collect](https://github.com/Manishearth/rust-clippy/wiki#unused_collect)                               | warn    | `collect()`ing an iterator without using the result; this is usually better written as a for loop
 [unused_lifetimes](https://github.com/Manishearth/rust-clippy/wiki#unused_lifetimes)                           | warn    | unused lifetimes in function definitions
 [used_underscore_binding](https://github.com/Manishearth/rust-clippy/wiki#used_underscore_binding)             | warn    | using a binding which is prefixed with an underscore
