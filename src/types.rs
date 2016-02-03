@@ -1,13 +1,14 @@
-use rustc::lint::*;
-use rustc_front::hir::*;
 use reexport::*;
-use rustc_front::util::{is_comparison_binop, binop_to_string};
-use syntax::codemap::Span;
-use rustc_front::intravisit::{FnKind, Visitor, walk_ty};
+use rustc::front::map::Node::NodeItem;
+use rustc::lint::*;
 use rustc::middle::ty;
+use rustc_front::hir::*;
+use rustc_front::intravisit::{FnKind, Visitor, walk_ty};
+use rustc_front::util::{is_comparison_binop, binop_to_string};
+use syntax::ast::FloatTy::*;
 use syntax::ast::IntTy::*;
 use syntax::ast::UintTy::*;
-use syntax::ast::FloatTy::*;
+use syntax::codemap::Span;
 
 use utils::*;
 
@@ -47,26 +48,62 @@ impl LintPass for TypePass {
 }
 
 impl LateLintPass for TypePass {
-    fn check_ty(&mut self, cx: &LateContext, ast_ty: &Ty) {
-        if in_macro(cx, ast_ty.span) {
-            return;
-        }
-        if let Some(ty) = cx.tcx.ast_ty_to_ty_cache.borrow().get(&ast_ty.id) {
-            if let ty::TyBox(ref inner) = ty.sty {
-                if match_type(cx, inner, &VEC_PATH) {
-                    span_help_and_lint(cx,
-                                       BOX_VEC,
-                                       ast_ty.span,
-                                       "you seem to be trying to use `Box<Vec<T>>`. Consider using just `Vec<T>`",
-                                       "`Vec<T>` is already on the heap, `Box<Vec<T>>` makes an extra allocation.");
-                }
-            } else if match_type(cx, ty, &LL_PATH) {
-                span_help_and_lint(cx,
-                                   LINKEDLIST,
-                                   ast_ty.span,
-                                   "I see you're using a LinkedList! Perhaps you meant some other data structure?",
-                                   "a VecDeque might work");
+    fn check_fn(&mut self, cx: &LateContext, _: FnKind, decl: &FnDecl, _: &Block, _: Span, id: NodeId) {
+        // skip trait implementations, see #605
+        if let Some(NodeItem(ref item)) = cx.tcx.map.find(cx.tcx.map.get_parent(id)) {
+            if let ItemImpl(_, _, _, Some(..), _, _) = item.node {
+                return;
             }
+        }
+
+        check_fn_decl(cx, decl);
+    }
+
+    fn check_struct_field(&mut self, cx: &LateContext, field: &StructField) {
+        check_ty(cx, &field.node.ty);
+    }
+
+    fn check_trait_item(&mut self, cx: &LateContext, item: &TraitItem) {
+        match item.node {
+            ConstTraitItem(ref ty, _) => check_ty(cx, ty),
+            MethodTraitItem(ref sig, _) => check_fn_decl(cx, &sig.decl),
+            TypeTraitItem(_, Some(ref ty)) => check_ty(cx, ty),
+            _ => (),
+        }
+    }
+}
+
+fn check_fn_decl(cx: &LateContext, decl: &FnDecl) {
+    for input in &decl.inputs {
+        check_ty(cx, &input.ty);
+    }
+
+    if let FunctionRetTy::Return(ref ty) = decl.output {
+        check_ty(cx, ty);
+    }
+}
+
+fn check_ty(cx: &LateContext, ast_ty: &Ty) {
+    if in_macro(cx, ast_ty.span) {
+        return;
+    }
+
+    if let Some(ty) = cx.tcx.ast_ty_to_ty_cache.borrow().get(&ast_ty.id) {
+        if let ty::TyBox(ref inner) = ty.sty {
+            if match_type(cx, inner, &VEC_PATH) {
+                span_help_and_lint(cx,
+                                   BOX_VEC,
+                                   ast_ty.span,
+                                   "you seem to be trying to use `Box<Vec<T>>`. Consider using just `Vec<T>`",
+                                   "`Vec<T>` is already on the heap, `Box<Vec<T>>` makes an extra allocation.");
+            }
+        }
+        if ty.walk().any(|ty| match_type(cx, ty, &LL_PATH)) {
+            span_help_and_lint(cx,
+                               LINKEDLIST,
+                               ast_ty.span,
+                               "I see you're using a LinkedList! Perhaps you meant some other data structure?",
+                               "a VecDeque might work");
         }
     }
 }
@@ -471,7 +508,6 @@ fn check_type(cx: &LateContext, ty: &Ty) {
         visitor.visit_ty(ty);
         visitor.score
     };
-    // println!("{:?} --> {}", ty, score);
     if score > 250 {
         span_lint(cx,
                   TYPE_COMPLEXITY,
