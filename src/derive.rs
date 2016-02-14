@@ -2,7 +2,7 @@ use rustc::lint::*;
 use rustc::middle::ty::fast_reject::simplify_type;
 use rustc::middle::ty;
 use rustc_front::hir::*;
-use syntax::ast::{Attribute, MetaItemKind};
+use syntax::ast::{Attribute, MetaItemKind, NodeId};
 use syntax::codemap::Span;
 use utils::{CLONE_TRAIT_PATH, HASH_PATH};
 use utils::{match_path, span_lint_and_then};
@@ -80,7 +80,7 @@ impl LateLintPass for Derive {
                 check_hash_peq(cx, item.span, trait_ref, ty);
             }
             else {
-                check_copy_clone(cx, item.span, trait_ref, ty);
+                check_copy_clone(cx, item.span, trait_ref, ty, item.id);
             }
         }}
     }
@@ -127,9 +127,11 @@ fn check_hash_peq(cx: &LateContext, span: Span, trait_ref: &TraitRef, ty: ty::Ty
 }
 
 /// Implementation of the `EXPL_IMPL_CLONE_ON_COPY` lint.
-fn check_copy_clone<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, span: Span, trait_ref: &TraitRef, ty: ty::Ty<'tcx>) {
+fn check_copy_clone<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, span: Span,
+                              trait_ref: &TraitRef, ty: ty::Ty<'tcx>,
+                              item: NodeId) {
     if match_path(&trait_ref.path, &CLONE_TRAIT_PATH) {
-        let parameter_environment = cx.tcx.empty_parameter_environment();
+        let parameter_environment = ty::ParameterEnvironment::for_item(cx.tcx, item);
 
         if ty.moves_by_default(&parameter_environment, span) {
             return; // ty is not Copy
