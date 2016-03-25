@@ -213,6 +213,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
     });
     reg.register_late_lint_pass(box drop_ref::DropRefPass);
     reg.register_late_lint_pass(box types::AbsurdExtremeComparisons);
+    reg.register_late_lint_pass(box types::InvalidUpcastComparisons);
     reg.register_late_lint_pass(box regex::RegexPass::default());
     reg.register_late_lint_pass(box copies::CopyAndPaste);
     reg.register_late_lint_pass(box format::FormatMacLint);
@@ -354,6 +355,7 @@ pub fn plugin_registrar(reg: &mut Registry) {
         transmute::CROSSPOINTER_TRANSMUTE,
         transmute::USELESS_TRANSMUTE,
         types::ABSURD_EXTREME_COMPARISONS,
+        types::INVALID_UPCAST_COMPARISONS,
         types::BOX_VEC,
         types::CHAR_LIT_AS_U8,
         types::LET_UNIT_VALUE,
