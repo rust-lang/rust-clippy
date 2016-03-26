@@ -15,6 +15,7 @@ use syntax::codemap::{ExpnInfo, Span, ExpnFormat};
 use syntax::errors::DiagnosticBuilder;
 use syntax::ptr::P;
 
+pub mod comparisons;
 pub mod conf;
 mod hir;
 pub use self::hir::{SpanlessEq, SpanlessHash};
