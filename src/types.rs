@@ -836,7 +836,7 @@ impl Ord for FullInt {
 
 
 fn numeric_cast_precast_bounds<'a>(cx: &LateContext, expr: &'a Expr) -> Option<(FullInt, FullInt)> {
-    use rustc::middle::ty::TypeVariants::{TyInt, TyUint};
+    use rustc::ty::TypeVariants::{TyInt, TyUint};
     use syntax::ast::UintTy;
     use syntax::ast::IntTy;
     use std::*;
