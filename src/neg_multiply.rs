@@ -33,10 +33,8 @@ impl LateLintPass for NegMultiply {
         if let ExprBinary(Spanned { node: BiMul, .. }, ref l, ref r) = e.node {
             match (&l.node, &r.node) {
                 (&ExprUnary(..), &ExprUnary(..)) => (),
-                (&ExprUnary(ref neg, ref lit), _) =>
-                    if neg == &UnNeg { check_mul(cx, e.span, lit, r) },                
-                (_, &ExprUnary(ref neg, ref lit)) => 
-                    if neg == &UnNeg { check_mul(cx, e.span, lit, l) },
+                (&ExprUnary(UnNeg, ref lit), _) => check_mul(cx, e.span, lit, r),
+                (_, &ExprUnary(UnNeg, ref lit)) => check_mul(cx, e.span, lit, l),
                 _ => ()
             }
         }
