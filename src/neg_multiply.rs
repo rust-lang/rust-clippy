@@ -9,7 +9,7 @@ use utils::span_lint;
 ///
 /// **Why is this bad?** It's more readable to just negate.
 ///
-/// **Known problems:** This assumes that the type can be negated.
+/// **Known problems:** This only catches integers (for now)
 ///
 /// **Example:** `x * -1`
 declare_lint! {
