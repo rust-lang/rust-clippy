@@ -20,7 +20,7 @@ test = false
 
 [[bin]]
 name = "cargo-clippy"
-path = "src/lib.rs"
+path = "src/bin.rs"
 test = false
 
 [dependencies]
