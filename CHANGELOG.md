@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## 0.0.76 — TBD
 * `cargo clippy` now automatically defines the `clippy` feature
+* New lint: [`not_unsafe_ptr_arg_deref`]
 
 ## 0.0.75 — 2016-06-08
 * Rustup to *rustc 1.11.0-nightly (763f9234b 2016-06-06)*
@@ -205,6 +206,7 @@ All notable changes to this project will be documented in this file.
 [`non_ascii_literal`]: https://github.com/Manishearth/rust-clippy/wiki#non_ascii_literal
 [`nonminimal_bool`]: https://github.com/Manishearth/rust-clippy/wiki#nonminimal_bool
 [`nonsensical_open_options`]: https://github.com/Manishearth/rust-clippy/wiki#nonsensical_open_options
+[`not_unsafe_ptr_arg_deref`]: https://github.com/Manishearth/rust-clippy/wiki#not_unsafe_ptr_arg_deref
 [`ok_expect`]: https://github.com/Manishearth/rust-clippy/wiki#ok_expect
 [`option_map_unwrap_or`]: https://github.com/Manishearth/rust-clippy/wiki#option_map_unwrap_or
 [`option_map_unwrap_or_else`]: https://github.com/Manishearth/rust-clippy/wiki#option_map_unwrap_or_else
