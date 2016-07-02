@@ -99,7 +99,7 @@ impl<'a, 'tcx, 'v> Hir2Qmm<'a, 'tcx, 'v> {
                         Expr {
                             id: DUMMY_NODE_ID,
                             span: DUMMY_SP,
-                            attrs: None,
+                            attrs: vec![].into(),
                             node: ExprBinary(dummy_spanned(op), lhs.clone(), rhs.clone()),
                         }
                     };

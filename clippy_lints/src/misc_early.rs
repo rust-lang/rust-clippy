@@ -171,12 +171,11 @@ impl EarlyLintPass for MiscEarly {
     fn check_block(&mut self, cx: &EarlyContext, block: &Block) {
         for w in block.stmts.windows(2) {
             if_let_chain! {[
-                let StmtKind::Decl(ref first, _) = w[0].node,
-                let DeclKind::Local(ref local) = first.node,
+                let StmtKind::Local(ref local) = w[0].node,
                 let Option::Some(ref t) = local.init,
                 let ExprKind::Closure(_,_,_,_) = t.node,
                 let PatKind::Ident(_,sp_ident,_) = local.pat.node,
-                let StmtKind::Semi(ref second,_) = w[1].node,
+                let StmtKind::Semi(ref second) = w[1].node,
                 let ExprKind::Assign(_,ref call) = second.node,
                 let ExprKind::Call(ref closure,_) = call.node,
                 let ExprKind::Path(_,ref path) = closure.node
