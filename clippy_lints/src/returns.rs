@@ -36,10 +36,10 @@ pub struct ReturnPass;
 impl ReturnPass {
     // Check the final stmt or expr in a block for unnecessary return.
     fn check_block_return(&mut self, cx: &EarlyContext, block: &Block) {
-        if let Some(ref expr) = block.expr {
-            self.check_final_expr(cx, expr);
-        } else if let Some(stmt) = block.stmts.last() {
-            if let StmtKind::Semi(ref expr, _) = stmt.node {
+        if let Some(stmt) = block.stmts.last() {
+            if let StmtKind::Expr(ref expr) = stmt.node {
+                self.check_final_expr(cx, expr);
+            } else if let StmtKind::Semi(ref expr) = stmt.node {
                 if let ExprKind::Ret(Some(ref inner)) = expr.node {
                     self.emit_return_lint(cx, (stmt.span, inner.span));
                 }
@@ -90,10 +90,10 @@ impl ReturnPass {
     fn check_let_return(&mut self, cx: &EarlyContext, block: &Block) {
         // we need both a let-binding stmt and an expr
         if_let_chain! {[
-            let Some(stmt) = block.stmts.last(),
-            let Some(ref retexpr) = block.expr,
-            let StmtKind::Decl(ref decl, _) = stmt.node,
-            let DeclKind::Local(ref local) = decl.node,
+            let Some((stmt, rest)) = block.stmts.split_last(),
+            let Some(ntl_stmt) = rest.last(),
+            let StmtKind::Expr(ref retexpr) = stmt.node,
+            let StmtKind::Local(ref local) = ntl_stmt.node,
             let Some(ref initexpr) = local.init,
             let PatKind::Ident(_, Spanned { node: id, .. }, _) = local.pat.node,
             let ExprKind::Path(_, ref path) = retexpr.node,

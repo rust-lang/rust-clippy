@@ -72,8 +72,9 @@ fn check_if(cx: &EarlyContext, expr: &ast::Expr) {
 fn check_collapsible_maybe_if_let(cx: &EarlyContext, else_: &ast::Expr) {
     if_let_chain! {[
         let ast::ExprKind::Block(ref block) = else_.node,
-        block.stmts.is_empty(),
-        let Some(ref else_) = block.expr,
+        block.stmts.len() == 1,
+        let Some(ref last_stmt) = block.stmts.last(),
+        let ast::StmtKind::Expr(ref else_) = last_stmt.node,
     ], {
         match else_.node {
             ast::ExprKind::If(..) | ast::ExprKind::IfLet(..) => {
@@ -129,15 +130,9 @@ fn check_to_string(cx: &EarlyContext, e: &ast::Expr) -> Cow<'static, str> {
 }
 
 fn single_stmt_of_block(block: &ast::Block) -> Option<&ast::Expr> {
-    if block.stmts.len() == 1 && block.expr.is_none() {
-        if let ast::StmtKind::Expr(ref expr, _) = block.stmts[0].node {
+    if block.stmts.len() == 1 {
+        if let ast::StmtKind::Expr(ref expr) = block.stmts[0].node {
             single_stmt_of_expr(expr)
-        } else {
-            None
-        }
-    } else if block.stmts.is_empty() {
-        if let Some(ref p) = block.expr {
-            Some(p)
         } else {
             None
         }
