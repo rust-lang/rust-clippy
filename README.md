@@ -17,7 +17,7 @@ Table of contents:
 
 ## Lints
 
-There are 160 lints included in this crate:
+There are 160 lints included in this crate. You can see a list of them [on the web](https://manishearth.github.io/rust-clippy/master/) or in the table below:
 
 name                                                                                                                 | default | meaning
 ---------------------------------------------------------------------------------------------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
