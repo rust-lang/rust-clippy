@@ -277,7 +277,7 @@
     "docs": {
       "What it does": "This lint checks for the presence of `_`, `::` or camel-case words outside\nticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and camel-case probably\nindicates some code which should be included between ticks. `_` can also be used for empasis in\nmarkdown, this lint tries to consider that.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"GitHub\", \"NaN\", \"GPLv2\", \"GPLv3\", \"JavaScript\"]`).", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"GitHub\", \"NaN\", \"GPLv2\", \"GPLv3\", \"JavaScript\", \"IPv4\", \"IPv6\"]`).", 
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks for is limited."
     }, 
@@ -299,7 +299,7 @@
       "What it does": "This lint checks for uses of `contains_key` + `insert` on `HashMap` or\n`BTreeMap`.", 
       "Why is this bad": "Using `entry` is more efficient.", 
       "Example": "```rust\nif !m.contains_key(&k) { m.insert(k, v) }\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```", 
-      "Known problems": "Some false negatives, eg.:\n```\nlet k = &key;\nif !m.contains_key(k) { m.insert(k.clone(), v); }\n```"
+      "Known problems": "Some false negatives, eg.:\n```rust\nlet k = &key;\nif !m.contains_key(k) { m.insert(k.clone(), v); }\n```"
     }, 
     "id": "map_entry", 
     "level": "Warn"
@@ -959,7 +959,7 @@
     "docs": {
       "What it does": "This lint checks for patterns in the form `name @ _`.", 
       "Why is this bad": "It's almost always more readable to just use direct bindings.", 
-      "Example": ":\n```\nmatch v {\n    Some(x) => (),\n    y @ _   => (), // easier written as `y`,\n}\n```", 
+      "Example": ":\n```rust\nmatch v {\n    Some(x) => (),\n    y @ _   => (), // easier written as `y`,\n}\n```", 
       "Known problems": "None"
     }, 
     "id": "redundant_pattern", 
@@ -969,7 +969,7 @@
     "docs": {
       "What it does": "This lint checks for the use of bindings with a single leading underscore", 
       "Why is this bad": "A single leading underscore is usually used to indicate that a binding\nwill not be used. Using such a binding breaks this expectation.", 
-      "Example": ":\n```\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading underscore.\n                // We should rename `_x` to `x`\n```", 
+      "Example": ":\n```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading underscore.\n                // We should rename `_x` to `x`\n```", 
       "Known problems": "The lint does not work properly with desugaring and macro, it has been\nallowed in the mean time."
     }, 
     "id": "used_underscore_binding", 
