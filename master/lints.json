@@ -277,7 +277,7 @@
     "docs": {
       "What it does": "This lint checks for the presence of `_`, `::` or camel-case words outside\nticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and camel-case probably\nindicates some code which should be included between ticks. `_` can also be used for empasis in\nmarkdown, this lint tries to consider that.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"GitHub\", \"NaN\", \"GPLv2\", \"GPLv3\", \"JavaScript\", \"IPv4\", \"IPv6\"]`).", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"GitHub\", \"NaN\", \"GPLv2\", \"GPLv3\", \"JavaScript\", \"IPv4\", \"IPv6\", \"OAuth\", \"TrueType\"]`).", 
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks for is limited."
     }, 
