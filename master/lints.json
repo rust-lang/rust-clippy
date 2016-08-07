@@ -1018,6 +1018,26 @@
   }, 
   {
     "docs": {
+      "What it does": "Warns on hexadecimal literals with mixed-case letter digits.", 
+      "Why is this bad": "It looks confusing.", 
+      "Example": "```rust\nlet y = 0x1a9BAcD;\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "mixed_case_hex_literals", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Warns if literal suffixes are not separated by an underscore.", 
+      "Why is this bad": "It is much less readable.", 
+      "Example": "```rust\nlet y = 123832i32;\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "unseparated_literal_suffix", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "This lint checks for instances of `mut mut` references.", 
       "Why is this bad": "Multiple `mut`s don't add anything meaningful to the source. This is\neither a copy'n'paste error, or it shows a fundamental misunderstanding of references)", 
       "Example": "```rust\nlet x = &mut &mut y;\n```", 
