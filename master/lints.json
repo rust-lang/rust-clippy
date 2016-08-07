@@ -328,6 +328,7 @@
     "docs": {
       "What it does": "Warns on enumeration variants that are prefixed or suffixed by the same\ncharacters.", 
       "Why is this bad": "Enumeration variant names should specify their variant, not repeat the\nenumeration name.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-name-threshold: u64`: The minimum number of enum variants for the lints about variant names to trigger (defaults to `3`).", 
       "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
       "Known problems": "None"
     }, 
