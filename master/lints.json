@@ -94,7 +94,7 @@
       "What it does": "Checks for return statements at the end of a block.", 
       "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
       "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
-      "Known problems": "Following this lint's advice may currently run afoul of\nRust issue [#31439](https://github.com/rust-lang/rust/issues/31439), so if\nyou get lifetime errors, please roll back the change until that issue is\nfixed."
+      "Known problems": "None."
     }, 
     "id": "needless_return", 
     "level": "Warn"
@@ -1137,7 +1137,7 @@
       "What it does": "Checks for `let`-bindings, which are subsequently returned.", 
       "Why is this bad": "It is just extraneous code. Remove it to make your code\nmore rusty.", 
       "Example": "```rust\n{ let x = ..; x }\n```", 
-      "Known problems": "Following this lint's advice may currently run afoul of\nRust issue [#31439](https://github.com/rust-lang/rust/issues/31439), so if\nyou get lifetime errors, please roll back the change until that issue is\nfixed."
+      "Known problems": "None."
     }, 
     "id": "let_and_return", 
     "level": "Warn"
