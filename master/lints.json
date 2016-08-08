@@ -1046,7 +1046,7 @@
     "docs": {
       "What it does": "Checks for boolean expressions that can be written more\nconcisely.", 
       "Why is this bad": "Readability of boolean expressions suffers from\nunnecessary duplication.", 
-      "Example": "```rust\nif a && true  // should be: if a\nif !(a == b)  // should be: if a != b", 
+      "Example": "```rust\nif a && true  // should be: if a\nif !(a == b)  // should be: if a != b\n```", 
       "Known problems": "Ignores short circuiting behavior of `||` and\n`&&`. Ignores `|`, `&` and `^`."
     }, 
     "id": "nonminimal_bool", 
