@@ -1485,6 +1485,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.", 
+      "Why is this bad": "It is often confusing to read. In addition, the\nsub-expression evaluation order for Rust is not well documented.", 
+      "Example": "```rust\nlet mut x = 0;\nlet a = {x = 1; 1} + x;\n// Unclear whether a is 1 or 2.\n```", 
+      "Known problems": "Code which intentionally depends on the evaluation\norder, or which is correct for any evaluation order."
+    }, 
+    "id": "eval_order_dependence", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for casts from any numerical to a float type where\nthe receiving type cannot store all values from the original type without\nrounding errors. This possible rounding is to be expected, so this lint is\n`Allow` by default.\nBasically, this warns on casting any integer with 32 or more bits to `f32`\nor any 64-bit integer to `f64`.", 
       "Why is this bad": "It's not bad at all. But in some applications it can be\nhelpful to know where precision loss can take place. This lint can help find\nthose places in the code.", 
       "Example": "```rust\nlet x = u64::MAX; x as f64\n```", 
