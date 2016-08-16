@@ -1434,6 +1434,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for modules that have the same name as their parent module", 
+      "Why is this bad": "A typical beginner mistake is to have `mod foo;` and again `mod foo { .. }` in `foo.rs`.\n                     The expectation is that items inside the inner `mod foo { .. }` are then available\n                     through `foo::x`, but they are only available through `foo::foo::x`.\n                     If this is done on purpose, it would be better to choose a more representative module name.", 
+      "Example": "```rust\n// lib.rs\nmod foo;\n// foo.rs\nmod foo {\n    ...\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "module_inception", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for unused labels.", 
       "Why is this bad": "Maybe the label should be used in which case there is\nan error in the code or it should be removed.", 
       "Example": "```rust,ignore\nfn unused_label() {\n    'label: for i in 1..2 {\n        if i > 4 { continue }\n    }\n```", 
