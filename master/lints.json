@@ -756,7 +756,7 @@
     "docs": {
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for empasis in markdown, this lint tries to\nconsider that.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"GitHub\", \"NaN\", \"GPLv2\", \"GPLv3\", \"JavaScript\", \"IPv4\", \"IPv6\", \"OAuth\", \"TrueType\"]`).", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"DirectX\", \"GPLv2\", \"GPLv3\", \"GitHub\", \"IPv4\", \"IPv6\", \"JavaScript\", \"NaN\", \"OAuth\", \"OpenGL\", \"TrueType\"]`).", 
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
