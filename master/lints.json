@@ -465,6 +465,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `extern crate` and `use` items annotated with lint attributes", 
+      "Why is this bad": "Lint attributes have no effect on crate imports. Most likely a `!` was forgotten", 
+      "Example": "```rust\n#[deny(dead_code)]\nextern crate foo;\n#[allow(unused_import)]\nuse foo::bar;\n```", 
+      "Known problems": "Technically one might allow `unused_import` on a `use` item, but it's easier to remove the unused item."
+    }, 
+    "id": "useless_attribute", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `.to_string()` method calls on values\nof type `String`. This is not unidiomatic and with specialization coming, `to_string` could be\nspecialized to be as efficient as `clone`."
     }, 
