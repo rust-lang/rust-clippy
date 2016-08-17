@@ -415,6 +415,16 @@
   }, 
   {
     "docs": {
+      "What it does": "This lint warns when you using `print!()` with a format string that\nends in a newline.", 
+      "Why is this bad": "You should use `println!()` instead, which appends the newline.", 
+      "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "print_with_newline", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for matches where all arms match a reference,\nsuggesting to remove the reference and deref the matched expression\ninstead. It also checks for `if let &foo = bar` blocks.", 
       "Why is this bad": "It just makes the code less readable. That reference\ndestructuring adds nothing to the code.", 
       "Example": "```rust\nmatch x {\n    &A(ref y) => foo(y),\n    &B => bar(),\n    _ => frob(&x),\n}\n```", 
