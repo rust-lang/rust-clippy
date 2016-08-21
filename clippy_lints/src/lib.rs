@@ -74,6 +74,7 @@ pub mod drop_ref;
 pub mod entry;
 pub mod enum_clike;
 pub mod enum_glob_use;
+pub mod enum_large_variant;
 pub mod enum_variants;
 pub mod eq_op;
 pub mod escape;
@@ -260,6 +261,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box assign_ops::AssignOps);
     reg.register_late_lint_pass(box let_if_seq::LetIfSeq);
     reg.register_late_lint_pass(box eval_order_dependence::EvalOrderDependence);
+    reg.register_late_lint_pass(box enum_large_variant::EnumLargeVariant::new(conf.enum_variant_size_threshold));
 
     reg.register_lint_group("clippy_restrictions", vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -326,6 +328,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         drop_ref::DROP_REF,
         entry::MAP_ENTRY,
         enum_clike::ENUM_CLIKE_UNPORTABLE_VARIANT,
+        enum_large_variant::ENUM_LARGE_VARIANT,
         enum_variants::ENUM_VARIANT_NAMES,
         eq_op::EQ_OP,
         escape::BOXED_LOCAL,

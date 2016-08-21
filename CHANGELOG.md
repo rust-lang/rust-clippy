@@ -193,6 +193,7 @@ All notable changes to this project will be documented in this file.
 [`empty_loop`]: https://github.com/Manishearth/rust-clippy/wiki#empty_loop
 [`enum_clike_unportable_variant`]: https://github.com/Manishearth/rust-clippy/wiki#enum_clike_unportable_variant
 [`enum_glob_use`]: https://github.com/Manishearth/rust-clippy/wiki#enum_glob_use
+[`enum_large_variant`]: https://github.com/Manishearth/rust-clippy/wiki#enum_large_variant
 [`enum_variant_names`]: https://github.com/Manishearth/rust-clippy/wiki#enum_variant_names
 [`eq_op`]: https://github.com/Manishearth/rust-clippy/wiki#eq_op
 [`eval_order_dependence`]: https://github.com/Manishearth/rust-clippy/wiki#eval_order_dependence

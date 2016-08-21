@@ -17,7 +17,7 @@ Table of contents:
 
 ## Lints
 
-There are 166 lints included in this crate:
+There are 167 lints included in this crate:
 
 name                                                                                                                 | default | triggers on
 ---------------------------------------------------------------------------------------------------------------------|---------|----------------------------------------------------------------------------------------------------------------------------------
@@ -55,6 +55,7 @@ name                                                                            
 [empty_loop](https://github.com/Manishearth/rust-clippy/wiki#empty_loop)                                             | warn    | empty `loop {}`, which should block or sleep
 [enum_clike_unportable_variant](https://github.com/Manishearth/rust-clippy/wiki#enum_clike_unportable_variant)       | warn    | C-like enums that are `repr(isize/usize)` and have values that don't fit into an `i32`
 [enum_glob_use](https://github.com/Manishearth/rust-clippy/wiki#enum_glob_use)                                       | allow   | use items that import all variants of an enum
+[enum_large_variant](https://github.com/Manishearth/rust-clippy/wiki#enum_large_variant)                             | warn    | large variants on an enum
 [enum_variant_names](https://github.com/Manishearth/rust-clippy/wiki#enum_variant_names)                             | warn    | enums where all variants share a prefix/postfix
 [eq_op](https://github.com/Manishearth/rust-clippy/wiki#eq_op)                                                       | warn    | equal operands on both sides of a comparison or bitwise combination (e.g. `x == x`)
 [eval_order_dependence](https://github.com/Manishearth/rust-clippy/wiki#eval_order_dependence)                       | warn    | whether a variable read occurs before a write depends on sub-expression evaluation order
