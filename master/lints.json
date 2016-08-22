@@ -151,6 +151,16 @@
   }, 
   {
     "docs": {
+      "What it does": "This lint checks for equality comparisons with `ptr::null`", 
+      "Why is this bad": "It's easier and more readable to use the inherent `.is_null()`\nmethod instead", 
+      "Example": "```rust\nif x == ptr::null { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "cmp_null", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for public functions that dereferences raw pointer\narguments but are not marked unsafe.", 
       "Why is this bad": "The function should probably be marked `unsafe`, since\nfor an arbitrary raw pointer, there is no way of telling for sure if it is\nvalid.", 
       "Example": "```rust\npub fn foo(x: *const u8) { println!(\"{}\", unsafe { *x }); }\n```", 
@@ -445,8 +455,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for function arguments of type `&String` or `&Vec`\nunless the references are mutable.", 
-      "Why is this bad": "Requiring the argument to be of the specific size makes\nthe function less useful for no benefit; slices in the form of `&[T]` or\n`&str` usually suffice and can be obtained from other types, too.", 
+      "What it does": "This lint checks for function arguments of type `&String` or `&Vec` unless\nthe references are mutable.", 
+      "Why is this bad": "Requiring the argument to be of the specific size makes the function less\nuseful for no benefit; slices in the form of `&[T]` or `&str` usually suffice and can be\nobtained from other types, too.", 
       "Example": "```rust\nfn foo(&Vec<u32>) { .. }\n```", 
       "Known problems": "None."
     }, 
