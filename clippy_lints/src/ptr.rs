@@ -46,15 +46,15 @@ declare_lint! {
 
 
 #[derive(Copy,Clone)]
-pub struct PtrPass;
+pub struct PointerPass;
 
-impl LintPass for PtrPass {
+impl LintPass for PointerPass {
     fn get_lints(&self) -> LintArray {
         lint_array!(PTR_ARG, CMP_NULL)
     }
 }
 
-impl LateLintPass for PtrPass {
+impl LateLintPass for PointerPass {
     fn check_item(&mut self, cx: &LateContext, item: &Item) {
         if let ItemFn(ref decl, _, _, _, _, _) = item.node {
             check_fn(cx, decl, item.id);
@@ -80,13 +80,11 @@ impl LateLintPass for PtrPass {
     
     fn check_expr(&mut self, cx: &LateContext, expr: &Expr) {
         if let ExprBinary(ref op, ref l, ref r) = expr.node {
-            if op.node == BiEq || op.node == BiNe {
-                if is_null_path(l) || is_null_path(r) {
-                    span_lint(cx,
-                              CMP_NULL,
-                              expr.span,
-                              "Comparing with null is better expressed by the .is_null() method");
-                }
+            if (op.node == BiEq || op.node == BiNe) && (is_null_path(l) || is_null_path(r)) {
+                span_lint(cx,
+                          CMP_NULL,
+                          expr.span,
+                          "Comparing with null is better expressed by the .is_null() method");
             }
         }
     }

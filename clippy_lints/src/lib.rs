@@ -182,7 +182,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box enum_glob_use::EnumGlobUse);
     reg.register_late_lint_pass(box enum_clike::UnportableVariant);
     reg.register_late_lint_pass(box bit_mask::BitMask);
-    reg.register_late_lint_pass(box ptr::PtrPass);
+    reg.register_late_lint_pass(box ptr::PointerPass);
     reg.register_late_lint_pass(box needless_bool::NeedlessBool);
     reg.register_late_lint_pass(box needless_bool::BoolComparison);
     reg.register_late_lint_pass(box approx_const::Pass);
@@ -405,6 +405,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         panic::PANIC_PARAMS,
         precedence::PRECEDENCE,
         print::PRINT_WITH_NEWLINE,
+        ptr::CMP_NULL,
         ptr::PTR_ARG,
         ranges::RANGE_STEP_BY_ZERO,
         ranges::RANGE_ZIP_WITH_LEN,
