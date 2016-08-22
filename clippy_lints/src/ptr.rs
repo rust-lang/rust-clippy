@@ -14,7 +14,7 @@ use utils::{match_path, match_type, paths, span_lint};
 /// useful for no benefit; slices in the form of `&[T]` or `&str` usually suffice and can be
 /// obtained from other types, too.
 ///
-/// **Known problems:** None
+/// **Known problems:** None.
 ///
 /// **Example:**
 /// ```rust
@@ -32,7 +32,7 @@ declare_lint! {
 /// **Why is this bad?** It's easier and more readable to use the inherent `.is_null()`
 /// method instead
 ///
-/// **Known problems:** None
+/// **Known problems:** None.
 ///
 /// **Example:**
 /// ```rust
