@@ -20,31 +20,31 @@ use rustc::ty::layout::TargetDataLayout;
 /// }
 /// ```
 declare_lint! {
-    pub ENUM_LARGE_VARIANT,
+    pub LARGE_ENUM_VARIANT,
     Warn,
     "large variants on an enum"
 }
 
 #[derive(Copy,Clone)]
-pub struct EnumLargeVariant {
+pub struct LargeEnumVariant {
     maximum_variant_size_allowed: u64,
 }
 
-impl EnumLargeVariant {
+impl LargeEnumVariant {
     pub fn new(maximum_variant_size_allowed: u64) -> Self {
-        EnumLargeVariant {
+        LargeEnumVariant {
             maximum_variant_size_allowed: maximum_variant_size_allowed,
         }
     }
 }
 
-impl LintPass for EnumLargeVariant {
+impl LintPass for LargeEnumVariant {
     fn get_lints(&self) -> LintArray {
-        lint_array!(ENUM_LARGE_VARIANT)
+        lint_array!(LARGE_ENUM_VARIANT)
     }
 }
 
-impl LateLintPass for EnumLargeVariant {
+impl LateLintPass for LargeEnumVariant {
     fn check_variant(&mut self, cx: &LateContext, variant: &Variant, _ :&Generics) {
         let data_layout = TargetDataLayout::parse(cx.sess());
         let param_env = cx.tcx.empty_parameter_environment();
@@ -61,7 +61,7 @@ impl LateLintPass for EnumLargeVariant {
         if variant_size > self.maximum_variant_size_allowed {
             span_help_and_lint(
                 cx,
-                ENUM_LARGE_VARIANT,
+                LARGE_ENUM_VARIANT,
                 variant.span,
                 &format!("large enum variant found on variant `{}`", variant.node.name),
                 "consider boxing the large branches to reduce the total size of the enum",

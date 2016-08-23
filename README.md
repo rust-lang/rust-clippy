@@ -55,7 +55,6 @@ name                                                                            
 [empty_loop](https://github.com/Manishearth/rust-clippy/wiki#empty_loop)                                             | warn    | empty `loop {}`, which should block or sleep
 [enum_clike_unportable_variant](https://github.com/Manishearth/rust-clippy/wiki#enum_clike_unportable_variant)       | warn    | C-like enums that are `repr(isize/usize)` and have values that don't fit into an `i32`
 [enum_glob_use](https://github.com/Manishearth/rust-clippy/wiki#enum_glob_use)                                       | allow   | use items that import all variants of an enum
-[enum_large_variant](https://github.com/Manishearth/rust-clippy/wiki#enum_large_variant)                             | warn    | large variants on an enum
 [enum_variant_names](https://github.com/Manishearth/rust-clippy/wiki#enum_variant_names)                             | warn    | enums where all variants share a prefix/postfix
 [eq_op](https://github.com/Manishearth/rust-clippy/wiki#eq_op)                                                       | warn    | equal operands on both sides of a comparison or bitwise combination (e.g. `x == x`)
 [eval_order_dependence](https://github.com/Manishearth/rust-clippy/wiki#eval_order_dependence)                       | warn    | whether a variable read occurs before a write depends on sub-expression evaluation order
@@ -83,6 +82,7 @@ name                                                                            
 [items_after_statements](https://github.com/Manishearth/rust-clippy/wiki#items_after_statements)                     | allow   | blocks where an item comes after a statement
 [iter_next_loop](https://github.com/Manishearth/rust-clippy/wiki#iter_next_loop)                                     | warn    | for-looping over `_.next()` which is probably not intended
 [iter_nth](https://github.com/Manishearth/rust-clippy/wiki#iter_nth)                                                 | warn    | using `.iter().nth()` on a standard library type with O(1) element access
+[large_enum_variant](https://github.com/Manishearth/rust-clippy/wiki#large_enum_variant)                             | warn    | large variants on an enum
 [len_without_is_empty](https://github.com/Manishearth/rust-clippy/wiki#len_without_is_empty)                         | warn    | traits and impls that have `.len()` but not `.is_empty()`
 [len_zero](https://github.com/Manishearth/rust-clippy/wiki#len_zero)                                                 | warn    | checking `.len() == 0` or `.len() > 0` (or similar) when `.is_empty()` could be used instead
 [let_and_return](https://github.com/Manishearth/rust-clippy/wiki#let_and_return)                                     | warn    | creating a let-binding and then immediately returning it like `let x = expr; x` at the end of a block

@@ -3,7 +3,7 @@
 
 #![allow(dead_code)]
 #![allow(unused_variables)]
-#![deny(enum_large_variant)]
+#![deny(large_enum_variant)]
 
 enum LargeEnum {
     A(i32),
