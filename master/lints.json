@@ -307,6 +307,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `regex!(_)` which (as of now) is\nusually slower than `Regex::new(_)` unless called in a loop (which is a bad\nidea anyway).", 
+      "Why is this bad": "Performance, at least for now. The macro version is\nlikely to catch up long-term, but for now the dynamic version is faster.", 
+      "Example": "```rust\nregex!(\"foo|bar\")\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "regex_macro", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `0.0 / 0.0`.", 
       "Why is this bad": "It's less readable than `std::f32::NAN` or `std::f64::NAN`.", 
       "Example": "```rust\n0.0f32 / 0.0\n```", 
@@ -895,6 +905,15 @@
   }, 
   {
     "docs": {
+      "What it does": "Warns if there is missing doc for any documentable item (public or private).", 
+      "Why is this bad": "Doc is good. *rustc* has a `MISSING_DOCS` allowed-by-default lint for\npublic members, but has no way to enforce documentation of private items. This lint fixes that.", 
+      "Known problems": "None."
+    }, 
+    "id": "missing_docs_in_private_items", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for needlessly including a base struct on update\nwhen all fields are changed anyway.", 
       "Why is this bad": "This will cost resources (because the base has to be\nsomewhere), and make the code less readable.", 
       "Example": "```rust\nPoint { x: 1, y: 0, ..zero_point }\n```", 
@@ -1244,12 +1263,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `regex!(_)` which (as of now) is\nusually slower than `Regex::new(_)` unless called in a loop (which is a bad\nidea anyway).", 
-      "Why is this bad": "Performance, at least for now. The macro version is\nlikely to catch up long-term, but for now the dynamic version is faster.", 
-      "Example": "```rust\nregex!(\"foo|bar\")\n```", 
+      "What it does": "Warns if a integral constant literal starts with `0`.", 
+      "Why is this bad": "In some languages (including the infamous C language and most of its\nfamilly), this marks an octal constant. In Rust however, this is a decimal constant. This could\nbe confusing for both the writer and a reader of the constant.", 
+      "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\nprints `123`, while in C:\n```c\n#include <stdio.h>\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\nprints `83` (as `89 == 0o123` while `123 == 0o173`).", 
       "Known problems": "None."
     }, 
-    "id": "regex_macro", 
+    "id": "zero_prefixed_literal", 
     "level": "Warn"
   }, 
   {
