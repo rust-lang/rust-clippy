@@ -1263,9 +1263,9 @@
   }, 
   {
     "docs": {
-      "What it does": "Warns if a integral constant literal starts with `0`.", 
+      "What it does": "Warns if an integral constant literal starts with `0`.", 
       "Why is this bad": "In some languages (including the infamous C language and most of its\nfamilly), this marks an octal constant. In Rust however, this is a decimal constant. This could\nbe confusing for both the writer and a reader of the constant.", 
-      "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\nprints `123`, while in C:\n```c\n#include <stdio.h>\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\nprints `83` (as `89 == 0o123` while `123 == 0o173`).", 
+      "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\nprints `123`, while in C:\n```c\n#include <stdio.h>\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\nprints `83` (as `83 == 0o123` while `123 == 0o173`).", 
       "Known problems": "None."
     }, 
     "id": "zero_prefixed_literal", 
