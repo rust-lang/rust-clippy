@@ -825,6 +825,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Warns if a generic shadows a built-in type.", 
+      "Why is this bad": "This gives surprising type errors.", 
+      "Example": "```rust\nimpl<u32> Foo<u32> {\n    fn impl_func(&self) -> u32 {\n        42\n    }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "builtin_type_shadow", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for getting the remainder of a division by one.", 
       "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
       "Example": "```rust\nx % 1\n```", 
