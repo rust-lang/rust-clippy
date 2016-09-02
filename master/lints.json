@@ -1065,7 +1065,7 @@
     "docs": {
       "What it does": "Checks for items that implement `.len()` but not\n`.is_empty()`.", 
       "Why is this bad": "It is good custom to have both methods, because for\nsome data structures, asking about the length will be a costly operation,\nwhereas `.is_empty()` can usually answer in constant time. Also it used to\nlead to false positives on the [`len_zero`](#len_zero) lint \u2013 currently that\nlint will ignore such entities.", 
-      "Example": "```rust\nimpl X {\n    fn len(&self) -> usize { .. }\n}\n```", 
+      "Example": "```rust\nimpl X {\n    pub fn len(&self) -> usize { .. }\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "len_without_is_empty", 
