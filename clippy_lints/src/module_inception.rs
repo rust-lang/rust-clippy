@@ -1,5 +1,5 @@
 use rustc::lint::*;
-use syntax::ast::*;
+use syntax::ast;
 use utils::span_lint;
 
 /// **What it does:** Checks for modules that have the same name as their parent module
@@ -35,11 +35,11 @@ impl LintPass for Pass {
 }
 
 impl EarlyLintPass for Pass {
-    fn check_item(&mut self, cx: &EarlyContext, item: &Item) {
-        if let ItemKind::Mod(ref module) = item.node {
+    fn check_item(&mut self, cx: &EarlyContext, item: &ast::Item) {
+        if let ast::ItemKind::Mod(ref module) = item.node {
             for sub_item in &module.items {
-                if let ItemKind::Mod(_) = sub_item.node {
-                    if item.ident == sub_item.ident {
+                if let ast::ItemKind::Mod(_) = sub_item.node {
+                    if !allowed_by_submodule(&sub_item.attrs) && item.ident == sub_item.ident {
                         span_lint(cx, MODULE_INCEPTION, sub_item.span,
                                   "module has the same name as its containing module");
                     }
@@ -47,4 +47,18 @@ impl EarlyLintPass for Pass {
             }
         }
     }
+}
+
+/// Let the submodule #[allow] the lint. See #1220.
+fn allowed_by_submodule(attrs: &[ast::Attribute]) -> bool {
+    for attr in gather_attrs(attrs) {
+        if let Ok((name, level, _)) = attr {
+            if level == Level::Allow && name == MODULE_INCEPTION.name_lower().as_str() {
+                return true;
+            }
+        } else {
+            // We don't need to report the error, rustc will do it
+        }
+    }
+     false
 }
