@@ -905,12 +905,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,\netc., and suggests to use `or_else`, `unwrap_or_else`, etc., or\n`unwrap_or_default` instead.", 
-      "Why is this bad": "The function will always be called and potentially\nallocate an object acting as the default.", 
-      "Example": "```rust\nfoo.unwrap_or(String::new())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(String::new)\n```\nor\n```rust\nfoo.unwrap_or_default()\n```", 
-      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
+      "What it does": "Checks `for` loops over slices with an explicit counter\nand suggests the use of `.enumerate()`.", 
+      "Why is it bad": "Not only is the version using `.enumerate()` more\nreadable, the compiler is able to remove bounds checks which can lead to\nfaster code in some instances.", 
+      "Example": "```rust\nfor i in 0..v.len() { foo(v[i]);\nfor i in 0..v.len() { bar(i, v[i]); }\n```", 
+      "Known problems": "None."
     }, 
-    "id": "or_fun_call", 
+    "id": "explicit_counter_loop", 
     "level": "Warn"
   }, 
   {
@@ -991,6 +991,16 @@
     }, 
     "id": "shadow_same", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for diverging calls that are not match arms or statements.", 
+      "Why is this bad": "It is often confusing to read. In addition, the\nsub-expression evaluation order for Rust is not well documented.", 
+      "Example": "```rust\nlet a = b() || panic!() || c();\n// `c()` is dead, `panic!()` is only called if `b()` returns `false`\nlet x = (a, b, c, panic!());\n// can simply be replaced by `panic!()`\n```", 
+      "Known problems": "Someone might want to use `some_bool || panic!()` as a shorthand."
+    }, 
+    "id": "diverging_sub_expression", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1653,12 +1663,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks `for` loops over slices with an explicit counter\nand suggests the use of `.enumerate()`.", 
-      "Why is it bad": "Not only is the version using `.enumerate()` more\nreadable, the compiler is able to remove bounds checks which can lead to\nfaster code in some instances.", 
-      "Example": "```rust\nfor i in 0..v.len() { foo(v[i]);\nfor i in 0..v.len() { bar(i, v[i]); }\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,\netc., and suggests to use `or_else`, `unwrap_or_else`, etc., or\n`unwrap_or_default` instead.", 
+      "Why is this bad": "The function will always be called and potentially\nallocate an object acting as the default.", 
+      "Example": "```rust\nfoo.unwrap_or(String::new())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(String::new)\n```\nor\n```rust\nfoo.unwrap_or_default()\n```", 
+      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
     }, 
-    "id": "explicit_counter_loop", 
+    "id": "or_fun_call", 
     "level": "Warn"
   }, 
   {
