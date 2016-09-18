@@ -525,7 +525,7 @@
     "docs": {
       "What it does": "Checks for string methods that receive a single-character\n`str` as an argument, e.g. `_.split(\"x\")`.", 
       "Why is this bad": "Performing these methods using a `char` is faster than\nusing a `str`.", 
-      "Example": "```rust\n_.split(\"x\")` could be `_.split('x')\n```", 
+      "Example": "`_.split(\"x\")` could be `_.split('x')", 
       "Known problems": "Does not catch multi-byte unicode characters."
     }, 
     "id": "single_char_pattern", 
