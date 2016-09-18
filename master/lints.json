@@ -43,7 +43,7 @@
     "docs": {
       "What it does": "Checks for matches with a two arms where an `if let` will\nusually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
-      "Example": "```rust\nmatch x {\n    Some(ref foo) -> bar(foo),\n    _ => bar(other_ref),\n}\n```", 
+      "Example": "```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(other_ref),\n}\n```", 
       "Known problems": "Personal style preferences may differ."
     }, 
     "id": "single_match_else", 
@@ -1015,7 +1015,7 @@
     "docs": {
       "What it does": "Checks for matches with a single arm where an `if let`\nwill usually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
-      "Example": "```rust\nmatch x {\n    Some(ref foo) -> bar(foo),\n    _ => ()\n}\n```", 
+      "Example": "```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => ()\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "single_match", 
