@@ -1463,13 +1463,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for non-ASCII characters in string literals.", 
-      "Why is this bad": "Yeah, we know, the 90's called and wanted their charset\nback. Even so, there still are editors and other programs out there that\ndon't work well with Unicode. So if the code is meant to be used\ninternationally, on multiple operating systems, or has other portability\nrequirements, activating this lint could be useful.", 
-      "Example": "```rust\nlet x = \"H\u00e4?\"\n```", 
+      "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
+      "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250`).", 
+      "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
       "Known problems": "None."
     }, 
-    "id": "non_ascii_literal", 
-    "level": "Allow"
+    "id": "type_complexity", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1673,6 +1674,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for non-ASCII characters in string literals.", 
+      "Why is this bad": "Yeah, we know, the 90's called and wanted their charset\nback. Even so, there still are editors and other programs out there that\ndon't work well with Unicode. So if the code is meant to be used\ninternationally, on multiple operating systems, or has other portability\nrequirements, activating this lint could be useful.", 
+      "Example": "```rust\nlet x = \"H\u00e4?\"\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "non_ascii_literal", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for identity operations, e.g. `x + 0`.", 
       "Why is this bad": "This code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.", 
       "Example": "```rust\nx / 1 + 0 * 1 - 0 | 0\n```", 
@@ -1713,13 +1724,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
-      "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250`).", 
-      "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for loops on `y.into_iter()` where `y` will do, and\nsuggests the latter.", 
+      "Why is this bad": "Readability.", 
+      "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() { .. }\n```", 
+      "Known problems": "None"
     }, 
-    "id": "type_complexity", 
+    "id": "explicit_into_iter_loop", 
     "level": "Warn"
   }, 
   {
