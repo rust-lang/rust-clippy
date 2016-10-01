@@ -1,9 +1,12 @@
 use rustc::lint::*;
 use rustc::hir::*;
-use utils::{method_chain_args, span_help_and_lint};
-/// **What it does:*** Checks for unnecessary ok() in if let.
+use syntax::ast;
+use syntax::ptr;
+use utils::{paths, method_chain_args, span_help_and_lint, get_parent_expr, match_type};
+
+/// **What it does:*** Checks for unnecessary `ok()` in if let.
 ///
-/// **Why is this bad?** Calling ok() in if let is unnecessary, instead match on Ok()
+/// **Why is this bad?** Calling `ok()` in if let is unnecessary, instead match on `Ok(x`
 ///
 /// **Known problems:** None.
 ///
@@ -16,9 +19,9 @@ use utils::{method_chain_args, span_help_and_lint};
 /// }
 /// ```
 declare_lint! {
-    pub OK_IF_LET,
+    pub IF_LET_SOME_RESULT,
     Warn,
-    "usage of ok() in if let statements is unnecessary, match on Ok(expr) instead"
+    "usage of `ok()` in `if let Some(x)` statements is unnecessary, match on `Ok(expr)` instead"
 }
 
 #[derive(Copy, Clone)]
@@ -26,7 +29,7 @@ pub struct OkIfLetPass;
 
 impl LintPass for OkIfLetPass {
     fn get_lints(&self) -> LintArray {
-        lint_array!(OK_IF_LET)
+        lint_array!(IF_LET_SOME_RESULT)
     }
 }
 
@@ -35,14 +38,18 @@ impl LateLintPass for OkIfLetPass {
         if_let_chain! {[
             let ExprMatch(ref op, ref body, ref source) = expr.node, //test if expr is a match
             let MatchSource::IfLetDesugar { contains_else_clause: _ } = *source, //test if it is an If Let
-            let PatKind::TupleStruct(ref x, _, _)  = body[0].pats[0].node, //get operation
-            let Some(_) = method_chain_args(op, &["ok"]) //test to see if using ok() method
+            let ExprMethodCall(_, _, ref result_types) = op.clone().unwrap().node, //check is expr.ok() has type Result<T,E>.ok()
+            let PatKind::TupleStruct(ref x, ref y, _)  = body[0].pats[0].node, //get operation
+            let Some(_) = method_chain_args(op, &["ok"]) //test to see if using ok() methoduse std::marker::Sized;
 
-        ], { 
-            if print::path_to_string(x) == "Some" { //if using ok() on a Some, kick in lint
-                span_help_and_lint(cx, OK_IF_LET, expr.span,
-                "Matching on `Some` with `ok()` is redundant",
-                "Consider matching on `Ok()` instead");
+        ], {
+            let is_result_type = match_type(cx, cx.tcx.expr_ty(&result_types[0]), &paths::RESULT);
+            let is_some_type = match_type(cx, cx.tcx.expr_ty(x), &paths::OPTION);
+            if is_some_type && is_result_type {
+        // span_help_and_lint(cx, IF_LET_SOME_RESULT, expr.span,
+        // "Matching on `Some` with `ok()` is redundant",
+        // "Consider matching on `Ok()` instead");
+                println!(""); //cx.tcx.expr_ty(op)
             }
         }}
     }

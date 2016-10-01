@@ -405,7 +405,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         no_effect::NO_EFFECT,
         no_effect::UNNECESSARY_OPERATION,
         non_expressive_names::MANY_SINGLE_CHAR_NAMES,
-        ok_if_let::OK_IF_LET,
+        ok_if_let::IF_LET_SOME_RESULT,
         open_options::NONSENSICAL_OPEN_OPTIONS,
         overflow_check_conditional::OVERFLOW_CHECK_CONDITIONAL,
         panic::PANIC_PARAMS,
