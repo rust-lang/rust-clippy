@@ -120,12 +120,7 @@ fn check_collapsible_maybe_if_let(cx: &EarlyContext, else_: &ast::Expr) {
     }}
 }
 
-fn check_collapsible_no_if_let(
-    cx: &EarlyContext,
-    expr: &ast::Expr,
-    check: &ast::Expr,
-    then: &ast::Block,
-) {
+fn check_collapsible_no_if_let(cx: &EarlyContext, expr: &ast::Expr, check: &ast::Expr, then: &ast::Block) {
     if_let_chain! {[
         let Some(inner) = expr_block(then),
         let ast::ExprKind::If(ref check_inner, ref content, None) = inner.node,
@@ -151,7 +146,8 @@ fn expr_block(block: &ast::Block) -> Option<&ast::Expr> {
 
     if let (Some(stmt), None) = (it.next(), it.next()) {
         match stmt.node {
-            ast::StmtKind::Expr(ref expr) | ast::StmtKind::Semi(ref expr) => Some(expr),
+            ast::StmtKind::Expr(ref expr) |
+            ast::StmtKind::Semi(ref expr) => Some(expr),
             _ => None,
         }
     } else {

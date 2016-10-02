@@ -172,8 +172,8 @@ fn check_pat(cx: &LateContext, pat: &Pat, init: &Option<&Expr>, span: Span, bind
                     for field in pfields {
                         let name = field.node.name;
                         let efield = efields.iter()
-                                            .find(|f| f.name.node == name)
-                                            .map(|f| &*f.expr);
+                            .find(|f| f.name.node == name)
+                            .map(|f| &*f.expr);
                         check_pat(cx, &field.node.pat, &efield, span, bindings);
                     }
                 } else {
@@ -232,8 +232,9 @@ fn lint_shadow<T>(cx: &LateContext, name: Name, span: Span, pattern_span: Span, 
                                &format!("`{}` is shadowed by itself in `{}`",
                                         snippet(cx, pattern_span, "_"),
                                         snippet(cx, expr.span, "..")),
-                               |db| { db.span_note(prev_span, "previous binding is here"); },
-            );
+                               |db| {
+                                   db.span_note(prev_span, "previous binding is here");
+                               });
         } else if contains_self(name, expr) {
             span_lint_and_then(cx,
                                SHADOW_REUSE,
@@ -263,7 +264,9 @@ fn lint_shadow<T>(cx: &LateContext, name: Name, span: Span, pattern_span: Span, 
                            SHADOW_UNRELATED,
                            span,
                            &format!("{} shadows a previous declaration", snippet(cx, pattern_span, "_")),
-                           |db| { db.span_note(prev_span, "previous binding is here"); });
+                           |db| {
+                               db.span_note(prev_span, "previous binding is here");
+                           });
     }
 }
 

@@ -87,12 +87,12 @@ enum RefLt {
 fn bound_lifetimes(bound: &TyParamBound) -> HirVec<&Lifetime> {
     if let TraitTyParamBound(ref trait_ref, _) = *bound {
         trait_ref.trait_ref
-                 .path
-                 .segments
-                 .last()
-                 .expect("a path must have at least one segment")
-                 .parameters
-                 .lifetimes()
+            .path
+            .segments
+            .last()
+            .expect("a path must have at least one segment")
+            .parameters
+            .lifetimes()
     } else {
         HirVec::new()
     }
@@ -104,8 +104,8 @@ fn check_fn_inner(cx: &LateContext, decl: &FnDecl, generics: &Generics, span: Sp
     }
 
     let bounds_lts = generics.ty_params
-                             .iter()
-                             .flat_map(|typ| typ.bounds.iter().flat_map(bound_lifetimes));
+        .iter()
+        .flat_map(|typ| typ.bounds.iter().flat_map(bound_lifetimes));
 
     if could_use_elision(cx, decl, &generics.lifetimes, bounds_lts) {
         span_lint(cx,
@@ -344,9 +344,9 @@ impl<'v> Visitor<'v> for LifetimeChecker {
 
 fn report_extra_lifetimes(cx: &LateContext, func: &FnDecl, generics: &Generics) {
     let hs = generics.lifetimes
-                     .iter()
-                     .map(|lt| (lt.lifetime.name, lt.lifetime.span))
-                     .collect();
+        .iter()
+        .map(|lt| (lt.lifetime.name, lt.lifetime.span))
+        .collect();
     let mut checker = LifetimeChecker(hs);
 
     walk_generics(&mut checker, generics);

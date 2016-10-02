@@ -90,7 +90,8 @@ impl LintPass for NewWithoutDefault {
 }
 
 impl LateLintPass for NewWithoutDefault {
-    fn check_fn(&mut self, cx: &LateContext, kind: FnKind, decl: &hir::FnDecl, _: &hir::Block, span: Span, id: ast::NodeId) {
+    fn check_fn(&mut self, cx: &LateContext, kind: FnKind, decl: &hir::FnDecl, _: &hir::Block, span: Span,
+                id: ast::NodeId) {
         if in_external_macro(cx, span) {
             return;
         }

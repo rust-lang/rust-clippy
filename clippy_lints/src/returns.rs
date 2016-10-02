@@ -48,7 +48,8 @@ impl ReturnPass {
     fn check_block_return(&mut self, cx: &EarlyContext, block: &Block) {
         if let Some(stmt) = block.stmts.last() {
             match stmt.node {
-                StmtKind::Expr(ref expr) | StmtKind::Semi(ref expr) => {
+                StmtKind::Expr(ref expr) |
+                StmtKind::Semi(ref expr) => {
                     self.check_final_expr(cx, expr, Some(stmt.span));
                 }
                 _ => (),

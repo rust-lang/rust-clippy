@@ -92,7 +92,6 @@ fn has_step_by(cx: &LateContext, expr: &Expr) -> bool {
     let ty = cx.tcx.expr_ty(expr);
 
     // Note: `RangeTo`, `RangeToInclusive` and `RangeFull` don't have step_by
-    match_type(cx, ty, &paths::RANGE)
-        || match_type(cx, ty, &paths::RANGE_FROM)
-        || match_type(cx, ty, &paths::RANGE_INCLUSIVE)
+    match_type(cx, ty, &paths::RANGE) || match_type(cx, ty, &paths::RANGE_FROM) ||
+    match_type(cx, ty, &paths::RANGE_INCLUSIVE)
 }

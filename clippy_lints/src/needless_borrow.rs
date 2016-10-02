@@ -62,10 +62,7 @@ impl LateLintPass for NeedlessBorrow {
             if let TyRef(_, ref tam) = cx.tcx.pat_ty(pat).sty {
                 if tam.mutbl == MutImmutable {
                     if let TyRef(..) = tam.ty.sty {
-                        span_lint(cx,
-                                  NEEDLESS_BORROW,
-                                  pat.span,
-                                  "this pattern creates a reference to a reference")
+                        span_lint(cx, NEEDLESS_BORROW, pat.span, "this pattern creates a reference to a reference")
                     }
                 }
             }

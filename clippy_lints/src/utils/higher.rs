@@ -48,7 +48,8 @@ pub fn range(expr: &hir::Expr) -> Option<Range> {
     /// Skip unstable blocks. To be removed when ranges get stable.
     fn unwrap_unstable(expr: &hir::Expr) -> &hir::Expr {
         if let hir::ExprBlock(ref block) = expr.node {
-            if block.rules == hir::BlockCheckMode::PushUnstableBlock || block.rules == hir::BlockCheckMode::PopUnstableBlock {
+            if block.rules == hir::BlockCheckMode::PushUnstableBlock ||
+               block.rules == hir::BlockCheckMode::PopUnstableBlock {
                 if let Some(ref expr) = block.expr {
                     return expr;
                 }
@@ -61,9 +62,9 @@ pub fn range(expr: &hir::Expr) -> Option<Range> {
     /// Find the field named `name` in the field. Always return `Some` for convenience.
     fn get_field<'a>(name: &str, fields: &'a [hir::Field]) -> Option<&'a hir::Expr> {
         let expr = &fields.iter()
-                          .find(|field| field.name.node.as_str() == name)
-                          .unwrap_or_else(|| panic!("missing {} field for range", name))
-                          .expr;
+            .find(|field| field.name.node.as_str() == name)
+            .unwrap_or_else(|| panic!("missing {} field for range", name))
+            .expr;
 
         Some(unwrap_unstable(expr))
     }
@@ -91,7 +92,7 @@ pub fn range(expr: &hir::Expr) -> Option<Range> {
                     limits: ast::RangeLimits::HalfOpen,
                 })
             } else if match_path(path, &paths::RANGE_INCLUSIVE_NON_EMPTY_STD) ||
-               match_path(path, &paths::RANGE_INCLUSIVE_NON_EMPTY) {
+                      match_path(path, &paths::RANGE_INCLUSIVE_NON_EMPTY) {
                 Some(Range {
                     start: get_field("start", fields),
                     end: get_field("end", fields),

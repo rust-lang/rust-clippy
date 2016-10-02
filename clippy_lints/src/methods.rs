@@ -9,9 +9,9 @@ use std::borrow::Cow;
 use std::fmt;
 use syntax::codemap::Span;
 use syntax::ptr::P;
-use utils::{get_trait_def_id, implements_trait, in_external_macro, in_macro, is_copy, match_path,
-            match_trait_method, match_type, method_chain_args, return_ty, same_tys, snippet,
-            span_lint, span_lint_and_then, span_note_and_lint, walk_ptrs_ty, walk_ptrs_ty_depth};
+use utils::{get_trait_def_id, implements_trait, in_external_macro, in_macro, is_copy, match_path, match_trait_method,
+            match_type, method_chain_args, return_ty, same_tys, snippet, span_lint, span_lint_and_then,
+            span_note_and_lint, walk_ptrs_ty, walk_ptrs_ty_depth};
 use utils::MethodArgs;
 use utils::paths;
 use utils::sugg;
@@ -611,14 +611,15 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[P<hi
         if name == "unwrap_or" {
             if let hir::ExprPath(_, ref path) = fun.node {
                 let path: &str = &path.segments
-                                      .last()
-                                      .expect("A path must have at least one segment")
-                                      .name
-                                      .as_str();
+                    .last()
+                    .expect("A path must have at least one segment")
+                    .name
+                    .as_str();
 
                 if ["default", "new"].contains(&path) {
                     let arg_ty = cx.tcx.expr_ty(arg);
-                    let default_trait_id = if let Some(default_trait_id) = get_trait_def_id(cx, &paths::DEFAULT_TRAIT) {
+                    let default_trait_id = if let Some(default_trait_id) = get_trait_def_id(cx,
+                                                                                            &paths::DEFAULT_TRAIT) {
                         default_trait_id
                     } else {
                         return false;
@@ -626,13 +627,13 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[P<hi
 
                     if implements_trait(cx, arg_ty, default_trait_id, Vec::new()) {
                         span_lint_and_then(cx,
-                                  OR_FUN_CALL,
-                                  span,
-                                  &format!("use of `{}` followed by a call to `{}`", name, path),
-                                  |db| {
-                                      db.span_suggestion(span, "try this",
+                                           OR_FUN_CALL,
+                                           span,
+                                           &format!("use of `{}` followed by a call to `{}`", name, path),
+                                           |db| {
+                                               db.span_suggestion(span, "try this",
                                                           format!("{}.unwrap_or_default()", snippet(cx, self_expr.span, "_")));
-                                  });
+                                           });
                         return true;
                     }
                 }
@@ -643,8 +644,8 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[P<hi
     }
 
     /// Check for `*or(foo())`.
-    fn check_general_case(cx: &LateContext, name: &str, fun: &hir::Expr, self_expr: &hir::Expr, arg: &hir::Expr, or_has_args: bool,
-                          span: Span) {
+    fn check_general_case(cx: &LateContext, name: &str, fun: &hir::Expr, self_expr: &hir::Expr, arg: &hir::Expr,
+                          or_has_args: bool, span: Span) {
         // don't lint for constant values
         // FIXME: can we `expect` here instead of match?
         if let Some(qualif) = cx.tcx.const_qualif_map.borrow().get(&arg.id) {
@@ -653,18 +654,16 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[P<hi
             }
         }
         // (path, fn_has_argument, methods, suffix)
-        let know_types: &[(&[_], _, &[_], _)] = &[(&paths::BTREEMAP_ENTRY, false, &["or_insert"], "with"),
-                                                  (&paths::HASHMAP_ENTRY, false, &["or_insert"], "with"),
-                                                  (&paths::OPTION,
-                                                   false,
-                                                   &["map_or", "ok_or", "or", "unwrap_or"],
-                                                   "else"),
-                                                  (&paths::RESULT, true, &["or", "unwrap_or"], "else")];
+        let know_types: &[(&[_], _, &[_], _)] =
+            &[(&paths::BTREEMAP_ENTRY, false, &["or_insert"], "with"),
+              (&paths::HASHMAP_ENTRY, false, &["or_insert"], "with"),
+              (&paths::OPTION, false, &["map_or", "ok_or", "or", "unwrap_or"], "else"),
+              (&paths::RESULT, true, &["or", "unwrap_or"], "else")];
 
         let self_ty = cx.tcx.expr_ty(self_expr);
 
-        let (fn_has_arguments, poss, suffix) = if let Some(&(_, fn_has_arguments, poss, suffix)) =
-                                                      know_types.iter().find(|&&i| match_type(cx, self_ty, i.0)) {
+        let (fn_has_arguments, poss, suffix) = if let Some(&(_, fn_has_arguments, poss, suffix)) = know_types.iter()
+            .find(|&&i| match_type(cx, self_ty, i.0)) {
             (fn_has_arguments, poss, suffix)
         } else {
             return;
@@ -680,11 +679,15 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[P<hi
             (false, true) => snippet(cx, fun.span, ".."),
         };
 
-        span_lint_and_then(cx, OR_FUN_CALL, span, &format!("use of `{}` followed by a function call", name), |db| {
-            db.span_suggestion(span,
+        span_lint_and_then(cx,
+                           OR_FUN_CALL,
+                           span,
+                           &format!("use of `{}` followed by a function call", name),
+                           |db| {
+                               db.span_suggestion(span,
                                "try this",
                                format!("{}.{}_{}({})", snippet(cx, self_expr.span, "_"), name, suffix, sugg));
-        });
+                           });
     }
 
     if args.len() == 2 {
@@ -710,7 +713,9 @@ fn lint_clone_on_copy(cx: &LateContext, expr: &hir::Expr, arg: &hir::Expr, arg_t
                                "using `clone` on a double-reference; \
                                 this will copy the reference instead of cloning the inner type",
                                |db| if let Some(snip) = sugg::Sugg::hir_opt(cx, arg) {
-                                   db.span_suggestion(expr.span, "try dereferencing it", format!("({}).clone()", snip.deref()));
+                                   db.span_suggestion(expr.span,
+                                                      "try dereferencing it",
+                                                      format!("({}).clone()", snip.deref()));
                                });
             return; // don't report clone_on_copy
         }
@@ -738,7 +743,11 @@ fn lint_extend(cx: &LateContext, expr: &hir::Expr, args: &MethodArgs) {
     }
     let arg_ty = cx.tcx.expr_ty(&args[1]);
     if let Some(slice) = derefs_to_slice(cx, &args[1], arg_ty) {
-        span_lint_and_then(cx, EXTEND_FROM_SLICE, expr.span, "use of `extend` to extend a Vec by a slice", |db| {
+        span_lint_and_then(cx,
+                           EXTEND_FROM_SLICE,
+                           expr.span,
+                           "use of `extend` to extend a Vec by a slice",
+                           |db| {
             db.span_suggestion(expr.span,
                                "try this",
                                format!("{}.extend_from_slice({})",
@@ -766,28 +775,23 @@ fn lint_cstring_as_ptr(cx: &LateContext, expr: &hir::Expr, new: &hir::Expr, unwr
 
 #[allow(ptr_arg)]
 // Type of MethodArgs is potentially a Vec
-fn lint_iter_nth(cx: &LateContext, expr: &hir::Expr, iter_args: &MethodArgs, is_mut: bool){
-    let mut_str = if is_mut { "_mut" } else {""};
+fn lint_iter_nth(cx: &LateContext, expr: &hir::Expr, iter_args: &MethodArgs, is_mut: bool) {
+    let mut_str = if is_mut { "_mut" } else { "" };
     let caller_type = if let Some(_) = derefs_to_slice(cx, &iter_args[0], cx.tcx.expr_ty(&iter_args[0])) {
         "slice"
-    }
-    else if match_type(cx, cx.tcx.expr_ty(&iter_args[0]), &paths::VEC) {
+    } else if match_type(cx, cx.tcx.expr_ty(&iter_args[0]), &paths::VEC) {
         "Vec"
-    }
-    else if match_type(cx, cx.tcx.expr_ty(&iter_args[0]), &paths::VEC_DEQUE) {
+    } else if match_type(cx, cx.tcx.expr_ty(&iter_args[0]), &paths::VEC_DEQUE) {
         "VecDeque"
-    }
-    else {
+    } else {
         return; // caller is not a type that we want to lint
     };
 
-    span_lint(
-        cx,
-        ITER_NTH,
-        expr.span,
-        &format!("called `.iter{0}().nth()` on a {1}. Calling `.get{0}()` is both faster and more readable",
-                 mut_str, caller_type)
-    );
+    span_lint(cx,
+              ITER_NTH,
+              expr.span,
+              &format!("called `.iter{0}().nth()` on a {1}. Calling `.get{0}()` is both faster and more readable",
+                 mut_str, caller_type));
 }
 
 fn derefs_to_slice(cx: &LateContext, expr: &hir::Expr, ty: ty::Ty) -> Option<sugg::Sugg<'static>> {
@@ -804,9 +808,7 @@ fn derefs_to_slice(cx: &LateContext, expr: &hir::Expr, ty: ty::Ty) -> Option<sug
 
     if let hir::ExprMethodCall(name, _, ref args) = expr.node {
         if &name.node.as_str() == &"iter" && may_slice(cx, cx.tcx.expr_ty(&args[0])) {
-            sugg::Sugg::hir_opt(cx, &*args[0]).map(|sugg| {
-                sugg.addr()
-            })
+            sugg::Sugg::hir_opt(cx, &*args[0]).map(|sugg| sugg.addr())
         } else {
             None
         }
@@ -938,8 +940,8 @@ fn lint_map_unwrap_or_else(cx: &LateContext, expr: &hir::Expr, map_args: &Method
 fn lint_filter_next(cx: &LateContext, expr: &hir::Expr, filter_args: &MethodArgs) {
     // lint if caller of `.filter().next()` is an Iterator
     if match_trait_method(cx, expr, &paths::ITERATOR) {
-        let msg = "called `filter(p).next()` on an `Iterator`. This is more succinctly expressed by calling `.find(p)` \
-                   instead.";
+        let msg = "called `filter(p).next()` on an `Iterator`. This is more succinctly expressed by calling \
+                   `.find(p)` instead.";
         let filter_snippet = snippet(cx, filter_args[1].span, "..");
         if filter_snippet.lines().count() <= 1 {
             // add note if not multi-line

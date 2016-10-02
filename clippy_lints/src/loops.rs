@@ -14,9 +14,9 @@ use std::collections::HashMap;
 use syntax::ast;
 use utils::sugg;
 
-use utils::{snippet, span_lint, get_parent_expr, match_trait_method, match_type, multispan_sugg,
-            in_external_macro, is_refutable, span_help_and_lint, is_integer_literal,
-            get_enclosing_block, span_lint_and_then, higher, walk_ptrs_ty};
+use utils::{snippet, span_lint, get_parent_expr, match_trait_method, match_type, multispan_sugg, in_external_macro,
+            is_refutable, span_help_and_lint, is_integer_literal, get_enclosing_block, span_lint_and_then, higher,
+            walk_ptrs_ty};
 use utils::paths;
 
 /// **What it does:** Checks for looping over the range of `0..len` of some
@@ -334,8 +334,7 @@ impl LateLintPass for Pass {
                     match *source {
                         MatchSource::Normal |
                         MatchSource::IfLetDesugar { .. } => {
-                            if arms.len() == 2 &&
-                               arms[0].pats.len() == 1 && arms[0].guard.is_none() &&
+                            if arms.len() == 2 && arms[0].pats.len() == 1 && arms[0].guard.is_none() &&
                                arms[1].pats.len() == 1 && arms[1].guard.is_none() &&
                                is_break_expr(&arms[1].body) {
                                 if in_external_macro(cx, expr.span) {
@@ -370,8 +369,7 @@ impl LateLintPass for Pass {
                     &ExprMethodCall(method_name, _, ref method_args)) = (pat, &match_expr.node) {
                 let iter_expr = &method_args[0];
                 if let Some(lhs_constructor) = path.segments.last() {
-                    if method_name.node.as_str() == "next" &&
-                       match_trait_method(cx, match_expr, &paths::ITERATOR) &&
+                    if method_name.node.as_str() == "next" && match_trait_method(cx, match_expr, &paths::ITERATOR) &&
                        lhs_constructor.name.as_str() == "Some" &&
                        !is_refutable(cx, &pat_args[0]) &&
                        !is_iterator_used_after_while_let(cx, iter_expr) {
@@ -382,10 +380,10 @@ impl LateLintPass for Pass {
                                            expr.span,
                                            "this loop could be written as a `for` loop",
                                            |db| {
-                        db.span_suggestion(expr.span,
+                                               db.span_suggestion(expr.span,
                                            "try",
                                            format!("for {} in {} {{ .. }}", loop_var, iterator));
-                        });
+                                           });
                     }
                 }
             }
@@ -433,9 +431,9 @@ fn check_for_loop_range(cx: &LateContext, pat: &Pat, arg: &Expr, body: &Expr, ex
             // linting condition: we only indexed one variable
             if visitor.indexed.len() == 1 {
                 let (indexed, indexed_extent) = visitor.indexed
-                                                       .into_iter()
-                                                       .next()
-                                                       .unwrap_or_else(|| unreachable!() /* len == 1 */);
+                    .into_iter()
+                    .next()
+                    .unwrap_or_else(|| unreachable!() /* len == 1 */);
 
                 // ensure that the indexed variable was declared before the loop, see #601
                 if let Some(indexed_extent) = indexed_extent {
@@ -462,9 +460,7 @@ fn check_for_loop_range(cx: &LateContext, pat: &Pat, arg: &Expr, body: &Expr, ex
                                 let end = sugg::Sugg::hir(cx, end, "<count>");
                                 format!(".take({})", end + sugg::ONE)
                             }
-                            ast::RangeLimits::HalfOpen => {
-                                format!(".take({})", snippet(cx, end.span, ".."))
-                            }
+                            ast::RangeLimits::HalfOpen => format!(".take({})", snippet(cx, end.span, "..")),
                         }
                     }
                 } else {
@@ -477,10 +473,10 @@ fn check_for_loop_range(cx: &LateContext, pat: &Pat, arg: &Expr, body: &Expr, ex
                                        expr.span,
                                        &format!("the loop variable `{}` is used to index `{}`", ident.node, indexed),
                                        |db| {
-                        multispan_sugg(db, "consider using an iterator".to_string(), &[
-                            (pat.span, &format!("({}, <item>)", ident.node)),
-                            (arg.span, &format!("{}.iter().enumerate(){}{}", indexed, take, skip)),
-                        ]);
+                        multispan_sugg(db,
+                                       "consider using an iterator".to_string(),
+                                       &[(pat.span, &format!("({}, <item>)", ident.node)),
+                                         (arg.span, &format!("{}.iter().enumerate(){}{}", indexed, take, skip))]);
                     });
                 } else {
                     let repl = if starts_at_zero && take.is_empty() {
@@ -551,15 +547,14 @@ fn check_for_loop_reverse_range(cx: &LateContext, arg: &Expr, expr: &Expr) {
                                        expr.span,
                                        "this range is empty so this for loop will never run",
                                        |db| {
-                                           db.span_suggestion(arg.span,
-                                                              "consider using the following if \
-                                                               you are attempting to iterate \
-                                                               over this range in reverse",
-                                                              format!("({end}{dots}{start}).rev()",
+                        db.span_suggestion(arg.span,
+                                           "consider using the following if you are attempting to iterate over this \
+                                            range in reverse",
+                                           format!("({end}{dots}{start}).rev()",
                                                                       end=end_snippet,
                                                                       dots=dots,
                                                                       start=start_snippet));
-                                       });
+                    });
                 } else if eq && limits != ast::RangeLimits::Closed {
                     // if they are equal, it's also problematic - this loop
                     // will never run.
@@ -717,10 +712,10 @@ fn check_for_loop_over_map_kv(cx: &LateContext, pat: &Pat, arg: &Expr, body: &Ex
                                    &format!("you seem to want to iterate on a map's {}s", kind),
                                    |db| {
                     let map = sugg::Sugg::hir(cx, arg, "map");
-                    multispan_sugg(db, "use the corresponding method".into(), &[
-                        (pat_span, &snippet(cx, new_pat_span, kind)),
-                        (arg_span, &format!("{}.{}s()", map.maybe_par(), kind)),
-                    ]);
+                    multispan_sugg(db,
+                                   "use the corresponding method".into(),
+                                   &[(pat_span, &snippet(cx, new_pat_span, kind)),
+                                     (arg_span, &format!("{}.{}s()", map.maybe_par(), kind))]);
                 });
             }
         }
@@ -900,7 +895,8 @@ fn extract_first_expr(block: &Block) -> Option<&Expr> {
         Some(ref expr) if block.stmts.is_empty() => Some(expr),
         None if !block.stmts.is_empty() => {
             match block.stmts[0].node {
-                StmtExpr(ref expr, _) | StmtSemi(ref expr, _) => Some(expr),
+                StmtExpr(ref expr, _) |
+                StmtSemi(ref expr, _) => Some(expr),
                 StmtDecl(..) => None,
             }
         }

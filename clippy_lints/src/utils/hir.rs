@@ -203,13 +203,7 @@ impl<'a, 'tcx: 'a> SpanlessEq<'a, 'tcx> {
 
 fn swap_binop<'a>(binop: BinOp_, lhs: &'a Expr, rhs: &'a Expr) -> Option<(BinOp_, &'a Expr, &'a Expr)> {
     match binop {
-        BiAdd |
-        BiMul |
-        BiBitXor |
-        BiBitAnd |
-        BiEq |
-        BiNe |
-        BiBitOr => Some((binop, rhs, lhs)),
+        BiAdd | BiMul | BiBitXor | BiBitAnd | BiEq | BiNe | BiBitOr => Some((binop, rhs, lhs)),
         BiLt => Some((BiGt, rhs, lhs)),
         BiLe => Some((BiGe, rhs, lhs)),
         BiGe => Some((BiLe, rhs, lhs)),

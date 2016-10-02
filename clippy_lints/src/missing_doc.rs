@@ -1,21 +1,21 @@
-/* This file incorporates work covered by the following copyright and
- * permission notice:
- *   Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT
- *   file at the top-level directory of this distribution and at
- *   http://rust-lang.org/COPYRIGHT.
- *
- *   Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
- *   http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
- *   <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
- *   option. This file may not be copied, modified, or distributed
- *   except according to those terms.
- */
+// This file incorporates work covered by the following copyright and
+// permission notice:
+//   Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT
+//   file at the top-level directory of this distribution and at
+//   http://rust-lang.org/COPYRIGHT.
+//
+//   Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+//   http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+//   <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+//   option. This file may not be copied, modified, or distributed
+//   except according to those terms.
+//
 
-/* Note: More specifically this lint is largely inspired (aka copied) from *rustc*'s
- * [`missing_doc`].
- *
- * [`missing_doc`]: https://github.com/rust-lang/rust/blob/d6d05904697d89099b55da3331155392f1db9c00/src/librustc_lint/builtin.rs#L246
- */
+// Note: More specifically this lint is largely inspired (aka copied) from *rustc*'s
+// [`missing_doc`].
+//
+// [`missing_doc`]: https://github.com/rust-lang/rust/blob/d6d05904697d89099b55da3331155392f1db9c00/src/librustc_lint/builtin.rs#L246
+//
 
 use rustc::hir;
 use rustc::lint::*;
@@ -51,20 +51,14 @@ impl ::std::default::Default for MissingDoc {
 
 impl MissingDoc {
     pub fn new() -> MissingDoc {
-        MissingDoc {
-            doc_hidden_stack: vec![false],
-        }
+        MissingDoc { doc_hidden_stack: vec![false] }
     }
 
     fn doc_hidden(&self) -> bool {
         *self.doc_hidden_stack.last().expect("empty doc_hidden_stack")
     }
 
-    fn check_missing_docs_attrs(&self,
-                               cx: &LateContext,
-                               attrs: &[ast::Attribute],
-                               sp: Span,
-                               desc: &'static str) {
+    fn check_missing_docs_attrs(&self, cx: &LateContext, attrs: &[ast::Attribute], sp: Span, desc: &'static str) {
         // If we're building a test harness, then warning about
         // documentation is probably not really relevant right now.
         if cx.sess().opts.test {
@@ -82,7 +76,8 @@ impl MissingDoc {
 
         let has_doc = attrs.iter().any(|a| a.is_value_str() && a.name() == "doc");
         if !has_doc {
-            cx.span_lint(MISSING_DOCS_IN_PRIVATE_ITEMS, sp,
+            cx.span_lint(MISSING_DOCS_IN_PRIVATE_ITEMS,
+                         sp,
                          &format!("missing documentation for {}", desc));
         }
     }
@@ -96,8 +91,10 @@ impl LintPass for MissingDoc {
 
 impl LateLintPass for MissingDoc {
     fn enter_lint_attrs(&mut self, _: &LateContext, attrs: &[ast::Attribute]) {
-        let doc_hidden = self.doc_hidden() || attrs.iter().any(|attr| {
-            attr.check_name("doc") && match attr.meta_item_list() {
+        let doc_hidden = self.doc_hidden() ||
+                         attrs.iter().any(|attr| {
+            attr.check_name("doc") &&
+            match attr.meta_item_list() {
                 None => false,
                 Some(l) => attr::list_contains_name(&l[..], "hidden"),
             }
@@ -147,14 +144,16 @@ impl LateLintPass for MissingDoc {
     fn check_impl_item(&mut self, cx: &LateContext, impl_item: &hir::ImplItem) {
         // If the method is an impl for a trait, don't doc.
         let def_id = cx.tcx.map.local_def_id(impl_item.id);
-        match cx.tcx.impl_or_trait_items.borrow()
-                                         .get(&def_id)
-                                         .expect("missing method descriptor?!")
-                                         .container() {
+        match cx.tcx
+            .impl_or_trait_items
+            .borrow()
+            .get(&def_id)
+            .expect("missing method descriptor?!")
+            .container() {
             ty::TraitContainer(_) => return,
             ty::ImplContainer(cid) => {
                 if cx.tcx.impl_trait_ref(cid).is_some() {
-                    return
+                    return;
                 }
             }
         }

@@ -39,14 +39,13 @@ impl LateLintPass for UnsafeNameRemoval {
         if let ItemUse(ref item_use) = item.node {
             match item_use.node {
                 ViewPath_::ViewPathSimple(ref name, ref path) => {
-                    unsafe_to_safe_check(
-                        path.segments
-                            .last()
-                            .expect("use paths cannot be empty")
-                            .name,
-                        *name,
-                        cx, &item.span
-                        );
+                    unsafe_to_safe_check(path.segments
+                                             .last()
+                                             .expect("use paths cannot be empty")
+                                             .name,
+                                         *name,
+                                         cx,
+                                         &item.span);
                 }
                 ViewPath_::ViewPathList(_, ref path_list_items) => {
                     for path_list_item in path_list_items.iter() {

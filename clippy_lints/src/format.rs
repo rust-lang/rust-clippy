@@ -71,8 +71,7 @@ impl LateLintPass for Pass {
 
 /// Returns the slice of format string parts in an `Arguments::new_v1` call.
 /// Public because it's shared with a lint in print.rs.
-pub fn get_argument_fmtstr_parts<'a, 'b>(cx: &LateContext<'a, 'b>, expr: &'a Expr)
-                                         -> Option<Vec<&'a str>> {
+pub fn get_argument_fmtstr_parts<'a, 'b>(cx: &LateContext<'a, 'b>, expr: &'a Expr) -> Option<Vec<&'a str>> {
     if_let_chain! {[
         let ExprBlock(ref block) = expr.node,
         block.stmts.len() == 1,

@@ -69,7 +69,8 @@ impl LintPass for Functions {
 }
 
 impl LateLintPass for Functions {
-    fn check_fn(&mut self, cx: &LateContext, kind: intravisit::FnKind, decl: &hir::FnDecl, block: &hir::Block, span: Span, nodeid: ast::NodeId) {
+    fn check_fn(&mut self, cx: &LateContext, kind: intravisit::FnKind, decl: &hir::FnDecl, block: &hir::Block,
+                span: Span, nodeid: ast::NodeId) {
         use rustc::hir::map::Node::*;
 
         let is_impl = if let Some(NodeItem(item)) = cx.tcx.map.find(cx.tcx.map.get_parent_node(nodeid)) {
@@ -90,7 +91,7 @@ impl LateLintPass for Functions {
             match kind {
                 hir::intravisit::FnKind::Method(_, &hir::MethodSig { abi: Abi::Rust, .. }, _, _) |
                 hir::intravisit::FnKind::ItemFn(_, _, _, _, Abi::Rust, _, _) => self.check_arg_number(cx, decl, span),
-                _ => {},
+                _ => {}
             }
         }
 
@@ -122,7 +123,8 @@ impl Functions {
         }
     }
 
-    fn check_raw_ptr(&self, cx: &LateContext, unsafety: hir::Unsafety, decl: &hir::FnDecl, block: &hir::Block, nodeid: ast::NodeId) {
+    fn check_raw_ptr(&self, cx: &LateContext, unsafety: hir::Unsafety, decl: &hir::FnDecl, block: &hir::Block,
+                     nodeid: ast::NodeId) {
         if unsafety == hir::Unsafety::Normal && cx.access_levels.is_exported(nodeid) {
             let raw_ptrs = decl.inputs.iter().filter_map(|arg| raw_ptr_arg(cx, arg)).collect::<HashSet<_>>();
 

@@ -71,11 +71,7 @@ fn get_open_options(cx: &LateContext, argument: &Expr, options: &mut Vec<(OpenOp
             let argument_option = match arguments[1].node {
                 ExprLit(ref span) => {
                     if let Spanned { node: LitKind::Bool(lit), .. } = **span {
-                        if lit {
-                            Argument::True
-                        } else {
-                            Argument::False
-                        }
+                        if lit { Argument::True } else { Argument::False }
                     } else {
                         return; // The function is called with a literal
                                 // which is not a boolean literal. This is theoretically
@@ -111,11 +107,8 @@ fn get_open_options(cx: &LateContext, argument: &Expr, options: &mut Vec<(OpenOp
 
 fn check_open_options(cx: &LateContext, options: &[(OpenOption, Argument)], span: Span) {
     let (mut create, mut append, mut truncate, mut read, mut write) = (false, false, false, false, false);
-    let (mut create_arg, mut append_arg, mut truncate_arg, mut read_arg, mut write_arg) = (false,
-                                                                                           false,
-                                                                                           false,
-                                                                                           false,
-                                                                                           false);
+    let (mut create_arg, mut append_arg, mut truncate_arg, mut read_arg, mut write_arg) =
+        (false, false, false, false, false);
     // This code is almost duplicated (oh, the irony), but I haven't found a way to unify it.
 
     for option in options {

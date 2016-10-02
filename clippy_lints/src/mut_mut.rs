@@ -64,7 +64,10 @@ impl<'a, 'tcx, 'v> intravisit::Visitor<'v> for MutVisitor<'a, 'tcx> {
             intravisit::walk_expr(self, body);
         } else if let hir::ExprAddrOf(hir::MutMutable, ref e) = expr.node {
             if let hir::ExprAddrOf(hir::MutMutable, _) = e.node {
-                span_lint(self.cx, MUT_MUT, expr.span, "generally you want to avoid `&mut &mut _` if possible");
+                span_lint(self.cx,
+                          MUT_MUT,
+                          expr.span,
+                          "generally you want to avoid `&mut &mut _` if possible");
             } else if let TyRef(_, TypeAndMut { mutbl: hir::MutMutable, .. }) = self.cx.tcx.expr_ty(e).sty {
                 span_lint(self.cx,
                           MUT_MUT,
@@ -77,7 +80,10 @@ impl<'a, 'tcx, 'v> intravisit::Visitor<'v> for MutVisitor<'a, 'tcx> {
     fn visit_ty(&mut self, ty: &hir::Ty) {
         if let hir::TyRptr(_, hir::MutTy { ty: ref pty, mutbl: hir::MutMutable }) = ty.node {
             if let hir::TyRptr(_, hir::MutTy { mutbl: hir::MutMutable, .. }) = pty.node {
-                span_lint(self.cx, MUT_MUT, ty.span, "generally you want to avoid `&mut &mut _` if possible");
+                span_lint(self.cx,
+                          MUT_MUT,
+                          ty.span,
+                          "generally you want to avoid `&mut &mut _` if possible");
             }
 
         }

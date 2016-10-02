@@ -72,18 +72,15 @@ pub fn strip_doc_comment_decoration((comment, span): (&str, Span)) -> Vec<(&str,
     }
 
     if comment.starts_with("/*") {
-        return comment[3..comment.len() - 2].lines().map(|line| {
-            let offset = line.as_ptr() as usize - comment.as_ptr() as usize;
-            debug_assert_eq!(offset as u32 as usize, offset);
+        return comment[3..comment.len() - 2]
+            .lines()
+            .map(|line| {
+                let offset = line.as_ptr() as usize - comment.as_ptr() as usize;
+                debug_assert_eq!(offset as u32 as usize, offset);
 
-            (
-                line,
-                Span {
-                    lo: span.lo + BytePos(offset as u32),
-                    ..span
-                }
-            )
-        }).collect();
+                (line, Span { lo: span.lo + BytePos(offset as u32), ..span })
+            })
+            .collect();
     }
 
     panic!("not a doc-comment: {}", comment);
@@ -257,7 +254,7 @@ fn check_doc(cx: &EarlyContext, valid_idents: &[String], docs: &[(&str, Span)]) 
                     let mut lookup_parser = parser.clone();
                     if let (Some((false, $c)), Some((false, $c))) = (lookup_parser.next(), lookup_parser.next()) {
                         *parser = lookup_parser;
-                        // 3 or more ` or ~ open a code block to be closed with the same number of ` or ~
+    // 3 or more ` or ~ open a code block to be closed with the same number of ` or ~
                         let mut open_count = 3;
                         while let Some((false, $c)) = parser.next() {
                             open_count += 1;
@@ -297,7 +294,8 @@ fn check_doc(cx: &EarlyContext, valid_idents: &[String], docs: &[(&str, Span)]) 
         match parser.next() {
             Some((new_line, c)) => {
                 match c {
-                    '#' if new_line => { // don’t warn on titles
+                    '#' if new_line => {
+                        // don’t warn on titles
                         parser.next_line();
                     }
                     '`' => {
@@ -384,8 +382,7 @@ fn check_word(cx: &EarlyContext, valid_idents: &[String], word: &str, span: Span
             s
         };
 
-        s.chars().all(char::is_alphanumeric) &&
-        s.chars().filter(|&c| c.is_uppercase()).take(2).count() > 1 &&
+        s.chars().all(char::is_alphanumeric) && s.chars().filter(|&c| c.is_uppercase()).take(2).count() > 1 &&
         s.chars().filter(|&c| c.is_lowercase()).take(1).count() > 0
     }
 

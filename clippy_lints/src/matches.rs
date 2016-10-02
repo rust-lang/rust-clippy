@@ -291,7 +291,7 @@ fn check_match_bool(cx: &LateContext, ex: &Expr, arms: &[Arm], expr: &Expr) {
                 }
             }
 
-       });
+        });
     }
 }
 
@@ -320,10 +320,10 @@ fn check_match_ref_pats(cx: &LateContext, ex: &Expr, arms: &[Arm], source: Match
                                expr.span,
                                "you don't need to add `&` to both the expression and the patterns",
                                |db| {
-                let inner = Sugg::hir(cx, inner, "..");
-                let template = match_template(expr.span, source, inner);
-                db.span_suggestion(expr.span, "try", template);
-            });
+                                   let inner = Sugg::hir(cx, inner, "..");
+                                   let template = match_template(expr.span, source, inner);
+                                   db.span_suggestion(expr.span, "try", template);
+                               });
         } else {
             span_lint_and_then(cx,
                                MATCH_REF_PATS,
@@ -346,11 +346,12 @@ fn all_ranges(cx: &LateContext, arms: &[Arm]) -> Vec<SpannedRange<ConstVal>> {
     arms.iter()
         .flat_map(|arm| {
             if let Arm { ref pats, guard: None, .. } = *arm {
-                pats.iter()
-            } else {
-                [].iter()
-            }.filter_map(|pat| {
-                if_let_chain! {[
+                    pats.iter()
+                } else {
+                    [].iter()
+                }
+                .filter_map(|pat| {
+                    if_let_chain! {[
                     let PatKind::Range(ref lhs, ref rhs) = pat.node,
                     let Ok(lhs) = eval_const_expr_partial(cx.tcx, lhs, ExprTypeChecked, None),
                     let Ok(rhs) = eval_const_expr_partial(cx.tcx, rhs, ExprTypeChecked, None)
@@ -358,15 +359,15 @@ fn all_ranges(cx: &LateContext, arms: &[Arm]) -> Vec<SpannedRange<ConstVal>> {
                     return Some(SpannedRange { span: pat.span, node: (lhs, rhs) });
                 }}
 
-                if_let_chain! {[
+                    if_let_chain! {[
                     let PatKind::Lit(ref value) = pat.node,
                     let Ok(value) = eval_const_expr_partial(cx.tcx, value, ExprTypeChecked, None)
                 ], {
                     return Some(SpannedRange { span: pat.span, node: (value.clone(), value) });
                 }}
 
-                None
-            })
+                    None
+                })
         })
         .collect()
 }
@@ -383,17 +384,17 @@ type TypedRanges = Vec<SpannedRange<ConstInt>>;
 /// `Uint` and `Int` probably don't make sense.
 fn type_ranges(ranges: &[SpannedRange<ConstVal>]) -> TypedRanges {
     ranges.iter()
-          .filter_map(|range| {
-              if let (ConstVal::Integral(start), ConstVal::Integral(end)) = range.node {
-                  Some(SpannedRange {
-                      span: range.span,
-                      node: (start, end),
-                  })
-              } else {
-                  None
-              }
-          })
-          .collect()
+        .filter_map(|range| {
+            if let (ConstVal::Integral(start), ConstVal::Integral(end)) = range.node {
+                Some(SpannedRange {
+                    span: range.span,
+                    node: (start, end),
+                })
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 fn is_unit_expr(expr: &Expr) -> bool {
@@ -406,15 +407,15 @@ fn is_unit_expr(expr: &Expr) -> bool {
 
 fn has_only_ref_pats(arms: &[Arm]) -> bool {
     let mapped = arms.iter()
-                     .flat_map(|a| &a.pats)
-                     .map(|p| {
-                         match p.node {
-                             PatKind::Ref(..) => Some(true),  // &-patterns
-                             PatKind::Wild => Some(false),   // an "anything" wildcard is also fine
-                             _ => None,                    // any other pattern is not fine
-                         }
-                     })
-                     .collect::<Option<Vec<bool>>>();
+        .flat_map(|a| &a.pats)
+        .map(|p| {
+            match p.node {
+                PatKind::Ref(..) => Some(true),  // &-patterns
+                PatKind::Wild => Some(false),   // an "anything" wildcard is also fine
+                _ => None,                    // any other pattern is not fine
+            }
+        })
+        .collect::<Option<Vec<bool>>>();
     // look for Some(v) where there's at least one true element
     mapped.map_or(false, |v| v.iter().any(|el| *el))
 }
