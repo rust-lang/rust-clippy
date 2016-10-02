@@ -1,8 +1,6 @@
 use rustc::lint::*;
 use rustc::hir::*;
-use syntax::ast;
-use syntax::ptr;
-use utils::{paths, method_chain_args, span_help_and_lint, get_parent_expr, match_type};
+use utils::{paths, method_chain_args, span_help_and_lint, match_type};
 
 /// **What it does:*** Checks for unnecessary `ok()` in if let.
 ///
@@ -38,18 +36,17 @@ impl LateLintPass for OkIfLetPass {
         if_let_chain! {[
             let ExprMatch(ref op, ref body, ref source) = expr.node, //test if expr is a match
             let MatchSource::IfLetDesugar { contains_else_clause: _ } = *source, //test if it is an If Let
-            let ExprMethodCall(_, _, ref result_types) = op.clone().unwrap().node, //check is expr.ok() has type Result<T,E>.ok()
+            let ExprMethodCall(_, _, ref result_types) = op.node, //check is expr.ok() has type Result<T,E>.ok()
             let PatKind::TupleStruct(ref x, ref y, _)  = body[0].pats[0].node, //get operation
             let Some(_) = method_chain_args(op, &["ok"]) //test to see if using ok() methoduse std::marker::Sized;
 
         ], {
             let is_result_type = match_type(cx, cx.tcx.expr_ty(&result_types[0]), &paths::RESULT);
-            let is_some_type = match_type(cx, cx.tcx.expr_ty(x), &paths::OPTION);
-            if is_some_type && is_result_type {
-        // span_help_and_lint(cx, IF_LET_SOME_RESULT, expr.span,
-        // "Matching on `Some` with `ok()` is redundant",
-        // "Consider matching on `Ok()` instead");
-                println!(""); //cx.tcx.expr_ty(op)
+            let some_expr_string = print::pat_to_string(&y[0]);
+            if print::path_to_string(x) == "Some" && is_result_type {
+                span_help_and_lint(cx, IF_LET_SOME_RESULT, expr.span,
+                "Matching on `Some` with `ok()` is redundant",
+                &format!("Consider matching on `Ok({})` and removing the call to `ok` instead", some_expr_string)); 
             }
         }}
     }
