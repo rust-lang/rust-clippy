@@ -33,7 +33,7 @@ impl LintPass for OkIfLetPass {
 
 impl LateLintPass for OkIfLetPass {
     fn check_expr(&mut self, cx: &LateContext, expr: &Expr) {
-        if_let_chain! {[
+        if_let_chain! {[ //begin checking variables
             let ExprMatch(ref op, ref body, ref source) = expr.node, //test if expr is a match
             let MatchSource::IfLetDesugar { contains_else_clause: _ } = *source, //test if it is an If Let
             let ExprMethodCall(_, _, ref result_types) = op.node, //check is expr.ok() has type Result<T,E>.ok()
