@@ -9,7 +9,8 @@ use syntax::parse::token;
 use toml;
 
 /// Get the configuration file from arguments.
-pub fn file(args: &[codemap::Spanned<ast::NestedMetaItemKind>]) -> Result<Option<token::InternedString>, (&'static str, codemap::Span)> {
+pub fn file(args: &[codemap::Spanned<ast::NestedMetaItemKind>])
+            -> Result<Option<token::InternedString>, (&'static str, codemap::Span)> {
     for arg in args.iter().filter_map(|a| a.meta_item()) {
         match arg.node {
             ast::MetaItemKind::Word(ref name) |
@@ -41,14 +42,12 @@ pub enum Error {
     /// The file is not valid TOML.
     Toml(Vec<toml::ParserError>),
     /// Type error.
-    Type(
-        /// The name of the key.
-        &'static str,
-        /// The expected type.
-        &'static str,
-        /// The type we got instead.
-        &'static str
-    ),
+    Type(/// The name of the key.
+         &'static str,
+         /// The expected type.
+         &'static str,
+         /// The type we got instead.
+         &'static str),
     /// There is an unknown key is the file.
     UnknownKey(String),
 }
@@ -86,7 +85,7 @@ impl From<io::Error> for Error {
 
 macro_rules! define_Conf {
     ($(#[$doc: meta] ($toml_name: tt, $rust_name: ident, $default: expr => $($ty: tt)+),)+) => {
-        /// Type used to store lint configuration.
+/// Type used to store lint configuration.
         pub struct Conf {
             $(#[$doc] pub $rust_name: define_Conf!(TY $($ty)+),)+
         }
@@ -100,7 +99,7 @@ macro_rules! define_Conf {
         }
 
         impl Conf {
-            /// Set the property `name` (which must be the `toml` name) to the given value
+/// Set the property `name` (which must be the `toml` name) to the given value
             #[allow(cast_sign_loss)]
             fn set(&mut self, name: String, value: toml::Value) -> Result<(), Error> {
                 match name.as_str() {
@@ -117,7 +116,7 @@ macro_rules! define_Conf {
                         },
                     )+
                     "third-party" => {
-                        // for external tools such as clippy-service
+// for external tools such as clippy-service
                         return Ok(());
                     }
                     _ => {
@@ -130,12 +129,12 @@ macro_rules! define_Conf {
         }
     };
 
-    // hack to convert tts
+// hack to convert tts
     (PAT $pat: pat) => { $pat };
     (EXPR $e: expr) => { $e };
     (TY $ty: ty) => { $ty };
 
-    // how to read the value?
+// how to read the value?
     (CONV i64, $value: expr) => { $value.as_integer() };
     (CONV u64, $value: expr) => { $value.as_integer().iter().filter_map(|&i| if i >= 0 { Some(i as u64) } else { None }).next() };
     (CONV String, $value: expr) => { $value.as_str().map(Into::into) };
@@ -155,27 +154,27 @@ macro_rules! define_Conf {
         }
     }};
 
-    // provide a nicer syntax to declare the default value of `Vec<String>` variables
+// provide a nicer syntax to declare the default value of `Vec<String>` variables
     (DEFAULT Vec<String>, $e: expr) => { $e.iter().map(|&e| e.to_owned()).collect() };
     (DEFAULT $ty: ty, $e: expr) => { $e };
 }
 
 define_Conf! {
-    /// Lint: BLACKLISTED_NAME. The list of blacklisted names to lint about
+/// Lint: BLACKLISTED_NAME. The list of blacklisted names to lint about
     ("blacklisted-names", blacklisted_names, ["foo", "bar", "baz"] => Vec<String>),
-    /// Lint: CYCLOMATIC_COMPLEXITY. The maximum cyclomatic complexity a function can have
+/// Lint: CYCLOMATIC_COMPLEXITY. The maximum cyclomatic complexity a function can have
     ("cyclomatic-complexity-threshold", cyclomatic_complexity_threshold, 25 => u64),
-    /// Lint: DOC_MARKDOWN. The list of words this lint should not consider as identifiers needing ticks
+/// Lint: DOC_MARKDOWN. The list of words this lint should not consider as identifiers needing ticks
     ("doc-valid-idents", doc_valid_idents, ["MiB", "GiB", "TiB", "PiB", "EiB", "DirectX", "GPLv2", "GPLv3", "GitHub", "IPv4", "IPv6", "JavaScript", "NaN", "OAuth", "OpenGL", "TrueType"] => Vec<String>),
-    /// Lint: TOO_MANY_ARGUMENTS. The maximum number of argument a function or method can have
+/// Lint: TOO_MANY_ARGUMENTS. The maximum number of argument a function or method can have
     ("too-many-arguments-threshold", too_many_arguments_threshold, 7 => u64),
-    /// Lint: TYPE_COMPLEXITY. The maximum complexity a type can have
+/// Lint: TYPE_COMPLEXITY. The maximum complexity a type can have
     ("type-complexity-threshold", type_complexity_threshold, 250 => u64),
-    /// Lint: MANY_SINGLE_CHAR_NAMES. The maximum number of single char bindings a scope may have
+/// Lint: MANY_SINGLE_CHAR_NAMES. The maximum number of single char bindings a scope may have
     ("single-char-binding-names-threshold", max_single_char_names, 5 => u64),
-    /// Lint: BOXED_LOCAL. The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap
+/// Lint: BOXED_LOCAL. The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap
     ("too-large-for-stack", too_large_for_stack, 200 => u64),
-    /// Lint: ENUM_VARIANT_NAMES. The minimum number of enum variants for the lints about variant names to trigger
+/// Lint: ENUM_VARIANT_NAMES. The minimum number of enum variants for the lints about variant names to trigger
     ("enum-variant-name-threshold", enum_variant_name_threshold, 3 => u64),
 }
 

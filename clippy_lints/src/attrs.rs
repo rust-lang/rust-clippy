@@ -121,21 +121,25 @@ impl LateLintPass for AttrPass {
                                 }
                                 if let Some(mut sugg) = snippet_opt(cx, attr.span) {
                                     if sugg.len() > 1 {
-                                        span_lint_and_then(cx, USELESS_ATTRIBUTE, attr.span,
+                                        span_lint_and_then(cx,
+                                                           USELESS_ATTRIBUTE,
+                                                           attr.span,
                                                            "useless lint attribute",
                                                            |db| {
-                                            sugg.insert(1, '!');
-                                            db.span_suggestion(attr.span, "if you just forgot a `!`, use", sugg);
-                                        });
+                                                               sugg.insert(1, '!');
+                                                               db.span_suggestion(attr.span,
+                                                                                  "if you just forgot a `!`, use",
+                                                                                  sugg);
+                                                           });
                                     }
                                 }
-                            },
-                            _ => {},
+                            }
+                            _ => {}
                         }
                     }
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 

@@ -174,7 +174,9 @@ fn is_trivial_regex(s: &regex_syntax::Expr) -> Option<&'static str> {
                     }
                 }
                 3 => {
-                    if let (&Expr::StartText, &Expr::Literal {..}, &Expr::EndText) = (&exprs[0], &exprs[1], &exprs[2]) {
+                    if let (&Expr::StartText, &Expr::Literal { .. }, &Expr::EndText) = (&exprs[0],
+                                                                                        &exprs[1],
+                                                                                        &exprs[2]) {
                         Some("consider using `==` on `str`s")
                     } else {
                         None

@@ -6,8 +6,7 @@ use rustc::ty;
 use std::cmp::Ordering;
 use syntax::ast::{IntTy, UintTy, FloatTy};
 use syntax::codemap::Span;
-use utils::{comparisons, higher, in_external_macro, in_macro, match_def_path, snippet,
-            span_help_and_lint, span_lint};
+use utils::{comparisons, higher, in_external_macro, in_macro, match_def_path, snippet, span_help_and_lint, span_lint};
 use utils::paths;
 
 /// Handles all the linting of funky types
@@ -211,7 +210,7 @@ impl LateLintPass for UnitCmp {
                                            op.as_str(),
                                            result));
                     }
-                    _ => ()
+                    _ => (),
                 }
             }
         }
@@ -335,11 +334,7 @@ fn is_isize_or_usize(typ: &ty::TyS) -> bool {
 }
 
 fn span_precision_loss_lint(cx: &LateContext, expr: &Expr, cast_from: &ty::TyS, cast_to_f64: bool) {
-    let mantissa_nbits = if cast_to_f64 {
-        52
-    } else {
-        23
-    };
+    let mantissa_nbits = if cast_to_f64 { 52 } else { 23 };
     let arch_dependent = is_isize_or_usize(cast_from) && cast_to_f64;
     let arch_dependent_str = "on targets with 64-bit wide pointers ";
     let from_nbits_str = if arch_dependent {

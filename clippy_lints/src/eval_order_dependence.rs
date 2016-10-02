@@ -60,7 +60,8 @@ impl LateLintPass for EvalOrderDependence {
     fn check_expr(&mut self, cx: &LateContext, expr: &Expr) {
         // Find a write to a local variable.
         match expr.node {
-            ExprAssign(ref lhs, _) | ExprAssignOp(_, ref lhs, _) => {
+            ExprAssign(ref lhs, _) |
+            ExprAssignOp(_, ref lhs, _) => {
                 if let ExprPath(None, ref path) = lhs.node {
                     if path.segments.len() == 1 {
                         let var = cx.tcx.expect_def(lhs.id).def_id();
@@ -79,14 +80,15 @@ impl LateLintPass for EvalOrderDependence {
     }
     fn check_stmt(&mut self, cx: &LateContext, stmt: &Stmt) {
         match stmt.node {
-            StmtExpr(ref e, _) | StmtSemi(ref e, _) => DivergenceVisitor(cx).maybe_walk_expr(e),
+            StmtExpr(ref e, _) |
+            StmtSemi(ref e, _) => DivergenceVisitor(cx).maybe_walk_expr(e),
             StmtDecl(ref d, _) => {
                 if let DeclLocal(ref local) = d.node {
                     if let Local { init: Some(ref e), .. } = **local {
                         DivergenceVisitor(cx).visit_expr(e);
                     }
                 }
-            },
+            }
         }
     }
 }
@@ -96,7 +98,7 @@ struct DivergenceVisitor<'a, 'tcx: 'a>(&'a LateContext<'a, 'tcx>);
 impl<'a, 'tcx> DivergenceVisitor<'a, 'tcx> {
     fn maybe_walk_expr(&mut self, e: &Expr) {
         match e.node {
-            ExprClosure(..) => {},
+            ExprClosure(..) => {}
             ExprMatch(ref e, ref arms, _) => {
                 self.visit_expr(e);
                 for arm in arms {
@@ -111,28 +113,25 @@ impl<'a, 'tcx> DivergenceVisitor<'a, 'tcx> {
         }
     }
     fn report_diverging_sub_expr(&mut self, e: &Expr) {
-        span_lint(
-            self.0,
-            DIVERGING_SUB_EXPRESSION,
-            e.span,
-            "sub-expression diverges",
-        );
+        span_lint(self.0, DIVERGING_SUB_EXPRESSION, e.span, "sub-expression diverges");
     }
 }
 
 impl<'a, 'tcx, 'v> Visitor<'v> for DivergenceVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, e: &'v Expr) {
         match e.node {
-            ExprAgain(_) |
-            ExprBreak(_) |
-            ExprRet(_) => self.report_diverging_sub_expr(e),
-            ExprCall(ref func, _) => match self.0.tcx.expr_ty(func).sty {
-                ty::TyFnDef(_, _, fn_ty) |
-                ty::TyFnPtr(fn_ty) => if let ty::TyNever = self.0.tcx.erase_late_bound_regions(&fn_ty.sig).output.sty {
-                    self.report_diverging_sub_expr(e);
-                },
-                _ => {},
-            },
+            ExprAgain(_) | ExprBreak(_) | ExprRet(_) => self.report_diverging_sub_expr(e),
+            ExprCall(ref func, _) => {
+                match self.0.tcx.expr_ty(func).sty {
+                    ty::TyFnDef(_, _, fn_ty) |
+                    ty::TyFnPtr(fn_ty) => {
+                        if let ty::TyNever = self.0.tcx.erase_late_bound_regions(&fn_ty.sig).output.sty {
+                            self.report_diverging_sub_expr(e);
+                        }
+                    }
+                    _ => {}
+                }
+            }
             ExprMethodCall(..) => {
                 let method_call = ty::MethodCall::expr(e.id);
                 let borrowed_table = self.0.tcx.tables.borrow();
@@ -141,10 +140,10 @@ impl<'a, 'tcx, 'v> Visitor<'v> for DivergenceVisitor<'a, 'tcx> {
                 if let ty::TyNever = self.0.tcx.erase_late_bound_regions(&result_ty).sty {
                     self.report_diverging_sub_expr(e);
                 }
-            },
+            }
             _ => {
                 // do not lint expressions referencing objects of type `!`, as that required a diverging expression to begin with
-            },
+            }
         }
         self.maybe_walk_expr(e);
     }
@@ -187,12 +186,12 @@ fn check_for_unsequenced_reads(vis: &mut ReadVisitor) {
             map::Node::NodeItem(_) => {
                 // We reached the top of the function, stop.
                 break;
-            },
-            _ => { StopEarly::KeepGoing }
+            }
+            _ => StopEarly::KeepGoing,
         };
         match stop_early {
             StopEarly::Stop => break,
-            StopEarly::KeepGoing => {},
+            StopEarly::KeepGoing => {}
         }
 
         cur_id = parent_id;
@@ -207,7 +206,7 @@ enum StopEarly {
     Stop,
 }
 
-fn check_expr<'v, 't>(vis: & mut ReadVisitor<'v, 't>, expr: &'v Expr) -> StopEarly {
+fn check_expr<'v, 't>(vis: &mut ReadVisitor<'v, 't>, expr: &'v Expr) -> StopEarly {
     if expr.id == vis.last_expr.id {
         return StopEarly::KeepGoing;
     }

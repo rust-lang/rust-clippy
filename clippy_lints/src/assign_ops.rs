@@ -94,13 +94,13 @@ impl LateLintPass for AssignOps {
                                                expr.span,
                                                "variable appears on both sides of an assignment operation",
                                                |db| {
-                                                   if let (Some(snip_a), Some(snip_r)) = (snippet_opt(cx, assignee.span),
-                                                                                          snippet_opt(cx, rhs.span)) {
-                                                       db.span_suggestion(expr.span,
-                                                                          "replace it with",
-                                                                          format!("{} {}= {}", snip_a, op.node.as_str(), snip_r));
-                                                   }
-                                               });
+                                if let (Some(snip_a), Some(snip_r)) = (snippet_opt(cx, assignee.span),
+                                                                       snippet_opt(cx, rhs.span)) {
+                                    db.span_suggestion(expr.span,
+                                                       "replace it with",
+                                                       format!("{} {}= {}", snip_a, op.node.as_str(), snip_r));
+                                }
+                            });
                         };
                         // lhs op= l op r
                         if SpanlessEq::new(cx).ignore_fn().eq_expr(lhs, l) {
@@ -162,13 +162,13 @@ impl LateLintPass for AssignOps {
                                                expr.span,
                                                "manual implementation of an assign operation",
                                                |db| {
-                                                   if let (Some(snip_a), Some(snip_r)) = (snippet_opt(cx, assignee.span),
-                                                                                          snippet_opt(cx, rhs.span)) {
-                                                       db.span_suggestion(expr.span,
-                                                                          "replace it with",
-                                                                          format!("{} {}= {}", snip_a, op.node.as_str(), snip_r));
-                                                   }
-                                               });
+                                if let (Some(snip_a), Some(snip_r)) = (snippet_opt(cx, assignee.span),
+                                                                       snippet_opt(cx, rhs.span)) {
+                                    db.span_suggestion(expr.span,
+                                                       "replace it with",
+                                                       format!("{} {}= {}", snip_a, op.node.as_str(), snip_r));
+                                }
+                            });
                         }
                     };
                     // a = a op b
@@ -195,23 +195,7 @@ impl LateLintPass for AssignOps {
 fn is_commutative(op: hir::BinOp_) -> bool {
     use rustc::hir::BinOp_::*;
     match op {
-        BiAdd |
-        BiMul |
-        BiAnd |
-        BiOr |
-        BiBitXor |
-        BiBitAnd |
-        BiBitOr |
-        BiEq |
-        BiNe => true,
-        BiSub |
-        BiDiv |
-        BiRem |
-        BiShl |
-        BiShr |
-        BiLt |
-        BiLe |
-        BiGe |
-        BiGt => false,
+        BiAdd | BiMul | BiAnd | BiOr | BiBitXor | BiBitAnd | BiBitOr | BiEq | BiNe => true,
+        BiSub | BiDiv | BiRem | BiShl | BiShr | BiLt | BiLe | BiGe | BiGt => false,
     }
 }

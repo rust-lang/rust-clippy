@@ -75,8 +75,8 @@ impl EarlyLintPass for Clippy {
                                     span_lint(cx,
                                               CLIPPY_LINTS_INTERNAL,
                                               item.span,
-                                              "this constant should be before the previous constant due to lexical ordering",
-                                    );
+                                              "this constant should be before the previous constant due to lexical \
+                                               ordering");
                                 }
                             }
                             last_name = Some(name);

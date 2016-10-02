@@ -47,7 +47,7 @@ fn is_non_trait_box(ty: ty::Ty) -> bool {
     }
 }
 
-struct EscapeDelegate<'a, 'tcx: 'a+'gcx, 'gcx: 'a> {
+struct EscapeDelegate<'a, 'tcx: 'a + 'gcx, 'gcx: 'a> {
     tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
     set: NodeSet,
     infcx: &'a InferCtxt<'a, 'gcx, 'gcx>,
@@ -91,7 +91,7 @@ impl LateLintPass for Pass {
     }
 }
 
-impl<'a, 'tcx: 'a+'gcx, 'gcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx, 'gcx> {
+impl<'a, 'tcx: 'a + 'gcx, 'gcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx, 'gcx> {
     fn consume(&mut self, _: NodeId, _: Span, cmt: cmt<'tcx>, mode: ConsumeMode) {
         if let Categorization::Local(lid) = cmt.cat {
             if self.set.contains(&lid) {
@@ -150,10 +150,10 @@ impl<'a, 'tcx: 'a+'gcx, 'gcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx, 'g
         if let Categorization::Local(lid) = cmt.cat {
             if self.set.contains(&lid) {
                 if let Some(&AutoAdjustment::AdjustDerefRef(adj)) = self.tcx
-                                                                        .tables
-                                                                        .borrow()
-                                                                        .adjustments
-                                                                        .get(&borrow_id) {
+                    .tables
+                    .borrow()
+                    .adjustments
+                    .get(&borrow_id) {
                     if LoanCause::AutoRef == loan_cause {
                         // x.foo()
                         if adj.autoderefs == 0 {
@@ -165,12 +165,12 @@ impl<'a, 'tcx: 'a+'gcx, 'gcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx, 'g
                 } else if LoanCause::AddrOf == loan_cause {
                     // &x
                     if let Some(&AutoAdjustment::AdjustDerefRef(adj)) = self.tcx
-                                                                            .tables
-                                                                            .borrow()
-                                                                            .adjustments
-                                                                            .get(&self.tcx
-                                                                                      .map
-                                                                                      .get_parent_node(borrow_id)) {
+                        .tables
+                        .borrow()
+                        .adjustments
+                        .get(&self.tcx
+                            .map
+                            .get_parent_node(borrow_id)) {
                         if adj.autoderefs <= 1 {
                             // foo(&x) where no extra autoreffing is happening
                             self.set.remove(&lid);
@@ -188,7 +188,7 @@ impl<'a, 'tcx: 'a+'gcx, 'gcx: 'a> Delegate<'tcx> for EscapeDelegate<'a, 'tcx, 'g
     fn mutate(&mut self, _: NodeId, _: Span, _: cmt<'tcx>, _: MutateMode) {}
 }
 
-impl<'a, 'tcx: 'a+'gcx, 'gcx: 'a> EscapeDelegate<'a, 'tcx, 'gcx> {
+impl<'a, 'tcx: 'a + 'gcx, 'gcx: 'a> EscapeDelegate<'a, 'tcx, 'gcx> {
     fn is_large_box(&self, ty: ty::Ty<'gcx>) -> bool {
         // Large types need to be boxed to avoid stack
         // overflows.
@@ -200,7 +200,7 @@ impl<'a, 'tcx: 'a+'gcx, 'gcx: 'a> EscapeDelegate<'a, 'tcx, 'gcx> {
                 } else {
                     false
                 }
-            },
+            }
             _ => false,
         }
     }

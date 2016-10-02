@@ -39,10 +39,9 @@ impl LateLintPass for UnnecessaryMutPassed {
         match e.node {
             ExprCall(ref fn_expr, ref arguments) => {
                 let function_type = borrowed_table.node_types
-                                                  .get(&fn_expr.id)
-                                                  .expect("A function with an unknown type is called. \
-                                                           If this happened, the compiler would have \
-                                                           aborted the compilation long ago");
+                    .get(&fn_expr.id)
+                    .expect("A function with an unknown type is called. If this happened, the compiler would have \
+                             aborted the compilation long ago");
                 if let ExprPath(_, ref path) = fn_expr.node {
                     check_arguments(cx, arguments, function_type, &path.to_string());
                 }

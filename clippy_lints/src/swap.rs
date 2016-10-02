@@ -61,17 +61,17 @@ impl LateLintPass for Swap {
 fn check_manual_swap(cx: &LateContext, block: &Block) {
     for w in block.stmts.windows(3) {
         if_let_chain!{[
-            // let t = foo();
+        // let t = foo();
             let StmtDecl(ref tmp, _) = w[0].node,
             let DeclLocal(ref tmp) = tmp.node,
             let Some(ref tmp_init) = tmp.init,
             let PatKind::Binding(_, ref tmp_name, None) = tmp.pat.node,
 
-            // foo() = bar();
+        // foo() = bar();
             let StmtSemi(ref first, _) = w[1].node,
             let ExprAssign(ref lhs1, ref rhs1) = first.node,
 
-            // bar() = t;
+        // bar() = t;
             let StmtSemi(ref second, _) = w[2].node,
             let ExprAssign(ref lhs2, ref rhs2) = second.node,
             let ExprPath(None, ref rhs2) = rhs2.node,

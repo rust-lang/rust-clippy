@@ -47,7 +47,8 @@ impl LintPass for UnusedLabel {
 }
 
 impl LateLintPass for UnusedLabel {
-    fn check_fn(&mut self, cx: &LateContext, kind: FnKind, decl: &hir::FnDecl, body: &hir::Block, span: Span, fn_id: ast::NodeId) {
+    fn check_fn(&mut self, cx: &LateContext, kind: FnKind, decl: &hir::FnDecl, body: &hir::Block, span: Span,
+                fn_id: ast::NodeId) {
         if in_macro(cx, span) {
             return;
         }

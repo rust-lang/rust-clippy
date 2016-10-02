@@ -104,8 +104,7 @@ fn check_trait_items(cx: &LateContext, item: &Item, trait_items: &[TraitItem]) {
                 span_lint(cx,
                           LEN_WITHOUT_IS_EMPTY,
                           i.span,
-                          &format!("trait `{}` has a `len` method but no `is_empty` method",
-                                   item.name));
+                          &format!("trait `{}` has a `len` method but no `is_empty` method", item.name));
             }
         }
     }
@@ -138,9 +137,7 @@ fn check_impl_items(cx: &LateContext, item: &Item, impl_items: &[ImplItem]) {
             span_lint(cx,
                       LEN_WITHOUT_IS_EMPTY,
                       i.span,
-                      &format!("item `{}` has a public `len` method but {} `is_empty` method",
-                               ty,
-                               is_empty));
+                      &format!("item `{}` has a public `len` method but {} `is_empty` method", ty, is_empty));
         }
     }
 }
@@ -195,9 +192,7 @@ fn has_is_empty(cx: &LateContext, expr: &Expr) -> bool {
     /// Check the inherent impl's items for an `is_empty(self)` method.
     fn has_is_empty_impl(cx: &LateContext, id: DefId) -> bool {
         cx.tcx.inherent_impls.borrow()[&id].iter().any(|imp| {
-            cx.tcx.impl_or_trait_items(*imp).iter().any(|item| {
-                is_is_empty(&cx.tcx.impl_or_trait_item(*item))
-            })
+            cx.tcx.impl_or_trait_items(*imp).iter().any(|item| is_is_empty(&cx.tcx.impl_or_trait_item(*item)))
         })
     }
 
@@ -205,9 +200,9 @@ fn has_is_empty(cx: &LateContext, expr: &Expr) -> bool {
     match ty.sty {
         ty::TyTrait(_) => {
             cx.tcx
-              .impl_or_trait_items(ty.ty_to_def_id().expect("trait impl not found"))
-              .iter()
-              .any(|item| is_is_empty(&cx.tcx.impl_or_trait_item(*item)))
+                .impl_or_trait_items(ty.ty_to_def_id().expect("trait impl not found"))
+                .iter()
+                .any(|item| is_is_empty(&cx.tcx.impl_or_trait_item(*item)))
         }
         ty::TyProjection(_) => ty.ty_to_def_id().map_or(false, |id| has_is_empty_impl(cx, id)),
         ty::TyAdt(id, _) => has_is_empty_impl(cx, id.did),

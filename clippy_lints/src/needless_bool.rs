@@ -62,11 +62,7 @@ impl LateLintPass for NeedlessBool {
         if let ExprIf(ref pred, ref then_block, Some(ref else_expr)) = e.node {
             let reduce = |ret, not| {
                 let snip = Sugg::hir(cx, pred, "<predicate>");
-                let snip = if not {
-                    !snip
-                } else {
-                    snip
-                };
+                let snip = if not { !snip } else { snip };
 
                 let hint = if ret {
                     format!("return {}", snip)
@@ -148,7 +144,9 @@ impl LateLintPass for BoolComparison {
                                        e.span,
                                        "equality checks against false can be replaced by a negation",
                                        |db| {
-                                           db.span_suggestion(e.span, "try simplifying it as shown:", (!hint).to_string());
+                                           db.span_suggestion(e.span,
+                                                              "try simplifying it as shown:",
+                                                              (!hint).to_string());
                                        });
                 }
                 (Other, Bool(false)) => {
@@ -158,7 +156,9 @@ impl LateLintPass for BoolComparison {
                                        e.span,
                                        "equality checks against false can be replaced by a negation",
                                        |db| {
-                                           db.span_suggestion(e.span, "try simplifying it as shown:", (!hint).to_string());
+                                           db.span_suggestion(e.span,
+                                                              "try simplifying it as shown:",
+                                                              (!hint).to_string());
                                        });
                 }
                 _ => (),

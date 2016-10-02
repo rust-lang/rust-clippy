@@ -36,32 +36,18 @@ impl ClippyCompilerCalls {
 }
 
 impl<'a> CompilerCalls<'a> for ClippyCompilerCalls {
-    fn early_callback(&mut self,
-                      matches: &getopts::Matches,
-                      sopts: &config::Options,
-                      cfg: &ast::CrateConfig,
-                      descriptions: &rustc_errors::registry::Registry,
-                      output: ErrorOutputType)
+    fn early_callback(&mut self, matches: &getopts::Matches, sopts: &config::Options, cfg: &ast::CrateConfig,
+                      descriptions: &rustc_errors::registry::Registry, output: ErrorOutputType)
                       -> Compilation {
         self.default.early_callback(matches, sopts, cfg, descriptions, output)
     }
-    fn no_input(&mut self,
-                matches: &getopts::Matches,
-                sopts: &config::Options,
-                cfg: &ast::CrateConfig,
-                odir: &Option<PathBuf>,
-                ofile: &Option<PathBuf>,
-                descriptions: &rustc_errors::registry::Registry)
+    fn no_input(&mut self, matches: &getopts::Matches, sopts: &config::Options, cfg: &ast::CrateConfig,
+                odir: &Option<PathBuf>, ofile: &Option<PathBuf>, descriptions: &rustc_errors::registry::Registry)
                 -> Option<(Input, Option<PathBuf>)> {
         self.default.no_input(matches, sopts, cfg, odir, ofile, descriptions)
     }
-    fn late_callback(&mut self,
-                     matches: &getopts::Matches,
-                     sess: &Session,
-                     cfg: &ast::CrateConfig,
-                     input: &Input,
-                     odir: &Option<PathBuf>,
-                     ofile: &Option<PathBuf>)
+    fn late_callback(&mut self, matches: &getopts::Matches, sess: &Session, cfg: &ast::CrateConfig, input: &Input,
+                     odir: &Option<PathBuf>, ofile: &Option<PathBuf>)
                      -> Compilation {
         self.default.late_callback(matches, sess, cfg, input, odir, ofile)
     }
@@ -72,7 +58,12 @@ impl<'a> CompilerCalls<'a> for ClippyCompilerCalls {
             let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
             control.after_parse.callback = Box::new(move |state| {
                 {
-                    let mut registry = rustc_plugin::registry::Registry::new(state.session, state.krate.as_ref().expect("at this compilation stage the krate must be parsed").span);
+                    let mut registry = rustc_plugin::registry::Registry::new(state.session,
+                                                                             state.krate
+                                                                                 .as_ref()
+                                                                                 .expect("at this compilation stage \
+                                                                                          the krate must be parsed")
+                                                                                 .span);
                     registry.args_hidden = Some(Vec::new());
                     clippy_lints::register_plugins(&mut registry);
 
@@ -149,7 +140,9 @@ pub fn main() {
                         std::process::exit(code);
                     }
                 } else if ["bin", "example", "test", "bench"].contains(&&**first) {
-                    if let Err(code) = process(vec![format!("--{}", first), target.name].into_iter().chain(args), &dep_path, &sys_root) {
+                    if let Err(code) = process(vec![format!("--{}", first), target.name].into_iter().chain(args),
+                                               &dep_path,
+                                               &sys_root) {
                         std::process::exit(code);
                     }
                 }
@@ -170,7 +163,7 @@ pub fn main() {
         // this check ensures that dependencies are built but not linted and the final crate is
         // linted but not built
         let mut ccc = ClippyCompilerCalls::new(env::args().any(|s| s == "-Zno-trans"));
-        let (result, _) = rustc_driver::run_compiler(&args, &mut ccc);
+        let (result, _) = rustc_driver::run_compiler(&args, &mut ccc, None, None);
 
         if let Err(err_count) = result {
             if err_count > 0 {
@@ -205,8 +198,10 @@ fn process<P, I>(old_args: I, dep_path: P, sysroot: &str) -> Result<(), i32>
     let exit_status = std::process::Command::new("cargo")
         .args(&args)
         .env("RUSTC", path)
-        .spawn().expect("could not run cargo")
-        .wait().expect("failed to wait for cargo?");
+        .spawn()
+        .expect("could not run cargo")
+        .wait()
+        .expect("failed to wait for cargo?");
 
     if exit_status.success() {
         Ok(())
