@@ -608,7 +608,7 @@
       "Known problems": "None."
     }, 
     "id": "option_map_unwrap_or_else", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1389,7 +1389,7 @@
       "Known problems": "None."
     }, 
     "id": "option_map_unwrap_or", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
