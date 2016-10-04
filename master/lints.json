@@ -1043,6 +1043,16 @@
   }, 
   {
     "docs": {
+      "What it does": "* Checks for unnecessary `ok()` in if let.", 
+      "Why is this bad": "Calling `ok()` in if let is unnecessary, instead match on `Ok(pat)`", 
+      "Example": "```rustc\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "if_let_some_result", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.", 
       "Why is this bad": "An expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.", 
       "Example": "```rust\nlet x : u8 = ...; (x as u32) > 300\n```", 
