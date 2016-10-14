@@ -246,6 +246,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for use of `.skip(x).next()` on iterators.", 
+      "Why is this bad": "`.nth(x)` is cleaner", 
+      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "iter_skip_next", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `Box<T>` where an unboxed `T` would\nwork fine.", 
       "Why is this bad": "This is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`).", 
