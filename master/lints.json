@@ -1293,12 +1293,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `for` loops over `Result` values.", 
-      "Why is this bad": "Readability. This is more clearly expressed as an `if let`.", 
-      "Example": "```rust\nfor x in result { .. }\n```\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
+      "What it does": "* Lint for redundant pattern matching over `Result` or `Option`", 
+      "Why is this bad": "It's more concise and clear to just use the proper utility function", 
+      "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\n```\nThe more idiomatic use would be:\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\n```", 
       "Known problems": "None."
     }, 
-    "id": "for_loop_over_result", 
+    "id": "if_let_redundant_pattern_matching", 
     "level": "Warn"
   }, 
   {
@@ -1770,6 +1770,16 @@
       "Known problems": "None."
     }, 
     "id": "enum_clike_unportable_variant", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for `for` loops over `Result` values.", 
+      "Why is this bad": "Readability. This is more clearly expressed as an `if let`.", 
+      "Example": "```rust\nfor x in result { .. }\n```\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "for_loop_over_result", 
     "level": "Warn"
   }
 ]
