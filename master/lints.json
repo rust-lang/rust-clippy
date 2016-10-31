@@ -1065,7 +1065,7 @@
     "docs": {
       "What it does": "* Checks for unnecessary `ok()` in if let.", 
       "Why is this bad": "Calling `ok()` in if let is unnecessary, instead match on `Ok(pat)`", 
-      "Example": "```rustc\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```", 
+      "Example": "```rust\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```\nCould be written:\n```rust\nfor result in iter {\n    if let Ok(bench) = try!(result).parse() {\n        vec.push(bench)\n    }\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "if_let_some_result", 
