@@ -101,6 +101,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
+      "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
+      "Example": "```rust\nstruct Foo;\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "partialeq_ne_impl", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Detects closures called in the same expression where they are defined.", 
       "Why is this bad": "It is unnecessarily adding to the expression's complexity.", 
       "Example": "```rust\n(|| 42)()\n```", 
