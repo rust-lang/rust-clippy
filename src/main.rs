@@ -202,11 +202,18 @@ pub fn main() {
             let args = std::env::args().skip(2);
             if let Some(first) = target.kind.get(0) {
                 if target.kind.len() > 1 || first.ends_with("lib") {
-                    if let Err(code) = process(std::iter::once("--lib".to_owned()).chain(args), &dep_path, &sys_root) {
+                    if let Err(code) = process(std::iter::once("--lib".to_owned()).chain(args), &dep_path, &sys_root, false) {
                         std::process::exit(code);
                     }
-                } else if ["bin", "example", "test", "bench"].contains(&&**first) {
-                    if let Err(code) = process(vec![format!("--{}", first), target.name].into_iter().chain(args), &dep_path, &sys_root) {
+                } else if first == "test" {
+                    // pass -Aunknown_lints to paper over the fact that running cargo clippy only adds
+                    // the lints for the last call, so `cargo test` will report "unknown lint" for
+                    // all mentions of lints in the main crate
+                    if let Err(code) = process(vec!["--test".to_owned(), target.name].into_iter().chain(args), &dep_path, &sys_root, true) {
+                        std::process::exit(code);
+                    }
+                } else if ["bin", "example", "bench"].contains(&&**first) {
+                    if let Err(code) = process(vec![format!("--{}", first), target.name].into_iter().chain(args), &dep_path, &sys_root, false) {
                         std::process::exit(code);
                     }
                 }
@@ -240,9 +247,14 @@ pub fn main() {
     }
 }
 
-fn process<P, I>(old_args: I, dep_path: P, sysroot: &str) -> Result<(), i32>
-    where P: AsRef<Path>,
-          I: Iterator<Item = String>
+fn process<P, I>(
+    old_args: I,
+    dep_path: P,
+    sysroot: &str,
+    allow_unknown_lints: bool,
+) -> Result<(), i32> where
+    P: AsRef<Path>,
+    I: Iterator<Item = String>,
 {
 
     let mut args = vec!["rustc".to_owned()];
@@ -262,6 +274,9 @@ fn process<P, I>(old_args: I, dep_path: P, sysroot: &str) -> Result<(), i32>
     args.push("-Zno-trans".to_owned());
     args.push("--cfg".to_owned());
     args.push(r#"feature="cargo-clippy""#.to_owned());
+    if allow_unknown_lints {
+        args.push("-Aunknown_lints".to_owned());
+    }
 
     let path = std::env::current_exe().expect("current executable path invalid");
     let exit_status = std::process::Command::new("cargo")
