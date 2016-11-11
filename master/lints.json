@@ -664,7 +664,7 @@
     "docs": {
       "What it does": "Checks for usage of blacklisted names for variables, such\nas `foo`.", 
       "Why is this bad": "These names are usually placeholder names and should be\navoided.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted-names: Vec<String>`: The list of blacklisted names to lint about (defaults to `[\"foo\", \"bar\", \"baz\"]`).", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted-names: Vec<String>`: The list of blacklisted names to lint about (defaults to `[\"foo\", \"bar\", \"baz\", \"quux\"]`).", 
       "Example": "```rust\nlet foo = 3.14;\n```", 
       "Known problems": "None."
     }, 
