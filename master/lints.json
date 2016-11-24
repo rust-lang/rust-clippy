@@ -1145,7 +1145,7 @@
     "docs": {
       "What it does": "Checks for variable declarations immediately followed by a\nconditional affectation.", 
       "Why is this bad": "This is not idiomatic Rust.", 
-      "Example": "```rust,ignore\nlet foo;\nif bar() {\n    foo = 42;\n} else {\n    foo = 0;\n}\nlet mut baz = None;\nif bar() {\n    baz = Some(42);\n}\n```\nshould be written\n```rust,ignore\nlet foo = if bar() {\n    42;\n} else {\n    0;\n};\nlet baz = if bar() {\n    Some(42);\n} else {\n    None\n};\n```", 
+      "Example": "```rust,ignore\nlet foo;\nif bar() {\n    foo = 42;\n} else {\n    foo = 0;\n}\nlet mut baz = None;\nif bar() {\n    baz = Some(42);\n}\n```\nshould be written\n```rust,ignore\nlet foo = if bar() {\n    42\n} else {\n    0\n};\nlet baz = if bar() {\n    Some(42)\n} else {\n    None\n};\n```", 
       "Known problems": "None."
     }, 
     "id": "useless_let_if_seq", 
