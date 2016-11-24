@@ -985,7 +985,7 @@
   {
     "docs": {
       "What it does": "Checks for the use of `format!(\"string literal with no\nargument\")` and `format!(\"{}\", foo)` where `foo` is a string.", 
-      "Why is this bad": "There is no point of doing that. `format!(\"too\")` can\nbe replaced by `\"foo\".to_owned()` if you really need a `String`. The even\nworse `&format!(\"foo\")` is often encountered in the wild. `format!(\"{}\",\nfoo)` can be replaced by `foo.clone()` if `foo: String` or `foo.to_owned()`\nis `foo: &str`.", 
+      "Why is this bad": "There is no point of doing that. `format!(\"too\")` can\nbe replaced by `\"foo\".to_owned()` if you really need a `String`. The even\nworse `&format!(\"foo\")` is often encountered in the wild. `format!(\"{}\",\nfoo)` can be replaced by `foo.clone()` if `foo: String` or `foo.to_owned()`\nif `foo: &str`.", 
       "Examples": "```rust\nformat!(\"foo\")\nformat!(\"{}\", foo)\n```", 
       "Known problems": "None."
     }, 
