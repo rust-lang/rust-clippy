@@ -954,6 +954,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `*&` and `*&mut` in expressions.", 
+      "Why is this bad": "Immediately dereferencing a reference is no-op and\nmakes the code less clear.", 
+      "Example": "```rust\nlet a = f(*&mut b);\nlet c = *&d;\n```", 
+      "Known problems": "Multiple dereference/addrof pairs are not handled so\nthe suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect."
+    }, 
+    "id": "deref_addrof", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for needlessly including a base struct on update\nwhen all fields are changed anyway.", 
       "Why is this bad": "This will cost resources (because the base has to be\nsomewhere), and make the code less readable.", 
       "Example": "```rust\nPoint { x: 1, y: 0, ..zero_point }\n```", 
