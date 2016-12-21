@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #![deny(clippy, clippy_pedantic)]
-#![allow(missing_docs_in_private_items)]
+#![allow(missing_docs_in_private_items, unused_files)]
 
 fn main() {
     let _: Vec<_> = vec![5; 6].into_iter() //~ERROR called `filter(p).map(q)` on an `Iterator`

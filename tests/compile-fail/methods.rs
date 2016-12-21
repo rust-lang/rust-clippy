@@ -3,7 +3,7 @@
 #![plugin(clippy)]
 
 #![deny(clippy, clippy_pedantic)]
-#![allow(blacklisted_name, unused, print_stdout, non_ascii_literal, new_without_default, new_without_default_derive, missing_docs_in_private_items)]
+#![allow(blacklisted_name, unused, print_stdout, non_ascii_literal, new_without_default, new_without_default_derive, missing_docs_in_private_items, unused_files)]
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
