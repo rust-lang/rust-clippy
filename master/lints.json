@@ -397,6 +397,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Detects enumeration variants that are prefixed or suffixed\nby the same characters.", 
+      "Why is this bad": "Enumeration variant names should specify their variant,\nnot repeat the enumeration name.", 
+      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "pub_enum_variant_names", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Detects type names that are prefixed or suffixed by the\ncontaining module's name.", 
       "Why is this bad": "It requires the user to type the module name twice.", 
       "Example": "```rust\nmod cake {\n    struct BlackForestCake;\n}\n```", 
