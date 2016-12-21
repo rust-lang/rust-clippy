@@ -23,6 +23,7 @@ toml = "0.1"
 unicode-normalization = "0.1"
 quine-mc_cluskey = "0.2.2"
 rustc-serialize = "0.3"
+walkdir = "0.1"
 
 [features]
 debugging = []

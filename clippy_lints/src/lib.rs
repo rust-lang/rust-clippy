@@ -34,6 +34,9 @@ extern crate regex_syntax;
 // for finding minimal boolean expressions
 extern crate quine_mc_cluskey;
 
+// for finding unused source files
+extern crate walkdir;
+
 extern crate rustc_serialize;
 
 extern crate rustc_errors;
@@ -128,6 +131,7 @@ pub mod transmute;
 pub mod types;
 pub mod unicode;
 pub mod unsafe_removed_from_name;
+pub mod unused_files;
 pub mod unused_label;
 pub mod vec;
 pub mod zero_div_zero;
@@ -191,6 +195,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     );
     // end deprecated lints, do not remove this comment, it’s used in `update_lints`
 
+    reg.register_early_lint_pass(box unused_files::UnusedFilesPass);
     reg.register_late_lint_pass(box serde::Serde);
     reg.register_early_lint_pass(box utils::internal_lints::Clippy);
     reg.register_late_lint_pass(box utils::internal_lints::LintWithoutLintPass::default());
@@ -326,6 +331,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         types::INVALID_UPCAST_COMPARISONS,
         unicode::NON_ASCII_LITERAL,
         unicode::UNICODE_NOT_NFC,
+        unused_files::UNUSED_FILES,
     ]);
 
     reg.register_lint_group("clippy_internal", vec![

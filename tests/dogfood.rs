@@ -1,6 +1,7 @@
 #![feature(test, plugin)]
 #![plugin(clippy)]
 #![deny(clippy, clippy_pedantic)]
+#![allow(unused_files)]
 
 extern crate compiletest_rs as compiletest;
 extern crate test;

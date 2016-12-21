@@ -402,6 +402,7 @@ All notable changes to this project will be documented in this file.
 [`unstable_as_mut_slice`]: https://github.com/Manishearth/rust-clippy/wiki#unstable_as_mut_slice
 [`unstable_as_slice`]: https://github.com/Manishearth/rust-clippy/wiki#unstable_as_slice
 [`unused_collect`]: https://github.com/Manishearth/rust-clippy/wiki#unused_collect
+[`unused_files`]: https://github.com/Manishearth/rust-clippy/wiki#unused_files
 [`unused_label`]: https://github.com/Manishearth/rust-clippy/wiki#unused_label
 [`unused_lifetimes`]: https://github.com/Manishearth/rust-clippy/wiki#unused_lifetimes
 [`use_debug`]: https://github.com/Manishearth/rust-clippy/wiki#use_debug
