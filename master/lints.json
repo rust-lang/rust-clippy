@@ -516,9 +516,9 @@
   {
     "docs": {
       "What it does": "Checks for `extern crate` and `use` items annotated with lint attributes", 
-      "Why is this bad": "Lint attributes have no effect on crate imports. Most likely a `!` was forgotten", 
+      "Why is this bad": "Lint attributes have no effect on crate imports. Most likely a `!` was\nforgotten", 
       "Example": "```rust\n#[deny(dead_code)]\nextern crate foo;\n#[allow(unused_import)]\nuse foo::bar;\n```", 
-      "Known problems": "Technically one might allow `unused_import` on a `use` item, but it's easier to remove the unused item."
+      "Known problems": "Technically one might allow `unused_import` on a `use` item,\nbut it's easier to remove the unused item."
     }, 
     "id": "useless_attribute", 
     "level": "Warn"
@@ -806,7 +806,6 @@
     "docs": {
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for empasis in markdown, this lint tries to\nconsider that.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"DirectX\", \"GPLv2\", \"GPLv3\", \"GitHub\", \"IPv4\", \"IPv6\", \"JavaScript\", \"NaN\", \"OAuth\", \"OpenGL\", \"TrueType\", \"iOS\", \"macOS\"]`).", 
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
@@ -1115,7 +1114,7 @@
     "docs": {
       "What it does": "Checks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions and for `else { if ... }` expressions that\ncan be collapsed to `else if ...`.", 
       "Why is this bad": "Each `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.", 
-      "Example": "```rust\nif x {\n    if y {\n        \u2026\n    }\n}\n// or\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\nShould be written:\n```rust\nif x && y {\n    \u2026\n}\n// or\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```", 
+      "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n// or\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\nShould be written:\n```rust.ignore\nif x && y {\n    \u2026\n}\n// or\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "collapsible_if", 
@@ -1555,7 +1554,7 @@
   {
     "docs": {
       "What it does": "Checks for modules that have the same name as their parent module", 
-      "Why is this bad": "A typical beginner mistake is to have `mod foo;` and again `mod foo { .. }` in `foo.rs`.\n                     The expectation is that items inside the inner `mod foo { .. }` are then available\n                     through `foo::x`, but they are only available through `foo::foo::x`.\n                     If this is done on purpose, it would be better to choose a more representative module name.", 
+      "Why is this bad": "A typical beginner mistake is to have `mod foo;` and again `mod foo { ..\n}` in `foo.rs`.\nThe expectation is that items inside the inner `mod foo { .. }` are then\navailable\n                     through `foo::x`, but they are only available through `foo::foo::x`.\nIf this is done on purpose, it would be better to choose a more\nrepresentative module name.", 
       "Example": "```rust\n// lib.rs\nmod foo;\n// foo.rs\nmod foo {\n    ...\n}\n```", 
       "Known problems": "None."
     }, 
