@@ -1452,12 +1452,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `if/else` with the same body as the *then* part\nand the *else* part.", 
-      "Why is this bad": "This is probably a copy & paste error.", 
-      "Example": "```rust\nlet foo = if \u2026 {\n    42\n} else {\n    42\n};\n```", 
-      "Known problems": "Hopefully none."
+      "What it does": "Checks for usage of `_.filter(_).next()`.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.find(_)`.", 
+      "Example": "```rust\niter.filter(|x| x == 0).next()\n```", 
+      "Known problems": "None."
     }, 
-    "id": "if_same_then_else", 
+    "id": "filter_next", 
     "level": "Warn"
   }, 
   {
@@ -1677,6 +1677,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for unnecessary double parentheses.", 
+      "Why is this bad": "This makes code harder to read and might indicate a\nmistake.", 
+      "Example": "```rust\n((0))\nfoo((0))\n((1, 2))\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "double_parens", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for trivial [regex] creation (with `Regex::new`,\n`RegexBuilder::new` or `RegexSet::new`).\n[regex]: https://crates.io/crates/regex", 
       "Why is this bad": "Matching the regex can likely be replaced by `==` or\n`str::starts_with`, `str::ends_with` or `std::contains` or other `str`\nmethods.", 
       "Example": "```rust\nRegex::new(\"^foobar\")\n```", 
@@ -1768,12 +1778,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `_.filter(_).next()`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.find(_)`.", 
-      "Example": "```rust\niter.filter(|x| x == 0).next()\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for `if/else` with the same body as the *then* part\nand the *else* part.", 
+      "Why is this bad": "This is probably a copy & paste error.", 
+      "Example": "```rust\nlet foo = if \u2026 {\n    42\n} else {\n    42\n};\n```", 
+      "Known problems": "Hopefully none."
     }, 
-    "id": "filter_next", 
+    "id": "if_same_then_else", 
     "level": "Warn"
   }, 
   {
