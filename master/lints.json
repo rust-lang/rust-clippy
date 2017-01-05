@@ -319,7 +319,7 @@
     "docs": {
       "What it does": "Checks for casts from a signed to an unsigned numerical\ntype. In this case, negative values wrap around to large positive values,\nwhich can be quite surprising in practice. However, as the cast works as\ndefined, this lint is `Allow` by default.", 
       "Why is this bad": "Possibly surprising results. You can activate this lint\nas a one-time check to see where numerical wrapping can arise.", 
-      "Example": "```rust\nlet y: i8 = -1;\ny as u64  // will return 18446744073709551615\n```", 
+      "Example": "```rust\nlet y: i8 = -1;\ny as u128  // will return 18446744073709551615\n```", 
       "Known problems": "None."
     }, 
     "id": "cast_sign_loss", 
