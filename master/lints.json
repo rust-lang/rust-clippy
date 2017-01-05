@@ -593,6 +593,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for the use of short circuit boolean conditions as a\nstatement.", 
+      "Why is this bad": "Using a short circuit boolean condition as a statement may\nhide the fact that the second part is executed or not depending on the outcome of\nthe first part.", 
+      "Example": "```rust\nf() && g();  // We should write `if f() { g(); }`.\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "short_circuit_statement", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `Vec::as_slice`, which was unstable with good\nstable alternatives. `Vec::as_slice` has now been stabilized."
     }, 
