@@ -593,6 +593,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for the use of short circuit boolean conditions as a\nstatement.", 
+      "Why is this bad": "Using a short circuit boolean condition as a statement may\nhide the fact that the second part is executed or not depending on the outcome of\nthe first part.", 
+      "Example": "```rust\nf() && g();  // We should write `if f() { g(); }`.\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "short_circuit_statement", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `Vec::as_slice`, which was unstable with good\nstable alternatives. `Vec::as_slice` has now been stabilized."
     }, 
@@ -730,6 +740,16 @@
     }, 
     "id": "float_arithmetic", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for calls to `std::mem::forget` with a reference\ninstead of an owned value.", 
+      "Why is this bad": "Calling `forget` on a reference will only forget the\nreference itself, which is a no-op. It will not forget the underlying referenced\nvalue, which is likely what was intended.", 
+      "Example": "```rust\nlet x = Box::new(1);\nstd::mem::forget(&x) // Should have been forget(x), x will still be dropped\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "forget_ref", 
+    "level": "Warn"
   }, 
   {
     "docs": {
