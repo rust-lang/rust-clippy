@@ -297,6 +297,8 @@ fn main() {
 
     let out_vec = vec![1,2,3];
     for _v in out_vec.into_iter() { } //~ERROR it is more idiomatic to loop over `out_vec` instead of `out_vec.into_iter()`
+    let array = [1, 2, 3];
+    for _v in array.into_iter() {} //~ERROR it is more idiomatic to loop over `&array`
 
     for _v in &vec { } // these are fine
     for _v in &mut vec { } // these are fine
