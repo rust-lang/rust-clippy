@@ -1728,6 +1728,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for unused written/read amount.", 
+      "Why is this bad": "`io::Write::write` and `io::Read::read` are not guaranteed to\nprocess the entire buffer. They return how many bytes were processed, which might be smaller\nthan a given buffer's length. If you don't need to deal with partial-write/read, use\n`write_all`/`read_exact` instead.", 
+      "Example": "```rust,ignore\nuse std::io;\nfn foo<W: io::Write>(w: &mut W) -> io::Result<()> {\n    // must be `w.write_all(b\"foo\")?;`\n    w.write(b\"foo\")?;\n    Ok(())\n}\n```", 
+      "Known problems": "Detects only common patterns."
+    }, 
+    "id": "unused_io_amount", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for patterns in the form `name @ _`.", 
       "Why is this bad": "It's almost always more readable to just use direct bindings.", 
       "Example": "```rust\nmatch v {\n    Some(x) => (),\n    y @ _   => (), // easier written as `y`,\n}\n```", 
