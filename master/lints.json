@@ -703,13 +703,11 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.extend(s)` on a `Vec` to extend the\nvector by a slice.", 
-      "Why is this bad": "Since Rust 1.6, the `extend_from_slice(_)` method is\nstable and at least for now faster.", 
-      "Example": "```rust\nmy_vec.extend(&xs)\n```", 
-      "Known problems": "None."
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `Vec::extend`, which was slower than\n`Vec::extend_from_slice`. Thanks to specialization, this is no longer true."
     }, 
     "id": "extend_from_slice", 
-    "level": "Warn"
+    "level": "Deprecated"
   }, 
   {
     "docs": {
