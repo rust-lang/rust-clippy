@@ -1,4 +1,5 @@
 #![feature(plugin)]
+#![feature(exclusive_range_pattern)]
 
 #![plugin(clippy)]
 #![deny(clippy)]
@@ -248,6 +249,12 @@ fn overlapping() {
     match 42 {
         0 ... 10 => println!("0 ... 10"),
         11 ... 50 => println!("0 ... 10"),
+        _ => (),
+    }
+
+    match 42 {
+        2 => println!("2"),
+        0 .. 2 => println!("0 .. 2"),
         _ => (),
     }
 
