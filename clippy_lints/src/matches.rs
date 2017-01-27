@@ -361,11 +361,15 @@ fn all_ranges(cx: &LateContext, arms: &[Arm]) -> Vec<SpannedRange<ConstVal>> {
                 }
                 .filter_map(|pat| {
                     if_let_chain! {[
-                    let PatKind::Range(ref lhs, ref rhs, _) = pat.node,
+                    let PatKind::Range(ref lhs, ref rhs, ref range_end) = pat.node,
                     let Ok(lhs) = constcx.eval(lhs, ExprTypeChecked),
                     let Ok(rhs) = constcx.eval(rhs, ExprTypeChecked)
                 ], {
-                    return Some(SpannedRange { span: pat.span, node: (lhs, rhs) });
+                    match *range_end {
+                        // FIXME: Doesn't handle excluded range patterns yet.
+                        RangeEnd::Excluded => return None,
+                        RangeEnd::Included => return Some(SpannedRange { span: pat.span, node: (lhs, rhs) }),
+                    }
                 }}
 
                     if_let_chain! {[
