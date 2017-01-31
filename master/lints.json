@@ -91,12 +91,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for return statements at the end of a block.", 
-      "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
-      "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
+      "What it does": "Checks for large variants on `enum`s.", 
+      "Why is this bad": "Enum size is bounded by the largest variant. Having a large variant\ncan penalize the memory layout of that enum.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-size-threshold: u64`: The maximum size of a emum's variant to avoid box suggestion (defaults to `200`).", 
+      "Example": "```rust\nenum Test {\n   A(i32),\n   B([i32; 8000]),\n}\n```", 
       "Known problems": "None."
     }, 
-    "id": "needless_return", 
+    "id": "large_enum_variant", 
     "level": "Warn"
   }, 
   {
@@ -1287,6 +1288,16 @@
       "Known problems": "None."
     }, 
     "id": "let_and_return", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for return statements at the end of a block.", 
+      "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
+      "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "needless_return", 
     "level": "Warn"
   }, 
   {
