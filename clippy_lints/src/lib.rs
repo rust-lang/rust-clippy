@@ -119,6 +119,7 @@ pub mod partialeq_ne_impl;
 pub mod precedence;
 pub mod print;
 pub mod ptr;
+pub mod pub_tuple_struct;
 pub mod ranges;
 pub mod reference;
 pub mod regex;
@@ -200,6 +201,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     );
     // end deprecated lints, do not remove this comment, it’s used in `update_lints`
 
+    reg.register_late_lint_pass(box pub_tuple_struct::Pass);
     reg.register_late_lint_pass(box serde::Serde);
     reg.register_early_lint_pass(box utils::internal_lints::Clippy);
     reg.register_late_lint_pass(box utils::internal_lints::LintWithoutLintPass::default());
@@ -301,6 +303,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         arithmetic::INTEGER_ARITHMETIC,
         array_indexing::INDEXING_SLICING,
         assign_ops::ASSIGN_OPS,
+        pub_tuple_struct::PUB_TUPLE_STRUCT_WITH_PRIVATE_FIELDS,
     ]);
 
     reg.register_lint_group("clippy_pedantic", vec![
@@ -462,6 +465,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         print::PRINT_WITH_NEWLINE,
         ptr::CMP_NULL,
         ptr::PTR_ARG,
+        pub_tuple_struct::MATCH_PRIVATE_TUPLE_STRUCT_FIELDS,
         ranges::RANGE_STEP_BY_ZERO,
         ranges::RANGE_ZIP_WITH_LEN,
         reference::DEREF_ADDROF,

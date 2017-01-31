@@ -350,6 +350,7 @@ All notable changes to this project will be documented in this file.
 [`map_entry`]: https://github.com/Manishearth/rust-clippy/wiki#map_entry
 [`match_bool`]: https://github.com/Manishearth/rust-clippy/wiki#match_bool
 [`match_overlapping_arm`]: https://github.com/Manishearth/rust-clippy/wiki#match_overlapping_arm
+[`match_private_tuple_struct_fields`]: https://github.com/Manishearth/rust-clippy/wiki#match_private_tuple_struct_fields
 [`match_ref_pats`]: https://github.com/Manishearth/rust-clippy/wiki#match_ref_pats
 [`match_same_arms`]: https://github.com/Manishearth/rust-clippy/wiki#match_same_arms
 [`mem_forget`]: https://github.com/Manishearth/rust-clippy/wiki#mem_forget
@@ -391,6 +392,7 @@ All notable changes to this project will be documented in this file.
 [`print_with_newline`]: https://github.com/Manishearth/rust-clippy/wiki#print_with_newline
 [`ptr_arg`]: https://github.com/Manishearth/rust-clippy/wiki#ptr_arg
 [`pub_enum_variant_names`]: https://github.com/Manishearth/rust-clippy/wiki#pub_enum_variant_names
+[`pub_tuple_struct_with_private_fields`]: https://github.com/Manishearth/rust-clippy/wiki#pub_tuple_struct_with_private_fields
 [`range_step_by_zero`]: https://github.com/Manishearth/rust-clippy/wiki#range_step_by_zero
 [`range_zip_with_len`]: https://github.com/Manishearth/rust-clippy/wiki#range_zip_with_len
 [`redundant_closure`]: https://github.com/Manishearth/rust-clippy/wiki#redundant_closure
