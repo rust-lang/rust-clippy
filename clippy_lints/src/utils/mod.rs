@@ -569,7 +569,10 @@ pub fn span_lint_and_then<'a, 'tcx: 'a, T: LintContext<'tcx>, F>(
 /// replacement. In human-readable format though, it only appears once before the whole suggestion.
 pub fn multispan_sugg(db: &mut DiagnosticBuilder, help_msg: String, sugg: &[(Span, &str)]) {
     let sugg = rustc_errors::RenderSpan::Suggestion(rustc_errors::CodeSuggestion {
-        msp: MultiSpan::from_spans(sugg.iter().map(|&(span, _)| span).collect()),
+        msp: MultiSpan {
+             primary_spans: sugg.iter().map(|&(span, _)| span).collect(),
+             span_labels: vec![]
+        },
         substitutes: sugg.iter().map(|&(_, subs)| subs.to_owned()).collect(),
     });
 
