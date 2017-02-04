@@ -275,7 +275,7 @@ impl<'a, 'tcx> Visitor<'tcx> for RefVisitor<'a, 'tcx> {
 
     fn visit_ty(&mut self, ty: &'tcx Ty) {
         match ty.node {
-            TyRptr(None, _) => {
+            TyRptr(lifetime, _) if lifetime.is_elided() => {
                 self.record(&None);
             },
             TyPath(ref path) => {

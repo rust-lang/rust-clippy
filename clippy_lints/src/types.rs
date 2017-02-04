@@ -72,7 +72,7 @@ impl LintPass for TypePass {
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypePass {
     fn check_fn(&mut self, cx: &LateContext, _: FnKind, decl: &FnDecl, _: &Body, _: Span, id: NodeId) {
         // skip trait implementations, see #605
-        if let Some(map::NodeItem(item)) = cx.tcx.map.find(cx.tcx.map.get_parent(id)) {
+        if let Some(map::NodeItem(item)) = cx.tcx.hir.find(cx.tcx.hir.get_parent(id)) {
             if let ItemImpl(_, _, _, Some(..), _, _) = item.node {
                 return;
             }
@@ -702,12 +702,9 @@ impl<'a, 'tcx: 'a> Visitor<'tcx> for TypeComplexityVisitor<'a, 'tcx> {
             // function types bring a lot of overhead
             TyBareFn(..) => (50 * self.nest, 1),
 
-            TyTraitObject(ref bounds) => {
-                let has_lifetimes = bounds.iter()
-                    .any(|bound| match *bound {
-                        TraitTyParamBound(ref poly_trait, ..) => !poly_trait.bound_lifetimes.is_empty(),
-                        RegionTyParamBound(..) => true,
-                    });
+            TyTraitObject(ref poly_trait_refs, _) => {
+                let has_lifetimes = poly_trait_refs.iter()
+                    .any(|poly_trait_ref| (*poly_trait_ref.bound_lifetimes).len() > 0);
                 if has_lifetimes {
                     // complex trait bounds like A<'a, 'b>
                     (50 * self.nest, 1)
@@ -725,7 +722,7 @@ impl<'a, 'tcx: 'a> Visitor<'tcx> for TypeComplexityVisitor<'a, 'tcx> {
         self.nest -= sub_nest;
     }
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
-        NestedVisitorMap::All(&self.cx.tcx.map)
+        NestedVisitorMap::All(&self.cx.tcx.hir)
     }
 }
 
