@@ -157,25 +157,14 @@ macro_rules! define_Conf {
     (DEFAULT $ty: ty, $e: expr) => { $e };
 }
 
+#[cfg_attr(rustfmt, rustfmt_skip)]
 define_Conf! {
     /// Lint: BLACKLISTED_NAME. The list of blacklisted names to lint about
     ("blacklisted-names", blacklisted_names, ["foo", "bar", "baz", "quux"] => Vec<String>),
     /// Lint: CYCLOMATIC_COMPLEXITY. The maximum cyclomatic complexity a function can have
     ("cyclomatic-complexity-threshold", cyclomatic_complexity_threshold, 25 => u64),
     /// Lint: DOC_MARKDOWN. The list of words this lint should not consider as identifiers needing ticks
-    ("doc-valid-idents", doc_valid_idents, [
-        "MiB", "GiB", "TiB", "PiB", "EiB",
-        "DirectX",
-        "GPLv2", "GPLv3",
-        "GitHub",
-        "IPv4", "IPv6",
-        "JavaScript",
-        "NaN",
-        "OAuth",
-        "OpenGL",
-        "TrueType",
-        "iOS", "macOS",
-    ] => Vec<String>),
+    ("doc-valid-idents", doc_valid_idents, ["MiB", "GiB", "TiB", "PiB", "EiB", "DirectX", "GPLv2", "GPLv3", "GitHub", "IPv4", "IPv6", "JavaScript", "NaN", "OAuth", "OpenGL", "TrueType", "iOS", "macOS"] => Vec<String>),
     /// Lint: TOO_MANY_ARGUMENTS. The maximum number of argument a function or method can have
     ("too-many-arguments-threshold", too_many_arguments_threshold, 7 => u64),
     /// Lint: TYPE_COMPLEXITY. The maximum complexity a type can have
