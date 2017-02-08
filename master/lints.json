@@ -288,6 +288,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for possible missing comma in an array. It lints if\nan array element is a binary operator expression and it lies on two lines.", 
+      "Why is this bad": "This could lead to unexpected results.", 
+      "Example": "```rust,ignore\nlet a = &[\n    -1, -2, -3 // <= no coma here\n    -4, -5, -6\n];\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "possible_missing_comma", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usages of `Mutex<X>` where `X` is an integral type.", 
       "Why is this bad": "Using a mutex just to make access to a plain integer sequential is\nshooting flies with cannons. `std::atomic::usize` is leaner and faster.", 
       "Example": "```rust\nlet x = Mutex::new(0usize);\n```", 
@@ -835,7 +845,7 @@
     "docs": {
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for empasis in markdown, this lint tries to\nconsider that.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\",\n        \"OAuth\",\n        \"OpenGL\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n    ]`).", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\",\n        \"OAuth\",\n        \"OpenGL\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTex\", \"BibLaTex\",\n    ]`).", 
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
