@@ -1737,6 +1737,16 @@
   }, 
   {
     "docs": {
+      "What it does": "This lint checks for functions that take immutable references and return\nmutable ones.", 
+      "Why is this bad": "This is trivially unsound, as one can create two mutable references\nfrom the same (immutable!) source. This [error](https://github.com/rust-lang/rust/issues/39465)\nactually lead to an interim Rust release 1.15.1.", 
+      "Example": "```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```", 
+      "Known problems": "To be on the conservative side, if there's at least one mutable reference\nwith the output lifetime, this lint will not trigger. In practice, this case is unlikely anyway."
+    }, 
+    "id": "mut_from_ref", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for functions with too many parameters.", 
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `too-many-arguments-threshold: u64`: The maximum number of argument a function or method can have (defaults to `7`).", 
