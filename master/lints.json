@@ -1562,6 +1562,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for arm which matches all errors with `Err(_)`\nand take drastic actions like `panic!`.", 
+      "Why is this bad": "It is generally a bad practice, just like\ncatching all exceptions in java with `catch(Exception)`", 
+      "Example": "```rust\nlet x : Result(i32, &str) = Ok(3);\nmatch x {\n    Ok(_) => println!(\"ok\"),\n    Err(_) => panic!(\"err\"),\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "match_wild_err_arm", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
       "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250`).", 
