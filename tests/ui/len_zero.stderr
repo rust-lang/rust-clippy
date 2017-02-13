@@ -1,4 +1,4 @@
-error: item `PubOne` has a public `len` method but no corresponding `is_empty` method
+warning: item `PubOne` has a public `len` method but no corresponding `is_empty` method
   --> $DIR/len_zero.rs:10:5
    |
 10 |       pub fn len(self: &Self) -> isize {
@@ -7,19 +7,17 @@ error: item `PubOne` has a public `len` method but no corresponding `is_empty` m
 12 | |     }
    | |_____^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/len_zero.rs:4:9
-   |
-4  | #![deny(len_without_is_empty, len_zero)]
-   |         ^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(len_without_is_empty)] on by default
 
-error: trait `PubTraitsToo` has a `len` method but no `is_empty` method
+warning: trait `PubTraitsToo` has a `len` method but no `is_empty` method
   --> $DIR/len_zero.rs:32:5
    |
 32 |     fn len(self: &Self) -> isize;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: #[warn(len_without_is_empty)] on by default
 
-error: item `HasIsEmpty` has a public `len` method but a private `is_empty` method
+warning: item `HasIsEmpty` has a public `len` method but a private `is_empty` method
   --> $DIR/len_zero.rs:66:5
    |
 66 |       pub fn len(self: &Self) -> isize {
@@ -27,8 +25,10 @@ error: item `HasIsEmpty` has a public `len` method but a private `is_empty` meth
 67 | |         1
 68 | |     }
    | |_____^ ...ending here
+   |
+   = note: #[warn(len_without_is_empty)] on by default
 
-error: item `HasWrongIsEmpty` has a public `len` method but no corresponding `is_empty` method
+warning: item `HasWrongIsEmpty` has a public `len` method but no corresponding `is_empty` method
   --> $DIR/len_zero.rs:95:5
    |
 95 |       pub fn len(self: &Self) -> isize {
@@ -36,65 +36,66 @@ error: item `HasWrongIsEmpty` has a public `len` method but no corresponding `is
 96 | |         1
 97 | |     }
    | |_____^ ...ending here
+   |
+   = note: #[warn(len_without_is_empty)] on by default
 
-error: length comparison to zero
+warning: length comparison to zero
    --> $DIR/len_zero.rs:106:8
     |
 106 |     if x.len() == 0 {
     |        ^^^^^^^^^^^^
     |
-note: lint level defined here
-   --> $DIR/len_zero.rs:4:31
-    |
-4   | #![deny(len_without_is_empty, len_zero)]
-    |                               ^^^^^^^^
+    = note: #[warn(len_zero)] on by default
 help: consider using `is_empty`
     |     if x.is_empty() {
 
-error: length comparison to zero
+warning: length comparison to zero
    --> $DIR/len_zero.rs:113:8
     |
 113 |     if "".len() == 0 {
     |        ^^^^^^^^^^^^^
     |
+    = note: #[warn(len_zero)] on by default
 help: consider using `is_empty`
     |     if "".is_empty() {
 
-error: length comparison to zero
+warning: length comparison to zero
    --> $DIR/len_zero.rs:130:8
     |
 130 |     if has_is_empty.len() == 0 {
     |        ^^^^^^^^^^^^^^^^^^^^^^^
     |
+    = note: #[warn(len_zero)] on by default
 help: consider using `is_empty`
     |     if has_is_empty.is_empty() {
 
-error: length comparison to zero
+warning: length comparison to zero
    --> $DIR/len_zero.rs:136:8
     |
 136 |     if has_is_empty.len() != 0 {
     |        ^^^^^^^^^^^^^^^^^^^^^^^
     |
+    = note: #[warn(len_zero)] on by default
 help: consider using `is_empty`
     |     if !has_is_empty.is_empty() {
 
-error: length comparison to zero
+warning: length comparison to zero
    --> $DIR/len_zero.rs:142:8
     |
 142 |     if has_is_empty.len() > 0 {
     |        ^^^^^^^^^^^^^^^^^^^^^^
     |
+    = note: #[warn(len_zero)] on by default
 help: consider using `is_empty`
     |     if !has_is_empty.is_empty() {
 
-error: length comparison to zero
+warning: length comparison to zero
    --> $DIR/len_zero.rs:151:8
     |
 151 |     if with_is_empty.len() == 0 {
     |        ^^^^^^^^^^^^^^^^^^^^^^^^
     |
+    = note: #[warn(len_zero)] on by default
 help: consider using `is_empty`
     |     if with_is_empty.is_empty() {
-
-error: aborting due to 10 previous errors
 

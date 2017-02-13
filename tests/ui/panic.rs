@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(panic_params)]
+#![warn(panic_params)]
 
 fn missing() {
     if true {

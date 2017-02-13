@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(double_parens)]
+#![warn(double_parens)]
 #![allow(dead_code)]
 
 fn dummy_fn<T>(_: T) {}

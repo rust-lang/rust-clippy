@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(clippy,similar_names)]
+#![warn(clippy,similar_names)]
 
 
 

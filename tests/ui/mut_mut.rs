@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #![allow(unused, no_effect, unnecessary_operation)]
-#![deny(mut_mut)]
+#![warn(mut_mut)]
 
 //#![plugin(regex_macros)]
 //extern crate regex;

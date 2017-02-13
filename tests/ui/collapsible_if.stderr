@@ -1,4 +1,4 @@
-error: this if statement can be collapsed
+warning: this if statement can be collapsed
   --> $DIR/collapsible_if.rs:8:5
    |
 8  |       if x == "hello" {
@@ -12,17 +12,13 @@ error: this if statement can be collapsed
 15 | |     }
    | |_____^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/collapsible_if.rs:4:8
-   |
-4  | #[deny(collapsible_if)]
-   |        ^^^^^^^^^^^^^^
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     if x == "hello" && y == "world" {
    |     println!("Hello world!");
    | }
 
-error: this if statement can be collapsed
+warning: this if statement can be collapsed
   --> $DIR/collapsible_if.rs:17:5
    |
 17 |       if x == "hello" || x == "world" {
@@ -36,12 +32,13 @@ error: this if statement can be collapsed
 24 | |     }
    | |_____^ ...ending here
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     if (x == "hello" || x == "world") && (y == "world" || y == "hello") {
    |     println!("Hello world!");
    | }
 
-error: this if statement can be collapsed
+warning: this if statement can be collapsed
   --> $DIR/collapsible_if.rs:26:5
    |
 26 |       if x == "hello" && x == "world" {
@@ -55,12 +52,13 @@ error: this if statement can be collapsed
 33 | |     }
    | |_____^ ...ending here
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     if x == "hello" && x == "world" && (y == "world" || y == "hello") {
    |     println!("Hello world!");
    | }
 
-error: this if statement can be collapsed
+warning: this if statement can be collapsed
   --> $DIR/collapsible_if.rs:35:5
    |
 35 |       if x == "hello" || x == "world" {
@@ -74,12 +72,13 @@ error: this if statement can be collapsed
 42 | |     }
    | |_____^ ...ending here
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     if (x == "hello" || x == "world") && y == "world" && y == "hello" {
    |     println!("Hello world!");
    | }
 
-error: this if statement can be collapsed
+warning: this if statement can be collapsed
   --> $DIR/collapsible_if.rs:44:5
    |
 44 |       if x == "hello" && x == "world" {
@@ -93,12 +92,13 @@ error: this if statement can be collapsed
 51 | |     }
    | |_____^ ...ending here
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     if x == "hello" && x == "world" && y == "world" && y == "hello" {
    |     println!("Hello world!");
    | }
 
-error: this if statement can be collapsed
+warning: this if statement can be collapsed
   --> $DIR/collapsible_if.rs:53:5
    |
 53 |       if 42 == 1337 {
@@ -112,12 +112,13 @@ error: this if statement can be collapsed
 60 | |     }
    | |_____^ ...ending here
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     if 42 == 1337 && 'a' != 'A' {
    |     println!("world!")
    | }
 
-error: this `else { if .. }` block can be collapsed
+warning: this `else { if .. }` block can be collapsed
   --> $DIR/collapsible_if.rs:65:12
    |
 65 |       } else {
@@ -131,12 +132,13 @@ error: this `else { if .. }` block can be collapsed
 72 | |     }
    | |_____^ ...ending here
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     } else if y == "world" {
    |     println!("world!")
    | }
 
-error: this `else { if .. }` block can be collapsed
+warning: this `else { if .. }` block can be collapsed
   --> $DIR/collapsible_if.rs:76:12
    |
 76 |       } else {
@@ -150,17 +152,19 @@ error: this `else { if .. }` block can be collapsed
 83 | |     }
    | |_____^ ...ending here
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     } else if let Some(42) = Some(42) {
    |     println!("world!")
    | }
 
-error: this `else { if .. }` block can be collapsed
+warning: this `else { if .. }` block can be collapsed
   --> $DIR/collapsible_if.rs:87:12
    |
 87 |     } else {
    |            ^
    |
+   = note: #[warn(collapsible_if)] on by default
 help: try
    |     } else if y == "world" {
    |     println!("world")
@@ -169,12 +173,13 @@ help: try
    |     println!("!")
    | }
 
-error: this `else { if .. }` block can be collapsed
+warning: this `else { if .. }` block can be collapsed
    --> $DIR/collapsible_if.rs:101:12
     |
 101 |     } else {
     |            ^
     |
+    = note: #[warn(collapsible_if)] on by default
 help: try
     |     } else if let Some(42) = Some(42) {
     |     println!("world")
@@ -183,12 +188,13 @@ help: try
     |     println!("!")
     | }
 
-error: this `else { if .. }` block can be collapsed
+warning: this `else { if .. }` block can be collapsed
    --> $DIR/collapsible_if.rs:115:12
     |
 115 |     } else {
     |            ^
     |
+    = note: #[warn(collapsible_if)] on by default
 help: try
     |     } else if let Some(42) = Some(42) {
     |     println!("world")
@@ -197,12 +203,13 @@ help: try
     |     println!("!")
     | }
 
-error: this `else { if .. }` block can be collapsed
+warning: this `else { if .. }` block can be collapsed
    --> $DIR/collapsible_if.rs:129:12
     |
 129 |     } else {
     |            ^
     |
+    = note: #[warn(collapsible_if)] on by default
 help: try
     |     } else if x == "hello" {
     |     println!("world")
@@ -211,12 +218,13 @@ help: try
     |     println!("!")
     | }
 
-error: this `else { if .. }` block can be collapsed
+warning: this `else { if .. }` block can be collapsed
    --> $DIR/collapsible_if.rs:143:12
     |
 143 |     } else {
     |            ^
     |
+    = note: #[warn(collapsible_if)] on by default
 help: try
     |     } else if let Some(42) = Some(42) {
     |     println!("world")
@@ -225,5 +233,12 @@ help: try
     |     println!("!")
     | }
 
-error: aborting due to 13 previous errors
+warning: the function has a cyclomatic complexity of 35
+   --> $DIR/collapsible_if.rs:5:1
+    |
+5   | fn main() {
+    | ^
+    |
+    = note: #[warn(cyclomatic_complexity)] on by default
+    = help: you could split it up into multiple smaller functions
 

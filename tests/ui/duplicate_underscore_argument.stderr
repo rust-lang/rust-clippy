@@ -1,14 +1,16 @@
-error: `darth` already exists, having another argument having almost the same name makes code comprehension and documentation more difficult
+warning: `darth` already exists, having another argument having almost the same name makes code comprehension and documentation more difficult
  --> $DIR/duplicate_underscore_argument.rs:7:23
   |
 7 | fn join_the_dark_side(darth: i32, _darth: i32) {}
   |                       ^^^^^
   |
-note: lint level defined here
- --> $DIR/duplicate_underscore_argument.rs:4:9
-  |
-4 | #![deny(duplicate_underscore_argument)]
-  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: #[warn(duplicate_underscore_argument)] on by default
 
-error: aborting due to previous error
+warning: unused variable: `knight`
+ --> $DIR/duplicate_underscore_argument.rs:8:24
+  |
+8 | fn join_the_light_side(knight: i32, _master: i32) {} // the Force is strong with this one
+  |                        ^^^^^^
+  |
+  = note: #[warn(unused_variables)] on by default
 

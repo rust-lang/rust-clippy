@@ -1,4 +1,4 @@
-error: the function has a cyclomatic complexity of 3
+warning: the function has a cyclomatic complexity of 3
   --> $DIR/cyclomatic_complexity_attr_used.rs:11:1
    |
 11 |   fn kaboom() {
@@ -11,12 +11,6 @@ error: the function has a cyclomatic complexity of 3
 17 | | }
    | |_^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/cyclomatic_complexity_attr_used.rs:3:9
-   |
-3  | #![deny(cyclomatic_complexity)]
-   |         ^^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(cyclomatic_complexity)] on by default
    = help: you could split it up into multiple smaller functions
-
-error: aborting due to previous error
 

@@ -1,8 +1,8 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(block_in_if_condition_expr)]
-#![deny(block_in_if_condition_stmt)]
+#![warn(block_in_if_condition_expr)]
+#![warn(block_in_if_condition_stmt)]
 #![allow(unused, let_and_return)]
 #![warn(nonminimal_bool)]
 

@@ -1,41 +1,31 @@
-error: for loop over `option`, which is an `Option`. This is more readably written as an `if let` statement.
+warning: for loop over `option`, which is an `Option`. This is more readably written as an `if let` statement.
   --> $DIR/for_loop.rs:18:14
    |
 18 |     for x in option {
    |              ^^^^^^
    |
-   = note: #[deny(for_loop_over_option)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/for_loop.rs:10:8
-   |
-10 | #[deny(clippy)]
-   |        ^^^^^^
+   = note: #[warn(for_loop_over_option)] on by default
    = help: consider replacing `for x in option` with `if let Some(x) = option`
 
-error: for loop over `result`, which is a `Result`. This is more readably written as an `if let` statement.
+warning: for loop over `result`, which is a `Result`. This is more readably written as an `if let` statement.
   --> $DIR/for_loop.rs:26:14
    |
 26 |     for x in result {
    |              ^^^^^^
    |
-   = note: #[deny(for_loop_over_result)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/for_loop.rs:10:8
-   |
-10 | #[deny(clippy)]
-   |        ^^^^^^
+   = note: #[warn(for_loop_over_result)] on by default
    = help: consider replacing `for x in result` with `if let Ok(x) = result`
 
-error: for loop over `option.ok_or("x not found")`, which is a `Result`. This is more readably written as an `if let` statement.
+warning: for loop over `option.ok_or("x not found")`, which is a `Result`. This is more readably written as an `if let` statement.
   --> $DIR/for_loop.rs:32:14
    |
 32 |     for x in option.ok_or("x not found") {
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: #[deny(for_loop_over_result)] implied by #[deny(clippy)]
+   = note: #[warn(for_loop_over_result)] on by default
    = help: consider replacing `for x in option.ok_or("x not found")` with `if let Ok(x) = option.ok_or("x not found")`
 
-error: you are iterating over `Iterator::next()` which is an Option; this will compile but is probably not what you want
+warning: you are iterating over `Iterator::next()` which is an Option; this will compile but is probably not what you want
   --> $DIR/for_loop.rs:40:5
    |
 40 |       for x in v.iter().next() {
@@ -45,32 +35,27 @@ error: you are iterating over `Iterator::next()` which is an Option; this will c
 43 | |     }
    | |_____^ ...ending here
    |
-   = note: #[deny(iter_next_loop)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/for_loop.rs:10:8
-   |
-10 | #[deny(clippy)]
-   |        ^^^^^^
+   = note: #[warn(iter_next_loop)] on by default
 
-error: for loop over `v.iter().next().and(Some(0))`, which is an `Option`. This is more readably written as an `if let` statement.
+warning: for loop over `v.iter().next().and(Some(0))`, which is an `Option`. This is more readably written as an `if let` statement.
   --> $DIR/for_loop.rs:47:14
    |
 47 |     for x in v.iter().next().and(Some(0)) {
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: #[deny(for_loop_over_option)] implied by #[deny(clippy)]
+   = note: #[warn(for_loop_over_option)] on by default
    = help: consider replacing `for x in v.iter().next().and(Some(0))` with `if let Some(x) = v.iter().next().and(Some(0))`
 
-error: for loop over `v.iter().next().ok_or("x not found")`, which is a `Result`. This is more readably written as an `if let` statement.
+warning: for loop over `v.iter().next().ok_or("x not found")`, which is a `Result`. This is more readably written as an `if let` statement.
   --> $DIR/for_loop.rs:53:14
    |
 53 |     for x in v.iter().next().ok_or("x not found") {
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: #[deny(for_loop_over_result)] implied by #[deny(clippy)]
+   = note: #[warn(for_loop_over_result)] on by default
    = help: consider replacing `for x in v.iter().next().ok_or("x not found")` with `if let Ok(x) = v.iter().next().ok_or("x not found")`
 
-error: the loop variable `i` is only used to index `vec`.
+warning: the loop variable `i` is only used to index `vec`.
    --> $DIR/for_loop.rs:99:5
     |
 99  |       for i in 0..vec.len() {
@@ -83,11 +68,7 @@ error: the loop variable `i` is only used to index `vec`.
 105 | |     }
     | |_____^ ...ending here
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:90:8
-    |
-90  | #[deny(needless_range_loop, explicit_iter_loop, explicit_into_iter_loop, iter_next_loop, reverse_range_loop, explicit_counter_loop, for_kv_map)]
-    |        ^^^^^^^^^^^^^^^^^^^
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in &vec {
 
@@ -99,16 +80,17 @@ warning: unused variable: `i`
     |
     = note: #[warn(unused_variables)] on by default
 
-error: the loop variable `i` is only used to index `vec`.
+warning: the loop variable `i` is only used to index `vec`.
    --> $DIR/for_loop.rs:113:5
     |
 113 |     for i in 0..vec.len() { let _ = vec[i]; }
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in &vec { let _ = vec[i]; }
 
-error: the loop variable `j` is only used to index `STATIC`.
+warning: the loop variable `j` is only used to index `STATIC`.
    --> $DIR/for_loop.rs:120:5
     |
 120 |       for j in 0..4 {
@@ -121,10 +103,11 @@ error: the loop variable `j` is only used to index `STATIC`.
 126 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in STATIC.iter().take(4) {
 
-error: the loop variable `j` is only used to index `CONST`.
+warning: the loop variable `j` is only used to index `CONST`.
    --> $DIR/for_loop.rs:128:5
     |
 128 |       for j in 0..4 {
@@ -137,10 +120,11 @@ error: the loop variable `j` is only used to index `CONST`.
 134 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in CONST.iter().take(4) {
 
-error: the loop variable `i` is used to index `vec`
+warning: the loop variable `i` is used to index `vec`
    --> $DIR/for_loop.rs:136:5
     |
 136 |       for i in 0..vec.len() {
@@ -153,10 +137,11 @@ error: the loop variable `i` is used to index `vec`
 142 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for (i, <item>) in vec.iter().enumerate() {
 
-error: the loop variable `i` is only used to index `vec2`.
+warning: the loop variable `i` is only used to index `vec2`.
    --> $DIR/for_loop.rs:147:5
     |
 147 |       for i in 0..vec.len() {
@@ -169,10 +154,11 @@ error: the loop variable `i` is only used to index `vec2`.
 153 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in vec2.iter().take(vec.len()) {
 
-error: the loop variable `i` is only used to index `vec`.
+warning: the loop variable `i` is only used to index `vec`.
    --> $DIR/for_loop.rs:155:5
     |
 155 |       for i in 5..vec.len() {
@@ -185,10 +171,11 @@ error: the loop variable `i` is only used to index `vec`.
 161 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in vec.iter().skip(5) {
 
-error: the loop variable `i` is only used to index `vec`.
+warning: the loop variable `i` is only used to index `vec`.
    --> $DIR/for_loop.rs:163:5
     |
 163 |       for i in 0..MAX_LEN {
@@ -201,10 +188,11 @@ error: the loop variable `i` is only used to index `vec`.
 169 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in vec.iter().take(MAX_LEN) {
 
-error: the loop variable `i` is only used to index `vec`.
+warning: the loop variable `i` is only used to index `vec`.
    --> $DIR/for_loop.rs:171:5
     |
 171 |       for i in 0...MAX_LEN {
@@ -217,10 +205,11 @@ error: the loop variable `i` is only used to index `vec`.
 177 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in vec.iter().take(MAX_LEN + 1) {
 
-error: the loop variable `i` is only used to index `vec`.
+warning: the loop variable `i` is only used to index `vec`.
    --> $DIR/for_loop.rs:179:5
     |
 179 |       for i in 5..10 {
@@ -233,10 +222,11 @@ error: the loop variable `i` is only used to index `vec`.
 185 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in vec.iter().take(10).skip(5) {
 
-error: the loop variable `i` is only used to index `vec`.
+warning: the loop variable `i` is only used to index `vec`.
    --> $DIR/for_loop.rs:187:5
     |
 187 |       for i in 5...10 {
@@ -249,10 +239,11 @@ error: the loop variable `i` is only used to index `vec`.
 193 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for <item> in vec.iter().take(10 + 1).skip(5) {
 
-error: the loop variable `i` is used to index `vec`
+warning: the loop variable `i` is used to index `vec`
    --> $DIR/for_loop.rs:195:5
     |
 195 |       for i in 5..vec.len() {
@@ -265,10 +256,11 @@ error: the loop variable `i` is used to index `vec`
 201 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for (i, <item>) in vec.iter().enumerate().skip(5) {
 
-error: the loop variable `i` is used to index `vec`
+warning: the loop variable `i` is used to index `vec`
    --> $DIR/for_loop.rs:203:5
     |
 203 |       for i in 5..10 {
@@ -281,10 +273,11 @@ error: the loop variable `i` is used to index `vec`
 209 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(needless_range_loop)] on by default
 help: consider using an iterator
     |     for (i, <item>) in vec.iter().enumerate().take(10).skip(5) {
 
-error: this range is empty so this for loop will never run
+warning: this range is empty so this for loop will never run
    --> $DIR/for_loop.rs:211:5
     |
 211 |       for i in 10..0 {
@@ -296,15 +289,11 @@ error: this range is empty so this for loop will never run
 216 | |     }
     | |_____^ ...ending here
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:90:90
-    |
-90  | #[deny(needless_range_loop, explicit_iter_loop, explicit_into_iter_loop, iter_next_loop, reverse_range_loop, explicit_counter_loop, for_kv_map)]
-    |                                                                                          ^^^^^^^^^^^^^^^^^^
+    = note: #[warn(reverse_range_loop)] on by default
 help: consider using the following if you are attempting to iterate over this range in reverse
     |     for i in (0..10).rev() {
 
-error: this range is empty so this for loop will never run
+warning: this range is empty so this for loop will never run
    --> $DIR/for_loop.rs:218:5
     |
 218 |       for i in 10...0 {
@@ -316,10 +305,11 @@ error: this range is empty so this for loop will never run
 223 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(reverse_range_loop)] on by default
 help: consider using the following if you are attempting to iterate over this range in reverse
     |     for i in (0...10).rev() {
 
-error: this range is empty so this for loop will never run
+warning: this range is empty so this for loop will never run
    --> $DIR/for_loop.rs:225:5
     |
 225 |       for i in MAX_LEN..0 {
@@ -330,10 +320,11 @@ error: this range is empty so this for loop will never run
 229 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(reverse_range_loop)] on by default
 help: consider using the following if you are attempting to iterate over this range in reverse
     |     for i in (0..MAX_LEN).rev() {
 
-error: this range is empty so this for loop will never run
+warning: this range is empty so this for loop will never run
    --> $DIR/for_loop.rs:231:5
     |
 231 |       for i in 5..5 {
@@ -341,8 +332,10 @@ error: this range is empty so this for loop will never run
 232 | |         println!("{}", i);
 233 | |     }
     | |_____^ ...ending here
+    |
+    = note: #[warn(reverse_range_loop)] on by default
 
-error: this range is empty so this for loop will never run
+warning: this range is empty so this for loop will never run
    --> $DIR/for_loop.rs:252:5
     |
 252 |       for i in 10..5+4 {
@@ -354,10 +347,11 @@ error: this range is empty so this for loop will never run
 257 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(reverse_range_loop)] on by default
 help: consider using the following if you are attempting to iterate over this range in reverse
     |     for i in (5+4..10).rev() {
 
-error: this range is empty so this for loop will never run
+warning: this range is empty so this for loop will never run
    --> $DIR/for_loop.rs:259:5
     |
 259 |       for i in (5+2)..(3-1) {
@@ -369,10 +363,11 @@ error: this range is empty so this for loop will never run
 264 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(reverse_range_loop)] on by default
 help: consider using the following if you are attempting to iterate over this range in reverse
     |     for i in ((3-1)..(5+2)).rev() {
 
-error: this range is empty so this for loop will never run
+warning: this range is empty so this for loop will never run
    --> $DIR/for_loop.rs:266:5
     |
 266 |       for i in (5+2)..(8-1) {
@@ -380,168 +375,162 @@ error: this range is empty so this for loop will never run
 267 | |         println!("{}", i);
 268 | |     }
     | |_____^ ...ending here
+    |
+    = note: #[warn(reverse_range_loop)] on by default
 
-error: it is more idiomatic to loop over `&vec` instead of `vec.iter()`
+warning: it is more idiomatic to loop over `&vec` instead of `vec.iter()`
    --> $DIR/for_loop.rs:289:15
     |
 289 |     for _v in vec.iter() { }
     |               ^^^^^^^^^^
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:90:29
-    |
-90  | #[deny(needless_range_loop, explicit_iter_loop, explicit_into_iter_loop, iter_next_loop, reverse_range_loop, explicit_counter_loop, for_kv_map)]
-    |                             ^^^^^^^^^^^^^^^^^^
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &vec { }
 
-error: it is more idiomatic to loop over `&mut vec` instead of `vec.iter_mut()`
+warning: it is more idiomatic to loop over `&mut vec` instead of `vec.iter_mut()`
    --> $DIR/for_loop.rs:294:15
     |
 294 |     for _v in vec.iter_mut() { }
     |               ^^^^^^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &mut vec { }
 
-error: it is more idiomatic to loop over `out_vec` instead of `out_vec.into_iter()`
+warning: it is more idiomatic to loop over `out_vec` instead of `out_vec.into_iter()`
    --> $DIR/for_loop.rs:300:15
     |
 300 |     for _v in out_vec.into_iter() { }
     |               ^^^^^^^^^^^^^^^^^^^
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:90:49
-    |
-90  | #[deny(needless_range_loop, explicit_iter_loop, explicit_into_iter_loop, iter_next_loop, reverse_range_loop, explicit_counter_loop, for_kv_map)]
-    |                                                 ^^^^^^^^^^^^^^^^^^^^^^^
+    = note: #[warn(explicit_into_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in out_vec { }
 
-error: it is more idiomatic to loop over `&[1, 2, 3]` instead of `[1, 2, 3].iter()`
+warning: it is more idiomatic to loop over `&[1, 2, 3]` instead of `[1, 2, 3].iter()`
    --> $DIR/for_loop.rs:308:15
     |
 308 |     for _v in [1, 2, 3].iter() { }
     |               ^^^^^^^^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &[1, 2, 3] { }
 
-error: it is more idiomatic to loop over `&[0; 32]` instead of `[0; 32].iter()`
+warning: it is more idiomatic to loop over `&[0; 32]` instead of `[0; 32].iter()`
    --> $DIR/for_loop.rs:315:15
     |
 315 |     for _v in [0; 32].iter() {}
     |               ^^^^^^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &[0; 32] {}
 
-error: it is more idiomatic to loop over `&ll` instead of `ll.iter()`
+warning: it is more idiomatic to loop over `&ll` instead of `ll.iter()`
    --> $DIR/for_loop.rs:323:15
     |
 323 |     for _v in ll.iter() { }
     |               ^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &ll { }
 
-error: it is more idiomatic to loop over `&vd` instead of `vd.iter()`
+warning: it is more idiomatic to loop over `&vd` instead of `vd.iter()`
    --> $DIR/for_loop.rs:329:15
     |
 329 |     for _v in vd.iter() { }
     |               ^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &vd { }
 
-error: it is more idiomatic to loop over `&bh` instead of `bh.iter()`
+warning: it is more idiomatic to loop over `&bh` instead of `bh.iter()`
    --> $DIR/for_loop.rs:335:15
     |
 335 |     for _v in bh.iter() { }
     |               ^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &bh { }
 
-error: it is more idiomatic to loop over `&hm` instead of `hm.iter()`
+warning: it is more idiomatic to loop over `&hm` instead of `hm.iter()`
    --> $DIR/for_loop.rs:341:15
     |
 341 |     for _v in hm.iter() { }
     |               ^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &hm { }
 
-error: it is more idiomatic to loop over `&bt` instead of `bt.iter()`
+warning: it is more idiomatic to loop over `&bt` instead of `bt.iter()`
    --> $DIR/for_loop.rs:347:15
     |
 347 |     for _v in bt.iter() { }
     |               ^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &bt { }
 
-error: it is more idiomatic to loop over `&hs` instead of `hs.iter()`
+warning: it is more idiomatic to loop over `&hs` instead of `hs.iter()`
    --> $DIR/for_loop.rs:353:15
     |
 353 |     for _v in hs.iter() { }
     |               ^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &hs { }
 
-error: it is more idiomatic to loop over `&bs` instead of `bs.iter()`
+warning: it is more idiomatic to loop over `&bs` instead of `bs.iter()`
    --> $DIR/for_loop.rs:359:15
     |
 359 |     for _v in bs.iter() { }
     |               ^^^^^^^^^
     |
+    = note: #[warn(explicit_iter_loop)] on by default
 help: to write this more concisely, try looping over
     |     for _v in &bs { }
 
-error: you are iterating over `Iterator::next()` which is an Option; this will compile but is probably not what you want
+warning: you are iterating over `Iterator::next()` which is an Option; this will compile but is probably not what you want
    --> $DIR/for_loop.rs:365:5
     |
 365 |     for _v in vec.iter().next() { }
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:90:74
-    |
-90  | #[deny(needless_range_loop, explicit_iter_loop, explicit_into_iter_loop, iter_next_loop, reverse_range_loop, explicit_counter_loop, for_kv_map)]
-    |                                                                          ^^^^^^^^^^^^^^
+    = note: #[warn(iter_next_loop)] on by default
 
-error: you are collect()ing an iterator and throwing away the result. Consider using an explicit for loop to exhaust the iterator
+warning: you are collect()ing an iterator and throwing away the result. Consider using an explicit for loop to exhaust the iterator
    --> $DIR/for_loop.rs:372:5
     |
 372 |     vec.iter().map(|x| out.push(x)).collect::<Vec<_>>();
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:91:8
-    |
-91  | #[deny(unused_collect)]
-    |        ^^^^^^^^^^^^^^
+    = note: #[warn(unused_collect)] on by default
 
-error: the variable `_index` is used as a loop counter. Consider using `for (_index, item) in &vec.enumerate()` or similar iterators
+warning: the variable `_index` is used as a loop counter. Consider using `for (_index, item) in &vec.enumerate()` or similar iterators
    --> $DIR/for_loop.rs:377:5
     |
 377 |     for _v in &vec { _index += 1 }
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:90:110
-    |
-90  | #[deny(needless_range_loop, explicit_iter_loop, explicit_into_iter_loop, iter_next_loop, reverse_range_loop, explicit_counter_loop, for_kv_map)]
-    |                                                                                                              ^^^^^^^^^^^^^^^^^^^^^
+    = note: #[warn(explicit_counter_loop)] on by default
 
-error: the variable `_index` is used as a loop counter. Consider using `for (_index, item) in &vec.enumerate()` or similar iterators
+warning: the variable `_index` is used as a loop counter. Consider using `for (_index, item) in &vec.enumerate()` or similar iterators
    --> $DIR/for_loop.rs:381:5
     |
 381 |     for _v in &vec { _index += 1 }
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: #[warn(explicit_counter_loop)] on by default
 
-error: you seem to want to iterate on a map's values
+warning: you seem to want to iterate on a map's values
    --> $DIR/for_loop.rs:441:5
     |
 441 |       for (_, v) in &m {
@@ -554,15 +543,11 @@ error: you seem to want to iterate on a map's values
 447 | |     }
     | |_____^ ...ending here
     |
-note: lint level defined here
-   --> $DIR/for_loop.rs:90:133
-    |
-90  | #[deny(needless_range_loop, explicit_iter_loop, explicit_into_iter_loop, iter_next_loop, reverse_range_loop, explicit_counter_loop, for_kv_map)]
-    |                                                                                                                                     ^^^^^^^^^^
+    = note: #[warn(for_kv_map)] on by default
 help: use the corresponding method
     |     for v in m.values() {
 
-error: you seem to want to iterate on a map's values
+warning: you seem to want to iterate on a map's values
    --> $DIR/for_loop.rs:450:5
     |
 450 |       for (_, v) in &*m {
@@ -577,10 +562,11 @@ error: you seem to want to iterate on a map's values
 458 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(for_kv_map)] on by default
 help: use the corresponding method
     |     for v in (*m).values() {
 
-error: you seem to want to iterate on a map's values
+warning: you seem to want to iterate on a map's values
    --> $DIR/for_loop.rs:461:5
     |
 461 |       for (_, v) in &mut m {
@@ -593,10 +579,11 @@ error: you seem to want to iterate on a map's values
 467 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(for_kv_map)] on by default
 help: use the corresponding method
     |     for v in m.values_mut() {
 
-error: you seem to want to iterate on a map's values
+warning: you seem to want to iterate on a map's values
    --> $DIR/for_loop.rs:470:5
     |
 470 |       for (_, v) in &mut *m {
@@ -609,10 +596,11 @@ error: you seem to want to iterate on a map's values
 476 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(for_kv_map)] on by default
 help: use the corresponding method
     |     for v in (*m).values_mut() {
 
-error: you seem to want to iterate on a map's keys
+warning: you seem to want to iterate on a map's keys
    --> $DIR/for_loop.rs:480:5
     |
 480 |       for (k, _value) in rm {
@@ -625,8 +613,7 @@ error: you seem to want to iterate on a map's keys
 486 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(for_kv_map)] on by default
 help: use the corresponding method
     |     for k in rm.keys() {
-
-error: aborting due to 47 previous errors
 

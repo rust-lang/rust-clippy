@@ -1,4 +1,4 @@
-error: enum with no variants
+warning: enum with no variants
  --> $DIR/empty_enum.rs:7:1
   |
 7 | enum Empty {}
@@ -7,13 +7,11 @@ error: enum with no variants
 note: lint level defined here
  --> $DIR/empty_enum.rs:5:9
   |
-5 | #![deny(empty_enum)]
+5 | #![warn(empty_enum)]
   |         ^^^^^^^^^^
 help: consider using the uninhabited type `!` or a wrapper around it
  --> $DIR/empty_enum.rs:7:1
   |
 7 | enum Empty {}
   | ^^^^^^^^^^^^^
-
-error: aborting due to previous error
 

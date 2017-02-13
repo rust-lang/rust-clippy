@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(cmp_nan)]
+#[warn(cmp_nan)]
 #[allow(float_cmp, no_effect, unnecessary_operation)]
 fn main() {
     let x = 5f32;

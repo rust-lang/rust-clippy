@@ -1,7 +1,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(neg_multiply)]
+#![warn(neg_multiply)]
 #![allow(no_effect, unnecessary_operation)]
 
 use std::ops::Mul;

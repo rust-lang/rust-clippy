@@ -3,7 +3,7 @@
 #![feature(associated_consts)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(dead_code)]
 
 extern crate collections;

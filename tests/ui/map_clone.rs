@@ -1,7 +1,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(map_clone)]
+#![warn(map_clone)]
 
 #![allow(clone_on_copy, unused)]
 

@@ -1,10 +1,10 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(eq_op)]
+#[warn(eq_op)]
 #[allow(identity_op, double_parens)]
 #[allow(no_effect, unused_variables, unnecessary_operation, short_circuit_statement)]
-#[deny(nonminimal_bool)]
+#[warn(nonminimal_bool)]
 fn main() {
     // simple values and comparisons
     1 == 1;

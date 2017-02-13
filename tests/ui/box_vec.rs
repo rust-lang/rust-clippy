@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(boxed_local)]
 #![allow(blacklisted_name)]
 

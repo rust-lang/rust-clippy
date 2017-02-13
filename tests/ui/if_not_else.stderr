@@ -1,4 +1,4 @@
-error: Unnecessary boolean `not` operation
+warning: Unnecessary boolean `not` operation
   --> $DIR/if_not_else.rs:9:5
    |
 9  |       if !bla() {
@@ -12,11 +12,11 @@ error: Unnecessary boolean `not` operation
 note: lint level defined here
   --> $DIR/if_not_else.rs:4:9
    |
-4  | #![deny(if_not_else)]
+4  | #![warn(if_not_else)]
    |         ^^^^^^^^^^^
    = help: remove the `!` and swap the blocks of the if/else
 
-error: Unnecessary `!=` operation
+warning: Unnecessary `!=` operation
   --> $DIR/if_not_else.rs:14:5
    |
 14 |       if 4 != 5 {
@@ -28,6 +28,4 @@ error: Unnecessary `!=` operation
    | |_____^ ...ending here
    |
    = help: change to `==` and swap the blocks of the if/else
-
-error: aborting due to 2 previous errors
 

@@ -4,7 +4,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(doc_markdown)]
+#![warn(doc_markdown)]
 
 /// The foo_bar function does _nothing_. See also foo::bar. (note the dot there)
 

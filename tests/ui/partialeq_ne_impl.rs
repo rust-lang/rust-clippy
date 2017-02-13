@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(warnings)]
+#![warn(warnings)]
 #![allow(dead_code)]
 
 struct Foo;

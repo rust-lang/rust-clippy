@@ -2,7 +2,7 @@
 #![feature(rustc_private)]
 #![plugin(clippy)]
 
-#![deny(lint_without_lint_pass)]
+#![warn(lint_without_lint_pass)]
 
 #[macro_use] extern crate rustc;
 

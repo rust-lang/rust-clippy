@@ -1,16 +1,10 @@
-error: useless lint attribute
+warning: useless lint attribute
  --> $DIR/useless_attribute.rs:5:1
   |
 5 | #[allow(dead_code)]
   | ^^^^^^^^^^^^^^^^^^^
   |
-note: lint level defined here
- --> $DIR/useless_attribute.rs:3:9
-  |
-3 | #![deny(useless_attribute)]
-  |         ^^^^^^^^^^^^^^^^^
+  = note: #[warn(useless_attribute)] on by default
 help: if you just forgot a `!`, use
   | #![allow(dead_code)]
-
-error: aborting due to previous error
 

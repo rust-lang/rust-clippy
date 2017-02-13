@@ -1,23 +1,54 @@
-error: You matched a field with a wildcard pattern. Consider using `..` instead
+warning: You matched a field with a wildcard pattern. Consider using `..` instead
   --> $DIR/unneeded_field_pattern.rs:17:15
    |
 17 |         Foo { a: _, b: 0, .. } => {}
    |               ^^^^
    |
-note: lint level defined here
-  --> $DIR/unneeded_field_pattern.rs:4:9
-   |
-4  | #![deny(unneeded_field_pattern)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(unneeded_field_pattern)] on by default
    = help: Try with `Foo { b: 0, .. }`
 
-error: All the struct fields are matched to a wildcard pattern, consider using `..`.
+warning: All the struct fields are matched to a wildcard pattern, consider using `..`.
   --> $DIR/unneeded_field_pattern.rs:19:9
    |
 19 |         Foo { a: _, b: _, c: _ } => {}
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
    |
+   = note: #[warn(unneeded_field_pattern)] on by default
    = help: Try with `Foo { .. }` instead
 
-error: aborting due to 2 previous errors
+warning: this `match` has identical arm bodies
+  --> $DIR/unneeded_field_pattern.rs:19:37
+   |
+19 |         Foo { a: _, b: _, c: _ } => {}
+   |                                     ^^
+   |
+   = note: #[warn(match_same_arms)] on by default
+note: same as this
+  --> $DIR/unneeded_field_pattern.rs:17:35
+   |
+17 |         Foo { a: _, b: 0, .. } => {}
+   |                                   ^^
+note: consider refactoring into `Foo { a: _, b: 0, .. } | Foo { a: _, b: _, c: _ }`
+  --> $DIR/unneeded_field_pattern.rs:17:35
+   |
+17 |         Foo { a: _, b: 0, .. } => {}
+   |                                   ^^
+
+warning: this `match` has identical arm bodies
+  --> $DIR/unneeded_field_pattern.rs:24:23
+   |
+24 |         Foo { .. } => {} // and the Force might be with this one
+   |                       ^^
+   |
+   = note: #[warn(match_same_arms)] on by default
+note: same as this
+  --> $DIR/unneeded_field_pattern.rs:23:29
+   |
+23 |         Foo { b: 0, .. } => {} // should be OK
+   |                             ^^
+note: consider refactoring into `Foo { b: 0, .. } | Foo { .. }`
+  --> $DIR/unneeded_field_pattern.rs:23:29
+   |
+23 |         Foo { b: 0, .. } => {} // should be OK
+   |                             ^^
 

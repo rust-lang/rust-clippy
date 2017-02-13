@@ -1,4 +1,4 @@
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
   --> $DIR/copies.rs:40:10
    |
 40 |       else {
@@ -13,18 +13,14 @@ error: this `if` has identical blocks
 48 | |     }
    | |_____^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/copies.rs:27:8
-   |
-27 | #[deny(if_same_then_else)]
-   |        ^^^^^^^^^^^^^^^^^
+   = note: #[warn(if_same_then_else)] on by default
 note: same as this
   --> $DIR/copies.rs:30:13
    |
 30 |     if true {
    |             ^
 
-error: this `match` has identical arm bodies
+warning: this `match` has identical arm bodies
   --> $DIR/copies.rs:91:14
    |
 91 |           _ => {
@@ -39,11 +35,7 @@ error: this `match` has identical arm bodies
 99 | |         }
    | |_________^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/copies.rs:28:8
-   |
-28 | #[deny(match_same_arms)]
-   |        ^^^^^^^^^^^^^^^
+   = note: #[warn(match_same_arms)] on by default
 note: same as this
   --> $DIR/copies.rs:80:15
    |
@@ -55,12 +47,13 @@ note: `42` has the same arm body as the `_` wildcard, consider removing it`
 80 |         42 => {
    |               ^
 
-error: this `match` has identical arm bodies
+warning: this `match` has identical arm bodies
    --> $DIR/copies.rs:107:14
     |
 107 |         _ => 0,
     |              ^
     |
+    = note: #[warn(match_same_arms)] on by default
 note: same as this
    --> $DIR/copies.rs:103:19
     |
@@ -72,7 +65,7 @@ note: `Abc::A` has the same arm body as the `_` wildcard, consider removing it`
 103 |         Abc::A => 0,
     |                   ^
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:118:10
     |
 118 |       else {
@@ -81,6 +74,7 @@ error: this `if` has identical blocks
 120 | |     };
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:114:21
     |
@@ -91,31 +85,33 @@ note: same as this
 117 | |     }
     | |_____^ ...ending here
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:133:10
     |
 133 |     else {
     |          ^
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:122:13
     |
 122 |     if true {
     |             ^
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:156:10
     |
 156 |     else {
     |          ^
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:144:13
     |
 144 |     if true {
     |             ^
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:180:19
     |
 180 |       else if foo() {
@@ -129,6 +125,7 @@ error: this `if` has identical blocks
 187 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:168:13
     |
@@ -144,7 +141,7 @@ note: same as this
 176 | |     }
     | |_____^ ...ending here
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:193:10
     |
 193 |       else {
@@ -153,6 +150,7 @@ error: this `if` has identical blocks
 195 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:189:13
     |
@@ -163,7 +161,7 @@ note: same as this
 192 | |     }
     | |_____^ ...ending here
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:201:10
     |
 201 |       else {
@@ -172,6 +170,7 @@ error: this `if` has identical blocks
 203 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:197:13
     |
@@ -182,12 +181,13 @@ note: same as this
 200 | |     }
     | |_____^ ...ending here
 
-error: this `match` has identical arm bodies
+warning: this `match` has identical arm bodies
    --> $DIR/copies.rs:258:15
     |
 258 |         51 => foo(),
     |               ^^^^^
     |
+    = note: #[warn(match_same_arms)] on by default
 note: same as this
    --> $DIR/copies.rs:255:15
     |
@@ -199,12 +199,13 @@ note: consider refactoring into `42 | 51`
 255 |         42 => foo(),
     |               ^^^^^
 
-error: this `match` has identical arm bodies
+warning: this `match` has identical arm bodies
    --> $DIR/copies.rs:266:17
     |
 266 |         None => 24,
     |                 ^^
     |
+    = note: #[warn(match_same_arms)] on by default
 note: same as this
    --> $DIR/copies.rs:263:20
     |
@@ -216,12 +217,13 @@ note: consider refactoring into `Some(_) | None`
 263 |         Some(_) => 24,
     |                    ^^
 
-error: this `match` has identical arm bodies
+warning: this `match` has identical arm bodies
    --> $DIR/copies.rs:290:28
     |
 290 |         (None, Some(a)) => bar(a),
     |                            ^^^^^^
     |
+    = note: #[warn(match_same_arms)] on by default
 note: same as this
    --> $DIR/copies.rs:287:28
     |
@@ -233,12 +235,13 @@ note: consider refactoring into `(Some(a), None) | (None, Some(a))`
 287 |         (Some(a), None) => bar(a),
     |                            ^^^^^^
 
-error: this `match` has identical arm bodies
+warning: this `match` has identical arm bodies
    --> $DIR/copies.rs:298:26
     |
 298 |         (.., Some(a)) => bar(a),
     |                          ^^^^^^
     |
+    = note: #[warn(match_same_arms)] on by default
 note: same as this
    --> $DIR/copies.rs:295:26
     |
@@ -250,12 +253,13 @@ note: consider refactoring into `(Some(a), ..) | (.., Some(a))`
 295 |         (Some(a), ..) => bar(a),
     |                          ^^^^^^
 
-error: this `match` has identical arm bodies
+warning: this `match` has identical arm bodies
    --> $DIR/copies.rs:306:20
     |
 306 |         (.., 3) => 42,
     |                    ^^
     |
+    = note: #[warn(match_same_arms)] on by default
 note: same as this
    --> $DIR/copies.rs:303:23
     |
@@ -267,7 +271,7 @@ note: consider refactoring into `(1, .., 3) | (.., 3)`
 303 |         (1, .., 3) => 42,
     |                       ^^
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:313:12
     |
 313 |       } else {
@@ -276,6 +280,7 @@ error: this `if` has identical blocks
 315 | |     };
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:310:21
     |
@@ -286,7 +291,7 @@ note: same as this
 313 | |     } else {
     | |_____^ ...ending here
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:320:12
     |
 320 |       } else {
@@ -295,6 +300,7 @@ error: this `if` has identical blocks
 322 | |     };
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:317:21
     |
@@ -305,7 +311,7 @@ note: same as this
 320 | |     } else {
     | |_____^ ...ending here
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:341:12
     |
 341 |       } else {
@@ -314,6 +320,7 @@ error: this `if` has identical blocks
 343 | |     };
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:338:21
     |
@@ -324,7 +331,7 @@ note: same as this
 341 | |     } else {
     | |_____^ ...ending here
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:360:10
     |
 360 |       else {
@@ -333,6 +340,7 @@ error: this `if` has identical blocks
 362 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:356:13
     |
@@ -343,7 +351,7 @@ note: same as this
 359 | |     }
     | |_____^ ...ending here
 
-error: this `if` has identical blocks
+warning: this `if` has identical blocks
    --> $DIR/copies.rs:373:10
     |
 373 |       else {
@@ -353,6 +361,7 @@ error: this `if` has identical blocks
 376 | |     }
     | |_____^ ...ending here
     |
+    = note: #[warn(if_same_then_else)] on by default
 note: same as this
    --> $DIR/copies.rs:364:13
     |
@@ -364,46 +373,42 @@ note: same as this
 368 | |     }
     | |_____^ ...ending here
 
-error: this `if` has the same condition as a previous if
+warning: this `if` has the same condition as a previous if
    --> $DIR/copies.rs:388:13
     |
 388 |     else if b {
     |             ^
     |
-note: lint level defined here
-   --> $DIR/copies.rs:379:8
-    |
-379 | #[deny(ifs_same_cond)]
-    |        ^^^^^^^^^^^^^
+    = note: #[warn(ifs_same_cond)] on by default
 note: same as this
    --> $DIR/copies.rs:385:8
     |
 385 |     if b {
     |        ^
 
-error: this `if` has the same condition as a previous if
+warning: this `if` has the same condition as a previous if
    --> $DIR/copies.rs:394:13
     |
 394 |     else if a == 1 {
     |             ^^^^^^
     |
+    = note: #[warn(ifs_same_cond)] on by default
 note: same as this
    --> $DIR/copies.rs:391:8
     |
 391 |     if a == 1 {
     |        ^^^^^^
 
-error: this `if` has the same condition as a previous if
+warning: this `if` has the same condition as a previous if
    --> $DIR/copies.rs:402:13
     |
 402 |     else if 2*a == 1 {
     |             ^^^^^^^^
     |
+    = note: #[warn(ifs_same_cond)] on by default
 note: same as this
    --> $DIR/copies.rs:397:8
     |
 397 |     if 2*a == 1 {
     |        ^^^^^^^^
-
-error: aborting due to 22 previous errors
 

@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(modulo_one)]
+#![warn(modulo_one)]
 #![allow(no_effect, unnecessary_operation)]
 
 fn main() {

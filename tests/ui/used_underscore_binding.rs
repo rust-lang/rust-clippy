@@ -1,9 +1,9 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 
 #![allow(blacklisted_name)]
-#![deny(used_underscore_binding)]
+#![warn(used_underscore_binding)]
 
 macro_rules! test_macro {
     () => {{

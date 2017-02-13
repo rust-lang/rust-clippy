@@ -1,4 +1,4 @@
-error: this looks like you are swapping elements of `foo` manually
+warning: this looks like you are swapping elements of `foo` manually
   --> $DIR/swap.rs:11:5
    |
 11 |       let temp = foo[0];
@@ -7,16 +7,11 @@ error: this looks like you are swapping elements of `foo` manually
 13 | |     foo[1] = temp;
    | |_________________^ ...ending here
    |
-   = note: #[deny(manual_swap)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/swap.rs:4:9
-   |
-4  | #![deny(clippy)]
-   |         ^^^^^^
+   = note: #[warn(manual_swap)] on by default
 help: try
    |     foo.swap(0, 1);
 
-error: this looks like you are swapping elements of `foo` manually
+warning: this looks like you are swapping elements of `foo` manually
   --> $DIR/swap.rs:23:5
    |
 23 |       let temp = foo[0];
@@ -25,11 +20,11 @@ error: this looks like you are swapping elements of `foo` manually
 25 | |     foo[1] = temp;
    | |_________________^ ...ending here
    |
-   = note: #[deny(manual_swap)] implied by #[deny(clippy)]
+   = note: #[warn(manual_swap)] on by default
 help: try
    |     foo.swap(0, 1);
 
-error: this looks like you are swapping elements of `foo` manually
+warning: this looks like you are swapping elements of `foo` manually
   --> $DIR/swap.rs:35:5
    |
 35 |       let temp = foo[0];
@@ -38,11 +33,11 @@ error: this looks like you are swapping elements of `foo` manually
 37 | |     foo[1] = temp;
    | |_________________^ ...ending here
    |
-   = note: #[deny(manual_swap)] implied by #[deny(clippy)]
+   = note: #[warn(manual_swap)] on by default
 help: try
    |     foo.swap(0, 1);
 
-error: this looks like you are swapping `a` and `b` manually
+warning: this looks like you are swapping `a` and `b` manually
   --> $DIR/swap.rs:60:7
    |
 60 |       ; let t = a;
@@ -51,12 +46,12 @@ error: this looks like you are swapping `a` and `b` manually
 62 | |     b = t;
    | |_________^ ...ending here
    |
-   = note: #[deny(manual_swap)] implied by #[deny(clippy)]
+   = note: #[warn(manual_swap)] on by default
 help: try
    |     ; std::mem::swap(&mut a, &mut b);
    = note: or maybe you should use `std::mem::replace`?
 
-error: this looks like you are swapping `c.0` and `a` manually
+warning: this looks like you are swapping `c.0` and `a` manually
   --> $DIR/swap.rs:77:7
    |
 77 |       ; let t = c.0;
@@ -65,12 +60,12 @@ error: this looks like you are swapping `c.0` and `a` manually
 79 | |     a = t;
    | |_________^ ...ending here
    |
-   = note: #[deny(manual_swap)] implied by #[deny(clippy)]
+   = note: #[warn(manual_swap)] on by default
 help: try
    |     ; std::mem::swap(&mut c.0, &mut a);
    = note: or maybe you should use `std::mem::replace`?
 
-error: this looks like you are trying to swap `a` and `b`
+warning: this looks like you are trying to swap `a` and `b`
   --> $DIR/swap.rs:53:5
    |
 53 |       a = b;
@@ -78,17 +73,12 @@ error: this looks like you are trying to swap `a` and `b`
 54 | |     b = a;
    | |_________^ ...ending here
    |
-   = note: #[deny(almost_swapped)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/swap.rs:4:9
-   |
-4  | #![deny(clippy)]
-   |         ^^^^^^
+   = note: #[warn(almost_swapped)] on by default
 help: try
    |     std::mem::swap(&mut a, &mut b);
    = note: or maybe you should use `std::mem::replace`?
 
-error: this looks like you are trying to swap `c.0` and `a`
+warning: this looks like you are trying to swap `c.0` and `a`
   --> $DIR/swap.rs:70:5
    |
 70 |       c.0 = a;
@@ -96,10 +86,8 @@ error: this looks like you are trying to swap `c.0` and `a`
 71 | |     a = c.0;
    | |___________^ ...ending here
    |
-   = note: #[deny(almost_swapped)] implied by #[deny(clippy)]
+   = note: #[warn(almost_swapped)] on by default
 help: try
    |     std::mem::swap(&mut c.0, &mut a);
    = note: or maybe you should use `std::mem::replace`?
-
-error: aborting due to 7 previous errors
 

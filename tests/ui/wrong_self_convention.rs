@@ -1,8 +1,8 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(wrong_self_convention)]
-#![deny(wrong_pub_self_convention)]
+#![warn(wrong_self_convention)]
+#![warn(wrong_pub_self_convention)]
 #![allow(dead_code)]
 
 fn main() {}

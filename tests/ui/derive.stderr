@@ -1,15 +1,10 @@
-error: you are deriving `Hash` but have implemented `PartialEq` explicitly
+warning: you are deriving `Hash` but have implemented `PartialEq` explicitly
   --> $DIR/derive.rs:18:10
    |
 18 | #[derive(Hash)]
    |          ^^^^
    |
-   = note: #[deny(derive_hash_xor_eq)] implied by #[deny(warnings)]
-note: lint level defined here
-  --> $DIR/derive.rs:6:9
-   |
-6  | #![deny(warnings)]
-   |         ^^^^^^^^
+   = note: #[warn(derive_hash_xor_eq)] on by default
 note: `PartialEq` implemented here
   --> $DIR/derive.rs:22:1
    |
@@ -19,13 +14,13 @@ note: `PartialEq` implemented here
 24 | | }
    | |_^ ...ending here
 
-error: you are deriving `Hash` but have implemented `PartialEq` explicitly
+warning: you are deriving `Hash` but have implemented `PartialEq` explicitly
   --> $DIR/derive.rs:26:10
    |
 26 | #[derive(Hash)]
    |          ^^^^
    |
-   = note: #[deny(derive_hash_xor_eq)] implied by #[deny(warnings)]
+   = note: #[warn(derive_hash_xor_eq)] on by default
 note: `PartialEq` implemented here
   --> $DIR/derive.rs:30:1
    |
@@ -35,7 +30,7 @@ note: `PartialEq` implemented here
 32 | | }
    | |_^ ...ending here
 
-error: you are implementing `Hash` explicitly but have derived `PartialEq`
+warning: you are implementing `Hash` explicitly but have derived `PartialEq`
   --> $DIR/derive.rs:37:1
    |
 37 |   impl Hash for Bah {
@@ -45,14 +40,14 @@ error: you are implementing `Hash` explicitly but have derived `PartialEq`
 40 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(derive_hash_xor_eq)] implied by #[deny(warnings)]
+   = note: #[warn(derive_hash_xor_eq)] on by default
 note: `PartialEq` implemented here
   --> $DIR/derive.rs:34:10
    |
 34 | #[derive(PartialEq)]
    |          ^^^^^^^^^
 
-error: you are implementing `Clone` explicitly on a `Copy` type
+warning: you are implementing `Clone` explicitly on a `Copy` type
   --> $DIR/derive.rs:45:1
    |
 45 |   impl Clone for Qux {
@@ -62,12 +57,7 @@ error: you are implementing `Clone` explicitly on a `Copy` type
 48 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(expl_impl_clone_on_copy)] implied by #[deny(warnings)]
-note: lint level defined here
-  --> $DIR/derive.rs:6:9
-   |
-6  | #![deny(warnings)]
-   |         ^^^^^^^^
+   = note: #[warn(expl_impl_clone_on_copy)] on by default
 note: consider deriving `Clone` or removing `Copy`
   --> $DIR/derive.rs:45:1
    |
@@ -78,7 +68,7 @@ note: consider deriving `Clone` or removing `Copy`
 48 | | }
    | |_^ ...ending here
 
-error: you are implementing `Clone` explicitly on a `Copy` type
+warning: you are implementing `Clone` explicitly on a `Copy` type
   --> $DIR/derive.rs:70:1
    |
 70 |   impl<'a> Clone for Lt<'a> {
@@ -88,7 +78,7 @@ error: you are implementing `Clone` explicitly on a `Copy` type
 73 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(expl_impl_clone_on_copy)] implied by #[deny(warnings)]
+   = note: #[warn(expl_impl_clone_on_copy)] on by default
 note: consider deriving `Clone` or removing `Copy`
   --> $DIR/derive.rs:70:1
    |
@@ -98,6 +88,4 @@ note: consider deriving `Clone` or removing `Copy`
 72 | |     fn clone(&self) -> Self { unimplemented!() }
 73 | | }
    | |_^ ...ending here
-
-error: aborting due to 5 previous errors
 

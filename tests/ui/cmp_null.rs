@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(cmp_null)]
+#![warn(cmp_null)]
 #![allow(unused_mut)]
 
 use std::ptr;

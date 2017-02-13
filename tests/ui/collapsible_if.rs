@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(collapsible_if)]
+#[warn(collapsible_if)]
 fn main() {
     let x = "hello";
     let y = "world";

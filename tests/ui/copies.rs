@@ -24,8 +24,8 @@ pub enum Abc {
     C,
 }
 
-#[deny(if_same_then_else)]
-#[deny(match_same_arms)]
+#[warn(if_same_then_else)]
+#[warn(match_same_arms)]
 fn if_same_then_else() -> Result<&'static str, ()> {
     if true {
 
@@ -376,7 +376,7 @@ fn if_same_then_else() -> Result<&'static str, ()> {
     }
 }
 
-#[deny(ifs_same_cond)]
+#[warn(ifs_same_cond)]
 #[allow(if_same_then_else)] // all empty blocks
 fn ifs_same_cond() {
     let a = 0;

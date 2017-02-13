@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(assign_ops)]
+#[warn(assign_ops)]
 #[allow(unused_assignments)]
 fn main() {
     let mut i = 1i32;
@@ -49,7 +49,7 @@ fn main() {
 }
 
 #[allow(dead_code, unused_assignments)]
-#[deny(assign_op_pattern)]
+#[warn(assign_op_pattern)]
 fn bla() {
     let mut a = 5;
     a = a + 1;

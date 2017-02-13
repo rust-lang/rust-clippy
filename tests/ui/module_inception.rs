@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(module_inception)]
+#![warn(module_inception)]
 
 mod foo {
     mod bar {

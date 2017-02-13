@@ -1,4 +1,4 @@
-error: Matching on `Some` with `ok()` is redundant
+warning: Matching on `Some` with `ok()` is redundant
   --> $DIR/ok_if_let.rs:7:5
    |
 7  |       if let Some(y) = x.parse().ok() { 
@@ -10,12 +10,6 @@ error: Matching on `Some` with `ok()` is redundant
 12 | |     }
    | |_____^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/ok_if_let.rs:4:9
-   |
-4  | #![deny(if_let_some_result)]
-   |         ^^^^^^^^^^^^^^^^^^
+   = note: #[warn(if_let_some_result)] on by default
    = help: Consider matching on `Ok(y)` and removing the call to `ok` instead
-
-error: aborting due to previous error
 

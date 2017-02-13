@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(cmp_owned)]
+#[warn(cmp_owned)]
 #[allow(unnecessary_operation)]
 fn main() {
     fn with_to_string(x : &str) {

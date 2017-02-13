@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(integer_arithmetic, float_arithmetic)]
+#![warn(integer_arithmetic, float_arithmetic)]
 #![allow(unused, shadow_reuse, shadow_unrelated, no_effect, unnecessary_operation)]
 fn main() {
     let i = 1i32;

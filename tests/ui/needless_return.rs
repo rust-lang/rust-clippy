@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(needless_return)]
+#![warn(needless_return)]
 
 fn test_end_of_fn() -> bool {
     if true {

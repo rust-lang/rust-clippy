@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(blacklisted_name, unused_assignments)]
 
 struct Foo(u32);

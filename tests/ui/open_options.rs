@@ -3,7 +3,7 @@
 use std::fs::OpenOptions;
 
 #[allow(unused_must_use)]
-#[deny(nonsensical_open_options)]
+#[warn(nonsensical_open_options)]
 fn main() {
     OpenOptions::new().read(true).truncate(true).open("foo.txt");
     OpenOptions::new().append(true).truncate(true).open("foo.txt");

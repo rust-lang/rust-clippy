@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(double_neg)]
+#[warn(double_neg)]
 fn main() {
     let x = 1;
     -x;

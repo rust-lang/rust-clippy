@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 #![allow(single_match)]
 #![allow(unused_variables, similar_names)]
-#![deny(blacklisted_name)]
+#![warn(blacklisted_name)]
 
 fn test(foo: ()) {}
 

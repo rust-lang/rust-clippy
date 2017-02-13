@@ -5,7 +5,7 @@ fn x(y: &i32) -> i32 {
     *y
 }
 
-#[deny(clippy)]
+#[warn(clippy)]
 #[allow(unused_variables)]
 fn main() {
     let a = 5;

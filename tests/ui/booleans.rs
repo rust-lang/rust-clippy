@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(nonminimal_bool, logic_bug)]
+#![warn(nonminimal_bool, logic_bug)]
 
 #[allow(unused, many_single_char_names)]
 fn main() {

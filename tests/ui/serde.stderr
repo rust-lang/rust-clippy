@@ -1,4 +1,4 @@
-error: you should not implement `visit_string` without also implementing `visit_str`
+warning: you should not implement `visit_string` without also implementing `visit_str`
   --> $DIR/serde.rs:39:5
    |
 39 |       fn visit_string<E>(self, _v: String) -> Result<Self::Value, E>
@@ -10,11 +10,5 @@ error: you should not implement `visit_string` without also implementing `visit_
 44 | |     }
    | |_____^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/serde.rs:3:9
-   |
-3  | #![deny(serde_api_misuse)]
-   |         ^^^^^^^^^^^^^^^^
-
-error: aborting due to previous error
+   = note: #[warn(serde_api_misuse)] on by default
 

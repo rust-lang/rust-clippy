@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(bool_comparison)]
+#[warn(bool_comparison)]
 fn main() {
     let x = true;
     if x == true { "yes" } else { "no" };

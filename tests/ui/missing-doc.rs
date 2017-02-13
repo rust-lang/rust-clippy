@@ -13,7 +13,7 @@
 
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(missing_docs_in_private_items)]
+#![warn(missing_docs_in_private_items)]
 
 // When denying at the crate level, be sure to not get random warnings from the
 // injected intrinsics by the compiler.

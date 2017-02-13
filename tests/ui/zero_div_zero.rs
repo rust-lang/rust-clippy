@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #[allow(unused_variables)]
-#[deny(zero_divided_by_zero)]
+#[warn(zero_divided_by_zero)]
 fn main() {
     let nan = 0.0 / 0.0;
 
