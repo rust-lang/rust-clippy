@@ -11,7 +11,8 @@ fn check_whether_ui_tests_error() {
                     let line = line.unwrap();
                     if line.starts_with("error:") {
                         success = false;
-                        println!("ui test `{}` has errors, please change all lints to `warn`", path.to_str().unwrap());
+                        println!("ui test `{}` has errors, please change all lints to `warn`",
+                                 path.to_str().unwrap());
                         println!("{}", line);
                     }
                 }
@@ -28,7 +29,9 @@ fn check_whether_ui_error_tests_dont_error() {
         let path = file.unwrap().path();
         if let Some(ext) = path.extension() {
             if ext == "stderr" {
-                if !std::io::BufReader::new(std::fs::File::open(&path).unwrap()).lines().any(|line| line.unwrap().starts_with("error:")) {
+                if !std::io::BufReader::new(std::fs::File::open(&path).unwrap())
+                    .lines()
+                    .any(|line| line.unwrap().starts_with("error:")) {
                     success = false;
                     println!("ui-error test `{}` has no errors", path.to_str().unwrap());
                 }
