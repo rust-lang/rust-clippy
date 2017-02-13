@@ -954,13 +954,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for the Unicode zero-width space in the code.", 
-      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.", 
-      "Example": "You don't see it, but there may be a zero-width space somewhere in this text.", 
+      "What it does": "Checks for construction of a structure or tuple just to\nassign a value in it.", 
+      "Why is this bad": "Readability. If the structure is only created to be\nupdated, why not write the structure you want in the first place?", 
+      "Example": "```rust\n(0, 0).0 = 1\n```", 
       "Known problems": "None."
     }, 
-    "id": "zero_width_space", 
-    "level": "Deny"
+    "id": "temporary_assignment", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1583,12 +1583,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for construction of a structure or tuple just to\nassign a value in it.", 
-      "Why is this bad": "Readability. If the structure is only created to be\nupdated, why not write the structure you want in the first place?", 
-      "Example": "```rust\n(0, 0).0 = 1\n```", 
+      "What it does": "Checks for the use of `.cloned().collect()` on slice to create a `Vec`.", 
+      "Why is this bad": "`.to_vec()` is clearer", 
+      "Example": "```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s.to_vec();\n```", 
       "Known problems": "None."
     }, 
-    "id": "temporary_assignment", 
+    "id": "iter_cloned_collect", 
     "level": "Warn"
   }, 
   {
@@ -1693,7 +1693,12 @@
     "level": "Allow"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Checks for the use of `.extend(s.chars())` where s is a\n`&str` or `String`.", 
+      "Why is this bad": "`.push_str(s)` is clearer", 
+      "Example": "```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.extend(abc.chars());\ns.extend(def.chars());\n```\nThe correct use would be:\n```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.push_str(abc);\ns.push_str(&def));\n```", 
+      "Known problems": "None."
+    }, 
     "id": "string_extend_chars", 
     "level": "Warn"
   }, 
@@ -1734,6 +1739,16 @@
     }, 
     "id": "double_parens", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for the Unicode zero-width space in the code.", 
+      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.", 
+      "Example": "You don't see it, but there may be a zero-width space somewhere in this text.", 
+      "Known problems": "None."
+    }, 
+    "id": "zero_width_space", 
+    "level": "Deny"
   }, 
   {
     "docs": {
