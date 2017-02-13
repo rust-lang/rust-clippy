@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(drop_ref, forget_ref)]
+#![warn(drop_ref, forget_ref)]
 #![allow(toplevel_ref_arg, similar_names)]
 
 use std::mem::{drop, forget};

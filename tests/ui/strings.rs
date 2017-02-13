@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(string_add)]
+#[warn(string_add)]
 #[allow(string_add_assign)]
 fn add_only() { // ignores assignment distinction
     let mut x = "".to_owned();
@@ -16,7 +16,7 @@ fn add_only() { // ignores assignment distinction
     assert_eq!(&x, &z);
 }
 
-#[deny(string_add_assign)]
+#[warn(string_add_assign)]
 fn add_assign_only() {
     let mut x = "".to_owned();
 
@@ -30,7 +30,7 @@ fn add_assign_only() {
     assert_eq!(&x, &z);
 }
 
-#[deny(string_add, string_add_assign)]
+#[warn(string_add, string_add_assign)]
 fn both() {
     let mut x = "".to_owned();
 
@@ -45,7 +45,7 @@ fn both() {
 }
 
 #[allow(dead_code, unused_variables)]
-#[deny(string_lit_as_bytes)]
+#[warn(string_lit_as_bytes)]
 fn str_lit_as_bytes() {
     let bs = "hello there".as_bytes();
 

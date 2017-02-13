@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(unneeded_field_pattern)]
+#![warn(unneeded_field_pattern)]
 #[allow(dead_code, unused)]
 
 struct Foo {

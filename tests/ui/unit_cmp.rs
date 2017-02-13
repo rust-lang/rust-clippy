@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(unit_cmp)]
+#![warn(unit_cmp)]
 #![allow(no_effect, unnecessary_operation)]
 
 #[derive(PartialEq)]

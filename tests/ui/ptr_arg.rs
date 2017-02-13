@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 #![allow(unused)]
-#![deny(ptr_arg)]
+#![warn(ptr_arg)]
 
 fn do_vec(x: &Vec<i64>) {
     //Nothing here

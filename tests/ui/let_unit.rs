@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(let_unit_value)]
+#![warn(let_unit_value)]
 #![allow(unused_variables)]
 
 macro_rules! let_and_return {

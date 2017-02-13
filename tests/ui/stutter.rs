@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(stutter)]
+#![warn(stutter)]
 #![allow(dead_code)]
 
 mod foo {

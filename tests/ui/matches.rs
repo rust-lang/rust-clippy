@@ -2,9 +2,9 @@
 #![feature(exclusive_range_pattern)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(unused, if_let_redundant_pattern_matching)]
-#![deny(single_match_else)]
+#![warn(single_match_else)]
 
 use std::borrow::Cow;
 

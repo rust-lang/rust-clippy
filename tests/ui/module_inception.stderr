@@ -1,4 +1,4 @@
-error: module has the same name as its containing module
+warning: module has the same name as its containing module
  --> $DIR/module_inception.rs:7:9
   |
 7 |           mod bar {
@@ -7,13 +7,9 @@ error: module has the same name as its containing module
 9 | |         }
   | |_________^ ...ending here
   |
-note: lint level defined here
- --> $DIR/module_inception.rs:3:9
-  |
-3 | #![deny(module_inception)]
-  |         ^^^^^^^^^^^^^^^^
+  = note: #[warn(module_inception)] on by default
 
-error: module has the same name as its containing module
+warning: module has the same name as its containing module
   --> $DIR/module_inception.rs:12:5
    |
 12 |       mod foo {
@@ -21,6 +17,6 @@ error: module has the same name as its containing module
 13 | |         mod bar {}
 14 | |     }
    | |_____^ ...ending here
-
-error: aborting due to 2 previous errors
+   |
+   = note: #[warn(module_inception)] on by default
 

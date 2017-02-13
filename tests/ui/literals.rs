@@ -1,8 +1,8 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(mixed_case_hex_literals)]
-#![deny(unseparated_literal_suffix)]
-#![deny(zero_prefixed_literal)]
+#![warn(mixed_case_hex_literals)]
+#![warn(unseparated_literal_suffix)]
+#![warn(zero_prefixed_literal)]
 #![allow(dead_code)]
 
 fn main() {

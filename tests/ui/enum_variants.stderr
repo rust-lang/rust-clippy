@@ -1,41 +1,36 @@
-error: Variant name ends with the enum's name
+warning: Variant name ends with the enum's name
   --> $DIR/enum_variants.rs:14:5
    |
 14 |     cFoo,
    |     ^^^^
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/enum_variants.rs:3:9
-   |
-3  | #![deny(clippy, pub_enum_variant_names)]
-   |         ^^^^^^
+   = note: #[warn(enum_variant_names)] on by default
 
-error: Variant name starts with the enum's name
+warning: Variant name starts with the enum's name
   --> $DIR/enum_variants.rs:25:5
    |
 25 |     FoodGood,
    |     ^^^^^^^^
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
 
-error: Variant name starts with the enum's name
+warning: Variant name starts with the enum's name
   --> $DIR/enum_variants.rs:26:5
    |
 26 |     FoodMiddle,
    |     ^^^^^^^^^^
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
 
-error: Variant name starts with the enum's name
+warning: Variant name starts with the enum's name
   --> $DIR/enum_variants.rs:27:5
    |
 27 |     FoodBad,
    |     ^^^^^^^
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
 
-error: All variants have the same prefix: `Food`
+warning: All variants have the same prefix: `Food`
   --> $DIR/enum_variants.rs:24:1
    |
 24 |   enum Food {
@@ -46,10 +41,10 @@ error: All variants have the same prefix: `Food`
 28 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
    = help: remove the prefixes and use full paths to the variants instead of glob imports
 
-error: All variants have the same prefix: `CallType`
+warning: All variants have the same prefix: `CallType`
   --> $DIR/enum_variants.rs:34:1
    |
 34 |   enum BadCallType {
@@ -60,10 +55,10 @@ error: All variants have the same prefix: `CallType`
 38 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
    = help: remove the prefixes and use full paths to the variants instead of glob imports
 
-error: All variants have the same prefix: `Constant`
+warning: All variants have the same prefix: `Constant`
   --> $DIR/enum_variants.rs:45:1
    |
 45 |   enum Consts {
@@ -74,10 +69,10 @@ error: All variants have the same prefix: `Constant`
 49 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
    = help: remove the prefixes and use full paths to the variants instead of glob imports
 
-error: All variants have the same prefix: `With`
+warning: All variants have the same prefix: `With`
   --> $DIR/enum_variants.rs:78:1
    |
 78 |   enum Seallll {
@@ -88,10 +83,10 @@ error: All variants have the same prefix: `With`
 82 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
    = help: remove the prefixes and use full paths to the variants instead of glob imports
 
-error: All variants have the same prefix: `Prefix`
+warning: All variants have the same prefix: `Prefix`
   --> $DIR/enum_variants.rs:84:1
    |
 84 |   enum NonCaps {
@@ -102,10 +97,10 @@ error: All variants have the same prefix: `Prefix`
 88 | | }
    | |_^ ...ending here
    |
-   = note: #[deny(enum_variant_names)] implied by #[deny(clippy)]
+   = note: #[warn(enum_variant_names)] on by default
    = help: remove the prefixes and use full paths to the variants instead of glob imports
 
-error: All variants have the same prefix: `With`
+warning: All variants have the same prefix: `With`
   --> $DIR/enum_variants.rs:90:1
    |
 90 |   pub enum PubSeall {
@@ -119,9 +114,257 @@ error: All variants have the same prefix: `With`
 note: lint level defined here
   --> $DIR/enum_variants.rs:3:17
    |
-3  | #![deny(clippy, pub_enum_variant_names)]
+3  | #![warn(clippy, pub_enum_variant_names)]
    |                 ^^^^^^^^^^^^^^^^^^^^^^
    = help: remove the prefixes and use full paths to the variants instead of glob imports
 
-error: aborting due to 10 previous errors
+warning: enum is never used: `FakeCallType`
+ --> $DIR/enum_variants.rs:5:1
+  |
+5 |   enum FakeCallType {
+  |  _^ starting here...
+6 | |     CALL, CREATE
+7 | | }
+  | |_^ ...ending here
+  |
+  = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `FakeCallType2`
+  --> $DIR/enum_variants.rs:9:1
+   |
+9  |   enum FakeCallType2 {
+   |  _^ starting here...
+10 | |     CALL, CREATELL
+11 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: variant `cFoo` should have a camel case name such as `Cfoo`
+  --> $DIR/enum_variants.rs:14:5
+   |
+14 |     cFoo,
+   |     ^^^^
+   |
+   = note: #[warn(non_camel_case_types)] on by default
+
+warning: variant `cBar` should have a camel case name such as `Cbar`
+  --> $DIR/enum_variants.rs:15:5
+   |
+15 |     cBar,
+   |     ^^^^
+   |
+   = note: #[warn(non_camel_case_types)] on by default
+
+warning: variant `cBaz` should have a camel case name such as `Cbaz`
+  --> $DIR/enum_variants.rs:16:5
+   |
+16 |     cBaz,
+   |     ^^^^
+   |
+   = note: #[warn(non_camel_case_types)] on by default
+
+warning: enum is never used: `Foo`
+  --> $DIR/enum_variants.rs:13:1
+   |
+13 |   enum Foo {
+   |  _^ starting here...
+14 | |     cFoo,
+15 | |     cBar,
+16 | |     cBaz,
+17 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: variant `cFoo` should have a camel case name such as `Cfoo`
+  --> $DIR/enum_variants.rs:20:5
+   |
+20 |     cFoo, // no error, threshold is 3 variants by default
+   |     ^^^^
+   |
+   = note: #[warn(non_camel_case_types)] on by default
+
+warning: variant `cBar` should have a camel case name such as `Cbar`
+  --> $DIR/enum_variants.rs:21:5
+   |
+21 |     cBar,
+   |     ^^^^
+   |
+   = note: #[warn(non_camel_case_types)] on by default
+
+warning: enum is never used: `Fooo`
+  --> $DIR/enum_variants.rs:19:1
+   |
+19 |   enum Fooo {
+   |  _^ starting here...
+20 | |     cFoo, // no error, threshold is 3 variants by default
+21 | |     cBar,
+22 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Food`
+  --> $DIR/enum_variants.rs:24:1
+   |
+24 |   enum Food {
+   |  _^ starting here...
+25 | |     FoodGood,
+26 | |     FoodMiddle,
+27 | |     FoodBad,
+28 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Stuff`
+  --> $DIR/enum_variants.rs:30:1
+   |
+30 |   enum Stuff {
+   |  _^ starting here...
+31 | |     StuffBad, // no error
+32 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `BadCallType`
+  --> $DIR/enum_variants.rs:34:1
+   |
+34 |   enum BadCallType {
+   |  _^ starting here...
+35 | |     CallTypeCall,
+36 | |     CallTypeCreate,
+37 | |     CallTypeDestroy,
+38 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `TwoCallType`
+  --> $DIR/enum_variants.rs:40:1
+   |
+40 |   enum TwoCallType { // no error
+   |  _^ starting here...
+41 | |     CallTypeCall,
+42 | |     CallTypeCreate,
+43 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Consts`
+  --> $DIR/enum_variants.rs:45:1
+   |
+45 |   enum Consts {
+   |  _^ starting here...
+46 | |     ConstantInt,
+47 | |     ConstantCake,
+48 | |     ConstantLie,
+49 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Two`
+  --> $DIR/enum_variants.rs:51:1
+   |
+51 |   enum Two { // no error here
+   |  _^ starting here...
+52 | |     ConstantInt,
+53 | |     ConstantInfer,
+54 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Something`
+  --> $DIR/enum_variants.rs:56:1
+   |
+56 |   enum Something {
+   |  _^ starting here...
+57 | |     CCall,
+58 | |     CCreate,
+59 | |     CCryogenize,
+60 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Seal`
+  --> $DIR/enum_variants.rs:62:1
+   |
+62 |   enum Seal {
+   |  _^ starting here...
+63 | |     With,
+64 | |     Without,
+65 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Seall`
+  --> $DIR/enum_variants.rs:67:1
+   |
+67 |   enum Seall {
+   |  _^ starting here...
+68 | |     With,
+69 | |     WithOut,
+70 | |     Withbroken,
+71 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Sealll`
+  --> $DIR/enum_variants.rs:73:1
+   |
+73 |   enum Sealll {
+   |  _^ starting here...
+74 | |     With,
+75 | |     WithOut,
+76 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `Seallll`
+  --> $DIR/enum_variants.rs:78:1
+   |
+78 |   enum Seallll {
+   |  _^ starting here...
+79 | |     WithOutCake,
+80 | |     WithOutTea,
+81 | |     WithOut,
+82 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `NonCaps`
+  --> $DIR/enum_variants.rs:84:1
+   |
+84 |   enum NonCaps {
+   |  _^ starting here...
+85 | |     Prefix的,
+86 | |     PrefixTea,
+87 | |     PrefixCake,
+88 | | }
+   | |_^ ...ending here
+   |
+   = note: #[warn(dead_code)] on by default
+
+warning: enum is never used: `PubAllowed`
+   --> $DIR/enum_variants.rs:98:5
+    |
+98  |       pub enum PubAllowed {
+    |  _____^ starting here...
+99  | |         SomeThis,
+100 | |         SomeThat,
+101 | |         SomeOtherWhat,
+102 | |     }
+    | |_____^ ...ending here
+    |
+    = note: #[warn(dead_code)] on by default
 

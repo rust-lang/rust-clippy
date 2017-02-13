@@ -2,7 +2,7 @@
 #![feature(plugin)]
 
 #![allow(dead_code, items_after_statements)]
-#![deny(unused_label)]
+#![warn(unused_label)]
 
 fn unused_label() {
     'label: for i in 1..2 {

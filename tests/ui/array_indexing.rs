@@ -1,8 +1,8 @@
 #![feature(inclusive_range_syntax, plugin)]
 #![plugin(clippy)]
 
-#![deny(indexing_slicing)]
-#![deny(out_of_bounds_indexing)]
+#![warn(indexing_slicing)]
+#![warn(out_of_bounds_indexing)]
 #![allow(no_effect, unnecessary_operation)]
 
 fn main() {

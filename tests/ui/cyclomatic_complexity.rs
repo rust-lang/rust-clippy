@@ -1,7 +1,7 @@
 #![feature(plugin, custom_attribute)]
 #![plugin(clippy)]
 #![allow(clippy)]
-#![deny(cyclomatic_complexity)]
+#![warn(cyclomatic_complexity)]
 #![allow(unused)]
 
 fn main() {

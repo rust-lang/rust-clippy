@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(useless_format)]
+#![warn(useless_format)]
 
 fn main() {
     format!("foo");

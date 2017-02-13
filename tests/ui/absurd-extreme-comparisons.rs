@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(absurd_extreme_comparisons)]
+#![warn(absurd_extreme_comparisons)]
 #![allow(unused, eq_op, no_effect, unnecessary_operation)]
 
 fn main() {

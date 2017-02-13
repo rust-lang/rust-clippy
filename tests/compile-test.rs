@@ -29,4 +29,5 @@ fn compile_test() {
     prepare_env();
     run_mode("run-pass", "run-pass");
     run_mode("ui", "ui");
+    run_mode("ui-error", "ui");
 }

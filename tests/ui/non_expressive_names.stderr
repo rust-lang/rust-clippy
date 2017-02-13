@@ -1,4 +1,4 @@
-error: binding's name is too similar to existing binding
+warning: binding's name is too similar to existing binding
   --> $DIR/non_expressive_names.rs:29:9
    |
 29 |     let bpple: i32;
@@ -7,7 +7,7 @@ error: binding's name is too similar to existing binding
 note: lint level defined here
   --> $DIR/non_expressive_names.rs:3:16
    |
-3  | #![deny(clippy,similar_names)]
+3  | #![warn(clippy,similar_names)]
    |                ^^^^^^^^^^^^^
 note: existing binding defined here
   --> $DIR/non_expressive_names.rs:27:9
@@ -20,7 +20,7 @@ help: separate the discriminating character by an underscore like: `b_pple`
 29 |     let bpple: i32;
    |         ^^^^^
 
-error: binding's name is too similar to existing binding
+warning: binding's name is too similar to existing binding
   --> $DIR/non_expressive_names.rs:31:9
    |
 31 |     let cpple: i32;
@@ -37,7 +37,7 @@ help: separate the discriminating character by an underscore like: `c_pple`
 31 |     let cpple: i32;
    |         ^^^^^
 
-error: binding's name is too similar to existing binding
+warning: binding's name is too similar to existing binding
   --> $DIR/non_expressive_names.rs:56:9
    |
 56 |     let bluby: i32;
@@ -54,7 +54,7 @@ help: separate the discriminating character by an underscore like: `blub_y`
 56 |     let bluby: i32;
    |         ^^^^^
 
-error: binding's name is too similar to existing binding
+warning: binding's name is too similar to existing binding
   --> $DIR/non_expressive_names.rs:61:9
    |
 61 |     let coke: i32;
@@ -66,7 +66,7 @@ note: existing binding defined here
 59 |     let cake: i32;
    |         ^^^^
 
-error: binding's name is too similar to existing binding
+warning: binding's name is too similar to existing binding
   --> $DIR/non_expressive_names.rs:79:9
    |
 79 |     let xyzeabc: i32;
@@ -78,7 +78,7 @@ note: existing binding defined here
 77 |     let xyz1abc: i32;
    |         ^^^^^^^
 
-error: binding's name is too similar to existing binding
+warning: binding's name is too similar to existing binding
   --> $DIR/non_expressive_names.rs:83:9
    |
 83 |     let parsee: i32;
@@ -95,7 +95,7 @@ help: separate the discriminating character by an underscore like: `parse_e`
 83 |     let parsee: i32;
    |         ^^^^^^
 
-error: binding's name is too similar to existing binding
+warning: binding's name is too similar to existing binding
   --> $DIR/non_expressive_names.rs:97:16
    |
 97 |         bpple: sprang } = unimplemented!();
@@ -107,42 +107,56 @@ note: existing binding defined here
 96 |     let Foo { apple: spring,
    |                      ^^^^^^
 
-error: 5th binding whose name is just one char
+warning: 5th binding whose name is just one char
    --> $DIR/non_expressive_names.rs:131:17
     |
 131 |             let e: i32;
     |                 ^
     |
-    = note: #[deny(many_single_char_names)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/non_expressive_names.rs:3:9
-    |
-3   | #![deny(clippy,similar_names)]
-    |         ^^^^^^
+    = note: #[warn(many_single_char_names)] on by default
 
-error: 5th binding whose name is just one char
+warning: 5th binding whose name is just one char
    --> $DIR/non_expressive_names.rs:135:17
     |
 135 |             let e: i32;
     |                 ^
     |
-    = note: #[deny(many_single_char_names)] implied by #[deny(clippy)]
+    = note: #[warn(many_single_char_names)] on by default
 
-error: 6th binding whose name is just one char
+warning: 6th binding whose name is just one char
    --> $DIR/non_expressive_names.rs:137:17
     |
 137 |             let f: i32;
     |                 ^
     |
-    = note: #[deny(many_single_char_names)] implied by #[deny(clippy)]
+    = note: #[warn(many_single_char_names)] on by default
 
-error: 5th binding whose name is just one char
+warning: 5th binding whose name is just one char
    --> $DIR/non_expressive_names.rs:142:13
     |
 142 |             e => panic!(),
     |             ^
     |
-    = note: #[deny(many_single_char_names)] implied by #[deny(clippy)]
+    = note: #[warn(many_single_char_names)] on by default
 
-error: aborting due to 11 previous errors
+warning: empty `loop {}` detected. You may want to either use `panic!()` or add `std::thread::sleep(..);` to the loop body.
+  --> $DIR/non_expressive_names.rs:40:9
+   |
+40 |         loop {}
+   |         ^^^^^^^
+   |
+   = note: #[warn(empty_loop)] on by default
+
+warning: this let-binding has unit value. Consider omitting `let filled =`
+   --> $DIR/non_expressive_names.rs:113:9
+    |
+113 |           let filled = match *self {
+    |  _________^ starting here...
+114 | |             MaybeInst::Split1(goto1) => panic!(1),
+115 | |             MaybeInst::Split2(goto2) => panic!(2),
+116 | |             _ => unimplemented!(),
+117 | |         };
+    | |__________^ ...ending here
+    |
+    = note: #[warn(let_unit_value)] on by default
 

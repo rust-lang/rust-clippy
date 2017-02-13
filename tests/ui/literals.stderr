@@ -1,28 +1,28 @@
-error: inconsistent casing in hexadecimal literal
+warning: inconsistent casing in hexadecimal literal
   --> $DIR/literals.rs:14:17
    |
 14 |     let fail1 = 0xabCD;
    |                 ^^^^^^
    |
-note: lint level defined here
-  --> $DIR/literals.rs:3:9
-   |
-3  | #![deny(mixed_case_hex_literals)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(mixed_case_hex_literals)] on by default
 
-error: inconsistent casing in hexadecimal literal
+warning: inconsistent casing in hexadecimal literal
   --> $DIR/literals.rs:15:17
    |
 15 |     let fail2 = 0xabCD_u32;
    |                 ^^^^^^^^^^
+   |
+   = note: #[warn(mixed_case_hex_literals)] on by default
 
-error: inconsistent casing in hexadecimal literal
+warning: inconsistent casing in hexadecimal literal
   --> $DIR/literals.rs:16:17
    |
 16 |     let fail2 = 0xabCD_isize;
    |                 ^^^^^^^^^^^^
+   |
+   = note: #[warn(mixed_case_hex_literals)] on by default
 
-error: integer type suffix should be separated by an underscore
+warning: integer type suffix should be separated by an underscore
   --> $DIR/literals.rs:21:17
    |
 21 |     let fail3 = 1234i32;
@@ -31,48 +31,210 @@ error: integer type suffix should be separated by an underscore
 note: lint level defined here
   --> $DIR/literals.rs:4:9
    |
-4  | #![deny(unseparated_literal_suffix)]
+4  | #![warn(unseparated_literal_suffix)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: integer type suffix should be separated by an underscore
+warning: integer type suffix should be separated by an underscore
   --> $DIR/literals.rs:22:17
    |
 22 |     let fail4 = 1234u32;
    |                 ^^^^^^^
 
-error: integer type suffix should be separated by an underscore
+warning: integer type suffix should be separated by an underscore
   --> $DIR/literals.rs:23:17
    |
 23 |     let fail5 = 1234isize;
    |                 ^^^^^^^^^
 
-error: integer type suffix should be separated by an underscore
+warning: integer type suffix should be separated by an underscore
   --> $DIR/literals.rs:24:17
    |
 24 |     let fail6 = 1234usize;
    |                 ^^^^^^^^^
 
-error: float type suffix should be separated by an underscore
+warning: float type suffix should be separated by an underscore
   --> $DIR/literals.rs:25:17
    |
 25 |     let fail7 = 1.5f32;
    |                 ^^^^^^
 
-error: this is a decimal constant
+warning: this is a decimal constant
   --> $DIR/literals.rs:29:17
    |
 29 |     let fail8 = 0123;
    |                 ^^^^
    |
-note: lint level defined here
-  --> $DIR/literals.rs:5:9
-   |
-5  | #![deny(zero_prefixed_literal)]
-   |         ^^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(zero_prefixed_literal)] on by default
 help: if you mean to use a decimal constant, remove the `0` to remove confusion:
    |     let fail8 = 123;
 help: if you mean to use an octal constant, use `0o`:
    |     let fail8 = 0o123;
 
-error: aborting due to 9 previous errors
+warning: unused variable: `ok1`
+ --> $DIR/literals.rs:9:9
+  |
+9 |     let ok1 = 0xABCD;
+  |         ^^^
+  |
+  = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok3`
+  --> $DIR/literals.rs:10:9
+   |
+10 |     let ok3 = 0xab_cd;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok4`
+  --> $DIR/literals.rs:11:9
+   |
+11 |     let ok4 = 0xab_cd_i32;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok5`
+  --> $DIR/literals.rs:12:9
+   |
+12 |     let ok5 = 0xAB_CD_u32;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok5`
+  --> $DIR/literals.rs:13:9
+   |
+13 |     let ok5 = 0xAB_CD_isize;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail1`
+  --> $DIR/literals.rs:14:9
+   |
+14 |     let fail1 = 0xabCD;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail2`
+  --> $DIR/literals.rs:15:9
+   |
+15 |     let fail2 = 0xabCD_u32;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail2`
+  --> $DIR/literals.rs:16:9
+   |
+16 |     let fail2 = 0xabCD_isize;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok6`
+  --> $DIR/literals.rs:18:9
+   |
+18 |     let ok6 = 1234_i32;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok7`
+  --> $DIR/literals.rs:19:9
+   |
+19 |     let ok7 = 1234_f32;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok8`
+  --> $DIR/literals.rs:20:9
+   |
+20 |     let ok8 = 1234_isize;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail3`
+  --> $DIR/literals.rs:21:9
+   |
+21 |     let fail3 = 1234i32;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail4`
+  --> $DIR/literals.rs:22:9
+   |
+22 |     let fail4 = 1234u32;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail5`
+  --> $DIR/literals.rs:23:9
+   |
+23 |     let fail5 = 1234isize;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail6`
+  --> $DIR/literals.rs:24:9
+   |
+24 |     let fail6 = 1234usize;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail7`
+  --> $DIR/literals.rs:25:9
+   |
+25 |     let fail7 = 1.5f32;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok9`
+  --> $DIR/literals.rs:27:9
+   |
+27 |     let ok9 = 0;
+   |         ^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok10`
+  --> $DIR/literals.rs:28:9
+   |
+28 |     let ok10 = 0_i64;
+   |         ^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `fail8`
+  --> $DIR/literals.rs:29:9
+   |
+29 |     let fail8 = 0123;
+   |         ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok11`
+  --> $DIR/literals.rs:36:9
+   |
+36 |     let ok11 = 0o123;
+   |         ^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: unused variable: `ok12`
+  --> $DIR/literals.rs:37:9
+   |
+37 |     let ok12 = 0b101010;
+   |         ^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
 

@@ -1,7 +1,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(unused)]
 
 fn the_answer(ref mut x: u8) {

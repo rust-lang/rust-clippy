@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(serde_api_misuse)]
+#![warn(serde_api_misuse)]
 #![allow(dead_code)]
 
 extern crate serde;

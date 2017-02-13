@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #![allow(unused_variables, unused_assignments, similar_names, blacklisted_name)]
-#![deny(useless_let_if_seq)]
+#![warn(useless_let_if_seq)]
 
 fn f() -> bool { true }
 fn g(x: i32) -> i32 { x + 1 }

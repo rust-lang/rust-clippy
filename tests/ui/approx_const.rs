@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(approx_constant)]
+#[warn(approx_constant)]
 #[allow(unused, shadow_unrelated, similar_names)]
 fn main() {
     let my_e = 2.7182;

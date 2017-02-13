@@ -1,41 +1,90 @@
-error: Closure called just once immediately after it was declared
+warning: Closure called just once immediately after it was declared
   --> $DIR/redundant_closure_call.rs:18:2
    |
 18 | \ti = closure();
    | \t^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/redundant_closure_call.rs:4:9
-   |
-4  | #![deny(redundant_closure_call)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(redundant_closure_call)] on by default
 
-error: Closure called just once immediately after it was declared
+warning: Closure called just once immediately after it was declared
   --> $DIR/redundant_closure_call.rs:21:2
    |
 21 | \ti = closure(3);
    | \t^^^^^^^^^^^^^^
+   |
+   = note: #[warn(redundant_closure_call)] on by default
 
-error: Try not to call a closure in the expression where it is declared.
+warning: Try not to call a closure in the expression where it is declared.
  --> $DIR/redundant_closure_call.rs:7:10
   |
 7 | \tlet a = (|| 42)();
   | \t        ^^^^^^^^^
   |
+  = note: #[warn(redundant_closure_call)] on by default
 help: Try doing something like: 
   | \tlet a = 42;
 
-error: Try not to call a closure in the expression where it is declared.
-  --> $DIR/redundant_closure_call.rs:13:10
+warning: Try not to call a closure in the expression where it is declared.
+  --> $DIR/redundant_closure_call.rs:13:14
    |
-13 | \tlet k = (|m| m+1)(i);
-   | \t        ^^^^^^^^^^^^
+13 | \tlet mut k = (|m| m+1)(i);
+   | \t            ^^^^^^^^^^^^
+   |
+   = note: #[warn(redundant_closure_call)] on by default
 
-error: Try not to call a closure in the expression where it is declared.
+warning: Try not to call a closure in the expression where it is declared.
   --> $DIR/redundant_closure_call.rs:15:6
    |
 15 | \tk = (|a,b| a*b)(1,5);
    | \t    ^^^^^^^^^^^^^^^^
+   |
+   = note: #[warn(redundant_closure_call)] on by default
 
-error: aborting due to 5 previous errors
+warning: unused variable: `a`
+ --> $DIR/redundant_closure_call.rs:7:6
+  |
+7 | \tlet a = (|| 42)();
+  | \t    ^
+  |
+  = note: #[warn(unused_variables)] on by default
+
+warning: variable `k` is assigned to, but never used
+  --> $DIR/redundant_closure_call.rs:13:6
+   |
+13 | \tlet mut k = (|m| m+1)(i);
+   | \t    ^^^^^
+   |
+   = note: #[warn(unused_variables)] on by default
+
+warning: value assigned to `k` is never read
+  --> $DIR/redundant_closure_call.rs:15:2
+   |
+15 | \tk = (|a,b| a*b)(1,5);
+   | \t^
+   |
+   = note: #[warn(unused_assignments)] on by default
+
+warning: value assigned to `i` is never read
+  --> $DIR/redundant_closure_call.rs:18:2
+   |
+18 | \ti = closure();
+   | \t^
+   |
+   = note: #[warn(unused_assignments)] on by default
+
+warning: value assigned to `i` is never read
+  --> $DIR/redundant_closure_call.rs:21:2
+   |
+21 | \ti = closure(3);
+   | \t^
+   |
+   = note: #[warn(unused_assignments)] on by default
+
+warning: value assigned to `i` is never read
+  --> $DIR/redundant_closure_call.rs:23:2
+   |
+23 | \ti = closure(4);
+   | \t^
+   |
+   = note: #[warn(unused_assignments)] on by default
 

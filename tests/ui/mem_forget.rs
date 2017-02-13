@@ -7,7 +7,7 @@ use std::rc::Rc;
 use std::mem::forget as forgetSomething;
 use std::mem as memstuff;
 
-#[deny(mem_forget)]
+#[warn(mem_forget)]
 fn main() {
     let five: i32 = 5;
     forgetSomething(five);

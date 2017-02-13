@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(dead_code)]
 #![allow(unused_unsafe)]
 

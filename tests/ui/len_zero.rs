@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(len_without_is_empty, len_zero)]
+#![warn(len_without_is_empty, len_zero)]
 #![allow(dead_code, unused)]
 
 pub struct PubOne;

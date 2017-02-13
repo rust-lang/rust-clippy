@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(invalid_upcast_comparisons)]
+#![warn(invalid_upcast_comparisons)]
 #![allow(unused, eq_op, no_effect, unnecessary_operation)]
 fn main() {
     let zero: u32 = 0;

@@ -1,7 +1,7 @@
 #![feature(plugin, custom_attribute)]
 #![plugin(clippy)]
-#![deny(cyclomatic_complexity)]
-#![deny(unused)]
+#![warn(cyclomatic_complexity)]
+#![warn(unused)]
 
 fn main() {
     kaboom();

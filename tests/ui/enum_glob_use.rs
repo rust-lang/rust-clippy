@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(clippy, clippy_pedantic)]
+#![warn(clippy, clippy_pedantic)]
 #![allow(unused_imports, dead_code, missing_docs_in_private_items)]
 
 use std::cmp::Ordering::*;

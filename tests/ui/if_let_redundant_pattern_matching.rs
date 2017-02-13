@@ -1,8 +1,8 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
-#![deny(if_let_redundant_pattern_matching)]
+#![warn(clippy)]
+#![warn(if_let_redundant_pattern_matching)]
 
 
 fn main() {

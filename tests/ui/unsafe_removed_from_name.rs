@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
-#![deny(unsafe_removed_from_name)]
+#![warn(unsafe_removed_from_name)]
 
 use std::cell::{UnsafeCell as TotallySafeCell};
 

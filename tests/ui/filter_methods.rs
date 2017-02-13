@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(clippy, clippy_pedantic)]
+#![warn(clippy, clippy_pedantic)]
 #![allow(missing_docs_in_private_items)]
 
 fn main() {

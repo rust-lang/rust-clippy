@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(short_circuit_statement)]
+#![warn(short_circuit_statement)]
 
 fn main() {
     f() && g();

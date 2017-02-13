@@ -1,20 +1,16 @@
-error: Negation by multiplying with -1
+warning: Negation by multiplying with -1
   --> $DIR/neg_multiply.rs:30:5
    |
 30 |     x * -1;
    |     ^^^^^^
    |
-note: lint level defined here
-  --> $DIR/neg_multiply.rs:4:9
-   |
-4  | #![deny(neg_multiply)]
-   |         ^^^^^^^^^^^^
+   = note: #[warn(neg_multiply)] on by default
 
-error: Negation by multiplying with -1
+warning: Negation by multiplying with -1
   --> $DIR/neg_multiply.rs:33:5
    |
 33 |     -1 * x;
    |     ^^^^^^
-
-error: aborting due to 2 previous errors
+   |
+   = note: #[warn(neg_multiply)] on by default
 

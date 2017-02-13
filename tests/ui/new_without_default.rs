@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #![allow(dead_code)]
-#![deny(new_without_default, new_without_default_derive)]
+#![warn(new_without_default, new_without_default_derive)]
 
 pub struct Foo;
 

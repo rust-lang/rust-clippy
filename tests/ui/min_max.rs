@@ -1,7 +1,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 
 use std::cmp::{min, max};
 use std::cmp::min as my_min;

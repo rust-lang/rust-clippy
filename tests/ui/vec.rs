@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(useless_vec)]
+#![warn(useless_vec)]
 
 #[derive(Debug)]
 struct NonCopy;

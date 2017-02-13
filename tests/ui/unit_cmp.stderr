@@ -1,20 +1,16 @@
-error: ==-comparison of unit values detected. This will always be true
+warning: ==-comparison of unit values detected. This will always be true
   --> $DIR/unit_cmp.rs:16:8
    |
 16 |     if { true; } == { false; } {
    |        ^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/unit_cmp.rs:4:9
-   |
-4  | #![deny(unit_cmp)]
-   |         ^^^^^^^^
+   = note: #[warn(unit_cmp)] on by default
 
-error: >-comparison of unit values detected. This will always be false
+warning: >-comparison of unit values detected. This will always be false
   --> $DIR/unit_cmp.rs:19:8
    |
 19 |     if { true; } > { false; } {
    |        ^^^^^^^^^^^^^^^^^^^^^^
-
-error: aborting due to 2 previous errors
+   |
+   = note: #[warn(unit_cmp)] on by default
 

@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(unused_variables)]
 #![allow(unused_assignments)]
 #![allow(if_same_then_else)]

@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(eval_order_dependence)]
+#[warn(eval_order_dependence)]
 #[allow(unused_assignments, unused_variables, many_single_char_names, no_effect, dead_code, blacklisted_name)]
 fn main() {
     let mut x = 0;

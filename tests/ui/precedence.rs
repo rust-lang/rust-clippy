@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(precedence)]
+#[warn(precedence)]
 #[allow(identity_op)]
 #[allow(eq_op)]
 fn main() {

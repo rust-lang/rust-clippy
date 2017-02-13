@@ -1,4 +1,4 @@
-error: in an 'if' condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a 'let'
+warning: in an 'if' condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a 'let'
   --> $DIR/block_in_if_condition.rs:30:8
    |
 30 |       if {
@@ -8,11 +8,7 @@ error: in an 'if' condition, avoid complex blocks or closures with blocks; inste
 33 | |     } {
    | |_____^ ...ending here
    |
-note: lint level defined here
-  --> $DIR/block_in_if_condition.rs:5:9
-   |
-5  | #![deny(block_in_if_condition_stmt)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(block_in_if_condition_stmt)] on by default
    = help: try
            let res = {
                let x = 3;
@@ -22,33 +18,33 @@ note: lint level defined here
                6
            } ... 
 
-error: omit braces around single expression condition
+warning: omit braces around single expression condition
   --> $DIR/block_in_if_condition.rs:41:8
    |
 41 |     if { true } {
    |        ^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/block_in_if_condition.rs:4:9
-   |
-4  | #![deny(block_in_if_condition_expr)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: #[warn(block_in_if_condition_expr)] on by default
    = help: try
            if true {
                6
            } ... 
 
-error: in an 'if' condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a 'let'
+warning: in an 'if' condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a 'let'
   --> $DIR/block_in_if_condition.rs:58:49
    |
 58 |     if v == 3 && sky == "blue" && predicate(|x| { let target = 3; x == target }, v) {
    |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: #[warn(block_in_if_condition_stmt)] on by default
 
-error: in an 'if' condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a 'let'
+warning: in an 'if' condition, avoid complex blocks or closures with blocks; instead, move the block or closure higher and bind it with a 'let'
   --> $DIR/block_in_if_condition.rs:62:22
    |
 62 |     if predicate(|x| { let target = 3; x == target }, v) {
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: #[warn(block_in_if_condition_stmt)] on by default
 
 warning: this boolean expression can be simplified
   --> $DIR/block_in_if_condition.rs:70:8
@@ -63,6 +59,4 @@ note: lint level defined here
    |         ^^^^^^^^^^^^^^^
 help: try
    |     if x == 3 {
-
-error: aborting due to 4 previous errors
 

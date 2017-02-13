@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 #![allow(unused)]
 
-#![deny(map_entry)]
+#![warn(map_entry)]
 
 use std::collections::{BTreeMap, HashMap};
 use std::hash::Hash;

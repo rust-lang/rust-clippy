@@ -3,7 +3,7 @@
 
 #![feature(untagged_unions)]
 
-#![deny(warnings)]
+#![warn(warnings)]
 #![allow(dead_code)]
 
 use std::hash::{Hash, Hasher};

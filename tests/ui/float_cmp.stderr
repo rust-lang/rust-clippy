@@ -1,14 +1,10 @@
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:43:5
    |
 43 |     ONE == 1f32;
    |     ^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/float_cmp.rs:4:9
-   |
-4  | #![deny(float_cmp)]
-   |         ^^^^^^^^^
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (ONE - 1f32).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -17,12 +13,13 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
 43 |     ONE == 1f32;
    |     ^^^^^^^^^^^
 
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:47:5
    |
 47 |     ONE == 1.0 + 0.0;
    |     ^^^^^^^^^^^^^^^^
    |
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (ONE - (1.0 + 0.0)).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -31,12 +28,13 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
 47 |     ONE == 1.0 + 0.0;
    |     ^^^^^^^^^^^^^^^^
 
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:52:5
    |
 52 |     ONE + ONE == ZERO + ONE + ONE;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (ONE + ONE - (ZERO + ONE + ONE)).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -45,12 +43,13 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
 52 |     ONE + ONE == ZERO + ONE + ONE;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:57:5
    |
 57 |     ONE != 2.0;
    |     ^^^^^^^^^^
    |
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (ONE - 2.0).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -59,12 +58,13 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
 57 |     ONE != 2.0;
    |     ^^^^^^^^^^
 
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:62:5
    |
 62 |     twice(ONE) != ONE;
    |     ^^^^^^^^^^^^^^^^^
    |
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (twice(ONE) - ONE).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -73,12 +73,13 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
 62 |     twice(ONE) != ONE;
    |     ^^^^^^^^^^^^^^^^^
 
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:66:5
    |
 66 |     ONE as f64 != 2.0;
    |     ^^^^^^^^^^^^^^^^^
    |
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (ONE as f64 - 2.0).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -87,12 +88,13 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
 66 |     ONE as f64 != 2.0;
    |     ^^^^^^^^^^^^^^^^^
 
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:74:5
    |
 74 |     x == 1.0;
    |     ^^^^^^^^
    |
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (x - 1.0).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -101,12 +103,13 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
 74 |     x == 1.0;
    |     ^^^^^^^^
 
-error: strict comparison of f32 or f64
+warning: strict comparison of f32 or f64
   --> $DIR/float_cmp.rs:80:5
    |
 80 |     twice(x) != twice(ONE as f64);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
+   = note: #[warn(float_cmp)] on by default
 help: consider comparing them within some error
    |     (twice(x) - twice(ONE as f64)).abs() < error;
 note: std::f32::EPSILON and std::f64::EPSILON are available.
@@ -114,6 +117,4 @@ note: std::f32::EPSILON and std::f64::EPSILON are available.
    |
 80 |     twice(x) != twice(ONE as f64);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: aborting due to 8 previous errors
 

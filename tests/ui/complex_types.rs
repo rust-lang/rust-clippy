@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(unused)]
 #![feature(associated_consts, associated_type_defaults)]
 

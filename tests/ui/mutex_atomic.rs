@@ -1,8 +1,8 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
-#![deny(mutex_integer)]
+#![warn(clippy)]
+#![warn(mutex_integer)]
 
 fn main() {
     use std::sync::Mutex;

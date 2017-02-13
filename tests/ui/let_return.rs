@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 #![allow(unused)]
 
-#![deny(let_and_return)]
+#![warn(let_and_return)]
 
 fn test() -> i32 {
     let _y = 0; // no warning

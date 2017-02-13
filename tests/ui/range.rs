@@ -8,7 +8,7 @@ impl NotARange {
     fn step_by(&self, _: u32) {}
 }
 
-#[deny(range_step_by_zero, range_zip_with_len)]
+#[warn(range_step_by_zero, range_zip_with_len)]
 fn main() {
     (0..1).step_by(0);
     // No warning for non-zero step

@@ -1,79 +1,105 @@
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:11:5
    |
 11 |     return true;
    |     ^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/needless_return.rs:4:9
-   |
-4  | #![deny(needless_return)]
-   |         ^^^^^^^^^^^^^^^
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |     true
 
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:18:5
    |
 18 |     return true
    |     ^^^^^^^^^^^
    |
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |     true
 
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:26:9
    |
 26 |         return true;
    |         ^^^^^^^^^^^^
    |
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |         true
 
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:31:9
    |
 31 |         return false;
    |         ^^^^^^^^^^^^^
    |
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |         false
 
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:40:17
    |
 40 |         true => return false,
    |                 ^^^^^^^^^^^^
    |
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |         true => false,
 
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:46:13
    |
 46 |             return true;
    |             ^^^^^^^^^^^^
    |
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |             true
 
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:56:9
    |
 56 |         return true;
    |         ^^^^^^^^^^^^
    |
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |         true
 
-error: unneeded return statement
+warning: unneeded return statement
   --> $DIR/needless_return.rs:61:16
    |
 61 |     let _ = || return true;
    |                ^^^^^^^^^^^
    |
+   = note: #[warn(needless_return)] on by default
 help: remove `return` as shown:
    |     let _ = || true;
 
-error: aborting due to 8 previous errors
+warning: this if-then-else expression returns a bool literal
+  --> $DIR/needless_return.rs:25:5
+   |
+25 |     if true {
+   |     ^
+   |
+   = note: #[warn(needless_bool)] on by default
+help: you can reduce it to
+   |     return true
+
+warning: you seem to be trying to match on a boolean expression
+  --> $DIR/needless_return.rs:39:5
+   |
+39 |     match x {
+   |     ^
+   |
+   = note: #[warn(match_bool)] on by default
+help: consider using an if/else expression
+   |     if x { return false } else {
+   |     return true;
+   | 
+   | 
+   | 
+   | }
 

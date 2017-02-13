@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 #![allow(unknown_lints, unused, no_effect, redundant_closure_call, many_single_char_names)]
-#![deny(redundant_closure)]
+#![warn(redundant_closure)]
 
 fn main() {
     let a = Some(1u8).map(|a| foo(a));

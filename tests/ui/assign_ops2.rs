@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #[allow(unused_assignments)]
-#[deny(misrefactored_assign_op)]
+#[warn(misrefactored_assign_op)]
 fn main() {
     let mut a = 5;
     a += a + 1;

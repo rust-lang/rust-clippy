@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(useless_attribute)]
+#![warn(useless_attribute)]
 
 #[allow(dead_code)]
 

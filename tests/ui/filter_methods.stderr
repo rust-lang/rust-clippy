@@ -1,4 +1,4 @@
-error: called `filter(p).map(q)` on an `Iterator`. This is more succinctly expressed by calling `.filter_map(..)` instead.
+warning: called `filter(p).map(q)` on an `Iterator`. This is more succinctly expressed by calling `.filter_map(..)` instead.
   --> $DIR/filter_methods.rs:8:21
    |
 8  |       let _: Vec<_> = vec![5; 6].into_iter()
@@ -7,14 +7,14 @@ error: called `filter(p).map(q)` on an `Iterator`. This is more succinctly expre
 10 | |                               .map(|x| x * 2)
    | |_____________________________________________^ ...ending here
    |
-   = note: #[deny(filter_map)] implied by #[deny(clippy_pedantic)]
+   = note: #[warn(filter_map)] implied by #[warn(clippy_pedantic)]
 note: lint level defined here
   --> $DIR/filter_methods.rs:4:17
    |
-4  | #![deny(clippy, clippy_pedantic)]
+4  | #![warn(clippy, clippy_pedantic)]
    |                 ^^^^^^^^^^^^^^^
 
-error: called `filter(p).flat_map(q)` on an `Iterator`. This is more succinctly expressed by calling `.flat_map(..)` and filtering by returning an empty Iterator.
+warning: called `filter(p).flat_map(q)` on an `Iterator`. This is more succinctly expressed by calling `.flat_map(..)` and filtering by returning an empty Iterator.
   --> $DIR/filter_methods.rs:13:21
    |
 13 |       let _: Vec<_> = vec![5_i8; 6].into_iter()
@@ -23,9 +23,9 @@ error: called `filter(p).flat_map(q)` on an `Iterator`. This is more succinctly 
 15 | |                                 .flat_map(|x| x.checked_mul(2))
    | |_______________________________________________________________^ ...ending here
    |
-   = note: #[deny(filter_map)] implied by #[deny(clippy_pedantic)]
+   = note: #[warn(filter_map)] implied by #[warn(clippy_pedantic)]
 
-error: called `filter_map(p).flat_map(q)` on an `Iterator`. This is more succinctly expressed by calling `.flat_map(..)` and filtering by returning an empty Iterator.
+warning: called `filter_map(p).flat_map(q)` on an `Iterator`. This is more succinctly expressed by calling `.flat_map(..)` and filtering by returning an empty Iterator.
   --> $DIR/filter_methods.rs:18:21
    |
 18 |       let _: Vec<_> = vec![5_i8; 6].into_iter()
@@ -34,9 +34,9 @@ error: called `filter_map(p).flat_map(q)` on an `Iterator`. This is more succinc
 20 | |                                 .flat_map(|x| x.checked_mul(2))
    | |_______________________________________________________________^ ...ending here
    |
-   = note: #[deny(filter_map)] implied by #[deny(clippy_pedantic)]
+   = note: #[warn(filter_map)] implied by #[warn(clippy_pedantic)]
 
-error: called `filter_map(p).map(q)` on an `Iterator`. This is more succinctly expressed by only calling `.filter_map(..)` instead.
+warning: called `filter_map(p).map(q)` on an `Iterator`. This is more succinctly expressed by only calling `.filter_map(..)` instead.
   --> $DIR/filter_methods.rs:23:21
    |
 23 |       let _: Vec<_> = vec![5_i8; 6].into_iter()
@@ -45,7 +45,5 @@ error: called `filter_map(p).map(q)` on an `Iterator`. This is more succinctly e
 25 | |                                 .map(|x| x.checked_mul(2))
    | |__________________________________________________________^ ...ending here
    |
-   = note: #[deny(filter_map)] implied by #[deny(clippy_pedantic)]
-
-error: aborting due to 4 previous errors
+   = note: #[warn(filter_map)] implied by #[warn(clippy_pedantic)]
 

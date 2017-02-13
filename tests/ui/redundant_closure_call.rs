@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(redundant_closure_call)]
+#![warn(redundant_closure_call)]
 
 fn main() {
 	let a = (|| 42)();
@@ -10,7 +10,7 @@ fn main() {
 
 
 	let mut i = 1;
-	let k = (|m| m+1)(i);
+	let mut k = (|m| m+1)(i);
 
 	k = (|a,b| a*b)(1,5);
 

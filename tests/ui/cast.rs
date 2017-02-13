@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#[deny(cast_precision_loss, cast_possible_truncation, cast_sign_loss, cast_possible_wrap)]
+#[warn(cast_precision_loss, cast_possible_truncation, cast_sign_loss, cast_possible_wrap)]
 #[allow(no_effect, unnecessary_operation)]
 fn main() {
     // Test cast_precision_loss

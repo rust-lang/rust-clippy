@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 #![allow(warnings, clippy)]
 
-#![deny(boxed_local)]
+#![warn(boxed_local)]
 
 #[derive(Clone)]
 struct A;

@@ -1,7 +1,7 @@
 #![feature(plugin, box_syntax, inclusive_range_syntax)]
 #![plugin(clippy)]
 
-#![deny(no_effect, unnecessary_operation)]
+#![warn(no_effect, unnecessary_operation)]
 #![allow(dead_code)]
 #![allow(path_statements)]
 #![allow(deref_addrof)]

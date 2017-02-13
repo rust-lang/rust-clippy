@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(needless_bool)]
+#![warn(needless_bool)]
 
 #[allow(if_same_then_else)]
 fn main() {

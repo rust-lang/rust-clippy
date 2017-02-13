@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #![allow(unused)]
-#![deny(invalid_regex, trivial_regex, regex_macro)]
+#![warn(invalid_regex, trivial_regex, regex_macro)]
 
 extern crate regex;
 

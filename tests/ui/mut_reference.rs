@@ -16,7 +16,7 @@ impl MyStruct {
     }
 }
 
-#[deny(unnecessary_mut_passed)]
+#[warn(unnecessary_mut_passed)]
 fn main() {
     // Functions
     takes_an_immutable_reference(&mut 42);
