@@ -864,12 +864,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for uses of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.", 
-      "Why is this bad": "Using `entry` is more efficient.", 
-      "Example": "```rust\nif !m.contains_key(&k) { m.insert(k, v) }\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```", 
-      "Known problems": "Some false negatives, eg.:\n```rust\nlet k = &key;\nif !m.contains_key(k) { m.insert(k.clone(), v); }\n```"
+      "What it does": "Checks for consecutive `if`s with the same condition.", 
+      "Why is this bad": "This is probably a copy & paste error.", 
+      "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
+      "Known problems": "Hopefully none."
     }, 
-    "id": "map_entry", 
+    "id": "ifs_same_cond", 
     "level": "Warn"
   }, 
   {
@@ -1232,6 +1232,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for uses of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.", 
+      "Why is this bad": "Using `entry` is more efficient.", 
+      "Example": "```rust\nif !m.contains_key(&k) { m.insert(k, v) }\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```", 
+      "Known problems": "Some false negatives, eg.:\n```rust\nlet k = &key;\nif !m.contains_key(k) { m.insert(k.clone(), v); }\n```"
+    }, 
+    "id": "map_entry", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `!` or `!=` in an if condition with an\nelse branch.", 
       "Why is this bad": "Negations reduce the readability of statements.", 
       "Example": "```rust\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\nCould be written:\n```rust\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```", 
@@ -1422,12 +1432,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for consecutive `if`s with the same condition.", 
-      "Why is this bad": "This is probably a copy & paste error.", 
-      "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
-      "Known problems": "Hopefully none."
+      "What it does": "Checks for loops that contain an unconditional `break`.", 
+      "Why is this bad": "This loop never loops, all it does is obfuscating the\ncode.", 
+      "Example": "```rust\nloop { ..; break; }\n```", 
+      "Known problems": "None."
     }, 
-    "id": "ifs_same_cond", 
+    "id": "never_loop", 
     "level": "Warn"
   }, 
   {
@@ -1472,13 +1482,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Result`s.", 
-      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display.  Therefore it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
-      "Example": "```rust\nx.unwrap()\n```", 
+      "What it does": "Checks for calls to `std::mem::forget` with a reference\ninstead of an owned value.", 
+      "Why is this bad": "Calling `forget` on a reference will only forget the\nreference itself, which is a no-op. It will not forget the underlying referenced\nvalue, which is likely what was intended.", 
+      "Example": "```rust\nlet x = Box::new(1);\nstd::mem::forget(&x) // Should have been forget(x), x will still be dropped\n```", 
       "Known problems": "None."
     }, 
-    "id": "result_unwrap_used", 
-    "level": "Allow"
+    "id": "forget_ref", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1519,6 +1529,16 @@
     }, 
     "id": "new_without_default", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for `.unwrap()` calls on `Result`s.", 
+      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display.  Therefore it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
+      "Example": "```rust\nx.unwrap()\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "result_unwrap_used", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1849,16 +1869,6 @@
       "Known problems": "None."
     }, 
     "id": "identity_op", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for calls to `std::mem::forget` with a reference\ninstead of an owned value.", 
-      "Why is this bad": "Calling `forget` on a reference will only forget the\nreference itself, which is a no-op. It will not forget the underlying referenced\nvalue, which is likely what was intended.", 
-      "Example": "```rust\nlet x = Box::new(1);\nstd::mem::forget(&x) // Should have been forget(x), x will still be dropped\n```", 
-      "Known problems": "None."
-    }, 
-    "id": "forget_ref", 
     "level": "Warn"
   }, 
   {
