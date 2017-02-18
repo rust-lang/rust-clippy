@@ -1643,6 +1643,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `assert!(x == y)` which can be better written\nas `assert_eq!(x, y)` if `x` and `y` implement `Debug` trait.", 
+      "Why is this bad": "`assert_eq` provides better assertion failure reporting.", 
+      "Example": "```rust\nlet (x, y) = (1, 2);\nassert!(x == y);  // assertion failed: x == y\nassert_eq!(x, y); // assertion failed: `(left == right)` (left: `1`, right: `2`)\n```", 
+      "Known problems": "Hopefully none."
+    }, 
+    "id": "should_assert_eq", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for unused labels.", 
       "Why is this bad": "Maybe the label should be used in which case there is\nan error in the code or it should be removed.", 
       "Example": "```rust,ignore\nfn unused_label() {\n    'label: for i in 1..2 {\n        if i > 4 { continue }\n    }\n```", 
