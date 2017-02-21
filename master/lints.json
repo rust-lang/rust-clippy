@@ -1653,6 +1653,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for casts to the same type.", 
+      "Why is this bad": "It's just unnecessary.", 
+      "Example": "```rust\nlet _ = 2i32 as i32\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "unnecessary_cast", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for unused labels.", 
       "Why is this bad": "Maybe the label should be used in which case there is\nan error in the code or it should be removed.", 
       "Example": "```rust,ignore\nfn unused_label() {\n    'label: for i in 1..2 {\n        if i > 4 { continue }\n    }\n```", 
