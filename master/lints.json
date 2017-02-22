@@ -237,6 +237,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Catch casts from `0` to some pointer type", 
+      "Why is this bad": "This generally means `null` and is better expressed as\n{`std`, `core`}`::ptr::`{`null`, `null_mut`}.", 
+      "Example": "```rust\n0 as *const u32\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "zero_ptr", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `.chars().next()` on a `str` to check\nif it starts with a given char.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.starts_with(_)`.", 
       "Example": "```rust\nname.chars().next() == Some('_')\n```", 
