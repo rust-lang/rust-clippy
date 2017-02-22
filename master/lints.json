@@ -1653,8 +1653,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `assert!(x == y)` which can be better written\nas `assert_eq!(x, y)` if `x` and `y` implement `Debug` trait.", 
-      "Why is this bad": "`assert_eq` provides better assertion failure reporting.", 
+      "What it does": "Checks for `assert!(x == y)` or `assert!(x != y)` which can be better written\nusing `assert_eq` or `assert_ne` if `x` and `y` implement `Debug` trait.", 
+      "Why is this bad": "`assert_eq` and `assert_ne` provide better assertion failure reporting.", 
       "Example": "```rust\nlet (x, y) = (1, 2);\nassert!(x == y);  // assertion failed: x == y\nassert_eq!(x, y); // assertion failed: `(left == right)` (left: `1`, right: `2`)\n```", 
       "Known problems": "Hopefully none."
     }, 
