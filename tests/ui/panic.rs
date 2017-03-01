@@ -34,10 +34,15 @@ fn ok_bracket() {
     }
 }
 
+fn ok_escaped() {
+    panic!("{{ why should this not be ok? }}");
+}
+
 fn main() {
     missing();
     ok_single();
     ok_multiple();
     ok_bracket();
     ok_inner();
+    ok_escaped();
 }
