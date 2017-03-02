@@ -36,6 +36,12 @@ fn ok_bracket() {
 
 fn ok_escaped() {
     panic!("{{ why should this not be ok? }}");
+    panic!(" or {{ that ?");
+    panic!(" or }} this ?");
+    panic!(" {or {{ that ?");
+    panic!(" }or }} this ?");
+    panic!(" {or }} that ?");
+    panic!(" }or { this ?");
 }
 
 fn main() {
