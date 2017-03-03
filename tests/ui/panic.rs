@@ -42,6 +42,9 @@ fn ok_escaped() {
     panic!(" }or }} this ?");
     panic!(" {or }} that ?");
     panic!(" }or { this ?");
+    panic!("{{ test }");
+    panic!("{case }}");
+    panic!("{{{this}}}");
 }
 
 fn main() {
