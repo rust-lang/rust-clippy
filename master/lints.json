@@ -1382,6 +1382,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calls to `std::mem::forget` with a value that\nderives the Copy trait", 
+      "Why is this bad": "Calling `std::mem::forget` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html) since the\nvalue will be copied and moved into the function on invocation.\nAn alternative, but also valid, explanation is that Copy types do not implement\nthe Drop trait, which means they have no destructors. Without a destructor, there\nis nothing for `std::mem::forget` to ignore.", 
+      "Example": "```rust\nlet x:i32 = 42;     // i32 implements Copy\nstd::mem::forget(x) // A copy of x is passed to the function, leaving the original unaffected\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "forget_copy", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for names that are very similar and thus confusing.", 
       "Why is this bad": "It's hard to distinguish between names that differ only\nby a single character.", 
       "Example": "```rust\nlet checked_exp = something;\nlet checked_expr = something_else;\n```", 
@@ -1770,6 +1780,16 @@
       "Known problems": "None."
     }, 
     "id": "needless_range_loop", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for calls to `std::mem::drop` with a value\nthat derives the Copy trait", 
+      "Why is this bad": "Calling `std::mem::drop` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html), since the\nvalue will be copied and moved into the function on invocation.", 
+      "Example": "```rust\nlet x:i32 = 42;   // i32 implements Copy\nstd::mem::drop(x) // A copy of x is passed to the function, leaving the original unaffected\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "drop_copy", 
     "level": "Warn"
   }, 
   {
