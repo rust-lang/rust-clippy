@@ -197,13 +197,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for types with a `fn new() -> Self` method\nand no implementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html),\nwhere the `Default` can be derived by `#[derive(Default)]`.", 
-      "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.", 
-      "Example": "```rust,ignore\nstruct Foo;\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\nJust prepend `#[derive(Default)]` before the `struct` definition.", 
-      "Known problems": "Hopefully none."
+      "What it does": "Checks for bindings that shadow other bindings already in\nscope, either without a initialization or with one that does not even use\nthe original value.", 
+      "Why is this bad": "Name shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings ore introducing more scopes to contain the bindings.", 
+      "Example": "```rust\nlet x = y; let x = z; // shadows the earlier binding\n```", 
+      "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
     }, 
-    "id": "new_without_default_derive", 
-    "level": "Warn"
+    "id": "shadow_unrelated", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -324,16 +324,6 @@
       "Known problems": "None."
     }, 
     "id": "string_add_assign", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for bindings that shadow other bindings already in\nscope, either without a initialization or with one that does not even use\nthe original value.", 
-      "Why is this bad": "Name shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings ore introducing more scopes to contain the bindings.", 
-      "Example": "```rust\nlet x = y; let x = z; // shadows the earlier binding\n```", 
-      "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
-    }, 
-    "id": "shadow_unrelated", 
     "level": "Allow"
   }, 
   {
@@ -1774,12 +1764,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for functions taking arguments by value, but not consuming them in its\nbody.", 
-      "Why is this bad": "Taking arguments by reference is more flexible and can sometimes avoid\nunnecessary allocations.", 
-      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n```", 
+      "What it does": "Checks for types with a `fn new() -> Self` method\nand no implementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html),\nwhere the `Default` can be derived by `#[derive(Default)]`.", 
+      "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.", 
+      "Example": "```rust,ignore\nstruct Foo;\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\nJust prepend `#[derive(Default)]` before the `struct` definition.", 
       "Known problems": "Hopefully none."
     }, 
-    "id": "needless_pass_by_value", 
+    "id": "new_without_default_derive", 
     "level": "Warn"
   }, 
   {
@@ -1900,6 +1890,16 @@
     }, 
     "id": "non_ascii_literal", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for functions taking arguments by value, but not consuming them in its\nbody.", 
+      "Why is this bad": "Taking arguments by reference is more flexible and can sometimes avoid\nunnecessary allocations.", 
+      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n```", 
+      "Known problems": "Hopefully none."
+    }, 
+    "id": "needless_pass_by_value", 
+    "level": "Warn"
   }, 
   {
     "docs": {
