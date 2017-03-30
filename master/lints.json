@@ -378,6 +378,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for transmutes between a type `T` and `*T`.", 
+      "Why is this bad": "It's easy to mistakenly transmute between a type and a\npointer to that type.", 
+      "Example": "```rust\ncore::intrinsics::transmute(t)` // where the result type is the same as `*t` or `&t`'s\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "crosspointer_transmute", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for transmutes that can't ever be correct on any\narchitecture.", 
       "Why is this bad": "It's basically guaranteed to be undefined behaviour.", 
       "Example": "```rust\nlet ptr: *const T = core::intrinsics::transmute('x')`\n```", 
@@ -1122,12 +1132,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for transmutes between a type `T` and `*T`.", 
-      "Why is this bad": "It's easy to mistakenly transmute between a type and a\npointer to that type.", 
-      "Example": "```rust\ncore::intrinsics::transmute(t)` // where the result type is the same as `*t` or `&t`'s\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for arguments to `==` which have their address taken to satisfy a bound\nand suggests to dereference the other argument instead", 
+      "Why is this bad": "It is more idiomatic to dereference the other argument.", 
+      "Example": "```rust\n&x == y\n```", 
+      "Known problems": "None"
     }, 
-    "id": "crosspointer_transmute", 
+    "id": "op_ref", 
     "level": "Warn"
   }, 
   {
