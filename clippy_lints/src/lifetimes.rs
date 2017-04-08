@@ -14,8 +14,14 @@ use utils::{in_external_macro, span_lint, last_path_segment};
 /// complicated, while there is nothing out of the ordinary going on. Removing
 /// them leads to more readable code.
 ///
-/// **Known problems:** Potential false negatives: we bail out if the function
+/// **Known problems:**
+/// Potential false negatives: we bail out if the function
 /// has a `where` clause where lifetimes are mentioned.
+///
+/// Potential false positives: there's a few cases where this
+/// lint triggers even if the lifetimes are necessary, such
+/// as `fn test<'a>(&'a self) -> Box<Trait + 'a>`. See
+/// https://github.com/Manishearth/rust-clippy/issues/740.
 ///
 /// **Example:**
 /// ```rust
