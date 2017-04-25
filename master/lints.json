@@ -792,6 +792,16 @@
   }, 
   {
     "docs": {
+      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
+      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
+      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\nCould be rewritten as\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\nAs another example, the following code\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
+      "Known problems": "None"
+    }, 
+    "id": "needless_continue", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for all instances of `x + _` where `x` is of type\n`String`, but only if [`string_add_assign`](#string_add_assign) does *not*\nmatch.", 
       "Why is this bad": "It's not bad in and of itself. However, this particular\n`Add` implementation is asymmetric (the other operand need not be `String`,\nbut `x` does), while addition as mathematically defined is symmetric, also\nthe `String::push_str(_)` function is a perfectly good replacement.\nTherefore some dislike it and wish not to have it in their code.\nThat said, other people think that string addition, having a long tradition\nin other languages is actually fine, which is why we decided to make this\nparticular lint `allow` by default.", 
       "Example": "```rust\nlet x = \"Hello\".to_owned();\nx + \", World\"\n```", 
