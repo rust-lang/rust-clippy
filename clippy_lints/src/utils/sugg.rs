@@ -72,6 +72,7 @@ impl<'a> Sugg<'a> {
                 hir::ExprBinary(op, ..) => Sugg::BinOp(AssocOp::from_ast_binop(higher::binop(op.node)), snippet),
                 hir::ExprCast(..) => Sugg::BinOp(AssocOp::As, snippet),
                 hir::ExprType(..) => Sugg::BinOp(AssocOp::Colon, snippet),
+                _ => unreachable!(),
             }
         })
     }
@@ -127,6 +128,7 @@ impl<'a> Sugg<'a> {
             ast::ExprKind::Binary(op, ..) => Sugg::BinOp(AssocOp::from_ast_binop(op.node), snippet),
             ast::ExprKind::Cast(..) => Sugg::BinOp(AssocOp::As, snippet),
             ast::ExprKind::Type(..) => Sugg::BinOp(AssocOp::Colon, snippet),
+            _ => unreachable!(),
         }
     }
 
