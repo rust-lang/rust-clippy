@@ -1476,13 +1476,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for loops that contain an unconditional `break`\nor `return`.", 
+      "What it does": "Checks for loops that will always `break`, `return` or\n`continue` an outer loop.", 
       "Why is this bad": "This loop never loops, all it does is obfuscating the\ncode.", 
       "Example": "```rust\nloop { ..; break; }\n```", 
-      "Known problems": "Ignores `continue` statements in the loop that create\nnontrivial control flow. Therefore set to `Allow` by default.\nSee https://github.com/Manishearth/rust-clippy/issues/1586"
+      "Known problems": "None"
     }, 
     "id": "never_loop", 
-    "level": "Allow"
+    "level": "Warn"
   }, 
   {
     "docs": {
