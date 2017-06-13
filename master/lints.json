@@ -1964,6 +1964,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for use of `&Box<T>` anywhere in the code.", 
+      "Why is this bad": "Any `&Box<T>` can also be a `&T`, which is more general.", 
+      "Example": "```rust\nfn foo(bar: &Box<T>) { ... }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "borrowed_box", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `ok().expect(..)`.", 
       "Why is this bad": "Because you usually call `expect()` on the `Result`\ndirectly to get a better error message.", 
       "Example": "```rust\nx.ok().expect(\"why did I do this again?\")\n```", 
