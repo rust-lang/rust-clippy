@@ -1,0 +1,14 @@
+error: Constants have by default a `'static` lifetime
+ --> const_static_lifetime.rs:4:17
+  |
+4 | const VAR_ONE: &'static str = "Test constant #1"; // ERROR Consider removing 'static.
+  |                 ^^^^^^^
+  |
+  = note: `-D const-static-lifetime` implied by `-D warnings`
+  = help: consider removing the `'static`
+
+error: aborting due to previous error(s)
+
+error: Could not compile `clippy_tests`.
+
+To learn more, run the command again with --verbose.

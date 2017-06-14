@@ -61,7 +61,7 @@ impl EarlyLintPass for Doc {
 #[allow(cast_possible_truncation)]
 pub fn strip_doc_comment_decoration((comment, span): (String, Span)) -> Vec<(String, Span)> {
     // one-line comments lose their prefix
-    const ONELINERS: &'static [&'static str] = &["///!", "///", "//!", "//"];
+    const ONELINERS: &[&str] = &["///!", "///", "//!", "//"];
     for prefix in ONELINERS {
         if comment.starts_with(*prefix) {
             return vec![(comment[prefix.len()..].to_owned(),
