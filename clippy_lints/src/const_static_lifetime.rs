@@ -36,20 +36,27 @@ impl EarlyLintPass for StaticConst {
         // Match only constants...
         if let ItemKind::Const(ref var_type, ref expr) = item.node {
             // ... which are actually variables, not declaration such as #![feature(clippy)] ...
-            if let ExprKind::Lit(_) = expr.node {
-                // ... which are reference ...
-                if let TyKind::Rptr(ref optionnal_lifetime, _) = var_type.node {
-                    // ... and have an explicit 'static lifetime ...
-                    if let Some(lifetime) = *optionnal_lifetime {
-                        if lifetime.ident.name == "'static" {
-                            span_help_and_lint(cx,
-                                               CONST_STATIC_LIFETIME,
-                                               lifetime.span,
-                                               "Constants have by default a `'static` lifetime",
-                                               "consider removing the `'static`");
-                        }
+            // if let ExprKind::Lit(_) = expr.node {
+            // ... which are reference ...
+            if let TyKind::Rptr(ref optionnal_lifetime, _) = var_type.node {
+                // ... and have an explicit 'static lifetime.
+                if let Some(lifetime) = *optionnal_lifetime {
+
+                    println!("item : \n {:?} \n item.node : \n {:?}", item, item.node);
+                    println!("var_type : \n {:?} \n var_type.node : \n {:?}", var_type, var_type.node);
+                    println!("expr : \n {:?} \n expr.node : \n {:?}", expr, expr.node);
+                    println!("lifetime : {:?}", lifetime);
+
+
+                    if lifetime.ident.name == "'static" {
+                        span_help_and_lint(cx,
+                                           CONST_STATIC_LIFETIME,
+                                           lifetime.span,
+                                           "Constants have by default a `'static` lifetime",
+                                           "consider removing the `'static`");
                     }
                 }
+                //  }
             }
         }
     }
