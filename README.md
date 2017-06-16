@@ -180,7 +180,7 @@ transparently:
 
 ## Lints
 
-There are 199 lints included in this crate:
+There are 198 lints included in this crate:
 
 name                                                                                                                   | default | triggers on
 -----------------------------------------------------------------------------------------------------------------------|---------|----------------------------------------------------------------------------------------------------------------------------------
@@ -321,7 +321,6 @@ name                                                                            
 [print_with_newline](https://github.com/Manishearth/rust-clippy/wiki#print_with_newline)                               | warn    | using `print!()` with a format string that ends in a newline
 [ptr_arg](https://github.com/Manishearth/rust-clippy/wiki#ptr_arg)                                                     | warn    | fn arguments of the type `&Vec<...>` or `&String`, suggesting to use `&[...]` or `&str` instead, respectively
 [pub_enum_variant_names](https://github.com/Manishearth/rust-clippy/wiki#pub_enum_variant_names)                       | allow   | enums where all variants share a prefix/postfix
-[range_step_by_zero](https://github.com/Manishearth/rust-clippy/wiki#range_step_by_zero)                               | warn    | using `Range::step_by(0)`, which produces an infinite iterator
 [range_zip_with_len](https://github.com/Manishearth/rust-clippy/wiki#range_zip_with_len)                               | warn    | zipping iterator with a range when `enumerate()` would do
 [redundant_closure](https://github.com/Manishearth/rust-clippy/wiki#redundant_closure)                                 | warn    | redundant closures, i.e. `|a| foo(a)` (which can be written as just `foo`)
 [redundant_closure_call](https://github.com/Manishearth/rust-clippy/wiki#redundant_closure_call)                       | warn    | throwaway closures called in the expression they are defined
