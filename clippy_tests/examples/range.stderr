@@ -1,53 +1,11 @@
-error: use of deprecated item: replaced by `Iterator::step_by`
-  --> range.rs:13:12
+   Compiling clippy_tests v0.1.0 (file:///home/oliver/Projects/rust/clippy/clippy_tests)
+warning: It is more idiomatic to use v1.iter().enumerate()
+  --> examples/range.rs:10:14
    |
-13 |     (0..1).step_by(0);
-   |            ^^^^^^^
-   |
-   = note: `-D deprecated` implied by `-D warnings`
-
-error: use of deprecated item: replaced by `Iterator::step_by`
-  --> range.rs:15:12
-   |
-15 |     (0..1).step_by(1);
-   |            ^^^^^^^
-   |
-   = note: `-D deprecated` implied by `-D warnings`
-
-error: use of deprecated item: replaced by `Iterator::step_by`
-  --> range.rs:17:11
-   |
-17 |     (1..).step_by(0);
-   |           ^^^^^^^
-   |
-   = note: `-D deprecated` implied by `-D warnings`
-
-error: use of deprecated item: replaced by `Iterator::step_by`
-  --> range.rs:18:13
-   |
-18 |     (1...2).step_by(0);
-   |             ^^^^^^^
-   |
-   = note: `-D deprecated` implied by `-D warnings`
-
-error: use of deprecated item: replaced by `Iterator::step_by`
-  --> range.rs:21:7
-   |
-21 |     x.step_by(0);
-   |       ^^^^^^^
-   |
-   = note: `-D deprecated` implied by `-D warnings`
-
-error: It is more idiomatic to use v1.iter().enumerate()
-  --> range.rs:29:14
-   |
-29 |     let _x = v1.iter().zip(0..v1.len());
+10 |     let _x = v1.iter().zip(0..v1.len());
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: `-D range-zip-with-len` implied by `-D warnings`
+   = note: #[warn(range_zip_with_len)] on by default
+   = help: for further information visit https://github.com/Manishearth/rust-clippy/wiki#range_zip_with_len
 
-error: aborting due to previous error(s)
-
-error: Could not compile `clippy_tests`.
-
-To learn more, run the command again with --verbose.
+    Finished dev [unoptimized + debuginfo] target(s) in 0.44 secs
