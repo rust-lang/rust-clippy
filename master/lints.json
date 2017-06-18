@@ -446,16 +446,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Detects type names that are prefixed or suffixed by the\ncontaining module's name.", 
-      "Why is this bad": "It requires the user to type the module name twice.", 
-      "Example": "```rust\nmod cake {\n    struct BlackForestCake;\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "id": "stutter", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for use of `.get().unwrap()` (or\n`.get_mut().unwrap`) on a standard library type which implements `Index`", 
       "Why is this bad": "Using the Index trait (`[]`) is more clear and more\nconcise.", 
       "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec.get(3).unwrap();\n*some_vec.get_mut(0).unwrap() = 1;\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec[3];\nsome_vec[0] = 1;\n```", 
@@ -798,6 +788,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for overlapping match arms.", 
+      "Why is this bad": "It is likely to be an error and if not, makes the code\nless obvious.", 
+      "Example": "```rust\nlet x = 5;\nmatch x {\n    1 ... 10 => println!(\"1 ... 10\"),\n    5 ... 15 => println!(\"5 ... 15\"),\n    _ => (),\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "match_overlapping_arm", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for all instances of `x + _` where `x` is of type\n`String`, but only if [`string_add_assign`](#string_add_assign) does *not*\nmatch.", 
       "Why is this bad": "It's not bad in and of itself. However, this particular\n`Add` implementation is asymmetric (the other operand need not be `String`,\nbut `x` does), while addition as mathematically defined is symmetric, also\nthe `String::push_str(_)` function is a perfectly good replacement.\nTherefore some dislike it and wish not to have it in their code.\nThat said, other people think that string addition, having a long tradition\nin other languages is actually fine, which is why we decided to make this\nparticular lint `allow` by default.", 
       "Example": "```rust\nlet x = \"Hello\".to_owned();\nx + \", World\"\n```", 
@@ -978,12 +978,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for iterating over ranges with a `.step_by(0)`,\nwhich never terminates.", 
-      "Why is this bad": "This very much looks like an oversight, since with\n`loop { .. }` there is an obvious better way to endlessly loop.", 
-      "Example": "```rust\nfor x in (5..5).step_by(0) { .. }\n```", 
+      "What it does": "Checks for identity operations, e.g. `x + 0`.", 
+      "Why is this bad": "This code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.", 
+      "Example": "```rust\nx / 1 + 0 * 1 - 0 | 0\n```", 
       "Known problems": "None."
     }, 
-    "id": "range_step_by_zero", 
+    "id": "identity_op", 
     "level": "Warn"
   }, 
   {
@@ -1904,13 +1904,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for overlapping match arms.", 
-      "Why is this bad": "It is likely to be an error and if not, makes the code\nless obvious.", 
-      "Example": "```rust\nlet x = 5;\nmatch x {\n    1 ... 10 => println!(\"1 ... 10\"),\n    5 ... 15 => println!(\"5 ... 15\"),\n    _ => (),\n}\n```", 
+      "What it does": "Detects type names that are prefixed or suffixed by the\ncontaining module's name.", 
+      "Why is this bad": "It requires the user to type the module name twice.", 
+      "Example": "```rust\nmod cake {\n    struct BlackForestCake;\n}\n```", 
       "Known problems": "None."
     }, 
-    "id": "match_overlapping_arm", 
-    "level": "Warn"
+    "id": "stutter", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1934,13 +1934,11 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for identity operations, e.g. `x + 0`.", 
-      "Why is this bad": "This code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.", 
-      "Example": "```rust\nx / 1 + 0 * 1 - 0 | 0\n```", 
-      "Known problems": "None."
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "`Range::step_by(0)` used to be linted since it's\nan infinite iterator, which is better expressed by `iter::repeat`,\nbut the method has been removed for `Iterator::step_by` which panics\nif given a zero"
     }, 
-    "id": "identity_op", 
-    "level": "Warn"
+    "id": "range_step_by_zero", 
+    "level": "Deprecated"
   }, 
   {
     "docs": {
@@ -1990,6 +1988,16 @@
       "Known problems": "None"
     }, 
     "id": "explicit_into_iter_loop", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for calling `.step_by(0)` on iterators,\nwhich never terminates.", 
+      "Why is this bad": "This very much looks like an oversight, since with\n`loop { .. }` there is an obvious better way to endlessly loop.", 
+      "Example": "```rust\nfor x in (5..5).step_by(0) { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "iterator_step_by_zero", 
     "level": "Warn"
   }, 
   {
