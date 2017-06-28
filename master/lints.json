@@ -504,12 +504,12 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint warns when you using `print!()` with a format string that\nends in a newline.", 
-      "Why is this bad": "You should use `println!()` instead, which appends the newline.", 
-      "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```", 
+      "What it does": "Checks for useless borrowed references.", 
+      "Why is this bad": "It is completely useless and make the code look more complex than it actually is.", 
+      "Example": "```rust\n    let mut v = Vec::<String>::new();\n    let _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\nThis clojure takes a reference on something that has been matched as a reference and de-referenced.\nAs such, it could just be |a| a.is_empty()", 
       "Known problems": "None."
     }, 
-    "id": "print_with_newline", 
+    "id": "needless_borrowed_reference", 
     "level": "Warn"
   }, 
   {
@@ -1152,6 +1152,16 @@
       "Known problems": "None."
     }, 
     "id": "for_kv_map", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "This lint warns when you using `print!()` with a format string that\nends in a newline.", 
+      "Why is this bad": "You should use `println!()` instead, which appends the newline.", 
+      "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "print_with_newline", 
     "level": "Warn"
   }, 
   {
