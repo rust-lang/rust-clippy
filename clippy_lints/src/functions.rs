@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use syntax::ast;
 use syntax::abi::Abi;
 use syntax::codemap::Span;
-use utils::{span_lint, type_is_unsafe_function, iter_input_pats};
+use utils::{span_lint, type_is_unsafe_function, iter_input_pats, match_def_path, resolve_node, paths};
 
 /// **What it does:** Checks for functions with too many parameters.
 ///
@@ -178,6 +178,12 @@ impl<'a, 'tcx> hir::intravisit::Visitor<'tcx> for DerefVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx hir::Expr) {
         match expr.node {
             hir::ExprCall(ref f, ref args) => {
+                if_let_chain! {[
+                    let hir::ExprPath(ref qpath) = f.node,
+                    match_def_path(self.cx.tcx, resolve_node(self.cx, qpath, f.hir_id).def_id(), &paths::BEGIN_PANIC),
+                ], {
+                    return;
+                }}
                 let ty = self.cx.tables.expr_ty(f);
 
                 if type_is_unsafe_function(self.cx, ty) {
