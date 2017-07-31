@@ -75,6 +75,7 @@ pub mod blacklisted_name;
 pub mod block_in_if_condition;
 pub mod booleans;
 pub mod collapsible_if;
+pub mod const_static_lifetime;
 pub mod copies;
 pub mod cyclomatic_complexity;
 pub mod derive;
@@ -316,6 +317,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box large_enum_variant::LargeEnumVariant::new(conf.enum_variant_size_threshold));
     reg.register_late_lint_pass(box should_assert_eq::ShouldAssertEq);
     reg.register_late_lint_pass(box needless_pass_by_value::NeedlessPassByValue);
+    reg.register_early_lint_pass(box const_static_lifetime::StaticConst);
 
     reg.register_lint_group("clippy_restrictions", vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -529,6 +531,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         unused_label::UNUSED_LABEL,
         vec::USELESS_VEC,
         zero_div_zero::ZERO_DIVIDED_BY_ZERO,
+        const_static_lifetime::CONST_STATIC_LIFETIME
     ]);
 }
 
