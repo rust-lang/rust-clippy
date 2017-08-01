@@ -103,6 +103,7 @@
     "docs": {
       "What it does": "Checks for large size differences between variants on `enum`s.", 
       "Why is this bad": "Enum size is bounded by the largest variant. Having a large variant\ncan penalize the memory layout of that enum.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum_variant_size_threshold: u64`: The maximum size of a emum's variant to avoid box suggestion (defaults to `200 `).", 
       "Example": "```rust\nenum Test {\n   A(i32),\n   B([i32; 8000]),\n}\n```", 
       "Known problems": "None."
     }, 
@@ -288,6 +289,7 @@
     "docs": {
       "What it does": "Checks for usage of `Box<T>` where an unboxed `T` would\nwork fine.", 
       "Why is this bad": "This is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `too_large_for_stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200 `).", 
       "Example": "```rust\nfn main() {\n    let x = Box::new(1);\n    foo(*x);\n    println!(\"{}\", *x);\n}\n```", 
       "Known problems": "None."
     }, 
@@ -662,6 +664,7 @@
     "docs": {
       "What it does": "Detects enumeration variants that are prefixed or suffixed\nby the same characters.", 
       "Why is this bad": "Enumeration variant names should specify their variant,\nnot repeat the enumeration name.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum_variant_name_threshold: u64`: The minimum number of enum variants for the lints about variant names to trigger (defaults to `3 `).", 
       "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
       "Known problems": "None."
     }, 
@@ -732,6 +735,7 @@
     "docs": {
       "What it does": "Checks for usage of blacklisted names for variables, such\nas `foo`.", 
       "Why is this bad": "These names are usually placeholder names and should be\navoided.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted_names: Vec<String>`: The list of blacklisted names to lint about (defaults to `[\"foo\", \"bar\", \"baz\", \"quux\"] `).", 
       "Example": "```rust\nlet foo = 3.14;\n```", 
       "Known problems": "None."
     }, 
@@ -840,6 +844,7 @@
     "docs": {
       "What it does": "Checks for methods with high cyclomatic complexity.", 
       "Why is this bad": "Methods of high cyclomatic complexity tend to be badly\nreadable. Also LLVM will usually optimize small methods better.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `cyclomatic_complexity_threshold: u64`: The maximum cyclomatic complexity a function can have (defaults to `25 `).", 
       "Example": "No. You'll see it when you get the warning.", 
       "Known problems": "Sometimes it's hard to find a way to reduce the complexity."
     }, 
@@ -900,6 +905,7 @@
     "docs": {
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for empasis in markdown, this lint tries to\nconsider that.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc_valid_idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\",\n        \"OAuth\",\n        \"OpenGL\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTex\", \"BibLaTex\",\n        \"MinGW\",\n    ] `).", 
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
@@ -1536,6 +1542,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`", 
+      "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15 == 0`", 
+      "Example": "```rust\nx & 0x1111 == 0\n```", 
+      "Known problems": "llvm generates better code for `x & 15 == 0` on x86"
+    }, 
+    "id": "verbose_bit_mask", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for mapping `clone()` over an iterator.", 
       "Why is this bad": "It makes the code less readable than using the\n`.cloned()` adapter.", 
       "Example": "```rust\nx.map(|e| e.clone());\n```", 
@@ -1678,6 +1694,7 @@
     "docs": {
       "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
       "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `type_complexity_threshold: u64`: The maximum complexity a type can have (defaults to `250 `).", 
       "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
       "Known problems": "None."
     }, 
@@ -1758,6 +1775,7 @@
     "docs": {
       "What it does": "Checks for too many variables whose name consists of a\nsingle character.", 
       "Why is this bad": "It's hard to memorize what a variable means without a\ndescriptive name.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `single_char_binding_names_threshold: u64`: The maximum number of single char bindings a scope may have (defaults to `5 `).", 
       "Example": "```rust\nlet (a, b, c, d, e, f, g) = (...);\n```", 
       "Known problems": "None?"
     }, 
@@ -1906,6 +1924,7 @@
     "docs": {
       "What it does": "Checks for functions with too many parameters.", 
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `too_many_arguments_threshold: u64`: The maximum number of argument a function or method can have (defaults to `7 `).", 
       "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) { .. }\n```", 
       "Known problems": "None."
     }, 
