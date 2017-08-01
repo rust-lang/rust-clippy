@@ -21,6 +21,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Warns if an integral or floating-point constant is\ngrouped inconsistently with underscores.", 
+      "Why is this bad": "Readers may incorrectly interpret inconsistently\ngrouped digits.", 
+      "Example": "```rust\n618_64_9189_73_511\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "inconsistent_digit_grouping", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `.clone()` on an `&&T`.", 
       "Why is this bad": "Cloning an `&&T` copies the inner `&T`, instead of\ncloning the underlying `T`.", 
       "Example": "```rust\nfn main() {\n   let x = vec![1];\n   let y = &&x;\n   let z = y.clone();\n   println!(\"{:p} {:p}\",*y, z); // prints out the same pointer\n}\n```", 
@@ -292,6 +302,16 @@
       "Known problems": "None."
     }, 
     "id": "almost_swapped", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Warns if the digits of an integral or floating-point\nconstant are grouped into groups that\nare too large.", 
+      "Why is this bad": "Negatively impacts readability.", 
+      "Example": "```rust\n6186491_8973511\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "large_digit_groups", 
     "level": "Warn"
   }, 
   {
@@ -898,6 +918,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Warns if a long integral or floating-point constant does\nnot contain underscores.", 
+      "Why is this bad": "Reading long numbers is difficult without separators.", 
+      "Example": "```rust\n61864918973511\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "unreadable_literal", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for consecutive `if`s with the same condition.", 
       "Why is this bad": "This is probably a copy & paste error.", 
       "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
@@ -1447,7 +1477,7 @@
   {
     "docs": {
       "What it does": "Warns if an integral constant literal starts with `0`.", 
-      "Why is this bad": "In some languages (including the infamous C language and most of its\nfamilly), this marks an octal constant. In Rust however, this is a decimal constant. This could\nbe confusing for both the writer and a reader of the constant.", 
+      "Why is this bad": "In some languages (including the infamous C language and most of its\nfamily), this marks an octal constant. In Rust however, this is a decimal constant. This could\nbe confusing for both the writer and a reader of the constant.", 
       "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\nprints `123`, while in C:\n```c\n#include <stdio.h>\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\nprints `83` (as `83 == 0o123` while `123 == 0o173`).", 
       "Known problems": "None."
     }, 
