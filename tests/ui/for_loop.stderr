@@ -506,5 +506,73 @@ help: use the corresponding method
 344 |     for k in rm.keys() {
     |         ^
 
-error: aborting due to 51 previous errors
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:393:5
+    |
+393 | /     for i in 0..src.len() {
+394 | |         dst[i] = src[i];
+395 | |     }
+    | |_____^ help: try replacing the loop by: `dst.clone_from_slice(&src[..])`
+    |
+    = note: `-D manual-memcpy` implied by `-D warnings`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:398:5
+    |
+398 | /     for i in 0..src.len() {
+399 | |         dst[i + 10] = src[i];
+400 | |     }
+    | |_____^ help: try replacing the loop by: `dst[10..].clone_from_slice(&src[..])`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:403:5
+    |
+403 | /     for i in 0..src.len() {
+404 | |         dst[i] = src[i + 10];
+405 | |     }
+    | |_____^ help: try replacing the loop by: `dst.clone_from_slice(&src[10..])`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:408:5
+    |
+408 | /     for i in 11..src.len() {
+409 | |         dst[i] = src[i - 10];
+410 | |     }
+    | |_____^ help: try replacing the loop by: `dst[11..].clone_from_slice(&src[(11 + -10)..(src.len() + -10)])`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:413:5
+    |
+413 | /     for i in 0..dst.len() {
+414 | |         dst[i] = src[i];
+415 | |     }
+    | |_____^ help: try replacing the loop by: `dst.clone_from_slice(&src[..dst.len()])`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:426:5
+    |
+426 | /     for i in 10..256 {
+427 | |         dst[i] = src[i - 5];
+428 | |         dst2[i + 500] = src[i]
+429 | |     }
+    | |_____^ help: try replacing the loop by: `dst[10..].clone_from_slice(&src[(10 + -5)..(256 + -5)])`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:426:5
+    |
+426 | /     for i in 10..256 {
+427 | |         dst[i] = src[i - 5];
+428 | |         dst2[i + 500] = src[i]
+429 | |     }
+    | |_____^ help: try replacing the loop by: `dst2[(10 + 500)..].clone_from_slice(&src[10..256])`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:438:5
+    |
+438 | /     for i in 10..LOOP_OFFSET {
+439 | |         dst[i + LOOP_OFFSET] = src[i - some_var];
+440 | |     }
+    | |_____^ help: try replacing the loop by: `dst[(10 + LOOP_OFFSET)..].clone_from_slice(&src[(10 + -some_var)..(LOOP_OFFSET + -some_var)])`
+
+error: aborting due to 59 previous errors
 

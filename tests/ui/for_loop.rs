@@ -384,3 +384,63 @@ fn partition<T:PartialOrd+Send>(v: &mut [T]) -> usize {
     v.swap(i, pivot);
     i
 }
+
+const LOOP_OFFSET: usize = 5000;
+
+#[warn(needless_range_loop)]
+pub fn manual_copy(src: &[i32], dst: &mut[i32], dst2: &mut[i32]) {
+    // plain manual memcpy
+    for i in 0..src.len() {
+        dst[i] = src[i];
+    }
+
+    // dst offset memcpy
+    for i in 0..src.len() {
+        dst[i + 10] = src[i];
+    }
+
+    // src offset memcpy
+    for i in 0..src.len() {
+        dst[i] = src[i + 10];
+    }
+
+    // src offset memcpy
+    for i in 11..src.len() {
+        dst[i] = src[i - 10];
+    }
+
+    // overwrite entire dst
+    for i in 0..dst.len() {
+        dst[i] = src[i];
+    }
+
+    // manual copy with branch - can't easily convert to memcpy!
+    for i in 0..src.len() {
+        dst[i] = src[i];
+        if dst[i] > 5 {
+            break;
+        }
+    }
+
+    // multiple copies - suggest two memcpy statements
+    for i in 10..256 {
+        dst[i] = src[i - 5];
+        dst2[i + 500] = src[i]
+    }
+
+    // this is a reversal - the copy lint shouldn't be triggered
+    for i in 10..LOOP_OFFSET {
+        dst[i + LOOP_OFFSET] = src[LOOP_OFFSET - i];
+    }
+
+    let some_var = 5;
+    // Offset in variable
+    for i in 10..LOOP_OFFSET {
+        dst[i + LOOP_OFFSET] = src[i - some_var];
+    }
+
+    // Non continuous copy - don't trigger lint
+    for i in 0..10 {
+        dst[i + i] = src[i];
+    }
+}
