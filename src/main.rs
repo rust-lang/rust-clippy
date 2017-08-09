@@ -1,7 +1,6 @@
 // error-pattern:yummy
 #![feature(box_syntax)]
 #![feature(rustc_private)]
-
 #![allow(unknown_lints, missing_docs_in_private_items)]
 
 extern crate clippy_lints;
@@ -12,9 +11,9 @@ extern crate rustc_errors;
 extern crate rustc_plugin;
 extern crate syntax;
 
-use rustc_driver::{driver, CompilerCalls, RustcDefaultCalls, Compilation};
-use rustc::session::{config, Session, CompileIncomplete};
-use rustc::session::config::{Input, ErrorOutputType};
+use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
+use rustc::session::{config, CompileIncomplete, Session};
+use rustc::session::config::{ErrorOutputType, Input};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process::{self, Command};
@@ -79,13 +78,17 @@ impl<'a> CompilerCalls<'a> for ClippyCompilerCalls {
             let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
             control.after_parse.callback = Box::new(move |state| {
                 {
-                    let mut registry = rustc_plugin::registry::Registry::new(state.session,
-                                                                             state
-                                                                                 .krate
-                                                                                 .as_ref()
-                                                                                 .expect("at this compilation stage \
-                                                                                          the krate must be parsed")
-                                                                                 .span);
+                    let mut registry = rustc_plugin::registry::Registry::new(
+                        state.session,
+                        state
+                            .krate
+                            .as_ref()
+                            .expect(
+                                "at this compilation stage \
+                                 the krate must be parsed",
+                            )
+                            .span,
+                    );
                     registry.args_hidden = Some(Vec::new());
                     clippy_lints::register_plugins(&mut registry);
 
@@ -191,55 +194,59 @@ pub fn main() {
                 process::exit(101);
             };
 
-        let manifest_path = manifest_path_arg.map(|arg| Path::new(&arg["--manifest-path=".len()..])
-            .canonicalize().expect("manifest path could not be canonicalized"));
+        let manifest_path = manifest_path_arg.map(|arg| {
+            Path::new(&arg["--manifest-path=".len()..])
+                .canonicalize()
+                .expect("manifest path could not be canonicalized")
+        });
 
         let package_index = {
-                if let Some(manifest_path) = manifest_path {
-                    metadata.packages.iter().position(|package| {
-                        let package_manifest_path = Path::new(&package.manifest_path)
-                            .canonicalize().expect("package manifest path could not be canonicalized");
-                        package_manifest_path == manifest_path
-                    })
-                } else {
-                    let package_manifest_paths: HashMap<_, _> =
-                        metadata.packages.iter()
-                        .enumerate()
-                        .map(|(i, package)| {
-                            let package_manifest_path = Path::new(&package.manifest_path)
-                                .parent()
-                                .expect("could not find parent directory of package manifest")
-                                .canonicalize()
-                                .expect("package directory cannot be canonicalized");
-                            (package_manifest_path, i)
-                        })
-                        .collect();
-
-                    let current_dir = std::env::current_dir()
-                        .expect("could not read current directory")
+            if let Some(manifest_path) = manifest_path {
+                metadata.packages.iter().position(|package| {
+                    let package_manifest_path = Path::new(&package.manifest_path)
                         .canonicalize()
-                        .expect("current directory cannot be canonicalized");
+                        .expect("package manifest path could not be canonicalized");
+                    package_manifest_path == manifest_path
+                })
+            } else {
+                let package_manifest_paths: HashMap<_, _> = metadata
+                    .packages
+                    .iter()
+                    .enumerate()
+                    .map(|(i, package)| {
+                        let package_manifest_path = Path::new(&package.manifest_path)
+                            .parent()
+                            .expect("could not find parent directory of package manifest")
+                            .canonicalize()
+                            .expect("package directory cannot be canonicalized");
+                        (package_manifest_path, i)
+                    })
+                    .collect();
 
-                    let mut current_path: &Path = &current_dir;
+                let current_dir = std::env::current_dir()
+                    .expect("could not read current directory")
+                    .canonicalize()
+                    .expect("current directory cannot be canonicalized");
 
-                    // This gets the most-recent parent (the one that takes the fewest `cd ..`s to
-                    // reach).
-                    loop {
-                        if let Some(&package_index) = package_manifest_paths.get(current_path) {
-                            break Some(package_index);
-                        }
-                        else {
-                            // We'll never reach the filesystem root, because to get to this point in the code
-                            // the call to `cargo_metadata::metadata` must have succeeded. So it's okay to
-                            // unwrap the current path's parent.
-                            current_path = current_path
-                                .parent()
-                                .unwrap_or_else(|| panic!("could not find parent of path {}", current_path.display()));
-                        }
+                let mut current_path: &Path = &current_dir;
+
+                // This gets the most-recent parent (the one that takes the fewest `cd ..`s to
+                // reach).
+                loop {
+                    if let Some(&package_index) = package_manifest_paths.get(current_path) {
+                        break Some(package_index);
+                    } else {
+                        // We'll never reach the filesystem root, because to get to this point in the
+                        // code
+                        // the call to `cargo_metadata::metadata` must have succeeded. So it's okay to
+                        // unwrap the current path's parent.
+                        current_path = current_path
+                            .parent()
+                            .unwrap_or_else(|| panic!("could not find parent of path {}", current_path.display()));
                     }
                 }
             }
-            .expect("could not find matching package");
+        }.expect("could not find matching package");
 
         let package = metadata.packages.remove(package_index);
         for target in package.targets {
@@ -250,9 +257,11 @@ pub fn main() {
                         std::process::exit(code);
                     }
                 } else if ["bin", "example", "test", "bench"].contains(&&**first) {
-                    if let Err(code) = process(vec![format!("--{}", first), target.name]
-                                                   .into_iter()
-                                                   .chain(args)) {
+                    if let Err(code) = process(
+                        vec![format!("--{}", first), target.name]
+                            .into_iter()
+                            .chain(args),
+                    ) {
                         std::process::exit(code);
                     }
                 }
@@ -280,7 +289,9 @@ pub fn main() {
                         .and_then(|out| String::from_utf8(out.stdout).ok())
                         .map(|s| s.trim().to_owned())
                 })
-                .expect("need to specify SYSROOT env var during clippy compilation, or use rustup or multirust")
+                .expect(
+                    "need to specify SYSROOT env var during clippy compilation, or use rustup or multirust",
+                )
         };
 
         rustc_driver::in_rustc_thread(|| {
@@ -310,13 +321,13 @@ pub fn main() {
             if let Err(CompileIncomplete::Errored(_)) = result {
                 std::process::exit(1);
             }
-        })
-                .expect("rustc_thread failed");
+        }).expect("rustc_thread failed");
     }
 }
 
 fn process<I>(old_args: I) -> Result<(), i32>
-    where I: Iterator<Item = String>
+where
+    I: Iterator<Item = String>,
 {
 
     let mut args = vec!["rustc".to_owned()];

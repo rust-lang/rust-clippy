@@ -13,9 +13,10 @@ extern crate clippy_lints;
 pub fn plugin_registrar(reg: &mut Registry) {
     if let Ok(lint_store) = reg.sess.lint_store.try_borrow() {
         if lint_store
-               .get_lint_groups()
-               .iter()
-               .any(|&(s, _, _)| s == "clippy") {
+            .get_lint_groups()
+            .iter()
+            .any(|&(s, _, _)| s == "clippy")
+        {
             reg.sess
                 .struct_warn("running cargo clippy on a crate that also imports the clippy plugin")
                 .emit();

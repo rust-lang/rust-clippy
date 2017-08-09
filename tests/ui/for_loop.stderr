@@ -555,16 +555,13 @@ error: it looks like you're manually copying between slices
 427 | |         dst[i] = src[i - 5];
 428 | |         dst2[i + 500] = src[i]
 429 | |     }
-    | |_____^ help: try replacing the loop by: `dst[10..].clone_from_slice(&src[(10 - 5)..(256 - 5)])`
-
-error: it looks like you're manually copying between slices
-   --> $DIR/for_loop.rs:426:5
+    | |_____^
     |
-426 | /     for i in 10..256 {
-427 | |         dst[i] = src[i - 5];
-428 | |         dst2[i + 500] = src[i]
-429 | |     }
-    | |_____^ help: try replacing the loop by: `dst2[(10 + 500)..].clone_from_slice(&src[10..256])`
+help: try replacing the loop by
+    |
+426 |     dst[10..].clone_from_slice(&src[(10 - 5)..(256 - 5)])
+427 |     dst2[(10 + 500)..].clone_from_slice(&src[10..256])
+    |
 
 error: it looks like you're manually copying between slices
    --> $DIR/for_loop.rs:438:5
@@ -573,6 +570,14 @@ error: it looks like you're manually copying between slices
 439 | |         dst[i + LOOP_OFFSET] = src[i - some_var];
 440 | |     }
     | |_____^ help: try replacing the loop by: `dst[(10 + LOOP_OFFSET)..].clone_from_slice(&src[(10 - some_var)..(LOOP_OFFSET - some_var)])`
+
+error: it looks like you're manually copying between slices
+   --> $DIR/for_loop.rs:451:5
+    |
+451 | /     for i in 0..src_vec.len() {
+452 | |         dst_vec[i] = src_vec[i];
+453 | |     }
+    | |_____^ help: try replacing the loop by: `dst_vec.clone_from_slice(&src_vec[..])`
 
 error: aborting due to 59 previous errors
 

@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use reexport::*;
 use rustc::hir::*;
 use rustc::hir::def::Def;
@@ -636,8 +637,7 @@ struct FixedOffsetVar {
 fn is_slice_like<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, ty: Ty) -> bool {
     let is_slice = match ty.sty {
         ty::TyRef(_, ref subty) => is_slice_like(cx, subty.ty),
-        ty::TySlice(..) => true,
-        ty::TyArray(..) => true,
+        ty::TySlice(..) | ty::TyArray(..) => true,
         _ => false,
     };
 
@@ -774,18 +774,18 @@ fn detect_manual_memcpy<'a, 'tcx>(
 
             let print_limit = |end: &Option<&Expr>, offset: Offset, var_name: &str| if let Some(end) = *end {
                 if_let_chain! {[
-                        let ExprMethodCall(ref method, _, ref len_args) = end.node,
-                        method.name == "len",
-                        len_args.len() == 1,
-                        let Some(arg) = len_args.get(0),
-                        snippet(cx, arg.span, "??") == var_name,
-                    ], {
-                        return if offset.negate {
-                            format!("({} - {})", snippet(cx, end.span, "<src>.len()"), offset.value)
-                        } else {
-                            "".to_owned()
-                        };
-                    }}
+                    let ExprMethodCall(ref method, _, ref len_args) = end.node,
+                    method.name == "len",
+                    len_args.len() == 1,
+                    let Some(arg) = len_args.get(0),
+                    snippet(cx, arg.span, "??") == var_name,
+                ], {
+                    return if offset.negate {
+                        format!("({} - {})", snippet(cx, end.span, "<src>.len()"), offset.value)
+                    } else {
+                        "".to_owned()
+                    };
+                }}
 
                 let end_str = match limits {
                     ast::RangeLimits::Closed => {
@@ -804,24 +804,31 @@ fn detect_manual_memcpy<'a, 'tcx>(
             // indexed retrievals.
             let manual_copies = get_indexed_assignments(cx, body, def_id);
 
-            for (dst_var, src_var) in manual_copies {
-                let start_str = Offset::positive(snippet_opt(cx, start.span).unwrap_or_else(|| "".into()));
-                let dst_offset = print_sum(&start_str, &dst_var.offset);
-                let src_offset = print_sum(&start_str, &src_var.offset);
-                let src_limit = print_limit(end, src_var.offset, &src_var.var_name);
-                let dst = if dst_offset == "" {
-                    dst_var.var_name
-                } else {
-                    format!("{}[{}..]", dst_var.var_name, dst_offset)
-                };
+            let big_sugg = manual_copies
+                .into_iter()
+                .map(|(dst_var, src_var)| {
+                    let start_str = Offset::positive(snippet_opt(cx, start.span).unwrap_or_else(|| "".into()));
+                    let dst_offset = print_sum(&start_str, &dst_var.offset);
+                    let src_offset = print_sum(&start_str, &src_var.offset);
+                    let src_limit = print_limit(end, src_var.offset, &src_var.var_name);
+                    let dst = if dst_offset == "" {
+                        dst_var.var_name
+                    } else {
+                        format!("{}[{}..]", dst_var.var_name, dst_offset)
+                    };
 
+                    format!("{}.clone_from_slice(&{}[{}..{}])", dst, src_var.var_name, src_offset, src_limit)
+                })
+                .join("\n    ");
+
+            if !big_sugg.is_empty() {
                 span_lint_and_sugg(
                     cx,
                     MANUAL_MEMCPY,
                     expr.span,
                     "it looks like you're manually copying between slices",
                     "try replacing the loop by",
-                    format!("{}.clone_from_slice(&{}[{}..{}])", dst, src_var.var_name, src_offset, src_limit),
+                    big_sugg,
                 );
             }
         }
