@@ -443,4 +443,32 @@ pub fn manual_copy(src: &[i32], dst: &mut[i32], dst2: &mut[i32]) {
     for i in 0..10 {
         dst[i + i] = src[i];
     }
+
+    let src_vec = vec![1, 2, 3, 4, 5];
+    let mut dst_vec = vec![0, 0, 0, 0, 0];
+
+    // make sure vectors are supported
+    for i in 0..src_vec.len() {
+        dst_vec[i] = src_vec[i];
+    }
+
+    // lint should not trigger when either
+    // source or destination type is not
+    // slice-like, like DummyStruct
+    struct DummyStruct (i32);
+
+    impl ::std::ops::Index<usize> for DummyStruct {
+        type Output = i32;
+
+        fn index(&self, _: usize) -> &i32 {
+            &self.0
+        }
+    }
+    
+    let src = DummyStruct(5);
+    let mut dst_vec = vec![0; 10];
+    
+    for i in 0..10 {
+        dst_vec[i] = src[i];
+    }
 }
