@@ -2,7 +2,7 @@
   {
     "docs": {
       "What it does": "Checks for `for` loops over `Option` values.", 
-      "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.", 
+      "Why is this bad": "Readability. This is more clearly expressed as an `if let`.", 
       "Example": "```rust\nfor x in option { .. }\n```\nThis should be\n```rust\nif let Some(x) = option { .. }\n```", 
       "Known problems": "None."
     }, 
@@ -11,7 +11,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for operations where precedence may be unclear\nand suggests to add parentheses. Currently it catches the following:\n* mixed usage of arithmetic and bit shifting/combining operators without\nparentheses\n* a \"negative\" numeric literal (which is really a unary `-` followed by a\nnumeric literal)\n  followed by a method call", 
+      "What it does": "Checks for operations where precedence may be unclear\nand suggests to add parentheses. Currently it catches the following:\n* mixed usage of arithmetic and bit shifting/combining operators without parentheses\n* a \"negative\" numeric literal (which is really a unary `-` followed by a numeric literal)\n  followed by a method call", 
       "Why is this bad": "Not everyone knows the precedence of those operators by\nheart, so expressions like these may trip others trying to reason about the\ncode.", 
       "Example": "* `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7\n* `-1i32.abs()` equals -1, while `(-1i32).abs()` equals 1", 
       "Known problems": "None."
@@ -73,7 +73,7 @@
     "docs": {
       "What it does": "Checks for calls to `std::mem::drop` with a reference\ninstead of an owned value.", 
       "Why is this bad": "Calling `drop` on a reference will only drop the\nreference itself, which is a no-op. It will not call the `drop` method (from\nthe `Drop` trait implementation) on the underlying referenced value, which\nis likely what was intended.", 
-      "Example": "```rust\nlet mut lock_guard = mutex.lock();\nstd::mem::drop(&lock_guard) // Should have been drop(lock_guard), mutex\nstill locked\noperation_that_requires_mutex_to_be_unlocked();\n```", 
+      "Example": "```rust\nlet mut lock_guard = mutex.lock();\nstd::mem::drop(&lock_guard) // Should have been drop(lock_guard), mutex still locked\noperation_that_requires_mutex_to_be_unlocked();\n```", 
       "Known problems": "None."
     }, 
     "id": "drop_ref", 
@@ -92,7 +92,7 @@
   {
     "docs": {
       "What it does": "Checks for loops on `x.next()`.", 
-      "Why is this bad": "`next()` returns either `Some(value)` if there was a\nvalue, or `None` otherwise. The insidious thing is that `Option<_>`\nimplements `IntoIterator`, so that possibly one value will be iterated,\nleading to some hard to find bugs. No one will want to write such code\n[except to win an Underhanded Rust\nContest](https://www.reddit.\ncom/r/rust/comments/3hb0wm/underhanded_rust_contest/cu5yuhr).", 
+      "Why is this bad": "`next()` returns either `Some(value)` if there was a\nvalue, or `None` otherwise. The insidious thing is that `Option<_>`\nimplements `IntoIterator`, so that possibly one value will be iterated,\nleading to some hard to find bugs. No one will want to write such code\n[except to win an Underhanded Rust\nContest](https://www.reddit.com/r/rust/comments/3hb0wm/underhanded_rust_contest/cu5yuhr).", 
       "Example": "```rust\nfor x in y.next() { .. }\n```", 
       "Known problems": "None."
     }, 
@@ -101,8 +101,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for large size differences between variants on\n`enum`s.", 
-      "Why is this bad": "Enum size is bounded by the largest variant. Having a\nlarge variant\ncan penalize the memory layout of that enum.", 
+      "What it does": "Checks for large size differences between variants on `enum`s.", 
+      "Why is this bad": "Enum size is bounded by the largest variant. Having a large variant\ncan penalize the memory layout of that enum.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `enum_variant_size_threshold: u64`: The maximum size of a emum's variant to avoid box suggestion (defaults to `200 `).", 
       "Example": "```rust\nenum Test {\n   A(i32),\n   B([i32; 8000]),\n}\n```", 
       "Known problems": "None."
@@ -122,8 +122,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Detects closures called in the same expression where they\nare defined.", 
-      "Why is this bad": "It is unnecessarily adding to the expression's\ncomplexity.", 
+      "What it does": "Detects closures called in the same expression where they are defined.", 
+      "Why is this bad": "It is unnecessarily adding to the expression's complexity.", 
       "Example": "```rust\n(|| 42)()\n```", 
       "Known problems": "None."
     }, 
@@ -152,19 +152,19 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for compound assignment operations (`+=` and\nsimilar).", 
+      "What it does": "Checks for compound assignment operations (`+=` and similar).", 
       "Why is this bad": "Projects with many developers from languages without\nthose operations may find them unreadable and not worth their weight.", 
       "Example": "```rust\na += 1;\n```", 
-      "Known problems": "Types implementing `OpAssign` don't necessarily\nimplement `Op`."
+      "Known problems": "Types implementing `OpAssign` don't necessarily implement `Op`."
     }, 
     "id": "assign_ops", 
     "level": "Allow"
   }, 
   {
     "docs": {
-      "What it does": "Checks for the use of bindings with a single leading\nunderscore.", 
+      "What it does": "Checks for the use of bindings with a single leading underscore.", 
       "Why is this bad": "A single leading underscore is usually used to indicate\nthat a binding will not be used. Using such a binding breaks this\nexpectation.", 
-      "Example": "```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\nunderscore.\n                // We should rename `_x` to `x`\n```", 
+      "Example": "```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading underscore.\n                // We should rename `_x` to `x`\n```", 
       "Known problems": "The lint does not work properly with desugaring and\nmacro, it has been allowed in the mean time."
     }, 
     "id": "used_underscore_binding", 
@@ -173,7 +173,7 @@
   {
     "docs": {
       "What it does": "This lint checks for equality comparisons with `ptr::null`", 
-      "Why is this bad": "It's easier and more readable to use the inherent\n`.is_null()`\nmethod instead", 
+      "Why is this bad": "It's easier and more readable to use the inherent `.is_null()`\nmethod instead", 
       "Example": "```rust\nif x == ptr::null { .. }\n```", 
       "Known problems": "None."
     }, 
@@ -185,7 +185,7 @@
       "What it does": "Checks for public functions that dereferences raw pointer\narguments but are not marked unsafe.", 
       "Why is this bad": "The function should probably be marked `unsafe`, since\nfor an arbitrary raw pointer, there is no way of telling for sure if it is\nvalid.", 
       "Example": "```rust\npub fn foo(x: *const u8) { println!(\"{}\", unsafe { *x }); }\n```", 
-      "Known problems": "* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't\ntrigger.\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`)."
+      "Known problems": "* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't trigger.\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`)."
     }, 
     "id": "not_unsafe_ptr_arg_deref", 
     "level": "Warn"
@@ -328,8 +328,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usages of `Mutex<X>` where `X` is an integral\ntype.", 
-      "Why is this bad": "Using a mutex just to make access to a plain integer\nsequential is\nshooting flies with cannons. `std::atomic::usize` is leaner and faster.", 
+      "What it does": "Checks for usages of `Mutex<X>` where `X` is an integral type.", 
+      "Why is this bad": "Using a mutex just to make access to a plain integer sequential is\nshooting flies with cannons. `std::atomic::usize` is leaner and faster.", 
       "Example": "```rust\nlet x = Mutex::new(0usize);\n```", 
       "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section."
     }, 
@@ -358,7 +358,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for function arguments and let bindings denoted as\n`ref`.", 
+      "What it does": "Checks for function arguments and let bindings denoted as `ref`.", 
       "Why is this bad": "The `ref` declaration makes the function take an owned\nvalue, but turns the argument into a reference (which means that the value\nis destroyed when exiting the function). This adds not much value: either\ntake a reference type, or take an owned value and create references in the\nbody.\nFor let bindings, `let x = &foo;` is preferred over `let ref x = foo`. The\ntype of `x` is more obvious with the former.", 
       "Example": "```rust\nfn foo(ref x: u8) -> bool { .. }\n```", 
       "Known problems": "If the argument is dereferenced within the function,\nremoving the `ref` will lead to errors. This can be fixed by removing the\ndereferences, e.g. changing `*x` to `x` within the function."
@@ -389,7 +389,7 @@
   {
     "docs": {
       "What it does": "Checks for `0.0 / 0.0`.", 
-      "Why is this bad": "It's less readable than `std::f32::NAN` or\n`std::f64::NAN`.", 
+      "Why is this bad": "It's less readable than `std::f32::NAN` or `std::f64::NAN`.", 
       "Example": "```rust\n0.0f32 / 0.0\n```", 
       "Known problems": "None."
     }, 
@@ -400,7 +400,7 @@
     "docs": {
       "What it does": "Checks for transmutes between a type `T` and `*T`.", 
       "Why is this bad": "It's easy to mistakenly transmute between a type and a\npointer to that type.", 
-      "Example": "```rust\ncore::intrinsics::transmute(t)` // where the result type is the same as\n`*t` or `&t`'s\n```", 
+      "Example": "```rust\ncore::intrinsics::transmute(t)` // where the result type is the same as `*t` or `&t`'s\n```", 
       "Known problems": "None."
     }, 
     "id": "crosspointer_transmute", 
@@ -438,7 +438,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `std::mem::forget(t)` where `t` is\n`Drop`.", 
+      "What it does": "Checks for usage of `std::mem::forget(t)` where `t` is `Drop`.", 
       "Why is this bad": "`std::mem::forget(t)` prevents `t` from running its\ndestructor, possibly causing leaks.", 
       "Example": "```rust\nmem::forget(Rc::new(55)))\n```", 
       "Known problems": "None."
@@ -480,7 +480,7 @@
     "docs": {
       "What it does": "Checks for mis-uses of the serde API.", 
       "Why is this bad": "Serde is very finnicky about how its API should be\nused, but the type system can't be used to enforce it (yet).", 
-      "Example": "Implementing `Visitor::visit_string` but not\n`Visitor::visit_str`.", 
+      "Example": "Implementing `Visitor::visit_string` but not `Visitor::visit_str`.", 
       "Known problems": "None."
     }, 
     "id": "serde_api_misuse", 
@@ -490,7 +490,7 @@
     "docs": {
       "What it does": "Checks for closures which just call another function where\nthe function can be called directly. `unsafe` functions or calls where types\nget adjusted are ignored.", 
       "Why is this bad": "Needlessly creating a closure adds code for no benefit\nand gives the optimizer more work.", 
-      "Example": "```rust\nxs.map(|x| foo(x))\n```\nwhere `foo(_)` is a plain function that takes the exact argument type of\n`x`.", 
+      "Example": "```rust\nxs.map(|x| foo(x))\n```\nwhere `foo(_)` is a plain function that takes the exact argument type of `x`.", 
       "Known problems": "None."
     }, 
     "id": "redundant_closure", 
@@ -508,7 +508,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for zipping a collection with the range of\n`0.._.len()`.", 
+      "What it does": "Checks for zipping a collection with the range of `0.._.len()`.", 
       "Why is this bad": "The code is better expressed with `.enumerate()`.", 
       "Example": "```rust\nx.iter().zip(0..x.len())\n```", 
       "Known problems": "None."
@@ -527,8 +527,8 @@
   {
     "docs": {
       "What it does": "Checks for useless borrowed references.", 
-      "Why is this bad": "It is completely useless and make the code look more\ncomplex than it\nactually is.", 
-      "Example": "```rust\n    let mut v = Vec::<String>::new();\n    let _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\nThis clojure takes a reference on something that has been matched as a\nreference and\nde-referenced.\nAs such, it could just be |a| a.is_empty()", 
+      "Why is this bad": "It is completely useless and make the code look more complex than it\nactually is.", 
+      "Example": "```rust\n    let mut v = Vec::<String>::new();\n    let _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\nThis clojure takes a reference on something that has been matched as a reference and\nde-referenced.\nAs such, it could just be |a| a.is_empty()", 
       "Known problems": "None."
     }, 
     "id": "needless_borrowed_reference", 
@@ -556,8 +556,8 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint checks for function arguments of type `&String`\nor `&Vec` unless\nthe references are mutable.", 
-      "Why is this bad": "Requiring the argument to be of the specific size\nmakes the function less\nuseful for no benefit; slices in the form of `&[T]` or `&str` usually\nsuffice and can be\nobtained from other types, too.", 
+      "What it does": "This lint checks for function arguments of type `&String` or `&Vec` unless\nthe references are mutable.", 
+      "Why is this bad": "Requiring the argument to be of the specific size makes the function less\nuseful for no benefit; slices in the form of `&[T]` or `&str` usually suffice and can be\nobtained from other types, too.", 
       "Example": "```rust\nfn foo(&Vec<u32>) { .. }\n```", 
       "Known problems": "None."
     }, 
@@ -576,10 +576,10 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `extern crate` and `use` items annotated with\nlint attributes", 
-      "Why is this bad": "Lint attributes have no effect on crate imports. Most\nlikely a `!` was\nforgotten", 
+      "What it does": "Checks for `extern crate` and `use` items annotated with lint attributes", 
+      "Why is this bad": "Lint attributes have no effect on crate imports. Most likely a `!` was\nforgotten", 
       "Example": "```rust\n#[deny(dead_code)]\nextern crate foo;\n#[allow(unused_import)]\nuse foo::bar;\n```", 
-      "Known problems": "Technically one might allow `unused_import` on a `use`\nitem,\nbut it's easier to remove the unused item."
+      "Known problems": "Technically one might allow `unused_import` on a `use` item,\nbut it's easier to remove the unused item."
     }, 
     "id": "useless_attribute", 
     "level": "Warn"
@@ -644,8 +644,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for the use of short circuit boolean conditions as\na\nstatement.", 
-      "Why is this bad": "Using a short circuit boolean condition as a statement\nmay\nhide the fact that the second part is executed or not depending on the\noutcome of\nthe first part.", 
+      "What it does": "Checks for the use of short circuit boolean conditions as a\nstatement.", 
+      "Why is this bad": "Using a short circuit boolean condition as a statement may\nhide the fact that the second part is executed or not depending on the outcome of\nthe first part.", 
       "Example": "```rust\nf() && g();  // We should write `if f() { g(); }`.\n```", 
       "Known problems": "None."
     }, 
@@ -674,7 +674,7 @@
   {
     "docs": {
       "What it does": "Detects `loop + match` combinations that are easier\nwritten as a `while let` loop.", 
-      "Why is this bad": "The `while let` loop is usually shorter and more\nreadable.", 
+      "Why is this bad": "The `while let` loop is usually shorter and more readable.", 
       "Example": "```rust\nloop {\n    let x = match y {\n        Some(x) => x,\n        None => break,\n    }\n    // .. do something with x\n}\n// is easier written as\nwhile let Some(x) = y {\n    // .. do something with x\n}\n```", 
       "Known problems": "Sometimes the wrong binding is displayed (#383)."
     }, 
@@ -683,7 +683,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `a = a op b` or `a = b commutative_op a`\npatterns.", 
+      "What it does": "Checks for `a = a op b` or `a = b commutative_op a` patterns.", 
       "Why is this bad": "These can be written as the shorter `a op= b`.", 
       "Example": "```rust\nlet mut a = 5;\n...\na = a + b;\n```", 
       "Known problems": "While forbidden by the spec, `OpAssign` traits may have\nimplementations that differ from the regular `Op` impl."
@@ -693,7 +693,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Warns on hexadecimal literals with mixed-case letter\ndigits.", 
+      "What it does": "Warns on hexadecimal literals with mixed-case letter digits.", 
       "Why is this bad": "It looks confusing.", 
       "Example": "```rust\nlet y = 0x1a9BAcD;\n```", 
       "Known problems": "None."
@@ -793,7 +793,7 @@
   {
     "docs": {
       "What it does": "Checks for `enum`s with no variants.", 
-      "Why is this bad": "Enum's with no variants should be replaced with `!`,\nthe uninhabited type,\nor a wrapper around it.", 
+      "Why is this bad": "Enum's with no variants should be replaced with `!`, the uninhabited type,\nor a wrapper around it.", 
       "Example": "```rust\nenum Test {}\n```", 
       "Known problems": "None."
     }, 
@@ -846,7 +846,7 @@
       "Why is this bad": "Methods of high cyclomatic complexity tend to be badly\nreadable. Also LLVM will usually optimize small methods better.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `cyclomatic_complexity_threshold: u64`: The maximum cyclomatic complexity a function can have (defaults to `25 `).", 
       "Example": "No. You'll see it when you get the warning.", 
-      "Known problems": "Sometimes it's hard to find a way to reduce the\ncomplexity."
+      "Known problems": "Sometimes it's hard to find a way to reduce the complexity."
     }, 
     "id": "cyclomatic_complexity", 
     "level": "Warn"
@@ -906,7 +906,7 @@
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for empasis in markdown, this lint tries to\nconsider that.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `doc_valid_idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\",\n        \"OAuth\",\n        \"OpenGL\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTex\", \"BibLaTex\",\n        \"MinGW\",\n    ] `).", 
-      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\nthat::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
+      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
     "id": "doc_markdown", 
@@ -1054,8 +1054,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Warns if there is missing doc for any documentable item\n(public or private).", 
-      "Why is this bad": "Doc is good. *rustc* has a `MISSING_DOCS`\nallowed-by-default lint for\npublic members, but has no way to enforce documentation of private items.\nThis lint fixes that.", 
+      "What it does": "Warns if there is missing doc for any documentable item (public or private).", 
+      "Why is this bad": "Doc is good. *rustc* has a `MISSING_DOCS` allowed-by-default lint for\npublic members, but has no way to enforce documentation of private items. This lint fixes that.", 
       "Known problems": "None."
     }, 
     "id": "missing_docs_in_private_items", 
@@ -1143,10 +1143,10 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for diverging calls that are not match arms or\nstatements.", 
+      "What it does": "Checks for diverging calls that are not match arms or statements.", 
       "Why is this bad": "It is often confusing to read. In addition, the\nsub-expression evaluation order for Rust is not well documented.", 
       "Example": "```rust\nlet a = b() || panic!() || c();\n// `c()` is dead, `panic!()` is only called if `b()` returns `false`\nlet x = (a, b, c, panic!());\n// can simply be replaced by `panic!()`\n```", 
-      "Known problems": "Someone might want to use `some_bool || panic!()` as a\nshorthand."
+      "Known problems": "Someone might want to use `some_bool || panic!()` as a shorthand."
     }, 
     "id": "diverging_sub_expression", 
     "level": "Warn"
@@ -1172,7 +1172,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for arguments to `==` which have their address\ntaken to satisfy a bound\nand suggests to dereference the other argument instead", 
+      "What it does": "Checks for arguments to `==` which have their address taken to satisfy a bound\nand suggests to dereference the other argument instead", 
       "Why is this bad": "It is more idiomatic to dereference the other argument.", 
       "Example": "```rust\n&x == y\n```", 
       "Known problems": "None"
@@ -1192,8 +1192,8 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint warns when you using `print!()` with a format\nstring that\nends in a newline.", 
-      "Why is this bad": "You should use `println!()` instead, which appends the\nnewline.", 
+      "What it does": "This lint warns when you using `print!()` with a format string that\nends in a newline.", 
+      "Why is this bad": "You should use `println!()` instead, which appends the newline.", 
       "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```", 
       "Known problems": "None."
     }, 
@@ -1203,7 +1203,7 @@
   {
     "docs": {
       "What it does": "* Checks for unnecessary `ok()` in if let.", 
-      "Why is this bad": "Calling `ok()` in if let is unnecessary, instead match\non `Ok(pat)`", 
+      "Why is this bad": "Calling `ok()` in if let is unnecessary, instead match on `Ok(pat)`", 
       "Example": "```rust\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```\nCould be written:\n```rust\nfor result in iter {\n    if let Ok(bench) = try!(result).parse() {\n        vec.push(bench)\n    }\n}\n```", 
       "Known problems": "None."
     }, 
@@ -1232,7 +1232,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions and for `else { if ... }` expressions\nthat\ncan be collapsed to `else if ...`.", 
+      "What it does": "Checks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions and for `else { if ... }` expressions that\ncan be collapsed to `else if ...`.", 
       "Why is this bad": "Each `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.", 
       "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n// or\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\nShould be written:\n```rust.ignore\nif x && y {\n    \u2026\n}\n// or\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```", 
       "Known problems": "None."
@@ -1252,7 +1252,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Warns if literal suffixes are not separated by an\nunderscore.", 
+      "What it does": "Warns if literal suffixes are not separated by an underscore.", 
       "Why is this bad": "It is much less readable.", 
       "Example": "```rust\nlet y = 123832i32;\n```", 
       "Known problems": "None."
@@ -1302,7 +1302,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.\norg/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.\norg/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.", 
+      "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.", 
       "Why is this bad": "Usually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).", 
       "Example": "```rust\nlet x = 3.14;\n```", 
       "Known problems": "If you happen to have a value that is within 1/8192 of a\nknown constant, but is not *and should not* be the same, this lint will\nreport your value anyway. We have not yet noticed any false positives in\ncode we tested clippy with (this includes servo), but YMMV."
@@ -1372,7 +1372,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for expressions of the form `if c { true } else {\nfalse }`\n(or vice versa) and suggest using the condition directly.", 
+      "What it does": "Checks for expressions of the form `if c { true } else { false }`\n(or vice versa) and suggest using the condition directly.", 
       "Why is this bad": "Redundant code.", 
       "Example": "```rust\nif x { false } else { true }\n```", 
       "Known problems": "Maybe false positives: Sometimes, the two branches are\npainstakingly documented (which we of course do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code."
@@ -1382,7 +1382,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `let`-bindings, which are subsequently\nreturned.", 
+      "What it does": "Checks for `let`-bindings, which are subsequently returned.", 
       "Why is this bad": "It is just extraneous code. Remove it to make your code\nmore rusty.", 
       "Example": "```rust\n{ let x = ..; x }\n```", 
       "Known problems": "None."
@@ -1412,8 +1412,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for use of the non-existent `=*`, `=!` and `=-`\noperators.", 
-      "Why is this bad": "This is either a typo of `*=`, `!=` or `-=` or\nconfusing.", 
+      "What it does": "Checks for use of the non-existent `=*`, `=!` and `=-` operators.", 
+      "Why is this bad": "This is either a typo of `*=`, `!=` or `-=` or confusing.", 
       "Example": "```rust,ignore\na =- 42; // confusing, should it be `a -= 42` or `a = -42`?\n```", 
       "Known problems": "None."
     }, 
@@ -1423,7 +1423,7 @@
   {
     "docs": {
       "What it does": "Checks for `a op= a op b` or `a op= b op a` patterns.", 
-      "Why is this bad": "Most likely these are bugs where one meant to write `a\nop= b`.", 
+      "Why is this bad": "Most likely these are bugs where one meant to write `a op= b`.", 
       "Example": "```rust\nlet mut a = 5;\n...\na += a + b;\n```", 
       "Known problems": "Someone might actually mean `a op= a op b`, but that\nshould rather be written as `a = (2 * a) op b` where applicable."
     }, 
@@ -1443,8 +1443,8 @@
   {
     "docs": {
       "What it does": "Checks for calls to `std::mem::forget` with a value that\nderives the Copy trait", 
-      "Why is this bad": "Calling `std::mem::forget` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html) since the\nvalue will be copied and moved into the function on invocation.\nAn alternative, but also valid, explanation is that Copy types do not\nimplement\nthe Drop trait, which means they have no destructors. Without a destructor,\nthere\nis nothing for `std::mem::forget` to ignore.", 
-      "Example": "```rust\nlet x:i32 = 42;     // i32 implements Copy\nstd::mem::forget(x) // A copy of x is passed to the function, leaving the\noriginal unaffected\n```", 
+      "Why is this bad": "Calling `std::mem::forget` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html) since the\nvalue will be copied and moved into the function on invocation.\nAn alternative, but also valid, explanation is that Copy types do not implement\nthe Drop trait, which means they have no destructors. Without a destructor, there\nis nothing for `std::mem::forget` to ignore.", 
+      "Example": "```rust\nlet x:i32 = 42;     // i32 implements Copy\nstd::mem::forget(x) // A copy of x is passed to the function, leaving the original unaffected\n```", 
       "Known problems": "None."
     }, 
     "id": "forget_copy", 
@@ -1472,8 +1472,8 @@
   }, 
   {
     "docs": {
-      "What it does": "* Lint for redundant pattern matching over `Result` or\n`Option`", 
-      "Why is this bad": "It's more concise and clear to just use the proper\nutility function", 
+      "What it does": "* Lint for redundant pattern matching over `Result` or `Option`", 
+      "Why is this bad": "It's more concise and clear to just use the proper utility function", 
       "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\n```\nThe more idiomatic use would be:\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\n```", 
       "Known problems": "None."
     }, 
@@ -1483,7 +1483,7 @@
   {
     "docs": {
       "What it does": "Warns if an integral constant literal starts with `0`.", 
-      "Why is this bad": "In some languages (including the infamous C language\nand most of its\nfamily), this marks an octal constant. In Rust however, this is a decimal\nconstant. This could\nbe confusing for both the writer and a reader of the constant.", 
+      "Why is this bad": "In some languages (including the infamous C language and most of its\nfamily), this marks an octal constant. In Rust however, this is a decimal constant. This could\nbe confusing for both the writer and a reader of the constant.", 
       "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\nprints `123`, while in C:\n```c\n#include <stdio.h>\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\nprints `83` (as `83 == 0o123` while `123 == 0o173`).", 
       "Known problems": "None."
     }, 
@@ -1543,7 +1543,7 @@
   {
     "docs": {
       "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`", 
-      "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`", 
+      "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15 == 0`", 
       "Example": "```rust\nx & 0x1111 == 0\n```", 
       "Known problems": "llvm generates better code for `x & 15 == 0` on x86"
     }, 
@@ -1572,7 +1572,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for out of bounds array indexing with a constant\nindex.", 
+      "What it does": "Checks for out of bounds array indexing with a constant index.", 
       "Why is this bad": "This will always panic at runtime.", 
       "Example": "```rust\nlet x = [1,2,3,4];\n...\nx[9];\n&x[2..9];\n```", 
       "Known problems": "Hopefully none."
@@ -1583,7 +1583,7 @@
   {
     "docs": {
       "What it does": "Checks for calls to `std::mem::forget` with a reference\ninstead of an owned value.", 
-      "Why is this bad": "Calling `forget` on a reference will only forget the\nreference itself, which is a no-op. It will not forget the underlying\nreferenced\nvalue, which is likely what was intended.", 
+      "Why is this bad": "Calling `forget` on a reference will only forget the\nreference itself, which is a no-op. It will not forget the underlying referenced\nvalue, which is likely what was intended.", 
       "Example": "```rust\nlet x = Box::new(1);\nstd::mem::forget(&x) // Should have been forget(x), x will still be dropped\n```", 
       "Known problems": "None."
     }, 
@@ -1612,7 +1612,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.", 
+      "What it does": "Checks for getting the inner pointer of a temporary `CString`.", 
       "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.", 
       "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\ncall_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
       "Known problems": "None."
@@ -1653,7 +1653,7 @@
   {
     "docs": {
       "What it does": "Checks for methods that should live in a trait\nimplementation of a `std` trait (see [llogiq's blog\npost](http://llogiq.github.io/2015/07/30/traits.html) for further\ninformation) instead of an inherent implementation.", 
-      "Why is this bad": "Implementing the traits improve ergonomics for users of\nthe code, often with very little cost. Also people seeing a `mul(...)`\nmethod\nmay expect `*` to work equally, so you should have good reason to disappoint\nthem.", 
+      "Why is this bad": "Implementing the traits improve ergonomics for users of\nthe code, often with very little cost. Also people seeing a `mul(...)` method\nmay expect `*` to work equally, so you should have good reason to disappoint\nthem.", 
       "Example": "```rust\nstruct X;\nimpl X {\n   fn add(&self, other: &X) -> X { .. }\n}\n```", 
       "Known problems": "None."
     }, 
@@ -1663,7 +1663,7 @@
   {
     "docs": {
       "What it does": "Checks for usage of any `LinkedList`, suggesting to use a\n`Vec` or a `VecDeque` (formerly called `RingBuf`).", 
-      "Why is this bad": "Gankro says:\n> The TL;DR of `LinkedList` is that it's built on a massive amount of\npointers and indirection.\n> It wastes memory, it has terrible cache locality, and is all-around slow.\n`RingBuf`, while\n> \"only\" amortized for push/pop, should be faster in the general case for\nalmost every possible\n> workload, and isn't even amortized at all if you can predict the capacity\nyou need.\n>\n> `LinkedList`s are only really good if you're doing a lot of merging or\nsplitting of lists.\n> This is because they can just mangle some pointers instead of actually\ncopying the data. Even\n> if you're doing a lot of insertion in the middle of the list, `RingBuf`\ncan still be better\n> because of how expensive it is to seek to the middle of a `LinkedList`.", 
+      "Why is this bad": "Gankro says:\n> The TL;DR of `LinkedList` is that it's built on a massive amount of pointers and indirection.\n> It wastes memory, it has terrible cache locality, and is all-around slow. `RingBuf`, while\n> \"only\" amortized for push/pop, should be faster in the general case for almost every possible\n> workload, and isn't even amortized at all if you can predict the capacity you need.\n>\n> `LinkedList`s are only really good if you're doing a lot of merging or splitting of lists.\n> This is because they can just mangle some pointers instead of actually copying the data. Even\n> if you're doing a lot of insertion in the middle of the list, `RingBuf` can still be better\n> because of how expensive it is to seek to the middle of a `LinkedList`.", 
       "Example": "```rust\nlet x = LinkedList::new();\n```", 
       "Known problems": "False positives \u2013 the instances where using a\n`LinkedList` makes sense are few and far between, but they can still happen."
     }, 
@@ -1703,7 +1703,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for the use of `.cloned().collect()` on slice to\ncreate a `Vec`.", 
+      "What it does": "Checks for the use of `.cloned().collect()` on slice to create a `Vec`.", 
       "Why is this bad": "`.to_vec()` is clearer", 
       "Example": "```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s.to_vec();\n```", 
       "Known problems": "None."
@@ -1733,8 +1733,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for modules that have the same name as their\nparent module", 
-      "Why is this bad": "A typical beginner mistake is to have `mod foo;` and\nagain `mod foo { ..\n}` in `foo.rs`.\nThe expectation is that items inside the inner `mod foo { .. }` are then\navailable\nthrough `foo::x`, but they are only available through\n`foo::foo::x`.\nIf this is done on purpose, it would be better to choose a more\nrepresentative module name.", 
+      "What it does": "Checks for modules that have the same name as their parent module", 
+      "Why is this bad": "A typical beginner mistake is to have `mod foo;` and again `mod foo { ..\n}` in `foo.rs`.\nThe expectation is that items inside the inner `mod foo { .. }` are then\navailable\n                     through `foo::x`, but they are only available through `foo::foo::x`.\nIf this is done on purpose, it would be better to choose a more\nrepresentative module name.", 
       "Example": "```rust\n// lib.rs\nmod foo;\n// foo.rs\nmod foo {\n    ...\n}\n```", 
       "Known problems": "None."
     }, 
@@ -1743,9 +1743,9 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `assert!(x == y)` or `assert!(x != y)` which\ncan be better written\nusing `assert_eq` or `assert_ne` if `x` and `y` implement `Debug` trait.", 
-      "Why is this bad": "`assert_eq` and `assert_ne` provide better assertion\nfailure reporting.", 
-      "Example": "```rust\nlet (x, y) = (1, 2);\nassert!(x == y);  // assertion failed: x == y\nassert_eq!(x, y); // assertion failed: `(left == right)` (left: `1`, right:\n`2`)\n```", 
+      "What it does": "Checks for `assert!(x == y)` or `assert!(x != y)` which can be better written\nusing `assert_eq` or `assert_ne` if `x` and `y` implement `Debug` trait.", 
+      "Why is this bad": "`assert_eq` and `assert_ne` provide better assertion failure reporting.", 
+      "Example": "```rust\nlet (x, y) = (1, 2);\nassert!(x == y);  // assertion failed: x == y\nassert_eq!(x, y); // assertion failed: `(left == right)` (left: `1`, right: `2`)\n```", 
       "Known problems": "Hopefully none."
     }, 
     "id": "should_assert_eq", 
@@ -1856,7 +1856,7 @@
     "docs": {
       "What it does": "Checks for calls to `std::mem::drop` with a value\nthat derives the Copy trait", 
       "Why is this bad": "Calling `std::mem::drop` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html), since the\nvalue will be copied and moved into the function on invocation.", 
-      "Example": "```rust\nlet x:i32 = 42;   // i32 implements Copy\nstd::mem::drop(x) // A copy of x is passed to the function, leaving the\noriginal unaffected\n```", 
+      "Example": "```rust\nlet x:i32 = 42;   // i32 implements Copy\nstd::mem::drop(x) // A copy of x is passed to the function, leaving the original unaffected\n```", 
       "Known problems": "None."
     }, 
     "id": "drop_copy", 
@@ -1864,8 +1864,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for functions taking arguments by value, but not\nconsuming them in its\nbody.", 
-      "Why is this bad": "Taking arguments by reference is more flexible and can\nsometimes avoid\nunnecessary allocations.", 
+      "What it does": "Checks for functions taking arguments by value, but not consuming them in its\nbody.", 
+      "Why is this bad": "Taking arguments by reference is more flexible and can sometimes avoid\nunnecessary allocations.", 
       "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n```", 
       "Known problems": "Hopefully none."
     }, 
@@ -1894,7 +1894,7 @@
     "docs": {
       "What it does": "Checks for the Unicode zero-width space in the code.", 
       "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.", 
-      "Example": "You don't see it, but there may be a zero-width space\nsomewhere in this text.", 
+      "Example": "You don't see it, but there may be a zero-width space somewhere in this text.", 
       "Known problems": "None."
     }, 
     "id": "zero_width_space", 
@@ -1912,10 +1912,10 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint checks for functions that take immutable\nreferences and return\nmutable ones.", 
-      "Why is this bad": "This is trivially unsound, as one can create two\nmutable references\nfrom the same (immutable!) source. This\n[error](https://github.com/rust-lang/rust/issues/39465)\nactually lead to an interim Rust release 1.15.1.", 
+      "What it does": "This lint checks for functions that take immutable references and return\nmutable ones.", 
+      "Why is this bad": "This is trivially unsound, as one can create two mutable references\nfrom the same (immutable!) source. This [error](https://github.com/rust-lang/rust/issues/39465)\nactually lead to an interim Rust release 1.15.1.", 
       "Example": "```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```", 
-      "Known problems": "To be on the conservative side, if there's at least one\nmutable reference\nwith the output lifetime, this lint will not trigger. In practice, this\ncase is unlikely anyway."
+      "Known problems": "To be on the conservative side, if there's at least one mutable reference\nwith the output lifetime, this lint will not trigger. In practice, this case is unlikely anyway."
     }, 
     "id": "mut_from_ref", 
     "level": "Warn"
@@ -1925,7 +1925,7 @@
       "What it does": "Checks for functions with too many parameters.", 
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `too_many_arguments_threshold: u64`: The maximum number of argument a function or method can have (defaults to `7 `).", 
-      "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b:\nf32) { .. }\n```", 
+      "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) { .. }\n```", 
       "Known problems": "None."
     }, 
     "id": "too_many_arguments", 
@@ -1934,7 +1934,7 @@
   {
     "docs": {
       "What it does": "Checks for unused written/read amount.", 
-      "Why is this bad": "`io::Write::write` and `io::Read::read` are not\nguaranteed to\nprocess the entire buffer. They return how many bytes were processed, which\nmight be smaller\nthan a given buffer's length. If you don't need to deal with\npartial-write/read, use\n`write_all`/`read_exact` instead.", 
+      "Why is this bad": "`io::Write::write` and `io::Read::read` are not guaranteed to\nprocess the entire buffer. They return how many bytes were processed, which might be smaller\nthan a given buffer's length. If you don't need to deal with partial-write/read, use\n`write_all`/`read_exact` instead.", 
       "Example": "```rust,ignore\nuse std::io;\nfn foo<W: io::Write>(w: &mut W) -> io::Result<()> {\n    // must be `w.write_all(b\"foo\")?;`\n    w.write(b\"foo\")?;\n    Ok(())\n}\n```", 
       "Known problems": "Detects only common patterns."
     }, 
@@ -1944,7 +1944,7 @@
   {
     "docs": {
       "What it does": "Checks for patterns in the form `name @ _`.", 
-      "Why is this bad": "It's almost always more readable to just use direct\nbindings.", 
+      "Why is this bad": "It's almost always more readable to just use direct bindings.", 
       "Example": "```rust\nmatch v {\n    Some(x) => (),\n    y @ _   => (), // easier written as `y`,\n}\n```", 
       "Known problems": "None."
     }, 
@@ -2022,7 +2022,7 @@
   {
     "docs": {
       "What it does": "Checks for use of `&Box<T>` anywhere in the code.", 
-      "Why is this bad": "Any `&Box<T>` can also be a `&T`, which is more\ngeneral.", 
+      "Why is this bad": "Any `&Box<T>` can also be a `&T`, which is more general.", 
       "Example": "```rust\nfn foo(bar: &Box<T>) { ... }\n```", 
       "Known problems": "None."
     }, 
@@ -2082,7 +2082,7 @@
   {
     "docs": {
       "What it does": "Checks for `for` loops over `Result` values.", 
-      "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.", 
+      "Why is this bad": "Readability. This is more clearly expressed as an `if let`.", 
       "Example": "```rust\nfor x in result { .. }\n```\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
       "Known problems": "None."
     }, 
