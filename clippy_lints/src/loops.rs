@@ -24,8 +24,7 @@ use utils::paths;
 ///
 /// **Why is this bad?** It is not as fast as a memcpy.
 ///
-/// **Known problems:** The lint assumes the data structure being indexed is
-/// slice-like and will produce false positives when it is not.
+/// **Known problems:** None.
 ///
 /// **Example:**
 /// ```rust
@@ -633,6 +632,17 @@ struct FixedOffsetVar {
     offset: Offset,
 }
 
+fn is_slice_like<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, ty: Ty) -> bool {
+    let is_slice = match ty.sty {
+        ty::TyRef(_, ref subty) => is_slice_like(cx, subty.ty),
+        ty::TySlice(..) => true,
+        ty::TyArray(..) => true,
+        _ => false,
+    };
+
+    is_slice || match_type(cx, ty, &paths::VEC) || match_type(cx, ty, &paths::VEC_DEQUE)
+}
+
 fn get_fixed_offset_var<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &Expr, var: DefId) -> Option<FixedOffsetVar> {
     fn extract_offset<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, e: &Expr, var: DefId) -> Option<String> {
         match e.node {
@@ -646,6 +656,11 @@ fn get_fixed_offset_var<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &Expr, var: 
     }
 
     if let ExprIndex(ref seqexpr, ref idx) = expr.node {
+        let ty = cx.tables.expr_ty(seqexpr);
+        if !is_slice_like(cx, ty) {
+            return None;
+        }
+
         let offset = match idx.node {
             ExprBinary(op, ref lhs, ref rhs) => match op.node {
                 BinOp_::BiAdd => {
@@ -752,7 +767,7 @@ fn detect_manual_memcpy<'a, 'tcx>(
                     (x, false, y, false) => format!("({} + {})", x, y),
                     (x, false, y, true) => format!("({} - {})", x, y),
                     (x, true, y, false) => format!("({} - {})", y, x),
-                    (x, true, y, true) => format!("(-{} - {})", x, y),
+                    (x, true, y, true) => format!("-({} + {})", x, y),
                 }
             };
 
