@@ -1,7 +1,6 @@
 // error-pattern:yummy
 #![feature(box_syntax)]
 #![feature(rustc_private)]
-
 #![allow(unknown_lints, missing_docs_in_private_items)]
 
 extern crate clippy_lints;
@@ -12,9 +11,9 @@ extern crate rustc_errors;
 extern crate rustc_plugin;
 extern crate syntax;
 
-use rustc_driver::{driver, CompilerCalls, RustcDefaultCalls, Compilation};
-use rustc::session::{config, Session, CompileIncomplete};
-use rustc::session::config::{Input, ErrorOutputType};
+use rustc_driver::{driver, Compilation, CompilerCalls, RustcDefaultCalls};
+use rustc::session::{config, CompileIncomplete, Session};
+use rustc::session::config::{ErrorOutputType, Input};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::process::{self, Command};
@@ -102,7 +101,7 @@ impl<'a> CompilerCalls<'a> for ClippyCompilerCalls {
                             .as_ref()
                             .expect(
                                 "at this compilation stage \
-                                                                                          the krate must be parsed",
+                                 the krate must be parsed",
                             )
                             .span,
                     );
