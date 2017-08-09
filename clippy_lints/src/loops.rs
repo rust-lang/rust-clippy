@@ -607,9 +607,30 @@ fn same_var<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &Expr, var: DefId) -> bo
     false
 }
 
+struct Offset {
+    value: String,
+    negate: bool,
+}
+
+impl Offset {
+    fn negative(s: String) -> Offset {
+        Offset {
+            value: s,
+            negate: true,
+        }
+    }
+
+    fn positive(s: String) -> Offset {
+        Offset {
+            value: s,
+            negate: false,
+        }
+    }
+}
+
 struct FixedOffsetVar {
     var_name: String,
-    offset: String,
+    offset: Offset,
 }
 
 fn get_fixed_offset_var<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &Expr, var: DefId) -> Option<FixedOffsetVar> {
@@ -627,18 +648,22 @@ fn get_fixed_offset_var<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &Expr, var: 
     if let ExprIndex(ref seqexpr, ref idx) = expr.node {
         let offset = match idx.node {
             ExprBinary(op, ref lhs, ref rhs) => match op.node {
-                BinOp_::BiAdd => if same_var(cx, lhs, var) {
-                    extract_offset(cx, rhs, var)
-                } else if same_var(cx, rhs, var) {
-                    extract_offset(cx, lhs, var)
-                } else {
-                    None
+                BinOp_::BiAdd => {
+                    let offset_opt = if same_var(cx, lhs, var) {
+                        extract_offset(cx, rhs, var)
+                    } else if same_var(cx, rhs, var) {
+                        extract_offset(cx, lhs, var)
+                    } else {
+                        None
+                    };
+
+                    offset_opt.map(Offset::positive)
                 },
-                BinOp_::BiSub if same_var(cx, lhs, var) => extract_offset(cx, rhs, var).map(|o| format!("-{}", o)),
+                BinOp_::BiSub if same_var(cx, lhs, var) => extract_offset(cx, rhs, var).map(Offset::negative),
                 _ => None,
             },
             ExprPath(..) => if same_var(cx, idx, var) {
-                Some("0".into())
+                Some(Offset::positive("0".into()))
             } else {
                 None
             },
@@ -719,15 +744,19 @@ fn detect_manual_memcpy<'a, 'tcx>(
     {
         // the var must be a single name
         if let PatKind::Binding(_, def_id, _, _) = pat.node {
-            let print_sum = |arg1: &str, arg2: &str| -> String {
-                match (arg1, arg2) {
-                    ("0", "0") => "".into(),
-                    ("0", x) | (x, "0") => x.into(),
-                    (x, y) => format!("({} + {})", x, y),
+            let print_sum = |arg1: &Offset, arg2: &Offset| -> String {
+                match (&arg1.value[..], arg1.negate, &arg2.value[..], arg2.negate) {
+                    ("0", _, "0", _) => "".into(),
+                    ("0", _, x, false) | (x, false, "0", false) => x.into(),
+                    ("0", _, x, true) | (x, false, "0", true) => format!("-{}", x),
+                    (x, false, y, false) => format!("({} + {})", x, y),
+                    (x, false, y, true) => format!("({} - {})", x, y),
+                    (x, true, y, false) => format!("({} - {})", y, x),
+                    (x, true, y, true) => format!("(-{} - {})", x, y),
                 }
             };
 
-            let print_limit = |end: &Option<&Expr>, offset: String, var_name: &str| if let Some(end) = *end {
+            let print_limit = |end: &Option<&Expr>, offset: Offset, var_name: &str| if let Some(end) = *end {
                 if_let_chain! {[
                         let ExprMethodCall(ref method, _, ref len_args) = end.node,
                         method.name == "len",
@@ -735,8 +764,8 @@ fn detect_manual_memcpy<'a, 'tcx>(
                         let Some(arg) = len_args.get(0),
                         snippet(cx, arg.span, "??") == var_name,
                     ], {
-                        return if offset.starts_with('-') {
-                            format!("({} + {})", snippet(cx, end.span, "<src>.len()"), offset)
+                        return if offset.negate {
+                            format!("({} - {})", snippet(cx, end.span, "<src>.len()"), offset.value)
                         } else {
                             "".to_owned()
                         };
@@ -750,7 +779,7 @@ fn detect_manual_memcpy<'a, 'tcx>(
                     ast::RangeLimits::HalfOpen => format!("{}", snippet(cx, end.span, "..")),
                 };
 
-                print_sum(&end_str, &offset)
+                print_sum(&Offset::positive(end_str), &offset)
             } else {
                 "..".into()
             };
@@ -760,7 +789,7 @@ fn detect_manual_memcpy<'a, 'tcx>(
             let manual_copies = get_indexed_assignments(cx, body, def_id);
 
             for (dst_var, src_var) in manual_copies {
-                let start_str = snippet_opt(cx, start.span).unwrap_or_else(|| "".into());
+                let start_str = Offset::positive(snippet_opt(cx, start.span).unwrap_or_else(|| "".into()));
                 let dst_offset = print_sum(&start_str, &dst_var.offset);
                 let src_offset = print_sum(&start_str, &src_var.offset);
                 let src_limit = print_limit(end, src_var.offset, &src_var.var_name);
