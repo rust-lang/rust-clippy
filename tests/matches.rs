@@ -25,7 +25,11 @@ fn test_overlapping() {
             sp(1, Bound::Included(4)),
             sp(5, Bound::Included(6)),
             sp(10, Bound::Included(11))
+<<<<<<< HEAD
         ],)
+=======
+        ])
+>>>>>>> 748e8c680735d8f75402a5267926bd4acaf905c2
     );
     assert_eq!(
         Some((&sp(1, Bound::Included(4)), &sp(3, Bound::Included(6)))),
@@ -37,6 +41,10 @@ fn test_overlapping() {
             sp(1, Bound::Included(4)),
             sp(5, Bound::Included(6)),
             sp(6, Bound::Included(11))
+<<<<<<< HEAD
         ],)
+=======
+        ])
+>>>>>>> 748e8c680735d8f75402a5267926bd4acaf905c2
     );
 }

@@ -347,7 +347,8 @@ impl LintPass for Pass {
             EMPTY_LOOP,
             WHILE_LET_ON_ITERATOR,
             FOR_KV_MAP,
-            NEVER_LOOP
+            NEVER_LOOP,
+            MANUAL_MEMCPY
         )
     }
 }
