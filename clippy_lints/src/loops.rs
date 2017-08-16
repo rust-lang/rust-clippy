@@ -1648,9 +1648,10 @@ fn var_def_id(cx: &LateContext, expr: &Expr) -> Option<NodeId> {
     if let ExprPath(ref qpath) = expr.node {
         let path_res = cx.tables.qpath_def(qpath, expr.hir_id);
         if let Def::Local(def_id) = path_res {
-            let node_id = cx.tcx.hir.as_local_node_id(def_id).expect(
-                "That DefId should be valid",
-            );
+            let node_id = cx.tcx
+                .hir
+                .as_local_node_id(def_id)
+                .expect("That DefId should be valid");
             return Some(node_id);
         }
     }
@@ -1694,13 +1695,11 @@ fn is_loop_nested(cx: &LateContext, loop_expr: &Expr, iter_expr: &Expr) -> bool 
             return false;
         }
         match cx.tcx.hir.find(parent) {
-            Some(NodeExpr(expr)) => {
-                match expr.node {
-                    ExprLoop(..) | ExprWhile(..) => {
-                        return true;
-                    },
-                    _ => (),
-                }
+            Some(NodeExpr(expr)) => match expr.node {
+                ExprLoop(..) | ExprWhile(..) => {
+                    return true;
+                },
+                _ => (),
             },
             Some(NodeBlock(block)) => {
                 let mut block_visitor = LoopNestVisitor {
@@ -1724,8 +1723,8 @@ fn is_loop_nested(cx: &LateContext, loop_expr: &Expr, iter_expr: &Expr) -> bool 
 
 #[derive(PartialEq, Eq)]
 enum Nesting {
-    Unknown, // no nesting detected yet
-    RuledOut, // the iterator is initialized or assigned within scope
+    Unknown,     // no nesting detected yet
+    RuledOut,    // the iterator is initialized or assigned within scope
     LookFurther, // no nesting detected, no further walk required
 }
 
@@ -1755,11 +1754,8 @@ impl<'tcx> Visitor<'tcx> for LoopNestVisitor {
             return;
         }
         match expr.node {
-            ExprAssign(ref path, _) |
-            ExprAssignOp(_, ref path, _) => {
-                if match_var(path, self.iterator) {
-                    self.nesting = RuledOut;
-                }
+            ExprAssign(ref path, _) | ExprAssignOp(_, ref path, _) => if match_var(path, self.iterator) {
+                self.nesting = RuledOut;
             },
             _ => walk_expr(self, expr),
         }
