@@ -1922,6 +1922,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
+      "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct name\nfeels inconsistent.", 
+      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "use_self", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for functions with too many parameters.", 
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `too_many_arguments_threshold: u64`: The maximum number of argument a function or method can have (defaults to `7 `).", 
