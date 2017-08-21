@@ -1,8 +1,8 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(mixed_case_hex_literals)]
-#![deny(unseparated_literal_suffix)]
-#![deny(zero_prefixed_literal)]
+#![warn(mixed_case_hex_literals)]
+#![warn(unseparated_literal_suffix)]
+#![warn(zero_prefixed_literal)]
 #![allow(dead_code)]
 
 fn main() {
@@ -14,6 +14,7 @@ fn main() {
     let fail1 = 0xabCD;
     let fail2 = 0xabCD_u32;
     let fail2 = 0xabCD_isize;
+    let fail_multi_zero = 000_123usize;
 
     let ok6 = 1234_i32;
     let ok7 = 1234_f32;
@@ -28,11 +29,6 @@ fn main() {
     let ok10 = 0_i64;
     let fail8 = 0123;
 
-
-
-
-
-
     let ok11 = 0o123;
-    let ok12 = 0b101010;
+    let ok12 = 0b10_1010;
 }

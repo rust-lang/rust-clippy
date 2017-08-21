@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(items_after_statements)]
+#![warn(items_after_statements)]
 
 fn ok() {
     fn foo() { println!("foo"); }

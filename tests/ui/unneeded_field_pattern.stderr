@@ -4,11 +4,7 @@ error: You matched a field with a wildcard pattern. Consider using `..` instead
 17 |         Foo { a: _, b: 0, .. } => {}
    |               ^^^^
    |
-note: lint level defined here
-  --> $DIR/unneeded_field_pattern.rs:4:9
-   |
-4  | #![deny(unneeded_field_pattern)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D unneeded-field-pattern` implied by `-D warnings`
    = help: Try with `Foo { b: 0, .. }`
 
 error: All the struct fields are matched to a wildcard pattern, consider using `..`.

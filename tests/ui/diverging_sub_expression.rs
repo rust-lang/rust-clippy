@@ -1,6 +1,6 @@
 #![feature(plugin, never_type)]
 #![plugin(clippy)]
-#![deny(diverging_sub_expression)]
+#![warn(diverging_sub_expression)]
 #![allow(match_same_arms, logic_bug)]
 
 #[allow(empty_loop)]

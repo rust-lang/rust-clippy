@@ -9,7 +9,8 @@ use utils::{span_lint, get_trait_def_id, paths};
 ///
 /// **Known problems:** None.
 ///
-/// **Example:** Implementing `Visitor::visit_string` but not `Visitor::visit_str`.
+/// **Example:** Implementing `Visitor::visit_string` but not
+/// `Visitor::visit_str`.
 declare_lint! {
     pub SERDE_API_MISUSE,
     Warn,
@@ -28,7 +29,7 @@ impl LintPass for Serde {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Serde {
     fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx Item) {
-        if let ItemImpl(_, _, _, Some(ref trait_ref), _, ref items) = item.node {
+        if let ItemImpl(_, _, _, _, Some(ref trait_ref), _, ref items) = item.node {
             let did = trait_ref.path.def.def_id();
             if let Some(visit_did) = get_trait_def_id(cx, &paths::SERDE_DE_VISITOR) {
                 if did == visit_did {
@@ -43,10 +44,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Serde {
                     }
                     if let Some(span) = seen_string {
                         if seen_str.is_none() {
-                            span_lint(cx,
-                                      SERDE_API_MISUSE,
-                                      span,
-                                      "you should not implement `visit_string` without also implementing `visit_str`");
+                            span_lint(
+                                cx,
+                                SERDE_API_MISUSE,
+                                span,
+                                "you should not implement `visit_string` without also implementing `visit_str`",
+                            );
                         }
                     }
                 }

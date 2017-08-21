@@ -4,11 +4,7 @@ error: this lifetime isn't used in the function definition
 16 | fn unused_lt<'a>(x: u8) {
    |              ^^
    |
-note: lint level defined here
-  --> $DIR/unused_lt.rs:4:9
-   |
-4  | #![deny(unused_lifetimes)]
-   |         ^^^^^^^^^^^^^^^^
+   = note: `-D unused-lifetimes` implied by `-D warnings`
 
 error: this lifetime isn't used in the function definition
   --> $DIR/unused_lt.rs:20:25

@@ -1,5 +1,5 @@
 use rustc::hir::*;
-use rustc::hir::intravisit::{Visitor, walk_expr, walk_block, NestedVisitorMap};
+use rustc::hir::intravisit::{Visitor, walk_expr, NestedVisitorMap};
 use rustc::lint::*;
 use syntax::codemap::Span;
 use utils::SpanlessEq;
@@ -30,7 +30,7 @@ declare_lint! {
     "use of `contains_key` followed by `insert` on a `HashMap` or `BTreeMap`"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct HashMapLint;
 
 impl LintPass for HashMapLint {
@@ -46,8 +46,14 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for HashMapLint {
                 if let Some((ty, map, key)) = check_cond(cx, check) {
                     // in case of `if !m.contains_key(&k) { m.insert(k, v); }`
                     // we can give a better error message
-                    let sole_expr = else_block.is_none() &&
-                                    ((then_block.expr.is_some() as usize) + then_block.stmts.len() == 1);
+                    let sole_expr = {
+                        else_block.is_none() &&
+                            if let ExprBlock(ref then_block) = then_block.node {
+                                (then_block.expr.is_some() as usize) + then_block.stmts.len() == 1
+                            } else {
+                                true
+                            }
+                    };
 
                     let mut visitor = InsertVisitor {
                         cx: cx,
@@ -58,7 +64,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for HashMapLint {
                         sole_expr: sole_expr,
                     };
 
-                    walk_block(&mut visitor, then_block);
+                    walk_expr(&mut visitor, &**then_block);
                 }
             } else if let Some(ref else_block) = *else_block {
                 if let Some((ty, map, key)) = check_cond(cx, check) {
@@ -80,12 +86,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for HashMapLint {
 
 fn check_cond<'a, 'tcx, 'b>(
     cx: &'a LateContext<'a, 'tcx>,
-    check: &'b Expr
+    check: &'b Expr,
 ) -> Option<(&'static str, &'b Expr, &'b Expr)> {
     if_let_chain! {[
-        let ExprMethodCall(ref name, _, ref params) = check.node,
+        let ExprMethodCall(ref path, _, ref params) = check.node,
         params.len() >= 2,
-        &*name.node.as_str() == "contains_key",
+        path.name == "contains_key",
         let ExprAddrOf(_, ref key) = params[1].node
     ], {
         let map = &params[0];
@@ -117,9 +123,9 @@ struct InsertVisitor<'a, 'tcx: 'a, 'b> {
 impl<'a, 'tcx, 'b> Visitor<'tcx> for InsertVisitor<'a, 'tcx, 'b> {
     fn visit_expr(&mut self, expr: &'tcx Expr) {
         if_let_chain! {[
-            let ExprMethodCall(ref name, _, ref params) = expr.node,
+            let ExprMethodCall(ref path, _, ref params) = expr.node,
             params.len() == 3,
-            &*name.node.as_str() == "insert",
+            path.name == "insert",
             get_item_name(self.cx, self.map) == get_item_name(self.cx, &params[0]),
             SpanlessEq::new(self.cx).eq_expr(self.key, &params[1])
         ], {
@@ -148,6 +154,6 @@ impl<'a, 'tcx, 'b> Visitor<'tcx> for InsertVisitor<'a, 'tcx, 'b> {
         }
     }
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
-        NestedVisitorMap::All(&self.cx.tcx.hir)
+        NestedVisitorMap::None
     }
 }

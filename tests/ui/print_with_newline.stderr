@@ -4,11 +4,7 @@ error: using `print!()` with a format string that ends in a newline, consider us
 6 |     print!("Hello/n");
   |     ^^^^^^^^^^^^^^^^^^
   |
-note: lint level defined here
- --> $DIR/print_with_newline.rs:3:9
-  |
-3 | #![deny(print_with_newline)]
-  |         ^^^^^^^^^^^^^^^^^^
+  = note: `-D print-with-newline` implied by `-D warnings`
 
 error: using `print!()` with a format string that ends in a newline, consider using `println!()` instead
  --> $DIR/print_with_newline.rs:7:5

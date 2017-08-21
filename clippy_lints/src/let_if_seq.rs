@@ -1,6 +1,7 @@
 use rustc::lint::*;
 use rustc::hir;
-use syntax::codemap;
+use rustc::hir::BindingAnnotation;
+use syntax_pos::{Span, NO_EXPANSION};
 use utils::{snippet, span_lint_and_then};
 
 /// **What it does:** Checks for variable declarations immediately followed by a
@@ -48,7 +49,7 @@ declare_lint! {
     "unidiomatic `let mut` declaration followed by initialization in `if`"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct LetIfSeq;
 
 impl LintPass for LetIfSeq {
@@ -69,10 +70,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LetIfSeq {
                 let hir::StmtExpr(ref if_, _) = expr.node,
                 let hir::ExprIf(ref cond, ref then, ref else_) = if_.node,
                 !used_in_expr(cx, def_id, cond),
-                let Some(value) = check_assign(cx, def_id, then),
+                let hir::ExprBlock(ref then) = then.node,
+                let Some(value) = check_assign(cx, def_id, &*then),
                 !used_in_expr(cx, def_id, value),
             ], {
-                let span = codemap::mk_sp(stmt.span.lo, if_.span.hi);
+                let span = Span { lo: stmt.span.lo, hi: if_.span.hi, ctxt: NO_EXPANSION };
 
                 let (default_multi_stmts, default) = if let Some(ref else_) = *else_ {
                     if let hir::ExprBlock(ref else_) = else_.node {
@@ -93,7 +95,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LetIfSeq {
                 };
 
                 let mutability = match mode {
-                    hir::BindByRef(hir::MutMutable) | hir::BindByValue(hir::MutMutable) => "<mut> ",
+                    BindingAnnotation::RefMut | BindingAnnotation::Mutable => "<mut> ",
                     _ => "",
                 };
 
@@ -137,7 +139,7 @@ impl<'a, 'tcx> hir::intravisit::Visitor<'tcx> for UsedVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx hir::Expr) {
         if_let_chain! {[
             let hir::ExprPath(ref qpath) = expr.node,
-            self.id == self.cx.tables.qpath_def(qpath, expr.id).def_id(),
+            self.id == self.cx.tables.qpath_def(qpath, expr.hir_id).def_id(),
         ], {
             self.used = true;
             return;
@@ -145,14 +147,14 @@ impl<'a, 'tcx> hir::intravisit::Visitor<'tcx> for UsedVisitor<'a, 'tcx> {
         hir::intravisit::walk_expr(self, expr);
     }
     fn nested_visit_map<'this>(&'this mut self) -> hir::intravisit::NestedVisitorMap<'this, 'tcx> {
-        hir::intravisit::NestedVisitorMap::All(&self.cx.tcx.hir)
+        hir::intravisit::NestedVisitorMap::None
     }
 }
 
 fn check_assign<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
     decl: hir::def_id::DefId,
-    block: &'tcx hir::Block
+    block: &'tcx hir::Block,
 ) -> Option<&'tcx hir::Expr> {
     if_let_chain! {[
         block.expr.is_none(),
@@ -160,7 +162,7 @@ fn check_assign<'a, 'tcx>(
         let hir::StmtSemi(ref expr, _) = expr.node,
         let hir::ExprAssign(ref var, ref value) = expr.node,
         let hir::ExprPath(ref qpath) = var.node,
-        decl == cx.tables.qpath_def(qpath, var.id).def_id(),
+        decl == cx.tables.qpath_def(qpath, var.hir_id).def_id(),
     ], {
         let mut v = UsedVisitor {
             cx: cx,

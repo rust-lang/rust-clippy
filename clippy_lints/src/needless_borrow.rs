@@ -3,8 +3,9 @@
 //! This lint is **warn** by default
 
 use rustc::lint::*;
-use rustc::hir::{ExprAddrOf, Expr, MutImmutable, Pat, PatKind, BindingMode};
+use rustc::hir::{ExprAddrOf, Expr, MutImmutable, Pat, PatKind, BindingAnnotation};
 use rustc::ty;
+use rustc::ty::adjustment::{Adjustment, Adjust};
 use utils::{span_lint, in_macro};
 
 /// **What it does:** Checks for address of operations (`&`) that are going to
@@ -25,7 +26,7 @@ declare_lint! {
     "taking a reference that is going to be automatically dereferenced"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct NeedlessBorrow;
 
 impl LintPass for NeedlessBorrow {
@@ -36,14 +37,17 @@ impl LintPass for NeedlessBorrow {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessBorrow {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
-        if in_macro(cx, e.span) {
+        if in_macro(e.span) {
             return;
         }
         if let ExprAddrOf(MutImmutable, ref inner) = e.node {
             if let ty::TyRef(..) = cx.tables.expr_ty(inner).sty {
-                if let Some(&ty::adjustment::Adjust::DerefRef { autoderefs, autoref, .. }) =
-                    cx.tables.adjustments.get(&e.id).map(|a| &a.kind) {
-                    if autoderefs > 1 && autoref.is_some() {
+                for adj3 in cx.tables.expr_adjustments(e).windows(3) {
+                    if let [
+                        Adjustment { kind: Adjust::Deref(_), .. },
+                        Adjustment { kind: Adjust::Deref(_), .. },
+                        Adjustment { kind: Adjust::Borrow(_), .. }
+                    ] = *adj3 {
                         span_lint(cx,
                                   NEEDLESS_BORROW,
                                   e.span,
@@ -55,11 +59,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessBorrow {
         }
     }
     fn check_pat(&mut self, cx: &LateContext<'a, 'tcx>, pat: &'tcx Pat) {
-        if in_macro(cx, pat.span) {
+        if in_macro(pat.span) {
             return;
         }
         if_let_chain! {[
-            let PatKind::Binding(BindingMode::BindByRef(MutImmutable), _, _, _) = pat.node,
+            let PatKind::Binding(BindingAnnotation::Ref, _, _, _) = pat.node,
             let ty::TyRef(_, ref tam) = cx.tables.pat_ty(pat).sty,
             tam.mutbl == MutImmutable,
             let ty::TyRef(_, ref tam) = tam.ty.sty,

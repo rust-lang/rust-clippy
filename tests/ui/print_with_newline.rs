@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(print_with_newline)]
+#![warn(print_with_newline)]
 
 fn main() {
     print!("Hello\n");

@@ -3,14 +3,15 @@ use syntax::ast;
 use syntax::codemap::{Span, Spanned};
 use syntax::visit::FnKind;
 
-use utils::{span_note_and_lint, span_lint_and_then, snippet_opt, match_path_ast, in_external_macro};
+use utils::{span_note_and_lint, span_lint_and_then, snippet_opt, match_path_ast, in_macro, in_external_macro};
 
 /// **What it does:** Checks for return statements at the end of a block.
 ///
 /// **Why is this bad?** Removing the `return` and semicolon will make the code
 /// more rusty.
 ///
-/// **Known problems:** None.
+/// **Known problems:** If the computation returning the value borrows a local
+/// variable, removing the `return` may run afoul of the borrow checker.
 ///
 /// **Example:**
 /// ```rust
@@ -22,7 +23,8 @@ declare_lint! {
     "using a return statement like `return expr;` where an expression would suffice"
 }
 
-/// **What it does:** Checks for `let`-bindings, which are subsequently returned.
+/// **What it does:** Checks for `let`-bindings, which are subsequently
+/// returned.
 ///
 /// **Why is this bad?** It is just extraneous code. Remove it to make your code
 /// more rusty.
@@ -89,16 +91,14 @@ impl ReturnPass {
     }
 
     fn emit_return_lint(&mut self, cx: &EarlyContext, ret_span: Span, inner_span: Span) {
-        if in_external_macro(cx, inner_span) {
+        if in_external_macro(cx, inner_span) || in_macro(inner_span) {
             return;
         }
-        span_lint_and_then(cx,
-                           NEEDLESS_RETURN,
-                           ret_span,
-                           "unneeded return statement",
-                           |db| if let Some(snippet) = snippet_opt(cx, inner_span) {
-                               db.span_suggestion(ret_span, "remove `return` as shown:", snippet);
-                           });
+        span_lint_and_then(cx, NEEDLESS_RETURN, ret_span, "unneeded return statement", |db| {
+            if let Some(snippet) = snippet_opt(cx, inner_span) {
+                db.span_suggestion(ret_span, "remove `return` as shown", snippet);
+            }
+        });
     }
 
     // Check for "let x = EXPR; x"
@@ -107,10 +107,12 @@ impl ReturnPass {
 
         // we need both a let-binding stmt and an expr
         if_let_chain! {[
-            let Some(ref retexpr) = it.next_back(),
+            let Some(retexpr) = it.next_back(),
             let ast::StmtKind::Expr(ref retexpr) = retexpr.node,
             let Some(stmt) = it.next_back(),
             let ast::StmtKind::Local(ref local) = stmt.node,
+            // don't lint in the presence of type inference
+            local.ty.is_none(),
             !local.attrs.iter().any(attr_is_cfg),
             let Some(ref initexpr) = local.init,
             let ast::PatKind::Ident(_, Spanned { node: id, .. }, _) = local.pat.node,

@@ -4,11 +4,7 @@ error: useless use of `format!`
 6 |     format!("foo");
   |     ^^^^^^^^^^^^^^^
   |
-note: lint level defined here
- --> $DIR/format.rs:3:9
-  |
-3 | #![deny(useless_format)]
-  |         ^^^^^^^^^^^^^^
+  = note: `-D useless-format` implied by `-D warnings`
 
 error: useless use of `format!`
  --> $DIR/format.rs:8:5

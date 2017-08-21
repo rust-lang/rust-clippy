@@ -27,12 +27,14 @@ declare_lint! {
     "whether a variable read occurs before a write depends on sub-expression evaluation order"
 }
 
-/// **What it does:** Checks for diverging calls that are not match arms or statements.
+/// **What it does:** Checks for diverging calls that are not match arms or
+/// statements.
 ///
 /// **Why is this bad?** It is often confusing to read. In addition, the
 /// sub-expression evaluation order for Rust is not well documented.
 ///
-/// **Known problems:** Someone might want to use `some_bool || panic!()` as a shorthand.
+/// **Known problems:** Someone might want to use `some_bool || panic!()` as a
+/// shorthand.
 ///
 /// **Example:**
 /// ```rust
@@ -47,7 +49,7 @@ declare_lint! {
     "whether an expression contains a diverging sub expression"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct EvalOrderDependence;
 
 impl LintPass for EvalOrderDependence {
@@ -65,7 +67,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EvalOrderDependence {
                 if let ExprPath(ref qpath) = lhs.node {
                     if let QPath::Resolved(_, ref path) = *qpath {
                         if path.segments.len() == 1 {
-                            let var = cx.tables.qpath_def(qpath, lhs.id).def_id();
+                            let var = cx.tables.qpath_def(qpath, lhs.hir_id).def_id();
                             let mut visitor = ReadVisitor {
                                 cx: cx,
                                 var: var,
@@ -126,10 +128,11 @@ impl<'a, 'tcx> Visitor<'tcx> for DivergenceVisitor<'a, 'tcx> {
         match e.node {
             ExprAgain(_) | ExprBreak(_, _) | ExprRet(_) => self.report_diverging_sub_expr(e),
             ExprCall(ref func, _) => {
-                match self.cx.tables.expr_ty(func).sty {
-                    ty::TyFnDef(_, _, fn_ty) |
-                    ty::TyFnPtr(fn_ty) => {
-                        if let ty::TyNever = self.cx.tcx.erase_late_bound_regions(&fn_ty).output().sty {
+                let typ = self.cx.tables.expr_ty(func);
+                match typ.sty {
+                    ty::TyFnDef(..) | ty::TyFnPtr(_) => {
+                        let sig = typ.fn_sig(self.cx.tcx);
+                        if let ty::TyNever = self.cx.tcx.erase_late_bound_regions(&sig).output().sty {
                             self.report_diverging_sub_expr(e);
                         }
                     },
@@ -137,16 +140,14 @@ impl<'a, 'tcx> Visitor<'tcx> for DivergenceVisitor<'a, 'tcx> {
                 }
             },
             ExprMethodCall(..) => {
-                let method_call = ty::MethodCall::expr(e.id);
                 let borrowed_table = self.cx.tables;
-                let method_type = borrowed_table.method_map.get(&method_call).expect("This should never happen.");
-                let result_ty = method_type.ty.fn_ret();
-                if let ty::TyNever = self.cx.tcx.erase_late_bound_regions(&result_ty).sty {
+                if borrowed_table.expr_ty(e).is_never() {
                     self.report_diverging_sub_expr(e);
                 }
             },
             _ => {
-                // do not lint expressions referencing objects of type `!`, as that required a diverging expression
+                // do not lint expressions referencing objects of type `!`, as that required a
+                // diverging expression
                 // to begin with
             },
         }
@@ -156,13 +157,12 @@ impl<'a, 'tcx> Visitor<'tcx> for DivergenceVisitor<'a, 'tcx> {
         // don't continue over blocks, LateLintPass already does that
     }
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
-        NestedVisitorMap::All(&self.cx.tcx.hir)
+        NestedVisitorMap::None
     }
 }
 
-/// Walks up the AST from the the given write expression (`vis.write_expr`)
-/// looking for reads to the same variable that are unsequenced relative to the
-/// write.
+/// Walks up the AST from the given write expression (`vis.write_expr`) looking
+/// for reads to the same variable that are unsequenced relative to the write.
 ///
 /// This means reads for which there is a common ancestor between the read and
 /// the write such that
@@ -222,7 +222,7 @@ fn check_expr<'a, 'tcx>(vis: &mut ReadVisitor<'a, 'tcx>, expr: &'tcx Expr) -> St
     match expr.node {
         ExprArray(_) |
         ExprTup(_) |
-        ExprMethodCall(_, _, _) |
+        ExprMethodCall(..) |
         ExprCall(_, _) |
         ExprAssign(_, _) |
         ExprIndex(_, _) |
@@ -274,8 +274,10 @@ fn check_stmt<'a, 'tcx>(vis: &mut ReadVisitor<'a, 'tcx>, stmt: &'tcx Stmt) -> St
                 DeclLocal(ref local) => Some(local),
                 _ => None,
             };
-            local.and_then(|local| local.init.as_ref())
-                .map_or(StopEarly::KeepGoing, |expr| check_expr(vis, expr))
+            local.and_then(|local| local.init.as_ref()).map_or(
+                StopEarly::KeepGoing,
+                |expr| check_expr(vis, expr),
+            )
         },
     }
 }
@@ -302,7 +304,7 @@ impl<'a, 'tcx> Visitor<'tcx> for ReadVisitor<'a, 'tcx> {
         match expr.node {
             ExprPath(ref qpath) => {
                 if let QPath::Resolved(None, ref path) = *qpath {
-                    if path.segments.len() == 1 && self.cx.tables.qpath_def(qpath, expr.id).def_id() == self.var {
+                    if path.segments.len() == 1 && self.cx.tables.qpath_def(qpath, expr.hir_id).def_id() == self.var {
                         if is_in_assignment_position(self.cx, expr) {
                             // This is a write, not a read.
                         } else {
@@ -342,7 +344,7 @@ impl<'a, 'tcx> Visitor<'tcx> for ReadVisitor<'a, 'tcx> {
         walk_expr(self, expr);
     }
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
-        NestedVisitorMap::All(&self.cx.tcx.hir)
+        NestedVisitorMap::None
     }
 }
 

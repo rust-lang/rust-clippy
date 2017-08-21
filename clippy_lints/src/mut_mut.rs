@@ -1,7 +1,7 @@
 use rustc::hir;
 use rustc::hir::intravisit;
 use rustc::lint::*;
-use rustc::ty::{TypeAndMut, TyRef};
+use rustc::ty;
 use utils::{higher, in_external_macro, span_lint};
 
 /// **What it does:** Checks for instances of `mut mut` references.
@@ -22,7 +22,7 @@ declare_lint! {
     "usage of double-mut refs, e.g. `&mut &mut ...`"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct MutMut;
 
 impl LintPass for MutMut {
@@ -64,26 +64,37 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for MutVisitor<'a, 'tcx> {
             intravisit::walk_expr(self, body);
         } else if let hir::ExprAddrOf(hir::MutMutable, ref e) = expr.node {
             if let hir::ExprAddrOf(hir::MutMutable, _) = e.node {
-                span_lint(self.cx,
-                          MUT_MUT,
-                          expr.span,
-                          "generally you want to avoid `&mut &mut _` if possible");
-            } else if let TyRef(_, TypeAndMut { mutbl: hir::MutMutable, .. }) = self.cx.tables.expr_ty(e).sty {
-                span_lint(self.cx,
-                          MUT_MUT,
-                          expr.span,
-                          "this expression mutably borrows a mutable reference. Consider reborrowing");
+                span_lint(
+                    self.cx,
+                    MUT_MUT,
+                    expr.span,
+                    "generally you want to avoid `&mut &mut _` if possible",
+                );
+            } else if let ty::TyRef(_, ty::TypeAndMut { mutbl: hir::MutMutable, .. }) = self.cx.tables.expr_ty(e).sty {
+                span_lint(
+                    self.cx,
+                    MUT_MUT,
+                    expr.span,
+                    "this expression mutably borrows a mutable reference. Consider reborrowing",
+                );
             }
         }
     }
 
     fn visit_ty(&mut self, ty: &'tcx hir::Ty) {
-        if let hir::TyRptr(_, hir::MutTy { ty: ref pty, mutbl: hir::MutMutable }) = ty.node {
+        if let hir::TyRptr(_,
+                           hir::MutTy {
+                               ty: ref pty,
+                               mutbl: hir::MutMutable,
+                           }) = ty.node
+        {
             if let hir::TyRptr(_, hir::MutTy { mutbl: hir::MutMutable, .. }) = pty.node {
-                span_lint(self.cx,
-                          MUT_MUT,
-                          ty.span,
-                          "generally you want to avoid `&mut &mut _` if possible");
+                span_lint(
+                    self.cx,
+                    MUT_MUT,
+                    ty.span,
+                    "generally you want to avoid `&mut &mut _` if possible",
+                );
             }
 
         }
@@ -91,6 +102,6 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for MutVisitor<'a, 'tcx> {
         intravisit::walk_ty(self, ty);
     }
     fn nested_visit_map<'this>(&'this mut self) -> intravisit::NestedVisitorMap<'this, 'tcx> {
-        intravisit::NestedVisitorMap::All(&self.cx.tcx.hir)
+        intravisit::NestedVisitorMap::None
     }
 }

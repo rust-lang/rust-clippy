@@ -4,11 +4,7 @@ error: You are trying to use classic C overflow conditions that will fail in Rus
 11 | \tif a + b < a {
    | \t   ^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/overflow_check_conditional.rs:5:9
-   |
-5  | #![deny(overflow_check_conditional)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D overflow-check-conditional` implied by `-D warnings`
 
 error: You are trying to use classic C overflow conditions that will fail in Rust.
   --> $DIR/overflow_check_conditional.rs:14:5

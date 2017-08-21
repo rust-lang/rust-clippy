@@ -2,10 +2,9 @@
 #![plugin(clippy)]
 
 #![allow(dead_code)]
-#![deny(empty_enum)]
+#![warn(empty_enum)]
 
 enum Empty {}
-
 
 fn main() {
 }

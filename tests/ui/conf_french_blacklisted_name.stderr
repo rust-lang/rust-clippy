@@ -4,11 +4,7 @@ error: use of a blacklisted/placeholder name `toto`
 9 | fn test(toto: ()) {}
   |         ^^^^
   |
-note: lint level defined here
- --> $DIR/conf_french_blacklisted_name.rs:7:9
-  |
-7 | #![deny(blacklisted_name)]
-  |         ^^^^^^^^^^^^^^^^
+  = note: `-D blacklisted-name` implied by `-D warnings`
 
 error: use of a blacklisted/placeholder name `toto`
   --> $DIR/conf_french_blacklisted_name.rs:12:9
@@ -44,7 +40,7 @@ error: use of a blacklisted/placeholder name `titi`
   --> $DIR/conf_french_blacklisted_name.rs:20:28
    |
 20 |         (toto, Some(tata), titi @ Some(_)) => (),
-   |                            ^^^^^^^^^^^^^^
+   |                            ^^^^
 
 error: aborting due to 7 previous errors
 

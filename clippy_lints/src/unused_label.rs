@@ -48,9 +48,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnusedLabel {
         decl: &'tcx hir::FnDecl,
         body: &'tcx hir::Body,
         span: Span,
-        fn_id: ast::NodeId
+        fn_id: ast::NodeId,
     ) {
-        if in_macro(cx, span) {
+        if in_macro(span) {
             return;
         }
 

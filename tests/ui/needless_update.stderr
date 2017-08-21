@@ -4,11 +4,7 @@ error: struct update has no effect, all the fields in the struct have already be
 16 |     S { a: 1, b: 1, ..base };
    |                       ^^^^
    |
-note: lint level defined here
-  --> $DIR/needless_update.rs:4:9
-   |
-4  | #![deny(needless_update)]
-   |         ^^^^^^^^^^^^^^^
+   = note: `-D needless-update` implied by `-D warnings`
 
 error: aborting due to previous error
 

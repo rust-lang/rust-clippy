@@ -4,11 +4,7 @@ error: approximate value of `f{32, 64}::consts::E` found. Consider using it dire
 7 |     let my_e = 2.7182;
   |                ^^^^^^
   |
-note: lint level defined here
- --> $DIR/approx_const.rs:4:8
-  |
-4 | #[deny(approx_constant)]
-  |        ^^^^^^^^^^^^^^^
+  = note: `-D approx-constant` implied by `-D warnings`
 
 error: approximate value of `f{32, 64}::consts::E` found. Consider using it directly
  --> $DIR/approx_const.rs:8:20

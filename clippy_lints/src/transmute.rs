@@ -1,6 +1,5 @@
 use rustc::lint::*;
-use rustc::ty::TypeVariants::{TyRawPtr, TyRef};
-use rustc::ty;
+use rustc::ty::{self, Ty};
 use rustc::hir::*;
 use utils::{match_def_path, paths, span_lint, span_lint_and_then, snippet, last_path_segment};
 use utils::sugg;
@@ -50,7 +49,8 @@ declare_lint! {
 ///
 /// **Example:**
 /// ```rust
-/// core::intrinsics::transmute(t)` // where the result type is the same as `*t` or `&t`'s
+/// core::intrinsics::transmute(t)` // where the result type is the same as
+/// `*t` or `&t`'s
 /// ```
 declare_lint! {
     pub CROSSPOINTER_TRANSMUTE,
@@ -80,7 +80,7 @@ pub struct Transmute;
 
 impl LintPass for Transmute {
     fn get_lints(&self) -> LintArray {
-        lint_array![CROSSPOINTER_TRANSMUTE, TRANSMUTE_PTR_TO_REF, USELESS_TRANSMUTE, WRONG_TRANSMUTE]
+        lint_array!(CROSSPOINTER_TRANSMUTE, TRANSMUTE_PTR_TO_REF, USELESS_TRANSMUTE, WRONG_TRANSMUTE)
     }
 }
 
@@ -88,7 +88,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
         if let ExprCall(ref path_expr, ref args) = e.node {
             if let ExprPath(ref qpath) = path_expr.node {
-                let def_id = cx.tables.qpath_def(qpath, path_expr.id).def_id();
+                let def_id = cx.tables.qpath_def(qpath, path_expr.hir_id).def_id();
 
                 if match_def_path(cx.tcx, def_id, &paths::TRANSMUTE) {
                     let from_ty = cx.tables.expr_ty(&args[0]);
@@ -96,87 +96,101 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
 
                     match (&from_ty.sty, &to_ty.sty) {
                         _ if from_ty == to_ty => {
-                            span_lint(cx,
-                                      USELESS_TRANSMUTE,
-                                      e.span,
-                                      &format!("transmute from a type (`{}`) to itself", from_ty))
+                            span_lint(
+                                cx,
+                                USELESS_TRANSMUTE,
+                                e.span,
+                                &format!("transmute from a type (`{}`) to itself", from_ty),
+                            )
                         },
-                        (&TyRef(_, rty), &TyRawPtr(ptr_ty)) => {
-                            span_lint_and_then(cx,
-                                               USELESS_TRANSMUTE,
-                                               e.span,
-                                               "transmute from a reference to a pointer",
-                                               |db| if let Some(arg) = sugg::Sugg::hir_opt(cx, &args[0]) {
-                                                   let sugg = if ptr_ty == rty {
-                                                       arg.as_ty(to_ty)
-                                                   } else {
-                                                       arg.as_ty(cx.tcx.mk_ptr(rty)).as_ty(to_ty)
-                                                   };
+                        (&ty::TyRef(_, rty), &ty::TyRawPtr(ptr_ty)) => {
+                            span_lint_and_then(
+                                cx,
+                                USELESS_TRANSMUTE,
+                                e.span,
+                                "transmute from a reference to a pointer",
+                                |db| if let Some(arg) = sugg::Sugg::hir_opt(cx, &args[0]) {
+                                    let sugg = if ptr_ty == rty {
+                                        arg.as_ty(to_ty)
+                                    } else {
+                                        arg.as_ty(cx.tcx.mk_ptr(rty)).as_ty(to_ty)
+                                    };
 
-                                                   db.span_suggestion(e.span, "try", sugg.to_string());
-                                               })
+                                    db.span_suggestion(e.span, "try", sugg.to_string());
+                                },
+                            )
                         },
-                        (&ty::TyInt(_), &TyRawPtr(_)) |
-                        (&ty::TyUint(_), &TyRawPtr(_)) => {
-                            span_lint_and_then(cx,
-                                               USELESS_TRANSMUTE,
-                                               e.span,
-                                               "transmute from an integer to a pointer",
-                                               |db| if let Some(arg) = sugg::Sugg::hir_opt(cx, &args[0]) {
-                                                   db.span_suggestion(e.span,
-                                                                      "try",
-                                                                      arg.as_ty(&to_ty.to_string()).to_string());
-                                               })
+                        (&ty::TyInt(_), &ty::TyRawPtr(_)) |
+                        (&ty::TyUint(_), &ty::TyRawPtr(_)) => {
+                            span_lint_and_then(
+                                cx,
+                                USELESS_TRANSMUTE,
+                                e.span,
+                                "transmute from an integer to a pointer",
+                                |db| if let Some(arg) = sugg::Sugg::hir_opt(cx, &args[0]) {
+                                    db.span_suggestion(e.span, "try", arg.as_ty(&to_ty.to_string()).to_string());
+                                },
+                            )
                         },
-                        (&ty::TyFloat(_), &TyRef(..)) |
-                        (&ty::TyFloat(_), &TyRawPtr(_)) |
-                        (&ty::TyChar, &TyRef(..)) |
-                        (&ty::TyChar, &TyRawPtr(_)) => {
-                            span_lint(cx,
-                                      WRONG_TRANSMUTE,
-                                      e.span,
-                                      &format!("transmute from a `{}` to a pointer", from_ty))
+                        (&ty::TyFloat(_), &ty::TyRef(..)) |
+                        (&ty::TyFloat(_), &ty::TyRawPtr(_)) |
+                        (&ty::TyChar, &ty::TyRef(..)) |
+                        (&ty::TyChar, &ty::TyRawPtr(_)) => {
+                            span_lint(
+                                cx,
+                                WRONG_TRANSMUTE,
+                                e.span,
+                                &format!("transmute from a `{}` to a pointer", from_ty),
+                            )
                         },
-                        (&TyRawPtr(from_ptr), _) if from_ptr.ty == to_ty => {
-                            span_lint(cx,
-                                      CROSSPOINTER_TRANSMUTE,
-                                      e.span,
-                                      &format!("transmute from a type (`{}`) to the type that it points to (`{}`)",
-                                               from_ty,
-                                               to_ty))
+                        (&ty::TyRawPtr(from_ptr), _) if from_ptr.ty == to_ty => {
+                            span_lint(
+                                cx,
+                                CROSSPOINTER_TRANSMUTE,
+                                e.span,
+                                &format!(
+                                    "transmute from a type (`{}`) to the type that it points to (`{}`)",
+                                    from_ty,
+                                    to_ty
+                                ),
+                            )
                         },
-                        (_, &TyRawPtr(to_ptr)) if to_ptr.ty == from_ty => {
-                            span_lint(cx,
-                                      CROSSPOINTER_TRANSMUTE,
-                                      e.span,
-                                      &format!("transmute from a type (`{}`) to a pointer to that type (`{}`)",
-                                               from_ty,
-                                               to_ty))
+                        (_, &ty::TyRawPtr(to_ptr)) if to_ptr.ty == from_ty => {
+                            span_lint(
+                                cx,
+                                CROSSPOINTER_TRANSMUTE,
+                                e.span,
+                                &format!("transmute from a type (`{}`) to a pointer to that type (`{}`)", from_ty, to_ty),
+                            )
                         },
-                        (&TyRawPtr(from_pty), &TyRef(_, to_rty)) => {
-                            span_lint_and_then(cx,
-                                               TRANSMUTE_PTR_TO_REF,
-                                               e.span,
-                                               &format!("transmute from a pointer type (`{}`) to a reference type \
+                        (&ty::TyRawPtr(from_pty), &ty::TyRef(_, to_rty)) => {
+                            span_lint_and_then(
+                                cx,
+                                TRANSMUTE_PTR_TO_REF,
+                                e.span,
+                                &format!(
+                                    "transmute from a pointer type (`{}`) to a reference type \
                                                          (`{}`)",
-                                                        from_ty,
-                                                        to_ty),
-                                               |db| {
-                                let arg = sugg::Sugg::hir(cx, &args[0], "..");
-                                let (deref, cast) = if to_rty.mutbl == Mutability::MutMutable {
-                                    ("&mut *", "*mut")
-                                } else {
-                                    ("&*", "*const")
-                                };
+                                    from_ty,
+                                    to_ty
+                                ),
+                                |db| {
+                                    let arg = sugg::Sugg::hir(cx, &args[0], "..");
+                                    let (deref, cast) = if to_rty.mutbl == Mutability::MutMutable {
+                                        ("&mut *", "*mut")
+                                    } else {
+                                        ("&*", "*const")
+                                    };
 
-                                let arg = if from_pty.ty == to_rty.ty {
-                                    arg
-                                } else {
-                                    arg.as_ty(&format!("{} {}", cast, get_type_snippet(cx, qpath, to_rty.ty)))
-                                };
+                                    let arg = if from_pty.ty == to_rty.ty {
+                                        arg
+                                    } else {
+                                        arg.as_ty(&format!("{} {}", cast, get_type_snippet(cx, qpath, to_rty.ty)))
+                                    };
 
-                                db.span_suggestion(e.span, "try", sugg::make_unop(deref, arg).to_string());
-                            })
+                                    db.span_suggestion(e.span, "try", sugg::make_unop(deref, arg).to_string());
+                                },
+                            )
                         },
                         _ => return,
                     };
@@ -186,10 +200,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
     }
 }
 
-/// Get the snippet of `Bar` in `…::transmute<Foo, &Bar>`. If that snippet is not available , use
-/// the type's `ToString` implementation. In weird cases it could lead to types with invalid `'_`
+/// Get the snippet of `Bar` in `…::transmute<Foo, &Bar>`. If that snippet is
+/// not available , use
+/// the type's `ToString` implementation. In weird cases it could lead to types
+/// with invalid `'_`
 /// lifetime, but it should be rare.
-fn get_type_snippet(cx: &LateContext, path: &QPath, to_rty: ty::Ty) -> String {
+fn get_type_snippet(cx: &LateContext, path: &QPath, to_rty: Ty) -> String {
     let seg = last_path_segment(path);
     if_let_chain!{[
         let PathParameters::AngleBracketedParameters(ref ang) = seg.parameters,

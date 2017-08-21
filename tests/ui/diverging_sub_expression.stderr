@@ -4,11 +4,7 @@ error: sub-expression diverges
 18 |     b || diverge();
    |          ^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/diverging_sub_expression.rs:3:9
-   |
-3  | #![deny(diverging_sub_expression)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D diverging-sub-expression` implied by `-D warnings`
 
 error: sub-expression diverges
   --> $DIR/diverging_sub_expression.rs:19:10

@@ -36,7 +36,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EnumGlobUse {
     fn check_mod(&mut self, cx: &LateContext<'a, 'tcx>, m: &'tcx Mod, _: Span, _: NodeId) {
         // only check top level `use` statements
         for item in &m.item_ids {
-            self.lint_item(cx, cx.krate.item(item.id));
+            self.lint_item(cx, cx.tcx.hir.expect_item(item.id));
         }
     }
 }
@@ -48,9 +48,14 @@ impl EnumGlobUse {
         }
         if let ItemUse(ref path, UseKind::Glob) = item.node {
             // FIXME: ask jseyfried why the qpath.def for `use std::cmp::Ordering::*;`
-            // extracted through `ItemUse(ref qpath, UseKind::Glob)` is a `Mod` and not an `Enum`
+            // extracted through `ItemUse(ref qpath, UseKind::Glob)` is a `Mod` and not an
+            // `Enum`
             // if let Def::Enum(_) = path.def {
-            if path.segments.last().and_then(|seg| seg.name.as_str().chars().next()).map_or(false, char::is_uppercase) {
+            if path.segments
+                .last()
+                .and_then(|seg| seg.name.as_str().chars().next())
+                .map_or(false, char::is_uppercase)
+            {
                 span_lint(cx, ENUM_GLOB_USE, item.span, "don't use glob imports for enum variants");
             }
         }

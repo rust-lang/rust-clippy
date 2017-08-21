@@ -1,8 +1,8 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(block_in_if_condition_expr)]
-#![deny(block_in_if_condition_stmt)]
+#![warn(block_in_if_condition_expr)]
+#![warn(block_in_if_condition_stmt)]
 #![allow(unused, let_and_return)]
 #![warn(nonminimal_bool)]
 
@@ -56,13 +56,10 @@ fn pred_test() {
     // inside a closure that the condition is using.  same principle applies.  add some extra
     // expressions to make sure linter isn't confused by them.
     if v == 3 && sky == "blue" && predicate(|x| { let target = 3; x == target }, v) {
-
     }
 
     if predicate(|x| { let target = 3; x == target }, v) {
-
     }
-
 }
 
 fn condition_is_normal() -> i32 {

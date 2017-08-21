@@ -2,13 +2,11 @@
 #![plugin(clippy)]
 #![allow(unused_imports)]
 #![allow(dead_code)]
-#![deny(unsafe_removed_from_name)]
+#![warn(unsafe_removed_from_name)]
 
 use std::cell::{UnsafeCell as TotallySafeCell};
 
-
 use std::cell::UnsafeCell as TotallySafeCellAgain;
-
 
 // Shouldn't error
 use std::cell::{UnsafeCell as SuperDangerousUnsafeCell};
@@ -23,7 +21,6 @@ mod mod_with_some_unsafe_things {
 }
 
 use mod_with_some_unsafe_things::Unsafe as LieAboutModSafety;
-
 
 // Shouldn't error
 use mod_with_some_unsafe_things::Safe as IPromiseItsSafeThisTime;

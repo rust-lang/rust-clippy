@@ -22,7 +22,7 @@ declare_lint! {
     "using identity operations, e.g. `x + 0` or `y / 1`"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct IdentityOp;
 
 impl LintPass for IdentityOp {
@@ -33,7 +33,7 @@ impl LintPass for IdentityOp {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for IdentityOp {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
-        if in_macro(cx, e.span) {
+        if in_macro(e.span) {
             return;
         }
         if let ExprBinary(ref cmp, ref left, ref right) = e.node {
@@ -58,23 +58,30 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for IdentityOp {
     }
 }
 
-
+#[allow(cast_possible_wrap)]
 fn check(cx: &LateContext, e: &Expr, m: i8, span: Span, arg: Span) {
     if let Some(Constant::Int(v)) = constant_simple(cx, e) {
         if match m {
             0 => v.to_u128_unchecked() == 0,
-            -1 => match v.int_type() {
-                SignedInt(_) => #[allow(cast_possible_wrap)] (v.to_u128_unchecked() as i128  == -1),
-                UnsignedInt(_) =>  false
+            -1 => {
+                match v.int_type() {
+                    SignedInt(_) => (v.to_u128_unchecked() as i128 == -1),
+                    UnsignedInt(_) => false,
+                }
             },
             1 => v.to_u128_unchecked() == 1,
             _ => unreachable!(),
-        } {
-            span_lint(cx,
-                      IDENTITY_OP,
-                      span,
-                      &format!("the operation is ineffective. Consider reducing it to `{}`",
-                               snippet(cx, arg, "..")));
+        }
+        {
+            span_lint(
+                cx,
+                IDENTITY_OP,
+                span,
+                &format!(
+                    "the operation is ineffective. Consider reducing it to `{}`",
+                    snippet(cx, arg, "..")
+                ),
+            );
         }
     }
 }

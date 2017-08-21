@@ -1,32 +1,28 @@
-error: Range::step_by(0) produces an infinite iterator. Consider using `std::iter::repeat()` instead
-  --> $DIR/range.rs:13:5
+error: Iterator::step_by(0) will panic at runtime
+  --> $DIR/range.rs:13:13
    |
-13 |     (0..1).step_by(0);
-   |     ^^^^^^^^^^^^^^^^^
+13 |     let _ = (0..1).step_by(0);
+   |             ^^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/range.rs:11:8
-   |
-11 | #[deny(range_step_by_zero, range_zip_with_len)]
-   |        ^^^^^^^^^^^^^^^^^^
+   = note: `-D iterator-step-by-zero` implied by `-D warnings`
 
-error: Range::step_by(0) produces an infinite iterator. Consider using `std::iter::repeat()` instead
-  --> $DIR/range.rs:17:5
+error: Iterator::step_by(0) will panic at runtime
+  --> $DIR/range.rs:17:13
    |
-17 |     (1..).step_by(0);
-   |     ^^^^^^^^^^^^^^^^
+17 |     let _ = (1..).step_by(0);
+   |             ^^^^^^^^^^^^^^^^
 
-error: Range::step_by(0) produces an infinite iterator. Consider using `std::iter::repeat()` instead
-  --> $DIR/range.rs:18:5
+error: Iterator::step_by(0) will panic at runtime
+  --> $DIR/range.rs:18:13
    |
-18 |     (1...2).step_by(0);
-   |     ^^^^^^^^^^^^^^^^^^
+18 |     let _ = (1...2).step_by(0);
+   |             ^^^^^^^^^^^^^^^^^^
 
-error: Range::step_by(0) produces an infinite iterator. Consider using `std::iter::repeat()` instead
-  --> $DIR/range.rs:21:5
+error: Iterator::step_by(0) will panic at runtime
+  --> $DIR/range.rs:21:13
    |
-21 |     x.step_by(0);
-   |     ^^^^^^^^^^^^
+21 |     let _ = x.step_by(0);
+   |             ^^^^^^^^^^^^
 
 error: It is more idiomatic to use v1.iter().enumerate()
   --> $DIR/range.rs:29:14
@@ -34,11 +30,13 @@ error: It is more idiomatic to use v1.iter().enumerate()
 29 |     let _x = v1.iter().zip(0..v1.len());
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/range.rs:11:28
-   |
-11 | #[deny(range_step_by_zero, range_zip_with_len)]
-   |                            ^^^^^^^^^^^^^^^^^^
+   = note: `-D range-zip-with-len` implied by `-D warnings`
 
-error: aborting due to 5 previous errors
+error: Iterator::step_by(0) will panic at runtime
+  --> $DIR/range.rs:33:13
+   |
+33 |     let _ = v1.iter().step_by(2/3);
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 6 previous errors
 

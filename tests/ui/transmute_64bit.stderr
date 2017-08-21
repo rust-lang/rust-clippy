@@ -4,16 +4,12 @@ error: transmute from a `f64` to a pointer
 9 |         let _: *const usize = std::mem::transmute(6.0f64);
   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-note: lint level defined here
- --> $DIR/transmute_64bit.rs:6:8
-  |
-6 | #[deny(wrong_transmute)]
-  |        ^^^^^^^^^^^^^^^
+  = note: `-D wrong-transmute` implied by `-D warnings`
 
 error: transmute from a `f64` to a pointer
-  --> $DIR/transmute_64bit.rs:12:29
+  --> $DIR/transmute_64bit.rs:11:29
    |
-12 |         let _: *mut usize = std::mem::transmute(6.0f64);
+11 |         let _: *mut usize = std::mem::transmute(6.0f64);
    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: aborting due to 2 previous errors

@@ -87,7 +87,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         decl: &'tcx FnDecl,
         body: &'tcx Body,
         _: Span,
-        _: NodeId
+        _: NodeId,
     ) {
         if in_external_macro(cx, body.value.span) {
             return;
@@ -129,7 +129,13 @@ fn check_decl<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, decl: &'tcx Decl, bindings: 
         return;
     }
     if let DeclLocal(ref local) = decl.node {
-        let Local { ref pat, ref ty, ref init, span, .. } = **local;
+        let Local {
+            ref pat,
+            ref ty,
+            ref init,
+            span,
+            ..
+        } = **local;
         if let Some(ref t) = *ty {
             check_ty(cx, t, bindings)
         }
@@ -142,7 +148,7 @@ fn check_decl<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, decl: &'tcx Decl, bindings: 
     }
 }
 
-fn is_binding(cx: &LateContext, pat_id: NodeId) -> bool {
+fn is_binding(cx: &LateContext, pat_id: HirId) -> bool {
     let var_ty = cx.tables.node_id_to_type(pat_id);
     match var_ty.sty {
         ty::TyAdt(..) => false,
@@ -155,13 +161,13 @@ fn check_pat<'a, 'tcx>(
     pat: &'tcx Pat,
     init: Option<&'tcx Expr>,
     span: Span,
-    bindings: &mut Vec<(Name, Span)>
+    bindings: &mut Vec<(Name, Span)>,
 ) {
     // TODO: match more stuff / destructuring
     match pat.node {
         PatKind::Binding(_, _, ref ident, ref inner) => {
             let name = ident.node;
-            if is_binding(cx, pat.id) {
+            if is_binding(cx, pat.hir_id) {
                 let mut new_binding = true;
                 for tup in bindings.iter_mut() {
                     if tup.0 == name {
@@ -184,9 +190,9 @@ fn check_pat<'a, 'tcx>(
                 if let ExprStruct(_, ref efields, _) = init_struct.node {
                     for field in pfields {
                         let name = field.node.name;
-                        let efield = efields.iter()
-                            .find(|f| f.name.node == name)
-                            .map(|f| &*f.expr);
+                        let efield = efields.iter().find(|f| f.name.node == name).map(
+                            |f| &*f.expr,
+                        );
                         check_pat(cx, &field.node.pat, efield, span, bindings);
                     }
                 } else {
@@ -240,39 +246,51 @@ fn lint_shadow<'a, 'tcx: 'a>(
     span: Span,
     pattern_span: Span,
     init: Option<&'tcx Expr>,
-    prev_span: Span
+    prev_span: Span,
 ) {
     if let Some(expr) = init {
         if is_self_shadow(name, expr) {
-            span_lint_and_then(cx,
-                               SHADOW_SAME,
-                               span,
-                               &format!("`{}` is shadowed by itself in `{}`",
-                                        snippet(cx, pattern_span, "_"),
-                                        snippet(cx, expr.span, "..")),
-                               |db| { db.span_note(prev_span, "previous binding is here"); });
-        } else if contains_self(cx, name, expr) {
-            span_lint_and_then(cx,
-                               SHADOW_REUSE,
-                               pattern_span,
-                               &format!("`{}` is shadowed by `{}` which reuses the original value",
-                                        snippet(cx, pattern_span, "_"),
-                                        snippet(cx, expr.span, "..")),
-                               |db| {
-                db.span_note(expr.span, "initialization happens here");
-                db.span_note(prev_span, "previous binding is here");
-            });
+            span_lint_and_then(
+                cx,
+                SHADOW_SAME,
+                span,
+                &format!(
+                    "`{}` is shadowed by itself in `{}`",
+                    snippet(cx, pattern_span, "_"),
+                    snippet(cx, expr.span, "..")
+                ),
+                |db| { db.span_note(prev_span, "previous binding is here"); },
+            );
+        } else if contains_self(name, expr) {
+            span_lint_and_then(
+                cx,
+                SHADOW_REUSE,
+                pattern_span,
+                &format!(
+                    "`{}` is shadowed by `{}` which reuses the original value",
+                    snippet(cx, pattern_span, "_"),
+                    snippet(cx, expr.span, "..")
+                ),
+                |db| {
+                    db.span_note(expr.span, "initialization happens here");
+                    db.span_note(prev_span, "previous binding is here");
+                },
+            );
         } else {
-            span_lint_and_then(cx,
-                               SHADOW_UNRELATED,
-                               pattern_span,
-                               &format!("`{}` is shadowed by `{}`",
-                                        snippet(cx, pattern_span, "_"),
-                                        snippet(cx, expr.span, "..")),
-                               |db| {
-                db.span_note(expr.span, "initialization happens here");
-                db.span_note(prev_span, "previous binding is here");
-            });
+            span_lint_and_then(
+                cx,
+                SHADOW_UNRELATED,
+                pattern_span,
+                &format!(
+                    "`{}` is shadowed by `{}`",
+                    snippet(cx, pattern_span, "_"),
+                    snippet(cx, expr.span, "..")
+                ),
+                |db| {
+                    db.span_note(expr.span, "initialization happens here");
+                    db.span_note(prev_span, "previous binding is here");
+                },
+            );
         }
 
     } else {
@@ -305,7 +323,7 @@ fn check_expr<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr, bindings: 
         },
         ExprIf(ref cond, ref then, ref otherwise) => {
             check_expr(cx, cond, bindings);
-            check_block(cx, then, bindings);
+            check_expr(cx, &**then, bindings);
             if let Some(ref o) = *otherwise {
                 check_expr(cx, o, bindings);
             }
@@ -357,7 +375,11 @@ fn is_self_shadow(name: Name, expr: &Expr) -> bool {
         ExprBox(ref inner) |
         ExprAddrOf(_, ref inner) => is_self_shadow(name, inner),
         ExprBlock(ref block) => {
-            block.stmts.is_empty() && block.expr.as_ref().map_or(false, |e| is_self_shadow(name, e))
+            block.stmts.is_empty() &&
+                block.expr.as_ref().map_or(
+                    false,
+                    |e| is_self_shadow(name, e),
+                )
         },
         ExprUnary(op, ref inner) => (UnDeref == op) && is_self_shadow(name, inner),
         ExprPath(QPath::Resolved(_, ref path)) => path_eq_name(name, path),
@@ -369,28 +391,26 @@ fn path_eq_name(name: Name, path: &Path) -> bool {
     !path.is_global() && path.segments.len() == 1 && path.segments[0].name.as_str() == name.as_str()
 }
 
-struct ContainsSelf<'a, 'tcx: 'a> {
+struct ContainsSelf {
     name: Name,
     result: bool,
-    cx: &'a LateContext<'a, 'tcx>,
 }
 
-impl<'a, 'tcx: 'a> Visitor<'tcx> for ContainsSelf<'a, 'tcx> {
+impl<'tcx> Visitor<'tcx> for ContainsSelf {
     fn visit_name(&mut self, _: Span, name: Name) {
         if self.name == name {
             self.result = true;
         }
     }
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
-        NestedVisitorMap::All(&self.cx.tcx.hir)
+        NestedVisitorMap::None
     }
 }
 
-fn contains_self<'a, 'tcx: 'a>(cx: &LateContext<'a, 'tcx>, name: Name, expr: &'tcx Expr) -> bool {
+fn contains_self(name: Name, expr: &Expr) -> bool {
     let mut cs = ContainsSelf {
         name: name,
         result: false,
-        cx: cx,
     };
     cs.visit_expr(expr);
     cs.result

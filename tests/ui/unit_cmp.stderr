@@ -4,11 +4,7 @@ error: ==-comparison of unit values detected. This will always be true
 16 |     if { true; } == { false; } {
    |        ^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/unit_cmp.rs:4:9
-   |
-4  | #![deny(unit_cmp)]
-   |         ^^^^^^^^
+   = note: `-D unit-cmp` implied by `-D warnings`
 
 error: >-comparison of unit values detected. This will always be false
   --> $DIR/unit_cmp.rs:19:8

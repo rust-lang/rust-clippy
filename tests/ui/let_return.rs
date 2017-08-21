@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 #![allow(unused)]
 
-#![deny(let_and_return)]
+#![warn(let_and_return)]
 
 fn test() -> i32 {
     let _y = 0; // no warning
@@ -34,6 +34,12 @@ fn test_nowarn_3() -> (i32, i32) {
     // this should technically warn, but we do not compare complex patterns
     let (x, y) = (5, 9);
     (x, y)
+}
+
+fn test_nowarn_4() -> i32 {
+    // this should technically warn, but not b/c of let_and_return, but b/c of useless type
+    let x: i32 = 5;
+    x
 }
 
 fn main() {

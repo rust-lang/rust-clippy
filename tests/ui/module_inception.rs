@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(module_inception)]
+#![warn(module_inception)]
 
 mod foo {
     mod bar {
@@ -14,7 +14,7 @@ mod foo {
     }
 }
 
-// No warning. See <https://github.com/Manishearth/rust-clippy/issues/1220>.
+// No warning. See <https://github.com/rust-lang-nursery/rust-clippy/issues/1220>.
 mod bar {
     #[allow(module_inception)]
     mod bar {

@@ -5,13 +5,14 @@ use rustc::hir::def::Def;
 use rustc_const_eval::lookup_const_by_id;
 use rustc_const_math::ConstInt;
 use rustc::hir::*;
-use rustc::ty::{self, TyCtxt};
+use rustc::ty::{self, TyCtxt, Ty};
+use rustc::ty::subst::{Substs, Subst};
 use std::cmp::Ordering::{self, Equal};
 use std::cmp::PartialOrd;
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::rc::Rc;
-use syntax::ast::{FloatTy, LitKind, StrStyle, NodeId};
+use syntax::ast::{FloatTy, LitKind, StrStyle};
 use syntax::ptr::P;
 
 #[derive(Debug, Copy, Clone)]
@@ -82,7 +83,8 @@ impl PartialEq for Constant {
 
 impl Hash for Constant {
     fn hash<H>(&self, state: &mut H)
-        where H: Hasher
+    where
+        H: Hasher,
     {
         match *self {
             Constant::Str(ref s, ref k) => {
@@ -160,7 +162,7 @@ impl PartialOrd for Constant {
 
 /// parse a `LitKind` to a `Constant`
 #[allow(cast_possible_wrap)]
-pub fn lit_to_constant<'a, 'tcx>(lit: &LitKind, tcx: TyCtxt<'a, 'tcx, 'tcx>, mut ty: ty::Ty<'tcx>) -> Constant {
+pub fn lit_to_constant<'a, 'tcx>(lit: &LitKind, tcx: TyCtxt<'a, 'tcx, 'tcx>, mut ty: Ty<'tcx>) -> Constant {
     use syntax::ast::*;
     use syntax::ast::LitIntType::*;
     use rustc::ty::util::IntTypeExt;
@@ -224,7 +226,9 @@ pub fn constant(lcx: &LateContext, e: &Expr) -> Option<(Constant, bool)> {
     let mut cx = ConstEvalLateContext {
         tcx: lcx.tcx,
         tables: lcx.tables,
+        param_env: lcx.param_env,
         needed_resolution: false,
+        substs: lcx.tcx.intern_substs(&[]),
     };
     cx.expr(e).map(|cst| (cst, cx.needed_resolution))
 }
@@ -236,14 +240,16 @@ pub fn constant_simple(lcx: &LateContext, e: &Expr) -> Option<Constant> {
 struct ConstEvalLateContext<'a, 'tcx: 'a> {
     tcx: TyCtxt<'a, 'tcx, 'tcx>,
     tables: &'a ty::TypeckTables<'tcx>,
+    param_env: ty::ParamEnv<'tcx>,
     needed_resolution: bool,
+    substs: &'tcx Substs<'tcx>,
 }
 
 impl<'c, 'cc> ConstEvalLateContext<'c, 'cc> {
     /// simple constant folding: Insert an expression, get a constant or none.
     fn expr(&mut self, e: &Expr) -> Option<Constant> {
         match e.node {
-            ExprPath(ref qpath) => self.fetch_path(qpath, e.id),
+            ExprPath(ref qpath) => self.fetch_path(qpath, e.hir_id),
             ExprBlock(ref block) => self.block(block),
             ExprIf(ref cond, ref then, ref otherwise) => self.ifthenelse(cond, then, otherwise),
             ExprLit(ref lit) => Some(lit_to_constant(&lit.node, self.tcx, self.tables.expr_ty(e))),
@@ -278,21 +284,33 @@ impl<'c, 'cc> ConstEvalLateContext<'c, 'cc> {
     }
 
     /// lookup a possibly constant expression from a ExprPath
-    fn fetch_path(&mut self, qpath: &QPath, id: NodeId) -> Option<Constant> {
+    fn fetch_path(&mut self, qpath: &QPath, id: HirId) -> Option<Constant> {
         let def = self.tables.qpath_def(qpath, id);
         match def {
             Def::Const(def_id) |
             Def::AssociatedConst(def_id) => {
-                let substs = self.tables
-                    .node_id_item_substs(id)
-                    .unwrap_or_else(|| self.tcx.intern_substs(&[]));
-                if let Some((const_expr, tables)) = lookup_const_by_id(self.tcx, def_id, substs) {
+                let substs = self.tables.node_substs(id);
+                let substs = if self.substs.is_empty() {
+                    substs
+                } else {
+                    substs.subst(self.tcx, self.substs)
+                };
+                let param_env = self.param_env.and((def_id, substs));
+                if let Some((def_id, substs)) = lookup_const_by_id(self.tcx, param_env) {
                     let mut cx = ConstEvalLateContext {
                         tcx: self.tcx,
-                        tables: tables,
+                        tables: self.tcx.typeck_tables_of(def_id),
                         needed_resolution: false,
+                        substs: substs,
+                        param_env: param_env.param_env,
                     };
-                    let ret = cx.expr(const_expr);
+                    let body = if let Some(id) = self.tcx.hir.as_local_node_id(def_id) {
+                        self.tcx.mir_const_qualif(def_id);
+                        self.tcx.hir.body(self.tcx.hir.body_owned_by(id))
+                    } else {
+                        self.tcx.sess.cstore.item_body(self.tcx, def_id)
+                    };
+                    let ret = cx.expr(&body.value);
                     if ret.is_some() {
                         self.needed_resolution = true;
                     }
@@ -313,10 +331,10 @@ impl<'c, 'cc> ConstEvalLateContext<'c, 'cc> {
         }
     }
 
-    fn ifthenelse(&mut self, cond: &Expr, then: &Block, otherwise: &Option<P<Expr>>) -> Option<Constant> {
+    fn ifthenelse(&mut self, cond: &Expr, then: &P<Expr>, otherwise: &Option<P<Expr>>) -> Option<Constant> {
         if let Some(Constant::Bool(b)) = self.expr(cond) {
             if b {
-                self.block(then)
+                self.expr(&**then)
             } else {
                 otherwise.as_ref().and_then(|expr| self.expr(expr))
             }

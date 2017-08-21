@@ -4,13 +4,11 @@ error: large size difference between variants
 10 |     B([i32; 8000]),
    |     ^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/large_enum_variant.rs:6:9
-   |
-6  | #![deny(large_enum_variant)]
-   |         ^^^^^^^^^^^^^^^^^^
+   = note: `-D large-enum-variant` implied by `-D warnings`
 help: consider boxing the large fields to reduce the total size of the enum
-   |     B(Box<[i32; 8000]>),
+   |
+10 |     B(Box<[i32; 8000]>),
+   |       ^^^^^^^^^^^^^^^^
 
 error: large size difference between variants
   --> $DIR/large_enum_variant.rs:21:5
@@ -31,7 +29,9 @@ error: large size difference between variants
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider boxing the large fields to reduce the total size of the enum
-   |     ContainingLargeEnum(Box<LargeEnum>),
+   |
+34 |     ContainingLargeEnum(Box<LargeEnum>),
+   |                         ^^^^^^^^^^^^^^
 
 error: large size difference between variants
   --> $DIR/large_enum_variant.rs:37:5
@@ -64,7 +64,9 @@ error: large size difference between variants
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider boxing the large fields to reduce the total size of the enum
-   |     StructLikeLarge2 { x: Box<[i32; 8000]> },
+   |
+49 |     StructLikeLarge2 { x: Box<[i32; 8000]> },
+   |                           ^^^^^^^^^^^^^^^^
 
 error: aborting due to 6 previous errors
 

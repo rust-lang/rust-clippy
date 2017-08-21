@@ -4,11 +4,7 @@ error: writing `&Vec<_>` instead of `&[_]` involves one more reference and canno
 6 | fn do_vec(x: &Vec<i64>) {
   |              ^^^^^^^^^
   |
-note: lint level defined here
- --> $DIR/ptr_arg.rs:4:9
-  |
-4 | #![deny(ptr_arg)]
-  |         ^^^^^^^
+  = note: `-D ptr-arg` implied by `-D warnings`
 
 error: writing `&String` instead of `&str` involves a new object where a slice will do. Consider changing the type to `&str`
   --> $DIR/ptr_arg.rs:14:14

@@ -1,23 +1,54 @@
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:18:25
+   |
+18 |     fn add(self, other: T) -> T { self }
+   |                         ^ help: use the applicable keyword: `Self`
+   |
+   = note: `-D use-self` implied by `-D warnings`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:18:31
+   |
+18 |     fn add(self, other: T) -> T { self }
+   |                               ^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:21:26
+   |
+21 |     fn sub(&self, other: T) -> &T { self } // no error, self is a ref
+   |                          ^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:21:33
+   |
+21 |     fn sub(&self, other: T) -> &T { self } // no error, self is a ref
+   |                                 ^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:22:21
+   |
+22 |     fn div(self) -> T { self } // no error, different #arguments
+   |                     ^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:23:25
+   |
+23 |     fn rem(self, other: T) { } // no error, wrong return type
+   |                         ^ help: use the applicable keyword: `Self`
+
 error: defining a method called `add` on this type; consider implementing the `std::ops::Add` trait or choosing a less ambiguous name
   --> $DIR/methods.rs:18:5
    |
 18 |     fn add(self, other: T) -> T { self }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: #[deny(should_implement_trait)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/methods.rs:5:9
-   |
-5  | #![deny(clippy, clippy_pedantic)]
-   |         ^^^^^^
+   = note: `-D should-implement-trait` implied by `-D warnings`
 
 error: defining a method called `drop` on this type; consider implementing the `std::ops::Drop` trait or choosing a less ambiguous name
   --> $DIR/methods.rs:19:5
    |
 19 |     fn drop(&mut self) { }
    |     ^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: #[deny(should_implement_trait)] implied by #[deny(clippy)]
 
 error: methods called `into_*` usually take self by value; consider choosing a less ambiguous name
   --> $DIR/methods.rs:26:17
@@ -25,28 +56,19 @@ error: methods called `into_*` usually take self by value; consider choosing a l
 26 |     fn into_u16(&self) -> u16 { 0 }
    |                 ^^^^^
    |
-   = note: #[deny(wrong_self_convention)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/methods.rs:5:9
-   |
-5  | #![deny(clippy, clippy_pedantic)]
-   |         ^^^^^^
+   = note: `-D wrong-self-convention` implied by `-D warnings`
 
 error: methods called `to_*` usually take self by reference; consider choosing a less ambiguous name
   --> $DIR/methods.rs:28:21
    |
 28 |     fn to_something(self) -> u32 { 0 }
    |                     ^^^^
-   |
-   = note: #[deny(wrong_self_convention)] implied by #[deny(clippy)]
 
 error: methods called `new` usually take no self; consider choosing a less ambiguous name
   --> $DIR/methods.rs:30:12
    |
 30 |     fn new(self) {}
    |            ^^^^
-   |
-   = note: #[deny(wrong_self_convention)] implied by #[deny(clippy)]
 
 error: methods called `new` usually return `Self`
   --> $DIR/methods.rs:30:5
@@ -54,914 +76,685 @@ error: methods called `new` usually return `Self`
 30 |     fn new(self) {}
    |     ^^^^^^^^^^^^^^^
    |
-   = note: #[deny(new_ret_no_self)] implied by #[deny(clippy)]
-note: lint level defined here
-  --> $DIR/methods.rs:5:9
+   = note: `-D new-ret-no-self` implied by `-D warnings`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:40:35
    |
-5  | #![deny(clippy, clippy_pedantic)]
-   |         ^^^^^^
+40 |     pub fn new<'b>(s: &'b str) -> Lt<'b> { unimplemented!() }
+   |                                   ^^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:49:28
+   |
+49 |     pub fn new(s: &str) -> Lt2 { unimplemented!() }
+   |                            ^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:58:21
+   |
+58 |     pub fn new() -> Lt3<'static> { unimplemented!() }
+   |                     ^^^^^^^^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:61:10
+   |
+61 | #[derive(Clone,Copy)]
+   |          ^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:74:24
+   |
+74 |     fn new() -> Option<V<T>> { None }
+   |                        ^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:78:19
+   |
+78 |     type Output = T;
+   |                   ^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:79:25
+   |
+79 |     fn mul(self, other: T) -> T { self } // no error, obviously
+   |                         ^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/methods.rs:79:31
+   |
+79 |     fn mul(self, other: T) -> T { self } // no error, obviously
+   |                               ^ help: use the applicable keyword: `Self`
 
 error: called `map(f).unwrap_or(a)` on an Option value. This can be done more directly by calling `map_or(a, f)` instead
-   --> $DIR/methods.rs:99:13
-    |
-99  |       let _ = opt.map(|x| x + 1)
-    |  _____________^ starting here...
-100 | |
-101 | |                .unwrap_or(0); // should lint even though this call is on a separate line
-    | |____________________________^ ...ending here
-    |
-    = note: #[deny(option_map_unwrap_or)] implied by #[deny(clippy_pedantic)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:17
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |                 ^^^^^^^^^^^^^^^
-    = note: replace `map(|x| x + 1).unwrap_or(0)` with `map_or(0, |x| x + 1)`
+  --> $DIR/methods.rs:97:13
+   |
+97 |       let _ = opt.map(|x| x + 1)
+   |  _____________^
+98 | |
+99 | |                .unwrap_or(0); // should lint even though this call is on a separate line
+   | |____________________________^
+   |
+   = note: `-D option-map-unwrap-or` implied by `-D warnings`
+   = note: replace `map(|x| x + 1).unwrap_or(0)` with `map_or(0, |x| x + 1)`
 
 error: called `map(f).unwrap_or(a)` on an Option value. This can be done more directly by calling `map_or(a, f)` instead
-   --> $DIR/methods.rs:103:13
+   --> $DIR/methods.rs:101:13
     |
-103 |       let _ = opt.map(|x| {
-    |  _____________^ starting here...
-104 | |                         x + 1
-105 | |                     }
-106 | |               ).unwrap_or(0);
-    | |____________________________^ ...ending here
-    |
-    = note: #[deny(option_map_unwrap_or)] implied by #[deny(clippy_pedantic)]
+101 |       let _ = opt.map(|x| {
+    |  _____________^
+102 | |                         x + 1
+103 | |                     }
+104 | |               ).unwrap_or(0);
+    | |____________________________^
 
 error: called `map(f).unwrap_or(a)` on an Option value. This can be done more directly by calling `map_or(a, f)` instead
-   --> $DIR/methods.rs:107:13
+   --> $DIR/methods.rs:105:13
     |
-107 |       let _ = opt.map(|x| x + 1)
-    |  _____________^ starting here...
-108 | |                .unwrap_or({
-109 | |                     0
-110 | |                 });
-    | |__________________^ ...ending here
-    |
-    = note: #[deny(option_map_unwrap_or)] implied by #[deny(clippy_pedantic)]
+105 |       let _ = opt.map(|x| x + 1)
+    |  _____________^
+106 | |                .unwrap_or({
+107 | |                     0
+108 | |                 });
+    | |__________________^
 
 error: called `map(f).unwrap_or_else(g)` on an Option value. This can be done more directly by calling `map_or_else(g, f)` instead
-   --> $DIR/methods.rs:116:13
+   --> $DIR/methods.rs:114:13
     |
-116 |       let _ = opt.map(|x| x + 1)
-    |  _____________^ starting here...
-117 | |
-118 | |                .unwrap_or_else(|| 0); // should lint even though this call is on a separate line
-    | |____________________________________^ ...ending here
+114 |       let _ = opt.map(|x| x + 1)
+    |  _____________^
+115 | |
+116 | |                .unwrap_or_else(|| 0); // should lint even though this call is on a separate line
+    | |____________________________________^
     |
-    = note: #[deny(option_map_unwrap_or_else)] implied by #[deny(clippy_pedantic)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:17
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |                 ^^^^^^^^^^^^^^^
-    = note: replace `map(|x| x + 1).unwrap_or_else(|| 0)` with `with map_or_else(|| 0, |x| x + 1)`
+    = note: `-D option-map-unwrap-or-else` implied by `-D warnings`
+    = note: replace `map(|x| x + 1).unwrap_or_else(|| 0)` with `map_or_else(|| 0, |x| x + 1)`
 
 error: called `map(f).unwrap_or_else(g)` on an Option value. This can be done more directly by calling `map_or_else(g, f)` instead
-   --> $DIR/methods.rs:120:13
+   --> $DIR/methods.rs:118:13
     |
-120 |       let _ = opt.map(|x| {
-    |  _____________^ starting here...
-121 | |                         x + 1
-122 | |                     }
-123 | |               ).unwrap_or_else(|| 0);
-    | |____________________________________^ ...ending here
-    |
-    = note: #[deny(option_map_unwrap_or_else)] implied by #[deny(clippy_pedantic)]
+118 |       let _ = opt.map(|x| {
+    |  _____________^
+119 | |                         x + 1
+120 | |                     }
+121 | |               ).unwrap_or_else(|| 0);
+    | |____________________________________^
 
 error: called `map(f).unwrap_or_else(g)` on an Option value. This can be done more directly by calling `map_or_else(g, f)` instead
-   --> $DIR/methods.rs:124:13
+   --> $DIR/methods.rs:122:13
     |
-124 |       let _ = opt.map(|x| x + 1)
-    |  _____________^ starting here...
-125 | |                .unwrap_or_else(||
-126 | |                     0
-127 | |                 );
-    | |_________________^ ...ending here
+122 |       let _ = opt.map(|x| x + 1)
+    |  _____________^
+123 | |                .unwrap_or_else(||
+124 | |                     0
+125 | |                 );
+    | |_________________^
+
+error: unnecessary structure name repetition
+   --> $DIR/methods.rs:131:16
     |
-    = note: #[deny(option_map_unwrap_or_else)] implied by #[deny(clippy_pedantic)]
+131 | #[derive(Copy, Clone)]
+    |                ^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+   --> $DIR/methods.rs:145:16
+    |
+145 | #[derive(Copy, Clone)]
+    |                ^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+   --> $DIR/methods.rs:151:24
+    |
+151 |     fn filter(self) -> IteratorFalsePositives {
+    |                        ^^^^^^^^^^^^^^^^^^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+   --> $DIR/methods.rs:155:22
+    |
+155 |     fn next(self) -> IteratorFalsePositives {
+    |                      ^^^^^^^^^^^^^^^^^^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+   --> $DIR/methods.rs:175:32
+    |
+175 |     fn skip(self, _: usize) -> IteratorFalsePositives {
+    |                                ^^^^^^^^^^^^^^^^^^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+   --> $DIR/methods.rs:180:16
+    |
+180 | #[derive(Copy, Clone)]
+    |                ^^^^^ help: use the applicable keyword: `Self`
 
 error: called `filter(p).next()` on an `Iterator`. This is more succinctly expressed by calling `.find(p)` instead.
-   --> $DIR/methods.rs:196:13
+   --> $DIR/methods.rs:194:13
     |
-196 |     let _ = v.iter().filter(|&x| *x < 0).next();
+194 |     let _ = v.iter().filter(|&x| *x < 0).next();
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(filter_next)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
+    = note: `-D filter-next` implied by `-D warnings`
     = note: replace `filter(|&x| *x < 0).next()` with `find(|&x| *x < 0)`
 
 error: called `filter(p).next()` on an `Iterator`. This is more succinctly expressed by calling `.find(p)` instead.
-   --> $DIR/methods.rs:201:13
+   --> $DIR/methods.rs:197:13
     |
-201 |       let _ = v.iter().filter(|&x| {
-    |  _____________^ starting here...
-202 | |                                 *x < 0
-203 | |                             }
-204 | |                    ).next();
-    | |___________________________^ ...ending here
-    |
-    = note: #[deny(filter_next)] implied by #[deny(clippy)]
+197 |       let _ = v.iter().filter(|&x| {
+    |  _____________^
+198 | |                                 *x < 0
+199 | |                             }
+200 | |                    ).next();
+    | |___________________________^
 
 error: called `is_some()` after searching an `Iterator` with find. This is more succinctly expressed by calling `any()`.
-   --> $DIR/methods.rs:216:13
+   --> $DIR/methods.rs:212:13
     |
-216 |     let _ = v.iter().find(|&x| *x < 0).is_some();
+212 |     let _ = v.iter().find(|&x| *x < 0).is_some();
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(search_is_some)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
+    = note: `-D search-is-some` implied by `-D warnings`
     = note: replace `find(|&x| *x < 0).is_some()` with `any(|&x| *x < 0)`
 
 error: called `is_some()` after searching an `Iterator` with find. This is more succinctly expressed by calling `any()`.
-   --> $DIR/methods.rs:221:13
+   --> $DIR/methods.rs:215:13
     |
-221 |       let _ = v.iter().find(|&x| {
-    |  _____________^ starting here...
-222 | |                               *x < 0
-223 | |                           }
-224 | |                    ).is_some();
-    | |______________________________^ ...ending here
-    |
-    = note: #[deny(search_is_some)] implied by #[deny(clippy)]
+215 |       let _ = v.iter().find(|&x| {
+    |  _____________^
+216 | |                               *x < 0
+217 | |                           }
+218 | |                    ).is_some();
+    | |______________________________^
 
 error: called `is_some()` after searching an `Iterator` with position. This is more succinctly expressed by calling `any()`.
-   --> $DIR/methods.rs:227:13
+   --> $DIR/methods.rs:221:13
     |
-227 |     let _ = v.iter().position(|&x| x < 0).is_some();
+221 |     let _ = v.iter().position(|&x| x < 0).is_some();
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(search_is_some)] implied by #[deny(clippy)]
     = note: replace `position(|&x| x < 0).is_some()` with `any(|&x| x < 0)`
 
 error: called `is_some()` after searching an `Iterator` with position. This is more succinctly expressed by calling `any()`.
-   --> $DIR/methods.rs:232:13
+   --> $DIR/methods.rs:224:13
     |
-232 |       let _ = v.iter().position(|&x| {
-    |  _____________^ starting here...
-233 | |                                   x < 0
-234 | |                               }
-235 | |                    ).is_some();
-    | |______________________________^ ...ending here
-    |
-    = note: #[deny(search_is_some)] implied by #[deny(clippy)]
+224 |       let _ = v.iter().position(|&x| {
+    |  _____________^
+225 | |                                   x < 0
+226 | |                               }
+227 | |                    ).is_some();
+    | |______________________________^
 
 error: called `is_some()` after searching an `Iterator` with rposition. This is more succinctly expressed by calling `any()`.
-   --> $DIR/methods.rs:238:13
+   --> $DIR/methods.rs:230:13
     |
-238 |     let _ = v.iter().rposition(|&x| x < 0).is_some();
+230 |     let _ = v.iter().rposition(|&x| x < 0).is_some();
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(search_is_some)] implied by #[deny(clippy)]
     = note: replace `rposition(|&x| x < 0).is_some()` with `any(|&x| x < 0)`
 
 error: called `is_some()` after searching an `Iterator` with rposition. This is more succinctly expressed by calling `any()`.
-   --> $DIR/methods.rs:243:13
+   --> $DIR/methods.rs:233:13
     |
-243 |       let _ = v.iter().rposition(|&x| {
-    |  _____________^ starting here...
-244 | |                                    x < 0
-245 | |                                }
-246 | |                    ).is_some();
-    | |______________________________^ ...ending here
+233 |       let _ = v.iter().rposition(|&x| {
+    |  _____________^
+234 | |                                    x < 0
+235 | |                                }
+236 | |                    ).is_some();
+    | |______________________________^
+
+error: unnecessary structure name repetition
+   --> $DIR/methods.rs:250:21
     |
-    = note: #[deny(search_is_some)] implied by #[deny(clippy)]
+250 |         fn new() -> Foo { Foo }
+    |                     ^^^ help: use the applicable keyword: `Self`
 
 error: use of `unwrap_or` followed by a function call
-   --> $DIR/methods.rs:278:5
+   --> $DIR/methods.rs:268:5
     |
-278 |     with_constructor.unwrap_or(make());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+268 |     with_constructor.unwrap_or(make());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_constructor.unwrap_or_else(make)`
     |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
-help: try this
-    |     with_constructor.unwrap_or_else(make);
+    = note: `-D or-fun-call` implied by `-D warnings`
 
 error: use of `unwrap_or` followed by a call to `new`
-   --> $DIR/methods.rs:284:5
+   --> $DIR/methods.rs:271:5
     |
-284 |     with_new.unwrap_or(Vec::new());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     with_new.unwrap_or_default();
+271 |     with_new.unwrap_or(Vec::new());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_new.unwrap_or_default()`
 
 error: use of `unwrap_or` followed by a function call
-   --> $DIR/methods.rs:290:5
+   --> $DIR/methods.rs:274:5
     |
-290 |     with_const_args.unwrap_or(Vec::with_capacity(12));
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     with_const_args.unwrap_or_else(|| Vec::with_capacity(12));
+274 |     with_const_args.unwrap_or(Vec::with_capacity(12));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_const_args.unwrap_or_else(|| Vec::with_capacity(12))`
 
 error: use of `unwrap_or` followed by a function call
-   --> $DIR/methods.rs:296:5
+   --> $DIR/methods.rs:277:5
     |
-296 |     with_err.unwrap_or(make());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     with_err.unwrap_or_else(|_| make());
+277 |     with_err.unwrap_or(make());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_err.unwrap_or_else(|_| make())`
 
 error: use of `unwrap_or` followed by a function call
-   --> $DIR/methods.rs:302:5
+   --> $DIR/methods.rs:280:5
     |
-302 |     with_err_args.unwrap_or(Vec::with_capacity(12));
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     with_err_args.unwrap_or_else(|_| Vec::with_capacity(12));
+280 |     with_err_args.unwrap_or(Vec::with_capacity(12));
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_err_args.unwrap_or_else(|_| Vec::with_capacity(12))`
 
 error: use of `unwrap_or` followed by a call to `default`
-   --> $DIR/methods.rs:308:5
+   --> $DIR/methods.rs:283:5
     |
-308 |     with_default_trait.unwrap_or(Default::default());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     with_default_trait.unwrap_or_default();
+283 |     with_default_trait.unwrap_or(Default::default());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_default_trait.unwrap_or_default()`
 
 error: use of `unwrap_or` followed by a call to `default`
-   --> $DIR/methods.rs:314:5
+   --> $DIR/methods.rs:286:5
     |
-314 |     with_default_type.unwrap_or(u64::default());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     with_default_type.unwrap_or_default();
+286 |     with_default_type.unwrap_or(u64::default());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_default_type.unwrap_or_default()`
 
 error: use of `unwrap_or` followed by a function call
-   --> $DIR/methods.rs:320:5
+   --> $DIR/methods.rs:289:5
     |
-320 |     with_vec.unwrap_or(vec![]);
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     with_vec.unwrap_or_else(|| < [ _ ] > :: into_vec ( box [ $ ( $ x ) , * ] ));
+289 |     with_vec.unwrap_or(vec![]);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `with_vec.unwrap_or_else(|| < [ _ ] > :: into_vec ( box [ $ ( $ x ) , * ] ))`
 
 error: use of `unwrap_or` followed by a function call
-   --> $DIR/methods.rs:326:5
+   --> $DIR/methods.rs:294:5
     |
-326 |     without_default.unwrap_or(Foo::new());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     without_default.unwrap_or_else(Foo::new);
+294 |     without_default.unwrap_or(Foo::new());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `without_default.unwrap_or_else(Foo::new)`
 
 error: use of `or_insert` followed by a function call
-   --> $DIR/methods.rs:332:5
+   --> $DIR/methods.rs:297:5
     |
-332 |     map.entry(42).or_insert(String::new());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     map.entry(42).or_insert_with(String::new);
+297 |     map.entry(42).or_insert(String::new());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `map.entry(42).or_insert_with(String::new)`
 
 error: use of `or_insert` followed by a function call
-   --> $DIR/methods.rs:338:5
+   --> $DIR/methods.rs:300:5
     |
-338 |     btree.entry(42).or_insert(String::new());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     btree.entry(42).or_insert_with(String::new);
+300 |     btree.entry(42).or_insert(String::new());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `btree.entry(42).or_insert_with(String::new)`
 
 error: use of `unwrap_or` followed by a function call
-   --> $DIR/methods.rs:344:13
+   --> $DIR/methods.rs:303:13
     |
-344 |     let _ = stringy.unwrap_or("".to_owned());
-    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(or_fun_call)] implied by #[deny(clippy)]
-help: try this
-    |     let _ = stringy.unwrap_or_else(|| "".to_owned());
+303 |     let _ = stringy.unwrap_or("".to_owned());
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `stringy.unwrap_or_else(|| "".to_owned())`
 
 error: called `.iter().nth()` on a Vec. Calling `.get()` is both faster and more readable
-   --> $DIR/methods.rs:358:23
+   --> $DIR/methods.rs:314:23
     |
-358 |         let bad_vec = some_vec.iter().nth(3);
+314 |         let bad_vec = some_vec.iter().nth(3);
     |                       ^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(iter_nth)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
+    = note: `-D iter-nth` implied by `-D warnings`
 
 error: called `.iter().nth()` on a slice. Calling `.get()` is both faster and more readable
-   --> $DIR/methods.rs:360:26
+   --> $DIR/methods.rs:315:26
     |
-360 |         let bad_slice = &some_vec[..].iter().nth(3);
+315 |         let bad_slice = &some_vec[..].iter().nth(3);
     |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_nth)] implied by #[deny(clippy)]
 
 error: called `.iter().nth()` on a slice. Calling `.get()` is both faster and more readable
-   --> $DIR/methods.rs:362:31
+   --> $DIR/methods.rs:316:31
     |
-362 |         let bad_boxed_slice = boxed_slice.iter().nth(3);
+316 |         let bad_boxed_slice = boxed_slice.iter().nth(3);
     |                               ^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_nth)] implied by #[deny(clippy)]
 
 error: called `.iter().nth()` on a VecDeque. Calling `.get()` is both faster and more readable
-   --> $DIR/methods.rs:364:29
+   --> $DIR/methods.rs:317:29
     |
-364 |         let bad_vec_deque = some_vec_deque.iter().nth(3);
+317 |         let bad_vec_deque = some_vec_deque.iter().nth(3);
     |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_nth)] implied by #[deny(clippy)]
 
 error: called `.iter_mut().nth()` on a Vec. Calling `.get_mut()` is both faster and more readable
-   --> $DIR/methods.rs:370:23
+   --> $DIR/methods.rs:322:23
     |
-370 |         let bad_vec = some_vec.iter_mut().nth(3);
+322 |         let bad_vec = some_vec.iter_mut().nth(3);
     |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_nth)] implied by #[deny(clippy)]
 
 error: called `.iter_mut().nth()` on a slice. Calling `.get_mut()` is both faster and more readable
-   --> $DIR/methods.rs:374:26
+   --> $DIR/methods.rs:325:26
     |
-374 |         let bad_slice = &some_vec[..].iter_mut().nth(3);
+325 |         let bad_slice = &some_vec[..].iter_mut().nth(3);
     |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_nth)] implied by #[deny(clippy)]
 
 error: called `.iter_mut().nth()` on a VecDeque. Calling `.get_mut()` is both faster and more readable
-   --> $DIR/methods.rs:378:29
+   --> $DIR/methods.rs:328:29
     |
-378 |         let bad_vec_deque = some_vec_deque.iter_mut().nth(3);
+328 |         let bad_vec_deque = some_vec_deque.iter_mut().nth(3);
     |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_nth)] implied by #[deny(clippy)]
 
 error: called `skip(x).next()` on an iterator. This is more succinctly expressed by calling `nth(x)`
-   --> $DIR/methods.rs:392:13
+   --> $DIR/methods.rs:340:13
     |
-392 |     let _ = some_vec.iter().skip(42).next();
+340 |     let _ = some_vec.iter().skip(42).next();
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(iter_skip_next)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
+    = note: `-D iter-skip-next` implied by `-D warnings`
 
 error: called `skip(x).next()` on an iterator. This is more succinctly expressed by calling `nth(x)`
-   --> $DIR/methods.rs:395:13
+   --> $DIR/methods.rs:341:13
     |
-395 |     let _ = some_vec.iter().cycle().skip(42).next();
+341 |     let _ = some_vec.iter().cycle().skip(42).next();
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_skip_next)] implied by #[deny(clippy)]
 
 error: called `skip(x).next()` on an iterator. This is more succinctly expressed by calling `nth(x)`
-   --> $DIR/methods.rs:398:13
+   --> $DIR/methods.rs:342:13
     |
-398 |     let _ = (1..10).skip(10).next();
+342 |     let _ = (1..10).skip(10).next();
     |             ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_skip_next)] implied by #[deny(clippy)]
 
 error: called `skip(x).next()` on an iterator. This is more succinctly expressed by calling `nth(x)`
-   --> $DIR/methods.rs:401:14
+   --> $DIR/methods.rs:343:14
     |
-401 |     let _ = &some_vec[..].iter().skip(3).next();
+343 |     let _ = &some_vec[..].iter().skip(3).next();
     |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(iter_skip_next)] implied by #[deny(clippy)]
 
 error: called `.get().unwrap()` on a slice. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:429:17
+   --> $DIR/methods.rs:369:17
     |
-429 |         let _ = boxed_slice.get(1).unwrap();
-    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+369 |         let _ = boxed_slice.get(1).unwrap();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&boxed_slice[1]`
     |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
-help: try this
-    |         let _ = &boxed_slice[1];
+    = note: `-D get-unwrap` implied by `-D warnings`
 
 error: called `.get().unwrap()` on a slice. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:433:17
+   --> $DIR/methods.rs:370:17
     |
-433 |         let _ = some_slice.get(0).unwrap();
-    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         let _ = &some_slice[0];
+370 |         let _ = some_slice.get(0).unwrap();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&some_slice[0]`
 
 error: called `.get().unwrap()` on a Vec. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:437:17
+   --> $DIR/methods.rs:371:17
     |
-437 |         let _ = some_vec.get(0).unwrap();
-    |                 ^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         let _ = &some_vec[0];
+371 |         let _ = some_vec.get(0).unwrap();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&some_vec[0]`
 
 error: called `.get().unwrap()` on a VecDeque. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:441:17
+   --> $DIR/methods.rs:372:17
     |
-441 |         let _ = some_vecdeque.get(0).unwrap();
-    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         let _ = &some_vecdeque[0];
+372 |         let _ = some_vecdeque.get(0).unwrap();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&some_vecdeque[0]`
 
 error: called `.get().unwrap()` on a HashMap. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:445:17
+   --> $DIR/methods.rs:373:17
     |
-445 |         let _ = some_hashmap.get(&1).unwrap();
-    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         let _ = &some_hashmap[&1];
+373 |         let _ = some_hashmap.get(&1).unwrap();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&some_hashmap[&1]`
 
 error: called `.get().unwrap()` on a BTreeMap. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:449:17
+   --> $DIR/methods.rs:374:17
     |
-449 |         let _ = some_btreemap.get(&1).unwrap();
-    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         let _ = &some_btreemap[&1];
+374 |         let _ = some_btreemap.get(&1).unwrap();
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&some_btreemap[&1]`
 
 error: called `.get_mut().unwrap()` on a slice. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:458:10
+   --> $DIR/methods.rs:379:10
     |
-458 |         *boxed_slice.get_mut(0).unwrap() = 1;
-    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         *&mut boxed_slice[0] = 1;
+379 |         *boxed_slice.get_mut(0).unwrap() = 1;
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&mut boxed_slice[0]`
 
 error: called `.get_mut().unwrap()` on a slice. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:462:10
+   --> $DIR/methods.rs:380:10
     |
-462 |         *some_slice.get_mut(0).unwrap() = 1;
-    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         *&mut some_slice[0] = 1;
+380 |         *some_slice.get_mut(0).unwrap() = 1;
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&mut some_slice[0]`
 
 error: called `.get_mut().unwrap()` on a Vec. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:466:10
+   --> $DIR/methods.rs:381:10
     |
-466 |         *some_vec.get_mut(0).unwrap() = 1;
-    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         *&mut some_vec[0] = 1;
+381 |         *some_vec.get_mut(0).unwrap() = 1;
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&mut some_vec[0]`
 
 error: called `.get_mut().unwrap()` on a VecDeque. Using `[]` is more clear and more concise
-   --> $DIR/methods.rs:470:10
+   --> $DIR/methods.rs:382:10
     |
-470 |         *some_vecdeque.get_mut(0).unwrap() = 1;
-    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(get_unwrap)] implied by #[deny(clippy)]
-help: try this
-    |         *&mut some_vecdeque[0] = 1;
+382 |         *some_vecdeque.get_mut(0).unwrap() = 1;
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&mut some_vecdeque[0]`
 
 error: used unwrap() on an Option value. If you don't want to handle the None case gracefully, consider using expect() to provide a better panic message
-   --> $DIR/methods.rs:488:13
+   --> $DIR/methods.rs:396:13
     |
-488 |     let _ = opt.unwrap();
+396 |     let _ = opt.unwrap();
     |             ^^^^^^^^^^^^
     |
-    = note: #[deny(option_unwrap_used)] implied by #[deny(clippy_pedantic)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:17
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |                 ^^^^^^^^^^^^^^^
+    = note: `-D option-unwrap-used` implied by `-D warnings`
 
 error: used unwrap() on a Result value. If you don't want to handle the Err case gracefully, consider using expect() to provide a better panic message
-   --> $DIR/methods.rs:491:13
+   --> $DIR/methods.rs:399:13
     |
-491 |     let _ = res.unwrap();
+399 |     let _ = res.unwrap();
     |             ^^^^^^^^^^^^
     |
-    = note: #[deny(result_unwrap_used)] implied by #[deny(clippy_pedantic)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:17
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |                 ^^^^^^^^^^^^^^^
+    = note: `-D result-unwrap-used` implied by `-D warnings`
 
 error: called `ok().expect()` on a Result value. You can call `expect` directly on the `Result`
-   --> $DIR/methods.rs:493:5
+   --> $DIR/methods.rs:401:5
     |
-493 |     res.ok().expect("disaster!");
+401 |     res.ok().expect("disaster!");
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(ok_expect)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
+    = note: `-D ok-expect` implied by `-D warnings`
 
 error: called `ok().expect()` on a Result value. You can call `expect` directly on the `Result`
-   --> $DIR/methods.rs:499:5
+   --> $DIR/methods.rs:407:5
     |
-499 |     res3.ok().expect("whoof");
+407 |     res3.ok().expect("whoof");
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(ok_expect)] implied by #[deny(clippy)]
 
 error: called `ok().expect()` on a Result value. You can call `expect` directly on the `Result`
-   --> $DIR/methods.rs:501:5
+   --> $DIR/methods.rs:409:5
     |
-501 |     res4.ok().expect("argh");
+409 |     res4.ok().expect("argh");
     |     ^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(ok_expect)] implied by #[deny(clippy)]
 
 error: called `ok().expect()` on a Result value. You can call `expect` directly on the `Result`
-   --> $DIR/methods.rs:503:5
+   --> $DIR/methods.rs:411:5
     |
-503 |     res5.ok().expect("oops");
+411 |     res5.ok().expect("oops");
     |     ^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(ok_expect)] implied by #[deny(clippy)]
 
 error: called `ok().expect()` on a Result value. You can call `expect` directly on the `Result`
-   --> $DIR/methods.rs:505:5
+   --> $DIR/methods.rs:413:5
     |
-505 |     res6.ok().expect("meh");
+413 |     res6.ok().expect("meh");
     |     ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(ok_expect)] implied by #[deny(clippy)]
+
+error: unnecessary structure name repetition
 
 error: you should use the `starts_with` method
-   --> $DIR/methods.rs:517:5
+   --> $DIR/methods.rs:425:5
     |
-517 |     "".chars().next() == Some(' ');
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+425 |     "".chars().next() == Some(' ');
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: like this: `"".starts_with(' ')`
     |
-    = note: #[deny(chars_next_cmp)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
-help: like this
-    |     "".starts_with(' ');
+    = note: `-D chars-next-cmp` implied by `-D warnings`
 
 error: you should use the `starts_with` method
-   --> $DIR/methods.rs:522:5
+   --> $DIR/methods.rs:426:5
     |
-522 |     Some(' ') != "".chars().next();
-    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(chars_next_cmp)] implied by #[deny(clippy)]
-help: like this
-    |     !"".starts_with(' ');
+426 |     Some(' ') != "".chars().next();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: like this: `!"".starts_with(' ')`
 
 error: calling `.extend(_.chars())`
-   --> $DIR/methods.rs:534:5
+   --> $DIR/methods.rs:435:5
     |
-534 |     s.extend(abc.chars());
-    |     ^^^^^^^^^^^^^^^^^^^^^
+435 |     s.extend(abc.chars());
+    |     ^^^^^^^^^^^^^^^^^^^^^ help: try this: `s.push_str(abc)`
     |
-    = note: #[deny(string_extend_chars)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
-help: try this
-    |     s.push_str(abc);
+    = note: `-D string-extend-chars` implied by `-D warnings`
 
 error: calling `.extend(_.chars())`
-   --> $DIR/methods.rs:540:5
+   --> $DIR/methods.rs:438:5
     |
-540 |     s.extend("abc".chars());
-    |     ^^^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(string_extend_chars)] implied by #[deny(clippy)]
-help: try this
-    |     s.push_str("abc");
+438 |     s.extend("abc".chars());
+    |     ^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `s.push_str("abc")`
 
 error: calling `.extend(_.chars())`
-   --> $DIR/methods.rs:546:5
+   --> $DIR/methods.rs:441:5
     |
-546 |     s.extend(def.chars());
-    |     ^^^^^^^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(string_extend_chars)] implied by #[deny(clippy)]
-help: try this
-    |     s.push_str(&def);
+441 |     s.extend(def.chars());
+    |     ^^^^^^^^^^^^^^^^^^^^^ help: try this: `s.push_str(&def)`
 
 error: using `clone` on a `Copy` type
-   --> $DIR/methods.rs:560:5
+   --> $DIR/methods.rs:452:5
     |
-560 |     42.clone();
-    |     ^^^^^^^^^^
+452 |     42.clone();
+    |     ^^^^^^^^^^ help: try removing the `clone` call: `42`
     |
-    = note: #[deny(clone_on_copy)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
-help: try removing the `clone` call
-    |     42;
+    = note: `-D clone-on-copy` implied by `-D warnings`
 
 error: using `clone` on a `Copy` type
-   --> $DIR/methods.rs:565:5
+   --> $DIR/methods.rs:456:5
     |
-565 |     (&42).clone();
-    |     ^^^^^^^^^^^^^
-    |
-    = note: #[deny(clone_on_copy)] implied by #[deny(clippy)]
-help: try dereferencing it
-    |     *(&42);
+456 |     (&42).clone();
+    |     ^^^^^^^^^^^^^ help: try dereferencing it: `*(&42)`
 
 error: using `clone` on a `Copy` type
-   --> $DIR/methods.rs:571:5
+   --> $DIR/methods.rs:460:5
     |
-571 |     t.clone();
-    |     ^^^^^^^^^
-    |
-    = note: #[deny(clone_on_copy)] implied by #[deny(clippy)]
-help: try removing the `clone` call
-    |     t;
+460 |     t.clone();
+    |     ^^^^^^^^^ help: try removing the `clone` call: `t`
 
 error: using `clone` on a `Copy` type
-   --> $DIR/methods.rs:574:5
+   --> $DIR/methods.rs:462:5
     |
-574 |     Some(t).clone();
-    |     ^^^^^^^^^^^^^^^
-    |
-    = note: #[deny(clone_on_copy)] implied by #[deny(clippy)]
-help: try removing the `clone` call
-    |     Some(t);
+462 |     Some(t).clone();
+    |     ^^^^^^^^^^^^^^^ help: try removing the `clone` call: `Some(t)`
 
 error: using `clone` on a double-reference; this will copy the reference instead of cloning the inner type
-   --> $DIR/methods.rs:582:22
+   --> $DIR/methods.rs:468:22
     |
-582 |     let z: &Vec<_> = y.clone();
-    |                      ^^^^^^^^^
+468 |     let z: &Vec<_> = y.clone();
+    |                      ^^^^^^^^^ help: try dereferencing it: `(*y).clone()`
     |
-    = note: #[deny(clone_double_ref)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
-help: try dereferencing it
-    |     let z: &Vec<_> = (*y).clone();
+    = note: `-D clone-double-ref` implied by `-D warnings`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:590:13
+   --> $DIR/methods.rs:475:13
     |
-590 |     x.split("x");
-    |             ^^^
+475 |     x.split("x");
+    |     --------^^^- help: try using a char instead: `x.split('x')`
     |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
-help: try using a char instead:
-    |     x.split('x');
+    = note: `-D single-char-pattern` implied by `-D warnings`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:614:16
+   --> $DIR/methods.rs:492:16
     |
-614 |     x.contains("x");
-    |                ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.contains('x');
+492 |     x.contains("x");
+    |     -----------^^^- help: try using a char instead: `x.contains('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:618:19
+   --> $DIR/methods.rs:493:19
     |
-618 |     x.starts_with("x");
-    |                   ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.starts_with('x');
+493 |     x.starts_with("x");
+    |     --------------^^^- help: try using a char instead: `x.starts_with('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:622:17
+   --> $DIR/methods.rs:494:17
     |
-622 |     x.ends_with("x");
-    |                 ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.ends_with('x');
+494 |     x.ends_with("x");
+    |     ------------^^^- help: try using a char instead: `x.ends_with('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:626:12
+   --> $DIR/methods.rs:495:12
     |
-626 |     x.find("x");
-    |            ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.find('x');
+495 |     x.find("x");
+    |     -------^^^- help: try using a char instead: `x.find('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:630:13
+   --> $DIR/methods.rs:496:13
     |
-630 |     x.rfind("x");
-    |             ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.rfind('x');
+496 |     x.rfind("x");
+    |     --------^^^- help: try using a char instead: `x.rfind('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:634:14
+   --> $DIR/methods.rs:497:14
     |
-634 |     x.rsplit("x");
-    |              ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.rsplit('x');
+497 |     x.rsplit("x");
+    |     ---------^^^- help: try using a char instead: `x.rsplit('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:638:24
+   --> $DIR/methods.rs:498:24
     |
-638 |     x.split_terminator("x");
-    |                        ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.split_terminator('x');
+498 |     x.split_terminator("x");
+    |     -------------------^^^- help: try using a char instead: `x.split_terminator('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:642:25
+   --> $DIR/methods.rs:499:25
     |
-642 |     x.rsplit_terminator("x");
-    |                         ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.rsplit_terminator('x');
+499 |     x.rsplit_terminator("x");
+    |     --------------------^^^- help: try using a char instead: `x.rsplit_terminator('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:646:17
+   --> $DIR/methods.rs:500:17
     |
-646 |     x.splitn(0, "x");
-    |                 ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.splitn(0, 'x');
+500 |     x.splitn(0, "x");
+    |     ------------^^^- help: try using a char instead: `x.splitn(0, 'x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:650:18
+   --> $DIR/methods.rs:501:18
     |
-650 |     x.rsplitn(0, "x");
-    |                  ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.rsplitn(0, 'x');
+501 |     x.rsplitn(0, "x");
+    |     -------------^^^- help: try using a char instead: `x.rsplitn(0, 'x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:654:15
+   --> $DIR/methods.rs:502:15
     |
-654 |     x.matches("x");
-    |               ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.matches('x');
+502 |     x.matches("x");
+    |     ----------^^^- help: try using a char instead: `x.matches('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:658:16
+   --> $DIR/methods.rs:503:16
     |
-658 |     x.rmatches("x");
-    |                ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.rmatches('x');
+503 |     x.rmatches("x");
+    |     -----------^^^- help: try using a char instead: `x.rmatches('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:662:21
+   --> $DIR/methods.rs:504:21
     |
-662 |     x.match_indices("x");
-    |                     ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.match_indices('x');
+504 |     x.match_indices("x");
+    |     ----------------^^^- help: try using a char instead: `x.match_indices('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:666:22
+   --> $DIR/methods.rs:505:22
     |
-666 |     x.rmatch_indices("x");
-    |                      ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.rmatch_indices('x');
+505 |     x.rmatch_indices("x");
+    |     -----------------^^^- help: try using a char instead: `x.rmatch_indices('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:670:25
+   --> $DIR/methods.rs:506:25
     |
-670 |     x.trim_left_matches("x");
-    |                         ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.trim_left_matches('x');
+506 |     x.trim_left_matches("x");
+    |     --------------------^^^- help: try using a char instead: `x.trim_left_matches('x')`
 
 error: single-character string constant used as pattern
-   --> $DIR/methods.rs:674:26
+   --> $DIR/methods.rs:507:26
     |
-674 |     x.trim_right_matches("x");
-    |                          ^^^
-    |
-    = note: #[deny(single_char_pattern)] implied by #[deny(clippy)]
-help: try using a char instead:
-    |     x.trim_right_matches('x');
+507 |     x.trim_right_matches("x");
+    |     ---------------------^^^- help: try using a char instead: `x.trim_right_matches('x')`
 
 error: you are getting the inner pointer of a temporary `CString`
-   --> $DIR/methods.rs:687:5
+   --> $DIR/methods.rs:517:5
     |
-687 |     CString::new("foo").unwrap().as_ptr();
+517 |     CString::new("foo").unwrap().as_ptr();
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(temporary_cstring_as_ptr)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
+    = note: `-D temporary-cstring-as-ptr` implied by `-D warnings`
     = note: that pointer will be invalid outside this expression
 help: assign the `CString` to a variable to extend its lifetime
-   --> $DIR/methods.rs:687:5
+   --> $DIR/methods.rs:517:5
     |
-687 |     CString::new("foo").unwrap().as_ptr();
+517 |     CString::new("foo").unwrap().as_ptr();
     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: called `cloned().collect()` on a slice to create a `Vec`. Calling `to_vec()` is both faster and more readable
-   --> $DIR/methods.rs:695:27
+   --> $DIR/methods.rs:522:27
     |
-695 |     let v2 : Vec<isize> = v.iter().cloned().collect();
+522 |     let v2 : Vec<isize> = v.iter().cloned().collect();
     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
-    = note: #[deny(iter_cloned_collect)] implied by #[deny(clippy)]
-note: lint level defined here
-   --> $DIR/methods.rs:5:9
-    |
-5   | #![deny(clippy, clippy_pedantic)]
-    |         ^^^^^^
+    = note: `-D iter-cloned-collect` implied by `-D warnings`
 
-error: aborting due to 89 previous errors
+error: aborting due to 111 previous errors
 

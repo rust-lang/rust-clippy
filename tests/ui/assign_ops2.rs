@@ -2,33 +2,17 @@
 #![plugin(clippy)]
 
 #[allow(unused_assignments)]
-#[deny(misrefactored_assign_op)]
+#[warn(misrefactored_assign_op)]
 fn main() {
     let mut a = 5;
     a += a + 1;
-
-
     a += 1 + a;
-
-
     a -= a - 1;
-
-
     a *= a * 99;
-
-
     a *= 42 * a;
-
-
     a /= a / 2;
-
-
     a %= a % 5;
-
-
     a &= a & 1;
-
-
     a -= 1 - a;
     a /= 5 / a;
     a %= 42 % a;

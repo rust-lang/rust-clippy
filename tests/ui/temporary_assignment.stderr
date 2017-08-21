@@ -4,11 +4,7 @@ error: assignment to temporary
 29 |     Struct { field: 0 }.field = 1;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/temporary_assignment.rs:4:9
-   |
-4  | #![deny(temporary_assignment)]
-   |         ^^^^^^^^^^^^^^^^^^^^
+   = note: `-D temporary-assignment` implied by `-D warnings`
 
 error: assignment to temporary
   --> $DIR/temporary_assignment.rs:30:5

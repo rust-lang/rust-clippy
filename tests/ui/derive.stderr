@@ -1,103 +1,78 @@
 error: you are deriving `Hash` but have implemented `PartialEq` explicitly
-  --> $DIR/derive.rs:18:10
+  --> $DIR/derive.rs:17:10
    |
-18 | #[derive(Hash)]
+17 | #[derive(Hash)]
    |          ^^^^
    |
-   = note: #[deny(derive_hash_xor_eq)] implied by #[deny(warnings)]
-note: lint level defined here
-  --> $DIR/derive.rs:6:9
-   |
-6  | #![deny(warnings)]
-   |         ^^^^^^^^
+   = note: `-D derive-hash-xor-eq` implied by `-D warnings`
 note: `PartialEq` implemented here
-  --> $DIR/derive.rs:22:1
+  --> $DIR/derive.rs:20:1
    |
-22 |   impl PartialEq for Bar {
-   |  _^ starting here...
-23 | |     fn eq(&self, _: &Bar) -> bool { true }
-24 | | }
-   | |_^ ...ending here
+20 | / impl PartialEq for Bar {
+21 | |     fn eq(&self, _: &Bar) -> bool { true }
+22 | | }
+   | |_^
 
 error: you are deriving `Hash` but have implemented `PartialEq` explicitly
-  --> $DIR/derive.rs:26:10
+  --> $DIR/derive.rs:24:10
    |
-26 | #[derive(Hash)]
+24 | #[derive(Hash)]
    |          ^^^^
    |
-   = note: #[deny(derive_hash_xor_eq)] implied by #[deny(warnings)]
 note: `PartialEq` implemented here
-  --> $DIR/derive.rs:30:1
+  --> $DIR/derive.rs:27:1
    |
-30 |   impl PartialEq<Baz> for Baz {
-   |  _^ starting here...
-31 | |     fn eq(&self, _: &Baz) -> bool { true }
-32 | | }
-   | |_^ ...ending here
+27 | / impl PartialEq<Baz> for Baz {
+28 | |     fn eq(&self, _: &Baz) -> bool { true }
+29 | | }
+   | |_^
 
 error: you are implementing `Hash` explicitly but have derived `PartialEq`
-  --> $DIR/derive.rs:37:1
+  --> $DIR/derive.rs:34:1
    |
-37 |   impl Hash for Bah {
-   |  _^ starting here...
-38 | |
-39 | |     fn hash<H: Hasher>(&self, _: &mut H) {}
-40 | | }
-   | |_^ ...ending here
+34 | / impl Hash for Bah {
+35 | |     fn hash<H: Hasher>(&self, _: &mut H) {}
+36 | | }
+   | |_^
    |
-   = note: #[deny(derive_hash_xor_eq)] implied by #[deny(warnings)]
 note: `PartialEq` implemented here
-  --> $DIR/derive.rs:34:10
+  --> $DIR/derive.rs:31:10
    |
-34 | #[derive(PartialEq)]
+31 | #[derive(PartialEq)]
    |          ^^^^^^^^^
 
 error: you are implementing `Clone` explicitly on a `Copy` type
-  --> $DIR/derive.rs:45:1
+  --> $DIR/derive.rs:41:1
    |
-45 |   impl Clone for Qux {
-   |  _^ starting here...
-46 | |
-47 | |     fn clone(&self) -> Self { Qux }
-48 | | }
-   | |_^ ...ending here
+41 | / impl Clone for Qux {
+42 | |     fn clone(&self) -> Self { Qux }
+43 | | }
+   | |_^
    |
-   = note: #[deny(expl_impl_clone_on_copy)] implied by #[deny(warnings)]
-note: lint level defined here
-  --> $DIR/derive.rs:6:9
-   |
-6  | #![deny(warnings)]
-   |         ^^^^^^^^
+   = note: `-D expl-impl-clone-on-copy` implied by `-D warnings`
 note: consider deriving `Clone` or removing `Copy`
-  --> $DIR/derive.rs:45:1
+  --> $DIR/derive.rs:41:1
    |
-45 |   impl Clone for Qux {
-   |  _^ starting here...
-46 | |
-47 | |     fn clone(&self) -> Self { Qux }
-48 | | }
-   | |_^ ...ending here
+41 | / impl Clone for Qux {
+42 | |     fn clone(&self) -> Self { Qux }
+43 | | }
+   | |_^
 
 error: you are implementing `Clone` explicitly on a `Copy` type
-  --> $DIR/derive.rs:70:1
+  --> $DIR/derive.rs:65:1
    |
-70 |   impl<'a> Clone for Lt<'a> {
-   |  _^ starting here...
-71 | |
-72 | |     fn clone(&self) -> Self { unimplemented!() }
-73 | | }
-   | |_^ ...ending here
+65 | / impl<'a> Clone for Lt<'a> {
+66 | |     fn clone(&self) -> Self { unimplemented!() }
+67 | | }
+   | |_^
    |
-   = note: #[deny(expl_impl_clone_on_copy)] implied by #[deny(warnings)]
 note: consider deriving `Clone` or removing `Copy`
-  --> $DIR/derive.rs:70:1
+  --> $DIR/derive.rs:65:1
    |
-70 |   impl<'a> Clone for Lt<'a> {
-   |  _^ starting here...
-71 | |
-72 | |     fn clone(&self) -> Self { unimplemented!() }
-73 | | }
-   | |_^ ...ending here
+65 | / impl<'a> Clone for Lt<'a> {
+66 | |     fn clone(&self) -> Self { unimplemented!() }
+67 | | }
+   | |_^
 
 error: aborting due to 5 previous errors
 

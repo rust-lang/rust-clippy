@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(needless_update)]
+#![warn(needless_update)]
 #![allow(no_effect)]
 
 struct S {

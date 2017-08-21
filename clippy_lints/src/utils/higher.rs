@@ -1,4 +1,5 @@
-//! This module contains functions for retrieve the original AST from lowered `hir`.
+//! This module contains functions for retrieve the original AST from lowered
+//! `hir`.
 
 #![deny(missing_docs_in_private_items)]
 
@@ -44,9 +45,11 @@ pub struct Range<'a> {
 
 /// Higher a `hir` range to something similar to `ast::ExprKind::Range`.
 pub fn range(expr: &hir::Expr) -> Option<Range> {
-    /// Find the field named `name` in the field. Always return `Some` for convenience.
+    /// Find the field named `name` in the field. Always return `Some` for
+    /// convenience.
     fn get_field<'a>(name: &str, fields: &'a [hir::Field]) -> Option<&'a hir::Expr> {
-        let expr = &fields.iter()
+        let expr = &fields
+            .iter()
             .find(|field| field.name.node == name)
             .unwrap_or_else(|| panic!("missing {} field for range", name))
             .expr;
@@ -54,7 +57,8 @@ pub fn range(expr: &hir::Expr) -> Option<Range> {
         Some(expr)
     }
 
-    // The range syntax is expanded to literal paths starting with `core` or `std` depending on
+    // The range syntax is expanded to literal paths starting with `core` or `std`
+    // depending on
     // `#[no_std]`. Testing both instead of resolving the paths.
 
     match expr.node {
@@ -76,8 +80,7 @@ pub fn range(expr: &hir::Expr) -> Option<Range> {
                     end: None,
                     limits: ast::RangeLimits::HalfOpen,
                 })
-            } else if match_path(path, &paths::RANGE_INCLUSIVE_NON_EMPTY_STD) ||
-                      match_path(path, &paths::RANGE_INCLUSIVE_NON_EMPTY) {
+            } else if match_path(path, &paths::RANGE_INCLUSIVE_STD) || match_path(path, &paths::RANGE_INCLUSIVE) {
                 Some(Range {
                     start: get_field("start", fields),
                     end: get_field("end", fields),
@@ -111,6 +114,13 @@ pub fn range(expr: &hir::Expr) -> Option<Range> {
 
 /// Checks if a `let` decl is from a `for` loop desugaring.
 pub fn is_from_for_desugar(decl: &hir::Decl) -> bool {
+    // This will detect plain for-loops without an actual variable binding:
+    //
+    // ```
+    // for x in some_vec {
+    //   // do stuff
+    // }
+    // ```
     if_let_chain! {[
         let hir::DeclLocal(ref loc) = decl.node,
         let Some(ref expr) = loc.init,
@@ -118,6 +128,22 @@ pub fn is_from_for_desugar(decl: &hir::Decl) -> bool {
     ], {
         return true;
     }}
+
+    // This detects a variable binding in for loop to avoid `let_unit_value`
+    // lint (see issue #1964).
+    //
+    // ```
+    // for _ in vec![()] {
+    //   // anything
+    // }
+    // ```
+    if_let_chain! {[
+        let hir::DeclLocal(ref loc) = decl.node,
+        let hir::LocalSource::ForLoopDesugar = loc.source,
+    ], {
+        return true;
+    }}
+
     false
 }
 
@@ -125,20 +151,17 @@ pub fn is_from_for_desugar(decl: &hir::Decl) -> bool {
 /// `for pat in arg { body }` becomes `(pat, arg, body)`.
 pub fn for_loop(expr: &hir::Expr) -> Option<(&hir::Pat, &hir::Expr, &hir::Expr)> {
     if_let_chain! {[
-        let hir::ExprMatch(ref iterexpr, ref arms, _) = expr.node,
+        let hir::ExprMatch(ref iterexpr, ref arms, hir::MatchSource::ForLoopDesugar) = expr.node,
         let hir::ExprCall(_, ref iterargs) = iterexpr.node,
         iterargs.len() == 1 && arms.len() == 1 && arms[0].guard.is_none(),
         let hir::ExprLoop(ref block, _, _) = arms[0].body.node,
-        block.stmts.is_empty(),
-        let Some(ref loopexpr) = block.expr,
-        let hir::ExprMatch(_, ref innerarms, hir::MatchSource::ForLoopDesugar) = loopexpr.node,
-        innerarms.len() == 2 && innerarms[0].pats.len() == 1,
-        let hir::PatKind::TupleStruct(_, ref somepats, _) = innerarms[0].pats[0].node,
-        somepats.len() == 1
+        block.expr.is_none(),
+        let [ _, _, ref let_stmt, ref body ] = *block.stmts,
+        let hir::StmtDecl(ref decl, _) = let_stmt.node,
+        let hir::DeclLocal(ref decl) = decl.node,
+        let hir::StmtExpr(ref expr, _) = body.node,
     ], {
-        return Some((&somepats[0],
-                     &iterargs[0],
-                     &innerarms[0].body));
+        return Some((&*decl.pat, &iterargs[0], expr));
     }}
     None
 }
@@ -151,14 +174,15 @@ pub enum VecArgs<'a> {
     Vec(&'a [hir::Expr]),
 }
 
-/// Returns the arguments of the `vec!` macro if this expression was expanded from `vec!`.
+/// Returns the arguments of the `vec!` macro if this expression was expanded
+/// from `vec!`.
 pub fn vec_macro<'e>(cx: &LateContext, expr: &'e hir::Expr) -> Option<VecArgs<'e>> {
     if_let_chain!{[
         let hir::ExprCall(ref fun, ref args) = expr.node,
         let hir::ExprPath(ref path) = fun.node,
-        is_expn_of(cx, fun.span, "vec").is_some(),
+        is_expn_of(fun.span, "vec").is_some(),
     ], {
-        let fun_def = resolve_node(cx, path, fun.id);
+        let fun_def = resolve_node(cx, path, fun.hir_id);
         return if match_def_path(cx.tcx, fun_def.def_id(), &paths::VEC_FROM_ELEM) && args.len() == 2 {
             // `vec![elem; size]` case
             Some(VecArgs::Repeat(&args[0], &args[1]))

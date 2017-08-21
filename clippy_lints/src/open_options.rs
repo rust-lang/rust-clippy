@@ -23,7 +23,7 @@ declare_lint! {
 }
 
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct NonSensical;
 
 impl LintPass for NonSensical {
@@ -34,9 +34,9 @@ impl LintPass for NonSensical {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NonSensical {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
-        if let ExprMethodCall(ref name, _, ref arguments) = e.node {
+        if let ExprMethodCall(ref path, _, ref arguments) = e.node {
             let (obj_ty, _) = walk_ptrs_ty_depth(cx.tables.expr_ty(&arguments[0]));
-            if &*name.node.as_str() == "open" && match_type(cx, obj_ty, &paths::OPEN_OPTIONS) {
+            if path.name == "open" && match_type(cx, obj_ty, &paths::OPEN_OPTIONS) {
                 let mut options = Vec::new();
                 get_open_options(cx, &arguments[0], &mut options);
                 check_open_options(cx, &options, e.span);
@@ -62,7 +62,7 @@ enum OpenOption {
 }
 
 fn get_open_options(cx: &LateContext, argument: &Expr, options: &mut Vec<(OpenOption, Argument)>) {
-    if let ExprMethodCall(ref name, _, ref arguments) = argument.node {
+    if let ExprMethodCall(ref path, _, ref arguments) = argument.node {
         let (obj_ty, _) = walk_ptrs_ty_depth(cx.tables.expr_ty(&arguments[0]));
 
         // Only proceed if this is a call on some object of type std::fs::OpenOptions
@@ -81,7 +81,7 @@ fn get_open_options(cx: &LateContext, argument: &Expr, options: &mut Vec<(OpenOp
                 _ => Argument::Unknown,
             };
 
-            match &*name.node.as_str() {
+            match &*path.name.as_str() {
                 "create" => {
                     options.push((OpenOption::Create, argument_option));
                 },
@@ -109,16 +109,19 @@ fn check_open_options(cx: &LateContext, options: &[(OpenOption, Argument)], span
     let (mut create, mut append, mut truncate, mut read, mut write) = (false, false, false, false, false);
     let (mut create_arg, mut append_arg, mut truncate_arg, mut read_arg, mut write_arg) =
         (false, false, false, false, false);
-    // This code is almost duplicated (oh, the irony), but I haven't found a way to unify it.
+    // This code is almost duplicated (oh, the irony), but I haven't found a way to
+    // unify it.
 
     for option in options {
         match *option {
             (OpenOption::Create, arg) => {
                 if create {
-                    span_lint(cx,
-                              NONSENSICAL_OPEN_OPTIONS,
-                              span,
-                              "the method \"create\" is called more than once");
+                    span_lint(
+                        cx,
+                        NONSENSICAL_OPEN_OPTIONS,
+                        span,
+                        "the method \"create\" is called more than once",
+                    );
                 } else {
                     create = true
                 }
@@ -126,10 +129,12 @@ fn check_open_options(cx: &LateContext, options: &[(OpenOption, Argument)], span
             },
             (OpenOption::Append, arg) => {
                 if append {
-                    span_lint(cx,
-                              NONSENSICAL_OPEN_OPTIONS,
-                              span,
-                              "the method \"append\" is called more than once");
+                    span_lint(
+                        cx,
+                        NONSENSICAL_OPEN_OPTIONS,
+                        span,
+                        "the method \"append\" is called more than once",
+                    );
                 } else {
                     append = true
                 }
@@ -137,10 +142,12 @@ fn check_open_options(cx: &LateContext, options: &[(OpenOption, Argument)], span
             },
             (OpenOption::Truncate, arg) => {
                 if truncate {
-                    span_lint(cx,
-                              NONSENSICAL_OPEN_OPTIONS,
-                              span,
-                              "the method \"truncate\" is called more than once");
+                    span_lint(
+                        cx,
+                        NONSENSICAL_OPEN_OPTIONS,
+                        span,
+                        "the method \"truncate\" is called more than once",
+                    );
                 } else {
                     truncate = true
                 }
@@ -148,10 +155,12 @@ fn check_open_options(cx: &LateContext, options: &[(OpenOption, Argument)], span
             },
             (OpenOption::Read, arg) => {
                 if read {
-                    span_lint(cx,
-                              NONSENSICAL_OPEN_OPTIONS,
-                              span,
-                              "the method \"read\" is called more than once");
+                    span_lint(
+                        cx,
+                        NONSENSICAL_OPEN_OPTIONS,
+                        span,
+                        "the method \"read\" is called more than once",
+                    );
                 } else {
                     read = true
                 }
@@ -159,10 +168,12 @@ fn check_open_options(cx: &LateContext, options: &[(OpenOption, Argument)], span
             },
             (OpenOption::Write, arg) => {
                 if write {
-                    span_lint(cx,
-                              NONSENSICAL_OPEN_OPTIONS,
-                              span,
-                              "the method \"write\" is called more than once");
+                    span_lint(
+                        cx,
+                        NONSENSICAL_OPEN_OPTIONS,
+                        span,
+                        "the method \"write\" is called more than once",
+                    );
                 } else {
                     write = true
                 }
@@ -175,9 +186,11 @@ fn check_open_options(cx: &LateContext, options: &[(OpenOption, Argument)], span
         span_lint(cx, NONSENSICAL_OPEN_OPTIONS, span, "file opened with \"truncate\" and \"read\"");
     }
     if append && truncate && append_arg && truncate_arg {
-        span_lint(cx,
-                  NONSENSICAL_OPEN_OPTIONS,
-                  span,
-                  "file opened with \"append\" and \"truncate\"");
+        span_lint(
+            cx,
+            NONSENSICAL_OPEN_OPTIONS,
+            span,
+            "file opened with \"append\" and \"truncate\"",
+        );
     }
 }

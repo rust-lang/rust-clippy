@@ -4,11 +4,7 @@ error: Consider removing unnecessary double parentheses
 16 |     ((0))
    |     ^^^^^
    |
-note: lint level defined here
-  --> $DIR/double_parens.rs:4:9
-   |
-4  | #![deny(double_parens)]
-   |         ^^^^^^^^^^^^^
+   = note: `-D double-parens` implied by `-D warnings`
 
 error: Consider removing unnecessary double parentheses
   --> $DIR/double_parens.rs:20:14

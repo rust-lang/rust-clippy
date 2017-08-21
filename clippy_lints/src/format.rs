@@ -1,7 +1,7 @@
 use rustc::hir::*;
 use rustc::hir::map::Node::NodeItem;
 use rustc::lint::*;
-use rustc::ty::TypeVariants;
+use rustc::ty;
 use syntax::ast::LitKind;
 use syntax::symbol::InternedString;
 use utils::paths;
@@ -40,14 +40,14 @@ impl LintPass for Pass {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
-        if let Some(span) = is_expn_of(cx, expr.span, "format") {
+        if let Some(span) = is_expn_of(expr.span, "format") {
             match expr.node {
                 // `format!("{}", foo)` expansion
                 ExprCall(ref fun, ref args) => {
                     if_let_chain!{[
                         let ExprPath(ref qpath) = fun.node,
                         args.len() == 2,
-                        match_def_path(cx.tcx, resolve_node(cx, qpath, fun.id).def_id(), &paths::FMT_ARGUMENTS_NEWV1),
+                        match_def_path(cx.tcx, resolve_node(cx, qpath, fun.hir_id).def_id(), &paths::FMT_ARGUMENTS_NEWV1),
                         // ensure the format string is `"{..}"` with only one argument and no text
                         check_static_str(cx, &args[0]),
                         // ensure the format argument is `{}` ie. Display with no fancy option
@@ -79,7 +79,7 @@ pub fn get_argument_fmtstr_parts<'a, 'b>(cx: &LateContext<'a, 'b>, expr: &'a Exp
         let StmtDecl(ref decl, _) = block.stmts[0].node,
         let DeclItem(ref decl) = decl.node,
         let Some(NodeItem(decl)) = cx.tcx.hir.find(decl.id),
-        &*decl.name.as_str() == "__STATIC_FMTSTR",
+        decl.name == "__STATIC_FMTSTR",
         let ItemStatic(_, _, ref expr) = decl.node,
         let ExprAddrOf(_, ref expr) = cx.tcx.hir.body(*expr).value.node, // &["…", "…", …]
         let ExprArray(ref exprs) = expr.node,
@@ -98,8 +98,9 @@ pub fn get_argument_fmtstr_parts<'a, 'b>(cx: &LateContext<'a, 'b>, expr: &'a Exp
 }
 
 /// Checks if the expressions matches
-/// ```rust
-/// { static __STATIC_FMTSTR: … = &["…", "…", …]; __STATIC_FMTSTR }
+/// ```rust, ignore
+/// { static __STATIC_FMTSTR: &'static[&'static str] = &["a", "b", c];
+/// __STATIC_FMTSTR }
 /// ```
 fn check_static_str(cx: &LateContext, expr: &Expr) -> bool {
     if let Some(expr) = get_argument_fmtstr_parts(cx, expr) {
@@ -110,10 +111,11 @@ fn check_static_str(cx: &LateContext, expr: &Expr) -> bool {
 }
 
 /// Checks if the expressions matches
-/// ```rust
+/// ```rust,ignore
 /// &match (&42,) {
-///     (__arg0,) => [::std::fmt::ArgumentV1::new(__arg0, ::std::fmt::Display::fmt)],
-/// })
+/// (__arg0,) => [::std::fmt::ArgumentV1::new(__arg0,
+/// ::std::fmt::Display::fmt)],
+/// }
 /// ```
 fn check_arg_is_display(cx: &LateContext, expr: &Expr) -> bool {
     if_let_chain! {[
@@ -128,11 +130,11 @@ fn check_arg_is_display(cx: &LateContext, expr: &Expr) -> bool {
         let ExprCall(_, ref args) = exprs[0].node,
         args.len() == 2,
         let ExprPath(ref qpath) = args[1].node,
-        match_def_path(cx.tcx, resolve_node(cx, qpath, args[1].id).def_id(), &paths::DISPLAY_FMT_METHOD),
+        match_def_path(cx.tcx, resolve_node(cx, qpath, args[1].hir_id).def_id(), &paths::DISPLAY_FMT_METHOD),
     ], {
         let ty = walk_ptrs_ty(cx.tables.pat_ty(&pat[0]));
 
-        return ty.sty == TypeVariants::TyStr || match_type(cx, ty, &paths::STRING);
+        return ty.sty == ty::TyStr || match_type(cx, ty, &paths::STRING);
     }}
 
     false

@@ -2,26 +2,18 @@
 #![plugin(clippy)]
 
 #![allow(dead_code)]
-#![deny(new_without_default, new_without_default_derive)]
+#![warn(new_without_default, new_without_default_derive)]
 
 pub struct Foo;
 
-
-
-
 impl Foo {
     pub fn new() -> Foo { Foo }
-
 }
 
 pub struct Bar;
 
-
-
-
 impl Bar {
     pub fn new() -> Self { Bar }
-
 }
 
 pub struct Ok;
@@ -70,13 +62,6 @@ pub struct LtKo<'a> {
 
 impl<'c> LtKo<'c> {
     pub fn new() -> LtKo<'c> { unimplemented!() }
-
-
-
-
-
-
-
     // FIXME: that suggestion is missing lifetimes
 }
 
@@ -91,4 +76,11 @@ struct Const;
 impl Const {
     pub const fn new() -> Const { Const } // const fns can't be implemented via Default
 }
+
+pub struct IgnoreGenericNew;
+
+impl IgnoreGenericNew {
+    pub fn new<T>() -> Self { IgnoreGenericNew } // the derived Default does not make sense here as the result depends on T
+}
+
 fn main() {}

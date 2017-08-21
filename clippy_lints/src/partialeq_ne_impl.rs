@@ -38,12 +38,13 @@ impl LintPass for Pass {
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx Item) {
         if_let_chain! {[
-            let ItemImpl(_, _, _, Some(ref trait_ref), _, ref impl_items) = item.node,
+            let ItemImpl(_, _, _, _, Some(ref trait_ref), _, ref impl_items) = item.node,
             !is_automatically_derived(&*item.attrs),
-            trait_ref.path.def.def_id() == cx.tcx.lang_items.eq_trait().unwrap(),
+            let Some(eq_trait) = cx.tcx.lang_items.eq_trait(),
+            trait_ref.path.def.def_id() == eq_trait
         ], {
             for impl_item in impl_items {
-                if &*impl_item.name.as_str() == "ne" {
+                if impl_item.name == "ne" {
                     span_lint(cx,
                               PARTIALEQ_NE_IMPL,
                               impl_item.span,

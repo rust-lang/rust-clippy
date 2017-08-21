@@ -4,11 +4,7 @@ error: adding items after statements is confusing, since items exist from the st
 12 |     fn foo() { println!("foo"); }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/item_after_statement.rs:3:9
-   |
-3  | #![deny(items_after_statements)]
-   |         ^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D items-after-statements` implied by `-D warnings`
 
 error: adding items after statements is confusing, since items exist from the start of the scope
   --> $DIR/item_after_statement.rs:17:5

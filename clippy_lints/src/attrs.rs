@@ -3,7 +3,7 @@
 use reexport::*;
 use rustc::lint::*;
 use rustc::hir::*;
-use rustc::ty;
+use rustc::ty::{self, TyCtxt};
 use semver::Version;
 use syntax::ast::{Attribute, Lit, LitKind, MetaItemKind, NestedMetaItem, NestedMetaItemKind};
 use syntax::codemap::Span;
@@ -35,12 +35,15 @@ declare_lint! {
     "use of `#[inline(always)]`"
 }
 
-/// **What it does:** Checks for `extern crate` and `use` items annotated with lint attributes
+/// **What it does:** Checks for `extern crate` and `use` items annotated with
+/// lint attributes
 ///
-/// **Why is this bad?** Lint attributes have no effect on crate imports. Most likely a `!` was
+/// **Why is this bad?** Lint attributes have no effect on crate imports. Most
+/// likely a `!` was
 /// forgotten
 ///
-/// **Known problems:** Technically one might allow `unused_import` on a `use` item,
+/// **Known problems:** Technically one might allow `unused_import` on a `use`
+/// item,
 /// but it's easier to remove the unused item.
 ///
 /// **Example:**
@@ -75,7 +78,7 @@ declare_lint! {
     "use of `#[deprecated(since = \"x\")]` where x is not semver"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct AttrPass;
 
 impl LintPass for AttrPass {
@@ -124,14 +127,20 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AttrPass {
                                     }
                                     if let Some(mut sugg) = snippet_opt(cx, attr.span) {
                                         if sugg.len() > 1 {
-                                            span_lint_and_then(cx,
-                                                               USELESS_ATTRIBUTE,
-                                                               attr.span,
-                                                               "useless lint attribute",
-                                                               |db| {
-                                                sugg.insert(1, '!');
-                                                db.span_suggestion(attr.span, "if you just forgot a `!`, use", sugg);
-                                            });
+                                            span_lint_and_then(
+                                                cx,
+                                                USELESS_ATTRIBUTE,
+                                                attr.span,
+                                                "useless lint attribute",
+                                                |db| {
+                                                    sugg.insert(1, '!');
+                                                    db.span_suggestion(
+                                                        attr.span,
+                                                        "if you just forgot a `!`, use",
+                                                        sugg,
+                                                    );
+                                                },
+                                            );
                                         }
                                     }
                                 },
@@ -158,7 +167,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AttrPass {
     }
 }
 
-fn is_relevant_item(tcx: ty::TyCtxt, item: &Item) -> bool {
+fn is_relevant_item(tcx: TyCtxt, item: &Item) -> bool {
     if let ItemFn(_, _, _, _, _, eid) = item.node {
         is_relevant_expr(tcx, tcx.body_tables(eid), &tcx.hir.body(eid).value)
     } else {
@@ -166,14 +175,14 @@ fn is_relevant_item(tcx: ty::TyCtxt, item: &Item) -> bool {
     }
 }
 
-fn is_relevant_impl(tcx: ty::TyCtxt, item: &ImplItem) -> bool {
+fn is_relevant_impl(tcx: TyCtxt, item: &ImplItem) -> bool {
     match item.node {
         ImplItemKind::Method(_, eid) => is_relevant_expr(tcx, tcx.body_tables(eid), &tcx.hir.body(eid).value),
         _ => false,
     }
 }
 
-fn is_relevant_trait(tcx: ty::TyCtxt, item: &TraitItem) -> bool {
+fn is_relevant_trait(tcx: TyCtxt, item: &TraitItem) -> bool {
     match item.node {
         TraitItemKind::Method(_, TraitMethod::Required(_)) => true,
         TraitItemKind::Method(_, TraitMethod::Provided(eid)) => {
@@ -183,20 +192,22 @@ fn is_relevant_trait(tcx: ty::TyCtxt, item: &TraitItem) -> bool {
     }
 }
 
-fn is_relevant_block(tcx: ty::TyCtxt, tables: &ty::TypeckTables, block: &Block) -> bool {
-    for stmt in &block.stmts {
+fn is_relevant_block(tcx: TyCtxt, tables: &ty::TypeckTables, block: &Block) -> bool {
+    if let Some(stmt) = block.stmts.first() {
         match stmt.node {
-            StmtDecl(_, _) => return true,
+            StmtDecl(_, _) => true,
             StmtExpr(ref expr, _) |
-            StmtSemi(ref expr, _) => {
-                return is_relevant_expr(tcx, tables, expr);
-            },
+            StmtSemi(ref expr, _) => is_relevant_expr(tcx, tables, expr),
         }
+    } else {
+        block.expr.as_ref().map_or(
+            false,
+            |e| is_relevant_expr(tcx, tables, e),
+        )
     }
-    block.expr.as_ref().map_or(false, |e| is_relevant_expr(tcx, tables, e))
 }
 
-fn is_relevant_expr(tcx: ty::TyCtxt, tables: &ty::TypeckTables, expr: &Expr) -> bool {
+fn is_relevant_expr(tcx: TyCtxt, tables: &ty::TypeckTables, expr: &Expr) -> bool {
     match expr.node {
         ExprBlock(ref block) => is_relevant_block(tcx, tables, block),
         ExprRet(Some(ref e)) => is_relevant_expr(tcx, tables, e),
@@ -204,7 +215,7 @@ fn is_relevant_expr(tcx: ty::TyCtxt, tables: &ty::TypeckTables, expr: &Expr) -> 
         ExprBreak(_, None) => false,
         ExprCall(ref path_expr, _) => {
             if let ExprPath(ref qpath) = path_expr.node {
-                let fun_id = tables.qpath_def(qpath, path_expr.id).def_id();
+                let fun_id = tables.qpath_def(qpath, path_expr.hir_id).def_id();
                 !match_def_path(tcx, fun_id, &paths::BEGIN_PANIC)
             } else {
                 true
@@ -215,7 +226,7 @@ fn is_relevant_expr(tcx: ty::TyCtxt, tables: &ty::TypeckTables, expr: &Expr) -> 
 }
 
 fn check_attrs(cx: &LateContext, span: Span, name: &Name, attrs: &[Attribute]) {
-    if in_macro(cx, span) {
+    if in_macro(span) {
         return;
     }
 
@@ -225,11 +236,15 @@ fn check_attrs(cx: &LateContext, span: Span, name: &Name, attrs: &[Attribute]) {
                 continue;
             }
             if is_word(&values[0], "always") {
-                span_lint(cx,
-                          INLINE_ALWAYS,
-                          attr.span,
-                          &format!("you have declared `#[inline(always)]` on `{}`. This is usually a bad idea",
-                                   name));
+                span_lint(
+                    cx,
+                    INLINE_ALWAYS,
+                    attr.span,
+                    &format!(
+                        "you have declared `#[inline(always)]` on `{}`. This is usually a bad idea",
+                        name
+                    ),
+                );
             }
         }
     }
@@ -237,14 +252,16 @@ fn check_attrs(cx: &LateContext, span: Span, name: &Name, attrs: &[Attribute]) {
 
 fn check_semver(cx: &LateContext, span: Span, lit: &Lit) {
     if let LitKind::Str(ref is, _) = lit.node {
-        if Version::parse(&*is.as_str()).is_ok() {
+        if Version::parse(&is.as_str()).is_ok() {
             return;
         }
     }
-    span_lint(cx,
-              DEPRECATED_SEMVER,
-              span,
-              "the since field must contain a semver-compliant version");
+    span_lint(
+        cx,
+        DEPRECATED_SEMVER,
+        span,
+        "the since field must contain a semver-compliant version",
+    );
 }
 
 fn is_word(nmi: &NestedMetaItem, expected: &str) -> bool {

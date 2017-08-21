@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(drop_copy, forget_copy)]
+#![warn(drop_copy, forget_copy)]
 #![allow(toplevel_ref_arg, drop_ref, forget_ref, unused_mut)]
 
 use std::mem::{drop, forget};

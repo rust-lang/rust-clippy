@@ -1,12 +1,14 @@
 use rustc::lint::*;
 use syntax::ast::*;
 use syntax::codemap::Spanned;
-use utils::{span_lint_and_then, snippet};
+use utils::{span_lint_and_sugg, snippet};
 
 /// **What it does:** Checks for operations where precedence may be unclear
 /// and suggests to add parentheses. Currently it catches the following:
-/// * mixed usage of arithmetic and bit shifting/combining operators without parentheses
-/// * a "negative" numeric literal (which is really a unary `-` followed by a numeric literal)
+/// * mixed usage of arithmetic and bit shifting/combining operators without
+/// parentheses
+/// * a "negative" numeric literal (which is really a unary `-` followed by a
+/// numeric literal)
 ///   followed by a method call
 ///
 /// **Why is this bad?** Not everyone knows the precedence of those operators by
@@ -24,7 +26,7 @@ declare_lint! {
     "operations where precedence may be unclear"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct Precedence;
 
 impl LintPass for Precedence {
@@ -36,36 +38,46 @@ impl LintPass for Precedence {
 impl EarlyLintPass for Precedence {
     fn check_expr(&mut self, cx: &EarlyContext, expr: &Expr) {
         if let ExprKind::Binary(Spanned { node: op, .. }, ref left, ref right) = expr.node {
-            let span_sugg =
-                |expr: &Expr, sugg| {
-                    span_lint_and_then(cx, PRECEDENCE, expr.span, "operator precedence can trip the unwary", |db| {
-                        db.span_suggestion(expr.span, "consider parenthesizing your expression", sugg);
-                    });
-                };
+            let span_sugg = |expr: &Expr, sugg| {
+                span_lint_and_sugg(
+                    cx,
+                    PRECEDENCE,
+                    expr.span,
+                    "operator precedence can trip the unwary",
+                    "consider parenthesizing your expression",
+                    sugg,
+                );
+            };
 
             if !is_bit_op(op) {
                 return;
             }
             match (is_arith_expr(left), is_arith_expr(right)) {
                 (true, true) => {
-                    let sugg = format!("({}) {} ({})",
-                                       snippet(cx, left.span, ".."),
-                                       op.to_string(),
-                                       snippet(cx, right.span, ".."));
+                    let sugg = format!(
+                        "({}) {} ({})",
+                        snippet(cx, left.span, ".."),
+                        op.to_string(),
+                        snippet(cx, right.span, "..")
+                    );
                     span_sugg(expr, sugg);
                 },
                 (true, false) => {
-                    let sugg = format!("({}) {} {}",
-                                       snippet(cx, left.span, ".."),
-                                       op.to_string(),
-                                       snippet(cx, right.span, ".."));
+                    let sugg = format!(
+                        "({}) {} {}",
+                        snippet(cx, left.span, ".."),
+                        op.to_string(),
+                        snippet(cx, right.span, "..")
+                    );
                     span_sugg(expr, sugg);
                 },
                 (false, true) => {
-                    let sugg = format!("{} {} ({})",
-                                       snippet(cx, left.span, ".."),
-                                       op.to_string(),
-                                       snippet(cx, right.span, ".."));
+                    let sugg = format!(
+                        "{} {} ({})",
+                        snippet(cx, left.span, ".."),
+                        op.to_string(),
+                        snippet(cx, right.span, "..")
+                    );
                     span_sugg(expr, sugg);
                 },
                 (false, false) => (),
@@ -73,22 +85,21 @@ impl EarlyLintPass for Precedence {
         }
 
         if let ExprKind::Unary(UnOp::Neg, ref rhs) = expr.node {
-            if let ExprKind::MethodCall(_, _, ref args) = rhs.node {
+            if let ExprKind::MethodCall(_, ref args) = rhs.node {
                 if let Some(slf) = args.first() {
                     if let ExprKind::Lit(ref lit) = slf.node {
                         match lit.node {
                             LitKind::Int(..) |
                             LitKind::Float(..) |
                             LitKind::FloatUnsuffixed(..) => {
-                                span_lint_and_then(cx,
-                                                   PRECEDENCE,
-                                                   expr.span,
-                                                   "unary minus has lower precedence than method call",
-                                                   |db| {
-                                    db.span_suggestion(expr.span,
-                                                       "consider adding parentheses to clarify your intent",
-                                                       format!("-({})", snippet(cx, rhs.span, "..")));
-                                });
+                                span_lint_and_sugg(
+                                    cx,
+                                    PRECEDENCE,
+                                    expr.span,
+                                    "unary minus has lower precedence than method call",
+                                    "consider adding parentheses to clarify your intent",
+                                    format!("-({})", snippet(cx, rhs.span, "..")),
+                                );
                             },
                             _ => (),
                         }

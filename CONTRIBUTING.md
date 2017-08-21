@@ -4,19 +4,29 @@ Hello fellow Rustacean! Great to see your interest in compiler internals and lin
 
 ## Getting started
 
-All issues on Clippy are mentored, if you want help with a bug just ask @Manishearth or @llogiq.
+High level approach:
 
-Some issues are easier than others. The [E-easy](https://github.com/Manishearth/rust-clippy/labels/E-easy)
+1. Find something to fix/improve
+2. Change code (likely some file in `clippy_lints/src/`)
+3. Run `cargo test` in the root directory and wiggle code until it passes
+4. Open a PR (also can be done between 2. and 3. if you run into problems)
+
+### Finding something to fix/improve
+
+All issues on Clippy are mentored, if you want help with a bug just ask @Manishearth, @llogiq, @mcarton or @oli-obk.
+
+Some issues are easier than others. The [E-easy](https://github.com/rust-lang-nursery/rust-clippy/labels/E-easy)
 label can be used to find the easy issues. If you want to work on an issue, please leave a comment
 so that we can assign it to you!
 
-Issues marked [T-AST](https://github.com/Manishearth/rust-clippy/labels/T-AST) involve simple
+Issues marked [T-AST](https://github.com/rust-lang-nursery/rust-clippy/labels/T-AST) involve simple
 matching of the syntax tree structure, and are generally easier than
-[T-middle](https://github.com/Manishearth/rust-clippy/labels/T-middle) issues, which involve types
+[T-middle](https://github.com/rust-lang-nursery/rust-clippy/labels/T-middle) issues, which involve types
 and resolved paths.
 
-Issues marked [E-medium](https://github.com/Manishearth/rust-clippy/labels/E-medium) are generally
-pretty easy too, though it's recommended you work on an E-easy issue first.
+Issues marked [E-medium](https://github.com/rust-lang-nursery/rust-clippy/labels/E-medium) are generally
+pretty easy too, though it's recommended you work on an E-easy issue first. They are mostly classified
+as `E-medium`, since they might be somewhat involved code wise, but not difficult per-se.
 
 [Llogiq's blog post on lints](https://llogiq.github.io/2015/06/04/workflows.html) is a nice primer
 to lint-writing, though it does get into advanced stuff. Most lints consist of an implementation of
@@ -28,23 +38,21 @@ how this syntax structure is encoded in the AST, it is recommended to run `rustc
 example of the structure and compare with the
 [nodes in the AST docs](http://manishearth.github.io/rust-internals-docs/syntax/ast/). Usually
 the lint will end up to be a nested series of matches and ifs,
-[like so](https://github.com/Manishearth/rust-clippy/blob/de5ccdfab68a5e37689f3c950ed1532ba9d652a0/src/misc.rs#L34).
+[like so](https://github.com/rust-lang-nursery/rust-clippy/blob/de5ccdfab68a5e37689f3c950ed1532ba9d652a0/src/misc.rs#L34).
 
 T-middle issues can be more involved and require verifying types. The
 [`ty`](http://manishearth.github.io/rust-internals-docs/rustc/ty) module contains a
 lot of methods that are useful, though one of the most useful would be `expr_ty` (gives the type of
 an AST expression). `match_def_path()` in Clippy's `utils` module can also be useful.
 
+### Writing code
+
 Compiling clippy can take almost a minute or more depending on your machine.
 You can set the environment flag `CARGO_INCREMENTAL=1` to cut down that time to
 almost a third on average, depending on the influence your change has.
 
-Clippy uses UI tests. UI tests check that the output of the compiler is exactly as expected.
-Of course there's little sense in writing the output yourself or copying it around.
-Therefore you can simply run `tests/ui/update-all-references.sh` and check whether
-the output looks as you expect with `git diff`. Commit all `*.stderr` files, too.
+Please document your lint with a doc comment akin to the following:
 
-Also please document your lint with a doc comment akin to the following:
 ```rust
 /// **What it does:** Checks for ... (describe what the lint matches).
 ///
@@ -58,7 +66,12 @@ Also please document your lint with a doc comment akin to the following:
 /// ```
 ```
 
-Our `util/update_wiki.py` script can then add your lint docs to the wiki.
+### Running test suite
+
+Clippy uses UI tests. UI tests check that the output of the compiler is exactly as expected.
+Of course there's little sense in writing the output yourself or copying it around.
+Therefore you can simply run `tests/ui/update-all-references.sh` and check whether
+the output looks as you expect with `git diff`. Commit all `*.stderr` files, too.
 
 ## Contributions
 

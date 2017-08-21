@@ -4,15 +4,18 @@ use rustc::hir::intravisit::FnKind;
 use rustc::lint::*;
 use rustc::middle::const_val::ConstVal;
 use rustc::ty;
+use rustc::ty::subst::Substs;
 use rustc_const_eval::ConstContext;
 use rustc_const_math::ConstFloat;
-use syntax::codemap::{Span, Spanned, ExpnFormat};
+use syntax::codemap::{Span, ExpnFormat};
 use utils::{get_item_name, get_parent_expr, implements_trait, in_macro, is_integer_literal, match_path, snippet,
-            span_lint, span_lint_and_then, walk_ptrs_ty, last_path_segment, iter_input_pats, in_constant};
+            span_lint, span_lint_and_then, walk_ptrs_ty, last_path_segment, iter_input_pats, in_constant,
+            match_trait_method, paths};
 use utils::sugg::Sugg;
-use syntax::ast::LitKind;
+use syntax::ast::{LitKind, CRATE_NODE_ID, FloatTy};
 
-/// **What it does:** Checks for function arguments and let bindings denoted as `ref`.
+/// **What it does:** Checks for function arguments and let bindings denoted as
+/// `ref`.
 ///
 /// **Why is this bad?** The `ref` declaration makes the function take an owned
 /// value, but turns the argument into a reference (which means that the value
@@ -116,7 +119,8 @@ declare_lint! {
 
 /// **What it does:** Checks for patterns in the form `name @ _`.
 ///
-/// **Why is this bad?** It's almost always more readable to just use direct bindings.
+/// **Why is this bad?** It's almost always more readable to just use direct
+/// bindings.
 ///
 /// **Known problems:** None.
 ///
@@ -133,7 +137,8 @@ declare_lint! {
     "using `name @ _` in a pattern"
 }
 
-/// **What it does:** Checks for the use of bindings with a single leading underscore.
+/// **What it does:** Checks for the use of bindings with a single leading
+/// underscore.
 ///
 /// **Why is this bad?** A single leading underscore is usually used to indicate
 /// that a binding will not be used. Using such a binding breaks this
@@ -145,7 +150,8 @@ declare_lint! {
 /// **Example:**
 /// ```rust
 /// let _x = 0;
-/// let y = _x + 1; // Here we are using `_x`, even though it has a leading underscore.
+/// let y = _x + 1; // Here we are using `_x`, even though it has a leading
+/// underscore.
 ///                 // We should rename `_x` to `x`
 /// ```
 declare_lint! {
@@ -154,11 +160,14 @@ declare_lint! {
     "using a binding which is prefixed with an underscore"
 }
 
-/// **What it does:** Checks for the use of short circuit boolean conditions as a
+/// **What it does:** Checks for the use of short circuit boolean conditions as
+/// a
 /// statement.
 ///
-/// **Why is this bad?** Using a short circuit boolean condition as a statement may
-/// hide the fact that the second part is executed or not depending on the outcome of
+/// **Why is this bad?** Using a short circuit boolean condition as a statement
+/// may
+/// hide the fact that the second part is executed or not depending on the
+/// outcome of
 /// the first part.
 ///
 /// **Known problems:** None.
@@ -196,15 +205,17 @@ pub struct Pass;
 
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
-        lint_array!(TOPLEVEL_REF_ARG,
-                    CMP_NAN,
-                    FLOAT_CMP,
-                    CMP_OWNED,
-                    MODULO_ONE,
-                    REDUNDANT_PATTERN,
-                    USED_UNDERSCORE_BINDING,
-                    SHORT_CIRCUIT_STATEMENT,
-                    ZERO_PTR)
+        lint_array!(
+            TOPLEVEL_REF_ARG,
+            CMP_NAN,
+            FLOAT_CMP,
+            CMP_OWNED,
+            MODULO_ONE,
+            REDUNDANT_PATTERN,
+            USED_UNDERSCORE_BINDING,
+            SHORT_CIRCUIT_STATEMENT,
+            ZERO_PTR
+        )
     }
 }
 
@@ -216,18 +227,25 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         decl: &'tcx FnDecl,
         body: &'tcx Body,
         _: Span,
-        _: NodeId
+        _: NodeId,
     ) {
         if let FnKind::Closure(_) = k {
             // Does not apply to closures
             return;
         }
         for arg in iter_input_pats(decl, body) {
-            if let PatKind::Binding(BindByRef(_), _, _, _) = arg.pat.node {
-                span_lint(cx,
-                          TOPLEVEL_REF_ARG,
-                          arg.pat.span,
-                          "`ref` directly on a function argument is ignored. Consider using a reference type instead.");
+            match arg.pat.node {
+                PatKind::Binding(BindingAnnotation::Ref, _, _, _) |
+                PatKind::Binding(BindingAnnotation::RefMut, _, _, _) => {
+                    span_lint(
+                        cx,
+                        TOPLEVEL_REF_ARG,
+                        arg.pat.span,
+                        "`ref` directly on a function argument is ignored. Consider using a reference type \
+                               instead.",
+                    );
+                },
+                _ => {},
             }
         }
     }
@@ -236,33 +254,35 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         if_let_chain! {[
             let StmtDecl(ref d, _) = s.node,
             let DeclLocal(ref l) = d.node,
-            let PatKind::Binding(BindByRef(mt), _, i, None) = l.pat.node,
+            let PatKind::Binding(an, _, i, None) = l.pat.node,
             let Some(ref init) = l.init
         ], {
-            let init = Sugg::hir(cx, init, "..");
-            let (mutopt,initref) = if mt == Mutability::MutMutable {
-                ("mut ", init.mut_addr())
-            } else {
-                ("", init.addr())
-            };
-            let tyopt = if let Some(ref ty) = l.ty {
-                format!(": &{mutopt}{ty}", mutopt=mutopt, ty=snippet(cx, ty.span, "_"))
-            } else {
-                "".to_owned()
-            };
-            span_lint_and_then(cx,
-                TOPLEVEL_REF_ARG,
-                l.pat.span,
-                "`ref` on an entire `let` pattern is discouraged, take a reference with `&` instead",
-                |db| {
-                    db.span_suggestion(s.span,
-                                       "try",
-                                       format!("let {name}{tyopt} = {initref};",
-                                               name=snippet(cx, i.span, "_"),
-                                               tyopt=tyopt,
-                                               initref=initref));
-                }
-            );
+            if an == BindingAnnotation::Ref || an == BindingAnnotation::RefMut {
+                let init = Sugg::hir(cx, init, "..");
+                let (mutopt,initref) = if an == BindingAnnotation::RefMut {
+                    ("mut ", init.mut_addr())
+                } else {
+                    ("", init.addr())
+                };
+                let tyopt = if let Some(ref ty) = l.ty {
+                    format!(": &{mutopt}{ty}", mutopt=mutopt, ty=snippet(cx, ty.span, "_"))
+                } else {
+                    "".to_owned()
+                };
+                span_lint_and_then(cx,
+                    TOPLEVEL_REF_ARG,
+                    l.pat.span,
+                    "`ref` on an entire `let` pattern is discouraged, take a reference with `&` instead",
+                    |db| {
+                        db.span_suggestion(s.span,
+                                           "try",
+                                           format!("let {name}{tyopt} = {initref};",
+                                                   name=snippet(cx, i.span, "_"),
+                                                   tyopt=tyopt,
+                                                   initref=initref));
+                    }
+                );
+            }
         }};
         if_let_chain! {[
             let StmtSemi(ref expr, _) = s.node,
@@ -297,17 +317,18 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     if let ExprPath(QPath::Resolved(_, ref path)) = right.node {
                         check_nan(cx, path, expr);
                     }
-                    check_to_owned(cx, left, right, true, cmp.span);
-                    check_to_owned(cx, right, left, false, cmp.span)
+                    check_to_owned(cx, left, right);
+                    check_to_owned(cx, right, left);
                 }
                 if (op == BiEq || op == BiNe) && (is_float(cx, left) || is_float(cx, right)) {
                     if is_allowed(cx, left) || is_allowed(cx, right) {
                         return;
                     }
                     if let Some(name) = get_item_name(cx, expr) {
-                        let name = &*name.as_str();
+                        let name = name.as_str();
                         if name == "eq" || name == "ne" || name == "is_nan" || name.starts_with("eq_") ||
-                           name.ends_with("_eq") {
+                            name.ends_with("_eq")
+                        {
                             return;
                         }
                     }
@@ -315,9 +336,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                         let lhs = Sugg::hir(cx, left, "..");
                         let rhs = Sugg::hir(cx, right, "..");
 
-                        db.span_suggestion(expr.span,
-                                           "consider comparing them within some error",
-                                           format!("({}).abs() < error", lhs - rhs));
+                        db.span_suggestion(
+                            expr.span,
+                            "consider comparing them within some error",
+                            format!("({}).abs() < error", lhs - rhs),
+                        );
                         db.span_note(expr.span, "std::f32::EPSILON and std::f64::EPSILON are available.");
                     });
                 } else if op == BiRem && is_integer_literal(right, 1) {
@@ -326,7 +349,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             },
             _ => {},
         }
-        if in_attributes_expansion(cx, expr) {
+        if in_attributes_expansion(expr) {
             // Don't lint things expanded by #[derive(...)], etc
             return;
         }
@@ -335,10 +358,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                 let binding = last_path_segment(qpath).name.as_str();
                 if binding.starts_with('_') &&
                     !binding.starts_with("__") &&
-                    &*binding != "_result" && // FIXME: #944
+                    binding != "_result" && // FIXME: #944
                     is_used(cx, expr) &&
                     // don't lint if the declaration is in a macro
-                    non_macro_local(cx, &cx.tables.qpath_def(qpath, expr.id)) {
+                    non_macro_local(cx, &cx.tables.qpath_def(qpath, expr.hir_id))
+                {
                     Some(binding)
                 } else {
                     None
@@ -355,22 +379,28 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             _ => None,
         };
         if let Some(binding) = binding {
-            span_lint(cx,
-                      USED_UNDERSCORE_BINDING,
-                      expr.span,
-                      &format!("used binding `{}` which is prefixed with an underscore. A leading \
+            span_lint(
+                cx,
+                USED_UNDERSCORE_BINDING,
+                expr.span,
+                &format!(
+                    "used binding `{}` which is prefixed with an underscore. A leading \
                                 underscore signals that a binding will not be used.",
-                               binding));
+                    binding
+                ),
+            );
         }
     }
 
     fn check_pat(&mut self, cx: &LateContext<'a, 'tcx>, pat: &'tcx Pat) {
         if let PatKind::Binding(_, _, ref ident, Some(ref right)) = pat.node {
             if right.node == PatKind::Wild {
-                span_lint(cx,
-                          REDUNDANT_PATTERN,
-                          pat.span,
-                          &format!("the `{} @ _` pattern can be written as just `{}`", ident.node, ident.node));
+                span_lint(
+                    cx,
+                    REDUNDANT_PATTERN,
+                    pat.span,
+                    &format!("the `{} @ _` pattern can be written as just `{}`", ident.node, ident.node),
+                );
             }
         }
     }
@@ -378,39 +408,62 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
 
 fn check_nan(cx: &LateContext, path: &Path, expr: &Expr) {
     if !in_constant(cx, expr.id) {
-        path.segments.last().map(|seg| if &*seg.name.as_str() == "NAN" {
-            span_lint(cx,
-                      CMP_NAN,
-                      expr.span,
-                      "doomed comparison with NAN, use `std::{f32,f64}::is_nan()` instead");
+        path.segments.last().map(|seg| if seg.name == "NAN" {
+            span_lint(
+                cx,
+                CMP_NAN,
+                expr.span,
+                "doomed comparison with NAN, use `std::{f32,f64}::is_nan()` instead",
+            );
         });
     }
 }
 
 fn is_allowed(cx: &LateContext, expr: &Expr) -> bool {
-    let res = ConstContext::with_tables(cx.tcx, cx.tables).eval(expr);
+    let parent_item = cx.tcx.hir.get_parent(expr.id);
+    let parent_def_id = cx.tcx.hir.local_def_id(parent_item);
+    let substs = Substs::identity_for_item(cx.tcx, parent_def_id);
+    let res = ConstContext::new(cx.tcx, cx.param_env.and(substs), cx.tables).eval(expr);
     if let Ok(ConstVal::Float(val)) = res {
         use std::cmp::Ordering;
-        match val {
-            val @ ConstFloat::F32(_) => {
-                let zero = ConstFloat::F32(0.0);
+        match val.ty {
+            FloatTy::F32 => {
+                let zero = ConstFloat {
+                    ty: FloatTy::F32,
+                    bits: 0.0_f32.to_bits() as u128,
+                };
 
-                let infinity = ConstFloat::F32(::std::f32::INFINITY);
+                let infinity = ConstFloat {
+                    ty: FloatTy::F32,
+                    bits: ::std::f32::INFINITY.to_bits() as u128,
+                };
 
-                let neg_infinity = ConstFloat::F32(::std::f32::NEG_INFINITY);
+                let neg_infinity = ConstFloat {
+                    ty: FloatTy::F32,
+                    bits: ::std::f32::NEG_INFINITY.to_bits() as u128,
+                };
 
                 val.try_cmp(zero) == Ok(Ordering::Equal) || val.try_cmp(infinity) == Ok(Ordering::Equal) ||
-                val.try_cmp(neg_infinity) == Ok(Ordering::Equal)
+                    val.try_cmp(neg_infinity) == Ok(Ordering::Equal)
             },
-            val @ ConstFloat::F64(_) => {
-                let zero = ConstFloat::F64(0.0);
+            FloatTy::F64 => {
+                let zero = ConstFloat {
+                    ty: FloatTy::F64,
+                    bits: 0.0_f64.to_bits() as u128,
+                };
 
-                let infinity = ConstFloat::F64(::std::f64::INFINITY);
+                let infinity = ConstFloat {
+                    ty: FloatTy::F64,
+                    bits: ::std::f64::INFINITY.to_bits() as u128,
+                };
 
-                let neg_infinity = ConstFloat::F64(::std::f64::NEG_INFINITY);
+                let neg_infinity = ConstFloat {
+                    ty: FloatTy::F64,
+                    bits: ::std::f64::NEG_INFINITY.to_bits() as u128,
+                };
 
                 val.try_cmp(zero) == Ok(Ordering::Equal) || val.try_cmp(infinity) == Ok(Ordering::Equal) ||
-                val.try_cmp(neg_infinity) == Ok(Ordering::Equal)
+                    val.try_cmp(neg_infinity) == Ok(Ordering::Equal)
             },
         }
     } else {
@@ -422,12 +475,11 @@ fn is_float(cx: &LateContext, expr: &Expr) -> bool {
     matches!(walk_ptrs_ty(cx.tables.expr_ty(expr)).sty, ty::TyFloat(_))
 }
 
-fn check_to_owned(cx: &LateContext, expr: &Expr, other: &Expr, left: bool, op: Span) {
+fn check_to_owned(cx: &LateContext, expr: &Expr, other: &Expr) {
     let (arg_ty, snip) = match expr.node {
-        ExprMethodCall(Spanned { node: ref name, .. }, _, ref args) if args.len() == 1 => {
-            let name = &*name.as_str();
-            if name == "to_string" || name == "to_owned" && is_str_arg(cx, args) {
-                (cx.tables.expr_ty(&args[0]), snippet(cx, args[0].span, ".."))
+        ExprMethodCall(.., ref args) if args.len() == 1 => {
+            if match_trait_method(cx, expr, &paths::TO_STRING) || match_trait_method(cx, expr, &paths::TO_OWNED) {
+                (cx.tables.expr_ty_adjusted(&args[0]), snippet(cx, args[0].span, ".."))
             } else {
                 return;
             }
@@ -435,7 +487,7 @@ fn check_to_owned(cx: &LateContext, expr: &Expr, other: &Expr, left: bool, op: S
         ExprCall(ref path, ref v) if v.len() == 1 => {
             if let ExprPath(ref path) = path.node {
                 if match_path(path, &["String", "from_str"]) || match_path(path, &["String", "from"]) {
-                    (cx.tables.expr_ty(&v[0]), snippet(cx, v[0].span, ".."))
+                    (cx.tables.expr_ty_adjusted(&v[0]), snippet(cx, v[0].span, ".."))
                 } else {
                     return;
                 }
@@ -446,43 +498,58 @@ fn check_to_owned(cx: &LateContext, expr: &Expr, other: &Expr, left: bool, op: S
         _ => return,
     };
 
-    let other_ty = cx.tables.expr_ty(other);
+    let other_ty = cx.tables.expr_ty_adjusted(other);
     let partial_eq_trait_id = match cx.tcx.lang_items.eq_trait() {
         Some(id) => id,
         None => return,
     };
 
-    if !implements_trait(cx, arg_ty, partial_eq_trait_id, &[other_ty], None) {
+    // *arg impls PartialEq<other>
+    if !arg_ty
+        .builtin_deref(true, ty::LvaluePreference::NoPreference)
+        .map_or(false, |tam| implements_trait(cx, tam.ty, partial_eq_trait_id, &[other_ty]))
+        // arg impls PartialEq<*other>
+        && !other_ty
+        .builtin_deref(true, ty::LvaluePreference::NoPreference)
+        .map_or(false, |tam| implements_trait(cx, arg_ty, partial_eq_trait_id, &[tam.ty]))
+        // arg impls PartialEq<other>
+        && !implements_trait(cx, arg_ty, partial_eq_trait_id, &[other_ty])
+    {
         return;
     }
 
-    if left {
-        span_lint(cx,
-                  CMP_OWNED,
-                  expr.span,
-                  &format!("this creates an owned instance just for comparison. Consider using `{} {} {}` to \
-                            compare without allocation",
-                           snip,
-                           snippet(cx, op, "=="),
-                           snippet(cx, other.span, "..")));
-    } else {
-        span_lint(cx,
-                  CMP_OWNED,
-                  expr.span,
-                  &format!("this creates an owned instance just for comparison. Consider using `{} {} {}` to \
-                            compare without allocation",
-                           snippet(cx, other.span, ".."),
-                           snippet(cx, op, "=="),
-                           snip));
-    }
-
+    span_lint_and_then(
+        cx,
+        CMP_OWNED,
+        expr.span,
+        "this creates an owned instance just for comparison",
+        |db| {
+            // this is as good as our recursion check can get, we can't prove that the
+            // current function is
+            // called by
+            // PartialEq::eq, but we can at least ensure that this code is not part of it
+            let parent_fn = cx.tcx.hir.get_parent(expr.id);
+            let parent_impl = cx.tcx.hir.get_parent(parent_fn);
+            if parent_impl != CRATE_NODE_ID {
+                if let map::NodeItem(item) = cx.tcx.hir.get(parent_impl) {
+                    if let ItemImpl(.., Some(ref trait_ref), _, _) = item.node {
+                        if trait_ref.path.def.def_id() == partial_eq_trait_id {
+                            // we are implementing PartialEq, don't suggest not doing `to_owned`, otherwise
+                            // we go into
+                            // recursion
+                            db.span_label(expr.span, "try calling implementing the comparison without allocating");
+                            return;
+                        }
+                    }
+                }
+            }
+            db.span_suggestion(expr.span, "try", snip.to_string());
+        },
+    );
 }
 
-fn is_str_arg(cx: &LateContext, args: &[Expr]) -> bool {
-    args.len() == 1 && matches!(walk_ptrs_ty(cx.tables.expr_ty(&args[0])).sty, ty::TyStr)
-}
-
-/// Heuristic to see if an expression is used. Should be compatible with `unused_variables`'s idea
+/// Heuristic to see if an expression is used. Should be compatible with
+/// `unused_variables`'s idea
 /// of what it means for an expression to be "used".
 fn is_used(cx: &LateContext, expr: &Expr) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr) {
@@ -496,24 +563,25 @@ fn is_used(cx: &LateContext, expr: &Expr) -> bool {
     }
 }
 
-/// Test whether an expression is in a macro expansion (e.g. something generated by
+/// Test whether an expression is in a macro expansion (e.g. something
+/// generated by
 /// `#[derive(...)`] or the like).
-fn in_attributes_expansion(cx: &LateContext, expr: &Expr) -> bool {
-    cx.sess().codemap().with_expn_info(expr.span.expn_id, |info_opt| {
-        info_opt.map_or(false, |info| matches!(info.callee.format, ExpnFormat::MacroAttribute(_)))
-    })
+fn in_attributes_expansion(expr: &Expr) -> bool {
+    expr.span.ctxt.outer().expn_info().map_or(
+        false,
+        |info| matches!(info.callee.format, ExpnFormat::MacroAttribute(_)),
+    )
 }
 
 /// Test whether `def` is a variable defined outside a macro.
 fn non_macro_local(cx: &LateContext, def: &def::Def) -> bool {
     match *def {
-        def::Def::Local(id) |
-        def::Def::Upvar(id, _, _) => {
-            if let Some(span) = cx.tcx.hir.span_if_local(id) {
-                !in_macro(cx, span)
-            } else {
-                true
-            }
+        def::Def::Local(def_id) |
+        def::Def::Upvar(def_id, _, _) => {
+            let id = cx.tcx.hir.as_local_node_id(def_id).expect(
+                "local variables should be found in the same crate",
+            );
+            !in_macro(cx.tcx.hir.span(id))
         },
         _ => false,
     }

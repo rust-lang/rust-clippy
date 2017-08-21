@@ -8,7 +8,8 @@ use rustc::hir::print;
 use syntax::ast::Attribute;
 use syntax::attr;
 
-/// **What it does:** Dumps every ast/hir node which has the `#[clippy_dump]` attribute
+/// **What it does:** Dumps every ast/hir node which has the `#[clippy_dump]`
+/// attribute
 ///
 /// **Example:**
 /// ```rust
@@ -54,8 +55,10 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             hir::Visibility::Public => println!("public"),
             hir::Visibility::Crate => println!("visible crate wide"),
             hir::Visibility::Restricted { ref path, .. } => {
-                println!("visible in module `{}`",
-                         print::to_string(print::NO_ANN, |s| s.print_path(path, false)))
+                println!(
+                    "visible in module `{}`",
+                    print::to_string(print::NO_ANN, |s| s.print_path(path, false))
+                )
             },
             hir::Visibility::Inherited => println!("visibility inherited from outer item"),
         }
@@ -71,20 +74,23 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             hir::ImplItemKind::Type(_) => println!("associated type"),
         }
     }
-    // fn check_trait_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::TraitItem) {
+    // fn check_trait_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx
+    // hir::TraitItem) {
     // if !has_attr(&item.attrs) {
     // return;
     // }
     // }
     //
-    // fn check_variant(&mut self, cx: &LateContext<'a, 'tcx>, var: &'tcx hir::Variant, _:
+    // fn check_variant(&mut self, cx: &LateContext<'a, 'tcx>, var: &'tcx
+    // hir::Variant, _:
     // &hir::Generics) {
     // if !has_attr(&var.node.attrs) {
     // return;
     // }
     // }
     //
-    // fn check_struct_field(&mut self, cx: &LateContext<'a, 'tcx>, field: &'tcx hir::StructField) {
+    // fn check_struct_field(&mut self, cx: &LateContext<'a, 'tcx>, field: &'tcx
+    // hir::StructField) {
     // if !has_attr(&field.attrs) {
     // return;
     // }
@@ -123,7 +129,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             hir::StmtSemi(ref e, _) => print_expr(cx, e, 0),
         }
     }
-    // fn check_foreign_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::ForeignItem) {
+    // fn check_foreign_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx
+    // hir::ForeignItem) {
     // if !has_attr(&item.attrs) {
     // return;
     // }
@@ -138,7 +145,7 @@ fn has_attr(attrs: &[Attribute]) -> bool {
 fn print_decl(cx: &LateContext, decl: &hir::Decl) {
     match decl.node {
         hir::DeclLocal(ref local) => {
-            println!("local variable of type {}", cx.tables.node_id_to_type(local.id));
+            println!("local variable of type {}", cx.tables.node_id_to_type(local.hir_id));
             println!("pattern:");
             print_pat(cx, &local.pat, 0);
             if let Some(ref e) = local.init {
@@ -152,21 +159,22 @@ fn print_decl(cx: &LateContext, decl: &hir::Decl) {
 
 fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
     let ind = "  ".repeat(indent);
-    let ty = cx.tables.node_id_to_type(expr.id);
     println!("{}+", ind);
+    println!("{}ty: {}", ind, cx.tables.expr_ty(expr));
+    println!("{}adjustments: {:?}", ind, cx.tables.adjustments().get(expr.hir_id));
     match expr.node {
         hir::ExprBox(ref e) => {
-            println!("{}Box, {}", ind, ty);
+            println!("{}Box", ind);
             print_expr(cx, e, indent + 1);
         },
         hir::ExprArray(ref v) => {
-            println!("{}Array, {}", ind, ty);
+            println!("{}Array", ind);
             for e in v {
                 print_expr(cx, e, indent + 1);
             }
         },
         hir::ExprCall(ref func, ref args) => {
-            println!("{}Call, {}", ind, ty);
+            println!("{}Call", ind);
             println!("{}function:", ind);
             print_expr(cx, func, indent + 1);
             println!("{}arguments:", ind);
@@ -174,21 +182,21 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
                 print_expr(cx, arg, indent + 1);
             }
         },
-        hir::ExprMethodCall(ref name, _, ref args) => {
-            println!("{}MethodCall, {}", ind, ty);
-            println!("{}method name: {}", ind, name.node);
+        hir::ExprMethodCall(ref path, _, ref args) => {
+            println!("{}MethodCall", ind);
+            println!("{}method name: {}", ind, path.name);
             for arg in args {
                 print_expr(cx, arg, indent + 1);
             }
         },
         hir::ExprTup(ref v) => {
-            println!("{}Tup, {}", ind, ty);
+            println!("{}Tup", ind);
             for e in v {
                 print_expr(cx, e, indent + 1);
             }
         },
         hir::ExprBinary(op, ref lhs, ref rhs) => {
-            println!("{}Binary, {}", ind, ty);
+            println!("{}Binary", ind);
             println!("{}op: {:?}", ind, op.node);
             println!("{}lhs:", ind);
             print_expr(cx, lhs, indent + 1);
@@ -196,26 +204,26 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
             print_expr(cx, rhs, indent + 1);
         },
         hir::ExprUnary(op, ref inner) => {
-            println!("{}Unary, {}", ind, ty);
+            println!("{}Unary", ind);
             println!("{}op: {:?}", ind, op);
             print_expr(cx, inner, indent + 1);
         },
         hir::ExprLit(ref lit) => {
-            println!("{}Lit, {}", ind, ty);
+            println!("{}Lit", ind);
             println!("{}{:?}", ind, lit);
         },
         hir::ExprCast(ref e, ref target) => {
-            println!("{}Cast, {}", ind, ty);
+            println!("{}Cast", ind);
             print_expr(cx, e, indent + 1);
             println!("{}target type: {:?}", ind, target);
         },
         hir::ExprType(ref e, ref target) => {
-            println!("{}Type, {}", ind, ty);
+            println!("{}Type", ind);
             print_expr(cx, e, indent + 1);
             println!("{}target type: {:?}", ind, target);
         },
         hir::ExprIf(ref e, _, ref els) => {
-            println!("{}If, {}", ind, ty);
+            println!("{}If", ind);
             println!("{}condition:", ind);
             print_expr(cx, e, indent + 1);
             if let Some(ref els) = *els {
@@ -224,35 +232,35 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
             }
         },
         hir::ExprWhile(ref cond, _, _) => {
-            println!("{}While, {}", ind, ty);
+            println!("{}While", ind);
             println!("{}condition:", ind);
             print_expr(cx, cond, indent + 1);
         },
         hir::ExprLoop(..) => {
-            println!("{}Loop, {}", ind, ty);
+            println!("{}Loop", ind);
         },
         hir::ExprMatch(ref cond, _, ref source) => {
-            println!("{}Match, {}", ind, ty);
+            println!("{}Match", ind);
             println!("{}condition:", ind);
             print_expr(cx, cond, indent + 1);
             println!("{}source: {:?}", ind, source);
         },
         hir::ExprClosure(ref clause, _, _, _) => {
-            println!("{}Closure, {}", ind, ty);
+            println!("{}Closure", ind);
             println!("{}clause: {:?}", ind, clause);
         },
         hir::ExprBlock(_) => {
-            println!("{}Block, {}", ind, ty);
+            println!("{}Block", ind);
         },
         hir::ExprAssign(ref lhs, ref rhs) => {
-            println!("{}Assign, {}", ind, ty);
+            println!("{}Assign", ind);
             println!("{}lhs:", ind);
             print_expr(cx, lhs, indent + 1);
             println!("{}rhs:", ind);
             print_expr(cx, rhs, indent + 1);
         },
         hir::ExprAssignOp(ref binop, ref lhs, ref rhs) => {
-            println!("{}AssignOp, {}", ind, ty);
+            println!("{}AssignOp", ind);
             println!("{}op: {:?}", ind, binop.node);
             println!("{}lhs:", ind);
             print_expr(cx, lhs, indent + 1);
@@ -260,19 +268,19 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
             print_expr(cx, rhs, indent + 1);
         },
         hir::ExprField(ref e, ref name) => {
-            println!("{}Field, {}", ind, ty);
+            println!("{}Field", ind);
             println!("{}field name: {}", ind, name.node);
             println!("{}struct expr:", ind);
             print_expr(cx, e, indent + 1);
         },
         hir::ExprTupField(ref e, ref idx) => {
-            println!("{}TupField, {}", ind, ty);
+            println!("{}TupField", ind);
             println!("{}field index: {}", ind, idx.node);
             println!("{}tuple expr:", ind);
             print_expr(cx, e, indent + 1);
         },
         hir::ExprIndex(ref arr, ref idx) => {
-            println!("{}Index, {}", ind, ty);
+            println!("{}Index", ind);
             println!("{}array expr:", ind);
             print_expr(cx, arr, indent + 1);
             println!("{}index expr:", ind);
@@ -287,25 +295,25 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
             println!("{}seg: {:?}", ind, seg);
         },
         hir::ExprAddrOf(ref muta, ref e) => {
-            println!("{}AddrOf, {}", ind, ty);
+            println!("{}AddrOf", ind);
             println!("mutability: {:?}", muta);
             print_expr(cx, e, indent + 1);
         },
         hir::ExprBreak(_, ref e) => {
-            println!("{}Break, {}", ind, ty);
+            println!("{}Break", ind);
             if let Some(ref e) = *e {
                 print_expr(cx, e, indent + 1);
             }
         },
-        hir::ExprAgain(_) => println!("{}Again, {}", ind, ty),
+        hir::ExprAgain(_) => println!("{}Again", ind),
         hir::ExprRet(ref e) => {
-            println!("{}Ret, {}", ind, ty);
+            println!("{}Ret", ind);
             if let Some(ref e) = *e {
                 print_expr(cx, e, indent + 1);
             }
         },
         hir::ExprInlineAsm(_, ref input, ref output) => {
-            println!("{}InlineAsm, {}", ind, ty);
+            println!("{}InlineAsm", ind);
             println!("{}inputs:", ind);
             for e in input {
                 print_expr(cx, e, indent + 1);
@@ -316,7 +324,7 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
             }
         },
         hir::ExprStruct(ref path, ref fields, ref base) => {
-            println!("{}Struct, {}", ind, ty);
+            println!("{}Struct", ind);
             println!("{}path: {:?}", ind, path);
             for field in fields {
                 println!("{}field \"{}\":", ind, field.name.node);
@@ -328,7 +336,7 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
             }
         },
         hir::ExprRepeat(ref val, body_id) => {
-            println!("{}Repeat, {}", ind, ty);
+            println!("{}Repeat", ind);
             println!("{}value:", ind);
             print_expr(cx, val, indent + 1);
             println!("{}repeat count:", ind);
@@ -344,8 +352,10 @@ fn print_item(cx: &LateContext, item: &hir::Item) {
         hir::Visibility::Public => println!("public"),
         hir::Visibility::Crate => println!("visible crate wide"),
         hir::Visibility::Restricted { ref path, .. } => {
-            println!("visible in module `{}`",
-                     print::to_string(print::NO_ANN, |s| s.print_path(path, false)))
+            println!(
+                "visible in module `{}`",
+                print::to_string(print::NO_ANN, |s| s.print_path(path, false))
+            )
         },
         hir::Visibility::Inherited => println!("visibility inherited from outer item"),
     }
@@ -364,25 +374,26 @@ fn print_item(cx: &LateContext, item: &hir::Item) {
             }
         },
         hir::ItemUse(ref path, ref kind) => println!("{:?}, {:?}", path, kind),
-        hir::ItemStatic(..) => println!("static item of type {:#?}", cx.tcx.item_type(did)),
-        hir::ItemConst(..) => println!("const item of type {:#?}", cx.tcx.item_type(did)),
+        hir::ItemStatic(..) => println!("static item of type {:#?}", cx.tcx.type_of(did)),
+        hir::ItemConst(..) => println!("const item of type {:#?}", cx.tcx.type_of(did)),
         hir::ItemFn(..) => {
-            let item_ty = cx.tcx.item_type(did);
+            let item_ty = cx.tcx.type_of(did);
             println!("function of type {:#?}", item_ty);
         },
         hir::ItemMod(..) => println!("module"),
         hir::ItemForeignMod(ref fm) => println!("foreign module with abi: {}", fm.abi),
+        hir::ItemGlobalAsm(ref asm) => println!("global asm: {:?}", asm),
         hir::ItemTy(..) => {
-            println!("type alias for {:?}", cx.tcx.item_type(did));
+            println!("type alias for {:?}", cx.tcx.type_of(did));
         },
         hir::ItemEnum(..) => {
-            println!("enum definition of type {:?}", cx.tcx.item_type(did));
+            println!("enum definition of type {:?}", cx.tcx.type_of(did));
         },
         hir::ItemStruct(..) => {
-            println!("struct definition of type {:?}", cx.tcx.item_type(did));
+            println!("struct definition of type {:?}", cx.tcx.type_of(did));
         },
         hir::ItemUnion(..) => {
-            println!("union definition of type {:?}", cx.tcx.item_type(did));
+            println!("union definition of type {:?}", cx.tcx.type_of(did));
         },
         hir::ItemTrait(..) => {
             println!("trait decl");
@@ -395,10 +406,10 @@ fn print_item(cx: &LateContext, item: &hir::Item) {
         hir::ItemDefaultImpl(_, ref _trait_ref) => {
             println!("default impl");
         },
-        hir::ItemImpl(_, _, _, Some(ref _trait_ref), _, _) => {
+        hir::ItemImpl(_, _, _, _, Some(ref _trait_ref), _, _) => {
             println!("trait impl");
         },
-        hir::ItemImpl(_, _, _, None, _, _) => {
+        hir::ItemImpl(_, _, _, _, None, _, _) => {
             println!("impl");
         },
     }
@@ -420,9 +431,11 @@ fn print_pat(cx: &LateContext, pat: &hir::Pat, indent: usize) {
         },
         hir::PatKind::Struct(ref path, ref fields, ignore) => {
             println!("{}Struct", ind);
-            println!("{}name: {}",
-                     ind,
-                     print::to_string(print::NO_ANN, |s| s.print_qpath(path, false)));
+            println!(
+                "{}name: {}",
+                ind,
+                print::to_string(print::NO_ANN, |s| s.print_qpath(path, false))
+            );
             println!("{}ignore leftover fields: {}", ind, ignore);
             println!("{}fields:", ind);
             for field in fields {
@@ -435,9 +448,11 @@ fn print_pat(cx: &LateContext, pat: &hir::Pat, indent: usize) {
         },
         hir::PatKind::TupleStruct(ref path, ref fields, opt_dots_position) => {
             println!("{}TupleStruct", ind);
-            println!("{}path: {}",
-                     ind,
-                     print::to_string(print::NO_ANN, |s| s.print_qpath(path, false)));
+            println!(
+                "{}path: {}",
+                ind,
+                print::to_string(print::NO_ANN, |s| s.print_qpath(path, false))
+            );
             if let Some(dot_position) = opt_dots_position {
                 println!("{}dot position: {}", ind, dot_position);
             }

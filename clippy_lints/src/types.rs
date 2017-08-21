@@ -1,14 +1,16 @@
 use reexport::*;
+use rustc::hir;
 use rustc::hir::*;
 use rustc::hir::intravisit::{FnKind, Visitor, walk_ty, NestedVisitorMap};
 use rustc::lint::*;
-use rustc::ty;
+use rustc::ty::{self, Ty};
+use rustc::ty::subst::Substs;
 use std::cmp::Ordering;
 use syntax::ast::{IntTy, UintTy, FloatTy};
 use syntax::attr::IntType;
 use syntax::codemap::Span;
 use utils::{comparisons, higher, in_external_macro, in_macro, match_def_path, snippet, span_help_and_lint, span_lint,
-            opt_def_id, last_path_segment, type_size};
+            span_lint_and_sugg, opt_def_id, last_path_segment, type_size};
 use utils::paths;
 
 /// Handles all the linting of funky types
@@ -40,14 +42,21 @@ declare_lint! {
 ///
 /// **Why is this bad?** Gankro says:
 ///
-/// > The TL;DR of `LinkedList` is that it's built on a massive amount of pointers and indirection.
-/// > It wastes memory, it has terrible cache locality, and is all-around slow. `RingBuf`, while
-/// > "only" amortized for push/pop, should be faster in the general case for almost every possible
-/// > workload, and isn't even amortized at all if you can predict the capacity you need.
+/// > The TL;DR of `LinkedList` is that it's built on a massive amount of
+/// pointers and indirection.
+/// > It wastes memory, it has terrible cache locality, and is all-around slow.
+/// `RingBuf`, while
+/// > "only" amortized for push/pop, should be faster in the general case for
+/// almost every possible
+/// > workload, and isn't even amortized at all if you can predict the capacity
+/// you need.
 /// >
-/// > `LinkedList`s are only really good if you're doing a lot of merging or splitting of lists.
-/// > This is because they can just mangle some pointers instead of actually copying the data. Even
-/// > if you're doing a lot of insertion in the middle of the list, `RingBuf` can still be better
+/// > `LinkedList`s are only really good if you're doing a lot of merging or
+/// splitting of lists.
+/// > This is because they can just mangle some pointers instead of actually
+/// copying the data. Even
+/// > if you're doing a lot of insertion in the middle of the list, `RingBuf`
+/// can still be better
 /// > because of how expensive it is to seek to the middle of a `LinkedList`.
 ///
 /// **Known problems:** False positives – the instances where using a
@@ -64,9 +73,26 @@ declare_lint! {
      structure like a VecDeque"
 }
 
+/// **What it does:** Checks for use of `&Box<T>` anywhere in the code.
+///
+/// **Why is this bad?** Any `&Box<T>` can also be a `&T`, which is more
+/// general.
+///
+/// **Known problems:** None.
+///
+/// **Example:**
+/// ```rust
+/// fn foo(bar: &Box<T>) { ... }
+/// ```
+declare_lint! {
+    pub BORROWED_BOX,
+    Warn,
+    "a borrow of a boxed type"
+}
+
 impl LintPass for TypePass {
     fn get_lints(&self) -> LintArray {
-        lint_array!(BOX_VEC, LINKEDLIST)
+        lint_array!(BOX_VEC, LINKEDLIST, BORROWED_BOX)
     }
 }
 
@@ -74,7 +100,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypePass {
     fn check_fn(&mut self, cx: &LateContext, _: FnKind, decl: &FnDecl, _: &Body, _: Span, id: NodeId) {
         // skip trait implementations, see #605
         if let Some(map::NodeItem(item)) = cx.tcx.hir.find(cx.tcx.hir.get_parent(id)) {
-            if let ItemImpl(_, _, _, Some(..), _, _) = item.node {
+            if let ItemImpl(_, _, _, _, Some(..), _, _) = item.node {
                 return;
             }
         }
@@ -83,45 +109,56 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypePass {
     }
 
     fn check_struct_field(&mut self, cx: &LateContext, field: &StructField) {
-        check_ty(cx, &field.ty);
+        check_ty(cx, &field.ty, false);
     }
 
     fn check_trait_item(&mut self, cx: &LateContext, item: &TraitItem) {
         match item.node {
             TraitItemKind::Const(ref ty, _) |
-            TraitItemKind::Type(_, Some(ref ty)) => check_ty(cx, ty),
+            TraitItemKind::Type(_, Some(ref ty)) => check_ty(cx, ty, false),
             TraitItemKind::Method(ref sig, _) => check_fn_decl(cx, &sig.decl),
             _ => (),
+        }
+    }
+
+    fn check_local(&mut self, cx: &LateContext, local: &Local) {
+        if let Some(ref ty) = local.ty {
+            check_ty(cx, ty, true);
         }
     }
 }
 
 fn check_fn_decl(cx: &LateContext, decl: &FnDecl) {
     for input in &decl.inputs {
-        check_ty(cx, input);
+        check_ty(cx, input, false);
     }
 
     if let FunctionRetTy::Return(ref ty) = decl.output {
-        check_ty(cx, ty);
+        check_ty(cx, ty, false);
     }
 }
 
-fn check_ty(cx: &LateContext, ast_ty: &Ty) {
-    if in_macro(cx, ast_ty.span) {
+/// Recursively check for `TypePass` lints in the given type. Stop at the first
+/// lint found.
+///
+/// The parameter `is_local` distinguishes the context of the type; types from
+/// local bindings should only be checked for the `BORROWED_BOX` lint.
+fn check_ty(cx: &LateContext, ast_ty: &hir::Ty, is_local: bool) {
+    if in_macro(ast_ty.span) {
         return;
     }
     match ast_ty.node {
-        TyPath(ref qpath) => {
-            let def = cx.tables.qpath_def(qpath, ast_ty.id);
+        TyPath(ref qpath) if !is_local => {
+            let hir_id = cx.tcx.hir.node_to_hir_id(ast_ty.id);
+            let def = cx.tables.qpath_def(qpath, hir_id);
             if let Some(def_id) = opt_def_id(def) {
                 if Some(def_id) == cx.tcx.lang_items.owned_box() {
                     let last = last_path_segment(qpath);
                     if_let_chain! {[
                         let PathParameters::AngleBracketedParameters(ref ag) = last.parameters,
-                        let Some(ref vec) = ag.types.get(0),
+                        let Some(vec) = ag.types.get(0),
                         let TyPath(ref qpath) = vec.node,
-                        let def::Def::Struct(..) = cx.tables.qpath_def(qpath, vec.id),
-                        let Some(did) = opt_def_id(cx.tables.qpath_def(qpath, vec.id)),
+                        let Some(did) = opt_def_id(cx.tables.qpath_def(qpath, cx.tcx.hir.node_to_hir_id(vec.id))),
                         match_def_path(cx.tcx, did, &paths::VEC),
                     ], {
                         span_help_and_lint(cx,
@@ -132,42 +169,80 @@ fn check_ty(cx: &LateContext, ast_ty: &Ty) {
                         return; // don't recurse into the type
                     }}
                 } else if match_def_path(cx.tcx, def_id, &paths::LINKED_LIST) {
-                    span_help_and_lint(cx,
-                                       LINKEDLIST,
-                                       ast_ty.span,
-                                       "I see you're using a LinkedList! Perhaps you meant some other data structure?",
-                                       "a VecDeque might work");
+                    span_help_and_lint(
+                        cx,
+                        LINKEDLIST,
+                        ast_ty.span,
+                        "I see you're using a LinkedList! Perhaps you meant some other data structure?",
+                        "a VecDeque might work",
+                    );
                     return; // don't recurse into the type
                 }
             }
             match *qpath {
                 QPath::Resolved(Some(ref ty), ref p) => {
-                    check_ty(cx, ty);
+                    check_ty(cx, ty, is_local);
                     for ty in p.segments.iter().flat_map(|seg| seg.parameters.types()) {
-                        check_ty(cx, ty);
+                        check_ty(cx, ty, is_local);
                     }
                 },
                 QPath::Resolved(None, ref p) => {
                     for ty in p.segments.iter().flat_map(|seg| seg.parameters.types()) {
-                        check_ty(cx, ty);
+                        check_ty(cx, ty, is_local);
                     }
                 },
                 QPath::TypeRelative(ref ty, ref seg) => {
-                    check_ty(cx, ty);
+                    check_ty(cx, ty, is_local);
                     for ty in seg.parameters.types() {
-                        check_ty(cx, ty);
+                        check_ty(cx, ty, is_local);
                     }
                 },
+            }
+        },
+        TyRptr(ref lt, MutTy { ref ty, ref mutbl }) => {
+            match ty.node {
+                TyPath(ref qpath) => {
+                    let hir_id = cx.tcx.hir.node_to_hir_id(ty.id);
+                    let def = cx.tables.qpath_def(qpath, hir_id);
+                    if_let_chain! {[
+                        let Some(def_id) = opt_def_id(def),
+                        Some(def_id) == cx.tcx.lang_items.owned_box(),
+                        let QPath::Resolved(None, ref path) = *qpath,
+                        let [ref bx] = *path.segments,
+                        let PathParameters::AngleBracketedParameters(ref ab_data) = bx.parameters,
+                        let [ref inner] = *ab_data.types
+                    ], {
+                        let ltopt = if lt.is_elided() {
+                            "".to_owned()
+                        } else {
+                            format!("{} ", lt.name.as_str())
+                        };
+                        let mutopt = if *mutbl == Mutability::MutMutable {
+                            "mut "
+                        } else {
+                            ""
+                        };
+                        span_lint_and_sugg(cx,
+                            BORROWED_BOX,
+                            ast_ty.span,
+                            "you seem to be trying to use `&Box<T>`. Consider using just `&T`",
+                            "try",
+                            format!("&{}{}{}", ltopt, mutopt, &snippet(cx, inner.span, ".."))
+                        );
+                        return; // don't recurse into the type
+                    }};
+                    check_ty(cx, ty, is_local);
+                },
+                _ => check_ty(cx, ty, is_local),
             }
         },
         // recurse
         TySlice(ref ty) |
         TyArray(ref ty, _) |
-        TyPtr(MutTy { ref ty, .. }) |
-        TyRptr(_, MutTy { ref ty, .. }) => check_ty(cx, ty),
+        TyPtr(MutTy { ref ty, .. }) => check_ty(cx, ty, is_local),
         TyTup(ref tys) => {
             for ty in tys {
-                check_ty(cx, ty);
+                check_ty(cx, ty, is_local);
             }
         },
         _ => {},
@@ -196,20 +271,23 @@ declare_lint! {
 
 fn check_let_unit(cx: &LateContext, decl: &Decl) {
     if let DeclLocal(ref local) = decl.node {
-        let bindtype = &cx.tables.pat_ty(&local.pat).sty;
-        match *bindtype {
+        match cx.tables.pat_ty(&local.pat).sty {
             ty::TyTuple(slice, _) if slice.is_empty() => {
-                if in_external_macro(cx, decl.span) || in_macro(cx, local.pat.span) {
+                if in_external_macro(cx, decl.span) || in_macro(local.pat.span) {
                     return;
                 }
                 if higher::is_from_for_desugar(decl) {
                     return;
                 }
-                span_lint(cx,
-                          LET_UNIT_VALUE,
-                          decl.span,
-                          &format!("this let-binding has unit value. Consider omitting `let {} =`",
-                                   snippet(cx, local.pat.span, "..")));
+                span_lint(
+                    cx,
+                    LET_UNIT_VALUE,
+                    decl.span,
+                    &format!(
+                        "this let-binding has unit value. Consider omitting `let {} =`",
+                        snippet(cx, local.pat.span, "..")
+                    ),
+                );
             },
             _ => (),
         }
@@ -261,25 +339,28 @@ impl LintPass for UnitCmp {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnitCmp {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
-        if in_macro(cx, expr.span) {
+        if in_macro(expr.span) {
             return;
         }
         if let ExprBinary(ref cmp, ref left, _) = expr.node {
             let op = cmp.node;
             if op.is_comparison() {
-                let sty = &cx.tables.expr_ty(left).sty;
-                match *sty {
+                match cx.tables.expr_ty(left).sty {
                     ty::TyTuple(slice, _) if slice.is_empty() => {
                         let result = match op {
                             BiEq | BiLe | BiGe => "true",
                             _ => "false",
                         };
-                        span_lint(cx,
-                                  UNIT_CMP,
-                                  expr.span,
-                                  &format!("{}-comparison of unit values detected. This will always be {}",
-                                           op.as_str(),
-                                           result));
+                        span_lint(
+                            cx,
+                            UNIT_CMP,
+                            expr.span,
+                            &format!(
+                                "{}-comparison of unit values detected. This will always be {}",
+                                op.as_str(),
+                                result
+                            ),
+                        );
                     },
                     _ => (),
                 }
@@ -398,7 +479,7 @@ declare_lint! {
 
 /// Returns the size in bits of an integral type.
 /// Will return 0 if the type is not an int or uint variant
-fn int_ty_to_nbits(typ: &ty::TyS) -> usize {
+fn int_ty_to_nbits(typ: Ty) -> usize {
     let n = match typ.sty {
         ty::TyInt(i) => 4 << (i as usize),
         ty::TyUint(u) => 4 << (u as usize),
@@ -412,7 +493,7 @@ fn int_ty_to_nbits(typ: &ty::TyS) -> usize {
     }
 }
 
-fn is_isize_or_usize(typ: &ty::TyS) -> bool {
+fn is_isize_or_usize(typ: Ty) -> bool {
     match typ.sty {
         ty::TyInt(IntTy::Is) |
         ty::TyUint(UintTy::Us) => true,
@@ -420,7 +501,7 @@ fn is_isize_or_usize(typ: &ty::TyS) -> bool {
     }
 }
 
-fn span_precision_loss_lint(cx: &LateContext, expr: &Expr, cast_from: &ty::TyS, cast_to_f64: bool) {
+fn span_precision_loss_lint(cx: &LateContext, expr: &Expr, cast_from: Ty, cast_to_f64: bool) {
     let mantissa_nbits = if cast_to_f64 { 52 } else { 23 };
     let arch_dependent = is_isize_or_usize(cast_from) && cast_to_f64;
     let arch_dependent_str = "on targets with 64-bit wide pointers ";
@@ -431,20 +512,24 @@ fn span_precision_loss_lint(cx: &LateContext, expr: &Expr, cast_from: &ty::TyS, 
     } else {
         int_ty_to_nbits(cast_from).to_string()
     };
-    span_lint(cx,
-              CAST_PRECISION_LOSS,
-              expr.span,
-              &format!("casting {0} to {1} causes a loss of precision {2}({0} is {3} bits wide, but {1}'s mantissa \
+    span_lint(
+        cx,
+        CAST_PRECISION_LOSS,
+        expr.span,
+        &format!(
+            "casting {0} to {1} causes a loss of precision {2}({0} is {3} bits wide, but {1}'s mantissa \
                         is only {4} bits wide)",
-                       cast_from,
-                       if cast_to_f64 { "f64" } else { "f32" },
-                       if arch_dependent {
-                           arch_dependent_str
-                       } else {
-                           ""
-                       },
-                       from_nbits_str,
-                       mantissa_nbits));
+            cast_from,
+            if cast_to_f64 { "f64" } else { "f32" },
+            if arch_dependent {
+                arch_dependent_str
+            } else {
+                ""
+            },
+            from_nbits_str,
+            mantissa_nbits
+        ),
+    );
 }
 
 enum ArchSuffix {
@@ -453,75 +538,91 @@ enum ArchSuffix {
     None,
 }
 
-fn check_truncation_and_wrapping(cx: &LateContext, expr: &Expr, cast_from: &ty::TyS, cast_to: &ty::TyS) {
+fn check_truncation_and_wrapping(cx: &LateContext, expr: &Expr, cast_from: Ty, cast_to: Ty) {
     let arch_64_suffix = " on targets with 64-bit wide pointers";
     let arch_32_suffix = " on targets with 32-bit wide pointers";
     let cast_unsigned_to_signed = !cast_from.is_signed() && cast_to.is_signed();
     let (from_nbits, to_nbits) = (int_ty_to_nbits(cast_from), int_ty_to_nbits(cast_to));
-    let (span_truncation, suffix_truncation, span_wrap, suffix_wrap) = match (is_isize_or_usize(cast_from),
-                                                                              is_isize_or_usize(cast_to)) {
-        (true, true) | (false, false) => {
-            (to_nbits < from_nbits,
-             ArchSuffix::None,
-             to_nbits == from_nbits && cast_unsigned_to_signed,
-             ArchSuffix::None)
-        },
-        (true, false) => {
-            (to_nbits <= 32,
-             if to_nbits == 32 {
-                 ArchSuffix::_64
-             } else {
-                 ArchSuffix::None
-             },
-             to_nbits <= 32 && cast_unsigned_to_signed,
-             ArchSuffix::_32)
-        },
-        (false, true) => {
-            (from_nbits == 64,
-             ArchSuffix::_32,
-             cast_unsigned_to_signed,
-             if from_nbits == 64 {
-                 ArchSuffix::_64
-             } else {
-                 ArchSuffix::_32
-             })
-        },
-    };
+    let (span_truncation, suffix_truncation, span_wrap, suffix_wrap) =
+        match (is_isize_or_usize(cast_from), is_isize_or_usize(cast_to)) {
+            (true, true) | (false, false) => {
+                (
+                    to_nbits < from_nbits,
+                    ArchSuffix::None,
+                    to_nbits == from_nbits && cast_unsigned_to_signed,
+                    ArchSuffix::None,
+                )
+            },
+            (true, false) => {
+                (
+                    to_nbits <= 32,
+                    if to_nbits == 32 {
+                        ArchSuffix::_64
+                    } else {
+                        ArchSuffix::None
+                    },
+                    to_nbits <= 32 && cast_unsigned_to_signed,
+                    ArchSuffix::_32,
+                )
+            },
+            (false, true) => {
+                (
+                    from_nbits == 64,
+                    ArchSuffix::_32,
+                    cast_unsigned_to_signed,
+                    if from_nbits == 64 {
+                        ArchSuffix::_64
+                    } else {
+                        ArchSuffix::_32
+                    },
+                )
+            },
+        };
     if span_truncation {
-        span_lint(cx,
-                  CAST_POSSIBLE_TRUNCATION,
-                  expr.span,
-                  &format!("casting {} to {} may truncate the value{}",
-                           cast_from,
-                           cast_to,
-                           match suffix_truncation {
-                               ArchSuffix::_32 => arch_32_suffix,
-                               ArchSuffix::_64 => arch_64_suffix,
-                               ArchSuffix::None => "",
-                           }));
+        span_lint(
+            cx,
+            CAST_POSSIBLE_TRUNCATION,
+            expr.span,
+            &format!(
+                "casting {} to {} may truncate the value{}",
+                cast_from,
+                cast_to,
+                match suffix_truncation {
+                    ArchSuffix::_32 => arch_32_suffix,
+                    ArchSuffix::_64 => arch_64_suffix,
+                    ArchSuffix::None => "",
+                }
+            ),
+        );
     }
     if span_wrap {
-        span_lint(cx,
-                  CAST_POSSIBLE_WRAP,
-                  expr.span,
-                  &format!("casting {} to {} may wrap around the value{}",
-                           cast_from,
-                           cast_to,
-                           match suffix_wrap {
-                               ArchSuffix::_32 => arch_32_suffix,
-                               ArchSuffix::_64 => arch_64_suffix,
-                               ArchSuffix::None => "",
-                           }));
+        span_lint(
+            cx,
+            CAST_POSSIBLE_WRAP,
+            expr.span,
+            &format!(
+                "casting {} to {} may wrap around the value{}",
+                cast_from,
+                cast_to,
+                match suffix_wrap {
+                    ArchSuffix::_32 => arch_32_suffix,
+                    ArchSuffix::_64 => arch_64_suffix,
+                    ArchSuffix::None => "",
+                }
+            ),
+        );
     }
 }
 
 impl LintPass for CastPass {
     fn get_lints(&self) -> LintArray {
-        lint_array!(CAST_PRECISION_LOSS,
-                    CAST_SIGN_LOSS,
-                    CAST_POSSIBLE_TRUNCATION,
-                    CAST_POSSIBLE_WRAP,
-                    UNNECESSARY_CAST)
+        lint_array!(
+            CAST_PRECISION_LOSS,
+            CAST_SIGN_LOSS,
+            CAST_POSSIBLE_TRUNCATION,
+            CAST_POSSIBLE_WRAP,
+            UNNECESSARY_CAST
+        )
     }
 }
 
@@ -536,12 +637,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CastPass {
                     LitKind::FloatUnsuffixed(_) => {},
                     _ => {
                         if cast_from.sty == cast_to.sty && !in_external_macro(cx, expr.span) {
-                            span_lint(cx,
-                                      UNNECESSARY_CAST,
-                                      expr.span,
-                                      &format!("casting to the same type is unnecessary (`{}` -> `{}`)",
-                                               cast_from,
-                                               cast_to));
+                            span_lint(
+                                cx,
+                                UNNECESSARY_CAST,
+                                expr.span,
+                                &format!("casting to the same type is unnecessary (`{}` -> `{}`)", cast_from, cast_to),
+                            );
                         }
                     },
                 }
@@ -560,33 +661,42 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CastPass {
                         }
                     },
                     (false, true) => {
-                        span_lint(cx,
-                                  CAST_POSSIBLE_TRUNCATION,
-                                  expr.span,
-                                  &format!("casting {} to {} may truncate the value", cast_from, cast_to));
+                        span_lint(
+                            cx,
+                            CAST_POSSIBLE_TRUNCATION,
+                            expr.span,
+                            &format!("casting {} to {} may truncate the value", cast_from, cast_to),
+                        );
                         if !cast_to.is_signed() {
-                            span_lint(cx,
-                                      CAST_SIGN_LOSS,
-                                      expr.span,
-                                      &format!("casting {} to {} may lose the sign of the value", cast_from, cast_to));
+                            span_lint(
+                                cx,
+                                CAST_SIGN_LOSS,
+                                expr.span,
+                                &format!("casting {} to {} may lose the sign of the value", cast_from, cast_to),
+                            );
                         }
                     },
                     (true, true) => {
                         if cast_from.is_signed() && !cast_to.is_signed() {
-                            span_lint(cx,
-                                      CAST_SIGN_LOSS,
-                                      expr.span,
-                                      &format!("casting {} to {} may lose the sign of the value", cast_from, cast_to));
+                            span_lint(
+                                cx,
+                                CAST_SIGN_LOSS,
+                                expr.span,
+                                &format!("casting {} to {} may lose the sign of the value", cast_from, cast_to),
+                            );
                         }
                         check_truncation_and_wrapping(cx, expr, cast_from, cast_to);
                     },
                     (false, false) => {
                         if let (&ty::TyFloat(FloatTy::F64), &ty::TyFloat(FloatTy::F32)) =
-                            (&cast_from.sty, &cast_to.sty) {
-                            span_lint(cx,
-                                      CAST_POSSIBLE_TRUNCATION,
-                                      expr.span,
-                                      "casting f64 to f32 may truncate the value");
+                            (&cast_from.sty, &cast_to.sty)
+                        {
+                            span_lint(
+                                cx,
+                                CAST_POSSIBLE_TRUNCATION,
+                                expr.span,
+                                "casting f64 to f32 may truncate the value",
+                            );
                         }
                     },
                 }
@@ -638,7 +748,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypeComplexityPass {
         decl: &'tcx FnDecl,
         _: &'tcx Body,
         _: Span,
-        _: NodeId
+        _: NodeId,
     ) {
         self.check_fndecl(cx, decl);
     }
@@ -693,40 +803,37 @@ impl<'a, 'tcx> TypeComplexityPass {
         }
     }
 
-    fn check_type(&self, cx: &LateContext<'a, 'tcx>, ty: &'tcx Ty) {
-        if in_macro(cx, ty.span) {
+    fn check_type(&self, cx: &LateContext, ty: &hir::Ty) {
+        if in_macro(ty.span) {
             return;
         }
         let score = {
-            let mut visitor = TypeComplexityVisitor {
-                score: 0,
-                nest: 1,
-                cx: cx,
-            };
+            let mut visitor = TypeComplexityVisitor { score: 0, nest: 1 };
             visitor.visit_ty(ty);
             visitor.score
         };
 
         if score > self.threshold {
-            span_lint(cx,
-                      TYPE_COMPLEXITY,
-                      ty.span,
-                      "very complex type used. Consider factoring parts into `type` definitions");
+            span_lint(
+                cx,
+                TYPE_COMPLEXITY,
+                ty.span,
+                "very complex type used. Consider factoring parts into `type` definitions",
+            );
         }
     }
 }
 
 /// Walks a type and assigns a complexity score to it.
-struct TypeComplexityVisitor<'a, 'tcx: 'a> {
+struct TypeComplexityVisitor {
     /// total complexity score of the type
     score: u64,
     /// current nesting level
     nest: u64,
-    cx: &'a LateContext<'a, 'tcx>,
 }
 
-impl<'a, 'tcx: 'a> Visitor<'tcx> for TypeComplexityVisitor<'a, 'tcx> {
-    fn visit_ty(&mut self, ty: &'tcx Ty) {
+impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
+    fn visit_ty(&mut self, ty: &'tcx hir::Ty) {
         let (add_score, sub_nest) = match ty.node {
             // _, &x and *x have only small overhead; don't mess with nesting level
             TyInfer | TyPtr(..) | TyRptr(..) => (1, 0),
@@ -738,8 +845,9 @@ impl<'a, 'tcx: 'a> Visitor<'tcx> for TypeComplexityVisitor<'a, 'tcx> {
             TyBareFn(..) => (50 * self.nest, 1),
 
             TyTraitObject(ref param_bounds, _) => {
-                let has_lifetime_parameters = param_bounds.iter()
-                    .any(|bound| !bound.bound_lifetimes.is_empty());
+                let has_lifetime_parameters = param_bounds.iter().any(
+                    |bound| !bound.bound_lifetimes.is_empty(),
+                );
                 if has_lifetime_parameters {
                     // complex trait bounds like A<'a, 'b>
                     (50 * self.nest, 1)
@@ -757,7 +865,7 @@ impl<'a, 'tcx: 'a> Visitor<'tcx> for TypeComplexityVisitor<'a, 'tcx> {
         self.nest -= sub_nest;
     }
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
-        NestedVisitorMap::All(&self.cx.tcx.hir)
+        NestedVisitorMap::None
     }
 }
 
@@ -797,7 +905,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CharLitAsU8 {
         if let ExprCast(ref e, _) = expr.node {
             if let ExprLit(ref l) = e.node {
                 if let LitKind::Char(_) = l.node {
-                    if ty::TyUint(UintTy::U8) == cx.tables.expr_ty(expr).sty && !in_macro(cx, expr.span) {
+                    if ty::TyUint(UintTy::U8) == cx.tables.expr_ty(expr).sty && !in_macro(expr.span) {
                         let msg = "casting character literal to u8. `char`s \
                                    are 4 bytes wide in rust, so casting to u8 \
                                    truncates them";
@@ -862,7 +970,7 @@ fn detect_absurd_comparison<'a>(
     cx: &LateContext,
     op: BinOp_,
     lhs: &'a Expr,
-    rhs: &'a Expr
+    rhs: &'a Expr,
 ) -> Option<(ExtremeExpr<'a>, AbsurdComparisonResult)> {
     use types::ExtremeType::*;
     use types::AbsurdComparisonResult::*;
@@ -911,19 +1019,22 @@ fn detect_extreme_expr<'a>(cx: &LateContext, expr: &'a Expr) -> Option<ExtremeEx
     use rustc_const_eval::*;
     use types::ExtremeType::*;
 
-    let ty = &cx.tables.expr_ty(expr).sty;
+    let ty = cx.tables.expr_ty(expr);
 
-    match *ty {
+    match ty.sty {
         ty::TyBool | ty::TyInt(_) | ty::TyUint(_) => (),
         _ => return None,
     };
 
-    let cv = match ConstContext::with_tables(cx.tcx, cx.tables).eval(expr) {
+    let parent_item = cx.tcx.hir.get_parent(expr.id);
+    let parent_def_id = cx.tcx.hir.local_def_id(parent_item);
+    let substs = Substs::identity_for_item(cx.tcx, parent_def_id);
+    let cv = match ConstContext::new(cx.tcx, cx.param_env.and(substs), cx.tables).eval(expr) {
         Ok(val) => val,
         Err(_) => return None,
     };
 
-    let which = match (ty, cv) {
+    let which = match (&ty.sty, cv) {
         (&ty::TyBool, Bool(false)) |
         (&ty::TyInt(IntTy::Is), Integral(Isize(Is32(::std::i32::MIN)))) |
         (&ty::TyInt(IntTy::Is), Integral(Isize(Is64(::std::i64::MIN)))) |
@@ -971,7 +1082,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AbsurdExtremeComparisons {
 
         if let ExprBinary(ref cmp, ref lhs, ref rhs) = expr.node {
             if let Some((culprit, result)) = detect_absurd_comparison(cx, cmp.node, lhs, rhs) {
-                if !in_macro(cx, expr.span) {
+                if !in_macro(expr.span) {
                     let msg = "this comparison involving the minimum or maximum element for this \
                                type contains a case that is always true or always false";
 
@@ -979,20 +1090,24 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AbsurdExtremeComparisons {
                         AlwaysFalse => "this comparison is always false".to_owned(),
                         AlwaysTrue => "this comparison is always true".to_owned(),
                         InequalityImpossible => {
-                            format!("the case where the two sides are not equal never occurs, consider using {} == {} \
+                            format!(
+                                "the case where the two sides are not equal never occurs, consider using {} == {} \
                                      instead",
-                                    snippet(cx, lhs.span, "lhs"),
-                                    snippet(cx, rhs.span, "rhs"))
+                                snippet(cx, lhs.span, "lhs"),
+                                snippet(cx, rhs.span, "rhs")
+                            )
                         },
                     };
 
-                    let help = format!("because {} is the {} value for this type, {}",
-                                       snippet(cx, culprit.expr.span, "x"),
-                                       match culprit.which {
-                                           Minimum => "minimum",
-                                           Maximum => "maximum",
-                                       },
-                                       conclusion);
+                    let help = format!(
+                        "because {} is the {} value for this type, {}",
+                        snippet(cx, culprit.expr.span, "x"),
+                        match culprit.which {
+                            Minimum => "minimum",
+                            Maximum => "maximum",
+                        },
+                        conclusion
+                    );
 
                     span_help_and_lint(cx, ABSURD_EXTREME_COMPARISONS, expr.span, msg, &help);
                 }
@@ -1009,7 +1124,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AbsurdExtremeComparisons {
 /// will mistakenly imply that it is possible for `x` to be outside the range of
 /// `u8`.
 ///
-/// **Known problems:** https://github.com/Manishearth/rust-clippy/issues/886
+/// **Known problems:** https://github.com/rust-lang-nursery/rust-clippy/issues/886
 ///
 /// **Example:**
 /// ```rust
@@ -1050,7 +1165,9 @@ impl FullInt {
 
 impl PartialEq for FullInt {
     fn eq(&self, other: &Self) -> bool {
-        self.partial_cmp(other).expect("partial_cmp only returns Some(_)") == Ordering::Equal
+        self.partial_cmp(other).expect(
+            "partial_cmp only returns Some(_)",
+        ) == Ordering::Equal
     }
 }
 
@@ -1066,13 +1183,14 @@ impl PartialOrd for FullInt {
 }
 impl Ord for FullInt {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).expect("partial_cmp for FullInt can never return None")
+        self.partial_cmp(other).expect(
+            "partial_cmp for FullInt can never return None",
+        )
     }
 }
 
 
 fn numeric_cast_precast_bounds<'a>(cx: &LateContext, expr: &'a Expr) -> Option<(FullInt, FullInt)> {
-    use rustc::ty::TypeVariants::{TyInt, TyUint};
     use syntax::ast::{IntTy, UintTy};
     use std::*;
 
@@ -1084,7 +1202,7 @@ fn numeric_cast_precast_bounds<'a>(cx: &LateContext, expr: &'a Expr) -> Option<(
             return None;
         }
         match pre_cast_ty.sty {
-            TyInt(int_ty) => {
+            ty::TyInt(int_ty) => {
                 Some(match int_ty {
                     IntTy::I8 => (FullInt::S(i8::min_value() as i128), FullInt::S(i8::max_value() as i128)),
                     IntTy::I16 => (FullInt::S(i16::min_value() as i128), FullInt::S(i16::max_value() as i128)),
@@ -1094,7 +1212,7 @@ fn numeric_cast_precast_bounds<'a>(cx: &LateContext, expr: &'a Expr) -> Option<(
                     IntTy::Is => (FullInt::S(isize::min_value() as i128), FullInt::S(isize::max_value() as i128)),
                 })
             },
-            TyUint(uint_ty) => {
+            ty::TyUint(uint_ty) => {
                 Some(match uint_ty {
                     UintTy::U8 => (FullInt::U(u8::min_value() as u128), FullInt::U(u8::max_value() as u128)),
                     UintTy::U16 => (FullInt::U(u16::min_value() as u128), FullInt::U(u16::max_value() as u128)),
@@ -1111,15 +1229,19 @@ fn numeric_cast_precast_bounds<'a>(cx: &LateContext, expr: &'a Expr) -> Option<(
     }
 }
 
+#[allow(cast_possible_wrap)]
 fn node_as_const_fullint(cx: &LateContext, expr: &Expr) -> Option<FullInt> {
     use rustc::middle::const_val::ConstVal::*;
     use rustc_const_eval::ConstContext;
 
-    match ConstContext::with_tables(cx.tcx, cx.tables).eval(expr) {
+    let parent_item = cx.tcx.hir.get_parent(expr.id);
+    let parent_def_id = cx.tcx.hir.local_def_id(parent_item);
+    let substs = Substs::identity_for_item(cx.tcx, parent_def_id);
+    match ConstContext::new(cx.tcx, cx.param_env.and(substs), cx.tables).eval(expr) {
         Ok(val) => {
             if let Integral(const_int) = val {
                 match const_int.int_type() {
-                    IntType::SignedInt(_) => #[allow(cast_possible_wrap)] Some(FullInt::S(const_int.to_u128_unchecked() as i128)),
+                    IntType::SignedInt(_) => Some(FullInt::S(const_int.to_u128_unchecked() as i128)),
                     IntType::UnsignedInt(_) => Some(FullInt::U(const_int.to_u128_unchecked())),
                 }
             } else {
@@ -1132,14 +1254,16 @@ fn node_as_const_fullint(cx: &LateContext, expr: &Expr) -> Option<FullInt> {
 
 fn err_upcast_comparison(cx: &LateContext, span: &Span, expr: &Expr, always: bool) {
     if let ExprCast(ref cast_val, _) = expr.node {
-        span_lint(cx,
-                  INVALID_UPCAST_COMPARISONS,
-                  *span,
-                  &format!(
+        span_lint(
+            cx,
+            INVALID_UPCAST_COMPARISONS,
+            *span,
+            &format!(
                 "because of the numeric bounds on `{}` prior to casting, this expression is always {}",
                 snippet(cx, cast_val.span, "the expression"),
                 if always { "true" } else { "false" },
-            ));
+            ),
+        );
     }
 }
 
@@ -1150,7 +1274,7 @@ fn upcast_comparison_bounds_err(
     lhs_bounds: Option<(FullInt, FullInt)>,
     lhs: &Expr,
     rhs: &Expr,
-    invert: bool
+    invert: bool,
 ) {
     use utils::comparisons::*;
 
@@ -1161,40 +1285,42 @@ fn upcast_comparison_bounds_err(
                     err_upcast_comparison(cx, span, lhs, rel == Rel::Ne);
                 }
             } else if match rel {
-                Rel::Lt => {
-                    if invert {
-                        norm_rhs_val < lb
-                    } else {
-                        ub < norm_rhs_val
-                    }
-                },
-                Rel::Le => {
-                    if invert {
-                        norm_rhs_val <= lb
-                    } else {
-                        ub <= norm_rhs_val
-                    }
-                },
-                Rel::Eq | Rel::Ne => unreachable!(),
-            } {
+                       Rel::Lt => {
+                           if invert {
+                               norm_rhs_val < lb
+                           } else {
+                               ub < norm_rhs_val
+                           }
+                       },
+                       Rel::Le => {
+                           if invert {
+                               norm_rhs_val <= lb
+                           } else {
+                               ub <= norm_rhs_val
+                           }
+                       },
+                       Rel::Eq | Rel::Ne => unreachable!(),
+                   }
+            {
                 err_upcast_comparison(cx, span, lhs, true)
             } else if match rel {
-                Rel::Lt => {
-                    if invert {
-                        norm_rhs_val >= ub
-                    } else {
-                        lb >= norm_rhs_val
-                    }
-                },
-                Rel::Le => {
-                    if invert {
-                        norm_rhs_val > ub
-                    } else {
-                        lb > norm_rhs_val
-                    }
-                },
-                Rel::Eq | Rel::Ne => unreachable!(),
-            } {
+                       Rel::Lt => {
+                           if invert {
+                               norm_rhs_val >= ub
+                           } else {
+                               lb >= norm_rhs_val
+                           }
+                       },
+                       Rel::Le => {
+                           if invert {
+                               norm_rhs_val > ub
+                           } else {
+                               lb > norm_rhs_val
+                           }
+                       },
+                       Rel::Eq | Rel::Ne => unreachable!(),
+                   }
+            {
                 err_upcast_comparison(cx, span, lhs, false)
             }
         }

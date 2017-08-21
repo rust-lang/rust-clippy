@@ -1,7 +1,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(neg_multiply)]
+#![warn(neg_multiply)]
 #![allow(no_effect, unnecessary_operation)]
 
 use std::ops::Mul;
@@ -29,9 +29,7 @@ fn main() {
 
     x * -1;
 
-
     -1 * x;
-
 
     -1 * -1; // should be ok
 

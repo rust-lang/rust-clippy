@@ -6,10 +6,11 @@ use rustc::lint::*;
 use rustc::hir::*;
 use syntax::ast::LitKind;
 use syntax::codemap::Spanned;
-use utils::{span_lint, span_lint_and_then, snippet};
+use utils::{span_lint, span_lint_and_sugg, snippet};
 use utils::sugg::Sugg;
 
-/// **What it does:** Checks for expressions of the form `if c { true } else { false }`
+/// **What it does:** Checks for expressions of the form `if c { true } else {
+/// false }`
 /// (or vice versa) and suggest using the condition directly.
 ///
 /// **Why is this bad?** Redundant code.
@@ -47,7 +48,7 @@ declare_lint! {
     "comparing a variable to a boolean, e.g. `if x == true`"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct NeedlessBool;
 
 impl LintPass for NeedlessBool {
@@ -70,38 +71,49 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessBool {
                     snip.to_string()
                 };
 
-                span_lint_and_then(cx,
-                                   NEEDLESS_BOOL,
-                                   e.span,
-                                   "this if-then-else expression returns a bool literal",
-                                   |db| { db.span_suggestion(e.span, "you can reduce it to", hint); });
+                span_lint_and_sugg(
+                    cx,
+                    NEEDLESS_BOOL,
+                    e.span,
+                    "this if-then-else expression returns a bool literal",
+                    "you can reduce it to",
+                    hint,
+                );
             };
-            match (fetch_bool_block(then_block), fetch_bool_expr(else_expr)) {
-                (RetBool(true), RetBool(true)) |
-                (Bool(true), Bool(true)) => {
-                    span_lint(cx,
-                              NEEDLESS_BOOL,
-                              e.span,
-                              "this if-then-else expression will always return true");
-                },
-                (RetBool(false), RetBool(false)) |
-                (Bool(false), Bool(false)) => {
-                    span_lint(cx,
-                              NEEDLESS_BOOL,
-                              e.span,
-                              "this if-then-else expression will always return false");
-                },
-                (RetBool(true), RetBool(false)) => reduce(true, false),
-                (Bool(true), Bool(false)) => reduce(false, false),
-                (RetBool(false), RetBool(true)) => reduce(true, true),
-                (Bool(false), Bool(true)) => reduce(false, true),
-                _ => (),
+            if let ExprBlock(ref then_block) = then_block.node {
+                match (fetch_bool_block(then_block), fetch_bool_expr(else_expr)) {
+                    (RetBool(true), RetBool(true)) |
+                    (Bool(true), Bool(true)) => {
+                        span_lint(
+                            cx,
+                            NEEDLESS_BOOL,
+                            e.span,
+                            "this if-then-else expression will always return true",
+                        );
+                    },
+                    (RetBool(false), RetBool(false)) |
+                    (Bool(false), Bool(false)) => {
+                        span_lint(
+                            cx,
+                            NEEDLESS_BOOL,
+                            e.span,
+                            "this if-then-else expression will always return false",
+                        );
+                    },
+                    (RetBool(true), RetBool(false)) => reduce(true, false),
+                    (Bool(true), Bool(false)) => reduce(false, false),
+                    (RetBool(false), RetBool(true)) => reduce(true, true),
+                    (Bool(false), Bool(true)) => reduce(false, true),
+                    _ => (),
+                }
+            } else {
+                panic!("IfExpr 'then' node is not an ExprBlock");
             }
         }
     }
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct BoolComparison;
 
 impl LintPass for BoolComparison {
@@ -117,39 +129,47 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoolComparison {
             match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
                 (Bool(true), Other) => {
                     let hint = snippet(cx, right_side.span, "..").into_owned();
-                    span_lint_and_then(cx,
-                                       BOOL_COMPARISON,
-                                       e.span,
-                                       "equality checks against true are unnecessary",
-                                       |db| { db.span_suggestion(e.span, "try simplifying it as shown:", hint); });
+                    span_lint_and_sugg(
+                        cx,
+                        BOOL_COMPARISON,
+                        e.span,
+                        "equality checks against true are unnecessary",
+                        "try simplifying it as shown",
+                        hint,
+                    );
                 },
                 (Other, Bool(true)) => {
                     let hint = snippet(cx, left_side.span, "..").into_owned();
-                    span_lint_and_then(cx,
-                                       BOOL_COMPARISON,
-                                       e.span,
-                                       "equality checks against true are unnecessary",
-                                       |db| { db.span_suggestion(e.span, "try simplifying it as shown:", hint); });
+                    span_lint_and_sugg(
+                        cx,
+                        BOOL_COMPARISON,
+                        e.span,
+                        "equality checks against true are unnecessary",
+                        "try simplifying it as shown",
+                        hint,
+                    );
                 },
                 (Bool(false), Other) => {
                     let hint = Sugg::hir(cx, right_side, "..");
-                    span_lint_and_then(cx,
-                                       BOOL_COMPARISON,
-                                       e.span,
-                                       "equality checks against false can be replaced by a negation",
-                                       |db| {
-                        db.span_suggestion(e.span, "try simplifying it as shown:", (!hint).to_string());
-                    });
+                    span_lint_and_sugg(
+                        cx,
+                        BOOL_COMPARISON,
+                        e.span,
+                        "equality checks against false can be replaced by a negation",
+                        "try simplifying it as shown",
+                        (!hint).to_string(),
+                    );
                 },
                 (Other, Bool(false)) => {
                     let hint = Sugg::hir(cx, left_side, "..");
-                    span_lint_and_then(cx,
-                                       BOOL_COMPARISON,
-                                       e.span,
-                                       "equality checks against false can be replaced by a negation",
-                                       |db| {
-                        db.span_suggestion(e.span, "try simplifying it as shown:", (!hint).to_string());
-                    });
+                    span_lint_and_sugg(
+                        cx,
+                        BOOL_COMPARISON,
+                        e.span,
+                        "equality checks against false can be replaced by a negation",
+                        "try simplifying it as shown",
+                        (!hint).to_string(),
+                    );
                 },
                 _ => (),
             }

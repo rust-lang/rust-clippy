@@ -1,7 +1,7 @@
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::hir::def::Def;
 use rustc::hir::{Expr, Expr_, Stmt, StmtSemi, BlockCheckMode, UnsafeSource, BiAnd, BiOr};
-use utils::{in_macro, span_lint, snippet_opt, span_lint_and_then};
+use utils::{in_macro, span_lint, snippet_opt, span_lint_and_sugg};
 use std::ops::Deref;
 
 /// **What it does:** Checks for statements which have no effect.
@@ -41,7 +41,7 @@ declare_lint! {
 }
 
 fn has_no_effect(cx: &LateContext, expr: &Expr) -> bool {
-    if in_macro(cx, expr.span) {
+    if in_macro(expr.span) {
         return false;
     }
     match expr.node {
@@ -62,14 +62,14 @@ fn has_no_effect(cx: &LateContext, expr: &Expr) -> bool {
         Expr_::ExprBox(ref inner) => has_no_effect(cx, inner),
         Expr_::ExprStruct(_, ref fields, ref base) => {
             fields.iter().all(|field| has_no_effect(cx, &field.expr)) &&
-            match *base {
-                Some(ref base) => has_no_effect(cx, base),
-                None => true,
-            }
+                match *base {
+                    Some(ref base) => has_no_effect(cx, base),
+                    None => true,
+                }
         },
         Expr_::ExprCall(ref callee, ref args) => {
             if let Expr_::ExprPath(ref qpath) = callee.node {
-                let def = cx.tables.qpath_def(qpath, callee.id);
+                let def = cx.tables.qpath_def(qpath, callee.hir_id);
                 match def {
                     Def::Struct(..) |
                     Def::Variant(..) |
@@ -83,11 +83,11 @@ fn has_no_effect(cx: &LateContext, expr: &Expr) -> bool {
         },
         Expr_::ExprBlock(ref block) => {
             block.stmts.is_empty() &&
-            if let Some(ref expr) = block.expr {
-                has_no_effect(cx, expr)
-            } else {
-                false
-            }
+                if let Some(ref expr) = block.expr {
+                    has_no_effect(cx, expr)
+                } else {
+                    false
+                }
         },
         _ => false,
     }
@@ -110,7 +110,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             } else if let Some(reduced) = reduce_expression(cx, expr) {
                 let mut snippet = String::new();
                 for e in reduced {
-                    if in_macro(cx, e.span) {
+                    if in_macro(e.span) {
                         return;
                     }
                     if let Some(snip) = snippet_opt(cx, e.span) {
@@ -120,11 +120,14 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                         return;
                     }
                 }
-                span_lint_and_then(cx,
-                                   UNNECESSARY_OPERATION,
-                                   stmt.span,
-                                   "statement can be reduced",
-                                   |db| { db.span_suggestion(stmt.span, "replace it with", snippet); });
+                span_lint_and_sugg(
+                    cx,
+                    UNNECESSARY_OPERATION,
+                    stmt.span,
+                    "statement can be reduced",
+                    "replace it with",
+                    snippet,
+                );
             }
         }
     }
@@ -132,7 +135,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
 
 
 fn reduce_expression<'a>(cx: &LateContext, expr: &'a Expr) -> Option<Vec<&'a Expr>> {
-    if in_macro(cx, expr.span) {
+    if in_macro(expr.span) {
         return None;
     }
     match expr.node {
@@ -151,11 +154,18 @@ fn reduce_expression<'a>(cx: &LateContext, expr: &'a Expr) -> Option<Vec<&'a Exp
         Expr_::ExprAddrOf(_, ref inner) |
         Expr_::ExprBox(ref inner) => reduce_expression(cx, inner).or_else(|| Some(vec![inner])),
         Expr_::ExprStruct(_, ref fields, ref base) => {
-            Some(fields.iter().map(|f| &f.expr).chain(base).map(Deref::deref).collect())
+            Some(
+                fields
+                    .iter()
+                    .map(|f| &f.expr)
+                    .chain(base)
+                    .map(Deref::deref)
+                    .collect(),
+            )
         },
         Expr_::ExprCall(ref callee, ref args) => {
             if let Expr_::ExprPath(ref qpath) = callee.node {
-                let def = cx.tables.qpath_def(qpath, callee.id);
+                let def = cx.tables.qpath_def(qpath, callee.hir_id);
                 match def {
                     Def::Struct(..) |
                     Def::Variant(..) |

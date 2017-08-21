@@ -4,11 +4,7 @@ error: integer arithmetic detected
 8 |     1 + i;
   |     ^^^^^
   |
-note: lint level defined here
- --> $DIR/arithmetic.rs:4:9
-  |
-4 | #![deny(integer_arithmetic, float_arithmetic)]
-  |         ^^^^^^^^^^^^^^^^^^
+  = note: `-D integer-arithmetic` implied by `-D warnings`
 
 error: integer arithmetic detected
  --> $DIR/arithmetic.rs:9:5
@@ -19,10 +15,9 @@ error: integer arithmetic detected
 error: integer arithmetic detected
   --> $DIR/arithmetic.rs:10:5
    |
-10 |       1 %
-   |  _____^ starting here...
+10 | /     1 %
 11 | |     i / 2; // no error, this is part of the expression in the preceding line
-   | |_________^ ...ending here
+   | |_________^
 
 error: integer arithmetic detected
   --> $DIR/arithmetic.rs:12:5
@@ -42,11 +37,7 @@ error: floating-point arithmetic detected
 23 |     f * 2.0;
    |     ^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/arithmetic.rs:4:29
-   |
-4  | #![deny(integer_arithmetic, float_arithmetic)]
-   |                             ^^^^^^^^^^^^^^^^
+   = note: `-D float-arithmetic` implied by `-D warnings`
 
 error: floating-point arithmetic detected
   --> $DIR/arithmetic.rs:25:5

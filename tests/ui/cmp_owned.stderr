@@ -1,32 +1,40 @@
-error: this creates an owned instance just for comparison. Consider using `x != "foo"` to compare without allocation
+error: this creates an owned instance just for comparison
  --> $DIR/cmp_owned.rs:8:14
   |
 8 |         x != "foo".to_string();
-  |              ^^^^^^^^^^^^^^^^^
+  |              ^^^^^^^^^^^^^^^^^ help: try: `"foo"`
   |
-note: lint level defined here
- --> $DIR/cmp_owned.rs:4:8
-  |
-4 | #[deny(cmp_owned)]
-  |        ^^^^^^^^^
+  = note: `-D cmp-owned` implied by `-D warnings`
 
-error: this creates an owned instance just for comparison. Consider using `"foo" != x` to compare without allocation
-  --> $DIR/cmp_owned.rs:11:9
+error: this creates an owned instance just for comparison
+  --> $DIR/cmp_owned.rs:10:9
    |
-11 |         "foo".to_string() != x;
-   |         ^^^^^^^^^^^^^^^^^
+10 |         "foo".to_string() != x;
+   |         ^^^^^^^^^^^^^^^^^ help: try: `"foo"`
 
-error: this creates an owned instance just for comparison. Consider using `x != "foo"` to compare without allocation
+error: this creates an owned instance just for comparison
+  --> $DIR/cmp_owned.rs:17:10
+   |
+17 |     x != "foo".to_owned();
+   |          ^^^^^^^^^^^^^^^^ help: try: `"foo"`
+
+error: this creates an owned instance just for comparison
   --> $DIR/cmp_owned.rs:19:10
    |
-19 |     x != "foo".to_owned();
-   |          ^^^^^^^^^^^^^^^^
+19 |     x != String::from("foo");
+   |          ^^^^^^^^^^^^^^^^^^^ help: try: `"foo"`
 
-error: this creates an owned instance just for comparison. Consider using `x != "foo"` to compare without allocation
-  --> $DIR/cmp_owned.rs:24:10
+error: this creates an owned instance just for comparison
+  --> $DIR/cmp_owned.rs:23:5
    |
-24 |     x != String::from("foo");
-   |          ^^^^^^^^^^^^^^^^^^^
+23 |     Foo.to_owned() == Foo;
+   |     ^^^^^^^^^^^^^^ help: try: `Foo`
 
-error: aborting due to 4 previous errors
+error: this creates an owned instance just for comparison
+  --> $DIR/cmp_owned.rs:30:9
+   |
+30 |         self.to_owned() == *other
+   |         ^^^^^^^^^^^^^^^ try calling implementing the comparison without allocating
+
+error: aborting due to 6 previous errors
 

@@ -42,31 +42,32 @@ impl LintPass for ItemsAfterStatements {
 
 impl EarlyLintPass for ItemsAfterStatements {
     fn check_block(&mut self, cx: &EarlyContext, item: &Block) {
-        if in_macro(cx, item.span) {
+        if in_macro(item.span) {
             return;
         }
 
         // skip initial items
-        let stmts = item.stmts
-            .iter()
-            .map(|stmt| &stmt.node)
-            .skip_while(|s| matches!(**s, StmtKind::Item(..)));
+        let stmts = item.stmts.iter().map(|stmt| &stmt.node).skip_while(|s| {
+            matches!(**s, StmtKind::Item(..))
+        });
 
         // lint on all further items
         for stmt in stmts {
             if let StmtKind::Item(ref it) = *stmt {
-                if in_macro(cx, it.span) {
+                if in_macro(it.span) {
                     return;
                 }
                 if let ItemKind::MacroDef(..) = it.node {
                     // do not lint `macro_rules`, but continue processing further statements
                     continue;
                 }
-                span_lint(cx,
-                          ITEMS_AFTER_STATEMENTS,
-                          it.span,
-                          "adding items after statements is confusing, since items exist from the \
-                           start of the scope");
+                span_lint(
+                    cx,
+                    ITEMS_AFTER_STATEMENTS,
+                    it.span,
+                    "adding items after statements is confusing, since items exist from the \
+                           start of the scope",
+                );
             }
         }
     }

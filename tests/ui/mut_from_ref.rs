@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 #![allow(unused)]
-#![deny(mut_from_ref)]
+#![warn(mut_from_ref)]
 
 struct Foo;
 

@@ -1,11 +1,9 @@
 use rustc::lint::*;
-use rustc::ty::subst::Subst;
-use rustc::ty::TypeVariants;
-use rustc::ty;
+use rustc::ty::{self, Ty};
 use rustc::hir::*;
 use syntax::codemap::Span;
 use utils::paths;
-use utils::{is_automatically_derived, span_lint_and_then, match_path_old};
+use utils::{is_automatically_derived, span_lint_and_then, match_path_old, is_copy};
 
 /// **What it does:** Checks for deriving `Hash` but implementing `PartialEq`
 /// explicitly.
@@ -72,8 +70,8 @@ impl LintPass for Derive {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Derive {
     fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx Item) {
-        if let ItemImpl(_, _, _, Some(ref trait_ref), _, _) = item.node {
-            let ty = cx.tcx.item_type(cx.tcx.hir.local_def_id(item.id));
+        if let ItemImpl(_, _, _, _, Some(ref trait_ref), _, _) = item.node {
+            let ty = cx.tcx.type_of(cx.tcx.hir.local_def_id(item.id));
             let is_automatically_derived = is_automatically_derived(&*item.attrs);
 
             check_hash_peq(cx, item.span, trait_ref, ty, is_automatically_derived);
@@ -90,17 +88,15 @@ fn check_hash_peq<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
     span: Span,
     trait_ref: &TraitRef,
-    ty: ty::Ty<'tcx>,
-    hash_is_automatically_derived: bool
+    ty: Ty<'tcx>,
+    hash_is_automatically_derived: bool,
 ) {
     if_let_chain! {[
         match_path_old(&trait_ref.path, &paths::HASH),
         let Some(peq_trait_def_id) = cx.tcx.lang_items.eq_trait()
     ], {
-        let peq_trait_def = cx.tcx.lookup_trait_def(peq_trait_def_id);
-
         // Look for the PartialEq implementations for `ty`
-        peq_trait_def.for_each_relevant_impl(cx.tcx, ty, |impl_id| {
+        cx.tcx.for_each_relevant_impl(peq_trait_def_id, ty, |impl_id| {
             let peq_is_automatically_derived = is_automatically_derived(&cx.tcx.get_attrs(impl_id));
 
             if peq_is_automatically_derived == hash_is_automatically_derived {
@@ -135,30 +131,27 @@ fn check_hash_peq<'a, 'tcx>(
 }
 
 /// Implementation of the `EXPL_IMPL_CLONE_ON_COPY` lint.
-fn check_copy_clone<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, item: &Item, trait_ref: &TraitRef, ty: ty::Ty<'tcx>) {
+fn check_copy_clone<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, item: &Item, trait_ref: &TraitRef, ty: Ty<'tcx>) {
     if match_path_old(&trait_ref.path, &paths::CLONE_TRAIT) {
-        let parameter_environment = ty::ParameterEnvironment::for_item(cx.tcx, item.id);
-        let subst_ty = ty.subst(cx.tcx, parameter_environment.free_substs);
-
-        if subst_ty.moves_by_default(cx.tcx.global_tcx(), &parameter_environment, item.span) {
-            return; // ty is not Copy
+        if !is_copy(cx, ty) {
+            return;
         }
 
         match ty.sty {
-            TypeVariants::TyAdt(def, _) if def.is_union() => return,
+            ty::TyAdt(def, _) if def.is_union() => return,
 
             // Some types are not Clone by default but could be cloned “by hand” if necessary
-            TypeVariants::TyAdt(def, substs) => {
+            ty::TyAdt(def, substs) => {
                 for variant in &def.variants {
                     for field in &variant.fields {
                         match field.ty(cx.tcx, substs).sty {
-                            TypeVariants::TyArray(_, size) if size > 32 => {
+                            ty::TyArray(_, size) if size > 32 => {
                                 return;
                             },
-                            TypeVariants::TyFnPtr(..) => {
+                            ty::TyFnPtr(..) => {
                                 return;
                             },
-                            TypeVariants::TyTuple(tys, _) if tys.len() > 12 => {
+                            ty::TyTuple(tys, _) if tys.len() > 12 => {
                                 return;
                             },
                             _ => (),

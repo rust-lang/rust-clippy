@@ -1,13 +1,12 @@
-#![feature(plugin, collections)]
+#![feature(plugin, alloc)]
 #![feature(associated_type_defaults)]
-#![feature(associated_consts)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(dead_code, needless_pass_by_value)]
 
-extern crate collections;
-use collections::linked_list::LinkedList;
+extern crate alloc;
+use alloc::linked_list::LinkedList;
 
 trait Foo {
     type Baz = LinkedList<u8>;
@@ -34,6 +33,11 @@ pub fn test_ret() -> Option<LinkedList<u8>> {
     unimplemented!();
 }
 
+pub fn test_local_not_linted() {
+    let _: LinkedList<u8>;
+}
+
 fn main(){
     test(LinkedList::new());
+    test_local_not_linted();
 }

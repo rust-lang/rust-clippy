@@ -3,6 +3,7 @@ use rustc::hir::*;
 use rustc::lint::*;
 use rustc::middle::const_val::ConstVal;
 use rustc_const_eval::ConstContext;
+use rustc::ty::subst::Substs;
 use std::collections::HashSet;
 use std::error::Error;
 use syntax::ast::{LitKind, NodeId};
@@ -91,7 +92,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             self.last.is_none(),
             let Some(ref expr) = block.expr,
             match_type(cx, cx.tables.expr_ty(expr), &paths::REGEX),
-            let Some(span) = is_expn_of(cx, expr.span, "regex"),
+            let Some(span) = is_expn_of(expr.span, "regex"),
         ], {
             if !self.spans.contains(&span) {
                 span_lint(cx,
@@ -117,7 +118,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             let ExprPath(ref qpath) = fun.node,
             args.len() == 1,
         ], {
-            let def_id = cx.tables.qpath_def(qpath, fun.id).def_id();
+            let def_id = cx.tables.qpath_def(qpath, fun.hir_id).def_id();
             if match_def_path(cx.tcx, def_id, &paths::REGEX_NEW) ||
                match_def_path(cx.tcx, def_id, &paths::REGEX_BUILDER_NEW) {
                 check_regex(cx, &args[0], true);
@@ -150,7 +151,10 @@ fn str_span(base: Span, s: &str, c: usize) -> Span {
 }
 
 fn const_str(cx: &LateContext, e: &Expr) -> Option<InternedString> {
-    match ConstContext::with_tables(cx.tcx, cx.tables).eval(e) {
+    let parent_item = cx.tcx.hir.get_parent(e.id);
+    let parent_def_id = cx.tcx.hir.local_def_id(parent_item);
+    let substs = Substs::identity_for_item(cx.tcx, parent_def_id);
+    match ConstContext::new(cx.tcx, cx.param_env.and(substs), cx.tables).eval(e) {
         Ok(ConstVal::Str(r)) => Some(r),
         _ => None,
     }
@@ -174,7 +178,8 @@ fn is_trivial_regex(s: &regex_syntax::Expr) -> Option<&'static str> {
                 },
                 3 => {
                     if let (&Expr::StartText, &Expr::Literal { .. }, &Expr::EndText) =
-                        (&exprs[0], &exprs[1], &exprs[2]) {
+                        (&exprs[0], &exprs[1], &exprs[2])
+                    {
                         Some("consider using `==` on `str`s")
                     } else {
                         None
@@ -203,22 +208,26 @@ fn check_regex(cx: &LateContext, expr: &Expr, utf8: bool) {
 
     if let ExprLit(ref lit) = expr.node {
         if let LitKind::Str(ref r, _) = lit.node {
-            let r = &*r.as_str();
+            let r = &r.as_str();
             match builder.parse(r) {
                 Ok(r) => {
                     if let Some(repl) = is_trivial_regex(&r) {
-                        span_help_and_lint(cx,
-                                           TRIVIAL_REGEX,
-                                           expr.span,
-                                           "trivial regex",
-                                           &format!("consider using {}", repl));
+                        span_help_and_lint(
+                            cx,
+                            TRIVIAL_REGEX,
+                            expr.span,
+                            "trivial regex",
+                            &format!("consider using {}", repl),
+                        );
                     }
                 },
                 Err(e) => {
-                    span_lint(cx,
-                              INVALID_REGEX,
-                              str_span(expr.span, r, e.position()),
-                              &format!("regex syntax error: {}", e.description()));
+                    span_lint(
+                        cx,
+                        INVALID_REGEX,
+                        str_span(expr.span, r, e.position()),
+                        &format!("regex syntax error: {}", e.description()),
+                    );
                 },
             }
         }
@@ -226,18 +235,22 @@ fn check_regex(cx: &LateContext, expr: &Expr, utf8: bool) {
         match builder.parse(&r) {
             Ok(r) => {
                 if let Some(repl) = is_trivial_regex(&r) {
-                    span_help_and_lint(cx,
-                                       TRIVIAL_REGEX,
-                                       expr.span,
-                                       "trivial regex",
-                                       &format!("consider using {}", repl));
+                    span_help_and_lint(
+                        cx,
+                        TRIVIAL_REGEX,
+                        expr.span,
+                        "trivial regex",
+                        &format!("consider using {}", repl),
+                    );
                 }
             },
             Err(e) => {
-                span_lint(cx,
-                          INVALID_REGEX,
-                          expr.span,
-                          &format!("regex syntax error on position {}: {}", e.position(), e.description()));
+                span_lint(
+                    cx,
+                    INVALID_REGEX,
+                    expr.span,
+                    &format!("regex syntax error on position {}: {}", e.position(), e.description()),
+                );
             },
         }
     }

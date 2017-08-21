@@ -3,7 +3,6 @@
 
 #![feature(untagged_unions)]
 
-#![deny(warnings)]
 #![allow(dead_code)]
 
 use std::hash::{Hash, Hasher};
@@ -16,7 +15,6 @@ impl PartialEq<u64> for Foo {
 }
 
 #[derive(Hash)]
-
 struct Bar;
 
 impl PartialEq for Bar {
@@ -24,7 +22,6 @@ impl PartialEq for Bar {
 }
 
 #[derive(Hash)]
-
 struct Baz;
 
 impl PartialEq<Baz> for Baz {
@@ -35,7 +32,6 @@ impl PartialEq<Baz> for Baz {
 struct Bah;
 
 impl Hash for Bah {
-
     fn hash<H: Hasher>(&self, _: &mut H) {}
 }
 
@@ -43,7 +39,6 @@ impl Hash for Bah {
 struct Qux;
 
 impl Clone for Qux {
-
     fn clone(&self) -> Self { Qux }
 }
 
@@ -68,7 +63,6 @@ struct Lt<'a> {
 }
 
 impl<'a> Clone for Lt<'a> {
-
     fn clone(&self) -> Self { unimplemented!() }
 }
 

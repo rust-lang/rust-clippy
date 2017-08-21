@@ -13,10 +13,12 @@ use utils::{in_macro, is_self, is_copy, implements_trait, get_trait_def_id, matc
             multispan_sugg, paths};
 use std::collections::{HashSet, HashMap};
 
-/// **What it does:** Checks for functions taking arguments by value, but not consuming them in its
+/// **What it does:** Checks for functions taking arguments by value, but not
+/// consuming them in its
 /// body.
 ///
-/// **Why is this bad?** Taking arguments by reference is more flexible and can sometimes avoid
+/// **Why is this bad?** Taking arguments by reference is more flexible and can
+/// sometimes avoid
 /// unnecessary allocations.
 ///
 /// **Known problems:** Hopefully none.
@@ -53,9 +55,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
         decl: &'tcx FnDecl,
         body: &'tcx Body,
         span: Span,
-        node_id: NodeId
+        node_id: NodeId,
     ) {
-        if in_macro(cx, span) {
+        if in_macro(span) {
             return;
         }
 
@@ -65,7 +67,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                     if_let_chain!{[
                         a.meta_item_list().is_some(),
                         let Some(name) = a.name(),
-                        &*name.as_str() == "proc_macro_derive",
+                        name == "proc_macro_derive",
                     ], {
                         return;
                     }}
@@ -79,58 +81,61 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
         let asref_trait = need!(get_trait_def_id(cx, &paths::ASREF_TRAIT));
         let borrow_trait = need!(get_trait_def_id(cx, &paths::BORROW_TRAIT));
 
+        let fn_def_id = cx.tcx.hir.local_def_id(node_id);
+
         let preds: Vec<ty::Predicate> = {
-            let parameter_env = ty::ParameterEnvironment::for_item(cx.tcx, node_id);
-            traits::elaborate_predicates(cx.tcx, parameter_env.caller_bounds.clone())
+            traits::elaborate_predicates(cx.tcx, cx.param_env.caller_bounds.to_vec())
                 .filter(|p| !p.is_global())
                 .collect()
         };
 
-        // Collect moved variables and spans which will need dereferencings from the function body.
-        let MovedVariablesCtxt { moved_vars, spans_need_deref, .. } = {
+        // Collect moved variables and spans which will need dereferencings from the
+        // function body.
+        let MovedVariablesCtxt {
+            moved_vars,
+            spans_need_deref,
+            ..
+        } = {
             let mut ctx = MovedVariablesCtxt::new(cx);
-            let infcx = cx.tcx.borrowck_fake_infer_ctxt(body.id());
-            {
-                let mut v = euv::ExprUseVisitor::new(&mut ctx, &infcx);
-                v.consume_body(body);
-            }
+            let region_maps = &cx.tcx.region_maps(fn_def_id);
+            euv::ExprUseVisitor::new(&mut ctx, cx.tcx, cx.param_env, region_maps, cx.tables).consume_body(body);
             ctx
         };
 
-        let fn_def_id = cx.tcx.hir.local_def_id(node_id);
-        let param_env = ty::ParameterEnvironment::for_item(cx.tcx, node_id);
-        let fn_sig = cx.tcx.item_type(fn_def_id).fn_sig();
-        let fn_sig = cx.tcx.liberate_late_bound_regions(param_env.free_id_outlive, &fn_sig);
+        let fn_sig = cx.tcx.fn_sig(fn_def_id);
+        let fn_sig = cx.tcx.erase_late_bound_regions(&fn_sig);
 
-        for ((input, ty), arg) in decl.inputs.iter().zip(fn_sig.inputs()).zip(&body.arguments) {
+        for ((input, &ty), arg) in decl.inputs.iter().zip(fn_sig.inputs()).zip(&body.arguments) {
 
             // Determines whether `ty` implements `Borrow<U>` (U != ty) specifically.
             // This is needed due to the `Borrow<T> for T` blanket impl.
-            let implements_borrow_trait = preds.iter()
+            let implements_borrow_trait = preds
+                .iter()
                 .filter_map(|pred| if let ty::Predicate::Trait(ref poly_trait_ref) = *pred {
                     Some(poly_trait_ref.skip_binder())
                 } else {
                     None
                 })
-                .filter(|tpred| tpred.def_id() == borrow_trait && &tpred.self_ty() == ty)
-                .any(|tpred| &tpred.input_types().nth(1).expect("Borrow trait must have an parameter") != ty);
+                .filter(|tpred| tpred.def_id() == borrow_trait && tpred.self_ty() == ty)
+                .any(|tpred| {
+                    tpred.input_types().nth(1).expect(
+                        "Borrow trait must have an parameter",
+                    ) != ty
+                });
 
             if_let_chain! {[
                 !is_self(arg),
                 !ty.is_mutable_pointer(),
-                !is_copy(cx, ty, node_id),
-                !implements_trait(cx, ty, fn_trait, &[], Some(node_id)),
-                !implements_trait(cx, ty, asref_trait, &[], Some(node_id)),
+                !is_copy(cx, ty),
+                !implements_trait(cx, ty, fn_trait, &[]),
+                !implements_trait(cx, ty, asref_trait, &[]),
                 !implements_borrow_trait,
 
                 let PatKind::Binding(mode, defid, ..) = arg.pat.node,
                 !moved_vars.contains(&defid),
             ], {
                 // Note: `toplevel_ref_arg` warns if `BindByRef`
-                let m = match mode {
-                    BindingMode::BindByRef(m) | BindingMode::BindByValue(m) => m,
-                };
-                if m == Mutability::MutMutable {
+                if mode == BindingAnnotation::Mutable || mode == BindingAnnotation::RefMut {
                     continue;
                 }
 
@@ -141,12 +146,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                         match_type(cx, ty, &paths::VEC),
                         let TyPath(QPath::Resolved(_, ref path)) = input.node,
                         let Some(elem_ty) = path.segments.iter()
-                            .find(|seg| &*seg.name.as_str() == "Vec")
+                            .find(|seg| seg.name == "Vec")
                             .map(|ps| ps.parameters.types()[0]),
                     ], {
                         let slice_ty = format!("&[{}]", snippet(cx, elem_ty.span, "_"));
                         db.span_suggestion(input.span,
-                                        &format!("consider changing the type to `{}`", slice_ty),
+                                        "consider changing the type to",
                                         slice_ty);
                         assert!(deref_span.is_none());
                         return; // `Vec` and `String` cannot be destructured - no need for `*` suggestion
@@ -154,7 +159,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
 
                     if match_type(cx, ty, &paths::STRING) {
                         db.span_suggestion(input.span,
-                                           "consider changing the type to `&str`",
+                                           "consider changing the type to",
                                            "&str".to_string());
                         assert!(deref_span.is_none());
                         return;
@@ -184,12 +189,13 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
 struct MovedVariablesCtxt<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
     moved_vars: HashSet<DefId>,
-    /// Spans which need to be prefixed with `*` for dereferencing the suggested additional
+    /// Spans which need to be prefixed with `*` for dereferencing the
+    /// suggested additional
     /// reference.
     spans_need_deref: HashMap<DefId, HashSet<Span>>,
 }
 
-impl<'a, 'tcx: 'a> MovedVariablesCtxt<'a, 'tcx> {
+impl<'a, 'tcx> MovedVariablesCtxt<'a, 'tcx> {
     fn new(cx: &'a LateContext<'a, 'tcx>) -> Self {
         MovedVariablesCtxt {
             cx: cx,
@@ -261,7 +267,7 @@ impl<'a, 'tcx: 'a> MovedVariablesCtxt<'a, 'tcx> {
     }
 }
 
-impl<'a, 'tcx: 'a> euv::Delegate<'tcx> for MovedVariablesCtxt<'a, 'tcx> {
+impl<'a, 'tcx> euv::Delegate<'tcx> for MovedVariablesCtxt<'a, 'tcx> {
     fn consume(&mut self, consume_id: NodeId, consume_span: Span, cmt: mc::cmt<'tcx>, mode: euv::ConsumeMode) {
         if let euv::ConsumeMode::Move(_) = mode {
             self.move_common(consume_id, consume_span, cmt);
@@ -282,16 +288,7 @@ impl<'a, 'tcx: 'a> euv::Delegate<'tcx> for MovedVariablesCtxt<'a, 'tcx> {
         }
     }
 
-    fn borrow(
-        &mut self,
-        _: NodeId,
-        _: Span,
-        _: mc::cmt<'tcx>,
-        _: &'tcx ty::Region,
-        _: ty::BorrowKind,
-        _: euv::LoanCause
-    ) {
-    }
+    fn borrow(&mut self, _: NodeId, _: Span, _: mc::cmt<'tcx>, _: ty::Region, _: ty::BorrowKind, _: euv::LoanCause) {}
 
     fn mutate(&mut self, _: NodeId, _: Span, _: mc::cmt<'tcx>, _: euv::MutateMode) {}
 

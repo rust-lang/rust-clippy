@@ -4,55 +4,43 @@ error: const index is out of bounds
 12 |     x[4];
    |     ^^^^
    |
-   = note: #[deny(out_of_bounds_indexing)] on by default
+   = note: `-D out-of-bounds-indexing` implied by `-D warnings`
 
 error: const index is out of bounds
   --> $DIR/array_indexing.rs:13:5
    |
 13 |     x[1 << 3];
    |     ^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:14:6
    |
 14 |     &x[1..5];
    |      ^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:16:6
    |
 16 |     &x[0...4];
    |      ^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:17:6
    |
 17 |     &x[...4];
    |      ^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:21:6
    |
 21 |     &x[5..];
    |      ^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:23:6
    |
 23 |     &x[..5];
    |      ^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: indexing may panic
   --> $DIR/array_indexing.rs:26:5
@@ -60,11 +48,7 @@ error: indexing may panic
 26 |     y[0];
    |     ^^^^
    |
-note: lint level defined here
-  --> $DIR/array_indexing.rs:4:9
-   |
-4  | #![deny(indexing_slicing)]
-   |         ^^^^^^^^^^^^^^^^
+   = note: `-D indexing-slicing` implied by `-D warnings`
 
 error: slicing may panic
   --> $DIR/array_indexing.rs:27:6
@@ -89,64 +73,48 @@ error: const index is out of bounds
    |
 33 |     empty[0];
    |     ^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:34:6
    |
 34 |     &empty[1..5];
    |      ^^^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:35:6
    |
 35 |     &empty[0...4];
    |      ^^^^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:36:6
    |
 36 |     &empty[...4];
    |      ^^^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:40:6
    |
 40 |     &empty[0...0];
    |      ^^^^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:41:6
    |
 41 |     &empty[...0];
    |      ^^^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:43:6
    |
 43 |     &empty[1..];
    |      ^^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: range is out of bounds
   --> $DIR/array_indexing.rs:44:6
    |
 44 |     &empty[..4];
    |      ^^^^^^^^^^
-   |
-   = note: #[deny(out_of_bounds_indexing)] on by default
 
 error: aborting due to 19 previous errors
 

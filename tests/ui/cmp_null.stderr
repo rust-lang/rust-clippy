@@ -4,11 +4,7 @@ error: Comparing with null is better expressed by the .is_null() method
 11 |     if p == ptr::null() {
    |        ^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/cmp_null.rs:3:9
-   |
-3  | #![deny(cmp_null)]
-   |         ^^^^^^^^
+   = note: `-D cmp-null` implied by `-D warnings`
 
 error: Comparing with null is better expressed by the .is_null() method
   --> $DIR/cmp_null.rs:16:8

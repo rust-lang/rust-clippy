@@ -1,5 +1,5 @@
 use rustc::lint::*;
-use rustc::ty;
+use rustc::ty::Ty;
 use rustc::hir::*;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -67,7 +67,7 @@ declare_lint! {
 /// [using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).
 ///
 /// **Known problems:** False positive possible with order dependent `match`
-/// (see issue [#860](https://github.com/Manishearth/rust-clippy/issues/860)).
+/// (see issue [#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860)).
 ///
 /// **Example:**
 /// ```rust,ignore
@@ -111,7 +111,7 @@ impl LintPass for CopyAndPaste {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CopyAndPaste {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
-        if !in_macro(cx, expr.span) {
+        if !in_macro(expr.span) {
             // skip ifs directly in else, it will be checked in the parent if
             if let Some(&Expr { node: ExprIf(_, _, Some(ref else_expr)), .. }) = get_parent_expr(cx, expr) {
                 if else_expr.id == expr.id {
@@ -138,12 +138,14 @@ fn lint_same_then_else(cx: &LateContext, blocks: &[&Block]) {
     let eq: &Fn(&&Block, &&Block) -> bool = &|&lhs, &rhs| -> bool { SpanlessEq::new(cx).eq_block(lhs, rhs) };
 
     if let Some((i, j)) = search_same(blocks, hash, eq) {
-        span_note_and_lint(cx,
-                           IF_SAME_THEN_ELSE,
-                           j.span,
-                           "this `if` has identical blocks",
-                           i.span,
-                           "same as this");
+        span_note_and_lint(
+            cx,
+            IF_SAME_THEN_ELSE,
+            j.span,
+            "this `if` has identical blocks",
+            i.span,
+            "same as this",
+        );
     }
 }
 
@@ -158,12 +160,14 @@ fn lint_same_cond(cx: &LateContext, conds: &[&Expr]) {
     let eq: &Fn(&&Expr, &&Expr) -> bool = &|&lhs, &rhs| -> bool { SpanlessEq::new(cx).ignore_fn().eq_expr(lhs, rhs) };
 
     if let Some((i, j)) = search_same(conds, hash, eq) {
-        span_note_and_lint(cx,
-                           IFS_SAME_COND,
-                           j.span,
-                           "this `if` has the same condition as a previous if",
-                           i.span,
-                           "same as this");
+        span_note_and_lint(
+            cx,
+            IFS_SAME_COND,
+            j.span,
+            "this `if` has the same condition as a previous if",
+            i.span,
+            "same as this",
+        );
     }
 }
 
@@ -185,49 +189,61 @@ fn lint_match_arms(cx: &LateContext, expr: &Expr) {
 
     if let ExprMatch(_, ref arms, MatchSource::Normal) = expr.node {
         if let Some((i, j)) = search_same(arms, hash, eq) {
-            span_lint_and_then(cx,
-                               MATCH_SAME_ARMS,
-                               j.body.span,
-                               "this `match` has identical arm bodies",
-                               |db| {
-                db.span_note(i.body.span, "same as this");
+            span_lint_and_then(
+                cx,
+                MATCH_SAME_ARMS,
+                j.body.span,
+                "this `match` has identical arm bodies",
+                |db| {
+                    db.span_note(i.body.span, "same as this");
 
-                // Note: this does not use `span_suggestion` on purpose: there is no clean way to
-                // remove the other arm. Building a span and suggest to replace it to "" makes an
-                // even more confusing error message. Also in order not to make up a span for the
-                // whole pattern, the suggestion is only shown when there is only one pattern. The
-                // user should know about `|` if they are already using it…
+                    // Note: this does not use `span_suggestion` on purpose: there is no clean way
+                    // to
+                    // remove the other arm. Building a span and suggest to replace it to "" makes
+                    // an
+                    // even more confusing error message. Also in order not to make up a span for
+                    // the
+                    // whole pattern, the suggestion is only shown when there is only one pattern.
+                    // The
+                    // user should know about `|` if they are already using it…
 
-                if i.pats.len() == 1 && j.pats.len() == 1 {
-                    let lhs = snippet(cx, i.pats[0].span, "<pat1>");
-                    let rhs = snippet(cx, j.pats[0].span, "<pat2>");
+                    if i.pats.len() == 1 && j.pats.len() == 1 {
+                        let lhs = snippet(cx, i.pats[0].span, "<pat1>");
+                        let rhs = snippet(cx, j.pats[0].span, "<pat2>");
 
-                    if let PatKind::Wild = j.pats[0].node {
-                        // if the last arm is _, then i could be integrated into _
-                        // note that i.pats[0] cannot be _, because that would mean that we're
-                        // hiding all the subsequent arms, and rust won't compile
-                        db.span_note(i.body.span,
-                                     &format!("`{}` has the same arm body as the `_` wildcard, consider removing it`",
-                                              lhs));
-                    } else {
-                        db.span_note(i.body.span, &format!("consider refactoring into `{} | {}`", lhs, rhs));
+                        if let PatKind::Wild = j.pats[0].node {
+                            // if the last arm is _, then i could be integrated into _
+                            // note that i.pats[0] cannot be _, because that would mean that we're
+                            // hiding all the subsequent arms, and rust won't compile
+                            db.span_note(
+                                i.body.span,
+                                &format!("`{}` has the same arm body as the `_` wildcard, consider removing it`", lhs),
+                            );
+                        } else {
+                            db.span_note(i.body.span, &format!("consider refactoring into `{} | {}`", lhs, rhs));
+                        }
                     }
-                }
-            });
+                },
+            );
         }
     }
 }
 
-/// Return the list of condition expressions and the list of blocks in a sequence of `if/else`.
+/// Return the list of condition expressions and the list of blocks in a
+/// sequence of `if/else`.
 /// Eg. would return `([a, b], [c, d, e])` for the expression
 /// `if a { c } else if b { d } else { e }`.
 fn if_sequence(mut expr: &Expr) -> (SmallVector<&Expr>, SmallVector<&Block>) {
     let mut conds = SmallVector::new();
-    let mut blocks = SmallVector::new();
+    let mut blocks: SmallVector<&Block> = SmallVector::new();
 
-    while let ExprIf(ref cond, ref then_block, ref else_expr) = expr.node {
+    while let ExprIf(ref cond, ref then_expr, ref else_expr) = expr.node {
         conds.push(&**cond);
-        blocks.push(&**then_block);
+        if let ExprBlock(ref block) = then_expr.node {
+            blocks.push(block);
+        } else {
+            panic!("ExprIf node is not an ExprBlock");
+        }
 
         if let Some(ref else_expr) = *else_expr {
             expr = else_expr;
@@ -247,12 +263,8 @@ fn if_sequence(mut expr: &Expr) -> (SmallVector<&Expr>, SmallVector<&Block>) {
 }
 
 /// Return the list of bindings in a pattern.
-fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> HashMap<InternedString, ty::Ty<'tcx>> {
-    fn bindings_impl<'a, 'tcx>(
-        cx: &LateContext<'a, 'tcx>,
-        pat: &Pat,
-        map: &mut HashMap<InternedString, ty::Ty<'tcx>>
-    ) {
+fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> HashMap<InternedString, Ty<'tcx>> {
+    fn bindings_impl<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat, map: &mut HashMap<InternedString, Ty<'tcx>>) {
         match pat.node {
             PatKind::Box(ref pat) |
             PatKind::Ref(ref pat, _) => bindings_impl(cx, pat, map),
@@ -303,8 +315,9 @@ fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> HashMap<Interned
 }
 
 fn search_same<T, Hash, Eq>(exprs: &[T], hash: Hash, eq: Eq) -> Option<(&T, &T)>
-    where Hash: Fn(&T) -> u64,
-          Eq: Fn(&T, &T) -> bool
+where
+    Hash: Fn(&T) -> u64,
+    Eq: Fn(&T, &T) -> bool,
 {
     // common cases
     if exprs.len() < 2 {

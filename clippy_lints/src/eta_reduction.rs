@@ -20,7 +20,8 @@ pub struct EtaPass;
 /// ```rust
 /// xs.map(|x| foo(x))
 /// ```
-/// where `foo(_)` is a plain function that takes the exact argument type of `x`.
+/// where `foo(_)` is a plain function that takes the exact argument type of
+/// `x`.
 declare_lint! {
     pub REDUNDANT_CLOSURE,
     Warn,
@@ -64,10 +65,9 @@ fn check_closure(cx: &LateContext, expr: &Expr) {
             let fn_ty = cx.tables.expr_ty(caller);
             match fn_ty.sty {
                 // Is it an unsafe function? They don't implement the closure traits
-                ty::TyFnDef(_, _, fn_ty) |
-                ty::TyFnPtr(fn_ty) => {
-                    if fn_ty.skip_binder().unsafety == Unsafety::Unsafe ||
-                       fn_ty.skip_binder().output().sty == ty::TyNever {
+                ty::TyFnDef(..) | ty::TyFnPtr(_) => {
+                    let sig = fn_ty.fn_sig(cx.tcx);
+                    if sig.skip_binder().unsafety == Unsafety::Unsafe || sig.skip_binder().output().sty == ty::TyNever {
                         return;
                     }
                 },
@@ -92,13 +92,11 @@ fn check_closure(cx: &LateContext, expr: &Expr) {
                     return;
                 }
             }
-            span_lint_and_then(cx,
-                               REDUNDANT_CLOSURE,
-                               expr.span,
-                               "redundant closure found",
-                               |db| if let Some(snippet) = snippet_opt(cx, caller.span) {
-                                   db.span_suggestion(expr.span, "remove closure as shown:", snippet);
-                               });
+            span_lint_and_then(cx, REDUNDANT_CLOSURE, expr.span, "redundant closure found", |db| {
+                if let Some(snippet) = snippet_opt(cx, caller.span) {
+                    db.span_suggestion(expr.span, "remove closure as shown", snippet);
+                }
+            });
         }
     }
 }

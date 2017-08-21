@@ -1,7 +1,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(clippy)]
+#![warn(clippy)]
 #![allow(unused)]
 
 fn the_answer(ref mut x: u8) {
@@ -17,23 +17,11 @@ fn main() {
 
   let ref x = 1;
 
-
-
-
   let ref y: (&_, u8) = (&1, 2);
-
-
-
 
   let ref z = 1 + 2;
 
-
-
-
   let ref mut z = 1 + 2;
-
-
-
 
   let (ref x, _) = (1,2); // okay, not top level
   println!("The answer is {}.", x);

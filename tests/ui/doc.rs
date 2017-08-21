@@ -1,23 +1,16 @@
 //! This file tests for the DOC_MARKDOWN lint
 
-
 #![feature(plugin)]
 #![plugin(clippy)]
-
-#![deny(doc_markdown)]
+#![allow(dead_code)]
+#![warn(doc_markdown)]
 
 /// The foo_bar function does _nothing_. See also foo::bar. (note the dot there)
-
-
 /// Markdown is _weird_. I mean _really weird_.  This \_ is ok. So is `_`. But not Foo::some_fun
-
 /// which should be reported only once despite being __doubly bad__.
-/// Here be ::is::a::global:path.
-
+/// Here be ::a::global:path.
 /// That's not code ~NotInCodeBlock~.
-
 /// be_sure_we_got_to_the_end_of_it
-
 fn foo_bar() {
 }
 
@@ -32,7 +25,6 @@ fn foo_bar() {
 /// _foo bar_
 /// ~~~
 /// be_sure_we_got_to_the_end_of_it
-
 fn multiline_codeblock() {
 }
 
@@ -40,7 +32,6 @@ fn multiline_codeblock() {
 /// multiline
 /// emphasis_.
 /// be_sure_we_got_to_the_end_of_it
-
 fn test_emphasis() {
 }
 
@@ -55,62 +46,23 @@ fn test_emphasis() {
 /// 32kb 32Mb 32Gb 32Tb 32Pb 32Eb
 /// NaN
 /// be_sure_we_got_to_the_end_of_it
-
 fn test_units() {
 }
 
-/// This one checks we don’t try to split unicode codepoints
-/// `ß`
-/// `ℝ`
-/// `💣`
-/// `❤️`
-/// ß_foo
-
-/// ℝ_foo
-
-/// 💣_foo
-/// ❤️_foo
-/// foo_ß
-
-/// foo_ℝ
-
-/// foo_💣
-/// foo_❤️
-/// [ßdummy textß][foo_1ß]
-/// [ℝdummy textℝ][foo_2ℝ]
-/// [💣dummy tex💣t][foo3_💣]
-/// [❤️dummy text❤️][foo_4❤️]
-/// [ßdummy textß](foo_5ß)
-/// [ℝdummy textℝ](foo_6ℝ)
-/// [💣dummy tex💣t](fo7o_💣)
-/// [❤️dummy text❤️](foo_8❤️)
-/// [foo1_ß]: dummy text
-/// [foo2_ℝ]: dummy text
-/// [foo3_💣]: dummy text
-/// [foo4_❤️]: dummy text
-/// be_sure_we_got_to_the_end_of_it
-
-fn test_unicode() {
-}
-
 /// This test has [a link_with_underscores][chunked-example] inside it. See #823.
-
-/// See also [the issue tracker](https://github.com/Manishearth/rust-clippy/search?q=doc_markdown&type=Issues)
+/// See also [the issue tracker](https://github.com/rust-lang-nursery/rust-clippy/search?q=doc_markdown&type=Issues)
 /// on GitHub (which is a camel-cased word, but is OK). And here is another [inline link][inline_link].
 /// It can also be [inline_link2].
-
 ///
 /// [chunked-example]: https://en.wikipedia.org/wiki/Chunked_transfer_encoding#Example
 /// [inline_link]: https://foobar
 /// [inline_link2]: https://foobar
-
 /// The `main` function is the entry point of the program. Here it only calls the `foo_bar` and
 /// `multiline_ticks` functions.
 ///
 /// expression of the type  `_ <bit_op> m <cmp_op> c` (where `<bit_op>`
 /// is one of {`&`, '|'} and `<cmp_op>` is one of {`!=`, `>=`, `>` ,
 /// be_sure_we_got_to_the_end_of_it
-
 fn main() {
     foo_bar();
     multiline_codeblock();
@@ -124,9 +76,7 @@ fn main() {
 /// # CamelCaseThing
 ///
 /// Not a title #897 CamelCaseThing
-
 /// be_sure_we_got_to_the_end_of_it
-
 fn issue897() {
 }
 
@@ -134,7 +84,6 @@ fn issue897() {
 /// I am confused by brackets? (foo `x_y`)
 /// I am confused by brackets? (`x_y` foo)
 /// be_sure_we_got_to_the_end_of_it
-
 fn issue900() {
 }
 
@@ -148,7 +97,6 @@ fn issue900() {
 /// [iterator]: https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html
 /// [helper_types]: ../helper_types/index.html
 /// be_sure_we_got_to_the_end_of_it
-
 fn issue883() {
 }
 
@@ -167,9 +115,6 @@ That's in a code block: `PackedNode`
 And BarQuz too.
 be_sure_we_got_to_the_end_of_it
 */
-
-
-
 fn issue1073() {
 }
 
@@ -181,9 +126,6 @@ That's in a code block: PackedNode
 And BarQuz too.
 be_sure_we_got_to_the_end_of_it
 */
-
-
-
 fn issue1073_alt() {
 }
 
@@ -194,6 +136,26 @@ fn issue1073_alt() {
 /// StillDont
 /// ````
 /// be_sure_we_got_to_the_end_of_it
-
 fn four_quotes() {
 }
+
+/// See [NIST SP 800-56A, revision 2].
+///
+/// [NIST SP 800-56A, revision 2]:
+///     https://github.com/rust-lang-nursery/rust-clippy/issues/902#issuecomment-261919419
+fn issue_902_comment() {}
+
+#[cfg_attr(feature = "a", doc = " ```")]
+#[cfg_attr(not(feature = "a"), doc = " ```ignore")]
+/// fn main() {
+///     let s = "localhost:10000".to_string();
+///     println!("{}", s);
+/// }
+/// ```
+fn issue_1469() {}
+
+/**
+ * This is a doc comment that should not be a list
+ *This would also be an error under a strict common mark interpretation
+ */
+fn issue_1920() {}

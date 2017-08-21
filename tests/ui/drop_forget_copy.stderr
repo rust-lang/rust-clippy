@@ -4,11 +4,7 @@ error: calls to `std::mem::drop` with a value that implements Copy. Dropping a c
 33 |     drop(s1);
    |     ^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/drop_forget_copy.rs:4:9
-   |
-4  | #![deny(drop_copy, forget_copy)]
-   |         ^^^^^^^^^
+   = note: `-D drop-copy` implied by `-D warnings`
 note: argument has type SomeStruct
   --> $DIR/drop_forget_copy.rs:33:10
    |
@@ -45,11 +41,7 @@ error: calls to `std::mem::forget` with a value that implements Copy. Forgetting
 39 |     forget(s1);
    |     ^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/drop_forget_copy.rs:4:20
-   |
-4  | #![deny(drop_copy, forget_copy)]
-   |                    ^^^^^^^^^^^
+   = note: `-D forget-copy` implied by `-D warnings`
 note: argument has type SomeStruct
   --> $DIR/drop_forget_copy.rs:39:12
    |

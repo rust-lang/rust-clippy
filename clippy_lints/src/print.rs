@@ -5,10 +5,12 @@ use utils::paths;
 use utils::{is_expn_of, match_def_path, resolve_node, span_lint, match_path_old};
 use format::get_argument_fmtstr_parts;
 
-/// **What it does:** This lint warns when you using `print!()` with a format string that
+/// **What it does:** This lint warns when you using `print!()` with a format
+/// string that
 /// ends in a newline.
 ///
-/// **Why is this bad?** You should use `println!()` instead, which appends the newline.
+/// **Why is this bad?** You should use `println!()` instead, which appends the
+/// newline.
 ///
 /// **Known problems:** None.
 ///
@@ -71,15 +73,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             let ExprCall(ref fun, ref args) = expr.node,
             let ExprPath(ref qpath) = fun.node,
         ], {
-            let fun = resolve_node(cx, qpath, fun.id);
+            let fun = resolve_node(cx, qpath, fun.hir_id);
             let fun_id = fun.def_id();
 
             // Search for `std::io::_print(..)` which is unique in a
             // `print!` expansion.
             if match_def_path(cx.tcx, fun_id, &paths::IO_PRINT) {
-                if let Some(span) = is_expn_of(cx, expr.span, "print") {
+                if let Some(span) = is_expn_of(expr.span, "print") {
                     // `println!` uses `print!`.
-                    let (span, name) = match is_expn_of(cx, span, "println") {
+                    let (span, name) = match is_expn_of(span, "println") {
                         Some(span) => (span, "println"),
                         None => (span, "print"),
                     };
@@ -95,7 +97,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                         let ExprCall(ref args_fun, ref args_args) = args[0].node,
                         let ExprPath(ref qpath) = args_fun.node,
                         match_def_path(cx.tcx,
-                                       resolve_node(cx, qpath, args_fun.id).def_id(),
+                                       resolve_node(cx, qpath, args_fun.hir_id).def_id(),
                                        &paths::FMT_ARGUMENTS_NEWV1),
                         args_args.len() == 2,
                         let ExprAddrOf(_, ref match_expr) = args_args[1].node,
@@ -123,9 +125,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             // `::std::fmt::ArgumentV1::new(__arg0, ::std::fmt::Debug::fmt)`
             else if args.len() == 2 && match_def_path(cx.tcx, fun_id, &paths::FMT_ARGUMENTV1_NEW) {
                 if let ExprPath(ref qpath) = args[1].node {
-                    let def_id = cx.tables.qpath_def(qpath, args[1].id).def_id();
+                    let def_id = cx.tables.qpath_def(qpath, args[1].hir_id).def_id();
                     if match_def_path(cx.tcx, def_id, &paths::DEBUG_FMT_METHOD) && !is_in_debug_impl(cx, expr) &&
-                       is_expn_of(cx, expr.span, "panic").is_none() {
+                       is_expn_of(expr.span, "panic").is_none() {
                         span_lint(cx, USE_DEBUG, args[0].span, "use of `Debug`-based formatting");
                     }
                 }
@@ -141,7 +143,7 @@ fn is_in_debug_impl(cx: &LateContext, expr: &Expr) -> bool {
     if let Some(NodeImplItem(item)) = map.find(map.get_parent(expr.id)) {
         // `Debug` impl
         if let Some(NodeItem(item)) = map.find(map.get_parent(item.id)) {
-            if let ItemImpl(_, _, _, Some(ref tr), _, _) = item.node {
+            if let ItemImpl(_, _, _, _, Some(ref tr), _, _) = item.node {
                 return match_path_old(&tr.path, &["Debug"]);
             }
         }

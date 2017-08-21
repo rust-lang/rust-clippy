@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-#![deny(print_stdout, use_debug)]
+#![warn(print_stdout, use_debug)]
 
 use std::fmt::{Debug, Display, Formatter, Result};
 
@@ -10,7 +10,6 @@ struct Foo;
 impl Display for Foo {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{:?}", 43.1415)
-
     }
 }
 
@@ -29,11 +28,7 @@ fn main() {
 
     print!("Hello {:?}", "World");
 
-
-
     print!("Hello {:#?}", "#orld");
-
-
 
     assert_eq!(42, 1337);
 

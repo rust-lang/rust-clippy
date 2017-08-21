@@ -4,11 +4,7 @@ error: you seem to be using .map() to clone the contents of an iterator, conside
 12 |     x.iter().map(|y| y.clone());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: lint level defined here
-  --> $DIR/map_clone.rs:4:9
-   |
-4  | #![deny(map_clone)]
-   |         ^^^^^^^^^
+   = note: `-D map-clone` implied by `-D warnings`
    = help: try
            x.iter().cloned()
 

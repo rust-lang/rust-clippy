@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 #![allow(unused)]
-#![deny(clippy)]
+#![warn(clippy)]
 
 fn main() {
     let v = Some(true);

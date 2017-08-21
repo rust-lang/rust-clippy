@@ -40,7 +40,7 @@ declare_lint! {
     "complex blocks in conditions, e.g. `if { let x = true; x } ...`"
 }
 
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone)]
 pub struct BlockInIfCondition;
 
 impl LintPass for BlockInIfCondition {
@@ -67,7 +67,7 @@ impl<'a, 'tcx: 'a> Visitor<'tcx> for ExVisitor<'a, 'tcx> {
         walk_expr(self, expr);
     }
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
-        NestedVisitorMap::All(&self.cx.tcx.hir)
+        NestedVisitorMap::None
     }
 }
 
@@ -84,30 +84,37 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
                         if let Some(ref ex) = block.expr {
                             // don't dig into the expression here, just suggest that they remove
                             // the block
-                            if in_macro(cx, expr.span) || differing_macro_contexts(expr.span, ex.span) {
+                            if in_macro(expr.span) || differing_macro_contexts(expr.span, ex.span) {
                                 return;
                             }
-                            span_help_and_lint(cx,
-                                               BLOCK_IN_IF_CONDITION_EXPR,
-                                               check.span,
-                                               BRACED_EXPR_MESSAGE,
-                                               &format!("try\nif {} {} ... ",
+                            span_help_and_lint(
+                                cx,
+                                BLOCK_IN_IF_CONDITION_EXPR,
+                                check.span,
+                                BRACED_EXPR_MESSAGE,
+                                &format!("try\nif {} {} ... ",
                                                         snippet_block(cx, ex.span, ".."),
-                                                        snippet_block(cx, then.span, "..")));
+                                                        snippet_block(cx, then.span, "..")),
+                            );
                         }
                     } else {
-                        let span = block.expr.as_ref().map_or_else(|| block.stmts[0].span, |e| e.span);
-                        if in_macro(cx, span) || differing_macro_contexts(expr.span, span) {
+                        let span = block.expr.as_ref().map_or_else(
+                            || block.stmts[0].span,
+                            |e| e.span,
+                        );
+                        if in_macro(span) || differing_macro_contexts(expr.span, span) {
                             return;
                         }
                         // move block higher
-                        span_help_and_lint(cx,
-                                           BLOCK_IN_IF_CONDITION_STMT,
-                                           check.span,
-                                           COMPLEX_BLOCK_MESSAGE,
-                                           &format!("try\nlet res = {};\nif res {} ... ",
+                        span_help_and_lint(
+                            cx,
+                            BLOCK_IN_IF_CONDITION_STMT,
+                            check.span,
+                            COMPLEX_BLOCK_MESSAGE,
+                            &format!("try\nlet res = {};\nif res {} ... ",
                                                     snippet_block(cx, block.span, ".."),
-                                                    snippet_block(cx, then.span, "..")));
+                                                    snippet_block(cx, then.span, "..")),
+                        );
                     }
                 }
             } else {

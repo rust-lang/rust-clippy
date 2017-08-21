@@ -1,7 +1,7 @@
 #![feature(plugin, box_syntax, inclusive_range_syntax)]
 #![plugin(clippy)]
 
-#![deny(no_effect, unnecessary_operation)]
+#![warn(no_effect, unnecessary_operation)]
 #![allow(dead_code)]
 #![allow(path_statements)]
 #![allow(deref_addrof)]
@@ -63,60 +63,22 @@ fn main() {
     unsafe { unsafe_fn() };
 
     Tuple(get_number());
-
-
     Struct { field: get_number() };
-
-
     Struct { ..get_struct() };
-
-
     Enum::Tuple(get_number());
-
-
     Enum::Struct { field: get_number() };
-
-
     5 + get_number();
-
-
     *&get_number();
-
-
     &get_number();
-
-
     (5, 6, get_number());
-
-
     box get_number();
-
-
     get_number()..;
-
-
     ..get_number();
-
-
     5..get_number();
-
-
     [42, get_number()];
-
-
     [42, 55][get_number() as usize];
-
-
     (42, get_number()).1;
-
-
     [get_number(); 55];
-
-
     [42; 55][get_number() as usize];
-
-
     {get_number()};
-
-
 }

@@ -6,7 +6,7 @@ const NEG_ONE : i64 = -1;
 const ZERO : i64 = 0;
 
 #[allow(eq_op, no_effect, unnecessary_operation, double_parens)]
-#[deny(identity_op)]
+#[warn(identity_op)]
 fn main() {
     let x = 0;
 

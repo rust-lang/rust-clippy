@@ -2,42 +2,27 @@ error: this argument is passed by value, but not consumed in the function body
  --> $DIR/needless_pass_by_value.rs:9:23
   |
 9 | fn foo<T: Default>(v: Vec<T>, w: Vec<T>, mut x: Vec<T>, y: Vec<T>) -> Vec<T> {
-  |                       ^^^^^^
+  |                       ^^^^^^ help: consider changing the type to: `&[T]`
   |
-note: lint level defined here
- --> $DIR/needless_pass_by_value.rs:4:9
-  |
-4 | #![deny(needless_pass_by_value)]
-  |         ^^^^^^^^^^^^^^^^^^^^^^
-help: consider changing the type to `&[T]`
-  | fn foo<T: Default>(v: &[T], w: Vec<T>, mut x: Vec<T>, y: Vec<T>) -> Vec<T> {
+  = note: `-D needless-pass-by-value` implied by `-D warnings`
 
 error: this argument is passed by value, but not consumed in the function body
   --> $DIR/needless_pass_by_value.rs:23:11
    |
 23 | fn bar(x: String, y: Wrapper) {
-   |           ^^^^^^
-   |
-help: consider changing the type to `&str`
-   | fn bar(x: &str, y: Wrapper) {
+   |           ^^^^^^ help: consider changing the type to: `&str`
 
 error: this argument is passed by value, but not consumed in the function body
   --> $DIR/needless_pass_by_value.rs:23:22
    |
 23 | fn bar(x: String, y: Wrapper) {
-   |                      ^^^^^^^
-   |
-help: consider taking a reference instead
-   | fn bar(x: String, y: &Wrapper) {
+   |                      ^^^^^^^ help: consider taking a reference instead: `&Wrapper`
 
 error: this argument is passed by value, but not consumed in the function body
   --> $DIR/needless_pass_by_value.rs:29:63
    |
 29 | fn test_borrow_trait<T: std::borrow::Borrow<str>, U>(t: T, u: U) {
-   |                                                               ^
-   |
-help: consider taking a reference instead
-   | fn test_borrow_trait<T: std::borrow::Borrow<str>, U>(t: T, u: &U) {
+   |                                                               ^ help: consider taking a reference instead: `&U`
 
 error: this argument is passed by value, but not consumed in the function body
   --> $DIR/needless_pass_by_value.rs:40:18
@@ -46,17 +31,16 @@ error: this argument is passed by value, but not consumed in the function body
    |                  ^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider taking a reference instead
-   | fn test_match(x: &Option<Option<String>>, y: Option<Option<String>>) {
-   |     match *x {
+   |
+40 | fn test_match(x: &Option<Option<String>>, y: Option<Option<String>>) {
+41 |     match *x {
+   |
 
 error: this argument is passed by value, but not consumed in the function body
   --> $DIR/needless_pass_by_value.rs:53:24
    |
 53 | fn test_destructure(x: Wrapper, y: Wrapper, z: Wrapper) {
-   |                        ^^^^^^^
-   |
-help: consider taking a reference instead
-   | fn test_destructure(x: &Wrapper, y: Wrapper, z: Wrapper) {
+   |                        ^^^^^^^ help: consider taking a reference instead: `&Wrapper`
 
 error: this argument is passed by value, but not consumed in the function body
   --> $DIR/needless_pass_by_value.rs:53:36
@@ -65,10 +49,12 @@ error: this argument is passed by value, but not consumed in the function body
    |                                    ^^^^^^^
    |
 help: consider taking a reference instead
-   | fn test_destructure(x: Wrapper, y: &Wrapper, z: Wrapper) {
-   |     let Wrapper(s) = z; // moved
-   |     let Wrapper(ref t) = *y; // not moved
-   |     let Wrapper(_) = *y; // still not moved
+   |
+53 | fn test_destructure(x: Wrapper, y: &Wrapper, z: Wrapper) {
+54 |     let Wrapper(s) = z; // moved
+55 |     let Wrapper(ref t) = *y; // not moved
+56 |     let Wrapper(_) = *y; // still not moved
+   |
 
 error: aborting due to 7 previous errors
 

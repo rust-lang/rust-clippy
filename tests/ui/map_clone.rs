@@ -1,7 +1,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
-#![deny(map_clone)]
+#![warn(map_clone)]
 
 #![allow(clone_on_copy, unused)]
 
@@ -95,6 +95,11 @@ fn map_clone_deref() {
 
     // Not linted: using regular deref but also deref conversion
     let _: Option<i32> = x.as_ref().map(|y| **y);
+}
+
+// stuff that used to be a false positive
+fn former_false_positive() {
+    vec![1].iter_mut().map(|x| *x); // #443
 }
 
 fn main() { }

@@ -2,7 +2,7 @@
 #![plugin(clippy)]
 
 #![allow(unused_variables, unused_assignments, similar_names, blacklisted_name)]
-#![deny(useless_let_if_seq)]
+#![warn(useless_let_if_seq)]
 
 fn f() -> bool { true }
 fn g(x: i32) -> i32 { x + 1 }
@@ -55,17 +55,11 @@ fn main() {
     issue985_alt();
 
     let mut foo = 0;
-
-
-
     if f() {
         foo = 42;
     }
 
     let mut bar = 0;
-
-
-
     if f() {
         f();
         bar = 42;
@@ -75,10 +69,6 @@ fn main() {
     }
 
     let quz;
-
-
-
-
     if f() {
         quz = 42;
     } else {
@@ -87,7 +77,6 @@ fn main() {
 
     // `toto` is used several times
     let mut toto;
-
     if f() {
         toto = 42;
     } else {
@@ -109,9 +98,6 @@ fn main() {
 
     // baz needs to be mut
     let mut baz = 0;
-
-
-
     if f() {
         baz = 42;
     }

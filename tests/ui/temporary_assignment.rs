@@ -1,7 +1,7 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(temporary_assignment)]
+#![warn(temporary_assignment)]
 
 use std::ops::{Deref, DerefMut};
 

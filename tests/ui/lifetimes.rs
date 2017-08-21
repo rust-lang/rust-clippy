@@ -1,14 +1,12 @@
 #![feature(plugin)]
 #![plugin(clippy)]
 
-#![deny(needless_lifetimes, unused_lifetimes)]
+#![warn(needless_lifetimes, unused_lifetimes)]
 #![allow(dead_code, needless_pass_by_value)]
 
 fn distinct_lifetimes<'a, 'b>(_x: &'a u8, _y: &'b u8, _z: u8) { }
 
-
 fn distinct_and_static<'a, 'b>(_x: &'a u8, _y: &'b u8, _z: &'static u8) { }
-
 
 fn same_lifetime_on_input<'a>(_x: &'a u8, _y: &'a u8) { } // no error, same lifetime on two params
 
@@ -17,7 +15,6 @@ fn only_static_on_input(_x: &u8, _y: &u8, _z: &'static u8) { } // no error, stat
 fn mut_and_static_input(_x: &mut u8, _y: &'static str) { }
 
 fn in_and_out<'a>(x: &'a u8, _y: u8) -> &'a u8 { x }
-
 
 fn multiple_in_and_out_1<'a>(x: &'a u8, _y: &'a u8) -> &'a u8 { x } // no error, multiple input refs
 
@@ -31,17 +28,14 @@ fn deep_reference_2<'a>(x: Result<&'a u8, &'a u8>) -> &'a u8 { x.unwrap() } // n
 
 fn deep_reference_3<'a>(x: &'a u8, _y: u8) -> Result<&'a u8, ()> { Ok(x) }
 
-
 // where clause, but without lifetimes
 fn where_clause_without_lt<'a, T>(x: &'a u8, _y: u8) -> Result<&'a u8, ()> where T: Copy { Ok(x) }
-
 
 type Ref<'r> = &'r u8;
 
 fn lifetime_param_1<'a>(_x: Ref<'a>, _y: &'a u8) { } // no error, same lifetime on two params
 
 fn lifetime_param_2<'a, 'b>(_x: Ref<'a>, _y: &'b u8) { }
-
 
 fn lifetime_param_3<'a, 'b: 'a>(_x: Ref<'a>, _y: &'b u8) { } // no error, bounded lifetime
 
@@ -66,11 +60,9 @@ struct X {
 impl X {
     fn self_and_out<'s>(&'s self) -> &'s u8 { &self.x }
 
-
     fn self_and_in_out<'s, 't>(&'s self, _x: &'t u8) -> &'s u8 { &self.x } // no error, multiple input refs
 
     fn distinct_self_and_in<'s, 't>(&'s self, _x: &'t u8) { }
-
 
     fn self_and_same_in<'s>(&'s self, _x: &'s u8) { } // no error, same lifetimes on two params
 }
@@ -127,6 +119,30 @@ fn elided_input_named_output<'a>(_arg: &str) -> &'a str { unimplemented!() }
 
 fn trait_bound_ok<'a, T: WithLifetime<'static>>(_: &'a u8, _: T) { unimplemented!() }
 fn trait_bound<'a, T: WithLifetime<'a>>(_: &'a u8, _: T) { unimplemented!() }
+
+// don't warn on these, see #292
+fn trait_bound_bug<'a, T: WithLifetime<'a>>() { unimplemented!() }
+
+// #740
+struct Test {
+    vec: Vec<usize>,
+}
+
+impl Test {
+    fn iter<'a>(&'a self) -> Box<Iterator<Item = usize> + 'a> {
+        unimplemented!()
+    }
+}
+
+
+trait LintContext<'a> {}
+
+fn f<'a, T: LintContext<'a>>(_: &T) {}
+
+fn test<'a>(x: &'a [u8]) -> u8 {
+    let y: &'a u8 = &x[5];
+    *y
+}
 
 fn main() {
 }

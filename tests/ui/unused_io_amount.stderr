@@ -1,52 +1,43 @@
 error: handle written amount returned or use `Write::write_all` instead
-  --> $DIR/unused_io_amount.rs:10:5
+  --> $DIR/unused_io_amount.rs:11:5
    |
-10 |     try!(s.write(b"test"));
+11 |     try!(s.write(b"test"));
    |     ^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: #[deny(unused_io_amount)] on by default
+   = note: `-D unused-io-amount` implied by `-D warnings`
    = note: this error originates in a macro outside of the current crate
 
 error: handle read amount returned or use `Read::read_exact` instead
-  --> $DIR/unused_io_amount.rs:12:5
+  --> $DIR/unused_io_amount.rs:13:5
    |
-12 |     try!(s.read(&mut buf));
+13 |     try!(s.read(&mut buf));
    |     ^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: #[deny(unused_io_amount)] on by default
    = note: this error originates in a macro outside of the current crate
 
 error: handle written amount returned or use `Write::write_all` instead
-  --> $DIR/unused_io_amount.rs:17:5
+  --> $DIR/unused_io_amount.rs:18:5
    |
-17 |     s.write(b"test")?;
+18 |     s.write(b"test")?;
    |     ^^^^^^^^^^^^^^^^^
-   |
-   = note: #[deny(unused_io_amount)] on by default
 
 error: handle read amount returned or use `Read::read_exact` instead
   --> $DIR/unused_io_amount.rs:20:5
    |
 20 |     s.read(&mut buf)?;
    |     ^^^^^^^^^^^^^^^^^
-   |
-   = note: #[deny(unused_io_amount)] on by default
 
 error: handle written amount returned or use `Write::write_all` instead
-  --> $DIR/unused_io_amount.rs:26:5
+  --> $DIR/unused_io_amount.rs:25:5
    |
-26 |     s.write(b"test").unwrap();
+25 |     s.write(b"test").unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: #[deny(unused_io_amount)] on by default
 
 error: handle read amount returned or use `Read::read_exact` instead
-  --> $DIR/unused_io_amount.rs:29:5
+  --> $DIR/unused_io_amount.rs:27:5
    |
-29 |     s.read(&mut buf).unwrap();
+27 |     s.read(&mut buf).unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: #[deny(unused_io_amount)] on by default
 
 error: aborting due to 6 previous errors
 

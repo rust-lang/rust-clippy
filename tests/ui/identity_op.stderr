@@ -4,11 +4,7 @@ error: the operation is ineffective. Consider reducing it to `x`
 13 |     x + 0;
    |     ^^^^^
    |
-note: lint level defined here
-  --> $DIR/identity_op.rs:9:8
-   |
-9  | #[deny(identity_op)]
-   |        ^^^^^^^^^^^
+   = note: `-D identity-op` implied by `-D warnings`
 
 error: the operation is ineffective. Consider reducing it to `x`
   --> $DIR/identity_op.rs:14:5

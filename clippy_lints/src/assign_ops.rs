@@ -4,12 +4,14 @@ use syntax::ast;
 use utils::{span_lint_and_then, snippet_opt, SpanlessEq, get_trait_def_id, implements_trait};
 use utils::{higher, sugg};
 
-/// **What it does:** Checks for compound assignment operations (`+=` and similar).
+/// **What it does:** Checks for compound assignment operations (`+=` and
+/// similar).
 ///
 /// **Why is this bad?** Projects with many developers from languages without
 /// those operations may find them unreadable and not worth their weight.
 ///
-/// **Known problems:** Types implementing `OpAssign` don't necessarily implement `Op`.
+/// **Known problems:** Types implementing `OpAssign` don't necessarily
+/// implement `Op`.
 ///
 /// **Example:**
 /// ```rust
@@ -20,7 +22,8 @@ declare_restriction_lint! {
     "any compound assignment operation"
 }
 
-/// **What it does:** Checks for `a = a op b` or `a = b commutative_op a` patterns.
+/// **What it does:** Checks for `a = a op b` or `a = b commutative_op a`
+/// patterns.
 ///
 /// **Why is this bad?** These can be written as the shorter `a op= b`.
 ///
@@ -41,7 +44,8 @@ declare_lint! {
 
 /// **What it does:** Checks for `a op= a op b` or `a op= b op a` patterns.
 ///
-/// **Why is this bad?** Most likely these are bugs where one meant to write `a op= b`.
+/// **Why is this bad?** Most likely these are bugs where one meant to write `a
+/// op= b`.
 ///
 /// **Known problems:** Someone might actually mean `a op= a op b`, but that
 /// should rather be written as `a = (2 * a) op b` where applicable.
@@ -75,21 +79,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
                     let lhs = &sugg::Sugg::hir(cx, lhs, "..");
                     let rhs = &sugg::Sugg::hir(cx, rhs, "..");
 
-                    db.span_suggestion(expr.span,
-                                       "replace it with",
-                                       format!("{} = {}", lhs, sugg::make_binop(higher::binop(op.node), lhs, rhs)));
+                    db.span_suggestion(
+                        expr.span,
+                        "replace it with",
+                        format!("{} = {}", lhs, sugg::make_binop(higher::binop(op.node), lhs, rhs)),
+                    );
                 });
                 if let hir::ExprBinary(binop, ref l, ref r) = rhs.node {
                     if op.node == binop.node {
                         let lint = |assignee: &hir::Expr, rhs: &hir::Expr| {
-                            let ty = cx.tables.expr_ty(assignee);
-                            if ty.walk_shallow().next().is_some() {
-                                return; // implements_trait does not work with generics
-                            }
-                            let rty = cx.tables.expr_ty(rhs);
-                            if rty.walk_shallow().next().is_some() {
-                                return; // implements_trait does not work with generics
-                            }
                             span_lint_and_then(cx,
                                                MISREFACTORED_ASSIGN_OP,
                                                expr.span,
@@ -120,13 +118,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
                     #[allow(cyclomatic_complexity)]
                     let lint = |assignee: &hir::Expr, rhs: &hir::Expr| {
                         let ty = cx.tables.expr_ty(assignee);
-                        if ty.walk_shallow().next().is_some() {
-                            return; // implements_trait does not work with generics
-                        }
                         let rty = cx.tables.expr_ty(rhs);
-                        if rty.walk_shallow().next().is_some() {
-                            return; // implements_trait does not work with generics
-                        }
                         macro_rules! ops {
                             ($op:expr,
                              $cx:expr,
@@ -149,44 +141,49 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
                                         if_let_chain!{[
                                             parent_impl != ast::CRATE_NODE_ID,
                                             let hir::map::Node::NodeItem(item) = cx.tcx.hir.get(parent_impl),
-                                            let hir::Item_::ItemImpl(_, _, _, Some(ref trait_ref), _, _) = item.node,
+                                            let hir::Item_::ItemImpl(_, _, _, _, Some(ref trait_ref), _, _) = item.node,
                                             trait_ref.path.def.def_id() == trait_id
                                         ], { return; }}
-                                        implements_trait($cx, $ty, trait_id, &[$rty], None)
+                                        implements_trait($cx, $ty, trait_id, &[$rty])
                                     },)*
                                     _ => false,
                                 }
                             }
                         }
-                        if ops!(op.node,
+                        if ops!(
+                            op.node,
+                            cx,
+                            ty,
+                            rty,
+                            Add: BiAdd,
+                            Sub: BiSub,
+                            Mul: BiMul,
+                            Div: BiDiv,
+                            Rem: BiRem,
+                            And: BiAnd,
+                            Or: BiOr,
+                            BitAnd: BiBitAnd,
+                            BitOr: BiBitOr,
+                            BitXor: BiBitXor,
+                            Shr: BiShr,
+                            Shl: BiShl
+                        )
+                        {
+                            span_lint_and_then(
                                 cx,
-                                ty,
-                                rty,
-                                Add: BiAdd,
-                                Sub: BiSub,
-                                Mul: BiMul,
-                                Div: BiDiv,
-                                Rem: BiRem,
-                                And: BiAnd,
-                                Or: BiOr,
-                                BitAnd: BiBitAnd,
-                                BitOr: BiBitOr,
-                                BitXor: BiBitXor,
-                                Shr: BiShr,
-                                Shl: BiShl) {
-                            span_lint_and_then(cx,
-                                               ASSIGN_OP_PATTERN,
-                                               expr.span,
-                                               "manual implementation of an assign operation",
-                                               |db| if let (Some(snip_a), Some(snip_r)) =
-                                                   (snippet_opt(cx, assignee.span), snippet_opt(cx, rhs.span)) {
-                                                   db.span_suggestion(expr.span,
-                                                                      "replace it with",
-                                                                      format!("{} {}= {}",
-                                                                              snip_a,
-                                                                              op.node.as_str(),
-                                                                              snip_r));
-                                               });
+                                ASSIGN_OP_PATTERN,
+                                expr.span,
+                                "manual implementation of an assign operation",
+                                |db| if let (Some(snip_a), Some(snip_r)) =
+                                    (snippet_opt(cx, assignee.span), snippet_opt(cx, rhs.span))
+                                {
+                                    db.span_suggestion(
+                                        expr.span,
+                                        "replace it with",
+                                        format!("{} {}= {}", snip_a, op.node.as_str(), snip_r),
+                                    );
+                                },
+                            );
                         }
                     };
                     // a = a op b
