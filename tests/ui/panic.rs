@@ -34,10 +34,24 @@ fn ok_bracket() {
     }
 }
 
+fn ok_escaped() {
+    panic!("{{ why should this not be ok? }}");
+    panic!(" or {{ that ?");
+    panic!(" or }} this ?");
+    panic!(" {or {{ that ?");
+    panic!(" }or }} this ?");
+    panic!(" {or }} that ?");
+    panic!(" }or { this ?");
+    panic!("{{ test }");
+    panic!("{case }}");
+    panic!("{{{this}}}");
+}
+
 fn main() {
     missing();
     ok_single();
     ok_multiple();
     ok_bracket();
     ok_inner();
+    ok_escaped();
 }

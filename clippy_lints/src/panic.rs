@@ -1,3 +1,4 @@
+use std::cmp::min;
 use rustc::hir::*;
 use rustc::lint::*;
 use syntax::ast::LitKind;
@@ -45,6 +46,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             is_direct_expn_of(expr.span, "panic").is_some(),
             let LitKind::Str(ref string, _) = lit.node,
             let Some(par) = string.as_str().find('{'),
+            !string.as_str()[par + 1..min(par + 2, string.as_str().len())].contains('{'),
             string.as_str()[par..].contains('}')
         ], {
             span_lint(cx, PANIC_PARAMS, params[0].span,
