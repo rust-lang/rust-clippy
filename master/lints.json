@@ -421,7 +421,7 @@
       "What it does": "Checks for `match` with identical arm bodies.", 
       "Why is this bad": "This is probably a copy & paste error. If arm bodies\nare the same on purpose, you can factor them\n[using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).", 
       "Example": "```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\nThis should probably be\n```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\nor if the original code was not a typo:\n```rust,ignore\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```", 
-      "Known problems": "False positive possible with order dependent `match`\n(see issue [#860](https://github.com/Manishearth/rust-clippy/issues/860))."
+      "Known problems": "False positive possible with order dependent `match`\n(see issue [#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860))."
     }, 
     "id": "match_same_arms", 
     "level": "Warn"
@@ -1215,7 +1215,7 @@
       "What it does": "Checks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.", 
       "Why is this bad": "An expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.", 
       "Example": "```rust\nlet x : u8 = ...; (x as u32) > 300\n```", 
-      "Known problems": "https://github.com/Manishearth/rust-clippy/issues/886"
+      "Known problems": "https://github.com/rust-lang-nursery/rust-clippy/issues/886"
     }, 
     "id": "invalid_upcast_comparisons", 
     "level": "Allow"
