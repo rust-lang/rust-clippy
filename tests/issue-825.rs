@@ -1,6 +1,5 @@
 #![feature(plugin)]
 #![plugin(clippy)]
-
 #![allow(warnings)]
 
 // this should compile in a reasonable amount of time
