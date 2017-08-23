@@ -658,7 +658,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     if let Some((main, _)) = *cx.sess().entry_fn.borrow() {
                         if let hir::ExprPath(ref qpath) = func.node {
                             let main_did = cx.tcx.hir.local_def_id(main);
-                            let fun_did = cx.tables.qpath_def(qpath, func.id).def_id();
+                            let fun_did = cx.tables.qpath_def(qpath, func.hir_id).def_id();
                             if main_did == fun_did {
                                 span_lint(cx, CALLING_MAIN, expr.span, "called the `main` function manually");
                             }
