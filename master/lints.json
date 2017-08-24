@@ -1172,6 +1172,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for naive byte counts", 
+      "Why is this bad": "The [`bytecount`](https://crates.io/crates/bytecount)\ncrate has methods to count your bytes faster, especially for large slices.", 
+      "Example": "```rust\n&my_data.filter(|&x| x == 0u8).count() // use bytecount::count instead\n```", 
+      "Known problems": "If you have predominantly small slices, the\n`bytecount::count(..)` method may actually be slower. However, if you can\nensure that less than 2\u00b3\u00b2-1 matches arise, the `naive_count_32(..)` can be\nfaster in those cases."
+    }, 
+    "id": "naive_bytecount", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for arguments to `==` which have their address\ntaken to satisfy a bound\nand suggests to dereference the other argument instead", 
       "Why is this bad": "It is more idiomatic to dereference the other argument.", 
       "Example": "```rust\n&x == y\n```", 
