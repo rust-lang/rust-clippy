@@ -277,13 +277,23 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for use of `.skip(x).next()` on iterators.", 
-      "Why is this bad": "`.nth(x)` is cleaner", 
-      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for loops that will always `break`, `return` or\n`continue` an outer loop.", 
+      "Why is this bad": "This loop never loops, all it does is obfuscating the\ncode.", 
+      "Example": "```rust\nloop { ..; break; }\n```", 
+      "Known problems": "None"
     }, 
-    "id": "iter_skip_next", 
+    "id": "never_loop", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for iteration that may be infinite.", 
+      "Why is this bad": "While there may be places where this is acceptable\n(e.g. in event streams), in most cases this is simply an error.", 
+      "Example": "```rust\n[0..].iter().zip(infinite_iter.take_while(|x| x > 5))\n```", 
+      "Known problems": "The code may have a condition to stop iteration, but\nthis lint is not clever enough to analyze it."
+    }, 
+    "id": "maybe_infinite_iter", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -314,6 +324,16 @@
       "Known problems": "None."
     }, 
     "id": "large_digit_groups", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for iteration that is guaranteed to be infinite.", 
+      "Why is this bad": "While there may be places where this is acceptable\n(e.g. in event streams), in most cases this is simply an error.", 
+      "Example": "```rust\nrepeat(1_u8).iter().collect::<Vec<_>>()\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "infinite_iter", 
     "level": "Warn"
   }, 
   {
@@ -934,12 +954,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for consecutive `if`s with the same condition.", 
-      "Why is this bad": "This is probably a copy & paste error.", 
-      "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
-      "Known problems": "Hopefully none."
+      "What it does": "Checks for uses of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.", 
+      "Why is this bad": "Using `entry` is more efficient.", 
+      "Example": "```rust\nif !m.contains_key(&k) { m.insert(k, v) }\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```", 
+      "Known problems": "Some false negatives, eg.:\n```rust\nlet k = &key;\nif !m.contains_key(k) { m.insert(k.clone(), v); }\n```"
     }, 
-    "id": "ifs_same_cond", 
+    "id": "map_entry", 
     "level": "Warn"
   }, 
   {
@@ -1322,16 +1342,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for uses of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.", 
-      "Why is this bad": "Using `entry` is more efficient.", 
-      "Example": "```rust\nif !m.contains_key(&k) { m.insert(k, v) }\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```", 
-      "Known problems": "Some false negatives, eg.:\n```rust\nlet k = &key;\nif !m.contains_key(k) { m.insert(k.clone(), v); }\n```"
-    }, 
-    "id": "map_entry", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for usage of `!` or `!=` in an if condition with an\nelse branch.", 
       "Why is this bad": "Negations reduce the readability of statements.", 
       "Example": "```rust\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\nCould be written:\n```rust\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```", 
@@ -1532,12 +1542,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for loops that will always `break`, `return` or\n`continue` an outer loop.", 
-      "Why is this bad": "This loop never loops, all it does is obfuscating the\ncode.", 
-      "Example": "```rust\nloop { ..; break; }\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for consecutive `if`s with the same condition.", 
+      "Why is this bad": "This is probably a copy & paste error.", 
+      "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
+      "Known problems": "Hopefully none."
     }, 
-    "id": "never_loop", 
+    "id": "ifs_same_cond", 
     "level": "Warn"
   }, 
   {
@@ -1820,6 +1830,16 @@
       "Known problems": "None."
     }, 
     "id": "clone_on_copy", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for use of `.skip(x).next()` on iterators.", 
+      "Why is this bad": "`.nth(x)` is cleaner", 
+      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "iter_skip_next", 
     "level": "Warn"
   }, 
   {
