@@ -58,7 +58,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
             let Ty_::TyPath(QPath::Resolved(_, ref item_path)) = item_type.node,
         ], {
             let parameters = &item_path.segments.last().expect(SEGMENTS_MSG).parameters;
-            if !parameters.parenthesized && parameters.lifetimes.len() == 0 {
+            if !parameters.parenthesized {
                 let visitor = &mut UseSelfVisitor {
                     item_path: item_path,
                     cx: cx,
@@ -78,11 +78,18 @@ struct UseSelfVisitor<'a, 'tcx: 'a> {
 
 impl<'a, 'tcx> Visitor<'tcx> for UseSelfVisitor<'a, 'tcx> {
     fn visit_path(&mut self, path: &'tcx Path, _id: NodeId) {
+        let lifetimes = &self.item_path.segments.last().expect(SEGMENTS_MSG).parameters.lifetimes;
+        let self_lifetimes = &path.segments.last().expect(SEGMENTS_MSG).parameters.lifetimes;
+
         if self.item_path.def == path.def &&
            path.segments
             .last()
             .expect(SEGMENTS_MSG)
-            .name != SelfType.name() {
+            .name != SelfType.name() &&
+           lifetimes.iter()
+                    .zip(self_lifetimes.iter())
+                    .all(|(a, b)| a.name == b.name) {
+
             span_lint_and_then(self.cx, USE_SELF, path.span, "unnecessary structure name repetition", |db| {
                 db.span_suggestion(path.span, "use the applicable keyword", "Self".to_owned());
             });
