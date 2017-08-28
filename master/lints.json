@@ -547,9 +547,9 @@
   {
     "docs": {
       "What it does": "Checks for useless borrowed references.", 
-      "Why is this bad": "It is completely useless and make the code look more\ncomplex than it\nactually is.", 
+      "Why is this bad": "It is mostly useless and make the code look more complex than it\nactually is.", 
       "Example": "```rust\n    let mut v = Vec::<String>::new();\n    let _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\nThis clojure takes a reference on something that has been matched as a\nreference and\nde-referenced.\nAs such, it could just be |a| a.is_empty()", 
-      "Known problems": "None."
+      "Known problems": "It seems that the `&ref` pattern is sometimes useful.\nFor instance in the following snippet:\n```rust\nenum Animal {\n    Cat(u64),\n    Dog(u64),\n}\nfn foo(a: &Animal, b: &Animal) {\n    match (a, b) {\n        (&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime mismatch error\n        (&Animal::Dog(ref c), &Animal::Dog(_)) => ()\n    }\n}\n```\nThere is a lifetime mismatch error for `k` (indeed a and b have distinct lifetime).\nThis can be fixed by using the `&ref` pattern.\nHowever, the code can also be fixed by much cleaner ways"
     }, 
     "id": "needless_borrowed_reference", 
     "level": "Warn"
