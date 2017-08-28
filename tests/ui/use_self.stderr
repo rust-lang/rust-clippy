@@ -36,5 +36,29 @@ error: unnecessary structure name repetition
 24 |             Foo::new()
    |             ^^^^^^^^ help: use the applicable keyword: `Self`
 
-error: aborting due to 6 previous errors
+error: unnecessary structure name repetition
+  --> $DIR/use_self.rs:63:28
+   |
+63 |         fn clone(&self) -> Foo<'a> {
+   |                            ^^^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/use_self.rs:64:13
+   |
+64 |             Foo {foo_str: self.foo_str}
+   |             ^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/use_self.rs:76:29
+   |
+76 |         fn foo(value: T) -> Foo<T> {
+   |                             ^^^^^^ help: use the applicable keyword: `Self`
+
+error: unnecessary structure name repetition
+  --> $DIR/use_self.rs:77:13
+   |
+77 |             Foo { value }
+   |             ^^^ help: use the applicable keyword: `Self`
+
+error: aborting due to 10 previous errors
 
