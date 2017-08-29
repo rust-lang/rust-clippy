@@ -1558,7 +1558,7 @@
       "Known problems": "None."
     }, 
     "id": "cast_lossless", 
-    "level": "Allow"
+    "level": "Warn"
   }, 
   {
     "docs": {
