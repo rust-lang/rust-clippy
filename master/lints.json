@@ -1552,6 +1552,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
+      "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
+      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "cast_lossless", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for the `as_bytes` method called on string literals\nthat contain only ASCII characters.", 
       "Why is this bad": "Byte string literals (e.g. `b\"foo\"`) can be used\ninstead. They are shorter but less discoverable than `as_bytes()`.", 
       "Example": "```rust\nlet bs = \"a byte string\".as_bytes();\n```", 
