@@ -98,12 +98,13 @@ pub mod higher;
 /// from a macro and one
 /// isn't).
 pub fn differing_macro_contexts(lhs: Span, rhs: Span) -> bool {
-    rhs.ctxt != lhs.ctxt
+    rhs.ctxt() != lhs.ctxt()
 }
 
 pub fn in_constant(cx: &LateContext, id: NodeId) -> bool {
     let parent_id = cx.tcx.hir.get_parent(id);
     match MirSource::from_node(cx.tcx, parent_id) {
+        MirSource::GeneratorDrop(_) |
         MirSource::Fn(_) => false,
         MirSource::Const(_) |
         MirSource::Static(..) |
@@ -113,7 +114,7 @@ pub fn in_constant(cx: &LateContext, id: NodeId) -> bool {
 
 /// Returns true if this `expn_info` was expanded by any macro.
 pub fn in_macro(span: Span) -> bool {
-    span.ctxt.outer().expn_info().map_or(false, |info| {
+    span.ctxt().outer().expn_info().map_or(false, |info| {
         match info.callee.format {// don't treat range expressions desugared to structs as "in_macro"
             ExpnFormat::CompilerDesugaring(kind) => kind != CompilerDesugaringKind::DotFill,
             _ => true,
@@ -146,7 +147,7 @@ pub fn in_external_macro<'a, T: LintContext<'a>>(cx: &T, span: Span) -> bool {
         })
     }
 
-    span.ctxt.outer().expn_info().map_or(false, |info| {
+    span.ctxt().outer().expn_info().map_or(false, |info| {
         in_macro_ext(cx, &info)
     })
 }
@@ -562,10 +563,11 @@ impl<'a> Drop for DiagnosticWrapper<'a> {
 }
 
 impl<'a> DiagnosticWrapper<'a> {
-    fn wiki_link(&mut self, lint: &'static Lint) {
-        if env::var("CLIPPY_DISABLE_WIKI_LINKS").is_err() {
+    fn docs_link(&mut self, lint: &'static Lint) {
+        if env::var("CLIPPY_DISABLE_DOCS_LINKS").is_err() {
             self.0.help(&format!(
-                "for further information visit https://github.com/rust-lang-nursery/rust-clippy/wiki#{}",
+                "for further information visit https://rust-lang-nursery.github.io/rust-clippy/{}/index.html#{}",
+                env!("CARGO_PKG_VERSION"),
                 lint.name_lower()
             ));
         }
@@ -573,7 +575,7 @@ impl<'a> DiagnosticWrapper<'a> {
 }
 
 pub fn span_lint<'a, T: LintContext<'a>>(cx: &T, lint: &'static Lint, sp: Span, msg: &str) {
-    DiagnosticWrapper(cx.struct_span_lint(lint, sp, msg)).wiki_link(lint);
+    DiagnosticWrapper(cx.struct_span_lint(lint, sp, msg)).docs_link(lint);
 }
 
 pub fn span_help_and_lint<'a, 'tcx: 'a, T: LintContext<'tcx>>(
@@ -585,7 +587,7 @@ pub fn span_help_and_lint<'a, 'tcx: 'a, T: LintContext<'tcx>>(
 ) {
     let mut db = DiagnosticWrapper(cx.struct_span_lint(lint, span, msg));
     db.0.help(help);
-    db.wiki_link(lint);
+    db.docs_link(lint);
 }
 
 pub fn span_note_and_lint<'a, 'tcx: 'a, T: LintContext<'tcx>>(
@@ -602,7 +604,7 @@ pub fn span_note_and_lint<'a, 'tcx: 'a, T: LintContext<'tcx>>(
     } else {
         db.0.span_note(note_span, note);
     }
-    db.wiki_link(lint);
+    db.docs_link(lint);
 }
 
 pub fn span_lint_and_then<'a, 'tcx: 'a, T: LintContext<'tcx>, F>(
@@ -616,7 +618,7 @@ pub fn span_lint_and_then<'a, 'tcx: 'a, T: LintContext<'tcx>, F>(
 {
     let mut db = DiagnosticWrapper(cx.struct_span_lint(lint, sp, msg));
     f(&mut db.0);
-    db.wiki_link(lint);
+    db.docs_link(lint);
 }
 
 pub fn span_lint_and_sugg<'a, 'tcx: 'a, T: LintContext<'tcx>>(
@@ -739,7 +741,7 @@ fn parse_attrs<F: FnMut(u64)>(sess: &Session, attrs: &[ast::Attribute], name: &'
 /// See also `is_direct_expn_of`.
 pub fn is_expn_of(mut span: Span, name: &str) -> Option<Span> {
     loop {
-        let span_name_span = span.ctxt.outer().expn_info().map(|ei| {
+        let span_name_span = span.ctxt().outer().expn_info().map(|ei| {
             (ei.callee.name(), ei.call_site)
         });
 
@@ -761,7 +763,7 @@ pub fn is_expn_of(mut span: Span, name: &str) -> Option<Span> {
 /// `bar!` by
 /// `is_direct_expn_of`.
 pub fn is_direct_expn_of(span: Span, name: &str) -> Option<Span> {
-    let span_name_span = span.ctxt.outer().expn_info().map(|ei| {
+    let span_name_span = span.ctxt().outer().expn_info().map(|ei| {
         (ei.callee.name(), ei.call_site)
     });
 

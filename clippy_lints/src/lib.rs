@@ -1,7 +1,6 @@
 // error-pattern:cargo-clippy
 
 #![feature(box_syntax)]
-#![feature(alloc)]
 #![feature(custom_attribute)]
 #![feature(i128_type)]
 #![feature(i128)]
@@ -530,6 +529,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         types::ABSURD_EXTREME_COMPARISONS,
         types::BORROWED_BOX,
         types::BOX_VEC,
+        types::CAST_LOSSLESS,
         types::CHAR_LIT_AS_U8,
         types::LET_UNIT_VALUE,
         types::LINKEDLIST,
