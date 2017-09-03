@@ -191,7 +191,12 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Detects classic underflow/overflow checks.", 
+      "Why is this bad": "Most classic C underflow/overflow checks will fail in\nRust. Users can use functions like `overflowing_*` and `wrapping_*` instead.", 
+      "Example": "```rust\na + b < a\n```", 
+      "Known problems": "None."
+    }, 
     "id": "overflow_check_conditional", 
     "level": "Warn"
   }, 
@@ -468,7 +473,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks [regex] creation (with `Regex::new`,\n`RegexBuilder::new` or `RegexSet::new`) for correct regex syntax.\n[regex]: https://crates.io/crates/regex", 
+      "What it does": "Checks [regex](https://crates.io/crates/regex) creation\n(with `Regex::new`,`RegexBuilder::new` or `RegexSet::new`) for correct\nregex syntax.", 
       "Why is this bad": "This will lead to a runtime panic.", 
       "Example": "```rust\nRegex::new(\"|\")\n```", 
       "Known problems": "None."
@@ -1365,7 +1370,7 @@
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.", 
       "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat is is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.", 
       "Example": "```rust\nvec.len() <= 0\n100 > std::i32::MAX\n```", 
-      "Known problems": "None."
+      "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g. 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation attributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead."
     }, 
     "id": "absurd_extreme_comparisons", 
     "level": "Warn"
