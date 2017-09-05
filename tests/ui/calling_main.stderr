@@ -1,0 +1,14 @@
+error: called the `main` function manually
+ --> $DIR/calling_main.rs:9:5
+  |
+9 |     main(); //~ERROR calling into main() detected
+  |     ^^^^^^
+  |
+note: lint level defined here
+ --> $DIR/calling_main.rs:3:9
+  |
+3 | #![deny(calling_main)]
+  |         ^^^^^^^^^^^^
+
+error: aborting due to previous error
+
