@@ -272,7 +272,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for for loops that manually copy items between\nslices that could be optimized by having a memcpy.", 
+      "What it does": "Checks for for-loops that manually copy items between\nslices that could be optimized by having a memcpy.", 
       "Why is this bad": "It is not as fast as a memcpy.", 
       "Example": "```rust\nfor i in 0..src.len() {\n    dst[i + 64] = src[i];\n}\n```", 
       "Known problems": "None."
