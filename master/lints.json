@@ -997,7 +997,12 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Checks for\n - () being assigned to a variable\n - () being passed to a function", 
+      "Why is this bad": "It is extremely unlikely that a user intended to\nassign '()' to valiable. Instead,\nUnit is what a block evaluates to when it returns nothing. This is\ntypically caused by a trailing\n  unintended semicolon.", 
+      "Example": "* `let x = {\"foo\" ;}` when the user almost certainly intended `let x\n={\"foo\"}`", 
+      "Known problems": "None."
+    }, 
     "id": "unit_expr", 
     "level": "Warn"
   }, 
@@ -1361,7 +1366,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.\norg/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.\norg/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.", 
+      "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.", 
       "Why is this bad": "Usually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).", 
       "Example": "```rust\nlet x = 3.14;\n```", 
       "Known problems": "If you happen to have a value that is within 1/8192 of a\nknown constant, but is not *and should not* be the same, this lint will\nreport your value anyway. We have not yet noticed any false positives in\ncode we tested clippy with (this includes servo), but YMMV."
@@ -1971,7 +1976,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for trivial [regex] creation (with `Regex::new`,\n`RegexBuilder::new` or `RegexSet::new`).\n[regex]: https://crates.io/crates/regex", 
+      "What it does": "Checks for trivial [regex](https://crates.io/crates/regex)\ncreation (with `Regex::new`, `RegexBuilder::new` or `RegexSet::new`).", 
       "Why is this bad": "Matching the regex can likely be replaced by `==` or\n`str::starts_with`, `str::ends_with` or `std::contains` or other `str`\nmethods.", 
       "Example": "```rust\nRegex::new(\"^foobar\")\n```", 
       "Known problems": "None."
