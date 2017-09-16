@@ -282,6 +282,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for printing on *stdout*. The purpose of this lint\nis to catch debugging remnants.", 
+      "Why is this bad": "People often print on *stdout* while debugging an\napplication and might forget to remove those prints afterward.", 
+      "Example": "```rust\nprintln!(\"Hello world!\");\n```", 
+      "Known problems": "Only catches `print!` and `println!` calls."
+    }, 
+    "id": "print_stdout", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usages of `Mutex<X>` where an atomic will do.", 
       "Why is this bad": "Using a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::atomic::AtomicBool` and `std::atomic::AtomicPtr` are leaner and\nfaster.", 
       "Example": "```rust\nlet x = Mutex::new(&y);\n```", 
@@ -678,13 +688,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for printing on *stdout*. The purpose of this lint\nis to catch debugging remnants.", 
-      "Why is this bad": "People often print on *stdout* while debugging an\napplication and might forget to remove those prints afterward.", 
-      "Example": "```rust\nprintln!(\"Hello world!\");\n```", 
-      "Known problems": "Only catches `print!` and `println!` calls."
+      "What it does": "Checks for usage of `.chars().last()` or\n`.chars().next_back()` on a `str` to check if it ends with a given char.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.ends_with(_)`.", 
+      "Example": "```rust\nname.chars().last() == Some('_') || name.chars().next_back() == Some('-')\n```", 
+      "Known problems": "None."
     }, 
-    "id": "print_stdout", 
-    "level": "Allow"
+    "id": "chars_last_cmp", 
+    "level": "Warn"
   }, 
   {
     "docs": {
