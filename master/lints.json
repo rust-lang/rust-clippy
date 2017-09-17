@@ -610,10 +610,10 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint checks for function arguments of type `&String`\nor `&Vec` unless\nthe references are mutable.", 
-      "Why is this bad": "Requiring the argument to be of the specific size\nmakes the function less\nuseful for no benefit; slices in the form of `&[T]` or `&str` usually\nsuffice and can be\nobtained from other types, too.", 
+      "What it does": "This lint checks for function arguments of type `&String`\nor `&Vec` unless the references are mutable. It will also suggest you\nreplace `.clone()` calls with the appropriate `.to_owned()`/`to_string()`\ncalls.", 
+      "Why is this bad": "Requiring the argument to be of the specific size\nmakes the function less useful for no benefit; slices in the form of `&[T]`\nor `&str` usually suffice and can be obtained from other types, too.", 
       "Example": "```rust\nfn foo(&Vec<u32>) { .. }\n```", 
-      "Known problems": "None."
+      "Known problems": "The lint does not follow data. So if you have an\nargument `x` and write `let y = x; y.clone()` the lint will not suggest\nchanging that `.clone()` to `.to_owned()`.\nOther functions called from this function taking a `&String` or `&Vec`\nargument may also fail to compile if you change the argument. Applying\nthis lint on them will fix the problem, but they may be in other crates.\nAlso there may be `fn(&Vec)`-typed references pointing to your function.\nIf you have them, you will get a compiler error after applying this lint's\nsuggestions. You then have the choice to undo your changes or change the\ntype of the reference.\nNote that if the function is part of your public interface, there may be\nother crates referencing it you may not be aware. Carefully deprecate the\nfunction before applying the lint suggestions in this case."
     }, 
     "id": "ptr_arg", 
     "level": "Warn"
