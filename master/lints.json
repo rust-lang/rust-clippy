@@ -302,6 +302,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
+      "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
+      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "use_self", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usages of `Mutex<X>` where an atomic will do.", 
       "Why is this bad": "Using a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::atomic::AtomicBool` and `std::atomic::AtomicPtr` are leaner and\nfaster.", 
       "Example": "```rust\nlet x = Mutex::new(&y);\n```", 
@@ -2015,14 +2025,9 @@
     "level": "Warn"
   }, 
   {
-    "docs": {
-      "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
-      "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
-      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "id": "use_self", 
-    "level": "Allow"
+    "docs": {}, 
+    "id": "mut_range_bound", 
+    "level": "Warn"
   }, 
   {
     "docs": {
