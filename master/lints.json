@@ -1638,6 +1638,7 @@
     "docs": {
       "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`", 
       "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `verbose_bit_mask_threshold: u64`: The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros' (defaults to `1 `).", 
       "Example": "```rust\nx & 0x1111 == 0\n```", 
       "Known problems": "llvm generates better code for `x & 15 == 0` on x86"
     }, 
