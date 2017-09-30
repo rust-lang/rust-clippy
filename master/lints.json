@@ -2102,6 +2102,11 @@
     "level": "Allow"
   }, 
   {
+    "docs": {}, 
+    "id": "invalid_ref", 
+    "level": "Warn"
+  }, 
+  {
     "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "`Range::step_by(0)` used to be linted since it's\nan infinite iterator, which is better expressed by `iter::repeat`,\nbut the method has been removed for `Iterator::step_by` which panics\nif given a zero"
