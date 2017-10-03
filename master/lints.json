@@ -172,6 +172,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.", 
+      "Why is this bad": "An expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.", 
+      "Example": "```rust\nlet x : u8 = ...; (x as u32) > 300\n```", 
+      "Known problems": "https://github.com/rust-lang-nursery/rust-clippy/issues/886"
+    }, 
+    "id": "invalid_upcast_comparisons", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for the use of bindings with a single leading\nunderscore.", 
       "Why is this bad": "A single leading underscore is usually used to indicate\nthat a binding will not be used. Using such a binding breaks this\nexpectation.", 
       "Example": "```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\nunderscore.\n                // We should rename `_x` to `x`\n```", 
@@ -1306,13 +1316,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.", 
-      "Why is this bad": "An expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.", 
-      "Example": "```rust\nlet x : u8 = ...; (x as u32) > 300\n```", 
-      "Known problems": "https://github.com/rust-lang-nursery/rust-clippy/issues/886"
+      "What it does": "Checks for transmutes from an integer to a `char`.", 
+      "Why is this bad": "Not every integer is a unicode scalar value.", 
+      "Example": "```rust\nlet _: char = std::mem::transmute(x); // where x: u32\n// should be:\nlet _: Option<char> = std::char::from_u32(x);\n```", 
+      "Known problems": "None."
     }, 
-    "id": "invalid_upcast_comparisons", 
-    "level": "Allow"
+    "id": "transmute_int_to_char", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1909,6 +1919,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for transmutes from an integer to a float.", 
+      "Why is this bad": "This might result in an invalid in-memory representation of a float.", 
+      "Example": "```rust\nlet _: f32 = std::mem::transmute(x); // where x: u32\n// should be:\nlet _: f32 = f32::from_bits(x);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "transmute_int_to_float", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for use of `.skip(x).next()` on iterators.", 
       "Why is this bad": "`.nth(x)` is cleaner", 
       "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
@@ -2039,6 +2059,16 @@
       "Known problems": "None."
     }, 
     "id": "too_many_arguments", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for transmutes from an integer to a `bool`.", 
+      "Why is this bad": "This might result in an invalid in-memory representation of a `bool`.", 
+      "Example": "```rust\nlet _: bool = std::mem::transmute(x); // where x: u8\n// should be:\nlet _: bool = x != 0;\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "transmute_int_to_bool", 
     "level": "Warn"
   }, 
   {
