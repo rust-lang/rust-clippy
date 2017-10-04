@@ -363,6 +363,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for always-identical `Into`/`From` conversions.", 
+      "Why is this bad": "Redundant code.", 
+      "Example": "```rust\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "identity_conversion", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `foo = bar; bar = foo` sequences.", 
       "Why is this bad": "This looks like a failed attempt to swap.", 
       "Example": "```rust,ignore\na = b;\nb = a;\n```", 
