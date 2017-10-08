@@ -91,6 +91,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for bindings that shadow other bindings already in\nscope, while reusing the original value.", 
+      "Why is this bad": "Not too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.", 
+      "Example": "```rust\nlet x = x + 1;\n```", 
+      "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
+    }, 
+    "id": "shadow_reuse", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for matches where match expression is a `bool`. It\nsuggests to replace the expression with an `if...else` block.", 
       "Why is this bad": "It makes the code less readable.", 
       "Example": "```rust\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```", 
@@ -148,6 +158,16 @@
       "Known problems": "None."
     }, 
     "id": "deprecated_semver", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for binding a unit value.", 
+      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
+      "Example": "```rust\nlet x = { 1; };\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
@@ -866,12 +886,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for binding a unit value.", 
-      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
-      "Example": "```rust\nlet x = { 1; };\n```", 
+      "What it does": "Checks for inclusive ranges where 1 is subtracted from\nthe upper bound, e.g. `x..=(y-1)`.", 
+      "Why is this bad": "The code is more readable with an exclusive range\nlike `x..y`.", 
+      "Example": "```rust\nfor x..=(y-1) { .. }\n```", 
       "Known problems": "None."
     }, 
-    "id": "let_unit_value", 
+    "id": "range_minus_one", 
     "level": "Warn"
   }, 
   {
@@ -1596,12 +1616,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for bindings that shadow other bindings already in\nscope, while reusing the original value.", 
-      "Why is this bad": "Not too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.", 
-      "Example": "```rust\nlet x = x + 1;\n```", 
-      "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
+      "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g. `x..(y+1)`.", 
+      "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.", 
+      "Example": "```rust\nfor x..(y+1) { .. }\n```", 
+      "Known problems": "None."
     }, 
-    "id": "shadow_reuse", 
+    "id": "range_plus_one", 
     "level": "Allow"
   }, 
   {
