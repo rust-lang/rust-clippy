@@ -119,6 +119,7 @@ pub mod lifetimes;
 pub mod literal_digit_grouping;
 pub mod loops;
 pub mod map_clone;
+pub mod map_contains_then_remove;
 pub mod matches;
 pub mod mem_forget;
 pub mod methods;
@@ -350,6 +351,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box types::ImplicitHasher);
     reg.register_early_lint_pass(box const_static_lifetime::StaticConst);
     reg.register_late_lint_pass(box fallible_impl_from::FallibleImplFrom);
+    reg.register_late_lint_pass(box map_contains_then_remove::ContainsKey);
 
     reg.register_lint_group("clippy_restrictions", vec![
         arithmetic::FLOAT_ARITHMETIC,
