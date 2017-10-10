@@ -533,6 +533,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `_.map_or(None, _)`.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.and_then(_)`.", 
+      "Example": "```rust\nopt.map_or(None, |a| a + 1)\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "option_map_or_none", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for use of `Box<Vec<_>>` anywhere in the code.", 
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` it, you just add another level of indirection\nwithout any benefit whatsoever.", 
       "Example": "```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```", 
