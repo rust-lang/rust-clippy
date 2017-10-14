@@ -163,7 +163,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                     let deref_span = spans_need_deref.get(&canonical_id);
                     if_let_chain! {[
                         match_type(cx, ty, &paths::VEC),
-                        let Some(clone_spans) =
+                        let Some((clone_spans, ref_calls)) =
                             get_spans(cx, Some(body.id()), idx, &[("clone", ".to_owned()")]),
                         let TyPath(QPath::Resolved(_, ref path)) = input.node,
                         let Some(elem_ty) = path.segments.iter()
@@ -187,14 +187,16 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                                 suggestion.into()
                             );
                         }
-
+                        for span in ref_calls {
+                            db.span_note(span, "You will also need to change the function called here");
+                        }
                         // cannot be destructured, no need for `*` suggestion
                         assert!(deref_span.is_none());
                         return;
                     }}
 
                     if match_type(cx, ty, &paths::STRING) {
-                        if let Some(clone_spans) =
+                        if let Some((clone_spans, ref_calls)) =
                             get_spans(cx, Some(body.id()), idx, &[("clone", ".to_string()"), ("as_str", "")]) {
                             db.span_suggestion(input.span, "consider changing the type to", "&str".to_string());
 
@@ -208,6 +210,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                                         ),
                                     suggestion.into(),
                                 );
+                            }
+                            for span in ref_calls {
+                                db.span_note(span, "You will also need to change the function called here");
                             }
 
                             assert!(deref_span.is_none());

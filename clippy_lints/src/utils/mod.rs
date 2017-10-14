@@ -680,6 +680,19 @@ pub fn multispan_sugg(db: &mut DiagnosticBuilder, help_msg: String, sugg: Vec<(S
     db.suggestions.push(sugg);
 }
 
+/// Returns the dereferenced expression (also walks single-expr-blocks)
+pub fn walk_ptrs_expr(expr: &hir::Expr) -> &hir::Expr {
+    match expr.node {
+        ExprAddrOf(_, ref e) => walk_ptrs_expr(e),
+        ExprBlock(ref block) => if block.stmts.is_empty() {
+                block.expr.as_ref().map_or(expr, |e| walk_ptrs_expr(e))
+            } else {
+                expr
+            },
+        _ => expr
+    }
+}
+
 /// Return the base type for HIR references and pointers.
 pub fn walk_ptrs_hir_ty(ty: &hir::Ty) -> &hir::Ty {
     match ty.node {

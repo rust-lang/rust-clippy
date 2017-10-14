@@ -28,6 +28,7 @@ use utils::ptr::get_spans;
 /// Other functions called from this function taking a `&String` or `&Vec`
 /// argument may also fail to compile if you change the argument. Applying
 /// this lint on them will fix the problem, but they may be in other crates.
+/// This lint only notes the call sites, not the actual function definition.
 ///
 /// Also there may be `fn(&Vec)`-typed references pointing to your function.
 /// If you have them, you will get a compiler error after applying this lint's
@@ -68,19 +69,16 @@ declare_lint! {
 }
 
 /// **What it does:** This lint checks for functions that take immutable
-/// references and return
-/// mutable ones.
+/// references and return mutable ones.
 ///
 /// **Why is this bad?** This is trivially unsound, as one can create two
-/// mutable references
-/// from the same (immutable!) source. This
-/// [error](https://github.com/rust-lang/rust/issues/39465)
-/// actually lead to an interim Rust release 1.15.1.
+/// mutable references from the same (immutable!) source. This
+/// [error](https://github.com/rust-lang/rust/issues/39465) actually lead
+/// to an interim Rust release 1.15.1.
 ///
 /// **Known problems:** To be on the conservative side, if there's at least one
-/// mutable reference
-/// with the output lifetime, this lint will not trigger. In practice, this
-/// case is unlikely anyway.
+/// mutable input reference with the lifetime of the output, this lint will not
+/// trigger. In practice, this case is unlikely anyway.
 ///
 /// **Example:**
 /// ```rust
@@ -163,7 +161,7 @@ fn check_fn(cx: &LateContext, decl: &FnDecl, fn_id: NodeId, opt_body_id: Option<
                 ], {
                     ty_snippet = snippet_opt(cx, parameters.types[0].span);
                 });
-                if let Some(spans) = get_spans(cx, opt_body_id, idx, &[("clone", ".to_owned()")]) {
+                if let Some((spans, ref_calls)) = get_spans(cx, opt_body_id, idx, &[("clone", ".to_owned()")]) {
                     span_lint_and_then(
                         cx,
                         PTR_ARG,
@@ -182,11 +180,14 @@ fn check_fn(cx: &LateContext, decl: &FnDecl, fn_id: NodeId, opt_body_id: Option<
                                                         |x| Cow::Owned(format!("change `{}` to", x))),
                                                    suggestion.into());
                             }
+                            for span in ref_calls {
+                                db.span_note(span, "You will also need to change the function called here");
+                            }
                         }
                     );
                 }
             } else if match_type(cx, ty, &paths::STRING) {
-                if let Some(spans) = get_spans(cx, opt_body_id, idx, &[("clone", ".to_string()"), ("as_str", "")]) {
+                if let Some((spans, ref_calls)) = get_spans(cx, opt_body_id, idx, &[("clone", ".to_string()"), ("as_str", "")]) {
                     span_lint_and_then(
                         cx,
                         PTR_ARG,
@@ -201,6 +202,9 @@ fn check_fn(cx: &LateContext, decl: &FnDecl, fn_id: NodeId, opt_body_id: Option<
                                                    &snippet_opt(cx, clonespan).map_or("change the call to".into(),
                                                         |x| Cow::Owned(format!("change `{}` to", x))),
                                                    suggestion.into());
+                            }
+                            for span in ref_calls {
+                                db.span_note(span, "You will also need to change the function called here");
                             }
                         }
                     );

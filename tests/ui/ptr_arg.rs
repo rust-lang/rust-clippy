@@ -56,6 +56,10 @@ fn str_cloned(x: &String) -> String {
     x.clone()
 }
 
+fn sub_function(x: &String) {
+    let _ = str_cloned(x);
+}
+
 fn false_positive_capacity(x: &Vec<u8>, y: &String) {
     let a = x.capacity();
     let b = y.clone();

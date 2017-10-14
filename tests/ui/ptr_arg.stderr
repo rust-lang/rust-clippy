@@ -61,21 +61,33 @@ help: change `x.clone()` to
    |     ^^^^^^^^^^^^^
 
 error: writing `&String` instead of `&str` involves a new object where a slice will do.
-  --> $DIR/ptr_arg.rs:59:44
+  --> $DIR/ptr_arg.rs:59:20
    |
-59 | fn false_positive_capacity(x: &Vec<u8>, y: &String) {
+59 | fn sub_function(x: &String) {
+   |                    ^^^^^^^ help: change this to: `&str`
+   |
+note: You will also need to change the function called here
+  --> $DIR/ptr_arg.rs:60:13
+   |
+60 |     let _ = str_cloned(x);
+   |             ^^^^^^^^^^^^^
+
+error: writing `&String` instead of `&str` involves a new object where a slice will do.
+  --> $DIR/ptr_arg.rs:63:44
+   |
+63 | fn false_positive_capacity(x: &Vec<u8>, y: &String) {
    |                                            ^^^^^^^
    |
 help: change this to
    |
-59 | fn false_positive_capacity(x: &Vec<u8>, y: &str) {
+63 | fn false_positive_capacity(x: &Vec<u8>, y: &str) {
    |                                            ^^^^
 help: change `y.clone()` to
    |
-61 |     let b = y.to_string();
+65 |     let b = y.to_string();
    |             ^^^^^^^^^^^^^
 help: change `y.as_str()` to
    |
-62 |     let c = y;
+66 |     let c = y;
    |             ^
 
