@@ -2182,6 +2182,16 @@
     "level": "Allow"
   }, 
   {
+    "docs": {
+      "What it does": "Checks for usage of `write!()` / `writeln()!` which can be\nreplaced with `(e)print!()` / `(e)println!()`", 
+      "Why is this bad": "Using `(e)println! is clearer and more concise", 
+      "Example": "```rust\n// this would be clearer as `eprintln!(\"foo: {:?}\", bar);`\nwriteln!(&mut io::stderr(), \"foo: {:?}\", bar).unwrap();\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "explicit_write", 
+    "level": "Warn"
+  }, 
+  {
     "docs": {}, 
     "id": "invalid_ref", 
     "level": "Warn"
