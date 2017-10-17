@@ -2029,6 +2029,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
+      "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
+      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
+      "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
+    }, 
+    "id": "implicit_hasher", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for functions taking arguments by value, but not\nconsuming them in its\nbody.", 
       "Why is this bad": "Taking arguments by reference is more flexible and can\nsometimes avoid\nunnecessary allocations.", 
       "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n```", 
