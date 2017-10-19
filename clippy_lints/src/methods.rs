@@ -823,13 +823,7 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[hir:
     ) {
         // don't lint for constant values
         // FIXME: can we `expect` here instead of match?
-        let promotable = cx.tcx
-            .rvalue_promotable_to_static
-            .borrow()
-            .get(&arg.id)
-            .cloned()
-            .unwrap_or(true);
-        if promotable {
+        if cx.tcx.const_is_rvalue_promotable_to_static(cx.tcx.hir.local_def_id(arg.id)) {
             return;
         }
 
