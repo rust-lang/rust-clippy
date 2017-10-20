@@ -995,6 +995,16 @@
   }, 
   {
     "docs": {
+      "What it does": "This lint warns when you using `println!(\"\")` to\nprint a newline.", 
+      "Why is this bad": "You should use `println!()`, which is simpler.", 
+      "Example": "```rust\nprintln!(\"\");\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "println_empty_string", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `&vec![..]` when using `&[..]` would\nbe possible.", 
       "Why is this bad": "This is less efficient.", 
       "Example": "```rust,ignore\nfoo(&vec![1, 2])\n```", 
@@ -1194,13 +1204,8 @@
     "level": "Allow"
   }, 
   {
-    "docs": {
-      "What it does": "Checks for usage of `*&` and `*&mut` in expressions.", 
-      "Why is this bad": "Immediately dereferencing a reference is no-op and\nmakes the code less clear.", 
-      "Example": "```rust\nlet a = f(*&mut b);\nlet c = *&d;\n```", 
-      "Known problems": "Multiple dereference/addrof pairs are not handled so\nthe suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect."
-    }, 
-    "id": "deref_addrof", 
+    "docs": {}, 
+    "id": "const_static_lifetime", 
     "level": "Warn"
   }, 
   {
@@ -2191,6 +2196,16 @@
     }, 
     "id": "range_step_by_zero", 
     "level": "Deprecated"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for usage of `*&` and `*&mut` in expressions.", 
+      "Why is this bad": "Immediately dereferencing a reference is no-op and\nmakes the code less clear.", 
+      "Example": "```rust\nlet a = f(*&mut b);\nlet c = *&d;\n```", 
+      "Known problems": "Multiple dereference/addrof pairs are not handled so\nthe suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect."
+    }, 
+    "id": "deref_addrof", 
+    "level": "Warn"
   }, 
   {
     "docs": {
