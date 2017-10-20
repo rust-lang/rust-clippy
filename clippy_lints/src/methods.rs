@@ -821,18 +821,6 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[hir:
         or_has_args: bool,
         span: Span,
     ) {
-        // don't lint for constant values
-        // FIXME: can we `expect` here instead of match?
-        let promotable = cx.tcx
-            .rvalue_promotable_to_static
-            .borrow()
-            .get(&arg.id)
-            .cloned()
-            .unwrap_or(true);
-        if promotable {
-            return;
-        }
-
         // (path, fn_has_argument, methods, suffix)
         let know_types: &[(&[_], _, &[_], _)] = &[
             (&paths::BTREEMAP_ENTRY, false, &["or_insert"], "with"),
@@ -840,6 +828,21 @@ fn lint_or_fun_call(cx: &LateContext, expr: &hir::Expr, name: &str, args: &[hir:
             (&paths::OPTION, false, &["map_or", "ok_or", "or", "unwrap_or"], "else"),
             (&paths::RESULT, true, &["or", "unwrap_or"], "else"),
         ];
+
+        // early check if the name is one we care about
+        if know_types.iter().all(|k| !k.2.contains(&name)) {
+            return;
+        }
+
+        // don't lint for constant values
+        // FIXME: can we `expect` here instead of match?
+        let owner_def = cx.tcx.hir.get_parent_did(arg.id);
+        let promotable = cx.tcx
+            .rvalue_promotable_map(owner_def)
+            [&arg.hir_id.local_id];
+        if promotable {
+            return;
+        }
 
         let self_ty = cx.tables.expr_ty(self_expr);
 
@@ -1528,7 +1531,7 @@ enum Convention {
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
-const CONVENTIONS: [(Convention, &'static [SelfKind]); 6] = [
+const CONVENTIONS: [(Convention, &[SelfKind]); 6] = [
     (Convention::Eq("new"), &[SelfKind::No]),
     (Convention::StartsWith("as_"), &[SelfKind::Ref, SelfKind::RefMut]),
     (Convention::StartsWith("from_"), &[SelfKind::No]),
@@ -1538,7 +1541,7 @@ const CONVENTIONS: [(Convention, &'static [SelfKind]); 6] = [
 ];
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
-const TRAIT_METHODS: [(&'static str, usize, SelfKind, OutType, &'static str); 30] = [
+const TRAIT_METHODS: [(&str, usize, SelfKind, OutType, &str); 30] = [
     ("add", 2, SelfKind::Value, OutType::Any, "std::ops::Add"),
     ("as_mut", 1, SelfKind::RefMut, OutType::Ref, "std::convert::AsMut"),
     ("as_ref", 1, SelfKind::Ref, OutType::Ref, "std::convert::AsRef"),
@@ -1572,7 +1575,7 @@ const TRAIT_METHODS: [(&'static str, usize, SelfKind, OutType, &'static str); 30
 ];
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
-const PATTERN_METHODS: [(&'static str, usize); 17] = [
+const PATTERN_METHODS: [(&str, usize); 17] = [
     ("contains", 1),
     ("starts_with", 1),
     ("ends_with", 1),

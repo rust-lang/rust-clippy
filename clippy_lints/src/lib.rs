@@ -76,6 +76,7 @@ pub mod block_in_if_condition;
 pub mod booleans;
 pub mod bytecount;
 pub mod collapsible_if;
+pub mod const_static_lifetime;
 pub mod copies;
 pub mod cyclomatic_complexity;
 pub mod derive;
@@ -91,6 +92,7 @@ pub mod eq_op;
 pub mod escape;
 pub mod eta_reduction;
 pub mod eval_order_dependence;
+pub mod explicit_write;
 pub mod float_excessive_precision;
 pub mod format;
 pub mod formatting;
@@ -145,9 +147,7 @@ pub mod regex;
 pub mod returns;
 pub mod serde_api;
 pub mod shadow;
-pub mod should_assert_eq;
 pub mod strings;
-pub mod explicit_write;
 pub mod swap;
 pub mod temporary_assignment;
 pub mod transmute;
@@ -201,6 +201,10 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     };
 
     let mut store = reg.sess.lint_store.borrow_mut();
+    store.register_removed(
+        "should_assert_eq",
+        "`assert!()` will be more flexible with RFC 2011"
+    );
     store.register_removed(
         "extend_from_slice",
         "`.extend_from_slice(_)` is a faster way to extend a Vec by a slice",
@@ -328,7 +332,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_early_lint_pass(box double_parens::DoubleParens);
     reg.register_late_lint_pass(box unused_io_amount::UnusedIoAmount);
     reg.register_late_lint_pass(box large_enum_variant::LargeEnumVariant::new(conf.enum_variant_size_threshold));
-    reg.register_late_lint_pass(box should_assert_eq::ShouldAssertEq);
     reg.register_late_lint_pass(box explicit_write::Pass);
     reg.register_late_lint_pass(box needless_pass_by_value::NeedlessPassByValue);
     reg.register_early_lint_pass(box literal_digit_grouping::LiteralDigitGrouping);
@@ -339,6 +342,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box invalid_ref::InvalidRef);
     reg.register_late_lint_pass(box identity_conversion::IdentityConversion::default());
     reg.register_late_lint_pass(box types::ImplicitHasher);
+    reg.register_early_lint_pass(box const_static_lifetime::StaticConst);
 
     reg.register_lint_group("clippy_restrictions", vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -349,6 +353,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
 
     reg.register_lint_group("clippy_pedantic", vec![
         booleans::NONMINIMAL_BOOL,
+        const_static_lifetime::CONST_STATIC_LIFETIME,
         empty_enum::EMPTY_ENUM,
         enum_glob_use::ENUM_GLOB_USE,
         enum_variants::PUB_ENUM_VARIANT_NAMES,
@@ -357,7 +362,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         if_not_else::IF_NOT_ELSE,
         infinite_iter::MAYBE_INFINITE_ITER,
         int_plus_one::INT_PLUS_ONE,
-        invalid_ref::INVALID_REF,
         items_after_statements::ITEMS_AFTER_STATEMENTS,
         matches::SINGLE_MATCH_ELSE,
         mem_forget::MEM_FORGET,
@@ -375,6 +379,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         non_expressive_names::SIMILAR_NAMES,
         print::PRINT_STDOUT,
         print::USE_DEBUG,
+        ranges::RANGE_PLUS_ONE,
         shadow::SHADOW_REUSE,
         shadow::SHADOW_SAME,
         shadow::SHADOW_UNRELATED,
@@ -434,6 +439,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         eta_reduction::REDUNDANT_CLOSURE,
         eval_order_dependence::DIVERGING_SUB_EXPRESSION,
         eval_order_dependence::EVAL_ORDER_DEPENDENCE,
+        explicit_write::EXPLICIT_WRITE,
         format::USELESS_FORMAT,
         formatting::POSSIBLE_MISSING_COMMA,
         formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING,
@@ -444,6 +450,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         identity_op::IDENTITY_OP,
         if_let_redundant_pattern_matching::IF_LET_REDUNDANT_PATTERN_MATCHING,
         infinite_iter::INFINITE_ITER,
+        invalid_ref::INVALID_REF,
         is_unit_expr::UNIT_EXPR,
         large_enum_variant::LARGE_ENUM_VARIANT,
         len_zero::LEN_WITHOUT_IS_EMPTY,
@@ -488,6 +495,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         methods::ITER_SKIP_NEXT,
         methods::NEW_RET_NO_SELF,
         methods::OK_EXPECT,
+        methods::OPTION_MAP_OR_NONE,
         methods::OR_FUN_CALL,
         methods::SEARCH_IS_SOME,
         methods::SHOULD_IMPLEMENT_TRAIT,
@@ -533,10 +541,12 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         partialeq_ne_impl::PARTIALEQ_NE_IMPL,
         precedence::PRECEDENCE,
         print::PRINT_WITH_NEWLINE,
+        print::PRINTLN_EMPTY_STRING,
         ptr::CMP_NULL,
         ptr::MUT_FROM_REF,
         ptr::PTR_ARG,
         ranges::ITERATOR_STEP_BY_ZERO,
+        ranges::RANGE_MINUS_ONE,
         ranges::RANGE_ZIP_WITH_LEN,
         reference::DEREF_ADDROF,
         regex::INVALID_REGEX,
@@ -545,19 +555,17 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         returns::LET_AND_RETURN,
         returns::NEEDLESS_RETURN,
         serde_api::SERDE_API_MISUSE,
-        should_assert_eq::SHOULD_ASSERT_EQ,
         strings::STRING_LIT_AS_BYTES,
-        explicit_write::EXPLICIT_WRITE,
         swap::ALMOST_SWAPPED,
         swap::MANUAL_SWAP,
         temporary_assignment::TEMPORARY_ASSIGNMENT,
         transmute::CROSSPOINTER_TRANSMUTE,
+        transmute::TRANSMUTE_INT_TO_BOOL,
+        transmute::TRANSMUTE_INT_TO_CHAR,
+        transmute::TRANSMUTE_INT_TO_FLOAT,
         transmute::TRANSMUTE_PTR_TO_REF,
         transmute::USELESS_TRANSMUTE,
         transmute::WRONG_TRANSMUTE,
-        transmute::TRANSMUTE_INT_TO_CHAR,
-        transmute::TRANSMUTE_INT_TO_BOOL,
-        transmute::TRANSMUTE_INT_TO_FLOAT,
         types::ABSURD_EXTREME_COMPARISONS,
         types::BORROWED_BOX,
         types::BOX_VEC,

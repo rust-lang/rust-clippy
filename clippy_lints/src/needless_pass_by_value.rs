@@ -108,7 +108,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
         } = {
             let mut ctx = MovedVariablesCtxt::new(cx);
             let region_scope_tree = &cx.tcx.region_scope_tree(fn_def_id);
-            euv::ExprUseVisitor::new(&mut ctx, cx.tcx, cx.param_env, region_scope_tree, cx.tables).consume_body(body);
+            euv::ExprUseVisitor::new(&mut ctx, cx.tcx, cx.param_env, region_scope_tree, cx.tables, None).consume_body(body);
             ctx
         };
 
@@ -121,6 +121,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
             .zip(&body.arguments)
             .enumerate()
         {
+            // All spans generated from a proc-macro invocation are the same...
+            if span == input.span {
+                return;
+            }
+
             // * Exclude a type that is specifically bounded by `Borrow`.
             // * Exclude a type whose reference also fulfills its bound.
             //   (e.g. `std::convert::AsRef`, `serde::Serialize`)

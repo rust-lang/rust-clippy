@@ -749,7 +749,14 @@ fn get_indexed_assignments<'a, 'tcx>(
     ) -> Option<(FixedOffsetVar, FixedOffsetVar)> {
         if let Expr_::ExprAssign(ref lhs, ref rhs) = e.node {
             match (get_fixed_offset_var(cx, lhs, var), fetch_cloned_fixed_offset_var(cx, rhs, var)) {
-                (Some(offset_left), Some(offset_right)) => Some((offset_left, offset_right)),
+                (Some(offset_left), Some(offset_right)) => {
+                    // Source and destination must be different
+                    if offset_left.var_name == offset_right.var_name {
+                        None
+                    } else {
+                        Some((offset_left, offset_right))
+                    }
+                },
                 _ => None,
             }
         } else {
@@ -1390,7 +1397,7 @@ fn check_for_mutation(cx: &LateContext, body: &Expr, bound_ids: &[Option<NodeId>
     let mut delegate = MutateDelegate { node_id_low: bound_ids[0], node_id_high: bound_ids[1], span_low: None, span_high: None };
     let def_id = def_id::DefId::local(body.hir_id.owner);
     let region_scope_tree = &cx.tcx.region_scope_tree(def_id);
-    ExprUseVisitor::new(&mut delegate, cx.tcx, cx.param_env, region_scope_tree, cx.tables).walk_expr(body);
+    ExprUseVisitor::new(&mut delegate, cx.tcx, cx.param_env, region_scope_tree, cx.tables, None).walk_expr(body);
     delegate.mutation_span()
 }
 
