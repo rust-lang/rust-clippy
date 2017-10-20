@@ -738,13 +738,11 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for string methods that receive a single-character\n`str` as an argument, e.g. `_.split(\"x\")`.", 
-      "Why is this bad": "Performing these methods using a `char` is faster than\nusing a `str`.", 
-      "Example": "`_.split(\"x\")` could be `_.split('x')", 
-      "Known problems": "Does not catch multi-byte unicode characters."
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `assert!(a == b)` and recommend\nreplacement with `assert_eq!(a, b)`, but this is no longer needed after RFC 2011."
     }, 
-    "id": "single_char_pattern", 
-    "level": "Warn"
+    "id": "should_assert_eq", 
+    "level": "Deprecated"
   }, 
   {
     "docs": {
@@ -926,12 +924,12 @@
   }, 
   {
     "docs": {
-      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
-      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
-      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\nCould be rewritten as\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\nAs another example, the following code\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for string methods that receive a single-character\n`str` as an argument, e.g. `_.split(\"x\")`.", 
+      "Why is this bad": "Performing these methods using a `char` is faster than\nusing a `str`.", 
+      "Example": "`_.split(\"x\")` could be `_.split('x')", 
+      "Known problems": "Does not catch multi-byte unicode characters."
     }, 
-    "id": "needless_continue", 
+    "id": "single_char_pattern", 
     "level": "Warn"
   }, 
   {
@@ -1888,16 +1886,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `assert!(x == y)` or `assert!(x != y)` which\ncan be better written\nusing `assert_eq` or `assert_ne` if `x` and `y` implement `Debug` trait.", 
-      "Why is this bad": "`assert_eq` and `assert_ne` provide better assertion\nfailure reporting.", 
-      "Example": "```rust\nlet (x, y) = (1, 2);\nassert!(x == y);  // assertion failed: x == y\nassert_eq!(x, y); // assertion failed: `(left == right)` (left: `1`, right:\n`2`)\n```", 
-      "Known problems": "Hopefully none."
-    }, 
-    "id": "should_assert_eq", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for casts to the same type.", 
       "Why is this bad": "It's just unnecessary.", 
       "Example": "```rust\nlet _ = 2i32 as i32\n```", 
@@ -2212,6 +2200,16 @@
       "Known problems": "None."
     }, 
     "id": "block_in_if_condition_expr", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
+      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
+      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\nCould be rewritten as\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\nAs another example, the following code\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
+      "Known problems": "None"
+    }, 
+    "id": "needless_continue", 
     "level": "Warn"
   }, 
   {
