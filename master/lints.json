@@ -582,6 +582,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `.as_ref()` or `.as_mut()` where the\ntypes before and after the call are the same.", 
+      "Why is this bad": "The call is unnecessary.", 
+      "Example": "```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "useless_asref", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Detects enumeration variants that are prefixed or suffixed\nby the same characters.", 
       "Why is this bad": "Enumeration variant names should specify their variant,\nnot repeat the enumeration name.", 
       "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
