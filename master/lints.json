@@ -2229,6 +2229,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `for` loops over `Result` values.", 
+      "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.", 
+      "Example": "```rust\nfor x in result { .. }\n```\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "for_loop_over_result", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
       "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
       "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\nCould be rewritten as\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\nAs another example, the following code\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
@@ -2309,12 +2319,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `for` loops over `Result` values.", 
-      "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.", 
-      "Example": "```rust\nfor x in result { .. }\n```\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
+      "What it does": "Checks for impls of `From<..>` that contain `panic!()` or `unwrap()`", 
+      "Why is this bad": "`TryFrom` should be used if there's a possibility of failure.", 
+      "Example": "```rust\nstruct Foo(i32);\nimpl From<String> for Foo {\n    fn from(s: String) -> Self {\n        Foo(s.parse().unwrap())\n    }\n}\n```", 
       "Known problems": "None."
     }, 
-    "id": "for_loop_over_result", 
-    "level": "Warn"
+    "id": "fallible_impl_from", 
+    "level": "Allow"
   }
 ]
