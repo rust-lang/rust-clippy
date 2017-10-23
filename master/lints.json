@@ -1126,12 +1126,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for getting the remainder of a division by one.", 
-      "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
-      "Example": "```rust\nx % 1\n```", 
+      "What it does": "Checks for erasing operations, e.g. `x * 0`.", 
+      "Why is this bad": "The whole expression can be replaced by zero.\nThis is most likely not the intended outcome and should probably be\ncorrected", 
+      "Example": "```rust\n0 / x; 0 * x; x & 0\n```", 
       "Known problems": "None."
     }, 
-    "id": "modulo_one", 
+    "id": "erasing_op", 
     "level": "Warn"
   }, 
   {
@@ -1857,6 +1857,16 @@
       "Known problems": "None."
     }, 
     "id": "type_complexity", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for getting the remainder of a division by one.", 
+      "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
+      "Example": "```rust\nx % 1\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "modulo_one", 
     "level": "Warn"
   }, 
   {
