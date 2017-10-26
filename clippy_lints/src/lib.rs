@@ -97,6 +97,7 @@ pub mod bytecount;
 pub mod cargo_common_metadata;
 pub mod collapsible_if;
 pub mod const_static_lifetime;
+pub mod collect;
 pub mod copies;
 pub mod copy_iterator;
 pub mod cyclomatic_complexity;
@@ -483,6 +484,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box ptr_offset_with_cast::Pass);
     reg.register_late_lint_pass(box redundant_clone::RedundantClone);
     reg.register_late_lint_pass(box slow_vector_initialization::Pass);
+    reg.register_late_lint_pass(box collect::Pass::new());
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -1021,6 +1023,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
 
     reg.register_lint_group("clippy::nursery", Some("clippy_nursery"), vec![
         attrs::EMPTY_LINE_AFTER_OUTER_ATTR,
+        collect::POSSIBLE_SHORTCIRCUITING_COLLECT,
         fallible_impl_from::FALLIBLE_IMPL_FROM,
         mutex_atomic::MUTEX_INTEGER,
         needless_borrow::NEEDLESS_BORROW,

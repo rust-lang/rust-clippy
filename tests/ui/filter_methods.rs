@@ -8,7 +8,7 @@
 // except according to those terms.
 
 #![warn(clippy::all, clippy::pedantic)]
-#![allow(clippy::missing_docs_in_private_items)]
+#![allow(clippy::missing_docs_in_private_items, clippy::possible_shortcircuiting_collect)]
 
 fn main() {
     let _: Vec<_> = vec![5; 6].into_iter().filter(|&x| x == 0).map(|x| x * 2).collect();

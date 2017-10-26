@@ -1,0 +1,34 @@
+error: you are creating a collection of `Result`s
+ --> $DIR/collect.rs:6:21
+  |
+6 |     let option_vec: Vec<_> = b.into_iter()
+  |                     ^^^^^^
+  |
+  = note: `-D possible-shortcircuiting-collect` implied by `-D warnings`
+help: if you are only interested in the case where all values are `Ok`, try
+  |
+6 |     let option_vec: Result<std::vec::Vec<_>, _> = b.into_iter()
+  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: you are creating a collection of `Option`s
+  --> $DIR/collect.rs:23:18
+   |
+23 |     let _result: Vec<_> = a.iter().map(Some).collect();
+   |                  ^^^^^^
+help: if you are only interested in the case where all values are `Some`, try
+   |
+23 |     let _result: Option<std::vec::Vec<_>> = a.iter().map(Some).collect();
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: you are creating a collection of `Option`s
+  --> $DIR/collect.rs:27:34
+   |
+27 |     Some(Some(elem)).into_iter().collect()
+   |                                  ^^^^^^^^^
+help: if you are only interested in the case where all values are `Some`, try
+   |
+27 |     Some(Some(elem)).into_iter().collect::<Option<C>>()
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 3 previous errors
+
