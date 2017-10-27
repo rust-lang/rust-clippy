@@ -99,6 +99,7 @@ pub mod escape;
 pub mod eta_reduction;
 pub mod eval_order_dependence;
 pub mod explicit_write;
+pub mod float_excessive_precision;
 pub mod format;
 pub mod formatting;
 pub mod functions;
@@ -343,6 +344,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box needless_pass_by_value::NeedlessPassByValue);
     reg.register_early_lint_pass(box literal_digit_grouping::LiteralDigitGrouping);
     reg.register_late_lint_pass(box use_self::UseSelf);
+    reg.register_early_lint_pass(box float_excessive_precision::FloatExcessivePrecision);
     reg.register_late_lint_pass(box bytecount::ByteCount);
     reg.register_late_lint_pass(box infinite_iter::Pass);
     reg.register_late_lint_pass(box invalid_ref::InvalidRef);
@@ -365,6 +367,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         enum_glob_use::ENUM_GLOB_USE,
         enum_variants::PUB_ENUM_VARIANT_NAMES,
         enum_variants::STUTTER,
+        float_excessive_precision::FLOAT_EXCESSIVE_PRECISION,
         if_not_else::IF_NOT_ELSE,
         infinite_iter::MAYBE_INFINITE_ITER,
         int_plus_one::INT_PLUS_ONE,
