@@ -21,20 +21,36 @@ struct MapRemoveVisitor<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
     map_expr: &'a Expr,
     key_expr: &'a Expr,
-    removed: bool
+    witnessed: bool,
+    removed: bool,
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for MapRemoveVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr) {
+        let eq = SpanlessEq::new(self.cx);
+        if let ExprCall(ref fun, ref args) = expr.node {
+            for arg in args {
+                if eq.eq_expr(self.map_expr, arg) { 
+                    self.witnessed = true;
+                    return; 
+                }
+            }
+        }
         if let ExprMethodCall(ref method, _, ref args) = expr.node {
             if method.name == "remove" && args.len() == 2 {
-                let eq = SpanlessEq::new(self.cx);
                 if eq.eq_expr(self.map_expr, &args[0]) && eq.eq_expr(self.key_expr, &args[1]) {
                     self.removed = true;
                     return;
                 }
-            }
-        }
+            } else {
+                for arg in args {
+                    if eq.eq_expr(self.map_expr, &arg) { 
+                        self.witnessed = true;
+                        return;
+                    }
+                }
+            } 
+        } 
         walk_expr(self, expr);
     }
 
@@ -63,10 +79,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ContainsKey {
                         cx: cx,
                         map_expr: &map_expr,
                         key_expr: &key_expr,
+                        witnessed: false,
                         removed: false,
                     };
                     walk_expr(&mut visitor, then);
-                    if visitor.removed {
+                    if visitor.removed && !visitor.witnessed {
                         span_lint_and_then(
                             cx,
                             MAP_CONTAINS_THEN_REMOVE,
