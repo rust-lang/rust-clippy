@@ -61,6 +61,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `result.map(_).unwrap_or_else(_)`.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`result.ok().map_or_else(_, _)`.", 
+      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "result_map_unwrap_or_else", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
       "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
       "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
