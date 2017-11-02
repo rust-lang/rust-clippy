@@ -61,6 +61,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
+      "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
+      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "use_self", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for matches with a two arms where an `if let` will\nusually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
       "Example": "```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(other_ref),\n}\n```", 
@@ -332,13 +342,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
-      "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
-      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for transmutes from a `&[u8]` to a `&str`.", 
+      "Why is this bad": "Not every byte slice is a valid UTF-8 string.", 
+      "Example": "```rust\nlet _: &str = std::mem::transmute(b); // where b: &[u8]\n// should be:\nlet _ = std::str::from_utf8(b).unwrap();\n```", 
+      "Known problems": "- [`from_utf8`] which this lint suggests using is slower than `transmute`\nas it needs to validate the input.\nIf you are certain that the input is always a valid UTF-8,\nuse [`from_utf8_unchecked`] which is as fast as `transmute`\nbut has a semantically meaningful name.\n- You might want to handle errors returned from [`from_utf8`] instead of calling `unwrap`.\n[`from_utf8`]: https://doc.rust-lang.org/std/str/fn.from_utf8.html\n[`from_utf8_unchecked`]: https://doc.rust-lang.org/std/str/fn.from_utf8_unchecked.html"
     }, 
-    "id": "use_self", 
-    "level": "Allow"
+    "id": "transmute_bytes_to_str", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1370,9 +1380,9 @@
   {
     "docs": {
       "What it does": "Checks for transmutes from an integer to a `char`.", 
-      "Why is this bad": "Not every integer is a unicode scalar value.", 
-      "Example": "```rust\nlet _: char = std::mem::transmute(x); // where x: u32\n// should be:\nlet _: Option<char> = std::char::from_u32(x);\n```", 
-      "Known problems": "None."
+      "Why is this bad": "Not every integer is a Unicode scalar value.", 
+      "Example": "```rust\nlet _: char = std::mem::transmute(x); // where x: u32\n// should be:\nlet _ = std::char::from_u32(x).unwrap();\n```", 
+      "Known problems": "- [`from_u32`] which this lint suggests using is slower than `transmute`\nas it needs to validate the input.\nIf you are certain that the input is always a valid Unicode scalar value,\nuse [`from_u32_unchecked`] which is as fast as `transmute`\nbut has a semantically meaningful name.\n- You might want to handle `None` returned from [`from_u32`] instead of calling `unwrap`.\n[`from_u32`]: https://doc.rust-lang.org/std/char/fn.from_u32.html\n[`from_u32_unchecked`]: https://doc.rust-lang.org/std/char/fn.from_u32_unchecked.html"
     }, 
     "id": "transmute_int_to_char", 
     "level": "Warn"
