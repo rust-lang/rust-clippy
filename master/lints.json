@@ -2074,8 +2074,8 @@
     "docs": {
       "What it does": "Checks for functions taking arguments by value, but not\nconsuming them in its\nbody.", 
       "Why is this bad": "Taking arguments by reference is more flexible and can\nsometimes avoid\nunnecessary allocations.", 
-      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n```", 
-      "Known problems": "Hopefully none."
+      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n// should be\nfn foo(v: &[i32]) {\n    assert_eq!(v.len(), 42);\n}\n```", 
+      "Known problems": "* This lint suggests taking an argument by reference,\nhowever sometimes it is better to let users decide the argument type\n(by using `Borrow` trait, for example), depending on how the function is used."
     }, 
     "id": "needless_pass_by_value", 
     "level": "Warn"
