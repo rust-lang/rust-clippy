@@ -1992,12 +1992,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for transmutes from an integer to a float.", 
-      "Why is this bad": "This might result in an invalid in-memory representation of a float.", 
-      "Example": "```rust\nlet _: f32 = std::mem::transmute(x); // where x: u32\n// should be:\nlet _: f32 = f32::from_bits(x);\n```", 
-      "Known problems": "None."
+      "What it does": "Checks if you have variables whose name consists of just\nunderscores and digits.", 
+      "Why is this bad": "It's hard to memorize what a variable means without a\ndescriptive name.", 
+      "Example": "```rust\nlet _1 = 1;\nlet ___1 = 1;\nlet __1___2 = 11;\n```", 
+      "Known problems": "None?"
     }, 
-    "id": "transmute_int_to_float", 
+    "id": "just_underscores_and_digits", 
     "level": "Warn"
   }, 
   {
@@ -2245,6 +2245,16 @@
       "Known problems": "Multiple dereference/addrof pairs are not handled so\nthe suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect."
     }, 
     "id": "deref_addrof", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for transmutes from an integer to a float.", 
+      "Why is this bad": "This might result in an invalid in-memory representation of a float.", 
+      "Example": "```rust\nlet _: f32 = std::mem::transmute(x); // where x: u32\n// should be:\nlet _: f32 = f32::from_bits(x);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "transmute_int_to_float", 
     "level": "Warn"
   }, 
   {
