@@ -2339,6 +2339,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for (in-)equality comparisons on floating-point\nvalue and constant, except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).", 
+      "Why is this bad": "Floating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).", 
+      "Example": "```rust\nconst ONE == 1.00f64\nx == ONE  // where both are floats\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "float_cmp_const", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for expressions where a character literal is cast\nto `u8` and suggests using a byte literal instead.", 
       "Why is this bad": "In general, casting values to smaller types is\nerror-prone and should be avoided where possible. In the particular case of\nconverting a character literal to u8, it is easy to avoid by just using a\nbyte literal instead. As an added bonus, `b'a'` is even slightly shorter\nthan `'a' as u8`.", 
       "Example": "```rust\n'x' as u8\n```", 
