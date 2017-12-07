@@ -1234,7 +1234,12 @@
     "level": "Allow"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Checks for constants with an explicit `'static` lifetime.", 
+      "Why is this bad": "Adding `'static` to every reference can create very\ncomplicated types.", 
+      "Example": "```rust\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```rust\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```", 
+      "Known problems": "None."
+    }, 
     "id": "const_static_lifetime", 
     "level": "Warn"
   }, 
