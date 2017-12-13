@@ -1,6 +1,6 @@
 use rustc::hir::*;
 use rustc::lint::*;
-use utils::{SpanlessEq, span_lint, span_lint_and_then, multispan_sugg, snippet, implements_trait, is_copy};
+use utils::{implements_trait, is_copy, multispan_sugg, snippet, span_lint, span_lint_and_then, SpanlessEq};
 
 /// **What it does:** Checks for equal operands to comparison, logical and
 /// bitwise, difference and division binary operators (`==`, `>`, etc., `&&`,
@@ -63,27 +63,26 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EqOp {
                 return;
             }
             let (trait_id, requires_ref) = match op.node {
-                BiAdd => (cx.tcx.lang_items.add_trait(), false),
-                BiSub => (cx.tcx.lang_items.sub_trait(), false),
-                BiMul => (cx.tcx.lang_items.mul_trait(), false),
-                BiDiv => (cx.tcx.lang_items.div_trait(), false),
-                BiRem => (cx.tcx.lang_items.rem_trait(), false),
+                BiAdd => (cx.tcx.lang_items().add_trait(), false),
+                BiSub => (cx.tcx.lang_items().sub_trait(), false),
+                BiMul => (cx.tcx.lang_items().mul_trait(), false),
+                BiDiv => (cx.tcx.lang_items().div_trait(), false),
+                BiRem => (cx.tcx.lang_items().rem_trait(), false),
                 // don't lint short circuiting ops
                 BiAnd | BiOr => return,
-                BiBitXor => (cx.tcx.lang_items.bitxor_trait(), false),
-                BiBitAnd => (cx.tcx.lang_items.bitand_trait(), false),
-                BiBitOr => (cx.tcx.lang_items.bitor_trait(), false),
-                BiShl => (cx.tcx.lang_items.shl_trait(), false),
-                BiShr => (cx.tcx.lang_items.shr_trait(), false),
-                BiNe | BiEq => (cx.tcx.lang_items.eq_trait(), true),
-                BiLt | BiLe | BiGe | BiGt => (cx.tcx.lang_items.ord_trait(), true),
+                BiBitXor => (cx.tcx.lang_items().bitxor_trait(), false),
+                BiBitAnd => (cx.tcx.lang_items().bitand_trait(), false),
+                BiBitOr => (cx.tcx.lang_items().bitor_trait(), false),
+                BiShl => (cx.tcx.lang_items().shl_trait(), false),
+                BiShr => (cx.tcx.lang_items().shr_trait(), false),
+                BiNe | BiEq => (cx.tcx.lang_items().eq_trait(), true),
+                BiLt | BiLe | BiGe | BiGt => (cx.tcx.lang_items().ord_trait(), true),
             };
             if let Some(trait_id) = trait_id {
                 #[allow(match_same_arms)]
                 match (&left.node, &right.node) {
                     // do not suggest to dereference literals
-                    (&ExprLit(..), _) |
-                    (_, &ExprLit(..)) => {},
+                    (&ExprLit(..), _) | (_, &ExprLit(..)) => {},
                     // &foo == &bar
                     (&ExprAddrOf(_, ref l), &ExprAddrOf(_, ref r)) => {
                         let lty = cx.tables.expr_ty(l);

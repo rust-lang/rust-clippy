@@ -15,14 +15,13 @@ pub fn file_from_args(
     for arg in args.iter().filter_map(|a| a.meta_item()) {
         if arg.name() == "conf_file" {
             return match arg.node {
-                ast::MetaItemKind::Word |
-                ast::MetaItemKind::List(_) => Err(("`conf_file` must be a named value", arg.span)),
-                ast::MetaItemKind::NameValue(ref value) => {
-                    if let ast::LitKind::Str(ref file, _) = value.node {
-                        Ok(Some(file.to_string().into()))
-                    } else {
-                        Err(("`conf_file` value must be a string", value.span))
-                    }
+                ast::MetaItemKind::Word | ast::MetaItemKind::List(_) => {
+                    Err(("`conf_file` must be a named value", arg.span))
+                },
+                ast::MetaItemKind::NameValue(ref value) => if let ast::LitKind::Str(ref file, _) = value.node {
+                    Ok(Some(file.to_string().into()))
+                } else {
+                    Err(("`conf_file` value must be a string", value.span))
                 },
             };
         }
@@ -45,7 +44,7 @@ pub enum Error {
         /// The expected type.
         &'static str,
         /// The type we got instead.
-        &'static str
+        &'static str,
     ),
     /// There is an unknown key is the file.
     UnknownKey(String),
@@ -83,7 +82,8 @@ macro_rules! define_Conf {
             #[serde(rename_all="kebab-case")]
             #[serde(deny_unknown_fields)]
             pub struct Conf {
-                $(#[$doc] #[serde(default=$rust_name_str)] #[serde(with=$rust_name_str)] pub $rust_name: define_Conf!(TY $($ty)+),)+
+                $(#[$doc] #[serde(default=$rust_name_str)] #[serde(with=$rust_name_str)]
+                          pub $rust_name: define_Conf!(TY $($ty)+),)+
                 #[allow(dead_code)]
                 #[serde(default)]
                 third_party: Option<::toml::Value>,
@@ -92,10 +92,12 @@ macro_rules! define_Conf {
                 mod $rust_name {
                     use serde;
                     use serde::Deserialize;
-                    pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<define_Conf!(TY $($ty)+), D::Error> {
+                    pub fn deserialize<'de, D: serde::Deserializer<'de>>(deserializer: D)
+                    -> Result<define_Conf!(TY $($ty)+), D::Error> {
                         type T = define_Conf!(TY $($ty)+);
                         Ok(T::deserialize(deserializer).unwrap_or_else(|e| {
-                            ::utils::conf::ERRORS.lock().expect("no threading here").push(::utils::conf::Error::Toml(e.to_string()));
+                            ::utils::conf::ERRORS.lock().expect("no threading here")
+                                                        .push(::utils::conf::Error::Toml(e.to_string()));
                             super::$rust_name()
                         }))
                     }
@@ -155,10 +157,10 @@ define_Conf! {
         "JavaScript",
         "NaN",
         "OAuth",
-        "OpenGL",
+        "OpenGL", "OpenSSH", "OpenSSL", "OpenStreetMap",
         "TrueType",
         "iOS", "macOS",
-        "TeX", "LaTeX", "BibTex", "BibLaTex",
+        "TeX", "LaTeX", "BibTeX", "BibLaTeX",
         "MinGW",
     ] => Vec<String>),
     /// Lint: TOO_MANY_ARGUMENTS. The maximum number of argument a function or method can have
@@ -173,12 +175,14 @@ define_Conf! {
     (enum_variant_name_threshold, "enum_variant_name_threshold", 3 => u64),
     /// Lint: LARGE_ENUM_VARIANT. The maximum size of a emum's variant to avoid box suggestion
     (enum_variant_size_threshold, "enum_variant_size_threshold", 200 => u64),
+    /// Lint: VERBOSE_BIT_MASK. The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros'
+    (verbose_bit_mask_threshold, "verbose_bit_mask_threshold", 1 => u64),
 }
 
 /// Search for the configuration file.
 pub fn lookup_conf_file() -> io::Result<Option<path::PathBuf>> {
     /// Possible filename to search for.
-    const CONFIG_FILE_NAMES: [&'static str; 2] = [".clippy.toml", "clippy.toml"];
+    const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
 
     let mut current = try!(env::current_dir());
 
@@ -191,10 +195,8 @@ pub fn lookup_conf_file() -> io::Result<Option<path::PathBuf>> {
                 Ok(ref md) if md.is_file() => return Ok(Some(config_file)),
                 // Return the error if it's something other than `NotFound`; otherwise we didn't
                 // find the project file yet, and continue searching.
-                Err(e) => {
-                    if e.kind() != io::ErrorKind::NotFound {
-                        return Err(e);
-                    }
+                Err(e) => if e.kind() != io::ErrorKind::NotFound {
+                    return Err(e);
                 },
                 _ => (),
             }

@@ -15,7 +15,7 @@ High level approach:
 
 All issues on Clippy are mentored, if you want help with a bug just ask @Manishearth, @llogiq, @mcarton or @oli-obk.
 
-Some issues are easier than others. The [E-easy](https://github.com/rust-lang-nursery/rust-clippy/labels/E-easy)
+Some issues are easier than others. The [good first issue](https://github.com/rust-lang-nursery/rust-clippy/labels/good%20first%20issue)
 label can be used to find the easy issues. If you want to work on an issue, please leave a comment
 so that we can assign it to you!
 
@@ -70,14 +70,15 @@ Please document your lint with a doc comment akin to the following:
 
 Clippy uses UI tests. UI tests check that the output of the compiler is exactly as expected.
 Of course there's little sense in writing the output yourself or copying it around.
-Therefore you can simply run `tests/ui/update-all-references.sh` and check whether
-the output looks as you expect with `git diff`. Commit all `*.stderr` files, too.
+Therefore you can simply run `tests/ui/update-all-references.sh` (after running
+`cargo test`) and check whether the output looks as you expect with `git diff`. Commit all
+`*.stderr` files, too.
 
 ### Testing manually
 
 Manually testing against an example file is useful if you have added some
 `println!`s and test suite output becomes unreadable.  To try clippy with your
-local modifications, run `cargo run -- -L ./target/debug input.rs` from the
+local modifications, run `cargo run --bin clippy-driver -- -L ./target/debug input.rs` from the
 working copy root. Your test file, here `input.rs`, needs to have clippy
 enabled as a plugin:
 

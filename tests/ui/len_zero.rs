@@ -1,5 +1,5 @@
-#![feature(plugin)]
-#![plugin(clippy)]
+
+
 
 #![warn(len_without_is_empty, len_zero)]
 #![allow(dead_code, unused)]
@@ -181,4 +181,11 @@ fn main() {
 fn test_slice(b: &[u8]) {
     if b.len() != 0 {
     }
+}
+
+// this used to ICE
+pub trait Foo: Sized {}
+
+pub trait DependsOnFoo: Foo {
+    fn len(&mut self) -> usize;
 }

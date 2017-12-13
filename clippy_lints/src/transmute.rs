@@ -1,8 +1,10 @@
 use rustc::lint::*;
 use rustc::ty::{self, Ty};
 use rustc::hir::*;
-use utils::{match_def_path, paths, span_lint, span_lint_and_then, snippet, last_path_segment};
-use utils::sugg;
+use std::borrow::Cow;
+use syntax::ast;
+use utils::{last_path_segment, match_def_path, paths, snippet, span_lint, span_lint_and_then};
+use utils::{opt_def_id, sugg};
 
 /// **What it does:** Checks for transmutes that can't ever be correct on any
 /// architecture.
@@ -76,11 +78,110 @@ declare_lint! {
     "transmutes from a pointer to a reference type"
 }
 
+/// **What it does:** Checks for transmutes from an integer to a `char`.
+///
+/// **Why is this bad?** Not every integer is a Unicode scalar value.
+///
+/// **Known problems:**
+/// - [`from_u32`] which this lint suggests using is slower than `transmute`
+/// as it needs to validate the input.
+/// If you are certain that the input is always a valid Unicode scalar value,
+/// use [`from_u32_unchecked`] which is as fast as `transmute`
+/// but has a semantically meaningful name.
+/// - You might want to handle `None` returned from [`from_u32`] instead of calling `unwrap`.
+///
+/// [`from_u32`]: https://doc.rust-lang.org/std/char/fn.from_u32.html
+/// [`from_u32_unchecked`]: https://doc.rust-lang.org/std/char/fn.from_u32_unchecked.html
+///
+/// **Example:**
+/// ```rust
+/// let _: char = std::mem::transmute(x); // where x: u32
+/// // should be:
+/// let _ = std::char::from_u32(x).unwrap();
+/// ```
+declare_lint! {
+    pub TRANSMUTE_INT_TO_CHAR,
+    Warn,
+    "transmutes from an integer to a `char`"
+}
+
+/// **What it does:** Checks for transmutes from a `&[u8]` to a `&str`.
+///
+/// **Why is this bad?** Not every byte slice is a valid UTF-8 string.
+///
+/// **Known problems:**
+/// - [`from_utf8`] which this lint suggests using is slower than `transmute`
+/// as it needs to validate the input.
+/// If you are certain that the input is always a valid UTF-8,
+/// use [`from_utf8_unchecked`] which is as fast as `transmute`
+/// but has a semantically meaningful name.
+/// - You might want to handle errors returned from [`from_utf8`] instead of calling `unwrap`.
+///
+/// [`from_utf8`]: https://doc.rust-lang.org/std/str/fn.from_utf8.html
+/// [`from_utf8_unchecked`]: https://doc.rust-lang.org/std/str/fn.from_utf8_unchecked.html
+///
+/// **Example:**
+/// ```rust
+/// let _: &str = std::mem::transmute(b); // where b: &[u8]
+/// // should be:
+/// let _ = std::str::from_utf8(b).unwrap();
+/// ```
+declare_lint! {
+    pub TRANSMUTE_BYTES_TO_STR,
+    Warn,
+    "transmutes from a `&[u8]` to a `&str`"
+}
+
+/// **What it does:** Checks for transmutes from an integer to a `bool`.
+///
+/// **Why is this bad?** This might result in an invalid in-memory representation of a `bool`.
+///
+/// **Known problems:** None.
+///
+/// **Example:**
+/// ```rust
+/// let _: bool = std::mem::transmute(x); // where x: u8
+/// // should be:
+/// let _: bool = x != 0;
+/// ```
+declare_lint! {
+    pub TRANSMUTE_INT_TO_BOOL,
+    Warn,
+    "transmutes from an integer to a `bool`"
+}
+
+/// **What it does:** Checks for transmutes from an integer to a float.
+///
+/// **Why is this bad?** This might result in an invalid in-memory representation of a float.
+///
+/// **Known problems:** None.
+///
+/// **Example:**
+/// ```rust
+/// let _: f32 = std::mem::transmute(x); // where x: u32
+/// // should be:
+/// let _: f32 = f32::from_bits(x);
+/// ```
+declare_lint! {
+    pub TRANSMUTE_INT_TO_FLOAT,
+    Warn,
+    "transmutes from an integer to a float"
+}
+
 pub struct Transmute;
 
 impl LintPass for Transmute {
     fn get_lints(&self) -> LintArray {
-        lint_array!(CROSSPOINTER_TRANSMUTE, TRANSMUTE_PTR_TO_REF, USELESS_TRANSMUTE, WRONG_TRANSMUTE)
+        lint_array!(
+            CROSSPOINTER_TRANSMUTE,
+            TRANSMUTE_PTR_TO_REF,
+            USELESS_TRANSMUTE,
+            WRONG_TRANSMUTE,
+            TRANSMUTE_INT_TO_CHAR,
+            TRANSMUTE_BYTES_TO_STR,
+            TRANSMUTE_INT_TO_BOOL,
+            TRANSMUTE_INT_TO_FLOAT
+        )
     }
 }
 
@@ -88,23 +189,19 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
         if let ExprCall(ref path_expr, ref args) = e.node {
             if let ExprPath(ref qpath) = path_expr.node {
-                let def_id = cx.tables.qpath_def(qpath, path_expr.hir_id).def_id();
+                if let Some(def_id) = opt_def_id(cx.tables.qpath_def(qpath, path_expr.hir_id)) {
+                    if match_def_path(cx.tcx, def_id, &paths::TRANSMUTE) {
+                        let from_ty = cx.tables.expr_ty(&args[0]);
+                        let to_ty = cx.tables.expr_ty(e);
 
-                if match_def_path(cx.tcx, def_id, &paths::TRANSMUTE) {
-                    let from_ty = cx.tables.expr_ty(&args[0]);
-                    let to_ty = cx.tables.expr_ty(e);
-
-                    match (&from_ty.sty, &to_ty.sty) {
-                        _ if from_ty == to_ty => {
-                            span_lint(
+                        match (&from_ty.sty, &to_ty.sty) {
+                            _ if from_ty == to_ty => span_lint(
                                 cx,
                                 USELESS_TRANSMUTE,
                                 e.span,
                                 &format!("transmute from a type (`{}`) to itself", from_ty),
-                            )
-                        },
-                        (&ty::TyRef(_, rty), &ty::TyRawPtr(ptr_ty)) => {
-                            span_lint_and_then(
+                            ),
+                            (&ty::TyRef(_, rty), &ty::TyRawPtr(ptr_ty)) => span_lint_and_then(
                                 cx,
                                 USELESS_TRANSMUTE,
                                 e.span,
@@ -118,33 +215,28 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
 
                                     db.span_suggestion(e.span, "try", sugg.to_string());
                                 },
-                            )
-                        },
-                        (&ty::TyInt(_), &ty::TyRawPtr(_)) |
-                        (&ty::TyUint(_), &ty::TyRawPtr(_)) => {
-                            span_lint_and_then(
-                                cx,
-                                USELESS_TRANSMUTE,
-                                e.span,
-                                "transmute from an integer to a pointer",
-                                |db| if let Some(arg) = sugg::Sugg::hir_opt(cx, &args[0]) {
-                                    db.span_suggestion(e.span, "try", arg.as_ty(&to_ty.to_string()).to_string());
-                                },
-                            )
-                        },
-                        (&ty::TyFloat(_), &ty::TyRef(..)) |
-                        (&ty::TyFloat(_), &ty::TyRawPtr(_)) |
-                        (&ty::TyChar, &ty::TyRef(..)) |
-                        (&ty::TyChar, &ty::TyRawPtr(_)) => {
-                            span_lint(
+                            ),
+                            (&ty::TyInt(_), &ty::TyRawPtr(_)) | (&ty::TyUint(_), &ty::TyRawPtr(_)) => {
+                                span_lint_and_then(
+                                    cx,
+                                    USELESS_TRANSMUTE,
+                                    e.span,
+                                    "transmute from an integer to a pointer",
+                                    |db| if let Some(arg) = sugg::Sugg::hir_opt(cx, &args[0]) {
+                                        db.span_suggestion(e.span, "try", arg.as_ty(&to_ty.to_string()).to_string());
+                                    },
+                                )
+                            },
+                            (&ty::TyFloat(_), &ty::TyRef(..)) |
+                            (&ty::TyFloat(_), &ty::TyRawPtr(_)) |
+                            (&ty::TyChar, &ty::TyRef(..)) |
+                            (&ty::TyChar, &ty::TyRawPtr(_)) => span_lint(
                                 cx,
                                 WRONG_TRANSMUTE,
                                 e.span,
                                 &format!("transmute from a `{}` to a pointer", from_ty),
-                            )
-                        },
-                        (&ty::TyRawPtr(from_ptr), _) if from_ptr.ty == to_ty => {
-                            span_lint(
+                            ),
+                            (&ty::TyRawPtr(from_ptr), _) if from_ptr.ty == to_ty => span_lint(
                                 cx,
                                 CROSSPOINTER_TRANSMUTE,
                                 e.span,
@@ -153,47 +245,142 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
                                     from_ty,
                                     to_ty
                                 ),
-                            )
-                        },
-                        (_, &ty::TyRawPtr(to_ptr)) if to_ptr.ty == from_ty => {
-                            span_lint(
+                            ),
+                            (_, &ty::TyRawPtr(to_ptr)) if to_ptr.ty == from_ty => span_lint(
                                 cx,
                                 CROSSPOINTER_TRANSMUTE,
                                 e.span,
-                                &format!("transmute from a type (`{}`) to a pointer to that type (`{}`)", from_ty, to_ty),
-                            )
-                        },
-                        (&ty::TyRawPtr(from_pty), &ty::TyRef(_, to_rty)) => {
-                            span_lint_and_then(
+                                &format!(
+                                    "transmute from a type (`{}`) to a pointer to that type (`{}`)",
+                                    from_ty,
+                                    to_ty
+                                ),
+                            ),
+                            (&ty::TyRawPtr(from_pty), &ty::TyRef(_, to_ref_ty)) => span_lint_and_then(
                                 cx,
                                 TRANSMUTE_PTR_TO_REF,
                                 e.span,
                                 &format!(
                                     "transmute from a pointer type (`{}`) to a reference type \
-                                                         (`{}`)",
+                                     (`{}`)",
                                     from_ty,
                                     to_ty
                                 ),
                                 |db| {
                                     let arg = sugg::Sugg::hir(cx, &args[0], "..");
-                                    let (deref, cast) = if to_rty.mutbl == Mutability::MutMutable {
+                                    let (deref, cast) = if to_ref_ty.mutbl == Mutability::MutMutable {
                                         ("&mut *", "*mut")
                                     } else {
                                         ("&*", "*const")
                                     };
 
-                                    let arg = if from_pty.ty == to_rty.ty {
+                                    let arg = if from_pty.ty == to_ref_ty.ty {
                                         arg
                                     } else {
-                                        arg.as_ty(&format!("{} {}", cast, get_type_snippet(cx, qpath, to_rty.ty)))
+                                        arg.as_ty(&format!("{} {}", cast, get_type_snippet(cx, qpath, to_ref_ty.ty)))
                                     };
 
                                     db.span_suggestion(e.span, "try", sugg::make_unop(deref, arg).to_string());
                                 },
-                            )
-                        },
-                        _ => return,
-                    };
+                            ),
+                            (&ty::TyInt(ast::IntTy::I32), &ty::TyChar) |
+                            (&ty::TyUint(ast::UintTy::U32), &ty::TyChar) => span_lint_and_then(
+                                cx,
+                                TRANSMUTE_INT_TO_CHAR,
+                                e.span,
+                                &format!("transmute from a `{}` to a `char`", from_ty),
+                                |db| {
+                                    let arg = sugg::Sugg::hir(cx, &args[0], "..");
+                                    let arg = if let ty::TyInt(_) = from_ty.sty {
+                                        arg.as_ty(ty::TyUint(ast::UintTy::U32))
+                                    } else {
+                                        arg
+                                    };
+                                    db.span_suggestion(
+                                        e.span,
+                                        "consider using",
+                                        format!("std::char::from_u32({}).unwrap()", arg.to_string()),
+                                    );
+                                },
+                            ),
+                            (&ty::TyRef(_, ref ref_from), &ty::TyRef(_, ref ref_to)) => {
+                                if_chain! {
+                                    if let (&ty::TySlice(slice_ty), &ty::TyStr) = (&ref_from.ty.sty, &ref_to.ty.sty);
+                                    if let ty::TyUint(ast::UintTy::U8) = slice_ty.sty;
+                                    if ref_from.mutbl == ref_to.mutbl;
+                                    then {
+                                        let postfix = if ref_from.mutbl == Mutability::MutMutable {
+                                            "_mut"
+                                        } else {
+                                            ""
+                                        };
+
+                                        span_lint_and_then(
+                                            cx,
+                                            TRANSMUTE_BYTES_TO_STR,
+                                            e.span,
+                                            &format!("transmute from a `{}` to a `{}`", from_ty, to_ty),
+                                            |db| {
+                                                db.span_suggestion(
+                                                    e.span,
+                                                    "consider using",
+                                                    format!(
+                                                        "std::str::from_utf8{}({}).unwrap()",
+                                                        postfix,
+                                                        snippet(cx, args[0].span, ".."),
+                                                    ),
+                                                );
+                                            }
+                                        )
+                                    }
+                                }
+                            },
+                            (&ty::TyInt(ast::IntTy::I8), &ty::TyBool) | (&ty::TyUint(ast::UintTy::U8), &ty::TyBool) => {
+                                span_lint_and_then(
+                                    cx,
+                                    TRANSMUTE_INT_TO_BOOL,
+                                    e.span,
+                                    &format!("transmute from a `{}` to a `bool`", from_ty),
+                                    |db| {
+                                        let arg = sugg::Sugg::hir(cx, &args[0], "..");
+                                        let zero = sugg::Sugg::NonParen(Cow::from("0"));
+                                        db.span_suggestion(
+                                            e.span,
+                                            "consider using",
+                                            sugg::make_binop(ast::BinOpKind::Ne, &arg, &zero).to_string(),
+                                        );
+                                    },
+                                )
+                            },
+                            (&ty::TyInt(_), &ty::TyFloat(_)) | (&ty::TyUint(_), &ty::TyFloat(_)) => {
+                                span_lint_and_then(
+                                    cx,
+                                    TRANSMUTE_INT_TO_FLOAT,
+                                    e.span,
+                                    &format!("transmute from a `{}` to a `{}`", from_ty, to_ty),
+                                    |db| {
+                                        let arg = sugg::Sugg::hir(cx, &args[0], "..");
+                                        let arg = if let ty::TyInt(int_ty) = from_ty.sty {
+                                            arg.as_ty(format!(
+                                                "u{}",
+                                                int_ty
+                                                    .bit_width()
+                                                    .map_or_else(|| "size".to_string(), |v| v.to_string())
+                                            ))
+                                        } else {
+                                            arg
+                                        };
+                                        db.span_suggestion(
+                                            e.span,
+                                            "consider using",
+                                            format!("{}::from_bits({})", to_ty, arg.to_string()),
+                                        );
+                                    },
+                                )
+                            },
+                            _ => return,
+                        };
+                    }
                 }
             }
         }
@@ -205,15 +392,17 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
 /// the type's `ToString` implementation. In weird cases it could lead to types
 /// with invalid `'_`
 /// lifetime, but it should be rare.
-fn get_type_snippet(cx: &LateContext, path: &QPath, to_rty: Ty) -> String {
+fn get_type_snippet(cx: &LateContext, path: &QPath, to_ref_ty: Ty) -> String {
     let seg = last_path_segment(path);
-    if_let_chain!{[
-        !seg.parameters.parenthesized,
-        let Some(to_ty) = seg.parameters.types.get(1),
-        let TyRptr(_, ref to_ty) = to_ty.node,
-    ], {
-        return snippet(cx, to_ty.ty.span, &to_rty.to_string()).to_string();
-    }}
+    if_chain! {
+        if let Some(ref params) = seg.parameters;
+        if !params.parenthesized;
+        if let Some(to_ty) = params.types.get(1);
+        if let TyRptr(_, ref to_ty) = to_ty.node;
+        then {
+            return snippet(cx, to_ty.ty.span, &to_ref_ty.to_string()).to_string();
+        }
+    }
 
-    to_rty.to_string()
+    to_ref_ty.to_string()
 }

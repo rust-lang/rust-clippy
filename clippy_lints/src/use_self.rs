@@ -1,14 +1,15 @@
-use rustc::lint::{LintArray, LateLintPass, LateContext, LintPass};
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::hir::*;
-use rustc::hir::intravisit::{Visitor, walk_path, NestedVisitorMap};
-use utils::{span_lint_and_then, in_macro};
+use rustc::hir::intravisit::{walk_path, NestedVisitorMap, Visitor};
+use utils::{in_macro, span_lint_and_then};
 use syntax::ast::NodeId;
 use syntax_pos::symbol::keywords::SelfType;
 
 /// **What it does:** Checks for unnecessary repetition of structure name when a
 /// replacement with `Self` is applicable.
 ///
-/// **Why is this bad?** Unnecessary repetition. Mixed use of `Self` and struct name
+/// **Why is this bad?** Unnecessary repetition. Mixed use of `Self` and struct
+/// name
 /// feels inconsistent.
 ///
 /// **Known problems:** None.
@@ -53,21 +54,27 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
         if in_macro(item.span) {
             return;
         }
-        if_let_chain!([
-            let ItemImpl(.., ref item_type, ref refs) = item.node,
-            let Ty_::TyPath(QPath::Resolved(_, ref item_path)) = item_type.node,
-        ], {
-            let parameters = &item_path.segments.last().expect(SEGMENTS_MSG).parameters;
-            if !parameters.parenthesized {
-                let visitor = &mut UseSelfVisitor {
-                    item_path: item_path,
-                    cx: cx,
+        if_chain! {
+            if let ItemImpl(.., ref item_type, ref refs) = item.node;
+            if let Ty_::TyPath(QPath::Resolved(_, ref item_path)) = item_type.node;
+            then {
+                let parameters = &item_path.segments.last().expect(SEGMENTS_MSG).parameters;
+                let should_check = if let Some(ref params) = *parameters {
+                    !params.parenthesized && params.lifetimes.len() == 0
+                } else {
+                    true
                 };
-                for impl_item_ref in refs {
-                    visitor.visit_impl_item(cx.tcx.hir.impl_item(impl_item_ref.id));
+                if should_check {
+                    let visitor = &mut UseSelfVisitor {
+                        item_path: item_path,
+                        cx: cx,
+                    };
+                    for impl_item_ref in refs {
+                        visitor.visit_impl_item(cx.tcx.hir.impl_item(impl_item_ref.id));
+                    }
                 }
             }
-        })
+        }
     }
 }
 
@@ -78,18 +85,7 @@ struct UseSelfVisitor<'a, 'tcx: 'a> {
 
 impl<'a, 'tcx> Visitor<'tcx> for UseSelfVisitor<'a, 'tcx> {
     fn visit_path(&mut self, path: &'tcx Path, _id: NodeId) {
-        let lifetimes = &self.item_path.segments.last().expect(SEGMENTS_MSG).parameters.lifetimes;
-        let self_lifetimes = &path.segments.last().expect(SEGMENTS_MSG).parameters.lifetimes;
-
-        if self.item_path.def == path.def &&
-           path.segments
-            .last()
-            .expect(SEGMENTS_MSG)
-            .name != SelfType.name() &&
-           lifetimes.iter()
-                    .zip(self_lifetimes.iter())
-                    .all(|(a, b)| a.name == b.name) {
-
+        if self.item_path.def == path.def && path.segments.last().expect(SEGMENTS_MSG).name != SelfType.name() {
             span_lint_and_then(self.cx, USE_SELF, path.span, "unnecessary structure name repetition", |db| {
                 db.span_suggestion(path.span, "use the applicable keyword", "Self".to_owned());
             });

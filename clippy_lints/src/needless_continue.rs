@@ -32,7 +32,7 @@ use syntax::ast;
 use syntax::codemap::{original_sp, DUMMY_SP};
 use std::borrow::Cow;
 
-use utils::{in_macro, span_help_and_lint, snippet_block, snippet, trim_multiline};
+use utils::{in_macro, snippet, snippet_block, span_help_and_lint, trim_multiline};
 
 /// **What it does:** The lint checks for `if`-statements appearing in loops
 /// that contain a `continue` statement in either their main blocks or their
@@ -181,13 +181,10 @@ fn needless_continue_in_else(else_expr: &ast::Expr) -> bool {
 
 fn is_first_block_stmt_continue(block: &ast::Block) -> bool {
     block.stmts.get(0).map_or(false, |stmt| match stmt.node {
-        ast::StmtKind::Semi(ref e) |
-        ast::StmtKind::Expr(ref e) => {
-            if let ast::ExprKind::Continue(_) = e.node {
-                true
-            } else {
-                false
-            }
+        ast::StmtKind::Semi(ref e) | ast::StmtKind::Expr(ref e) => if let ast::ExprKind::Continue(_) = e.node {
+            true
+        } else {
+            false
         },
         _ => false,
     })
@@ -222,8 +219,7 @@ where
     F: FnMut(&ast::Expr, &ast::Expr, &ast::Block, &ast::Expr),
 {
     match stmt.node {
-        ast::StmtKind::Semi(ref e) |
-        ast::StmtKind::Expr(ref e) => {
+        ast::StmtKind::Semi(ref e) | ast::StmtKind::Expr(ref e) => {
             if let ast::ExprKind::If(ref cond, ref if_block, Some(ref else_expr)) = e.node {
                 func(e, cond, if_block, else_expr);
             }
@@ -256,38 +252,33 @@ struct LintData<'a> {
     block_stmts: &'a [ast::Stmt],
 }
 
-const MSG_REDUNDANT_ELSE_BLOCK: &'static str = "This else block is redundant.\n";
+const MSG_REDUNDANT_ELSE_BLOCK: &str = "This else block is redundant.\n";
 
-const MSG_ELSE_BLOCK_NOT_NEEDED: &'static str = "There is no need for an explicit `else` block for this `if` \
-                                                 expression\n";
+const MSG_ELSE_BLOCK_NOT_NEEDED: &str = "There is no need for an explicit `else` block for this `if` \
+                                         expression\n";
 
-const DROP_ELSE_BLOCK_AND_MERGE_MSG: &'static str = "Consider dropping the else clause and merging the code that \
-                                                     follows (in the loop) with the if block, like so:\n";
+const DROP_ELSE_BLOCK_AND_MERGE_MSG: &str = "Consider dropping the else clause and merging the code that \
+                                             follows (in the loop) with the if block, like so:\n";
 
-const DROP_ELSE_BLOCK_MSG: &'static str = "Consider dropping the else clause, and moving out the code in the else \
-                                           block, like so:\n";
+const DROP_ELSE_BLOCK_MSG: &str = "Consider dropping the else clause, and moving out the code in the else \
+                                   block, like so:\n";
 
 
 fn emit_warning<'a>(ctx: &EarlyContext, data: &'a LintData, header: &str, typ: LintType) {
-
     // snip    is the whole *help* message that appears after the warning.
     // message is the warning message.
     // expr    is the expression which the lint warning message refers to.
     let (snip, message, expr) = match typ {
-        LintType::ContinueInsideElseBlock => {
-            (
-                suggestion_snippet_for_continue_inside_else(ctx, data, header),
-                MSG_REDUNDANT_ELSE_BLOCK,
-                data.else_expr,
-            )
-        },
-        LintType::ContinueInsideThenBlock => {
-            (
-                suggestion_snippet_for_continue_inside_if(ctx, data, header),
-                MSG_ELSE_BLOCK_NOT_NEEDED,
-                data.if_expr,
-            )
-        },
+        LintType::ContinueInsideElseBlock => (
+            suggestion_snippet_for_continue_inside_else(ctx, data, header),
+            MSG_REDUNDANT_ELSE_BLOCK,
+            data.else_expr,
+        ),
+        LintType::ContinueInsideThenBlock => (
+            suggestion_snippet_for_continue_inside_if(ctx, data, header),
+            MSG_ELSE_BLOCK_NOT_NEEDED,
+            data.if_expr,
+        ),
     };
     span_help_and_lint(ctx, NEEDLESS_CONTINUE, expr.span, message, &snip);
 }
@@ -341,22 +332,24 @@ fn suggestion_snippet_for_continue_inside_else<'a>(ctx: &EarlyContext, data: &'a
 }
 
 fn check_and_warn<'a>(ctx: &EarlyContext, expr: &'a ast::Expr) {
-    with_loop_block(expr, |loop_block| for (i, stmt) in loop_block.stmts.iter().enumerate() {
-        with_if_expr(stmt, |if_expr, cond, then_block, else_expr| {
-            let data = &LintData {
-                stmt_idx: i,
-                if_expr: if_expr,
-                if_cond: cond,
-                if_block: then_block,
-                else_expr: else_expr,
-                block_stmts: &loop_block.stmts,
-            };
-            if needless_continue_in_else(else_expr) {
-                emit_warning(ctx, data, DROP_ELSE_BLOCK_AND_MERGE_MSG, LintType::ContinueInsideElseBlock);
-            } else if is_first_block_stmt_continue(then_block) {
-                emit_warning(ctx, data, DROP_ELSE_BLOCK_MSG, LintType::ContinueInsideThenBlock);
-            }
-        });
+    with_loop_block(expr, |loop_block| {
+        for (i, stmt) in loop_block.stmts.iter().enumerate() {
+            with_if_expr(stmt, |if_expr, cond, then_block, else_expr| {
+                let data = &LintData {
+                    stmt_idx: i,
+                    if_expr: if_expr,
+                    if_cond: cond,
+                    if_block: then_block,
+                    else_expr: else_expr,
+                    block_stmts: &loop_block.stmts,
+                };
+                if needless_continue_in_else(else_expr) {
+                    emit_warning(ctx, data, DROP_ELSE_BLOCK_AND_MERGE_MSG, LintType::ContinueInsideElseBlock);
+                } else if is_first_block_stmt_continue(then_block) {
+                    emit_warning(ctx, data, DROP_ELSE_BLOCK_MSG, LintType::ContinueInsideThenBlock);
+                }
+            });
+        }
     });
 }
 

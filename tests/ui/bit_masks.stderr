@@ -6,19 +6,13 @@ error: &-masking with zero
    |
    = note: `-D bad-bit-mask` implied by `-D warnings`
 
-error: bit mask could be simplified with a call to `trailing_zeros`
+error: this operation will always return zero. This is likely not the intended outcome
   --> $DIR/bit_masks.rs:12:5
    |
 12 |     x & 0 == 0;
-   |     ^^^^^^^^^^ help: try: `x.trailing_zeros() >= 0`
+   |     ^^^^^
    |
-   = note: `-D verbose-bit-mask` implied by `-D warnings`
-
-error: bit mask could be simplified with a call to `trailing_zeros`
-  --> $DIR/bit_masks.rs:14:5
-   |
-14 |     x & 1 == 0; //ok, compared with zero
-   |     ^^^^^^^^^^ help: try: `x.trailing_zeros() >= 1`
+   = note: `-D erasing-op` implied by `-D warnings`
 
 error: incompatible bit mask: `_ & 2` can never be equal to `1`
   --> $DIR/bit_masks.rs:15:5
@@ -61,6 +55,12 @@ error: &-masking with zero
    |
 35 |     0 & x == 0;
    |     ^^^^^^^^^^
+
+error: this operation will always return zero. This is likely not the intended outcome
+  --> $DIR/bit_masks.rs:35:5
+   |
+35 |     0 & x == 0;
+   |     ^^^^^
 
 error: incompatible bit mask: `_ | 2` will always be higher than `1`
   --> $DIR/bit_masks.rs:39:5
@@ -105,6 +105,4 @@ error: ineffective bit mask: `x | 1` compared to `8`, is the same as x compared 
    |
 55 |     x | 1 >= 8;
    |     ^^^^^^^^^^
-
-error: aborting due to 17 previous errors
 

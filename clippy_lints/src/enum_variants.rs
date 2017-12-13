@@ -159,7 +159,11 @@ fn check_variant(
     }
     for var in &def.variants {
         let name = var2str(var);
-        if partial_match(item_name, &name) == item_name_chars {
+        if partial_match(item_name, &name) == item_name_chars
+            && name.chars()
+                .nth(item_name_chars)
+                .map_or(false, |c| !c.is_lowercase())
+        {
             span_lint(cx, lint, var.span, "Variant name starts with the enum's name");
         }
         if partial_rmatch(item_name, &name) == item_name_chars {
@@ -204,7 +208,7 @@ fn check_variant(
         &format!("All variants have the same {}fix: `{}`", what, value),
         &format!(
             "remove the {}fixes and use full paths to \
-                                 the variants instead of glob imports",
+             the variants instead of glob imports",
             what
         ),
     );
@@ -260,8 +264,17 @@ impl EarlyLintPass for EnumVariantNames {
                         let matching = partial_match(mod_camel, &item_camel);
                         let rmatching = partial_rmatch(mod_camel, &item_camel);
                         let nchars = mod_camel.chars().count();
+
+                        let is_word_beginning = |c: char| {
+                            c == '_' || c.is_uppercase() || c.is_numeric()
+                        };
+
                         if matching == nchars {
-                            span_lint(cx, STUTTER, item.span, "item name starts with its containing module's name");
+                            match item_camel.chars().nth(nchars) {
+                                Some(c) if is_word_beginning(c) =>
+                                    span_lint(cx, STUTTER, item.span, "item name starts with its containing module's name"),
+                                _ => ()
+                            }
                         }
                         if rmatching == nchars {
                             span_lint(cx, STUTTER, item.span, "item name ends with its containing module's name");

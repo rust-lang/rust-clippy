@@ -2,11 +2,12 @@ use rustc::hir::intravisit;
 use rustc::hir;
 use rustc::lint::*;
 use rustc::ty;
+use rustc::hir::def::Def;
 use std::collections::HashSet;
 use syntax::ast;
 use syntax::abi::Abi;
 use syntax::codemap::Span;
-use utils::{span_lint, type_is_unsafe_function, iter_input_pats};
+use utils::{iter_input_pats, span_lint, type_is_unsafe_function};
 
 /// **What it does:** Checks for functions with too many parameters.
 ///
@@ -60,7 +61,9 @@ pub struct Functions {
 
 impl Functions {
     pub fn new(threshold: u64) -> Self {
-        Self { threshold: threshold }
+        Self {
+            threshold: threshold,
+        }
     }
 }
 
@@ -83,7 +86,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Functions {
         use rustc::hir::map::Node::*;
 
         let is_impl = if let Some(NodeItem(item)) = cx.tcx.hir.find(cx.tcx.hir.get_parent_node(nodeid)) {
-            matches!(item.node, hir::ItemImpl(_, _, _, _, Some(_), _, _) | hir::ItemDefaultImpl(..))
+            matches!(item.node, hir::ItemImpl(_, _, _, _, Some(_), _, _) | hir::ItemAutoImpl(..))
         } else {
             false
         };
@@ -164,9 +167,9 @@ impl<'a, 'tcx> Functions {
     }
 }
 
-fn raw_ptr_arg(arg: &hir::Arg, ty: &hir::Ty) -> Option<hir::def_id::DefId> {
-    if let (&hir::PatKind::Binding(_, def_id, _, _), &hir::TyPtr(_)) = (&arg.pat.node, &ty.node) {
-        Some(def_id)
+fn raw_ptr_arg(arg: &hir::Arg, ty: &hir::Ty) -> Option<ast::NodeId> {
+    if let (&hir::PatKind::Binding(_, id, _, _), &hir::TyPtr(_)) = (&arg.pat.node, &ty.node) {
+        Some(id)
     } else {
         None
     }
@@ -174,7 +177,7 @@ fn raw_ptr_arg(arg: &hir::Arg, ty: &hir::Ty) -> Option<hir::def_id::DefId> {
 
 struct DerefVisitor<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
-    ptrs: HashSet<hir::def_id::DefId>,
+    ptrs: HashSet<ast::NodeId>,
     tables: &'a ty::TypeckTables<'tcx>,
 }
 
@@ -214,14 +217,15 @@ impl<'a, 'tcx> hir::intravisit::Visitor<'tcx> for DerefVisitor<'a, 'tcx> {
 impl<'a, 'tcx: 'a> DerefVisitor<'a, 'tcx> {
     fn check_arg(&self, ptr: &hir::Expr) {
         if let hir::ExprPath(ref qpath) = ptr.node {
-            let def = self.cx.tables.qpath_def(qpath, ptr.hir_id);
-            if self.ptrs.contains(&def.def_id()) {
-                span_lint(
-                    self.cx,
-                    NOT_UNSAFE_PTR_ARG_DEREF,
-                    ptr.span,
-                    "this public function dereferences a raw pointer but is not marked `unsafe`",
-                );
+            if let Def::Local(id) = self.cx.tables.qpath_def(qpath, ptr.hir_id) {
+                if self.ptrs.contains(&id) {
+                    span_lint(
+                        self.cx,
+                        NOT_UNSAFE_PTR_ARG_DEREF,
+                        ptr.span,
+                        "this public function dereferences a raw pointer but is not marked `unsafe`",
+                    );
+                }
             }
         }
     }

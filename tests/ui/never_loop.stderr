@@ -24,13 +24,14 @@ error: this loop never actually loops
 error: this loop never actually loops
   --> $DIR/never_loop.rs:47:2
    |
-47 | / \tloop { // never loops
-48 | | \t       while i == 0 { // never loops
-49 | | \t           break
-50 | | \t       }
-51 | | \t       return
-52 | | \t}
-   | |__^
+47 |       loop { // never loops
+   |  _____^
+48 | |         while i == 0 { // never loops
+49 | |             break
+50 | |         }
+51 | |         return
+52 | |     }
+   | |_____^
 
 error: this loop never actually loops
   --> $DIR/never_loop.rs:48:9
@@ -41,25 +42,14 @@ error: this loop never actually loops
    | |_________^
 
 error: this loop never actually loops
-  --> $DIR/never_loop.rs:57:5
-   |
-57 | /     'outer: loop { // never loops
-58 | |         x += 1;
-59 | | \t\tloop { // never loops
-60 | |             if x == 5 { break }
-...  |
-63 | | \t\treturn
-64 | | \t}
-   | |__^
-
-error: this loop never actually loops
   --> $DIR/never_loop.rs:59:3
    |
-59 | / \t\tloop { // never loops
-60 | | \t\t          if x == 5 { break }
-61 | | \t\t\tcontinue 'outer
-62 | | \t\t}
-   | |___^
+59 |           loop { // never loops
+   |  _________^
+60 | |             if x == 5 { break }
+61 | |             continue 'outer
+62 | |         }
+   | |_________^
 
 error: this loop never actually loops
   --> $DIR/never_loop.rs:92:5
@@ -80,5 +70,23 @@ error: this loop never actually loops
 103 | |     }
     | |_____^
 
-error: aborting due to 8 previous errors
+error: this loop never actually loops
+   --> $DIR/never_loop.rs:144:5
+    |
+144 | /     'outer: while a { // never loops
+145 | |         while a {
+146 | |             if a {
+147 | |                 a = false;
+...   |
+151 | |         break 'outer;
+152 | |     }
+    | |_____^
+
+error: this loop never actually loops
+   --> $DIR/never_loop.rs:158:9
+    |
+158 | /         while false {
+159 | |             break 'label;
+160 | |         }
+    | |_________^
 

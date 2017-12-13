@@ -1,9 +1,9 @@
-#![feature(plugin)]
+
 #![feature(const_fn)]
-#![plugin(clippy)]
 
 #![warn(clippy, clippy_pedantic)]
-#![allow(blacklisted_name, unused, print_stdout, non_ascii_literal, new_without_default, new_without_default_derive, missing_docs_in_private_items)]
+#![allow(blacklisted_name, unused, print_stdout, non_ascii_literal, new_without_default,
+    new_without_default_derive, missing_docs_in_private_items, needless_pass_by_value)]
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -11,12 +11,17 @@ use std::collections::HashSet;
 use std::collections::VecDeque;
 use std::ops::Mul;
 use std::iter::FromIterator;
+use std::rc::{self, Rc};
+use std::sync::{self, Arc};
 
-struct T;
+pub struct T;
 
 impl T {
-    fn add(self, other: T) -> T { self }
-    fn drop(&mut self) { }
+    pub fn add(self, other: T) -> T { self }
+
+    pub(crate) fn drop(&mut self) { } // no error, not public interfact
+    fn neg(self) -> Self { self } // no error, private function
+    fn eq(&self, other: T) -> bool { true } // no error, private function
 
     fn sub(&self, other: T) -> &T { self } // no error, self is a ref
     fn div(self) -> T { self } // no error, different #arguments
@@ -89,6 +94,7 @@ macro_rules! opt_map {
 /// Checks implementation of the following lints:
 /// * `OPTION_MAP_UNWRAP_OR`
 /// * `OPTION_MAP_UNWRAP_OR_ELSE`
+/// * `OPTION_MAP_OR_NONE`
 fn option_methods() {
     let opt = Some(1);
 
@@ -106,6 +112,16 @@ fn option_methods() {
                .unwrap_or({
                     0
                 });
+    // single line `map(f).unwrap_or(None)` case
+    let _ = opt.map(|x| Some(x + 1)).unwrap_or(None);
+    // multiline `map(f).unwrap_or(None)` cases
+    let _ = opt.map(|x| {
+        Some(x + 1)
+    }
+    ).unwrap_or(None);
+    let _ = opt
+        .map(|x| Some(x + 1))
+        .unwrap_or(None);
     // macro case
     let _ = opt_map!(opt, |x| x + 1).unwrap_or(0); // should not lint
 
@@ -125,6 +141,38 @@ fn option_methods() {
                 );
     // macro case
     let _ = opt_map!(opt, |x| x + 1).unwrap_or_else(|| 0); // should not lint
+
+    // Check OPTION_MAP_OR_NONE
+    // single line case
+    let _ = opt.map_or(None, |x| Some(x + 1));
+    // multi line case
+    let _ = opt.map_or(None, |x| {
+                        Some(x + 1)
+                       }
+                );
+}
+
+/// Checks implementation of the following lints:
+/// * `RESULT_MAP_UNWRAP_OR_ELSE`
+fn result_methods() {
+    let res: Result<i32, ()> = Ok(1);
+
+    // Check RESULT_MAP_UNWRAP_OR_ELSE
+    // single line case
+    let _ = res.map(|x| x + 1)
+
+               .unwrap_or_else(|e| 0); // should lint even though this call is on a separate line
+    // multi line cases
+    let _ = res.map(|x| {
+                        x + 1
+                    }
+              ).unwrap_or_else(|e| 0);
+    let _ = res.map(|x| x + 1)
+               .unwrap_or_else(|e|
+                    0
+                );
+    // macro case
+    let _ = opt_map!(res, |x| x + 1).unwrap_or_else(|e| 0); // should not lint
 }
 
 /// Struct to generate false positives for things with .iter()
@@ -174,15 +222,6 @@ impl IteratorFalsePositives {
 
     fn skip(self, _: usize) -> IteratorFalsePositives {
         self
-    }
-}
-
-#[derive(Copy, Clone)]
-struct HasChars;
-
-impl HasChars {
-    fn chars(self) -> std::str::Chars<'static> {
-        "HasChars".chars()
     }
 }
 
@@ -346,180 +385,8 @@ fn iter_skip_next() {
     let _ = foo.filter().skip(42).next();
 }
 
-struct GetFalsePositive {
-    arr: [u32; 3],
-}
-
-impl GetFalsePositive {
-    fn get(&self, pos: usize) -> Option<&u32> { self.arr.get(pos) }
-    fn get_mut(&mut self, pos: usize) -> Option<&mut u32> { self.arr.get_mut(pos) }
-}
-
-/// Checks implementation of `GET_UNWRAP` lint
-fn get_unwrap() {
-    let mut boxed_slice: Box<[u8]> = Box::new([0, 1, 2, 3]);
-    let mut some_slice = &mut [0, 1, 2, 3];
-    let mut some_vec = vec![0, 1, 2, 3];
-    let mut some_vecdeque: VecDeque<_> = some_vec.iter().cloned().collect();
-    let mut some_hashmap: HashMap<u8, char> = HashMap::from_iter(vec![(1, 'a'), (2, 'b')]);
-    let mut some_btreemap: BTreeMap<u8, char> = BTreeMap::from_iter(vec![(1, 'a'), (2, 'b')]);
-    let mut false_positive = GetFalsePositive { arr: [0, 1, 2] };
-
-    { // Test `get().unwrap()`
-        let _ = boxed_slice.get(1).unwrap();
-        let _ = some_slice.get(0).unwrap();
-        let _ = some_vec.get(0).unwrap();
-        let _ = some_vecdeque.get(0).unwrap();
-        let _ = some_hashmap.get(&1).unwrap();
-        let _ = some_btreemap.get(&1).unwrap();
-        let _ = false_positive.get(0).unwrap();
-    }
-
-    { // Test `get_mut().unwrap()`
-        *boxed_slice.get_mut(0).unwrap() = 1;
-        *some_slice.get_mut(0).unwrap() = 1;
-        *some_vec.get_mut(0).unwrap() = 1;
-        *some_vecdeque.get_mut(0).unwrap() = 1;
-        // Check false positives
-        *some_hashmap.get_mut(&1).unwrap() = 'b';
-        *some_btreemap.get_mut(&1).unwrap() = 'b';
-        *false_positive.get_mut(0).unwrap() = 1;
-    }
-}
-
-
 #[allow(similar_names)]
 fn main() {
-    use std::io;
-
     let opt = Some(0);
     let _ = opt.unwrap();
-
-    let res: Result<i32, ()> = Ok(0);
-    let _ = res.unwrap();
-
-    res.ok().expect("disaster!");
-    // the following should not warn, since `expect` isn't implemented unless
-    // the error type implements `Debug`
-    let res2: Result<i32, MyError> = Ok(0);
-    res2.ok().expect("oh noes!");
-    let res3: Result<u32, MyErrorWithParam<u8>>= Ok(0);
-    res3.ok().expect("whoof");
-    let res4: Result<u32, io::Error> = Ok(0);
-    res4.ok().expect("argh");
-    let res5: io::Result<u32> = Ok(0);
-    res5.ok().expect("oops");
-    let res6: Result<u32, &str> = Ok(0);
-    res6.ok().expect("meh");
-}
-
-struct MyError(()); // doesn't implement Debug
-
-#[derive(Debug)]
-struct MyErrorWithParam<T> {
-    x: T
-}
-
-#[allow(unnecessary_operation)]
-fn starts_with() {
-    "".chars().next() == Some(' ');
-    Some(' ') != "".chars().next();
-}
-
-fn str_extend_chars() {
-    let abc = "abc";
-    let def = String::from("def");
-    let mut s = String::new();
-
-    s.push_str(abc);
-    s.extend(abc.chars());
-
-    s.push_str("abc");
-    s.extend("abc".chars());
-
-    s.push_str(&def);
-    s.extend(def.chars());
-
-    s.extend(abc.chars().skip(1));
-    s.extend("abc".chars().skip(1));
-    s.extend(['a', 'b', 'c'].iter());
-
-    let f = HasChars;
-    s.extend(f.chars());
-}
-
-fn clone_on_copy() {
-    42.clone();
-
-    vec![1].clone(); // ok, not a Copy type
-    Some(vec![1]).clone(); // ok, not a Copy type
-    (&42).clone();
-}
-
-fn clone_on_copy_generic<T: Copy>(t: T) {
-    t.clone();
-
-    Some(t).clone();
-}
-
-fn clone_on_double_ref() {
-    let x = vec![1];
-    let y = &&x;
-    let z: &Vec<_> = y.clone();
-
-    println!("{:p} {:p}",*y, z);
-}
-
-fn single_char_pattern() {
-    let x = "foo";
-    x.split("x");
-    x.split("xx");
-    x.split('x');
-
-    let y = "x";
-    x.split(y);
-    // Not yet testing for multi-byte characters
-    // Changing `r.len() == 1` to `r.chars().count() == 1` in `lint_single_char_pattern`
-    // should have done this but produced an ICE
-    //
-    // We may not want to suggest changing these anyway
-    // See: https://github.com/rust-lang-nursery/rust-clippy/issues/650#issuecomment-184328984
-    x.split("ß");
-    x.split("ℝ");
-    x.split("💣");
-    // Can't use this lint for unicode code points which don't fit in a char
-    x.split("❤️");
-    x.contains("x");
-    x.starts_with("x");
-    x.ends_with("x");
-    x.find("x");
-    x.rfind("x");
-    x.rsplit("x");
-    x.split_terminator("x");
-    x.rsplit_terminator("x");
-    x.splitn(0, "x");
-    x.rsplitn(0, "x");
-    x.matches("x");
-    x.rmatches("x");
-    x.match_indices("x");
-    x.rmatch_indices("x");
-    x.trim_left_matches("x");
-    x.trim_right_matches("x");
-
-    let h = HashSet::<String>::new();
-    h.contains("X"); // should not warn
-}
-
-#[allow(result_unwrap_used)]
-fn temporary_cstring() {
-    use std::ffi::CString;
-
-    CString::new("foo").unwrap().as_ptr();
-}
-
-fn iter_clone_collect() {
-    let v = [1,2,3,4,5];
-    let v2 : Vec<isize> = v.iter().cloned().collect();
-    let v3 : HashSet<isize> = v.iter().cloned().collect();
-    let v4 : VecDeque<isize> = v.iter().cloned().collect();
 }

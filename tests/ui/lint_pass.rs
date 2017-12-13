@@ -1,6 +1,6 @@
-#![feature(plugin)]
+
 #![feature(rustc_private)]
-#![plugin(clippy)]
+#![feature(macro_vis_matcher)]
 
 #![warn(lint_without_lint_pass)]
 

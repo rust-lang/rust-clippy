@@ -1,5 +1,5 @@
-#![feature(plugin)]
-#![plugin(clippy)]
+
+
 #![allow(single_match, unused_assignments, unused_variables)]
 
 fn test1() {
@@ -54,7 +54,7 @@ fn test5() {
 
 fn test6() {
     let mut x = 0;
-    'outer: loop { // never loops
+    'outer: loop {
         x += 1;
 		loop { // never loops
             if x == 5 { break }
@@ -112,6 +112,55 @@ fn test11<F: FnMut() -> i32>(mut f: F) {
     }
 }
 
+pub fn test12(a: bool, b: bool) {
+    'label: loop {
+        loop {
+            if a {
+                continue 'label;
+            }
+            if b {
+                break;
+            }
+        }
+        break;
+    }
+}
+
+pub fn test13() {
+    let mut a = true;
+    loop { // infinite loop
+        while a {
+            if true {
+                a = false;
+                continue;
+            }
+            return;
+        }
+    }
+}
+
+pub fn test14() {
+    let mut a = true;
+    'outer: while a { // never loops
+        while a {
+            if a {
+                a = false;
+                continue
+            }
+        }
+        break 'outer;
+    }
+}
+
+// Issue #1991: the outter loop should not warn.
+pub fn test15() {
+    'label: loop {
+        while false {
+            break 'label;
+        }
+    }
+}
+
 fn main() {
     test1();
     test2();
@@ -124,5 +173,8 @@ fn main() {
     test9();
     test10();
     test11(|| 0);
+    test12(true, false);
+    test13();
+    test14();
 }
 

@@ -51,11 +51,18 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnportableVariant {
                     let did = cx.tcx.hir.body_owner_def_id(body_id);
                     let param_env = ty::ParamEnv::empty(Reveal::UserFacing);
                     let substs = Substs::identity_for_item(cx.tcx.global_tcx(), did);
-                    let bad = match cx.tcx.at(expr.span).const_eval(
-                        param_env.and((did, substs)),
-                    ) {
-                        Ok(ConstVal::Integral(Usize(Us64(i)))) => u64::from(i as u32) != i,
-                        Ok(ConstVal::Integral(Isize(Is64(i)))) => i64::from(i as i32) != i,
+                    let bad = match cx.tcx
+                        .at(expr.span)
+                        .const_eval(param_env.and((did, substs)))
+                    {
+                        Ok(&ty::Const {
+                            val: ConstVal::Integral(Usize(Us64(i))),
+                            ..
+                        }) => u64::from(i as u32) != i,
+                        Ok(&ty::Const {
+                            val: ConstVal::Integral(Isize(Is64(i))),
+                            ..
+                        }) => i64::from(i as i32) != i,
                         _ => false,
                     };
                     if bad {

@@ -1,6 +1,6 @@
 use rustc::hir::*;
 use rustc::lint::*;
-use utils::{get_trait_def_id, implements_trait, higher, match_qpath, paths, span_lint};
+use utils::{get_trait_def_id, higher, implements_trait, match_qpath, paths, span_lint};
 
 /// **What it does:** Checks for iteration that is guaranteed to be infinite.
 ///
@@ -50,9 +50,10 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
         let (lint, msg) = match complete_infinite_iter(cx, expr) {
             Infinite => (INFINITE_ITER, "infinite iteration detected"),
-            MaybeInfinite => (MAYBE_INFINITE_ITER,
-                        "possible infinite iteration detected"),
-            Finite => { return; }
+            MaybeInfinite => (MAYBE_INFINITE_ITER, "possible infinite iteration detected"),
+            Finite => {
+                return;
+            },
         };
         span_lint(cx, lint, expr.span, msg)
     }
@@ -62,17 +63,17 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
 enum Finiteness {
     Infinite,
     MaybeInfinite,
-    Finite
+    Finite,
 }
 
-use self::Finiteness::{Infinite, MaybeInfinite, Finite};
+use self::Finiteness::{Finite, Infinite, MaybeInfinite};
 
 impl Finiteness {
     fn and(self, b: Self) -> Self {
         match (self, b) {
             (Finite, _) | (_, Finite) => Finite,
             (MaybeInfinite, _) | (_, MaybeInfinite) => MaybeInfinite,
-            _ => Infinite
+            _ => Infinite,
         }
     }
 
@@ -80,14 +81,18 @@ impl Finiteness {
         match (self, b) {
             (Infinite, _) | (_, Infinite) => Infinite,
             (MaybeInfinite, _) | (_, MaybeInfinite) => MaybeInfinite,
-            _ => Finite
+            _ => Finite,
         }
     }
 }
 
 impl From<bool> for Finiteness {
     fn from(b: bool) -> Self {
-        if b { Infinite } else { Finite }
+        if b {
+            Infinite
+        } else {
+            Finite
+        }
     }
 }
 
@@ -102,17 +107,17 @@ enum Heuristic {
     /// infinite if any of the supplied arguments is
     Any,
     /// infinite if all of the supplied arguments are
-    All
+    All,
 }
 
-use self::Heuristic::{Always, First, Any, All};
+use self::Heuristic::{All, Always, Any, First};
 
 /// a slice of (method name, number of args, heuristic, bounds) tuples
 /// that will be used to determine whether the method in question
 /// returns an infinite or possibly infinite iterator. The finiteness
 /// is an upper bound, e.g. some methods can return a possibly
 /// infinite iterator at worst, e.g. `take_while`.
-static HEURISTICS : &[(&str, usize, Heuristic, Finiteness)] = &[
+static HEURISTICS: &[(&str, usize, Heuristic, Finiteness)] = &[
     ("zip", 2, All, Infinite),
     ("chain", 2, Any, Infinite),
     ("cycle", 1, Always, Infinite),
@@ -131,7 +136,7 @@ static HEURISTICS : &[(&str, usize, Heuristic, Finiteness)] = &[
     ("flat_map", 2, First, Infinite),
     ("unzip", 1, First, Infinite),
     ("take_while", 2, First, MaybeInfinite),
-    ("scan", 3, First, MaybeInfinite)
+    ("scan", 3, First, MaybeInfinite),
 ];
 
 fn is_infinite(cx: &LateContext, expr: &Expr) -> Finiteness {
@@ -155,35 +160,34 @@ fn is_infinite(cx: &LateContext, expr: &Expr) -> Finiteness {
             }
             Finite
         },
-        ExprBlock(ref block) =>
-            block.expr.as_ref().map_or(Finite, |e| is_infinite(cx, e)),
+        ExprBlock(ref block) => block.expr.as_ref().map_or(Finite, |e| is_infinite(cx, e)),
         ExprBox(ref e) | ExprAddrOf(_, ref e) => is_infinite(cx, e),
-        ExprCall(ref path, _) => {
-            if let ExprPath(ref qpath) = path.node {
-                match_qpath(qpath, &paths::REPEAT).into()
-            } else { Finite }
+        ExprCall(ref path, _) => if let ExprPath(ref qpath) = path.node {
+            match_qpath(qpath, &paths::REPEAT).into()
+        } else {
+            Finite
         },
-        ExprStruct(..) => {
-            higher::range(expr).map_or(false, |r| r.end.is_none()).into()
-        },
-        _ => Finite
+        ExprStruct(..) => higher::range(expr)
+            .map_or(false, |r| r.end.is_none())
+            .into(),
+        _ => Finite,
     }
 }
 
 /// the names and argument lengths of methods that *may* exhaust their
 /// iterators
-static POSSIBLY_COMPLETING_METHODS : &[(&str, usize)] = &[
+static POSSIBLY_COMPLETING_METHODS: &[(&str, usize)] = &[
     ("find", 2),
     ("rfind", 2),
     ("position", 2),
     ("rposition", 2),
     ("any", 2),
-    ("all", 2)
+    ("all", 2),
 ];
 
 /// the names and argument lengths of methods that *always* exhaust
 /// their iterators
-static COMPLETING_METHODS : &[(&str, usize)] = &[
+static COMPLETING_METHODS: &[(&str, usize)] = &[
     ("count", 1),
     ("collect", 1),
     ("fold", 3),
@@ -196,7 +200,7 @@ static COMPLETING_METHODS : &[(&str, usize)] = &[
     ("min_by", 2),
     ("min_by_key", 2),
     ("sum", 1),
-    ("product", 1)
+    ("product", 1),
 ];
 
 fn complete_infinite_iter(cx: &LateContext, expr: &Expr) -> Finiteness {
@@ -212,21 +216,20 @@ fn complete_infinite_iter(cx: &LateContext, expr: &Expr) -> Finiteness {
                     return MaybeInfinite.and(is_infinite(cx, &args[0]));
                 }
             }
-            if method.name == "last" && args.len() == 1 &&
-                    get_trait_def_id(cx, &paths::DOUBLE_ENDED_ITERATOR).map_or(false,
-                        |id| !implements_trait(cx,
-                                               cx.tables.expr_ty(&args[0]),
-                                               id,
-                                               &[])) {
-                return is_infinite(cx, &args[0]);
+            if method.name == "last" && args.len() == 1 {
+                let not_double_ended = get_trait_def_id(cx, &paths::DOUBLE_ENDED_ITERATOR)
+                    .map_or(false, |id| !implements_trait(cx, cx.tables.expr_ty(&args[0]), id, &[]));
+                if not_double_ended {
+                    return is_infinite(cx, &args[0]);
+                }
             }
         },
-        ExprBinary(op, ref l, ref r) => {
-            if op.node.is_comparison() {
-                return is_infinite(cx, l).and(is_infinite(cx, r)).and(MaybeInfinite)
-            }
-        }, //TODO: ExprLoop + Match
-        _ => ()
+        ExprBinary(op, ref l, ref r) => if op.node.is_comparison() {
+            return is_infinite(cx, l)
+                .and(is_infinite(cx, r))
+                .and(MaybeInfinite);
+        }, // TODO: ExprLoop + Match
+        _ => (),
     }
     Finite
 }

@@ -15,15 +15,7 @@
 // *rustc*'s
 // [`missing_doc`].
 //
-// [`missing_doc`]:
-// https://github.
-// com/rust-lang/rust/blob/d6d05904697d89099b55da3331155392f1db9c00/src/librustc_lint/builtin.
-// 
-//
-//
-//
-//
-// rs#L246
+// [`missing_doc`]: https://github.com/rust-lang/rust/blob/d6d05904697d89099b55da3331155392f1db9c00/src/librustc_lint/builtin.rs#L246
 //
 
 use rustc::hir;
@@ -63,13 +55,15 @@ impl ::std::default::Default for MissingDoc {
 
 impl MissingDoc {
     pub fn new() -> Self {
-        Self { doc_hidden_stack: vec![false] }
+        Self {
+            doc_hidden_stack: vec![false],
+        }
     }
 
     fn doc_hidden(&self) -> bool {
-        *self.doc_hidden_stack.last().expect(
-            "empty doc_hidden_stack",
-        )
+        *self.doc_hidden_stack
+            .last()
+            .expect("empty doc_hidden_stack")
     }
 
     fn check_missing_docs_attrs(&self, cx: &LateContext, attrs: &[ast::Attribute], sp: Span, desc: &'static str) {
@@ -88,9 +82,9 @@ impl MissingDoc {
             return;
         }
 
-        let has_doc = attrs.iter().any(|a| {
-            a.is_value_str() && a.name().map_or(false, |n| n == "doc")
-        });
+        let has_doc = attrs
+            .iter()
+            .any(|a| a.is_value_str() && a.name().map_or(false, |n| n == "doc"));
         if !has_doc {
             cx.span_lint(
                 MISSING_DOCS_IN_PRIVATE_ITEMS,
@@ -109,14 +103,12 @@ impl LintPass for MissingDoc {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
     fn enter_lint_attrs(&mut self, _: &LateContext<'a, 'tcx>, attrs: &'tcx [ast::Attribute]) {
-        let doc_hidden = self.doc_hidden() ||
-            attrs.iter().any(|attr| {
-                attr.check_name("doc") &&
-                    match attr.meta_item_list() {
-                        None => false,
-                        Some(l) => attr::list_contains_name(&l[..], "hidden"),
-                    }
-            });
+        let doc_hidden = self.doc_hidden() || attrs.iter().any(|attr| {
+            attr.check_name("doc") && match attr.meta_item_list() {
+                None => false,
+                Some(l) => attr::list_contains_name(&l[..], "hidden"),
+            }
+        });
         self.doc_hidden_stack.push(doc_hidden);
     }
 
@@ -140,7 +132,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
             hir::ItemGlobalAsm(..) => "an assembly blob",
             hir::ItemTy(..) => "a type alias",
             hir::ItemUnion(..) => "a union",
-            hir::ItemDefaultImpl(..) |
+            hir::ItemAutoImpl(..) |
             hir::ItemExternCrate(..) |
             hir::ItemForeignMod(..) |
             hir::ItemImpl(..) |
@@ -165,10 +157,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
         let def_id = cx.tcx.hir.local_def_id(impl_item.id);
         match cx.tcx.associated_item(def_id).container {
             ty::TraitContainer(_) => return,
-            ty::ImplContainer(cid) => {
-                if cx.tcx.impl_trait_ref(cid).is_some() {
-                    return;
-                }
+            ty::ImplContainer(cid) => if cx.tcx.impl_trait_ref(cid).is_some() {
+                return;
             },
         }
 

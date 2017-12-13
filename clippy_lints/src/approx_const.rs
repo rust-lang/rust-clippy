@@ -1,17 +1,15 @@
 use rustc::lint::*;
 use rustc::hir::*;
 use std::f64::consts as f64;
-use syntax::ast::{Lit, LitKind, FloatTy};
+use syntax::ast::{FloatTy, Lit, LitKind};
 use syntax::symbol;
 use utils::span_lint;
 
 /// **What it does:** Checks for floating point literals that approximate
 /// constants which are defined in
-/// [`std::f32::consts`](https://doc.rust-lang.
-/// org/stable/std/f32/consts/#constants)
+/// [`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)
 /// or
-/// [`std::f64::consts`](https://doc.rust-lang.
-/// org/stable/std/f64/consts/#constants),
+/// [`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),
 /// respectively, suggesting to use the predefined constant.
 ///
 /// **Why is this bad?** Usually, the definition in the standard library is more
@@ -35,7 +33,7 @@ declare_lint! {
 }
 
 // Tuples are of the form (constant, name, min_digits)
-const KNOWN_CONSTS: &'static [(f64, &'static str, usize)] = &[
+const KNOWN_CONSTS: &[(f64, &str, usize)] = &[
     (f64::E, "E", 4),
     (f64::FRAC_1_PI, "FRAC_1_PI", 4),
     (f64::FRAC_1_SQRT_2, "FRAC_1_SQRT_2", 5),
@@ -91,7 +89,7 @@ fn check_known_consts(cx: &LateContext, e: &Expr, s: &symbol::Symbol, module: &s
                     e.span,
                     &format!(
                         "approximate value of `{}::consts::{}` found. \
-                                    Consider using it directly",
+                         Consider using it directly",
                         module,
                         &name
                     ),

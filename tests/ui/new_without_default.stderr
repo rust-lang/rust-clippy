@@ -15,7 +15,6 @@ error: you should consider deriving a `Default` implementation for `Bar`
    |
 16 |     pub fn new() -> Self { Bar }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
 help: try this
    |
 13 | #[derive(Default)]
@@ -30,13 +29,10 @@ error: you should consider adding a `Default` implementation for `LtKo<'c>`
    = note: `-D new-without-default` implied by `-D warnings`
 help: try this
    |
-64 |     impl Default for LtKo<'c> {
-65 |         fn default() -> Self {
-66 |             Self::new()
-67 |         }
-68 |     }
-69 | 
- ...
-
-error: aborting due to 3 previous errors
+63 | impl Default for LtKo<'c> {
+64 |     fn default() -> Self {
+65 |         Self::new()
+66 |     }
+67 | }
+   |
 

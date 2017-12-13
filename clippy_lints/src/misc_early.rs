@@ -4,7 +4,7 @@ use std::char;
 use syntax::ast::*;
 use syntax::codemap::Span;
 use syntax::visit::FnKind;
-use utils::{constants, span_lint, span_help_and_lint, snippet, snippet_opt, span_lint_and_then, in_external_macro};
+use utils::{constants, in_external_macro, snippet, snippet_opt, span_help_and_lint, span_lint, span_lint_and_then};
 
 /// **What it does:** Checks for structure field patterns bound to wildcards.
 ///
@@ -251,7 +251,7 @@ impl EarlyLintPass for MiscEarly {
                                 UNNEEDED_FIELD_PATTERN,
                                 field.span,
                                 "You matched a field with a wildcard pattern. Consider using `..` \
-                                                instead",
+                                 instead",
                                 &format!("Try with `{} {{ {}, .. }}`", type_name, normal[..].join(", ")),
                             );
                         }
@@ -276,7 +276,7 @@ impl EarlyLintPass for MiscEarly {
                             *correspondence,
                             &format!(
                                 "`{}` already exists, having another argument having almost the same \
-                                            name makes code comprehension and documentation more difficult",
+                                 name makes code comprehension and documentation more difficult",
                                 arg_name[1..].to_owned()
                             ),
                         );;
@@ -293,29 +293,27 @@ impl EarlyLintPass for MiscEarly {
             return;
         }
         match expr.node {
-            ExprKind::Call(ref paren, _) => {
-                if let ExprKind::Paren(ref closure) = paren.node {
-                    if let ExprKind::Closure(_, ref decl, ref block, _) = closure.node {
-                        span_lint_and_then(cx,
-                                           REDUNDANT_CLOSURE_CALL,
-                                           expr.span,
-                                           "Try not to call a closure in the expression where it is declared.",
-                                           |db| if decl.inputs.is_empty() {
-                                               let hint = snippet(cx, block.span, "..").into_owned();
-                                               db.span_suggestion(expr.span, "Try doing something like: ", hint);
-                                           });
-                    }
-                }
-            },
-            ExprKind::Unary(UnOp::Neg, ref inner) => {
-                if let ExprKind::Unary(UnOp::Neg, _) = inner.node {
-                    span_lint(
+            ExprKind::Call(ref paren, _) => if let ExprKind::Paren(ref closure) = paren.node {
+                if let ExprKind::Closure(_, ref decl, ref block, _) = closure.node {
+                    span_lint_and_then(
                         cx,
-                        DOUBLE_NEG,
+                        REDUNDANT_CLOSURE_CALL,
                         expr.span,
-                        "`--x` could be misinterpreted as pre-decrement by C programmers, is usually a no-op",
+                        "Try not to call a closure in the expression where it is declared.",
+                        |db| if decl.inputs.is_empty() {
+                            let hint = snippet(cx, block.span, "..").into_owned();
+                            db.span_suggestion(expr.span, "Try doing something like: ", hint);
+                        },
                     );
                 }
+            },
+            ExprKind::Unary(UnOp::Neg, ref inner) => if let ExprKind::Unary(UnOp::Neg, _) = inner.node {
+                span_lint(
+                    cx,
+                    DOUBLE_NEG,
+                    expr.span,
+                    "`--x` could be misinterpreted as pre-decrement by C programmers, is usually a no-op",
+                );
             },
             ExprKind::Lit(ref lit) => self.check_lit(cx, lit),
             _ => (),
@@ -324,100 +322,103 @@ impl EarlyLintPass for MiscEarly {
 
     fn check_block(&mut self, cx: &EarlyContext, block: &Block) {
         for w in block.stmts.windows(2) {
-            if_let_chain! {[
-                let StmtKind::Local(ref local) = w[0].node,
-                let Option::Some(ref t) = local.init,
-                let ExprKind::Closure(_, _, _, _) = t.node,
-                let PatKind::Ident(_, sp_ident, _) = local.pat.node,
-                let StmtKind::Semi(ref second) = w[1].node,
-                let ExprKind::Assign(_, ref call) = second.node,
-                let ExprKind::Call(ref closure, _) = call.node,
-                let ExprKind::Path(_, ref path) = closure.node
-            ], {
-                if sp_ident.node == (&path.segments[0]).identifier {
-                    span_lint(
-                        cx,
-                        REDUNDANT_CLOSURE_CALL,
-                        second.span,
-                        "Closure called just once immediately after it was declared",
-                    );
+            if_chain! {
+                if let StmtKind::Local(ref local) = w[0].node;
+                if let Option::Some(ref t) = local.init;
+                if let ExprKind::Closure(_, _, _, _) = t.node;
+                if let PatKind::Ident(_, sp_ident, _) = local.pat.node;
+                if let StmtKind::Semi(ref second) = w[1].node;
+                if let ExprKind::Assign(_, ref call) = second.node;
+                if let ExprKind::Call(ref closure, _) = call.node;
+                if let ExprKind::Path(_, ref path) = closure.node;
+                then {
+                    if sp_ident.node == (&path.segments[0]).identifier {
+                        span_lint(
+                            cx,
+                            REDUNDANT_CLOSURE_CALL,
+                            second.span,
+                            "Closure called just once immediately after it was declared",
+                        );
+                    }
                 }
-            }}
+            }
         }
     }
 }
 
 impl MiscEarly {
     fn check_lit(&self, cx: &EarlyContext, lit: &Lit) {
-        if_let_chain! {[
-            let LitKind::Int(value, ..) = lit.node,
-            let Some(src) = snippet_opt(cx, lit.span),
-            let Some(firstch) = src.chars().next(),
-            char::to_digit(firstch, 10).is_some()
-        ], {
-            let mut prev = '\0';
-            for ch in src.chars() {
-                if ch == 'i' || ch == 'u' {
-                    if prev != '_' {
-                        span_lint(cx, UNSEPARATED_LITERAL_SUFFIX, lit.span,
-                                    "integer type suffix should be separated by an underscore");
-                    }
-                    break;
-                }
-                prev = ch;
-            }
-            if src.starts_with("0x") {
-                let mut seen = (false, false);
+        if_chain! {
+            if let LitKind::Int(value, ..) = lit.node;
+            if let Some(src) = snippet_opt(cx, lit.span);
+            if let Some(firstch) = src.chars().next();
+            if char::to_digit(firstch, 10).is_some();
+            then {
+                let mut prev = '\0';
                 for ch in src.chars() {
-                    match ch {
-                        'a' ... 'f' => seen.0 = true,
-                        'A' ... 'F' => seen.1 = true,
-                        'i' | 'u'   => break,   // start of suffix already
-                        _ => ()
+                    if ch == 'i' || ch == 'u' {
+                        if prev != '_' {
+                            span_lint(cx, UNSEPARATED_LITERAL_SUFFIX, lit.span,
+                                        "integer type suffix should be separated by an underscore");
+                        }
+                        break;
                     }
+                    prev = ch;
                 }
-                if seen.0 && seen.1 {
-                    span_lint(cx, MIXED_CASE_HEX_LITERALS, lit.span,
-                                "inconsistent casing in hexadecimal literal");
-                }
-            } else if src.starts_with("0b") || src.starts_with("0o") {
-                /* nothing to do */
-            } else if value != 0 && src.starts_with('0') {
-                span_lint_and_then(cx,
-                                    ZERO_PREFIXED_LITERAL,
-                                    lit.span,
-                                    "this is a decimal constant",
-                                    |db| {
-                    db.span_suggestion(
-                        lit.span,
-                        "if you mean to use a decimal constant, remove the `0` to remove confusion",
-                        src.trim_left_matches(|c| c == '_' || c == '0').to_string(),
-                    );
-                    db.span_suggestion(
-                        lit.span,
-                        "if you mean to use an octal constant, use `0o`",
-                        format!("0o{}", src.trim_left_matches(|c| c == '_' || c == '0')),
-                    );
-                });
-            }
-        }}
-        if_let_chain! {[
-            let LitKind::Float(..) = lit.node,
-            let Some(src) = snippet_opt(cx, lit.span),
-            let Some(firstch) = src.chars().next(),
-            char::to_digit(firstch, 10).is_some()
-        ], {
-            let mut prev = '\0';
-            for ch in src.chars() {
-                if ch == 'f' {
-                    if prev != '_' {
-                        span_lint(cx, UNSEPARATED_LITERAL_SUFFIX, lit.span,
-                                    "float type suffix should be separated by an underscore");
+                if src.starts_with("0x") {
+                    let mut seen = (false, false);
+                    for ch in src.chars() {
+                        match ch {
+                            'a' ... 'f' => seen.0 = true,
+                            'A' ... 'F' => seen.1 = true,
+                            'i' | 'u'   => break,   // start of suffix already
+                            _ => ()
+                        }
                     }
-                    break;
+                    if seen.0 && seen.1 {
+                        span_lint(cx, MIXED_CASE_HEX_LITERALS, lit.span,
+                                    "inconsistent casing in hexadecimal literal");
+                    }
+                } else if src.starts_with("0b") || src.starts_with("0o") {
+                    /* nothing to do */
+                } else if value != 0 && src.starts_with('0') {
+                    span_lint_and_then(cx,
+                                        ZERO_PREFIXED_LITERAL,
+                                        lit.span,
+                                        "this is a decimal constant",
+                                        |db| {
+                        db.span_suggestion(
+                            lit.span,
+                            "if you mean to use a decimal constant, remove the `0` to remove confusion",
+                            src.trim_left_matches(|c| c == '_' || c == '0').to_string(),
+                        );
+                        db.span_suggestion(
+                            lit.span,
+                            "if you mean to use an octal constant, use `0o`",
+                            format!("0o{}", src.trim_left_matches(|c| c == '_' || c == '0')),
+                        );
+                    });
                 }
-                prev = ch;
             }
-        }}
+        }
+        if_chain! {
+            if let LitKind::Float(..) = lit.node;
+            if let Some(src) = snippet_opt(cx, lit.span);
+            if let Some(firstch) = src.chars().next();
+            if char::to_digit(firstch, 10).is_some();
+            then {
+                let mut prev = '\0';
+                for ch in src.chars() {
+                    if ch == 'f' {
+                        if prev != '_' {
+                            span_lint(cx, UNSEPARATED_LITERAL_SUFFIX, lit.span,
+                                        "float type suffix should be separated by an underscore");
+                        }
+                        break;
+                    }
+                    prev = ch;
+                }
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ use rustc::ty::{self, TyCtxt};
 use semver::Version;
 use syntax::ast::{Attribute, Lit, LitKind, MetaItemKind, NestedMetaItem, NestedMetaItemKind};
 use syntax::codemap::Span;
-use utils::{in_macro, match_def_path, paths, span_lint, span_lint_and_then, snippet_opt};
+use utils::{in_macro, match_def_path, opt_def_id, paths, snippet_opt, span_lint, span_lint_and_then};
 
 /// **What it does:** Checks for items annotated with `#[inline(always)]`,
 /// unless the annotated function is empty or simply panics.
@@ -94,13 +94,14 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AttrPass {
                 return;
             }
             for item in items {
-                if_let_chain! {[
-                    let NestedMetaItemKind::MetaItem(ref mi) = item.node,
-                    let MetaItemKind::NameValue(ref lit) = mi.node,
-                    mi.name() == "since",
-                ], {
-                    check_semver(cx, item.span, lit);
-                }}
+                if_chain! {
+                    if let NestedMetaItemKind::MetaItem(ref mi) = item.node;
+                    if let MetaItemKind::NameValue(ref lit) = mi.node;
+                    if mi.name() == "since";
+                    then {
+                        check_semver(cx, item.span, lit);
+                    }
+                }
             }
         }
     }
@@ -110,8 +111,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AttrPass {
             check_attrs(cx, item.span, &item.name, &item.attrs)
         }
         match item.node {
-            ItemExternCrate(_) |
-            ItemUse(_, _) => {
+            ItemExternCrate(_) | ItemUse(_, _) => {
                 for attr in &item.attrs {
                     if let Some(ref lint_list) = attr.meta_item_list() {
                         if let Some(name) = attr.name() {
@@ -196,14 +196,13 @@ fn is_relevant_block(tcx: TyCtxt, tables: &ty::TypeckTables, block: &Block) -> b
     if let Some(stmt) = block.stmts.first() {
         match stmt.node {
             StmtDecl(_, _) => true,
-            StmtExpr(ref expr, _) |
-            StmtSemi(ref expr, _) => is_relevant_expr(tcx, tables, expr),
+            StmtExpr(ref expr, _) | StmtSemi(ref expr, _) => is_relevant_expr(tcx, tables, expr),
         }
     } else {
-        block.expr.as_ref().map_or(
-            false,
-            |e| is_relevant_expr(tcx, tables, e),
-        )
+        block
+            .expr
+            .as_ref()
+            .map_or(false, |e| is_relevant_expr(tcx, tables, e))
     }
 }
 
@@ -211,15 +210,15 @@ fn is_relevant_expr(tcx: TyCtxt, tables: &ty::TypeckTables, expr: &Expr) -> bool
     match expr.node {
         ExprBlock(ref block) => is_relevant_block(tcx, tables, block),
         ExprRet(Some(ref e)) => is_relevant_expr(tcx, tables, e),
-        ExprRet(None) |
-        ExprBreak(_, None) => false,
-        ExprCall(ref path_expr, _) => {
-            if let ExprPath(ref qpath) = path_expr.node {
-                let fun_id = tables.qpath_def(qpath, path_expr.hir_id).def_id();
+        ExprRet(None) | ExprBreak(_, None) => false,
+        ExprCall(ref path_expr, _) => if let ExprPath(ref qpath) = path_expr.node {
+            if let Some(fun_id) = opt_def_id(tables.qpath_def(qpath, path_expr.hir_id)) {
                 !match_def_path(tcx, fun_id, &paths::BEGIN_PANIC)
             } else {
                 true
             }
+        } else {
+            true
         },
         _ => true,
     }

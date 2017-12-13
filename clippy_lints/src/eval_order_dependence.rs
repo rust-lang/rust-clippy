@@ -1,9 +1,9 @@
-use rustc::hir::def_id::DefId;
-use rustc::hir::intravisit::{Visitor, walk_expr, NestedVisitorMap};
+use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
 use rustc::hir::*;
 use rustc::ty;
 use rustc::lint::*;
-use utils::{get_parent_expr, span_note_and_lint, span_lint};
+use syntax::ast;
+use utils::{get_parent_expr, span_lint, span_note_and_lint};
 
 /// **What it does:** Checks for a read and a write to the same variable where
 /// whether the read occurs before or after the write depends on the evaluation
@@ -62,12 +62,10 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EvalOrderDependence {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
         // Find a write to a local variable.
         match expr.node {
-            ExprAssign(ref lhs, _) |
-            ExprAssignOp(_, ref lhs, _) => {
-                if let ExprPath(ref qpath) = lhs.node {
-                    if let QPath::Resolved(_, ref path) = *qpath {
-                        if path.segments.len() == 1 {
-                            let var = cx.tables.qpath_def(qpath, lhs.hir_id).def_id();
+            ExprAssign(ref lhs, _) | ExprAssignOp(_, ref lhs, _) => if let ExprPath(ref qpath) = lhs.node {
+                if let QPath::Resolved(_, ref path) = *qpath {
+                    if path.segments.len() == 1 {
+                        if let def::Def::Local(var) = cx.tables.qpath_def(qpath, lhs.hir_id) {
                             let mut visitor = ReadVisitor {
                                 cx: cx,
                                 var: var,
@@ -84,13 +82,13 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EvalOrderDependence {
     }
     fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, stmt: &'tcx Stmt) {
         match stmt.node {
-            StmtExpr(ref e, _) |
-            StmtSemi(ref e, _) => DivergenceVisitor { cx: cx }.maybe_walk_expr(e),
-            StmtDecl(ref d, _) => {
-                if let DeclLocal(ref local) = d.node {
-                    if let Local { init: Some(ref e), .. } = **local {
-                        DivergenceVisitor { cx: cx }.visit_expr(e);
-                    }
+            StmtExpr(ref e, _) | StmtSemi(ref e, _) => DivergenceVisitor { cx: cx }.maybe_walk_expr(e),
+            StmtDecl(ref d, _) => if let DeclLocal(ref local) = d.node {
+                if let Local {
+                    init: Some(ref e), ..
+                } = **local
+                {
+                    DivergenceVisitor { cx: cx }.visit_expr(e);
                 }
             },
         }
@@ -230,8 +228,7 @@ fn check_expr<'a, 'tcx>(vis: &mut ReadVisitor<'a, 'tcx>, expr: &'tcx Expr) -> St
         ExprStruct(_, _, _) => {
             walk_expr(vis, expr);
         },
-        ExprBinary(op, _, _) |
-        ExprAssignOp(op, _, _) => {
+        ExprBinary(op, _, _) | ExprAssignOp(op, _, _) => {
             if op.node == BiAnd || op.node == BiOr {
                 // x && y and x || y always evaluate x first, so these are
                 // strictly sequenced.
@@ -265,8 +262,7 @@ fn check_expr<'a, 'tcx>(vis: &mut ReadVisitor<'a, 'tcx>, expr: &'tcx Expr) -> St
 
 fn check_stmt<'a, 'tcx>(vis: &mut ReadVisitor<'a, 'tcx>, stmt: &'tcx Stmt) -> StopEarly {
     match stmt.node {
-        StmtExpr(ref expr, _) |
-        StmtSemi(ref expr, _) => check_expr(vis, expr),
+        StmtExpr(ref expr, _) | StmtSemi(ref expr, _) => check_expr(vis, expr),
         StmtDecl(ref decl, _) => {
             // If the declaration is of a local variable, check its initializer
             // expression if it has one. Otherwise, keep going.
@@ -274,10 +270,9 @@ fn check_stmt<'a, 'tcx>(vis: &mut ReadVisitor<'a, 'tcx>, stmt: &'tcx Stmt) -> St
                 DeclLocal(ref local) => Some(local),
                 _ => None,
             };
-            local.and_then(|local| local.init.as_ref()).map_or(
-                StopEarly::KeepGoing,
-                |expr| check_expr(vis, expr),
-            )
+            local
+                .and_then(|local| local.init.as_ref())
+                .map_or(StopEarly::KeepGoing, |expr| check_expr(vis, expr))
         },
     }
 }
@@ -286,7 +281,7 @@ fn check_stmt<'a, 'tcx>(vis: &mut ReadVisitor<'a, 'tcx>, stmt: &'tcx Stmt) -> St
 struct ReadVisitor<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
     /// The id of the variable we're looking for.
-    var: DefId,
+    var: ast::NodeId,
     /// The expressions where the write to the variable occurred (for reporting
     /// in the lint).
     write_expr: &'tcx Expr,
@@ -303,20 +298,22 @@ impl<'a, 'tcx> Visitor<'tcx> for ReadVisitor<'a, 'tcx> {
 
         match expr.node {
             ExprPath(ref qpath) => {
-                if let QPath::Resolved(None, ref path) = *qpath {
-                    if path.segments.len() == 1 && self.cx.tables.qpath_def(qpath, expr.hir_id).def_id() == self.var {
-                        if is_in_assignment_position(self.cx, expr) {
-                            // This is a write, not a read.
-                        } else {
-                            span_note_and_lint(
-                                self.cx,
-                                EVAL_ORDER_DEPENDENCE,
-                                expr.span,
-                                "unsequenced read of a variable",
-                                self.write_expr.span,
-                                "whether read occurs before this write depends on evaluation order"
-                            );
-                        }
+                if_chain! {
+                    if let QPath::Resolved(None, ref path) = *qpath;
+                    if path.segments.len() == 1;
+                    if let def::Def::Local(local_id) = self.cx.tables.qpath_def(qpath, expr.hir_id);
+                    if local_id == self.var;
+                    // Check that this is a read, not a write.
+                    if !is_in_assignment_position(self.cx, expr);
+                    then {
+                        span_note_and_lint(
+                            self.cx,
+                            EVAL_ORDER_DEPENDENCE,
+                            expr.span,
+                            "unsequenced read of a variable",
+                            self.write_expr.span,
+                            "whether read occurs before this write depends on evaluation order"
+                        );
                     }
                 }
             }

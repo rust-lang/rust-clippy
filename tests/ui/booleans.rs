@@ -1,5 +1,5 @@
-#![feature(plugin)]
-#![plugin(clippy)]
+
+
 #![warn(nonminimal_bool, logic_bug)]
 
 #[allow(unused, many_single_char_names)]
@@ -37,4 +37,23 @@ fn equality_stuff() {
     let _ = a > b && a <= b;
     let _ = a > b && a == b;
     let _ = a != b || !(a != b || c == d);
+}
+
+#[allow(unused, many_single_char_names)]
+fn methods_with_negation() {
+    let a: Option<i32> = unimplemented!();
+    let b: Result<i32, i32> = unimplemented!();
+    let _ = a.is_some();
+    let _ = !a.is_some();
+    let _ = a.is_none();
+    let _ = !a.is_none();
+    let _ = b.is_err();
+    let _ = !b.is_err();
+    let _ = b.is_ok();
+    let _ = !b.is_ok();
+    let c = false;
+    let _ = !(a.is_some() && !c);
+    let _ = !(!c ^ c) || !a.is_some();
+    let _ = (!c ^ c) || !a.is_some();
+    let _ = !c ^ c || !a.is_some();
 }

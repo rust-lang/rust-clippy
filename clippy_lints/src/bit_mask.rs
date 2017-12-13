@@ -90,7 +90,17 @@ declare_lint! {
 }
 
 #[derive(Copy, Clone)]
-pub struct BitMask;
+pub struct BitMask {
+    verbose_bit_mask_threshold: u64,
+}
+
+impl BitMask {
+    pub fn new(verbose_bit_mask_threshold: u64) -> Self {
+        Self {
+            verbose_bit_mask_threshold: verbose_bit_mask_threshold,
+        }
+    }
+}
 
 impl LintPass for BitMask {
     fn get_lints(&self) -> LintArray {
@@ -109,26 +119,28 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BitMask {
                 }
             }
         }
-        if_let_chain!{[
-            let Expr_::ExprBinary(ref op, ref left, ref right) = e.node,
-            BinOp_::BiEq == op.node,
-            let Expr_::ExprBinary(ref op1, ref left1, ref right1) = left.node,
-            BinOp_::BiBitAnd == op1.node,
-            let Expr_::ExprLit(ref lit) = right1.node,
-            let LitKind::Int(n, _) = lit.node,
-            let Expr_::ExprLit(ref lit1) = right.node,
-            let LitKind::Int(0, _) = lit1.node,
-            n.leading_zeros() == n.count_zeros(),
-        ], {
-            span_lint_and_then(cx,
-                               VERBOSE_BIT_MASK,
-                               e.span,
-                               "bit mask could be simplified with a call to `trailing_zeros`",
-                               |db| {
-                let sugg = Sugg::hir(cx, left1, "...").maybe_par();
-                db.span_suggestion(e.span, "try", format!("{}.trailing_zeros() >= {}", sugg, n.count_ones()));
-            });
-        }}
+        if_chain! {
+            if let Expr_::ExprBinary(ref op, ref left, ref right) = e.node;
+            if BinOp_::BiEq == op.node;
+            if let Expr_::ExprBinary(ref op1, ref left1, ref right1) = left.node;
+            if BinOp_::BiBitAnd == op1.node;
+            if let Expr_::ExprLit(ref lit) = right1.node;
+            if let LitKind::Int(n, _) = lit.node;
+            if let Expr_::ExprLit(ref lit1) = right.node;
+            if let LitKind::Int(0, _) = lit1.node;
+            if n.leading_zeros() == n.count_zeros();
+            if n > u128::from(self.verbose_bit_mask_threshold);
+            then {
+                span_lint_and_then(cx,
+                                   VERBOSE_BIT_MASK,
+                                   e.span,
+                                   "bit mask could be simplified with a call to `trailing_zeros`",
+                                   |db| {
+                    let sugg = Sugg::hir(cx, left1, "...").maybe_par();
+                    db.span_suggestion(e.span, "try", format!("{}.trailing_zeros() >= {}", sugg, n.count_ones()));
+                });
+            }
+        }
     }
 }
 
@@ -158,118 +170,100 @@ fn check_compare(cx: &LateContext, bit_op: &Expr, cmp_op: BinOp_, cmp_value: u12
 
 fn check_bit_mask(cx: &LateContext, bit_op: BinOp_, cmp_op: BinOp_, mask_value: u128, cmp_value: u128, span: &Span) {
     match cmp_op {
-        BiEq | BiNe => {
-            match bit_op {
-                BiBitAnd => {
-                    if mask_value & cmp_value != cmp_value {
-                        if cmp_value != 0 {
-                            span_lint(
-                                cx,
-                                BAD_BIT_MASK,
-                                *span,
-                                &format!(
-                                    "incompatible bit mask: `_ & {}` can never be equal to `{}`",
-                                    mask_value,
-                                    cmp_value
-                                ),
-                            );
-                        }
-                    } else if mask_value == 0 {
-                        span_lint(cx, BAD_BIT_MASK, *span, "&-masking with zero");
-                    }
-                },
-                BiBitOr => {
-                    if mask_value | cmp_value != cmp_value {
-                        span_lint(
-                            cx,
-                            BAD_BIT_MASK,
-                            *span,
-                            &format!(
-                                "incompatible bit mask: `_ | {}` can never be equal to `{}`",
-                                mask_value,
-                                cmp_value
-                            ),
-                        );
-                    }
-                },
-                _ => (),
-            }
+        BiEq | BiNe => match bit_op {
+            BiBitAnd => if mask_value & cmp_value != cmp_value {
+                if cmp_value != 0 {
+                    span_lint(
+                        cx,
+                        BAD_BIT_MASK,
+                        *span,
+                        &format!(
+                            "incompatible bit mask: `_ & {}` can never be equal to `{}`",
+                            mask_value,
+                            cmp_value
+                        ),
+                    );
+                }
+            } else if mask_value == 0 {
+                span_lint(cx, BAD_BIT_MASK, *span, "&-masking with zero");
+            },
+            BiBitOr => if mask_value | cmp_value != cmp_value {
+                span_lint(
+                    cx,
+                    BAD_BIT_MASK,
+                    *span,
+                    &format!(
+                        "incompatible bit mask: `_ | {}` can never be equal to `{}`",
+                        mask_value,
+                        cmp_value
+                    ),
+                );
+            },
+            _ => (),
         },
-        BiLt | BiGe => {
-            match bit_op {
-                BiBitAnd => {
-                    if mask_value < cmp_value {
-                        span_lint(
-                            cx,
-                            BAD_BIT_MASK,
-                            *span,
-                            &format!(
-                                "incompatible bit mask: `_ & {}` will always be lower than `{}`",
-                                mask_value,
-                                cmp_value
-                            ),
-                        );
-                    } else if mask_value == 0 {
-                        span_lint(cx, BAD_BIT_MASK, *span, "&-masking with zero");
-                    }
-                },
-                BiBitOr => {
-                    if mask_value >= cmp_value {
-                        span_lint(
-                            cx,
-                            BAD_BIT_MASK,
-                            *span,
-                            &format!(
-                                "incompatible bit mask: `_ | {}` will never be lower than `{}`",
-                                mask_value,
-                                cmp_value
-                            ),
-                        );
-                    } else {
-                        check_ineffective_lt(cx, *span, mask_value, cmp_value, "|");
-                    }
-                },
-                BiBitXor => check_ineffective_lt(cx, *span, mask_value, cmp_value, "^"),
-                _ => (),
-            }
+        BiLt | BiGe => match bit_op {
+            BiBitAnd => if mask_value < cmp_value {
+                span_lint(
+                    cx,
+                    BAD_BIT_MASK,
+                    *span,
+                    &format!(
+                        "incompatible bit mask: `_ & {}` will always be lower than `{}`",
+                        mask_value,
+                        cmp_value
+                    ),
+                );
+            } else if mask_value == 0 {
+                span_lint(cx, BAD_BIT_MASK, *span, "&-masking with zero");
+            },
+            BiBitOr => if mask_value >= cmp_value {
+                span_lint(
+                    cx,
+                    BAD_BIT_MASK,
+                    *span,
+                    &format!(
+                        "incompatible bit mask: `_ | {}` will never be lower than `{}`",
+                        mask_value,
+                        cmp_value
+                    ),
+                );
+            } else {
+                check_ineffective_lt(cx, *span, mask_value, cmp_value, "|");
+            },
+            BiBitXor => check_ineffective_lt(cx, *span, mask_value, cmp_value, "^"),
+            _ => (),
         },
-        BiLe | BiGt => {
-            match bit_op {
-                BiBitAnd => {
-                    if mask_value <= cmp_value {
-                        span_lint(
-                            cx,
-                            BAD_BIT_MASK,
-                            *span,
-                            &format!(
-                                "incompatible bit mask: `_ & {}` will never be higher than `{}`",
-                                mask_value,
-                                cmp_value
-                            ),
-                        );
-                    } else if mask_value == 0 {
-                        span_lint(cx, BAD_BIT_MASK, *span, "&-masking with zero");
-                    }
-                },
-                BiBitOr => {
-                    if mask_value > cmp_value {
-                        span_lint(
-                            cx,
-                            BAD_BIT_MASK,
-                            *span,
-                            &format!(
-                                "incompatible bit mask: `_ | {}` will always be higher than `{}`",
-                                mask_value,
-                                cmp_value
-                            ),
-                        );
-                    } else {
-                        check_ineffective_gt(cx, *span, mask_value, cmp_value, "|");
-                    }
-                },
-                BiBitXor => check_ineffective_gt(cx, *span, mask_value, cmp_value, "^"),
-                _ => (),
-            }
+        BiLe | BiGt => match bit_op {
+            BiBitAnd => if mask_value <= cmp_value {
+                span_lint(
+                    cx,
+                    BAD_BIT_MASK,
+                    *span,
+                    &format!(
+                        "incompatible bit mask: `_ & {}` will never be higher than `{}`",
+                        mask_value,
+                        cmp_value
+                    ),
+                );
+            } else if mask_value == 0 {
+                span_lint(cx, BAD_BIT_MASK, *span, "&-masking with zero");
+            },
+            BiBitOr => if mask_value > cmp_value {
+                span_lint(
+                    cx,
+                    BAD_BIT_MASK,
+                    *span,
+                    &format!(
+                        "incompatible bit mask: `_ | {}` will always be higher than `{}`",
+                        mask_value,
+                        cmp_value
+                    ),
+                );
+            } else {
+                check_ineffective_gt(cx, *span, mask_value, cmp_value, "|");
+            },
+            BiBitXor => check_ineffective_gt(cx, *span, mask_value, cmp_value, "^"),
+            _ => (),
         },
         _ => (),
     }
@@ -325,7 +319,7 @@ fn fetch_int_literal(cx: &LateContext, lit: &Expr) -> Option<u128> {
                         cx.tcx.mir_const_qualif(def_id);
                         cx.tcx.hir.body(cx.tcx.hir.body_owned_by(id))
                     } else {
-                        cx.tcx.sess.cstore.item_body(cx.tcx, def_id)
+                        cx.tcx.extern_const_body(def_id).body
                     };
                     fetch_int_literal(cx, &body.value)
                 })

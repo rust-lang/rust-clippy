@@ -1,5 +1,5 @@
 #![feature(plugin, const_fn)]
-#![plugin(clippy)]
+
 
 #![allow(dead_code)]
 #![warn(new_without_default, new_without_default_derive)]
@@ -81,6 +81,12 @@ pub struct IgnoreGenericNew;
 
 impl IgnoreGenericNew {
     pub fn new<T>() -> Self { IgnoreGenericNew } // the derived Default does not make sense here as the result depends on T
+}
+
+pub trait TraitWithNew: Sized {
+    fn new() -> Self {
+        panic!()
+    }
 }
 
 fn main() {}

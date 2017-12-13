@@ -4,7 +4,7 @@
 use rustc::lint::*;
 use syntax::ast::*;
 use syntax_pos;
-use utils::{span_help_and_lint, snippet_opt, in_external_macro};
+use utils::{in_external_macro, snippet_opt, span_help_and_lint};
 
 /// **What it does:** Warns if a long integral or floating-point constant does
 /// not contain underscores.
@@ -195,33 +195,27 @@ enum WarningType {
 impl WarningType {
     pub fn display(&self, grouping_hint: &str, cx: &EarlyContext, span: &syntax_pos::Span) {
         match *self {
-            WarningType::UnreadableLiteral => {
-                span_help_and_lint(
-                    cx,
-                    UNREADABLE_LITERAL,
-                    *span,
-                    "long literal lacking separators",
-                    &format!("consider: {}", grouping_hint),
-                )
-            },
-            WarningType::LargeDigitGroups => {
-                span_help_and_lint(
-                    cx,
-                    LARGE_DIGIT_GROUPS,
-                    *span,
-                    "digit groups should be smaller",
-                    &format!("consider: {}", grouping_hint),
-                )
-            },
-            WarningType::InconsistentDigitGrouping => {
-                span_help_and_lint(
-                    cx,
-                    INCONSISTENT_DIGIT_GROUPING,
-                    *span,
-                    "digits grouped inconsistently by underscores",
-                    &format!("consider: {}", grouping_hint),
-                )
-            },
+            WarningType::UnreadableLiteral => span_help_and_lint(
+                cx,
+                UNREADABLE_LITERAL,
+                *span,
+                "long literal lacking separators",
+                &format!("consider: {}", grouping_hint),
+            ),
+            WarningType::LargeDigitGroups => span_help_and_lint(
+                cx,
+                LARGE_DIGIT_GROUPS,
+                *span,
+                "digit groups should be smaller",
+                &format!("consider: {}", grouping_hint),
+            ),
+            WarningType::InconsistentDigitGrouping => span_help_and_lint(
+                cx,
+                INCONSISTENT_DIGIT_GROUPING,
+                *span,
+                "digits grouped inconsistently by underscores",
+                &format!("consider: {}", grouping_hint),
+            ),
         };
     }
 }
@@ -250,51 +244,60 @@ impl EarlyLintPass for LiteralDigitGrouping {
 impl LiteralDigitGrouping {
     fn check_lit(&self, cx: &EarlyContext, lit: &Lit) {
         // Lint integral literals.
-        if_let_chain! {[
-            let LitKind::Int(..) = lit.node,
-            let Some(src) = snippet_opt(cx, lit.span),
-            let Some(firstch) = src.chars().next(),
-            char::to_digit(firstch, 10).is_some()
-        ], {
-            let digit_info = DigitInfo::new(&src, false);
-            let _ = Self::do_lint(digit_info.digits).map_err(|warning_type| {
-                warning_type.display(&digit_info.grouping_hint(), cx, &lit.span)
-            });
-        }}
+        if_chain! {
+            if let LitKind::Int(..) = lit.node;
+            if let Some(src) = snippet_opt(cx, lit.span);
+            if let Some(firstch) = src.chars().next();
+            if char::to_digit(firstch, 10).is_some();
+            then {
+                let digit_info = DigitInfo::new(&src, false);
+                let _ = Self::do_lint(digit_info.digits).map_err(|warning_type| {
+                    warning_type.display(&digit_info.grouping_hint(), cx, &lit.span)
+                });
+            }
+        }
 
         // Lint floating-point literals.
-        if_let_chain! {[
-            let LitKind::Float(..) = lit.node,
-            let Some(src) = snippet_opt(cx, lit.span),
-            let Some(firstch) = src.chars().next(),
-            char::to_digit(firstch, 10).is_some()
-        ], {
-            let digit_info = DigitInfo::new(&src, true);
-            // Separate digits into integral and fractional parts.
-            let parts: Vec<&str> = digit_info
-                .digits
-                .split_terminator('.')
-                .collect();
+        if_chain! {
+            if let LitKind::Float(..) = lit.node;
+            if let Some(src) = snippet_opt(cx, lit.span);
+            if let Some(firstch) = src.chars().next();
+            if char::to_digit(firstch, 10).is_some();
+            then {
+                let digit_info = DigitInfo::new(&src, true);
+                // Separate digits into integral and fractional parts.
+                let parts: Vec<&str> = digit_info
+                    .digits
+                    .split_terminator('.')
+                    .collect();
 
-            // Lint integral and fractional parts separately, and then check consistency of digit
-            // groups if both pass.
-            let _ = Self::do_lint(parts[0])
-                .map(|integral_group_size| {
-                    if parts.len() > 1 {
-                        // Lint the fractional part of literal just like integral part, but reversed.
-                        let fractional_part = &parts[1].chars().rev().collect::<String>();
-                        let _ = Self::do_lint(fractional_part)
-                            .map(|fractional_group_size| {
-                                let consistent = Self::parts_consistent(integral_group_size, fractional_group_size, parts[0].len(), parts[1].len());
-                                if !consistent {
-                                    WarningType::InconsistentDigitGrouping.display(&digit_info.grouping_hint(), cx, &lit.span);
-                                }
-                            })
-                            .map_err(|warning_type| warning_type.display(&digit_info.grouping_hint(), cx, &lit.span));
-                    }
-                })
-                .map_err(|warning_type| warning_type.display(&digit_info.grouping_hint(), cx, &lit.span));
-        }}
+                // Lint integral and fractional parts separately, and then check consistency of digit
+                // groups if both pass.
+                let _ = Self::do_lint(parts[0])
+                    .map(|integral_group_size| {
+                        if parts.len() > 1 {
+                            // Lint the fractional part of literal just like integral part, but reversed.
+                            let fractional_part = &parts[1].chars().rev().collect::<String>();
+                            let _ = Self::do_lint(fractional_part)
+                                .map(|fractional_group_size| {
+                                    let consistent = Self::parts_consistent(integral_group_size,
+                                                                            fractional_group_size,
+                                                                            parts[0].len(),
+                                                                            parts[1].len());
+                                    if !consistent {
+                                        WarningType::InconsistentDigitGrouping.display(&digit_info.grouping_hint(),
+                                                                                       cx,
+                                                                                       &lit.span);
+                                    }
+                                })
+                                .map_err(|warning_type| warning_type.display(&digit_info.grouping_hint(),
+                                                                             cx,
+                                                                             &lit.span));
+                        }
+                    })
+                    .map_err(|warning_type| warning_type.display(&digit_info.grouping_hint(), cx, &lit.span));
+            }
+        }
     }
 
     /// Given the sizes of the digit groups of both integral and fractional
@@ -338,7 +341,8 @@ impl LiteralDigitGrouping {
                 .windows(2)
                 .all(|ps| ps[1] - ps[0] == group_size + 1)
                 // number of digits to the left of the last group cannot be bigger than group size.
-                && (digits.len() - underscore_positions.last().expect("there's at least one element") <= group_size + 1);
+                && (digits.len() - underscore_positions.last()
+                                                       .expect("there's at least one element") <= group_size + 1);
 
             if !consistent {
                 return Err(WarningType::InconsistentDigitGrouping);

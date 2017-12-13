@@ -1,0 +1,14 @@
+error: you are getting the inner pointer of a temporary `CString`
+ --> $DIR/cstring.rs:7:5
+  |
+7 |     CString::new("foo").unwrap().as_ptr();
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `-D temporary-cstring-as-ptr` implied by `-D warnings`
+  = note: that pointer will be invalid outside this expression
+help: assign the `CString` to a variable to extend its lifetime
+ --> $DIR/cstring.rs:7:5
+  |
+7 |     CString::new("foo").unwrap().as_ptr();
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

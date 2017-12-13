@@ -1,5 +1,5 @@
-#![feature(plugin)]
-#![plugin(clippy)]
+
+
 
 #![warn(while_let_loop, empty_loop, while_let_on_iterator)]
 #![allow(dead_code, never_loop, unused, cyclomatic_complexity)]
@@ -183,4 +183,14 @@ fn refutable() {
         while let Some(v) = y.next() { // use a for loop here
         }
     }
+
+    // should not trigger while_let_loop lint because break passes an expression
+    let a = Some(10);
+    let b = loop {
+        if let Some(c) = a {
+            break Some(c);
+        } else {
+            break None;
+        }
+    };
 }

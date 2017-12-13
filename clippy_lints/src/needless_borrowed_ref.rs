@@ -3,12 +3,13 @@
 //! This lint is **warn** by default
 
 use rustc::lint::*;
-use rustc::hir::{MutImmutable, Pat, PatKind, BindingAnnotation};
-use utils::{span_lint_and_then, in_macro, snippet};
+use rustc::hir::{BindingAnnotation, MutImmutable, Pat, PatKind};
+use utils::{in_macro, snippet, span_lint_and_then};
 
 /// **What it does:** Checks for useless borrowed references.
 ///
-/// **Why is this bad?** It is mostly useless and make the code look more complex than it
+/// **Why is this bad?** It is mostly useless and make the code look more
+/// complex than it
 /// actually is.
 ///
 /// **Known problems:** It seems that the `&ref` pattern is sometimes useful.
@@ -21,12 +22,14 @@ use utils::{span_lint_and_then, in_macro, snippet};
 ///
 /// fn foo(a: &Animal, b: &Animal) {
 ///     match (a, b) {
-///         (&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime mismatch error
+/// (&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime
+/// mismatch error
 ///         (&Animal::Dog(ref c), &Animal::Dog(_)) => ()
 ///     }
 /// }
 /// ```
-/// There is a lifetime mismatch error for `k` (indeed a and b have distinct lifetime).
+/// There is a lifetime mismatch error for `k` (indeed a and b have distinct
+/// lifetime).
 /// This can be fixed by using the `&ref` pattern.
 /// However, the code can also be fixed by much cleaner ways
 ///
@@ -61,20 +64,20 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessBorrowedRef {
             return;
         }
 
-        if_let_chain! {[
+        if_chain! {
             // Only lint immutable refs, because `&mut ref T` may be useful.
-            let PatKind::Ref(ref sub_pat, MutImmutable) = pat.node,
+            if let PatKind::Ref(ref sub_pat, MutImmutable) = pat.node;
 
             // Check sub_pat got a `ref` keyword (excluding `ref mut`).
-            let PatKind::Binding(BindingAnnotation::Ref, _, spanned_name, ..) = sub_pat.node,
-        ], {
-            span_lint_and_then(cx, NEEDLESS_BORROWED_REFERENCE, pat.span,
-                               "this pattern takes a reference on something that is being de-referenced",
-                               |db| {
-                                   let hint = snippet(cx, spanned_name.span, "..").into_owned();
-                                   db.span_suggestion(pat.span, "try removing the `&ref` part and just keep", hint);
-                               });
-        }}
+            if let PatKind::Binding(BindingAnnotation::Ref, _, spanned_name, ..) = sub_pat.node;
+            then {
+                span_lint_and_then(cx, NEEDLESS_BORROWED_REFERENCE, pat.span,
+                                   "this pattern takes a reference on something that is being de-referenced",
+                                   |db| {
+                                       let hint = snippet(cx, spanned_name.span, "..").into_owned();
+                                       db.span_suggestion(pat.span, "try removing the `&ref` part and just keep", hint);
+                                   });
+            }
+        }
     }
 }
-

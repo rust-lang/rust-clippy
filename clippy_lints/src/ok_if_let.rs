@@ -1,6 +1,6 @@
 use rustc::lint::*;
 use rustc::hir::*;
-use utils::{paths, method_chain_args, span_help_and_lint, match_type, snippet};
+use utils::{match_type, method_chain_args, paths, snippet, span_help_and_lint};
 
 /// **What it does:*** Checks for unnecessary `ok()` in if let.
 ///
@@ -43,21 +43,22 @@ impl LintPass for Pass {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
-        if_let_chain! {[ //begin checking variables
-            let ExprMatch(ref op, ref body, ref source) = expr.node, //test if expr is a match
-            let MatchSource::IfLetDesugar { .. } = *source, //test if it is an If Let
-            let ExprMethodCall(_, _, ref result_types) = op.node, //check is expr.ok() has type Result<T,E>.ok()
-            let PatKind::TupleStruct(QPath::Resolved(_, ref x), ref y, _)  = body[0].pats[0].node, //get operation
-            method_chain_args(op, &["ok"]).is_some() //test to see if using ok() methoduse std::marker::Sized;
+        if_chain! { //begin checking variables
+            if let ExprMatch(ref op, ref body, ref source) = expr.node; //test if expr is a match
+            if let MatchSource::IfLetDesugar { .. } = *source; //test if it is an If Let
+            if let ExprMethodCall(_, _, ref result_types) = op.node; //check is expr.ok() has type Result<T,E>.ok()
+            if let PatKind::TupleStruct(QPath::Resolved(_, ref x), ref y, _)  = body[0].pats[0].node; //get operation
+            if method_chain_args(op, &["ok"]).is_some(); //test to see if using ok() methoduse std::marker::Sized;
 
-        ], {
-            let is_result_type = match_type(cx, cx.tables.expr_ty(&result_types[0]), &paths::RESULT);
-            let some_expr_string = snippet(cx, y[0].span, "");
-            if print::to_string(print::NO_ANN, |s| s.print_path(x, false)) == "Some" && is_result_type {
-                span_help_and_lint(cx, IF_LET_SOME_RESULT, expr.span,
-                "Matching on `Some` with `ok()` is redundant",
-                &format!("Consider matching on `Ok({})` and removing the call to `ok` instead", some_expr_string));
+            then {
+                let is_result_type = match_type(cx, cx.tables.expr_ty(&result_types[0]), &paths::RESULT);
+                let some_expr_string = snippet(cx, y[0].span, "");
+                if print::to_string(print::NO_ANN, |s| s.print_path(x, false)) == "Some" && is_result_type {
+                    span_help_and_lint(cx, IF_LET_SOME_RESULT, expr.span,
+                    "Matching on `Some` with `ok()` is redundant",
+                    &format!("Consider matching on `Ok({})` and removing the call to `ok` instead", some_expr_string));
+                }
             }
-        }}
+        }
     }
 }

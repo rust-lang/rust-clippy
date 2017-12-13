@@ -1,5 +1,5 @@
 #![feature(plugin, non_ascii_idents)]
-#![plugin(clippy)]
+
 #![warn(clippy, pub_enum_variant_names)]
 
 enum FakeCallType {
@@ -100,6 +100,20 @@ mod allowed {
         SomeThat,
         SomeOtherWhat,
     }
+}
+
+// should not lint
+enum Pat {
+    Foo,
+    Bar,
+    Path,
+}
+
+// should not lint
+enum N {
+    Pos,
+    Neg,
+    Float,
 }
 
 fn main() {}

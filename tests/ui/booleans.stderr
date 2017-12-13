@@ -49,18 +49,6 @@ error: this boolean expression can be simplified
 18 |     let _ = false || a;
    |             ^^^^^^^^^^ help: try: `a`
 
-error: this boolean expression contains a logic bug
-  --> $DIR/booleans.rs:20:13
-   |
-20 |     let _ = cfg!(you_shall_not_not_pass) && a;
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: it would look like the following: `false`
-   |
-help: this expression can be optimized out by applying boolean operations to the outer expression
-  --> $DIR/booleans.rs:20:45
-   |
-20 |     let _ = cfg!(you_shall_not_not_pass) && a;
-   |                                             ^
-
 error: this boolean expression can be simplified
   --> $DIR/booleans.rs:23:13
    |
@@ -84,7 +72,6 @@ error: this boolean expression can be simplified
    |
 34 |     let _ = a == b && c == 5 && a == b;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
 help: try
    |
 34 |     let _ = a == b && c == 5;
@@ -97,7 +84,6 @@ error: this boolean expression can be simplified
    |
 35 |     let _ = a == b && c == 5 && b == a;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
 help: try
    |
 35 |     let _ = a == b && c == 5;
@@ -134,7 +120,6 @@ error: this boolean expression can be simplified
    |
 39 |     let _ = a != b || !(a != b || c == d);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
 help: try
    |
 39 |     let _ = c != d || a != b;
@@ -142,5 +127,51 @@ help: try
 39 |     let _ = !(a == b && c == d);
    |             ^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 14 previous errors
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:47:13
+   |
+47 |     let _ = !a.is_some();
+   |             ^^^^^^^^^^^^ help: try: `a.is_none()`
+
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:49:13
+   |
+49 |     let _ = !a.is_none();
+   |             ^^^^^^^^^^^^ help: try: `a.is_some()`
+
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:51:13
+   |
+51 |     let _ = !b.is_err();
+   |             ^^^^^^^^^^^ help: try: `b.is_ok()`
+
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:53:13
+   |
+53 |     let _ = !b.is_ok();
+   |             ^^^^^^^^^^ help: try: `b.is_err()`
+
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:55:13
+   |
+55 |     let _ = !(a.is_some() && !c);
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `c || a.is_none()`
+
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:56:13
+   |
+56 |     let _ = !(!c ^ c) || !a.is_some();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `!(!c ^ c) || a.is_none()`
+
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:57:13
+   |
+57 |     let _ = (!c ^ c) || !a.is_some();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(!c ^ c) || a.is_none()`
+
+error: this boolean expression can be simplified
+  --> $DIR/booleans.rs:58:13
+   |
+58 |     let _ = !c ^ c || !a.is_some();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `!c ^ c || a.is_none()`
 

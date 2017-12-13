@@ -6,7 +6,7 @@ use std::collections::hash_map::Entry;
 use syntax::symbol::InternedString;
 use syntax::util::small_vector::SmallVector;
 use utils::{SpanlessEq, SpanlessHash};
-use utils::{get_parent_expr, in_macro, span_lint_and_then, span_note_and_lint, snippet};
+use utils::{get_parent_expr, in_macro, snippet, span_lint_and_then, span_note_and_lint};
 
 /// **What it does:** Checks for consecutive `if`s with the same condition.
 ///
@@ -67,7 +67,8 @@ declare_lint! {
 /// [using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).
 ///
 /// **Known problems:** False positive possible with order dependent `match`
-/// (see issue [#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860)).
+/// (see issue
+/// [#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860)).
 ///
 /// **Example:**
 /// ```rust,ignore
@@ -113,7 +114,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CopyAndPaste {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
         if !in_macro(expr.span) {
             // skip ifs directly in else, it will be checked in the parent if
-            if let Some(&Expr { node: ExprIf(_, _, Some(ref else_expr)), .. }) = get_parent_expr(cx, expr) {
+            if let Some(&Expr {
+                node: ExprIf(_, _, Some(ref else_expr)),
+                ..
+            }) = get_parent_expr(cx, expr)
+            {
                 if else_expr.id == expr.id {
                     return;
                 }
@@ -173,22 +178,26 @@ fn lint_same_cond(cx: &LateContext, conds: &[&Expr]) {
 
 /// Implementation if `MATCH_SAME_ARMS`.
 fn lint_match_arms(cx: &LateContext, expr: &Expr) {
-    let hash = |arm: &Arm| -> u64 {
-        let mut h = SpanlessHash::new(cx);
-        h.hash_expr(&arm.body);
-        h.finish()
-    };
-
-    let eq = |lhs: &Arm, rhs: &Arm| -> bool {
-        // Arms with a guard are ignored, those can’t always be merged together
-        lhs.guard.is_none() && rhs.guard.is_none() &&
-            SpanlessEq::new(cx).eq_expr(&lhs.body, &rhs.body) &&
-            // all patterns should have the same bindings
-            bindings(cx, &lhs.pats[0]) == bindings(cx, &rhs.pats[0])
-    };
-
     if let ExprMatch(_, ref arms, MatchSource::Normal) = expr.node {
-        if let Some((i, j)) = search_same(arms, hash, eq) {
+        let hash = |&(_, arm): &(usize, &Arm)| -> u64 {
+            let mut h = SpanlessHash::new(cx);
+            h.hash_expr(&arm.body);
+            h.finish()
+        };
+
+        let eq = |&(lindex, lhs): &(usize, &Arm), &(rindex, rhs): &(usize, &Arm)| -> bool {
+            let min_index = usize::min(lindex, rindex);
+            let max_index = usize::max(lindex, rindex);
+            // Arms with a guard are ignored, those can’t always be merged together
+            // This is also the case for arms in-between each there is an arm with a guard
+            (min_index..=max_index).all(|index| arms[index].guard.is_none()) &&
+                SpanlessEq::new(cx).eq_expr(&lhs.body, &rhs.body) &&
+                // all patterns should have the same bindings
+                bindings(cx, &lhs.pats[0]) == bindings(cx, &rhs.pats[0])
+        };
+
+        let indexed_arms: Vec<(usize, &Arm)> = arms.iter().enumerate().collect();
+        if let Some((&(_, i), &(_, j))) = search_same(&indexed_arms, hash, eq) {
             span_lint_and_then(
                 cx,
                 MATCH_SAME_ARMS,
@@ -198,14 +207,10 @@ fn lint_match_arms(cx: &LateContext, expr: &Expr) {
                     db.span_note(i.body.span, "same as this");
 
                     // Note: this does not use `span_suggestion` on purpose: there is no clean way
-                    // to
-                    // remove the other arm. Building a span and suggest to replace it to "" makes
-                    // an
-                    // even more confusing error message. Also in order not to make up a span for
-                    // the
-                    // whole pattern, the suggestion is only shown when there is only one pattern.
-                    // The
-                    // user should know about `|` if they are already using it…
+                    // to remove the other arm. Building a span and suggest to replace it to ""
+                    // makes an even more confusing error message. Also in order not to make up a
+                    // span for the whole pattern, the suggestion is only shown when there is only
+                    // one pattern. The user should know about `|` if they are already using it…
 
                     if i.pats.len() == 1 && j.pats.len() == 1 {
                         let lhs = snippet(cx, i.pats[0].span, "<pat1>");
@@ -266,12 +271,9 @@ fn if_sequence(mut expr: &Expr) -> (SmallVector<&Expr>, SmallVector<&Block>) {
 fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> HashMap<InternedString, Ty<'tcx>> {
     fn bindings_impl<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat, map: &mut HashMap<InternedString, Ty<'tcx>>) {
         match pat.node {
-            PatKind::Box(ref pat) |
-            PatKind::Ref(ref pat, _) => bindings_impl(cx, pat, map),
-            PatKind::TupleStruct(_, ref pats, _) => {
-                for pat in pats {
-                    bindings_impl(cx, pat, map);
-                }
+            PatKind::Box(ref pat) | PatKind::Ref(ref pat, _) => bindings_impl(cx, pat, map),
+            PatKind::TupleStruct(_, ref pats, _) => for pat in pats {
+                bindings_impl(cx, pat, map);
             },
             PatKind::Binding(_, _, ref ident, ref as_pat) => {
                 if let Entry::Vacant(v) = map.entry(ident.node.as_str()) {
@@ -281,15 +283,11 @@ fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> HashMap<Interned
                     bindings_impl(cx, as_pat, map);
                 }
             },
-            PatKind::Struct(_, ref fields, _) => {
-                for pat in fields {
-                    bindings_impl(cx, &pat.node.pat, map);
-                }
+            PatKind::Struct(_, ref fields, _) => for pat in fields {
+                bindings_impl(cx, &pat.node.pat, map);
             },
-            PatKind::Tuple(ref fields, _) => {
-                for pat in fields {
-                    bindings_impl(cx, pat, map);
-                }
+            PatKind::Tuple(ref fields, _) => for pat in fields {
+                bindings_impl(cx, pat, map);
             },
             PatKind::Slice(ref lhs, ref mid, ref rhs) => {
                 for pat in lhs {
@@ -302,10 +300,7 @@ fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> HashMap<Interned
                     bindings_impl(cx, pat, map);
                 }
             },
-            PatKind::Lit(..) |
-            PatKind::Range(..) |
-            PatKind::Wild |
-            PatKind::Path(..) => (),
+            PatKind::Lit(..) | PatKind::Range(..) | PatKind::Wild | PatKind::Path(..) => (),
         }
     }
 
@@ -334,12 +329,13 @@ where
 
     for expr in exprs {
         match map.entry(hash(expr)) {
-            Entry::Occupied(o) => {
+            Entry::Occupied(mut o) => {
                 for o in o.get() {
                     if eq(o, expr) {
                         return Some((o, expr));
                     }
                 }
+                o.get_mut().push(expr);
             },
             Entry::Vacant(v) => {
                 v.insert(vec![expr]);

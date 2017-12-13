@@ -1,6 +1,6 @@
-use rustc::lint::{LateLintPass, LateContext, LintArray, LintPass};
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::hir::*;
-use rustc::hir::intravisit::{Visitor, walk_expr, NestedVisitorMap};
+use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
 use utils::*;
 
 /// **What it does:** Checks for `if` conditions that use blocks to contain an
@@ -71,9 +71,9 @@ impl<'a, 'tcx: 'a> Visitor<'tcx> for ExVisitor<'a, 'tcx> {
     }
 }
 
-const BRACED_EXPR_MESSAGE: &'static str = "omit braces around single expression condition";
-const COMPLEX_BLOCK_MESSAGE: &'static str = "in an 'if' condition, avoid complex blocks or closures with blocks; \
-                                             instead, move the block or closure higher and bind it with a 'let'";
+const BRACED_EXPR_MESSAGE: &str = "omit braces around single expression condition";
+const COMPLEX_BLOCK_MESSAGE: &str = "in an 'if' condition, avoid complex blocks or closures with blocks; \
+                                     instead, move the block or closure higher and bind it with a 'let'";
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
@@ -92,16 +92,18 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
                                 BLOCK_IN_IF_CONDITION_EXPR,
                                 check.span,
                                 BRACED_EXPR_MESSAGE,
-                                &format!("try\nif {} {} ... ",
-                                                        snippet_block(cx, ex.span, ".."),
-                                                        snippet_block(cx, then.span, "..")),
+                                &format!(
+                                    "try\nif {} {} ... ",
+                                    snippet_block(cx, ex.span, ".."),
+                                    snippet_block(cx, then.span, "..")
+                                ),
                             );
                         }
                     } else {
-                        let span = block.expr.as_ref().map_or_else(
-                            || block.stmts[0].span,
-                            |e| e.span,
-                        );
+                        let span = block
+                            .expr
+                            .as_ref()
+                            .map_or_else(|| block.stmts[0].span, |e| e.span);
                         if in_macro(span) || differing_macro_contexts(expr.span, span) {
                             return;
                         }
@@ -111,9 +113,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
                             BLOCK_IN_IF_CONDITION_STMT,
                             check.span,
                             COMPLEX_BLOCK_MESSAGE,
-                            &format!("try\nlet res = {};\nif res {} ... ",
-                                                    snippet_block(cx, block.span, ".."),
-                                                    snippet_block(cx, then.span, "..")),
+                            &format!(
+                                "try\nlet res = {};\nif res {} ... ",
+                                snippet_block(cx, block.span, ".."),
+                                snippet_block(cx, then.span, "..")
+                            ),
                         );
                     }
                 }

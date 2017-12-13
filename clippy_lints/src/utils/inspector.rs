@@ -54,12 +54,10 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         match item.vis {
             hir::Visibility::Public => println!("public"),
             hir::Visibility::Crate => println!("visible crate wide"),
-            hir::Visibility::Restricted { ref path, .. } => {
-                println!(
-                    "visible in module `{}`",
-                    print::to_string(print::NO_ANN, |s| s.print_path(path, false))
-                )
-            },
+            hir::Visibility::Restricted { ref path, .. } => println!(
+                "visible in module `{}`",
+                print::to_string(print::NO_ANN, |s| s.print_path(path, false))
+            ),
             hir::Visibility::Inherited => println!("visibility inherited from outer item"),
         }
         if item.defaultness.is_default() {
@@ -125,8 +123,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         }
         match stmt.node {
             hir::StmtDecl(ref decl, _) => print_decl(cx, decl),
-            hir::StmtExpr(ref e, _) |
-            hir::StmtSemi(ref e, _) => print_expr(cx, e, 0),
+            hir::StmtExpr(ref e, _) | hir::StmtSemi(ref e, _) => print_expr(cx, e, 0),
         }
     }
     // fn check_foreign_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx
@@ -252,7 +249,7 @@ fn print_expr(cx: &LateContext, expr: &hir::Expr, indent: usize) {
         hir::ExprYield(ref sub) => {
             println!("{}Yield", ind);
             print_expr(cx, sub, indent + 1);
-        }
+        },
         hir::ExprBlock(_) => {
             println!("{}Block", ind);
         },
@@ -355,22 +352,21 @@ fn print_item(cx: &LateContext, item: &hir::Item) {
     match item.vis {
         hir::Visibility::Public => println!("public"),
         hir::Visibility::Crate => println!("visible crate wide"),
-        hir::Visibility::Restricted { ref path, .. } => {
-            println!(
-                "visible in module `{}`",
-                print::to_string(print::NO_ANN, |s| s.print_path(path, false))
-            )
-        },
+        hir::Visibility::Restricted { ref path, .. } => println!(
+            "visible in module `{}`",
+            print::to_string(print::NO_ANN, |s| s.print_path(path, false))
+        ),
         hir::Visibility::Inherited => println!("visibility inherited from outer item"),
     }
     match item.node {
         hir::ItemExternCrate(ref _renamed_from) => {
-            if let Some(crate_id) = cx.tcx.sess.cstore.extern_mod_stmt_cnum(item.id) {
-                let source = cx.tcx.sess.cstore.used_crate_source(crate_id);
-                if let Some(src) = source.dylib {
+            let def_id = cx.tcx.hir.local_def_id(item.id);
+            if let Some(crate_id) = cx.tcx.extern_mod_stmt_cnum(def_id) {
+                let source = cx.tcx.used_crate_source(crate_id);
+                if let Some(ref src) = source.dylib {
                     println!("extern crate dylib source: {:?}", src.0);
                 }
-                if let Some(src) = source.rlib {
+                if let Some(ref src) = source.rlib {
                     println!("extern crate rlib source: {:?}", src.0);
                 }
             } else {
@@ -401,14 +397,14 @@ fn print_item(cx: &LateContext, item: &hir::Item) {
         },
         hir::ItemTrait(..) => {
             println!("trait decl");
-            if cx.tcx.trait_has_default_impl(did) {
-                println!("trait has a default impl");
+            if cx.tcx.trait_is_auto(did) {
+                println!("trait is auto");
             } else {
-                println!("trait has no default impl");
+                println!("trait is not auto");
             }
         },
-        hir::ItemDefaultImpl(_, ref _trait_ref) => {
-            println!("default impl");
+        hir::ItemAutoImpl(_, ref _trait_ref) => {
+            println!("auto impl");
         },
         hir::ItemImpl(_, _, _, _, Some(ref _trait_ref), _, _) => {
             println!("trait impl");

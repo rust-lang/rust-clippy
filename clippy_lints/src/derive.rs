@@ -3,7 +3,7 @@ use rustc::ty::{self, Ty};
 use rustc::hir::*;
 use syntax::codemap::Span;
 use utils::paths;
-use utils::{is_automatically_derived, span_lint_and_then, match_path, is_copy};
+use utils::{is_automatically_derived, is_copy, match_path, span_lint_and_then};
 
 /// **What it does:** Checks for deriving `Hash` but implementing `PartialEq`
 /// explicitly.
@@ -91,43 +91,44 @@ fn check_hash_peq<'a, 'tcx>(
     ty: Ty<'tcx>,
     hash_is_automatically_derived: bool,
 ) {
-    if_let_chain! {[
-        match_path(&trait_ref.path, &paths::HASH),
-        let Some(peq_trait_def_id) = cx.tcx.lang_items.eq_trait()
-    ], {
-        // Look for the PartialEq implementations for `ty`
-        cx.tcx.for_each_relevant_impl(peq_trait_def_id, ty, |impl_id| {
-            let peq_is_automatically_derived = is_automatically_derived(&cx.tcx.get_attrs(impl_id));
+    if_chain! {
+        if match_path(&trait_ref.path, &paths::HASH);
+        if let Some(peq_trait_def_id) = cx.tcx.lang_items().eq_trait();
+        then {
+            // Look for the PartialEq implementations for `ty`
+            cx.tcx.for_each_relevant_impl(peq_trait_def_id, ty, |impl_id| {
+                let peq_is_automatically_derived = is_automatically_derived(&cx.tcx.get_attrs(impl_id));
 
-            if peq_is_automatically_derived == hash_is_automatically_derived {
-                return;
-            }
+                if peq_is_automatically_derived == hash_is_automatically_derived {
+                    return;
+                }
 
-            let trait_ref = cx.tcx.impl_trait_ref(impl_id).expect("must be a trait implementation");
+                let trait_ref = cx.tcx.impl_trait_ref(impl_id).expect("must be a trait implementation");
 
-            // Only care about `impl PartialEq<Foo> for Foo`
-            // For `impl PartialEq<B> for A, input_types is [A, B]
-            if trait_ref.substs.type_at(1) == ty {
-                let mess = if peq_is_automatically_derived {
-                    "you are implementing `Hash` explicitly but have derived `PartialEq`"
-                } else {
-                    "you are deriving `Hash` but have implemented `PartialEq` explicitly"
-                };
+                // Only care about `impl PartialEq<Foo> for Foo`
+                // For `impl PartialEq<B> for A, input_types is [A, B]
+                if trait_ref.substs.type_at(1) == ty {
+                    let mess = if peq_is_automatically_derived {
+                        "you are implementing `Hash` explicitly but have derived `PartialEq`"
+                    } else {
+                        "you are deriving `Hash` but have implemented `PartialEq` explicitly"
+                    };
 
-                span_lint_and_then(
-                    cx, DERIVE_HASH_XOR_EQ, span,
-                    mess,
-                    |db| {
-                    if let Some(node_id) = cx.tcx.hir.as_local_node_id(impl_id) {
-                        db.span_note(
-                            cx.tcx.hir.span(node_id),
-                            "`PartialEq` implemented here"
-                        );
-                    }
-                });
-            }
-        });
-    }}
+                    span_lint_and_then(
+                        cx, DERIVE_HASH_XOR_EQ, span,
+                        mess,
+                        |db| {
+                        if let Some(node_id) = cx.tcx.hir.as_local_node_id(impl_id) {
+                            db.span_note(
+                                cx.tcx.hir.span(node_id),
+                                "`PartialEq` implemented here"
+                            );
+                        }
+                    });
+                }
+            });
+        }
+    }
 }
 
 /// Implementation of the `EXPL_IMPL_CLONE_ON_COPY` lint.
@@ -141,31 +142,24 @@ fn check_copy_clone<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, item: &Item, trait_ref
             ty::TyAdt(def, _) if def.is_union() => return,
 
             // Some types are not Clone by default but could be cloned “by hand” if necessary
-            ty::TyAdt(def, substs) => {
-                for variant in &def.variants {
-                    for field in &variant.fields {
-                        match field.ty(cx.tcx, substs).sty {
-                            ty::TyArray(_, size) if size > 32 => {
-                                return;
-                            },
-                            ty::TyFnPtr(..) => {
-                                return;
-                            },
-                            ty::TyTuple(tys, _) if tys.len() > 12 => {
-                                return;
-                            },
-                            _ => (),
-                        }
+            ty::TyAdt(def, substs) => for variant in &def.variants {
+                for field in &variant.fields {
+                    if let ty::TyFnDef(..) = field.ty(cx.tcx, substs).sty {
+                        return;
                     }
                 }
             },
             _ => (),
         }
 
-        span_lint_and_then(cx,
-                           EXPL_IMPL_CLONE_ON_COPY,
-                           item.span,
-                           "you are implementing `Clone` explicitly on a `Copy` type",
-                           |db| { db.span_note(item.span, "consider deriving `Clone` or removing `Copy`"); });
+        span_lint_and_then(
+            cx,
+            EXPL_IMPL_CLONE_ON_COPY,
+            item.span,
+            "you are implementing `Clone` explicitly on a `Copy` type",
+            |db| {
+                db.span_note(item.span, "consider deriving `Clone` or removing `Copy`");
+            },
+        );
     }
 }
