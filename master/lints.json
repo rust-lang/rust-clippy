@@ -2334,6 +2334,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for match which is used to add a reference to an\n`Option` value.", 
+      "Why is this bad": "Using `as_ref()` or `as_mut()` instead is shorter.", 
+      "Example": "```rust\nlet x: Option<()> = None;\nlet r: Option<&()> = match x {\n  None => None,\n  Some(ref v) => Some(v),\n};\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "match_as_ref", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for calling `.step_by(0)` on iterators,\nwhich never terminates.", 
       "Why is this bad": "This very much looks like an oversight, since with\n`loop { .. }` there is an obvious better way to endlessly loop.", 
       "Example": "```rust\nfor x in (5..5).step_by(0) { .. }\n```", 
