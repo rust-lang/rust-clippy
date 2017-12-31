@@ -36,7 +36,7 @@ cargo install clippy
 ```
 
 Now you can run clippy by invoking `cargo clippy`, or
-`cargo +nightly clippy` directly from a directory that is usually
+`cargo +nightly install clippy` directly from a directory that is usually
 compiled with stable.
 
 In case you are not using rustup, you need to set the environment flag
