@@ -137,7 +137,7 @@ macro_rules! define_Conf {
     }};
 
     // provide a nicer syntax to declare the default value of `Vec<String>` variables
-    (DEFAULT Vec<String>, $e: expr) => { $e.iter().map(|&e| e.to_owned()).collect() };
+    (DEFAULT Vec<String>, $e: expr) => { $e.iter().map(|e: &&str| e.to_string()).collect() };
     (DEFAULT $ty: ty, $e: expr) => { $e };
 }
 
@@ -146,23 +146,8 @@ define_Conf! {
     (blacklisted_names, "blacklisted_names", ["foo", "bar", "baz", "quux"] => Vec<String>),
     /// Lint: CYCLOMATIC_COMPLEXITY. The maximum cyclomatic complexity a function can have
     (cyclomatic_complexity_threshold, "cyclomatic_complexity_threshold", 25 => u64),
-    /// Lint: DOC_MARKDOWN. The list of words this lint should not consider as identifiers needing ticks
-    (doc_valid_idents, "doc_valid_idents", [
-        "KiB", "MiB", "GiB", "TiB", "PiB", "EiB",
-        "DirectX",
-        "ECMAScript",
-        "GPLv2", "GPLv3",
-        "GitHub",
-        "IPv4", "IPv6",
-        "JavaScript",
-        "NaN",
-        "OAuth",
-        "OpenGL", "OpenSSH", "OpenSSL", "OpenStreetMap",
-        "TrueType",
-        "iOS", "macOS",
-        "TeX", "LaTeX", "BibTeX", "BibLaTeX",
-        "MinGW",
-    ] => Vec<String>),
+    /// Lint: DOC_MARKDOWN. The list of words this lint should not consider as identifiers needing ticks; words that are explicitly invalid can be prefixed with !
+    (doc_valid_idents, "doc_valid_idents", [] => Vec<String>),
     /// Lint: TOO_MANY_ARGUMENTS. The maximum number of argument a function or method can have
     (too_many_arguments_threshold, "too_many_arguments_threshold", 7 => u64),
     /// Lint: TYPE_COMPLEXITY. The maximum complexity a type can have

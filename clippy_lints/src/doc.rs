@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use itertools::Itertools;
 use pulldown_cmark;
 use rustc::lint::*;
@@ -31,16 +32,41 @@ declare_lint! {
     "presence of `_`, `::` or camel-case outside backticks in documentation"
 }
 
+lazy_static! {
+    pub static ref DEFAULT_DOC_IDENTS: HashSet<String> = [
+        "KiB", "MiB", "GiB", "TiB", "PiB", "EiB",
+        "DirectX",
+        "ECMAScript",
+        "GPLv2", "GPLv3",
+        "GitHub",
+        "IPv4", "IPv6",
+        "JavaScript",
+        "NaN",
+        "OAuth",
+        "OpenGL", "OpenSSH", "OpenSSL", "OpenStreetMap",
+        "TrueType",
+        "iOS", "macOS",
+        "TeX", "LaTeX", "BibTeX", "BibLaTeX",
+        "MinGW",
+    ].iter().map(|&s| s.to_owned()).collect();
+}
+
 #[derive(Clone)]
 pub struct Doc {
-    valid_idents: Vec<String>,
+    valid_idents: HashSet<String>,
 }
 
 impl Doc {
-    pub fn new(valid_idents: Vec<String>) -> Self {
-        Self {
-            valid_idents: valid_idents,
+    pub fn new(idents: Vec<String>) -> Self {
+        let mut valid_idents = DEFAULT_DOC_IDENTS.clone();
+        for ident in idents {
+            if ident.starts_with('!') {
+                valid_idents.remove(&ident[1..]);
+            } else {
+                valid_idents.insert(ident);
+            }
         }
+        Self { valid_idents }
     }
 }
 
@@ -138,7 +164,7 @@ pub fn strip_doc_comment_decoration(comment: &str, span: Span) -> (String, Vec<(
     panic!("not a doc-comment: {}", comment);
 }
 
-pub fn check_attrs<'a>(cx: &EarlyContext, valid_idents: &[String], attrs: &'a [ast::Attribute]) {
+pub fn check_attrs<'a>(cx: &EarlyContext, valid_idents: &HashSet<String>, attrs: &'a [ast::Attribute]) {
     let mut doc = String::new();
     let mut spans = vec![];
 
@@ -188,7 +214,7 @@ pub fn check_attrs<'a>(cx: &EarlyContext, valid_idents: &[String], attrs: &'a [a
 
 fn check_doc<'a, Events: Iterator<Item = (usize, pulldown_cmark::Event<'a>)>>(
     cx: &EarlyContext,
-    valid_idents: &[String],
+    valid_idents: &HashSet<String>,
     docs: Events,
     spans: &[(usize, Span)],
 ) {
@@ -233,14 +259,14 @@ fn check_doc<'a, Events: Iterator<Item = (usize, pulldown_cmark::Event<'a>)>>(
     }
 }
 
-fn check_text(cx: &EarlyContext, valid_idents: &[String], text: &str, span: Span) {
+fn check_text(cx: &EarlyContext, valid_idents: &HashSet<String>, text: &str, span: Span) {
     for word in text.split_whitespace() {
         // Trim punctuation as in `some comment (see foo::bar).`
         //                                                   ^^
         // Or even as in `_foo bar_` which is emphasized.
         let word = word.trim_matches(|c: char| !c.is_alphanumeric());
 
-        if valid_idents.iter().any(|i| i == word) {
+        if valid_idents.contains(word) {
             continue;
         }
 
