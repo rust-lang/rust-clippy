@@ -1263,8 +1263,12 @@ fn lint_map_unwrap_or(cx: &LateContext, expr: &hir::Expr, map_args: &[hir::Expr]
     // lint if the caller of `map()` is an `Option`
     if match_type(cx, cx.tables.expr_ty(&map_args[0]), &paths::OPTION) {
         // get snippets for args to map() and unwrap_or()
-        let map_snippet = snippet(cx, map_args[1].span, "..");
-        let unwrap_snippet = snippet(cx, unwrap_args[1].span, "..");
+        let map_span = map_args[1].span;
+        let unwrap_span = unwrap_args[1].span;
+        let map_and_unwrap_span = map_args[0].span.next_point().with_hi(expr.span.hi());
+
+        let map_snippet = snippet(cx, map_span, "..");
+        let unwrap_snippet = snippet(cx, unwrap_span, "..");
         // lint message
         // comparing the snippet from source to raw text ("None") below is safe
         // because we already have checked the type.
@@ -1284,26 +1288,20 @@ fn lint_map_unwrap_or(cx: &LateContext, expr: &hir::Expr, map_args: &[hir::Expr]
             arg,
             suggest
         );
-        // lint, with note if neither arg is > 1 line and both map() and
-        // unwrap_or() have the same span
-        let multiline = map_snippet.lines().count() > 1 || unwrap_snippet.lines().count() > 1;
-        let same_span = map_args[1].span.ctxt() == unwrap_args[1].span.ctxt();
-        if same_span && !multiline {
-            let suggest = if unwrap_snippet == "None" {
-                format!("and_then({})", map_snippet)
-            } else {
-                format!("map_or({}, {})", unwrap_snippet, map_snippet)
-            };
-            let note = format!(
-                "replace `map({}).unwrap_or({})` with `{}`",
-                map_snippet,
-                unwrap_snippet,
-                suggest
-            );
-            span_note_and_lint(cx, OPTION_MAP_UNWRAP_OR, expr.span, msg, expr.span, &note);
-        } else if same_span && multiline {
-            span_lint(cx, OPTION_MAP_UNWRAP_OR, expr.span, msg);
+
+        let suggest = if unwrap_snippet == "None" {
+            format!(".and_then({})", map_snippet)
+        } else {
+            format!(".map_or({}, {})", unwrap_snippet, map_snippet)
         };
+        span_lint_and_sugg(
+            cx,
+            OPTION_MAP_UNWRAP_OR,
+            map_and_unwrap_span,
+            msg,
+            "try this",
+            suggest,
+        );
     }
 }
 
