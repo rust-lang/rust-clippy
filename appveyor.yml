@@ -2,12 +2,17 @@ environment:
     global:
         PROJECT_NAME: rust-clippy
     matrix:
-        - TARGET: i686-pc-windows-gnu
-          MSYS2_BITS: 32
+        # Compiler plugins are broken in Nightly rust on windows-gnu so these
+        # CI targets are disabled for now.
+        #
+        # rust-lang/rust issue #47029
+
+        # - TARGET: i686-pc-windows-gnu
+        #   MSYS2_BITS: 32
         - TARGET: i686-pc-windows-msvc
           MSYS2_BITS: 32
-        - TARGET: x86_64-pc-windows-gnu
-          MSYS2_BITS: 64
+        # - TARGET: x86_64-pc-windows-gnu
+        #   MSYS2_BITS: 64
         - TARGET: x86_64-pc-windows-msvc
           MSYS2_BITS: 64
 
