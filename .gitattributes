@@ -1,0 +1,5 @@
+
+# The output comparison during tests is done using LF line feeds.
+# Ensure the newlines for the reference files are LF even on Windows.
+/tests/**/*.stderr text eol=lf
+/tests/**/*.stdout text eol=lf
