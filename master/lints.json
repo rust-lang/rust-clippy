@@ -565,7 +565,7 @@
     "docs": {
       "What it does": "Checks for use of `Box<Vec<_>>` anywhere in the code.", 
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` it, you just add another level of indirection\nwithout any benefit whatsoever.", 
-      "Example": "```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```", 
+      "Example": "```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\nBetter:\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "box_vec", 
@@ -1706,7 +1706,7 @@
     "docs": {
       "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
       "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
-      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```", 
+      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\nUsing `::from` would look like this:\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
       "Known problems": "None."
     }, 
     "id": "cast_lossless", 
@@ -2306,7 +2306,7 @@
     "docs": {
       "What it does": "Checks for use of `&Box<T>` anywhere in the code.", 
       "Why is this bad": "Any `&Box<T>` can also be a `&T`, which is more\ngeneral.", 
-      "Example": "```rust\nfn foo(bar: &Box<T>) { ... }\n```", 
+      "Example": "```rust\nfn foo(bar: &Box<T>) { ... }\n```\nBetter:\n```rust\nfn foo(bar: &T) { ... }\n```", 
       "Known problems": "None."
     }, 
     "id": "borrowed_box", 
@@ -2366,7 +2366,7 @@
     "docs": {
       "What it does": "Checks for expressions where a character literal is cast\nto `u8` and suggests using a byte literal instead.", 
       "Why is this bad": "In general, casting values to smaller types is\nerror-prone and should be avoided where possible. In the particular case of\nconverting a character literal to u8, it is easy to avoid by just using a\nbyte literal instead. As an added bonus, `b'a'` is even slightly shorter\nthan `'a' as u8`.", 
-      "Example": "```rust\n'x' as u8\n```", 
+      "Example": "```rust\n'x' as u8\n```\nA better version, using the byte literal:\n```rust\nb'x'\n```", 
       "Known problems": "None."
     }, 
     "id": "char_lit_as_u8", 
