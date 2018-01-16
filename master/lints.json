@@ -588,7 +588,7 @@
       "Example": "```rust\nx.clone()\n```"
     }, 
     "id": "clone_on_ref_ptr", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
