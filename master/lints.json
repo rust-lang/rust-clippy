@@ -1015,6 +1015,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of if expressions with an `else if` branch,\nbut without a final `else` branch.", 
+      "Why is this bad": "Some coding guidelines require this (e.g. MISRA-C:2004 Rule 14.10).", 
+      "Example": "```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\nCould be written:\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // we don't care about zero\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "else_if_without_else", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for function arguments having the similar names\ndiffering by an underscore.", 
       "Why is this bad": "It affects code readability.", 
       "Example": "```rust\nfn foo(a: i32, _a: i32) {}\n```", 
