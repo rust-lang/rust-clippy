@@ -1758,7 +1758,7 @@
       "What it does": "Checks for mapping `clone()` over an iterator.", 
       "Why is this bad": "It makes the code less readable than using the\n`.cloned()` adapter.", 
       "Example": "```rust\nx.map(|e| e.clone());\n```", 
-      "Known problems": "None."
+      "Known problems": "Sometimes `.cloned()` requires stricter trait\nbound than `.map(|e| e.clone())` (which works because of the coercion).\nSee [#498](https://github.com/rust-lang-nursery/rust-clippy/issues/498)."
     }, 
     "id": "map_clone", 
     "level": "Warn"
