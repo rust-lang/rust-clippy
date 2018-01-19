@@ -1,6 +1,16 @@
 [
   {
     "docs": {
+      "What it does": "Checks for use of `Option<Option<_>>` in function signatures and type\ndefinitions", 
+      "Why is this bad": "`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.", 
+      "Example": "```rust\nfn x() -> Option<Option<u32>> {\n    None\n}", 
+      "Known problems": "None."
+    }, 
+    "id": "option_option", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `for` loops over `Option` values.", 
       "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.", 
       "Example": "```rust\nfor x in option { .. }\n```\nThis should be\n```rust\nif let Some(x) = option { .. }\n```", 
