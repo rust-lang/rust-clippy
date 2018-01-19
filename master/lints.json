@@ -1075,12 +1075,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for missing parameters in `panic!`.", 
-      "Why is this bad": "Contrary to the `format!` family of macros, there are\ntwo forms of `panic!`: if there are no parameters given, the first argument\nis not a format string and used literally. So while `format!(\"{}\")` will\nfail to compile, `panic!(\"{}\")` will not.", 
-      "Example": "```rust\npanic!(\"This `panic!` is probably missing a parameter there: {}\");\n```", 
-      "Known problems": "Should you want to use curly brackets in `panic!`\nwithout any parameter, this lint will warn."
+      "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.", 
+      "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.", 
+      "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\ncall_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
+      "Known problems": "None."
     }, 
-    "id": "panic_params", 
+    "id": "temporary_cstring_as_ptr", 
     "level": "Warn"
   }, 
   {
@@ -1534,6 +1534,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for missing parameters in `panic!`.", 
+      "Why is this bad": "Contrary to the `format!` family of macros, there are\ntwo forms of `panic!`: if there are no parameters given, the first argument\nis not a format string and used literally. So while `format!(\"{}\")` will\nfail to compile, `panic!(\"{}\")` will not.", 
+      "Example": "```rust\npanic!(\"This `panic!` is probably missing a parameter there: {}\");\n```", 
+      "Known problems": "Should you want to use curly brackets in `panic!`\nwithout any parameter, this lint will warn."
+    }, 
+    "id": "panic_params", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.", 
       "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat is is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.", 
       "Example": "```rust\nvec.len() <= 0\n100 > std::i32::MAX\n```", 
@@ -1815,12 +1825,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.", 
-      "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.", 
-      "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\ncall_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
+      "What it does": "Checks for `#[inline]` on trait methods without bodies", 
+      "Why is this bad": "Only implementations of trait methods may be inlined.\nThe inline attribute is ignored for trait methods without bodies.", 
+      "Example": "```rust\ntrait Animal {\n    #[inline]\n    fn name(&self) -> &'static str;\n}\n```", 
       "Known problems": "None."
     }, 
-    "id": "temporary_cstring_as_ptr", 
+    "id": "inline_fn_without_body", 
     "level": "Warn"
   }, 
   {
