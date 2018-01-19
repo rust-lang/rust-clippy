@@ -1146,16 +1146,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for\n - () being assigned to a variable\n - () being passed to a function", 
-      "Why is this bad": "It is extremely unlikely that a user intended to\nassign '()' to valiable. Instead,\nUnit is what a block evaluates to when it returns nothing. This is\ntypically caused by a trailing\n  unintended semicolon.", 
-      "Example": "* `let x = {\"foo\" ;}` when the user almost certainly intended `let x\n={\"foo\"}`", 
-      "Known problems": "None."
-    }, 
-    "id": "unit_expr", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for conversions to owned values just for the sake\nof a comparison.", 
       "Why is this bad": "The comparison can operate on a reference, so creating\nan owned value effectively throws it away directly afterwards, which is\nneedlessly consuming code and heap space.", 
       "Example": "```rust\nx.to_owned() == y\n```", 
@@ -2023,6 +2013,16 @@
       "Known problems": "None."
     }, 
     "id": "clone_on_copy", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for passing a unit value as an argument to a function without using a unit literal (`()`).", 
+      "Why is this bad": "This is likely the result of an accidental semicolon.", 
+      "Example": "```rust\nfoo({\n  let a = bar();\n  baz(a);\n})\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "unit_arg", 
     "level": "Warn"
   }, 
   {
