@@ -926,6 +926,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for using `fold` when a more succinct alternative exists.\nSpecifically, this checks for `fold`s which could be replaced by `any`, `all`,\n`sum` or `product`.", 
+      "Why is this bad": "Readability.", 
+      "Example": "```rust\nlet _ = (0..3).fold(false, |acc, x| acc || x > 2);\n```\nThis could be written as:\n```rust\nlet _ = (0..3).any(|x| x > 2);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "unnecessary_fold", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `Vec::extend`, which was slower than\n`Vec::extend_from_slice`. Thanks to specialization, this is no longer true."
     }, 
