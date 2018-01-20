@@ -3,7 +3,6 @@ extern crate serde_json;
 extern crate failure;
 #[macro_use] extern crate log;
 #[macro_use] extern crate duct;
-#[macro_use] extern crate pretty_assertions;
 extern crate tempdir;
 extern crate env_logger;
 extern crate rayon;
@@ -15,9 +14,9 @@ use std::collections::HashSet;
 use failure::{Error, ResultExt, err_msg};
 use rayon::prelude::*;
 
-mod compile;
-use compile::*;
+mod compile; use compile::*;
 mod fix;
+mod diff; use diff::diff;
 
 fn read_file(path: &Path) -> Result<String, Error> {
     use std::io::Read;
@@ -39,11 +38,15 @@ fn rename(file: &Path, suffix: &str) -> Result<PathBuf, Error> {
 
 #[derive(Fail, Debug)]
 #[fail(display = "Could not test suggestions, there was no assertion file")]
-pub struct NoSuggestionsTestFile;
+struct NoSuggestionsTestFile;
 
 #[derive(Fail, Debug)]
 #[fail(display = "Could not test human readable error messages, there was no assertion file")]
-pub struct NoUiTestFile;
+struct NoUiTestFile;
+
+#[derive(Fail, Debug)]
+#[fail(display = "Mismatch between expected and generated fixed file")]
+struct FixedFileMismatch;
 
 fn test_rustfix_with_file<P: AsRef<Path>>(file: P) -> Result<(), Error> {
     let file: &Path = file.as_ref();
@@ -81,7 +84,17 @@ fn test_rustfix_with_file<P: AsRef<Path>>(file: P) -> Result<(), Error> {
     }
 
     let expected_fixed = read_file(&fixed_file).map_err(|_| NoSuggestionsTestFile)?;
-    assert_eq!(fixed.trim(), expected_fixed.trim(), "file doesn't look fixed");
+    if fixed.trim() != expected_fixed.trim() {
+        use log::Level::Debug;
+        if log_enabled!(Debug) {
+            debug!(
+                "Difference between file produced by rustfix \
+                and expected fixed file:\n{}",
+                diff(&fixed, &expected_fixed)?,
+            );
+        }
+        Err(FixedFileMismatch)?;
+    };
 
     debug!("compiling fixed file {:?}", fixed_file);
     compiles_without_errors(&fixed_file)?;
