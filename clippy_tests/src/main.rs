@@ -17,6 +17,8 @@ use rayon::prelude::*;
 mod compile;
 mod fix;
 mod diff;
+mod test_results;
+use test_results::TestResults;
 
 fn read_file(path: &Path) -> Result<String, Error> {
     use std::io::Read;
@@ -102,45 +104,36 @@ fn get_fixture_files() -> Result<Vec<PathBuf>, Error> {
         .collect())
 }
 
-fn main() {
-    use std::sync::atomic::{AtomicUsize, Ordering};
-
-    env_logger::init();
-    let files = get_fixture_files().unwrap();
-
-    let passed = AtomicUsize::new(0);
-    let failed = AtomicUsize::new(0);
-    let ignored = AtomicUsize::new(0);
-
-    files.par_iter().for_each(|file| {
-        match test_rustfix_with_file(&file) {
-            Ok(_) => {
-                info!("passed: {:?}", file);
-                passed.fetch_add(1, Ordering::SeqCst);
-            },
-            Err(e) => {
-                match e.downcast::<NoSuggestionsTestFile>() {
-                    Ok(e) => {
-                        info!("ignored: {:?} (no fixed file)", file);
-                        debug!("{:?}", e);
-                        ignored.fetch_add(1, Ordering::SeqCst);
-                    },
-                    Err(e) => {
-                        warn!("failed: {:?}", file);
-                        debug!("{:?}", e);
-                        failed.fetch_add(1, Ordering::SeqCst);
-                    }
+fn run(file: &Path) -> TestResults {
+    match test_rustfix_with_file(&file) {
+        Ok(_) => {
+            info!("passed: {:?}", file);
+            TestResults::passed()
+        },
+        Err(e) => {
+            match e.downcast::<NoSuggestionsTestFile>() {
+                Ok(e) => {
+                    info!("ignored: {:?} (no fixed file)", file);
+                    debug!("{:?}", e);
+                    TestResults::ignored()
+                },
+                Err(e) => {
+                    warn!("failed: {:?}", file);
+                    debug!("{:?}", e);
+                    TestResults::failed()
                 }
             }
         }
-    });
+    }
+}
 
-    let passed = passed.into_inner();
-    let failed = failed.into_inner();
-    let ignored = ignored.into_inner();
-    let res = if failed > 0 { "failed" } else { "ok" };
-    println!(
-        "test result: {}. {} passed; {} failed; {} ignored;",
-        res, passed, failed, ignored,
-    );
+fn main() {
+    env_logger::init();
+    let files = get_fixture_files().unwrap();
+
+    let res = files.par_iter()
+        .map(|path| run(path))
+        .reduce(TestResults::default, |a, b| a + b);
+
+    println!("{}", res);
 }
