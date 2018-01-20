@@ -1,7 +1,25 @@
-use rustfix::Replacement;
+use rustfix::{Suggestion, Replacement};
 use failure::Error;
 
-pub fn apply_suggestion(file_content: &mut String, suggestion: &Replacement) -> Result<String, Error> {
+pub fn apply_suggestions(file_content: &str, suggestions: &[Suggestion]) -> Result<String, Error> {
+    let mut fixed = String::from(file_content);
+
+    for sug in suggestions.into_iter().rev() {
+        trace!("{:?}", sug);
+        for sol in &sug.solutions {
+            trace!("{:?}", sol);
+            for r in &sol.replacements {
+                debug!("replaced.");
+                trace!("{:?}", r);
+                fixed = apply_suggestion(&mut fixed, r)?;
+            }
+        }
+    }
+
+    Ok(fixed)
+}
+
+fn apply_suggestion(file_content: &mut String, suggestion: &Replacement) -> Result<String, Error> {
     use std::cmp::max;
 
     let mut new_content = String::new();

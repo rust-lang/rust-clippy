@@ -60,20 +60,8 @@ fn test_rustfix_with_file<P: AsRef<Path>>(file: P) -> Result<(), Error> {
     debug!("collecting suggestions for {:?}", file);
     let suggestions = rustfix::get_suggestions_from_json(&errors, &HashSet::new());
 
-    let mut fixed = code.clone();
-
     debug!("applying suggestions for {:?}", file);
-    for sug in suggestions.into_iter().rev() {
-        trace!("{:?}", sug);
-        for sol in sug.solutions {
-            trace!("{:?}", sol);
-            for r in sol.replacements {
-                debug!("replaced.");
-                trace!("{:?}", r);
-                fixed = fix::apply_suggestion(&mut fixed, &r)?;
-            }
-        }
-    }
+    let fixed = fix::apply_suggestions(&code, &suggestions)?;
 
     if std::env::var("RUSTFIX_PLS_FIX_AND_RECORD_MY_CODE").is_ok() {
         use std::io::Write;
