@@ -234,7 +234,7 @@
     "docs": {
       "What it does": "Checks for the use of bindings with a single leading\nunderscore.", 
       "Why is this bad": "A single leading underscore is usually used to indicate\nthat a binding will not be used. Using such a binding breaks this\nexpectation.", 
-      "Example": "```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\nunderscore.\n                // We should rename `_x` to `x`\n```", 
+      "Example": "```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\n                // underscore. We should rename `_x` to `x`\n```", 
       "Known problems": "The lint does not work properly with desugaring and\nmacro, it has been allowed in the mean time."
     }, 
     "id": "used_underscore_binding", 
@@ -817,7 +817,7 @@
   {
     "docs": {
       "What it does": "Checks for the use of short circuit boolean conditions as\na\nstatement.", 
-      "Why is this bad": "Using a short circuit boolean condition as a statement\nmay\nhide the fact that the second part is executed or not depending on the\noutcome of\nthe first part.", 
+      "Why is this bad": "Using a short circuit boolean condition as a statement\nmay hide the fact that the second part is executed or not depending on the\noutcome of the first part.", 
       "Example": "```rust\nf() && g();  // We should write `if f() { g(); }`.\n```", 
       "Known problems": "None."
     }, 
