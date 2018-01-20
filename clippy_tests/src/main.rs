@@ -1,3 +1,5 @@
+#[macro_use] extern crate serde_derive;
+extern crate serde;
 extern crate serde_json;
 #[macro_use] extern crate failure_derive;
 extern crate failure;
@@ -17,6 +19,7 @@ use rayon::prelude::*;
 mod compile;
 mod fix;
 mod diff;
+mod human;
 mod test_results;
 use test_results::TestResults;
 
@@ -50,6 +53,10 @@ struct NoUiTestFile;
 #[fail(display = "Mismatch between expected and generated fixed file")]
 struct FixedFileMismatch;
 
+#[derive(Fail, Debug)]
+#[fail(display = "Mismatch between expected and generated diagnostics output")]
+struct StderrFileMismatch;
+
 fn test_rustfix_with_file<P: AsRef<Path>>(file: P) -> Result<(), Error> {
     let file: &Path = file.as_ref();
     let fixed_file = rename(file, "fixed")?;
@@ -59,6 +66,32 @@ fn test_rustfix_with_file<P: AsRef<Path>>(file: P) -> Result<(), Error> {
     let code = read_file(file)?;
     debug!("compiling... {:?}", file);
     let errors = compile::get_json_errors(file)?;
+
+    let diagnostics = human::ui_from_json(&errors);
+
+    if std::env::var("RECORD_NEW_DIAGNOSTICS").is_ok() {
+        use std::io::Write;
+        let diagnostics_recording = rename(file, "recorded")?.with_extension("stderr");
+        let mut recorded_diagnostics = fs::File::create(&diagnostics_recording)?;
+        recorded_diagnostics.write_all(diagnostics.as_bytes())?;
+        debug!("wrote recorded diagnostics for {:?} to {:?}", file, diagnostics_recording);
+    }
+
+    let ui_file = file.with_extension("stderr");
+    let expected_diagnostics = read_file(&ui_file).map_err(|_| NoUiTestFile)?;
+
+    debug!("comparing diagnostics for {:?}", file);
+    if diagnostics.trim() != expected_diagnostics.trim() {
+        use log::Level::Debug;
+        if log_enabled!(Debug) {
+            debug!(
+                "Difference between generated and expected diagnostics:\n{}",
+                diff::render(&diagnostics, &expected_diagnostics)?,
+            );
+        }
+        Err(StderrFileMismatch)?;
+    };
+
     debug!("collecting suggestions for {:?}", file);
     let suggestions = rustfix::get_suggestions_from_json(&errors, &HashSet::new());
 
@@ -114,12 +147,12 @@ fn run(file: &Path) -> TestResults {
             match e.downcast::<NoSuggestionsTestFile>() {
                 Ok(e) => {
                     info!("ignored: {:?} (no fixed file)", file);
-                    debug!("{:?}", e);
+                    debug!("{}", e);
                     TestResults::ignored()
                 },
                 Err(e) => {
                     warn!("failed: {:?}", file);
-                    debug!("{:?}", e);
+                    debug!("{}", e);
                     TestResults::failed()
                 }
             }
@@ -132,6 +165,7 @@ fn main() {
     let files = get_fixture_files().unwrap();
 
     let res = files.par_iter()
+        // .take(10)
         .map(|path| run(path))
         .reduce(TestResults::default, |a, b| a + b);
 

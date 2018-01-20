@@ -13,7 +13,10 @@ fn compile(file: &Path) -> Result<Output, Error> {
     );
     let res = better_call_clippy
         .env("RUSTC_WRAPPER", "clippy-driver")
+        .env("RUSTC_FLAGS", "-Dwarnings")
         .env("CLIPPY_DISABLE_DOCS_LINKS", "true")
+        .env("CLIPPY_TESTS", "true")
+        .env("RUST_BACKTRACE", "0")
         .stdout_capture()
         .stderr_capture()
         .unchecked()
@@ -24,12 +27,13 @@ fn compile(file: &Path) -> Result<Output, Error> {
 
 pub fn get_json_errors(file: &Path) -> Result<String, Error> {
     let res = compile(file)?;
-    let stderr = String::from_utf8(res.stderr)?;
-
     match res.status.code() {
-        Some(0) | Some(1) | Some(101) => Ok(stderr),
+        Some(0) | Some(1) | Some(101) => Ok(String::from_utf8(res.stdout)?),
         _ => Err(err_msg(
-            format!("failed with status {:?}: {}", res.status.code(), stderr),
+            format!(
+                "failed with status {:?}: {}",
+                res.status.code(), String::from_utf8(res.stderr)?,
+            ),
         ))
     }
 }
