@@ -14,9 +14,9 @@ use std::collections::HashSet;
 use failure::{Error, ResultExt, err_msg};
 use rayon::prelude::*;
 
-mod compile; use compile::*;
+mod compile;
 mod fix;
-mod diff; use diff::diff;
+mod diff;
 
 fn read_file(path: &Path) -> Result<String, Error> {
     use std::io::Read;
@@ -56,7 +56,7 @@ fn test_rustfix_with_file<P: AsRef<Path>>(file: P) -> Result<(), Error> {
 
     let code = read_file(file)?;
     debug!("compiling... {:?}", file);
-    let errors = compile_and_get_json_errors(file)?;
+    let errors = compile::get_json_errors(file)?;
     debug!("collecting suggestions for {:?}", file);
     let suggestions = rustfix::get_suggestions_from_json(&errors, &HashSet::new());
 
@@ -78,14 +78,14 @@ fn test_rustfix_with_file<P: AsRef<Path>>(file: P) -> Result<(), Error> {
             debug!(
                 "Difference between file produced by rustfix \
                 and expected fixed file:\n{}",
-                diff(&fixed, &expected_fixed)?,
+                diff::render(&fixed, &expected_fixed)?,
             );
         }
         Err(FixedFileMismatch)?;
     };
 
     debug!("compiling fixed file {:?}", fixed_file);
-    compiles_without_errors(&fixed_file)?;
+    compile::without_errors(&fixed_file)?;
 
     Ok(())
 }

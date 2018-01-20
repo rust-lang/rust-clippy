@@ -5,7 +5,7 @@ extern crate difference;
 
 use failure::Error;
 
-pub fn diff(left: &str, right: &str) -> Result<String, Error> {
+pub fn render(left: &str, right: &str) -> Result<String, Error> {
     let mut fancy_diff = String::new();
     let changeset = Changeset::new(&left, &right, "\n");
     format_changeset(&mut fancy_diff, &changeset)?;

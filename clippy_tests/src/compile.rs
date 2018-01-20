@@ -2,7 +2,7 @@ use std::path::Path;
 use failure::{Error, err_msg};
 use std::process::Output;
 
-pub fn compile(file: &Path) -> Result<Output, Error> {
+fn compile(file: &Path) -> Result<Output, Error> {
     let example_name = file.file_stem()
         .ok_or_else(|| err_msg(format!("Couldn't get file name from {:?}", file)))?;
 
@@ -22,7 +22,7 @@ pub fn compile(file: &Path) -> Result<Output, Error> {
     Ok(res)
 }
 
-pub fn compile_and_get_json_errors(file: &Path) -> Result<String, Error> {
+pub fn get_json_errors(file: &Path) -> Result<String, Error> {
     let res = compile(file)?;
     let stderr = String::from_utf8(res.stderr)?;
 
@@ -34,7 +34,7 @@ pub fn compile_and_get_json_errors(file: &Path) -> Result<String, Error> {
     }
 }
 
-pub fn compiles_without_errors(file: &Path) -> Result<(), Error> {
+pub fn without_errors(file: &Path) -> Result<(), Error> {
     let res = compile(file)?;
 
     match res.status.code() {
