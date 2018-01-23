@@ -151,13 +151,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for large size differences between variants on\n`enum`s.", 
-      "Why is this bad": "Enum size is bounded by the largest variant. Having a\nlarge variant\ncan penalize the memory layout of that enum.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `enum_variant_size_threshold: u64`: The maximum size of a emum's variant to avoid box suggestion (defaults to `200 `).", 
-      "Example": "```rust\nenum Test {\n   A(i32),\n   B([i32; 8000]),\n}\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for return statements at the end of a block.", 
+      "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
+      "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
+      "Known problems": "If the computation returning the value borrows a local\nvariable, removing the `return` may run afoul of the borrow checker."
     }, 
-    "id": "large_enum_variant", 
+    "id": "needless_return", 
     "level": "Warn"
   }, 
   {
@@ -529,6 +528,16 @@
       "Known problems": "None."
     }, 
     "id": "regex_macro", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "This lint checks for functions that take immutable\nreferences and return\nmutable ones.", 
+      "Why is this bad": "This is trivially unsound, as one can create two\nmutable references\nfrom the same (immutable!) source. This\n[error](https://github.com/rust-lang/rust/issues/39465)\nactually lead to an interim Rust release 1.15.1.", 
+      "Example": "```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```", 
+      "Known problems": "To be on the conservative side, if there's at least one\nmutable reference\nwith the output lifetime, this lint will not trigger. In practice, this\ncase is unlikely anyway."
+    }, 
+    "id": "mut_from_ref", 
     "level": "Warn"
   }, 
   {
@@ -1604,16 +1613,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for return statements at the end of a block.", 
-      "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
-      "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
-      "Known problems": "If the computation returning the value borrows a local\nvariable, removing the `return` may run afoul of the borrow checker."
-    }, 
-    "id": "needless_return", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for getting the length of something via `.len()`\njust to compare to zero, and suggests using `.is_empty()` where applicable.", 
       "Why is this bad": "Some structures can answer `.is_empty()` much faster\nthan calculating their length. Notably, for slices, getting the length\nrequires a subtraction whereas `.is_empty()` is just a comparison. So it is\ngood to get into the habit of using `.is_empty()`, and having it is cheap.\nBesides, it makes the intent clearer than a manual comparison.", 
       "Example": "```rust\nif x.len() == 0 { .. }\n```", 
@@ -2097,12 +2096,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
-      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
-      "Example": "```rust\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```", 
+      "What it does": "Checks for large size differences between variants on\n`enum`s.", 
+      "Why is this bad": "Enum size is bounded by the largest variant. Having a\nlarge variant\ncan penalize the memory layout of that enum.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum_variant_size_threshold: u64`: The maximum size of a emum's variant to avoid box suggestion (defaults to `200 `).", 
+      "Example": "```rust\nenum Test {\n   A(i32),\n   B([i32; 8000]),\n}\n```", 
       "Known problems": "None."
     }, 
-    "id": "needless_range_loop", 
+    "id": "large_enum_variant", 
     "level": "Warn"
   }, 
   {
@@ -2175,12 +2175,12 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint checks for functions that take immutable\nreferences and return\nmutable ones.", 
-      "Why is this bad": "This is trivially unsound, as one can create two\nmutable references\nfrom the same (immutable!) source. This\n[error](https://github.com/rust-lang/rust/issues/39465)\nactually lead to an interim Rust release 1.15.1.", 
-      "Example": "```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```", 
-      "Known problems": "To be on the conservative side, if there's at least one\nmutable reference\nwith the output lifetime, this lint will not trigger. In practice, this\ncase is unlikely anyway."
+      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
+      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
+      "Example": "```rust\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```", 
+      "Known problems": "None."
     }, 
-    "id": "mut_from_ref", 
+    "id": "needless_range_loop", 
     "level": "Warn"
   }, 
   {
@@ -2390,6 +2390,17 @@
       "Known problems": "None."
     }, 
     "id": "match_as_ref", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Warns if there is a better representation for a numeric literal.", 
+      "Why is this bad": "Especially for big powers of 2 a hexadecimal representation is more\nreadable than a decimal representation.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `literal_representation_threshold: u64`: The lower bound for linting decimal literals (defaults to `4096 `).", 
+      "Example": "`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`", 
+      "Known problems": "None."
+    }, 
+    "id": "decimal_literal_representation", 
     "level": "Warn"
   }, 
   {
