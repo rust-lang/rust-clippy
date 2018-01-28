@@ -504,7 +504,7 @@ impl<'a, 'b, 'c, T: LintContext<'c>> DiagnosticBuilderExt<'c, T> for rustc_error
         let mut remove_span = item;
         let fmpos = cx.sess()
             .codemap()
-            .lookup_byte_offset(remove_span.next_point().hi());
+            .lookup_byte_offset(cx.sess().codemap().next_point(remove_span).hi());
 
         if let Some(ref src) = fmpos.fm.src {
             let non_whitespace_offset = src[fmpos.pos.to_usize()..].find(|c| c != ' ' && c != '\t' && c != '\n');

@@ -1167,7 +1167,7 @@ fn lint_unnecessary_fold(cx: &LateContext, expr: &hir::Expr, fold_args: &[hir::E
 
             then {
                 // Span containing `.fold(...)`
-                let fold_span = fold_args[0].span.next_point().with_hi(fold_args[2].span.hi() + BytePos(1));
+                let fold_span = cx.tcx.sess.codemap().next_point(fold_args[0].span).with_hi(fold_args[2].span.hi() + BytePos(1));
 
                 let sugg = if replacement_has_args {
                     format!(
