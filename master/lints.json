@@ -2076,6 +2076,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for double comparions that could be simpified to a single expression.", 
+      "Why is this bad": "Readability.", 
+      "Example": "```rust\nx == y || x < y\n```\nCould be written as:\n```rust\nx <= y\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "double_comparisons", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.", 
       "Why is this bad": "It is often confusing to read. In addition, the\nsub-expression evaluation order for Rust is not well documented.", 
       "Example": "```rust\nlet mut x = 0;\nlet a = {x = 1; 1} + x;\n// Unclear whether a is 1 or 2.\n```", 
