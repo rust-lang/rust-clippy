@@ -41,6 +41,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for empty lines after outer attributes", 
+      "Why is this bad": "Most likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.", 
+      "Example": "```rust\n// Bad\n#[inline(always)]\nfn not_quite_good_code(..) { ... }\n// Good (as inner attribute)\n#![inline(always)]\nfn this_is_fine_too(..) { ... }\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine(..) { ... }\n```", 
+      "Known problems": "None"
+    }, 
+    "id": "empty_line_after_outer_attr", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Warns if an integral or floating-point constant is\ngrouped inconsistently with underscores.", 
       "Why is this bad": "Readers may incorrectly interpret inconsistently\ngrouped digits.", 
       "Example": "```rust\n618_64_9189_73_511\n```", 
