@@ -572,6 +572,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for expressions that could be replaced by the question mark operator", 
+      "Why is this bad": "Question mark usage is more idiomatic", 
+      "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\nCould be written:\n```rust\noption?;\n```", 
+      "Known problems": "None"
+    }, 
+    "id": "question_mark", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for transmutes that can't ever be correct on any\narchitecture.", 
       "Why is this bad": "It's basically guaranteed to be undefined behaviour.", 
       "Example": "```rust\nlet ptr: *const T = core::intrinsics::transmute('x')`\n```", 
