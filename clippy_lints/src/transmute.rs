@@ -4,7 +4,7 @@ use rustc::hir::*;
 use std::borrow::Cow;
 use syntax::ast;
 use utils::{last_path_segment, match_def_path, paths, snippet, span_lint, span_lint_and_then,
-            alignment};
+            span_note_and_lint, alignment};
 use utils::{opt_def_id, sugg};
 
 /// **What it does:** Checks for transmutes that can't ever be correct on any
@@ -169,21 +169,21 @@ declare_lint! {
     "transmutes from an integer to a float"
 }
 
-/// **What it does:** Checks for transmutes to a potentially less-aligned type.
+/// **What it does:** Checks for transmutes from a pointer to a less-strictly aligned type to a pointer to a more-strictly aligned type.
 ///
-/// **Why is this bad?** This might result in undefined behavior.
+/// **Why is this bad?** Dereferencing this pointer would result in undefined behavior.
 ///
 /// **Known problems:** None.
 ///
 /// **Example:**
 /// ```rust
 /// // u32 is 32-bit aligned; u8 is 8-bit aligned
-/// let _: u32 = unsafe { std::mem::transmute([0u8; 4]) };
+/// let _: &u32 = unsafe { std::mem::transmute(&[0u8; 4]) };
 /// ```
 declare_lint! {
     pub MISALIGNED_TRANSMUTE,
     Warn,
-    "transmutes to a potentially less-aligned type"
+    "transmutes which potentially involve alignment-based undefined behavior"
 }
 
 pub struct Transmute;
@@ -220,16 +220,31 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Transmute {
                                 e.span,
                                 &format!("transmute from a type (`{}`) to itself", from_ty),
                             ),
-                            _ if alignment(cx, from_ty).map(|a| a.abi())
-                                < alignment(cx, to_ty).map(|a| a.abi())
-                                => span_lint(
+                            // NOTE: don't need to check ref -> raw nor raw -> ref conversions,
+                            // because those are already checked by USELESS_TRANSMUTE and
+                            // TRANSMUTE_PTR_TO_REF
+                            (&ty::TyRef(_, from_ptr_ty), &ty::TyRef(_, to_ptr_ty))
+                                | (&ty::TyRawPtr(from_ptr_ty), &ty::TyRawPtr(to_ptr_ty))
+                                if alignment(cx, from_ptr_ty.ty)
+                                .and_then(|from| alignment(cx, to_ptr_ty.ty)
+                                          .map(|to| to.abi().cmp(&from.abi()))
+                                ) == Some(::std::cmp::Ordering::Greater)
+                                => span_note_and_lint(
                                     cx,
                                     MISALIGNED_TRANSMUTE,
                                     e.span,
                                     &format!(
-                                        "transmute from `{}` to a less-aligned type (`{}`)",
-                                        from_ty,
-                                        to_ty,
+                                        "transmute from pointer to `{}` to a more-strictly aligned type (`{}`)",
+                                        from_ptr_ty,
+                                        to_ptr_ty,
+                                    ),
+                                    e.span,
+                                    &format!(
+                                        "`{}` has {}-byte alignment; `{}` has {}-byte alignment",
+                                        from_ptr_ty,
+                                        alignment(cx, from_ptr_ty.ty).unwrap().abi(),
+                                        to_ptr_ty,
+                                        alignment(cx, to_ptr_ty.ty).unwrap().abi(),
                                     )
                             ),
                             (&ty::TyRef(_, rty), &ty::TyRawPtr(ptr_ty)) => span_lint_and_then(
