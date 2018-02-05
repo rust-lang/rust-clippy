@@ -204,13 +204,22 @@ error: transmute from a `&mut [u8]` to a `&mut str`
 140 |     let _: &mut str = unsafe { std::mem::transmute(mb) };
     |                                ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `std::str::from_utf8_mut(mb).unwrap()`
 
-error: transmute from `[u8; 4]` to a less-aligned type (`u32`)
-   --> $DIR/transmute.rs:145:27
+error: transmute from pointer to `[u8; 4]` to a more-strictly aligned type (`u32`)
+   --> $DIR/transmute.rs:145:28
     |
-145 |     let _: u32 = unsafe { std::mem::transmute([0u8; 4]) }; // err
-    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+145 |     let _: &u32 = unsafe { std::mem::transmute(&[0u8; 4]) }; // err
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     |
     = note: `-D misaligned-transmute` implied by `-D warnings`
+    = note: `[u8; 4]` has 1-byte alignment; `u32` has 4-byte alignment
 
-error: aborting due to 33 previous errors
+error: transmute from pointer to `[u8; 4]` to a more-strictly aligned type (`u32`)
+   --> $DIR/transmute.rs:146:34
+    |
+146 |     let _: *const u32 = unsafe { std::mem::transmute(&[0u8; 4] as *const [u8; 4]) }; // err
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `[u8; 4]` has 1-byte alignment; `u32` has 4-byte alignment
+
+error: aborting due to 34 previous errors
 
