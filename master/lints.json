@@ -13,7 +13,7 @@
     "docs": {
       "What it does": "Checks for `for` loops over `Option` values.", 
       "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.", 
-      "Example": "```rust\nfor x in option { .. }\n```\nThis should be\n```rust\nif let Some(x) = option { .. }\n```", 
+      "Example": "```rust\nfor x in option { .. }\n```\n\nThis should be\n```rust\nif let Some(x) = option { .. }\n```", 
       "Known problems": "None."
     }, 
     "id": "for_loop_over_option", 
@@ -43,7 +43,7 @@
     "docs": {
       "What it does": "Checks for empty lines after outer attributes", 
       "Why is this bad": "Most likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.", 
-      "Example": "```rust\n// Bad\n#[inline(always)]\nfn not_quite_good_code(..) { ... }\n// Good (as inner attribute)\n#![inline(always)]\nfn this_is_fine_too(..) { ... }\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine(..) { ... }\n```", 
+      "Example": "```rust\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code(..) { ... }\n\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine(..) { ... }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too(..) { ... }\n```", 
       "Known problems": "None"
     }, 
     "id": "empty_line_after_outer_attr", 
@@ -73,7 +73,7 @@
     "docs": {
       "What it does": "Checks for explicit `Clone` implementations for `Copy`\ntypes.", 
       "Why is this bad": "To avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.", 
-      "Example": "```rust\n#[derive(Copy)]\nstruct Foo;\nimpl Clone for Foo {\n    ..\n}\n```", 
+      "Example": "```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    ..\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "expl_impl_clone_on_copy", 
@@ -133,7 +133,7 @@
     "docs": {
       "What it does": "Checks for usage of `ATOMIC_X_INIT`, `ONCE_INIT`, and\n`uX/iX::MIN/MAX`.", 
       "Why is this bad": "`const fn`s exist", 
-      "Example": "```rust\nstatic FOO: AtomicIsize = ATOMIC_ISIZE_INIT;\n```\nCould be written:\n```rust\nstatic FOO: AtomicIsize = AtomicIsize::new(0);\n```", 
+      "Example": "```rust\nstatic FOO: AtomicIsize = ATOMIC_ISIZE_INIT;\n```\n\nCould be written:\n\n```rust\nstatic FOO: AtomicIsize = AtomicIsize::new(0);\n```", 
       "Known problems": "None."
     }, 
     "id": "replace_consts", 
@@ -173,7 +173,7 @@
     "docs": {
       "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
       "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
-      "Example": "```rust\nstruct Foo;\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
+      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "partialeq_ne_impl", 
@@ -303,7 +303,7 @@
     "docs": {
       "What it does": "Checks for types with a `fn new() -> Self` method\nand no implementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html),\nwhere the `Default` can be derived by `#[derive(Default)]`.", 
       "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.", 
-      "Example": "```rust,ignore\nstruct Foo;\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\nJust prepend `#[derive(Default)]` before the `struct` definition.", 
+      "Example": "```rust,ignore\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nJust prepend `#[derive(Default)]` before the `struct` definition.", 
       "Known problems": "Hopefully none."
     }, 
     "id": "new_without_default_derive", 
@@ -574,7 +574,7 @@
     "docs": {
       "What it does": "Checks for expressions that could be replaced by the question mark operator", 
       "Why is this bad": "Question mark usage is more idiomatic", 
-      "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\nCould be written:\n```rust\noption?;\n```", 
+      "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```rust\noption?;\n```", 
       "Known problems": "None"
     }, 
     "id": "question_mark", 
@@ -594,7 +594,7 @@
     "docs": {
       "What it does": "Checks for `match` with identical arm bodies.", 
       "Why is this bad": "This is probably a copy & paste error. If arm bodies\nare the same on purpose, you can factor them\n[using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).", 
-      "Example": "```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\nThis should probably be\n```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\nor if the original code was not a typo:\n```rust,ignore\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```", 
+      "Example": "```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\n\nThis should probably be\n```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\n\nor if the original code was not a typo:\n```rust,ignore\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```", 
       "Known problems": "False positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860))."
     }, 
     "id": "match_same_arms", 
@@ -614,7 +614,7 @@
     "docs": {
       "What it does": "Checks for use of `Box<Vec<_>>` anywhere in the code.", 
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` it, you just add another level of indirection\nwithout any benefit whatsoever.", 
-      "Example": "```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\nBetter:\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```", 
+      "Example": "```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "box_vec", 
@@ -771,7 +771,7 @@
     "docs": {
       "What it does": "Checks for deriving `Hash` but implementing `PartialEq`\nexplicitly.", 
       "Why is this bad": "The implementation of these traits must agree (for\nexample for use with `HashMap`) so it\u2019s probably a bad idea to use a\ndefault-generated `Hash` implementation with an explicitly defined\n`PartialEq`. In particular, the following must hold for any type:\n```rust\nk1 == k2 \u21d2 hash(k1) == hash(k2)\n```", 
-      "Example": "```rust\n#[derive(Hash)]\nstruct Foo;\nimpl PartialEq for Foo {\n    ...\n}\n```", 
+      "Example": "```rust\n#[derive(Hash)]\nstruct Foo;\n\nimpl PartialEq for Foo {\n    ...\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "derive_hash_xor_eq", 
@@ -916,7 +916,7 @@
     "docs": {
       "What it does": "Checks for items declared after some statement in a block.", 
       "Why is this bad": "Items live for the entire scope they are declared\nin. But statements are processed in order. This might cause confusion as\nit's hard to figure out which item is meant in a statement.", 
-      "Example": "```rust\nfn foo() {\n    println!(\"cake\");\n}\nfn main() {\n    foo(); // prints \"foo\"\n    fn foo() {\n        println!(\"foo\");\n    }\n    foo(); // prints \"foo\"\n}\n```", 
+      "Example": "```rust\nfn foo() {\n    println!(\"cake\");\n}\n\nfn main() {\n    foo(); // prints \"foo\"\n    fn foo() {\n        println!(\"foo\");\n    }\n    foo(); // prints \"foo\"\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "items_after_statements", 
@@ -1066,7 +1066,7 @@
     "docs": {
       "What it does": "Checks for usage of if expressions with an `else if` branch,\nbut without a final `else` branch.", 
       "Why is this bad": "Some coding guidelines require this (e.g. MISRA-C:2004 Rule 14.10).", 
-      "Example": "```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\nCould be written:\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // we don't care about zero\n}\n```", 
+      "Example": "```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\n\nCould be written:\n\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // we don't care about zero\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "else_if_without_else", 
@@ -1425,7 +1425,7 @@
     "docs": {
       "What it does": "Checks for iterating a map (`HashMap` or `BTreeMap`) and\nignoring either the keys or values.", 
       "Why is this bad": "Readability. There are `keys` and `values` methods that\ncan be used to express that don't need the values or keys.", 
-      "Example": "```rust\nfor (k, _) in &map { .. }\n```\ncould be replaced by\n```rust\nfor k in map.keys() { .. }\n```", 
+      "Example": "```rust\nfor (k, _) in &map { .. }\n```\n\ncould be replaced by\n\n```rust\nfor k in map.keys() { .. }\n```", 
       "Known problems": "None."
     }, 
     "id": "for_kv_map", 
@@ -1445,7 +1445,7 @@
     "docs": {
       "What it does": "* Checks for unnecessary `ok()` in if let.", 
       "Why is this bad": "Calling `ok()` in if let is unnecessary, instead match\non `Ok(pat)`", 
-      "Example": "```rust\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```\nCould be written:\n```rust\nfor result in iter {\n    if let Ok(bench) = try!(result).parse() {\n        vec.push(bench)\n    }\n}\n```", 
+      "Example": "```rust\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```\nCould be written:\n\n```rust\nfor result in iter {\n    if let Ok(bench) = try!(result).parse() {\n        vec.push(bench)\n    }\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "if_let_some_result", 
@@ -1475,7 +1475,7 @@
     "docs": {
       "What it does": "Checks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions and for `else { if ... }` expressions\nthat\ncan be collapsed to `else if ...`.", 
       "Why is this bad": "Each `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.", 
-      "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n// or\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\nShould be written:\n```rust.ignore\nif x && y {\n    \u2026\n}\n// or\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```", 
+      "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n\n// or\n\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\n\nShould be written:\n\n```rust.ignore\nif x && y {\n    \u2026\n}\n\n// or\n\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "collapsible_if", 
@@ -1515,7 +1515,7 @@
     "docs": {
       "What it does": "Checks for variable declarations immediately followed by a\nconditional affectation.", 
       "Why is this bad": "This is not idiomatic Rust.", 
-      "Example": "```rust,ignore\nlet foo;\nif bar() {\n    foo = 42;\n} else {\n    foo = 0;\n}\nlet mut baz = None;\nif bar() {\n    baz = Some(42);\n}\n```\nshould be written\n```rust,ignore\nlet foo = if bar() {\n    42\n} else {\n    0\n};\nlet baz = if bar() {\n    Some(42)\n} else {\n    None\n};\n```", 
+      "Example": "```rust,ignore\nlet foo;\n\nif bar() {\n    foo = 42;\n} else {\n    foo = 0;\n}\n\nlet mut baz = None;\n\nif bar() {\n    baz = Some(42);\n}\n```\n\nshould be written\n\n```rust,ignore\nlet foo = if bar() {\n    42\n} else {\n    0\n};\n\nlet baz = if bar() {\n    Some(42)\n} else {\n    None\n};\n```", 
       "Known problems": "None."
     }, 
     "id": "useless_let_if_seq", 
@@ -1555,7 +1555,7 @@
     "docs": {
       "What it does": "Checks for usage of `!` or `!=` in an if condition with an\nelse branch.", 
       "Why is this bad": "Negations reduce the readability of statements.", 
-      "Example": "```rust\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\nCould be written:\n```rust\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```", 
+      "Example": "```rust\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\n\nCould be written:\n\n```rust\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "if_not_else", 
@@ -1595,7 +1595,7 @@
     "docs": {
       "What it does": "Checks for formatting of `else if`. It lints if the `else`\nand `if` are not on the same line or the `else` seems to be missing.", 
       "Why is this bad": "This is probably some refactoring remnant, even if the\ncode is correct, it might look confusing.", 
-      "Example": "```rust,ignore\nif foo {\n} if bar { // looks like an `else` is missing here\n}\nif foo {\n} else\nif bar { // this is the `else` block of the previous `if`, but should it be?\n}\n```", 
+      "Example": "```rust,ignore\nif foo {\n} if bar { // looks like an `else` is missing here\n}\n\nif foo {\n} else\n\nif bar { // this is the `else` block of the previous `if`, but should it be?\n}\n```", 
       "Known problems": "None."
     }, 
     "id": "suspicious_else_formatting", 
@@ -1605,7 +1605,7 @@
     "docs": {
       "What it does": "Checks for imports that remove \"unsafe\" from an item's\nname.", 
       "Why is this bad": "Renaming makes it less clear which traits and\nstructures are unsafe.", 
-      "Example": "```rust,ignore\nuse std::cell::{UnsafeCell as TotallySafeCell};\nextern crate crossbeam;\nuse crossbeam::{spawn_unsafe as spawn};\n```", 
+      "Example": "```rust,ignore\nuse std::cell::{UnsafeCell as TotallySafeCell};\n\nextern crate crossbeam;\nuse crossbeam::{spawn_unsafe as spawn};\n```", 
       "Known problems": "None."
     }, 
     "id": "unsafe_removed_from_name", 
@@ -1705,7 +1705,7 @@
     "docs": {
       "What it does": "* Lint for redundant pattern matching over `Result` or\n`Option`", 
       "Why is this bad": "It's more concise and clear to just use the proper\nutility function", 
-      "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\n```\nThe more idiomatic use would be:\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\n```", 
+      "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\n```\n\nThe more idiomatic use would be:\n\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\n```\n", 
       "Known problems": "None."
     }, 
     "id": "if_let_redundant_pattern_matching", 
@@ -1715,7 +1715,7 @@
     "docs": {
       "What it does": "Warns if an integral constant literal starts with `0`.", 
       "Why is this bad": "In some languages (including the infamous C language\nand most of its\nfamily), this marks an octal constant. In Rust however, this is a decimal\nconstant. This could\nbe confusing for both the writer and a reader of the constant.", 
-      "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\nprints `123`, while in C:\n```c\n#include <stdio.h>\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\nprints `83` (as `83 == 0o123` while `123 == 0o173`).", 
+      "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\n\nprints `123`, while in C:\n\n```c\n#include <stdio.h>\n\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\n\nprints `83` (as `83 == 0o123` while `123 == 0o173`).", 
       "Known problems": "None."
     }, 
     "id": "zero_prefixed_literal", 
@@ -1755,7 +1755,7 @@
     "docs": {
       "What it does": "Checks for consecutive `if`s with the same condition.", 
       "Why is this bad": "This is probably a copy & paste error.", 
-      "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
+      "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\n\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
       "Known problems": "Hopefully none."
     }, 
     "id": "ifs_same_cond", 
@@ -1765,7 +1765,7 @@
     "docs": {
       "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
       "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
-      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\nUsing `::from` would look like this:\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
+      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
       "Known problems": "None."
     }, 
     "id": "cast_lossless", 
@@ -1876,7 +1876,7 @@
     "docs": {
       "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).", 
       "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.", 
-      "Example": "```rust,ignore\nstruct Foo(Bar);\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\nInstead, use:\n```rust\nstruct Foo(Bar);\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\nYou can also have `new()` call `Default::default()`.", 
+      "Example": "```rust,ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nInstead, use:\n\n```rust\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nYou can also have `new()` call `Default::default()`.", 
       "Known problems": "Hopefully none."
     }, 
     "id": "new_without_default", 
@@ -2098,7 +2098,7 @@
     "docs": {
       "What it does": "Checks for double comparions that could be simpified to a single expression.", 
       "Why is this bad": "Readability.", 
-      "Example": "```rust\nx == y || x < y\n```\nCould be written as:\n```rust\nx <= y\n```", 
+      "Example": "```rust\nx == y || x < y\n```\n\nCould be written as:\n\n```rust\nx <= y\n```", 
       "Known problems": "None."
     }, 
     "id": "double_comparisons", 
@@ -2128,7 +2128,7 @@
     "docs": {
       "What it does": "Checks for usage of `x >= y + 1` or `x - 1 >= y` (and `<=`) in a block", 
       "Why is this bad": "Readability -- better to use `> y` instead of `>= y + 1`.", 
-      "Example": "```rust\nx >= y + 1\n```\nCould be written:\n```rust\nx > y\n```", 
+      "Example": "```rust\nx >= y + 1\n```\n\nCould be written:\n\n```rust\nx > y\n```", 
       "Known problems": "None."
     }, 
     "id": "int_plus_one", 
@@ -2159,7 +2159,7 @@
     "docs": {
       "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
       "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
-      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
+      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
       "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
     }, 
     "id": "implicit_hasher", 
@@ -2320,7 +2320,12 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Checks for creation of references to zeroed or uninitialized memory.", 
+      "Why is this bad": "Creation of null references is undefined behavior.", 
+      "Example": "```rust\nlet bad_ref: &usize = std::mem::zeroed();\n```", 
+      "Known problems": "None."
+    }, 
     "id": "invalid_ref", 
     "level": "Warn"
   }, 
@@ -2366,7 +2371,7 @@
     "docs": {
       "What it does": "Checks for `for` loops over `Result` values.", 
       "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.", 
-      "Example": "```rust\nfor x in result { .. }\n```\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
+      "Example": "```rust\nfor x in result { .. }\n```\n\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
       "Known problems": "None."
     }, 
     "id": "for_loop_over_result", 
@@ -2376,7 +2381,7 @@
     "docs": {
       "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
       "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
-      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\nCould be rewritten as\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\nAs another example, the following code\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
+      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
       "Known problems": "None"
     }, 
     "id": "needless_continue", 
@@ -2396,7 +2401,7 @@
     "docs": {
       "What it does": "Checks for use of `&Box<T>` anywhere in the code.", 
       "Why is this bad": "Any `&Box<T>` can also be a `&T`, which is more\ngeneral.", 
-      "Example": "```rust\nfn foo(bar: &Box<T>) { ... }\n```\nBetter:\n```rust\nfn foo(bar: &T) { ... }\n```", 
+      "Example": "```rust\nfn foo(bar: &Box<T>) { ... }\n```\n\nBetter:\n\n```rust\nfn foo(bar: &T) { ... }\n```", 
       "Known problems": "None."
     }, 
     "id": "borrowed_box", 
@@ -2467,7 +2472,7 @@
     "docs": {
       "What it does": "Checks for expressions where a character literal is cast\nto `u8` and suggests using a byte literal instead.", 
       "Why is this bad": "In general, casting values to smaller types is\nerror-prone and should be avoided where possible. In the particular case of\nconverting a character literal to u8, it is easy to avoid by just using a\nbyte literal instead. As an added bonus, `b'a'` is even slightly shorter\nthan `'a' as u8`.", 
-      "Example": "```rust\n'x' as u8\n```\nA better version, using the byte literal:\n```rust\nb'x'\n```", 
+      "Example": "```rust\n'x' as u8\n```\n\nA better version, using the byte literal:\n\n```rust\nb'x'\n```", 
       "Known problems": "None."
     }, 
     "id": "char_lit_as_u8", 
