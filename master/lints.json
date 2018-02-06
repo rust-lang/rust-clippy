@@ -2441,12 +2441,12 @@
     "docs": {
       "What it does": "Warns if there is a better representation for a numeric literal.", 
       "Why is this bad": "Especially for big powers of 2 a hexadecimal representation is more\nreadable than a decimal representation.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `literal_representation_threshold: u64`: The lower bound for linting decimal literals (defaults to `4096 `).", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `literal_representation_threshold: u64`: The lower bound for linting decimal literals (defaults to `16384 `).", 
       "Example": "`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`", 
       "Known problems": "None."
     }, 
     "id": "decimal_literal_representation", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
