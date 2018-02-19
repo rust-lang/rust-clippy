@@ -1663,6 +1663,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for fields in struct literals where shorthands\ncould be used.", 
+      "Why is this bad": "If the field and variable names are the same,\nthe field name is redundant.", 
+      "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo{ bar: bar }\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "redundant_field_names", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for items annotated with `#[inline(always)]`,\nunless the annotated function is empty or simply panics.", 
       "Why is this bad": "While there are valid uses of this annotation (and once\nyou know when to use it, by all means `allow` this lint), it's a common\nnewbie-mistake to pepper one's code with it.\nAs a rule of thumb, before slapping `#[inline(always)]` on a function,\nmeasure if that additional function call really affects your runtime profile\nsufficiently to make up for the increase in compile time.", 
       "Example": "```rust\n#[inline(always)]\nfn not_quite_hot_code(..) { ... }\n```", 
