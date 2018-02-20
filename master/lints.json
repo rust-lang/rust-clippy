@@ -1543,6 +1543,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Lints for suspicious operations in impls of arithmetic operators, e.g.\nsubtracting elements in an Add impl.", 
+      "Why this is bad": "This is probably a typo or copy-and-paste error and not intended.", 
+      "Example": "```rust\nimpl Add for Foo {\n    type Output = Foo;\n\n    fn add(self, other: Foo) -> Foo {\n        Foo(self.0 - other.0)\n    }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "suspicious_arithmetic_impl", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.", 
       "Why is this bad": "Usually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).", 
       "Example": "```rust\nlet x = 3.14;\n```", 
@@ -1992,6 +2002,16 @@
     }, 
     "id": "unicode_not_nfc", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Lints for suspicious operations in impls of OpAssign, e.g.\nsubtracting elements in an AddAssign impl.", 
+      "Why this is bad": "This is probably a typo or copy-and-paste error and not intended.", 
+      "Example": "```rust\nimpl AddAssign for Foo {\n    fn add_assign(&mut self, other: Foo) {\n        *self = *self - other;\n    }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "suspicious_op_assign_impl", 
+    "level": "Warn"
   }, 
   {
     "docs": {
