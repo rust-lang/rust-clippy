@@ -201,12 +201,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for binding a unit value.", 
-      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
-      "Example": "```rust\nlet x = { 1; };\n```", 
+      "What it does": "Checks for inclusive ranges where 1 is subtracted from\nthe upper bound, e.g. `x..=(y-1)`.", 
+      "Why is this bad": "The code is more readable with an exclusive range\nlike `x..y`.", 
+      "Example": "```rust\nfor x..=(y-1) { .. }\n```", 
       "Known problems": "None."
     }, 
-    "id": "let_unit_value", 
+    "id": "range_minus_one", 
     "level": "Warn"
   }, 
   {
@@ -982,13 +982,8 @@
     "level": "Warn"
   }, 
   {
-    "docs": {
-      "What it does": "Checks for inclusive ranges where 1 is subtracted from\nthe upper bound, e.g. `x..=(y-1)`.", 
-      "Why is this bad": "The code is more readable with an exclusive range\nlike `x..y`.", 
-      "Example": "```rust\nfor x..=(y-1) { .. }\n```", 
-      "Known problems": "None."
-    }, 
-    "id": "range_minus_one", 
+    "docs": {}, 
+    "id": "bare_trait_object", 
     "level": "Warn"
   }, 
   {
@@ -2506,6 +2501,16 @@
       "Known problems": "None."
     }, 
     "id": "char_lit_as_u8", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for binding a unit value.", 
+      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
+      "Example": "```rust\nlet x = { 1; };\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
