@@ -32,10 +32,10 @@ One way to use clippy is by installing clippy through cargo as a cargo
 subcommand.
 
 ```terminal
-cargo +nightly install clippy
+rustup run nightly cargo install clippy
 ```
 
-(The `+nightly` is not necessary if your default `rustup` install is nightly)
+(The `rustup run nightly` is not necessary if your default `rustup` install is nightly)
 
 Now you can run clippy by invoking `cargo +nightly clippy`.
 
