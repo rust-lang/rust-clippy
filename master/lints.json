@@ -1593,6 +1593,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks whether variables used within while loop condition\ncan be (and are) mutated in the body.", 
+      "Why is this bad": "If the condition is unchanged, entering the body of the loop\nwill lead to an infinite loop.", 
+      "Example": "```rust\nlet i = 0;\nwhile i > 10 {\n   println!(\"let me loop forever!\");\n}\n```", 
+      "Known problems": "None"
+    }, 
+    "id": "while_immutable_condition", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.", 
       "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat is is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.", 
       "Example": "```rust\nvec.len() <= 0\n100 > std::i32::MAX\n```", 
