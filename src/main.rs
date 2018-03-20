@@ -3,26 +3,26 @@
 #![feature(rustc_private)]
 #![allow(unknown_lints, missing_docs_in_private_items)]
 
-use std::collections::HashMap;
-use std::process;
-use std::io::{self, Write};
-
 extern crate cargo_metadata;
+extern crate clap;
 
+use std::collections::HashMap;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
+use std::process;
 
-const CARGO_CLIPPY_HELP: &str = r#"Checks a package to catch common mistakes and improve your Rust code.
+use clap::{App, AppSettings, Arg};
 
-Usage:
-    cargo clippy [options] [--] [<opts>...]
-
-Common options:
-    -h, --help               Print this message
-    --features               Features to compile for the package
-    -V, --version            Print version info and exit
-    --all                    Run over all packages in the current workspace
-
-Other options are the same as `cargo rustc`.
+pub fn main() {
+    let matches = App::new("Clippy")
+        .about("Checks a package to catch common mistakes and improve your Rust code.")
+        .version(env!("CARGO_PKG_VERSION"))
+        .setting(AppSettings::TrailingVarArg)
+        .setting(AppSettings::UnifiedHelpMessage)
+        .arg(Arg::from_usage("--manifest-path [PATH]   'Path to the manifest to check'"))
+        .arg(Arg::from_usage("--all 'Run over all packages in the current workspace'"))
+        .arg(Arg::from_usage("[CMD] ... 'Commands to pass through to cargo rustc'"))
+        .after_help("Other options are the same as `cargo rustc`.
 
 To allow or deny a lint from the command line you can use `cargo clippy --`
 with:
@@ -35,53 +35,15 @@ with:
 The feature `cargo-clippy` is automatically defined for convenience. You can use
 it to allow or deny lints from the code, eg.:
 
-    #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
-"#;
+    #[cfg_attr(feature = \"cargo-clippy\", allow(needless_lifetimes))]").get_matches();
 
-#[allow(print_stdout)]
-fn show_help() {
-    println!("{}", CARGO_CLIPPY_HELP);
-}
+    let manifest_path_arg = matches.value_of("manifest-path");
 
-#[allow(print_stdout)]
-fn show_version() {
-    println!("{}", env!("CARGO_PKG_VERSION"));
-}
-
-pub fn main() {
-    // Check for version and help flags even when invoked as 'cargo-clippy'
-    if std::env::args().any(|a| a == "--help" || a == "-h") {
-        show_help();
-        return;
-    }
-    if std::env::args().any(|a| a == "--version" || a == "-V") {
-        show_version();
-        return;
-    }
-
-    let mut manifest_path_arg = std::env::args()
-        .skip(2)
-        .skip_while(|val| !val.starts_with("--manifest-path"));
-    let manifest_path_arg = manifest_path_arg.next().and_then(|val| {
-        if val == "--manifest-path" {
-            manifest_path_arg.next()
-        } else if val.starts_with("--manifest-path=") {
-            Some(val["--manifest-path=".len()..].to_owned())
-        } else {
-            None
-        }
-    });
-
-    let mut metadata = if let Ok(metadata) = cargo_metadata::metadata(manifest_path_arg.as_ref().map(AsRef::as_ref)) {
-        metadata
-    } else {
-        println!(
-            "{:?}",
-            cargo_metadata::metadata(manifest_path_arg.as_ref().map(AsRef::as_ref))
-        );
+    let mut metadata = cargo_metadata::metadata(manifest_path_arg.as_ref().map(AsRef::as_ref)).unwrap_or_else(|error| {
+        println!("{:?}", error);
         let _ = io::stderr().write_fmt(format_args!("error: Could not obtain cargo metadata.\n"));
         process::exit(101);
-    };
+    });
 
     let manifest_path = manifest_path_arg.map(|arg| {
         PathBuf::from(arg)
@@ -89,7 +51,7 @@ pub fn main() {
             .expect("manifest path could not be canonicalized")
     });
 
-    let packages = if std::env::args().any(|a| a == "--all") {
+    let packages = if matches.is_present("all") {
         metadata.packages
     } else {
         let package_index = {
@@ -147,11 +109,9 @@ pub fn main() {
         let manifest_path = package.manifest_path;
 
         for target in package.targets {
-            let args = std::env::args()
-                .skip(1)
-                .filter(|a| a != "--all" && !a.starts_with("--manifest-path="));
+            let args = std::iter::once(format!("--manifest-path={}", manifest_path))
+                .chain(matches.values_of_lossy("CMD").unwrap_or_default());
 
-            let args = std::iter::once(format!("--manifest-path={}", manifest_path)).chain(args);
             if let Some(first) = target.kind.get(0) {
                 if target.kind.len() > 1 || first.ends_with("lib") {
                     println!("lib: {}", target.name);
