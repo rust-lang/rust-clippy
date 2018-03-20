@@ -15,6 +15,7 @@ use clap::{App, AppSettings, Arg};
 
 pub fn main() {
     let matches = App::new("Clippy")
+        .bin_name("cargo clippy")
         .about("Checks a package to catch common mistakes and improve your Rust code.")
         .version(env!("CARGO_PKG_VERSION"))
         .setting(AppSettings::TrailingVarArg)
