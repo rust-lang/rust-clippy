@@ -9,6 +9,7 @@ pub const BEGIN_PANIC: [&str; 3] = ["std", "panicking", "begin_panic"];
 pub const BEGIN_PANIC_FMT: [&str; 3] = ["std", "panicking", "begin_panic_fmt"];
 pub const BINARY_HEAP: [&str; 3] = ["alloc", "binary_heap", "BinaryHeap"];
 pub const BORROW_TRAIT: [&str; 3] = ["core", "borrow", "Borrow"];
+pub const BORROW_MUT_TRAIT: [&str; 3] = ["core", "borrow", "BorrowMut"];
 pub const BOX: [&str; 3] = ["std", "boxed", "Box"];
 pub const BOX_NEW: [&str; 4] = ["std", "boxed", "Box", "new"];
 pub const BTREEMAP: [&str; 4] = ["alloc", "btree", "map", "BTreeMap"];
