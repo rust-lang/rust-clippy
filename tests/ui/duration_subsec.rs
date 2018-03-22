@@ -18,6 +18,11 @@ fn main() {
     // Handle refs
     let _ = (&dur).subsec_nanos() / 1_000;
 
+    // Handle simple constants
+    const NANOS_IN_MICRO: u32 = 1_000;
+    let _ = dur.subsec_nanos() / NANOS_IN_MICRO;
+
     // Other literals aren't linted
     let _ = dur.subsec_nanos() / 699;
+
 }

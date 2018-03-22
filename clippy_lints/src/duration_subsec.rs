@@ -1,7 +1,7 @@
 use rustc::lint::*;
 use rustc::hir::*;
-use syntax::ast::LitKind;
 use syntax::codemap::Spanned;
+use consts::{constant, Constant};
 use utils::{match_type, snippet, span_lint_and_sugg, walk_ptrs_ty};
 use utils::paths;
 
@@ -41,24 +41,22 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for DurationSubsec {
             if let ExprMethodCall(ref method_path, _ , ref args) = left.node;
             if method_path.name == "subsec_nanos";
             if match_type(cx, walk_ptrs_ty(cx.tables.expr_ty(&args[0])), &paths::DURATION);
-            if let ExprLit(ref lit) = right.node;
+            if let Some((Constant::Int(divisor), _)) = constant(cx, right);
             then {
-                if let Spanned { node: LitKind::Int(divisor, _), .. } = **lit {
-                    let suggested_fn = match divisor {
-                        1_000 => "subsec_micros",
-                        1_000_000 => "subsec_millis",
-                        _ => return,
-                    };
+                let suggested_fn = match divisor {
+                    1_000 => "subsec_micros",
+                    1_000_000 => "subsec_millis",
+                    _ => return,
+                };
 
-                    span_lint_and_sugg(
-                        cx,
-                        DURATION_SUBSEC,
-                        expr.span,
-                        &format!("Calling `{}()` is more concise than this calcuation", suggested_fn),
-                        "try",
-                        format!("{}.{}()", snippet(cx, args[0].span, "_"), suggested_fn),
-                    );
-                }
+                span_lint_and_sugg(
+                    cx,
+                    DURATION_SUBSEC,
+                    expr.span,
+                    &format!("Calling `{}()` is more concise than this calcuation", suggested_fn),
+                    "try",
+                    format!("{}.{}()", snippet(cx, args[0].span, "_"), suggested_fn),
+                );
             }
         }
     }
