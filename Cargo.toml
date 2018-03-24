@@ -40,6 +40,7 @@ path = "src/driver.rs"
 clippy_lints = { version = "0.0.189", path = "clippy_lints" }
 # end automatic update
 cargo_metadata = "0.5"
+clap = "2.31"
 regex = "0.2"
 semver = "0.9"
 
