@@ -53,7 +53,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for DurationSubsec {
                     cx,
                     DURATION_SUBSEC,
                     expr.span,
-                    &format!("Calling `{}()` is more concise than this calcuation", suggested_fn),
+                    &format!("Calling `{}()` is more concise than this calculation", suggested_fn),
                     "try",
                     format!("{}.{}()", snippet(cx, args[0].span, "_"), suggested_fn),
                 );
