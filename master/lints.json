@@ -1596,7 +1596,7 @@
       "What it does": "Checks whether variables used within while loop condition\ncan be (and are) mutated in the body.", 
       "Why is this bad": "If the condition is unchanged, entering the body of the loop\nwill lead to an infinite loop.", 
       "Example": "```rust\nlet i = 0;\nwhile i > 10 {\n   println!(\"let me loop forever!\");\n}\n```", 
-      "Known problems": "None"
+      "Known problems": "If the `while`-loop is in a closure, the check for mutation of the\ncondition variables in the body can cause false negatives. For example when only `Upvar` `a` is\nin the condition and only `Upvar` `b` gets mutated in the body, the lint will not trigger."
     }, 
     "id": "while_immutable_condition", 
     "level": "Warn"
