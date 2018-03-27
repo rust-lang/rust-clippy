@@ -2079,7 +2079,7 @@
       "What it does": "Checks for `use Enum::*`.", 
       "Why is this bad": "It is usually better style to use the prefixed name of\nan enumeration variant, rather than importing variants.", 
       "Example": "```rust\nuse std::cmp::Ordering::*;\n```", 
-      "Known problems": "Old-style enumerations that prefix the variants are\nstill around. May cause problems with modules that are not snake_case (see\n[#2397](https://github.com/rust-lang-nursery/rust-clippy/issues/2397))"
+      "Known problems": "Old-style enumerations that prefix the variants are\nstill around."
     }, 
     "id": "enum_glob_use", 
     "level": "Allow"
