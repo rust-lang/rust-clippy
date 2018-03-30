@@ -38,9 +38,9 @@ use utils::paths;
 ///     dst[i + 64] = src[i];
 /// }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub MANUAL_MEMCPY,
-    Warn,
+    perf,
     "manually copying items between slices"
 }
 
@@ -58,9 +58,9 @@ declare_lint! {
 ///     println!("{}", vec[i]);
 /// }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub NEEDLESS_RANGE_LOOP,
-    Warn,
+    style,
     "for-looping over a range of indices where an iterator over items would do"
 }
 
@@ -77,9 +77,9 @@ declare_lint! {
 /// // with `y` a `Vec` or slice:
 /// for x in y.iter() { .. }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub EXPLICIT_ITER_LOOP,
-    Warn,
+    style,
     "for-looping over `_.iter()` or `_.iter_mut()` when `&_` or `&mut _` would do"
 }
 
@@ -95,9 +95,9 @@ declare_lint! {
 /// // with `y` a `Vec` or slice:
 /// for x in y.into_iter() { .. }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub EXPLICIT_INTO_ITER_LOOP,
-    Warn,
+    style,
     "for-looping over `_.into_iter()` when `_` would do"
 }
 
@@ -117,9 +117,9 @@ declare_lint! {
 /// ```rust
 /// for x in y.next() { .. }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub ITER_NEXT_LOOP,
-    Warn,
+    correctness,
     "for-looping over `_.next()` which is probably not intended"
 }
 
@@ -139,9 +139,9 @@ declare_lint! {
 /// ```rust
 /// if let Some(x) = option { .. }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub FOR_LOOP_OVER_OPTION,
-    Warn,
+    correctness,
     "for-looping over an `Option`, which is more clearly expressed as an `if let`"
 }
 
@@ -161,9 +161,9 @@ declare_lint! {
 /// ```rust
 /// if let Ok(x) = result { .. }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub FOR_LOOP_OVER_RESULT,
-    Warn,
+    correctness,
     "for-looping over a `Result`, which is more clearly expressed as an `if let`"
 }
 
@@ -189,9 +189,9 @@ declare_lint! {
 ///     // .. do something with x
 /// }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub WHILE_LET_LOOP,
-    Warn,
+    complexity,
     "`loop { if let { ... } else break }`, which can be written as a `while let` loop"
 }
 
@@ -207,9 +207,9 @@ declare_lint! {
 /// ```rust
 /// vec.iter().map(|x| /* some operation returning () */).collect::<Vec<_>>();
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub UNUSED_COLLECT,
-    Warn,
+    perf,
     "`collect()`ing an iterator without using the result; this is usually better \
      written as a for loop"
 }
@@ -230,9 +230,9 @@ declare_lint! {
 /// ```rust
 /// for x in 5..10-5 { .. } // oops, stray `-`
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub REVERSE_RANGE_LOOP,
-    Warn,
+    correctness,
     "iteration over an empty range, such as `10..0` or `5..5`"
 }
 
@@ -250,9 +250,9 @@ declare_lint! {
 /// for i in 0..v.len() { foo(v[i]);
 /// for i in 0..v.len() { bar(i, v[i]); }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub EXPLICIT_COUNTER_LOOP,
-    Warn,
+    complexity,
     "for-looping with an explicit counter when `_.enumerate()` would do"
 }
 
@@ -268,9 +268,9 @@ declare_lint! {
 /// ```rust
 /// loop {}
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub EMPTY_LOOP,
-    Warn,
+    style,
     "empty `loop {}`, which should block or sleep"
 }
 
@@ -285,9 +285,9 @@ declare_lint! {
 /// ```rust
 /// while let Some(val) = iter() { .. }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub WHILE_LET_ON_ITERATOR,
-    Warn,
+    style,
     "using a while-let loop instead of a for loop on an iterator"
 }
 
@@ -309,9 +309,9 @@ declare_lint! {
 /// ```rust
 /// for k in map.keys() { .. }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub FOR_KV_MAP,
-    Warn,
+    style,
     "looping on a map using `iter` when `keys` or `values` would do"
 }
 
@@ -327,17 +327,29 @@ declare_lint! {
 /// ```rust
 /// loop { ..; break; }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub NEVER_LOOP,
-    Warn,
+    correctness,
     "any loop that will always `break` or `return`"
 }
 
-/// TODO: add documentation
-
-declare_lint! {
+/// **What it does:** Checks for loops which have a range bound that is a mutable variable
+///
+/// **Why is this bad?** One might think that modifying the mutable variable changes the loop bounds
+///
+/// **Known problems:** None
+///
+/// **Example:**
+/// ```rust
+/// let mut foo = 42;
+/// for i in 0..foo {
+///     foo -= 1;
+///     println!("{}", i); // prints numbers from 0 to 42, not 0 to 21
+/// }
+/// ```
+declare_clippy_lint! {
     pub MUT_RANGE_BOUND,
-    Warn,
+    complexity,
     "for loop over a range where one of the bounds is a mutable variable"
 }
 
@@ -347,7 +359,9 @@ declare_lint! {
 /// **Why is this bad?** If the condition is unchanged, entering the body of the loop
 /// will lead to an infinite loop.
 ///
-/// **Known problems:** None
+/// **Known problems:** If the `while`-loop is in a closure, the check for mutation of the
+/// condition variables in the body can cause false negatives. For example when only `Upvar` `a` is
+/// in the condition and only `Upvar` `b` gets mutated in the body, the lint will not trigger.
 ///
 /// **Example:**
 /// ```rust
@@ -356,9 +370,9 @@ declare_lint! {
 ///    println!("let me loop forever!");
 /// }
 /// ```
-declare_lint! {
+declare_clippy_lint! {
     pub WHILE_IMMUTABLE_CONDITION,
-    Warn,
+    correctness,
     "variables used within while expression are not mutated in the body"
 }
 
@@ -2140,7 +2154,7 @@ fn check_infinite_loop<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, cond: &'tcx Expr, b
         return;
     }
 
-    let mut mut_var_visitor = MutableVarsVisitor {
+    let mut mut_var_visitor = VarCollectorVisitor {
         cx,
         ids: HashMap::new(),
         skip: false,
@@ -2150,49 +2164,59 @@ fn check_infinite_loop<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, cond: &'tcx Expr, b
         return;
     }
 
-    if mut_var_visitor.ids.is_empty() {
-        span_lint(
-            cx,
-            WHILE_IMMUTABLE_CONDITION,
-            cond.span,
-            "all variables in condition are immutable. This either leads to an infinite or to a never running loop.",
-        );
-        return;
-    }
-
-
     let mut delegate = MutVarsDelegate {
-        mut_spans: mut_var_visitor.ids,
+        used_mutably: mut_var_visitor.ids,
+        skip: false,
     };
     let def_id = def_id::DefId::local(block.hir_id.owner);
     let region_scope_tree = &cx.tcx.region_scope_tree(def_id);
     ExprUseVisitor::new(&mut delegate, cx.tcx, cx.param_env, region_scope_tree, cx.tables, None).walk_expr(expr);
 
-    if !delegate.mut_spans.iter().any(|(_, v)| v.is_some()) {
+    if delegate.skip {
+        return;
+    }
+    if !delegate.used_mutably.iter().any(|(_, v)| *v) {
         span_lint(
             cx,
             WHILE_IMMUTABLE_CONDITION,
-            expr.span,
+            cond.span,
             "Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.",
         );
     }
 }
 
-/// Collects the set of mutable variable in an expression
+/// Collects the set of variables in an expression
 /// Stops analysis if a function call is found
-struct MutableVarsVisitor<'a, 'tcx: 'a> {
+/// Note: In some cases such as `self`, there are no mutable annotation,
+/// All variables definition IDs are collected
+struct VarCollectorVisitor<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
-    ids: HashMap<NodeId, Option<Span>>,
+    ids: HashMap<NodeId, bool>,
     skip: bool,
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for MutableVarsVisitor<'a, 'tcx> {
+impl<'a, 'tcx> VarCollectorVisitor<'a, 'tcx> {
+    fn insert_def_id(&mut self, ex: &'tcx Expr) {
+        if_chain! {
+            if let ExprPath(ref qpath) = ex.node;
+            if let QPath::Resolved(None, _) = *qpath;
+            let def = self.cx.tables.qpath_def(qpath, ex.hir_id);
+            then {
+                match def {
+                    Def::Local(node_id) | Def::Upvar(node_id, ..) => {
+                        self.ids.insert(node_id, false);
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
+}
+
+impl<'a, 'tcx> Visitor<'tcx> for VarCollectorVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, ex: &'tcx Expr) {
         match ex.node {
-            ExprPath(_) => if let Some(node_id) = check_for_mutability(self.cx, ex) {
-                self.ids.insert(node_id, None);
-            },
-
+            ExprPath(_) => self.insert_def_id(ex),
             // If there is any fuction/method call… we just stop analysis
             ExprCall(..) | ExprMethodCall(..) => self.skip = true,
 
@@ -2208,15 +2232,25 @@ impl<'a, 'tcx> Visitor<'tcx> for MutableVarsVisitor<'a, 'tcx> {
 }
 
 struct MutVarsDelegate {
-    mut_spans: HashMap<NodeId, Option<Span>>,
+    used_mutably: HashMap<NodeId, bool>,
+    skip: bool,
 }
 
 impl<'tcx> MutVarsDelegate {
     fn update(&mut self, cat: &'tcx Categorization, sp: Span) {
-        if let Categorization::Local(id) = *cat {
-            if let Some(span) = self.mut_spans.get_mut(&id) {    
-                *span = Some(sp)
-            }
+        match *cat {
+            Categorization::Local(id) =>
+                if let Some(used) = self.used_mutably.get_mut(&id) {
+                    *used = true;
+                },
+            Categorization::Upvar(_) => {
+                //FIXME: This causes false negatives. We can't get the `NodeId` from
+                //`Categorization::Upvar(_)`. So we search for any `Upvar`s in the
+                //`while`-body, not just the ones in the condition.
+                self.skip = true
+            },
+            Categorization::Deref(ref cmt, _) => self.update(&cmt.cat, sp),
+            _ => {}
         }
     }
 }
@@ -2236,7 +2270,7 @@ impl<'tcx> Delegate<'tcx> for MutVarsDelegate {
     }
 
     fn mutate(&mut self, _: NodeId, sp: Span, cmt: cmt<'tcx>, _: MutateMode) {
-            self.update(&cmt.cat, sp)
+        self.update(&cmt.cat, sp)
     }
 
     fn decl_without_init(&mut self, _: NodeId, _: Span) {}

@@ -1,67 +1,58 @@
-error: all variables in condition are immutable. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:10:11
+error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
+  --> $DIR/infinite_loop.rs:14:11
    |
-10 |     while y < 10 {
+14 |     while y < 10 {
    |           ^^^^^^
    |
-   = note: `-D while-immutable-condition` implied by `-D warnings`
+   = note: #[deny(while_immutable_condition)] on by default
 
-error: all variables in condition are immutable. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:15:11
+error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
+  --> $DIR/infinite_loop.rs:19:11
    |
-15 |     while y < 10 && x < 3 {
+19 |     while y < 10 && x < 3 {
    |           ^^^^^^^^^^^^^^^
 
-error: all variables in condition are immutable. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:22:11
+error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
+  --> $DIR/infinite_loop.rs:26:11
    |
-22 |     while !cond {
+26 |     while !cond {
    |           ^^^^^
 
 error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:52:5
+  --> $DIR/infinite_loop.rs:64:11
    |
-52 | /     while i < 3 {
-53 | |         j = 3;
-54 | |         println!("KO - i not mentionned");
-55 | |     }
-   | |_____^
+64 |     while i < 3 {
+   |           ^^^^^
 
 error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:57:5
+  --> $DIR/infinite_loop.rs:69:11
    |
-57 | /     while i < 3 && j > 0 {
-58 | |         println!("KO - i and j not mentionned");
-59 | |     }
-   | |_____^
+69 |     while i < 3 && j > 0 {
+   |           ^^^^^^^^^^^^^^
 
 error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:61:5
+  --> $DIR/infinite_loop.rs:73:11
    |
-61 | /     while i < 3 {
-62 | |         let mut i = 5;
-63 | |         fn_mutref(&mut i);
-64 | |         println!("KO - shadowed");
-65 | |     }
-   | |_____^
+73 |     while i < 3 {
+   |           ^^^^^
 
 error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:76:5
+  --> $DIR/infinite_loop.rs:88:11
    |
-76 | /     while i < 3 {
-77 | |         fn_constref(&i);
-78 | |         println!("KO - const reference");
-79 | |     }
-   | |_____^
+88 |     while i < 3 {
+   |           ^^^^^
 
 error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
-  --> $DIR/infinite_loop.rs:81:5
+  --> $DIR/infinite_loop.rs:93:11
    |
-81 | /     while i < 3 {
-82 | |         fn_val(i);
-83 | |         println!("KO - passed by value");
-84 | |     }
-   | |_____^
+93 |     while i < 3 {
+   |           ^^^^^
 
-error: aborting due to 8 previous errors
+error: Variable in the condition are not mutated in the loop body. This either leads to an infinite or to a never running loop.
+   --> $DIR/infinite_loop.rs:156:15
+    |
+156 |         while self.count < n {
+    |               ^^^^^^^^^^^^^^
+
+error: aborting due to 9 previous errors
 

@@ -1,9 +1,13 @@
+
+
+
 fn fn_val(i: i32) -> i32 { unimplemented!() }
 fn fn_constref(i: &i32) -> i32 { unimplemented!() }
 fn fn_mutref(i: &mut i32) { unimplemented!() }
 fn fooi() -> i32 { unimplemented!() }
 fn foob() -> bool { unimplemented!() }
 
+#[allow(many_single_char_names)]
 fn immutable_condition() {
     // Should warn when all vars mentionned are immutable
     let y = 0;
@@ -43,6 +47,14 @@ fn immutable_condition() {
         println!("OK - Fn call results may vary");
     }
 
+    let mut a = 0;
+    let mut c = move || {
+        while a < 5 {
+            a += 1;
+            println!("OK - a is mutable");
+        }
+    };
+    c();
 }
 
 fn unused_var() {
@@ -124,9 +136,36 @@ fn internally_mutable() {
     }
 }
 
+struct Counter {
+    count: usize,
+}
+
+impl Counter {
+    fn inc(&mut self) {
+        self.count += 1;
+    }
+
+    fn inc_n(&mut self, n: usize) {
+        while self.count < n {
+            self.inc();
+        }
+        println!("OK - self borrowed mutably");
+    }
+
+    fn print_n(&self, n: usize) {
+        while self.count < n {
+            println!("KO - {} is not mutated", self.count);
+        }
+    }
+}
+
 fn main() {
     immutable_condition();
     unused_var();
     used_immutable();
     internally_mutable();
+
+    let mut c = Counter { count: 0 };
+    c.inc_n(5);
+    c.print_n(2);
 }
