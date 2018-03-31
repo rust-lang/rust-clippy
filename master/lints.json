@@ -17,7 +17,7 @@
       "Known problems": "None."
     }, 
     "id": "for_loop_over_option", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -44,10 +44,10 @@
       "What it does": "Checks for empty lines after outer attributes", 
       "Why is this bad": "Most likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.", 
       "Example": "```rust\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code(..) { ... }\n\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine(..) { ... }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too(..) { ... }\n```", 
-      "Known problems": "None"
+      "Known problems": "Can cause false positives.\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect."
     }, 
     "id": "empty_line_after_outer_attr", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -67,17 +67,17 @@
       "Known problems": "None."
     }, 
     "id": "clone_double_ref", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
       "What it does": "Checks for explicit `Clone` implementations for `Copy`\ntypes.", 
       "Why is this bad": "To avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.", 
       "Example": "```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    ..\n}\n```", 
-      "Known problems": "None."
+      "Known problems": "Bounds of generic types are sometimes wrong: https://github.com/rust-lang/rust/issues/26925"
     }, 
     "id": "expl_impl_clone_on_copy", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -117,7 +117,7 @@
       "Known problems": "None."
     }, 
     "id": "bad_bit_mask", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -127,7 +127,7 @@
       "Known problems": "None."
     }, 
     "id": "drop_ref", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -157,7 +157,7 @@
       "Known problems": "None."
     }, 
     "id": "iter_next_loop", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -197,7 +197,7 @@
       "Known problems": "None."
     }, 
     "id": "deprecated_semver", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -277,7 +277,7 @@
       "Known problems": "* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't\ntrigger.\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`)."
     }, 
     "id": "not_unsafe_ptr_arg_deref", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -317,7 +317,7 @@
       "Known problems": "Ignores short circuiting behavior."
     }, 
     "id": "logic_bug", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -327,7 +327,7 @@
       "Known problems": "None."
     }, 
     "id": "nonsensical_open_options", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -407,7 +407,7 @@
       "Known problems": "None"
     }, 
     "id": "never_loop", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -448,7 +448,7 @@
       "Known problems": "None."
     }, 
     "id": "almost_swapped", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -468,7 +468,7 @@
       "Known problems": "None."
     }, 
     "id": "infinite_iter", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -478,7 +478,7 @@
       "Known problems": "None."
     }, 
     "id": "possible_missing_comma", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -493,7 +493,7 @@
   {
     "docs": {
       "What it does": "Checks for string appends of the form `x = x + y` (without\n`let`!).", 
-      "Why is this bad": "It's not really bad, but some people think that the\n`.push_str(_)` method is more readable.", 
+      "Why is this bad": "It's not really bad, but some people think that the\n`.push_str(_)` method is more readable. Also creates a new heap allocation and throws\naway the old one.", 
       "Example": "```rust\nlet mut x = \"Hello\".to_owned();\nx = x + \", World\";\n```", 
       "Known problems": "None."
     }, 
@@ -548,7 +548,7 @@
       "Known problems": "To be on the conservative side, if there's at least one\nmutable reference\nwith the output lifetime, this lint will not trigger. In practice, this\ncase is unlikely anyway."
     }, 
     "id": "mut_from_ref", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -588,7 +588,7 @@
       "Known problems": "When accessing C, users might want to store pointer\nsized objects in `extradata` arguments to save an allocation."
     }, 
     "id": "wrong_transmute", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -598,14 +598,14 @@
       "Known problems": "False positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860))."
     }, 
     "id": "match_same_arms", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
       "What it does": "Checks for usage of `_.map_or(None, _)`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.and_then(_)`.", 
       "Example": "```rust\nopt.map_or(None, |a| a + 1)\n```", 
-      "Known problems": "None."
+      "Known problems": "The order of the arguments is not in execution order."
     }, 
     "id": "option_map_or_none", 
     "level": "Warn"
@@ -622,7 +622,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.clone()` on a ref-counted pointer,\n(Rc, Arc, rc::Weak, or sync::Weak), and suggests calling Clone on\nthe corresponding trait instead.", 
+      "What it does": "Checks for usage of `.clone()` on a ref-counted pointer,\n(`Rc`, `Arc`, `rc::Weak`, or `sync::Weak`), and suggests calling Clone via unified\nfunction syntax instead (e.g. `Rc::clone(foo)`).", 
       "Why is this bad": ": Calling '.clone()' on an Rc, Arc, or Weak\ncan obscure the fact that only the pointer is being cloned, not the underlying\ndata.", 
       "Example": "```rust\nx.clone()\n```"
     }, 
@@ -682,12 +682,12 @@
   {
     "docs": {
       "What it does": "Checks for mis-uses of the serde API.", 
-      "Why is this bad": "Serde is very finnicky about how its API should be\nused, but the type system can't be used to enforce it (yet).", 
+      "Why is this bad": "Serde is very finnicky about how its API should be\nused, but the type system can't be used to enforce it (yet?).", 
       "Example": "Implementing `Visitor::visit_string` but not\n`Visitor::visit_str`.", 
       "Known problems": "None."
     }, 
     "id": "serde_api_misuse", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -707,7 +707,7 @@
       "Known problems": "False negatives: We had some false positives regarding\ncalls (notably [racer](https://github.com/phildawes/racer) had one instance\nof `x.pop() && x.pop()`), so we removed matching any function or method\ncalls. We may introduce a whitelist of known pure functions in the future."
     }, 
     "id": "eq_op", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -775,7 +775,7 @@
       "Known problems": "None."
     }, 
     "id": "derive_hash_xor_eq", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -785,7 +785,7 @@
       "Known problems": "Technically one might allow `unused_import` on a `use`\nitem,\nbut it's easier to remove the unused item."
     }, 
     "id": "useless_attribute", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -907,7 +907,7 @@
       "What it does": "Checks for usage of `_.map(_).unwrap_or_else(_)`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or_else(_, _)`.", 
       "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```", 
-      "Known problems": "None."
+      "Known problems": "The order of the arguments is not in execution order."
     }, 
     "id": "option_map_unwrap_or_else", 
     "level": "Allow"
@@ -979,7 +979,7 @@
       "Known problems": "None."
     }, 
     "id": "unit_cmp", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1090,11 +1090,11 @@
       "Known problems": "None"
     }, 
     "id": "min_max", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
-      "What it does": "This lint warns when you using `println!(\"\")` to\nprint a newline.", 
+      "What it does": "This lint warns when you use `println!(\"\")` to\nprint a newline.", 
       "Why is this bad": "You should use `println!()`, which is simpler.", 
       "Example": "```rust\nprintln!(\"\");\n```", 
       "Known problems": "None."
@@ -1120,7 +1120,7 @@
       "Known problems": "None."
     }, 
     "id": "temporary_cstring_as_ptr", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1141,7 +1141,7 @@
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
     "id": "doc_markdown", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1211,7 +1211,7 @@
       "Known problems": "None."
     }, 
     "id": "erasing_op", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1241,7 +1241,7 @@
       "Known problems": "None."
     }, 
     "id": "float_cmp", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1433,7 +1433,7 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint warns when you using `print!()` with a format\nstring that\nends in a newline.", 
+      "What it does": "This lint warns when you use `print!()` with a format\nstring that\nends in a newline.", 
       "Why is this bad": "You should use `println!()` instead, which appends the\nnewline.", 
       "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```", 
       "Known problems": "None."
@@ -1529,7 +1529,7 @@
       "Known problems": "Ignores short circuiting behavior of `||` and\n`&&`. Ignores `|`, `&` and `^`."
     }, 
     "id": "nonminimal_bool", 
-    "level": "Allow"
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1549,7 +1549,7 @@
       "Known problems": "None."
     }, 
     "id": "suspicious_arithmetic_impl", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1559,7 +1559,7 @@
       "Known problems": "If you happen to have a value that is within 1/8192 of a\nknown constant, but is not *and should not* be the same, this lint will\nreport your value anyway. We have not yet noticed any false positives in\ncode we tested clippy with (this includes servo), but YMMV."
     }, 
     "id": "approx_constant", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1599,7 +1599,7 @@
       "Known problems": "If the `while`-loop is in a closure, the check for mutation of the\ncondition variables in the body can cause false negatives. For example when only `Upvar` `a` is\nin the condition and only `Upvar` `b` gets mutated in the body, the lint will not trigger."
     }, 
     "id": "while_immutable_condition", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1609,7 +1609,7 @@
       "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g. 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation\nattributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead."
     }, 
     "id": "absurd_extreme_comparisons", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1699,7 +1699,7 @@
       "Known problems": "False positives, big time. This lint is meant to be\ndeactivated by everyone doing serious performance work. This means having\ndone the measurement."
     }, 
     "id": "inline_always", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1709,7 +1709,7 @@
       "Known problems": "None."
     }, 
     "id": "forget_copy", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1789,7 +1789,7 @@
       "Known problems": "Hopefully none."
     }, 
     "id": "ifs_same_cond", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1870,14 +1870,14 @@
       "Known problems": "None."
     }, 
     "id": "forget_ref", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
       "What it does": "Checks for usage of `_.map(_).unwrap_or(_)`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or(_, _)`.", 
       "Example": "```rust\nx.map(|a| a + 1).unwrap_or(0)\n```", 
-      "Known problems": "None."
+      "Known problems": "The order of the arguments is not in execution order"
     }, 
     "id": "option_map_unwrap_or", 
     "level": "Allow"
@@ -1900,7 +1900,7 @@
       "Known problems": "None."
     }, 
     "id": "inline_fn_without_body", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1950,7 +1950,7 @@
       "Known problems": "False positives \u2013 the instances where using a\n`LinkedList` makes sense are few and far between, but they can still happen."
     }, 
     "id": "linkedlist", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1991,7 +1991,7 @@
       "Known problems": "None."
     }, 
     "id": "modulo_one", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2021,7 +2021,7 @@
       "Known problems": "None."
     }, 
     "id": "suspicious_op_assign_impl", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2031,7 +2031,7 @@
       "Known problems": "The lint cannot catch loops over dynamically defined\nranges. Doing this would require simulating all possible inputs and code\npaths through the program, which would be complex and error-prone."
     }, 
     "id": "reverse_range_loop", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2092,7 +2092,7 @@
       "Known problems": "False negatives: This lint will only match instances\nwhere we have figured out the math (which is for a power-of-two compared\nvalue). This means things like `x | 1 >= 7` (which would be better written\nas `x >= 6`) will not be reported (but bit masks like this are fairly\nuncommon)."
     }, 
     "id": "ineffective_bit_mask", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2142,7 +2142,7 @@
       "Known problems": "None."
     }, 
     "id": "double_comparisons", 
-    "level": "Deny"
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2172,7 +2172,7 @@
       "Known problems": "None."
     }, 
     "id": "int_plus_one", 
-    "level": "Allow"
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2193,7 +2193,7 @@
       "Known problems": "None."
     }, 
     "id": "drop_copy", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2264,7 +2264,12 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Checks for loops which have a range bound that is a mutable variable", 
+      "Why is this bad": "One might think that modifying the mutable variable changes the loop bounds", 
+      "Example": "```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{}\", i); // prints numbers from 0 to 42, not 0 to 21\n}\n```", 
+      "Known problems": "None"
+    }, 
     "id": "mut_range_bound", 
     "level": "Warn"
   }, 
@@ -2367,7 +2372,7 @@
       "Known problems": "None."
     }, 
     "id": "invalid_ref", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2415,7 +2420,7 @@
       "Known problems": "None."
     }, 
     "id": "for_loop_over_result", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2425,7 +2430,7 @@
       "Known problems": "None"
     }, 
     "id": "needless_continue", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2435,7 +2440,7 @@
       "Known problems": "Hopefully none."
     }, 
     "id": "if_same_then_else", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2452,7 +2457,7 @@
       "What it does": "Checks for usage of `ok().expect(..)`.", 
       "Why is this bad": "Because you usually call `expect()` on the `Result`\ndirectly to get a better error message.", 
       "Example": "```rust\nx.ok().expect(\"why did I do this again?\")\n```", 
-      "Known problems": "None."
+      "Known problems": "The error type needs to implement `Debug`"
     }, 
     "id": "ok_expect", 
     "level": "Warn"
@@ -2496,7 +2501,7 @@
       "Known problems": "None."
     }, 
     "id": "iterator_step_by_zero", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2526,7 +2531,7 @@
       "Known problems": "None."
     }, 
     "id": "enum_clike_unportable_variant", 
-    "level": "Warn"
+    "level": "Deny"
   }, 
   {
     "docs": {
