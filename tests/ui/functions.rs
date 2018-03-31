@@ -11,6 +11,17 @@ fn good(_one: u32, _two: u32, _three: &str, _four: bool, _five: f32, _six: f32, 
 fn bad(_one: u32, _two: u32, _three: &str, _four: bool, _five: f32, _six: f32, _seven: bool, _eight: ()) {
 }
 
+fn bad_with_ret(_a: u32, _b: u32, _c: u32, _d: u32, _e: u32, _f: u32, _g: u32, _h: u32) -> u32 {
+   0
+}
+
+fn bad_with_where<T>(_a: T, _b: u32, _c: u32, _d: u32, _e: u32, _f: u32, _g: u32, _h: u32) -> u32
+where
+    T: Copy
+{
+        0
+}
+
 // don't lint extern fns
 extern fn extern_fn(_one: u32, _two: u32, _three: &str, _four: bool, _five: f32, _six: f32, _seven: bool, _eight: ()) {}
 

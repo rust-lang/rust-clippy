@@ -102,7 +102,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Functions {
             // don't lint extern functions decls, it's not their fault either
             match kind {
                 hir::intravisit::FnKind::Method(_, &hir::MethodSig { abi: Abi::Rust, .. }, _, _) |
-                hir::intravisit::FnKind::ItemFn(_, _, _, _, Abi::Rust, _, _) => self.check_arg_number(cx, decl, span),
+                hir::intravisit::FnKind::ItemFn(_, _, _, _, Abi::Rust, _, _) => {
+                    self.check_arg_number(cx, decl, Some(body), span);
+                }
                 _ => {},
             }
         }
@@ -113,26 +115,34 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Functions {
     fn check_trait_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::TraitItem) {
         if let hir::TraitItemKind::Method(ref sig, ref eid) = item.node {
             // don't lint extern functions decls, it's not their fault
-            if sig.abi == Abi::Rust {
-                self.check_arg_number(cx, &sig.decl, item.span);
-            }
+            let not_extern = sig.abi == Abi::Rust;
+            match *eid {
+                hir::TraitMethod::Required(_) => {
+                    if not_extern {
+                        self.check_arg_number(cx, &sig.decl, None, item.span);
+                    }
+                },
 
-            if let hir::TraitMethod::Provided(eid) = *eid {
-                let body = cx.tcx.hir.body(eid);
-                self.check_raw_ptr(cx, sig.unsafety, &sig.decl, body, item.id);
+                hir::TraitMethod::Provided(eid) => {
+                    let body = cx.tcx.hir.body(eid);
+                    if not_extern {
+                        self.check_arg_number(cx, &sig.decl, Some(&body), item.span);
+                    }
+                    self.check_raw_ptr(cx, sig.unsafety, &sig.decl, body, item.id);
+                },
             }
         }
     }
 }
 
 impl<'a, 'tcx> Functions {
-    fn check_arg_number(&self, cx: &LateContext, decl: &hir::FnDecl, span: Span) {
+    fn check_arg_number(&self, cx: &LateContext, decl: &hir::FnDecl, body: Option<&hir::Body>, span: Span) {
         let args = decl.inputs.len() as u64;
         if args > self.threshold {
             span_lint(
                 cx,
                 TOO_MANY_ARGUMENTS,
-                span,
+                body.map(|b| span.until(b.value.span)).unwrap_or(span),
                 &format!("this function has too many arguments ({}/{})", args, self.threshold),
             );
         }
