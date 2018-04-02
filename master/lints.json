@@ -201,12 +201,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for binding a unit value.", 
-      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
-      "Example": "```rust\nlet x = { 1; };\n```", 
-      "Known problems": "None."
+      "What it does": "This lint warns about the use of literals as `print!`/`println!` args.", 
+      "Why is this bad": "Using literals as `println!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
+      "Example": "```rust\nprintln!(\"{}\", \"foo\");\n```", 
+      "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `println!(\"{}\", env!(\"FOO\"))`."
     }, 
-    "id": "let_unit_value", 
+    "id": "print_literal", 
     "level": "Warn"
   }, 
   {
@@ -2521,6 +2521,16 @@
       "Known problems": "None."
     }, 
     "id": "char_lit_as_u8", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for binding a unit value.", 
+      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
+      "Example": "```rust\nlet x = { 1; };\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
