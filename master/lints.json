@@ -201,12 +201,12 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint warns about the use of literals as `print!`/`println!` args.", 
-      "Why is this bad": "Using literals as `println!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
-      "Example": "```rust\nprintln!(\"{}\", \"foo\");\n```", 
-      "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `println!(\"{}\", env!(\"FOO\"))`."
+      "What it does": "Checks for binding a unit value.", 
+      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
+      "Example": "```rust\nlet x = { 1; };\n```", 
+      "Known problems": "None."
     }, 
-    "id": "print_literal", 
+    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
@@ -1074,6 +1074,16 @@
   }, 
   {
     "docs": {
+      "What it does": "This lint warns about the use of literals as `print!`/`println!` args.", 
+      "Why is this bad": "Using literals as `println!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
+      "Example": "```rust\nprintln!(\"{}\", \"foo\");\n```", 
+      "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `println!(\"{}\", env!(\"FOO\"))`."
+    }, 
+    "id": "print_literal", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for function arguments having the similar names\ndiffering by an underscore.", 
       "Why is this bad": "It affects code readability.", 
       "Example": "```rust\nfn foo(a: i32, _a: i32) {}\n```", 
@@ -1121,6 +1131,16 @@
     }, 
     "id": "temporary_cstring_as_ptr", 
     "level": "Deny"
+  }, 
+  {
+    "docs": {
+      "What it does": "This lint warns when you use `writeln!(buf, \"\")` to\nprint a newline.", 
+      "Why is this bad": "You should use `writeln!(buf)`, which is simpler.", 
+      "Example": "```rust\nwriteln!(\"\");\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "writeln_empty_string", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1723,6 +1743,16 @@
   }, 
   {
     "docs": {
+      "What it does": "This lint warns about the use of literals as `write!`/`writeln!` args.", 
+      "Why is this bad": "Using literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
+      "Example": "```rust\nwriteln!(buf, \"{}\", \"foo\");\n```", 
+      "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`."
+    }, 
+    "id": "write_literal", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for empty `loop` expressions.", 
       "Why is this bad": "Those busy loops burn CPU cycles without doing\nanything. Think of the environment and either block on something or at least\nmake the thread sleep for some microseconds.", 
       "Example": "```rust\nloop {}\n```", 
@@ -2093,6 +2123,16 @@
     }, 
     "id": "ineffective_bit_mask", 
     "level": "Deny"
+  }, 
+  {
+    "docs": {
+      "What it does": "This lint warns when you use `write!()` with a format\nstring that\nends in a newline.", 
+      "Why is this bad": "You should use `writeln!()` instead, which appends the\nnewline.", 
+      "Example": "```rust\nwrite!(buf, \"Hello {}!\\n\", name);\n```", 
+      "Known problems": "None."
+    }, 
+    "id": "write_with_newline", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2521,16 +2561,6 @@
       "Known problems": "None."
     }, 
     "id": "char_lit_as_u8", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for binding a unit value.", 
-      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
-      "Example": "```rust\nlet x = { 1; };\n```", 
-      "Known problems": "None."
-    }, 
-    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
