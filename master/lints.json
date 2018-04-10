@@ -6,6 +6,7 @@
       "Example": "```rust\nfn x() -> Option<Option<u32>> {\n    None\n}", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "option_option", 
     "level": "Warn"
   }, 
@@ -16,6 +17,7 @@
       "Example": "```rust\nfor x in option { .. }\n```\n\nThis should be\n```rust\nif let Some(x) = option { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "for_loop_over_option", 
     "level": "Deny"
   }, 
@@ -26,6 +28,7 @@
       "Example": "```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.extend(abc.chars());\ns.extend(def.chars());\n```\nThe correct use would be:\n```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.push_str(abc);\ns.push_str(&def));\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "string_extend_chars", 
     "level": "Warn"
   }, 
@@ -36,6 +39,7 @@
       "Example": "* `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7\n* `-1i32.abs()` equals -1, while `(-1i32).abs()` equals 1", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "precedence", 
     "level": "Warn"
   }, 
@@ -46,6 +50,7 @@
       "Example": "```rust\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code(..) { ... }\n\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine(..) { ... }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too(..) { ... }\n```", 
       "Known problems": "Can cause false positives.\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect."
     }, 
+    "group": "nursery", 
     "id": "empty_line_after_outer_attr", 
     "level": "Allow"
   }, 
@@ -56,6 +61,7 @@
       "Example": "```rust\n618_64_9189_73_511\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "inconsistent_digit_grouping", 
     "level": "Warn"
   }, 
@@ -66,6 +72,7 @@
       "Example": "```rust\nfn main() {\n   let x = vec![1];\n   let y = &&x;\n   let z = y.clone();\n   println!(\"{:p} {:p}\",*y, z); // prints out the same pointer\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "clone_double_ref", 
     "level": "Deny"
   }, 
@@ -76,6 +83,7 @@
       "Example": "```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    ..\n}\n```", 
       "Known problems": "Bounds of generic types are sometimes wrong: https://github.com/rust-lang/rust/issues/26925"
     }, 
+    "group": "pedantic", 
     "id": "expl_impl_clone_on_copy", 
     "level": "Allow"
   }, 
@@ -86,6 +94,7 @@
       "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "result_map_unwrap_or_else", 
     "level": "Allow"
   }, 
@@ -96,6 +105,7 @@
       "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "use_self", 
     "level": "Allow"
   }, 
@@ -106,6 +116,7 @@
       "Example": "```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(other_ref),\n}\n```", 
       "Known problems": "Personal style preferences may differ."
     }, 
+    "group": "pedantic", 
     "id": "single_match_else", 
     "level": "Allow"
   }, 
@@ -116,6 +127,7 @@
       "Example": "```rust\nif (x & 1 == 2) { \u2026 }\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "bad_bit_mask", 
     "level": "Deny"
   }, 
@@ -126,6 +138,7 @@
       "Example": "```rust\nlet mut lock_guard = mutex.lock();\nstd::mem::drop(&lock_guard) // Should have been drop(lock_guard), mutex\nstill locked\noperation_that_requires_mutex_to_be_unlocked();\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "drop_ref", 
     "level": "Deny"
   }, 
@@ -136,6 +149,7 @@
       "Example": "```rust\nstatic FOO: AtomicIsize = ATOMIC_ISIZE_INIT;\n```\n\nCould be written:\n\n```rust\nstatic FOO: AtomicIsize = AtomicIsize::new(0);\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "replace_consts", 
     "level": "Allow"
   }, 
@@ -146,6 +160,7 @@
       "Example": "```rust\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "match_bool", 
     "level": "Warn"
   }, 
@@ -156,6 +171,7 @@
       "Example": "```rust\nfor x in y.next() { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "iter_next_loop", 
     "level": "Deny"
   }, 
@@ -166,6 +182,7 @@
       "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
       "Known problems": "If the computation returning the value borrows a local\nvariable, removing the `return` may run afoul of the borrow checker."
     }, 
+    "group": "style", 
     "id": "needless_return", 
     "level": "Warn"
   }, 
@@ -176,6 +193,7 @@
       "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "partialeq_ne_impl", 
     "level": "Warn"
   }, 
@@ -186,6 +204,7 @@
       "Example": "```rust\n(|| 42)()\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "redundant_closure_call", 
     "level": "Warn"
   }, 
@@ -196,6 +215,7 @@
       "Example": "```rust\n#[deprecated(since = \"forever\")]\nfn something_else(..) { ... }\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "deprecated_semver", 
     "level": "Deny"
   }, 
@@ -206,6 +226,7 @@
       "Example": "```rust\nlet x = { 1; };\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "let_unit_value", 
     "level": "Warn"
   }, 
@@ -216,6 +237,7 @@
       "Example": "```rust\nx.unwrap()\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "option_unwrap_used", 
     "level": "Allow"
   }, 
@@ -226,6 +248,7 @@
       "Example": "```rust\na += 1;\n```", 
       "Known problems": "Types implementing `OpAssign` don't necessarily\nimplement `Op`."
     }, 
+    "group": "restriction", 
     "id": "assign_ops", 
     "level": "Allow"
   }, 
@@ -236,6 +259,7 @@
       "Example": "```rust\nlet x : u8 = ...; (x as u32) > 300\n```", 
       "Known problems": "https://github.com/rust-lang-nursery/rust-clippy/issues/886"
     }, 
+    "group": "pedantic", 
     "id": "invalid_upcast_comparisons", 
     "level": "Allow"
   }, 
@@ -246,6 +270,7 @@
       "Example": "```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\n                // underscore. We should rename `_x` to `x`\n```", 
       "Known problems": "The lint does not work properly with desugaring and\nmacro, it has been allowed in the mean time."
     }, 
+    "group": "pedantic", 
     "id": "used_underscore_binding", 
     "level": "Allow"
   }, 
@@ -256,6 +281,7 @@
       "Example": "```rust\nif x == ptr::null { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "cmp_null", 
     "level": "Warn"
   }, 
@@ -266,6 +292,7 @@
       "Example": "```rust\nlet x = x + 1;\n```", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
     }, 
+    "group": "restriction", 
     "id": "shadow_reuse", 
     "level": "Allow"
   }, 
@@ -276,6 +303,7 @@
       "Example": "```rust\npub fn foo(x: *const u8) { println!(\"{}\", unsafe { *x }); }\n```", 
       "Known problems": "* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't\ntrigger.\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`)."
     }, 
+    "group": "correctness", 
     "id": "not_unsafe_ptr_arg_deref", 
     "level": "Deny"
   }, 
@@ -286,6 +314,7 @@
       "Example": "```rust\na + b < a\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "overflow_check_conditional", 
     "level": "Warn"
   }, 
@@ -296,6 +325,7 @@
       "Example": "```rust\nlet { a: _, b: ref b, c: _ } = ..\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "unneeded_field_pattern", 
     "level": "Warn"
   }, 
@@ -306,6 +336,7 @@
       "Example": "```rust,ignore\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nJust prepend `#[derive(Default)]` before the `struct` definition.", 
       "Known problems": "Hopefully none."
     }, 
+    "group": "style", 
     "id": "new_without_default_derive", 
     "level": "Warn"
   }, 
@@ -316,6 +347,7 @@
       "Example": "```rust\nif a && b || a { ... }\n```\nThe `b` is unnecessary, the expression is equivalent to `if a`.", 
       "Known problems": "Ignores short circuiting behavior."
     }, 
+    "group": "correctness", 
     "id": "logic_bug", 
     "level": "Deny"
   }, 
@@ -326,6 +358,7 @@
       "Example": "```rust\nOpenOptions::new().read(true).truncate(true)\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "nonsensical_open_options", 
     "level": "Deny"
   }, 
@@ -336,6 +369,7 @@
       "Example": "```rust\nlet _: &T = std::mem::transmute(p); // where p: *const T\n// can be written:\nlet _: &T = &*p;\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "transmute_ptr_to_ref", 
     "level": "Warn"
   }, 
@@ -346,6 +380,7 @@
       "Example": "```rust\n0 as *const u32\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "zero_ptr", 
     "level": "Warn"
   }, 
@@ -356,6 +391,7 @@
       "Example": "```rust\nname.chars().next() == Some('_')\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "chars_next_cmp", 
     "level": "Warn"
   }, 
@@ -366,6 +402,7 @@
       "Example": "```rust\nfor i in 0..src.len() {\n    dst[i + 64] = src[i];\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "manual_memcpy", 
     "level": "Warn"
   }, 
@@ -376,6 +413,7 @@
       "Example": "```rust\nprintln!(\"Hello world!\");\n```", 
       "Known problems": "Only catches `print!` and `println!` calls."
     }, 
+    "group": "restriction", 
     "id": "print_stdout", 
     "level": "Allow"
   }, 
@@ -386,6 +424,7 @@
       "Example": "```rust\nlet _: &str = std::mem::transmute(b); // where b: &[u8]\n// should be:\nlet _ = std::str::from_utf8(b).unwrap();\n```", 
       "Known problems": "- [`from_utf8`] which this lint suggests using is slower than `transmute`\nas it needs to validate the input.\nIf you are certain that the input is always a valid UTF-8,\nuse [`from_utf8_unchecked`] which is as fast as `transmute`\nbut has a semantically meaningful name.\n- You might want to handle errors returned from [`from_utf8`] instead of calling `unwrap`.\n[`from_utf8`]: https://doc.rust-lang.org/std/str/fn.from_utf8.html\n[`from_utf8_unchecked`]: https://doc.rust-lang.org/std/str/fn.from_utf8_unchecked.html"
     }, 
+    "group": "complexity", 
     "id": "transmute_bytes_to_str", 
     "level": "Warn"
   }, 
@@ -396,6 +435,7 @@
       "Example": "```rust\nlet x = Mutex::new(&y);\n```", 
       "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section."
     }, 
+    "group": "perf", 
     "id": "mutex_atomic", 
     "level": "Warn"
   }, 
@@ -406,6 +446,7 @@
       "Example": "```rust\nloop { ..; break; }\n```", 
       "Known problems": "None"
     }, 
+    "group": "correctness", 
     "id": "never_loop", 
     "level": "Deny"
   }, 
@@ -416,6 +457,7 @@
       "Example": "```rust\n[0..].iter().zip(infinite_iter.take_while(|x| x > 5))\n```", 
       "Known problems": "The code may have a condition to stop iteration, but\nthis lint is not clever enough to analyze it."
     }, 
+    "group": "pedantic", 
     "id": "maybe_infinite_iter", 
     "level": "Allow"
   }, 
@@ -427,6 +469,7 @@
       "Example": "```rust\nfn main() {\n    let x = Box::new(1);\n    foo(*x);\n    println!(\"{}\", *x);\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "boxed_local", 
     "level": "Warn"
   }, 
@@ -437,6 +480,7 @@
       "Example": "```rust\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "identity_conversion", 
     "level": "Warn"
   }, 
@@ -447,6 +491,7 @@
       "Example": "```rust,ignore\na = b;\nb = a;\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "almost_swapped", 
     "level": "Deny"
   }, 
@@ -457,6 +502,7 @@
       "Example": "```rust\n6186491_8973511\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "large_digit_groups", 
     "level": "Warn"
   }, 
@@ -467,6 +513,7 @@
       "Example": "```rust\nrepeat(1_u8).iter().collect::<Vec<_>>()\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "infinite_iter", 
     "level": "Deny"
   }, 
@@ -477,6 +524,7 @@
       "Example": "```rust,ignore\nlet a = &[\n    -1, -2, -3 // <= no comma here\n    -4, -5, -6\n];\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "possible_missing_comma", 
     "level": "Deny"
   }, 
@@ -487,6 +535,7 @@
       "Example": "```rust\nlet x = Mutex::new(0usize);\n```", 
       "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section."
     }, 
+    "group": "nursery", 
     "id": "mutex_integer", 
     "level": "Allow"
   }, 
@@ -497,6 +546,7 @@
       "Example": "```rust\nlet mut x = \"Hello\".to_owned();\nx = x + \", World\";\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "string_add_assign", 
     "level": "Allow"
   }, 
@@ -507,6 +557,7 @@
       "Example": "```rust\nlet x = y; let x = z; // shadows the earlier binding\n```", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
     }, 
+    "group": "restriction", 
     "id": "shadow_unrelated", 
     "level": "Allow"
   }, 
@@ -517,6 +568,7 @@
       "Example": "```rust\nfn foo(ref x: u8) -> bool { .. }\n```", 
       "Known problems": "If the argument is dereferenced within the function,\nremoving the `ref` will lead to errors. This can be fixed by removing the\ndereferences, e.g. changing `*x` to `x` within the function."
     }, 
+    "group": "style", 
     "id": "toplevel_ref_arg", 
     "level": "Warn"
   }, 
@@ -527,6 +579,7 @@
       "Example": "```rust\nlet y: i8 = -1;\ny as u128  // will return 18446744073709551615\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "cast_sign_loss", 
     "level": "Allow"
   }, 
@@ -537,6 +590,7 @@
       "Example": "```rust\nregex!(\"foo|bar\")\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "regex_macro", 
     "level": "Warn"
   }, 
@@ -547,6 +601,7 @@
       "Example": "```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```", 
       "Known problems": "To be on the conservative side, if there's at least one\nmutable reference\nwith the output lifetime, this lint will not trigger. In practice, this\ncase is unlikely anyway."
     }, 
+    "group": "correctness", 
     "id": "mut_from_ref", 
     "level": "Deny"
   }, 
@@ -557,6 +612,7 @@
       "Example": "```rust\n0.0f32 / 0.0\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "zero_divided_by_zero", 
     "level": "Warn"
   }, 
@@ -567,6 +623,7 @@
       "Example": "```rust\ncore::intrinsics::transmute(t)` // where the result type is the same as\n`*t` or `&t`'s\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "crosspointer_transmute", 
     "level": "Warn"
   }, 
@@ -577,6 +634,7 @@
       "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```rust\noption?;\n```", 
       "Known problems": "None"
     }, 
+    "group": "style", 
     "id": "question_mark", 
     "level": "Warn"
   }, 
@@ -587,6 +645,7 @@
       "Example": "```rust\nlet ptr: *const T = core::intrinsics::transmute('x')`\n```", 
       "Known problems": "When accessing C, users might want to store pointer\nsized objects in `extradata` arguments to save an allocation."
     }, 
+    "group": "correctness", 
     "id": "wrong_transmute", 
     "level": "Deny"
   }, 
@@ -597,6 +656,7 @@
       "Example": "```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\n\nThis should probably be\n```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\n\nor if the original code was not a typo:\n```rust,ignore\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```", 
       "Known problems": "False positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860))."
     }, 
+    "group": "pedantic", 
     "id": "match_same_arms", 
     "level": "Allow"
   }, 
@@ -607,6 +667,7 @@
       "Example": "```rust\nopt.map_or(None, |a| a + 1)\n```", 
       "Known problems": "The order of the arguments is not in execution order."
     }, 
+    "group": "style", 
     "id": "option_map_or_none", 
     "level": "Warn"
   }, 
@@ -617,6 +678,7 @@
       "Example": "```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "box_vec", 
     "level": "Warn"
   }, 
@@ -626,6 +688,7 @@
       "Why is this bad": ": Calling '.clone()' on an Rc, Arc, or Weak\ncan obscure the fact that only the pointer is being cloned, not the underlying\ndata.", 
       "Example": "```rust\nx.clone()\n```"
     }, 
+    "group": "restriction", 
     "id": "clone_on_ref_ptr", 
     "level": "Allow"
   }, 
@@ -636,6 +699,7 @@
       "Example": "```rust\nmem::forget(Rc::new(55)))\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "mem_forget", 
     "level": "Allow"
   }, 
@@ -646,6 +710,7 @@
       "Example": "```rust\nRegex::new(\"|\")\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "invalid_regex", 
     "level": "Deny"
   }, 
@@ -656,6 +721,7 @@
       "Example": "```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x);\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "useless_asref", 
     "level": "Warn"
   }, 
@@ -666,6 +732,7 @@
       "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "pub_enum_variant_names", 
     "level": "Allow"
   }, 
@@ -676,6 +743,7 @@
       "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec.get(3).unwrap();\n*some_vec.get_mut(0).unwrap() = 1;\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec[3];\nsome_vec[0] = 1;\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "get_unwrap", 
     "level": "Warn"
   }, 
@@ -686,6 +754,7 @@
       "Example": "Implementing `Visitor::visit_string` but not\n`Visitor::visit_str`.", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "serde_api_misuse", 
     "level": "Deny"
   }, 
@@ -696,6 +765,7 @@
       "Example": "```rust\nxs.map(|x| foo(x))\n```\nwhere `foo(_)` is a plain function that takes the exact argument type of\n`x`.", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "redundant_closure", 
     "level": "Warn"
   }, 
@@ -706,6 +776,7 @@
       "Example": "```rust\nx + 1 == x + 1\n```", 
       "Known problems": "False negatives: We had some false positives regarding\ncalls (notably [racer](https://github.com/phildawes/racer) had one instance\nof `x.pop() && x.pop()`), so we removed matching any function or method\ncalls. We may introduce a whitelist of known pure functions in the future."
     }, 
+    "group": "correctness", 
     "id": "eq_op", 
     "level": "Deny"
   }, 
@@ -716,6 +787,7 @@
       "Example": "```rust\nx.iter().zip(0..x.len())\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "range_zip_with_len", 
     "level": "Warn"
   }, 
@@ -724,6 +796,7 @@
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `Vec::as_mut_slice`, which was unstable with good\nstable alternatives. `Vec::as_mut_slice` has now been stabilized."
     }, 
+    "group": "deprecated", 
     "id": "unstable_as_mut_slice", 
     "level": "Deprecated"
   }, 
@@ -734,6 +807,7 @@
       "Example": "```rust\n    let mut v = Vec::<String>::new();\n    let _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\nThis closure takes a reference on something that has been matched as a\nreference and\nde-referenced.\nAs such, it could just be |a| a.is_empty()", 
       "Known problems": "It seems that the `&ref` pattern is sometimes useful.\nFor instance in the following snippet:\n```rust\nenum Animal {\n    Cat(u64),\n    Dog(u64),\n}\nfn foo(a: &Animal, b: &Animal) {\n    match (a, b) {\n(&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime\nmismatch error\n        (&Animal::Dog(ref c), &Animal::Dog(_)) => ()\n    }\n}\n```\nThere is a lifetime mismatch error for `k` (indeed a and b have distinct\nlifetime).\nThis can be fixed by using the `&ref` pattern.\nHowever, the code can also be fixed by much cleaner ways"
     }, 
+    "group": "complexity", 
     "id": "needless_borrowed_reference", 
     "level": "Warn"
   }, 
@@ -744,6 +818,7 @@
       "Example": "```rust\nmatch x {\n    &A(ref y) => foo(y),\n    &B => bar(),\n    _ => frob(&x),\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "match_ref_pats", 
     "level": "Warn"
   }, 
@@ -754,6 +829,7 @@
       "Example": "```rust\nimpl X {\n    pub fn as_str(self) -> &str { .. }\n}\n```", 
       "Known problems": "Actually *renaming* the function may break clients if\nthe function is part of the public interface. In that case, be mindful of\nthe stability guarantees you've given your users."
     }, 
+    "group": "restriction", 
     "id": "wrong_pub_self_convention", 
     "level": "Allow"
   }, 
@@ -764,6 +840,7 @@
       "Example": "```rust\nfn foo(&Vec<u32>) { .. }\n```", 
       "Known problems": "The lint does not follow data. So if you have an\nargument `x` and write `let y = x; y.clone()` the lint will not suggest\nchanging that `.clone()` to `.to_owned()`.\nOther functions called from this function taking a `&String` or `&Vec`\nargument may also fail to compile if you change the argument. Applying\nthis lint on them will fix the problem, but they may be in other crates.\nAlso there may be `fn(&Vec)`-typed references pointing to your function.\nIf you have them, you will get a compiler error after applying this lint's\nsuggestions. You then have the choice to undo your changes or change the\ntype of the reference.\nNote that if the function is part of your public interface, there may be\nother crates referencing it you may not be aware. Carefully deprecate the\nfunction before applying the lint suggestions in this case."
     }, 
+    "group": "style", 
     "id": "ptr_arg", 
     "level": "Warn"
   }, 
@@ -774,6 +851,7 @@
       "Example": "```rust\n#[derive(Hash)]\nstruct Foo;\n\nimpl PartialEq for Foo {\n    ...\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "derive_hash_xor_eq", 
     "level": "Deny"
   }, 
@@ -784,6 +862,7 @@
       "Example": "```rust\n#[deny(dead_code)]\nextern crate foo;\n#[allow(unused_import)]\nuse foo::bar;\n```", 
       "Known problems": "Technically one might allow `unused_import` on a `use`\nitem,\nbut it's easier to remove the unused item."
     }, 
+    "group": "correctness", 
     "id": "useless_attribute", 
     "level": "Deny"
   }, 
@@ -792,6 +871,7 @@
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `.to_string()` method calls on values\nof type `String`. This is not unidiomatic and with specialization coming, `to_string` could be\nspecialized to be as efficient as `clone`."
     }, 
+    "group": "deprecated", 
     "id": "string_to_string", 
     "level": "Deprecated"
   }, 
@@ -802,6 +882,7 @@
       "Example": "```rust\nfn unused_lifetime<'a>(x: u8) { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "unused_lifetimes", 
     "level": "Warn"
   }, 
@@ -812,6 +893,7 @@
       "Example": "```rust\n...\nx[2];\n&x[0..2];\n```", 
       "Known problems": "Hopefully none."
     }, 
+    "group": "restriction", 
     "id": "indexing_slicing", 
     "level": "Allow"
   }, 
@@ -820,6 +902,7 @@
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `assert!(a == b)` and recommend\nreplacement with `assert_eq!(a, b)`, but this is no longer needed after RFC 2011."
     }, 
+    "group": "deprecated", 
     "id": "should_assert_eq", 
     "level": "Deprecated"
   }, 
@@ -830,6 +913,7 @@
       "Example": "```rust\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 { x }\n```", 
       "Known problems": "Potential false negatives: we bail out if the function\nhas a `where` clause where lifetimes are mentioned."
     }, 
+    "group": "complexity", 
     "id": "needless_lifetimes", 
     "level": "Warn"
   }, 
@@ -840,6 +924,7 @@
       "Example": "```rust\nname.chars().last() == Some('_') || name.chars().next_back() == Some('-')\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "chars_last_cmp", 
     "level": "Warn"
   }, 
@@ -850,6 +935,7 @@
       "Example": "```rust\nf() && g();  // We should write `if f() { g(); }`.\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "short_circuit_statement", 
     "level": "Warn"
   }, 
@@ -858,6 +944,7 @@
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `Vec::as_slice`, which was unstable with good\nstable alternatives. `Vec::as_slice` has now been stabilized."
     }, 
+    "group": "deprecated", 
     "id": "unstable_as_slice", 
     "level": "Deprecated"
   }, 
@@ -869,6 +956,7 @@
       "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "enum_variant_names", 
     "level": "Warn"
   }, 
@@ -879,6 +967,7 @@
       "Example": "```rust\nloop {\n    let x = match y {\n        Some(x) => x,\n        None => break,\n    }\n    // .. do something with x\n}\n// is easier written as\nwhile let Some(x) = y {\n    // .. do something with x\n}\n```", 
       "Known problems": "Sometimes the wrong binding is displayed (#383)."
     }, 
+    "group": "complexity", 
     "id": "while_let_loop", 
     "level": "Warn"
   }, 
@@ -889,6 +978,7 @@
       "Example": "```rust\nlet mut a = 5;\n...\na = a + b;\n```", 
       "Known problems": "While forbidden by the spec, `OpAssign` traits may have\nimplementations that differ from the regular `Op` impl."
     }, 
+    "group": "style", 
     "id": "assign_op_pattern", 
     "level": "Warn"
   }, 
@@ -899,6 +989,7 @@
       "Example": "```rust\nlet y = 0x1a9BAcD;\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "mixed_case_hex_literals", 
     "level": "Warn"
   }, 
@@ -909,6 +1000,7 @@
       "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```", 
       "Known problems": "The order of the arguments is not in execution order."
     }, 
+    "group": "pedantic", 
     "id": "option_map_unwrap_or_else", 
     "level": "Allow"
   }, 
@@ -919,6 +1011,7 @@
       "Example": "```rust\nfn foo() {\n    println!(\"cake\");\n}\n\nfn main() {\n    foo(); // prints \"foo\"\n    fn foo() {\n        println!(\"foo\");\n    }\n    foo(); // prints \"foo\"\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "items_after_statements", 
     "level": "Allow"
   }, 
@@ -929,6 +1022,7 @@
       "Example": "```rust\nimpl X {\n    fn as_str(self) -> &str { .. }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "wrong_self_convention", 
     "level": "Warn"
   }, 
@@ -940,6 +1034,7 @@
       "Example": "```rust\nlet foo = 3.14;\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "blacklisted_name", 
     "level": "Warn"
   }, 
@@ -950,6 +1045,7 @@
       "Example": "```rust\n--x;\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "double_neg", 
     "level": "Warn"
   }, 
@@ -960,6 +1056,7 @@
       "Example": "```rust\nlet _ = (0..3).fold(false, |acc, x| acc || x > 2);\n```\nThis could be written as:\n```rust\nlet _ = (0..3).any(|x| x > 2);\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "unnecessary_fold", 
     "level": "Warn"
   }, 
@@ -968,6 +1065,7 @@
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `Vec::extend`, which was slower than\n`Vec::extend_from_slice`. Thanks to specialization, this is no longer true."
     }, 
+    "group": "deprecated", 
     "id": "extend_from_slice", 
     "level": "Deprecated"
   }, 
@@ -978,6 +1076,7 @@
       "Example": "```rust\nif { foo(); } == { bar(); } { baz(); }\n```\nis equal to\n```rust\n{ foo(); bar(); baz(); }\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "unit_cmp", 
     "level": "Deny"
   }, 
@@ -988,6 +1087,7 @@
       "Example": "```rust\nfor x..=(y-1) { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "range_minus_one", 
     "level": "Warn"
   }, 
@@ -998,6 +1098,7 @@
       "Example": "```rust\na + 1.0\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "float_arithmetic", 
     "level": "Allow"
   }, 
@@ -1008,6 +1109,7 @@
       "Example": "```rust\nenum Test {}\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "empty_enum", 
     "level": "Allow"
   }, 
@@ -1018,6 +1120,7 @@
       "Example": "`_.split(\"x\")` could be `_.split('x')", 
       "Known problems": "Does not catch multi-byte unicode characters."
     }, 
+    "group": "perf", 
     "id": "single_char_pattern", 
     "level": "Warn"
   }, 
@@ -1028,6 +1131,7 @@
       "Example": "```rust\nlet x = 5;\nmatch x {\n    1 ... 10 => println!(\"1 ... 10\"),\n    5 ... 15 => println!(\"5 ... 15\"),\n    _ => (),\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "match_overlapping_arm", 
     "level": "Warn"
   }, 
@@ -1038,6 +1142,7 @@
       "Example": "```rust\nlet x = \"Hello\".to_owned();\nx + \", World\"\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "string_add", 
     "level": "Allow"
   }, 
@@ -1048,6 +1153,7 @@
       "Example": "```rust\ncompute_array()[0];\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "unnecessary_operation", 
     "level": "Warn"
   }, 
@@ -1059,6 +1165,7 @@
       "Example": "No. You'll see it when you get the warning.", 
       "Known problems": "Sometimes it's hard to find a way to reduce the\ncomplexity."
     }, 
+    "group": "complexity", 
     "id": "cyclomatic_complexity", 
     "level": "Warn"
   }, 
@@ -1069,6 +1176,7 @@
       "Example": "```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\n\nCould be written:\n\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // we don't care about zero\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "else_if_without_else", 
     "level": "Allow"
   }, 
@@ -1079,6 +1187,7 @@
       "Example": "```rust\nprintln!(\"{}\", \"foo\");\n```", 
       "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `println!(\"{}\", env!(\"FOO\"))`."
     }, 
+    "group": "style", 
     "id": "print_literal", 
     "level": "Warn"
   }, 
@@ -1089,6 +1198,7 @@
       "Example": "```rust\nfn foo(a: i32, _a: i32) {}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "duplicate_underscore_argument", 
     "level": "Warn"
   }, 
@@ -1099,6 +1209,7 @@
       "Example": "```rust\nmin(0, max(100, x))\n```\nIt will always be equal to `0`. Probably the author meant to clamp the value\nbetween 0 and 100, but has erroneously swapped `min` and `max`.", 
       "Known problems": "None"
     }, 
+    "group": "correctness", 
     "id": "min_max", 
     "level": "Deny"
   }, 
@@ -1109,6 +1220,7 @@
       "Example": "```rust\nprintln!(\"\");\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "println_empty_string", 
     "level": "Warn"
   }, 
@@ -1119,6 +1231,7 @@
       "Example": "```rust,ignore\nfoo(&vec![1, 2])\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "useless_vec", 
     "level": "Warn"
   }, 
@@ -1129,6 +1242,7 @@
       "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\ncall_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "temporary_cstring_as_ptr", 
     "level": "Deny"
   }, 
@@ -1139,6 +1253,7 @@
       "Example": "```rust\nwriteln!(\"\");\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "writeln_empty_string", 
     "level": "Warn"
   }, 
@@ -1149,6 +1264,7 @@
       "Example": "```rust\nwhile let Some(val) = iter() { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "while_let_on_iterator", 
     "level": "Warn"
   }, 
@@ -1160,6 +1276,7 @@
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\nthat::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
+    "group": "pedantic", 
     "id": "doc_markdown", 
     "level": "Allow"
   }, 
@@ -1170,6 +1287,7 @@
       "Example": "```rust\nif { let x = somefunc(); x } ..\n// or\nif somefunc(|x| { x == 47 }) ..\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "block_in_if_condition_stmt", 
     "level": "Warn"
   }, 
@@ -1180,6 +1298,7 @@
       "Example": "```rust\n61864918973511\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "unreadable_literal", 
     "level": "Warn"
   }, 
@@ -1190,6 +1309,7 @@
       "Example": "```rust\nif !m.contains_key(&k) { m.insert(k, v) }\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```", 
       "Known problems": "Some false negatives, eg.:\n```rust\nlet k = &key;\nif !m.contains_key(k) { m.insert(k.clone(), v); }\n```"
     }, 
+    "group": "perf", 
     "id": "map_entry", 
     "level": "Warn"
   }, 
@@ -1200,6 +1320,7 @@
       "Example": "```rust\ncore::intrinsics::transmute(t) // where the result type is the same as `t`'s\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "useless_transmute", 
     "level": "Warn"
   }, 
@@ -1210,6 +1331,7 @@
       "Example": "```rust\nx.to_owned() == y\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "cmp_owned", 
     "level": "Warn"
   }, 
@@ -1220,6 +1342,7 @@
       "Example": "```rust\nimpl<u32> Foo<u32> {\n    fn impl_func(&self) -> u32 {\n        42\n    }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "builtin_type_shadow", 
     "level": "Warn"
   }, 
@@ -1230,6 +1353,7 @@
       "Example": "```rust\n0 / x; 0 * x; x & 0\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "erasing_op", 
     "level": "Deny"
   }, 
@@ -1240,6 +1364,7 @@
       "Example": "```rust,ignore\nlet t = b;\nb = a;\na = t;\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "manual_swap", 
     "level": "Warn"
   }, 
@@ -1250,6 +1375,7 @@
       "Example": "```rust\nx == NAN\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "cmp_nan", 
     "level": "Deny"
   }, 
@@ -1260,6 +1386,7 @@
       "Example": "```rust\ny == 1.23f64\ny != x  // where both are floats\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "float_cmp", 
     "level": "Deny"
   }, 
@@ -1270,6 +1397,7 @@
       "Example": "```rust\nx / 1 + 0 * 1 - 0 | 0\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "identity_op", 
     "level": "Warn"
   }, 
@@ -1280,6 +1408,7 @@
       "Example": "```rust\n(0, 0).0 = 1\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "temporary_assignment", 
     "level": "Warn"
   }, 
@@ -1290,6 +1419,7 @@
       "Example": "```rust\nx * -1\n```", 
       "Known problems": "This only catches integers (for now)."
     }, 
+    "group": "style", 
     "id": "neg_multiply", 
     "level": "Warn"
   }, 
@@ -1300,6 +1430,7 @@
       "Example": "```rust\nfor i in 0..v.len() { foo(v[i]);\nfor i in 0..v.len() { bar(i, v[i]); }\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "explicit_counter_loop", 
     "level": "Warn"
   }, 
@@ -1309,6 +1440,7 @@
       "Why is this bad": "Doc is good. *rustc* has a `MISSING_DOCS`\nallowed-by-default lint for\npublic members, but has no way to enforce documentation of private items.\nThis lint fixes that.", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "missing_docs_in_private_items", 
     "level": "Allow"
   }, 
@@ -1319,6 +1451,7 @@
       "Example": "```rust\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```rust\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "const_static_lifetime", 
     "level": "Warn"
   }, 
@@ -1329,6 +1462,7 @@
       "Example": "```rust\nPoint { x: 1, y: 0, ..zero_point }\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "needless_update", 
     "level": "Warn"
   }, 
@@ -1339,6 +1473,7 @@
       "Example": "```rust\nfn as_u8(x: u64) -> u8 { x as u8 }\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "cast_possible_truncation", 
     "level": "Allow"
   }, 
@@ -1349,6 +1484,7 @@
       "Example": "```rust\niter.find(|x| x == 0).is_some()\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "search_is_some", 
     "level": "Warn"
   }, 
@@ -1359,6 +1495,7 @@
       "Examples": "```rust\nformat!(\"foo\")\nformat!(\"{}\", foo)\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "useless_format", 
     "level": "Warn"
   }, 
@@ -1369,6 +1506,7 @@
       "Example": "```rust\na + 1\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "integer_arithmetic", 
     "level": "Allow"
   }, 
@@ -1379,6 +1517,7 @@
       "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.iter() { .. }\n```", 
       "Known problems": "False negatives. We currently only warn on some known\ntypes."
     }, 
+    "group": "style", 
     "id": "explicit_iter_loop", 
     "level": "Warn"
   }, 
@@ -1389,6 +1528,7 @@
       "Example": "```rust\nlet x = &x;\n```", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
     }, 
+    "group": "restriction", 
     "id": "shadow_same", 
     "level": "Allow"
   }, 
@@ -1399,6 +1539,7 @@
       "Example": "```rust\nlet a = b() || panic!() || c();\n// `c()` is dead, `panic!()` is only called if `b()` returns `false`\nlet x = (a, b, c, panic!());\n// can simply be replaced by `panic!()`\n```", 
       "Known problems": "Someone might want to use `some_bool || panic!()` as a\nshorthand."
     }, 
+    "group": "complexity", 
     "id": "diverging_sub_expression", 
     "level": "Warn"
   }, 
@@ -1408,6 +1549,7 @@
       "Why is this bad": "The purpose of the `Debug` trait is to facilitate\ndebugging Rust code. It should not be used in in user-facing output.", 
       "Example": "```rust\nprintln!(\"{:?}\", foo);\n```"
     }, 
+    "group": "restriction", 
     "id": "use_debug", 
     "level": "Allow"
   }, 
@@ -1418,6 +1560,7 @@
       "Example": "```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => ()\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "single_match", 
     "level": "Warn"
   }, 
@@ -1428,6 +1571,7 @@
       "Example": "```rust\n&my_data.filter(|&x| x == 0u8).count() // use bytecount::count instead\n```", 
       "Known problems": "If you have predominantly small slices, the\n`bytecount::count(..)` method may actually be slower. However, if you can\nensure that less than 2\u00b3\u00b2-1 matches arise, the `naive_count_32(..)` can be\nfaster in those cases."
     }, 
+    "group": "perf", 
     "id": "naive_bytecount", 
     "level": "Warn"
   }, 
@@ -1438,6 +1582,7 @@
       "Example": "```rust\n&x == y\n```", 
       "Known problems": "None"
     }, 
+    "group": "style", 
     "id": "op_ref", 
     "level": "Warn"
   }, 
@@ -1448,6 +1593,7 @@
       "Example": "```rust\nfor (k, _) in &map { .. }\n```\n\ncould be replaced by\n\n```rust\nfor k in map.keys() { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "for_kv_map", 
     "level": "Warn"
   }, 
@@ -1458,6 +1604,7 @@
       "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "print_with_newline", 
     "level": "Warn"
   }, 
@@ -1468,6 +1615,7 @@
       "Example": "```rust\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```\nCould be written:\n\n```rust\nfor result in iter {\n    if let Ok(bench) = try!(result).parse() {\n        vec.push(bench)\n    }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "if_let_some_result", 
     "level": "Warn"
   }, 
@@ -1478,6 +1626,7 @@
       "Example": "```rust\nlet _: char = std::mem::transmute(x); // where x: u32\n// should be:\nlet _ = std::char::from_u32(x).unwrap();\n```", 
       "Known problems": "- [`from_u32`] which this lint suggests using is slower than `transmute`\nas it needs to validate the input.\nIf you are certain that the input is always a valid Unicode scalar value,\nuse [`from_u32_unchecked`] which is as fast as `transmute`\nbut has a semantically meaningful name.\n- You might want to handle `None` returned from [`from_u32`] instead of calling `unwrap`.\n[`from_u32`]: https://doc.rust-lang.org/std/char/fn.from_u32.html\n[`from_u32_unchecked`]: https://doc.rust-lang.org/std/char/fn.from_u32_unchecked.html"
     }, 
+    "group": "complexity", 
     "id": "transmute_int_to_char", 
     "level": "Warn"
   }, 
@@ -1488,6 +1637,7 @@
       "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.get(3);\nlet bad_slice = &some_vec[..].get(3);\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "iter_nth", 
     "level": "Warn"
   }, 
@@ -1498,6 +1648,7 @@
       "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n\n// or\n\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\n\nShould be written:\n\n```rust.ignore\nif x && y {\n    \u2026\n}\n\n// or\n\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "collapsible_if", 
     "level": "Warn"
   }, 
@@ -1508,6 +1659,7 @@
       "Example": "```rust\nimpl X {\n    pub fn len(&self) -> usize { .. }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "len_without_is_empty", 
     "level": "Warn"
   }, 
@@ -1518,6 +1670,7 @@
       "Example": "```rust\nlet y = 123832i32;\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "unseparated_literal_suffix", 
     "level": "Allow"
   }, 
@@ -1528,6 +1681,7 @@
       "Example": "```rust\nmy_vec.push(&mut value)\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "unnecessary_mut_passed", 
     "level": "Warn"
   }, 
@@ -1538,6 +1692,7 @@
       "Example": "```rust,ignore\nlet foo;\n\nif bar() {\n    foo = 42;\n} else {\n    foo = 0;\n}\n\nlet mut baz = None;\n\nif bar() {\n    baz = Some(42);\n}\n```\n\nshould be written\n\n```rust,ignore\nlet foo = if bar() {\n    42\n} else {\n    0\n};\n\nlet baz = if bar() {\n    Some(42)\n} else {\n    None\n};\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "useless_let_if_seq", 
     "level": "Warn"
   }, 
@@ -1548,6 +1703,7 @@
       "Example": "```rust\nif a && true  // should be: if a\nif !(a == b)  // should be: if a != b\n```", 
       "Known problems": "Ignores short circuiting behavior of `||` and\n`&&`. Ignores `|`, `&` and `^`."
     }, 
+    "group": "complexity", 
     "id": "nonminimal_bool", 
     "level": "Warn"
   }, 
@@ -1558,6 +1714,7 @@
       "Example": "```rust\nimpl Foo {\n    fn new(..) -> NotAFoo {\n    }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "new_ret_no_self", 
     "level": "Warn"
   }, 
@@ -1568,6 +1725,7 @@
       "Example": "```rust\nimpl Add for Foo {\n    type Output = Foo;\n\n    fn add(self, other: Foo) -> Foo {\n        Foo(self.0 - other.0)\n    }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "suspicious_arithmetic_impl", 
     "level": "Deny"
   }, 
@@ -1578,6 +1736,7 @@
       "Example": "```rust\nlet x = 3.14;\n```", 
       "Known problems": "If you happen to have a value that is within 1/8192 of a\nknown constant, but is not *and should not* be the same, this lint will\nreport your value anyway. We have not yet noticed any false positives in\ncode we tested clippy with (this includes servo), but YMMV."
     }, 
+    "group": "correctness", 
     "id": "approx_constant", 
     "level": "Deny"
   }, 
@@ -1588,6 +1747,7 @@
       "Example": "```rust\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\n\nCould be written:\n\n```rust\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "if_not_else", 
     "level": "Allow"
   }, 
@@ -1598,6 +1758,7 @@
       "Example": "```rust\niter.filter(|x| x == 0).map(|x| x * 2)\n```", 
       "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure."
     }, 
+    "group": "pedantic", 
     "id": "filter_map", 
     "level": "Allow"
   }, 
@@ -1608,6 +1769,7 @@
       "Example": "```rust\npanic!(\"This `panic!` is probably missing a parameter there: {}\");\n```", 
       "Known problems": "Should you want to use curly brackets in `panic!`\nwithout any parameter, this lint will warn."
     }, 
+    "group": "style", 
     "id": "panic_params", 
     "level": "Warn"
   }, 
@@ -1618,6 +1780,7 @@
       "Example": "```rust\nlet i = 0;\nwhile i > 10 {\n   println!(\"let me loop forever!\");\n}\n```", 
       "Known problems": "If the `while`-loop is in a closure, the check for mutation of the\ncondition variables in the body can cause false negatives. For example when only `Upvar` `a` is\nin the condition and only `Upvar` `b` gets mutated in the body, the lint will not trigger."
     }, 
+    "group": "correctness", 
     "id": "while_immutable_condition", 
     "level": "Deny"
   }, 
@@ -1628,6 +1791,7 @@
       "Example": "```rust\nvec.len() <= 0\n100 > std::i32::MAX\n```", 
       "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g. 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation\nattributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead."
     }, 
+    "group": "correctness", 
     "id": "absurd_extreme_comparisons", 
     "level": "Deny"
   }, 
@@ -1638,6 +1802,7 @@
       "Example": "```rust,ignore\nif foo {\n} if bar { // looks like an `else` is missing here\n}\n\nif foo {\n} else\n\nif bar { // this is the `else` block of the previous `if`, but should it be?\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "suspicious_else_formatting", 
     "level": "Warn"
   }, 
@@ -1648,6 +1813,7 @@
       "Example": "```rust,ignore\nuse std::cell::{UnsafeCell as TotallySafeCell};\n\nextern crate crossbeam;\nuse crossbeam::{spawn_unsafe as spawn};\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "unsafe_removed_from_name", 
     "level": "Warn"
   }, 
@@ -1658,6 +1824,7 @@
       "Example": "```rust\nif x { false } else { true }\n```", 
       "Known problems": "Maybe false positives: Sometimes, the two branches are\npainstakingly documented (which we of course do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code."
     }, 
+    "group": "complexity", 
     "id": "needless_bool", 
     "level": "Warn"
   }, 
@@ -1668,6 +1835,7 @@
       "Example": "```rust\n{ let x = ..; x }\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "let_and_return", 
     "level": "Warn"
   }, 
@@ -1678,6 +1846,7 @@
       "Example": "```rust\nif x.len() == 0 { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "len_zero", 
     "level": "Warn"
   }, 
@@ -1688,6 +1857,7 @@
       "Example": "```rust,ignore\na =- 42; // confusing, should it be `a -= 42` or `a = -42`?\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "suspicious_assignment_formatting", 
     "level": "Warn"
   }, 
@@ -1698,6 +1868,7 @@
       "Example": "```rust\nlet mut a = 5;\n...\na += a + b;\n```", 
       "Known problems": "Someone might actually mean `a op= a op b`, but that\nshould rather be written as `a = (2 * a) op b` where applicable."
     }, 
+    "group": "complexity", 
     "id": "misrefactored_assign_op", 
     "level": "Warn"
   }, 
@@ -1708,6 +1879,7 @@
       "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo{ bar: bar }\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "redundant_field_names", 
     "level": "Warn"
   }, 
@@ -1718,6 +1890,7 @@
       "Example": "```rust\n#[inline(always)]\nfn not_quite_hot_code(..) { ... }\n```", 
       "Known problems": "False positives, big time. This lint is meant to be\ndeactivated by everyone doing serious performance work. This means having\ndone the measurement."
     }, 
+    "group": "pedantic", 
     "id": "inline_always", 
     "level": "Allow"
   }, 
@@ -1728,6 +1901,7 @@
       "Example": "```rust\nlet x:i32 = 42;     // i32 implements Copy\nstd::mem::forget(x) // A copy of x is passed to the function, leaving the\noriginal unaffected\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "forget_copy", 
     "level": "Deny"
   }, 
@@ -1738,6 +1912,7 @@
       "Example": "```rust\nlet checked_exp = something;\nlet checked_expr = something_else;\n```", 
       "Known problems": "None?"
     }, 
+    "group": "pedantic", 
     "id": "similar_names", 
     "level": "Allow"
   }, 
@@ -1748,6 +1923,7 @@
       "Example": "```rust\nwriteln!(buf, \"{}\", \"foo\");\n```", 
       "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`."
     }, 
+    "group": "style", 
     "id": "write_literal", 
     "level": "Warn"
   }, 
@@ -1758,6 +1934,7 @@
       "Example": "```rust\nloop {}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "empty_loop", 
     "level": "Warn"
   }, 
@@ -1768,6 +1945,7 @@
       "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\n```\n\nThe more idiomatic use would be:\n\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\n```\n", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "if_let_redundant_pattern_matching", 
     "level": "Warn"
   }, 
@@ -1778,6 +1956,7 @@
       "Example": "In Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\n\nprints `123`, while in C:\n\n```c\n#include <stdio.h>\n\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\n\nprints `83` (as `83 == 0o123` while `123 == 0o173`).", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "zero_prefixed_literal", 
     "level": "Warn"
   }, 
@@ -1788,6 +1967,7 @@
       "Example": "```rust\nfor x..(y+1) { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "nursery", 
     "id": "range_plus_one", 
     "level": "Allow"
   }, 
@@ -1798,6 +1978,7 @@
       "Example": "```rust\nlet x: &i32 = &&&&&&5;\n```", 
       "Known problems": "None."
     }, 
+    "group": "nursery", 
     "id": "needless_borrow", 
     "level": "Allow"
   }, 
@@ -1808,6 +1989,7 @@
       "Example": "```rust\nif x == true { }  // could be `if x { }`\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "bool_comparison", 
     "level": "Warn"
   }, 
@@ -1818,6 +2000,7 @@
       "Example": "```rust\nif a == b {\n    \u2026\n} else if a == b {\n    \u2026\n}\n```\n\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n\n```rust\nif foo() {\n    \u2026\n} else if foo() { // not linted\n    \u2026\n}\n```", 
       "Known problems": "Hopefully none."
     }, 
+    "group": "correctness", 
     "id": "ifs_same_cond", 
     "level": "Deny"
   }, 
@@ -1828,6 +2011,7 @@
       "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "cast_lossless", 
     "level": "Warn"
   }, 
@@ -1838,6 +2022,7 @@
       "Example": "```rust\nlet bs = \"a byte string\".as_bytes();\n```", 
       "Known Problems": "None."
     }, 
+    "group": "style", 
     "id": "string_lit_as_bytes", 
     "level": "Warn"
   }, 
@@ -1849,6 +2034,7 @@
       "Example": "```rust\nx & 0x1111 == 0\n```", 
       "Known problems": "llvm generates better code for `x & 15 == 0` on x86"
     }, 
+    "group": "style", 
     "id": "verbose_bit_mask", 
     "level": "Warn"
   }, 
@@ -1859,6 +2045,7 @@
       "Example": "```rust\nx.map(|e| e.clone());\n```", 
       "Known problems": "Sometimes `.cloned()` requires stricter trait\nbound than `.map(|e| e.clone())` (which works because of the coercion).\nSee [#498](https://github.com/rust-lang-nursery/rust-clippy/issues/498)."
     }, 
+    "group": "style", 
     "id": "map_clone", 
     "level": "Warn"
   }, 
@@ -1869,6 +2056,7 @@
       "Example": "```rust\n// u32 is 32-bit aligned; u8 is 8-bit aligned\nlet _: u32 = unsafe { std::mem::transmute([0u8; 4]) };\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "misaligned_transmute", 
     "level": "Warn"
   }, 
@@ -1879,6 +2067,7 @@
       "Example": "```rust\nu32::MAX as i32  // will yield a value of `-1`\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "cast_possible_wrap", 
     "level": "Allow"
   }, 
@@ -1889,6 +2078,7 @@
       "Example": "```rust\nlet x = [1,2,3,4];\n...\nx[9];\n&x[2..9];\n```", 
       "Known problems": "Hopefully none."
     }, 
+    "group": "correctness", 
     "id": "out_of_bounds_indexing", 
     "level": "Deny"
   }, 
@@ -1899,6 +2089,7 @@
       "Example": "```rust\nlet x = Box::new(1);\nstd::mem::forget(&x) // Should have been forget(x), x will still be dropped\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "forget_ref", 
     "level": "Deny"
   }, 
@@ -1909,6 +2100,7 @@
       "Example": "```rust\nx.map(|a| a + 1).unwrap_or(0)\n```", 
       "Known problems": "The order of the arguments is not in execution order"
     }, 
+    "group": "pedantic", 
     "id": "option_map_unwrap_or", 
     "level": "Allow"
   }, 
@@ -1919,6 +2111,7 @@
       "Example": "```rust\niter.filter(|x| x == 0).next()\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "filter_next", 
     "level": "Warn"
   }, 
@@ -1929,6 +2122,7 @@
       "Example": "```rust\ntrait Animal {\n    #[inline]\n    fn name(&self) -> &'static str;\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "inline_fn_without_body", 
     "level": "Deny"
   }, 
@@ -1939,6 +2133,7 @@
       "Example": "```rust,ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nInstead, use:\n\n```rust\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nYou can also have `new()` call `Default::default()`.", 
       "Known problems": "Hopefully none."
     }, 
+    "group": "style", 
     "id": "new_without_default", 
     "level": "Warn"
   }, 
@@ -1949,6 +2144,7 @@
       "Example": "```rust\nx.unwrap()\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "result_unwrap_used", 
     "level": "Allow"
   }, 
@@ -1959,6 +2155,7 @@
       "Example": "```rust\nvec.iter().map(|x| /* some operation returning () */).collect::<Vec<_>>();\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "unused_collect", 
     "level": "Warn"
   }, 
@@ -1969,6 +2166,7 @@
       "Example": "```rust\nstruct X;\nimpl X {\n   fn add(&self, other: &X) -> X { .. }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "should_implement_trait", 
     "level": "Warn"
   }, 
@@ -1979,6 +2177,7 @@
       "Example": "```rust\nlet x = LinkedList::new();\n```", 
       "Known problems": "False positives \u2013 the instances where using a\n`LinkedList` makes sense are few and far between, but they can still happen."
     }, 
+    "group": "pedantic", 
     "id": "linkedlist", 
     "level": "Allow"
   }, 
@@ -1989,6 +2188,7 @@
       "Example": "```rust\nlet x = &mut &mut y;\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "mut_mut", 
     "level": "Allow"
   }, 
@@ -1999,6 +2199,7 @@
       "Example": "```rust\nlet x : Result(i32, &str) = Ok(3);\nmatch x {\n    Ok(_) => println!(\"ok\"),\n    Err(_) => panic!(\"err\"),\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "match_wild_err_arm", 
     "level": "Warn"
   }, 
@@ -2010,6 +2211,7 @@
       "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "type_complexity", 
     "level": "Warn"
   }, 
@@ -2020,6 +2222,7 @@
       "Example": "```rust\nx % 1\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "modulo_one", 
     "level": "Deny"
   }, 
@@ -2030,6 +2233,7 @@
       "Example": "```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s.to_vec();\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "iter_cloned_collect", 
     "level": "Warn"
   }, 
@@ -2040,6 +2244,7 @@
       "Example": "You may not see it, but \u201ca\u0300\u201d and \u201c\u00e0\u201d aren't the same string. The\nformer when escaped is actually `\"a\\u{300}\"` while the latter is `\"\\u{e0}\"`.", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "unicode_not_nfc", 
     "level": "Allow"
   }, 
@@ -2050,6 +2255,7 @@
       "Example": "```rust\nimpl AddAssign for Foo {\n    fn add_assign(&mut self, other: Foo) {\n        *self = *self - other;\n    }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "suspicious_op_assign_impl", 
     "level": "Deny"
   }, 
@@ -2060,6 +2266,7 @@
       "Example": "```rust\nfor x in 5..10-5 { .. } // oops, stray `-`\n```", 
       "Known problems": "The lint cannot catch loops over dynamically defined\nranges. Doing this would require simulating all possible inputs and code\npaths through the program, which would be complex and error-prone."
     }, 
+    "group": "correctness", 
     "id": "reverse_range_loop", 
     "level": "Deny"
   }, 
@@ -2070,6 +2277,7 @@
       "Example": "```rust\n// lib.rs\nmod foo;\n// foo.rs\nmod foo {\n    ...\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "module_inception", 
     "level": "Warn"
   }, 
@@ -2080,6 +2288,7 @@
       "Example": "```rust\nlet _ = 2i32 as i32\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "unnecessary_cast", 
     "level": "Warn"
   }, 
@@ -2090,6 +2299,7 @@
       "Example": "```rust,ignore\nfn unused_label() {\n    'label: for i in 1..2 {\n        if i > 4 { continue }\n    }\n```", 
       "Known problems": "Hopefully none."
     }, 
+    "group": "complexity", 
     "id": "unused_label", 
     "level": "Warn"
   }, 
@@ -2101,6 +2311,7 @@
       "Example": "```rust\nlet (a, b, c, d, e, f, g) = (...);\n```", 
       "Known problems": "None?"
     }, 
+    "group": "style", 
     "id": "many_single_char_names", 
     "level": "Warn"
   }, 
@@ -2111,6 +2322,7 @@
       "Example": "```rust\nuse std::cmp::Ordering::*;\n```", 
       "Known problems": "Old-style enumerations that prefix the variants are\nstill around."
     }, 
+    "group": "pedantic", 
     "id": "enum_glob_use", 
     "level": "Allow"
   }, 
@@ -2121,6 +2333,7 @@
       "Example": "```rust\nif (x | 1 > 3) { \u2026 }\n```", 
       "Known problems": "False negatives: This lint will only match instances\nwhere we have figured out the math (which is for a power-of-two compared\nvalue). This means things like `x | 1 >= 7` (which would be better written\nas `x >= 6`) will not be reported (but bit masks like this are fairly\nuncommon)."
     }, 
+    "group": "correctness", 
     "id": "ineffective_bit_mask", 
     "level": "Deny"
   }, 
@@ -2131,6 +2344,7 @@
       "Example": "```rust\nwrite!(buf, \"Hello {}!\\n\", name);\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "write_with_newline", 
     "level": "Warn"
   }, 
@@ -2141,6 +2355,7 @@
       "Example": "```rust\n42u64.clone()\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "clone_on_copy", 
     "level": "Warn"
   }, 
@@ -2151,6 +2366,7 @@
       "Example": "```rust\nfoo({\n  let a = bar();\n  baz(a);\n})\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "unit_arg", 
     "level": "Warn"
   }, 
@@ -2161,6 +2377,7 @@
       "Example": "```rust\nlet _1 = 1;\nlet ___1 = 1;\nlet __1___2 = 11;\n```", 
       "Known problems": "None?"
     }, 
+    "group": "style", 
     "id": "just_underscores_and_digits", 
     "level": "Warn"
   }, 
@@ -2171,6 +2388,7 @@
       "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "iter_skip_next", 
     "level": "Warn"
   }, 
@@ -2181,6 +2399,7 @@
       "Example": "```rust\nx == y || x < y\n```\n\nCould be written as:\n\n```rust\nx <= y\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "double_comparisons", 
     "level": "Warn"
   }, 
@@ -2191,6 +2410,7 @@
       "Example": "```rust\nlet mut x = 0;\nlet a = {x = 1; 1} + x;\n// Unclear whether a is 1 or 2.\n```", 
       "Known problems": "Code which intentionally depends on the evaluation\norder, or which is correct for any evaluation order."
     }, 
+    "group": "complexity", 
     "id": "eval_order_dependence", 
     "level": "Warn"
   }, 
@@ -2201,6 +2421,7 @@
       "Example": "```rust\nlet x = u64::MAX; x as f64\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "cast_precision_loss", 
     "level": "Allow"
   }, 
@@ -2211,6 +2432,7 @@
       "Example": "```rust\nx >= y + 1\n```\n\nCould be written:\n\n```rust\nx > y\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "int_plus_one", 
     "level": "Warn"
   }, 
@@ -2222,6 +2444,7 @@
       "Example": "```rust\nenum Test {\n   A(i32),\n   B([i32; 8000]),\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "perf", 
     "id": "large_enum_variant", 
     "level": "Warn"
   }, 
@@ -2232,6 +2455,7 @@
       "Example": "```rust\nlet x:i32 = 42;   // i32 implements Copy\nstd::mem::drop(x) // A copy of x is passed to the function, leaving the\noriginal unaffected\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "drop_copy", 
     "level": "Deny"
   }, 
@@ -2242,6 +2466,7 @@
       "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
       "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
     }, 
+    "group": "style", 
     "id": "implicit_hasher", 
     "level": "Warn"
   }, 
@@ -2252,6 +2477,7 @@
       "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n// should be\nfn foo(v: &[i32]) {\n    assert_eq!(v.len(), 42);\n}\n```", 
       "Known problems": "* This lint suggests taking an argument by reference,\nhowever sometimes it is better to let users decide the argument type\n(by using `Borrow` trait, for example), depending on how the function is used."
     }, 
+    "group": "style", 
     "id": "needless_pass_by_value", 
     "level": "Warn"
   }, 
@@ -2260,6 +2486,7 @@
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `.to_string()` method calls on values\nof type `&str`. This is not unidiomatic and with specialization coming, `to_string` could be\nspecialized to be as efficient as `to_owned`."
     }, 
+    "group": "deprecated", 
     "id": "str_to_string", 
     "level": "Deprecated"
   }, 
@@ -2270,6 +2497,7 @@
       "Example": "```rust\n((0))\nfoo((0))\n((1, 2))\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "double_parens", 
     "level": "Warn"
   }, 
@@ -2280,6 +2508,7 @@
       "Example": "You don't see it, but there may be a zero-width space\nsomewhere in this text.", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "zero_width_space", 
     "level": "Deny"
   }, 
@@ -2290,6 +2519,7 @@
       "Example": "```rust\nRegex::new(\"^foobar\")\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "trivial_regex", 
     "level": "Warn"
   }, 
@@ -2300,6 +2530,7 @@
       "Example": "```rust\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "needless_range_loop", 
     "level": "Warn"
   }, 
@@ -2310,6 +2541,7 @@
       "Example": "```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{}\", i); // prints numbers from 0 to 42, not 0 to 21\n}\n```", 
       "Known problems": "None"
     }, 
+    "group": "complexity", 
     "id": "mut_range_bound", 
     "level": "Warn"
   }, 
@@ -2321,6 +2553,7 @@
       "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b:\nf32) { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "too_many_arguments", 
     "level": "Warn"
   }, 
@@ -2331,6 +2564,7 @@
       "Example": "```rust\nlet _: bool = std::mem::transmute(x); // where x: u8\n// should be:\nlet _: bool = x != 0;\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "transmute_int_to_bool", 
     "level": "Warn"
   }, 
@@ -2341,6 +2575,7 @@
       "Example": "```rust,ignore\nuse std::io;\nfn foo<W: io::Write>(w: &mut W) -> io::Result<()> {\n    // must be `w.write_all(b\"foo\")?;`\n    w.write(b\"foo\")?;\n    Ok(())\n}\n```", 
       "Known problems": "Detects only common patterns."
     }, 
+    "group": "correctness", 
     "id": "unused_io_amount", 
     "level": "Deny"
   }, 
@@ -2351,6 +2586,7 @@
       "Example": "```rust\nmatch v {\n    Some(x) => (),\n    y @ _   => (), // easier written as `y`,\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "redundant_pattern", 
     "level": "Warn"
   }, 
@@ -2361,6 +2597,7 @@
       "Example": "```rust\n0;\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "no_effect", 
     "level": "Warn"
   }, 
@@ -2371,6 +2608,7 @@
       "Example": "```rust\nmod cake {\n    struct BlackForestCake;\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "stutter", 
     "level": "Allow"
   }, 
@@ -2381,6 +2619,7 @@
       "Example": "```rust\nfoo.unwrap_or(String::new())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(String::new)\n```\nor\n```rust\nfoo.unwrap_or_default()\n```", 
       "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
     }, 
+    "group": "perf", 
     "id": "or_fun_call", 
     "level": "Warn"
   }, 
@@ -2391,6 +2630,7 @@
       "Example": "```rust\nlet x = \"H\u00e4?\"\n```", 
       "Known problems": "None."
     }, 
+    "group": "pedantic", 
     "id": "non_ascii_literal", 
     "level": "Allow"
   }, 
@@ -2401,6 +2641,7 @@
       "Example": "```rust\n// this would be clearer as `eprintln!(\"foo: {:?}\", bar);`\nwriteln!(&mut io::stderr(), \"foo: {:?}\", bar).unwrap();\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "explicit_write", 
     "level": "Warn"
   }, 
@@ -2411,6 +2652,7 @@
       "Example": "```rust\nlet bad_ref: &usize = std::mem::zeroed();\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "invalid_ref", 
     "level": "Deny"
   }, 
@@ -2419,6 +2661,7 @@
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "`Range::step_by(0)` used to be linted since it's\nan infinite iterator, which is better expressed by `iter::repeat`,\nbut the method has been removed for `Iterator::step_by` which panics\nif given a zero"
     }, 
+    "group": "deprecated", 
     "id": "range_step_by_zero", 
     "level": "Deprecated"
   }, 
@@ -2429,6 +2672,7 @@
       "Example": "```rust\nlet a = f(*&mut b);\nlet c = *&d;\n```", 
       "Known problems": "Multiple dereference/addrof pairs are not handled so\nthe suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect."
     }, 
+    "group": "complexity", 
     "id": "deref_addrof", 
     "level": "Warn"
   }, 
@@ -2439,6 +2683,7 @@
       "Example": "```rust\nlet _: f32 = std::mem::transmute(x); // where x: u32\n// should be:\nlet _: f32 = f32::from_bits(x);\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "transmute_int_to_float", 
     "level": "Warn"
   }, 
@@ -2449,6 +2694,7 @@
       "Example": "```rust\nif { true } ..\n```", 
       "Known problems": "None."
     }, 
+    "group": "style", 
     "id": "block_in_if_condition_expr", 
     "level": "Warn"
   }, 
@@ -2459,6 +2705,7 @@
       "Example": "```rust\nfor x in result { .. }\n```\n\nThis should be\n```rust\nif let Ok(x) = result { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "for_loop_over_result", 
     "level": "Deny"
   }, 
@@ -2469,6 +2716,7 @@
       "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
       "Known problems": "None"
     }, 
+    "group": "pedantic", 
     "id": "needless_continue", 
     "level": "Allow"
   }, 
@@ -2479,6 +2727,7 @@
       "Example": "```rust\nlet foo = if \u2026 {\n    42\n} else {\n    42\n};\n```", 
       "Known problems": "Hopefully none."
     }, 
+    "group": "correctness", 
     "id": "if_same_then_else", 
     "level": "Deny"
   }, 
@@ -2489,6 +2738,7 @@
       "Example": "```rust\nfn foo(bar: &Box<T>) { ... }\n```\n\nBetter:\n\n```rust\nfn foo(bar: &T) { ... }\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "borrowed_box", 
     "level": "Warn"
   }, 
@@ -2499,6 +2749,7 @@
       "Example": "```rust\nx.ok().expect(\"why did I do this again?\")\n```", 
       "Known problems": "The error type needs to implement `Debug`"
     }, 
+    "group": "style", 
     "id": "ok_expect", 
     "level": "Warn"
   }, 
@@ -2509,6 +2760,7 @@
       "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() { .. }\n```", 
       "Known problems": "None"
     }, 
+    "group": "style", 
     "id": "explicit_into_iter_loop", 
     "level": "Warn"
   }, 
@@ -2519,6 +2771,7 @@
       "Example": "```rust\nlet x: Option<()> = None;\nlet r: Option<&()> = match x {\n  None => None,\n  Some(ref v) => Some(v),\n};\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "match_as_ref", 
     "level": "Warn"
   }, 
@@ -2530,6 +2783,7 @@
       "Example": "`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "decimal_literal_representation", 
     "level": "Allow"
   }, 
@@ -2540,6 +2794,7 @@
       "Example": "```rust\nfor x in (5..5).step_by(0) { .. }\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "iterator_step_by_zero", 
     "level": "Deny"
   }, 
@@ -2550,6 +2805,7 @@
       "Example": "```rust\nconst ONE == 1.00f64\nx == ONE  // where both are floats\n```", 
       "Known problems": "None."
     }, 
+    "group": "restriction", 
     "id": "float_cmp_const", 
     "level": "Allow"
   }, 
@@ -2560,6 +2816,7 @@
       "Example": "```rust\n'x' as u8\n```\n\nA better version, using the byte literal:\n\n```rust\nb'x'\n```", 
       "Known problems": "None."
     }, 
+    "group": "complexity", 
     "id": "char_lit_as_u8", 
     "level": "Warn"
   }, 
@@ -2570,6 +2827,7 @@
       "Example": "```rust\n#[repr(usize)]\nenum NonPortable {\n    X = 0x1_0000_0000,\n    Y = 0\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "correctness", 
     "id": "enum_clike_unportable_variant", 
     "level": "Deny"
   }, 
@@ -2580,6 +2838,7 @@
       "Example": "```rust\nstruct Foo(i32);\nimpl From<String> for Foo {\n    fn from(s: String) -> Self {\n        Foo(s.parse().unwrap())\n    }\n}\n```", 
       "Known problems": "None."
     }, 
+    "group": "nursery", 
     "id": "fallible_impl_from", 
     "level": "Allow"
   }
