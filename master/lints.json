@@ -1555,6 +1555,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for transmutes from a pointer to a pointer, or\nfrom a reference to a reference.", 
+      "Why is this bad": "Transmutes are dangerous, and these can instead be\nwritten as casts.", 
+      "Example": "```rust\nlet ptr = &1u32 as *const u32;\nunsafe {\n    // pointer-to-pointer transmute\n    let _: *const f32 = std::mem::transmute(ptr);\n    // ref-ref transmute\n    let _: &f32 = std::mem::transmute(&1u32);\n}\n// These can be respectively written:\nlet _ = ptr as *const f32\nlet _ = unsafe{ &*(&1u32 as *const u32 as *const f32) };\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "complexity", 
+    "id": "transmute_ptr_to_ptr", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for matches with a single arm where an `if let`\nwill usually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
       "Example": "```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => ()\n}\n```", 
@@ -1793,6 +1804,17 @@
     }, 
     "group": "correctness", 
     "id": "absurd_extreme_comparisons", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for casts from a more-strictly-aligned pointer to a\nless-strictly-aligned pointer", 
+      "Why is this bad": "Dereferencing the resulting pointer is undefined\nbehavior.", 
+      "Example": "```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "cast_ptr_alignment", 
     "level": "Deny"
   }, 
   {
@@ -2051,14 +2073,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for transmutes to a potentially less-aligned type.", 
-      "Why is this bad": "This might result in undefined behavior.", 
-      "Example": "```rust\n// u32 is 32-bit aligned; u8 is 8-bit aligned\nlet _: u32 = unsafe { std::mem::transmute([0u8; 4]) };\n```", 
-      "Known problems": "None."
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint should never have applied to non-pointer types, as transmuting\nbetween non-pointer types of differing alignment is well-defined behavior (it's semantically\nequivalent to a memcpy). This lint has thus been refactored into two separate lints:\ncast_ptr_alignment and transmute_ptr_to_ptr."
     }, 
-    "group": "complexity", 
+    "group": "deprecated", 
     "id": "misaligned_transmute", 
-    "level": "Warn"
+    "level": "Deprecated"
   }, 
   {
     "docs": {
