@@ -398,7 +398,7 @@ impl LintPass for Pass {
             FOR_KV_MAP,
             NEVER_LOOP,
             MUT_RANGE_BOUND,
-            WHILE_IMMUTABLE_CONDITION,
+            WHILE_IMMUTABLE_CONDITION
         )
     }
 }
