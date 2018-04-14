@@ -167,7 +167,7 @@
   {
     "docs": {
       "What it does": "Checks for loops on `x.next()`.", 
-      "Why is this bad": "`next()` returns either `Some(value)` if there was a\nvalue, or `None` otherwise. The insidious thing is that `Option<_>`\nimplements `IntoIterator`, so that possibly one value will be iterated,\nleading to some hard to find bugs. No one will want to write such code\n[except to win an Underhanded Rust\nContest](https://www.reddit.\ncom/r/rust/comments/3hb0wm/underhanded_rust_contest/cu5yuhr).", 
+      "Why is this bad": "`next()` returns either `Some(value)` if there was a\nvalue, or `None` otherwise. The insidious thing is that `Option<_>`\nimplements `IntoIterator`, so that possibly one value will be iterated,\nleading to some hard to find bugs. No one will want to write such code\n[except to win an Underhanded Rust\nContest](https://www.reddit.com/r/rust/comments/3hb0wm/underhanded_rust_contest/cu5yuhr).", 
       "Example": "```rust\nfor x in y.next() { .. }\n```", 
       "Known problems": "None."
     }, 
