@@ -113,6 +113,7 @@ pub mod doc;
 pub mod double_comparison;
 pub mod double_parens;
 pub mod drop_forget_ref;
+pub mod duration_subsec;
 pub mod else_if_without_else;
 pub mod empty_enum;
 pub mod entry;
@@ -405,6 +406,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box question_mark::QuestionMarkPass);
     reg.register_late_lint_pass(box suspicious_trait_impl::SuspiciousImpl);
     reg.register_late_lint_pass(box redundant_field_names::RedundantFieldNames);
+    reg.register_late_lint_pass(box duration_subsec::DurationSubsec);
 
 
     reg.register_lint_group("clippy_restriction", vec![
@@ -497,6 +499,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         drop_forget_ref::DROP_REF,
         drop_forget_ref::FORGET_COPY,
         drop_forget_ref::FORGET_REF,
+        duration_subsec::DURATION_SUBSEC,
         entry::MAP_ENTRY,
         enum_clike::ENUM_CLIKE_UNPORTABLE_VARIANT,
         enum_variants::ENUM_VARIANT_NAMES,
