@@ -1270,13 +1270,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `while let` expressions on iterators.", 
-      "Why is this bad": "Readability. A simple `for` loop is shorter and conveys\nthe intent better.", 
-      "Example": "```rust\nwhile let Some(val) = iter() { .. }\n```", 
+      "What it does": "Checks for matches being used to destructure a single-variant enum\nor tuple struct where a `let` will suffice.", 
+      "Why is this bad": "Just readability \u2013 `let` doesn't nest, whereas a `match` does.", 
+      "Example": "```rust\nenum Wrapper {\n    Data(i32),\n}\n\nlet wrapper = Wrapper::Data(42);\n\nlet data = match wrapper {\n    Wrapper::Data(i) => i,\n};\n```\n\nThe correct use would be:\n```rust\nenum Wrapper {\n    Data(i32),\n}\n\nlet wrapper = Wrapper::Data(42);\nlet Wrapper::Data(data) = wrapper;\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
-    "id": "while_let_on_iterator", 
+    "id": "infallible_destructuring_match", 
     "level": "Warn"
   }, 
   {
@@ -1487,6 +1487,17 @@
     "group": "pedantic", 
     "id": "cast_possible_truncation", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for `while let` expressions on iterators.", 
+      "Why is this bad": "Readability. A simple `for` loop is shorter and conveys\nthe intent better.", 
+      "Example": "```rust\nwhile let Some(val) = iter() { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "while_let_on_iterator", 
+    "level": "Warn"
   }, 
   {
     "docs": {
