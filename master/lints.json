@@ -1819,8 +1819,8 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for casts from a more-strictly-aligned pointer to a\nless-strictly-aligned pointer", 
-      "Why is this bad": "Dereferencing the resulting pointer is undefined\nbehavior.", 
+      "What it does": "Checks for casts from a less-strictly-aligned pointer to a\nmore-strictly-aligned pointer", 
+      "Why is this bad": "Dereferencing the resulting pointer may be undefined\nbehavior.", 
       "Example": "```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n```", 
       "Known problems": "None."
     }, 
