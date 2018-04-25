@@ -1170,6 +1170,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for float literals with a precision greater\nthan that supported by the underlying type", 
+      "Why is this bad": "Rust will truncate the literal silently.", 
+      "Example": "```rust\n// Bad\nInsert a short example of code that triggers the lint\n   let v: f32 = 0.123_456_789_9;\n   println!(\"{}\", v); //  0.123_456_789\n\n// Good\nInsert a short example of improved code that doesn't trigger the lint\n   let v: f64 = 0.123_456_789_9;\n   println!(\"{}\", v); //  0.123_456_789_9\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "excessive_precision", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for methods with high cyclomatic complexity.", 
       "Why is this bad": "Methods of high cyclomatic complexity tend to be badly\nreadable. Also LLVM will usually optimize small methods better.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `cyclomatic-complexity-threshold: u64`: The maximum cyclomatic complexity a function can have (defaults to `25 `).", 
