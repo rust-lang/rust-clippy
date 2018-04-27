@@ -135,7 +135,7 @@
     "docs": {
       "What it does": "Checks for calls to `std::mem::drop` with a reference\ninstead of an owned value.", 
       "Why is this bad": "Calling `drop` on a reference will only drop the\nreference itself, which is a no-op. It will not call the `drop` method (from\nthe `Drop` trait implementation) on the underlying referenced value, which\nis likely what was intended.", 
-      "Example": "```rust\nlet mut lock_guard = mutex.lock();\nstd::mem::drop(&lock_guard) // Should have been drop(lock_guard), mutex\nstill locked\noperation_that_requires_mutex_to_be_unlocked();\n```", 
+      "Example": "```rust\nlet mut lock_guard = mutex.lock();\nstd::mem::drop(&lock_guard) // Should have been drop(lock_guard), mutex\n// still locked\noperation_that_requires_mutex_to_be_unlocked();\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -631,7 +631,7 @@
     "docs": {
       "What it does": "Checks for transmutes between a type `T` and `*T`.", 
       "Why is this bad": "It's easy to mistakenly transmute between a type and a\npointer to that type.", 
-      "Example": "```rust\ncore::intrinsics::transmute(t)` // where the result type is the same as\n`*t` or `&t`'s\n```", 
+      "Example": "```rust\ncore::intrinsics::transmute(t) // where the result type is the same as\n// `*t` or `&t`'s\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
@@ -653,7 +653,7 @@
     "docs": {
       "What it does": "Checks for transmutes that can't ever be correct on any\narchitecture.", 
       "Why is this bad": "It's basically guaranteed to be undefined behaviour.", 
-      "Example": "```rust\nlet ptr: *const T = core::intrinsics::transmute('x')`\n```", 
+      "Example": "```rust\nlet ptr: *const T = core::intrinsics::transmute('x')\n```", 
       "Known problems": "When accessing C, users might want to store pointer\nsized objects in `extradata` arguments to save an allocation."
     }, 
     "group": "correctness", 
@@ -1295,7 +1295,7 @@
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\",\n        \"OpenGL\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n    ] `).", 
-      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\nthat::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
+      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives."
     }, 
     "group": "pedantic", 
@@ -1953,7 +1953,7 @@
     "docs": {
       "What it does": "Checks for calls to `std::mem::forget` with a value that\nderives the Copy trait", 
       "Why is this bad": "Calling `std::mem::forget` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html) since the\nvalue will be copied and moved into the function on invocation.\nAn alternative, but also valid, explanation is that Copy types do not\nimplement\nthe Drop trait, which means they have no destructors. Without a destructor,\nthere\nis nothing for `std::mem::forget` to ignore.", 
-      "Example": "```rust\nlet x:i32 = 42;     // i32 implements Copy\nstd::mem::forget(x) // A copy of x is passed to the function, leaving the\noriginal unaffected\n```", 
+      "Example": "```rust\nlet x:i32 = 42;     // i32 implements Copy\nstd::mem::forget(x) // A copy of x is passed to the function, leaving the\n// original unaffected\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -2516,7 +2516,7 @@
     "docs": {
       "What it does": "Checks for calls to `std::mem::drop` with a value\nthat derives the Copy trait", 
       "Why is this bad": "Calling `std::mem::drop` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html), since the\nvalue will be copied and moved into the function on invocation.", 
-      "Example": "```rust\nlet x:i32 = 42;   // i32 implements Copy\nstd::mem::drop(x) // A copy of x is passed to the function, leaving the\noriginal unaffected\n```", 
+      "Example": "```rust\nlet x:i32 = 42;   // i32 implements Copy\nstd::mem::drop(x) // A copy of x is passed to the function, leaving the\n// original unaffected\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
