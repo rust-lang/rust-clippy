@@ -177,14 +177,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for return statements at the end of a block.", 
-      "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
-      "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
-      "Known problems": "If the computation returning the value borrows a local\nvariable, removing the `return` may run afoul of the borrow checker."
+      "What it does": "Checks to see if multiple versions of a crate are being\nused.", 
+      "Why is this bad": "This bloats the size of targets, and can lead to\nconfusing error messages when structs or traits are used interchangeably\nbetween different versions of a crate.", 
+      "Example": "```toml\n# This will pull in both winapi v0.3.4 and v0.2.8, triggering a warning.\n[dependencies]\nctrlc = \"3.1.0\"\nansi_term = \"0.11.0\"\n```", 
+      "Known problems": "Because this can be caused purely by the dependencies\nthemselves, it's not always possible to fix this issue."
     }, 
-    "group": "style", 
-    "id": "needless_return", 
-    "level": "Warn"
+    "group": "cargo", 
+    "id": "multiple_crate_versions", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -740,7 +740,7 @@
     "docs": {
       "What it does": "Detects enumeration variants that are prefixed or suffixed\nby the same characters.", 
       "Why is this bad": "Enumeration variant names should specify their variant,\nnot repeat the enumeration name.", 
-      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
+      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "pedantic", 
@@ -964,7 +964,7 @@
       "What it does": "Detects enumeration variants that are prefixed or suffixed\nby the same characters.", 
       "Why is this bad": "Enumeration variant names should specify their variant,\nnot repeat the enumeration name.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-name-threshold: u64`: The minimum number of enum variants for the lints about variant names to trigger (defaults to `3 `).", 
-      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n}\n```", 
+      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -1892,6 +1892,17 @@
     }, 
     "group": "style", 
     "id": "let_and_return", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for return statements at the end of a block.", 
+      "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
+      "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
+      "Known problems": "If the computation returning the value borrows a local\nvariable, removing the `return` may run afoul of the borrow checker."
+    }, 
+    "group": "style", 
+    "id": "needless_return", 
     "level": "Warn"
   }, 
   {
