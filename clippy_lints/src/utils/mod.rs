@@ -873,6 +873,10 @@ pub fn return_ty<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, fn_item: NodeId) -> Ty<'t
 // <'b> Foo<'b>` but
 // not for type parameters.
 pub fn same_tys<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, a: Ty<'tcx>, b: Ty<'tcx>) -> bool {
+    let a_binder = a.fn_sig(cx.tcx);
+    let b_binder = b.fn_sig(cx.tcx);
+    let a = cx.tcx.erase_late_bound_regions(&a_binder).output();
+    let b = cx.tcx.erase_late_bound_regions(&b_binder).output();
     cx.tcx
         .infer_ctxt()
         .enter(|infcx| infcx.can_eq(cx.param_env, a, b).is_ok())
