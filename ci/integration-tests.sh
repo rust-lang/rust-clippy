@@ -7,9 +7,9 @@ git clone --depth=1 https://github.com/${INTEGRATION}.git checkout
 cd checkout
 
 function check() {
-  RUST_BACKTRACE=full cargo clippy --all &> clippy_output
+  RUST_BACKTRACE=full cargo clippy --all --verbose &> clippy_output
   cat clippy_output
-  ! cat clippy_output | grep -q "internal compiler error"
+  ! cat clippy_output | grep -q "internal compiler error\|Could not compile"
   if [[ $? != 0 ]]; then
     return 1
   fi
