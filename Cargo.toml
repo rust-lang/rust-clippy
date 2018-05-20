@@ -20,11 +20,6 @@ build = "build.rs"
 travis-ci = { repository = "rust-lang-nursery/rust-clippy" }
 appveyor = { repository = "rust-lang-nursery/rust-clippy" }
 
-[lib]
-name = "clippy"
-plugin = true
-test = false
-
 [[bin]]
 name = "cargo-clippy"
 test = false

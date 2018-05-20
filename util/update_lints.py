@@ -210,20 +210,20 @@ def main(print_only=False, check=False):
 
     # same for "clippy_*" lint collections
     changed |= replace_region(
-        'clippy_lints/src/lib.rs', r'reg.register_lint_group\("clippy"', r'\]\);',
+        'clippy_lints/src/lib.rs', r'add_lint_group!\("clippy"', r'\);',
         lambda: gen_group(clippy_lint_list),
         replace_start=False, write_back=not check)
 
     for key, value in clippy_lints.iteritems():
         # same for "clippy_*" lint collections
         changed |= replace_region(
-            'clippy_lints/src/lib.rs', r'reg.register_lint_group\("clippy_' + key + r'"', r'\]\);',
+            'clippy_lints/src/lib.rs', r'add_lint_group!\("clippy_' + key + r'"', r'\);',
             lambda: gen_group(value),
             replace_start=False, write_back=not check)
 
     # same for "deprecated" lint collection
     changed |= replace_region(
-        'clippy_lints/src/lib.rs', r'let mut store', r'end deprecated lints',
+        'clippy_lints/src/lib.rs', r'begin deprecated lints', r'end deprecated lints',
         lambda: gen_deprecated(deprecated_lints),
         replace_start=False,
         write_back=not check)

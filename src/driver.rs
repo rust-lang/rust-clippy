@@ -78,43 +78,8 @@ impl<'a> CompilerCalls<'a> for ClippyCompilerCalls {
             let old = std::mem::replace(&mut control.after_parse.callback, box |_| {});
             control.after_parse.callback = Box::new(move |state| {
                 {
-                    let mut registry = rustc_plugin::registry::Registry::new(
-                        state.session,
-                        state
-                            .krate
-                            .as_ref()
-                            .expect(
-                                "at this compilation stage \
-                                 the crate must be parsed",
-                            )
-                            .span,
-                    );
-                    registry.args_hidden = Some(Vec::new());
-                    clippy_lints::register_plugins(&mut registry);
-
-                    let rustc_plugin::registry::Registry {
-                        early_lint_passes,
-                        late_lint_passes,
-                        lint_groups,
-                        llvm_passes,
-                        attributes,
-                        ..
-                    } = registry;
-                    let sess = &state.session;
-                    let mut ls = sess.lint_store.borrow_mut();
-                    for pass in early_lint_passes {
-                        ls.register_early_pass(Some(sess), true, pass);
-                    }
-                    for pass in late_lint_passes {
-                        ls.register_late_pass(Some(sess), true, pass);
-                    }
-
-                    for (name, to) in lint_groups {
-                        ls.register_group(Some(sess), true, name, to);
-                    }
-
-                    sess.plugin_llvm_passes.borrow_mut().extend(llvm_passes);
-                    sess.plugin_attributes.borrow_mut().extend(attributes);
+                    let sess = state.session;
+                    clippy_lints::register_lints(sess, &mut *sess.lint_store.borrow_mut());
                 }
                 old(state);
             });
