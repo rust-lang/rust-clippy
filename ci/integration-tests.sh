@@ -9,7 +9,7 @@ cd checkout
 function check() {
   RUST_BACKTRACE=full cargo clippy --all &> clippy_output
   cat clippy_output
-  ! cat clippy_output | grep -q "internal compiler error"
+  ! cat clippy_output | grep -q "internal compiler error\|Could not compile"
   if [[ $? != 0 ]]; then
     return 1
   fi
