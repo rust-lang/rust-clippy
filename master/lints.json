@@ -188,14 +188,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
-      "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
-      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
+      "What it does": "Checks for usage of `unimplemented!`.", 
+      "Why is this bad": "This macro should not be present in production code", 
+      "Example": "```rust\nunimplemented!();\n```", 
       "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "partialeq_ne_impl", 
-    "level": "Warn"
+    "group": "restriction", 
+    "id": "unimplemented", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1082,14 +1082,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for comparisons to unit.", 
-      "Why is this bad": "Unit is always equal to itself, and thus is just a\nclumsily written constant. Mostly this happens when someone accidentally\nadds semicolons at the end of the operands.", 
-      "Example": "```rust\nif { foo(); } == { bar(); } { baz(); }\n```\nis equal to\n```rust\n{ foo(); bar(); baz(); }\n```", 
+      "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
+      "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
+      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
       "Known problems": "None."
     }, 
-    "group": "correctness", 
-    "id": "unit_cmp", 
-    "level": "Deny"
+    "group": "complexity", 
+    "id": "partialeq_ne_impl", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2761,6 +2761,17 @@
     "group": "complexity", 
     "id": "transmute_int_to_float", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for comparisons to unit.", 
+      "Why is this bad": "Unit is always equal to itself, and thus is just a\nclumsily written constant. Mostly this happens when someone accidentally\nadds semicolons at the end of the operands.", 
+      "Example": "```rust\nif { foo(); } == { bar(); } { baz(); }\n```\nis equal to\n```rust\n{ foo(); bar(); baz(); }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "unit_cmp", 
+    "level": "Deny"
   }, 
   {
     "docs": {
