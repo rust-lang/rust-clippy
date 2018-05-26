@@ -888,13 +888,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for lifetimes in generics that are never used\nanywhere else.", 
-      "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.", 
-      "Example": "```rust\nfn unused_lifetime<'a>(x: u8) { .. }\n```", 
+      "What it does": "Checks for construction of a structure or tuple just to\nassign a value in it.", 
+      "Why is this bad": "Readability. If the structure is only created to be\nupdated, why not write the structure you want in the first place?", 
+      "Example": "```rust\n(0, 0).0 = 1\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
-    "id": "unused_lifetimes", 
+    "id": "temporary_assignment", 
     "level": "Warn"
   }, 
   {
@@ -1425,14 +1425,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for construction of a structure or tuple just to\nassign a value in it.", 
-      "Why is this bad": "Readability. If the structure is only created to be\nupdated, why not write the structure you want in the first place?", 
-      "Example": "```rust\n(0, 0).0 = 1\n```", 
+      "What it does": "Checks for the Unicode zero-width space in the code.", 
+      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.", 
+      "Example": "You don't see it, but there may be a zero-width space\nsomewhere in this text.", 
       "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "temporary_assignment", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "zero_width_space", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2094,6 +2094,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for lifetimes in generics that are never used\nanywhere else.", 
+      "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.", 
+      "Example": "```rust\nfn unused_lifetime<'a>(x: u8) { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "complexity", 
+    "id": "extra_unused_lifetimes", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`", 
       "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`", 
       "Configuration": "This lint has the following configuration variables:\n\n* `verbose-bit-mask-threshold: u64`: The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros' (defaults to `1 `).", 
@@ -2575,17 +2586,6 @@
     "group": "complexity", 
     "id": "double_parens", 
     "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for the Unicode zero-width space in the code.", 
-      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.", 
-      "Example": "You don't see it, but there may be a zero-width space\nsomewhere in this text.", 
-      "Known problems": "None."
-    }, 
-    "group": "correctness", 
-    "id": "zero_width_space", 
-    "level": "Deny"
   }, 
   {
     "docs": {
