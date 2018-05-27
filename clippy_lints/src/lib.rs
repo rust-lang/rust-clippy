@@ -200,6 +200,7 @@ pub mod unsafe_removed_from_name;
 pub mod unused_io_amount;
 pub mod unused_label;
 pub mod use_self;
+pub mod use_shared_from_slice;
 pub mod vec;
 pub mod write;
 pub mod zero_div_zero;
@@ -914,6 +915,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         mutex_atomic::MUTEX_INTEGER,
         needless_borrow::NEEDLESS_BORROW,
         ranges::RANGE_PLUS_ONE,
+        use_shared_from_slice::USE_SHARED_FROM_SLICE,
     ]);
 }
 
