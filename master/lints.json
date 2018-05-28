@@ -2513,6 +2513,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for references in expressions that use\nauto dereference.", 
+      "Why is this bad": "The reference is a no-op and is automatically\ndereferenced by the compiler and makes the code less clear.", 
+      "Example": "```rust\nstruct Point(u32, u32);\nlet point = Foo(30, 20);\nlet x = (&point).x;\n```"
+    }, 
+    "group": "complexity", 
+    "id": "ref_in_deref", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `x >= y + 1` or `x - 1 >= y` (and `<=`) in a block", 
       "Why is this bad": "Readability -- better to use `> y` instead of `>= y + 1`.", 
       "Example": "```rust\nx >= y + 1\n```\n\nCould be written:\n\n```rust\nx > y\n```", 
