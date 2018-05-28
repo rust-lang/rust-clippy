@@ -50,13 +50,14 @@ impl <'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             if match_type(cx, expr_ty, &paths::RC);
             if match_type(cx, subst.type_at(1), &paths::VEC);
             then {
+                cx.sess().note_without_error(&format!("{:?}", subst));
                 span_lint_and_sugg(
                     cx,
                     USE_SHARED_FROM_SLICE,
                     expr.span,
                     "constructing reference-counted type from vec",
                     "consider using `into()`",
-                    format!("TODO"),
+                    format!("{}", "TODO"),
                 );
             }
         }
