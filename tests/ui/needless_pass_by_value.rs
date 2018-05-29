@@ -115,9 +115,9 @@ trait FalsePositive {
 // shouldn't warn on extern funcs
 extern "C" fn ext(x: String) -> usize { x.len() }
 
-// whitelist RangeArgument
-fn range<T: ::std::collections::range::RangeArgument<usize>>(range: T) {
-    let _ = range.start();
+// whitelist RangeBounds
+fn range<T: ::std::ops::RangeBounds<usize>>(range: T) {
+    let _ = range.start_bound();
 }
 
 struct CopyWrapper(u32);
