@@ -1,0 +1,112 @@
+error: use slice instead of `Vec` in reference-counted type
+ --> $DIR/use_shared_from_slice.rs:9:23
+  |
+9 |     let bad_rc_vec_0: Rc<Vec<usize>> = Rc::new(vec!(1, 2, 3));
+  |                       ^^^^^^^^^^^^^^ help: use: `Rc<[usize]>`
+  |
+  = note: `-D use-shared-from-slice` implied by `-D warnings`
+
+error: avoid constructing reference-counted type from Vec; convert from slice instead
+ --> $DIR/use_shared_from_slice.rs:9:40
+  |
+9 |     let bad_rc_vec_0: Rc<Vec<usize>> = Rc::new(vec!(1, 2, 3));
+  |                                        ^^^^^^^^^^^^^^^^^^^^^^ help: use: `vec!(1, 2, 3).into()`
+
+error: use slice instead of `Vec` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:10:24
+   |
+10 |     let bad_rc_vec_00: rc::Rc<Vec<usize>> = rc::Rc::new(vec!(1, 2, 3));
+   |                        ^^^^^^^^^^^^^^^^^^ help: use: `Rc<[usize]>`
+
+error: avoid constructing reference-counted type from Vec; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:10:45
+   |
+10 |     let bad_rc_vec_00: rc::Rc<Vec<usize>> = rc::Rc::new(vec!(1, 2, 3));
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `vec!(1, 2, 3).into()`
+
+error: use slice instead of `Vec` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:13:23
+   |
+13 |     let bad_rc_vec_1: Rc<Vec<usize>> = Rc::new(example_vec);
+   |                       ^^^^^^^^^^^^^^ help: use: `Rc<[usize]>`
+
+error: avoid constructing reference-counted type from Vec; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:13:40
+   |
+13 |     let bad_rc_vec_1: Rc<Vec<usize>> = Rc::new(example_vec);
+   |                                        ^^^^^^^^^^^^^^^^^^^^ help: use: `example_vec.into()`
+
+error: use slice instead of `String` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:15:26
+   |
+15 |     let bad_rc_string_0: Rc<String> = Rc::new("test".to_string());
+   |                          ^^^^^^^^^^ help: use: `Rc<str>`
+
+error: avoid constructing reference-counted type from String; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:15:39
+   |
+15 |     let bad_rc_string_0: Rc<String> = Rc::new("test".to_string());
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"test".to_string().as_str().into()`
+
+error: use slice instead of `String` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:18:26
+   |
+18 |     let bad_rc_string_1: Rc<String> = Rc::new(example_string);
+   |                          ^^^^^^^^^^ help: use: `Rc<str>`
+
+error: avoid constructing reference-counted type from String; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:18:39
+   |
+18 |     let bad_rc_string_1: Rc<String> = Rc::new(example_string);
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `example_string.as_str().into()`
+
+error: use slice instead of `Vec` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:21:24
+   |
+21 |     let bad_arc_vec_0: Arc<Vec<usize>> = Arc::new(vec!(1, 2, 3));
+   |                        ^^^^^^^^^^^^^^^ help: use: `Arc<[usize]>`
+
+error: avoid constructing reference-counted type from Vec; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:21:42
+   |
+21 |     let bad_arc_vec_0: Arc<Vec<usize>> = Arc::new(vec!(1, 2, 3));
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `vec!(1, 2, 3).into()`
+
+error: use slice instead of `Vec` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:24:24
+   |
+24 |     let bad_arc_vec_1: Arc<Vec<usize>> = Arc::new(example_vec);
+   |                        ^^^^^^^^^^^^^^^ help: use: `Arc<[usize]>`
+
+error: avoid constructing reference-counted type from Vec; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:24:42
+   |
+24 |     let bad_arc_vec_1: Arc<Vec<usize>> = Arc::new(example_vec);
+   |                                          ^^^^^^^^^^^^^^^^^^^^^ help: use: `example_vec.into()`
+
+error: use slice instead of `String` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:26:27
+   |
+26 |     let bad_arc_string_0: Arc<String> = Arc::new("test".to_string());
+   |                           ^^^^^^^^^^^ help: use: `Arc<str>`
+
+error: avoid constructing reference-counted type from String; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:26:41
+   |
+26 |     let bad_arc_string_0: Arc<String> = Arc::new("test".to_string());
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"test".to_string().as_str().into()`
+
+error: use slice instead of `String` in reference-counted type
+  --> $DIR/use_shared_from_slice.rs:29:27
+   |
+29 |     let bad_arc_string_0: Arc<String> = Arc::new(example_string);
+   |                           ^^^^^^^^^^^ help: use: `Arc<str>`
+
+error: avoid constructing reference-counted type from String; convert from slice instead
+  --> $DIR/use_shared_from_slice.rs:29:41
+   |
+29 |     let bad_arc_string_0: Arc<String> = Arc::new(example_string);
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `example_string.as_str().into()`
+
+error: aborting due to 18 previous errors
+

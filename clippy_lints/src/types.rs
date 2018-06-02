@@ -12,8 +12,8 @@ use std::borrow::Cow;
 use syntax::ast::{FloatTy, IntTy, UintTy};
 use syntax::codemap::Span;
 use syntax::errors::DiagnosticBuilder;
-use crate::utils::{comparisons, differing_macro_contexts, higher, in_constant, in_external_macro, in_macro, last_path_segment, match_def_path, match_path,
-            match_type, multispan_sugg, opt_def_id, same_tys, snippet, snippet_opt, span_help_and_lint, span_lint,
+use crate::utils::{comparisons, differing_macro_contexts, higher, in_constant, in_external_macro, in_macro, match_def_path, match_path,
+            match_type, multispan_sugg, opt_def_id, same_tys, snippet, snippet_opt, span_help_and_lint, span_lint, match_type_parameter,
             span_lint_and_sugg, span_lint_and_then, clip, unsext, sext, int_bits};
 use crate::utils::paths;
 use crate::consts::{constant, Constant};
@@ -174,23 +174,6 @@ fn check_fn_decl(cx: &LateContext, decl: &FnDecl) {
     if let FunctionRetTy::Return(ref ty) = decl.output {
         check_ty(cx, ty, false);
     }
-}
-
-/// Check if `qpath` has last segment with type parameter matching `path`
-fn match_type_parameter(cx: &LateContext, qpath: &QPath, path: &[&str]) -> bool {
-    let last = last_path_segment(qpath);
-    if_chain! {
-        if let Some(ref params) = last.parameters;
-        if !params.parenthesized;
-        if let Some(ty) = params.types.get(0);
-        if let TyPath(ref qpath) = ty.node;
-        if let Some(did) = opt_def_id(cx.tables.qpath_def(qpath, cx.tcx.hir.node_to_hir_id(ty.id)));
-        if match_def_path(cx.tcx, did, path);
-        then {
-            return true;
-        }
-    }
-    false
 }
 
 /// Recursively check for `TypePass` lints in the given type. Stop at the first

@@ -419,6 +419,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_early_lint_pass(box multiple_crate_versions::Pass);
     reg.register_late_lint_pass(box map_unit_fn::Pass);
     reg.register_late_lint_pass(box infallible_destructuring_match::Pass);
+    reg.register_late_lint_pass(box use_shared_from_slice::Pass);
     reg.register_late_lint_pass(box inherent_impl::Pass::default());
 
 

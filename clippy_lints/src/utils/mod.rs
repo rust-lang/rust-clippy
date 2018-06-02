@@ -149,6 +149,45 @@ pub fn match_type(cx: &LateContext, ty: Ty, path: &[&str]) -> bool {
     }
 }
 
+/// Return the type parameter from a path.
+///
+/// # Examples
+/// ```rust,ignore
+/// // let path be a QPath representing `Vec<usize>`
+/// get_type_parameter(path)
+/// // => type(usize)
+/// ```
+pub fn get_type_parameter<'a>(qpath: &'a QPath) -> Option<&'a hir::Ty> {
+    let last = last_path_segment(qpath);
+    if_chain! {
+        if let Some(ref params) = last.parameters;
+        if !params.parenthesized;
+        if let Some(ty) = params.types.get(0);
+        then {
+            Some(ty)
+        } else {
+            None
+        }
+    }
+}
+
+/// Check if `qpath` has last segment with type parameter matching `path`
+pub fn match_type_parameter(cx: &LateContext, qpath: &QPath, path: &[&str]) -> bool {
+    let last = last_path_segment(qpath);
+    if_chain! {
+        if let Some(ref params) = last.parameters;
+        if !params.parenthesized;
+        if let Some(ty) = params.types.get(0);
+        if let TyPath(ref qpath) = ty.node;
+        if let Some(did) = opt_def_id(cx.tables.qpath_def(qpath, cx.tcx.hir.node_to_hir_id(ty.id)));
+        if match_def_path(cx.tcx, did, path);
+        then {
+            return true;
+        }
+    }
+    false
+}
+
 /// Check if the method call given in `expr` belongs to given type.
 pub fn match_impl_method(cx: &LateContext, expr: &Expr, path: &[&str]) -> bool {
     let method_call = cx.tables.type_dependent_defs()[expr.hir_id];
