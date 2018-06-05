@@ -1698,6 +1698,18 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
+      "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250 `).", 
+      "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "complexity", 
+    "id": "type_complexity", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for items that implement `.len()` but not\n`.is_empty()`.", 
       "Why is this bad": "It is good custom to have both methods, because for\nsome data structures, asking about the length will be a costly operation,\nwhereas `.is_empty()` can usually answer in constant time. Also it used to\nlead to false positives on the [`len_zero`](#len_zero) lint \u2013 currently that\nlint will ignore such entities.", 
       "Example": "```rust\nimpl X {\n    pub fn len(&self) -> usize { .. }\n}\n```", 
@@ -1859,6 +1871,17 @@
     }, 
     "group": "style", 
     "id": "suspicious_else_formatting", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for casts of a function pointer to a numeric type except `usize`.", 
+      "Why is this bad": "Casting a function pointer to something other than `usize` is not a good style.", 
+      "Example": "```rust\nfn test_fn() -> i16;\nlet _ = test_fn as i128\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "fn_to_numeric_cast", 
     "level": "Warn"
   }, 
   {
@@ -2291,15 +2314,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
-      "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250 `).", 
-      "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
+      "What it does": "Checks for casts of a function pointer to a numeric type not enough to store address.", 
+      "Why is this bad": "Casting a function pointer to not eligable type could truncate the address value.", 
+      "Example": "```rust\nfn test_fn() -> i16;\nlet _ = test_fn as i32\n```", 
       "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "type_complexity", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "fn_to_numeric_cast_with_truncation", 
+    "level": "Deny"
   }, 
   {
     "docs": {
