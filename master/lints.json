@@ -2151,6 +2151,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calls of unwrap[_err]() that cannot fail.", 
+      "Why is this bad": "Using `if let` or `match` is more idiomatic.", 
+      "Example": "```rust\nif option.is_some() {\n    do_something_with(option.unwrap())\n}\n```\n\nCould be written:\n\n```rust\nif let Some(value) = option {\n    do_something_with(value)\n}\n```", 
+      "Known problems": "Limitations of the borrow checker might make unwrap() necessary sometimes?"
+    }, 
+    "group": "nursery", 
+    "id": "unnecessary_unwrap", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for mapping `clone()` over an iterator.", 
       "Why is this bad": "It makes the code less readable than using the\n`.cloned()` adapter.", 
       "Example": "```rust\nx.map(|e| e.clone());\n```", 
