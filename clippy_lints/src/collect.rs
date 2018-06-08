@@ -43,7 +43,7 @@ declare_clippy_lint! {
     "missed shortcircuit opportunity on collect"
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Pass {
     // To ensure that we do not lint the same expression more than once
     seen_expr_nodes: HashSet<NodeId>,
@@ -69,7 +69,7 @@ struct Suggestion {
 
 fn format_suggestion_pattern<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
-    collection_ty: TypeVariants,
+    collection_ty: &TypeVariants,
     is_option: bool,
 ) -> String {
     let collection_pat = match collection_ty {
@@ -125,13 +125,13 @@ fn check_expr_for_collect<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr
 
                     return if match_type(cx, normal_ty, &paths::OPTION) {
                         Some(Suggestion {
-                            pattern: format_suggestion_pattern(cx, collect_ty.sty.clone(), true),
+                            pattern: format_suggestion_pattern(cx, &collect_ty.sty.clone(), true),
                             type_colloquial: "Option",
                             success_variant: "Some",
                         })
                     } else if match_type(cx, normal_ty, &paths::RESULT) {
                         Some(Suggestion {
-                            pattern: format_suggestion_pattern(cx, collect_ty.sty.clone(), false),
+                            pattern: format_suggestion_pattern(cx, &collect_ty.sty.clone(), false),
                             type_colloquial: "Result",
                             success_variant: "Ok",
                         })
