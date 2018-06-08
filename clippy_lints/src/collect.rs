@@ -1,7 +1,7 @@
 use itertools::{repeat_n, Itertools};
 use rustc::hir::*;
 use rustc::lint::*;
-use rustc::ty::TypeVariants;
+use rustc::ty::{AssociatedKind, TypeVariants};
 use syntax::ast::NodeId;
 
 use std::collections::HashSet;
@@ -108,30 +108,37 @@ fn check_expr_for_collect<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr
             // Get the type of the Item associated to the Iterator on which collect() is
             // called.
             let arg_ty = cx.tables.expr_ty(&args[0]);
-            let method_call = cx.tables.type_dependent_defs()[args[0].hir_id];
-            let trt_id = cx.tcx.trait_of_item(method_call.def_id()).unwrap();
-            let assoc_item_id = cx.tcx.associated_items(trt_id).next().unwrap().def_id;
-            let substitutions = cx.tcx.mk_substs_trait(arg_ty, &[]);
-            let projection = cx.tcx.mk_projection(assoc_item_id, substitutions);
-            let normal_ty = cx.tcx.normalize_erasing_regions(
-                cx.param_env,
-                projection,
-            );
+            let ty_defs = cx.tables.type_dependent_defs();
+            if_chain! {
+                if let Some(method_call) = ty_defs.get(args[0].hir_id);
+                if let Some(trt_id) = cx.tcx.trait_of_item(method_call.def_id());
+                if let Some(assoc_item) = cx.tcx.associated_items(trt_id).next();
+                if assoc_item.kind == AssociatedKind::Type;
+                then {
+                    let assoc_item_id = assoc_item.def_id;
+                    let substitutions = cx.tcx.mk_substs_trait(arg_ty, &[]);
+                    let projection = cx.tcx.mk_projection(assoc_item_id, substitutions);
+                    let normal_ty = cx.tcx.normalize_erasing_regions(
+                        cx.param_env,
+                        projection,
+                    );
 
-            return if match_type(cx, normal_ty, &paths::OPTION) {
-                Some(Suggestion {
-                    pattern: format_suggestion_pattern(cx, collect_ty.sty.clone(), true),
-                    type_colloquial: "Option",
-                    success_variant: "Some",
-                })
-            } else if match_type(cx, normal_ty, &paths::RESULT) {
-                Some(Suggestion {
-                    pattern: format_suggestion_pattern(cx, collect_ty.sty.clone(), false),
-                    type_colloquial: "Result",
-                    success_variant: "Ok",
-                })
-            } else {
-                None
+                    return if match_type(cx, normal_ty, &paths::OPTION) {
+                        Some(Suggestion {
+                            pattern: format_suggestion_pattern(cx, collect_ty.sty.clone(), true),
+                            type_colloquial: "Option",
+                            success_variant: "Some",
+                        })
+                    } else if match_type(cx, normal_ty, &paths::RESULT) {
+                        Some(Suggestion {
+                            pattern: format_suggestion_pattern(cx, collect_ty.sty.clone(), false),
+                            type_colloquial: "Result",
+                            success_variant: "Ok",
+                        })
+                    } else {
+                        None
+                    };
+                }
             };
         }
     }
