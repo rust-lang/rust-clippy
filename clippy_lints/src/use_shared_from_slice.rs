@@ -114,7 +114,6 @@ fn check_rc_type<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, ty: &hir::Ty) {
                     }
                 }
                 if has_string {
-                    //ty.node = TyPath(hir::Resolved(None, P()))
                     let msg = "use slice instead of `String` in reference-counted type";
                     let help = "use";
                     let sugg = format!("{}<str>", constructor);
