@@ -89,39 +89,36 @@ fn check_rc_construction<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr)
 /// If `ty`, the declared type, is an `Rc` or `Arc` containing a `Vec` or
 /// `String` then output a suggestion to change it.
 fn check_rc_type<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, ty: &hir::Ty) {
-    match ty.node {
-        hir::TyPath(ref qpath) => {
-            let matches_rc = match_qpath(qpath, &paths::RC);
-            let matches_arc = match_qpath(qpath, &paths::ARC);
-            if matches_rc || matches_arc {
-                let has_vec = match_type_parameter(cx, qpath, &paths::VEC);
-                let has_string = match_type_parameter(cx, qpath, &paths::STRING);
-                // Keep the type for making suggestions later.
-                let constructor = if matches_arc { "Arc" } else { "Rc" };
-                if_chain! {
-                    if has_vec;
-                    // In the case we have something like `Rc<Vec<usize>>`, get the inner parameter
-                    // type out from the parameter type of the `Rc`; so in this example, get the
-                    // type `usize`. Use this to suggest using the type `Rc<[usize]>` instead.
-                    let mut vec_ty = get_type_parameter(qpath).expect("");
-                    if let hir::TyPath(ref vec_qpath) = vec_ty.node;
-                    if let Some(param_ty) = get_type_parameter(&vec_qpath);
-                    then {
-                        let msg = "use slice instead of `Vec` in reference-counted type";
-                        let help = "use";
-                        let sugg = format!("{}<[{}]>", constructor, snippet(cx, param_ty.span.source_callsite(), ".."));
-                        span_lint_and_sugg(cx, USE_SHARED_FROM_SLICE, ty.span, msg, help, sugg);
-                    }
-                }
-                if has_string {
-                    let msg = "use slice instead of `String` in reference-counted type";
+    if let hir::TyPath(ref qpath) = ty.node {
+        let matches_rc = match_qpath(qpath, &paths::RC);
+        let matches_arc = match_qpath(qpath, &paths::ARC);
+        if matches_rc || matches_arc {
+            let has_vec = match_type_parameter(cx, qpath, &paths::VEC);
+            let has_string = match_type_parameter(cx, qpath, &paths::STRING);
+            // Keep the type for making suggestions later.
+            let constructor = if matches_arc { "Arc" } else { "Rc" };
+            if_chain! {
+                if has_vec;
+                // In the case we have something like `Rc<Vec<usize>>`, get the inner parameter
+                // type out from the parameter type of the `Rc`; so in this example, get the
+                // type `usize`. Use this to suggest using the type `Rc<[usize]>` instead.
+                let mut vec_ty = get_type_parameter(qpath).expect("");
+                if let hir::TyPath(ref vec_qpath) = vec_ty.node;
+                if let Some(param_ty) = get_type_parameter(&vec_qpath);
+                then {
+                    let msg = "use slice instead of `Vec` in reference-counted type";
                     let help = "use";
-                    let sugg = format!("{}<str>", constructor);
+                    let sugg = format!("{}<[{}]>", constructor, snippet(cx, param_ty.span.source_callsite(), ".."));
                     span_lint_and_sugg(cx, USE_SHARED_FROM_SLICE, ty.span, msg, help, sugg);
                 }
             }
-        },
-        _ => {},
+            if has_string {
+                let msg = "use slice instead of `String` in reference-counted type";
+                let help = "use";
+                let sugg = format!("{}<str>", constructor);
+                span_lint_and_sugg(cx, USE_SHARED_FROM_SLICE, ty.span, msg, help, sugg);
+            }
+        }
     }
 }
 
