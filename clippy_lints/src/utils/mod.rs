@@ -8,7 +8,7 @@ use rustc::hir::map::Node;
 use rustc::lint::{LateContext, Level, Lint, LintContext};
 use rustc::session::Session;
 use rustc::traits;
-use rustc::ty::{self, Ty, TyCtxt, layout::{self, IntegerExt}, subst::Kind};
+use rustc::ty::{self, Binder, Ty, TyCtxt, layout::{self, IntegerExt}, subst::Kind};
 use rustc_errors::{Applicability, CodeSuggestion, Substitution, SubstitutionPart};
 use std::borrow::Cow;
 use std::env;
@@ -32,6 +32,7 @@ pub mod inspector;
 pub mod internal_lints;
 pub mod author;
 pub mod ptr;
+pub mod usage;
 pub use self::hir_utils::{SpanlessEq, SpanlessHash};
 
 pub type MethodArgs = HirVec<P<Expr>>;
@@ -908,10 +909,14 @@ pub fn return_ty<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, fn_item: NodeId) -> Ty<'t
 }
 
 /// Check if two types are the same.
+///
+/// This discards any lifetime annotations, too.
 // FIXME: this works correctly for lifetimes bounds (`for <'a> Foo<'a>` == `for
 // <'b> Foo<'b>` but
 // not for type parameters.
 pub fn same_tys<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, a: Ty<'tcx>, b: Ty<'tcx>) -> bool {
+    let a = cx.tcx.erase_late_bound_regions(&Binder::bind(a));
+    let b = cx.tcx.erase_late_bound_regions(&Binder::bind(b));
     cx.tcx
         .infer_ctxt()
         .enter(|infcx| infcx.can_eq(cx.param_env, a, b).is_ok())
