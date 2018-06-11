@@ -2973,6 +2973,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,\netc., and suggests to use `unwrap_or_else` instead", 
+      "Why is this bad": "The function will always be called.", 
+      "Example": "```rust\nfoo.expect(&format(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.expect(format(\"Err {}: {}\", err_code, err_msg).as_str())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(|_| panic!(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.unwrap_or_else(|_| panic!(format(\"Err {}: {}\", err_code, err_msg).as_str()))\n```", 
+      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
+    }, 
+    "group": "perf", 
+    "id": "expect_fun_call", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for C-like enumerations that are\n`repr(isize/usize)` and have values that don't fit into an `i32`.", 
       "Why is this bad": "This will truncate the variant value on 32 bit\narchitectures, but works fine on 64 bit.", 
       "Example": "```rust\n#[repr(usize)]\nenum NonPortable {\n    X = 0x1_0000_0000,\n    Y = 0\n}\n```", 
