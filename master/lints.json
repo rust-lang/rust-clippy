@@ -519,14 +519,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for iteration that is guaranteed to be infinite.", 
-      "Why is this bad": "While there may be places where this is acceptable\n(e.g. in event streams), in most cases this is simply an error.", 
-      "Example": "```rust\nrepeat(1_u8).iter().collect::<Vec<_>>()\n```", 
+      "What it does": "Checks for multiple inherent implementations of a struct", 
+      "Why is this bad": "Splitting the implementation of a type makes the code harder to navigate.", 
+      "Example": "```rust\nstruct X;\nimpl X {\n    fn one() {}\n}\nimpl X {\n    fn other() {}\n}\n```\n\nCould be written:\n\n```rust\nstruct X;\nimpl X {\n    fn one() {}\n    fn other() {}\n}\n```", 
       "Known problems": "None."
     }, 
-    "group": "correctness", 
-    "id": "infinite_iter", 
-    "level": "Deny"
+    "group": "restriction", 
+    "id": "multiple_inherent_impl", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -919,14 +919,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for lifetime annotations which can be removed by\nrelying on lifetime elision.", 
-      "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.", 
-      "Example": "```rust\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 { x }\n```", 
-      "Known problems": "Potential false negatives: we bail out if the function\nhas a `where` clause where lifetimes are mentioned."
+      "What it does": "Checks for `#[inline]` on trait methods without bodies", 
+      "Why is this bad": "Only implementations of trait methods may be inlined.\nThe inline attribute is ignored for trait methods without bodies.", 
+      "Example": "```rust\ntrait Animal {\n    #[inline]\n    fn name(&self) -> &'static str;\n}\n```", 
+      "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "needless_lifetimes", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "inline_fn_without_body", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1621,6 +1621,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calling `.step_by(0)` on iterators,\nwhich never terminates.", 
+      "Why is this bad": "This very much looks like an oversight, since with\n`loop { .. }` there is an obvious better way to endlessly loop.", 
+      "Example": "```rust\nfor x in (5..5).step_by(0) { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "iterator_step_by_zero", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for arguments to `==` which have their address\ntaken to satisfy a bound\nand suggests to dereference the other argument instead", 
       "Why is this bad": "It is more idiomatic to dereference the other argument.", 
       "Example": "```rust\n&x == y\n```", 
@@ -2237,14 +2248,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `#[inline]` on trait methods without bodies", 
-      "Why is this bad": "Only implementations of trait methods may be inlined.\nThe inline attribute is ignored for trait methods without bodies.", 
-      "Example": "```rust\ntrait Animal {\n    #[inline]\n    fn name(&self) -> &'static str;\n}\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for lifetime annotations which can be removed by\nrelying on lifetime elision.", 
+      "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.", 
+      "Example": "```rust\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 { x }\n```", 
+      "Known problems": "Potential false negatives: we bail out if the function\nhas a `where` clause where lifetimes are mentioned."
     }, 
-    "group": "correctness", 
-    "id": "inline_fn_without_body", 
-    "level": "Deny"
+    "group": "complexity", 
+    "id": "needless_lifetimes", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2380,6 +2391,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calculation of subsecond microseconds or milliseconds\nfrom other `Duration` methods.", 
+      "Why is this bad": "It's more concise to call `Duration::subsec_micros()` or\n`Duration::subsec_millis()` than to calculate them.", 
+      "Example": "```rust\nlet dur = Duration::new(5, 0);\nlet _micros = dur.subsec_nanos() / 1_000;\nlet _millis = dur.subsec_nanos() / 1_000_000;\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "complexity", 
+    "id": "duration_subsec", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for loops over ranges `x..y` where both `x` and `y`\nare constant and `x` is greater or equal to `y`, unless the range is\nreversed or has a negative `.step_by(_)`.", 
       "Why is it bad": "Such loops will either be skipped or loop until\nwrap-around (in debug code, this may `panic!()`). Both options are probably\nnot intended.", 
       "Example": "```rust\nfor x in 5..10-5 { .. } // oops, stray `-`\n```", 
@@ -2466,17 +2488,6 @@
     "group": "correctness", 
     "id": "ineffective_bit_mask", 
     "level": "Deny"
-  }, 
-  {
-    "docs": {
-      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
-      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
-      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
-      "Known problems": "None"
-    }, 
-    "group": "pedantic", 
-    "id": "needless_continue", 
-    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2862,13 +2873,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for multiple inherent implementations of a struct", 
-      "Why is this bad": "Splitting the implementation of a type makes the code harder to navigate.", 
-      "Example": "```rust\nstruct X;\nimpl X {\n    fn one() {}\n}\nimpl X {\n    fn other() {}\n}\n```\n\nCould be written:\n\n```rust\nstruct X;\nimpl X {\n    fn one() {}\n    fn other() {}\n}\n```", 
-      "Known problems": "None."
+      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
+      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
+      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
+      "Known problems": "None"
     }, 
-    "group": "restriction", 
-    "id": "multiple_inherent_impl", 
+    "group": "pedantic", 
+    "id": "needless_continue", 
     "level": "Allow"
   }, 
   {
@@ -2940,13 +2951,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calling `.step_by(0)` on iterators,\nwhich never terminates.", 
-      "Why is this bad": "This very much looks like an oversight, since with\n`loop { .. }` there is an obvious better way to endlessly loop.", 
-      "Example": "```rust\nfor x in (5..5).step_by(0) { .. }\n```", 
+      "What it does": "Checks for iteration that is guaranteed to be infinite.", 
+      "Why is this bad": "While there may be places where this is acceptable\n(e.g. in event streams), in most cases this is simply an error.", 
+      "Example": "```rust\nrepeat(1_u8).iter().collect::<Vec<_>>()\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
-    "id": "iterator_step_by_zero", 
+    "id": "infinite_iter", 
     "level": "Deny"
   }, 
   {
