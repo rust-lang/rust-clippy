@@ -2162,7 +2162,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls of `unwrap[_err]()` that cannot fail.", 
+      "What it does": "Checks for calls of unwrap[_err]() that cannot fail.", 
       "Why is this bad": "Using `if let` or `match` is more idiomatic.", 
       "Example": "```rust\nif option.is_some() {\n    do_something_with(option.unwrap())\n}\n```\n\nCould be written:\n\n```rust\nif let Some(value) = option {\n    do_something_with(value)\n}\n```", 
       "Known problems": "Limitations of the borrow checker might make unwrap() necessary sometimes?"
