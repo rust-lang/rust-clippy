@@ -2040,7 +2040,7 @@
   }, 
   {
     "docs": {
-      "What it does": "* Lint for redundant pattern matching over `Result` or\n`Option`", 
+      "What it does": "Lint for redundant pattern matching over `Result` or\n`Option`", 
       "Why is this bad": "It's more concise and clear to just use the proper\nutility function", 
       "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\n```\n\nThe more idiomatic use would be:\n\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\n```\n", 
       "Known problems": "None."
@@ -2162,7 +2162,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls of unwrap[_err]() that cannot fail.", 
+      "What it does": "Checks for calls of `unwrap[_err]()` that cannot fail.", 
       "Why is this bad": "Using `if let` or `match` is more idiomatic.", 
       "Example": "```rust\nif option.is_some() {\n    do_something_with(option.unwrap())\n}\n```\n\nCould be written:\n\n```rust\nif let Some(value) = option {\n    do_something_with(value)\n}\n```", 
       "Known problems": "Limitations of the borrow checker might make unwrap() necessary sometimes?"
