@@ -1051,6 +1051,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for casts of a function pointer to a numeric type not enough to store address.", 
+      "Why is this bad": "Casting a function pointer to not eligable type could truncate the address value.", 
+      "Example": "```rust\nfn test_fn() -> i16;\nlet _ = test_fn as i32\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "fn_to_numeric_cast_with_truncation", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Detects expressions of the form `--x`.", 
       "Why is this bad": "It can mislead C/C++ programmers to think `x` was\ndecremented.", 
       "Example": "```rust\n--x;\n```", 
@@ -1381,13 +1392,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for manual swapping.", 
-      "Why is this bad": "The `std::mem::swap` function exposes the intent better\nwithout deinitializing or copying either variable.", 
-      "Example": "```rust,ignore\nlet t = b;\nb = a;\na = t;\n```", 
+      "What it does": "Checks for literal calls to `Default::default()`.", 
+      "Why is this bad": "It's more clear to the reader to use the name of the type whose default is\nbeing gotten than the generic `Default`.", 
+      "Example": "```rust\n// Bad\nlet s: String = Default::default();\n\n// Good\nlet s = String::default();\n```", 
       "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "manual_swap", 
+    "group": "style", 
+    "id": "default_trait_access", 
     "level": "Warn"
   }, 
   {
@@ -2348,14 +2359,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for casts of a function pointer to a numeric type not enough to store address.", 
-      "Why is this bad": "Casting a function pointer to not eligable type could truncate the address value.", 
-      "Example": "```rust\nfn test_fn() -> i16;\nlet _ = test_fn as i32\n```", 
+      "What it does": "Checks for manual swapping.", 
+      "Why is this bad": "The `std::mem::swap` function exposes the intent better\nwithout deinitializing or copying either variable.", 
+      "Example": "```rust,ignore\nlet t = b;\nb = a;\na = t;\n```", 
       "Known problems": "None."
     }, 
-    "group": "correctness", 
-    "id": "fn_to_numeric_cast_with_truncation", 
-    "level": "Deny"
+    "group": "complexity", 
+    "id": "manual_swap", 
+    "level": "Warn"
   }, 
   {
     "docs": {
