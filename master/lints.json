@@ -2863,6 +2863,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calls of `unwrap[_err]()` that will always fail.", 
+      "Why is this bad": "If panicking is desired, an explicit `panic!()` should be used.", 
+      "Example": "```rust\nif option.is_none() {\n    do_something_with(option.unwrap())\n}\n```\n\nThis code will always panic. The if condition should probably be inverted.", 
+      "Known problems": "This lint only checks `if` conditions not assignments.\nSo something like `let x: Option<()> = None; x.unwrap();` will not be recognized."
+    }, 
+    "group": "nursery", 
+    "id": "panicking_unwrap", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for comparisons to unit.", 
       "Why is this bad": "Unit is always equal to itself, and thus is just a\nclumsily written constant. Mostly this happens when someone accidentally\nadds semicolons at the end of the operands.", 
       "Example": "```rust\nif { foo(); } == { bar(); } { baz(); }\n```\nis equal to\n```rust\n{ foo(); bar(); baz(); }\n```", 
