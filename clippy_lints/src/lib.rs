@@ -123,6 +123,7 @@ pub mod empty_enum;
 pub mod entry;
 pub mod enum_clike;
 pub mod enum_glob_use;
+pub mod enum_sex;
 pub mod enum_variants;
 pub mod eq_op;
 pub mod erasing_op;
@@ -432,6 +433,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
     reg.register_late_lint_pass(box unwrap::Pass);
     reg.register_late_lint_pass(box duration_subsec::DurationSubsec);
     reg.register_late_lint_pass(box default_trait_access::DefaultTraitAccess);
+    reg.register_late_lint_pass(box enum_sex::EnumSex);
 
 
     reg.register_lint_group("clippy_restriction", vec![
@@ -465,6 +467,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry) {
         doc::DOC_MARKDOWN,
         empty_enum::EMPTY_ENUM,
         enum_glob_use::ENUM_GLOB_USE,
+        enum_sex::ENUM_SEX,
         enum_variants::PUB_ENUM_VARIANT_NAMES,
         enum_variants::STUTTER,
         if_not_else::IF_NOT_ELSE,

@@ -1,0 +1,22 @@
+error: enum named `Sex` or `Gender` with only two variants
+  --> $DIR/enum_sex.rs:8:5
+   |
+8  | /     enum Sex {
+9  | |         Female,
+10 | |         Male,
+11 | |     }
+   | |_____^
+   |
+   = note: `-D enum-sex` implied by `-D warnings`
+
+error: enum named `Sex` or `Gender` with only two variants
+  --> $DIR/enum_sex.rs:13:5
+   |
+13 | /     enum Gender {
+14 | |         M,
+15 | |         F,
+16 | |     }
+   | |_____^
+
+error: aborting due to 2 previous errors
+
