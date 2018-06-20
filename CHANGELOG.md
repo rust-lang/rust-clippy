@@ -638,6 +638,7 @@ All notable changes to this project will be documented in this file.
 [`crosspointer_transmute`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#crosspointer_transmute
 [`cyclomatic_complexity`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#cyclomatic_complexity
 [`decimal_literal_representation`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#decimal_literal_representation
+[`default_trait_access`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#default_trait_access
 [`deprecated_semver`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#deprecated_semver
 [`deref_addrof`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#deref_addrof
 [`derive_hash_xor_eq`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#derive_hash_xor_eq
@@ -656,6 +657,7 @@ All notable changes to this project will be documented in this file.
 [`empty_loop`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#empty_loop
 [`enum_clike_unportable_variant`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#enum_clike_unportable_variant
 [`enum_glob_use`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#enum_glob_use
+[`enum_sex`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#enum_sex
 [`enum_variant_names`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#enum_variant_names
 [`eq_op`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#eq_op
 [`erasing_op`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#erasing_op
@@ -778,6 +780,7 @@ All notable changes to this project will be documented in this file.
 [`out_of_bounds_indexing`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#out_of_bounds_indexing
 [`overflow_check_conditional`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#overflow_check_conditional
 [`panic_params`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#panic_params
+[`panicking_unwrap`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#panicking_unwrap
 [`partialeq_ne_impl`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#partialeq_ne_impl
 [`possible_missing_comma`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#possible_missing_comma
 [`precedence`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#precedence
