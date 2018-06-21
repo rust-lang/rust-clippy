@@ -899,12 +899,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of indexing or slicing.", 
-      "Why is this bad": "Usually, this can be safely allowed. However, in some\ndomains such as kernel development, a panic can cause the whole operating\nsystem to crash.", 
-      "Example": "```rust\n...\nx[2];\n&x[0..2];\n```", 
+      "What it does": "Checks for usage of indexing or slicing. Arrays are special cased, this lint\ndoes report on arrays if we can tell that slicing operations are in bounds and does not\nlint on constant `usize` indexing on arrays because that is handled by rustc's `const_err` lint.", 
+      "Why is this bad": "Indexing and slicing can panic at runtime and there are\nsafe alternatives.", 
+      "Example": "```rust\n// Vector\nlet x = vec![0; 5];\n\n// Bad\nx[2];\n&x[2..100];\n&x[2..];\n&x[..100];\n\n// Good\nx.get(2);\nx.get(2..100);\nx.get(2..);\nx.get(..100);\n\n// Array\nlet y = [0, 1, 2, 3];\n\n// Bad\n&y[10..100];\n&y[10..];\n&y[..100];\n\n// Good\n&y[2..];\n&y[..2];\n&y[0..3];\ny.get(10);\ny.get(10..100);\ny.get(10..);\ny.get(..100);\n```", 
       "Known problems": "Hopefully none."
     }, 
-    "group": "restriction", 
+    "group": "pedantic", 
     "id": "indexing_slicing", 
     "level": "Allow"
   }, 
@@ -2229,7 +2229,7 @@
     "docs": {
       "What it does": "Checks for out of bounds array indexing with a constant\nindex.", 
       "Why is this bad": "This will always panic at runtime.", 
-      "Example": "```rust\nlet x = [1,2,3,4];\n...\nx[9];\n&x[2..9];\n```", 
+      "Example": "```rust\nlet x = [1,2,3,4];\n\n// Bad\nx[9];\n&x[2..9];\n\n// Good\nx[0];\nx[3];\n```", 
       "Known problems": "Hopefully none."
     }, 
     "group": "correctness", 
