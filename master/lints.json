@@ -1397,9 +1397,9 @@
       "Example": "```rust\n// Bad\nlet s: String = Default::default();\n\n// Good\nlet s = String::default();\n```", 
       "Known problems": "None."
     }, 
-    "group": "style", 
+    "group": "pedantic", 
     "id": "default_trait_access", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
