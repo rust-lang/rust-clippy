@@ -1183,7 +1183,7 @@
     "docs": {
       "What it does": "Checks for float literals with a precision greater\nthan that supported by the underlying type", 
       "Why is this bad": "Rust will truncate the literal silently.", 
-      "Example": "```rust\n// Bad\nInsert a short example of code that triggers the lint\n   let v: f32 = 0.123_456_789_9;\n   println!(\"{}\", v); //  0.123_456_789\n\n// Good\nInsert a short example of improved code that doesn't trigger the lint\n   let v: f64 = 0.123_456_789_9;\n   println!(\"{}\", v); //  0.123_456_789_9\n```", 
+      "Example": "```rust\n// Bad\n   let v: f32 = 0.123_456_789_9;\n   println!(\"{}\", v); //  0.123_456_789\n\n// Good\n   let v: f64 = 0.123_456_789_9;\n   println!(\"{}\", v); //  0.123_456_789_9\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
