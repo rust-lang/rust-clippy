@@ -221,14 +221,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for binding a unit value.", 
-      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
-      "Example": "```rust\nlet x = { 1; };\n```", 
-      "Known problems": "None."
+      "What it does": "Checks if `const` items which is interior mutable (e.g.\ncontains a `Cell`, `Mutex`, `AtomicXxxx` etc) has been borrowed directly.", 
+      "Why is this bad": "Consts are copied everywhere they are referenced, i.e.\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\nThe `const` value should be stored inside a `static` item.", 
+      "Example": "```rust\nuse std::sync::atomic::{Ordering::SeqCst, AtomicUsize};\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\n\n// Bad.\nCONST_ATOM.store(6, SeqCst);             // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = CONST_ATOM;\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```", 
+      "Known problems": "None"
     }, 
-    "group": "style", 
-    "id": "let_unit_value", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "borrow_interior_mutable_const", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -306,6 +306,17 @@
     "group": "restriction", 
     "id": "shadow_reuse", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
+      "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
+      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
+      "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
+    }, 
+    "group": "style", 
+    "id": "implicit_hasher", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -471,6 +482,17 @@
     "group": "pedantic", 
     "id": "maybe_infinite_iter", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for declaration of `const` items which is interior\nmutable (e.g. contains a `Cell`, `Mutex`, `AtomicXxxx` etc).", 
+      "Why is this bad": "Consts are copied everywhere they are referenced, i.e.\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.", 
+      "Example": "```rust\nuse std::sync::atomic::{Ordering::SeqCst, AtomicUsize};\n\n// Bad.\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst);             // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```", 
+      "Known problems": "A \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g. the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed."
+    }, 
+    "group": "correctness", 
+    "id": "declare_interior_mutable_const", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2646,13 +2668,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
-      "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
-      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
-      "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
+      "What it does": "Checks for binding a unit value.", 
+      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
+      "Example": "```rust\nlet x = { 1; };\n```", 
+      "Known problems": "None."
     }, 
     "group": "style", 
-    "id": "implicit_hasher", 
+    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
