@@ -1545,6 +1545,17 @@
   }, 
   {
     "docs": {
+      "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
+      "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make sense.\nIt allows the crate to require all exported methods to be `#[inline]` by default, and then opt\nout for specific methods where this might not make sense.", 
+      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn priv() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn priv() {} // ok\n   pub not_ptriv() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "restriction", 
+    "id": "missing_inline_in_public_items", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for an iterator search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)`.", 
       "Example": "```rust\niter.find(|x| x == 0).is_some()\n```", 
