@@ -55,7 +55,7 @@ declare_clippy_lint! {
 /// ```
 declare_clippy_lint! {
     pub RANGE_PLUS_ONE,
-    nursery,
+    style,
     "`x..(y+1)` reads better as `x..=y`"
 }
 
