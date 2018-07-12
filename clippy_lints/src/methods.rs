@@ -2056,7 +2056,7 @@ impl SelfKind {
                         return true;
                     }
                     match ty.node {
-                        hir::TyRptr(_, ref mt_ty) => {
+                        hir::TyKind::Rptr(_, ref mt_ty) => {
                             let mutability_match = if self == SelfKind::Ref {
                                 mt_ty.mutbl == hir::MutImmutable
                             } else {
@@ -2127,8 +2127,8 @@ fn is_as_ref_or_mut_trait(ty: &hir::Ty, self_ty: &hir::Ty, generics: &hir::Gener
 fn is_ty(ty: &hir::Ty, self_ty: &hir::Ty) -> bool {
     match (&ty.node, &self_ty.node) {
         (
-            &hir::TyPath(hir::QPath::Resolved(_, ref ty_path)),
-            &hir::TyPath(hir::QPath::Resolved(_, ref self_ty_path)),
+            &hir::TyKind::Path(hir::QPath::Resolved(_, ref ty_path)),
+            &hir::TyKind::Path(hir::QPath::Resolved(_, ref self_ty_path)),
         ) => ty_path
             .segments
             .iter()
@@ -2139,7 +2139,7 @@ fn is_ty(ty: &hir::Ty, self_ty: &hir::Ty) -> bool {
 }
 
 fn single_segment_ty(ty: &hir::Ty) -> Option<&hir::PathSegment> {
-    if let hir::TyPath(ref path) = ty.node {
+    if let hir::TyKind::Path(ref path) = ty.node {
         single_segment_path(path)
     } else {
         None
@@ -2176,17 +2176,17 @@ impl OutType {
     fn matches(self, ty: &hir::FunctionRetTy) -> bool {
         match (self, ty) {
             (OutType::Unit, &hir::DefaultReturn(_)) => true,
-            (OutType::Unit, &hir::Return(ref ty)) if ty.node == hir::TyTup(vec![].into()) => true,
+            (OutType::Unit, &hir::Return(ref ty)) if ty.node == hir::TyKind::Tup(vec![].into()) => true,
             (OutType::Bool, &hir::Return(ref ty)) if is_bool(ty) => true,
-            (OutType::Any, &hir::Return(ref ty)) if ty.node != hir::TyTup(vec![].into()) => true,
-            (OutType::Ref, &hir::Return(ref ty)) => matches!(ty.node, hir::TyRptr(_, _)),
+            (OutType::Any, &hir::Return(ref ty)) if ty.node != hir::TyKind::Tup(vec![].into()) => true,
+            (OutType::Ref, &hir::Return(ref ty)) => matches!(ty.node, hir::TyKind::Rptr(_, _)),
             _ => false,
         }
     }
 }
 
 fn is_bool(ty: &hir::Ty) -> bool {
-    if let hir::TyPath(ref p) = ty.node {
+    if let hir::TyKind::Path(ref p) = ty.node {
         match_qpath(p, &["bool"])
     } else {
         false
