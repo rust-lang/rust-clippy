@@ -76,7 +76,7 @@ impl LintPass for AssignOps {
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr) {
         match expr.node {
-            hir::ExprAssignOp(op, ref lhs, ref rhs) => {
+            hir::ExprKind::AssignOp(op, ref lhs, ref rhs) => {
                 span_lint_and_then(cx, ASSIGN_OPS, expr.span, "assign operation detected", |db| {
                     let lhs = &sugg::Sugg::hir(cx, lhs, "..");
                     let rhs = &sugg::Sugg::hir(cx, rhs, "..");
@@ -87,7 +87,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
                         format!("{} = {}", lhs, sugg::make_binop(higher::binop(op.node), lhs, rhs)),
                     );
                 });
-                if let hir::ExprBinary(binop, ref l, ref r) = rhs.node {
+                if let hir::ExprKind::Binary(binop, ref l, ref r) = rhs.node {
                     if op.node == binop.node {
                         let lint = |assignee: &hir::Expr, rhs_other: &hir::Expr| {
                             span_lint_and_then(
@@ -131,8 +131,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
                     }
                 }
             },
-            hir::ExprAssign(ref assignee, ref e) => {
-                if let hir::ExprBinary(op, ref l, ref r) = e.node {
+            hir::ExprKind::Assign(ref assignee, ref e) => {
+                if let hir::ExprKind::Binary(op, ref l, ref r) = e.node {
                     #[allow(cyclomatic_complexity)]
                     let lint = |assignee: &hir::Expr, rhs: &hir::Expr| {
                         let ty = cx.tables.expr_ty(assignee);
@@ -175,18 +175,18 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
                             cx,
                             ty,
                             rty.into(),
-                            Add: BiAdd,
-                            Sub: BiSub,
-                            Mul: BiMul,
-                            Div: BiDiv,
-                            Rem: BiRem,
-                            And: BiAnd,
-                            Or: BiOr,
-                            BitAnd: BiBitAnd,
-                            BitOr: BiBitOr,
-                            BitXor: BiBitXor,
-                            Shr: BiShr,
-                            Shl: BiShl
+                            Add: BinOpKind::Add,
+                            Sub: BinOpKind::Sub,
+                            Mul: BinOpKind::Mul,
+                            Div: BinOpKind::Div,
+                            Rem: BinOpKind::Rem,
+                            And: BinOpKind::And,
+                            Or: BinOpKind::Or,
+                            BitAnd: BinOpKind::BitAnd,
+                            BitOr: BinOpKind::BitOr,
+                            BitXor: BinOpKind::BitXor,
+                            Shr: BinOpKind::Shr,
+                            Shl: BinOpKind::Shl
                         ) {
                             span_lint_and_then(
                                 cx,
@@ -224,13 +224,13 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
                         // a = b commutative_op a
                         if SpanlessEq::new(cx).ignore_fn().eq_expr(assignee, r) {
                             match op.node {
-                                hir::BiAdd
-                                | hir::BiMul
-                                | hir::BiAnd
-                                | hir::BiOr
-                                | hir::BiBitXor
-                                | hir::BiBitAnd
-                                | hir::BiBitOr => {
+                                hir::BinOpKind::Add
+                                | hir::BinOpKind::Mul
+                                | hir::BinOpKind::And
+                                | hir::BinOpKind::Or
+                                | hir::BinOpKind::BitXor
+                                | hir::BinOpKind::BitAnd
+                                | hir::BinOpKind::BitOr => {
                                     lint(assignee, l);
                                 },
                                 _ => {},
@@ -244,11 +244,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for AssignOps {
     }
 }
 
-fn is_commutative(op: hir::BinOp_) -> bool {
-    use rustc::hir::BinOp_::*;
+fn is_commutative(op: hir::BinOpKind) -> bool {
+    use rustc::hir::BinOpKind::*;
     match op {
-        BiAdd | BiMul | BiAnd | BiOr | BiBitXor | BiBitAnd | BiBitOr | BiEq | BiNe => true,
-        BiSub | BiDiv | BiRem | BiShl | BiShr | BiLt | BiLe | BiGe | BiGt => false,
+        Add | Mul | And | Or | BitXor | BitAnd | BitOr | Eq | Ne => true,
+        Sub | Div | Rem | Shl | Shr | Lt | Le | Ge | Gt => false,
     }
 }
 

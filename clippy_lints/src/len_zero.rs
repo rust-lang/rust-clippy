@@ -79,26 +79,26 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LenZero {
             return;
         }
 
-        if let ExprBinary(Spanned { node: cmp, .. }, ref left, ref right) = expr.node {
+        if let ExprKind::Binary(Spanned { node: cmp, .. }, ref left, ref right) = expr.node {
             match cmp {
-                BiEq => {
+                BinOpKind::Eq => {
                     check_cmp(cx, expr.span, left, right, "", 0); // len == 0
                     check_cmp(cx, expr.span, right, left, "", 0); // 0 == len
                 },
-                BiNe => {
+                BinOpKind::Ne => {
                     check_cmp(cx, expr.span, left, right, "!", 0); // len != 0
                     check_cmp(cx, expr.span, right, left, "!", 0); // 0 != len
                 },
-                BiGt => {
+                BinOpKind::Gt => {
                     check_cmp(cx, expr.span, left, right, "!", 0); // len > 0
                     check_cmp(cx, expr.span, right, left, "", 1); // 1 > len
                 },
-                BiLt => {
+                BinOpKind::Lt => {
                     check_cmp(cx, expr.span, left, right, "", 1); // len < 1
                     check_cmp(cx, expr.span, right, left, "!", 0); // 0 < len
                 },
-                BiGe => check_cmp(cx, expr.span, left, right, "!", 1), // len <= 1
-                BiLe => check_cmp(cx, expr.span, right, left, "!", 1), // 1 >= len
+                BinOpKind::Ge => check_cmp(cx, expr.span, left, right, "!", 1), // len <= 1
+                BinOpKind::Le => check_cmp(cx, expr.span, right, left, "!", 1), // 1 >= len
                 _ => (),
             }
         }
@@ -194,7 +194,7 @@ fn check_impl_items(cx: &LateContext, item: &Item, impl_items: &[ImplItemRef]) {
 }
 
 fn check_cmp(cx: &LateContext, span: Span, method: &Expr, lit: &Expr, op: &str, compare_to: u32) {
-    if let (&ExprMethodCall(ref method_path, _, ref args), &ExprLit(ref lit)) = (&method.node, &lit.node) {
+    if let (&ExprKind::MethodCall(ref method_path, _, ref args), &ExprKind::Lit(ref lit)) = (&method.node, &lit.node) {
         // check if we are in an is_empty() method
         if let Some(name) = get_item_name(cx, method) {
             if name == "is_empty" {
