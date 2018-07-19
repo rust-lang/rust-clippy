@@ -890,10 +890,10 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `extern crate` and `use` items annotated with\nlint attributes", 
-      "Why is this bad": "Lint attributes have no effect on crate imports. Most\nlikely a `!` was\nforgotten", 
-      "Example": "```rust\n#[deny(dead_code)]\nextern crate foo;\n#[allow(unused_import)]\nuse foo::bar;\n```", 
-      "Known problems": "Technically one might allow `unused_import` on a `use`\nitem,\nbut it's easier to remove the unused item."
+      "What it does": "Checks for `extern crate` and `use` items annotated with\nlint attributes.\nThis lint whitelists `#[allow(unused_imports)]` and `#[allow(deprecated)]` on\n`use` items and `#[allow(unused_imports)]` on `extern crate` items with a\n`#[macro_use]` attribute.", 
+      "Why is this bad": "Lint attributes have no effect on crate imports. Most\nlikely a `!` was forgotten.", 
+      "Example": "```rust\n// Bad\n#[deny(dead_code)]\nextern crate foo;\n#[forbid(dead_code)]\nuse foo::bar;\n\n// Ok\n#[allow(unused_imports)]\nuse foo::baz;\n#[allow(unused_imports)]\n#[macro_use]\nextern crate baz;\n```", 
+      "Known problems": "None."
     }, 
     "group": "correctness", 
     "id": "useless_attribute", 
