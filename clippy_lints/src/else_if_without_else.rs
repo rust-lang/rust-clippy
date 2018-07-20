@@ -4,7 +4,7 @@ use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use syntax::ast::*;
 
-use crate::utils::span_lint_and_sugg;
+use crate::utils::span_help_and_lint;
 
 /// **What it does:** Checks for usage of if expressions with an `else if` branch,
 /// but without a final `else` branch.
@@ -56,13 +56,12 @@ impl EarlyLintPass for ElseIfWithoutElse {
 
         while let ExprKind::If(_, _, Some(ref els)) = item.node {
             if let ExprKind::If(_, _, None) = els.node {
-                span_lint_and_sugg(
+                span_help_and_lint(
                     cx,
                     ELSE_IF_WITHOUT_ELSE,
                     els.span,
                     "if expression with an `else if`, but without a final `else`",
                     "add an `else` block here",
-                    "".to_string()
                 );
             }
 
