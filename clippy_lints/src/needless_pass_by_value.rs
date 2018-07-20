@@ -9,6 +9,7 @@ use rustc::ty::{self, RegionKind, TypeFoldable};
 use rustc::traits;
 use rustc::middle::expr_use_visitor as euv;
 use rustc::middle::mem_categorization as mc;
+use rustc_errors::Applicability;
 use rustc_target::spec::abi::Abi;
 use syntax::ast::NodeId;
 use syntax_pos::Span;
@@ -284,7 +285,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                             );
                             spans.sort_by_key(|&(span, _)| span);
                         }
-                        multispan_sugg(db, "consider taking a reference instead".to_string(), spans);
+                        multispan_sugg(db,
+                                       "consider taking a reference instead".to_string(),
+                                       spans,
+                                       Applicability::HasPlaceholders,
+                        );
                     };
 
                     span_lint_and_then(

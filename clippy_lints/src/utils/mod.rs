@@ -613,8 +613,12 @@ pub fn span_lint_and_sugg<'a, 'tcx: 'a, T: LintContext<'tcx>>(
 /// appear once per
 /// replacement. In human-readable format though, it only appears once before
 /// the whole suggestion.
-pub fn multispan_sugg<I>(db: &mut DiagnosticBuilder<'_>, help_msg: String, sugg: I)
-where
+pub fn multispan_sugg<I>(
+    db: &mut DiagnosticBuilder,
+    help_msg: String,
+    sugg: I,
+    applicability: Applicability,
+) where
     I: IntoIterator<Item = (Span, String)>,
 {
     let sugg = CodeSuggestion {
@@ -632,7 +636,7 @@ where
         ],
         msg: help_msg,
         show_code_when_inline: true,
-        applicability: Applicability::Unspecified,
+        applicability,
     };
     db.suggestions.push(sugg);
 }

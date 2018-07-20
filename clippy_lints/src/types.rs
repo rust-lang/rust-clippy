@@ -1793,10 +1793,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ImplicitHasher {
                         format!("{}<{}, S>", target.type_name(), target.type_arguments(),),
                     ),
                 ],
+                Applicability::HasPlaceholders,
             );
 
             if !vis.suggestions.is_empty() {
-                multispan_sugg(db, "...and use generic constructor".into(), vis.suggestions);
+                multispan_sugg(db,
+                               "...and use generic constructor".into(),
+                               vis.suggestions,
+                               Applicability::HasPlaceholders,
+                );
             }
         }
 

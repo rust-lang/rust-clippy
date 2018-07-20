@@ -1073,6 +1073,7 @@ fn check_for_loop_range<'a, 'tcx>(
                                     (pat.span, format!("({}, <item>)", ident.name)),
                                     (arg.span, format!("{}.{}().enumerate(){}{}", indexed, method, take, skip)),
                                 ],
+                                Applicability::HasPlaceholders,
                             );
                         },
                     );
@@ -1093,6 +1094,7 @@ fn check_for_loop_range<'a, 'tcx>(
                                 db,
                                 "consider using an iterator".to_string(),
                                 vec![(pat.span, "<item>".to_string()), (arg.span, repl)],
+                                Applicability::HasPlaceholders,
                             );
                         },
                     );
@@ -1404,6 +1406,7 @@ fn check_for_loop_over_map_kv<'a, 'tcx>(
                                 (pat_span, snippet(cx, new_pat_span, kind).into_owned()),
                                 (arg_span, format!("{}.{}s{}()", map.maybe_par(), kind, mutbl)),
                             ],
+                            Applicability::HasPlaceholders,
                         );
                     },
                 );

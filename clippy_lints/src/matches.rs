@@ -433,7 +433,7 @@ fn check_match_ref_pats(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr:
         }));
 
         span_lint_and_then(cx, MATCH_REF_PATS, expr.span, title, |db| {
-            multispan_sugg(db, msg.to_owned(), suggs);
+            multispan_sugg(db, msg.to_owned(), suggs, Applicability::HasPlaceholders);
         });
     }
 }
