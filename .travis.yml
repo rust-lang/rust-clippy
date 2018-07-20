@@ -31,6 +31,9 @@ install:
       nvm use stable
       npm install remark-cli remark-lint
     fi
+  - cargo install rustup-toolchain-install-master
+  - travis_retry rustup-toolchain-install-master -n master -f
+  - rustup default master
 
 matrix:
   include:
