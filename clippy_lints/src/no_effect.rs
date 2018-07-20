@@ -2,6 +2,7 @@ use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::{declare_lint, lint_array};
 use rustc::hir::def::Def;
 use rustc::hir::{BinOpKind, BlockCheckMode, Expr, ExprKind, Stmt, StmtKind, UnsafeSource};
+use rustc_errors::Applicability;
 use crate::utils::{has_drop, in_macro, snippet_opt, span_lint, span_lint_and_sugg};
 use std::ops::Deref;
 
@@ -121,6 +122,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     "statement can be reduced",
                     "replace it with",
                     snippet,
+                    Applicability::MachineApplicable,
                 );
             }
         }

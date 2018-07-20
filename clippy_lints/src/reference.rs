@@ -1,6 +1,7 @@
 use syntax::ast::{Expr, ExprKind, UnOp};
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use if_chain::if_chain;
 use crate::utils::{snippet, span_lint_and_sugg};
 
@@ -51,6 +52,7 @@ impl EarlyLintPass for Pass {
                     "immediately dereferencing a reference",
                     "try this",
                     format!("{}", snippet(cx, addrof_target.span, "_")),
+                    Applicability::HasPlaceholders,
                 );
             }
         }
@@ -100,7 +102,8 @@ impl EarlyLintPass for DerefPass {
                         "{}.{}",
                         snippet(cx, inner.span, "_"),
                         snippet(cx, field_name.span, "_")
-                    )
+                    ),
+                    Applicability::HasPlaceholders,
                 );
             }
         }

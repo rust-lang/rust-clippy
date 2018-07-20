@@ -3,6 +3,7 @@ use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::{self, Ty};
+use rustc_errors::Applicability;
 use syntax::codemap::Span;
 use crate::utils::{higher, is_copy, snippet, span_lint_and_sugg};
 use crate::consts::constant;
@@ -90,6 +91,7 @@ fn check_vec_macro<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, vec_args: &higher::VecA
         "useless use of `vec!`",
         "you can use a slice directly",
         snippet,
+        Applicability::HasPlaceholders,
     );
 }
 

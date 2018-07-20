@@ -1,6 +1,7 @@
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use rustc::hir::*;
+use rustc_errors::Applicability;
 use crate::utils::{in_macro, is_range_expression, match_var, span_lint_and_sugg};
 
 /// **What it does:** Checks for fields in struct literals where shorthands
@@ -55,7 +56,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for RedundantFieldNames {
                         field.span,
                         "redundant field names in struct initialization",
                         "replace it with",
-                        name.to_string()
+                        name.to_string(),
+                        Applicability::HasPlaceholders,
                     );
                 }
             }

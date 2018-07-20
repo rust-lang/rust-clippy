@@ -2,6 +2,7 @@ use super::utils::{get_arg_name, match_var, remove_blocks, snippet, span_lint_an
 use rustc::hir::*;
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use if_chain::if_chain;
 
 /// **What it does:** Checks for matches being used to destructure a single-variant enum
@@ -74,6 +75,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                         snippet(cx, local.pat.span, ".."),
                         snippet(cx, target.span, ".."),
                     ),
+                    Applicability::HasPlaceholders,
                 );
             }
         }

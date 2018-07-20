@@ -3,6 +3,7 @@
 use rustc::hir::*;
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use syntax::codemap::Span;
 
 use crate::utils::{snippet, span_lint_and_sugg, SpanlessEq};
@@ -64,7 +65,7 @@ impl<'a, 'tcx> DoubleComparisonPass {
                 let sugg = format!("{} {} {}", lhs_str, stringify!($op), rhs_str);
                 span_lint_and_sugg(cx, DOUBLE_COMPARISONS, span,
                                    "This binary expression can be simplified",
-                                   "try", sugg);
+                                   "try", sugg, Applicability::HasPlaceholders);
             }}
         }
         match (op, lkind, rkind) {

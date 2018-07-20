@@ -9,6 +9,7 @@ use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::TypeVariants;
 use rustc::session::config::Config as SessionConfig;
+use rustc_errors::Applicability;
 use rustc_target::spec::abi::Abi;
 use rustc_target::abi::LayoutOf;
 use syntax::ast::NodeId;
@@ -155,7 +156,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
                         input.span,
                         "this argument is passed by reference, but would be more efficient if passed by value",
                         "consider passing by value instead",
-                        value_type);
+                        value_type,
+                        Applicability::HasPlaceholders);
                 }
             }
         }

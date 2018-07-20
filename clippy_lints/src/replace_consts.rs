@@ -3,6 +3,7 @@ use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::hir;
 use rustc::hir::def::Def;
+use rustc_errors::Applicability;
 use crate::utils::{match_def_path, span_lint_and_sugg};
 
 /// **What it does:** Checks for usage of `ATOMIC_X_INIT`, `ONCE_INIT`, and
@@ -51,6 +52,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ReplaceConsts {
                             &format!("using `{}`", const_path.last().expect("empty path")),
                             "try this",
                             repl_snip.to_string(),
+                            Applicability::MachineApplicable,
                         );
                         return;
                     }

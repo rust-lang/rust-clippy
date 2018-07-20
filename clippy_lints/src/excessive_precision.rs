@@ -3,6 +3,7 @@ use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::TypeVariants;
+use rustc_errors::Applicability;
 use std::f32;
 use std::f64;
 use std::fmt;
@@ -58,6 +59,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ExcessivePrecision {
                     "float has excessive precision",
                     "consider changing the type or truncating it to",
                     sugg,
+                    Applicability::MachineApplicable,
                 );
             }
         }

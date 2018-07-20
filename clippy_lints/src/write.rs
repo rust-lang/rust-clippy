@@ -1,5 +1,6 @@
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use syntax::ast::*;
 use syntax::tokenstream::{ThinTokenStream, TokenStream};
 use syntax::parse::{token, parser};
@@ -180,6 +181,7 @@ impl EarlyLintPass for Pass {
                         "using `println!(\"\")`",
                         "replace it with",
                         "println!()".to_string(),
+                        Applicability::HasPlaceholders,
                     );
                 }
             }
@@ -210,6 +212,7 @@ impl EarlyLintPass for Pass {
                         "using `writeln!(v, \"\")`",
                         "replace it with",
                         "writeln!(v)".to_string(),
+                        Applicability::HasPlaceholders,
                     );
                 }
             }

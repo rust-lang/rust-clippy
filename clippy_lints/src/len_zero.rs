@@ -3,6 +3,7 @@ use rustc::hir::*;
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use rustc::ty;
+use rustc_errors::Applicability;
 use std::collections::HashSet;
 use syntax::ast::{Lit, LitKind, Name};
 use syntax::codemap::{Span, Spanned};
@@ -226,6 +227,7 @@ fn check_len(cx: &LateContext<'_, '_>, span: Span, method_name: Name, args: &[Ex
                 &format!("length comparison to {}", if compare_to == 0 { "zero" } else { "one" }),
                 "using `is_empty` is more concise",
                 format!("{}{}.is_empty()", op, snippet(cx, args[0].span, "_")),
+                Applicability::HasPlaceholders,
             );
         }
     }

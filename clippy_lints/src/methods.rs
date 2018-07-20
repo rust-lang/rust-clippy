@@ -5,6 +5,7 @@ use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::{self, Ty};
 use rustc::hir::def::Def;
+use rustc_errors::Applicability;
 use std::borrow::Cow;
 use std::fmt;
 use std::iter;
@@ -911,6 +912,7 @@ fn lint_or_fun_call(cx: &LateContext<'_, '_>, expr: &hir::Expr, method_span: Spa
                             &format!("use of `{}` followed by a call to `{}`", name, path),
                             "try this",
                             format!("{}.unwrap_or_default()", snippet(cx, self_expr.span, "_")),
+                            Applicability::HasPlaceholders
                         );
                         return true;
                     }
@@ -980,6 +982,7 @@ fn lint_or_fun_call(cx: &LateContext<'_, '_>, expr: &hir::Expr, method_span: Spa
             &format!("use of `{}` followed by a function call", name),
             "try this",
             format!("{}_{}({})", name, suffix, sugg),
+            Applicability::MachineApplicable,
         );
     }
 
@@ -1074,6 +1077,7 @@ fn lint_expect_fun_call(cx: &LateContext<'_, '_>, expr: &hir::Expr, method_span:
                 &format!("use of `{}` followed by a function call", name),
                 "try this",
                 format!("unwrap_or_else({} panic!({}))", closure, sugg),
+                Applicability::HasPlaceholders,
             );
 
             return;
@@ -1088,6 +1092,7 @@ fn lint_expect_fun_call(cx: &LateContext<'_, '_>, expr: &hir::Expr, method_span:
             &format!("use of `{}` followed by a function call", name),
             "try this",
             format!("unwrap_or_else({} panic!({}))", closure, sugg),
+            Applicability::HasPlaceholders,
         );
     }
 
@@ -1189,6 +1194,7 @@ fn lint_clone_on_ref_ptr(cx: &LateContext<'_, '_>, expr: &hir::Expr, arg: &hir::
             "using '.clone()' on a ref-counted pointer",
             "try this",
             format!("{}::<{}>::clone(&{})", caller_type, subst.type_at(0), snippet(cx, arg.span, "_")),
+            Applicability::HasPlaceholders,
         );
     }
 }
@@ -1219,6 +1225,7 @@ fn lint_string_extend(cx: &LateContext<'_, '_>, expr: &hir::Expr, args: &[hir::E
                 ref_str,
                 snippet(cx, target.span, "_")
             ),
+            Applicability::HasPlaceholders,
         );
     }
 }
@@ -1325,6 +1332,7 @@ fn lint_unnecessary_fold(cx: &LateContext<'_, '_>, expr: &hir::Expr, fold_args: 
                     "this `.fold` can be written more succinctly using another method",
                     "try",
                     sugg,
+                    Applicability::HasPlaceholders,
                 );
             }
         }
@@ -1413,6 +1421,7 @@ fn lint_get_unwrap(cx: &LateContext<'_, '_>, expr: &hir::Expr, get_args: &[hir::
             snippet(cx, get_args[0].span, "_"),
             snippet(cx, get_args[1].span, "_")
         ),
+        Applicability::HasPlaceholders,
     );
 }
 
@@ -1814,7 +1823,9 @@ fn lint_chars_cmp(
                                        if info.eq { "" } else { "!" },
                                        snippet(cx, args[0][0].span, "_"),
                                        suggest,
-                                       snippet(cx, arg_char[0].span, "_")));
+                                       snippet(cx, arg_char[0].span, "_")),
+                               Applicability::HasPlaceholders,
+            );
 
             return true;
         }
@@ -1860,7 +1871,8 @@ fn lint_chars_cmp_with_unwrap<'a, 'tcx>(
                         if info.eq { "" } else { "!" },
                         snippet(cx, args[0][0].span, "_"),
                         suggest,
-                        c)
+                        c),
+                Applicability::HasPlaceholders,
             );
 
             return true;
@@ -1925,6 +1937,7 @@ fn lint_asref(cx: &LateContext<'_, '_>, expr: &hir::Expr, call_name: &str, as_re
                 &format!("this call to `{}` does nothing", call_name),
                 "try this",
                 snippet(cx, recvr.span, "_").into_owned(),
+                Applicability::HasPlaceholders,
             );
         }
     }

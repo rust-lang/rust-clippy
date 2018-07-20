@@ -1,6 +1,7 @@
 use rustc::hir::*;
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use syntax::codemap::Spanned;
 use crate::utils::SpanlessEq;
 use crate::utils::{get_parent_expr, is_allowed, match_type, paths, span_lint, span_lint_and_sugg, walk_ptrs_ty};
@@ -161,6 +162,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for StringLitAsBytes {
                                 "calling `as_bytes()` on a string literal",
                                 "consider using a byte string literal instead",
                                 format!("b{}", snippet(cx, args[0].span, r#""foo""#)),
+                                Applicability::HasPlaceholders,
                             );
                         }
                     }

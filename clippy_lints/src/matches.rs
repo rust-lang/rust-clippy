@@ -3,6 +3,7 @@ use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::{self, Ty};
+use rustc_errors::Applicability;
 use std::cmp::Ordering;
 use std::collections::Bound;
 use syntax::ast::LitKind;
@@ -249,6 +250,7 @@ fn report_single_match_single_pattern(cx: &LateContext<'_, '_>, ex: &Expr, arms:
             expr_block(cx, &arms[0].body, None, ".."),
             els_str
         ),
+        Applicability::HasPlaceholders,
     );
 }
 
@@ -455,7 +457,8 @@ fn check_match_as_ref(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr: &
                 expr.span,
                 &format!("use {}() instead", suggestion),
                 "try this",
-                format!("{}.{}()", snippet(cx, ex.span, "_"), suggestion)
+                format!("{}.{}()", snippet(cx, ex.span, "_"), suggestion),
+                Applicability::HasPlaceholders,
             )
         }
     }

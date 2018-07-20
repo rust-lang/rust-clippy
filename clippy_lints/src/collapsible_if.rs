@@ -14,6 +14,7 @@
 
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use if_chain::if_chain;
 use syntax::ast;
 
@@ -114,7 +115,9 @@ fn check_collapsible_maybe_if_let(cx: &EarlyContext<'_>, else_: &ast::Expr) {
                                        block.span,
                                        "this `else { if .. }` block can be collapsed",
                                        "try",
-                                       snippet_block(cx, else_.span, "..").into_owned());
+                                       snippet_block(cx, else_.span, "..").into_owned(),
+                                       Applicability::HasPlaceholders,
+                    );
                 }
                 _ => (),
             }

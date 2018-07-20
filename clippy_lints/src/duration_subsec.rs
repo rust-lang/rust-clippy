@@ -1,6 +1,7 @@
 use rustc::hir::*;
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use if_chain::if_chain;
 use syntax::codemap::Spanned;
 
@@ -58,6 +59,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for DurationSubsec {
                     &format!("Calling `{}()` is more concise than this calculation", suggested_fn),
                     "try",
                     format!("{}.{}()", snippet(cx, args[0].span, "_"), suggested_fn),
+                    Applicability::HasPlaceholders,
                 );
             }
         }

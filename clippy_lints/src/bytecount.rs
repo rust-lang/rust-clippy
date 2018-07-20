@@ -3,6 +3,7 @@ use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty;
+use rustc_errors::Applicability;
 use syntax::ast::{Name, UintTy};
 use crate::utils::{contains_name, get_pat_name, match_type, paths, single_segment_path, snippet, span_lint_and_sugg,
             walk_ptrs_ty};
@@ -86,7 +87,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ByteCount {
                                            "Consider using the bytecount crate",
                                            format!("bytecount::count({}, {})",
                                                     snippet(cx, haystack.span, ".."),
-                                                    snippet(cx, needle.span, "..")));
+                                                    snippet(cx, needle.span, "..")),
+                                           Applicability::HasPlaceholders);
                     }
                 };
             }

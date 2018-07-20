@@ -3,6 +3,7 @@
 
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use if_chain::if_chain;
 use syntax::ast::*;
 use syntax_pos;
@@ -238,6 +239,7 @@ impl WarningType {
                 "long literal lacking separators",
                 "consider",
                 grouping_hint.to_owned(),
+                Applicability::MachineApplicable,
             ),
             WarningType::LargeDigitGroups => span_lint_and_sugg(
                 cx,
@@ -246,6 +248,7 @@ impl WarningType {
                 "digit groups should be smaller",
                 "consider",
                 grouping_hint.to_owned(),
+                Applicability::MachineApplicable,
             ),
             WarningType::InconsistentDigitGrouping => span_lint_and_sugg(
                 cx,
@@ -254,6 +257,7 @@ impl WarningType {
                 "digits grouped inconsistently by underscores",
                 "consider",
                 grouping_hint.to_owned(),
+                Applicability::MachineApplicable,
             ),
             WarningType::DecimalRepresentation => span_lint_and_sugg(
                 cx,
@@ -262,6 +266,7 @@ impl WarningType {
                 "integer literal has a better hexadecimal representation",
                 "consider",
                 grouping_hint.to_owned(),
+                Applicability::MachineApplicable,
             ),
         };
     }

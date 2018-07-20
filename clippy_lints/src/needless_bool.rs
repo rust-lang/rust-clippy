@@ -5,6 +5,7 @@
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use rustc::hir::*;
+use rustc_errors::Applicability;
 use syntax::ast::LitKind;
 use syntax::codemap::Spanned;
 use crate::utils::{snippet, span_lint, span_lint_and_sugg};
@@ -79,6 +80,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessBool {
                     "this if-then-else expression returns a bool literal",
                     "you can reduce it to",
                     hint,
+                    Applicability::HasPlaceholders,
                 );
             };
             if let ExprKind::Block(ref then_block, _) = then_block.node {
@@ -135,6 +137,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoolComparison {
                         "equality checks against true are unnecessary",
                         "try simplifying it as shown",
                         hint,
+                        Applicability::HasPlaceholders,
                     );
                 },
                 (Other, Bool(true)) => {
@@ -146,6 +149,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoolComparison {
                         "equality checks against true are unnecessary",
                         "try simplifying it as shown",
                         hint,
+                        Applicability::HasPlaceholders,
                     );
                 },
                 (Bool(false), Other) => {
@@ -157,6 +161,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoolComparison {
                         "equality checks against false can be replaced by a negation",
                         "try simplifying it as shown",
                         (!hint).to_string(),
+                        Applicability::HasPlaceholders,
                     );
                 },
                 (Other, Bool(false)) => {
@@ -168,6 +173,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoolComparison {
                         "equality checks against false can be replaced by a negation",
                         "try simplifying it as shown",
                         (!hint).to_string(),
+                        Applicability::HasPlaceholders,
                     );
                 },
                 _ => (),

@@ -1,5 +1,6 @@
 use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
+use rustc_errors::Applicability;
 use syntax::ast::*;
 use syntax::codemap::Spanned;
 use crate::utils::{in_macro, snippet, span_lint_and_sugg};
@@ -51,6 +52,7 @@ impl EarlyLintPass for Precedence {
                     "operator precedence can trip the unwary",
                     "consider parenthesizing your expression",
                     sugg,
+                    Applicability::HasPlaceholders,
                 );
             };
 
@@ -102,6 +104,7 @@ impl EarlyLintPass for Precedence {
                                     "unary minus has lower precedence than method call",
                                     "consider adding parentheses to clarify your intent",
                                     format!("-({})", snippet(cx, rhs.span, "..")),
+                                    Applicability::HasPlaceholders,
                                 );
                             },
                             _ => (),

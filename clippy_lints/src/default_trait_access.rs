@@ -3,6 +3,7 @@ use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::TypeVariants;
+use rustc_errors::Applicability;
 
 use crate::utils::{any_parent_is_automatically_derived, match_def_path, opt_def_id, paths, span_lint_and_sugg};
 
@@ -59,7 +60,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for DefaultTraitAccess {
                                 expr.span,
                                 &format!("Calling {} is more clear than this expression", replacement),
                                 "try",
-                                replacement);
+                                replacement,
+                                Applicability::MaybeIncorrect);
                          }
                     },
                     QPath::TypeRelative(..) => {},

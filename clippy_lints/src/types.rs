@@ -7,6 +7,7 @@ use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::{self, Ty, TyCtxt, TypeckTables};
 use rustc::ty::layout::LayoutOf;
+use rustc_errors::Applicability;
 use rustc_typeck::hir_ty_to_ty;
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
@@ -331,7 +332,8 @@ fn check_ty_rptr(cx: &LateContext<'_, '_>, ast_ty: &hir::Ty, is_local: bool, lt:
                         ast_ty.span,
                         "you seem to be trying to use `&Box<T>`. Consider using just `&T`",
                         "try",
-                        format!("&{}{}{}", ltopt, mutopt, &snippet(cx, inner.span, ".."))
+                        format!("&{}{}{}", ltopt, mutopt, &snippet(cx, inner.span, "..")),
+                        Applicability::HasPlaceholders,
                     );
                     return; // don't recurse into the type
                 }
@@ -527,6 +529,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnitArg {
                                         "passing a unit value to a function",
                                         "if you intended to pass a unit value, use a unit literal instead",
                                         "()".to_string(),
+                                        Applicability::MaybeIncorrect,
                                     );
                                 }
                             }
@@ -845,6 +848,7 @@ fn span_lossless_lint(cx: &LateContext<'_, '_>, expr: &Expr, op: &Expr, cast_fro
         &format!("casting {} to {} may become silently lossy if types change", cast_from, cast_to),
         "try",
         format!("{}::from({})", cast_to, sugg),
+        Applicability::HasPlaceholders,
     );
 }
 
@@ -1044,7 +1048,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CastPass {
                                 expr.span,
                                 &format!("casting a `{}` to `{}` may truncate the function address value.", cast_from, cast_to),
                                 "if you need the address of the function, consider",
-                                format!("{} as usize", &snippet(cx, ex.span, "x"))
+                                format!("{} as usize", &snippet(cx, ex.span, "x")),
+                                Applicability::HasPlaceholders,
                             );
                         } else {
                             span_lint_and_sugg(
@@ -1053,7 +1058,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CastPass {
                                 expr.span,
                                 &format!("casting a `{}` to `{}` is bad style.", cast_from, cast_to),
                                 "if you need the address of the function, consider",
-                                format!("{} as usize", &snippet(cx, ex.span, "x"))
+                                format!("{} as usize", &snippet(cx, ex.span, "x")),
+                                Applicability::HasPlaceholders,
                             );
 
                         };
