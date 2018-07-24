@@ -2022,7 +2022,7 @@
       "What it does": "Checks for `a op= a op b` or `a op= b op a` patterns.", 
       "Why is this bad": "Most likely these are bugs where one meant to write `a\nop= b`.", 
       "Example": "```rust\nlet mut a = 5;\n...\na += a + b;\n```", 
-      "Known problems": "Someone might actually mean `a op= a op b`, but that\nshould rather be written as `a = (2 * a) op b` where applicable."
+      "Known problems": "Clippy cannot know for sure if `a op= a op b` should have\nbeen `a = a op a op b` or `a = a op b`/`a op= b`. Therefore it suggests both.\nIf `a op= a op b` is really the correct behaviour it should be\nwritten as `a = a op a op b` as it's less confusing."
     }, 
     "group": "complexity", 
     "id": "misrefactored_assign_op", 
