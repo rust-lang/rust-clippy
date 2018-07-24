@@ -1802,7 +1802,7 @@
       "Why is this bad": "In many calling conventions instances of structs will\nbe passed through registers if they fit into two or less general purpose\nregisters.", 
       "Configuration": "This lint has the following configuration variables:\n\n* `trivial-copy-size-limit: Option<u64>`: The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference. (defaults to `None `).", 
       "Example": "```rust\nfn foo(v: &u32) {\n    assert_eq!(v, 42);\n}\n// should be\nfn foo(v: u32) {\n    assert_eq!(v, 42);\n}\n```", 
-      "Known problems": "This lint is target register size dependent, it is\nlimited to 32-bit to try and reduce portability problems between 32 and\n64-bit, but if you are compiling for 8 or 16-bit targets then the limit\nwill be different.\nThe configuration option `trivial_copy_size_limit` can be set to override\nthis limit for a project."
+      "Known problems": "This lint is target register size dependent, it is\nlimited to 32-bit to try and reduce portability problems between 32 and\n64-bit, but if you are compiling for 8 or 16-bit targets then the limit\nwill be different.\nThe configuration option `trivial_copy_size_limit` can be set to override\nthis limit for a project.\nThis lint attempts to allow passing arguments by reference if a reference\nto that argument is returned. This is implemented by comparing the lifetime\nof the argument and return value for equality. However, this can cause\nfalse positives in cases involving multiple lifetimes that are bounded by\neach other."
     }, 
     "group": "perf", 
     "id": "trivially_copy_pass_by_ref", 
