@@ -614,7 +614,7 @@ pub fn span_lint_and_sugg<'a, 'tcx: 'a, T: LintContext<'tcx>>(
 /// replacement. In human-readable format though, it only appears once before
 /// the whole suggestion.
 pub fn multispan_sugg<I>(
-    db: &mut DiagnosticBuilder,
+    db: &mut DiagnosticBuilder<'_>,
     help_msg: String,
     sugg: I,
     applicability: Applicability,
