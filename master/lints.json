@@ -1074,7 +1074,7 @@
   {
     "docs": {
       "What it does": "Checks for casts of a function pointer to a numeric type not enough to store address.", 
-      "Why is this bad": "Casting a function pointer to not eligable type could truncate the address value.", 
+      "Why is this bad": "Casting a function pointer to not eligible type could truncate the address value.", 
       "Example": "```rust\nfn test_fn() -> i16;\nlet _ = test_fn as i32\n```", 
       "Known problems": "None."
     }, 
@@ -2107,9 +2107,9 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for the usage of negated comparision operators on types which only implement\n`PartialOrd` (e.g. `f64`).", 
-      "Why is this bad": "These operators make it easy to forget that the underlying types actually allow not only three\npotential Orderings (Less, Equal, Greater) but also a forth one (Uncomparable). Escpeccially if\nthe operator based comparision result is negated it is easy to miss that fact.", 
-      "Example": "```rust\nuse core::cmp::Ordering;\n\n// Bad\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = !(a <= b);\n\n// Good\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = match a.partial_cmp(&b) {\n    None | Some(Ordering::Greater) => true,\n    _ => false,\n};\n```", 
+      "What it does": "Checks for the usage of negated comparison operators on types which only implement\n`PartialOrd` (e.g. `f64`).", 
+      "Why is this bad": "These operators make it easy to forget that the underlying types actually allow not only three\npotential Orderings (Less, Equal, Greater) but also a fourth one (Uncomparable). This is\nespecially easy to miss if the operator based comparison result is negated.", 
+      "Example": "```rust\nuse std::cmp::Ordering;\n\n// Bad\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = !(a <= b);\n\n// Good\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = match a.partial_cmp(&b) {\n    None | Some(Ordering::Greater) => true,\n    _ => false,\n};\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
