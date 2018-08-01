@@ -8,10 +8,9 @@ use rustc::lint::*;
 use rustc::{declare_lint, lint_array};
 use if_chain::if_chain;
 use rustc::ty::TypeVariants;
-use rustc::session::config::Config as SessionConfig;
 use rustc_target::spec::abi::Abi;
 use rustc_target::abi::LayoutOf;
-use syntax::ast::NodeId;
+use syntax::ast::{NodeId, UintTy};
 use syntax_pos::Span;
 use crate::utils::{in_macro, is_copy, is_self, span_lint_and_sugg, snippet};
 
@@ -58,9 +57,9 @@ pub struct TriviallyCopyPassByRef {
 }
 
 impl TriviallyCopyPassByRef {
-    pub fn new(limit: Option<u64>, target: &SessionConfig) -> Self {
+    pub fn new(limit: Option<u64>, usize_ty : UintTy) -> Self {
         let limit = limit.unwrap_or_else(|| {
-            let bit_width = target.usize_ty.bit_width().expect("usize should have a width") as u64;
+            let bit_width = usize_ty.bit_width().expect("usize should have a width") as u64;
             // Cap the calculated bit width at 32-bits to reduce
             // portability problems between 32 and 64-bit targets
             let bit_width = cmp::min(bit_width, 32);
