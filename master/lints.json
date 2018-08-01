@@ -100,17 +100,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
-      "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
-      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "pedantic", 
-    "id": "use_self", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for matches with a two arms where an `if let` will\nusually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
       "Example": "```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(other_ref),\n}\n```", 
@@ -309,17 +298,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
-      "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
-      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
-      "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
-    }, 
-    "group": "style", 
-    "id": "implicit_hasher", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for public functions that dereferences raw pointer\narguments but are not marked unsafe.", 
       "Why is this bad": "The function should probably be marked `unsafe`, since\nfor an arbitrary raw pointer, there is no way of telling for sure if it is\nvalid.", 
       "Example": "```rust\npub fn foo(x: *const u8) { println!(\"{}\", unsafe { *x }); }\n```", 
@@ -463,14 +441,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for loops that will always `break`, `return` or\n`continue` an outer loop.", 
-      "Why is this bad": "This loop never loops, all it does is obfuscating the\ncode.", 
-      "Example": "```rust\nloop { ..; break; }\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for use of `.skip(x).next()` on iterators.", 
+      "Why is this bad": "`.nth(x)` is cleaner", 
+      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
+      "Known problems": "None."
     }, 
-    "group": "correctness", 
-    "id": "never_loop", 
-    "level": "Deny"
+    "group": "style", 
+    "id": "iter_skip_next", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -482,17 +460,6 @@
     "group": "pedantic", 
     "id": "maybe_infinite_iter", 
     "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for declaration of `const` items which is interior\nmutable (e.g. contains a `Cell`, `Mutex`, `AtomicXxxx` etc).", 
-      "Why is this bad": "Consts are copied everywhere they are referenced, i.e.\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.", 
-      "Example": "```rust\nuse std::sync::atomic::{Ordering::SeqCst, AtomicUsize};\n\n// Bad.\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst);             // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```", 
-      "Known problems": "A \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g. the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed."
-    }, 
-    "group": "correctness", 
-    "id": "declare_interior_mutable_const", 
-    "level": "Deny"
   }, 
   {
     "docs": {
@@ -629,14 +596,14 @@
   }, 
   {
     "docs": {
-      "What it does": "This lint checks for functions that take immutable\nreferences and return\nmutable ones.", 
-      "Why is this bad": "This is trivially unsound, as one can create two\nmutable references\nfrom the same (immutable!) source. This\n[error](https://github.com/rust-lang/rust/issues/39465)\nactually lead to an interim Rust release 1.15.1.", 
-      "Example": "```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```", 
-      "Known problems": "To be on the conservative side, if there's at least one\nmutable reference\nwith the output lifetime, this lint will not trigger. In practice, this\ncase is unlikely anyway."
+      "What it does": "Checks for loops which have a range bound that is a mutable variable", 
+      "Why is this bad": "One might think that modifying the mutable variable changes the loop bounds", 
+      "Example": "```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{}\", i); // prints numbers from 0 to 42, not 0 to 21\n}\n```", 
+      "Known problems": "None"
     }, 
-    "group": "correctness", 
-    "id": "mut_from_ref", 
-    "level": "Deny"
+    "group": "complexity", 
+    "id": "mut_range_bound", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1148,6 +1115,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
+      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
+      "Example": "```rust\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "needless_range_loop", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `enum`s with no variants.", 
       "Why is this bad": "Enum's with no variants should be replaced with `!`,\nthe uninhabited type,\nor a wrapper around it.", 
       "Example": "```rust\nenum Test {}\n```", 
@@ -1359,6 +1337,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for loops over ranges `x..y` where both `x` and `y`\nare constant and `x` is greater or equal to `y`, unless the range is\nreversed or has a negative `.step_by(_)`.", 
+      "Why is it bad": "Such loops will either be skipped or loop until\nwrap-around (in debug code, this may `panic!()`). Both options are probably\nnot intended.", 
+      "Example": "```rust\nfor x in 5..10-5 { .. } // oops, stray `-`\n```", 
+      "Known problems": "The lint cannot catch loops over dynamically defined\nranges. Doing this would require simulating all possible inputs and code\npaths through the program, which would be complex and error-prone."
+    }, 
+    "group": "correctness", 
+    "id": "reverse_range_loop", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for uses of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.", 
       "Why is this bad": "Using `entry` is more efficient.", 
       "Example": "```rust\nif !m.contains_key(&k) { m.insert(k, v) }\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```", 
@@ -1480,13 +1469,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks `for` loops over slices with an explicit counter\nand suggests the use of `.enumerate()`.", 
-      "Why is it bad": "Not only is the version using `.enumerate()` more\nreadable, the compiler is able to remove bounds checks which can lead to\nfaster code in some instances.", 
-      "Example": "```rust\nfor i in 0..v.len() { foo(v[i]);\nfor i in 0..v.len() { bar(i, v[i]); }\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,\netc., and suggests to use `or_else`, `unwrap_or_else`, etc., or\n`unwrap_or_default` instead.", 
+      "Why is this bad": "The function will always be called and potentially\nallocate an object acting as the default.", 
+      "Example": "```rust\nfoo.unwrap_or(String::new())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(String::new)\n```\nor\n```rust\nfoo.unwrap_or_default()\n```", 
+      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
     }, 
-    "group": "complexity", 
-    "id": "explicit_counter_loop", 
+    "group": "perf", 
+    "id": "or_fun_call", 
     "level": "Warn"
   }, 
   {
@@ -1523,6 +1512,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for using `collect()` on an iterator without using\nthe result.", 
+      "Why is this bad": "It is more idiomatic to use a `for` loop over the\niterator instead.", 
+      "Example": "```rust\nvec.iter().map(|x| /* some operation returning () */).collect::<Vec<_>>();\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "perf", 
+    "id": "unused_collect", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for on casts between numerical types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault.", 
       "Why is this bad": "In some problem domains, it is good practice to avoid\ntruncation. This lint can be activated to help assess where additional\nchecks could be beneficial.", 
       "Example": "```rust\nfn as_u8(x: u64) -> u8 { x as u8 }\n```", 
@@ -1534,25 +1534,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `while let` expressions on iterators.", 
-      "Why is this bad": "Readability. A simple `for` loop is shorter and conveys\nthe intent better.", 
-      "Example": "```rust\nwhile let Some(val) = iter() { .. }\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,\netc., and suggests to use `unwrap_or_else` instead", 
+      "Why is this bad": "The function will always be called.", 
+      "Example": "```rust\nfoo.expect(&format(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.expect(format(\"Err {}: {}\", err_code, err_msg).as_str())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(|_| panic!(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.unwrap_or_else(|_| panic!(format(\"Err {}: {}\", err_code, err_msg).as_str()))\n```", 
+      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
     }, 
-    "group": "style", 
-    "id": "while_let_on_iterator", 
+    "group": "perf", 
+    "id": "expect_fun_call", 
     "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
-      "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make sense.\nIt allows the crate to require all exported methods to be `#[inline]` by default, and then opt\nout for specific methods where this might not make sense.", 
-      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn priv() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn priv() {} // ok\n   pub not_ptriv() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "restriction", 
-    "id": "missing_inline_in_public_items", 
-    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1753,18 +1742,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
-      "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250 `).", 
-      "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "complexity", 
-    "id": "type_complexity", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for items that implement `.len()` but not\n`.is_empty()`.", 
       "Why is this bad": "It is good custom to have both methods, because for\nsome data structures, asking about the length will be a costly operation,\nwhereas `.is_empty()` can usually answer in constant time. Also it used to\nlead to false positives on the [`len_zero`](#len_zero) lint \u2013 currently that\nlint will ignore such entities.", 
       "Example": "```rust\nimpl X {\n    pub fn len(&self) -> usize { .. }\n}\n```", 
@@ -1939,6 +1916,17 @@
     "group": "style", 
     "id": "suspicious_else_formatting", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for loops that will always `break`, `return` or\n`continue` an outer loop.", 
+      "Why is this bad": "This loop never loops, all it does is obfuscating the\ncode.", 
+      "Example": "```rust\nloop { ..; break; }\n```", 
+      "Known problems": "None"
+    }, 
+    "group": "correctness", 
+    "id": "never_loop", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2326,25 +2314,25 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Result`s.", 
-      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display.  Therefore it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
-      "Example": "```rust\nx.unwrap()\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for declaration of `const` items which is interior\nmutable (e.g. contains a `Cell`, `Mutex`, `AtomicXxxx` etc).", 
+      "Why is this bad": "Consts are copied everywhere they are referenced, i.e.\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.", 
+      "Example": "```rust\nuse std::sync::atomic::{Ordering::SeqCst, AtomicUsize};\n\n// Bad.\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst);             // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```", 
+      "Known problems": "A \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g. the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed."
     }, 
-    "group": "restriction", 
-    "id": "result_unwrap_used", 
-    "level": "Allow"
+    "group": "correctness", 
+    "id": "declare_interior_mutable_const", 
+    "level": "Deny"
   }, 
   {
     "docs": {
-      "What it does": "Checks for using `collect()` on an iterator without using\nthe result.", 
-      "Why is this bad": "It is more idiomatic to use a `for` loop over the\niterator instead.", 
-      "Example": "```rust\nvec.iter().map(|x| /* some operation returning () */).collect::<Vec<_>>();\n```", 
+      "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
+      "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make sense.\nIt allows the crate to require all exported methods to be `#[inline]` by default, and then opt\nout for specific methods where this might not make sense.", 
+      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn priv() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn priv() {} // ok\n   pub not_ptriv() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```", 
       "Known problems": "None."
     }, 
-    "group": "perf", 
-    "id": "unused_collect", 
-    "level": "Warn"
+    "group": "restriction", 
+    "id": "missing_inline_in_public_items", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2458,14 +2446,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for loops over ranges `x..y` where both `x` and `y`\nare constant and `x` is greater or equal to `y`, unless the range is\nreversed or has a negative `.step_by(_)`.", 
-      "Why is it bad": "Such loops will either be skipped or loop until\nwrap-around (in debug code, this may `panic!()`). Both options are probably\nnot intended.", 
-      "Example": "```rust\nfor x in 5..10-5 { .. } // oops, stray `-`\n```", 
-      "Known problems": "The lint cannot catch loops over dynamically defined\nranges. Doing this would require simulating all possible inputs and code\npaths through the program, which would be complex and error-prone."
+      "What it does": "Checks for `.unwrap()` calls on `Result`s.", 
+      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display.  Therefore it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
+      "Example": "```rust\nx.unwrap()\n```", 
+      "Known problems": "None."
     }, 
-    "group": "correctness", 
-    "id": "reverse_range_loop", 
-    "level": "Deny"
+    "group": "restriction", 
+    "id": "result_unwrap_used", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2591,17 +2579,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for use of `.skip(x).next()` on iterators.", 
-      "Why is this bad": "`.nth(x)` is cleaner", 
-      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "iter_skip_next", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for double comparions that could be simpified to a single expression.", 
       "Why is this bad": "Readability.", 
       "Example": "```rust\nx == y || x < y\n```\n\nCould be written as:\n\n```rust\nx <= y\n```", 
@@ -2679,13 +2656,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for binding a unit value.", 
-      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
-      "Example": "```rust\nlet x = { 1; };\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
+      "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
+      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
+      "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
     }, 
     "group": "style", 
-    "id": "let_unit_value", 
+    "id": "implicit_hasher", 
     "level": "Warn"
   }, 
   {
@@ -2732,25 +2709,25 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
-      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
-      "Example": "```rust\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```", 
-      "Known problems": "None."
+      "What it does": "This lint checks for functions that take immutable\nreferences and return\nmutable ones.", 
+      "Why is this bad": "This is trivially unsound, as one can create two\nmutable references\nfrom the same (immutable!) source. This\n[error](https://github.com/rust-lang/rust/issues/39465)\nactually lead to an interim Rust release 1.15.1.", 
+      "Example": "```rust\nfn foo(&Foo) -> &mut Bar { .. }\n```", 
+      "Known problems": "To be on the conservative side, if there's at least one\nmutable reference\nwith the output lifetime, this lint will not trigger. In practice, this\ncase is unlikely anyway."
     }, 
-    "group": "style", 
-    "id": "needless_range_loop", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "mut_from_ref", 
+    "level": "Deny"
   }, 
   {
     "docs": {
-      "What it does": "Checks for loops which have a range bound that is a mutable variable", 
-      "Why is this bad": "One might think that modifying the mutable variable changes the loop bounds", 
-      "Example": "```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{}\", i); // prints numbers from 0 to 42, not 0 to 21\n}\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
+      "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
+      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
+      "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "mut_range_bound", 
-    "level": "Warn"
+    "group": "pedantic", 
+    "id": "use_self", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2762,6 +2739,17 @@
     }, 
     "group": "complexity", 
     "id": "too_many_arguments", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for `while let` expressions on iterators.", 
+      "Why is this bad": "Readability. A simple `for` loop is shorter and conveys\nthe intent better.", 
+      "Example": "```rust\nwhile let Some(val) = iter() { .. }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "while_let_on_iterator", 
     "level": "Warn"
   }, 
   {
@@ -2821,13 +2809,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,\netc., and suggests to use `or_else`, `unwrap_or_else`, etc., or\n`unwrap_or_default` instead.", 
-      "Why is this bad": "The function will always be called and potentially\nallocate an object acting as the default.", 
-      "Example": "```rust\nfoo.unwrap_or(String::new())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(String::new)\n```\nor\n```rust\nfoo.unwrap_or_default()\n```", 
-      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
+      "What it does": "Checks `for` loops over slices with an explicit counter\nand suggests the use of `.enumerate()`.", 
+      "Why is it bad": "Not only is the version using `.enumerate()` more\nreadable, the compiler is able to remove bounds checks which can lead to\nfaster code in some instances.", 
+      "Example": "```rust\nfor i in 0..v.len() { foo(v[i]);\nfor i in 0..v.len() { bar(i, v[i]); }\n```", 
+      "Known problems": "None."
     }, 
-    "group": "perf", 
-    "id": "or_fun_call", 
+    "group": "complexity", 
+    "id": "explicit_counter_loop", 
     "level": "Warn"
   }, 
   {
@@ -2984,13 +2972,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for loops on `y.into_iter()` where `y` will do, and\nsuggests the latter.", 
-      "Why is this bad": "Readability.", 
-      "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() { .. }\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
+      "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250 `).", 
+      "Example": "```rust\nstruct Foo { inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>> }\n```", 
+      "Known problems": "None."
     }, 
-    "group": "style", 
-    "id": "explicit_into_iter_loop", 
+    "group": "complexity", 
+    "id": "type_complexity", 
     "level": "Warn"
   }, 
   {
@@ -3051,13 +3040,24 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,\netc., and suggests to use `unwrap_or_else` instead", 
-      "Why is this bad": "The function will always be called.", 
-      "Example": "```rust\nfoo.expect(&format(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.expect(format(\"Err {}: {}\", err_code, err_msg).as_str())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(|_| panic!(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.unwrap_or_else(|_| panic!(format(\"Err {}: {}\", err_code, err_msg).as_str()))\n```", 
-      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
+      "What it does": "Checks for loops on `y.into_iter()` where `y` will do, and\nsuggests the latter.", 
+      "Why is this bad": "Readability.", 
+      "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() { .. }\n```", 
+      "Known problems": "None"
     }, 
-    "group": "perf", 
-    "id": "expect_fun_call", 
+    "group": "style", 
+    "id": "explicit_into_iter_loop", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for binding a unit value.", 
+      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
+      "Example": "```rust\nlet x = { 1; };\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
