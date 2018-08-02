@@ -926,7 +926,7 @@
       "Example": "```rust\n// Vector\nlet x = vec![0; 5];\n\n// Bad\nx[2];\n&x[2..100];\n&x[2..];\n&x[..100];\n\n// Good\nx.get(2);\nx.get(2..100);\nx.get(2..);\nx.get(..100);\n\n// Array\nlet y = [0, 1, 2, 3];\n\n// Bad\n&y[10..100];\n&y[10..];\n&y[..100];\n\n// Good\n&y[2..];\n&y[..2];\n&y[0..3];\ny.get(10);\ny.get(10..100);\ny.get(10..);\ny.get(..100);\n```", 
       "Known problems": "Hopefully none."
     }, 
-    "group": "pedantic", 
+    "group": "restriction", 
     "id": "indexing_slicing", 
     "level": "Allow"
   }, 
