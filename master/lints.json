@@ -508,7 +508,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for always-identical `Into`/`From` conversions.", 
+      "What it does": "Checks for always-identical `Into`/`From`/`IntoIter` conversions.", 
       "Why is this bad": "Redundant code.", 
       "Example": "```rust\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n```", 
       "Known problems": "None."
