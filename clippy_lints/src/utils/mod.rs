@@ -937,6 +937,7 @@ pub fn opt_def_id(def: Def) -> Option<DefId> {
         Def::Const(id) |
         Def::AssociatedConst(id) |
         Def::Macro(id, ..) |
+        Def::GlobalAsm(id) |
         Def::Existential(id) |
         Def::AssociatedExistential(id)
         => Some(id),

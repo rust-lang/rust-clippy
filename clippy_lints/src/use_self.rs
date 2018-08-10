@@ -5,6 +5,7 @@ use rustc::hir::*;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::ty;
 use rustc::{declare_lint, lint_array};
+use syntax::ast::NodeId;
 use syntax_pos::symbol::keywords::SelfType;
 
 /// **What it does:** Checks for unnecessary repetition of structure name when a
@@ -207,7 +208,7 @@ struct UseSelfVisitor<'a, 'tcx: 'a> {
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for UseSelfVisitor<'a, 'tcx> {
-    fn visit_path(&mut self, path: &'tcx Path, _id: HirId) {
+    fn visit_path(&mut self, path: &'tcx Path, _id: NodeId) {
         if self.item_path.def == path.def && path.segments.last().expect(SEGMENTS_MSG).ident.name != SelfType.name() {
             span_use_self_lint(self.cx, path);
         }
