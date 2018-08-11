@@ -126,15 +126,6 @@ transparently:
 #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
 ```
 
-## Updating rustc
-
-Sometimes, rustc moves forward without Clippy catching up. Therefore updating
-rustc may leave Clippy a non-functional state until we fix the resulting
-breakage.
-
-You can use the [rust-update](rust-update) script to update rustc only if
-Clippy would also update correctly.
-
 ## License
 
 Licensed under [MPL](https://www.mozilla.org/MPL/2.0/).
