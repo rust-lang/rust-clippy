@@ -2,7 +2,6 @@
 #![feature(plugin_registrar)]
 #![feature(rust_2018_preview)]
 #![feature(rustc_private)]
-#![feature(macro_vis_matcher)]
 #![allow(unknown_lints)]
 #![allow(missing_docs_in_private_items)]
 #![warn(rust_2018_idioms)]
