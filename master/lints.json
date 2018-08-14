@@ -157,7 +157,7 @@
     "docs": {
       "What it does": "Checks for matches where match expression is a `bool`. It\nsuggests to replace the expression with an `if...else` block.", 
       "Why is this bad": "It makes the code less readable.", 
-      "Example": "```rust\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```", 
+      "Example": "```rust\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```\nUse if/else instead:\n```rust\nlet condition: bool = true;\nif condition {\n    foo();\n} else {\n    bar();\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -300,7 +300,7 @@
     "docs": {
       "What it does": "Checks for bindings that shadow other bindings already in\nscope, while reusing the original value.", 
       "Why is this bad": "Not too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.", 
-      "Example": "```rust\nlet x = x + 1;\n```", 
+      "Example": "```rust\nlet x = x + 1;\n```\nuse different variable name:\n```rust\nlet y = x + 1;\n```", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
     }, 
     "group": "restriction", 
@@ -1161,7 +1161,7 @@
     "docs": {
       "What it does": "Checks for string methods that receive a single-character\n`str` as an argument, e.g. `_.split(\"x\")`.", 
       "Why is this bad": "Performing these methods using a `char` is faster than\nusing a `str`.", 
-      "Example": "`_.split(\"x\")` could be `_.split('x')", 
+      "Example": "`_.split(\"x\")` could be `_.split('x')`", 
       "Known problems": "Does not catch multi-byte unicode characters."
     }, 
     "group": "perf", 
@@ -1239,7 +1239,7 @@
     "docs": {
       "What it does": "This lint warns about the use of literals as `print!`/`println!` args.", 
       "Why is this bad": "Using literals as `println!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
-      "Example": "```rust\nprintln!(\"{}\", \"foo\");\n```", 
+      "Example": "```rust\nprintln!(\"{}\", \"foo\");\n```\nuse the literal without formatting:\n```rust\nprintln!(\"foo\");\n```", 
       "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `println!(\"{}\", env!(\"FOO\"))`."
     }, 
     "group": "style", 
@@ -1294,7 +1294,7 @@
     "docs": {
       "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.", 
       "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.", 
-      "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\ncall_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
+      "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\n    call_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -1591,7 +1591,7 @@
     "docs": {
       "What it does": "Checks for loops on `x.iter()` where `&x` will do, and\nsuggests the latter.", 
       "Why is this bad": "Readability.", 
-      "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.iter() { .. }\n```", 
+      "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.iter() { .. }\n```\ncan be rewritten to\n```rust\nfor x in &y { .. }\n```", 
       "Known problems": "False negatives. We currently only warn on some known\ntypes."
     }, 
     "group": "style", 
@@ -1700,7 +1700,7 @@
     "docs": {
       "What it does": "This lint warns when you use `print!()` with a format\nstring that\nends in a newline.", 
       "Why is this bad": "You should use `println!()` instead, which appends the\nnewline.", 
-      "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```", 
+      "Example": "```rust\nprint!(\"Hello {}!\\n\", name);\n```\nuse println!() instead\n```rust\nprintln!(\"Hello {}!\", name);\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -1977,7 +1977,7 @@
     "docs": {
       "What it does": "Checks for `let`-bindings, which are subsequently\nreturned.", 
       "Why is this bad": "It is just extraneous code. Remove it to make your code\nmore rusty.", 
-      "Example": "```rust\n{ let x = ..; x }\n```", 
+      "Example": "```rust\nfn foo() -> String {\n   let x = String::new();\n   x\n}\n```\ninstead, use\n```\nfn foo() -> String {\n   String::new()\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -1988,7 +1988,7 @@
     "docs": {
       "What it does": "Checks for return statements at the end of a block.", 
       "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
-      "Example": "```rust\nfn foo(x: usize) { return x; }\n```", 
+      "Example": "```rust\nfn foo(x: usize) { return x; }\n```\nsimplify to\n```rust\nfn foo(x: usize) { x }\n```", 
       "Known problems": "If the computation returning the value borrows a local\nvariable, removing the `return` may run afoul of the borrow checker."
     }, 
     "group": "style", 
@@ -1999,7 +1999,7 @@
     "docs": {
       "What it does": "Checks for getting the length of something via `.len()`\njust to compare to zero, and suggests using `.is_empty()` where applicable.", 
       "Why is this bad": "Some structures can answer `.is_empty()` much faster\nthan calculating their length. Notably, for slices, getting the length\nrequires a subtraction whereas `.is_empty()` is just a comparison. So it is\ngood to get into the habit of using `.is_empty()`, and having it is cheap.\nBesides, it makes the intent clearer than a manual comparison.", 
-      "Example": "```rust\nif x.len() == 0 { .. }\n```", 
+      "Example": "```rust\nif x.len() == 0 { .. }\nif y.len() != 0 { .. }\n```\ninstead use\n```rust\nif x.len().is_empty() { .. }\nif !y.len().is_empty() { .. }\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -2032,7 +2032,7 @@
     "docs": {
       "What it does": "Checks for fields in struct literals where shorthands\ncould be used.", 
       "Why is this bad": "If the field and variable names are the same,\nthe field name is redundant.", 
-      "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo{ bar: bar }\n```", 
+      "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo{ bar: bar }\n```\nthe last line can be simplified to\n```rust\nlet foo = Foo{ bar }\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -2986,7 +2986,7 @@
     "docs": {
       "What it does": "Checks for loops on `y.into_iter()` where `y` will do, and\nsuggests the latter.", 
       "Why is this bad": "Readability.", 
-      "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() { .. }\n```", 
+      "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() { .. }\n```\ncan be rewritten to\n```rust\nfor x in y { .. }\n```", 
       "Known problems": "None"
     }, 
     "group": "style", 
