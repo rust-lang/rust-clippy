@@ -590,7 +590,7 @@
       "Example": "```rust\nlet x = y; let x = z; // shadows the earlier binding\n```", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
     }, 
-    "group": "restriction", 
+    "group": "pedantic", 
     "id": "shadow_unrelated", 
     "level": "Allow"
   }, 
