@@ -169,3 +169,61 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for StringLitAsBytes {
         }
     }
 }
+
+/// **What it does:** Checks for usage of `.repeat(1)` since its equivalent to clone()
+///
+/// **Why is this bad?** `.repeat(1)` is not very readable.
+///
+/// **Example:**
+/// ```rust
+/// fn main() {
+///     let x = String::from("hello world").repeat(1);
+/// }
+/// ```
+/// This is the same as:
+/// 
+/// ```rust
+/// fn main() {
+///     let x = String::from("hello world").clone();
+/// }
+/// ```
+declare_clippy_lint! {
+    pub STRING_REPEAT_ONCE,
+    pedantic,
+    "using `String.repeat(1)` instead of `String.clone()`"
+}
+
+#[derive(Copy, Clone)]
+pub struct StringRepeatOnce;
+
+impl LintPass for StringRepeatOnce {
+    fn get_lints(&self) -> LintArray {
+        lint_array!(STRING_REPEAT_ONCE)
+    }
+}
+
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for StringRepeatOnce {
+    fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
+        use syntax::ast::LitKind;
+        use crate::utils::{in_macro, snippet};
+
+        if let ExprKind::MethodCall(ref path, _, ref args) = e.node {
+            if path.ident.name == "repeat" {
+                if let ExprKind::Lit(ref lit) = args[1].node {
+                    if let LitKind::Int(ref lit_content, _) = lit.node {
+                        if *lit_content == 1 && !in_macro(args[0].span) {
+                            span_lint_and_sugg(
+                                cx,
+                                STRING_REPEAT_ONCE,
+                                e.span,
+                                "calling `repeat(1)` on a string literal",
+                                "consider using `.clone()` instead",
+                                format!("{}.clone()", snippet(cx, args[0].span, r#""foo""#)),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

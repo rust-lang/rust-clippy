@@ -55,10 +55,19 @@ fn str_lit_as_bytes() {
     let strify = stringify!(foobar).as_bytes();
 }
 
+#[warn(string_repeat_once)]
+fn str_repeat() {
+    let a = "this shouldn't work".repeat(1);
+    let b = String::from("neither should this");
+    let c = b.repeat(1);
+    let d = "this works".repeat(2);
+}
+
 fn main() {
     add_only();
     add_assign_only();
     both();
+    str_repeat();
 
     // the add is only caught for `String`
     let mut x = 1;

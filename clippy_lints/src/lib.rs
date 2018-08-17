@@ -303,6 +303,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box block_in_if_condition::BlockInIfCondition);
     reg.register_late_lint_pass(box unicode::Unicode);
     reg.register_late_lint_pass(box strings::StringAdd);
+    reg.register_late_lint_pass(box strings::StringRepeatOnce);
     reg.register_early_lint_pass(box returns::ReturnPass);
     reg.register_late_lint_pass(box methods::Pass);
     reg.register_late_lint_pass(box shadow::Pass);
