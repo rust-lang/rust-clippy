@@ -1,0 +1,140 @@
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:57:10
+   |
+57 |     let _ = param.get();  // Should trigger.
+   |             ^^^^^^^^^^^
+   |
+note: lint level defined here
+  --> $DIR/temporary_dropped_with_sideeffects.rs:6:9
+   |
+6  | #![deny(dropping_temporary_with_side_effect)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:71:12
+   |
+71 |     let _   = mutex.lock();     // Should trigger.
+   |               ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:72:13
+   |
+72 |     let _   = (mutex.lock(), ); // Should trigger.
+   |                ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:73:13
+   |
+73 |     let _   = [mutex.lock()];   // Should trigger.
+   |                ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:74:12
+   |
+74 |     let _   = {mutex.lock()};   // Should trigger.
+   |               ^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:74:13
+   |
+74 |     let _   = {mutex.lock()};   // Should trigger.
+   |                ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:75:12
+   |
+75 |     let _a1 = mutex.lock().unwrap().x; // Should trigger.
+   |               ^^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:76:34
+   |
+76 |     let _a2 = MutexContainer{rwlmg: mutex.lock().unwrap()}; // Should trigger
+   |                                     ^^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:77:24
+   |
+77 |     let _a3 = [1,2,3,4,5][mutex.lock().unwrap().x as usize]; // Should trigger
+   |                           ^^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:78:30
+   |
+78 |     let _a4 = MutexIndexable{}[&mutex.lock().unwrap()]; // Should trigger
+   |                                 ^^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:79:13
+   |
+79 |     let _a5 = *mutex.lock().unwrap(); // Should trigger
+   |                ^^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:80:13
+   |
+80 |     let _a6 = [mutex.lock(), mutex.lock()].len(); // Should trigger
+   |                ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:80:27
+   |
+80 |     let _a6 = [mutex.lock(), mutex.lock()].len(); // Should trigger
+   |                              ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:81:20
+   |
+81 |     println!("{:?}", (mutex.lock(), 4)); // Should trigger
+   |                       ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:82:14
+   |
+82 |     let _a7 = (&mutex.lock()).is_err(); // Should trigger
+   |                 ^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:85:6
+   |
+85 |     if *mutex_bool.lock().unwrap() { // Should trigger
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:89:8
+   |
+89 |     match mutex_bool.lock() { // should trigger
+   |           ^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:97:10
+   |
+97 |     let _ = rwlock.read();  // Should trigger
+   |             ^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+  --> $DIR/temporary_dropped_with_sideeffects.rs:98:10
+   |
+98 |     let _ = rwlock.write(); // Should trigger
+   |             ^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+   --> $DIR/temporary_dropped_with_sideeffects.rs:101:10
+    |
+101 |     let _ = refcell.borrow();     // Should trigger
+    |             ^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+   --> $DIR/temporary_dropped_with_sideeffects.rs:102:10
+    |
+102 |     let _ = refcell.borrow_mut(); // Should trigger
+    |             ^^^^^^^^^^^^^^^^^^^^
+
+error: Expression results in an anonymous temporary variable that will have side effects when being dropped.
+   --> $DIR/temporary_dropped_with_sideeffects.rs:107:9
+    |
+107 |         match cache.read() { // Should trigger
+    |               ^^^^^^^^^^^^
+
+error: aborting due to 22 previous errors
+

@@ -159,6 +159,7 @@ pub mod strings;
 pub mod suspicious_trait_impl;
 pub mod swap;
 pub mod temporary_assignment;
+pub mod temporary_dropped_with_sideeffects;
 pub mod transmute;
 pub mod trivially_copy_pass_by_ref;
 pub mod types;
@@ -404,6 +405,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box neg_cmp_op_on_partial_ord::NoNegCompOpForPartialOrd);
     reg.register_late_lint_pass(box unwrap::Pass);
     reg.register_late_lint_pass(box duration_subsec::DurationSubsec);
+    reg.register_late_lint_pass(box temporary_dropped_with_sideeffects::TemporaryWithDroppingSideEffects);
     reg.register_late_lint_pass(box default_trait_access::DefaultTraitAccess);
     reg.register_late_lint_pass(box indexing_slicing::IndexingSlicing);
     reg.register_late_lint_pass(box non_copy_const::NonCopyConst);
@@ -890,6 +892,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         types::UNIT_CMP,
         unicode::ZERO_WIDTH_SPACE,
         unused_io_amount::UNUSED_IO_AMOUNT,
+        temporary_dropped_with_sideeffects::DROPPING_TEMPORARY_WITH_SIDE_EFFECT,
     ]);
 
     reg.register_lint_group("clippy_perf", vec![

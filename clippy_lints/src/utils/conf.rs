@@ -97,8 +97,11 @@ macro_rules! define_Conf {
                     -> Result<define_Conf!(TY $($ty)+), D::Error> {
                         type T = define_Conf!(TY $($ty)+);
                         Ok(T::deserialize(deserializer).unwrap_or_else(|e| {
-                            crate::utils::conf::ERRORS.lock().expect("no threading here")
-                                                        .push(crate::utils::conf::Error::Toml(e.to_string()));
+                            {
+                                let mut errors = crate::utils::conf::ERRORS.lock()
+                                                    .expect("no threading here");
+                                errors.push(crate::utils::conf::Error::Toml(e.to_string()));
+                            }
                             super::$rust_name()
                         }))
                     }
@@ -220,26 +223,26 @@ pub fn read(path: Option<&path::Path>) -> (Conf, Vec<Error>) {
         },
         Err(err) => return default(vec![err.into()]),
     };
-
-    assert!(
-        ERRORS
-            .lock()
-            .expect("no threading -> mutex always safe")
-            .is_empty()
-    );
+	
+	{
+        let global_errors = ERRORS.lock().expect("no threading -> mutex always safe");
+        assert!(global_errors.is_empty());
+    }   // Release the lock for global_errors
     match toml::from_str(&file) {
-        Ok(toml) => (
-            toml,
-            ERRORS
-                .lock()
-                .expect("no threading -> mutex always safe")
-                .split_off(0),
-        ),
+        Ok(toml) => {
+            let errors;
+            {
+                let mut global_errors = ERRORS.lock().expect("no threading -> mutex always safe");
+                errors = global_errors.split_off(0);
+            } // Release the lock for global_errors
+            (toml, errors)
+        }
         Err(e) => {
-            let mut errors = ERRORS
-                .lock()
-                .expect("no threading -> mutex always safe")
-                .split_off(0);
+            let mut errors;
+            {
+                let mut global_errors = ERRORS.lock().expect("no threading -> mutex always safe");
+                errors = global_errors.split_off(0);
+            } // Release the lock for global_errors
             errors.push(Error::Toml(e.to_string()));
             default(errors)
         },
