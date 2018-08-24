@@ -243,14 +243,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for compound assignment operations (`+=` and\nsimilar).", 
-      "Why is this bad": "Projects with many developers from languages without\nthose operations may find them unreadable and not worth their weight.", 
-      "Example": "```rust\na += 1;\n```", 
-      "Known problems": "Types implementing `OpAssign` don't necessarily\nimplement `Op`."
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint is too subjective, not having a good reason for being in clippy.\nAdditionally, compound assignment operators may be overloaded separately from their non-assigning\ncounterparts, so this lint may suggest a change in behavior or the code may not compile."
     }, 
-    "group": "restriction", 
+    "group": "deprecated", 
     "id": "assign_ops", 
-    "level": "Allow"
+    "level": "Deprecated"
   }, 
   {
     "docs": {
