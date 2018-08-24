@@ -2392,7 +2392,7 @@
     "docs": {
       "What it does": "Checks for manual swapping.", 
       "Why is this bad": "The `std::mem::swap` function exposes the intent better\nwithout deinitializing or copying either variable.", 
-      "Example": "```rust,ignore\nlet t = b;\nb = a;\na = t;\n```", 
+      "Example": "```rust,ignore\nlet t = b;\nb = a;\na = t;\n```\nUse std::mem::swap():\n```rust\nstd::mem::swap(&mut a, &mut b);\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
