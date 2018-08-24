@@ -2721,6 +2721,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for types that implement `Copy` as well as\n`Iterator`.", 
+      "Why is this bad": "Implicit copies can be confusing when working with\niterator combinators.", 
+      "Example": "```rust\n#[derive(Copy, Clone)]\nstruct Countdown(u8);\n\nimpl Iterator for Countdown {\n    // ...\n}\n\nlet a: Vec<_> = my_iterator.take(1).collect();\nlet b: Vec<_> = my_iterator.collect();\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "pedantic", 
+    "id": "copy_iterator", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for trivial [regex](https://crates.io/crates/regex)\ncreation (with `Regex::new`, `RegexBuilder::new` or `RegexSet::new`).", 
       "Why is this bad": "Matching the regex can likely be replaced by `==` or\n`str::starts_with`, `str::ends_with` or `std::contains` or other `str`\nmethods.", 
       "Example": "```rust\nRegex::new(\"^foobar\")\n```", 
