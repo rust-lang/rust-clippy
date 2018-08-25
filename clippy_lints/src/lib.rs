@@ -635,6 +635,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         question_mark::QUESTION_MARK,
         ranges::ITERATOR_STEP_BY_ZERO,
         ranges::RANGE_MINUS_ONE,
+        ranges::RANGE_PLUS_ONE,
         ranges::RANGE_ZIP_WITH_LEN,
         redundant_field_names::REDUNDANT_FIELD_NAMES,
         reference::DEREF_ADDROF,
@@ -757,6 +758,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         ptr::PTR_ARG,
         question_mark::QUESTION_MARK,
         ranges::RANGE_MINUS_ONE,
+        ranges::RANGE_PLUS_ONE,
         redundant_field_names::REDUNDANT_FIELD_NAMES,
         regex::REGEX_MACRO,
         regex::TRIVIAL_REGEX,
@@ -921,7 +923,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         fallible_impl_from::FALLIBLE_IMPL_FROM,
         mutex_atomic::MUTEX_INTEGER,
         needless_borrow::NEEDLESS_BORROW,
-        ranges::RANGE_PLUS_ONE,
         unwrap::PANICKING_UNWRAP,
         unwrap::UNNECESSARY_UNWRAP,
     ]);
