@@ -1129,7 +1129,7 @@
       "Example": "```rust\nfor x..=(y-1) { .. }\n```", 
       "Known problems": "None."
     }, 
-    "group": "style", 
+    "group": "complexity", 
     "id": "range_minus_one", 
     "level": "Warn"
   }, 
@@ -2132,9 +2132,9 @@
       "Example": "```rust\nfor x..(y+1) { .. }\n```", 
       "Known problems": "None."
     }, 
-    "group": "nursery", 
+    "group": "complexity", 
     "id": "range_plus_one", 
-    "level": "Allow"
+    "level": "Warn"
   }, 
   {
     "docs": {
