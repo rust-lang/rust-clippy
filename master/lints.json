@@ -573,7 +573,7 @@
   {
     "docs": {
       "What it does": "Checks for string appends of the form `x = x + y` (without\n`let`!).", 
-      "Why is this bad": "It's not really bad, but some people think that the\n`.push_str(_)` method is more readable. Also creates a new heap allocation and throws\naway the old one.", 
+      "Why is this bad": "It's not really bad, but some people think that the\n`.push_str(_)` method is more readable.", 
       "Example": "```rust\nlet mut x = \"Hello\".to_owned();\nx = x + \", World\";\n```", 
       "Known problems": "None."
     }, 
