@@ -28,8 +28,7 @@ pub fn main() {
                 let home = option_env!("RUSTUP_HOME").or(option_env!("MULTIRUST_HOME"));
                 let toolchain = option_env!("RUSTUP_TOOLCHAIN").or(option_env!("MULTIRUST_TOOLCHAIN"));
                 home.and_then(|home| toolchain.map(|toolchain| format!("{}/toolchains/{}", home, toolchain)))
-            })
-            .or_else(|| {
+            }).or_else(|| {
                 Command::new("rustc")
                     .arg("--print")
                     .arg("sysroot")
@@ -37,8 +36,7 @@ pub fn main() {
                     .ok()
                     .and_then(|out| String::from_utf8(out.stdout).ok())
                     .map(|s| s.trim().to_owned())
-            })
-            .expect("need to specify SYSROOT env var during clippy compilation, or use rustup or multirust");
+            }).expect("need to specify SYSROOT env var during clippy compilation, or use rustup or multirust");
 
         // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
         // We're invoking the compiler programmatically, so we ignore this/
@@ -92,9 +90,8 @@ pub fn main() {
                         .as_ref()
                         .expect(
                             "at this compilation stage \
-                            the crate must be parsed",
-                        )
-                        .span,
+                             the crate must be parsed",
+                        ).span,
                 );
                 registry.args_hidden = Some(Vec::new());
 

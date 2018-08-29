@@ -14,8 +14,7 @@ pub fn plugin_registrar(reg: &mut Registry<'_>) {
             reg.sess
                 .struct_warn(
                     "the clippy plugin is being deprecated, please use cargo clippy or rls with the clippy feature",
-                )
-                .emit();
+                ).emit();
             if lint == "clippy" {
                 // cargo clippy run on a crate that also uses the plugin
                 return;
