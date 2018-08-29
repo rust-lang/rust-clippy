@@ -2171,13 +2171,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
-      "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
-      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for usage of the `offset` pointer method with a `usize` casted to an\n`isize`.", 
+      "Why is this bad": "If we\u2019re always increasing the pointer address, we can avoid the numeric\ncast by using the `add` method instead.", 
+      "Example": "```rust\nlet vec = vec![b'a', b'b', b'c'];\nlet ptr = vec.as_ptr();\nlet offset = 1_usize;\n\nunsafe { ptr.offset(offset as isize); }\n```\n\nCould be written:\n\n```rust\nlet vec = vec![b'a', b'b', b'c'];\nlet ptr = vec.as_ptr();\nlet offset = 1_usize;\n\nunsafe { ptr.add(offset); }\n```", 
+      "Known problems": "None"
     }, 
     "group": "complexity", 
-    "id": "cast_lossless", 
+    "id": "ptr_offset_with_cast", 
     "level": "Warn"
   }, 
   {
@@ -2957,6 +2957,17 @@
     "group": "pedantic", 
     "id": "needless_continue", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
+      "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
+      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "complexity", 
+    "id": "cast_lossless", 
+    "level": "Warn"
   }, 
   {
     "docs": {
