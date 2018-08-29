@@ -1,5 +1,3 @@
-
-
 // Tests for the various helper functions used by the needless_continue
 // lint that don't belong in utils.
 

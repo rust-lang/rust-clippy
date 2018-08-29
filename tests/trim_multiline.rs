@@ -1,5 +1,3 @@
-
-
 /// test the multiline-trim function
 extern crate clippy_lints;
 

@@ -93,8 +93,7 @@ where
                         .into_os_string()
                 },
             )
-        })
-        .map(|p| ("CARGO_TARGET_DIR", p));
+        }).map(|p| ("CARGO_TARGET_DIR", p));
 
     let exit_status = std::process::Command::new("cargo")
         .args(&args)
