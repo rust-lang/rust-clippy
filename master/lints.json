@@ -1592,9 +1592,9 @@
       "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.iter() { .. }\n```\ncan be rewritten to\n```rust\nfor x in &y { .. }\n```", 
       "Known problems": "False negatives. We currently only warn on some known\ntypes."
     }, 
-    "group": "style", 
+    "group": "pedantic", 
     "id": "explicit_iter_loop", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -3009,9 +3009,9 @@
       "Example": "```rust\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() { .. }\n```\ncan be rewritten to\n```rust\nfor x in y { .. }\n```", 
       "Known problems": "None"
     }, 
-    "group": "style", 
+    "group": "pedantic", 
     "id": "explicit_into_iter_loop", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
