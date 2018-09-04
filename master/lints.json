@@ -2819,6 +2819,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for functions collecting an iterator when collect\nis not needed.", 
+      "Why is this bad": "`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.", 
+      "Example": "```rust\nlet len = iterator.collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```", 
+      "Known problems": "None"
+    }, 
+    "group": "perf", 
+    "id": "needless_collect", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Detects type names that are prefixed or suffixed by the\ncontaining module's name.", 
       "Why is this bad": "It requires the user to type the module name twice.", 
       "Example": "```rust\nmod cake {\n    struct BlackForestCake;\n}\n```", 
