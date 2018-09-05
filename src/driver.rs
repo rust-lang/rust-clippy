@@ -47,7 +47,7 @@ pub fn main() {
         if orig_args.len() <= 1 {
             std::process::exit(1);
         }
-        if orig_args[1] == "rustc" {
+        if orig_args[1].ends_with("rustc") || orig_args[1].ends_with("rustc.exe") {
             // we still want to be able to invoke it normally though
             orig_args.remove(1);
         }
