@@ -747,13 +747,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.as_ref()` or `.as_mut()` where the\ntypes before and after the call are the same.", 
-      "Why is this bad": "The call is unnecessary.", 
-      "Example": "```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x);\n```", 
+      "What it does": "Checks for `mem::replace()` on an `Option` with\n`None`.", 
+      "Why is this bad": "`Option` already has the method `take()` for\ntaking its current value (Some(..) or None) and replacing it with\n`None`.", 
+      "Example": "```rust\nlet mut an_option = Some(0);\nlet replaced = mem::replace(&mut an_option, None);\n```\nIs better expressed with:\n```rust\nlet mut an_option = Some(0);\nlet taken = an_option.take();\n```", 
       "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "useless_asref", 
+    "group": "style", 
+    "id": "mem_replace_option_with_none", 
     "level": "Warn"
   }, 
   {
@@ -905,6 +905,17 @@
     "group": "deprecated", 
     "id": "string_to_string", 
     "level": "Deprecated"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
+      "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
+      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "complexity", 
+    "id": "partialeq_ne_impl", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1113,13 +1124,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
-      "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
-      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
+      "What it does": "Checks for usage of `.as_ref()` or `.as_mut()` where the\ntypes before and after the call are the same.", 
+      "Why is this bad": "The call is unnecessary.", 
+      "Example": "```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x);\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
-    "id": "partialeq_ne_impl", 
+    "id": "useless_asref", 
     "level": "Warn"
   }, 
   {
