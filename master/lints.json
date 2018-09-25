@@ -2907,6 +2907,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `_.map(_).flatten(_)`,", 
+      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
+      "Example": "```rust\niter.map(|x| x.iter()).flatten()\n```", 
+      "Known problems": ""
+    }, 
+    "group": "pedantic", 
+    "id": "map_flatten", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "`Range::step_by(0)` used to be linted since it's\nan infinite iterator, which is better expressed by `iter::repeat`,\nbut the method has been removed for `Iterator::step_by` which panics\nif given a zero"
     }, 
