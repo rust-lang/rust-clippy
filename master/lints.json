@@ -23,17 +23,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for the use of `.extend(s.chars())` where s is a\n`&str` or `String`.", 
-      "Why is this bad": "`.push_str(s)` is clearer", 
-      "Example": "```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.extend(abc.chars());\ns.extend(def.chars());\n```\nThe correct use would be:\n```rust\nlet abc = \"abc\";\nlet def = String::from(\"def\");\nlet mut s = String::new();\ns.push_str(abc);\ns.push_str(&def));\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "string_extend_chars", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for operations where precedence may be unclear\nand suggests to add parentheses. Currently it catches the following:\n* mixed usage of arithmetic and bit shifting/combining operators without\nparentheses\n* a \"negative\" numeric literal (which is really a unary `-` followed by a\nnumeric literal)\n  followed by a method call", 
       "Why is this bad": "Not everyone knows the precedence of those operators by\nheart, so expressions like these may trip others trying to reason about the\ncode.", 
       "Example": "* `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7\n* `-1i32.abs()` equals -1, while `(-1i32).abs()` equals 1", 
@@ -67,14 +56,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.clone()` on an `&&T`.", 
-      "Why is this bad": "Cloning an `&&T` copies the inner `&T`, instead of\ncloning the underlying `T`.", 
-      "Example": "```rust\nfn main() {\n   let x = vec![1];\n   let y = &&x;\n   let z = y.clone();\n   println!(\"{:p} {:p}\",*y, z); // prints out the same pointer\n}\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for usages of `Mutex<X>` where an atomic will do.", 
+      "Why is this bad": "Using a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::atomic::AtomicBool` and `std::atomic::AtomicPtr` are leaner and\nfaster.", 
+      "Example": "```rust\nlet x = Mutex::new(&y);\n```", 
+      "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section."
     }, 
-    "group": "correctness", 
-    "id": "clone_double_ref", 
-    "level": "Deny"
+    "group": "perf", 
+    "id": "mutex_atomic", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -85,17 +74,6 @@
     }, 
     "group": "pedantic", 
     "id": "expl_impl_clone_on_copy", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for usage of `result.map(_).unwrap_or_else(_)`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`result.ok().map_or_else(_, _)`.", 
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "pedantic", 
-    "id": "result_map_unwrap_or_else", 
     "level": "Allow"
   }, 
   {
@@ -232,17 +210,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Option`s.", 
-      "Why is this bad": "Usually it is better to handle the `None` case, or to\nat least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.", 
-      "Example": "```rust\nx.unwrap()\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "restriction", 
-    "id": "option_unwrap_used", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This lint is too subjective, not having a good reason for being in clippy.\nAdditionally, compound assignment operators may be overloaded separately from their non-assigning\ncounterparts, so this lint may suggest a change in behavior or the code may not compile."
     }, 
@@ -304,17 +271,6 @@
     "group": "restriction", 
     "id": "shadow_reuse", 
     "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
-      "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
-      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
-      "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
-    }, 
-    "group": "style", 
-    "id": "implicit_hasher", 
-    "level": "Warn"
   }, 
   {
     "docs": {
@@ -406,17 +362,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.chars().next()` on a `str` to check\nif it starts with a given char.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.starts_with(_)`.", 
-      "Example": "```rust\nname.chars().next() == Some('_')\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "complexity", 
-    "id": "chars_next_cmp", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for for-loops that manually copy items between\nslices that could be optimized by having a memcpy.", 
       "Why is this bad": "It is not as fast as a memcpy.", 
       "Example": "```rust\nfor i in 0..src.len() {\n    dst[i + 64] = src[i];\n}\n```", 
@@ -450,17 +395,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usages of `Mutex<X>` where an atomic will do.", 
-      "Why is this bad": "Using a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::atomic::AtomicBool` and `std::atomic::AtomicPtr` are leaner and\nfaster.", 
-      "Example": "```rust\nlet x = Mutex::new(&y);\n```", 
-      "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section."
-    }, 
-    "group": "perf", 
-    "id": "mutex_atomic", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for loops that will always `break`, `return` or\n`continue` an outer loop.", 
       "Why is this bad": "This loop never loops, all it does is obfuscating the\ncode.", 
       "Example": "```rust\nloop { ..; break; }\n```", 
@@ -480,17 +414,6 @@
     "group": "pedantic", 
     "id": "maybe_infinite_iter", 
     "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for declaration of `const` items which is interior\nmutable (e.g. contains a `Cell`, `Mutex`, `AtomicXxxx` etc).", 
-      "Why is this bad": "Consts are copied everywhere they are referenced, i.e.\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.", 
-      "Example": "```rust\nuse std::sync::atomic::{Ordering::SeqCst, AtomicUsize};\n\n// Bad.\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst);             // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```", 
-      "Known problems": "A \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g. the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed."
-    }, 
-    "group": "correctness", 
-    "id": "declare_interior_mutable_const", 
-    "level": "Deny"
   }, 
   {
     "docs": {
@@ -693,17 +616,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `_.map_or(None, _)`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.and_then(_)`.", 
-      "Example": "```rust\nopt.map_or(None, |a| a + 1)\n```", 
-      "Known problems": "The order of the arguments is not in execution order."
-    }, 
-    "group": "style", 
-    "id": "option_map_or_none", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for use of `Box<Vec<_>>` anywhere in the code.", 
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` it, you just add another level of indirection\nwithout any benefit whatsoever.", 
       "Example": "```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```", 
@@ -712,16 +624,6 @@
     "group": "perf", 
     "id": "box_vec", 
     "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for usage of `.clone()` on a ref-counted pointer,\n(`Rc`, `Arc`, `rc::Weak`, or `sync::Weak`), and suggests calling Clone via unified\nfunction syntax instead (e.g. `Rc::clone(foo)`).", 
-      "Why is this bad": "Calling '.clone()' on an Rc, Arc, or Weak\ncan obscure the fact that only the pointer is being cloned, not the underlying\ndata.", 
-      "Example": "```rust\nx.clone()\n```"
-    }, 
-    "group": "restriction", 
-    "id": "clone_on_ref_ptr", 
-    "level": "Allow"
   }, 
   {
     "docs": {
@@ -766,17 +668,6 @@
     "group": "pedantic", 
     "id": "pub_enum_variant_names", 
     "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for use of `.get().unwrap()` (or\n`.get_mut().unwrap`) on a standard library type which implements `Index`", 
-      "Why is this bad": "Using the Index trait (`[]`) is more clear and more\nconcise.", 
-      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec.get(3).unwrap();\n*some_vec.get_mut(0).unwrap() = 1;\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec[3];\nsome_vec[0] = 1;\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "get_unwrap", 
-    "level": "Warn"
   }, 
   {
     "docs": {
@@ -855,17 +746,6 @@
   }, 
   {
     "docs": {
-      "What it does": "This is the same as\n[`wrong_self_convention`](#wrong_self_convention), but for public items.", 
-      "Why is this bad": "See [`wrong_self_convention`](#wrong_self_convention).", 
-      "Example": "```rust\nimpl X {\n    pub fn as_str(self) -> &str { .. }\n}\n```", 
-      "Known problems": "Actually *renaming* the function may break clients if\nthe function is part of the public interface. In that case, be mindful of\nthe stability guarantees you've given your users."
-    }, 
-    "group": "restriction", 
-    "id": "wrong_pub_self_convention", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
       "What it does": "This lint checks for function arguments of type `&String`\nor `&Vec` unless the references are mutable. It will also suggest you\nreplace `.clone()` calls with the appropriate `.to_owned()`/`to_string()`\ncalls.", 
       "Why is this bad": "Requiring the argument to be of the specific size\nmakes the function less useful for no benefit; slices in the form of `&[T]`\nor `&str` usually suffice and can be obtained from other types, too.", 
       "Example": "```rust\nfn foo(&Vec<u32>) { .. }\n```", 
@@ -905,17 +785,6 @@
     "group": "deprecated", 
     "id": "string_to_string", 
     "level": "Deprecated"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
-      "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
-      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "complexity", 
-    "id": "partialeq_ne_impl", 
-    "level": "Warn"
   }, 
   {
     "docs": {
@@ -961,14 +830,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.chars().last()` or\n`.chars().next_back()` on a `str` to check if it ends with a given char.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.ends_with(_)`.", 
-      "Example": "```rust\nname.chars().last() == Some('_') || name.chars().next_back() == Some('-')\n```", 
+      "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
+      "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make sense.\nIt allows the crate to require all exported methods to be `#[inline]` by default, and then opt\nout for specific methods where this might not make sense.", 
+      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn priv() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn priv() {} // ok\n   pub not_ptriv() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```", 
       "Known problems": "None."
     }, 
-    "group": "style", 
-    "id": "chars_last_cmp", 
-    "level": "Warn"
+    "group": "restriction", 
+    "id": "missing_inline_in_public_items", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1037,17 +906,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `_.map(_).unwrap_or_else(_)`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or_else(_, _)`.", 
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```", 
-      "Known problems": "The order of the arguments is not in execution order."
-    }, 
-    "group": "pedantic", 
-    "id": "option_map_unwrap_or_else", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for items declared after some statement in a block.", 
       "Why is this bad": "Items live for the entire scope they are declared\nin. But statements are processed in order. This might cause confusion as\nit's hard to figure out which item is meant in a statement.", 
       "Example": "```rust\nfn foo() {\n    println!(\"cake\");\n}\n\nfn main() {\n    foo(); // prints \"foo\"\n    fn foo() {\n        println!(\"foo\");\n    }\n    foo(); // prints \"foo\"\n}\n```", 
@@ -1059,13 +917,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for methods with certain name prefixes and which\ndoesn't match how self is taken. The actual rules are:\n|Prefix |`self` taken          |\n|-------|----------------------|\n|`as_`  |`&self` or `&mut self`|\n|`from_`| none                 |\n|`into_`|`self`                |\n|`is_`  |`&self` or none       |\n|`to_`  |`&self`               |", 
-      "Why is this bad": "Consistency breeds readability. If you follow the\nconventions, your users won't be surprised that they, e.g., need to supply a\nmutable reference to a `as_..` function.", 
-      "Example": "```rust\nimpl X {\n    fn as_str(self) -> &str { .. }\n}\n```", 
+      "What it does": "Checks for transmutes to the original type of the object\nand transmutes that could be a cast.", 
+      "Why is this bad": "Readability. The code tricks people into thinking that\nsomething complex is going on.", 
+      "Example": "```rust\ncore::intrinsics::transmute(t) // where the result type is the same as `t`'s\n```", 
       "Known problems": "None."
     }, 
-    "group": "style", 
-    "id": "wrong_self_convention", 
+    "group": "complexity", 
+    "id": "useless_transmute", 
     "level": "Warn"
   }, 
   {
@@ -1104,17 +962,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for using `fold` when a more succinct alternative exists.\nSpecifically, this checks for `fold`s which could be replaced by `any`, `all`,\n`sum` or `product`.", 
-      "Why is this bad": "Readability.", 
-      "Example": "```rust\nlet _ = (0..3).fold(false, |acc, x| acc || x > 2);\n```\nThis could be written as:\n```rust\nlet _ = (0..3).any(|x| x > 2);\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "unnecessary_fold", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `Vec::extend`, which was slower than\n`Vec::extend_from_slice`. Thanks to specialization, this is no longer true."
     }, 
@@ -1124,13 +971,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.as_ref()` or `.as_mut()` where the\ntypes before and after the call are the same.", 
-      "Why is this bad": "The call is unnecessary.", 
-      "Example": "```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\nlet x: &[i32] = &[1,2,3,4,5];\ndo_stuff(x);\n```", 
+      "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
+      "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
+      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
-    "id": "useless_asref", 
+    "id": "partialeq_ne_impl", 
     "level": "Warn"
   }, 
   {
@@ -1168,14 +1015,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for string methods that receive a single-character\n`str` as an argument, e.g. `_.split(\"x\")`.", 
-      "Why is this bad": "Performing these methods using a `char` is faster than\nusing a `str`.", 
-      "Example": "`_.split(\"x\")` could be `_.split('x')`", 
-      "Known problems": "Does not catch multi-byte unicode characters."
+      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
+      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
+      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
+      "Known problems": "None"
     }, 
-    "group": "perf", 
-    "id": "single_char_pattern", 
-    "level": "Warn"
+    "group": "pedantic", 
+    "id": "needless_continue", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1187,17 +1034,6 @@
     "group": "style", 
     "id": "match_overlapping_arm", 
     "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for all instances of `x + _` where `x` is of type\n`String`, but only if [`string_add_assign`](#string_add_assign) does *not*\nmatch.", 
-      "Why is this bad": "It's not bad in and of itself. However, this particular\n`Add` implementation is asymmetric (the other operand need not be `String`,\nbut `x` does), while addition as mathematically defined is symmetric, also\nthe `String::push_str(_)` function is a perfectly good replacement.\nTherefore some dislike it and wish not to have it in their code.\nThat said, other people think that string addition, having a long tradition\nin other languages is actually fine, which is why we decided to make this\nparticular lint `allow` by default.", 
-      "Example": "```rust\nlet x = \"Hello\".to_owned();\nx + \", World\"\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "restriction", 
-    "id": "string_add", 
-    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1312,14 +1148,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.", 
-      "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.", 
-      "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\n    call_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
+      "What it does": "Checks for missing parameters in `panic!`.", 
+      "Why is this bad": "Contrary to the `format!` family of macros, there are\ntwo forms of `panic!`: if there are no parameters given, the first argument\nis not a format string and used literally. So while `format!(\"{}\")` will\nfail to compile, `panic!(\"{}\")` will not.", 
+      "Example": "```rust\npanic!(\"This `panic!` is probably missing a parameter there: {}\");\n```", 
       "Known problems": "None."
     }, 
-    "group": "correctness", 
-    "id": "temporary_cstring_as_ptr", 
-    "level": "Deny"
+    "group": "style", 
+    "id": "panic_params", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1390,13 +1226,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for transmutes to the original type of the object\nand transmutes that could be a cast.", 
-      "Why is this bad": "Readability. The code tricks people into thinking that\nsomething complex is going on.", 
-      "Example": "```rust\ncore::intrinsics::transmute(t) // where the result type is the same as `t`'s\n```", 
+      "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
+      "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
+      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
-    "id": "useless_transmute", 
+    "id": "cast_lossless", 
     "level": "Warn"
   }, 
   {
@@ -1565,28 +1401,6 @@
   }, 
   {
     "docs": {
-      "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
-      "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make sense.\nIt allows the crate to require all exported methods to be `#[inline]` by default, and then opt\nout for specific methods where this might not make sense.", 
-      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn priv() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn priv() {} // ok\n   pub not_ptriv() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "restriction", 
-    "id": "missing_inline_in_public_items", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for an iterator search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)`.", 
-      "Example": "```rust\niter.find(|x| x == 0).is_some()\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "complexity", 
-    "id": "search_is_some", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for the use of `format!(\"string literal with no\nargument\")` and `format!(\"{}\", foo)` where `foo` is a string.", 
       "Why is this bad": "There is no point of doing that. `format!(\"too\")` can\nbe replaced by `\"foo\".to_owned()` if you really need a `String`. The even\nworse `&format!(\"foo\")` is often encountered in the wild. `format!(\"{}\",\nfoo)` can be replaced by `foo.clone()` if `foo: String` or `foo.to_owned()`\nif `foo: &str`.", 
       "Examples": "```rust\nformat!(\"foo\")\nformat!(\"{}\", foo)\n```", 
@@ -1751,17 +1565,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for use of `.iter().nth()` (and the related\n`.iter_mut().nth()`) on standard library types with O(1) element access.", 
-      "Why is this bad": "`.get()` and `.get_mut()` are more efficient and more\nreadable.", 
-      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.get(3);\nlet bad_slice = &some_vec[..].get(3);\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "perf", 
-    "id": "iter_nth", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions and for `else { if ... }` expressions\nthat\ncan be collapsed to `else if ...`.", 
       "Why is this bad": "Each `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.", 
       "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n\n// or\n\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\n\nShould be written:\n\n```rust.ignore\nif x && y {\n    \u2026\n}\n\n// or\n\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```", 
@@ -1852,17 +1655,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `new` not returning `Self`.", 
-      "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.", 
-      "Example": "```rust\nimpl Foo {\n    fn new(..) -> NotAFoo {\n    }\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "new_ret_no_self", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Lints for suspicious operations in impls of arithmetic operators, e.g.\nsubtracting elements in an Add impl.", 
       "Why this is bad": "This is probably a typo or copy-and-paste error and not intended.", 
       "Example": "```rust\nimpl Add for Foo {\n    type Output = Foo;\n\n    fn add(self, other: Foo) -> Foo {\n        Foo(self.0 - other.0)\n    }\n}\n```", 
@@ -1896,24 +1688,24 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `_.filter(_).map(_)`,\n`_.filter(_).flat_map(_)`, `_.filter_map(_).flat_map(_)` and similar.", 
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
-      "Example": "```rust\niter.filter(|x| x == 0).map(|x| x * 2)\n```", 
-      "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure."
+      "What it does": "Checks for all instances of `x + _` where `x` is of type\n`String`, but only if [`string_add_assign`](#string_add_assign) does *not*\nmatch.", 
+      "Why is this bad": "It's not bad in and of itself. However, this particular\n`Add` implementation is asymmetric (the other operand need not be `String`,\nbut `x` does), while addition as mathematically defined is symmetric, also\nthe `String::push_str(_)` function is a perfectly good replacement.\nTherefore some dislike it and wish not to have it in their code.\nThat said, other people think that string addition, having a long tradition\nin other languages is actually fine, which is why we decided to make this\nparticular lint `allow` by default.", 
+      "Example": "```rust\nlet x = \"Hello\".to_owned();\nx + \", World\"\n```", 
+      "Known problems": "None."
     }, 
-    "group": "pedantic", 
-    "id": "filter_map", 
+    "group": "restriction", 
+    "id": "string_add", 
     "level": "Allow"
   }, 
   {
     "docs": {
-      "What it does": "Checks for missing parameters in `panic!`.", 
-      "Why is this bad": "Contrary to the `format!` family of macros, there are\ntwo forms of `panic!`: if there are no parameters given, the first argument\nis not a format string and used literally. So while `format!(\"{}\")` will\nfail to compile, `panic!(\"{}\")` will not.", 
-      "Example": "```rust\npanic!(\"This `panic!` is probably missing a parameter there: {}\");\n```", 
-      "Known problems": "None."
+      "What it does": "This lint warns about the use of literals as `write!`/`writeln!` args.", 
+      "Why is this bad": "Using literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
+      "Example": "```rust\nwriteln!(buf, \"{}\", \"foo\");\n```", 
+      "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`."
     }, 
     "group": "style", 
-    "id": "panic_params", 
+    "id": "write_literal", 
     "level": "Warn"
   }, 
   {
@@ -2091,17 +1883,6 @@
     "group": "pedantic", 
     "id": "similar_names", 
     "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "This lint warns about the use of literals as `write!`/`writeln!` args.", 
-      "Why is this bad": "Using literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
-      "Example": "```rust\nwriteln!(buf, \"{}\", \"foo\");\n```", 
-      "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`."
-    }, 
-    "group": "style", 
-    "id": "write_literal", 
-    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2302,25 +2083,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `_.map(_).unwrap_or(_)`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or(_, _)`.", 
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or(0)\n```", 
-      "Known problems": "The order of the arguments is not in execution order"
-    }, 
-    "group": "pedantic", 
-    "id": "option_map_unwrap_or", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for usage of `_.filter(_).next()`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.find(_)`.", 
-      "Example": "```rust\niter.filter(|x| x == 0).next()\n```", 
+      "What it does": "Checks for getting the remainder of a division by one.", 
+      "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
+      "Example": "```rust\nx % 1\n```", 
       "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "filter_next", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "modulo_one", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2346,14 +2116,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Result`s.", 
-      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display.  Therefore it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
-      "Example": "```rust\nx.unwrap()\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for declaration of `const` items which is interior\nmutable (e.g. contains a `Cell`, `Mutex`, `AtomicXxxx` etc).", 
+      "Why is this bad": "Consts are copied everywhere they are referenced, i.e.\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.", 
+      "Example": "```rust\nuse std::sync::atomic::{Ordering::SeqCst, AtomicUsize};\n\n// Bad.\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst);             // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```", 
+      "Known problems": "A \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g. the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed."
     }, 
-    "group": "restriction", 
-    "id": "result_unwrap_used", 
-    "level": "Allow"
+    "group": "correctness", 
+    "id": "declare_interior_mutable_const", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2364,17 +2134,6 @@
     }, 
     "group": "perf", 
     "id": "unused_collect", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for methods that should live in a trait\nimplementation of a `std` trait (see [llogiq's blog\npost](http://llogiq.github.io/2015/07/30/traits.html) for further\ninformation) instead of an inherent implementation.", 
-      "Why is this bad": "Implementing the traits improve ergonomics for users of\nthe code, often with very little cost. Also people seeing a `mul(...)`\nmethod\nmay expect `*` to work equally, so you should have good reason to disappoint\nthem.", 
-      "Example": "```rust\nstruct X;\nimpl X {\n   fn add(&self, other: &X) -> X { .. }\n}\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "should_implement_trait", 
     "level": "Warn"
   }, 
   {
@@ -2419,28 +2178,6 @@
     }, 
     "group": "complexity", 
     "id": "manual_swap", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for getting the remainder of a division by one.", 
-      "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
-      "Example": "```rust\nx % 1\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "correctness", 
-    "id": "modulo_one", 
-    "level": "Deny"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for the use of `.cloned().collect()` on slice to\ncreate a `Vec`.", 
-      "Why is this bad": "`.to_vec()` is clearer", 
-      "Example": "```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1,2,3,4,5];\nlet s2 : Vec<isize> = s.to_vec();\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "iter_cloned_collect", 
     "level": "Warn"
   }, 
   {
@@ -2578,17 +2315,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.clone()` on a `Copy` type.", 
-      "Why is this bad": "The only reason `Copy` types implement `Clone` is for\ngenerics, not for using the `clone` method on a concrete type.", 
-      "Example": "```rust\n42u64.clone()\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "complexity", 
-    "id": "clone_on_copy", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for passing a unit value as an argument to a function without using a unit literal (`()`).", 
       "Why is this bad": "This is likely the result of an accidental semicolon.", 
       "Example": "```rust\nfoo({\n  let a = bar();\n  baz(a);\n})\n```", 
@@ -2607,17 +2333,6 @@
     }, 
     "group": "style", 
     "id": "just_underscores_and_digits", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for use of `.skip(x).next()` on iterators.", 
-      "Why is this bad": "`.nth(x)` is cleaner", 
-      "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "iter_skip_next", 
     "level": "Warn"
   }, 
   {
@@ -2699,13 +2414,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for binding a unit value.", 
-      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
-      "Example": "```rust\nlet x = { 1; };\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
+      "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
+      "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\n\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
+      "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
     }, 
     "group": "style", 
-    "id": "let_unit_value", 
+    "id": "implicit_hasher", 
     "level": "Warn"
   }, 
   {
@@ -2863,17 +2578,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,\netc., and suggests to use `or_else`, `unwrap_or_else`, etc., or\n`unwrap_or_default` instead.", 
-      "Why is this bad": "The function will always be called and potentially\nallocate an object acting as the default.", 
-      "Example": "```rust\nfoo.unwrap_or(String::new())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(String::new)\n```\nor\n```rust\nfoo.unwrap_or_default()\n```", 
-      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
-    }, 
-    "group": "perf", 
-    "id": "or_fun_call", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for non-ASCII characters in string literals.", 
       "Why is this bad": "Yeah, we know, the 90's called and wanted their charset\nback. Even so, there still are editors and other programs out there that\ndon't work well with Unicode. So if the code is meant to be used\ninternationally, on multiple operating systems, or has other portability\nrequirements, activating this lint could be useful.", 
       "Example": "```rust\nlet x = \"H\u00e4?\"\n```", 
@@ -2904,17 +2608,6 @@
     "group": "correctness", 
     "id": "invalid_ref", 
     "level": "Deny"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for usage of `_.map(_).flatten(_)`,", 
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
-      "Example": "```rust\niter.map(|x| x.iter()).flatten()\n```", 
-      "Known problems": ""
-    }, 
-    "group": "pedantic", 
-    "id": "map_flatten", 
-    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2993,28 +2686,6 @@
   }, 
   {
     "docs": {
-      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
-      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
-      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```", 
-      "Known problems": "None"
-    }, 
-    "group": "pedantic", 
-    "id": "needless_continue", 
-    "level": "Allow"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
-      "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
-      "Example": "```rust\nfn as_u64(x: u8) -> u64 { x as u64 }\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 { u64::from(x) }\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "complexity", 
-    "id": "cast_lossless", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for `if/else` with the same body as the *then* part\nand the *else* part.", 
       "Why is this bad": "This is probably a copy & paste error.", 
       "Example": "```rust\nlet foo = if \u2026 {\n    42\n} else {\n    42\n};\n```", 
@@ -3033,17 +2704,6 @@
     }, 
     "group": "complexity", 
     "id": "borrowed_box", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for usage of `ok().expect(..)`.", 
-      "Why is this bad": "Because you usually call `expect()` on the `Result`\ndirectly to get a better error message.", 
-      "Example": "```rust\nx.ok().expect(\"why did I do this again?\")\n```", 
-      "Known problems": "The error type needs to implement `Debug`"
-    }, 
-    "group": "style", 
-    "id": "ok_expect", 
     "level": "Warn"
   }, 
   {
@@ -3115,13 +2775,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,\netc., and suggests to use `unwrap_or_else` instead", 
-      "Why is this bad": "The function will always be called.", 
-      "Example": "```rust\nfoo.expect(&format!(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.expect(format!(\"Err {}: {}\", err_code, err_msg).as_str())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(|_| panic!(\"Err {}: {}\", err_code, err_msg))\n```", 
-      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
+      "What it does": "Checks for binding a unit value.", 
+      "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.", 
+      "Example": "```rust\nlet x = { 1; };\n```", 
+      "Known problems": "None."
     }, 
-    "group": "perf", 
-    "id": "expect_fun_call", 
+    "group": "style", 
+    "id": "let_unit_value", 
     "level": "Warn"
   }, 
   {
