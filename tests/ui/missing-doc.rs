@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 /* This file incorporates work covered by the following copyright and
  * permission notice:

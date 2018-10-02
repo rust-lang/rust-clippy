@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(clippy::write_literal)]
 #![warn(clippy::write_with_newline)]

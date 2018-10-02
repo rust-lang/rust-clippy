@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 
 #![warn(clippy::duplicate_underscore_argument)]

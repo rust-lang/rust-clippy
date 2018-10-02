@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 
 #![warn(clippy::all, clippy::pedantic, clippy::shadow_same, clippy::shadow_reuse, clippy::shadow_unrelated)]

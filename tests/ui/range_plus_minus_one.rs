@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 fn f() -> usize {
     42

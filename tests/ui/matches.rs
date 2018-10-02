@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 #![feature(exclusive_range_pattern)]
 
 

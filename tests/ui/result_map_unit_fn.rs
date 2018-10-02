@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![feature(never_type)]
 #![warn(clippy::result_map_unit_fn)]

@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![warn(clippy::unit_arg)]
 #![allow(clippy::no_effect)]

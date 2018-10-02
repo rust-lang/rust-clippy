@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(clippy::all)]
 #![warn(clippy::cyclomatic_complexity)]

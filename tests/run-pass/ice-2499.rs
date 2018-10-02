@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(dead_code, clippy::char_lit_as_u8, clippy::needless_bool)]
 

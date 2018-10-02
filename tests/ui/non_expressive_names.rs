@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![warn(clippy::all,clippy::similar_names)]
 #![allow(unused, clippy::println_empty_string)]

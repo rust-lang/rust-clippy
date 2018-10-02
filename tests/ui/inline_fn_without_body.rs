@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 
 #![warn(clippy::inline_fn_without_body)]

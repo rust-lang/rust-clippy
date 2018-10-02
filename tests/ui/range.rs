@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 struct NotARange;
 impl NotARange {

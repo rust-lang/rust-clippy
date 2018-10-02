@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![deny(clippy::match_same_arms)]
 

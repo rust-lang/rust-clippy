@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(clippy::many_single_char_names, clippy::blacklisted_name, clippy::redundant_field_names)]
 

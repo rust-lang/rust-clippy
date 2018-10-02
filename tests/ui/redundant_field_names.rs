@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![warn(clippy::redundant_field_names)]
 #![allow(unused_variables)]

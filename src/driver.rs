@@ -1,7 +1,7 @@
 // error-pattern:yummy
 #![feature(box_syntax)]
 #![feature(rustc_private)]
-#![feature(tool_lints)]
+
 #![allow(unknown_lints, clippy::missing_docs_in_private_items)]
 
 // FIXME: switch to something more ergonomic here, once available.

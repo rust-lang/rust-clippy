@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(unused)]
 #![warn(clippy::all)]

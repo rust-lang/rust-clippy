@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(clippy::print_literal, clippy::write_literal)]
 #![warn(clippy::print_stdout, clippy::use_debug)]

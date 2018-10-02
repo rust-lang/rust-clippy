@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(unused, clippy::trivially_copy_pass_by_ref)]
 #![warn(clippy::mut_from_ref)]

@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 //ignore-x86
 //no-ignore-x86_64

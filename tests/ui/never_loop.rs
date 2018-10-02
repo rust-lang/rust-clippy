@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(clippy::single_match, unused_assignments, unused_variables, clippy::while_immutable_condition)]
 
