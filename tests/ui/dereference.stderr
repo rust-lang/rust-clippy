@@ -1,0 +1,16 @@
+error: explicit deref method call
+  --> $DIR/dereference.rs:13:17
+   |
+13 |         let b = aref.deref();
+   |                 ^^^^^^^^^^^^ help: try this: `&*aref`
+   |
+   = note: `-D clippy::deref-method-explicit` implied by `-D warnings`
+
+error: explicit deref_mut method call
+  --> $DIR/dereference.rs:18:17
+   |
+18 |         let b = aref.deref_mut();
+   |                 ^^^^^^^^^^^^^^^^ help: try this: `&mut *aref`
+
+error: aborting due to 2 previous errors
+

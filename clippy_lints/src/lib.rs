@@ -88,6 +88,7 @@ pub mod copies;
 pub mod copy_iterator;
 pub mod cyclomatic_complexity;
 pub mod default_trait_access;
+pub mod dereference;
 pub mod derive;
 pub mod doc;
 pub mod double_comparison;
@@ -356,6 +357,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_early_lint_pass(box misc_early::MiscEarly);
     reg.register_late_lint_pass(box panic_unimplemented::Pass);
     reg.register_late_lint_pass(box strings::StringLitAsBytes);
+    reg.register_late_lint_pass(box dereference::Pass);
     reg.register_late_lint_pass(box derive::Derive);
     reg.register_late_lint_pass(box types::CharLitAsU8);
     reg.register_late_lint_pass(box vec::Pass);
@@ -523,6 +525,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         copies::IF_SAME_THEN_ELSE,
         copies::IFS_SAME_COND,
         cyclomatic_complexity::CYCLOMATIC_COMPLEXITY,
+        dereference::DEREF_METHOD_EXPLICIT,
         derive::DERIVE_HASH_XOR_EQ,
         double_comparison::DOUBLE_COMPARISONS,
         double_parens::DOUBLE_PARENS,
@@ -807,6 +810,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         assign_ops::MISREFACTORED_ASSIGN_OP,
         booleans::NONMINIMAL_BOOL,
         cyclomatic_complexity::CYCLOMATIC_COMPLEXITY,
+        dereference::DEREF_METHOD_EXPLICIT,
         double_comparison::DOUBLE_COMPARISONS,
         double_parens::DOUBLE_PARENS,
         duration_subsec::DURATION_SUBSEC,
