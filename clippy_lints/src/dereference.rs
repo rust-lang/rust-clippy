@@ -35,10 +35,13 @@ impl LintPass for Pass {
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_expr(&mut self, cx: &LateContext<'_, '_>, expr: &Expr) {
         if_chain! {
+            // if this is a method call
             if let ExprKind::MethodCall(ref method_name, _, ref args) = &expr.node;
+            // on a Path (i.e. a variable/name, not another method)
             if let ExprKind::Path(QPath::Resolved(None, path)) = &args[0].node;
             then {
                 let name = method_name.ident.as_str();
+                // alter help slightly to account for _mut
                 match &*name {
                     "deref" => {
                         span_lint_and_sugg(
