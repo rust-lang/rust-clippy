@@ -90,7 +90,7 @@ pub fn match_def_path(tcx: TyCtxt<'_, '_, '_>, def_id: DefId, path: &[&str]) -> 
 
     let mut apb = AbsolutePathBuffer { names: vec![] };
 
-    tcx.push_item_path(&mut apb, def_id);
+    tcx.push_item_path(&mut apb, def_id, false);
 
     apb.names.len() == path.len()
         && apb.names
