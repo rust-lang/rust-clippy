@@ -677,6 +677,7 @@ All notable changes to this project will be documented in this file.
 [`expect_fun_call`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#expect_fun_call
 [`expl_impl_clone_on_copy`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#expl_impl_clone_on_copy
 [`explicit_counter_loop`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#explicit_counter_loop
+[`explicit_deref_method`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#explicit_deref_method
 [`explicit_into_iter_loop`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#explicit_into_iter_loop
 [`explicit_iter_loop`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#explicit_iter_loop
 [`explicit_write`]: https://rust-lang-nursery.github.io/rust-clippy/master/index.html#explicit_write

@@ -526,7 +526,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         copies::IF_SAME_THEN_ELSE,
         copies::IFS_SAME_COND,
         cyclomatic_complexity::CYCLOMATIC_COMPLEXITY,
-        dereference::EXPLICIT_DEREF_METHOD,
         derive::DERIVE_HASH_XOR_EQ,
         double_comparison::DOUBLE_COMPARISONS,
         double_parens::DOUBLE_PARENS,
