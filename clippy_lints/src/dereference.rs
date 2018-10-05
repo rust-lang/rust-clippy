@@ -19,7 +19,7 @@ use crate::utils::span_lint_and_sugg;
 /// let f = a.deref().unwrap();
 /// ```
 declare_clippy_lint! {
-    pub DEREF_METHOD_EXPLICIT,
+    pub EXPLICIT_DEREF_METHOD,
     complexity,
     "Explicit use of deref or deref_mut method while not in a method chain."
 }
@@ -28,7 +28,7 @@ pub struct Pass;
 
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
-        lint_array!(DEREF_METHOD_EXPLICIT)
+        lint_array!(EXPLICIT_DEREF_METHOD)
     }
 }
 
@@ -46,7 +46,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     "deref" => {
                         span_lint_and_sugg(
                             cx,
-                            DEREF_METHOD_EXPLICIT,
+                            EXPLICIT_DEREF_METHOD,
                             expr.span,
                             "explicit deref method call",
                             "try this",
@@ -56,7 +56,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     "deref_mut" => {
                         span_lint_and_sugg(
                             cx,
-                            DEREF_METHOD_EXPLICIT,
+                            EXPLICIT_DEREF_METHOD,
                             expr.span,
                             "explicit deref_mut method call",
                             "try this",

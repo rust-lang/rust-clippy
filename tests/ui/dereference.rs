@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 
 #[allow(clippy::many_single_char_names, clippy::clone_double_ref)]
 #[allow(unused_variables)]
-#[warn(clippy::deref_method_explicit)]
+#[warn(clippy::explicit_deref_method)]
 fn main() {
     let a: &mut String = &mut String::from("foo");
 

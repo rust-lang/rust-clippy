@@ -4,7 +4,7 @@ error: explicit deref method call
 13 |         let b: &str = a.deref();
    |                       ^^^^^^^^^ help: try this: `&*a`
    |
-   = note: `-D clippy::deref-method-explicit` implied by `-D warnings`
+   = note: `-D clippy::explicit-deref-method` implied by `-D warnings`
 
 error: explicit deref_mut method call
   --> $DIR/dereference.rs:17:27
