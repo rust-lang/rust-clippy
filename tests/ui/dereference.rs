@@ -47,4 +47,9 @@ fn main() {
     {
         let b: &mut str = &mut *a;
     }
+
+    {
+        macro_rules! expr_deref { ($body:expr) => { $body.deref() } }
+        let b: &str = expr_deref!(a);
+    }
 }
