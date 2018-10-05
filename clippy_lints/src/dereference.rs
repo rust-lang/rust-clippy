@@ -2,7 +2,7 @@ use crate::rustc::hir::{Expr, ExprKind, QPath};
 use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use crate::rustc::{declare_tool_lint, lint_array};
 use if_chain::if_chain;
-use crate::utils::span_lint_and_sugg;
+use crate::utils::{in_macro, span_lint_and_sugg};
 
 /// **What it does:** Checks for explicit deref() or deref_mut() method calls.
 ///
@@ -15,8 +15,7 @@ use crate::utils::span_lint_and_sugg;
 /// let c = a.deref_mut();
 ///
 /// // excludes
-/// let e = d.deref().unwrap();
-/// let f = a.deref().unwrap();
+/// let e = d.unwrap().deref();
 /// ```
 declare_clippy_lint! {
     pub EXPLICIT_DEREF_METHOD,
@@ -34,6 +33,10 @@ impl LintPass for Pass {
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_expr(&mut self, cx: &LateContext<'_, '_>, expr: &Expr) {
+        if in_macro(expr.span) {
+            return;
+        }
+
         if_chain! {
             // if this is a method call
             if let ExprKind::MethodCall(ref method_name, _, ref args) = &expr.node;
