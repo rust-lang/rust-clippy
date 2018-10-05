@@ -20,7 +20,7 @@ use crate::utils::span_lint_and_sugg;
 /// ```
 declare_clippy_lint! {
     pub EXPLICIT_DEREF_METHOD,
-    complexity,
+    pedantic,
     "Explicit use of deref or deref_mut method while not in a method chain."
 }
 
