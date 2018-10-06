@@ -940,14 +940,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for casts of a function pointer to a numeric type not enough to store address.", 
-      "Why is this bad": "Casting a function pointer to not eligible type could truncate the address value.", 
-      "Example": "```rust\nfn test_fn() -> i16;\nlet _ = test_fn as i32\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for casts of a function pointer to a numeric type not wide enough to\nstore address.", 
+      "Why is this bad": "Such a cast discards some bits of the function's address. If this is intended, it would be more\nclearly expressed by casting to usize first, then casting the usize to the intended type (with\na comment) to perform the truncation.", 
+      "Example": "```rust\n// Bad\nfn fn1() -> i16 { 1 };\nlet _ = fn1 as i32;\n\n// Better: Cast to usize first, then comment with the reason for the truncation\nfn fn2() -> i16 { 1 };\nlet fn_ptr = fn2 as usize;\nlet fn_ptr_truncated = fn_ptr as i32;\n```"
     }, 
-    "group": "correctness", 
+    "group": "style", 
     "id": "fn_to_numeric_cast_with_truncation", 
-    "level": "Deny"
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1754,10 +1753,9 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for casts of a function pointer to a numeric type except `usize`.", 
-      "Why is this bad": "Casting a function pointer to something other than `usize` is not a good style.", 
-      "Example": "```rust\nfn test_fn() -> i16;\nlet _ = test_fn as i128\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for casts of function pointers to something other than usize", 
+      "Why is this bad": "Casting a function pointer to anything other than usize/isize is not portable across\narchitectures, because you end up losing bits if the target type is too small or end up with a\nbunch of extra bits that waste space and add more instructions to the final binary than\nstrictly necessary for the problem\nCasting to isize also doesn't make sense since there are no signed addresses.", 
+      "Example": "```rust\n// Bad\nfn fun() -> i32 {}\nlet a = fun as i64;\n\n// Good\nfn fun2() -> i32 {}\nlet a = fun2 as usize;\n```"
     }, 
     "group": "style", 
     "id": "fn_to_numeric_cast", 
@@ -2030,10 +2028,10 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for mapping `clone()` over an iterator.", 
-      "Why is this bad": "It makes the code less readable than using the\n`.cloned()` adapter.", 
-      "Example": "```rust\nx.map(|e| e.clone());\n```", 
-      "Known problems": "Sometimes `.cloned()` requires stricter trait\nbound than `.map(|e| e.clone())` (which works because of the coercion).\nSee [#498](https://github.com/rust-lang-nursery/rust-clippy/issues/498)."
+      "What it does": "Checks for usage of `iterator.map(|x| x.clone())` and suggests\n`iterator.cloned()` instead", 
+      "Why is this bad": "Readability, this can be written more concisely", 
+      "Example": "```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```", 
+      "Known problems": "None."
     }, 
     "group": "style", 
     "id": "map_clone", 
