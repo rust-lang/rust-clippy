@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 
 #![warn(clippy::char_lit_as_u8)]

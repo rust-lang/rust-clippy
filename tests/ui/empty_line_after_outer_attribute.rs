@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 #![warn(clippy::empty_line_after_outer_attr)]
 
 // This should produce a warning

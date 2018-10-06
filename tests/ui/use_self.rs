@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![warn(clippy::use_self)]
 #![allow(dead_code)]

@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![warn(clippy::serde_api_misuse)]
 #![allow(dead_code)]

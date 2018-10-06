@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 #![allow(clippy::default_hash_types)]
 
 use itertools::Itertools;

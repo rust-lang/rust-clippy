@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![warn(clippy::default_hash_types)]
 #![feature(rustc_private)]

@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![allow(dead_code)]
 #![warn(clippy::multiple_inherent_impl)]

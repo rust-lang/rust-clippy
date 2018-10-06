@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 use std::iter::repeat;
 #[allow(clippy::trivially_copy_pass_by_ref)]

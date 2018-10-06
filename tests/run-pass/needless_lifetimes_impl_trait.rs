@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![deny(clippy::needless_lifetimes)]
 #![allow(dead_code)]

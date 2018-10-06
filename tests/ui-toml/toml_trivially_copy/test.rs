@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 #![allow(clippy::many_single_char_names)]
 
 #[derive(Copy, Clone)]

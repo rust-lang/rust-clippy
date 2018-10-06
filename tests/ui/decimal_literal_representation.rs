@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 
 #[warn(clippy::decimal_literal_representation)]

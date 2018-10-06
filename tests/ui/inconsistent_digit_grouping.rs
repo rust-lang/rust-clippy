@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #[warn(clippy::inconsistent_digit_grouping)]
 #[allow(unused_variables)]

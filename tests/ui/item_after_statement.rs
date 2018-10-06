@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![warn(clippy::items_after_statements)]
 

@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 //! This test case utilizes `f64` an easy example for `PartialOrd` only types
 //! but the lint itself actually validates any expression where the left

@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 #![feature(const_string_new, const_vec_new)]
 #![allow(clippy::ref_in_deref, dead_code)]

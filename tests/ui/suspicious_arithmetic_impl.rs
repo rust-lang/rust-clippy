@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 
 #![warn(clippy::suspicious_arithmetic_impl)]

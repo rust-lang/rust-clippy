@@ -1,4 +1,4 @@
-#![feature(tool_lints)]
+
 
 
 fn get_number() -> usize {
