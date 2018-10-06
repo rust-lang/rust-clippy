@@ -13,12 +13,13 @@ use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass, in_exte
 use crate::rustc::{declare_tool_lint, lint_array};
 use if_chain::if_chain;
 use crate::rustc::ty::{self, Ty};
+use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::collections::Bound;
 use crate::syntax::ast::LitKind;
 use crate::syntax::source_map::Span;
 use crate::utils::paths;
-use crate::utils::{expr_block, is_allowed, is_expn_of, match_qpath, match_type, multispan_sugg,
+use crate::utils::{expr_block, in_macro, is_allowed, is_expn_of, match_qpath, match_type, multispan_sugg,
             remove_blocks, snippet, span_lint_and_sugg, span_lint_and_then, span_note_and_lint, walk_ptrs_ty};
 use crate::utils::sugg::Sugg;
 use crate::consts::{constant, Constant};
@@ -254,7 +255,18 @@ fn report_single_match_single_pattern(cx: &LateContext<'_, '_>, ex: &Expr, arms:
     } else {
         SINGLE_MATCH
     };
-    let els_str = els.map_or(String::new(), |els| format!(" else {}", expr_block(cx, els, None, "..")));
+    let els_str = els.map_or(String::new(), |els| {
+        if in_macro(els.span) {
+            " else { .. }".to_string()
+        } else {
+            format!(" else {}", expr_block(cx, els, None, ".."))
+        }
+    });
+    let expr_block = if in_macro(arms[0].body.span) {
+        Cow::Owned("{ .. }".to_string())
+    } else {
+        expr_block(cx, &arms[0].body, None, "..")
+    };
     span_lint_and_sugg(
         cx,
         lint,
@@ -266,7 +278,7 @@ fn report_single_match_single_pattern(cx: &LateContext<'_, '_>, ex: &Expr, arms:
             "if let {} = {} {}{}",
             snippet(cx, arms[0].pats[0].span, ".."),
             snippet(cx, ex.span, ".."),
-            expr_block(cx, &arms[0].body, None, ".."),
+            expr_block,
             els_str
         ),
     );
