@@ -1884,6 +1884,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e. nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.", 
+      "Why is this bad": "While such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.", 
+      "Example": "```rust\nu32::MAX as i32  // will yield a value of `-1`\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "pedantic", 
+    "id": "cast_possible_wrap", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.", 
       "Why is this bad": "Usually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).", 
       "Example": "```rust\nlet x = 3.14;\n```", 
@@ -2278,14 +2289,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e. nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.", 
-      "Why is this bad": "While such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.", 
-      "Example": "```rust\nu32::MAX as i32  // will yield a value of `-1`\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for unit (`()`) expressions that can be removed.", 
+      "Why is this bad": "Such expressions add no value, but can make the code\nless readable. Depending on formatting they can make a `break` or `return`\nstatement look like a function call.", 
+      "Example": "```rust\nfn return_unit() -> () { () }\n```", 
+      "Known problems": "The lint currently misses unit return types in types,\ne.g. the `F` in `fn generic_unit<F: Fn() -> ()>(f: F) { .. }`."
     }, 
-    "group": "pedantic", 
-    "id": "cast_possible_wrap", 
-    "level": "Allow"
+    "group": "style", 
+    "id": "unused_unit", 
+    "level": "Warn"
   }, 
   {
     "docs": {
