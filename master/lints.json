@@ -727,7 +727,7 @@
     "docs": {
       "What it does": "Checks for usage of `std::mem::forget(t)` where `t` is\n`Drop`.", 
       "Why is this bad": "`std::mem::forget(t)` prevents `t` from running its\ndestructor, possibly causing leaks.", 
-      "Example": "```rust\nmem::forget(Rc::new(55)))\n```", 
+      "Example": "```rust\nmem::forget(Rc::new(55))\n```", 
       "Known problems": "None."
     }, 
     "group": "restriction", 
