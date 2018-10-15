@@ -64,6 +64,15 @@ impl Lint {
     pub fn by_lint_group(lints: &[Self]) -> HashMap<String, Vec<Self>> {
         lints.iter().map(|lint| (lint.group.to_string(), lint.clone())).into_group_map()
     }
+
+    /// Generates `pub mod module_name` for the lints in the given `group`
+    pub fn gen_pub_mod_for_group(lints: &[Lint]) -> Vec<String> {
+        lints.into_iter().map(|l| format!("pub mod {};", l.module)).collect::<Vec<String>>()
+    }
+
+    pub fn gen_lint_group(lints: &[Lint]) -> Vec<String> {
+        lints.into_iter().map(|l| format!("        {}::{},", l.module, l.name.to_uppercase())).collect::<Vec<String>>()
+    }
 }
 
 pub fn gather_all() -> impl Iterator<Item=Lint> {
@@ -94,6 +103,67 @@ fn lint_files() -> impl Iterator<Item=fs::DirEntry> {
         .unwrap()
         .filter_map(|f| f.ok())
         .filter(|f| f.path().extension() == Some(OsStr::new("rs")))
+}
+
+
+pub fn clippy_version_from_toml() -> String {
+    let mut file = fs::File::open("../Cargo.toml").unwrap();
+    let mut content = String::new();
+    file.read_to_string(&mut content).unwrap();
+    let version_line = content.lines().find(|l| l.starts_with("version ="));
+    if let Some(version_line) = version_line {
+        let split = version_line.split(" ").collect::<Vec<&str>>();
+        split[2].trim_matches('"').to_string()
+    } else {
+        panic!("Error: version not found in Cargo.toml!");
+    }
+}
+
+pub fn replace_region_in_file<F>(path: &str, start: &str, end: &str, replace_start: bool, replacements: F) where F: Fn() -> Vec<String> {
+    let mut f = fs::File::open(path).expect(&format!("File not found: {}", path));
+    let mut contents = String::new();
+    f.read_to_string(&mut contents).expect("Something went wrong reading the file");
+    let replaced = replace_region_in_text(&contents, start, end, replace_start, replacements);
+
+    let mut f = fs::File::create(path).expect(&format!("File not found: {}", path));
+    f.write_all(replaced.as_bytes()).expect("Unable to write file");
+}
+
+// Replace a region in a file delimited by two lines matching regexes.
+//
+// A callback is called to write the new region.
+// If `replace_start` is true, the start delimiter line is replaced as well.
+// The end delimiter line is never replaced.
+pub fn replace_region_in_text<F>(text: &str, start: &str, end: &str, replace_start: bool, replacements: F) -> String where F: Fn() -> Vec<String> {
+    let lines = text.lines();
+    let mut in_old_region = false;
+    let mut found = false;
+    let mut new_lines = vec![];
+    let start = Regex::new(start).unwrap();
+    let end = Regex::new(end).unwrap();
+
+    for line in lines {
+        if in_old_region {
+            if end.is_match(&line) {
+                in_old_region = false;
+                new_lines.extend(replacements());
+                new_lines.push(line.to_string());
+            }
+        } else if start.is_match(&line) {
+            if !replace_start {
+                new_lines.push(line.to_string());
+            }
+            in_old_region = true;
+            found = true;
+        } else {
+            new_lines.push(line.to_string());
+        }
+    }
+
+    if !found {
+        println!("regex {:?} not found", start);
+    }
+    new_lines.join("\n")
 }
 
 #[test]
@@ -135,6 +205,44 @@ declare_deprecated_lint! {
     assert_eq!(expected, result);
 }
 
+
+#[test]
+fn test_replace_region() {
+    let text = r#"
+abc
+123
+789
+def
+ghi"#;
+    let expected = r#"
+abc
+hello world
+def
+ghi"#;
+    let result = replace_region_in_text(text, r#"^\s*abc$"#, r#"^\s*def"#, false, || {
+        vec!["hello world".to_string()]
+    });
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn test_replace_region_with_start() {
+    let text = r#"
+abc
+123
+789
+def
+ghi"#;
+    let expected = r#"
+hello world
+def
+ghi"#;
+    let result = replace_region_in_text(text, r#"^\s*abc$"#, r#"^\s*def"#, true, || {
+        vec!["hello world".to_string()]
+    });
+    assert_eq!(expected, result);
+}
+
 #[test]
 fn test_active_lints() {
     let lints = vec![
@@ -163,4 +271,30 @@ fn test_by_lint_group() {
         Lint::new("should_assert_eq2", "group2", "abc", None, "module_name")
     ]);
     assert_eq!(expected, Lint::by_lint_group(&lints));
+}
+
+#[test]
+fn test_gen_pub_mod_for_group() {
+    let lints = vec![
+        Lint::new("should_assert_eq", "Deprecated", "abc", Some("Reason"), "abc"),
+        Lint::new("should_assert_eq2", "Not Deprecated", "abc", None, "module_name"),
+    ];
+    let expected = vec![
+        "pub mod abc;".to_string(),
+        "pub mod module_name;".to_string(),
+    ];
+    assert_eq!(expected, Lint::gen_pub_mod_for_group(&lints));
+}
+
+#[test]
+fn test_gen_lint_group() {
+    let lints = vec![
+        Lint::new("should_assert_eq", "Deprecated", "abc", Some("Reason"), "abc"),
+        Lint::new("should_assert_eq2", "Not Deprecated", "abc", None, "module_name"),
+    ];;
+    let expected = vec![
+        "        abc::SHOULD_ASSERT_EQ,".to_string(),
+        "        module_name::SHOULD_ASSERT_EQ2,".to_string()
+    ];
+    assert_eq!(expected, Lint::gen_lint_group(&lints));
 }
