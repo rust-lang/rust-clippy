@@ -605,6 +605,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Lint for redundant pattern matching over `Result` or\n`Option`", 
+      "Why is this bad": "It's more concise and clear to just use the proper\nutility function", 
+      "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\nmatch Ok::<i32, i32>(42) {\n    Ok(_) => true,\n    Err(_) => false,\n};\n```\n\nThe more idiomatic use would be:\n\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\nOk::<i32, i32>(42).is_ok();\n```\n", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "redundant_pattern_matching", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for casts from a signed to an unsigned numerical\ntype. In this case, negative values wrap around to large positive values,\nwhich can be quite surprising in practice. However, as the cast works as\ndefined, this lint is `Allow` by default.", 
       "Why is this bad": "Possibly surprising results. You can activate this lint\nas a one-time check to see where numerical wrapping can arise.", 
       "Example": "```rust\nlet y: i8 = -1;\ny as u128  // will return 18446744073709551615\n```", 
@@ -2136,14 +2147,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Lint for redundant pattern matching over `Result` or\n`Option`", 
-      "Why is this bad": "It's more concise and clear to just use the proper\nutility function", 
-      "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\n```\n\nThe more idiomatic use would be:\n\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\n```\n", 
+      "What it does": "Checks for impls of `From<..>` that contain `panic!()` or `unwrap()`", 
+      "Why is this bad": "`TryFrom` should be used if there's a possibility of failure.", 
+      "Example": "```rust\nstruct Foo(i32);\nimpl From<String> for Foo {\n    fn from(s: String) -> Self {\n        Foo(s.parse().unwrap())\n    }\n}\n```", 
       "Known problems": "None."
     }, 
-    "group": "style", 
-    "id": "if_let_redundant_pattern_matching", 
-    "level": "Warn"
+    "group": "nursery", 
+    "id": "fallible_impl_from", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -3157,13 +3168,11 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for impls of `From<..>` that contain `panic!()` or `unwrap()`", 
-      "Why is this bad": "`TryFrom` should be used if there's a possibility of failure.", 
-      "Example": "```rust\nstruct Foo(i32);\nimpl From<String> for Foo {\n    fn from(s: String) -> Self {\n        Foo(s.parse().unwrap())\n    }\n}\n```", 
-      "Known problems": "None."
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "The original rule will only lint for `if let`. After\nmaking it support to lint `match`, naming as `if let` is not suitable for it.\nSo, this lint is deprecated."
     }, 
-    "group": "nursery", 
-    "id": "fallible_impl_from", 
-    "level": "Allow"
+    "group": "deprecated", 
+    "id": "if_let_redundant_pattern_matching", 
+    "level": "Deprecated"
   }
 ]
