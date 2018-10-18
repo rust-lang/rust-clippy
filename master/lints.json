@@ -1876,7 +1876,7 @@
       "What it does": "Checks for `new` not returning `Self`.", 
       "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.", 
       "Example": "```rust\nimpl Foo {\n    fn new(..) -> NotAFoo {\n    }\n}\n```", 
-      "Known problems": "None."
+      "Known problems": "The lint fires when the return type is wrapping `Self`.\nExample: `fn new() -> Result<Self, E> {}`"
     }, 
     "group": "style", 
     "id": "new_ret_no_self", 
