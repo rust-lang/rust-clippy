@@ -1873,6 +1873,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for wildcard dependencies in the `Cargo.toml`.", 
+      "Why is this bad": "[As the edition guide says](https://rust-lang-nursery.github.io/edition-guide/rust-2018/cargo-and-crates-io/crates-io-disallows-wildcard-dependencies.html),\nit is highly unlikely that you work with any possible version of your dependency,\nand wildcard dependencies would cause unnecessary breakage in the ecosystem.", 
+      "Example": "```toml\n[dependencies]\nregex = \"*\"\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "cargo", 
+    "id": "wildcard_dependencies", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `new` not returning `Self`.", 
       "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.", 
       "Example": "```rust\nimpl Foo {\n    fn new(..) -> NotAFoo {\n    }\n}\n```", 
