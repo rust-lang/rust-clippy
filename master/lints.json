@@ -1178,6 +1178,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calls of `mem::discriminant()` on a non-enum type.", 
+      "Why is this bad": "The value of `mem::discriminant()` on non-enum types\nis unspecified.", 
+      "Example": "```rust\nmem::discriminant(&\"hello\");\nmem::discriminant(&&Some(2));\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "mem_discriminant_non_enum", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `enum`s with no variants.", 
       "Why is this bad": "Enum's with no variants should be replaced with `!`,\nthe uninhabited type,\nor a wrapper around it.", 
       "Example": "```rust\nenum Test {}\n```", 
