@@ -61,8 +61,12 @@ impl EarlyLintPass for IfNotElse {
         if in_external_macro(cx.sess(), item.span) {
             return;
         }
-        if let ExprKind::If(ref cond, _, Some(ref els)) = item.node {
-            if let ExprKind::Block(..) = els.node {
+        if let ExprKind::If(ref cond, ref thn, Some(ref els)) = item.node {
+            if let ExprKind::Block(ref els_block, ..) = els.node {
+                if thn.stmts.len() < els_block.stmts.len() {
+                    return;
+                }
+
                 match cond.node {
                     ExprKind::Unary(UnOp::Not, _) => {
                         span_help_and_lint(
