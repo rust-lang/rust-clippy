@@ -13,7 +13,6 @@ use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass, in_exte
 use crate::rustc::{declare_tool_lint, lint_array};
 use if_chain::if_chain;
 use crate::rustc::ty::{self, Ty};
-use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::collections::Bound;
 use crate::syntax::ast::LitKind;
@@ -257,15 +256,17 @@ fn report_single_match_single_pattern(cx: &LateContext<'_, '_>, ex: &Expr, arms:
     };
     let els_str = els.map_or(String::new(), |els| {
         if in_macro(els.span) {
-            " else { .. }".to_string()
+            let source_callsite_snip = snippet(cx, els.span.source_callsite(), "..");
+            format!(" else {{ {} }}", source_callsite_snip)
         } else {
             format!(" else {}", expr_block(cx, els, None, ".."))
         }
     });
     let expr_block = if in_macro(arms[0].body.span) {
-        Cow::Owned("{ .. }".to_string())
+        let source_callsite_snip = snippet(cx, arms[0].body.span.source_callsite(), "..");
+        format!("{{ {} }}", source_callsite_snip)
     } else {
-        expr_block(cx, &arms[0].body, None, "..")
+        expr_block(cx, &arms[0].body, None, "..").to_string()
     };
     span_lint_and_sugg(
         cx,
