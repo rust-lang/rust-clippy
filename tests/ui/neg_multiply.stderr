@@ -12,5 +12,11 @@ error: Negation by multiplying with -1
 42 |     -1 * x;
    |     ^^^^^^
 
-error: aborting due to 2 previous errors
+error: Negation by multiplying with -1
+  --> $DIR/neg_multiply.rs:44:5
+   |
+44 |     x *= -1;
+   |     ^^^^^^^
+
+error: aborting due to 3 previous errors
 

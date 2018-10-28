@@ -53,6 +53,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NegMultiply {
                 _ => (),
             }
         }
+
+        if let ExprKind::AssignOp(Spanned {node: BinOpKind::Mul, .. }, _, ref rhs) = e.node {
+            if let ExprKind::Unary(UnNeg, ref lit) = rhs.node {
+                check_mul(cx, e.span, lit, rhs)
+            }
+        }
     }
 }
 

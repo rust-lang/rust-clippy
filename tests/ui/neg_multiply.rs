@@ -35,11 +35,13 @@ impl Mul<X> for isize {
 }
 
 fn main() {
-    let x = 0;
+    let mut x = 0;
 
     x * -1;
 
     -1 * x;
+
+    x *= -1;
 
     -1 * -1; // should be ok
 
