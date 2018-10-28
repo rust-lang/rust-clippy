@@ -13,6 +13,11 @@ set -ex
 
 echo "Running clippy base tests"
 
+
+if [ "$TRAVIS_OS_NAME" == "windows" ]; then
+  unix2dos tests/ui/**/*.stderr
+fi
+
 PATH=$PATH:./node_modules/.bin
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
   remark -f *.md > /dev/null
