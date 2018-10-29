@@ -143,6 +143,7 @@ mod consts;
 mod utils;
 
 // begin lints modules, do not remove this comment, it’s used in `update_lints`
+pub mod any_coerce;
 pub mod approx_const;
 pub mod arithmetic;
 pub mod assertions_on_constants;
@@ -582,6 +583,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box path_buf_push_overwrite::PathBufPushOverwrite);
     reg.register_late_lint_pass(box checked_conversions::CheckedConversions);
     reg.register_late_lint_pass(box integer_division::IntegerDivision);
+    reg.register_late_lint_pass(box any_coerce::WrongAnyCoerce);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -667,6 +669,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     ]);
 
     reg.register_lint_group("clippy::all", Some("clippy"), vec![
+        any_coerce::WRONG_ANY_COERCE,
         approx_const::APPROX_CONSTANT,
         assertions_on_constants::ASSERTIONS_ON_CONSTANTS,
         assign_ops::ASSIGN_OP_PATTERN,
@@ -1049,6 +1052,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     ]);
 
     reg.register_lint_group("clippy::correctness", Some("clippy_correctness"), vec![
+        any_coerce::WRONG_ANY_COERCE,
         approx_const::APPROX_CONSTANT,
         attrs::DEPRECATED_SEMVER,
         attrs::USELESS_ATTRIBUTE,

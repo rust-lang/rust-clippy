@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 305] = [
+pub const ALL_LINTS: [Lint; 306] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -2092,6 +2092,13 @@ pub const ALL_LINTS: [Lint; 305] = [
         desc: "using `writeln!(buf, \"\")` with an empty string",
         deprecation: None,
         module: "write",
+    },
+    Lint {
+        name: "wrong_any_coerce",
+        group: "correctness",
+        desc: "coercing a type already containing `dyn Any` to `dyn Any` itself",
+        deprecation: None,
+        module: "any_coerce",
     },
     Lint {
         name: "wrong_pub_self_convention",

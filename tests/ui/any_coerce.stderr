@@ -1,0 +1,88 @@
+error: coercing `std::boxed::Box<(dyn std::any::Any + std::marker::Send + 'static)>` to `dyn Any`
+  --> $DIR/any_coerce.rs:33:27
+   |
+LL |     let _: *mut dyn Any = &mut box_any; // LINT
+   |                           ^^^^^^^^^^^^
+   |
+note: lint level defined here
+  --> $DIR/any_coerce.rs:11:9
+   |
+LL | #![deny(clippy::wrong_any_coerce)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: coercing `std::rc::Rc<std::rc::Rc<(dyn std::any::Any + 'static)>>` to `dyn Any`
+  --> $DIR/any_coerce.rs:37:23
+   |
+LL |     let _: &dyn Any = &rc_rc_any; // LINT
+   |                       ^^^^^^^^^^
+
+error: coercing `std::rc::Rc<(dyn std::any::Any + 'static)>` to `dyn Any`
+  --> $DIR/any_coerce.rs:38:23
+   |
+LL |     let _: &dyn Any = &*rc_rc_any; // LINT
+   |                       ^^^^^^^^^^^
+
+error: coercing `std::boxed::Box<(dyn std::any::Any + 'static)>` to `dyn Any`
+  --> $DIR/any_coerce.rs:43:32
+   |
+LL |     let _: &RefCell<dyn Any> = &refcell_box_any; // LINT
+   |                                ^^^^^^^^^^^^^^^^
+
+error: coercing `std::rc::Rc<(dyn std::any::Any + 'static)>` to `dyn Any`
+  --> $DIR/any_coerce.rs:50:48
+   |
+LL |     let _: Rc<Unsizeable<i32, dyn Any, i32>> = rc_unsizable_rc_any.clone(); // LINT
+   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: coercing `std::rc::Rc<(dyn std::any::Any + 'static)>` to `dyn Any`
+  --> $DIR/any_coerce.rs:51:45
+   |
+LL |     let _: &Unsizeable<i32, dyn Any, i32> = &*rc_unsizable_rc_any; // LINT
+   |                                             ^^^^^^^^^^^^^^^^^^^^^
+
+error: coercing `&'static (dyn std::any::Any + 'static)` to `dyn Any`
+  --> $DIR/any_coerce.rs:56:23
+   |
+LL |     let _: &dyn Any = &ref_any; // LINT
+   |                       ^^^^^^^^
+
+error: coercing `std::cell::Ref<'static, (dyn std::any::Any + 'static)>` to `dyn Any`
+  --> $DIR/any_coerce.rs:60:23
+   |
+LL |     let _: &dyn Any = &ref_refcell_any.borrow(); // LINT
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: coercing `T` to `dyn Any`
+  --> $DIR/any_coerce.rs:69:23
+   |
+LL |     let _: &dyn Any = t; // LINT
+   |                       ^
+   |
+   = note: `T` dereferences to `dyn Any`
+
+error: coercing `&'static T` to `dyn Any`
+  --> $DIR/any_coerce.rs:70:23
+   |
+LL |     let _: &dyn Any = &t; // LINT
+   |                       ^^
+   |
+   = note: `&'static T` dereferences to `dyn Any`
+
+error: coercing `T` to `dyn Any`
+  --> $DIR/any_coerce.rs:71:23
+   |
+LL |     let _: &dyn Any = &*t; // LINT
+   |                       ^^^
+   |
+   = note: `T` dereferences to `dyn Any`
+
+error: coercing `U` to `dyn Any`
+  --> $DIR/any_coerce.rs:72:23
+   |
+LL |     let _: &dyn Any = &**t; // LINT
+   |                       ^^^^
+   |
+   = note: `U` dereferences to `dyn Any`
+
+error: aborting due to 12 previous errors
+

@@ -427,7 +427,7 @@ fn is_any_trait(t: &hir::Ty) -> bool {
         if traits.len() >= 1;
         // Only Send/Sync can be used as additional traits, so it is enough to
         // check only the first trait.
-        if match_path(&traits[0].trait_ref.path, &paths::ANY_TRAIT);
+        if match_path(&traits[0].trait_ref.path, &paths::ANY_TRAIT_STD);
         then {
             return true;
         }

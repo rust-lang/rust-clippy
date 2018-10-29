@@ -1176,6 +1176,7 @@ Released 2018-09-13
 [`write_literal`]: https://rust-lang.github.io/rust-clippy/master/index.html#write_literal
 [`write_with_newline`]: https://rust-lang.github.io/rust-clippy/master/index.html#write_with_newline
 [`writeln_empty_string`]: https://rust-lang.github.io/rust-clippy/master/index.html#writeln_empty_string
+[`wrong_any_coerce`]: https://rust-lang.github.io/rust-clippy/master/index.html#wrong_any_coerce
 [`wrong_pub_self_convention`]: https://rust-lang.github.io/rust-clippy/master/index.html#wrong_pub_self_convention
 [`wrong_self_convention`]: https://rust-lang.github.io/rust-clippy/master/index.html#wrong_self_convention
 [`wrong_transmute`]: https://rust-lang.github.io/rust-clippy/master/index.html#wrong_transmute

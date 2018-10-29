@@ -1,7 +1,8 @@
 //! This module contains paths to types and functions Clippy needs to know
 //! about.
 
-pub const ANY_TRAIT: [&str; 3] = ["std", "any", "Any"];
+pub const ANY_TRAIT: [&str; 3] = ["core", "any", "Any"];
+pub const ANY_TRAIT_STD: [&str; 3] = ["std", "any", "Any"];
 pub const ARC: [&str; 3] = ["alloc", "sync", "Arc"];
 pub const ASMUT_TRAIT: [&str; 3] = ["core", "convert", "AsMut"];
 pub const ASREF_TRAIT: [&str; 3] = ["core", "convert", "AsRef"];
