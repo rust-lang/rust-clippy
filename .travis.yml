@@ -1,6 +1,7 @@
 language: rust
 
-rust: nightly
+# change to nightly when https://github.com/rust-lang/rust/issues/55376 is fixed
+rust: nightly-2018-10-20
 
 os:
   - linux
@@ -75,14 +76,13 @@ matrix:
     - os: windows
 
 script:
-  # uncomment once https://github.com/rust-lang/rust/issues/55376 is fixed
-  # - |
-  #     rm rust-toolchain
-  #     cargo install rustup-toolchain-install-master || echo "rustup-toolchain-install-master already installed"
-  #     RUSTC_HASH=$(git ls-remote https://github.com/rust-lang/rust.git master | awk '{print $1}')
-  #     travis_retry rustup-toolchain-install-master -f -n master $RUSTC_HASH
-  #     rustup default master
-  #     export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
+  - |
+    rm rust-toolchain
+    cargo install rustup-toolchain-install-master || echo "rustup-toolchain-install-master already installed"
+    RUSTC_HASH=$(git ls-remote https://github.com/rust-lang/rust.git master | awk '{print $1}')
+    travis_retry rustup-toolchain-install-master -f -n master $RUSTC_HASH
+    rustup default master
+    export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
   - |
     if [ -z ${INTEGRATION} ]; then
       ./ci/base-tests.sh && sleep 5

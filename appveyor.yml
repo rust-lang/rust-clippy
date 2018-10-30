@@ -15,17 +15,17 @@ branches:
         - staging.tmp
 
 install:
-    - curl -sSf -o rustup-init.exe https://win.rustup.rs/
-    - rustup-init.exe -y --default-host %TARGET% --default-toolchain nightly
-    - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
-    - git ls-remote https://github.com/rust-lang/rust.git master | awk '{print $1}' >rustc-hash.txt
-    - set /p RUSTC_HASH=<rustc-hash.txt
-# uncomment once https://github.com/rust-lang/rust/issues/55376 is fixed
-#    - del rust-toolchain
-#    - cargo install rustup-toolchain-install-master || echo "rustup-toolchain-install-master already installed"
-#    - rustup-toolchain-install-master %RUSTC_HASH% -f -n master
-#    - rustup default master
-#    - set PATH=%PATH%;C:\Users\appveyor\.rustup\toolchains\master\bin
+   - curl -sSf -o rustup-init.exe https://win.rustup.rs/
+   # change to nightly when https://github.com/rust-lang/rust/issues/55376 is fixed
+   - rustup-init.exe -y --default-host %TARGET% --default-toolchain nightly-2018-10-20
+   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+   - git ls-remote https://github.com/rust-lang/rust.git master | awk '{print $1}' >rustc-hash.txt
+   - set /p RUSTC_HASH=<rustc-hash.txt
+   - del rust-toolchain
+   - cargo install rustup-toolchain-install-master || echo "rustup-toolchain-install-master already installed"
+   - rustup-toolchain-install-master %RUSTC_HASH% -f -n master
+   - rustup default master
+   - set PATH=%PATH%;C:\Users\appveyor\.rustup\toolchains\master\bin
     - rustc -V
     - cargo -V
 
