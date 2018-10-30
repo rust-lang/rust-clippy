@@ -321,6 +321,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box utils::author::Pass);
     reg.register_late_lint_pass(box types::TypePass);
     reg.register_late_lint_pass(box booleans::NonminimalBool);
+    reg.register_late_lint_pass(box booleans::BitwiseBooleanPass);
     reg.register_late_lint_pass(box eq_op::EqOp);
     reg.register_early_lint_pass(box enum_variants::EnumVariantNames::new(conf.enum_variant_name_threshold));
     reg.register_late_lint_pass(box enum_glob_use::EnumGlobUse);
@@ -540,6 +541,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         block_in_if_condition::BLOCK_IN_IF_CONDITION_STMT,
         booleans::LOGIC_BUG,
         booleans::NONMINIMAL_BOOL,
+        booleans::BITWISE_BOOL_EXPR,
         bytecount::NAIVE_BYTECOUNT,
         collapsible_if::COLLAPSIBLE_IF,
         const_static_lifetime::CONST_STATIC_LIFETIME,
@@ -751,6 +753,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         blacklisted_name::BLACKLISTED_NAME,
         block_in_if_condition::BLOCK_IN_IF_CONDITION_EXPR,
         block_in_if_condition::BLOCK_IN_IF_CONDITION_STMT,
+        booleans::BITWISE_BOOL_EXPR,
         collapsible_if::COLLAPSIBLE_IF,
         const_static_lifetime::CONST_STATIC_LIFETIME,
         enum_variants::ENUM_VARIANT_NAMES,

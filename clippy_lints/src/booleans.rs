@@ -9,13 +9,13 @@
 
 
 use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
+use crate::rustc::{declare_tool_lint, lint_array, ty};
 use crate::rustc::hir::*;
 use crate::rustc::hir::intravisit::*;
 use crate::syntax::ast::{LitKind, NodeId, DUMMY_NODE_ID};
 use crate::syntax::source_map::{dummy_spanned, Span, DUMMY_SP};
 use crate::rustc_data_structures::thin_vec::ThinVec;
-use crate::utils::{in_macro, paths, match_type, snippet_opt, span_lint_and_then, SpanlessEq, get_trait_def_id, implements_trait};
+use crate::utils::{in_macro, paths, match_type, snippet_opt, span_lint_and_then, SpanlessEq, get_trait_def_id, implements_trait, span_lint};
 use crate::rustc_errors::Applicability;
 
 /// **What it does:** Checks for boolean expressions that can be written more
@@ -484,4 +484,33 @@ fn implements_ord<'a, 'tcx>(cx: &'a LateContext<'a, 'tcx>, expr: &Expr) -> bool 
     let ty = cx.tables.expr_ty(expr);
     get_trait_def_id(cx, &paths::ORD)
         .map_or(false, |id| implements_trait(cx, ty, id, &[]))
+}
+
+
+declare_clippy_lint! {
+    pub BITWISE_BOOL_EXPR,
+    style,
+    "Boolean expressions that use bitwise rather than logical operators"
+}
+
+#[derive(Copy, Clone)]
+pub struct BitwiseBooleanPass;
+
+impl LintPass for BitwiseBooleanPass{
+    fn get_lints(&self) -> LintArray {
+        lint_array![BITWISE_BOOL_EXPR]
+    }
+}
+
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BitwiseBooleanPass{
+    fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
+        let ty = cx.tables.expr_ty(expr);
+        if let (&ExprKind::Binary(ref op, _, _), &ty::Bool) = (&expr.node, &ty.sty) {
+            if op.node == BinOpKind::BitAnd || op.node == BinOpKind::BitOr {
+                span_lint(cx, BITWISE_BOOL_EXPR, expr.span,
+                    "Use of bitwise operator instead of logical operator"
+                );
+            }
+        }
+    }
 }
