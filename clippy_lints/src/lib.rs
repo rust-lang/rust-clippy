@@ -591,6 +591,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         literal_representation::LARGE_DIGIT_GROUPS,
         literal_representation::MISTYPED_LITERAL_SUFFIXES,
         literal_representation::UNREADABLE_LITERAL,
+        literal_representation::QUESTIONABLE_BYTE_GROUPING,
         loops::EMPTY_LOOP,
         loops::EXPLICIT_COUNTER_LOOP,
         loops::FOR_KV_MAP,

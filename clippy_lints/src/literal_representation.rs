@@ -75,6 +75,12 @@ declare_clippy_lint! {
     "integer literals with digits grouped inconsistently"
 }
 
+declare_clippy_lint! {
+    pub QUESTIONABLE_BYTE_GROUPING,
+    style,
+    "Binary or hex literals that aren't grouped by bytes or nibbles"
+}
+
 /// **What it does:** Warns if the digits of an integral or floating-point
 /// constant are grouped into groups that
 /// are too large.
@@ -112,7 +118,7 @@ declare_clippy_lint! {
     "using decimal representation when hexadecimal would be better"
 }
 
-#[derive(Debug, PartialEq)]
+#[derive( Clone, Copy, Debug, PartialEq)]
 pub(super) enum Radix {
     Binary,
     Octal,
@@ -269,7 +275,8 @@ enum WarningType {
     InconsistentDigitGrouping,
     LargeDigitGroups,
     DecimalRepresentation,
-    MistypedLiteralSuffix
+    MistypedLiteralSuffix,
+    QuestionableByteGrouping(&'static str)
 }
 
 impl WarningType {
@@ -317,6 +324,14 @@ impl WarningType {
                 "consider",
                 grouping_hint.to_owned(),
             ),
+            WarningType::QuestionableByteGrouping(unit) => span_lint_and_sugg(
+                cx,
+                QUESTIONABLE_BYTE_GROUPING,
+                span,
+                &format!("digits not grouped by {}", unit),
+                "consider",
+                grouping_hint.to_owned()
+            )
         };
     }
 }
@@ -357,7 +372,9 @@ impl LiteralDigitGrouping {
                     if char::to_digit(firstch, 10).is_some();
                     then {
                         let digit_info = DigitInfo::new(&src, false);
-                        let _ = Self::do_lint(digit_info.digits, digit_info.suffix).map_err(|warning_type| {
+                        let _ = Self::do_lint(digit_info.digits,
+                            digit_info.suffix,
+                            digit_info.radix).map_err(|warning_type| {
                             warning_type.display(&digit_info.grouping_hint(), cx, lit.span)
                         });
                     }
@@ -379,12 +396,12 @@ impl LiteralDigitGrouping {
 
                         // Lint integral and fractional parts separately, and then check consistency of digit
                         // groups if both pass.
-                        let _ = Self::do_lint(parts[0], None)
+                        let _ = Self::do_lint(parts[0], None, digit_info.radix)
                             .map(|integral_group_size| {
                                 if parts.len() > 1 {
                                     // Lint the fractional part of literal just like integral part, but reversed.
                                     let fractional_part = &parts[1].chars().rev().collect::<String>();
-                                    let _ = Self::do_lint(fractional_part, None)
+                                    let _ = Self::do_lint(fractional_part, None, digit_info.radix)
                                         .map(|fractional_group_size| {
                                             let consistent = Self::parts_consistent(integral_group_size,
                                                                                     fractional_group_size,
@@ -427,7 +444,7 @@ impl LiteralDigitGrouping {
 
     /// Performs lint on `digits` (no decimal point) and returns the group
     /// size on success or `WarningType` when emitting a warning.
-    fn do_lint(digits: &str, suffix: Option<&str>) -> Result<usize, WarningType> {
+    fn do_lint(digits: &str, suffix: Option<&str>, radix: Radix) -> Result<usize, WarningType> {
         if let Some(suffix) = suffix {
             if is_mistyped_suffix(suffix) {
                 return Err(WarningType::MistypedLiteralSuffix);
@@ -462,6 +479,18 @@ impl LiteralDigitGrouping {
                 return Err(WarningType::InconsistentDigitGrouping);
             } else if group_size > 4 {
                 return Err(WarningType::LargeDigitGroups);
+            }
+
+            match radix {
+                Radix::Binary =>
+                    if underscore_positions.iter().any(|i| i % 4 != 0) {
+                        return Err(WarningType::QuestionableByteGrouping("nibble"))
+                    },
+                Radix::Hexadecimal =>
+                    if underscore_positions.iter().any(|i| i % 2 != 0) {
+                        return Err(WarningType::QuestionableByteGrouping("byte"))
+                    },
+                _ => ()
             }
             Ok(group_size)
         }
