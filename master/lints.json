@@ -102,7 +102,7 @@
     "docs": {
       "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.", 
       "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.", 
-      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
+      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "pedantic", 
