@@ -783,7 +783,7 @@
       "What it does": "Checks for use of `.get().unwrap()` (or\n`.get_mut().unwrap`) on a standard library type which implements `Index`", 
       "Why is this bad": "Using the Index trait (`[]`) is more clear and more\nconcise.", 
       "Example": "```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec.get(3).unwrap();\n*some_vec.get_mut(0).unwrap() = 1;\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet last = some_vec[3];\nsome_vec[0] = 1;\n```", 
-      "Known problems": "None."
+      "Known problems": "Not a replacement for error handling: Using either\n`.unwrap()` or the Index trait (`[]`) carries the risk of causing a `panic`\nif the value being accessed is `None`. If the use of `.get().unwrap()` is a\ntemporary placeholder for dealing with the `Option` type, then this does\nnot mitigate the need for error handling. If there is a chance that `.get()`\nwill be `None` in your program, then it is advisable that the `None` case\nis handled in a future refactor instead of using `.unwrap()` or the Index\ntrait."
     }, 
     "group": "style", 
     "id": "get_unwrap", 
