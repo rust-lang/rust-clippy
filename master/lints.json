@@ -671,13 +671,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for expressions that could be replaced by the question mark operator", 
-      "Why is this bad": "Question mark usage is more idiomatic", 
-      "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```rust\noption?;\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for `allow`/`warn`/`deny`/`forbid` attributes with scoped clippy\nlints and if those lints exist in clippy. If there is a uppercase letter in the lint name\n(not the tool name) and a lowercase version of this lint exists, it will suggest to lowercase\nthe lint name.", 
+      "Why is this bad": "A lint attribute with a mistyped lint name won't have an effect.", 
+      "Example": "Bad:\n```rust\n#![warn(if_not_els)]\n#![deny(clippy::All)]\n```\n\nGood:\n```rust\n#![warn(if_not_else)]\n#![deny(clippy::all)]\n```", 
+      "Known problems": "None."
     }, 
     "group": "style", 
-    "id": "question_mark", 
+    "id": "unknown_clippy_lints", 
     "level": "Warn"
   }, 
   {
@@ -777,6 +777,17 @@
     "group": "pedantic", 
     "id": "pub_enum_variant_names", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for expressions that could be replaced by the question mark operator", 
+      "Why is this bad": "Question mark usage is more idiomatic", 
+      "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```rust\noption?;\n```", 
+      "Known problems": "None"
+    }, 
+    "group": "style", 
+    "id": "question_mark", 
+    "level": "Warn"
   }, 
   {
     "docs": {
