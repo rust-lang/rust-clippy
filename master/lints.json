@@ -266,7 +266,7 @@
       "What it does": "Checks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.", 
       "Why is this bad": "An expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.", 
       "Example": "```rust\nlet x : u8 = ...; (x as u32) > 300\n```", 
-      "Known problems": "https://github.com/rust-lang-nursery/rust-clippy/issues/886"
+      "Known problems": "https://github.com/rust-lang/rust-clippy/issues/886"
     }, 
     "group": "pedantic", 
     "id": "invalid_upcast_comparisons", 
@@ -519,7 +519,7 @@
     "docs": {
       "What it does": "Checks to see if all common metadata is defined in\n`Cargo.toml`. See: https://rust-lang-nursery.github.io/api-guidelines/documentation.html#cargotoml-includes-all-common-metadata-c-metadata", 
       "Why is this bad": "It will be more difficult for users to discover the\npurpose of the crate, and key information related to it.", 
-      "Example": "```toml\n# This `Cargo.toml` is missing an authors field:\n[package]\nname = \"clippy\"\nversion = \"0.0.212\"\ndescription = \"A bunch of helpful lints to avoid common pitfalls in Rust\"\nrepository = \"https://github.com/rust-lang-nursery/rust-clippy\"\nreadme = \"README.md\"\nlicense = \"MIT/Apache-2.0\"\nkeywords = [\"clippy\", \"lint\", \"plugin\"]\ncategories = [\"development-tools\", \"development-tools::cargo-plugins\"]\n```", 
+      "Example": "```toml\n# This `Cargo.toml` is missing an authors field:\n[package]\nname = \"clippy\"\nversion = \"0.0.212\"\ndescription = \"A bunch of helpful lints to avoid common pitfalls in Rust\"\nrepository = \"https://github.com/rust-lang/rust-clippy\"\nreadme = \"README.md\"\nlicense = \"MIT/Apache-2.0\"\nkeywords = [\"clippy\", \"lint\", \"plugin\"]\ncategories = [\"development-tools\", \"development-tools::cargo-plugins\"]\n```", 
       "Known problems": "None."
     }, 
     "group": "cargo", 
@@ -718,7 +718,7 @@
       "What it does": "Checks for `match` with identical arm bodies.", 
       "Why is this bad": "This is probably a copy & paste error. If arm bodies\nare the same on purpose, you can factor them\n[using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).", 
       "Example": "```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\n\nThis should probably be\n```rust,ignore\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\n\nor if the original code was not a typo:\n```rust,ignore\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```", 
-      "Known problems": "False positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang-nursery/rust-clippy/issues/860))."
+      "Known problems": "False positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang/rust-clippy/issues/860))."
     }, 
     "group": "pedantic", 
     "id": "match_same_arms", 
@@ -838,7 +838,7 @@
       "What it does": "Checks for closures which just call another function where\nthe function can be called directly. `unsafe` functions or calls where types\nget adjusted are ignored.", 
       "Why is this bad": "Needlessly creating a closure adds code for no benefit\nand gives the optimizer more work.", 
       "Example": "```rust\nxs.map(|x| foo(x))\n```\nwhere `foo(_)` is a plain function that takes the exact argument type of\n`x`.", 
-      "Known problems": "If creating the closure inside the closure has a side-\neffect then moving the closure creation out will change when that side-\neffect runs.\nSee https://github.com/rust-lang-nursery/rust-clippy/issues/1439 for more\ndetails."
+      "Known problems": "If creating the closure inside the closure has a side-\neffect then moving the closure creation out will change when that side-\neffect runs.\nSee https://github.com/rust-lang/rust-clippy/issues/1439 for more\ndetails."
     }, 
     "group": "style", 
     "id": "redundant_closure", 
@@ -1314,7 +1314,7 @@
       "What it does": "Checks for `#[cfg_attr(rustfmt, rustfmt_skip)]` and suggests to replace it\nwith `#[rustfmt::skip]`.", 
       "Why is this bad": "Since tool_attributes ([rust-lang/rust#44690](https://github.com/rust-lang/rust/issues/44690))\nare stable now, they should be used instead of the old `cfg_attr(rustfmt)` attributes.", 
       "Example": "Bad:\n```rust\n#[cfg_attr(rustfmt, rustfmt_skip)]\nfn main() { }\n```\n\nGood:\n```rust\n#[rustfmt::skip]\nfn main() { }\n```", 
-      "Known problems": "This lint doesn't detect crate level inner attributes, because they get\nprocessed before the PreExpansionPass lints get executed. See\n[#3123](https://github.com/rust-lang-nursery/rust-clippy/pull/3123#issuecomment-422321765)"
+      "Known problems": "This lint doesn't detect crate level inner attributes, because they get\nprocessed before the PreExpansionPass lints get executed. See\n[#3123](https://github.com/rust-lang/rust-clippy/pull/3123#issuecomment-422321765)"
     }, 
     "group": "complexity", 
     "id": "deprecated_cfg_attr", 
