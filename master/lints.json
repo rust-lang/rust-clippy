@@ -1422,6 +1422,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `unimplemented!`.", 
+      "Why is this bad": "This macro should not be present in production code", 
+      "Example": "```rust\nunimplemented!();\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "restriction", 
+    "id": "unimplemented", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `_.filter(_).next()`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.find(_)`.", 
       "Example": "```rust\niter.filter(|x| x == 0).next()\n```", 
@@ -1789,6 +1800,17 @@
     "group": "complexity", 
     "id": "transmute_int_to_char", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks unsafe vector initialization", 
+      "Why is this bad": "Changing the length of a vector may expose uninitialized memory, which\ncan lead to memory safety issues", 
+      "Example": "```rust\nlet mut vec1 = Vec::with_capacity(len);\nunsafe { vec1.set_len(len); }\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "unsafe_vector_initialization", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2199,14 +2221,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `unimplemented!`.", 
-      "Why is this bad": "This macro should not be present in production code", 
-      "Example": "```rust\nunimplemented!();\n```", 
+      "What it does": "Checks slow zero-filled vector initialization", 
+      "Why is this bad": "This structures are non-idiomatic and less efficient than simply using\n`vec![len; 0]`.", 
+      "Example": "```rust\nlet mut vec1 = Vec::with_capacity(len);\nvec1.resize(len, 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.extend(repeat(0).take(len))\n```", 
       "Known problems": "None."
     }, 
-    "group": "restriction", 
-    "id": "unimplemented", 
-    "level": "Allow"
+    "group": "perf", 
+    "id": "slow_vector_initialization", 
+    "level": "Warn"
   }, 
   {
     "docs": {
