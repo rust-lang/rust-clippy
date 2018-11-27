@@ -272,6 +272,43 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `_.filter_map(_).map(_)`, which can be more concisely
+    /// written as `_.filter_map(_)`.
+    ///
+    /// **Why is this bad?** Readability, this can be written more concisely as a
+    /// single method call.
+    ///
+    /// ** Example:**
+    /// let ws: Vec<String> = ["is", "this", "shizzle", "for", "rizzle"]
+    ///             .iter()
+    ///             .map(|s| s.to_string())
+    ///             .collect();
+    ///
+    /// let correct: Vec<String> = ws.iter()
+    ///     .filter_map(|s| if s.contains("izzle"){
+    ///       Some(s)
+    ///     } else {
+    ///       None
+    ///     })
+    ///     .map(|s| format!("{}{}", s, s))
+    ///     .collect();
+    ///
+    /// let more_correct: Vec<String> = ws.iter()
+    ///     .filter_map(|s| if s.contains("izzle"){
+    ///       Some(format!("{}{}", s, s))
+    ///     } else {
+    ///       None
+    ///     })
+    ///     .collect();
+    ///
+    /// println!("{:?}", correct);
+    /// assert_eq!(correct, more_correct);
+    pub FILTER_MAP_MAP,
+    pedantic,
+    "using `filter_map` followed by `map` can more concisely be written as a single method call"
+}
+
+declare_clippy_lint! {
     /// **What it does:** Checks for usage of `_.filter(_).map(_)`,
     /// `_.filter(_).flat_map(_)`, `_.filter_map(_).flat_map(_)` and similar.
     ///
@@ -287,7 +324,7 @@ declare_clippy_lint! {
     /// ```
     pub FILTER_MAP,
     pedantic,
-    "using combinations of `filter`, `map`, `filter_map` and `flat_map` which can usually be written as a single method call"
+    "using `filter` and `map` to destructure an iterator of Options or a Results instead of a single `filter_map` call"
 }
 
 declare_clippy_lint! {
@@ -842,6 +879,7 @@ declare_lint_pass!(Methods => [
     SEARCH_IS_SOME,
     TEMPORARY_CSTRING_AS_PTR,
     FILTER_NEXT,
+    FILTER_MAP_MAP,
     FILTER_MAP,
     FILTER_MAP_NEXT,
     FIND_MAP,
@@ -882,8 +920,6 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             ["map", "filter_map"] => lint_filter_map_map(cx, expr, arg_lists[1], arg_lists[0]),
             ["next", "filter_map"] => lint_filter_map_next(cx, expr, arg_lists[1]),
             ["map", "find"] => lint_find_map(cx, expr, arg_lists[1], arg_lists[0]),
-            ["flat_map", "filter"] => lint_filter_flat_map(cx, expr, arg_lists[1], arg_lists[0]),
-            ["flat_map", "filter_map"] => lint_filter_map_flat_map(cx, expr, arg_lists[1], arg_lists[0]),
             ["flatten", "map"] => lint_map_flatten(cx, expr, arg_lists[1]),
             ["is_some", "find"] => lint_search_is_some(cx, expr, "find", arg_lists[1], arg_lists[0]),
             ["is_some", "position"] => lint_search_is_some(cx, expr, "position", arg_lists[1], arg_lists[0]),
@@ -1998,14 +2034,35 @@ fn lint_filter_next<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr,
 fn lint_filter_map<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
     expr: &'tcx hir::Expr,
-    _filter_args: &'tcx [hir::Expr],
-    _map_args: &'tcx [hir::Expr],
+    filter_args: &'tcx [hir::Expr],
+    map_args: &'tcx [hir::Expr],
 ) {
-    // lint if caller of `.filter().map()` is an Iterator
-    if match_trait_method(cx, expr, &paths::ITERATOR) {
-        let msg = "called `filter(p).map(q)` on an `Iterator`. \
-                   This is more succinctly expressed by calling `.filter_map(..)` instead.";
-        span_lint(cx, FILTER_MAP, expr.span, msg);
+    let mut responses: FxHashMap<String, &str> = FxHashMap::default();
+    responses.insert(
+        "is_some".to_string(),
+        "called `filter(p).map(q)` on an `Iterator<Option<_>>`. \
+         Consider calling `.filter_map(..)` instead.",
+    );
+    responses.insert(
+        "is_ok".to_string(),
+        "called `filter(p).map(q)` on an `Iterator<Result<_>>`. \
+         Consider calling `.filter_map(..)` instead.",
+    );
+
+    if_chain! {
+        if match_trait_method(cx, expr, &paths::ITERATOR);
+        if let hir::ExprKind::Closure(_, _, ref map_body_id, _, _) = map_args[1].node;
+        if let hir::ExprKind::MethodCall(ref map_ps, _, _) = cx.tcx.hir.body(*map_body_id).value.node;
+        if map_ps.ident.name == "unwrap".to_string();
+        if let hir::ExprKind::Closure(_, _, ref filter_body_id, _, _) = filter_args[1].node;
+        if let hir::ExprKind::MethodCall(ref filter_ps, _, _) = cx.tcx.hir.body(*filter_body_id).value.node;
+        if responses.contains_key(&filter_ps.ident.name.to_string());
+        if let hir::ExprKind::MethodCall(_, _, ref expr_vec) = expr.node;
+        if let hir::ExprKind::MethodCall(_, ref filter_span, _) = expr_vec[0].node;
+        then {
+            let new_span = Span::new(filter_span.lo(), expr.span.hi(), expr.span.ctxt());
+            span_lint(cx, FILTER_MAP, new_span, responses[&filter_ps.ident.name.to_string()]);
+        }
     }
 }
 
@@ -2052,43 +2109,18 @@ fn lint_filter_map_map<'a, 'tcx>(
     _filter_args: &'tcx [hir::Expr],
     _map_args: &'tcx [hir::Expr],
 ) {
-    // lint if caller of `.filter().map()` is an Iterator
+    let mut span = expr.span;
+    if let hir::ExprKind::MethodCall(_, _, ref expr_vec) = expr.node {
+        if let hir::ExprKind::MethodCall(_, ref filter_span, _) = expr_vec[0].node {
+            span = Span::new(filter_span.lo(), expr.span.hi(), expr.span.ctxt());
+        }
+    }
+
+    // lint if caller of `.filter_map().map()` is an Iterator
     if match_trait_method(cx, expr, &paths::ITERATOR) {
         let msg = "called `filter_map(p).map(q)` on an `Iterator`. \
                    This is more succinctly expressed by only calling `.filter_map(..)` instead.";
-        span_lint(cx, FILTER_MAP, expr.span, msg);
-    }
-}
-
-/// lint use of `filter().flat_map()` for `Iterators`
-fn lint_filter_flat_map<'a, 'tcx>(
-    cx: &LateContext<'a, 'tcx>,
-    expr: &'tcx hir::Expr,
-    _filter_args: &'tcx [hir::Expr],
-    _map_args: &'tcx [hir::Expr],
-) {
-    // lint if caller of `.filter().flat_map()` is an Iterator
-    if match_trait_method(cx, expr, &paths::ITERATOR) {
-        let msg = "called `filter(p).flat_map(q)` on an `Iterator`. \
-                   This is more succinctly expressed by calling `.flat_map(..)` \
-                   and filtering by returning an empty Iterator.";
-        span_lint(cx, FILTER_MAP, expr.span, msg);
-    }
-}
-
-/// lint use of `filter_map().flat_map()` for `Iterators`
-fn lint_filter_map_flat_map<'a, 'tcx>(
-    cx: &LateContext<'a, 'tcx>,
-    expr: &'tcx hir::Expr,
-    _filter_args: &'tcx [hir::Expr],
-    _map_args: &'tcx [hir::Expr],
-) {
-    // lint if caller of `.filter_map().flat_map()` is an Iterator
-    if match_trait_method(cx, expr, &paths::ITERATOR) {
-        let msg = "called `filter_map(p).flat_map(q)` on an `Iterator`. \
-                   This is more succinctly expressed by calling `.flat_map(..)` \
-                   and filtering by returning an empty Iterator.";
-        span_lint(cx, FILTER_MAP, expr.span, msg);
+        span_lint(cx, FILTER_MAP_MAP, span, msg);
     }
 }
 
