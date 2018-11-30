@@ -7,12 +7,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
-
-
 #![warn(clippy::absurd_extreme_comparisons)]
-#![allow(unused, clippy::eq_op, clippy::no_effect, clippy::unnecessary_operation, clippy::needless_pass_by_value)]
+#![allow(
+    unused,
+    clippy::eq_op,
+    clippy::no_effect,
+    clippy::unnecessary_operation,
+    clippy::needless_pass_by_value
+)]
 
 fn main() {
     const Z: u32 = 0;
@@ -26,18 +28,18 @@ fn main() {
     u >= std::u32::MAX;
     std::u32::MAX < u;
     std::u32::MAX <= u;
-    1-1 > u;
+    1 - 1 > u;
     u >= !0;
-    u <= 12 - 2*6;
+    u <= 12 - 2 * 6;
     let i: i8 = 0;
     i < -127 - 1;
     std::i8::MAX >= i;
-    3-7 < std::i32::MIN;
+    3 - 7 < std::i32::MIN;
     let b = false;
     b >= true;
     false > b;
     u > 0; // ok
-    // this is handled by clippy::unit_cmp
+           // this is handled by clippy::unit_cmp
     () < {};
 }
 

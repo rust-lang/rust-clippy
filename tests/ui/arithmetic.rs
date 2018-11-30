@@ -7,12 +7,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
-
-
 #![warn(clippy::integer_arithmetic, clippy::float_arithmetic)]
-#![allow(unused, clippy::shadow_reuse, clippy::shadow_unrelated, clippy::no_effect, clippy::unnecessary_operation)]
+#![allow(
+    unused,
+    clippy::shadow_reuse,
+    clippy::shadow_unrelated,
+    clippy::no_effect,
+    clippy::unnecessary_operation
+)]
+#[rustfmt::skip]
 fn main() {
     let i = 1i32;
     1 + i;

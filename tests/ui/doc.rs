@@ -7,12 +7,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
-
 //! This file tests for the DOC_MARKDOWN lint
-
-
 
 #![allow(dead_code)]
 #![warn(clippy::doc_markdown)]
@@ -23,8 +18,7 @@
 /// Here be ::a::global:path.
 /// That's not code ~NotInCodeBlock~.
 /// be_sure_we_got_to_the_end_of_it
-fn foo_bar() {
-}
+fn foo_bar() {}
 
 /// That one tests multiline ticks.
 /// ```rust
@@ -37,15 +31,13 @@ fn foo_bar() {
 /// _foo bar_
 /// ~~~
 /// be_sure_we_got_to_the_end_of_it
-fn multiline_codeblock() {
-}
+fn multiline_codeblock() {}
 
 /// This _is a test for
 /// multiline
 /// emphasis_.
 /// be_sure_we_got_to_the_end_of_it
-fn test_emphasis() {
-}
+fn test_emphasis() {}
 
 /// This tests units. See also #835.
 /// kiB MiB GiB TiB PiB EiB
@@ -58,13 +50,12 @@ fn test_emphasis() {
 /// 32kb 32Mb 32Gb 32Tb 32Pb 32Eb
 /// NaN
 /// be_sure_we_got_to_the_end_of_it
-fn test_units() {
-}
+fn test_units() {}
 
 /// This test has [a link_with_underscores][chunked-example] inside it. See #823.
 /// See also [the issue tracker](https://github.com/rust-lang/rust-clippy/search?q=clippy::doc_markdown&type=Issues)
-/// on GitHub (which is a camel-cased word, but is OK). And here is another [inline link][inline_link].
-/// It can also be [inline_link2].
+/// on GitHub (which is a camel-cased word, but is OK). And here is another [inline
+/// link][inline_link]. It can also be [inline_link2].
 ///
 /// [chunked-example]: https://en.wikipedia.org/wiki/Chunked_transfer_encoding#Example
 /// [inline_link]: https://foobar
@@ -89,15 +80,13 @@ fn main() {
 ///
 /// Not a title #897 CamelCaseThing
 /// be_sure_we_got_to_the_end_of_it
-fn issue897() {
-}
+fn issue897() {}
 
 /// I am confused by brackets? (`x_y`)
 /// I am confused by brackets? (foo `x_y`)
 /// I am confused by brackets? (`x_y` foo)
 /// be_sure_we_got_to_the_end_of_it
-fn issue900() {
-}
+fn issue900() {}
 
 /// Diesel queries also have a similar problem to [Iterator][iterator], where
 /// /// More talking
@@ -109,15 +98,13 @@ fn issue900() {
 /// [iterator]: https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html
 /// [helper_types]: ../helper_types/index.html
 /// be_sure_we_got_to_the_end_of_it
-fn issue883() {
-}
+fn issue883() {}
 
 /// `foo_bar
 /// baz_quz`
 /// [foo
 /// bar](https://doc.rust-lang.org/stable/std/iter/trait.IteratorFooBar.html)
-fn multiline() {
-}
+fn multiline() {}
 
 /** E.g. serialization of an empty list: FooBar
 ```
@@ -127,8 +114,7 @@ That's in a code block: `PackedNode`
 And BarQuz too.
 be_sure_we_got_to_the_end_of_it
 */
-fn issue1073() {
-}
+fn issue1073() {}
 
 /** E.g. serialization of an empty list: FooBar
 ```
@@ -138,8 +124,7 @@ That's in a code block: PackedNode
 And BarQuz too.
 be_sure_we_got_to_the_end_of_it
 */
-fn issue1073_alt() {
-}
+fn issue1073_alt() {}
 
 /// Test more than three quotes:
 /// ````
@@ -148,8 +133,7 @@ fn issue1073_alt() {
 /// StillDont
 /// ````
 /// be_sure_we_got_to_the_end_of_it
-fn four_quotes() {
-}
+fn four_quotes() {}
 
 /// See [NIST SP 800-56A, revision 2].
 ///
@@ -167,9 +151,9 @@ fn issue_902_comment() {}
 fn issue_1469() {}
 
 /**
- * This is a doc comment that should not be a list
- *This would also be an error under a strict common mark interpretation
- */
+ ** This is a doc comment that should not be a list
+ **This would also be an error under a strict common mark interpretation
+ **/
 fn issue_1920() {}
 
 /// Ok: <http://www.unicode.org/reports/tr9/#Reordering_Resolved_Levels>

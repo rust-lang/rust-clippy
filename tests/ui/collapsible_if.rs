@@ -7,10 +7,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
-
-
+#[rustfmt::skip]
 #[warn(clippy::collapsible_if)]
 fn main() {
     let x = "hello";

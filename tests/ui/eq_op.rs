@@ -7,13 +7,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
-
-
 #[warn(clippy::eq_op)]
 #[allow(clippy::identity_op, clippy::double_parens, clippy::many_single_char_names)]
-#[allow(clippy::no_effect, unused_variables, clippy::unnecessary_operation, clippy::short_circuit_statement)]
+#[allow(
+    clippy::no_effect,
+    unused_variables,
+    clippy::unnecessary_operation,
+    clippy::short_circuit_statement
+)]
 #[warn(clippy::nonminimal_bool)]
 fn main() {
     // simple values and comparisons
@@ -26,7 +27,7 @@ fn main() {
 
     // casts, methods, parentheses
     (1 as u64) & (1 as u64);
-    1 ^ ((((((1))))));
+    1 ^ (1);
 
     // unary and binary operators
     (-(2) < -(2));
@@ -48,7 +49,6 @@ fn main() {
 
     true || true;
 
-
     let a: u32 = 0;
     let b: u32 = 0;
 
@@ -59,7 +59,7 @@ fn main() {
 
     let mut a = vec![1];
     a == a;
-    2*a.len() == 2*a.len(); // ok, functions
+    2 * a.len() == 2 * a.len(); // ok, functions
     a.pop() == a.pop(); // ok, functions
 
     use std::ops::BitAnd;
@@ -108,13 +108,13 @@ fn main() {
 }
 
 macro_rules! check_if_named_foo {
-    ($expression:expr) => (
+    ($expression:expr) => {
         if stringify!($expression) == "foo" {
             println!("foo!");
         } else {
             println!("not foo.");
         }
-    )
+    };
 }
 
 fn check_ignore_macro() {

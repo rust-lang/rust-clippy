@@ -7,10 +7,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
-
-
 #![warn(clippy::double_parens)]
 #![allow(dead_code)]
 
@@ -23,7 +19,7 @@ impl DummyStruct {
 }
 
 fn simple_double_parens() -> i32 {
-    ((0))
+    (0)
 }
 
 fn fn_double_parens() {

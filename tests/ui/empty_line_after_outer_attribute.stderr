@@ -1,53 +1,52 @@
 error: Found an empty line after an outer attribute. Perhaps you forgot to add a '!' to make it an inner attribute?
-  --> $DIR/empty_line_after_outer_attribute.rs:15:1
+  --> $DIR/empty_line_after_outer_attribute.rs:13:1
    |
-15 | / #[crate_type = "lib"]
-16 | |
-17 | | /// some comment
-18 | | fn with_one_newline_and_comment() { assert!(true) }
+13 | / #[crate_type = "lib"]
+14 | |
+15 | | /// some comment
+16 | | fn with_one_newline_and_comment() {
    | |_
    |
    = note: `-D clippy::empty-line-after-outer-attr` implied by `-D warnings`
 
 error: Found an empty line after an outer attribute. Perhaps you forgot to add a '!' to make it an inner attribute?
-  --> $DIR/empty_line_after_outer_attribute.rs:27:1
+  --> $DIR/empty_line_after_outer_attribute.rs:28:1
    |
-27 | / #[crate_type = "lib"]
-28 | |
-29 | | fn with_one_newline() { assert!(true) }
+28 | / #[crate_type = "lib"]
+29 | |
+30 | | fn with_one_newline() {
    | |_
 
 error: Found an empty line after an outer attribute. Perhaps you forgot to add a '!' to make it an inner attribute?
-  --> $DIR/empty_line_after_outer_attribute.rs:32:1
+  --> $DIR/empty_line_after_outer_attribute.rs:35:1
    |
-32 | / #[crate_type = "lib"]
-33 | |
-34 | |
-35 | | fn with_two_newlines() { assert!(true) }
+35 | / #[crate_type = "lib"]
+36 | |
+37 | | fn with_two_newlines() {
    | |_
 
 error: Found an empty line after an outer attribute. Perhaps you forgot to add a '!' to make it an inner attribute?
-  --> $DIR/empty_line_after_outer_attribute.rs:39:1
+  --> $DIR/empty_line_after_outer_attribute.rs:42:1
    |
-39 | / #[crate_type = "lib"]
-40 | |
-41 | | enum Baz {
+42 | / #[crate_type = "lib"]
+43 | |
+44 | | enum Baz {
    | |_
 
 error: Found an empty line after an outer attribute. Perhaps you forgot to add a '!' to make it an inner attribute?
-  --> $DIR/empty_line_after_outer_attribute.rs:47:1
+  --> $DIR/empty_line_after_outer_attribute.rs:50:1
    |
-47 | / #[crate_type = "lib"]
-48 | |
-49 | | struct Foo {
+50 | / #[crate_type = "lib"]
+51 | |
+52 | | struct Foo {
    | |_
 
 error: Found an empty line after an outer attribute. Perhaps you forgot to add a '!' to make it an inner attribute?
-  --> $DIR/empty_line_after_outer_attribute.rs:55:1
+  --> $DIR/empty_line_after_outer_attribute.rs:58:1
    |
-55 | / #[crate_type = "lib"]
-56 | |
-57 | | mod foo {
+58 | / #[crate_type = "lib"]
+59 | |
+60 | | mod foo {}
    | |_
 
 error: aborting due to 6 previous errors

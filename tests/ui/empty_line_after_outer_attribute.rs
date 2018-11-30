@@ -7,40 +7,43 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
 #![warn(clippy::empty_line_after_outer_attr)]
 
 // This should produce a warning
 #[crate_type = "lib"]
 
 /// some comment
-fn with_one_newline_and_comment() { assert!(true) }
+fn with_one_newline_and_comment() {
+    assert!(true)
+}
 
 // This should not produce a warning
 #[crate_type = "lib"]
 /// some comment
-fn with_no_newline_and_comment() { assert!(true) }
-
+fn with_no_newline_and_comment() {
+    assert!(true)
+}
 
 // This should produce a warning
 #[crate_type = "lib"]
 
-fn with_one_newline() { assert!(true) }
+fn with_one_newline() {
+    assert!(true)
+}
 
 // This should produce a warning, too
 #[crate_type = "lib"]
 
-
-fn with_two_newlines() { assert!(true) }
-
+fn with_two_newlines() {
+    assert!(true)
+}
 
 // This should produce a warning
 #[crate_type = "lib"]
 
 enum Baz {
     One,
-    Two
+    Two,
 }
 
 // This should produce a warning
@@ -48,25 +51,26 @@ enum Baz {
 
 struct Foo {
     one: isize,
-    two: isize
+    two: isize,
 }
 
 // This should produce a warning
 #[crate_type = "lib"]
 
-mod foo {
-}
+mod foo {}
 
 /// This doc comment should not produce a warning
 
 /** This is also a doc comment and should not produce a warning
- */
+ **/
 
 // This should not produce a warning
 #[allow(non_camel_case_types)]
 #[allow(missing_docs)]
 #[allow(missing_docs)]
-fn three_attributes() { assert!(true) }
+fn three_attributes() {
+    assert!(true)
+}
 
 // This should not produce a warning
 #[doc = "
@@ -86,7 +90,7 @@ pub enum FooFighter {
 
     Bar3,
 
-    Bar4
+    Bar4,
 }
 
 // This should not produce a warning because the empty line is inside a block comment
@@ -101,4 +105,4 @@ pub struct S;
 /* test */
 pub struct T;
 
-fn main() { }
+fn main() {}

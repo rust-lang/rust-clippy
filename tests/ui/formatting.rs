@@ -7,18 +7,17 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-
-
-
-
 #![warn(clippy::all)]
 #![allow(unused_variables)]
 #![allow(unused_assignments)]
 #![allow(clippy::if_same_then_else)]
 #![allow(clippy::deref_addrof)]
 
-fn foo() -> bool { true }
+fn foo() -> bool {
+    true
+}
 
+#[rustfmt::skip]
 fn main() {
     // weird `else if` formatting:
     if foo() {

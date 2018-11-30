@@ -1,40 +1,34 @@
 error: Consider removing unnecessary double parentheses
-  --> $DIR/double_parens.rs:26:5
+  --> $DIR/double_parens.rs:26:14
    |
-26 |     ((0))
-   |     ^^^^^
+26 |     dummy_fn((0));
+   |              ^^^
    |
    = note: `-D clippy::double-parens` implied by `-D warnings`
 
 error: Consider removing unnecessary double parentheses
-  --> $DIR/double_parens.rs:30:14
+  --> $DIR/double_parens.rs:30:20
    |
-30 |     dummy_fn((0));
-   |              ^^^
+30 |     x.dummy_method((0));
+   |                    ^^^
 
 error: Consider removing unnecessary double parentheses
-  --> $DIR/double_parens.rs:34:20
+  --> $DIR/double_parens.rs:34:5
    |
-34 |     x.dummy_method((0));
-   |                    ^^^
+34 |     ((1, 2))
+   |     ^^^^^^^^
 
 error: Consider removing unnecessary double parentheses
   --> $DIR/double_parens.rs:38:5
    |
-38 |     ((1, 2))
-   |     ^^^^^^^^
-
-error: Consider removing unnecessary double parentheses
-  --> $DIR/double_parens.rs:42:5
-   |
-42 |     (())
+38 |     (())
    |     ^^^^
 
 error: Consider removing unnecessary double parentheses
-  --> $DIR/double_parens.rs:64:16
+  --> $DIR/double_parens.rs:60:16
    |
-64 |     assert_eq!(((1, 2)), (1, 2), "Error");
+60 |     assert_eq!(((1, 2)), (1, 2), "Error");
    |                ^^^^^^^^
 
-error: aborting due to 6 previous errors
+error: aborting due to 5 previous errors
 

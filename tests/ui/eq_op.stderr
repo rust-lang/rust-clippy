@@ -1,15 +1,15 @@
 error: this boolean expression can be simplified
-  --> $DIR/eq_op.rs:47:5
+  --> $DIR/eq_op.rs:48:5
    |
-47 |     true && true;
+48 |     true && true;
    |     ^^^^^^^^^^^^ help: try: `true`
    |
    = note: `-D clippy::nonminimal-bool` implied by `-D warnings`
 
 error: this boolean expression can be simplified
-  --> $DIR/eq_op.rs:49:5
+  --> $DIR/eq_op.rs:50:5
    |
-49 |     true || true;
+50 |     true || true;
    |     ^^^^^^^^^^^^ help: try: `true`
 
 error: this boolean expression can be simplified
@@ -37,131 +37,131 @@ error: this boolean expression can be simplified
    |     ^^^^^^^^^^^^^^^^ help: try: `a <= b`
 
 error: equal expressions as operands to `==`
-  --> $DIR/eq_op.rs:20:5
+  --> $DIR/eq_op.rs:21:5
    |
-20 |     1 == 1;
+21 |     1 == 1;
    |     ^^^^^^
    |
    = note: `-D clippy::eq-op` implied by `-D warnings`
 
 error: equal expressions as operands to `==`
-  --> $DIR/eq_op.rs:21:5
+  --> $DIR/eq_op.rs:22:5
    |
-21 |     "no" == "no";
+22 |     "no" == "no";
    |     ^^^^^^^^^^^^
 
 error: equal expressions as operands to `!=`
-  --> $DIR/eq_op.rs:23:5
+  --> $DIR/eq_op.rs:24:5
    |
-23 |     false != false;
+24 |     false != false;
    |     ^^^^^^^^^^^^^^
 
 error: equal expressions as operands to `<`
-  --> $DIR/eq_op.rs:24:5
+  --> $DIR/eq_op.rs:25:5
    |
-24 |     1.5 < 1.5;
+25 |     1.5 < 1.5;
    |     ^^^^^^^^^
 
 error: equal expressions as operands to `>=`
-  --> $DIR/eq_op.rs:25:5
+  --> $DIR/eq_op.rs:26:5
    |
-25 |     1u64 >= 1u64;
+26 |     1u64 >= 1u64;
    |     ^^^^^^^^^^^^
 
 error: equal expressions as operands to `&`
-  --> $DIR/eq_op.rs:28:5
+  --> $DIR/eq_op.rs:29:5
    |
-28 |     (1 as u64) & (1 as u64);
+29 |     (1 as u64) & (1 as u64);
    |     ^^^^^^^^^^^^^^^^^^^^^^^
 
 error: equal expressions as operands to `^`
-  --> $DIR/eq_op.rs:29:5
+  --> $DIR/eq_op.rs:30:5
    |
-29 |     1 ^ ((((((1))))));
-   |     ^^^^^^^^^^^^^^^^^
+30 |     1 ^ (1);
+   |     ^^^^^^^
 
 error: equal expressions as operands to `<`
-  --> $DIR/eq_op.rs:32:5
-   |
-32 |     (-(2) < -(2));
-   |     ^^^^^^^^^^^^^
-
-error: equal expressions as operands to `==`
   --> $DIR/eq_op.rs:33:5
    |
-33 |     ((1 + 1) & (1 + 1) == (1 + 1) & (1 + 1));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: equal expressions as operands to `&`
-  --> $DIR/eq_op.rs:33:6
-   |
-33 |     ((1 + 1) & (1 + 1) == (1 + 1) & (1 + 1));
-   |      ^^^^^^^^^^^^^^^^^
-
-error: equal expressions as operands to `&`
-  --> $DIR/eq_op.rs:33:27
-   |
-33 |     ((1 + 1) & (1 + 1) == (1 + 1) & (1 + 1));
-   |                           ^^^^^^^^^^^^^^^^^
+33 |     (-(2) < -(2));
+   |     ^^^^^^^^^^^^^
 
 error: equal expressions as operands to `==`
   --> $DIR/eq_op.rs:34:5
    |
-34 |     (1 * 2) + (3 * 4) == 1 * 2 + 3 * 4;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+34 |     ((1 + 1) & (1 + 1) == (1 + 1) & (1 + 1));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: equal expressions as operands to `!=`
-  --> $DIR/eq_op.rs:37:5
+error: equal expressions as operands to `&`
+  --> $DIR/eq_op.rs:34:6
    |
-37 |     ([1] != [1]);
-   |     ^^^^^^^^^^^^
+34 |     ((1 + 1) & (1 + 1) == (1 + 1) & (1 + 1));
+   |      ^^^^^^^^^^^^^^^^^
+
+error: equal expressions as operands to `&`
+  --> $DIR/eq_op.rs:34:27
+   |
+34 |     ((1 + 1) & (1 + 1) == (1 + 1) & (1 + 1));
+   |                           ^^^^^^^^^^^^^^^^^
+
+error: equal expressions as operands to `==`
+  --> $DIR/eq_op.rs:35:5
+   |
+35 |     (1 * 2) + (3 * 4) == 1 * 2 + 3 * 4;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: equal expressions as operands to `!=`
   --> $DIR/eq_op.rs:38:5
    |
-38 |     ((1, 2) != (1, 2));
+38 |     ([1] != [1]);
+   |     ^^^^^^^^^^^^
+
+error: equal expressions as operands to `!=`
+  --> $DIR/eq_op.rs:39:5
+   |
+39 |     ((1, 2) != (1, 2));
    |     ^^^^^^^^^^^^^^^^^^
 
 error: equal expressions as operands to `==`
-  --> $DIR/eq_op.rs:42:5
+  --> $DIR/eq_op.rs:43:5
    |
-42 |     1 + 1 == 2;
+43 |     1 + 1 == 2;
    |     ^^^^^^^^^^
 
 error: equal expressions as operands to `==`
-  --> $DIR/eq_op.rs:43:5
+  --> $DIR/eq_op.rs:44:5
    |
-43 |     1 - 1 == 0;
+44 |     1 - 1 == 0;
    |     ^^^^^^^^^^
 
 error: equal expressions as operands to `-`
-  --> $DIR/eq_op.rs:43:5
+  --> $DIR/eq_op.rs:44:5
    |
-43 |     1 - 1 == 0;
+44 |     1 - 1 == 0;
    |     ^^^^^
 
 error: equal expressions as operands to `-`
-  --> $DIR/eq_op.rs:45:5
+  --> $DIR/eq_op.rs:46:5
    |
-45 |     1 - 1;
+46 |     1 - 1;
    |     ^^^^^
 
 error: equal expressions as operands to `/`
-  --> $DIR/eq_op.rs:46:5
+  --> $DIR/eq_op.rs:47:5
    |
-46 |     1 / 1;
+47 |     1 / 1;
    |     ^^^^^
 
 error: equal expressions as operands to `&&`
-  --> $DIR/eq_op.rs:47:5
+  --> $DIR/eq_op.rs:48:5
    |
-47 |     true && true;
+48 |     true && true;
    |     ^^^^^^^^^^^^
 
 error: equal expressions as operands to `||`
-  --> $DIR/eq_op.rs:49:5
+  --> $DIR/eq_op.rs:50:5
    |
-49 |     true || true;
+50 |     true || true;
    |     ^^^^^^^^^^^^
 
 error: equal expressions as operands to `&&`

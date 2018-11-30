@@ -1,15 +1,13 @@
 error: unneeded unit return type
-  --> $DIR/unused_unit.rs:28:59
+  --> $DIR/unused_unit.rs:27:59
    |
-28 |       pub fn get_unit<F: Fn() -> (), G>(&self, f: F, _g: G) ->
-   |  ___________________________________________________________^
-29 | |         ()
-   | |__________^ help: remove the `-> ()`
+27 |     pub fn get_unit<F: Fn() -> (), G>(&self, f: F, _g: G) -> ()
+   |                                                           ^^^^^ help: remove the `-> ()`
    |
 note: lint level defined here
-  --> $DIR/unused_unit.rs:21:9
+  --> $DIR/unused_unit.rs:20:9
    |
-21 | #![deny(clippy::unused_unit)]
+20 | #![deny(clippy::unused_unit)]
    |         ^^^^^^^^^^^^^^^^^^^
 
 error: unneeded unit return type
@@ -27,26 +25,26 @@ error: unneeded unit expression
 error: unneeded unit return type
   --> $DIR/unused_unit.rs:42:18
    |
-42 | fn return_unit() -> () { () }
+42 | fn return_unit() -> () {
    |                  ^^^^^ help: remove the `-> ()`
 
 error: unneeded unit expression
-  --> $DIR/unused_unit.rs:42:26
+  --> $DIR/unused_unit.rs:43:5
    |
-42 | fn return_unit() -> () { () }
-   |                          ^^ help: remove the final `()`
+43 |     ()
+   |     ^^ help: remove the final `()`
 
 error: unneeded `()`
-  --> $DIR/unused_unit.rs:49:14
+  --> $DIR/unused_unit.rs:51:15
    |
-49 |         break();
-   |              ^^ help: remove the `()`
+51 |         break ();
+   |               ^^ help: remove the `()`
 
 error: unneeded `()`
-  --> $DIR/unused_unit.rs:51:11
+  --> $DIR/unused_unit.rs:53:12
    |
-51 |     return();
-   |           ^^ help: remove the `()`
+53 |     return ();
+   |            ^^ help: remove the `()`
 
 error: aborting due to 7 previous errors
 

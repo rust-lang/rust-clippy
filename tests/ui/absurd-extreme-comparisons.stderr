@@ -1,40 +1,24 @@
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:20:5
+  --> $DIR/absurd-extreme-comparisons.rs:22:5
    |
-20 |     u <= 0;
+22 |     u <= 0;
    |     ^^^^^^
    |
    = note: `-D clippy::absurd-extreme-comparisons` implied by `-D warnings`
    = help: because 0 is the minimum value for this type, the case where the two sides are not equal never occurs, consider using u == 0 instead
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:21:5
+  --> $DIR/absurd-extreme-comparisons.rs:23:5
    |
-21 |     u <= Z;
+23 |     u <= Z;
    |     ^^^^^^
    |
    = help: because Z is the minimum value for this type, the case where the two sides are not equal never occurs, consider using u == Z instead
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:22:5
-   |
-22 |     u < Z;
-   |     ^^^^^
-   |
-   = help: because Z is the minimum value for this type, this comparison is always false
-
-error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:23:5
-   |
-23 |     Z >= u;
-   |     ^^^^^^
-   |
-   = help: because Z is the minimum value for this type, the case where the two sides are not equal never occurs, consider using Z == u instead
-
-error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
   --> $DIR/absurd-extreme-comparisons.rs:24:5
    |
-24 |     Z > u;
+24 |     u < Z;
    |     ^^^^^
    |
    = help: because Z is the minimum value for this type, this comparison is always false
@@ -42,23 +26,23 @@ error: this comparison involving the minimum or maximum element for this type co
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
   --> $DIR/absurd-extreme-comparisons.rs:25:5
    |
-25 |     u > std::u32::MAX;
-   |     ^^^^^^^^^^^^^^^^^
+25 |     Z >= u;
+   |     ^^^^^^
    |
-   = help: because std::u32::MAX is the maximum value for this type, this comparison is always false
+   = help: because Z is the minimum value for this type, the case where the two sides are not equal never occurs, consider using Z == u instead
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
   --> $DIR/absurd-extreme-comparisons.rs:26:5
    |
-26 |     u >= std::u32::MAX;
-   |     ^^^^^^^^^^^^^^^^^^
+26 |     Z > u;
+   |     ^^^^^
    |
-   = help: because std::u32::MAX is the maximum value for this type, the case where the two sides are not equal never occurs, consider using u == std::u32::MAX instead
+   = help: because Z is the minimum value for this type, this comparison is always false
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
   --> $DIR/absurd-extreme-comparisons.rs:27:5
    |
-27 |     std::u32::MAX < u;
+27 |     u > std::u32::MAX;
    |     ^^^^^^^^^^^^^^^^^
    |
    = help: because std::u32::MAX is the maximum value for this type, this comparison is always false
@@ -66,79 +50,95 @@ error: this comparison involving the minimum or maximum element for this type co
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
   --> $DIR/absurd-extreme-comparisons.rs:28:5
    |
-28 |     std::u32::MAX <= u;
+28 |     u >= std::u32::MAX;
+   |     ^^^^^^^^^^^^^^^^^^
+   |
+   = help: because std::u32::MAX is the maximum value for this type, the case where the two sides are not equal never occurs, consider using u == std::u32::MAX instead
+
+error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
+  --> $DIR/absurd-extreme-comparisons.rs:29:5
+   |
+29 |     std::u32::MAX < u;
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = help: because std::u32::MAX is the maximum value for this type, this comparison is always false
+
+error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
+  --> $DIR/absurd-extreme-comparisons.rs:30:5
+   |
+30 |     std::u32::MAX <= u;
    |     ^^^^^^^^^^^^^^^^^^
    |
    = help: because std::u32::MAX is the maximum value for this type, the case where the two sides are not equal never occurs, consider using std::u32::MAX == u instead
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:29:5
+  --> $DIR/absurd-extreme-comparisons.rs:31:5
    |
-29 |     1-1 > u;
-   |     ^^^^^^^
+31 |     1 - 1 > u;
+   |     ^^^^^^^^^
    |
-   = help: because 1-1 is the minimum value for this type, this comparison is always false
+   = help: because 1 - 1 is the minimum value for this type, this comparison is always false
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:30:5
+  --> $DIR/absurd-extreme-comparisons.rs:32:5
    |
-30 |     u >= !0;
+32 |     u >= !0;
    |     ^^^^^^^
    |
    = help: because !0 is the maximum value for this type, the case where the two sides are not equal never occurs, consider using u == !0 instead
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:31:5
-   |
-31 |     u <= 12 - 2*6;
-   |     ^^^^^^^^^^^^^
-   |
-   = help: because 12 - 2*6 is the minimum value for this type, the case where the two sides are not equal never occurs, consider using u == 12 - 2*6 instead
-
-error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
   --> $DIR/absurd-extreme-comparisons.rs:33:5
    |
-33 |     i < -127 - 1;
+33 |     u <= 12 - 2 * 6;
+   |     ^^^^^^^^^^^^^^^
+   |
+   = help: because 12 - 2 * 6 is the minimum value for this type, the case where the two sides are not equal never occurs, consider using u == 12 - 2 * 6 instead
+
+error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
+  --> $DIR/absurd-extreme-comparisons.rs:35:5
+   |
+35 |     i < -127 - 1;
    |     ^^^^^^^^^^^^
    |
    = help: because -127 - 1 is the minimum value for this type, this comparison is always false
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:34:5
+  --> $DIR/absurd-extreme-comparisons.rs:36:5
    |
-34 |     std::i8::MAX >= i;
+36 |     std::i8::MAX >= i;
    |     ^^^^^^^^^^^^^^^^^
    |
    = help: because std::i8::MAX is the maximum value for this type, this comparison is always true
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:35:5
+  --> $DIR/absurd-extreme-comparisons.rs:37:5
    |
-35 |     3-7 < std::i32::MIN;
-   |     ^^^^^^^^^^^^^^^^^^^
+37 |     3 - 7 < std::i32::MIN;
+   |     ^^^^^^^^^^^^^^^^^^^^^
    |
    = help: because std::i32::MIN is the minimum value for this type, this comparison is always false
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:37:5
+  --> $DIR/absurd-extreme-comparisons.rs:39:5
    |
-37 |     b >= true;
+39 |     b >= true;
    |     ^^^^^^^^^
    |
    = help: because true is the maximum value for this type, the case where the two sides are not equal never occurs, consider using b == true instead
 
 error: this comparison involving the minimum or maximum element for this type contains a case that is always true or always false
-  --> $DIR/absurd-extreme-comparisons.rs:38:5
+  --> $DIR/absurd-extreme-comparisons.rs:40:5
    |
-38 |     false > b;
+40 |     false > b;
    |     ^^^^^^^^^
    |
    = help: because false is the minimum value for this type, this comparison is always false
 
 error: <-comparison of unit values detected. This will always be false
-  --> $DIR/absurd-extreme-comparisons.rs:41:5
+  --> $DIR/absurd-extreme-comparisons.rs:43:5
    |
-41 |     () < {};
+43 |     () < {};
    |     ^^^^^^^
    |
    = note: #[deny(clippy::unit_cmp)] on by default
