@@ -1803,14 +1803,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks unsafe vector initialization", 
-      "Why is this bad": "Changing the length of a vector may expose uninitialized memory, which\ncan lead to memory safety issues", 
-      "Example": "```rust\nlet mut vec1 = Vec::with_capacity(len);\nunsafe {\n    vec1.set_len(len);\n}\n```", 
-      "Known problems": "None."
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint used to suggest replacing `let mut vec =\nVec::with_capacity(n); vec.set_len(n);` with `let vec = vec![0; n];`. The\nreplacement has very different performance characteristics so the lint is\ndeprecated."
     }, 
-    "group": "correctness", 
+    "group": "deprecated", 
     "id": "unsafe_vector_initialization", 
-    "level": "Deny"
+    "level": "Deprecated"
   }, 
   {
     "docs": {
