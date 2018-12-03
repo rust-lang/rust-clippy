@@ -511,9 +511,9 @@
       "Example": "```rust\n6186491_8973511\n```", 
       "Known problems": "None."
     }, 
-    "group": "style", 
+    "group": "pedantic", 
     "id": "large_digit_groups", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
