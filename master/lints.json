@@ -2208,7 +2208,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for expressions of the form `x == true` (or vice\nversa) and suggest using the variable directly.", 
+      "What it does": "Checks for expressions of the form `x == true` and\n`x != true` (or vice versa) and suggest using the variable directly.", 
       "Why is this bad": "Unnecessary code.", 
       "Example": "```rust\nif x == true {} // could be `if x { }`\n```", 
       "Known problems": "None."
