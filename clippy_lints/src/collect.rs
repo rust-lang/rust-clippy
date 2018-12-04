@@ -1,13 +1,19 @@
 use itertools::{repeat_n, Itertools};
 use rustc::hir::*;
-use rustc::lint::*;
-use rustc::ty::{AssociatedKind, TypeVariants};
+use rustc::ty::{AssociatedKind, TyKind};
 use syntax::ast::NodeId;
 
 use std::collections::HashSet;
 
+use crate::rustc_errors::Applicability;
+use crate::rustc::lint::{
+    LateContext, LateLintPass, LintArray, LintPass,
+};
+use crate::rustc::{declare_tool_lint, lint_array};
 use crate::utils::{match_trait_method, match_type, span_lint_and_sugg};
 use crate::utils::paths;
+
+use if_chain::if_chain;
 
 /// **What it does:** Detects collect calls on iterators to collections
 /// of either `Result<_, E>` or `Option<_>` inside functions that also
@@ -69,11 +75,11 @@ struct Suggestion {
 
 fn format_suggestion_pattern<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
-    collection_ty: &TypeVariants,
+    collection_ty: &TyKind<'_>,
     is_option: bool,
 ) -> String {
     let collection_pat = match collection_ty {
-        TypeVariants::TyAdt(def, subs) => {
+        TyKind::Adt(def, subs) => {
             let mut buf = cx.tcx.item_path_str(def.did);
 
             if !subs.is_empty() {
@@ -84,7 +90,7 @@ fn format_suggestion_pattern<'a, 'tcx>(
 
             buf
         },
-        TypeVariants::TyParam(p) => p.to_string(),
+        TyKind::Param(p) => p.to_string(),
         _ => "_".into(),
     };
 
@@ -96,8 +102,8 @@ fn format_suggestion_pattern<'a, 'tcx>(
 }
 
 fn check_expr_for_collect<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) -> Option<Suggestion> {
-    if let ExprMethodCall(ref method, _, ref args) = expr.node {
-        if args.len() == 1 && method.name == "collect" && match_trait_method(cx, expr, &paths::ITERATOR) {
+    if let ExprKind::MethodCall(ref method, _, ref args) = expr.node {
+        if args.len() == 1 && method.ident.name == "collect" && match_trait_method(cx, expr, &paths::ITERATOR) {
             let collect_ty = cx.tables.expr_ty(expr);
 
             if match_type(cx, collect_ty, &paths::OPTION) || match_type(cx, collect_ty, &paths::RESULT) {
@@ -153,7 +159,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         }
 
         if let Some(suggestion) = check_expr_for_collect(cx, expr) {
-            let sugg_span = if let ExprMethodCall(_, call_span, _) = expr.node {
+            let sugg_span = if let ExprKind::MethodCall(_, call_span, _) = expr.node {
                 expr.span.between(call_span)
             } else {
                 unreachable!()
@@ -169,14 +175,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     suggestion.success_variant
                 ),
                 format!("collect::<{}>()", suggestion.pattern),
+                Applicability::MaybeIncorrect
             );
         }
     }
 
     fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, stmt: &'tcx Stmt) {
         if_chain! {
-            if let StmtDecl(ref decl, _) = stmt.node;
-            if let DeclLocal(ref local) = decl.node;
+            if let StmtKind::Decl(ref decl, _) = stmt.node;
+            if let DeclKind::Local(ref local) = decl.node;
             if let Some(ref ty) = local.ty;
             if let Some(ref expr) = local.init;
             then {
@@ -192,7 +199,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                             "if you are only interested in the case where all values are `{}`, try",
                             suggestion.success_variant
                         ),
-                        suggestion.pattern
+                        suggestion.pattern,
+                        Applicability::MaybeIncorrect
                     );
                 }
             }

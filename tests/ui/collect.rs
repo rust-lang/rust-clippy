@@ -1,9 +1,9 @@
-#![warn(possible_shortcircuiting_collect)]
+#![warn(clippy::possible_shortcircuiting_collect)]
 
 use std::iter::FromIterator;
 
 pub fn div(a: i32, b: &[i32]) -> Result<Vec<i32>, String> {
-    let option_vec: Vec<_> = b.into_iter()
+    let option_vec: Vec<_> = b.iter()
         .cloned()
         .map(|i| if i != 0 {
             Ok(a / i)
