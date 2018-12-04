@@ -407,4 +407,24 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TyKindUsage {
             }
         }
     }
+
+    fn check_ty(&mut self, cx: &LateContext<'_, '_>, ty: &'tcx Ty) {
+        if_chain! {
+            if let TyKind::Path(qpath) = &ty.node;
+            if let QPath::Resolved(_, path) = qpath;
+            if let Some(last) = path.segments.iter().last();
+            if last.ident.as_str() == "TyKind";
+            if let Some(def) = last.def;
+            if match_def_path(cx.tcx, def.def_id(), &paths::TY_KIND);
+            then {
+                span_help_and_lint(
+                    cx,
+                    USAGE_OF_TY_TYKIND,
+                    path.span,
+                    "usage of `ty::TyKind`",
+                    "try using `ty::Ty` instead",
+                );
+            }
+        }
+    }
 }
