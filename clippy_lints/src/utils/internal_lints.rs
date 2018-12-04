@@ -325,3 +325,86 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CompilerLintFunctions {
         }
     }
 }
+
+/// **What it does:** Checks for matches on `ty::TyKind::<kind>` and for usage of `ty::TyKind`
+/// instead of `ty::Ty`. See issue
+/// [rust-lang/rust#49509](https://github.com/rust-lang/rust/issues/49509) for details.
+///
+/// **Why is this bad?** `ty` reexports `TyKind::*`, so the enum variants of `TyKind` can be used
+/// directly through `ty`. Also `TyKind` should never be used directly outside of the `sty` module.
+/// See
+/// [rust-lang/rust-clippy#2077](https://github.com/rust-lang/rust-clippy/pull/2077#discussion_r238553405)
+///
+/// **Known problems:** None.
+///
+/// **Example:**
+/// Bad:
+/// ```rust
+/// if let ty::TyKind::Int(int_ty) = ty.sty {}
+/// ```
+///
+/// Good:
+/// ```
+/// if let ty::Int(int_ty) = ty.sty {}
+/// ```
+declare_clippy_lint! {
+    pub USAGE_OF_TY_TYKIND,
+    internal,
+    "Using `ty::TyKind::<kind>` instead of just `ty::<kind>`"
+}
+
+#[derive(Copy, Clone)]
+pub struct TyKindUsage;
+
+impl LintPass for TyKindUsage {
+    fn get_lints(&self) -> LintArray {
+        lint_array!(USAGE_OF_TY_TYKIND)
+    }
+}
+
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TyKindUsage {
+    fn check_expr(&mut self, cx: &LateContext<'_, '_>, expr: &'tcx Expr) {
+        let qpaths = match &expr.node {
+            ExprKind::Match(_, arms, _) => {
+                let mut qpaths = vec![];
+                for arm in arms {
+                    for pat in &arm.pats {
+                        match &pat.node {
+                            PatKind::Path(qpath) | PatKind::TupleStruct(qpath, ..) => qpaths.push(qpath),
+                            _ => (),
+                        }
+                    }
+                }
+                qpaths
+            },
+            ExprKind::Path(qpath) => vec![qpath],
+            _ => vec![],
+        };
+        for qpath in qpaths {
+            if_chain! {
+                if let QPath::Resolved(_, path) = qpath;
+                let segments_iter = path.segments.iter().rev().skip(1).rev();
+                if let Some(last) = segments_iter.clone().last();
+                if last.ident.as_str() == "TyKind";
+                let path = Path {
+                    span: path.span.with_hi(last.ident.span.hi()),
+                    def: path.def,
+                    segments: segments_iter.cloned().collect(),
+                };
+                if let Some(def) = last.def;
+                if match_def_path(cx.tcx, def.def_id(), &paths::TY_KIND);
+                then {
+                    span_lint_and_sugg(
+                        cx,
+                        USAGE_OF_TY_TYKIND,
+                        path.span,
+                        "usage of `ty::TyKind::<kind>`",
+                        "try using ty::<kind> directly",
+                        "ty".to_string(),
+                        Applicability::MaybeIncorrect, // ty maybe needs an import
+                    );
+                }
+            }
+        }
+    }
+}
