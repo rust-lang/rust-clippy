@@ -1,6 +1,6 @@
 use itertools::{repeat_n, Itertools};
-use rustc::hir::*;
-use rustc::ty::{AssociatedKind, TyKind};
+use rustc::hir::{Expr, Stmt, DeclKind, StmtKind, ExprKind};
+use rustc::ty::{AssociatedKind};
 use syntax::ast::NodeId;
 
 use std::collections::HashSet;
@@ -9,7 +9,7 @@ use crate::rustc_errors::Applicability;
 use crate::rustc::lint::{
     LateContext, LateLintPass, LintArray, LintPass,
 };
-use crate::rustc::{declare_tool_lint, lint_array};
+use crate::rustc::{declare_tool_lint, lint_array, ty};
 use crate::utils::{match_trait_method, match_type, span_lint_and_sugg};
 use crate::utils::paths;
 
@@ -75,11 +75,11 @@ struct Suggestion {
 
 fn format_suggestion_pattern<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
-    collection_ty: &TyKind<'_>,
+    collection_ty: &ty::Ty<'_>,
     is_option: bool,
 ) -> String {
-    let collection_pat = match collection_ty {
-        TyKind::Adt(def, subs) => {
+    let collection_pat = match collection_ty.sty {
+        ty::Adt(def, subs) => {
             let mut buf = cx.tcx.item_path_str(def.did);
 
             if !subs.is_empty() {
@@ -90,7 +90,7 @@ fn format_suggestion_pattern<'a, 'tcx>(
 
             buf
         },
-        TyKind::Param(p) => p.to_string(),
+        ty::Param(p) => p.to_string(),
         _ => "_".into(),
     };
 
@@ -131,13 +131,13 @@ fn check_expr_for_collect<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr
 
                     return if match_type(cx, normal_ty, &paths::OPTION) {
                         Some(Suggestion {
-                            pattern: format_suggestion_pattern(cx, &collect_ty.sty.clone(), true),
+                            pattern: format_suggestion_pattern(cx, &collect_ty, true),
                             type_colloquial: "Option",
                             success_variant: "Some",
                         })
                     } else if match_type(cx, normal_ty, &paths::RESULT) {
                         Some(Suggestion {
-                            pattern: format_suggestion_pattern(cx, &collect_ty.sty.clone(), false),
+                            pattern: format_suggestion_pattern(cx, &collect_ty, false),
                             type_colloquial: "Result",
                             success_variant: "Ok",
                         })
