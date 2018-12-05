@@ -1,13 +1,13 @@
 error: you are creating a collection of `Result`s
  --> $DIR/collect.rs:6:21
   |
-6 |     let option_vec: Vec<_> = b.into_iter()
+6 |     let option_vec: Vec<_> = b.iter()
   |                     ^^^^^^
   |
-  = note: `-D possible-shortcircuiting-collect` implied by `-D warnings`
+  = note: `-D clippy::possible-shortcircuiting-collect` implied by `-D warnings`
 help: if you are only interested in the case where all values are `Ok`, try
   |
-6 |     let option_vec: Result<std::vec::Vec<_>, _> = b.into_iter()
+6 |     let option_vec: Result<std::vec::Vec<_>, _> = b.iter()
   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: you are creating a collection of `Option`s
