@@ -1912,6 +1912,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for missing return statements at the end of a block.", 
+      "Why is this bad": "Actually omitting the return keyword is idiomatic Rust code. Programmers\ncoming from other languages might prefer the expressiveness of `return`. It's possible to miss\nthe last returning statement because the only difference is a missing `;`. Especially in bigger\ncode with multiple return paths having a `return` keyword makes it easier to find the\ncorresponding statements.", 
+      "Example": "```rust\nfn foo(x: usize) {\n    x\n}\n```\nadd return\n```rust\nfn foo(x: usize) {\n    return x;\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "restriction", 
+    "id": "implicit_return", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `new` not returning `Self`.", 
       "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.", 
       "Example": "```rust\nimpl Foo {\n    fn new(..) -> NotAFoo {\n    }\n}\n```", 
