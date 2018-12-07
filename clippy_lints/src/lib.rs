@@ -159,6 +159,7 @@ pub mod multiple_crate_versions;
 pub mod mut_mut;
 pub mod mut_reference;
 pub mod mutex_atomic;
+pub mod naming;
 pub mod needless_bool;
 pub mod needless_borrow;
 pub mod needless_borrowed_ref;
@@ -486,6 +487,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box ptr_offset_with_cast::Pass);
     reg.register_late_lint_pass(box redundant_clone::RedundantClone);
     reg.register_late_lint_pass(box slow_vector_initialization::Pass);
+    reg.register_early_lint_pass(box naming::GetterPrefix);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -697,6 +699,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         misc_early::ZERO_PREFIXED_LITERAL,
         mut_reference::UNNECESSARY_MUT_PASSED,
         mutex_atomic::MUTEX_ATOMIC,
+        naming::GETTER_PREFIX,
         needless_bool::BOOL_COMPARISON,
         needless_bool::NEEDLESS_BOOL,
         needless_borrowed_ref::NEEDLESS_BORROWED_REFERENCE,
@@ -837,6 +840,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         misc_early::MIXED_CASE_HEX_LITERALS,
         misc_early::UNNEEDED_FIELD_PATTERN,
         mut_reference::UNNECESSARY_MUT_PASSED,
+        naming::GETTER_PREFIX,
         neg_multiply::NEG_MULTIPLY,
         new_without_default::NEW_WITHOUT_DEFAULT,
         non_expressive_names::JUST_UNDERSCORES_AND_DIGITS,
