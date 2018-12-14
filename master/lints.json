@@ -1748,6 +1748,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.", 
+      "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.", 
+      "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```", 
+      "Known problems": "Vec<Box<T: Sized>> makes sense if T is a large type (see #3530,\n1st comment)."
+    }, 
+    "group": "complexity", 
+    "id": "vec_box", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for arguments to `==` which have their address\ntaken to satisfy a bound\nand suggests to dereference the other argument instead", 
       "Why is this bad": "It is more idiomatic to dereference the other argument.", 
       "Example": "```rust\n&x == y\n```", 
