@@ -2373,8 +2373,7 @@ impl SelfKind {
         generics: &hir::Generics,
     ) -> bool {
         // Self types in the HIR are desugared to explicit self types. So it will
-        // always be `self:
-        // SomeType`,
+        // always be `self: SomeType`,
         // where SomeType can be `Self` or an explicit impl self type (e.g. `Foo` if
         // the impl is on `Foo`)
         // Thus, we only need to test equality against the impl self type or if it is
@@ -2407,7 +2406,7 @@ impl SelfKind {
             }
         } else {
             match self {
-                SelfKind::Value => false,
+                SelfKind::Value => is_actually_self(ty),// accept in case Deref<Target=T> is implemented
                 SelfKind::Ref => is_as_ref_or_mut_trait(ty, self_ty, generics, &paths::ASREF_TRAIT),
                 SelfKind::RefMut => is_as_ref_or_mut_trait(ty, self_ty, generics, &paths::ASMUT_TRAIT),
                 SelfKind::No => true,
