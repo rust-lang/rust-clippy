@@ -65,3 +65,19 @@ impl Bar {
     fn from_(self) {}
     fn to_mut(&mut self) {}
 }
+
+// test false positive
+struct Wrapper<T>(T);
+
+impl<T> Wrapper<T> {
+    fn into_inner(this: Self) -> T {
+        this.0
+    }
+}
+
+impl<T> std::ops::Deref for Wrapper<T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        &self.0
+    }
+}
