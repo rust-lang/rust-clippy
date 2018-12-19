@@ -68,7 +68,7 @@
   {
     "docs": {
       "What it does": "Checks for usages of `Mutex<X>` where an atomic will do.", 
-      "Why is this bad": "Using a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::atomic::AtomicBool` and `std::atomic::AtomicPtr` are leaner and\nfaster.", 
+      "Why is this bad": "Using a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.", 
       "Example": "```rust\nlet x = Mutex::new(&y);\n```", 
       "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section."
     }, 
@@ -551,7 +551,7 @@
   {
     "docs": {
       "What it does": "Checks for usages of `Mutex<X>` where `X` is an integral\ntype.", 
-      "Why is this bad": "Using a mutex just to make access to a plain integer\nsequential is\nshooting flies with cannons. `std::atomic::usize` is leaner and faster.", 
+      "Why is this bad": "Using a mutex just to make access to a plain integer\nsequential is\nshooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.", 
       "Example": "```rust\nlet x = Mutex::new(0usize);\n```", 
       "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section."
     }, 
