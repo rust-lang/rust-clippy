@@ -2022,9 +2022,9 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for formatting of `else if`. It lints if the `else`\nand `if` are not on the same line or the `else` seems to be missing.", 
+      "What it does": "Checks for formatting of `else`. It lints if the `else`\nis followed immediately by a newline or the `else` seems to be missing.", 
       "Why is this bad": "This is probably some refactoring remnant, even if the\ncode is correct, it might look confusing.", 
-      "Example": "```rust,ignore\nif foo {\n} if bar { // looks like an `else` is missing here\n}\n\nif foo {\n} else\n\nif bar { // this is the `else` block of the previous `if`, but should it be?\n}\n```", 
+      "Example": "```rust,ignore\nif foo {\n} { // looks like an `else` is missing here\n}\n\nif foo {\n} if bar { // looks like an `else` is missing here\n}\n\nif foo {\n} else\n\n{ // this is the `else` block of the previous `if`, but should it be?\n}\n\nif foo {\n} else\n\nif bar { // this is the `else` block of the previous `if`, but should it be?\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
