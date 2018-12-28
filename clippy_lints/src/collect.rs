@@ -13,7 +13,7 @@ use rustc::hir::{Expr, Stmt, DeclKind, StmtKind, ExprKind};
 use rustc::ty::{AssociatedKind};
 use syntax::ast::NodeId;
 
-use std::collections::HashSet;
+use crate::rustc_data_structures::fx::FxHashSet;
 
 use crate::rustc_errors::Applicability;
 use crate::rustc::lint::{
@@ -62,12 +62,12 @@ declare_clippy_lint! {
 #[derive(Clone, Default)]
 pub struct Pass {
     // To ensure that we do not lint the same expression more than once
-    seen_expr_nodes: HashSet<NodeId>,
+    seen_expr_nodes: FxHashSet<NodeId>,
 }
 
 impl Pass {
     pub fn new() -> Self {
-        Self { seen_expr_nodes: HashSet::new() }
+        Self { seen_expr_nodes: FxHashSet::default() }
     }
 }
 
@@ -85,7 +85,7 @@ struct Suggestion {
 
 fn format_suggestion_pattern<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
-    collection_ty: &ty::Ty<'_>,
+    collection_ty: ty::Ty<'_>,
     is_option: bool,
 ) -> String {
     let collection_pat = match collection_ty.sty {
