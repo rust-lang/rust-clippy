@@ -78,13 +78,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for functions taking arguments by value, but not\nconsuming them in its\nbody.", 
-      "Why is this bad": "Taking arguments by reference is more flexible and can\nsometimes avoid\nunnecessary allocations.", 
-      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n// should be\nfn foo(v: &[i32]) {\n    assert_eq!(v.len(), 42);\n}\n```", 
-      "Known problems": "* This lint suggests taking an argument by reference,\nhowever sometimes it is better to let users decide the argument type\n(by using `Borrow` trait, for example), depending on how the function is used."
+      "What it does": "Checks for explicit `Clone` implementations for `Copy`\ntypes.", 
+      "Why is this bad": "To avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.", 
+      "Example": "```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    ..\n}\n```", 
+      "Known problems": "Bounds of generic types are sometimes wrong: https://github.com/rust-lang/rust/issues/26925"
     }, 
     "group": "pedantic", 
-    "id": "needless_pass_by_value", 
+    "id": "expl_impl_clone_on_copy", 
     "level": "Allow"
   }, 
   {
@@ -329,14 +329,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for types with a `fn new() -> Self` method\nand no implementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html),\nwhere the `Default` can be derived by `#[derive(Default)]`.", 
-      "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.", 
-      "Example": "```rust\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nJust prepend `#[derive(Default)]` before the `struct` definition.", 
-      "Known problems": "Hopefully none."
+      "What it does": "Checks for functions taking arguments by value, but not\nconsuming them in its\nbody.", 
+      "Why is this bad": "Taking arguments by reference is more flexible and can\nsometimes avoid\nunnecessary allocations.", 
+      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n// should be\nfn foo(v: &[i32]) {\n    assert_eq!(v.len(), 42);\n}\n```", 
+      "Known problems": "* This lint suggests taking an argument by reference,\nhowever sometimes it is better to let users decide the argument type\n(by using `Borrow` trait, for example), depending on how the function is used."
     }, 
-    "group": "style", 
-    "id": "new_without_default_derive", 
-    "level": "Warn"
+    "group": "pedantic", 
+    "id": "needless_pass_by_value", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -495,14 +495,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for explicit `Clone` implementations for `Copy`\ntypes.", 
-      "Why is this bad": "To avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.", 
-      "Example": "```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    ..\n}\n```", 
-      "Known problems": "Bounds of generic types are sometimes wrong: https://github.com/rust-lang/rust/issues/26925"
+      "What it does": "Checks for `foo = bar; bar = foo` sequences.", 
+      "Why is this bad": "This looks like a failed attempt to swap.", 
+      "Example": "```rust,ignore\na = b;\nb = a;\n```", 
+      "Known problems": "None."
     }, 
-    "group": "pedantic", 
-    "id": "expl_impl_clone_on_copy", 
-    "level": "Allow"
+    "group": "correctness", 
+    "id": "almost_swapped", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1198,17 +1198,6 @@
     "group": "complexity", 
     "id": "unnecessary_operation", 
     "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for `foo = bar; bar = foo` sequences.", 
-      "Why is this bad": "This looks like a failed attempt to swap.", 
-      "Example": "```rust,ignore\na = b;\nb = a;\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "correctness", 
-    "id": "almost_swapped", 
-    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2417,9 +2406,9 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).", 
+      "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).\nIt detects both the case when a manual\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)\nimplementation is required and also when it can be created with\n`#[derive(Default)]", 
       "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.", 
-      "Example": "```rust\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nInstead, use:\n\n```rust\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nYou can also have `new()` call `Default::default()`.", 
+      "Example": "```rust\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nInstead, use:\n\n```rust\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nOr, if\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)\ncan be derived by `#[derive(Default)]`:\n\n```rust\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nInstead, use:\n\n```rust\n#[derive(Default)]\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nYou can also have `new()` call `Default::default()`.", 
       "Known problems": "Hopefully none."
     }, 
     "group": "style", 
