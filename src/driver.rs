@@ -40,9 +40,8 @@ pub fn main() {
                 exit(0);
             }
 
-            let sys_root = option_env!("SYSROOT")
-                .map(String::from)
-                .or_else(|| std::env::var("SYSROOT").ok())
+            let sys_root = std::env::var("SYSROOT")
+                .ok()
                 .or_else(|| {
                     let home = option_env!("RUSTUP_HOME").or(option_env!("MULTIRUST_HOME"));
                     let toolchain = option_env!("RUSTUP_TOOLCHAIN").or(option_env!("MULTIRUST_TOOLCHAIN"));
@@ -56,8 +55,7 @@ pub fn main() {
                         .ok()
                         .and_then(|out| String::from_utf8(out.stdout).ok())
                         .map(|s| s.trim().to_owned())
-                })
-                .expect("need to specify SYSROOT env var during clippy compilation, or use rustup or multirust");
+                });
 
             // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
             // We're invoking the compiler programmatically, so we ignore this/
@@ -72,14 +70,14 @@ pub fn main() {
             // this conditional check for the --sysroot flag is there so users can call
             // `clippy_driver` directly
             // without having to pass --sysroot or anything
-            let mut args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") {
+            let mut args: Vec<String> = if orig_args.iter().any(|s| s == "--sysroot") || sys_root.is_none() {
                 orig_args.clone()
             } else {
                 orig_args
                     .clone()
                     .into_iter()
                     .chain(Some("--sysroot".to_owned()))
-                    .chain(Some(sys_root))
+                    .chain(sys_root)
                     .collect()
             };
 
