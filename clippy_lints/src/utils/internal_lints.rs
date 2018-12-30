@@ -19,9 +19,9 @@ use rustc::lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintAr
 use rustc::{declare_tool_lint, lint_array};
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
-use syntax::ast::{Crate as AstCrate, Ident, ItemKind, Name};
+use syntax::ast::{Crate as AstCrate, Ident, ItemKind};
 use syntax::source_map::Span;
-use syntax::symbol::LocalInternedString;
+use syntax::symbol::{LocalInternedString, Symbol};
 
 /// **What it does:** Checks for various things we like to keep tidy in clippy.
 ///
@@ -140,8 +140,8 @@ impl EarlyLintPass for Clippy {
 
 #[derive(Clone, Debug, Default)]
 pub struct LintWithoutLintPass {
-    declared_lints: FxHashMap<Name, Span>,
-    registered_lints: FxHashSet<Name>,
+    declared_lints: FxHashMap<Symbol, Span>,
+    registered_lints: FxHashSet<Symbol>,
 }
 
 impl LintPass for LintWithoutLintPass {
@@ -154,7 +154,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LintWithoutLintPass {
     fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx Item) {
         if let hir::ItemKind::Static(ref ty, MutImmutable, _) = item.node {
             if is_lint_ref_type(cx, ty) {
-                self.declared_lints.insert(item.name, item.span);
+                self.declared_lints.insert(item.ident.name, item.span);
             }
         } else if let hir::ItemKind::Impl(.., Some(ref trait_ref), _, ref impl_item_refs) = item.node {
             if_chain! {
@@ -221,7 +221,7 @@ fn is_lint_ref_type<'tcx>(cx: &LateContext<'_, 'tcx>, ty: &Ty) -> bool {
 }
 
 struct LintCollector<'a, 'tcx: 'a> {
-    output: &'a mut FxHashSet<Name>,
+    output: &'a mut FxHashSet<Symbol>,
     cx: &'a LateContext<'a, 'tcx>,
 }
 

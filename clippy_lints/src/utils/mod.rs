@@ -334,10 +334,9 @@ pub fn method_chain_args<'a>(expr: &'a Expr, methods: &[&str]) -> Option<Vec<&'a
 pub fn get_item_name(cx: &LateContext<'_, '_>, expr: &Expr) -> Option<Name> {
     let parent_id = cx.tcx.hir().get_parent(expr.id);
     match cx.tcx.hir().find(parent_id) {
-        Some(Node::Item(&Item { ref name, .. })) => Some(*name),
-        Some(Node::TraitItem(&TraitItem { ident, .. })) | Some(Node::ImplItem(&ImplItem { ident, .. })) => {
-            Some(ident.name)
-        },
+        Some(Node::Item(&Item { ident, .. }))
+        | Some(Node::TraitItem(&TraitItem { ident, .. }))
+        | Some(Node::ImplItem(&ImplItem { ident, .. })) => Some(ident.name),
         _ => None,
     }
 }
