@@ -22,7 +22,7 @@
 struct Unitter;
 impl Unitter {
     // try to disorient the lint with multiple unit returns and newlines
-    pub fn get_unit<F: Fn() -> (), G>(&self, f: F, _g: G) ->
+    pub fn get<F: Fn() -> (), G>(&self, f: F, _g: G) ->
         ()
     where G: Fn() -> () {
         let _y: &Fn() -> () = &f;
@@ -41,7 +41,7 @@ fn return_unit() -> () { () }
 
 fn main() {
     let u = Unitter;
-    assert_eq!(u.get_unit(|| {}, return_unit), u.into());
+    assert_eq!(u.get(|| {}, return_unit), u.into());
     return_unit();
     loop {
         break();

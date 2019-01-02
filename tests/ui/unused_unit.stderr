@@ -1,8 +1,8 @@
 error: unneeded unit return type
-  --> $DIR/unused_unit.rs:25:59
+  --> $DIR/unused_unit.rs:25:54
    |
-LL |       pub fn get_unit<F: Fn() -> (), G>(&self, f: F, _g: G) ->
-   |  ___________________________________________________________^
+LL |       pub fn get<F: Fn() -> (), G>(&self, f: F, _g: G) ->
+   |  ______________________________________________________^
 LL | |         ()
    | |__________^ help: remove the `-> ()`
    |
