@@ -1,28 +1,24 @@
-error: you seem to be trying to use match to destructure a single infallible pattern. Consider using `let`
-  --> $DIR/infallible_destructuring_match.rs:25:5
+error[E0658]: The `!` type is experimental (see issue #35121)
+  --> $DIR/infallible_destructuring_match.rs:52:30
    |
-LL | /     let data = match wrapper {
-LL | |         SingleVariantEnum::Variant(i) => i,
-LL | |     };
-   | |______^ help: try this: `let SingleVariantEnum::Variant(data) = wrapper;`
+LL |     let wrapper: Result<i32, !> = Ok(23);
+   |                              ^
    |
-   = note: `-D clippy::infallible-destructuring-match` implied by `-D warnings`
+   = help: add #![feature(never_type)] to the crate attributes to enable
 
-error: you seem to be trying to use match to destructure a single infallible pattern. Consider using `let`
-  --> $DIR/infallible_destructuring_match.rs:46:5
+error: returning the result of a let binding from a block. Consider returning the expression directly.
+  --> $DIR/infallible_destructuring_match.rs:76:9
    |
-LL | /     let data = match wrapper {
-LL | |         TupleStruct(i) => i,
-LL | |     };
-   | |______^ help: try this: `let TupleStruct(data) = wrapper;`
-
-error: you seem to be trying to use match to destructure a single infallible pattern. Consider using `let`
-  --> $DIR/infallible_destructuring_match.rs:67:5
+LL |         data
+   |         ^^^^
    |
-LL | /     let data = match wrapper {
-LL | |         Ok(i) => i,
-LL | |     };
-   | |______^ help: try this: `let Ok(data) = wrapper;`
+   = note: `-D clippy::let-and-return` implied by `-D warnings`
+note: this expression can be directly returned
+  --> $DIR/infallible_destructuring_match.rs:75:20
+   |
+LL |         let data = match *self {};
+   |                    ^^^^^^^^^^^^^^
 
-error: aborting due to 3 previous errors
+error: aborting due to 2 previous errors
 
+For more information about this error, try `rustc --explain E0658`.

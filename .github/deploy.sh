@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
+# Copyright 2014-2019 The Rust Project Developers. See the COPYRIGHT
 # file at the top-level directory of this distribution and at
 # http://rust-lang.org/COPYRIGHT.
 #

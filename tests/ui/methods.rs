@@ -1,12 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 // aux-build:option_helpers.rs
 
 #![warn(clippy::all, clippy::pedantic, clippy::option_unwrap_used)]
@@ -26,15 +17,6 @@
 
 #[macro_use]
 extern crate option_helpers;
-
-use std::collections::BTreeMap;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::VecDeque;
-use std::ops::Mul;
-use std::iter::FromIterator;
-use std::rc::{self, Rc};
-use std::sync::{self, Arc};
 
 use option_helpers::IteratorFalsePositives;
 

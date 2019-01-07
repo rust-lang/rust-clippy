@@ -1,369 +1,130 @@
-error: the loop variable `i` is only used to index `vec`.
-  --> $DIR/for_loop.rs:50:14
+error[E0433]: failed to resolve: use of undeclared type or module `LinkedList`
+  --> $DIR/for_loop.rs:188:30
    |
-LL |     for i in 0..vec.len() {
-   |              ^^^^^^^^^^^^
-   |
-   = note: `-D clippy::needless-range-loop` implied by `-D warnings`
-help: consider using an iterator
-   |
-LL |     for <item> in &vec {
-   |         ^^^^^^    ^^^^
+LL |     let ll: LinkedList<()> = LinkedList::new();
+   |                              ^^^^^^^^^^ use of undeclared type or module `LinkedList`
 
-error: the loop variable `i` is only used to index `vec`.
-  --> $DIR/for_loop.rs:59:14
+error[E0433]: failed to resolve: use of undeclared type or module `VecDeque`
+  --> $DIR/for_loop.rs:191:28
    |
-LL |     for i in 0..vec.len() {
-   |              ^^^^^^^^^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in &vec {
-   |         ^^^^^^    ^^^^
+LL |     let vd: VecDeque<()> = VecDeque::new();
+   |                            ^^^^^^^^ use of undeclared type or module `VecDeque`
 
-error: the loop variable `j` is only used to index `STATIC`.
-  --> $DIR/for_loop.rs:64:14
+error[E0433]: failed to resolve: use of undeclared type or module `BinaryHeap`
+  --> $DIR/for_loop.rs:194:30
    |
-LL |     for j in 0..4 {
-   |              ^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in &STATIC {
-   |         ^^^^^^    ^^^^^^^
+LL |     let bh: BinaryHeap<()> = BinaryHeap::new();
+   |                              ^^^^^^^^^^ use of undeclared type or module `BinaryHeap`
 
-error: the loop variable `j` is only used to index `CONST`.
-  --> $DIR/for_loop.rs:68:14
+error[E0433]: failed to resolve: use of undeclared type or module `HashMap`
+  --> $DIR/for_loop.rs:197:31
    |
-LL |     for j in 0..4 {
-   |              ^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in &CONST {
-   |         ^^^^^^    ^^^^^^
+LL |     let hm: HashMap<(), ()> = HashMap::new();
+   |                               ^^^^^^^ use of undeclared type or module `HashMap`
 
-error: the loop variable `i` is used to index `vec`
-  --> $DIR/for_loop.rs:72:14
+error[E0433]: failed to resolve: use of undeclared type or module `BTreeMap`
+  --> $DIR/for_loop.rs:200:32
    |
-LL |     for i in 0..vec.len() {
-   |              ^^^^^^^^^^^^
-help: consider using an iterator
-   |
-LL |     for (i, <item>) in vec.iter().enumerate() {
-   |         ^^^^^^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^
+LL |     let bt: BTreeMap<(), ()> = BTreeMap::new();
+   |                                ^^^^^^^^ use of undeclared type or module `BTreeMap`
 
-error: the loop variable `i` is only used to index `vec2`.
-  --> $DIR/for_loop.rs:80:14
+error[E0433]: failed to resolve: use of undeclared type or module `HashSet`
+  --> $DIR/for_loop.rs:203:27
    |
-LL |     for i in 0..vec.len() {
-   |              ^^^^^^^^^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in vec2.iter().take(vec.len()) {
-   |         ^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     let hs: HashSet<()> = HashSet::new();
+   |                           ^^^^^^^ use of undeclared type or module `HashSet`
 
-error: the loop variable `i` is only used to index `vec`.
-  --> $DIR/for_loop.rs:84:14
+error[E0433]: failed to resolve: use of undeclared type or module `BTreeSet`
+  --> $DIR/for_loop.rs:206:28
    |
-LL |     for i in 5..vec.len() {
-   |              ^^^^^^^^^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in vec.iter().skip(5) {
-   |         ^^^^^^    ^^^^^^^^^^^^^^^^^^
+LL |     let bs: BTreeSet<()> = BTreeSet::new();
+   |                            ^^^^^^^^ use of undeclared type or module `BTreeSet`
 
-error: the loop variable `i` is only used to index `vec`.
-  --> $DIR/for_loop.rs:88:14
+error[E0412]: cannot find type `LinkedList` in this scope
+  --> $DIR/for_loop.rs:188:13
    |
-LL |     for i in 0..MAX_LEN {
-   |              ^^^^^^^^^^
-help: consider using an iterator
+LL |     let ll: LinkedList<()> = LinkedList::new();
+   |             ^^^^^^^^^^ not found in this scope
+help: possible candidates are found in other modules, you can import them into scope
    |
-LL |     for <item> in vec.iter().take(MAX_LEN) {
-   |         ^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: the loop variable `i` is only used to index `vec`.
-  --> $DIR/for_loop.rs:92:14
+LL | use std::collections::LinkedList;
    |
-LL |     for i in 0..=MAX_LEN {
-   |              ^^^^^^^^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in vec.iter().take(MAX_LEN + 1) {
-   |         ^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: the loop variable `i` is only used to index `vec`.
-  --> $DIR/for_loop.rs:96:14
-   |
-LL |     for i in 5..10 {
-   |              ^^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in vec.iter().take(10).skip(5) {
-   |         ^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: the loop variable `i` is only used to index `vec`.
-  --> $DIR/for_loop.rs:100:14
-   |
-LL |     for i in 5..=10 {
-   |              ^^^^^^
-help: consider using an iterator
-   |
-LL |     for <item> in vec.iter().take(10 + 1).skip(5) {
-   |         ^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: the loop variable `i` is used to index `vec`
-  --> $DIR/for_loop.rs:104:14
-   |
-LL |     for i in 5..vec.len() {
-   |              ^^^^^^^^^^^^
-help: consider using an iterator
-   |
-LL |     for (i, <item>) in vec.iter().enumerate().skip(5) {
-   |         ^^^^^^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: the loop variable `i` is used to index `vec`
-  --> $DIR/for_loop.rs:108:14
-   |
-LL |     for i in 5..10 {
-   |              ^^^^^
-help: consider using an iterator
-   |
-LL |     for (i, <item>) in vec.iter().enumerate().take(10).skip(5) {
-   |         ^^^^^^^^^^^    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: this range is empty so this for loop will never run
-  --> $DIR/for_loop.rs:112:14
-   |
-LL |     for i in 10..0 {
-   |              ^^^^^
-   |
-   = note: `-D clippy::reverse-range-loop` implied by `-D warnings`
-help: consider using the following if you are attempting to iterate over this range in reverse
-   |
-LL |     for i in (0..10).rev() {
-   |              ^^^^^^^^^^^^^
-
-error: this range is empty so this for loop will never run
-  --> $DIR/for_loop.rs:116:14
-   |
-LL |     for i in 10..=0 {
-   |              ^^^^^^
-help: consider using the following if you are attempting to iterate over this range in reverse
-   |
-LL |     for i in (0...10).rev() {
-   |              ^^^^^^^^^^^^^^
-
-error: this range is empty so this for loop will never run
-  --> $DIR/for_loop.rs:120:14
-   |
-LL |     for i in MAX_LEN..0 {
-   |              ^^^^^^^^^^
-help: consider using the following if you are attempting to iterate over this range in reverse
-   |
-LL |     for i in (0..MAX_LEN).rev() {
-   |              ^^^^^^^^^^^^^^^^^^
-
-error: this range is empty so this for loop will never run
-  --> $DIR/for_loop.rs:124:14
-   |
-LL |     for i in 5..5 {
-   |              ^^^^
-
-error: this range is empty so this for loop will never run
-  --> $DIR/for_loop.rs:149:14
-   |
-LL |     for i in 10..5 + 4 {
-   |              ^^^^^^^^^
-help: consider using the following if you are attempting to iterate over this range in reverse
-   |
-LL |     for i in (5 + 4..10).rev() {
-   |              ^^^^^^^^^^^^^^^^^
-
-error: this range is empty so this for loop will never run
-  --> $DIR/for_loop.rs:153:14
-   |
-LL |     for i in (5 + 2)..(3 - 1) {
-   |              ^^^^^^^^^^^^^^^^
-help: consider using the following if you are attempting to iterate over this range in reverse
-   |
-LL |     for i in ((3 - 1)..(5 + 2)).rev() {
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: this range is empty so this for loop will never run
-  --> $DIR/for_loop.rs:157:14
-   |
-LL |     for i in (5 + 2)..(8 - 1) {
-   |              ^^^^^^^^^^^^^^^^
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:179:15
-   |
-LL |     for _v in vec.iter() {}
-   |               ^^^^^^^^^^ help: to write this more concisely, try: `&vec`
-   |
-   = note: `-D clippy::explicit-iter-loop` implied by `-D warnings`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:181:15
-   |
-LL |     for _v in vec.iter_mut() {}
-   |               ^^^^^^^^^^^^^^ help: to write this more concisely, try: `&mut vec`
-
-error: it is more concise to loop over containers instead of using explicit iteration methods`
-  --> $DIR/for_loop.rs:184:15
-   |
-LL |     for _v in out_vec.into_iter() {}
-   |               ^^^^^^^^^^^^^^^^^^^ help: to write this more concisely, try: `out_vec`
-   |
-   = note: `-D clippy::explicit-into-iter-loop` implied by `-D warnings`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:187:15
-   |
-LL |     for _v in array.into_iter() {}
-   |               ^^^^^^^^^^^^^^^^^ help: to write this more concisely, try: `&array`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:192:15
-   |
-LL |     for _v in [1, 2, 3].iter() {}
-   |               ^^^^^^^^^^^^^^^^ help: to write this more concisely, try: `&[1, 2, 3]`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:196:15
-   |
-LL |     for _v in [0; 32].iter() {}
-   |               ^^^^^^^^^^^^^^ help: to write this more concisely, try: `&[0; 32]`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:201:15
-   |
-LL |     for _v in ll.iter() {}
-   |               ^^^^^^^^^ help: to write this more concisely, try: `&ll`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:204:15
-   |
-LL |     for _v in vd.iter() {}
-   |               ^^^^^^^^^ help: to write this more concisely, try: `&vd`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:207:15
-   |
-LL |     for _v in bh.iter() {}
-   |               ^^^^^^^^^ help: to write this more concisely, try: `&bh`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:210:15
-   |
-LL |     for _v in hm.iter() {}
-   |               ^^^^^^^^^ help: to write this more concisely, try: `&hm`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:213:15
-   |
-LL |     for _v in bt.iter() {}
-   |               ^^^^^^^^^ help: to write this more concisely, try: `&bt`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:216:15
-   |
-LL |     for _v in hs.iter() {}
-   |               ^^^^^^^^^ help: to write this more concisely, try: `&hs`
-
-error: it is more concise to loop over references to containers instead of using explicit iteration methods
-  --> $DIR/for_loop.rs:219:15
-   |
-LL |     for _v in bs.iter() {}
-   |               ^^^^^^^^^ help: to write this more concisely, try: `&bs`
-
-error: you are iterating over `Iterator::next()` which is an Option; this will compile but is probably not what you want
-  --> $DIR/for_loop.rs:221:15
-   |
-LL |     for _v in vec.iter().next() {}
-   |               ^^^^^^^^^^^^^^^^^
-   |
-   = note: `-D clippy::iter-next-loop` implied by `-D warnings`
-
-error: you are collect()ing an iterator and throwing away the result. Consider using an explicit for loop to exhaust the iterator
-  --> $DIR/for_loop.rs:228:5
-   |
-LL |     vec.iter().cloned().map(|x| out.push(x)).collect::<Vec<_>>();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: `-D clippy::unused-collect` implied by `-D warnings`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:372:14
-   |
-LL |     for i in 0..src.len() {
-   |              ^^^^^^^^^^^^ help: try replacing the loop by: `dst[..src.len()].clone_from_slice(&src[..])`
-   |
-   = note: `-D clippy::manual-memcpy` implied by `-D warnings`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:377:14
-   |
-LL |     for i in 0..src.len() {
-   |              ^^^^^^^^^^^^ help: try replacing the loop by: `dst[10..(src.len() + 10)].clone_from_slice(&src[..])`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:382:14
-   |
-LL |     for i in 0..src.len() {
-   |              ^^^^^^^^^^^^ help: try replacing the loop by: `dst[..src.len()].clone_from_slice(&src[10..])`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:387:14
-   |
-LL |     for i in 11..src.len() {
-   |              ^^^^^^^^^^^^^ help: try replacing the loop by: `dst[11..src.len()].clone_from_slice(&src[(11 - 10)..(src.len() - 10)])`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:392:14
-   |
-LL |     for i in 0..dst.len() {
-   |              ^^^^^^^^^^^^ help: try replacing the loop by: `dst.clone_from_slice(&src[..dst.len()])`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:405:14
-   |
-LL |     for i in 10..256 {
-   |              ^^^^^^^
-help: try replacing the loop by
-   |
-LL |     for i in dst[10..256].clone_from_slice(&src[(10 - 5)..(256 - 5)])
-LL |     dst2[(10 + 500)..(256 + 500)].clone_from_slice(&src[10..256]) {
+LL | use std::collections::linked_list::LinkedList;
    |
 
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:417:14
+error[E0412]: cannot find type `VecDeque` in this scope
+  --> $DIR/for_loop.rs:191:13
    |
-LL |     for i in 10..LOOP_OFFSET {
-   |              ^^^^^^^^^^^^^^^ help: try replacing the loop by: `dst[(10 + LOOP_OFFSET)..(LOOP_OFFSET + LOOP_OFFSET)].clone_from_slice(&src[(10 - some_var)..(LOOP_OFFSET - some_var)])`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:430:14
+LL |     let vd: VecDeque<()> = VecDeque::new();
+   |             ^^^^^^^^ not found in this scope
+help: possible candidates are found in other modules, you can import them into scope
    |
-LL |     for i in 0..src_vec.len() {
-   |              ^^^^^^^^^^^^^^^^ help: try replacing the loop by: `dst_vec[..src_vec.len()].clone_from_slice(&src_vec[..])`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:459:14
+LL | use std::collections::VecDeque;
    |
-LL |     for i in from..from + src.len() {
-   |              ^^^^^^^^^^^^^^^^^^^^^^ help: try replacing the loop by: `dst[from..from + src.len()].clone_from_slice(&src[0..(from + src.len() - from)])`
-
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:463:14
+LL | use std::collections::vec_deque::VecDeque;
    |
-LL |     for i in from..from + 3 {
-   |              ^^^^^^^^^^^^^^ help: try replacing the loop by: `dst[from..from + 3].clone_from_slice(&src[0..(from + 3 - from)])`
 
-error: it looks like you're manually copying between slices
-  --> $DIR/for_loop.rs:470:14
+error[E0412]: cannot find type `BinaryHeap` in this scope
+  --> $DIR/for_loop.rs:194:13
    |
-LL |     for i in 0..src.len() {
-   |              ^^^^^^^^^^^^ help: try replacing the loop by: `dst[..src.len()].clone_from_slice(&src[..])`
+LL |     let bh: BinaryHeap<()> = BinaryHeap::new();
+   |             ^^^^^^^^^^ not found in this scope
+help: possible candidates are found in other modules, you can import them into scope
+   |
+LL | use std::collections::BinaryHeap;
+   |
+LL | use std::collections::binary_heap::BinaryHeap;
+   |
 
-error: aborting due to 46 previous errors
+error[E0412]: cannot find type `HashMap` in this scope
+  --> $DIR/for_loop.rs:197:13
+   |
+LL |     let hm: HashMap<(), ()> = HashMap::new();
+   |             ^^^^^^^ not found in this scope
+help: possible candidates are found in other modules, you can import them into scope
+   |
+LL | use std::collections::HashMap;
+   |
+LL | use std::collections::hash_map::HashMap;
+   |
 
+error[E0412]: cannot find type `BTreeMap` in this scope
+  --> $DIR/for_loop.rs:200:13
+   |
+LL |     let bt: BTreeMap<(), ()> = BTreeMap::new();
+   |             ^^^^^^^^ not found in this scope
+help: possible candidates are found in other modules, you can import them into scope
+   |
+LL | use std::collections::BTreeMap;
+   |
+LL | use std::collections::btree_map::BTreeMap;
+   |
+
+error[E0412]: cannot find type `HashSet` in this scope
+  --> $DIR/for_loop.rs:203:13
+   |
+LL |     let hs: HashSet<()> = HashSet::new();
+   |             ^^^^^^^ not found in this scope
+help: possible candidates are found in other modules, you can import them into scope
+   |
+LL | use std::collections::HashSet;
+   |
+LL | use std::collections::hash_set::HashSet;
+   |
+
+error[E0412]: cannot find type `BTreeSet` in this scope
+  --> $DIR/for_loop.rs:206:13
+   |
+LL |     let bs: BTreeSet<()> = BTreeSet::new();
+   |             ^^^^^^^^ not found in this scope
+help: possible candidates are found in other modules, you can import them into scope
+   |
+LL | use std::collections::BTreeSet;
+   |
+LL | use std::collections::btree_set::BTreeSet;
+   |
+
+error: aborting due to 14 previous errors
+
+Some errors occurred: E0412, E0433.
+For more information about an error, try `rustc --explain E0412`.

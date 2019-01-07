@@ -1,16 +1,15 @@
-error: replacing an `Option` with `None`
-  --> $DIR/mem_replace.rs:16:13
+error[E0433]: failed to resolve: use of undeclared type or module `mem`
+  --> $DIR/mem_replace.rs:5:13
    |
 LL |     let _ = mem::replace(&mut an_option, None);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider `Option::take()` instead: `an_option.take()`
-   |
-   = note: `-D clippy::mem-replace-option-with-none` implied by `-D warnings`
+   |             ^^^ use of undeclared type or module `mem`
 
-error: replacing an `Option` with `None`
-  --> $DIR/mem_replace.rs:18:13
+error[E0433]: failed to resolve: use of undeclared type or module `mem`
+  --> $DIR/mem_replace.rs:7:13
    |
 LL |     let _ = mem::replace(an_option, None);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider `Option::take()` instead: `an_option.take()`
+   |             ^^^ use of undeclared type or module `mem`
 
 error: aborting due to 2 previous errors
 
+For more information about this error, try `rustc --explain E0433`.
