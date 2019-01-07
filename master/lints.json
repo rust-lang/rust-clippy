@@ -2320,14 +2320,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `iterator.map(|x| x.clone())` and suggests\n`iterator.cloned()` instead", 
-      "Why is this bad": "Readability, this can be written more concisely", 
-      "Example": "```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```", 
-      "Known problems": "Sometimes `.cloned()` requires stricter trait\nbound than `.map(|e| e.clone())` (which works because of the coercion).\nSee [#498](https://github.com/rust-lang-nursery/rust-clippy/issues/498)."
+      "What it does": "Checks for casts of `&T` to `&mut T` anywhere in the code.", 
+      "Why is this bad": "It\u2019s basically guaranteed to be undefined behaviour.\n`UnsafeCell` is the only way to obtain aliasable data that is considered\nmutable.", 
+      "Example": "```rust\nfn x(r: &i32) {\n    unsafe {\n        *(r as *const _ as *mut _) += 1;\n    }\n}\n```\n\nInstead consider using interior mutability types.\n\n```rust\nfn x(r: &UnsafeCell<i32>) {\n    unsafe {\n        *r.get() += 1;\n    }\n}\n```", 
+      "Known problems": "None."
     }, 
-    "group": "style", 
-    "id": "map_clone", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "cast_ref_to_mut", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2359,6 +2359,17 @@
     "group": "correctness", 
     "id": "out_of_bounds_indexing", 
     "level": "Deny"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for usage of `iterator.map(|x| x.clone())` and suggests\n`iterator.cloned()` instead", 
+      "Why is this bad": "Readability, this can be written more concisely", 
+      "Example": "```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```", 
+      "Known problems": "Sometimes `.cloned()` requires stricter trait\nbound than `.map(|e| e.clone())` (which works because of the coercion).\nSee [#498](https://github.com/rust-lang-nursery/rust-clippy/issues/498)."
+    }, 
+    "group": "style", 
+    "id": "map_clone", 
+    "level": "Warn"
   }, 
   {
     "docs": {
