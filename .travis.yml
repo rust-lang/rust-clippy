@@ -1,6 +1,6 @@
 language: rust
 
-rust: nightly
+rust: beta
 
 os:
   - linux
