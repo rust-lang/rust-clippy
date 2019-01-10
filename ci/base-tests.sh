@@ -33,14 +33,14 @@ cd ..
 
 # Perform various checks for lint registration
 ./util/dev update_lints --check
-cargo +nightly fmt --all -- --check
+cargo +beta fmt --all -- --check
 
 # make sure tests are formatted
 
 # some lints are sensitive to formatting, exclude some files
 tests_need_reformatting="false"
 # switch to nightly
-rustup default nightly
+rustup default beta
 # avoid loop spam and allow cmds with exit status != 0
 set +ex
 
