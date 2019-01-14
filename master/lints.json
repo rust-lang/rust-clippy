@@ -2056,7 +2056,7 @@
     "docs": {
       "What it does": "Checks for getting the length of something via `.len()`\njust to compare to zero, and suggests using `.is_empty()` where applicable.", 
       "Why is this bad": "Some structures can answer `.is_empty()` much faster\nthan calculating their length. Notably, for slices, getting the length\nrequires a subtraction whereas `.is_empty()` is just a comparison. So it is\ngood to get into the habit of using `.is_empty()`, and having it is cheap.\nBesides, it makes the intent clearer than a manual comparison.", 
-      "Example": "```rust\nif x.len() == 0 {\n    ..\n}\nif y.len() != 0 {\n    ..\n}\n```\ninstead use\n```rust\nif x.len().is_empty() {\n    ..\n}\nif !y.len().is_empty() {\n    ..\n}\n```", 
+      "Example": "```rust\nif x.len() == 0 {\n    ..\n}\nif y.len() != 0 {\n    ..\n}\n```\ninstead use\n```rust\nif x.is_empty() {\n    ..\n}\nif !y.is_empty() {\n    ..\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
