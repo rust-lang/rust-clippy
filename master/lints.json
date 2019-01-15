@@ -2365,7 +2365,7 @@
       "What it does": "Checks for usage of `iterator.map(|x| x.clone())` and suggests\n`iterator.cloned()` instead", 
       "Why is this bad": "Readability, this can be written more concisely", 
       "Example": "```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```", 
-      "Known problems": "Sometimes `.cloned()` requires stricter trait\nbound than `.map(|e| e.clone())` (which works because of the coercion).\nSee [#498](https://github.com/rust-lang-nursery/rust-clippy/issues/498)."
+      "Known problems": "None"
     }, 
     "group": "style", 
     "id": "map_clone", 
