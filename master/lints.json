@@ -2650,6 +2650,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Check to call assert!(true/false)", 
+      "Why is this bad": "Will be optimized out by the compiler or should probably be replaced by a\npanic!() or unreachable!()", 
+      "Example": "```rust\nassert!(false)\n// or\nassert!(true)\n// or\nconst B: bool = false;\nassert!(B)\n```", 
+      "Known problems": "None"
+    }, 
+    "group": "style", 
+    "id": "assertions_on_constants", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `.clone()` on a `Copy` type.", 
       "Why is this bad": "The only reason `Copy` types implement `Clone` is for\ngenerics, not for using the `clone` method on a concrete type.", 
       "Example": "```rust\n42u64.clone()\n```", 
