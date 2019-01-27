@@ -2231,7 +2231,7 @@
   {
     "docs": {
       "What it does": "Checks slow zero-filled vector initialization", 
-      "Why is this bad": "This structures are non-idiomatic and less efficient than simply using\n`vec![len; 0]`.", 
+      "Why is this bad": "These structures are non-idiomatic and less efficient than simply using\n`vec![0; len]`.", 
       "Example": "```rust\nlet mut vec1 = Vec::with_capacity(len);\nvec1.resize(len, 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.extend(repeat(0).take(len))\n```", 
       "Known problems": "None."
     }, 
