@@ -133,14 +133,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for bindings that shadow other bindings already in\nscope, while reusing the original value.", 
-      "Why is this bad": "Not too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.", 
-      "Example": "```rust\nlet x = x + 1;\n```\nuse different variable name:\n```rust\nlet y = x + 1;\n```", 
-      "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
+      "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g. `x..(y+1)`.", 
+      "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.", 
+      "Example": "```rust\nfor x..(y+1) { .. }\n```", 
+      "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e: `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`."
     }, 
-    "group": "restriction", 
-    "id": "shadow_reuse", 
-    "level": "Allow"
+    "group": "complexity", 
+    "id": "range_plus_one", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2197,14 +2197,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g. `x..(y+1)`.", 
-      "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.", 
-      "Example": "```rust\nfor x..(y+1) { .. }\n```", 
-      "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e: `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`."
+      "What it does": "Checks for bindings that shadow other bindings already in\nscope, while reusing the original value.", 
+      "Why is this bad": "Not too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.", 
+      "Example": "```rust\nlet x = x + 1;\n```\nuse different variable name:\n```rust\nlet y = x + 1;\n```", 
+      "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns."
     }, 
-    "group": "complexity", 
-    "id": "range_plus_one", 
-    "level": "Warn"
+    "group": "restriction", 
+    "id": "shadow_reuse", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2579,6 +2579,17 @@
     "group": "style", 
     "id": "module_inception", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Suggests the use of `const` in functions and methods where possible.", 
+      "Why is this bad": "Not having the function const prevents callers of the function from being const as well.", 
+      "Example": "```rust\nfn new() -> Self {\n    Self { random_number: 42 }\n}\n```\n\nCould be a const fn:\n\n```rust\nconst fn new() -> Self {\n    Self { random_number: 42 }\n}\n```", 
+      "Known problems": "Const functions are currently still being worked on, with some features only being available\non nightly. This lint does not consider all edge cases currently and the suggestions may be\nincorrect if you are using this lint on stable.\nAlso, the lint only runs one pass over the code. Consider these two non-const functions:\n```rust\nfn a() -> i32 {\n    0\n}\nfn b() -> i32 {\n    a()\n}\n```\nWhen running Clippy, the lint will only suggest to make `a` const, because `b` at this time\ncan't be const as it calls a non-const function. Making `a` const and running Clippy again,\nwill suggest to make `b` const, too."
+    }, 
+    "group": "nursery", 
+    "id": "missing_const_for_fn", 
+    "level": "Allow"
   }, 
   {
     "docs": {
