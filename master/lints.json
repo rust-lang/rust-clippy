@@ -384,6 +384,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks whether variables used within while loop condition\ncan be (and are) mutated in the body.", 
+      "Why is this bad": "If the condition is unchanged, entering the body of the loop\nwill lead to an infinite loop.", 
+      "Example": "```rust\nlet i = 0;\nwhile i > 10 {\n    println!(\"let me loop forever!\");\n}\n```", 
+      "Known problems": "If the `while`-loop is in a closure, the check for mutation of the\ncondition variables in the body can cause false negatives. For example when only `Upvar` `a` is\nin the condition and only `Upvar` `b` gets mutated in the body, the lint will not trigger."
+    }, 
+    "group": "correctness", 
+    "id": "while_immutable_condition", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `.chars().next()` on a `str` to check\nif it starts with a given char.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.starts_with(_)`.", 
       "Example": "```rust\nname.chars().next() == Some('_')\n```", 
@@ -1978,14 +1989,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks whether variables used within while loop condition\ncan be (and are) mutated in the body.", 
-      "Why is this bad": "If the condition is unchanged, entering the body of the loop\nwill lead to an infinite loop.", 
-      "Example": "```rust\nlet i = 0;\nwhile i > 10 {\n    println!(\"let me loop forever!\");\n}\n```", 
-      "Known problems": "If the `while`-loop is in a closure, the check for mutation of the\ncondition variables in the body can cause false negatives. For example when only `Upvar` `a` is\nin the condition and only `Upvar` `b` gets mutated in the body, the lint will not trigger."
+      "What it does": "Checks for wildcard enum matches using `_`.", 
+      "Why is this bad": "New enum variants added by library updates can be missed.", 
+      "Example": "```rust\nmatch x {\n    A => {},\n    _ => {},\n}\n```", 
+      "Known problems": "Nested wildcards a la `Foo(_)` are currently not detected."
     }, 
-    "group": "correctness", 
-    "id": "while_immutable_condition", 
-    "level": "Deny"
+    "group": "restriction", 
+    "id": "wildcard_enum_match_arm", 
+    "level": "Allow"
   }, 
   {
     "docs": {
