@@ -3254,6 +3254,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of dbg!() macro.", 
+      "Why is this bad": "`dbg!` macro is intended as a debugging tool. It\nshould not be in version control.", 
+      "Example": "```rust,ignore\n// Bad\ndbg!(true)\n\n// Good\ntrue\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "restriction", 
+    "id": "dbg_macro", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for match which is used to add a reference to an\n`Option` value.", 
       "Why is this bad": "Using `as_ref()` or `as_mut()` instead is shorter.", 
       "Example": "```rust\nlet x: Option<()> = None;\nlet r: Option<&()> = match x {\n    None => None,\n    Some(ref v) => Some(v),\n};\n```", 
