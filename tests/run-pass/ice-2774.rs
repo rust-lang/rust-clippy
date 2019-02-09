@@ -1,3 +1,4 @@
+#![allow(clippy::missing_copy_implementations)]
 use std::collections::HashSet;
 
 // See https://github.com/rust-lang/rust-clippy/issues/2774

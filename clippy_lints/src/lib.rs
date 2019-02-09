@@ -150,6 +150,7 @@ pub mod misc_early;
 pub mod missing_const_for_fn;
 pub mod missing_doc;
 pub mod missing_inline;
+pub mod missing_traits;
 pub mod multiple_crate_versions;
 pub mod mut_mut;
 pub mod mut_reference;
@@ -493,6 +494,8 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box types::RefToMut);
     reg.register_late_lint_pass(box assertions_on_constants::AssertionsOnConstants);
     reg.register_late_lint_pass(box missing_const_for_fn::MissingConstForFn);
+    reg.register_late_lint_pass(box missing_traits::MissingCopyImplementations::default());
+    reg.register_late_lint_pass(box missing_traits::MissingDebugImplementations::default());
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -706,6 +709,8 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         misc_early::REDUNDANT_CLOSURE_CALL,
         misc_early::UNNEEDED_FIELD_PATTERN,
         misc_early::ZERO_PREFIXED_LITERAL,
+        missing_traits::MISSING_COPY_IMPLEMENTATIONS,
+        missing_traits::MISSING_DEBUG_IMPLEMENTATIONS,
         mut_reference::UNNECESSARY_MUT_PASSED,
         mutex_atomic::MUTEX_ATOMIC,
         needless_bool::BOOL_COMPARISON,

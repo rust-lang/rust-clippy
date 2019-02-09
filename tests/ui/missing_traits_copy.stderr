@@ -1,0 +1,16 @@
+error: type does not implement `Copy`; consider adding #[derive(Copy)] or a manual implementation
+  --> $DIR/missing_traits_copy.rs:6:1
+   |
+LL | pub enum A {}
+   | ^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::missing-copy-implementations` implied by `-D warnings`
+
+error: type does not implement `Copy`; consider adding #[derive(Copy)] or a manual implementation
+  --> $DIR/missing_traits_copy.rs:18:1
+   |
+LL | pub struct Foo;
+   | ^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+

@@ -1,0 +1,16 @@
+error: type does not implement `Debug`; consider adding #[derive(Debug)] or a manual implementation
+  --> $DIR/missing_traits_debug.rs:6:1
+   |
+LL | pub enum A {}
+   | ^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::missing-debug-implementations` implied by `-D warnings`
+
+error: type does not implement `Debug`; consider adding #[derive(Debug)] or a manual implementation
+  --> $DIR/missing_traits_debug.rs:19:1
+   |
+LL | pub struct Foo;
+   | ^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
