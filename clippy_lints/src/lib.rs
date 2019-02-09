@@ -41,34 +41,34 @@ use toml;
 // as said in the README.md of this repository. If this changes, please update README.md.
 #[macro_export]
 macro_rules! declare_clippy_lint {
-    { pub $name:tt, style, $description:tt } => {
+    { pub $name:tt, style, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, correctness, $description:tt } => {
+    { pub $name:tt, correctness, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Deny, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, complexity, $description:tt } => {
+    { pub $name:tt, complexity, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, perf, $description:tt } => {
+    { pub $name:tt, perf, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, pedantic, $description:tt } => {
+    { pub $name:tt, pedantic, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, restriction, $description:tt } => {
+    { pub $name:tt, restriction, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, cargo, $description:tt } => {
+    { pub $name:tt, cargo, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, nursery, $description:tt } => {
+    { pub $name:tt, nursery, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, internal, $description:tt } => {
+    { pub $name:tt, internal, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
     };
-    { pub $name:tt, internal_warn, $description:tt } => {
+    { pub $name:tt, internal_warn, $description:expr } => {
         declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
     };
 }
