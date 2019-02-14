@@ -94,7 +94,7 @@ impl CyclomaticComplexity {
                 short_circuits,
                 ret_adjust,
                 span,
-                body.id().node_id,
+                body.value.id,
             );
         } else {
             let mut rust_cc = cc + divergence - match_arms - short_circuits;
