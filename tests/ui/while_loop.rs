@@ -226,4 +226,14 @@ fn refutable() {
             let _ = elem.or_else(|| *iter.next()?);
         }
     }
+
+    // Issue 3780
+    {
+        let v = vec![1, 2, 3];
+        let mut it = v.windows(2);
+        while let Some([x, y]) = it.next() {
+            println!("x: {}", x);
+            println!("y: {}", y);
+        }
+    }
 }

@@ -958,7 +958,11 @@ pub fn is_refutable(cx: &LateContext<'_, '_>, pat: &Pat) -> bool {
             }
         },
         PatKind::Slice(ref head, ref middle, ref tail) => {
-            are_refutable(cx, head.iter().chain(middle).chain(tail.iter()).map(|pat| &**pat))
+            if middle.is_none() {
+                true
+            } else {
+                are_refutable(cx, head.iter().chain(middle).chain(tail.iter()).map(|pat| &**pat))
+            }
         },
     }
 }
