@@ -133,6 +133,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for generics with `std::ops::Drop` as bounds.", 
+      "Why is this bad": "`Drop` bounds do not really accomplish anything.\nA type may have compiler-generated drop glue without implementing the\n`Drop` trait itself. The `Drop` trait also only has one method,\n`Drop::drop`, and that function is by fiat not callable in user code.\nSo there is really no use case for using `Drop` in trait bounds.\nThe most likely use case of a drop bound is to distinguish between types\nthat have destructors and types that don't. Combined with specialization,\na naive coder would write an implementation that assumed a type could be\ntrivially dropped, then write a specialization for `T: Drop` that actually\ncalls the destructor. Except that doing so is not correct; String, for\nexample, doesn't actually implement Drop, but because String contains a\nVec, assuming it can be trivially dropped will leak memory.", 
+      "Example": "```rust\nfn foo<T: Drop>() {}\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "drop_bounds", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g. `x..(y+1)`.", 
       "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.", 
       "Example": "```rust\nfor x..(y+1) { .. }\n```", 
@@ -660,13 +671,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `allow`/`warn`/`deny`/`forbid` attributes with scoped clippy\nlints and if those lints exist in clippy. If there is a uppercase letter in the lint name\n(not the tool name) and a lowercase version of this lint exists, it will suggest to lowercase\nthe lint name.", 
-      "Why is this bad": "A lint attribute with a mistyped lint name won't have an effect.", 
-      "Example": "Bad:\n```rust\n#![warn(if_not_els)]\n#![deny(clippy::All)]\n```\n\nGood:\n```rust\n#![warn(if_not_else)]\n#![deny(clippy::all)]\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for expressions that could be replaced by the question mark operator", 
+      "Why is this bad": "Question mark usage is more idiomatic", 
+      "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```rust\noption?;\n```", 
+      "Known problems": "None"
     }, 
     "group": "style", 
-    "id": "unknown_clippy_lints", 
+    "id": "question_mark", 
     "level": "Warn"
   }, 
   {
@@ -769,13 +780,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for expressions that could be replaced by the question mark operator", 
-      "Why is this bad": "Question mark usage is more idiomatic", 
-      "Example": "```rust\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```rust\noption?;\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for `allow`/`warn`/`deny`/`forbid` attributes with scoped clippy\nlints and if those lints exist in clippy. If there is a uppercase letter in the lint name\n(not the tool name) and a lowercase version of this lint exists, it will suggest to lowercase\nthe lint name.", 
+      "Why is this bad": "A lint attribute with a mistyped lint name won't have an effect.", 
+      "Example": "Bad:\n```rust\n#![warn(if_not_els)]\n#![deny(clippy::All)]\n```\n\nGood:\n```rust\n#![warn(if_not_else)]\n#![deny(clippy::all)]\n```", 
+      "Known problems": "None."
     }, 
     "group": "style", 
-    "id": "question_mark", 
+    "id": "unknown_clippy_lints", 
     "level": "Warn"
   }, 
   {
