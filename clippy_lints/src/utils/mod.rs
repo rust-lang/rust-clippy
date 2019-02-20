@@ -958,11 +958,8 @@ pub fn is_refutable(cx: &LateContext<'_, '_>, pat: &Pat) -> bool {
             }
         },
         PatKind::Slice(ref head, ref middle, ref tail) => {
-            if middle.is_none() {
-                true
-            } else {
-                are_refutable(cx, head.iter().chain(middle).chain(tail.iter()).map(|pat| &**pat))
-            }
+            // When matching slices, [..] is the only irrefutable slice pattern.
+            !head.is_empty() || middle.is_none() || !tail.is_empty()
         },
     }
 }

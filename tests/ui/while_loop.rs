@@ -1,5 +1,6 @@
 #![warn(clippy::while_let_loop, clippy::empty_loop, clippy::while_let_on_iterator)]
 #![allow(dead_code, clippy::never_loop, unused, clippy::cyclomatic_complexity)]
+#![feature(slice_patterns)]
 
 fn main() {
     let y = Some(true);
@@ -235,5 +236,18 @@ fn refutable() {
             println!("x: {}", x);
             println!("y: {}", y);
         }
+
+        let mut it = v.windows(2);
+        while let Some([x, ..]) = it.next() {
+            println!("x: {}", x);
+        }
+
+        let mut it = v.windows(2);
+        while let Some([.., y]) = it.next() {
+            println!("y: {}", y);
+        }
+
+        let mut it = v.windows(2);
+        while let Some([..]) = it.next() {}
     }
 }
