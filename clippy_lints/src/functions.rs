@@ -197,6 +197,10 @@ impl<'a, 'tcx> Functions {
             Some(i) => i,
             None => code_snippet.len(),
         };
+        if start_brace_idx > end_brace_idx {
+            // malformed span? #3799
+            return;
+        }
         let function_lines = code_snippet[start_brace_idx..end_brace_idx].lines();
 
         for mut line in function_lines {
