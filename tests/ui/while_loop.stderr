@@ -117,5 +117,11 @@ error: this loop could be written as a `for` loop
 LL |         while let Some([..]) = it.next() {}
    |                                ^^^^^^^^^ help: try: `for [..] in it { .. }`
 
-error: aborting due to 13 previous errors
+error: this loop could be written as a `for` loop
+  --> $DIR/while_loop.rs:258:31
+   |
+LL |         while let Some([x]) = it.next() {}
+   |                               ^^^^^^^^^ help: try: `for [x] in it { .. }`
+
+error: aborting due to 14 previous errors
 
