@@ -102,7 +102,7 @@
     "docs": {
       "What it does": "Checks for matches with a two arms where an `if let else` will\nusually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
-      "Example": "Using `match`:\n```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(other_ref),\n}\n```\nUsing `if let` with `else`:\n```ignore\nif let Some(ref foo) = x {\n    bar(foo);\n} else {\n    bar(other_ref);\n}\n```", 
+      "Example": "Using `match`:\n```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(other_ref),\n}\n```\nUsing `if let` with `else`:\n```rust\nif let Some(ref foo) = x {\n    bar(foo);\n} else {\n    bar(other_ref);\n}\n```", 
       "Known problems": "Personal style preferences may differ."
     }, 
     "group": "pedantic", 
@@ -113,7 +113,7 @@
     "docs": {
       "What it does": "Checks for incompatible bit masks in comparisons.\nThe formula for detecting if an expression of the type `_ <bit_op> m\n<cmp_op> c` (where `<bit_op>` is one of {`&`, `|`} and `<cmp_op>` is one of\n{`!=`, `>=`, `>`, `!=`, `>=`, `>`}) can be determined from the following\ntable:\n|Comparison  |Bit Op|Example     |is always|Formula               |\n|------------|------|------------|---------|----------------------|\n|`==` or `!=`| `&`  |`x & 2 == 3`|`false`  |`c & m != c`          |\n|`<`  or `>=`| `&`  |`x & 2 < 3` |`true`   |`m < c`               |\n|`>`  or `<=`| `&`  |`x & 1 > 1` |`false`  |`m <= c`              |\n|`==` or `!=`| `|`  |`x | 1 == 0`|`false`  |`c | m != c`          |\n|`<`  or `>=`| `|`  |`x | 1 < 1` |`false`  |`m >= c`              |\n|`<=` or `>` | `|`  |`x | 1 > 0` |`true`   |`m > c`               |", 
       "Why is this bad": "If the bits that the comparison cares about are always\nset to zero or one by the bit mask, the comparison is constant `true` or\n`false` (depending on mask, compared value, and operators).\nSo the code is actively misleading, and the only reason someone would write\nthis intentionally is to win an underhanded Rust contest or create a\ntest-case for this lint.", 
-      "Example": "```ignore\nif (x & 1 == 2) { \u2026 }\n```", 
+      "Example": "```rust\n# let x = 1;\nif (x & 1 == 2) { }\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -124,7 +124,7 @@
     "docs": {
       "What it does": "Checks for equal operands to comparison, logical and\nbitwise, difference and division binary operators (`==`, `>`, etc., `&&`,\n`||`, `&`, `|`, `^`, `-` and `/`).", 
       "Why is this bad": "This is usually just a typo or a copy and paste error.", 
-      "Example": "```ignore\nx + 1 == x + 1\n```", 
+      "Example": "```rust\n# let x = 1;\nif x + 1 == x + 1 {}\n```", 
       "Known problems": "False negatives: We had some false positives regarding\ncalls (notably [racer](https://github.com/phildawes/racer) had one instance\nof `x.pop() && x.pop()`), so we removed matching any function or method\ncalls. We may introduce a whitelist of known pure functions in the future."
     }, 
     "group": "correctness", 
@@ -157,7 +157,7 @@
     "docs": {
       "What it does": "Checks for matches where match expression is a `bool`. It\nsuggests to replace the expression with an `if...else` block.", 
       "Why is this bad": "It makes the code less readable.", 
-      "Example": "```ignore\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```\nUse if/else instead:\n```ignore\nlet condition: bool = true;\nif condition {\n    foo();\n} else {\n    bar();\n}\n```", 
+      "Example": "```rust\n# fn foo() {}\n# fn bar() {}\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```\nUse if/else instead:\n```rust\n# fn foo() {}\n# fn bar() {}\nlet condition: bool = true;\nif condition {\n    foo();\n} else {\n    bar();\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -284,7 +284,7 @@
     "docs": {
       "What it does": "This lint warns when you use `write!()` with a format\nstring that\nends in a newline.", 
       "Why is this bad": "You should use `writeln!()` instead, which appends the\nnewline.", 
-      "Example": "```ignore\nwrite!(buf, \"Hello {}!\\n\", name);\n```", 
+      "Example": "```rust\n# use std::fmt::Write;\n# let mut buf = String::new();\n# let name = \"World\";\nwrite!(buf, \"Hello {}!\\n\", name);\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -383,7 +383,7 @@
     "docs": {
       "What it does": "Catch casts from `0` to some pointer type", 
       "Why is this bad": "This generally means `null` and is better expressed as\n{`std`, `core`}`::ptr::`{`null`, `null_mut`}.", 
-      "Example": "```ignore\n0 as *const u32\n```", 
+      "Example": "```rust\nlet a = 0 as *const u32;\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -516,7 +516,7 @@
     "docs": {
       "What it does": "Checks for `foo = bar; bar = foo` sequences.", 
       "Why is this bad": "This looks like a failed attempt to swap.", 
-      "Example": "```rust,ignore\na = b;\nb = a;\n```", 
+      "Example": "```rust\n# let mut a = 1;\n# let mut b = 2;\na = b;\nb = a;\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -863,7 +863,7 @@
     "docs": {
       "What it does": "Checks for matches where all arms match a reference,\nsuggesting to remove the reference and deref the matched expression\ninstead. It also checks for `if let &foo = bar` blocks.", 
       "Why is this bad": "It just makes the code less readable. That reference\ndestructuring adds nothing to the code.", 
-      "Example": "```ignore\nmatch x {\n    &A(ref y) => foo(y),\n    &B => bar(),\n    _ => frob(&x),\n}\n```", 
+      "Example": "```rust,ignore\nmatch x {\n    &A(ref y) => foo(y),\n    &B => bar(),\n    _ => frob(&x),\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -1141,7 +1141,7 @@
     "docs": {
       "What it does": "Checks for comparisons to unit.", 
       "Why is this bad": "Unit is always equal to itself, and thus is just a\nclumsily written constant. Mostly this happens when someone accidentally\nadds semicolons at the end of the operands.", 
-      "Example": "```ignore\nif {\n    foo();\n} == {\n    bar();\n} {\n    baz();\n}\n```\nis equal to\n```ignore\n{\n    foo();\n    bar();\n    baz();\n}\n```", 
+      "Example": "```rust\n# fn foo() {};\n# fn bar() {};\n# fn baz() {};\nif {\n    foo();\n} == {\n    bar();\n} {\n    baz();\n}\n```\nis equal to\n```rust\n# fn foo() {};\n# fn bar() {};\n# fn baz() {};\n{\n    foo();\n    bar();\n    baz();\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -1329,7 +1329,7 @@
     "docs": {
       "What it does": "This lint warns when you use `writeln!(buf, \"\")` to\nprint a newline.", 
       "Why is this bad": "You should use `writeln!(buf)`, which is simpler.", 
-      "Example": "```ignore\nwriteln!(buf, \"\");\n```", 
+      "Example": "```rust\n# use std::fmt::Write;\n# let mut buf = String::new();\nwriteln!(buf, \"\");\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -1707,7 +1707,7 @@
     "docs": {
       "What it does": "Checks for matches with a single arm where an `if let`\nwill usually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
-      "Example": "```ignore\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n```", 
+      "Example": "```rust\n# fn bar(stool: &str) {}\n# let x = Some(\"abc\");\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -1762,7 +1762,7 @@
     "docs": {
       "What it does": "This lint warns when you use `print!()` with a format\nstring that\nends in a newline.", 
       "Why is this bad": "You should use `println!()` instead, which appends the\nnewline.", 
-      "Example": "```ignore\nprint!(\"Hello {}!\\n\", name);\n```\nuse println!() instead\n```ignore\nprintln!(\"Hello {}!\", name);\n```", 
+      "Example": "```rust\n# let name = \"World\";\nprint!(\"Hello {}!\\n\", name);\n```\nuse println!() instead\n```rust\n# let name = \"World\";\nprintln!(\"Hello {}!\", name);\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -1967,7 +1967,7 @@
     "docs": {
       "What it does": "This lint warns about the use of literals as `write!`/`writeln!` args.", 
       "Why is this bad": "Using literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)", 
-      "Example": "```ignore\nwriteln!(buf, \"{}\", \"foo\");\n```", 
+      "Example": "```rust\n# use std::fmt::Write;\n# let mut buf = String::new();\nwriteln!(buf, \"{}\", \"foo\");\n```", 
       "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`."
     }, 
     "group": "style", 
@@ -1989,7 +1989,7 @@
     "docs": {
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.", 
       "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat is is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.", 
-      "Example": "```rust,ignore\nvec.len() <= 0\n100 > std::i32::MAX\n```", 
+      "Example": "```rust\nlet vec: Vec<isize> = vec![];\nif vec.len() <= 0 {}\nif 100 > std::i32::MAX {}\n```", 
       "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g., 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation\nattributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead."
     }, 
     "group": "correctness", 
@@ -2022,7 +2022,7 @@
     "docs": {
       "What it does": "Checks for casts of function pointers to something other than usize", 
       "Why is this bad": "Casting a function pointer to anything other than usize/isize is not portable across\narchitectures, because you end up losing bits if the target type is too small or end up with a\nbunch of extra bits that waste space and add more instructions to the final binary than\nstrictly necessary for the problem\nCasting to isize also doesn't make sense since there are no signed addresses.", 
-      "Example": "```ignore\n// Bad\nfn fun() -> i32 {}\nlet a = fun as i64;\n// Good\nfn fun2() -> i32 {}\nlet a = fun2 as usize;\n```"
+      "Example": "```rust\n// Bad\nfn fun() -> i32 { 1 }\nlet a = fun as i64;\n// Good\nfn fun2() -> i32 { 1 }\nlet a = fun2 as usize;\n```"
     }, 
     "group": "style", 
     "id": "fn_to_numeric_cast", 
@@ -2286,7 +2286,7 @@
       "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`", 
       "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`", 
       "Configuration": "This lint has the following configuration variables:\n\n* `verbose-bit-mask-threshold: u64`: The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros' (defaults to `1 `).", 
-      "Example": "```ignore\nx & 0x1111 == 0\n```", 
+      "Example": "```rust\n# let x = 1;\nif x & 0x1111 == 0 { }\n```", 
       "Known problems": "llvm generates better code for `x & 15 == 0` on x86"
     }, 
     "group": "style", 
@@ -2320,7 +2320,7 @@
     "docs": {
       "What it does": "Checks for casts of `&T` to `&mut T` anywhere in the code.", 
       "Why is this bad": "It\u2019s basically guaranteed to be undefined behaviour.\n`UnsafeCell` is the only way to obtain aliasable data that is considered\nmutable.", 
-      "Example": "```ignore\nfn x(r: &i32) {\n    unsafe {\n        *(r as *const _ as *mut _) += 1;\n    }\n}\n```\nInstead consider using interior mutability types.\n```ignore\nfn x(r: &UnsafeCell<i32>) {\n    unsafe {\n        *r.get() += 1;\n    }\n}\n```", 
+      "Example": "```rust,ignore\nfn x(r: &i32) {\n    unsafe {\n        *(r as *const _ as *mut _) += 1;\n    }\n}\n```\nInstead consider using interior mutability types.\n```rust\nuse std::cell::UnsafeCell;\nfn x(r: &UnsafeCell<i32>) {\n    unsafe {\n        *r.get() += 1;\n    }\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -2392,7 +2392,7 @@
     "docs": {
       "What it does": "Checks for getting the remainder of a division by one.", 
       "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
-      "Example": "```ignore\nx % 1\n```", 
+      "Example": "```rust\n# let x = 1;\nlet a = x % 1;\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -2546,7 +2546,7 @@
     "docs": {
       "What it does": "Checks for comparisons to NaN.", 
       "Why is this bad": "NaN does not compare meaningfully to anything \u2013 not\neven itself \u2013 so those comparisons are simply wrong.", 
-      "Example": "```ignore\nx == NAN\n```", 
+      "Example": "```rust\n# use core::f32::NAN;\n# let x = 1.0;\nif x == NAN { }\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -2658,7 +2658,7 @@
     "docs": {
       "What it does": "Checks for bit masks in comparisons which can be removed\nwithout changing the outcome. The basic structure can be seen in the\nfollowing table:\n|Comparison| Bit Op  |Example    |equals |\n|----------|---------|-----------|-------|\n|`>` / `<=`|`|` / `^`|`x | 2 > 3`|`x > 3`|\n|`<` / `>=`|`|` / `^`|`x ^ 1 < 4`|`x < 4`|", 
       "Why is this bad": "Not equally evil as [`bad_bit_mask`](#bad_bit_mask),\nbut still a bit misleading, because the bit mask is ineffective.", 
-      "Example": "```ignore\nif (x | 1 > 3) { \u2026 }\n```", 
+      "Example": "```rust\n# let x = 1;\nif (x | 1 > 3) {  }\n```", 
       "Known problems": "False negatives: This lint will only match instances\nwhere we have figured out the math (which is for a power-of-two compared\nvalue). This means things like `x | 1 >= 7` (which would be better written\nas `x >= 6`) will not be reported (but bit masks like this are fairly\nuncommon)."
     }, 
     "group": "correctness", 
@@ -2779,7 +2779,7 @@
     "docs": {
       "What it does": "Checks for (in-)equality comparisons on floating-point\nvalues (apart from zero), except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).", 
       "Why is this bad": "Floating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).", 
-      "Example": "```ignore\ny == 1.23f64\ny != x  // where both are floats\n```", 
+      "Example": "```rust\nlet x = 1.2331f64;\nlet y = 1.2332f64;\nif y == 1.23f64 { }\nif y != x {} // where both are floats\n```", 
       "Known problems": "None."
     }, 
     "group": "correctness", 
@@ -2812,7 +2812,7 @@
     "docs": {
       "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
       "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
-      "Example": "```ignore\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { ... }\npub foo(map: &mut HashMap<i32, i32>) { .. }\n```", 
+      "Example": "```rust\n# use std::collections::HashMap;\n# use std::hash::Hash;\n# trait Serialize {};\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { }\npub fn foo(map: &mut HashMap<i32, i32>) { }\n```", 
       "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates."
     }, 
     "group": "style", 
@@ -2972,7 +2972,7 @@
     "docs": {
       "What it does": "Checks for patterns in the form `name @ _`.", 
       "Why is this bad": "It's almost always more readable to just use direct\nbindings.", 
-      "Example": "```ignore\nmatch v {\n    Some(x) => (),\n    y @ _ => (), // easier written as `y`,\n}\n```", 
+      "Example": "```rust\n# let v = Some(\"abc\");\nmatch v {\n    Some(x) => (),\n    y @ _ => (), // easier written as `y`,\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
@@ -3159,7 +3159,7 @@
     "docs": {
       "What it does": "Checks for manual swapping.", 
       "Why is this bad": "The `std::mem::swap` function exposes the intent better\nwithout deinitializing or copying either variable.", 
-      "Example": "```rust,ignore\nlet t = b;\nb = a;\na = t;\n```\nUse std::mem::swap():\n```rust\nstd::mem::swap(&mut a, &mut b);\n```", 
+      "Example": "```rust\nlet t = b;\nb = a;\na = t;\n```\nUse std::mem::swap():\n```rust\nstd::mem::swap(&mut a, &mut b);\n```", 
       "Known problems": "None."
     }, 
     "group": "complexity", 
