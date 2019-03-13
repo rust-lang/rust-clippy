@@ -87,8 +87,6 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             early_lint_passes,
             late_lint_passes,
             lint_groups,
-            llvm_passes,
-            attributes,
             ..
         } = registry;
         let mut ls = sess.lint_store.borrow_mut();
@@ -104,9 +102,6 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
         }
         clippy_lints::register_pre_expansion_lints(sess, &mut ls, &conf);
         clippy_lints::register_renamed(&mut ls);
-
-        sess.plugin_llvm_passes.borrow_mut().extend(llvm_passes);
-        sess.plugin_attributes.borrow_mut().extend(attributes);
 
         // Continue execution
         true
