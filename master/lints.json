@@ -1249,6 +1249,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for functions collecting an iterator when collect\nis not needed.", 
+      "Why is this bad": "`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.", 
+      "Example": "```ignore\nlet len = iterator.collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```", 
+      "Known problems": "None"
+    }, 
+    "group": "perf", 
+    "id": "needless_collect", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `#[cfg_attr(rustfmt, rustfmt_skip)]` and suggests to replace it\nwith `#[rustfmt::skip]`.", 
       "Why is this bad": "Since tool_attributes ([rust-lang/rust#44690](https://github.com/rust-lang/rust/issues/44690))\nare stable now, they should be used instead of the old `cfg_attr(rustfmt)` attributes.", 
       "Example": "Bad:\n```rust\n#[cfg_attr(rustfmt, rustfmt_skip)]\nfn main() { }\n```\nGood:\n```rust\n#[rustfmt::skip]\nfn main() { }\n```", 
@@ -2981,14 +2992,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for functions collecting an iterator when collect\nis not needed.", 
-      "Why is this bad": "`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.", 
-      "Example": "```ignore\nlet len = iterator.collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for transmute calls which would receive a null pointer.", 
+      "Why is this bad": "Transmuting a null pointer is undefined behavior.", 
+      "Example": "```rust\nlet null_ref: &u64 = unsafe { std::mem::transmute(0 as *const u64) };\n```", 
+      "Known problems": "Not all cases can be detected at the moment of this writing.\nFor example, variables which hold a null pointer and are then fed to a `transmute`\ncall, aren't detectable yet."
     }, 
-    "group": "perf", 
-    "id": "needless_collect", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "transmuting_null", 
+    "level": "Deny"
   }, 
   {
     "docs": {
