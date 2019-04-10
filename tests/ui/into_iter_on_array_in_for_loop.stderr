@@ -1,0 +1,14 @@
+error: this .into_iter() call is equivalent to .iter() and will not move the array
+ --> $DIR/into_iter_on_ref.rs:5:24
+   |
+LL |     for _ in [1, 2, 3].into_iter() {} //~ ERROR equivalent to .iter()
+   |                        ^^^^^^^^^ help: call directly: `iter`
+   |
+   note: lint level defined here
+ --> $DIR/into_iter_on_ref.rs:2:9
+   |
+LL | #![deny(clippy::into_iter_on_array)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to previous error
+
