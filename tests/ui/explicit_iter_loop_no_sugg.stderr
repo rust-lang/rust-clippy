@@ -1,0 +1,14 @@
+error: it is more concise to loop over references to containers instead of using explicit iteration methods
+  --> $DIR/explicit_iter_loop_no_sugg.rs:6:15
+   |
+LL |     for _v in vec.iter() {} //~ ERROR change to `&vec`
+   |               ^^^^^^^^^^ help: to write this more concisely, try: `&vec`
+   |
+note: lint level defined here
+  --> $DIR/explicit_iter_loop_no_sugg.rs:2:9
+   |
+LL | #![deny(clippy::explicit_iter_loop)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to previous error
+
