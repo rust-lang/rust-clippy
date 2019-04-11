@@ -1,4 +1,4 @@
-#![allow(clippy::default_hash_types)]
+#![allow(default_hash_types)]
 
 use std::borrow::Cow;
 use std::cmp::Ordering;
@@ -10,9 +10,8 @@ use rustc::hir::intravisit::{walk_body, walk_expr, walk_ty, FnKind, NestedVisito
 use rustc::hir::*;
 use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
 use rustc::ty::layout::LayoutOf;
-use rustc::ty::print::Printer;
 use rustc::ty::{self, InferTy, Ty, TyCtxt, TypeckTables};
-use rustc::{declare_tool_lint, lint_array};
+use rustc::{declare_lint_pass, declare_tool_lint, impl_lint_pass};
 use rustc_errors::Applicability;
 use rustc_target::spec::abi::Abi;
 use rustc_typeck::hir_ty_to_ty;
@@ -24,12 +23,9 @@ use crate::consts::{constant, Constant};
 use crate::utils::paths;
 use crate::utils::{
     clip, comparisons, differing_macro_contexts, higher, in_constant, in_macro, int_bits, last_path_segment,
-    match_def_path, match_path, multispan_sugg, same_tys, sext, snippet, snippet_opt, snippet_with_applicability,
-    span_help_and_lint, span_lint, span_lint_and_sugg, span_lint_and_then, unsext, AbsolutePathPrinter,
+    match_path, multispan_sugg, same_tys, sext, snippet, snippet_opt, snippet_with_applicability, span_help_and_lint,
+    span_lint, span_lint_and_sugg, span_lint_and_then, unsext,
 };
-
-/// Handles all the linting of funky types
-pub struct TypePass;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for use of `Box<Vec<_>>` anywhere in the code.
@@ -166,17 +162,9 @@ declare_clippy_lint! {
     "a borrow of a boxed type"
 }
 
-impl LintPass for TypePass {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(BOX_VEC, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX)
-    }
+declare_lint_pass!(Types => [BOX_VEC, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX]);
 
-    fn name(&self) -> &'static str {
-        "Types"
-    }
-}
-
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypePass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Types {
     fn check_fn(&mut self, cx: &LateContext<'_, '_>, _: FnKind<'_>, decl: &FnDecl, _: &Body, _: Span, id: HirId) {
         // Skip trait implementations; see issue #605.
         if let Some(hir::Node::Item(item)) = cx.tcx.hir().find_by_hir_id(cx.tcx.hir().get_parent_item(id)) {
@@ -229,7 +217,7 @@ fn match_type_parameter(cx: &LateContext<'_, '_>, qpath: &QPath, path: &[&str]) 
         });
         if let TyKind::Path(ref qpath) = ty.node;
         if let Some(did) = cx.tables.qpath_def(qpath, ty.hir_id).opt_def_id();
-        if match_def_path(cx.tcx, did, path);
+        if cx.match_def_path(did, path);
         then {
             return true;
         }
@@ -263,7 +251,7 @@ fn check_ty(cx: &LateContext<'_, '_>, hir_ty: &hir::Ty, is_local: bool) {
                         );
                         return; // don't recurse into the type
                     }
-                } else if match_def_path(cx.tcx, def_id, &paths::VEC) {
+                } else if cx.match_def_path(def_id, &paths::VEC) {
                     if_chain! {
                         // Get the _ part of Vec<_>
                         if let Some(ref last) = last_path_segment(qpath).args;
@@ -298,7 +286,7 @@ fn check_ty(cx: &LateContext<'_, '_>, hir_ty: &hir::Ty, is_local: bool) {
                             }
                         }
                     }
-                } else if match_def_path(cx.tcx, def_id, &paths::OPTION) {
+                } else if cx.match_def_path(def_id, &paths::OPTION) {
                     if match_type_parameter(cx, qpath, &paths::OPTION) {
                         span_lint(
                             cx,
@@ -309,7 +297,7 @@ fn check_ty(cx: &LateContext<'_, '_>, hir_ty: &hir::Ty, is_local: bool) {
                         );
                         return; // don't recurse into the type
                     }
-                } else if match_def_path(cx.tcx, def_id, &paths::LINKED_LIST) {
+                } else if cx.match_def_path(def_id, &paths::LINKED_LIST) {
                     span_help_and_lint(
                         cx,
                         LINKEDLIST,
@@ -447,8 +435,6 @@ fn is_any_trait(t: &hir::Ty) -> bool {
     false
 }
 
-pub struct LetPass;
-
 declare_clippy_lint! {
     /// **What it does:** Checks for binding a unit value.
     ///
@@ -468,17 +454,9 @@ declare_clippy_lint! {
     "creating a let binding to a value of unit type, which usually can't be used afterwards"
 }
 
-impl LintPass for LetPass {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(LET_UNIT_VALUE)
-    }
+declare_lint_pass!(LetUnitValue => [LET_UNIT_VALUE]);
 
-    fn name(&self) -> &'static str {
-        "LetUnitValue"
-    }
-}
-
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LetPass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LetUnitValue {
     fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, stmt: &'tcx Stmt) {
         if let StmtKind::Local(ref local) = stmt.node {
             if is_unit(cx.tables.pat_ty(&local.pat)) {
@@ -540,17 +518,7 @@ declare_clippy_lint! {
     "comparing unit values"
 }
 
-pub struct UnitCmp;
-
-impl LintPass for UnitCmp {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(UNIT_CMP)
-    }
-
-    fn name(&self) -> &'static str {
-        "UnicCmp"
-    }
-}
+declare_lint_pass!(UnitCmp => [UNIT_CMP]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnitCmp {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
@@ -599,17 +567,7 @@ declare_clippy_lint! {
     "passing unit to a function"
 }
 
-pub struct UnitArg;
-
-impl LintPass for UnitArg {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(UNIT_ARG)
-    }
-
-    fn name(&self) -> &'static str {
-        "UnitArg"
-    }
-}
+declare_lint_pass!(UnitArg => [UNIT_ARG]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnitArg {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
@@ -683,8 +641,6 @@ fn is_unit_literal(expr: &Expr) -> bool {
         _ => false,
     }
 }
-
-pub struct CastPass;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for casts from any numerical to a float type where
@@ -1114,31 +1070,23 @@ fn check_lossless(cx: &LateContext<'_, '_>, expr: &Expr, op: &Expr, cast_from: T
     }
 }
 
-impl LintPass for CastPass {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(
-            CAST_PRECISION_LOSS,
-            CAST_SIGN_LOSS,
-            CAST_POSSIBLE_TRUNCATION,
-            CAST_POSSIBLE_WRAP,
-            CAST_LOSSLESS,
-            UNNECESSARY_CAST,
-            CAST_PTR_ALIGNMENT,
-            FN_TO_NUMERIC_CAST,
-            FN_TO_NUMERIC_CAST_WITH_TRUNCATION,
-        )
-    }
-
-    fn name(&self) -> &'static str {
-        "Casts"
-    }
-}
+declare_lint_pass!(Casts => [
+    CAST_PRECISION_LOSS,
+    CAST_SIGN_LOSS,
+    CAST_POSSIBLE_TRUNCATION,
+    CAST_POSSIBLE_WRAP,
+    CAST_LOSSLESS,
+    UNNECESSARY_CAST,
+    CAST_PTR_ALIGNMENT,
+    FN_TO_NUMERIC_CAST,
+    FN_TO_NUMERIC_CAST_WITH_TRUNCATION,
+]);
 
 // Check if the given type is either `core::ffi::c_void` or
 // one of the platform specific `libc::<platform>::c_void` of libc.
-fn is_c_void<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, ty: Ty<'_>) -> bool {
+fn is_c_void(cx: &LateContext<'_, '_>, ty: Ty<'_>) -> bool {
     if let ty::Adt(adt, _) = ty.sty {
-        let names = AbsolutePathPrinter { tcx }.print_def_path(adt.did, &[]).unwrap();
+        let names = cx.get_def_path(adt.did);
 
         if names.is_empty() {
             return false;
@@ -1160,7 +1108,7 @@ fn fp_ty_mantissa_nbits(typ: Ty<'_>) -> u32 {
     }
 }
 
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CastPass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Casts {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
         if let ExprKind::Cast(ref ex, _) = expr.node {
             let (cast_from, cast_to) = (cx.tables.expr_ty(ex), cx.tables.expr_ty(expr));
@@ -1262,7 +1210,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CastPass {
                 if let Some(to_align) = cx.layout_of(to_ptr_ty.ty).ok().map(|a| a.align.abi);
                 if from_align < to_align;
                 // with c_void, we inherently need to trust the user
-                if !is_c_void(cx.tcx, from_ptr_ty.ty);
+                if !is_c_void(cx, from_ptr_ty.ty);
                 then {
                     span_lint(
                         cx,
@@ -1343,27 +1291,19 @@ declare_clippy_lint! {
     "usage of very complex types that might be better factored into `type` definitions"
 }
 
-pub struct TypeComplexityPass {
+pub struct TypeComplexity {
     threshold: u64,
 }
 
-impl TypeComplexityPass {
+impl TypeComplexity {
     pub fn new(threshold: u64) -> Self {
         Self { threshold }
     }
 }
 
-impl LintPass for TypeComplexityPass {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(TYPE_COMPLEXITY)
-    }
+impl_lint_pass!(TypeComplexity => [TYPE_COMPLEXITY]);
 
-    fn name(&self) -> &'static str {
-        "TypeComplexityPass"
-    }
-}
-
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypeComplexityPass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypeComplexity {
     fn check_fn(
         &mut self,
         cx: &LateContext<'a, 'tcx>,
@@ -1413,7 +1353,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TypeComplexityPass {
     }
 }
 
-impl<'a, 'tcx> TypeComplexityPass {
+impl<'a, 'tcx> TypeComplexity {
     fn check_fndecl(&self, cx: &LateContext<'a, 'tcx>, decl: &'tcx FnDecl) {
         for arg in &decl.inputs {
             self.check_type(cx, arg);
@@ -1519,17 +1459,7 @@ declare_clippy_lint! {
     "casting a character literal to u8"
 }
 
-pub struct CharLitAsU8;
-
-impl LintPass for CharLitAsU8 {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(CHAR_LIT_AS_U8)
-    }
-
-    fn name(&self) -> &'static str {
-        "CharLiteralAsU8"
-    }
-}
+declare_lint_pass!(CharLitAsU8 => [CHAR_LIT_AS_U8]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CharLitAsU8 {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
@@ -1583,17 +1513,7 @@ declare_clippy_lint! {
     "a comparison with a maximum or minimum value that is always true or false"
 }
 
-pub struct AbsurdExtremeComparisons;
-
-impl LintPass for AbsurdExtremeComparisons {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(ABSURD_EXTREME_COMPARISONS)
-    }
-
-    fn name(&self) -> &'static str {
-        "AbsurdExtremeComparisons"
-    }
-}
+declare_lint_pass!(AbsurdExtremeComparisons => [ABSURD_EXTREME_COMPARISONS]);
 
 enum ExtremeType {
     Minimum,
@@ -1762,17 +1682,7 @@ declare_clippy_lint! {
     "a comparison involving an upcast which is always true or false"
 }
 
-pub struct InvalidUpcastComparisons;
-
-impl LintPass for InvalidUpcastComparisons {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(INVALID_UPCAST_COMPARISONS)
-    }
-
-    fn name(&self) -> &'static str {
-        "InvalidUpcastComparisons"
-    }
-}
+declare_lint_pass!(InvalidUpcastComparisons => [INVALID_UPCAST_COMPARISONS]);
 
 #[derive(Copy, Clone, Debug, Eq)]
 enum FullInt {
@@ -2011,17 +1921,7 @@ declare_clippy_lint! {
     "missing generalization over different hashers"
 }
 
-pub struct ImplicitHasher;
-
-impl LintPass for ImplicitHasher {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(IMPLICIT_HASHER)
-    }
-
-    fn name(&self) -> &'static str {
-        "ImplicitHasher"
-    }
-}
+declare_lint_pass!(ImplicitHasher => [IMPLICIT_HASHER]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ImplicitHasher {
     #[allow(clippy::cast_possible_truncation, clippy::too_many_lines)]
@@ -2366,17 +2266,7 @@ declare_clippy_lint! {
     "a cast of reference to a mutable pointer"
 }
 
-pub struct RefToMut;
-
-impl LintPass for RefToMut {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(CAST_REF_TO_MUT)
-    }
-
-    fn name(&self) -> &'static str {
-        "RefToMut"
-    }
-}
+declare_lint_pass!(RefToMut => [CAST_REF_TO_MUT]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for RefToMut {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {

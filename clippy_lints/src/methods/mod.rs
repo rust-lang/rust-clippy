@@ -11,7 +11,7 @@ use rustc::hir;
 use rustc::hir::def::Def;
 use rustc::lint::{in_external_macro, LateContext, LateLintPass, Lint, LintArray, LintContext, LintPass};
 use rustc::ty::{self, Predicate, Ty};
-use rustc::{declare_tool_lint, lint_array};
+use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_errors::Applicability;
 use syntax::ast;
 use syntax::source_map::{BytePos, Span};
@@ -20,15 +20,12 @@ use syntax::symbol::LocalInternedString;
 use crate::utils::paths;
 use crate::utils::sugg;
 use crate::utils::{
-    get_arg_name, get_parent_expr, get_trait_def_id, has_iter_method, implements_trait, in_macro, is_copy, is_expn_of,
-    is_self, is_self_ty, iter_input_pats, last_path_segment, match_def_path, match_path, match_qpath,
+    get_arg_name, get_parent_expr, get_trait_def_id, has_iter_method, implements_trait, in_macro, is_copy,
+    is_ctor_function, is_expn_of, is_self, is_self_ty, iter_input_pats, last_path_segment, match_path, match_qpath,
     match_trait_method, match_type, match_var, method_calls, method_chain_args, remove_blocks, return_ty, same_tys,
     single_segment_path, snippet, snippet_with_applicability, snippet_with_macro_callsite, span_lint,
     span_lint_and_sugg, span_lint_and_then, span_note_and_lint, walk_ptrs_ty, walk_ptrs_ty_depth, SpanlessEq,
 };
-
-#[derive(Clone)]
-pub struct Pass;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for `.unwrap()` calls on `Option`s.
@@ -362,7 +359,7 @@ declare_clippy_lint! {
     /// **Why is this bad?** The function will always be called.
     ///
     /// **Known problems:** If the function has side-effects, not calling it will
-    /// change the semantic of the program, but you shouldn't rely on that anyway.
+    /// change the semantics of the program, but you shouldn't rely on that anyway.
     ///
     /// **Example:**
     /// ```rust
@@ -777,52 +774,44 @@ declare_clippy_lint! {
     "using `.into_iter()` on a reference"
 }
 
-impl LintPass for Pass {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(
-            OPTION_UNWRAP_USED,
-            RESULT_UNWRAP_USED,
-            SHOULD_IMPLEMENT_TRAIT,
-            WRONG_SELF_CONVENTION,
-            WRONG_PUB_SELF_CONVENTION,
-            OK_EXPECT,
-            OPTION_MAP_UNWRAP_OR,
-            OPTION_MAP_UNWRAP_OR_ELSE,
-            RESULT_MAP_UNWRAP_OR_ELSE,
-            OPTION_MAP_OR_NONE,
-            OR_FUN_CALL,
-            EXPECT_FUN_CALL,
-            CHARS_NEXT_CMP,
-            CHARS_LAST_CMP,
-            CLONE_ON_COPY,
-            CLONE_ON_REF_PTR,
-            CLONE_DOUBLE_REF,
-            NEW_RET_NO_SELF,
-            SINGLE_CHAR_PATTERN,
-            SEARCH_IS_SOME,
-            TEMPORARY_CSTRING_AS_PTR,
-            FILTER_NEXT,
-            FILTER_MAP,
-            MAP_FLATTEN,
-            ITER_NTH,
-            ITER_SKIP_NEXT,
-            GET_UNWRAP,
-            STRING_EXTEND_CHARS,
-            ITER_CLONED_COLLECT,
-            USELESS_ASREF,
-            UNNECESSARY_FOLD,
-            UNNECESSARY_FILTER_MAP,
-            INTO_ITER_ON_ARRAY,
-            INTO_ITER_ON_REF,
-        )
-    }
+declare_lint_pass!(Methods => [
+    OPTION_UNWRAP_USED,
+    RESULT_UNWRAP_USED,
+    SHOULD_IMPLEMENT_TRAIT,
+    WRONG_SELF_CONVENTION,
+    WRONG_PUB_SELF_CONVENTION,
+    OK_EXPECT,
+    OPTION_MAP_UNWRAP_OR,
+    OPTION_MAP_UNWRAP_OR_ELSE,
+    RESULT_MAP_UNWRAP_OR_ELSE,
+    OPTION_MAP_OR_NONE,
+    OR_FUN_CALL,
+    EXPECT_FUN_CALL,
+    CHARS_NEXT_CMP,
+    CHARS_LAST_CMP,
+    CLONE_ON_COPY,
+    CLONE_ON_REF_PTR,
+    CLONE_DOUBLE_REF,
+    NEW_RET_NO_SELF,
+    SINGLE_CHAR_PATTERN,
+    SEARCH_IS_SOME,
+    TEMPORARY_CSTRING_AS_PTR,
+    FILTER_NEXT,
+    FILTER_MAP,
+    MAP_FLATTEN,
+    ITER_NTH,
+    ITER_SKIP_NEXT,
+    GET_UNWRAP,
+    STRING_EXTEND_CHARS,
+    ITER_CLONED_COLLECT,
+    USELESS_ASREF,
+    UNNECESSARY_FOLD,
+    UNNECESSARY_FILTER_MAP,
+    INTO_ITER_ON_ARRAY,
+    INTO_ITER_ON_REF,
+]);
 
-    fn name(&self) -> &'static str {
-        "Methods"
-    }
-}
-
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
     #[allow(clippy::cognitive_complexity)]
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr) {
         if in_macro(expr.span) {
@@ -1080,6 +1069,11 @@ fn lint_or_fun_call(cx: &LateContext<'_, '_>, expr: &hir::Expr, method_span: Spa
 
         // early check if the name is one we care about
         if know_types.iter().all(|k| !k.2.contains(&name)) {
+            return;
+        }
+
+        // ignore enum and struct constructors
+        if is_ctor_function(cx, &arg) {
             return;
         }
 
@@ -1464,7 +1458,7 @@ fn lint_cstring_as_ptr(cx: &LateContext<'_, '_>, expr: &hir::Expr, new: &hir::Ex
         if args.len() == 1;
         if let hir::ExprKind::Path(ref path) = fun.node;
         if let Def::Method(did) = cx.tables.qpath_def(path, fun.hir_id);
-        if match_def_path(cx.tcx, did, &paths::CSTRING_NEW);
+        if cx.match_def_path(did, &paths::CSTRING_NEW);
         then {
             span_lint_and_then(
                 cx,

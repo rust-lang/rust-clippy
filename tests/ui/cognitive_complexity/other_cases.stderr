@@ -1,0 +1,17 @@
+error: the function has a cognitive complexity of 40
+  --> $DIR/other_cases.rs:12:1
+   |
+LL | / fn nested_functions_are_counted(n: usize) -> usize {
+LL | |     fn lucas_number(n: usize) -> usize {
+LL | |         match n {
+LL | |             0 => 2,
+...  |
+LL | |     lucas_number(n)
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::cognitive-complexity` implied by `-D warnings`
+   = help: you could split it up into multiple smaller functions
+
+error: aborting due to previous error
+

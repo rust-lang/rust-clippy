@@ -1,13 +1,12 @@
 use crate::utils::paths;
 use crate::utils::{
-    in_macro, is_expn_of, last_path_segment, match_def_path, match_type, resolve_node, snippet, span_lint_and_then,
-    walk_ptrs_ty,
+    in_macro, is_expn_of, last_path_segment, match_type, resolve_node, snippet, span_lint_and_then, walk_ptrs_ty,
 };
 use if_chain::if_chain;
 use rustc::hir::*;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintContext, LintPass};
 use rustc::ty;
-use rustc::{declare_tool_lint, lint_array};
+use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_errors::Applicability;
 use syntax::ast::LitKind;
 use syntax::source_map::Span;
@@ -34,20 +33,9 @@ declare_clippy_lint! {
     "useless use of `format!`"
 }
 
-#[derive(Copy, Clone, Debug)]
-pub struct Pass;
+declare_lint_pass!(UselessFormat => [USELESS_FORMAT]);
 
-impl LintPass for Pass {
-    fn get_lints(&self) -> LintArray {
-        lint_array![USELESS_FORMAT]
-    }
-
-    fn name(&self) -> &'static str {
-        "UselessFormat"
-    }
-}
-
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UselessFormat {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
         if let Some(span) = is_expn_of(expr.span, "format") {
             if in_macro(span) {
@@ -59,9 +47,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     if_chain! {
                         if let ExprKind::Path(ref qpath) = fun.node;
                         if let Some(fun_def_id) = resolve_node(cx, qpath, fun.hir_id).opt_def_id();
-                        let new_v1 = match_def_path(cx.tcx, fun_def_id, &paths::FMT_ARGUMENTS_NEWV1);
-                        let new_v1_fmt = match_def_path(
-                            cx.tcx,
+                        let new_v1 = cx.match_def_path(fun_def_id, &paths::FMT_ARGUMENTS_NEWV1);
+                        let new_v1_fmt = cx.match_def_path(
                             fun_def_id,
                             &paths::FMT_ARGUMENTS_NEWV1FORMATTED
                         );
@@ -162,7 +149,7 @@ fn get_single_string_arg<'a>(cx: &LateContext<'_, '_>, expr: &'a Expr) -> Option
         if args.len() == 2;
         if let ExprKind::Path(ref qpath) = args[1].node;
         if let Some(fun_def_id) = resolve_node(cx, qpath, args[1].hir_id).opt_def_id();
-        if match_def_path(cx.tcx, fun_def_id, &paths::DISPLAY_FMT_METHOD);
+        if cx.match_def_path(fun_def_id, &paths::DISPLAY_FMT_METHOD);
         then {
             let ty = walk_ptrs_ty(cx.tables.pat_ty(&pat[0]));
             if ty.sty == ty::Str || match_type(cx, ty, &paths::STRING) {

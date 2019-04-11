@@ -148,7 +148,6 @@ impl Mul<T> for T {
 /// Checks implementation of the following lints:
 /// * `OPTION_MAP_UNWRAP_OR`
 /// * `OPTION_MAP_UNWRAP_OR_ELSE`
-/// * `OPTION_MAP_OR_NONE`
 #[rustfmt::skip]
 fn option_methods() {
     let opt = Some(1);
@@ -204,15 +203,6 @@ fn option_methods() {
     // Macro case.
     // Should not lint.
     let _ = opt_map!(opt, |x| x + 1).unwrap_or_else(|| 0);
-
-    // Check `OPTION_MAP_OR_NONE`.
-    // Single line case.
-    let _ = opt.map_or(None, |x| Some(x + 1));
-    // Multi-line case.
-    let _ = opt.map_or(None, |x| {
-                        Some(x + 1)
-                       }
-                );
 }
 
 /// Checks implementation of `FILTER_NEXT` lint.
@@ -277,4 +267,22 @@ fn search_is_some() {
 fn main() {
     let opt = Some(0);
     let _ = opt.unwrap();
+}
+
+struct Foo(u8);
+#[rustfmt::skip]
+fn test_or_with_ctors() {
+    let opt = Some(1);
+    let opt_opt = Some(Some(1));
+    // we also test for const promotion, this makes sure we don't hit that
+    let two = 2;
+
+    let _ = opt_opt.unwrap_or(Some(2));
+    let _ = opt_opt.unwrap_or(Some(two));
+    let _ = opt.ok_or(Some(2));
+    let _ = opt.ok_or(Some(two));
+    let _ = opt.ok_or(Foo(2));
+    let _ = opt.ok_or(Foo(two));
+    let _ = opt.or(Some(2));
+    let _ = opt.or(Some(two));
 }

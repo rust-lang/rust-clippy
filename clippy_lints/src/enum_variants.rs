@@ -1,9 +1,9 @@
 //! lint on enum variants that are prefixed or suffixed by the same characters
 
-use crate::utils::{camel_case, in_macro};
+use crate::utils::{camel_case, in_macro, is_present_in_source};
 use crate::utils::{span_help_and_lint, span_lint};
 use rustc::lint::{EarlyContext, EarlyLintPass, Lint, LintArray, LintPass};
-use rustc::{declare_tool_lint, lint_array};
+use rustc::{declare_tool_lint, impl_lint_pass};
 use syntax::ast::*;
 use syntax::source_map::Span;
 use syntax::symbol::{InternedString, LocalInternedString};
@@ -115,20 +115,12 @@ impl EnumVariantNames {
     }
 }
 
-impl LintPass for EnumVariantNames {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(
-            ENUM_VARIANT_NAMES,
-            PUB_ENUM_VARIANT_NAMES,
-            MODULE_NAME_REPETITIONS,
-            MODULE_INCEPTION
-        )
-    }
-
-    fn name(&self) -> &'static str {
-        "EnumVariantNames"
-    }
-}
+impl_lint_pass!(EnumVariantNames => [
+    ENUM_VARIANT_NAMES,
+    PUB_ENUM_VARIANT_NAMES,
+    MODULE_NAME_REPETITIONS,
+    MODULE_INCEPTION
+]);
 
 fn var2str(var: &Variant) -> LocalInternedString {
     var.node.ident.as_str()
@@ -252,7 +244,7 @@ impl EarlyLintPass for EnumVariantNames {
         let item_name = item.ident.as_str();
         let item_name_chars = item_name.chars().count();
         let item_camel = to_camel_case(&item_name);
-        if !in_macro(item.span) {
+        if !in_macro(item.span) && is_present_in_source(cx, item.span) {
             if let Some(&(ref mod_name, ref mod_camel)) = self.modules.last() {
                 // constants don't have surrounding modules
                 if !mod_camel.is_empty() {

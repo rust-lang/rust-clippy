@@ -1,5 +1,5 @@
 use crate::utils::{
-    has_drop, in_macro, is_copy, match_def_path, match_type, paths, snippet_opt, span_lint_hir, span_lint_hir_and_then,
+    has_drop, in_macro, is_copy, match_type, paths, snippet_opt, span_lint_hir, span_lint_hir_and_then,
     walk_ptrs_ty_depth,
 };
 use if_chain::if_chain;
@@ -13,7 +13,7 @@ use rustc::mir::{
     TerminatorKind,
 };
 use rustc::ty::{self, Ty};
-use rustc::{declare_tool_lint, lint_array};
+use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_errors::Applicability;
 use std::convert::TryFrom;
 use syntax::source_map::{BytePos, Span};
@@ -64,17 +64,7 @@ declare_clippy_lint! {
     "`clone()` of an owned value that is going to be dropped immediately"
 }
 
-pub struct RedundantClone;
-
-impl LintPass for RedundantClone {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(REDUNDANT_CLONE)
-    }
-
-    fn name(&self) -> &'static str {
-        "RedundantClone"
-    }
-}
+declare_lint_pass!(RedundantClone => [REDUNDANT_CLONE]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for RedundantClone {
     #[allow(clippy::too_many_lines)]
@@ -104,14 +94,13 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for RedundantClone {
 
             let (fn_def_id, arg, arg_ty, _) = unwrap_or_continue!(is_call_with_ref_arg(cx, mir, &terminator.kind));
 
-            let from_borrow = match_def_path(cx.tcx, fn_def_id, &paths::CLONE_TRAIT_METHOD)
-                || match_def_path(cx.tcx, fn_def_id, &paths::TO_OWNED_METHOD)
-                || (match_def_path(cx.tcx, fn_def_id, &paths::TO_STRING_METHOD)
-                    && match_type(cx, arg_ty, &paths::STRING));
+            let from_borrow = cx.match_def_path(fn_def_id, &paths::CLONE_TRAIT_METHOD)
+                || cx.match_def_path(fn_def_id, &paths::TO_OWNED_METHOD)
+                || (cx.match_def_path(fn_def_id, &paths::TO_STRING_METHOD) && match_type(cx, arg_ty, &paths::STRING));
 
             let from_deref = !from_borrow
-                && (match_def_path(cx.tcx, fn_def_id, &paths::PATH_TO_PATH_BUF)
-                    || match_def_path(cx.tcx, fn_def_id, &paths::OS_STR_TO_OS_STRING));
+                && (cx.match_def_path(fn_def_id, &paths::PATH_TO_PATH_BUF)
+                    || cx.match_def_path(fn_def_id, &paths::OS_STR_TO_OS_STRING));
 
             if !from_borrow && !from_deref {
                 continue;
@@ -144,7 +133,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for RedundantClone {
                     if let Some((pred_fn_def_id, pred_arg, pred_arg_ty, Some(res))) =
                         is_call_with_ref_arg(cx, mir, &pred_terminator.kind);
                     if *res == mir::Place::Base(mir::PlaceBase::Local(cloned));
-                    if match_def_path(cx.tcx, pred_fn_def_id, &paths::DEREF_TRAIT_METHOD);
+                    if cx.match_def_path(pred_fn_def_id, &paths::DEREF_TRAIT_METHOD);
                     if match_type(cx, pred_arg_ty, &paths::PATH_BUF)
                         || match_type(cx, pred_arg_ty, &paths::OS_STRING);
                     then {

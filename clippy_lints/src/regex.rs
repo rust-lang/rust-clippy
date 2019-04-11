@@ -1,10 +1,10 @@
 use crate::consts::{constant, Constant};
-use crate::utils::{is_expn_of, match_def_path, match_type, paths, span_help_and_lint, span_lint};
+use crate::utils::{is_expn_of, match_type, paths, span_help_and_lint, span_lint};
 use if_chain::if_chain;
 use regex_syntax;
 use rustc::hir::*;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use rustc::{declare_tool_lint, lint_array};
+use rustc::{declare_tool_lint, impl_lint_pass};
 use rustc_data_structures::fx::FxHashSet;
 use std::convert::TryFrom;
 use syntax::ast::{LitKind, StrStyle};
@@ -67,22 +67,14 @@ declare_clippy_lint! {
 }
 
 #[derive(Clone, Default)]
-pub struct Pass {
+pub struct Regex {
     spans: FxHashSet<Span>,
     last: Option<HirId>,
 }
 
-impl LintPass for Pass {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(INVALID_REGEX, REGEX_MACRO, TRIVIAL_REGEX)
-    }
+impl_lint_pass!(Regex => [INVALID_REGEX, REGEX_MACRO, TRIVIAL_REGEX]);
 
-    fn name(&self) -> &'static str {
-        "Regex"
-    }
-}
-
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Regex {
     fn check_crate(&mut self, _: &LateContext<'a, 'tcx>, _: &'tcx Crate) {
         self.spans.clear();
     }
@@ -120,15 +112,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             if args.len() == 1;
             if let Some(def_id) = cx.tables.qpath_def(qpath, fun.hir_id).opt_def_id();
             then {
-                if match_def_path(cx.tcx, def_id, &paths::REGEX_NEW) ||
-                   match_def_path(cx.tcx, def_id, &paths::REGEX_BUILDER_NEW) {
+                if cx.match_def_path(def_id, &paths::REGEX_NEW) ||
+                   cx.match_def_path(def_id, &paths::REGEX_BUILDER_NEW) {
                     check_regex(cx, &args[0], true);
-                } else if match_def_path(cx.tcx, def_id, &paths::REGEX_BYTES_NEW) ||
-                   match_def_path(cx.tcx, def_id, &paths::REGEX_BYTES_BUILDER_NEW) {
+                } else if cx.match_def_path(def_id, &paths::REGEX_BYTES_NEW) ||
+                   cx.match_def_path(def_id, &paths::REGEX_BYTES_BUILDER_NEW) {
                     check_regex(cx, &args[0], false);
-                } else if match_def_path(cx.tcx, def_id, &paths::REGEX_SET_NEW) {
+                } else if cx.match_def_path(def_id, &paths::REGEX_SET_NEW) {
                     check_set(cx, &args[0], true);
-                } else if match_def_path(cx.tcx, def_id, &paths::REGEX_BYTES_SET_NEW) {
+                } else if cx.match_def_path(def_id, &paths::REGEX_BYTES_SET_NEW) {
                     check_set(cx, &args[0], false);
                 }
             }

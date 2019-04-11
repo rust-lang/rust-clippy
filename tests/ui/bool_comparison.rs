@@ -1,3 +1,5 @@
+// run-rustfix
+
 #[warn(clippy::bool_comparison)]
 fn main() {
     let x = true;

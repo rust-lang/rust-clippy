@@ -1,7 +1,6 @@
 #![warn(clippy::or_fun_call)]
 
-use std::collections::BTreeMap;
-use std::collections::HashMap;
+use std::collections::{BTreeMap,HashMap};
 
 /// Checks implementation of the `OR_FUN_CALL` lint.
 fn or_fun_call() {

@@ -1,8 +1,11 @@
 #![warn(clippy::all)]
-#![allow(unused_variables)]
-#![allow(unused_assignments)]
-#![allow(clippy::if_same_then_else)]
-#![allow(clippy::deref_addrof)]
+#![allow(
+    unused_variables,
+    unused_assignments,
+    clippy::cognitive_complexity,
+    clippy::if_same_then_else,
+    clippy::deref_addrof
+    )]
 
 fn foo() -> bool {
     true

@@ -109,7 +109,7 @@ define_Conf! {
     /// Lint: BLACKLISTED_NAME. The list of blacklisted names to lint about
     (blacklisted_names, "blacklisted_names", ["foo", "bar", "baz", "quux"] => Vec<String>),
     /// Lint: COGNITIVE_COMPLEXITY. The maximum cognitive complexity a function can have
-    (cognitive_complexity_threshold, "cognitive_complexity_threshold", 25 => u64),
+    (cognitive_complexity_threshold, "cognitive_complexity_threshold", 500 => u64),
     /// DEPRECATED LINT: CYCLOMATIC_COMPLEXITY. Use the Cognitive Complexity lint instead.
     (cyclomatic_complexity_threshold, "cyclomatic_complexity_threshold", None => Option<u64>),
     /// Lint: DOC_MARKDOWN. The list of words this lint should not consider as identifiers needing ticks

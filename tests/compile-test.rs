@@ -46,9 +46,32 @@ fn config(mode: &str, dir: PathBuf) -> compiletest::Config {
         config.run_lib_path = rustc_lib_path();
         config.compile_lib_path = rustc_lib_path();
     }
+
+    // When we'll want to use `extern crate ..` for a dependency that is used
+    // both by the crate and the compiler itself, we can't simply pass -L flags
+    // as we'll get a duplicate matching versions. Instead, disambiguate with
+    // `--extern dep=path`.
+    // See https://github.com/rust-lang/rust-clippy/issues/4015.
+    let needs_disambiguation = ["serde"];
+    // This assumes that deps are compiled (they are for Cargo integration tests).
+    let deps = std::fs::read_dir(host_libs().join("deps")).unwrap();
+    let disambiguated = deps
+        .filter_map(|dep| {
+            let path = dep.ok()?.path();
+            let name = path.file_name()?.to_string_lossy();
+            // NOTE: This only handles a single dep
+            // https://github.com/laumann/compiletest-rs/issues/101
+            needs_disambiguation
+                .iter()
+                .find(|dep| name.starts_with(&format!("lib{}-", dep)))
+                .map(|dep| format!("--extern {}={}", dep, path.display()))
+        })
+        .collect::<Vec<_>>();
+
     config.target_rustcflags = Some(format!(
-        "-L {0} -L {0}/deps -Dwarnings -Zui-testing",
-        host_libs().display()
+        "-L {0} -L {0}/deps -Dwarnings -Zui-testing {1}",
+        host_libs().display(),
+        disambiguated.join(" ")
     ));
 
     config.mode = cfg_mode;
@@ -65,13 +88,6 @@ fn config(mode: &str, dir: PathBuf) -> compiletest::Config {
     config.src_base = dir;
     config.rustc_path = clippy_driver_path();
     config
-}
-
-fn run_mode(mode: &str, dir: PathBuf) {
-    let cfg = config(mode, dir);
-    // clean rmeta data, otherwise "cargo check; cargo test" fails (#2896)
-    cfg.clean_rmeta();
-    compiletest::run_tests(&cfg);
 }
 
 #[allow(clippy::identity_conversion)]
@@ -131,9 +147,28 @@ fn prepare_env() {
     //set_var("RUST_BACKTRACE", "0");
 }
 
+fn run_ui_tests() {
+    let mut cfg = config("ui", "tests/ui".into());
+    // clean rmeta data, otherwise "cargo check; cargo test" fails (#2896)
+    cfg.clean_rmeta();
+
+    let default_flags = {
+        if let Some(flags) = cfg.target_rustcflags {
+            flags
+        } else {
+            "".to_string()
+        }
+    };
+    let new_flags = format!("{} -A clippy::cognitive_complexity", default_flags);
+    cfg.target_rustcflags = Some(new_flags);
+
+    compiletest::run_tests(&cfg);
+}
+
 #[test]
 fn compile_test() {
     prepare_env();
-    run_mode("ui", "tests/ui".into());
+    run_ui_tests();
+    // run_mode("ui", "tests/ui".into());
     run_ui_toml();
 }

@@ -7,8 +7,8 @@
     clippy::many_single_char_names,
     clippy::needless_pass_by_value,
     clippy::option_map_unit_fn,
-    clippy::trivially_copy_pass_by_ref
-)]
+    clippy::trivially_copy_pass_by_ref,
+    )]
 #![warn(clippy::redundant_closure, clippy::needless_borrow)]
 
 use std::path::PathBuf;
@@ -67,36 +67,56 @@ impl<'a> std::ops::Deref for TestStruct<'a> {
 }
 
 fn test_redundant_closures_containing_method_calls() {
-    let i = 10;
-    let e = Some(TestStruct { some_ref: &i }).map(|a| a.foo());
-    let e = Some(TestStruct { some_ref: &i }).map(TestStruct::foo);
-    let e = Some(TestStruct { some_ref: &i }).map(|a| a.trait_foo());
-    let e = Some(TestStruct { some_ref: &i }).map(|a| a.trait_foo_ref());
-    let e = Some(TestStruct { some_ref: &i }).map(TestTrait::trait_foo);
-    let e = Some(&mut vec![1, 2, 3]).map(|v| v.clear());
-    let e = Some(&mut vec![1, 2, 3]).map(std::vec::Vec::clear);
-    unsafe {
-        let e = Some(TestStruct { some_ref: &i }).map(|a| a.foo_unsafe());
+    
+    // In TestStruct use cases
+    {
+        let i = 10;
+        let _ = Some(TestStruct { some_ref: &i }).map(|a| a.foo());
+        let _ = Some(TestStruct { some_ref: &i }).map(TestStruct::foo);
+        let _ = Some(TestStruct { some_ref: &i }).map(|a| a.trait_foo());
+        let _ = Some(TestStruct { some_ref: &i }).map(|a| a.trait_foo_ref());
+        let _ = Some(TestStruct { some_ref: &i }).map(TestTrait::trait_foo);
+        let _ = Some(TestStruct { some_ref: &i })
+            .as_ref()
+            .map(|c| c.to_ascii_uppercase());
+        unsafe {
+            let _ = Some(TestStruct { some_ref: &i }).map(|a| a.foo_unsafe());
+        }
     }
-    let e = Some("str").map(|s| s.to_string());
-    let e = Some("str").map(str::to_string);
-    let e = Some('a').map(|s| s.to_uppercase());
-    let e = Some('a').map(char::to_uppercase);
-    let e: std::vec::Vec<usize> = vec!['a', 'b', 'c'].iter().map(|c| c.len_utf8()).collect();
-    let e: std::vec::Vec<char> = vec!['a', 'b', 'c'].iter().map(|c| c.to_ascii_uppercase()).collect();
-    let e: std::vec::Vec<char> = vec!['a', 'b', 'c'].iter().map(char::to_ascii_uppercase).collect();
-    let p = Some(PathBuf::new());
-    let e = p.as_ref().and_then(|s| s.to_str());
-    let c = Some(TestStruct { some_ref: &i })
-        .as_ref()
-        .map(|c| c.to_ascii_uppercase());
 
+    // In a function that uses TestTrait
     fn test_different_borrow_levels<T>(t: &[&T])
-    where
-        T: TestTrait,
+    where T: TestTrait,
     {
         t.iter().filter(|x| x.trait_foo_ref());
         t.iter().map(|x| x.trait_foo_ref());
+    }
+
+    // In Vector operations
+    {
+        let _ = Some(&mut vec![1, 2, 3]).map(|v| v.clear());
+        let _ = Some(&mut vec![1, 2, 3]).map(std::vec::Vec::clear);
+    }
+
+    // In String and Char operations
+    {
+        let _ = Some("str").map(|s| s.to_string());
+        let _ = Some("str").map(str::to_string);
+        let _ = Some('a').map(|s| s.to_uppercase());
+        let _ = Some('a').map(char::to_uppercase);
+    }
+
+    // In Iterator Maps
+    {
+        let _: std::vec::Vec<usize> = vec!['a', 'b', 'c'].iter().map(|c| c.len_utf8()).collect();
+        let _: std::vec::Vec<char> = vec!['a', 'b', 'c'].iter().map(|c| c.to_ascii_uppercase()).collect();
+        let _: std::vec::Vec<char> = vec!['a', 'b', 'c'].iter().map(char::to_ascii_uppercase).collect();
+    }
+
+    // In other Cases
+    {
+        let p = Some(PathBuf::new());
+        let _ = p.as_ref().and_then(|s| s.to_str());
     }
 }
 

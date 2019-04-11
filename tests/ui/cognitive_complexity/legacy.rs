@@ -2,90 +2,11 @@
 #![warn(clippy::cognitive_complexity)]
 #![allow(unused)]
 
-#[rustfmt::skip]
-fn main() {
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-    if true {
-        println!("a");
-    }
-}
+fn main() {}
+
+/*
+    These tests must be reviewed and either eliminated or repurposed
+*/
 
 #[clippy::cognitive_complexity = "0"]
 fn kaboom() {
@@ -134,16 +55,6 @@ fn bloo() {
 }
 
 #[clippy::cognitive_complexity = "0"]
-fn lots_of_short_circuits() -> bool {
-    true && false && true && false && true && false && true
-}
-
-#[clippy::cognitive_complexity = "0"]
-fn lots_of_short_circuits2() -> bool {
-    true || false || true || false || true || false || true
-}
-
-#[clippy::cognitive_complexity = "0"]
 fn baa() {
     let x = || match 99 {
         0 => 0,
@@ -163,17 +74,6 @@ fn baa() {
 
 #[clippy::cognitive_complexity = "0"]
 fn bar() {
-    match 99 {
-        0 => println!("hi"),
-        _ => println!("bye"),
-    }
-}
-
-#[test]
-#[clippy::cognitive_complexity = "0"]
-/// Tests are usually complex but simple at the same time. `clippy::cognitive_complexity` used to
-/// give lots of false-positives in tests.
-fn dont_warn_on_tests() {
     match 99 {
         0 => println!("hi"),
         _ => println!("bye"),
@@ -368,4 +268,21 @@ fn early_ret() -> i32 {
         5 => 5,
         _ => return 6,
     }
+}
+
+#[clippy::cognitive_complexity = "0"]
+fn osscilating_logical_chain_1() -> bool {
+    true && false || true && false
+}
+
+// This tests that the only thing that matters 
+// is the change in operator
+#[clippy::cognitive_complexity = "0"]
+fn osscilating_logical_chain_2() -> bool {
+    true && false && true && false || true && false && true && false
+}
+
+#[clippy::cognitive_complexity = "0"]
+fn osscilating_logical_chain_3() -> bool {
+    (true && false) || (true && false)
 }
