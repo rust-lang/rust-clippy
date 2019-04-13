@@ -252,6 +252,7 @@ pub mod returns;
 pub mod serde_api;
 pub mod shadow;
 pub mod slow_vector_initialization;
+pub mod small_underscore_scope;
 pub mod strings;
 pub mod suspicious_trait_impl;
 pub mod swap;
@@ -574,6 +575,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box missing_const_for_fn::MissingConstForFn);
     reg.register_late_lint_pass(box transmuting_null::TransmutingNull);
     reg.register_late_lint_pass(box path_buf_push_overwrite::PathBufPushOverwrite);
+    reg.register_late_lint_pass(box small_underscore_scope::Pass);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -634,6 +636,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         non_expressive_names::SIMILAR_NAMES,
         replace_consts::REPLACE_CONSTS,
         shadow::SHADOW_UNRELATED,
+        small_underscore_scope::SMALL_UNDERSCORE_SCOPE,
         strings::STRING_ADD_ASSIGN,
         types::CAST_POSSIBLE_TRUNCATION,
         types::CAST_POSSIBLE_WRAP,

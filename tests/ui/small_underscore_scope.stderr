@@ -1,0 +1,16 @@
+error: this underscore binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:11:5
+   |
+LL |     let NewType(_) = n;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `let _ = n;`
+   |
+   = note: `-D clippy::small-underscore-scope` implied by `-D warnings`
+
+error: this underscore binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:12:5
+   |
+LL |     let (_, _) = t;
+   |     ^^^^^^^^^^^^^^^ help: try: `let _ = t;`
+
+error: aborting due to 2 previous errors
+
