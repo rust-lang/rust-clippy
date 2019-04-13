@@ -10,7 +10,7 @@ declare_clippy_lint! {
     /// 
     /// **Why is this bad?** The extra binding information is meaningless and makes the code harder to read.
     /// 
-    /// **Known problems:** None.
+    /// **Known problems:** Won't catch bindings that look like `let (x, (_, _)) = t;`.
     /// 
     /// **Example:**
     /// 
