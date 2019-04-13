@@ -7,18 +7,18 @@ use syntax::ast::{PatKind, Stmt, StmtKind};
 
 declare_clippy_lint! {
     /// **What is does:** Checks for underscore bindings inside a struct or tuple which could encompass the entire binding.
-    /// 
+    ///
     /// **Why is this bad?** The extra binding information is meaningless and makes the code harder to read.
-    /// 
+    ///
     /// **Known problems:** Won't catch bindings that look like `let (x, (_, _)) = t;`.
-    /// 
+    ///
     /// **Example:**
-    /// 
+    ///
     /// ```rust,ignore
     /// // Bad
     /// let t = (1, 2);
     /// let (_, _) = t;
-    /// 
+    ///
     /// // Good
     /// let t = (1, 2);
     /// let _ = t;
