@@ -1,16 +1,40 @@
-error: this underscore binding could have a wider scope
-  --> $DIR/small_underscore_scope.rs:11:5
+error: this wildcard binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:15:9
    |
 LL |     let NewType(_) = n;
-   |     ^^^^^^^^^^^^^^^^^^^ help: try: `let _ = n;`
+   |         ^^^^^^^^^^ help: try: `_`
    |
    = note: `-D clippy::small-underscore-scope` implied by `-D warnings`
 
-error: this underscore binding could have a wider scope
-  --> $DIR/small_underscore_scope.rs:12:5
+error: this wildcard binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:16:9
+   |
+LL |     let NewType(..) = n;
+   |         ^^^^^^^^^^^ help: try: `_`
+
+error: this wildcard binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:19:9
    |
 LL |     let (_, _) = t;
-   |     ^^^^^^^^^^^^^^^ help: try: `let _ = t;`
+   |         ^^^^^^ help: try: `_`
 
-error: aborting due to 2 previous errors
+error: this wildcard binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:20:9
+   |
+LL |     let (..) = t;
+   |         ^^^^ help: try: `_`
+
+error: this wildcard binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:23:14
+   |
+LL |     let (_x, (_, _)) = t2;
+   |              ^^^^^^ help: try: `_`
+
+error: this wildcard binding could have a wider scope
+  --> $DIR/small_underscore_scope.rs:26:9
+   |
+LL |     let Foo { .. } = f;
+   |         ^^^^^^^^^^ help: try: `_`
+
+error: aborting due to 6 previous errors
 
