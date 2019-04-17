@@ -74,6 +74,7 @@ fn main() {
     } else {
         "no"
     };
+    issue3973();
 }
 
 #[allow(dead_code)]
@@ -110,4 +111,9 @@ fn issue3703() {
     if false != Foo {}
     if Foo < false {}
     if false < Foo {}
+}
+
+fn issue3973() {
+    let abc = false;
+    if abc == cfg!(feature = "debugging") {}
 }

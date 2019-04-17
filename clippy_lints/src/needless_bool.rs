@@ -226,6 +226,11 @@ fn check_comparison<'a, 'tcx>(
 
     if let ExprKind::Binary(_, ref left_side, ref right_side) = e.node {
         let (l_ty, r_ty) = (cx.tables.expr_ty(left_side), cx.tables.expr_ty(right_side));
+
+        if in_macro(left_side.span) || in_macro(right_side.span) {
+            return;
+        }
+
         if l_ty.is_bool() && r_ty.is_bool() {
             let mut applicability = Applicability::MachineApplicable;
             match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
