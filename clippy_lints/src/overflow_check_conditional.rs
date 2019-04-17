@@ -1,30 +1,21 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
 use crate::utils::{span_lint, SpanlessEq};
 use if_chain::if_chain;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
 
-/// **What it does:** Detects classic underflow/overflow checks.
-///
-/// **Why is this bad?** Most classic C underflow/overflow checks will fail in
-/// Rust. Users can use functions like `overflowing_*` and `wrapping_*` instead.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// a + b < a
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Detects classic underflow/overflow checks.
+    ///
+    /// **Why is this bad?** Most classic C underflow/overflow checks will fail in
+    /// Rust. Users can use functions like `overflowing_*` and `wrapping_*` instead.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// a + b < a
+    /// ```
     pub OVERFLOW_CHECK_CONDITIONAL,
     complexity,
     "overflow checks inspired by C which are likely to panic"
@@ -36,6 +27,10 @@ pub struct OverflowCheckConditional;
 impl LintPass for OverflowCheckConditional {
     fn get_lints(&self) -> LintArray {
         lint_array!(OVERFLOW_CHECK_CONDITIONAL)
+    }
+
+    fn name(&self) -> &'static str {
+        "OverflowCheckConditional"
     }
 }
 

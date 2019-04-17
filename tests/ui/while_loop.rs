@@ -1,14 +1,5 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 #![warn(clippy::while_let_loop, clippy::empty_loop, clippy::while_let_on_iterator)]
-#![allow(dead_code, clippy::never_loop, unused, clippy::cyclomatic_complexity)]
+#![allow(dead_code, clippy::never_loop, unused, clippy::cognitive_complexity)]
 
 fn main() {
     let y = Some(true);
@@ -127,7 +118,7 @@ fn main() {
 
 // regression test (#360)
 // this should not panic
-// it's okay if further iterations of the lint
+// it's ok if further iterations of the lint
 // cause this function to trigger it
 fn no_panic<T>(slice: &[T]) {
     let mut iter = slice.iter();
@@ -224,5 +215,15 @@ fn refutable() {
     // See #2965
     while let Some(..) = values.iter().next() {
         values.remove(&1);
+    }
+
+    // Issue 3670
+    {
+        let array = [Some(0), None, Some(1)];
+        let mut iter = array.iter();
+
+        while let Some(elem) = iter.next() {
+            let _ = elem.or_else(|| *iter.next()?);
+        }
     }
 }

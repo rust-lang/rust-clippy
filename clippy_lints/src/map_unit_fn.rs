@@ -1,86 +1,77 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::source_map::Span;
 use crate::utils::paths;
 use crate::utils::{in_macro, iter_input_pats, match_type, method_chain_args, snippet, span_lint_and_then};
 use if_chain::if_chain;
+use rustc::hir;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty::{self, Ty};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::source_map::Span;
 
 #[derive(Clone)]
 pub struct Pass;
 
-/// **What it does:** Checks for usage of `option.map(f)` where f is a function
-/// or closure that returns the unit type.
-///
-/// **Why is this bad?** Readability, this can be written more clearly with
-/// an if let statement
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// let x: Option<&str> = do_stuff();
-/// x.map(log_err_msg);
-/// x.map(|msg| log_err_msg(format_msg(msg)))
-/// ```
-///
-/// The correct use would be:
-///
-/// ```rust
-/// let x: Option<&str> = do_stuff();
-/// if let Some(msg) = x {
-///     log_err_msg(msg)
-/// }
-/// if let Some(msg) = x {
-///     log_err_msg(format_msg(msg))
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `option.map(f)` where f is a function
+    /// or closure that returns the unit type.
+    ///
+    /// **Why is this bad?** Readability, this can be written more clearly with
+    /// an if let statement
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// let x: Option<&str> = do_stuff();
+    /// x.map(log_err_msg);
+    /// x.map(|msg| log_err_msg(format_msg(msg)))
+    /// ```
+    ///
+    /// The correct use would be:
+    ///
+    /// ```rust
+    /// let x: Option<&str> = do_stuff();
+    /// if let Some(msg) = x {
+    ///     log_err_msg(msg)
+    /// }
+    /// if let Some(msg) = x {
+    ///     log_err_msg(format_msg(msg))
+    /// }
+    /// ```
     pub OPTION_MAP_UNIT_FN,
     complexity,
     "using `option.map(f)`, where f is a function or closure that returns ()"
 }
 
-/// **What it does:** Checks for usage of `result.map(f)` where f is a function
-/// or closure that returns the unit type.
-///
-/// **Why is this bad?** Readability, this can be written more clearly with
-/// an if let statement
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// let x: Result<&str, &str> = do_stuff();
-/// x.map(log_err_msg);
-/// x.map(|msg| log_err_msg(format_msg(msg)))
-/// ```
-///
-/// The correct use would be:
-///
-/// ```rust
-/// let x: Result<&str, &str> = do_stuff();
-/// if let Ok(msg) = x {
-///     log_err_msg(msg)
-/// }
-/// if let Ok(msg) = x {
-///     log_err_msg(format_msg(msg))
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `result.map(f)` where f is a function
+    /// or closure that returns the unit type.
+    ///
+    /// **Why is this bad?** Readability, this can be written more clearly with
+    /// an if let statement
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// let x: Result<&str, &str> = do_stuff();
+    /// x.map(log_err_msg);
+    /// x.map(|msg| log_err_msg(format_msg(msg)))
+    /// ```
+    ///
+    /// The correct use would be:
+    ///
+    /// ```rust
+    /// let x: Result<&str, &str> = do_stuff();
+    /// if let Ok(msg) = x {
+    ///     log_err_msg(msg)
+    /// }
+    /// if let Ok(msg) = x {
+    ///     log_err_msg(format_msg(msg))
+    /// }
+    /// ```
     pub RESULT_MAP_UNIT_FN,
     complexity,
     "using `result.map(f)`, where f is a function or closure that returns ()"
@@ -90,9 +81,13 @@ impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(OPTION_MAP_UNIT_FN, RESULT_MAP_UNIT_FN)
     }
+
+    fn name(&self) -> &'static str {
+        "MapUnit"
+    }
 }
 
-fn is_unit_type(ty: ty::Ty<'_>) -> bool {
+fn is_unit_type(ty: Ty<'_>) -> bool {
     match ty.sty {
         ty::Tuple(slice) => slice.is_empty(),
         ty::Never => true,
@@ -140,9 +135,10 @@ fn reduce_unit_expression<'a>(cx: &LateContext<'_, '_>, expr: &'a hir::Expr) -> 
                     // If block only contains statements,
                     // reduce `{ X; }` to `X` or `X;`
                     match inner_stmt.node {
-                        hir::StmtKind::Decl(ref d, _) => Some(d.span),
-                        hir::StmtKind::Expr(ref e, _) => Some(e.span),
-                        hir::StmtKind::Semi(_, _) => Some(inner_stmt.span),
+                        hir::StmtKind::Local(ref local) => Some(local.span),
+                        hir::StmtKind::Expr(ref e) => Some(e.span),
+                        hir::StmtKind::Semi(..) => Some(inner_stmt.span),
+                        hir::StmtKind::Item(..) => None,
                     }
                 },
                 _ => {
@@ -220,7 +216,7 @@ fn lint_map_unit_fn(cx: &LateContext<'_, '_>, stmt: &hir::Stmt, expr: &hir::Expr
         );
 
         span_lint_and_then(cx, lint, expr.span, &msg, |db| {
-            db.span_suggestion_with_applicability(stmt.span, "try this", suggestion, Applicability::Unspecified);
+            db.span_suggestion(stmt.span, "try this", suggestion, Applicability::Unspecified);
         });
     } else if let Some((binding, closure_expr)) = unit_closure(cx, fn_arg) {
         let msg = suggestion_msg("closure", map_type);
@@ -234,7 +230,7 @@ fn lint_map_unit_fn(cx: &LateContext<'_, '_>, stmt: &hir::Stmt, expr: &hir::Expr
                     snippet(cx, var_arg.span, "_"),
                     snippet(cx, reduced_expr_span, "_")
                 );
-                db.span_suggestion_with_applicability(
+                db.span_suggestion(
                     stmt.span,
                     "try this",
                     suggestion,
@@ -247,7 +243,7 @@ fn lint_map_unit_fn(cx: &LateContext<'_, '_>, stmt: &hir::Stmt, expr: &hir::Expr
                     snippet(cx, binding.pat.span, "_"),
                     snippet(cx, var_arg.span, "_")
                 );
-                db.span_suggestion_with_applicability(stmt.span, "try this", suggestion, Applicability::Unspecified);
+                db.span_suggestion(stmt.span, "try this", suggestion, Applicability::Unspecified);
             }
         });
     }
@@ -259,7 +255,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             return;
         }
 
-        if let hir::StmtKind::Semi(ref expr, _) = stmt.node {
+        if let hir::StmtKind::Semi(ref expr) = stmt.node {
             if let Some(arglists) = method_chain_args(expr, &["map"]) {
                 lint_map_unit_fn(cx, stmt, expr, arglists[0]);
             }

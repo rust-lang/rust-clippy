@@ -1,112 +1,103 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! Lints concerned with the grouping of digits with underscores in integral or
 //! floating-point literal expressions.
 
-use crate::rustc::lint::{in_external_macro, EarlyContext, EarlyLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::*;
-use crate::syntax_pos;
 use crate::utils::{snippet_opt, span_lint_and_sugg};
 use if_chain::if_chain;
+use rustc::lint::{in_external_macro, EarlyContext, EarlyLintPass, LintArray, LintContext, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::*;
+use syntax_pos;
 
-/// **What it does:** Warns if a long integral or floating-point constant does
-/// not contain underscores.
-///
-/// **Why is this bad?** Reading long numbers is difficult without separators.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// 61864918973511
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Warns if a long integral or floating-point constant does
+    /// not contain underscores.
+    ///
+    /// **Why is this bad?** Reading long numbers is difficult without separators.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// let x: u64 = 61864918973511;
+    /// ```
     pub UNREADABLE_LITERAL,
     style,
     "long integer literal without underscores"
 }
 
-/// **What it does:** Warns for mistyped suffix in literals
-///
-/// **Why is this bad?** This is most probably a typo
-///
-/// **Known problems:**
-/// 		- Recommends a signed suffix, even though the number might be too big and an unsigned
-///		suffix is required
-/// 		- Does not match on `_128` since that is a valid grouping for decimal and octal numbers
-///
-/// **Example:**
-///
-/// ```rust
-/// 2_32
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Warns for mistyped suffix in literals
+    ///
+    /// **Why is this bad?** This is most probably a typo
+    ///
+    /// **Known problems:**
+    /// 		- Recommends a signed suffix, even though the number might be too big and an unsigned
+    ///		suffix is required
+    /// 		- Does not match on `_128` since that is a valid grouping for decimal and octal numbers
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// 2_32;
+    /// ```
     pub MISTYPED_LITERAL_SUFFIXES,
     correctness,
     "mistyped literal suffix"
 }
 
-/// **What it does:** Warns if an integral or floating-point constant is
-/// grouped inconsistently with underscores.
-///
-/// **Why is this bad?** Readers may incorrectly interpret inconsistently
-/// grouped digits.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// 618_64_9189_73_511
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Warns if an integral or floating-point constant is
+    /// grouped inconsistently with underscores.
+    ///
+    /// **Why is this bad?** Readers may incorrectly interpret inconsistently
+    /// grouped digits.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// let x: u64 = 618_64_9189_73_511;
+    /// ```
     pub INCONSISTENT_DIGIT_GROUPING,
     style,
     "integer literals with digits grouped inconsistently"
 }
 
-/// **What it does:** Warns if the digits of an integral or floating-point
-/// constant are grouped into groups that
-/// are too large.
-///
-/// **Why is this bad?** Negatively impacts readability.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// 6186491_8973511
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Warns if the digits of an integral or floating-point
+    /// constant are grouped into groups that
+    /// are too large.
+    ///
+    /// **Why is this bad?** Negatively impacts readability.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// let x: u64 = 6186491_8973511;
+    /// ```
     pub LARGE_DIGIT_GROUPS,
     pedantic,
     "grouping digits into groups that are too large"
 }
 
-/// **What it does:** Warns if there is a better representation for a numeric literal.
-///
-/// **Why is this bad?** Especially for big powers of 2 a hexadecimal representation is more
-/// readable than a decimal representation.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// `255` => `0xFF`
-/// `65_535` => `0xFFFF`
-/// `4_042_322_160` => `0xF0F0_F0F0`
 declare_clippy_lint! {
+    /// **What it does:** Warns if there is a better representation for a numeric literal.
+    ///
+    /// **Why is this bad?** Especially for big powers of 2 a hexadecimal representation is more
+    /// readable than a decimal representation.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// `255` => `0xFF`
+    /// `65_535` => `0xFFFF`
+    /// `4_042_322_160` => `0xF0F0_F0F0`
     pub DECIMAL_LITERAL_REPRESENTATION,
     restriction,
     "using decimal representation when hexadecimal would be better"
@@ -121,7 +112,7 @@ pub(super) enum Radix {
 }
 
 impl Radix {
-    /// Return a reasonable digit group size for this radix.
+    /// Returns a reasonable digit group size for this radix.
     crate fn suggest_grouping(&self) -> usize {
         match *self {
             Radix::Binary | Radix::Hexadecimal => 4,
@@ -355,6 +346,10 @@ impl LintPass for LiteralDigitGrouping {
             MISTYPED_LITERAL_SUFFIXES,
         )
     }
+
+    fn name(&self) -> &'static str {
+        "LiteralDigitGrouping"
+    }
 }
 
 impl EarlyLintPass for LiteralDigitGrouping {
@@ -502,6 +497,10 @@ impl LintPass for LiteralRepresentation {
     fn get_lints(&self) -> LintArray {
         lint_array!(DECIMAL_LITERAL_REPRESENTATION)
     }
+
+    fn name(&self) -> &'static str {
+        "DecimalLiteralRepresentation"
+    }
 }
 
 impl EarlyLintPass for LiteralRepresentation {
@@ -527,23 +526,20 @@ impl LiteralRepresentation {
             if let Some(src) = snippet_opt(cx, lit.span);
             if let Some(firstch) = src.chars().next();
             if char::to_digit(firstch, 10).is_some();
+            let digit_info = DigitInfo::new(&src, false);
+            if digit_info.radix == Radix::Decimal;
+            if let Ok(val) = digit_info.digits
+                .chars()
+                .filter(|&c| c != '_')
+                .collect::<String>()
+                .parse::<u128>();
+            if val >= u128::from(self.threshold);
             then {
-                let digit_info = DigitInfo::new(&src, false);
-                if digit_info.radix == Radix::Decimal {
-                    let val = digit_info.digits
-                        .chars()
-                        .filter(|&c| c != '_')
-                        .collect::<String>()
-                        .parse::<u128>().unwrap();
-                    if val < u128::from(self.threshold) {
-                        return
-                    }
-                    let hex = format!("{:#X}", val);
-                    let digit_info = DigitInfo::new(&hex[..], false);
-                    let _ = Self::do_lint(digit_info.digits).map_err(|warning_type| {
-                        warning_type.display(&digit_info.grouping_hint(), cx, lit.span)
-                    });
-                }
+                let hex = format!("{:#X}", val);
+                let digit_info = DigitInfo::new(&hex, false);
+                let _ = Self::do_lint(digit_info.digits).map_err(|warning_type| {
+                    warning_type.display(&digit_info.grouping_hint(), cx, lit.span)
+                });
             }
         }
     }

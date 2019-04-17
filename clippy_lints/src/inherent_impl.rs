@@ -1,49 +1,40 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! lint on inherent implementations
 
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_data_structures::fx::FxHashMap;
-use crate::syntax_pos::Span;
 use crate::utils::span_lint_and_then;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_data_structures::fx::FxHashMap;
 use std::default::Default;
+use syntax_pos::Span;
 
-/// **What it does:** Checks for multiple inherent implementations of a struct
-///
-/// **Why is this bad?** Splitting the implementation of a type makes the code harder to navigate.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// struct X;
-/// impl X {
-///     fn one() {}
-/// }
-/// impl X {
-///     fn other() {}
-/// }
-/// ```
-///
-/// Could be written:
-///
-/// ```rust
-/// struct X;
-/// impl X {
-///     fn one() {}
-///     fn other() {}
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for multiple inherent implementations of a struct
+    ///
+    /// **Why is this bad?** Splitting the implementation of a type makes the code harder to navigate.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// struct X;
+    /// impl X {
+    ///     fn one() {}
+    /// }
+    /// impl X {
+    ///     fn other() {}
+    /// }
+    /// ```
+    ///
+    /// Could be written:
+    ///
+    /// ```rust
+    /// struct X;
+    /// impl X {
+    ///     fn one() {}
+    ///     fn other() {}
+    /// }
+    /// ```
     pub MULTIPLE_INHERENT_IMPL,
     restriction,
     "Multiple inherent impl that could be grouped"
@@ -64,6 +55,10 @@ impl Default for Pass {
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(MULTIPLE_INHERENT_IMPL)
+    }
+
+    fn name(&self) -> &'static str {
+        "MultipleInherientImpl"
     }
 }
 

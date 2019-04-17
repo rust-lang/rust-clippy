@@ -1,58 +1,49 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! Checks for uses of mutex where an atomic value could be used
 //!
 //! This lint is **warn** by default
 
-use crate::rustc::hir::Expr;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty::{self, Ty};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast;
 use crate::utils::{match_type, paths, span_lint};
+use rustc::hir::Expr;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty::{self, Ty};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast;
 
-/// **What it does:** Checks for usages of `Mutex<X>` where an atomic will do.
-///
-/// **Why is this bad?** Using a mutex just to make access to a plain bool or
-/// reference sequential is shooting flies with cannons.
-/// `std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and
-/// faster.
-///
-/// **Known problems:** This lint cannot detect if the mutex is actually used
-/// for waiting before a critical section.
-///
-/// **Example:**
-/// ```rust
-/// let x = Mutex::new(&y);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for usages of `Mutex<X>` where an atomic will do.
+    ///
+    /// **Why is this bad?** Using a mutex just to make access to a plain bool or
+    /// reference sequential is shooting flies with cannons.
+    /// `std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and
+    /// faster.
+    ///
+    /// **Known problems:** This lint cannot detect if the mutex is actually used
+    /// for waiting before a critical section.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = Mutex::new(&y);
+    /// ```
     pub MUTEX_ATOMIC,
     perf,
     "using a mutex where an atomic value could be used instead"
 }
 
-/// **What it does:** Checks for usages of `Mutex<X>` where `X` is an integral
-/// type.
-///
-/// **Why is this bad?** Using a mutex just to make access to a plain integer
-/// sequential is
-/// shooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.
-///
-/// **Known problems:** This lint cannot detect if the mutex is actually used
-/// for waiting before a critical section.
-///
-/// **Example:**
-/// ```rust
-/// let x = Mutex::new(0usize);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for usages of `Mutex<X>` where `X` is an integral
+    /// type.
+    ///
+    /// **Why is this bad?** Using a mutex just to make access to a plain integer
+    /// sequential is
+    /// shooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.
+    ///
+    /// **Known problems:** This lint cannot detect if the mutex is actually used
+    /// for waiting before a critical section.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = Mutex::new(0usize);
+    /// ```
     pub MUTEX_INTEGER,
     nursery,
     "using a mutex for an integer type"
@@ -61,6 +52,10 @@ declare_clippy_lint! {
 impl LintPass for MutexAtomic {
     fn get_lints(&self) -> LintArray {
         lint_array!(MUTEX_ATOMIC, MUTEX_INTEGER)
+    }
+
+    fn name(&self) -> &'static str {
+        "Mutex"
     }
 }
 

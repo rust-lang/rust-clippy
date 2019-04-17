@@ -1,41 +1,32 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::*;
 use crate::utils::span_lint_and_sugg;
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::*;
 
-/// **What it does:** Checks for fields in struct literals where shorthands
-/// could be used.
-///
-/// **Why is this bad?** If the field and variable names are the same,
-/// the field name is redundant.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let bar: u8 = 123;
-///
-/// struct Foo {
-///     bar: u8,
-/// }
-///
-/// let foo = Foo{ bar: bar }
-/// ```
-/// the last line can be simplified to
-/// ```rust
-/// let foo = Foo{ bar }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for fields in struct literals where shorthands
+    /// could be used.
+    ///
+    /// **Why is this bad?** If the field and variable names are the same,
+    /// the field name is redundant.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let bar: u8 = 123;
+    ///
+    /// struct Foo {
+    ///     bar: u8,
+    /// }
+    ///
+    /// let foo = Foo { bar: bar };
+    /// ```
+    /// the last line can be simplified to
+    /// ```ignore
+    /// let foo = Foo { bar };
+    /// ```
     pub REDUNDANT_FIELD_NAMES,
     style,
     "checks for fields in struct literals where shorthands could be used"
@@ -46,6 +37,10 @@ pub struct RedundantFieldNames;
 impl LintPass for RedundantFieldNames {
     fn get_lints(&self) -> LintArray {
         lint_array!(REDUNDANT_FIELD_NAMES)
+    }
+
+    fn name(&self) -> &'static str {
+        "RedundantFieldNames"
     }
 }
 

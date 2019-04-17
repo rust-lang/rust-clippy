@@ -1,233 +1,232 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+use if_chain::if_chain;
+use matches::matches;
+use rustc::hir::intravisit::FnKind;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::LitKind;
+use syntax::source_map::{ExpnFormat, Span};
 
 use crate::consts::{constant, Constant};
-use crate::reexport::*;
-use crate::rustc::hir::intravisit::FnKind;
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::LitKind;
-use crate::syntax::source_map::{ExpnFormat, Span};
 use crate::utils::sugg::Sugg;
 use crate::utils::{
     get_item_name, get_parent_expr, implements_trait, in_constant, in_macro, is_integer_literal, iter_input_pats,
     last_path_segment, match_qpath, match_trait_method, paths, snippet, span_lint, span_lint_and_then, walk_ptrs_ty,
     SpanlessEq,
 };
-use if_chain::if_chain;
-use matches::matches;
 
-/// **What it does:** Checks for function arguments and let bindings denoted as
-/// `ref`.
-///
-/// **Why is this bad?** The `ref` declaration makes the function take an owned
-/// value, but turns the argument into a reference (which means that the value
-/// is destroyed when exiting the function). This adds not much value: either
-/// take a reference type, or take an owned value and create references in the
-/// body.
-///
-/// For let bindings, `let x = &foo;` is preferred over `let ref x = foo`. The
-/// type of `x` is more obvious with the former.
-///
-/// **Known problems:** If the argument is dereferenced within the function,
-/// removing the `ref` will lead to errors. This can be fixed by removing the
-/// dereferences, e.g. changing `*x` to `x` within the function.
-///
-/// **Example:**
-/// ```rust
-/// fn foo(ref x: u8) -> bool {
-///     ..
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for function arguments and let bindings denoted as
+    /// `ref`.
+    ///
+    /// **Why is this bad?** The `ref` declaration makes the function take an owned
+    /// value, but turns the argument into a reference (which means that the value
+    /// is destroyed when exiting the function). This adds not much value: either
+    /// take a reference type, or take an owned value and create references in the
+    /// body.
+    ///
+    /// For let bindings, `let x = &foo;` is preferred over `let ref x = foo`. The
+    /// type of `x` is more obvious with the former.
+    ///
+    /// **Known problems:** If the argument is dereferenced within the function,
+    /// removing the `ref` will lead to errors. This can be fixed by removing the
+    /// dereferences, e.g., changing `*x` to `x` within the function.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn foo(ref x: u8) -> bool {
+    ///     true
+    /// }
+    /// ```
     pub TOPLEVEL_REF_ARG,
     style,
     "an entire binding declared as `ref`, in a function argument or a `let` statement"
 }
 
-/// **What it does:** Checks for comparisons to NaN.
-///
-/// **Why is this bad?** NaN does not compare meaningfully to anything – not
-/// even itself – so those comparisons are simply wrong.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// x == NAN
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for comparisons to NaN.
+    ///
+    /// **Why is this bad?** NaN does not compare meaningfully to anything – not
+    /// even itself – so those comparisons are simply wrong.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # use core::f32::NAN;
+    /// # let x = 1.0;
+    ///
+    /// if x == NAN { }
+    /// ```
     pub CMP_NAN,
     correctness,
     "comparisons to NAN, which will always return false, probably not intended"
 }
 
-/// **What it does:** Checks for (in-)equality comparisons on floating-point
-/// values (apart from zero), except in functions called `*eq*` (which probably
-/// implement equality for a type involving floats).
-///
-/// **Why is this bad?** Floating point calculations are usually imprecise, so
-/// asking if two values are *exactly* equal is asking for trouble. For a good
-/// guide on what to do, see [the floating point
-/// guide](http://www.floating-point-gui.de/errors/comparison).
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// y == 1.23f64
-/// y != x  // where both are floats
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for (in-)equality comparisons on floating-point
+    /// values (apart from zero), except in functions called `*eq*` (which probably
+    /// implement equality for a type involving floats).
+    ///
+    /// **Why is this bad?** Floating point calculations are usually imprecise, so
+    /// asking if two values are *exactly* equal is asking for trouble. For a good
+    /// guide on what to do, see [the floating point
+    /// guide](http://www.floating-point-gui.de/errors/comparison).
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = 1.2331f64;
+    /// let y = 1.2332f64;
+    /// if y == 1.23f64 { }
+    /// if y != x {} // where both are floats
+    /// ```
     pub FLOAT_CMP,
     correctness,
     "using `==` or `!=` on float values instead of comparing difference with an epsilon"
 }
 
-/// **What it does:** Checks for conversions to owned values just for the sake
-/// of a comparison.
-///
-/// **Why is this bad?** The comparison can operate on a reference, so creating
-/// an owned value effectively throws it away directly afterwards, which is
-/// needlessly consuming code and heap space.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// x.to_owned() == y
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for conversions to owned values just for the sake
+    /// of a comparison.
+    ///
+    /// **Why is this bad?** The comparison can operate on a reference, so creating
+    /// an owned value effectively throws it away directly afterwards, which is
+    /// needlessly consuming code and heap space.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// x.to_owned() == y
+    /// ```
     pub CMP_OWNED,
     perf,
-    "creating owned instances for comparing with others, e.g. `x == \"foo\".to_string()`"
+    "creating owned instances for comparing with others, e.g., `x == \"foo\".to_string()`"
 }
 
-/// **What it does:** Checks for getting the remainder of a division by one.
-///
-/// **Why is this bad?** The result can only ever be zero. No one will write
-/// such code deliberately, unless trying to win an Underhanded Rust
-/// Contest. Even for that contest, it's probably a bad idea. Use something more
-/// underhanded.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// x % 1
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for getting the remainder of a division by one.
+    ///
+    /// **Why is this bad?** The result can only ever be zero. No one will write
+    /// such code deliberately, unless trying to win an Underhanded Rust
+    /// Contest. Even for that contest, it's probably a bad idea. Use something more
+    /// underhanded.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # let x = 1;
+    /// let a = x % 1;
+    /// ```
     pub MODULO_ONE,
     correctness,
     "taking a number modulo 1, which always returns 0"
 }
 
-/// **What it does:** Checks for patterns in the form `name @ _`.
-///
-/// **Why is this bad?** It's almost always more readable to just use direct
-/// bindings.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// match v {
-///     Some(x) => (),
-///     y @ _ => (), // easier written as `y`,
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for patterns in the form `name @ _`.
+    ///
+    /// **Why is this bad?** It's almost always more readable to just use direct
+    /// bindings.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # let v = Some("abc");
+    ///
+    /// match v {
+    ///     Some(x) => (),
+    ///     y @ _ => (), // easier written as `y`,
+    /// }
+    /// ```
     pub REDUNDANT_PATTERN,
     style,
     "using `name @ _` in a pattern"
 }
 
-/// **What it does:** Checks for the use of bindings with a single leading
-/// underscore.
-///
-/// **Why is this bad?** A single leading underscore is usually used to indicate
-/// that a binding will not be used. Using such a binding breaks this
-/// expectation.
-///
-/// **Known problems:** The lint does not work properly with desugaring and
-/// macro, it has been allowed in the mean time.
-///
-/// **Example:**
-/// ```rust
-/// let _x = 0;
-/// let y = _x + 1; // Here we are using `_x`, even though it has a leading
-///                 // underscore. We should rename `_x` to `x`
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for the use of bindings with a single leading
+    /// underscore.
+    ///
+    /// **Why is this bad?** A single leading underscore is usually used to indicate
+    /// that a binding will not be used. Using such a binding breaks this
+    /// expectation.
+    ///
+    /// **Known problems:** The lint does not work properly with desugaring and
+    /// macro, it has been allowed in the mean time.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let _x = 0;
+    /// let y = _x + 1; // Here we are using `_x`, even though it has a leading
+    ///                 // underscore. We should rename `_x` to `x`
+    /// ```
     pub USED_UNDERSCORE_BINDING,
     pedantic,
     "using a binding which is prefixed with an underscore"
 }
 
-/// **What it does:** Checks for the use of short circuit boolean conditions as
-/// a
-/// statement.
-///
-/// **Why is this bad?** Using a short circuit boolean condition as a statement
-/// may hide the fact that the second part is executed or not depending on the
-/// outcome of the first part.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// f() && g(); // We should write `if f() { g(); }`.
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for the use of short circuit boolean conditions as
+    /// a
+    /// statement.
+    ///
+    /// **Why is this bad?** Using a short circuit boolean condition as a statement
+    /// may hide the fact that the second part is executed or not depending on the
+    /// outcome of the first part.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// f() && g(); // We should write `if f() { g(); }`.
+    /// ```
     pub SHORT_CIRCUIT_STATEMENT,
     complexity,
     "using a short circuit boolean condition as a statement"
 }
 
-/// **What it does:** Catch casts from `0` to some pointer type
-///
-/// **Why is this bad?** This generally means `null` and is better expressed as
-/// {`std`, `core`}`::ptr::`{`null`, `null_mut`}.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// 0 as *const u32
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Catch casts from `0` to some pointer type
+    ///
+    /// **Why is this bad?** This generally means `null` and is better expressed as
+    /// {`std`, `core`}`::ptr::`{`null`, `null_mut`}.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// let a = 0 as *const u32;
+    /// ```
     pub ZERO_PTR,
     style,
     "using 0 as *{const, mut} T"
 }
 
-/// **What it does:** Checks for (in-)equality comparisons on floating-point
-/// value and constant, except in functions called `*eq*` (which probably
-/// implement equality for a type involving floats).
-///
-/// **Why is this bad?** Floating point calculations are usually imprecise, so
-/// asking if two values are *exactly* equal is asking for trouble. For a good
-/// guide on what to do, see [the floating point
-/// guide](http://www.floating-point-gui.de/errors/comparison).
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// const ONE == 1.00f64
-/// x == ONE  // where both are floats
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for (in-)equality comparisons on floating-point
+    /// value and constant, except in functions called `*eq*` (which probably
+    /// implement equality for a type involving floats).
+    ///
+    /// **Why is this bad?** Floating point calculations are usually imprecise, so
+    /// asking if two values are *exactly* equal is asking for trouble. For a good
+    /// guide on what to do, see [the floating point
+    /// guide](http://www.floating-point-gui.de/errors/comparison).
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// const ONE = 1.00f64;
+    /// x == ONE  // where both are floats
+    /// ```
     pub FLOAT_CMP_CONST,
     restriction,
     "using `==` or `!=` on float constants instead of comparing difference with an epsilon"
@@ -251,6 +250,10 @@ impl LintPass for Pass {
             FLOAT_CMP_CONST
         )
     }
+
+    fn name(&self) -> &'static str {
+        "MiscLints"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
@@ -261,7 +264,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         decl: &'tcx FnDecl,
         body: &'tcx Body,
         _: Span,
-        _: NodeId,
+        _: HirId,
     ) {
         if let FnKind::Closure(_) = k {
             // Does not apply to closures
@@ -269,8 +272,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         }
         for arg in iter_input_pats(decl, body) {
             match arg.pat.node {
-                PatKind::Binding(BindingAnnotation::Ref, _, _, _)
-                | PatKind::Binding(BindingAnnotation::RefMut, _, _, _) => {
+                PatKind::Binding(BindingAnnotation::Ref, ..) | PatKind::Binding(BindingAnnotation::RefMut, ..) => {
                     span_lint(
                         cx,
                         TOPLEVEL_REF_ARG,
@@ -286,9 +288,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
 
     fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, s: &'tcx Stmt) {
         if_chain! {
-            if let StmtKind::Decl(ref d, _) = s.node;
-            if let DeclKind::Local(ref l) = d.node;
-            if let PatKind::Binding(an, _, i, None) = l.pat.node;
+            if let StmtKind::Local(ref l) = s.node;
+            if let PatKind::Binding(an, .., i, None) = l.pat.node;
             if let Some(ref init) = l.init;
             then {
                 if an == BindingAnnotation::Ref || an == BindingAnnotation::RefMut {
@@ -308,7 +309,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                         l.pat.span,
                         "`ref` on an entire `let` pattern is discouraged, take a reference with `&` instead",
                         |db| {
-                            db.span_suggestion_with_applicability(
+                            db.span_suggestion(
                                 s.span,
                                 "try",
                                 format!(
@@ -325,7 +326,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             }
         };
         if_chain! {
-            if let StmtKind::Semi(ref expr, _) = s.node;
+            if let StmtKind::Semi(ref expr) = s.node;
             if let ExprKind::Binary(ref binop, ref a, ref b) = expr.node;
             if binop.node == BinOpKind::And || binop.node == BinOpKind::Or;
             if let Some(sugg) = Sugg::hir_opt(cx, a);
@@ -336,7 +337,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     "boolean short circuit operator in statement may be clearer using an explicit test",
                     |db| {
                         let sugg = if binop.node == BinOpKind::Or { !sugg } else { sugg };
-                        db.span_suggestion_with_applicability(
+                        db.span_suggestion(
                             s.span,
                             "replace it with",
                             format!(
@@ -393,7 +394,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                         let lhs = Sugg::hir(cx, left, "..");
                         let rhs = Sugg::hir(cx, right, "..");
 
-                        db.span_suggestion_with_applicability(
+                        db.span_suggestion(
                             expr.span,
                             "consider comparing them within some error",
                             format!("({}).abs() < error", lhs - rhs),
@@ -451,7 +452,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     }
 
     fn check_pat(&mut self, cx: &LateContext<'a, 'tcx>, pat: &'tcx Pat) {
-        if let PatKind::Binding(_, _, ident, Some(ref right)) = pat.node {
+        if let PatKind::Binding(.., ident, Some(ref right)) = pat.node {
             if let PatKind::Wild = right.node {
                 span_lint(
                     cx,
@@ -468,7 +469,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
 }
 
 fn check_nan(cx: &LateContext<'_, '_>, path: &Path, expr: &Expr) {
-    if !in_constant(cx, expr.id) {
+    if !in_constant(cx, expr.hir_id) {
         if let Some(seg) = path.segments.last() {
             if seg.ident.name == "NAN" {
                 span_lint(
@@ -560,7 +561,7 @@ fn check_to_owned(cx: &LateContext<'_, '_>, expr: &Expr, other: &Expr) {
         lint_span,
         "this creates an owned instance just for comparison",
         |db| {
-            // this also catches PartialEq implementations that call to_owned
+            // This also catches `PartialEq` implementations that call `to_owned`.
             if other_gets_derefed {
                 db.span_label(lint_span, "try implementing the comparison without allocating");
                 return;
@@ -574,7 +575,7 @@ fn check_to_owned(cx: &LateContext<'_, '_>, expr: &Expr, other: &Expr) {
                 snip.to_string()
             };
 
-            db.span_suggestion_with_applicability(
+            db.span_suggestion(
                 lint_span,
                 "try",
                 try_hint,
@@ -598,9 +599,8 @@ fn is_used(cx: &LateContext<'_, '_>, expr: &Expr) -> bool {
     }
 }
 
-/// Test whether an expression is in a macro expansion (e.g. something
-/// generated by
-/// `#[derive(...)`] or the like).
+/// Tests whether an expression is in a macro expansion (e.g., something
+/// generated by `#[derive(...)]` or the like).
 fn in_attributes_expansion(expr: &Expr) -> bool {
     expr.span
         .ctxt()
@@ -609,10 +609,10 @@ fn in_attributes_expansion(expr: &Expr) -> bool {
         .map_or(false, |info| matches!(info.format, ExpnFormat::MacroAttribute(_)))
 }
 
-/// Test whether `def` is a variable defined outside a macro.
+/// Tests whether `def` is a variable defined outside a macro.
 fn non_macro_local(cx: &LateContext<'_, '_>, def: &def::Def) -> bool {
     match *def {
-        def::Def::Local(id) | def::Def::Upvar(id, _, _) => !in_macro(cx.tcx.hir().span(id)),
+        def::Def::Local(id) | def::Def::Upvar(id, _, _) => !in_macro(cx.tcx.hir().span_by_hir_id(id)),
         _ => false,
     }
 }
@@ -623,7 +623,7 @@ fn check_cast(cx: &LateContext<'_, '_>, span: Span, e: &Expr, ty: &Ty) {
         if let ExprKind::Lit(ref lit) = e.node;
         if let LitKind::Int(value, ..) = lit.node;
         if value == 0;
-        if !in_constant(cx, e.id);
+        if !in_constant(cx, e.hir_id);
         then {
             let msg = match mutbl {
                 Mutability::MutMutable => "`0 as *mut _` detected. Consider using `ptr::null_mut()`",

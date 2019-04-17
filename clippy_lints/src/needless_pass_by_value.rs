@@ -1,26 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::intravisit::FnKind;
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::middle::expr_use_visitor as euv;
-use crate::rustc::middle::mem_categorization as mc;
-use crate::rustc::traits;
-use crate::rustc::ty::{self, RegionKind, TypeFoldable};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_data_structures::fx::{FxHashMap, FxHashSet};
-use crate::rustc_errors::Applicability;
-use crate::rustc_target::spec::abi::Abi;
-use crate::syntax::ast::NodeId;
-use crate::syntax::errors::DiagnosticBuilder;
-use crate::syntax_pos::Span;
 use crate::utils::ptr::get_spans;
 use crate::utils::{
     get_trait_def_id, implements_trait, in_macro, is_copy, is_self, match_type, multispan_sugg, paths, snippet,
@@ -28,32 +5,46 @@ use crate::utils::{
 };
 use if_chain::if_chain;
 use matches::matches;
+use rustc::hir::intravisit::FnKind;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::middle::expr_use_visitor as euv;
+use rustc::middle::mem_categorization as mc;
+use rustc::traits;
+use rustc::ty::{self, RegionKind, TypeFoldable};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use rustc_errors::Applicability;
+use rustc_target::spec::abi::Abi;
 use std::borrow::Cow;
+use syntax::ast::Attribute;
+use syntax::errors::DiagnosticBuilder;
+use syntax_pos::Span;
 
-/// **What it does:** Checks for functions taking arguments by value, but not
-/// consuming them in its
-/// body.
-///
-/// **Why is this bad?** Taking arguments by reference is more flexible and can
-/// sometimes avoid
-/// unnecessary allocations.
-///
-/// **Known problems:**
-/// * This lint suggests taking an argument by reference,
-/// however sometimes it is better to let users decide the argument type
-/// (by using `Borrow` trait, for example), depending on how the function is used.
-///
-/// **Example:**
-/// ```rust
-/// fn foo(v: Vec<i32>) {
-///     assert_eq!(v.len(), 42);
-/// }
-/// // should be
-/// fn foo(v: &[i32]) {
-///     assert_eq!(v.len(), 42);
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for functions taking arguments by value, but not
+    /// consuming them in its
+    /// body.
+    ///
+    /// **Why is this bad?** Taking arguments by reference is more flexible and can
+    /// sometimes avoid
+    /// unnecessary allocations.
+    ///
+    /// **Known problems:**
+    /// * This lint suggests taking an argument by reference,
+    /// however sometimes it is better to let users decide the argument type
+    /// (by using `Borrow` trait, for example), depending on how the function is used.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn foo(v: Vec<i32>) {
+    ///     assert_eq!(v.len(), 42);
+    /// }
+    /// // should be
+    /// fn foo(v: &[i32]) {
+    ///     assert_eq!(v.len(), 42);
+    /// }
+    /// ```
     pub NEEDLESS_PASS_BY_VALUE,
     pedantic,
     "functions taking arguments by value, but not consuming them in its body"
@@ -64,6 +55,10 @@ pub struct NeedlessPassByValue;
 impl LintPass for NeedlessPassByValue {
     fn get_lints(&self) -> LintArray {
         lint_array![NEEDLESS_PASS_BY_VALUE]
+    }
+
+    fn name(&self) -> &'static str {
+        "NeedlessPassByValue"
     }
 }
 
@@ -78,6 +73,7 @@ macro_rules! need {
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
+    #[allow(clippy::too_many_lines)]
     fn check_fn(
         &mut self,
         cx: &LateContext<'a, 'tcx>,
@@ -85,7 +81,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
         decl: &'tcx FnDecl,
         body: &'tcx Body,
         span: Span,
-        node_id: NodeId,
+        hir_id: HirId,
     ) {
         if in_macro(span) {
             return;
@@ -93,13 +89,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
 
         match kind {
             FnKind::ItemFn(.., header, _, attrs) => {
-                if header.abi != Abi::Rust {
+                if header.abi != Abi::Rust || requires_exact_signature(attrs) {
                     return;
-                }
-                for a in attrs {
-                    if a.meta_item_list().is_some() && a.name() == "proc_macro_derive" {
-                        return;
-                    }
                 }
             },
             FnKind::Method(..) => (),
@@ -107,7 +98,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
         }
 
         // Exclude non-inherent impls
-        if let Some(Node::Item(item)) = cx.tcx.hir().find(cx.tcx.hir().get_parent_node(node_id)) {
+        if let Some(Node::Item(item)) = cx
+            .tcx
+            .hir()
+            .find_by_hir_id(cx.tcx.hir().get_parent_node_by_hir_id(hir_id))
+        {
             if matches!(item.node, ItemKind::Impl(_, _, _, _, Some(_), _, _) |
                 ItemKind::Trait(..))
             {
@@ -126,7 +121,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
 
         let sized_trait = need!(cx.tcx.lang_items().sized_trait());
 
-        let fn_def_id = cx.tcx.hir().local_def_id(node_id);
+        let fn_def_id = cx.tcx.hir().local_def_id_from_hir_id(hir_id);
 
         let preds = traits::elaborate_predicates(cx.tcx, cx.param_env.caller_bounds.to_vec())
             .filter(|p| !p.is_global())
@@ -168,7 +163,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
 
             // Ignore `self`s.
             if idx == 0 {
-                if let PatKind::Binding(_, _, ident, ..) = arg.pat.node {
+                if let PatKind::Binding(.., ident, _) = arg.pat.node {
                     if ident.as_str() == "self" {
                         continue;
                     }
@@ -177,7 +172,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
 
             //
             // * Exclude a type that is specifically bounded by `Borrow`.
-            // * Exclude a type whose reference also fulfills its bound. (e.g. `std::convert::AsRef`,
+            // * Exclude a type whose reference also fulfills its bound. (e.g., `std::convert::AsRef`,
             //   `serde::Serialize`)
             let (implements_borrow_trait, all_borrowable_trait) = {
                 let preds = preds
@@ -197,7 +192,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                                 .skip(1)
                                 .cloned()
                                 .collect::<Vec<_>>();
-                            implements_trait(cx, cx.tcx.mk_imm_ref(&RegionKind::ReErased, ty), t.def_id(), ty_params)
+                            implements_trait(cx, cx.tcx.mk_imm_ref(&RegionKind::ReEmpty, ty), t.def_id(), ty_params)
                         }),
                 )
             };
@@ -238,11 +233,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                                 .and_then(|ps| ps.args.as_ref())
                                 .map(|params| params.args.iter().find_map(|arg| match arg {
                                     GenericArg::Type(ty) => Some(ty),
-                                    GenericArg::Lifetime(_) => None,
+                                    _ => None,
                                 }).unwrap());
                             then {
                                 let slice_ty = format!("&[{}]", snippet(cx, elem_ty.span, "_"));
-                                db.span_suggestion_with_applicability(
+                                db.span_suggestion(
                                     input.span,
                                     "consider changing the type to",
                                     slice_ty,
@@ -250,7 +245,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                                 );
 
                                 for (span, suggestion) in clone_spans {
-                                    db.span_suggestion_with_applicability(
+                                    db.span_suggestion(
                                         span,
                                         &snippet_opt(cx, span)
                                             .map_or(
@@ -271,7 +266,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                         if match_type(cx, ty, &paths::STRING) {
                             if let Some(clone_spans) =
                                 get_spans(cx, Some(body.id()), idx, &[("clone", ".to_string()"), ("as_str", "")]) {
-                                db.span_suggestion_with_applicability(
+                                db.span_suggestion(
                                     input.span,
                                     "consider changing the type to",
                                     "&str".to_string(),
@@ -279,7 +274,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
                                 );
 
                                 for (span, suggestion) in clone_spans {
-                                    db.span_suggestion_with_applicability(
+                                    db.span_suggestion(
                                         span,
                                         &snippet_opt(cx, span)
                                             .map_or(
@@ -324,12 +319,21 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
     }
 }
 
+/// Functions marked with these attributes must have the exact signature.
+fn requires_exact_signature(attrs: &[Attribute]) -> bool {
+    attrs.iter().any(|attr| {
+        ["proc_macro", "proc_macro_attribute", "proc_macro_derive"]
+            .iter()
+            .any(|&allow| attr.check_name(allow))
+    })
+}
+
 struct MovedVariablesCtxt<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
-    moved_vars: FxHashSet<NodeId>,
+    moved_vars: FxHashSet<HirId>,
     /// Spans which need to be prefixed with `*` for dereferencing the
     /// suggested additional reference.
-    spans_need_deref: FxHashMap<NodeId, FxHashSet<Span>>,
+    spans_need_deref: FxHashMap<HirId, FxHashSet<Span>>,
 }
 
 impl<'a, 'tcx> MovedVariablesCtxt<'a, 'tcx> {
@@ -341,7 +345,7 @@ impl<'a, 'tcx> MovedVariablesCtxt<'a, 'tcx> {
         }
     }
 
-    fn move_common(&mut self, _consume_id: NodeId, _span: Span, cmt: &mc::cmt_<'tcx>) {
+    fn move_common(&mut self, _consume_id: HirId, _span: Span, cmt: &mc::cmt_<'tcx>) {
         let cmt = unwrap_downcast_or_interior(cmt);
 
         if let mc::Categorization::Local(vid) = cmt.cat {
@@ -353,16 +357,16 @@ impl<'a, 'tcx> MovedVariablesCtxt<'a, 'tcx> {
         let cmt = unwrap_downcast_or_interior(cmt);
 
         if let mc::Categorization::Local(vid) = cmt.cat {
-            let mut id = matched_pat.id;
+            let mut id = matched_pat.hir_id;
             loop {
-                let parent = self.cx.tcx.hir().get_parent_node(id);
+                let parent = self.cx.tcx.hir().get_parent_node_by_hir_id(id);
                 if id == parent {
                     // no parent
                     return;
                 }
                 id = parent;
 
-                if let Some(node) = self.cx.tcx.hir().find(id) {
+                if let Some(node) = self.cx.tcx.hir().find_by_hir_id(id) {
                     match node {
                         Node::Expr(e) => {
                             // `match` and `if let`
@@ -377,8 +381,7 @@ impl<'a, 'tcx> MovedVariablesCtxt<'a, 'tcx> {
                         Node::Stmt(s) => {
                             // `let <pat> = x;`
                             if_chain! {
-                                if let StmtKind::Decl(ref decl, _) = s.node;
-                                if let DeclKind::Local(ref local) = decl.node;
+                                if let StmtKind::Local(ref local) = s.node;
                                 then {
                                     self.spans_need_deref
                                         .entry(vid)
@@ -400,7 +403,7 @@ impl<'a, 'tcx> MovedVariablesCtxt<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> euv::Delegate<'tcx> for MovedVariablesCtxt<'a, 'tcx> {
-    fn consume(&mut self, consume_id: NodeId, consume_span: Span, cmt: &mc::cmt_<'tcx>, mode: euv::ConsumeMode) {
+    fn consume(&mut self, consume_id: HirId, consume_span: Span, cmt: &mc::cmt_<'tcx>, mode: euv::ConsumeMode) {
         if let euv::ConsumeMode::Move(_) = mode {
             self.move_common(consume_id, consume_span, cmt);
         }
@@ -408,7 +411,7 @@ impl<'a, 'tcx> euv::Delegate<'tcx> for MovedVariablesCtxt<'a, 'tcx> {
 
     fn matched_pat(&mut self, matched_pat: &Pat, cmt: &mc::cmt_<'tcx>, mode: euv::MatchMode) {
         if let euv::MatchMode::MovingMatch = mode {
-            self.move_common(matched_pat.id, matched_pat.span, cmt);
+            self.move_common(matched_pat.hir_id, matched_pat.span, cmt);
         } else {
             self.non_moving_pat(matched_pat, cmt);
         }
@@ -416,13 +419,13 @@ impl<'a, 'tcx> euv::Delegate<'tcx> for MovedVariablesCtxt<'a, 'tcx> {
 
     fn consume_pat(&mut self, consume_pat: &Pat, cmt: &mc::cmt_<'tcx>, mode: euv::ConsumeMode) {
         if let euv::ConsumeMode::Move(_) = mode {
-            self.move_common(consume_pat.id, consume_pat.span, cmt);
+            self.move_common(consume_pat.hir_id, consume_pat.span, cmt);
         }
     }
 
     fn borrow(
         &mut self,
-        _: NodeId,
+        _: HirId,
         _: Span,
         _: &mc::cmt_<'tcx>,
         _: ty::Region<'_>,
@@ -431,9 +434,9 @@ impl<'a, 'tcx> euv::Delegate<'tcx> for MovedVariablesCtxt<'a, 'tcx> {
     ) {
     }
 
-    fn mutate(&mut self, _: NodeId, _: Span, _: &mc::cmt_<'tcx>, _: euv::MutateMode) {}
+    fn mutate(&mut self, _: HirId, _: Span, _: &mc::cmt_<'tcx>, _: euv::MutateMode) {}
 
-    fn decl_without_init(&mut self, _: NodeId, _: Span) {}
+    fn decl_without_init(&mut self, _: HirId, _: Span) {}
 }
 
 fn unwrap_downcast_or_interior<'a, 'tcx>(mut cmt: &'a mc::cmt_<'tcx>) -> mc::cmt_<'tcx> {

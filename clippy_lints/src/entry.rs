@@ -1,46 +1,37 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::source_map::Span;
 use crate::utils::SpanlessEq;
 use crate::utils::{get_item_name, match_type, paths, snippet, span_lint_and_then, walk_ptrs_ty};
 use if_chain::if_chain;
+use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::source_map::Span;
 
-/// **What it does:** Checks for uses of `contains_key` + `insert` on `HashMap`
-/// or `BTreeMap`.
-///
-/// **Why is this bad?** Using `entry` is more efficient.
-///
-/// **Known problems:** Some false negatives, eg.:
-/// ```rust
-/// let k = &key;
-/// if !m.contains_key(k) {
-///     m.insert(k.clone(), v);
-/// }
-/// ```
-///
-/// **Example:**
-/// ```rust
-/// if !m.contains_key(&k) {
-///     m.insert(k, v)
-/// }
-/// ```
-/// can be rewritten as:
-/// ```rust
-/// m.entry(k).or_insert(v);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for uses of `contains_key` + `insert` on `HashMap`
+    /// or `BTreeMap`.
+    ///
+    /// **Why is this bad?** Using `entry` is more efficient.
+    ///
+    /// **Known problems:** Some false negatives, eg.:
+    /// ```rust
+    /// let k = &key;
+    /// if !m.contains_key(k) {
+    ///     m.insert(k.clone(), v);
+    /// }
+    /// ```
+    ///
+    /// **Example:**
+    /// ```rust
+    /// if !m.contains_key(&k) {
+    ///     m.insert(k, v)
+    /// }
+    /// ```
+    /// can be rewritten as:
+    /// ```rust
+    /// m.entry(k).or_insert(v);
+    /// ```
     pub MAP_ENTRY,
     perf,
     "use of `contains_key` followed by `insert` on a `HashMap` or `BTreeMap`"
@@ -52,6 +43,10 @@ pub struct HashMapLint;
 impl LintPass for HashMapLint {
     fn get_lints(&self) -> LintArray {
         lint_array!(MAP_ENTRY)
+    }
+
+    fn name(&self) -> &'static str {
+        "HashMap"
     }
 }
 
@@ -154,7 +149,7 @@ impl<'a, 'tcx, 'b> Visitor<'tcx> for InsertVisitor<'a, 'tcx, 'b> {
                                            snippet(self.cx, params[1].span, ".."),
                                            snippet(self.cx, params[2].span, ".."));
 
-                        db.span_suggestion_with_applicability(
+                        db.span_suggestion(
                             self.span,
                             "consider using",
                             help,
@@ -166,7 +161,7 @@ impl<'a, 'tcx, 'b> Visitor<'tcx> for InsertVisitor<'a, 'tcx, 'b> {
                                            snippet(self.cx, self.map.span, "map"),
                                            snippet(self.cx, params[1].span, ".."));
 
-                        db.span_suggestion_with_applicability(
+                        db.span_suggestion(
                             self.span,
                             "consider using",
                             help,

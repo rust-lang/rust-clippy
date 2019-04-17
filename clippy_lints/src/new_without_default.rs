@@ -1,94 +1,87 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::hir::def_id::DefId;
-use crate::rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::ty::{self, Ty};
-use crate::rustc::util::nodemap::NodeSet;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::source_map::Span;
 use crate::utils::paths;
 use crate::utils::sugg::DiagnosticBuilderExt;
-use crate::utils::{get_trait_def_id, implements_trait, return_ty, same_tys, span_lint_node_and_then};
+use crate::utils::{get_trait_def_id, implements_trait, return_ty, same_tys, span_lint_hir_and_then};
 use if_chain::if_chain;
+use rustc::hir;
+use rustc::hir::def_id::DefId;
+use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::ty::{self, Ty};
+use rustc::util::nodemap::NodeSet;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::source_map::Span;
 
-/// **What it does:** Checks for types with a `fn new() -> Self` method and no
-/// implementation of
-/// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).
-///
-/// **Why is this bad?** The user might expect to be able to use
-/// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the
-/// type can be constructed without arguments.
-///
-/// **Known problems:** Hopefully none.
-///
-/// **Example:**
-///
-/// ```rust
-/// struct Foo(Bar);
-///
-/// impl Foo {
-///     fn new() -> Self {
-///         Foo(Bar::new())
-///     }
-/// }
-/// ```
-///
-/// Instead, use:
-///
-/// ```rust
-/// struct Foo(Bar);
-///
-/// impl Default for Foo {
-///     fn default() -> Self {
-///         Foo(Bar::new())
-///     }
-/// }
-/// ```
-///
-/// You can also have `new()` call `Default::default()`.
 declare_clippy_lint! {
+    /// **What it does:** Checks for types with a `fn new() -> Self` method and no
+    /// implementation of
+    /// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).
+    ///
+    /// It detects both the case when a manual
+    /// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)
+    /// implementation is required and also when it can be created with
+    /// `#[derive(Default)]`
+    ///
+    /// **Why is this bad?** The user might expect to be able to use
+    /// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the
+    /// type can be constructed without arguments.
+    ///
+    /// **Known problems:** Hopefully none.
+    ///
+    /// **Example:**
+    ///
+    /// ```ignore
+    /// struct Foo(Bar);
+    ///
+    /// impl Foo {
+    ///     fn new() -> Self {
+    ///         Foo(Bar::new())
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Instead, use:
+    ///
+    /// ```ignore
+    /// struct Foo(Bar);
+    ///
+    /// impl Default for Foo {
+    ///     fn default() -> Self {
+    ///         Foo(Bar::new())
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Or, if
+    /// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)
+    /// can be derived by `#[derive(Default)]`:
+    ///
+    /// ```rust
+    /// struct Foo;
+    ///
+    /// impl Foo {
+    ///     fn new() -> Self {
+    ///         Foo
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Instead, use:
+    ///
+    /// ```rust
+    /// #[derive(Default)]
+    /// struct Foo;
+    ///
+    /// impl Foo {
+    ///     fn new() -> Self {
+    ///         Foo
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// You can also have `new()` call `Default::default()`.
     pub NEW_WITHOUT_DEFAULT,
     style,
     "`fn new() -> Self` method without `Default` implementation"
-}
-
-/// **What it does:** Checks for types with a `fn new() -> Self` method
-/// and no implementation of
-/// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html),
-/// where the `Default` can be derived by `#[derive(Default)]`.
-///
-/// **Why is this bad?** The user might expect to be able to use
-/// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the
-/// type can be constructed without arguments.
-///
-/// **Known problems:** Hopefully none.
-///
-/// **Example:**
-///
-/// ```rust
-/// struct Foo;
-///
-/// impl Foo {
-///     fn new() -> Self {
-///         Foo
-///     }
-/// }
-/// ```
-///
-/// Just prepend `#[derive(Default)]` before the `struct` definition.
-declare_clippy_lint! {
-    pub NEW_WITHOUT_DEFAULT_DERIVE,
-    style,
-    "`fn new() -> Self` without `#[derive]`able `Default` implementation"
 }
 
 #[derive(Clone, Default)]
@@ -98,7 +91,11 @@ pub struct NewWithoutDefault {
 
 impl LintPass for NewWithoutDefault {
     fn get_lints(&self) -> LintArray {
-        lint_array!(NEW_WITHOUT_DEFAULT, NEW_WITHOUT_DEFAULT_DERIVE)
+        lint_array!(NEW_WITHOUT_DEFAULT)
+    }
+
+    fn name(&self) -> &'static str {
+        "NewWithoutDefault"
     }
 }
 
@@ -113,7 +110,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NewWithoutDefault {
                     }
                     if let hir::ImplItemKind::Method(ref sig, _) = impl_item.node {
                         let name = impl_item.ident.name;
-                        let id = impl_item.id;
+                        let id = impl_item.hir_id;
                         if sig.header.constness == hir::Constness::Const {
                             // can't be implemented by default
                             return;
@@ -132,7 +129,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NewWithoutDefault {
                             return;
                         }
                         if sig.decl.inputs.is_empty() && name == "new" && cx.access_levels.is_reachable(id) {
-                            let self_did = cx.tcx.hir().local_def_id(cx.tcx.hir().get_parent(id));
+                            let self_did = cx.tcx.hir().local_def_id_from_hir_id(cx.tcx.hir().get_parent_item(id));
                             let self_ty = cx.tcx.type_of(self_did);
                             if_chain! {
                                 if same_tys(cx, self_ty, return_ty(cx, id));
@@ -165,9 +162,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NewWithoutDefault {
                                     }
 
                                     if let Some(sp) = can_derive_default(self_ty, cx, default_trait_id) {
-                                        span_lint_node_and_then(
+                                        span_lint_hir_and_then(
                                             cx,
-                                            NEW_WITHOUT_DEFAULT_DERIVE,
+                                            NEW_WITHOUT_DEFAULT,
                                             id,
                                             impl_item.span,
                                             &format!(
@@ -184,7 +181,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NewWithoutDefault {
                                                 );
                                             });
                                     } else {
-                                        span_lint_node_and_then(
+                                        span_lint_hir_and_then(
                                             cx,
                                             NEW_WITHOUT_DEFAULT,
                                             id,

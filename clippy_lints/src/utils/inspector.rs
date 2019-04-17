@@ -1,38 +1,30 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! checks for attributes
 
-use crate::rustc::hir;
-use crate::rustc::hir::print;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast::Attribute;
 use crate::utils::get_attr;
+use rustc::hir;
+use rustc::hir::print;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::session::Session;
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::Attribute;
 
-/// **What it does:** Dumps every ast/hir node which has the `#[clippy::dump]`
-/// attribute
-///
-/// **Example:**
-/// ```rust
-/// #[clippy::dump]
-/// extern crate foo;
-/// ```
-///
-/// prints
-///
-/// ```
-/// item `foo`
-/// visibility inherited from outer item
-/// extern crate dylib source: "/path/to/foo.so"
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Dumps every ast/hir node which has the `#[clippy::dump]`
+    /// attribute
+    ///
+    /// **Example:**
+    /// ```rust
+    /// #[clippy::dump]
+    /// extern crate foo;
+    /// ```
+    ///
+    /// prints
+    ///
+    /// ```
+    /// item `foo`
+    /// visibility inherited from outer item
+    /// extern crate dylib source: "/path/to/foo.so"
+    /// ```
     pub DEEP_CODE_INSPECTION,
     internal_warn,
     "helper to dump info about code"
@@ -44,18 +36,22 @@ impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(DEEP_CODE_INSPECTION)
     }
+
+    fn name(&self) -> &'static str {
+        "DeepCodeInspector"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::Item) {
-        if !has_attr(&item.attrs) {
+        if !has_attr(cx.sess(), &item.attrs) {
             return;
         }
         print_item(cx, item);
     }
 
     fn check_impl_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::ImplItem) {
-        if !has_attr(&item.attrs) {
+        if !has_attr(cx.sess(), &item.attrs) {
             return;
         }
         println!("impl item `{}`", item.ident.name);
@@ -105,14 +101,14 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     //
 
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr) {
-        if !has_attr(&expr.attrs) {
+        if !has_attr(cx.sess(), &expr.attrs) {
             return;
         }
         print_expr(cx, expr, 0);
     }
 
     fn check_arm(&mut self, cx: &LateContext<'a, 'tcx>, arm: &'tcx hir::Arm) {
-        if !has_attr(&arm.attrs) {
+        if !has_attr(cx.sess(), &arm.attrs) {
             return;
         }
         for pat in &arm.pats {
@@ -127,12 +123,21 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     }
 
     fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, stmt: &'tcx hir::Stmt) {
-        if !has_attr(stmt.node.attrs()) {
+        if !has_attr(cx.sess(), stmt.node.attrs()) {
             return;
         }
         match stmt.node {
-            hir::StmtKind::Decl(ref decl, _) => print_decl(cx, decl),
-            hir::StmtKind::Expr(ref e, _) | hir::StmtKind::Semi(ref e, _) => print_expr(cx, e, 0),
+            hir::StmtKind::Local(ref local) => {
+                println!("local variable of type {}", cx.tables.node_type(local.hir_id));
+                println!("pattern:");
+                print_pat(cx, &local.pat, 0);
+                if let Some(ref e) = local.init {
+                    println!("init expression:");
+                    print_expr(cx, e, 0);
+                }
+            },
+            hir::StmtKind::Item(_) => println!("item decl"),
+            hir::StmtKind::Expr(ref e) | hir::StmtKind::Semi(ref e) => print_expr(cx, e, 0),
         }
     }
     // fn check_foreign_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx
@@ -144,23 +149,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     //
 }
 
-fn has_attr(attrs: &[Attribute]) -> bool {
-    get_attr(attrs, "dump").count() > 0
-}
-
-fn print_decl(cx: &LateContext<'_, '_>, decl: &hir::Decl) {
-    match decl.node {
-        hir::DeclKind::Local(ref local) => {
-            println!("local variable of type {}", cx.tables.node_id_to_type(local.hir_id));
-            println!("pattern:");
-            print_pat(cx, &local.pat, 0);
-            if let Some(ref e) = local.init {
-                println!("init expression:");
-                print_expr(cx, e, 0);
-            }
-        },
-        hir::DeclKind::Item(_) => println!("item decl"),
-    }
+fn has_attr(sess: &Session, attrs: &[Attribute]) -> bool {
+    get_attr(sess, attrs, "dump").count() > 0
 }
 
 #[allow(clippy::similar_names)]
@@ -354,8 +344,8 @@ fn print_expr(cx: &LateContext<'_, '_>, expr: &hir::Expr, indent: usize) {
 }
 
 fn print_item(cx: &LateContext<'_, '_>, item: &hir::Item) {
-    let did = cx.tcx.hir().local_def_id(item.id);
-    println!("item `{}`", item.name);
+    let did = cx.tcx.hir().local_def_id_from_hir_id(item.hir_id);
+    println!("item `{}`", item.ident.name);
     match item.vis.node {
         hir::VisibilityKind::Public => println!("public"),
         hir::VisibilityKind::Crate(_) => println!("visible crate wide"),
@@ -367,7 +357,7 @@ fn print_item(cx: &LateContext<'_, '_>, item: &hir::Item) {
     }
     match item.node {
         hir::ItemKind::ExternCrate(ref _renamed_from) => {
-            let def_id = cx.tcx.hir().local_def_id(item.id);
+            let def_id = cx.tcx.hir().local_def_id_from_hir_id(item.hir_id);
             if let Some(crate_id) = cx.tcx.extern_mod_stmt_cnum(def_id) {
                 let source = cx.tcx.used_crate_source(crate_id);
                 if let Some(ref src) = source.dylib {
@@ -431,7 +421,7 @@ fn print_pat(cx: &LateContext<'_, '_>, pat: &hir::Pat, indent: usize) {
     println!("{}+", ind);
     match pat.node {
         hir::PatKind::Wild => println!("{}Wild", ind),
-        hir::PatKind::Binding(ref mode, _, ident, ref inner) => {
+        hir::PatKind::Binding(ref mode, .., ident, ref inner) => {
             println!("{}Binding", ind);
             println!("{}mode: {:?}", ind, mode);
             println!("{}name: {}", ind, ident.name);

@@ -1,44 +1,35 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::*;
-use crate::syntax_pos::symbol::Symbol;
 use crate::utils::span_lint_and_sugg;
 use if_chain::if_chain;
+use rustc::hir;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 use std::f32;
 use std::f64;
 use std::fmt;
+use syntax::ast::*;
+use syntax_pos::symbol::Symbol;
 
-/// **What it does:** Checks for float literals with a precision greater
-/// than that supported by the underlying type
-///
-/// **Why is this bad?** Rust will truncate the literal silently.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// // Bad
-/// let v: f32 = 0.123_456_789_9;
-/// println!("{}", v); //  0.123_456_789
-///
-/// // Good
-/// let v: f64 = 0.123_456_789_9;
-/// println!("{}", v); //  0.123_456_789_9
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for float literals with a precision greater
+    /// than that supported by the underlying type
+    ///
+    /// **Why is this bad?** Rust will truncate the literal silently.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// // Bad
+    /// let v: f32 = 0.123_456_789_9;
+    /// println!("{}", v); //  0.123_456_789
+    ///
+    /// // Good
+    /// let v: f64 = 0.123_456_789_9;
+    /// println!("{}", v); //  0.123_456_789_9
+    /// ```
     pub EXCESSIVE_PRECISION,
     style,
     "excessive precision for float literal"
@@ -49,6 +40,10 @@ pub struct ExcessivePrecision;
 impl LintPass for ExcessivePrecision {
     fn get_lints(&self) -> LintArray {
         lint_array!(EXCESSIVE_PRECISION)
+    }
+
+    fn name(&self) -> &'static str {
+        "ExcessivePrecision"
     }
 }
 

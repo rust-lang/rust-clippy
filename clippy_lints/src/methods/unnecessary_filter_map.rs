@@ -1,20 +1,10 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::hir::def::Def;
-use crate::rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
-use crate::rustc::lint::LateContext;
-use crate::syntax::ast;
 use crate::utils::paths;
 use crate::utils::usage::mutated_variables;
 use crate::utils::{match_qpath, match_trait_method, span_lint};
+use rustc::hir;
+use rustc::hir::def::Def;
+use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
+use rustc::lint::LateContext;
 
 use if_chain::if_chain;
 
@@ -27,7 +17,7 @@ pub(super) fn lint(cx: &LateContext<'_, '_>, expr: &hir::Expr, args: &[hir::Expr
 
     if let hir::ExprKind::Closure(_, _, body_id, ..) = args[1].node {
         let body = cx.tcx.hir().body(body_id);
-        let arg_id = body.arguments[0].pat.id;
+        let arg_id = body.arguments[0].pat.hir_id;
         let mutates_arg = match mutated_variables(&body.value, cx) {
             Some(used_mutably) => used_mutably.contains(&arg_id),
             None => true,
@@ -65,7 +55,7 @@ pub(super) fn lint(cx: &LateContext<'_, '_>, expr: &hir::Expr, args: &[hir::Expr
 // returns (found_mapping, found_filtering)
 fn check_expression<'a, 'tcx: 'a>(
     cx: &'a LateContext<'a, 'tcx>,
-    arg_id: ast::NodeId,
+    arg_id: hir::HirId,
     expr: &'tcx hir::Expr,
 ) -> (bool, bool) {
     match &expr.node {
@@ -122,7 +112,7 @@ fn check_expression<'a, 'tcx: 'a>(
 
 struct ReturnVisitor<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
-    arg_id: ast::NodeId,
+    arg_id: hir::HirId,
     // Found a non-None return that isn't Some(input)
     found_mapping: bool,
     // Found a return that isn't Some
@@ -130,7 +120,7 @@ struct ReturnVisitor<'a, 'tcx: 'a> {
 }
 
 impl<'a, 'tcx: 'a> ReturnVisitor<'a, 'tcx> {
-    fn new(cx: &'a LateContext<'a, 'tcx>, arg_id: ast::NodeId) -> ReturnVisitor<'a, 'tcx> {
+    fn new(cx: &'a LateContext<'a, 'tcx>, arg_id: hir::HirId) -> ReturnVisitor<'a, 'tcx> {
         ReturnVisitor {
             cx,
             arg_id,

@@ -1,32 +1,23 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty::subst::Subst;
-use crate::rustc::ty::{self, Ty};
-use crate::rustc::{declare_tool_lint, lint_array};
 use crate::utils::span_lint;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty::subst::Subst;
+use rustc::ty::{self, Ty};
+use rustc::{declare_tool_lint, lint_array};
 
-/// **What it does:** Detects giving a mutable reference to a function that only
-/// requires an immutable reference.
-///
-/// **Why is this bad?** The immutable reference rules out all other references
-/// to the value. Also the code misleads about the intent of the call site.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// my_vec.push(&mut value)
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Detects giving a mutable reference to a function that only
+    /// requires an immutable reference.
+    ///
+    /// **Why is this bad?** The immutable reference rules out all other references
+    /// to the value. Also the code misleads about the intent of the call site.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// my_vec.push(&mut value)
+    /// ```
     pub UNNECESSARY_MUT_PASSED,
     style,
     "an argument passed as a mutable reference although the callee only demands an immutable reference"
@@ -38,6 +29,10 @@ pub struct UnnecessaryMutPassed;
 impl LintPass for UnnecessaryMutPassed {
     fn get_lints(&self) -> LintArray {
         lint_array!(UNNECESSARY_MUT_PASSED)
+    }
+
+    fn name(&self) -> &'static str {
+        "UnneccessaryMutPassed"
     }
 }
 
@@ -55,7 +50,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnnecessaryMutPassed {
                 }
             },
             ExprKind::MethodCall(ref path, _, ref arguments) => {
-                let def_id = cx.tables.type_dependent_defs()[e.hir_id].def_id();
+                let def_id = cx.tables.type_dependent_def_id(e.hir_id).unwrap();
                 let substs = cx.tables.node_substs(e.hir_id);
                 let method_type = cx.tcx.type_of(def_id).subst(cx.tcx, substs);
                 check_arguments(cx, arguments, method_type, &path.ident.as_str())

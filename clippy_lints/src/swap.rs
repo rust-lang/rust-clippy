@@ -1,59 +1,52 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
 use crate::utils::sugg::Sugg;
 use crate::utils::{
     differing_macro_contexts, match_type, paths, snippet, span_lint_and_then, walk_ptrs_ty, SpanlessEq,
 };
 use if_chain::if_chain;
 use matches::matches;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 
-/// **What it does:** Checks for manual swapping.
-///
-/// **Why is this bad?** The `std::mem::swap` function exposes the intent better
-/// without deinitializing or copying either variable.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust,ignore
-/// let t = b;
-/// b = a;
-/// a = t;
-/// ```
-/// Use std::mem::swap():
-/// ```rust
-/// std::mem::swap(&mut a, &mut b);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for manual swapping.
+    ///
+    /// **Why is this bad?** The `std::mem::swap` function exposes the intent better
+    /// without deinitializing or copying either variable.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let t = b;
+    /// b = a;
+    /// a = t;
+    /// ```
+    /// Use std::mem::swap():
+    /// ```rust
+    /// std::mem::swap(&mut a, &mut b);
+    /// ```
     pub MANUAL_SWAP,
     complexity,
     "manual swap of two variables"
 }
 
-/// **What it does:** Checks for `foo = bar; bar = foo` sequences.
-///
-/// **Why is this bad?** This looks like a failed attempt to swap.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust,ignore
-/// a = b;
-/// b = a;
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for `foo = bar; bar = foo` sequences.
+    ///
+    /// **Why is this bad?** This looks like a failed attempt to swap.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # let mut a = 1;
+    /// # let mut b = 2;
+    /// a = b;
+    /// b = a;
+    /// ```
     pub ALMOST_SWAPPED,
     correctness,
     "`foo = bar; bar = foo` sequence"
@@ -65,6 +58,10 @@ pub struct Swap;
 impl LintPass for Swap {
     fn get_lints(&self) -> LintArray {
         lint_array![MANUAL_SWAP, ALMOST_SWAPPED]
+    }
+
+    fn name(&self) -> &'static str {
+        "Swap"
     }
 }
 
@@ -80,17 +77,16 @@ fn check_manual_swap(cx: &LateContext<'_, '_>, block: &Block) {
     for w in block.stmts.windows(3) {
         if_chain! {
             // let t = foo();
-            if let StmtKind::Decl(ref tmp, _) = w[0].node;
-            if let DeclKind::Local(ref tmp) = tmp.node;
+            if let StmtKind::Local(ref tmp) = w[0].node;
             if let Some(ref tmp_init) = tmp.init;
-            if let PatKind::Binding(_, _, ident, None) = tmp.pat.node;
+            if let PatKind::Binding(.., ident, None) = tmp.pat.node;
 
             // foo() = bar();
-            if let StmtKind::Semi(ref first, _) = w[1].node;
+            if let StmtKind::Semi(ref first) = w[1].node;
             if let ExprKind::Assign(ref lhs1, ref rhs1) = first.node;
 
             // bar() = t;
-            if let StmtKind::Semi(ref second, _) = w[2].node;
+            if let StmtKind::Semi(ref second) = w[2].node;
             if let ExprKind::Assign(ref lhs2, ref rhs2) = second.node;
             if let ExprKind::Path(QPath::Resolved(None, ref rhs2)) = rhs2.node;
             if rhs2.segments.len() == 1;
@@ -148,7 +144,7 @@ fn check_manual_swap(cx: &LateContext<'_, '_>, block: &Block) {
                                    &format!("this looks like you are swapping{} manually", what),
                                    |db| {
                                        if !sugg.is_empty() {
-                                           db.span_suggestion_with_applicability(
+                                           db.span_suggestion(
                                                span,
                                                "try",
                                                sugg,
@@ -169,8 +165,8 @@ fn check_manual_swap(cx: &LateContext<'_, '_>, block: &Block) {
 fn check_suspicious_swap(cx: &LateContext<'_, '_>, block: &Block) {
     for w in block.stmts.windows(2) {
         if_chain! {
-            if let StmtKind::Semi(ref first, _) = w[0].node;
-            if let StmtKind::Semi(ref second, _) = w[1].node;
+            if let StmtKind::Semi(ref first) = w[0].node;
+            if let StmtKind::Semi(ref second) = w[1].node;
             if !differing_macro_contexts(first.span, second.span);
             if let ExprKind::Assign(ref lhs0, ref rhs0) = first.node;
             if let ExprKind::Assign(ref lhs1, ref rhs1) = second.node;
@@ -197,7 +193,7 @@ fn check_suspicious_swap(cx: &LateContext<'_, '_>, block: &Block) {
                                    &format!("this looks like you are trying to swap{}", what),
                                    |db| {
                                        if !what.is_empty() {
-                                           db.span_suggestion_with_applicability(
+                                           db.span_suggestion(
                                                span,
                                                "try",
                                                format!(

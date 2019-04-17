@@ -1,63 +1,55 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+use matches::matches;
+use rustc::hir::def::Def;
+use rustc::hir::intravisit::*;
+use rustc::hir::*;
+use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use syntax::source_map::Span;
+use syntax::symbol::keywords;
 
 use crate::reexport::*;
-use crate::rustc::hir::def::Def;
-use crate::rustc::hir::intravisit::*;
-use crate::rustc::hir::*;
-use crate::rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_data_structures::fx::{FxHashMap, FxHashSet};
-use crate::syntax::source_map::Span;
-use crate::syntax::symbol::keywords;
 use crate::utils::{last_path_segment, span_lint};
-use matches::matches;
 
-/// **What it does:** Checks for lifetime annotations which can be removed by
-/// relying on lifetime elision.
-///
-/// **Why is this bad?** The additional lifetimes make the code look more
-/// complicated, while there is nothing out of the ordinary going on. Removing
-/// them leads to more readable code.
-///
-/// **Known problems:** Potential false negatives: we bail out if the function
-/// has a `where` clause where lifetimes are mentioned.
-///
-/// **Example:**
-/// ```rust
-/// fn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {
-///     x
-/// }
-/// ```
 declare_clippy_lint! {
-pub NEEDLESS_LIFETIMES,
-complexity,
-"using explicit lifetimes for references in function arguments when elision rules \
- would allow omitting them"
+    /// **What it does:** Checks for lifetime annotations which can be removed by
+    /// relying on lifetime elision.
+    ///
+    /// **Why is this bad?** The additional lifetimes make the code look more
+    /// complicated, while there is nothing out of the ordinary going on. Removing
+    /// them leads to more readable code.
+    ///
+    /// **Known problems:** Potential false negatives: we bail out if the function
+    /// has a `where` clause where lifetimes are mentioned.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {
+    ///     x
+    /// }
+    /// ```
+    pub NEEDLESS_LIFETIMES,
+    complexity,
+    "using explicit lifetimes for references in function arguments when elision rules \
+     would allow omitting them"
 }
 
-/// **What it does:** Checks for lifetimes in generics that are never used
-/// anywhere else.
-///
-/// **Why is this bad?** The additional lifetimes make the code look more
-/// complicated, while there is nothing out of the ordinary going on. Removing
-/// them leads to more readable code.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// fn unused_lifetime<'a>(x: u8) {
-///     ..
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for lifetimes in generics that are never used
+    /// anywhere else.
+    ///
+    /// **Why is this bad?** The additional lifetimes make the code look more
+    /// complicated, while there is nothing out of the ordinary going on. Removing
+    /// them leads to more readable code.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn unused_lifetime<'a>(x: u8) {
+    ///     ..
+    /// }
+    /// ```
     pub EXTRA_UNUSED_LIFETIMES,
     complexity,
     "unused lifetimes in function definitions"
@@ -69,6 +61,10 @@ pub struct LifetimePass;
 impl LintPass for LifetimePass {
     fn get_lints(&self) -> LintArray {
         lint_array!(NEEDLESS_LIFETIMES, EXTRA_UNUSED_LIFETIMES)
+    }
+
+    fn name(&self) -> &'static str {
+        "LifeTimes"
     }
 }
 
@@ -118,7 +114,7 @@ fn check_fn_inner<'a, 'tcx>(
     let mut bounds_lts = Vec::new();
     let types = generics.params.iter().filter(|param| match param.kind {
         GenericParamKind::Type { .. } => true,
-        GenericParamKind::Lifetime { .. } => false,
+        _ => false,
     });
     for typ in types {
         for bound in &typ.bounds {
@@ -138,7 +134,7 @@ fn check_fn_inner<'a, 'tcx>(
                 if let Some(ref params) = *params {
                     let lifetimes = params.args.iter().filter_map(|arg| match arg {
                         GenericArg::Lifetime(lt) => Some(lt),
-                        GenericArg::Type(_) => None,
+                        _ => None,
                     });
                     for bound in lifetimes {
                         if bound.name != LifetimeName::Static && !bound.is_elided() {
@@ -321,10 +317,10 @@ impl<'v, 't> RefVisitor<'v, 't> {
             if !last_path_segment.parenthesized
                 && !last_path_segment.args.iter().any(|arg| match arg {
                     GenericArg::Lifetime(_) => true,
-                    GenericArg::Type(_) => false,
+                    _ => false,
                 })
             {
-                let hir_id = self.cx.tcx.hir().node_to_hir_id(ty.id);
+                let hir_id = ty.hir_id;
                 match self.cx.tables.qpath_def(qpath, hir_id) {
                     Def::TyAlias(def_id) | Def::Struct(def_id) => {
                         let generics = self.cx.tcx.generics_of(def_id);
@@ -360,7 +356,8 @@ impl<'a, 'tcx> Visitor<'tcx> for RefVisitor<'a, 'tcx> {
                 self.collect_anonymous_lifetimes(path, ty);
             },
             TyKind::Def(item, _) => {
-                if let ItemKind::Existential(ref exist_ty) = self.cx.tcx.hir().expect_item(item.id).node {
+                let map = self.cx.tcx.hir();
+                if let ItemKind::Existential(ref exist_ty) = map.expect_item(map.hir_to_node_id(item.id)).node {
                     for bound in &exist_ty.bounds {
                         if let GenericBound::Outlives(_) = *bound {
                             self.record(&None);
@@ -389,7 +386,7 @@ impl<'a, 'tcx> Visitor<'tcx> for RefVisitor<'a, 'tcx> {
     }
 }
 
-/// Are any lifetimes mentioned in the `where` clause? If yes, we don't try to
+/// Are any lifetimes mentioned in the `where` clause? If so, we don't try to
 /// reason about elision.
 fn has_where_lifetimes<'a, 'tcx: 'a>(cx: &LateContext<'a, 'tcx>, where_clause: &'tcx WhereClause) -> bool {
     for predicate in &where_clause.predicates {

@@ -1,51 +1,42 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::def::Def;
-use crate::rustc::hir::{BinOpKind, BlockCheckMode, Expr, ExprKind, Stmt, StmtKind, UnsafeSource};
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
 use crate::utils::{has_drop, in_macro, snippet_opt, span_lint, span_lint_and_sugg};
+use rustc::hir::def::Def;
+use rustc::hir::{BinOpKind, BlockCheckMode, Expr, ExprKind, Stmt, StmtKind, UnsafeSource};
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 use std::ops::Deref;
 
-/// **What it does:** Checks for statements which have no effect.
-///
-/// **Why is this bad?** Similar to dead code, these statements are actually
-/// executed. However, as they have no effect, all they do is make the code less
-/// readable.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// 0;
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for statements which have no effect.
+    ///
+    /// **Why is this bad?** Similar to dead code, these statements are actually
+    /// executed. However, as they have no effect, all they do is make the code less
+    /// readable.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// 0;
+    /// ```
     pub NO_EFFECT,
     complexity,
     "statements with no effect"
 }
 
-/// **What it does:** Checks for expression statements that can be reduced to a
-/// sub-expression.
-///
-/// **Why is this bad?** Expressions by themselves often have no side-effects.
-/// Having such expressions reduces readability.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// compute_array()[0];
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for expression statements that can be reduced to a
+    /// sub-expression.
+    ///
+    /// **Why is this bad?** Expressions by themselves often have no side-effects.
+    /// Having such expressions reduces readability.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// compute_array()[0];
+    /// ```
     pub UNNECESSARY_OPERATION,
     complexity,
     "outer expressions with no effect"
@@ -81,7 +72,7 @@ fn has_no_effect(cx: &LateContext<'_, '_>, expr: &Expr) -> bool {
             if let ExprKind::Path(ref qpath) = callee.node {
                 let def = cx.tables.qpath_def(qpath, callee.hir_id);
                 match def {
-                    Def::Struct(..) | Def::Variant(..) | Def::StructCtor(..) | Def::VariantCtor(..) => {
+                    Def::Struct(..) | Def::Variant(..) | Def::Ctor(..) => {
                         !has_drop(cx, cx.tables.expr_ty(expr)) && args.iter().all(|arg| has_no_effect(cx, arg))
                     },
                     _ => false,
@@ -109,11 +100,15 @@ impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(NO_EFFECT, UNNECESSARY_OPERATION)
     }
+
+    fn name(&self) -> &'static str {
+        "NoEffect"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, stmt: &'tcx Stmt) {
-        if let StmtKind::Semi(ref expr, _) = stmt.node {
+        if let StmtKind::Semi(ref expr) = stmt.node {
             if has_no_effect(cx, expr) {
                 span_lint(cx, NO_EFFECT, stmt.span, "statement with no effect");
             } else if let Some(reduced) = reduce_expression(cx, expr) {
@@ -171,9 +166,7 @@ fn reduce_expression<'a>(cx: &LateContext<'_, '_>, expr: &'a Expr) -> Option<Vec
             if let ExprKind::Path(ref qpath) = callee.node {
                 let def = cx.tables.qpath_def(qpath, callee.hir_id);
                 match def {
-                    Def::Struct(..) | Def::Variant(..) | Def::StructCtor(..) | Def::VariantCtor(..)
-                        if !has_drop(cx, cx.tables.expr_ty(expr)) =>
-                    {
+                    Def::Struct(..) | Def::Variant(..) | Def::Ctor(..) if !has_drop(cx, cx.tables.expr_ty(expr)) => {
                         Some(args.iter().collect())
                     },
                     _ => None,

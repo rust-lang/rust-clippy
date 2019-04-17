@@ -1,39 +1,30 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::intravisit::{walk_block, walk_expr, walk_stmt, NestedVisitorMap, Visitor};
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, Lint, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::{LitKind, NodeId};
-use crate::syntax_pos::symbol::Symbol;
 use crate::utils::sugg::Sugg;
 use crate::utils::{get_enclosing_block, match_qpath, span_lint_and_then, SpanlessEq};
 use if_chain::if_chain;
+use rustc::hir::intravisit::{walk_block, walk_expr, walk_stmt, NestedVisitorMap, Visitor};
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, Lint, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::LitKind;
+use syntax_pos::symbol::Symbol;
 
-/// **What it does:** Checks slow zero-filled vector initialization
-///
-/// **Why is this bad?** This structures are non-idiomatic and less efficient than simply using
-/// `vec![len; 0]`.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let mut vec1 = Vec::with_capacity(len);
-/// vec1.resize(len, 0);
-///
-/// let mut vec2 = Vec::with_capacity(len);
-/// vec2.extend(repeat(0).take(len))
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks slow zero-filled vector initialization
+    ///
+    /// **Why is this bad?** These structures are non-idiomatic and less efficient than simply using
+    /// `vec![0; len]`.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let mut vec1 = Vec::with_capacity(len);
+    /// vec1.resize(len, 0);
+    ///
+    /// let mut vec2 = Vec::with_capacity(len);
+    /// vec2.extend(repeat(0).take(len))
+    /// ```
     pub SLOW_VECTOR_INITIALIZATION,
     perf,
     "slow vector initialization"
@@ -45,6 +36,10 @@ pub struct Pass;
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(SLOW_VECTOR_INITIALIZATION,)
+    }
+
+    fn name(&self) -> &'static str {
+        "SlowVectorInit"
     }
 }
 
@@ -92,7 +87,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     len_expr: len_arg,
                 };
 
-                Self::search_initialization(cx, vi, expr.id);
+                Self::search_initialization(cx, vi, expr.hir_id);
             }
         }
     }
@@ -100,9 +95,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
     fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, stmt: &'tcx Stmt) {
         // Matches statements which initializes vectors. For example: `let mut vec = Vec::with_capacity(10)`
         if_chain! {
-            if let StmtKind::Decl(ref decl, _) = stmt.node;
-            if let DeclKind::Local(ref local) = decl.node;
-            if let PatKind::Binding(BindingAnnotation::Mutable, _, variable_name, None) = local.pat.node;
+            if let StmtKind::Local(ref local) = stmt.node;
+            if let PatKind::Binding(BindingAnnotation::Mutable, .., variable_name, None) = local.pat.node;
             if let Some(ref init) = local.init;
             if let Some(ref len_arg) = Self::is_vec_with_capacity(init);
 
@@ -113,7 +107,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                     len_expr: len_arg,
                 };
 
-                Self::search_initialization(cx, vi, stmt.node.id());
+                Self::search_initialization(cx, vi, stmt.hir_id);
             }
         }
     }
@@ -138,7 +132,7 @@ impl Pass {
     }
 
     /// Search initialization for the given vector
-    fn search_initialization<'tcx>(cx: &LateContext<'_, 'tcx>, vec_alloc: VecAllocation<'tcx>, parent_node: NodeId) {
+    fn search_initialization<'tcx>(cx: &LateContext<'_, 'tcx>, vec_alloc: VecAllocation<'tcx>, parent_node: HirId) {
         let enclosing_body = get_enclosing_block(cx, parent_node);
 
         if enclosing_body.is_none() {
@@ -185,7 +179,7 @@ impl Pass {
         let len_expr = Sugg::hir(cx, vec_alloc.len_expr, "len");
 
         span_lint_and_then(cx, lint, slow_fill.span, msg, |db| {
-            db.span_suggestion_with_applicability(
+            db.span_suggestion(
                 vec_alloc.allocation_expr.span,
                 "consider replace allocation with",
                 format!("vec![0; {}]", len_expr),
@@ -200,13 +194,13 @@ impl Pass {
 struct VectorInitializationVisitor<'a, 'tcx: 'a> {
     cx: &'a LateContext<'a, 'tcx>,
 
-    /// Contains the information
+    /// Contains the information.
     vec_alloc: VecAllocation<'tcx>,
 
-    /// Contains, if found, the slow initialization expression
+    /// Contains the slow initialization expression, if one was found.
     slow_expression: Option<InitializationType<'tcx>>,
 
-    /// true if the initialization of the vector has been found on the visited block
+    /// `true` if the initialization of the vector has been found on the visited block.
     initialization_found: bool,
 }
 
@@ -296,7 +290,7 @@ impl<'a, 'tcx> Visitor<'tcx> for VectorInitializationVisitor<'a, 'tcx> {
     fn visit_stmt(&mut self, stmt: &'tcx Stmt) {
         if self.initialization_found {
             match stmt.node {
-                StmtKind::Expr(ref expr, _) | StmtKind::Semi(ref expr, _) => {
+                StmtKind::Expr(ref expr) | StmtKind::Semi(ref expr) => {
                     self.search_slow_extend_filling(expr);
                     self.search_slow_resize_filling(expr);
                 },
@@ -323,7 +317,7 @@ impl<'a, 'tcx> Visitor<'tcx> for VectorInitializationVisitor<'a, 'tcx> {
 
     fn visit_expr(&mut self, expr: &'tcx Expr) {
         // Skip all the expressions previous to the vector initialization
-        if self.vec_alloc.allocation_expr.id == expr.id {
+        if self.vec_alloc.allocation_expr.hir_id == expr.hir_id {
             self.initialization_found = true;
         }
 

@@ -1,31 +1,22 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast::*;
 use crate::utils::{in_macro, span_lint};
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::*;
 
-/// **What it does:** Checks for unnecessary double parentheses.
-///
-/// **Why is this bad?** This makes code harder to read and might indicate a
-/// mistake.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// ((0))
-/// foo((0))
-/// ((1, 2))
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for unnecessary double parentheses.
+    ///
+    /// **Why is this bad?** This makes code harder to read and might indicate a
+    /// mistake.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// ((0))
+    /// foo((0))
+    /// ((1, 2))
+    /// ```
     pub DOUBLE_PARENS,
     complexity,
     "Warn on unnecessary double parentheses"
@@ -37,6 +28,10 @@ pub struct DoubleParens;
 impl LintPass for DoubleParens {
     fn get_lints(&self) -> LintArray {
         lint_array!(DOUBLE_PARENS)
+    }
+
+    fn name(&self) -> &'static str {
+        "DoubleParens"
     }
 }
 

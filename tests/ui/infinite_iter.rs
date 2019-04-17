@@ -1,12 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 use std::iter::repeat;
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn square_is_lower_64(x: &u32) -> bool {
@@ -57,4 +48,23 @@ fn potential_infinite_iters() {
 fn main() {
     infinite_iters();
     potential_infinite_iters();
+}
+
+mod finite_collect {
+    use std::collections::HashSet;
+    use std::iter::FromIterator;
+
+    struct C;
+    impl FromIterator<i32> for C {
+        fn from_iter<I: IntoIterator<Item = i32>>(iter: I) -> Self {
+            C
+        }
+    }
+
+    fn check_collect() {
+        let _: HashSet<i32> = (0..).collect(); // Infinite iter
+
+        // Some data structures don't collect infinitely, such as `ArrayVec`
+        let _: C = (0..).collect();
+    }
 }

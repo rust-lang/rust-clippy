@@ -1,0 +1,60 @@
+error: assert!(true) will be optimized out by the compiler
+  --> $DIR/assertions_on_constants.rs:9:5
+   |
+LL |     assert!(true);
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::assertions-on-constants` implied by `-D warnings`
+   = help: remove it
+
+error: assert!(false) should probably be replaced
+  --> $DIR/assertions_on_constants.rs:10:5
+   |
+LL |     assert!(false);
+   |     ^^^^^^^^^^^^^^^
+   |
+   = help: use panic!() or unreachable!()
+
+error: assert!(true) will be optimized out by the compiler
+  --> $DIR/assertions_on_constants.rs:11:5
+   |
+LL |     assert!(true, "true message");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove it
+
+error: assert!(false) should probably be replaced
+  --> $DIR/assertions_on_constants.rs:12:5
+   |
+LL |     assert!(false, "false message");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use panic!() or unreachable!()
+
+error: assert!(const: true) will be optimized out by the compiler
+  --> $DIR/assertions_on_constants.rs:15:5
+   |
+LL |     assert!(B);
+   |     ^^^^^^^^^^^
+   |
+   = help: remove it
+
+error: assert!(const: false) should probably be replaced
+  --> $DIR/assertions_on_constants.rs:18:5
+   |
+LL |     assert!(C);
+   |     ^^^^^^^^^^^
+   |
+   = help: use panic!() or unreachable!()
+
+error: assert!(true) will be optimized out by the compiler
+  --> $DIR/assertions_on_constants.rs:20:5
+   |
+LL |     debug_assert!(true);
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove it
+   = note: this error originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+error: aborting due to 7 previous errors
+

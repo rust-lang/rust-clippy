@@ -1,11 +1,4 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+// aux-build:proc_macro_derive.rs
 
 #![warn(clippy::useless_attribute)]
 
@@ -19,6 +12,9 @@
 #[macro_use]
 extern crate clippy_lints;
 
+#[macro_use]
+extern crate proc_macro_derive;
+
 // don't lint on unused_import for `use` items
 #[allow(unused_imports)]
 use std::collections;
@@ -30,5 +26,10 @@ mod foo {
 }
 #[allow(deprecated)]
 pub use foo::Bar;
+
+// This should not trigger the lint. There's lint level definitions inside the external derive
+// that would trigger the useless_attribute lint.
+#[derive(DeriveSomething)]
+struct Baz;
 
 fn main() {}

@@ -1,35 +1,26 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::hir::intravisit;
-use crate::rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
 use crate::utils::{higher, span_lint};
+use rustc::hir;
+use rustc::hir::intravisit;
+use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::ty;
+use rustc::{declare_tool_lint, lint_array};
 
-/// **What it does:** Checks for instances of `mut mut` references.
-///
-/// **Why is this bad?** Multiple `mut`s don't add anything meaningful to the
-/// source. This is either a copy'n'paste error, or it shows a fundamental
-/// misunderstanding of references.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let x = &mut &mut y;
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for instances of `mut mut` references.
+    ///
+    /// **Why is this bad?** Multiple `mut`s don't add anything meaningful to the
+    /// source. This is either a copy'n'paste error, or it shows a fundamental
+    /// misunderstanding of references.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = &mut &mut y;
+    /// ```
     pub MUT_MUT,
     pedantic,
-    "usage of double-mut refs, e.g. `&mut &mut ...`"
+    "usage of double-mut refs, e.g., `&mut &mut ...`"
 }
 
 #[derive(Copy, Clone)]
@@ -39,6 +30,10 @@ impl LintPass for MutMut {
     fn get_lints(&self) -> LintArray {
         lint_array!(MUT_MUT)
     }
+
+    fn name(&self) -> &'static str {
+        "MutMut"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MutMut {
@@ -47,7 +42,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MutMut {
     }
 
     fn check_ty(&mut self, cx: &LateContext<'a, 'tcx>, ty: &'tcx hir::Ty) {
-        use crate::rustc::hir::intravisit::Visitor;
+        use rustc::hir::intravisit::Visitor;
 
         MutVisitor { cx }.visit_ty(ty);
     }

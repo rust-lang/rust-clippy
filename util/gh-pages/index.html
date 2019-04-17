@@ -4,7 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <title>Clippy</title>
+    <title>ALL the Clippy Lints</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/github.min.css"/>
@@ -76,8 +76,8 @@
                 <div class="panel-body row">
                     <div class="col-md-12 form-horizontal">
                         <div class="input-group">
-                            <span class="input-group-addon" id="filter-label">Filter:</span>
-                            <input type="text" class="form-control" placeholder="Keywords or search string" aria-describedby="filter-label" ng-model="search" />
+                            <label class="input-group-addon" id="filter-label" for="filter-input">Filter:</label>
+                            <input type="text" class="form-control" placeholder="Keywords or search string" id="filter-input" ng-model="search" />
                             <span class="input-group-btn">
                                 <button class="btn btn-default" type="button" ng-click="search = ''">
                                     Clear

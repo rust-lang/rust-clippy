@@ -1,24 +1,24 @@
 # Clippy
 
-[![Build Status](https://travis-ci.org/rust-lang/rust-clippy.svg?branch=master)](https://travis-ci.org/rust-lang/rust-clippy)
+[![Build Status](https://travis-ci.com/rust-lang/rust-clippy.svg?branch=master)](https://travis-ci.com/rust-lang/rust-clippy)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/id677xpw1dguo7iw?svg=true)](https://ci.appveyor.com/project/rust-lang-libs/rust-clippy)
 [![Current Version](https://meritbadge.herokuapp.com/clippy)](https://crates.io/crates/clippy)
 [![License: MIT/Apache-2.0](https://img.shields.io/crates/l/clippy.svg)](#license)
 
 A collection of lints to catch common mistakes and improve your [Rust](https://github.com/rust-lang/rust) code.
 
-[There are 291 lints included in this crate!](https://rust-lang.github.io/rust-clippy/master/index.html)
+[There are 298 lints included in this crate!](https://rust-lang.github.io/rust-clippy/master/index.html)
 
 We have a bunch of lint categories to allow you to choose how much Clippy is supposed to ~~annoy~~ help you:
 
-* `clippy::all` (everything that has no false positives)
-* `clippy::pedantic` (everything)
-* `clippy::nursery` (new lints that aren't quite ready yet)
+* `clippy::all` (everything that is on by default: all the categories below except for `nursery`, `pedantic`, and `cargo`)
+* **`clippy::correctness`** (code that is just outright wrong or very very useless, causes hard errors by default)
 * `clippy::style` (code that should be written in a more idiomatic way)
 * `clippy::complexity` (code that does something simple but in a complex way)
 * `clippy::perf` (code that can be written in a faster way)
-* `clippy::cargo` (checks against the cargo manifest)
-* **`clippy::correctness`** (code that is just outright wrong or very very useless)
+* `clippy::pedantic` (lints which are rather strict, off by default)
+* `clippy::nursery` (new lints that aren't quite ready yet, off by default)
+* `clippy::cargo` (checks against the cargo manifest, off by default)
 
 More to come, please [file an issue](https://github.com/rust-lang/rust-clippy/issues) if you have ideas!
 
@@ -30,6 +30,8 @@ Only the following of those categories are enabled by default:
 * `clippy::perf`
 
 Other categories need to be enabled in order for their lints to be executed.
+
+The [lint list](https://rust-lang.github.io/rust-clippy/master/index.html) also contains "restriction lints", which are for things which are usually not considered "bad", but may be useful to turn on in specific cases. These should be used very selectively, if at all.
 
 Table of contents:
 
@@ -68,10 +70,15 @@ Once you have rustup and the latest stable release (at least Rust 1.29) installe
 ```terminal
 rustup component add clippy
 ```
+If it says that it can't find the `clippy` component, please run `rustup self update`.
 
-Now you can run Clippy by invoking `cargo clippy`.
+#### Step 3: Run Clippy
 
-If it says that it can't find the `clippy` subcommand, please run `rustup self update`
+Now you can run Clippy by invoking the following command:
+
+```terminal
+cargo clippy
+```
 
 ### Running Clippy from the command line without installing it
 
@@ -79,7 +86,7 @@ To have cargo compile your crate with Clippy without Clippy installation
 in your code, you can use:
 
 ```terminal
-RUSTFLAGS=--sysroot=`rustc --print sysroot` cargo run --bin cargo-clippy --manifest-path=path_to_clippys_Cargo.toml
+cargo run --bin cargo-clippy --manifest-path=path_to_clippys_Cargo.toml
 ```
 
 *[Note](https://github.com/rust-lang/rust-clippy/wiki#a-word-of-warning):*
@@ -100,13 +107,13 @@ script:
   - cargo clippy
   # if you want the build job to fail when encountering warnings, use
   - cargo clippy -- -D warnings
-  # in order to also check tests and none-default crate features, use
+  # in order to also check tests and non-default crate features, use
   - cargo clippy --all-targets --all-features -- -D warnings
   - cargo test
   # etc.
 ```
 
-It might happen that Clippy is not available for a certain nightly release.
+If you are on nightly, It might happen that Clippy is not available for a certain nightly release.
 In this case you can try to conditionally install Clippy from the git repo.
 
 ```yaml
@@ -118,13 +125,18 @@ before_script:
    # etc
 ```
 
+Note that adding `-D warnings` will cause your build to fail if **any** warnings are found in your code.
+That includes warnings found by rustc (e.g. `dead_code`, etc.). If you want to avoid this and only cause
+an error for clippy warnings, use `#![deny(clippy::all)]` in your code or `-D clippy::all` on the command
+line. (You can swap `clippy::all` with the specific lint category you are targeting.)
+
 ## Configuration
 
 Some lints can be configured in a TOML file named `clippy.toml` or `.clippy.toml`. It contains a basic `variable = value` mapping eg.
 
 ```toml
 blacklisted-names = ["toto", "tata", "titi"]
-cyclomatic-complexity-threshold = 30
+cognitive-complexity-threshold = 30
 ```
 
 See the [list of lints](https://rust-lang.github.io/rust-clippy/master/index.html) for more information about which lints can be configured and the
@@ -157,7 +169,7 @@ If you want to contribute to Clippy, you can find more information in [CONTRIBUT
 
 ## License
 
-Copyright 2014-2018 The Rust Project Developers
+Copyright 2014-2019 The Rust Project Developers
 
 Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
 http://www.apache.org/licenses/LICENSE-2.0> or the MIT license

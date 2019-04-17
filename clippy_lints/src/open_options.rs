@@ -1,32 +1,25 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::{Expr, ExprKind};
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast::LitKind;
-use crate::syntax::source_map::{Span, Spanned};
 use crate::utils::{match_type, paths, span_lint, walk_ptrs_ty};
+use rustc::hir::{Expr, ExprKind};
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::LitKind;
+use syntax::source_map::{Span, Spanned};
 
-/// **What it does:** Checks for duplicate open options as well as combinations
-/// that make no sense.
-///
-/// **Why is this bad?** In the best case, the code will be harder to read than
-/// necessary. I don't know the worst case.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// OpenOptions::new().read(true).truncate(true)
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for duplicate open options as well as combinations
+    /// that make no sense.
+    ///
+    /// **Why is this bad?** In the best case, the code will be harder to read than
+    /// necessary. I don't know the worst case.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// use std::fs::OpenOptions;
+    ///
+    /// OpenOptions::new().read(true).truncate(true);
+    /// ```
     pub NONSENSICAL_OPEN_OPTIONS,
     correctness,
     "nonsensical combination of options for opening a file"
@@ -38,6 +31,10 @@ pub struct NonSensical;
 impl LintPass for NonSensical {
     fn get_lints(&self) -> LintArray {
         lint_array!(NONSENSICAL_OPEN_OPTIONS)
+    }
+
+    fn name(&self) -> &'static str {
+        "OpenOptions"
     }
 }
 
@@ -81,7 +78,7 @@ fn get_open_options(cx: &LateContext<'_, '_>, argument: &Expr, options: &mut Vec
                     if let Spanned {
                         node: LitKind::Bool(lit),
                         ..
-                    } = **span
+                    } = *span
                     {
                         if lit {
                             Argument::True

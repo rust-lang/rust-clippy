@@ -1,21 +1,12 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 use crate::consts::{constant_context, constant_simple};
-use crate::rustc::hir::*;
-use crate::rustc::lint::LateContext;
-use crate::rustc::ty::TypeckTables;
-use crate::syntax::ast::Name;
-use crate::syntax::ptr::P;
 use crate::utils::differing_macro_contexts;
+use rustc::hir::*;
+use rustc::lint::LateContext;
+use rustc::ty::TypeckTables;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use syntax::ast::Name;
+use syntax::ptr::P;
 
 /// Type used to check whether two ast are the same. This is different from the
 /// operator
@@ -49,23 +40,22 @@ impl<'a, 'tcx: 'a> SpanlessEq<'a, 'tcx> {
         }
     }
 
-    /// Check whether two statements are the same.
+    /// Checks whether two statements are the same.
     pub fn eq_stmt(&mut self, left: &Stmt, right: &Stmt) -> bool {
         match (&left.node, &right.node) {
-            (&StmtKind::Decl(ref l, _), &StmtKind::Decl(ref r, _)) => {
-                if let (&DeclKind::Local(ref l), &DeclKind::Local(ref r)) = (&l.node, &r.node) {
-                    both(&l.ty, &r.ty, |l, r| self.eq_ty(l, r)) && both(&l.init, &r.init, |l, r| self.eq_expr(l, r))
-                } else {
-                    false
-                }
+            (&StmtKind::Local(ref l), &StmtKind::Local(ref r)) => {
+                self.eq_pat(&l.pat, &r.pat)
+                    && both(&l.ty, &r.ty, |l, r| self.eq_ty(l, r))
+                    && both(&l.init, &r.init, |l, r| self.eq_expr(l, r))
             },
-            (&StmtKind::Expr(ref l, _), &StmtKind::Expr(ref r, _))
-            | (&StmtKind::Semi(ref l, _), &StmtKind::Semi(ref r, _)) => self.eq_expr(l, r),
+            (&StmtKind::Expr(ref l), &StmtKind::Expr(ref r)) | (&StmtKind::Semi(ref l), &StmtKind::Semi(ref r)) => {
+                self.eq_expr(l, r)
+            },
             _ => false,
         }
     }
 
-    /// Check whether two blocks are the same.
+    /// Checks whether two blocks are the same.
     pub fn eq_block(&mut self, left: &Block, right: &Block) -> bool {
         over(&left.stmts, &right.stmts, |l, r| self.eq_stmt(l, r))
             && both(&left.expr, &right.expr, |l, r| self.eq_expr(l, r))
@@ -196,14 +186,14 @@ impl<'a, 'tcx: 'a> SpanlessEq<'a, 'tcx> {
         left.name == right.name
     }
 
-    /// Check whether two patterns are the same.
+    /// Checks whether two patterns are the same.
     pub fn eq_pat(&mut self, left: &Pat, right: &Pat) -> bool {
         match (&left.node, &right.node) {
             (&PatKind::Box(ref l), &PatKind::Box(ref r)) => self.eq_pat(l, r),
             (&PatKind::TupleStruct(ref lp, ref la, ls), &PatKind::TupleStruct(ref rp, ref ra, rs)) => {
                 self.eq_qpath(lp, rp) && over(la, ra, |l, r| self.eq_pat(l, r)) && ls == rs
             },
-            (&PatKind::Binding(ref lb, _, ref li, ref lp), &PatKind::Binding(ref rb, _, ref ri, ref rp)) => {
+            (&PatKind::Binding(ref lb, .., ref li, ref lp), &PatKind::Binding(ref rb, .., ref ri, ref rp)) => {
                 lb == rb && li.name.as_str() == ri.name.as_str() && both(lp, rp, |l, r| self.eq_pat(l, r))
             },
             (&PatKind::Path(ref l), &PatKind::Path(ref r)) => self.eq_qpath(l, r),
@@ -338,7 +328,7 @@ fn swap_binop<'a>(binop: BinOpKind, lhs: &'a Expr, rhs: &'a Expr) -> Option<(Bin
     }
 }
 
-/// Check if the two `Option`s are both `None` or some equal values as per
+/// Checks if the two `Option`s are both `None` or some equal values as per
 /// `eq_fn`.
 fn both<X, F>(l: &Option<X>, r: &Option<X>, mut eq_fn: F) -> bool
 where
@@ -348,7 +338,7 @@ where
         .map_or_else(|| r.is_none(), |x| r.as_ref().map_or(false, |y| eq_fn(x, y)))
 }
 
-/// Check if two slices are equal as per `eq_fn`.
+/// Checks if two slices are equal as per `eq_fn`.
 fn over<X, F>(left: &[X], right: &[X], mut eq_fn: F) -> bool
 where
     F: FnMut(&X, &X) -> bool,
@@ -399,7 +389,7 @@ impl<'a, 'tcx: 'a> SpanlessHash<'a, 'tcx> {
         .hash(&mut self.s);
     }
 
-    #[allow(clippy::many_single_char_names)]
+    #[allow(clippy::many_single_char_names, clippy::too_many_lines)]
     pub fn hash_expr(&mut self, e: &Expr) {
         if let Some(e) = constant_simple(self.cx, self.tables, e) {
             return e.hash(&mut self.s);
@@ -650,23 +640,24 @@ impl<'a, 'tcx: 'a> SpanlessHash<'a, 'tcx> {
 
     pub fn hash_stmt(&mut self, b: &Stmt) {
         match b.node {
-            StmtKind::Decl(ref decl, _) => {
-                let c: fn(_, _) -> _ = StmtKind::Decl;
+            StmtKind::Local(ref local) => {
+                let c: fn(_) -> _ = StmtKind::Local;
                 c.hash(&mut self.s);
-
-                if let DeclKind::Local(ref local) = decl.node {
-                    if let Some(ref init) = local.init {
-                        self.hash_expr(init);
-                    }
+                if let Some(ref init) = local.init {
+                    self.hash_expr(init);
                 }
             },
-            StmtKind::Expr(ref expr, _) => {
-                let c: fn(_, _) -> _ = StmtKind::Expr;
+            StmtKind::Item(..) => {
+                let c: fn(_) -> _ = StmtKind::Item;
+                c.hash(&mut self.s);
+            },
+            StmtKind::Expr(ref expr) => {
+                let c: fn(_) -> _ = StmtKind::Expr;
                 c.hash(&mut self.s);
                 self.hash_expr(expr);
             },
-            StmtKind::Semi(ref expr, _) => {
-                let c: fn(_, _) -> _ = StmtKind::Semi;
+            StmtKind::Semi(ref expr) => {
+                let c: fn(_) -> _ = StmtKind::Semi;
                 c.hash(&mut self.s);
                 self.hash_expr(expr);
             },

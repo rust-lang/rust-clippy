@@ -1,84 +1,75 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 use crate::reexport::*;
-use crate::rustc::hir::intravisit::FnKind;
-use crate::rustc::hir::*;
-use crate::rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::source_map::Span;
 use crate::utils::{contains_name, higher, iter_input_pats, snippet, span_lint_and_then};
+use rustc::hir::intravisit::FnKind;
+use rustc::hir::*;
+use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::ty;
+use rustc::{declare_tool_lint, lint_array};
+use syntax::source_map::Span;
 
-/// **What it does:** Checks for bindings that shadow other bindings already in
-/// scope, while just changing reference level or mutability.
-///
-/// **Why is this bad?** Not much, in fact it's a very common pattern in Rust
-/// code. Still, some may opt to avoid it in their code base, they can set this
-/// lint to `Warn`.
-///
-/// **Known problems:** This lint, as the other shadowing related lints,
-/// currently only catches very simple patterns.
-///
-/// **Example:**
-/// ```rust
-/// let x = &x;
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for bindings that shadow other bindings already in
+    /// scope, while just changing reference level or mutability.
+    ///
+    /// **Why is this bad?** Not much, in fact it's a very common pattern in Rust
+    /// code. Still, some may opt to avoid it in their code base, they can set this
+    /// lint to `Warn`.
+    ///
+    /// **Known problems:** This lint, as the other shadowing related lints,
+    /// currently only catches very simple patterns.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = &x;
+    /// ```
     pub SHADOW_SAME,
     restriction,
-    "rebinding a name to itself, e.g. `let mut x = &mut x`"
+    "rebinding a name to itself, e.g., `let mut x = &mut x`"
 }
 
-/// **What it does:** Checks for bindings that shadow other bindings already in
-/// scope, while reusing the original value.
-///
-/// **Why is this bad?** Not too much, in fact it's a common pattern in Rust
-/// code. Still, some argue that name shadowing like this hurts readability,
-/// because a value may be bound to different things depending on position in
-/// the code.
-///
-/// **Known problems:** This lint, as the other shadowing related lints,
-/// currently only catches very simple patterns.
-///
-/// **Example:**
-/// ```rust
-/// let x = x + 1;
-/// ```
-/// use different variable name:
-/// ```rust
-/// let y = x + 1;
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for bindings that shadow other bindings already in
+    /// scope, while reusing the original value.
+    ///
+    /// **Why is this bad?** Not too much, in fact it's a common pattern in Rust
+    /// code. Still, some argue that name shadowing like this hurts readability,
+    /// because a value may be bound to different things depending on position in
+    /// the code.
+    ///
+    /// **Known problems:** This lint, as the other shadowing related lints,
+    /// currently only catches very simple patterns.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = x + 1;
+    /// ```
+    /// use different variable name:
+    /// ```rust
+    /// let y = x + 1;
+    /// ```
     pub SHADOW_REUSE,
     restriction,
-    "rebinding a name to an expression that re-uses the original value, e.g. `let x = x + 1`"
+    "rebinding a name to an expression that re-uses the original value, e.g., `let x = x + 1`"
 }
 
-/// **What it does:** Checks for bindings that shadow other bindings already in
-/// scope, either without a initialization or with one that does not even use
-/// the original value.
-///
-/// **Why is this bad?** Name shadowing can hurt readability, especially in
-/// large code bases, because it is easy to lose track of the active binding at
-/// any place in the code. This can be alleviated by either giving more specific
-/// names to bindings or introducing more scopes to contain the bindings.
-///
-/// **Known problems:** This lint, as the other shadowing related lints,
-/// currently only catches very simple patterns.
-///
-/// **Example:**
-/// ```rust
-/// let x = y;
-/// let x = z; // shadows the earlier binding
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for bindings that shadow other bindings already in
+    /// scope, either without a initialization or with one that does not even use
+    /// the original value.
+    ///
+    /// **Why is this bad?** Name shadowing can hurt readability, especially in
+    /// large code bases, because it is easy to lose track of the active binding at
+    /// any place in the code. This can be alleviated by either giving more specific
+    /// names to bindings or introducing more scopes to contain the bindings.
+    ///
+    /// **Known problems:** This lint, as the other shadowing related lints,
+    /// currently only catches very simple patterns.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = y;
+    /// let x = z; // shadows the earlier binding
+    /// ```
     pub SHADOW_UNRELATED,
     pedantic,
     "rebinding a name without even using the original value"
@@ -91,6 +82,10 @@ impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(SHADOW_SAME, SHADOW_REUSE, SHADOW_UNRELATED)
     }
+
+    fn name(&self) -> &'static str {
+        "Shadow"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
@@ -101,7 +96,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         decl: &'tcx FnDecl,
         body: &'tcx Body,
         _: Span,
-        _: NodeId,
+        _: HirId,
     ) {
         if in_external_macro(cx.sess(), body.value.span) {
             return;
@@ -113,7 +108,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
 fn check_fn<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, decl: &'tcx FnDecl, body: &'tcx Body) {
     let mut bindings = Vec::new();
     for arg in iter_input_pats(decl, body) {
-        if let PatKind::Binding(_, _, ident, _) = arg.pat.node {
+        if let PatKind::Binding(.., ident, _) = arg.pat.node {
             bindings.push((ident.name, ident.span))
         }
     }
@@ -124,8 +119,9 @@ fn check_block<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, block: &'tcx Block, binding
     let len = bindings.len();
     for stmt in &block.stmts {
         match stmt.node {
-            StmtKind::Decl(ref decl, _) => check_decl(cx, decl, bindings),
-            StmtKind::Expr(ref e, _) | StmtKind::Semi(ref e, _) => check_expr(cx, e, bindings),
+            StmtKind::Local(ref local) => check_local(cx, local, bindings),
+            StmtKind::Expr(ref e) | StmtKind::Semi(ref e) => check_expr(cx, e, bindings),
+            StmtKind::Item(..) => {},
         }
     }
     if let Some(ref o) = block.expr {
@@ -134,35 +130,33 @@ fn check_block<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, block: &'tcx Block, binding
     bindings.truncate(len);
 }
 
-fn check_decl<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, decl: &'tcx Decl, bindings: &mut Vec<(Name, Span)>) {
-    if in_external_macro(cx.sess(), decl.span) {
+fn check_local<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, local: &'tcx Local, bindings: &mut Vec<(Name, Span)>) {
+    if in_external_macro(cx.sess(), local.span) {
         return;
     }
-    if higher::is_from_for_desugar(decl) {
+    if higher::is_from_for_desugar(local) {
         return;
     }
-    if let DeclKind::Local(ref local) = decl.node {
-        let Local {
-            ref pat,
-            ref ty,
-            ref init,
-            span,
-            ..
-        } = **local;
-        if let Some(ref t) = *ty {
-            check_ty(cx, t, bindings)
-        }
-        if let Some(ref o) = *init {
-            check_expr(cx, o, bindings);
-            check_pat(cx, pat, Some(o), span, bindings);
-        } else {
-            check_pat(cx, pat, None, span, bindings);
-        }
+    let Local {
+        ref pat,
+        ref ty,
+        ref init,
+        span,
+        ..
+    } = *local;
+    if let Some(ref t) = *ty {
+        check_ty(cx, t, bindings)
+    }
+    if let Some(ref o) = *init {
+        check_expr(cx, o, bindings);
+        check_pat(cx, pat, Some(o), span, bindings);
+    } else {
+        check_pat(cx, pat, None, span, bindings);
     }
 }
 
 fn is_binding(cx: &LateContext<'_, '_>, pat_id: HirId) -> bool {
-    let var_ty = cx.tables.node_id_to_type(pat_id);
+    let var_ty = cx.tables.node_type(pat_id);
     match var_ty.sty {
         ty::Adt(..) => false,
         _ => true,
@@ -178,7 +172,7 @@ fn check_pat<'a, 'tcx>(
 ) {
     // TODO: match more stuff / destructuring
     match pat.node {
-        PatKind::Binding(_, _, ident, ref inner) => {
+        PatKind::Binding(.., ident, ref inner) => {
             let name = ident.name;
             if is_binding(cx, pat.hir_id) {
                 let mut new_binding = true;

@@ -1,24 +1,15 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! This module contains functions for retrieve the original AST from lowered
 //! `hir`.
 
 #![deny(clippy::missing_docs_in_private_items)]
 
-use crate::rustc::lint::LateContext;
-use crate::rustc::{hir, ty};
-use crate::syntax::ast;
-use crate::utils::{is_expn_of, match_def_path, match_qpath, opt_def_id, paths, resolve_node};
+use crate::utils::{is_expn_of, match_qpath, paths, resolve_node};
 use if_chain::if_chain;
+use rustc::lint::LateContext;
+use rustc::{hir, ty};
+use syntax::ast;
 
-/// Convert a hir binary operator to the corresponding `ast` type.
+/// Converts a hir binary operator to the corresponding `ast` type.
 pub fn binop(op: hir::BinOpKind) -> ast::BinOpKind {
     match op {
         hir::BinOpKind::Eq => ast::BinOpKind::Eq,
@@ -55,7 +46,7 @@ pub struct Range<'a> {
 
 /// Higher a `hir` range to something similar to `ast::ExprKind::Range`.
 pub fn range<'a, 'b, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'b hir::Expr) -> Option<Range<'b>> {
-    /// Find the field named `name` in the field. Always return `Some` for
+    /// Finds the field named `name` in the field. Always return `Some` for
     /// convenience.
     fn get_field<'a>(name: &str, fields: &'a [hir::Field]) -> Option<&'a hir::Expr> {
         let expr = &fields.iter().find(|field| field.ident.name == name)?.expr;
@@ -157,8 +148,8 @@ pub fn range<'a, 'b, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'b hir::Expr) -> O
     }
 }
 
-/// Checks if a `let` decl is from a `for` loop desugaring.
-pub fn is_from_for_desugar(decl: &hir::Decl) -> bool {
+/// Checks if a `let` statement is from a `for` loop desugaring.
+pub fn is_from_for_desugar(local: &hir::Local) -> bool {
     // This will detect plain for-loops without an actual variable binding:
     //
     // ```
@@ -167,8 +158,7 @@ pub fn is_from_for_desugar(decl: &hir::Decl) -> bool {
     // }
     // ```
     if_chain! {
-        if let hir::DeclKind::Local(ref loc) = decl.node;
-        if let Some(ref expr) = loc.init;
+        if let Some(ref expr) = local.init;
         if let hir::ExprKind::Match(_, _, hir::MatchSource::ForLoopDesugar) = expr.node;
         then {
             return true;
@@ -183,12 +173,8 @@ pub fn is_from_for_desugar(decl: &hir::Decl) -> bool {
     //     // anything
     // }
     // ```
-    if_chain! {
-        if let hir::DeclKind::Local(ref loc) = decl.node;
-        if let hir::LocalSource::ForLoopDesugar = loc.source;
-        then {
-            return true;
-        }
+    if let hir::LocalSource::ForLoopDesugar = local.source {
+        return true;
     }
 
     false
@@ -204,11 +190,10 @@ pub fn for_loop(expr: &hir::Expr) -> Option<(&hir::Pat, &hir::Expr, &hir::Expr)>
         if let hir::ExprKind::Loop(ref block, _, _) = arms[0].body.node;
         if block.expr.is_none();
         if let [ _, _, ref let_stmt, ref body ] = *block.stmts;
-        if let hir::StmtKind::Decl(ref decl, _) = let_stmt.node;
-        if let hir::DeclKind::Local(ref decl) = decl.node;
-        if let hir::StmtKind::Expr(ref expr, _) = body.node;
+        if let hir::StmtKind::Local(ref local) = let_stmt.node;
+        if let hir::StmtKind::Expr(ref expr) = body.node;
         then {
-            return Some((&*decl.pat, &iterargs[0], expr));
+            return Some((&*local.pat, &iterargs[0], expr));
         }
     }
     None
@@ -229,13 +214,13 @@ pub fn vec_macro<'e>(cx: &LateContext<'_, '_>, expr: &'e hir::Expr) -> Option<Ve
         if let hir::ExprKind::Call(ref fun, ref args) = expr.node;
         if let hir::ExprKind::Path(ref path) = fun.node;
         if is_expn_of(fun.span, "vec").is_some();
-        if let Some(fun_def_id) = opt_def_id(resolve_node(cx, path, fun.hir_id));
+        if let Some(fun_def_id) = resolve_node(cx, path, fun.hir_id).opt_def_id();
         then {
-            return if match_def_path(cx.tcx, fun_def_id, &paths::VEC_FROM_ELEM) && args.len() == 2 {
+            return if cx.match_def_path(fun_def_id, &paths::VEC_FROM_ELEM) && args.len() == 2 {
                 // `vec![elem; size]` case
                 Some(VecArgs::Repeat(&args[0], &args[1]))
             }
-            else if match_def_path(cx.tcx, fun_def_id, &paths::SLICE_INTO_VEC) && args.len() == 1 {
+            else if cx.match_def_path(fun_def_id, &paths::SLICE_INTO_VEC) && args.len() == 1 {
                 // `vec![a, b, c]` case
                 if_chain! {
                     if let hir::ExprKind::Box(ref boxed) = args[0].node;

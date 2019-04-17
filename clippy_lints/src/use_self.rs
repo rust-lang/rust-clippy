@@ -1,51 +1,46 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::intravisit::{walk_path, walk_ty, NestedVisitorMap, Visitor};
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::NodeId;
-use crate::syntax_pos::symbol::keywords::SelfUpper;
-use crate::utils::{in_macro, span_lint_and_sugg};
 use if_chain::if_chain;
+use rustc::hir::def::{CtorKind, Def};
+use rustc::hir::intravisit::{walk_item, walk_path, walk_ty, NestedVisitorMap, Visitor};
+use rustc::hir::*;
+use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::ty;
+use rustc::ty::DefIdTree;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax_pos::symbol::keywords::SelfUpper;
 
-/// **What it does:** Checks for unnecessary repetition of structure name when a
-/// replacement with `Self` is applicable.
-///
-/// **Why is this bad?** Unnecessary repetition. Mixed use of `Self` and struct
-/// name
-/// feels inconsistent.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// struct Foo {}
-/// impl Foo {
-///     fn new() -> Foo {
-///         Foo {}
-///     }
-/// }
-/// ```
-/// could be
-/// ```rust
-/// struct Foo {}
-/// impl Foo {
-///     fn new() -> Self {
-///         Self {}
-///     }
-/// }
-/// ```
+use crate::utils::span_lint_and_sugg;
+
 declare_clippy_lint! {
+    /// **What it does:** Checks for unnecessary repetition of structure name when a
+    /// replacement with `Self` is applicable.
+    ///
+    /// **Why is this bad?** Unnecessary repetition. Mixed use of `Self` and struct
+    /// name
+    /// feels inconsistent.
+    ///
+    /// **Known problems:**
+    /// - False positive when using associated types (#2843)
+    /// - False positives in some situations when using generics (#3410)
+    ///
+    /// **Example:**
+    /// ```rust
+    /// struct Foo {}
+    /// impl Foo {
+    ///     fn new() -> Foo {
+    ///         Foo {}
+    ///     }
+    /// }
+    /// ```
+    /// could be
+    /// ```rust
+    /// struct Foo {}
+    /// impl Foo {
+    ///     fn new() -> Self {
+    ///         Self {}
+    ///     }
+    /// }
+    /// ```
     pub USE_SELF,
     pedantic,
     "Unnecessary structure name repetition whereas `Self` is applicable"
@@ -58,15 +53,24 @@ impl LintPass for UseSelf {
     fn get_lints(&self) -> LintArray {
         lint_array!(USE_SELF)
     }
+
+    fn name(&self) -> &'static str {
+        "UseSelf"
+    }
 }
 
 const SEGMENTS_MSG: &str = "segments should be composed of at least 1 element";
 
 fn span_use_self_lint(cx: &LateContext<'_, '_>, path: &Path) {
+    // Path segments only include actual path, no methods or fields.
+    let last_path_span = path.segments.last().expect(SEGMENTS_MSG).ident.span;
+    // Only take path up to the end of last_path_span.
+    let span = path.span.with_hi(last_path_span.hi());
+
     span_lint_and_sugg(
         cx,
         USE_SELF,
-        path.span,
+        span,
         "unnecessary structure name repetition",
         "use the applicable keyword",
         "Self".to_owned(),
@@ -135,7 +139,7 @@ fn check_trait_method_impl_decl<'a, 'tcx: 'a>(
     let trait_method_sig = cx.tcx.fn_sig(trait_method.def_id);
     let trait_method_sig = cx.tcx.erase_late_bound_regions(&trait_method_sig);
 
-    let impl_method_def_id = cx.tcx.hir().local_def_id(impl_item.id);
+    let impl_method_def_id = cx.tcx.hir().local_def_id_from_hir_id(impl_item.hir_id);
     let impl_method_sig = cx.tcx.fn_sig(impl_method_def_id);
     let impl_method_sig = cx.tcx.erase_late_bound_regions(&impl_method_sig);
 
@@ -147,7 +151,7 @@ fn check_trait_method_impl_decl<'a, 'tcx: 'a>(
 
     // `impl_decl_ty` (of type `hir::Ty`) represents the type declared in the signature.
     // `impl_ty` (of type `ty:TyS`) is the concrete type that the compiler has determined for
-    // that declaration.  We use `impl_decl_ty` to see if the type was declared as `Self`
+    // that declaration. We use `impl_decl_ty` to see if the type was declared as `Self`
     // and use `impl_ty` to check its concrete type.
     for (impl_decl_ty, (impl_ty, trait_ty)) in impl_decl.inputs.iter().chain(output_ty).zip(
         impl_method_sig
@@ -168,7 +172,7 @@ fn check_trait_method_impl_decl<'a, 'tcx: 'a>(
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
     fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx Item) {
-        if in_macro(item.span) {
+        if in_external_macro(cx.sess(), item.span) {
             return;
         }
         if_chain! {
@@ -179,7 +183,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
                 let should_check = if let Some(ref params) = *parameters {
                     !params.parenthesized && !params.args.iter().any(|arg| match arg {
                         GenericArg::Lifetime(_) => true,
-                        GenericArg::Type(_) => false,
+                        _ => false,
                     })
                 } else {
                     true
@@ -190,7 +194,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
                         item_path,
                         cx,
                     };
-                    let impl_def_id = cx.tcx.hir().local_def_id(item.id);
+                    let impl_def_id = cx.tcx.hir().local_def_id_from_hir_id(item.hir_id);
                     let impl_trait_ref = cx.tcx.impl_trait_ref(impl_def_id);
 
                     if let Some(impl_trait_ref) = impl_trait_ref {
@@ -226,15 +230,31 @@ struct UseSelfVisitor<'a, 'tcx: 'a> {
 
 impl<'a, 'tcx> Visitor<'tcx> for UseSelfVisitor<'a, 'tcx> {
     fn visit_path(&mut self, path: &'tcx Path, _id: HirId) {
-        if self.item_path.def == path.def && path.segments.last().expect(SEGMENTS_MSG).ident.name != SelfUpper.name() {
-            span_use_self_lint(self.cx, path);
+        if path.segments.last().expect(SEGMENTS_MSG).ident.name != SelfUpper.name() {
+            if self.item_path.def == path.def {
+                span_use_self_lint(self.cx, path);
+            } else if let Def::Ctor(ctor_did, def::CtorOf::Struct, CtorKind::Fn) = path.def {
+                if self.item_path.def.opt_def_id() == self.cx.tcx.parent(ctor_did) {
+                    span_use_self_lint(self.cx, path);
+                }
+            }
         }
-
         walk_path(self, path);
     }
 
-    fn visit_use(&mut self, _path: &'tcx Path, _id: NodeId, _hir_id: HirId) {
-        // Don't check use statements
+    fn visit_item(&mut self, item: &'tcx Item) {
+        match item.node {
+            ItemKind::Use(..)
+            | ItemKind::Static(..)
+            | ItemKind::Enum(..)
+            | ItemKind::Struct(..)
+            | ItemKind::Union(..)
+            | ItemKind::Impl(..)
+            | ItemKind::Fn(..) => {
+                // Don't check statements that shadow `Self` or where `Self` can't be used
+            },
+            _ => walk_item(self, item),
+        }
     }
 
     fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {

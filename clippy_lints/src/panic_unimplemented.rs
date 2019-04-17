@@ -1,51 +1,42 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast::LitKind;
-use crate::syntax::ext::quote::rt::Span;
-use crate::syntax::ptr::P;
-use crate::utils::{is_direct_expn_of, is_expn_of, match_def_path, opt_def_id, paths, resolve_node, span_lint};
+use crate::utils::{is_direct_expn_of, is_expn_of, paths, resolve_node, span_lint};
 use if_chain::if_chain;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::LitKind;
+use syntax::ptr::P;
+use syntax_pos::Span;
 
-/// **What it does:** Checks for missing parameters in `panic!`.
-///
-/// **Why is this bad?** Contrary to the `format!` family of macros, there are
-/// two forms of `panic!`: if there are no parameters given, the first argument
-/// is not a format string and used literally. So while `format!("{}")` will
-/// fail to compile, `panic!("{}")` will not.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// panic!("This `panic!` is probably missing a parameter there: {}");
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for missing parameters in `panic!`.
+    ///
+    /// **Why is this bad?** Contrary to the `format!` family of macros, there are
+    /// two forms of `panic!`: if there are no parameters given, the first argument
+    /// is not a format string and used literally. So while `format!("{}")` will
+    /// fail to compile, `panic!("{}")` will not.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```no_run
+    /// panic!("This `panic!` is probably missing a parameter there: {}");
+    /// ```
     pub PANIC_PARAMS,
     style,
     "missing parameters in `panic!` calls"
 }
 
-/// **What it does:** Checks for usage of `unimplemented!`.
-///
-/// **Why is this bad?** This macro should not be present in production code
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// unimplemented!();
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `unimplemented!`.
+    ///
+    /// **Why is this bad?** This macro should not be present in production code
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```no_run
+    /// unimplemented!();
+    /// ```
     pub UNIMPLEMENTED,
     restriction,
     "`unimplemented!` should not be present in production code"
@@ -57,6 +48,10 @@ impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(PANIC_PARAMS, UNIMPLEMENTED)
     }
+
+    fn name(&self) -> &'static str {
+        "PanicUnimplemented"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
@@ -66,8 +61,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
             if let Some(ref ex) = block.expr;
             if let ExprKind::Call(ref fun, ref params) = ex.node;
             if let ExprKind::Path(ref qpath) = fun.node;
-            if let Some(fun_def_id) = opt_def_id(resolve_node(cx, qpath, fun.hir_id));
-            if match_def_path(cx.tcx, fun_def_id, &paths::BEGIN_PANIC);
+            if let Some(fun_def_id) = resolve_node(cx, qpath, fun.hir_id).opt_def_id();
+            if cx.match_def_path(fun_def_id, &paths::BEGIN_PANIC);
             if params.len() == 2;
             then {
                 if is_expn_of(expr.span, "unimplemented").is_some() {

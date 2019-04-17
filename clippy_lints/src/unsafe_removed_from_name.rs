@@ -1,35 +1,26 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast::*;
-use crate::syntax::source_map::Span;
-use crate::syntax::symbol::LocalInternedString;
 use crate::utils::span_lint;
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::*;
+use syntax::source_map::Span;
+use syntax::symbol::LocalInternedString;
 
-/// **What it does:** Checks for imports that remove "unsafe" from an item's
-/// name.
-///
-/// **Why is this bad?** Renaming makes it less clear which traits and
-/// structures are unsafe.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust,ignore
-/// use std::cell::{UnsafeCell as TotallySafeCell};
-///
-/// extern crate crossbeam;
-/// use crossbeam::{spawn_unsafe as spawn};
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for imports that remove "unsafe" from an item's
+    /// name.
+    ///
+    /// **Why is this bad?** Renaming makes it less clear which traits and
+    /// structures are unsafe.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust,ignore
+    /// use std::cell::{UnsafeCell as TotallySafeCell};
+    ///
+    /// extern crate crossbeam;
+    /// use crossbeam::{spawn_unsafe as spawn};
+    /// ```
     pub UNSAFE_REMOVED_FROM_NAME,
     style,
     "`unsafe` removed from API names on import"
@@ -40,6 +31,10 @@ pub struct UnsafeNameRemoval;
 impl LintPass for UnsafeNameRemoval {
     fn get_lints(&self) -> LintArray {
         lint_array!(UNSAFE_REMOVED_FROM_NAME)
+    }
+
+    fn name(&self) -> &'static str {
+        "UnsafeNameRemoval"
     }
 }
 

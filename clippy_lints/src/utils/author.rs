@@ -1,56 +1,48 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! A group of attributes that can be attached to Rust code in order
 //! to generate a clippy lint detecting said code automatically.
 
-use crate::rustc::hir;
-use crate::rustc::hir::intravisit::{NestedVisitorMap, Visitor};
-use crate::rustc::hir::{BindingAnnotation, DeclKind, Expr, ExprKind, Pat, PatKind, QPath, Stmt, StmtKind, TyKind};
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_data_structures::fx::FxHashMap;
-use crate::syntax::ast::{Attribute, LitKind, DUMMY_NODE_ID};
 use crate::utils::get_attr;
+use rustc::hir;
+use rustc::hir::intravisit::{NestedVisitorMap, Visitor};
+use rustc::hir::{BindingAnnotation, Expr, ExprKind, Pat, PatKind, QPath, Stmt, StmtKind, TyKind};
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::session::Session;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_data_structures::fx::FxHashMap;
+use syntax::ast::{Attribute, LitKind};
 
-/// **What it does:** Generates clippy code that detects the offending pattern
-///
-/// **Example:**
-/// ```rust
-/// // ./tests/ui/my_lint.rs
-/// fn foo() {
-///     // detect the following pattern
-///     #[clippy::author]
-///     if x == 42 {
-///         // but ignore everything from here on
-///         #![clippy::author = "ignore"]
-///     }
-/// }
-/// ```
-///
-/// Running `TESTNAME=ui/my_lint cargo test --test compile-test` will produce
-/// a `./tests/ui/new_lint.stdout` file with the generated code:
-///
-/// ```rust
-/// // ./tests/ui/new_lint.stdout
-/// if_chain! {
-///     if let ExprKind::If(ref cond, ref then, None) = item.node,
-///     if let ExprKind::Binary(BinOp::Eq, ref left, ref right) = cond.node,
-///     if let ExprKind::Path(ref path) = left.node,
-///     if let ExprKind::Lit(ref lit) = right.node,
-///     if let LitKind::Int(42, _) = lit.node,
-///     then {
-///         // report your lint here
-///     }
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Generates clippy code that detects the offending pattern
+    ///
+    /// **Example:**
+    /// ```rust
+    /// // ./tests/ui/my_lint.rs
+    /// fn foo() {
+    ///     // detect the following pattern
+    ///     #[clippy::author]
+    ///     if x == 42 {
+    ///         // but ignore everything from here on
+    ///         #![clippy::author = "ignore"]
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Running `TESTNAME=ui/my_lint cargo uitest` will produce
+    /// a `./tests/ui/new_lint.stdout` file with the generated code:
+    ///
+    /// ```rust
+    /// // ./tests/ui/new_lint.stdout
+    /// if_chain! {
+    ///     if let ExprKind::If(ref cond, ref then, None) = item.node,
+    ///     if let ExprKind::Binary(BinOp::Eq, ref left, ref right) = cond.node,
+    ///     if let ExprKind::Path(ref path) = left.node,
+    ///     if let ExprKind::Lit(ref lit) = right.node,
+    ///     if let LitKind::Int(42, _) = lit.node,
+    ///     then {
+    ///         // report your lint here
+    ///     }
+    /// }
+    /// ```
     pub LINT_AUTHOR,
     internal_warn,
     "helper for writing lints"
@@ -61,6 +53,10 @@ pub struct Pass;
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(LINT_AUTHOR)
+    }
+
+    fn name(&self) -> &'static str {
+        "Author"
     }
 }
 
@@ -76,8 +72,8 @@ fn done() {
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
-    fn check_item(&mut self, _cx: &LateContext<'a, 'tcx>, item: &'tcx hir::Item) {
-        if !has_attr(&item.attrs) {
+    fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::Item) {
+        if !has_attr(cx.sess(), &item.attrs) {
             return;
         }
         prelude();
@@ -85,8 +81,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         done();
     }
 
-    fn check_impl_item(&mut self, _cx: &LateContext<'a, 'tcx>, item: &'tcx hir::ImplItem) {
-        if !has_attr(&item.attrs) {
+    fn check_impl_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::ImplItem) {
+        if !has_attr(cx.sess(), &item.attrs) {
             return;
         }
         prelude();
@@ -94,8 +90,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         done();
     }
 
-    fn check_trait_item(&mut self, _cx: &LateContext<'a, 'tcx>, item: &'tcx hir::TraitItem) {
-        if !has_attr(&item.attrs) {
+    fn check_trait_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::TraitItem) {
+        if !has_attr(cx.sess(), &item.attrs) {
             return;
         }
         prelude();
@@ -103,17 +99,17 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         done();
     }
 
-    fn check_variant(&mut self, _cx: &LateContext<'a, 'tcx>, var: &'tcx hir::Variant, generics: &hir::Generics) {
-        if !has_attr(&var.node.attrs) {
+    fn check_variant(&mut self, cx: &LateContext<'a, 'tcx>, var: &'tcx hir::Variant, generics: &hir::Generics) {
+        if !has_attr(cx.sess(), &var.node.attrs) {
             return;
         }
         prelude();
-        PrintVisitor::new("var").visit_variant(var, generics, DUMMY_NODE_ID);
+        PrintVisitor::new("var").visit_variant(var, generics, hir::DUMMY_HIR_ID);
         done();
     }
 
-    fn check_struct_field(&mut self, _cx: &LateContext<'a, 'tcx>, field: &'tcx hir::StructField) {
-        if !has_attr(&field.attrs) {
+    fn check_struct_field(&mut self, cx: &LateContext<'a, 'tcx>, field: &'tcx hir::StructField) {
+        if !has_attr(cx.sess(), &field.attrs) {
             return;
         }
         prelude();
@@ -121,8 +117,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         done();
     }
 
-    fn check_expr(&mut self, _cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr) {
-        if !has_attr(&expr.attrs) {
+    fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr) {
+        if !has_attr(cx.sess(), &expr.attrs) {
             return;
         }
         prelude();
@@ -130,8 +126,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         done();
     }
 
-    fn check_arm(&mut self, _cx: &LateContext<'a, 'tcx>, arm: &'tcx hir::Arm) {
-        if !has_attr(&arm.attrs) {
+    fn check_arm(&mut self, cx: &LateContext<'a, 'tcx>, arm: &'tcx hir::Arm) {
+        if !has_attr(cx.sess(), &arm.attrs) {
             return;
         }
         prelude();
@@ -139,8 +135,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         done();
     }
 
-    fn check_stmt(&mut self, _cx: &LateContext<'a, 'tcx>, stmt: &'tcx hir::Stmt) {
-        if !has_attr(stmt.node.attrs()) {
+    fn check_stmt(&mut self, cx: &LateContext<'a, 'tcx>, stmt: &'tcx hir::Stmt) {
+        if !has_attr(cx.sess(), stmt.node.attrs()) {
             return;
         }
         prelude();
@@ -148,8 +144,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
         done();
     }
 
-    fn check_foreign_item(&mut self, _cx: &LateContext<'a, 'tcx>, item: &'tcx hir::ForeignItem) {
-        if !has_attr(&item.attrs) {
+    fn check_foreign_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::ForeignItem) {
+        if !has_attr(cx.sess(), &item.attrs) {
             return;
         }
         prelude();
@@ -199,6 +195,7 @@ struct PrintVisitor {
 }
 
 impl<'tcx> Visitor<'tcx> for PrintVisitor {
+    #[allow(clippy::too_many_lines)]
     fn visit_expr(&mut self, expr: &Expr) {
         print!("    if let ExprKind::");
         let current = format!("{}.node", self.current);
@@ -269,6 +266,7 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
                 match lit.node {
                     LitKind::Bool(val) => println!("    if let LitKind::Bool({:?}) = {}.node;", val, lit_pat),
                     LitKind::Char(c) => println!("    if let LitKind::Char({:?}) = {}.node;", c, lit_pat),
+                    LitKind::Err(val) => println!("    if let LitKind::Err({}) = {}.node;", val, lit_pat),
                     LitKind::Byte(b) => println!("    if let LitKind::Byte({}) = {}.node;", b, lit_pat),
                     // FIXME: also check int type
                     LitKind::Int(i, _) => println!("    if let LitKind::Int({}, _) = {}.node;", i, lit_pat),
@@ -510,12 +508,13 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     fn visit_pat(&mut self, pat: &Pat) {
         print!("    if let PatKind::");
         let current = format!("{}.node", self.current);
         match pat.node {
             PatKind::Wild => println!("Wild = {};", current),
-            PatKind::Binding(anno, _, ident, ref sub) => {
+            PatKind::Binding(anno, .., ident, ref sub) => {
                 let anno_pat = match anno {
                     BindingAnnotation::Unannotated => "BindingAnnotation::Unannotated",
                     BindingAnnotation::Mutable => "BindingAnnotation::Mutable",
@@ -634,35 +633,26 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
         print!("    if let StmtKind::");
         let current = format!("{}.node", self.current);
         match s.node {
-            // Could be an item or a local (let) binding:
-            StmtKind::Decl(ref decl, _) => {
-                let decl_pat = self.next("decl");
-                println!("Decl(ref {}, _) = {}", decl_pat, current);
-                print!("    if let DeclKind::");
-                let current = format!("{}.node", decl_pat);
-                match decl.node {
-                    // A local (let) binding:
-                    DeclKind::Local(ref local) => {
-                        let local_pat = self.next("local");
-                        println!("Local(ref {}) = {};", local_pat, current);
-                        if let Some(ref init) = local.init {
-                            let init_pat = self.next("init");
-                            println!("    if let Some(ref {}) = {}.init", init_pat, local_pat);
-                            self.current = init_pat;
-                            self.visit_expr(init);
-                        }
-                        self.current = format!("{}.pat", local_pat);
-                        self.visit_pat(&local.pat);
-                    },
-                    // An item binding:
-                    DeclKind::Item(_) => {
-                        println!("Item(item_id) = {};", current);
-                    },
+            // A local (let) binding:
+            StmtKind::Local(ref local) => {
+                let local_pat = self.next("local");
+                println!("Local(ref {}) = {};", local_pat, current);
+                if let Some(ref init) = local.init {
+                    let init_pat = self.next("init");
+                    println!("    if let Some(ref {}) = {}.init;", init_pat, local_pat);
+                    self.current = init_pat;
+                    self.visit_expr(init);
                 }
+                self.current = format!("{}.pat", local_pat);
+                self.visit_pat(&local.pat);
+            },
+            // An item binding:
+            StmtKind::Item(_) => {
+                println!("Item(item_id) = {};", current);
             },
 
             // Expr without trailing semi-colon (must have unit type):
-            StmtKind::Expr(ref e, _) => {
+            StmtKind::Expr(ref e) => {
                 let e_pat = self.next("e");
                 println!("Expr(ref {}, _) = {}", e_pat, current);
                 self.current = e_pat;
@@ -670,7 +660,7 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
             },
 
             // Expr with trailing semi-colon (may have any type):
-            StmtKind::Semi(ref e, _) => {
+            StmtKind::Semi(ref e) => {
                 let e_pat = self.next("e");
                 println!("Semi(ref {}, _) = {}", e_pat, current);
                 self.current = e_pat;
@@ -684,8 +674,8 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
     }
 }
 
-fn has_attr(attrs: &[Attribute]) -> bool {
-    get_attr(attrs, "author").count() > 0
+fn has_attr(sess: &Session, attrs: &[Attribute]) -> bool {
+    get_attr(sess, attrs, "author").count() > 0
 }
 
 fn desugaring_name(des: hir::MatchSource) -> String {

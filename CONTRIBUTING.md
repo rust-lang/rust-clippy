@@ -14,11 +14,6 @@ All contributors are expected to follow the [Rust Code of Conduct](http://www.ru
 * [Getting started](#getting-started)
   * [Finding something to fix/improve](#finding-something-to-fiximprove)
 * [Writing code](#writing-code)
-  * [Author lint](#author-lint)
-  * [Documentation](#documentation)
-  * [Running test suite](#running-test-suite)
-  * [Running rustfmt](#running-rustfmt)
-  * [Testing manually](#testing-manually)
 * [How Clippy works](#how-clippy-works)
 * [Fixing nightly build failures](#fixing-build-failures-caused-by-rust)
 * [Issue and PR Triage](#issue-and-pr-triage)
@@ -73,107 +68,14 @@ an AST expression). `match_def_path()` in Clippy's `utils` module can also be us
 
 ## Writing code
 
-[Llogiq's blog post on lints](https://llogiq.github.io/2015/06/04/workflows.html) is a nice primer
-to lint-writing, though it does get into advanced stuff. Most lints consist of an implementation of
-`LintPass` with one or more of its default methods overridden. See the existing lints for examples
-of this.
+Have a look at the [docs for writing lints](doc/adding_lints.md) for more details. [Llogiq's blog post on lints](https://llogiq.github.io/2015/06/04/workflows.html) is also a nice primer
+to lint-writing, though it does get into advanced stuff and may be a bit
+outdated.
 
 If you want to add a new lint or change existing ones apart from bugfixing, it's
-also a good idea to give the [stability guaratees][rfc_stability] and
+also a good idea to give the [stability guarantees][rfc_stability] and
 [lint categories][rfc_lint_cats] sections of the [Clippy 1.0 RFC][clippy_rfc] a
 quick read.
-
-### Author lint
-
-There is also the internal `author` lint to generate Clippy code that detects the offending pattern. It does not work for all of the Rust syntax, but can give a good starting point.
-
-First, create a new UI test file in the `tests/ui/` directory with the pattern you want to match:
-
-```rust
-// ./tests/ui/my_lint.rs
-fn main() {
-    #[clippy::author]
-    let arr: [i32; 1] = [7]; // Replace line with the code you want to match
-}
-```
-
-Now you run `TESTNAME=ui/my_lint cargo test --test compile-test` to produce
-a `.stdout` file with the generated code:
-
-```rust
-// ./tests/ui/my_lint.stdout
-
-if_chain! {
-    if let ExprKind::Array(ref elements) = stmt.node;
-    if elements.len() == 1;
-    if let ExprKind::Lit(ref lit) = elements[0].node;
-    if let LitKind::Int(7, _) = lit.node;
-    then {
-        // report your lint here
-    }
-}
-```
-
-If the command was executed successfully, you can copy the code over to where you are implementing your lint.
-
-### Documentation
-
-Please document your lint with a doc comment akin to the following:
-
-```rust
-/// **What it does:** Checks for ... (describe what the lint matches).
-///
-/// **Why is this bad?** Supply the reason for linting the code.
-///
-/// **Known problems:** None. (Or describe where it could go wrong.)
-///
-/// **Example:**
-///
-/// ```rust
-/// // Bad
-/// Insert a short example of code that triggers the lint
-///
-/// // Good
-/// Insert a short example of improved code that doesn't trigger the lint
-/// ```
-```
-
-Once your lint is merged it will show up in the [lint list](https://rust-lang.github.io/rust-clippy/master/index.html)
-
-### Running test suite
-
-Use `cargo test` to run the whole testsuite.
-
-If you don't want to wait for all tests to finish, you can also execute a single test file by using `TESTNAME` to specify the test to run:
-
-```bash
-TESTNAME=ui/empty_line_after_outer_attr cargo test --test compile-test
-```
-
-Clippy uses UI tests. UI tests check that the output of the compiler is exactly as expected.
-Of course there's little sense in writing the output yourself or copying it around.
-Therefore you should use `tests/ui/update-all-references.sh` (after running
-`cargo test`) and check whether the output looks as you expect with `git diff`. Commit all
-`*.stderr` files, too.
-
-### Running rustfmt
-
-[Rustfmt](https://github.com/rust-lang/rustfmt) is a tool for formatting Rust code according
-to style guidelines. The code has to be formatted by `rustfmt` before a PR will be merged.
-
-It can be installed via `rustup`:
-```bash
-rustup component add rustfmt
-```
-
-Use `cargo fmt --all` to format the whole codebase.
-
-### Testing manually
-
-Manually testing against an example file is useful if you have added some
-`println!`s and test suite output becomes unreadable.  To try Clippy with your
-local modifications, run `env CLIPPY_TESTS=true cargo run --bin clippy-driver -- -L ./target/debug input.rs`
-from the working copy root.
 
 ## How Clippy works
 

@@ -1,41 +1,33 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast;
-use crate::syntax::source_map::{BytePos, Span};
-use crate::syntax_pos::Pos;
 use crate::utils::span_lint;
 use itertools::Itertools;
 use pulldown_cmark;
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_data_structures::fx::FxHashSet;
+use syntax::ast;
+use syntax::source_map::{BytePos, Span};
+use syntax_pos::Pos;
 use url::Url;
 
-/// **What it does:** Checks for the presence of `_`, `::` or camel-case words
-/// outside ticks in documentation.
-///
-/// **Why is this bad?** *Rustdoc* supports markdown formatting, `_`, `::` and
-/// camel-case probably indicates some code which should be included between
-/// ticks. `_` can also be used for emphasis in markdown, this lint tries to
-/// consider that.
-///
-/// **Known problems:** Lots of bad docs won’t be fixed, what the lint checks
-/// for is limited, and there are still false positives.
-///
-/// **Examples:**
-/// ```rust
-/// /// Do something with the foo_bar parameter. See also
-/// /// that::other::module::foo.
-/// // ^ `foo_bar` and `that::other::module::foo` should be ticked.
-/// fn doit(foo_bar) { .. }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for the presence of `_`, `::` or camel-case words
+    /// outside ticks in documentation.
+    ///
+    /// **Why is this bad?** *Rustdoc* supports markdown formatting, `_`, `::` and
+    /// camel-case probably indicates some code which should be included between
+    /// ticks. `_` can also be used for emphasis in markdown, this lint tries to
+    /// consider that.
+    ///
+    /// **Known problems:** Lots of bad docs won’t be fixed, what the lint checks
+    /// for is limited, and there are still false positives.
+    ///
+    /// **Examples:**
+    /// ```rust
+    /// /// Do something with the foo_bar parameter. See also
+    /// /// that::other::module::foo.
+    /// // ^ `foo_bar` and `that::other::module::foo` should be ticked.
+    /// fn doit(foo_bar) { .. }
+    /// ```
     pub DOC_MARKDOWN,
     pedantic,
     "presence of `_`, `::` or camel-case outside backticks in documentation"
@@ -43,11 +35,11 @@ declare_clippy_lint! {
 
 #[derive(Clone)]
 pub struct Doc {
-    valid_idents: Vec<String>,
+    valid_idents: FxHashSet<String>,
 }
 
 impl Doc {
-    pub fn new(valid_idents: Vec<String>) -> Self {
+    pub fn new(valid_idents: FxHashSet<String>) -> Self {
         Self { valid_idents }
     }
 }
@@ -55,6 +47,10 @@ impl Doc {
 impl LintPass for Doc {
     fn get_lints(&self) -> LintArray {
         lint_array![DOC_MARKDOWN]
+    }
+
+    fn name(&self) -> &'static str {
+        "DocMarkdown"
     }
 }
 
@@ -144,7 +140,7 @@ pub fn strip_doc_comment_decoration(comment: &str, span: Span) -> (String, Vec<(
     panic!("not a doc-comment: {}", comment);
 }
 
-pub fn check_attrs<'a>(cx: &EarlyContext<'_>, valid_idents: &[String], attrs: &'a [ast::Attribute]) {
+pub fn check_attrs<'a>(cx: &EarlyContext<'_>, valid_idents: &FxHashSet<String>, attrs: &'a [ast::Attribute]) {
     let mut doc = String::new();
     let mut spans = vec![];
 
@@ -156,7 +152,7 @@ pub fn check_attrs<'a>(cx: &EarlyContext<'_>, valid_idents: &[String], attrs: &'
                 spans.extend_from_slice(&current_spans);
                 doc.push_str(&current);
             }
-        } else if attr.name() == "doc" {
+        } else if attr.check_name("doc") {
             // ignore mix of sugared and non-sugared doc
             return;
         }
@@ -192,7 +188,7 @@ pub fn check_attrs<'a>(cx: &EarlyContext<'_>, valid_idents: &[String], attrs: &'
 
 fn check_doc<'a, Events: Iterator<Item = (usize, pulldown_cmark::Event<'a>)>>(
     cx: &EarlyContext<'_>,
-    valid_idents: &[String],
+    valid_idents: &FxHashSet<String>,
     docs: Events,
     spans: &[(usize, Span)],
 ) {
@@ -237,14 +233,14 @@ fn check_doc<'a, Events: Iterator<Item = (usize, pulldown_cmark::Event<'a>)>>(
     }
 }
 
-fn check_text(cx: &EarlyContext<'_>, valid_idents: &[String], text: &str, span: Span) {
+fn check_text(cx: &EarlyContext<'_>, valid_idents: &FxHashSet<String>, text: &str, span: Span) {
     for word in text.split(|c: char| c.is_whitespace() || c == '\'') {
         // Trim punctuation as in `some comment (see foo::bar).`
         //                                                   ^^
         // Or even as in `_foo bar_` which is emphasized.
         let word = word.trim_matches(|c: char| !c.is_alphanumeric());
 
-        if valid_idents.iter().any(|i| i == word) {
+        if valid_idents.contains(word) {
             continue;
         }
 
@@ -261,10 +257,9 @@ fn check_text(cx: &EarlyContext<'_>, valid_idents: &[String], text: &str, span: 
 }
 
 fn check_word(cx: &EarlyContext<'_>, word: &str, span: Span) {
-    /// Checks if a string is camel-case, ie. contains at least two uppercase
-    /// letter (`Clippy` is
-    /// ok) and one lower-case letter (`NASA` is ok). Plural are also excluded
-    /// (`IDs` is ok).
+    /// Checks if a string is camel-case, i.e., contains at least two uppercase
+    /// letters (`Clippy` is ok) and one lower-case letter (`NASA` is ok).
+    /// Plurals are also excluded (`IDs` is ok).
     fn is_camel_case(s: &str) -> bool {
         if s.starts_with(|c: char| c.is_digit(10)) {
             return false;

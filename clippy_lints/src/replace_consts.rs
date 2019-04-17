@@ -1,38 +1,29 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::hir::def::Def;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::utils::{match_def_path, span_lint_and_sugg};
+use crate::utils::span_lint_and_sugg;
 use if_chain::if_chain;
+use rustc::hir;
+use rustc::hir::def::Def;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 
-/// **What it does:** Checks for usage of `ATOMIC_X_INIT`, `ONCE_INIT`, and
-/// `uX/iX::MIN/MAX`.
-///
-/// **Why is this bad?** `const fn`s exist
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// static FOO: AtomicIsize = ATOMIC_ISIZE_INIT;
-/// ```
-///
-/// Could be written:
-///
-/// ```rust
-/// static FOO: AtomicIsize = AtomicIsize::new(0);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `ATOMIC_X_INIT`, `ONCE_INIT`, and
+    /// `uX/iX::MIN/MAX`.
+    ///
+    /// **Why is this bad?** `const fn`s exist
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// static FOO: AtomicIsize = ATOMIC_ISIZE_INIT;
+    /// ```
+    ///
+    /// Could be written:
+    ///
+    /// ```rust
+    /// static FOO: AtomicIsize = AtomicIsize::new(0);
+    /// ```
     pub REPLACE_CONSTS,
     pedantic,
     "Lint usages of standard library `const`s that could be replaced by `const fn`s"
@@ -44,6 +35,10 @@ impl LintPass for ReplaceConsts {
     fn get_lints(&self) -> LintArray {
         lint_array!(REPLACE_CONSTS)
     }
+
+    fn name(&self) -> &'static str {
+        "ReplaceConsts"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ReplaceConsts {
@@ -53,7 +48,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ReplaceConsts {
             if let Def::Const(def_id) = cx.tables.qpath_def(qp, expr.hir_id);
             then {
                 for &(const_path, repl_snip) in REPLACEMENTS {
-                    if match_def_path(cx.tcx, def_id, const_path) {
+                    if cx.match_def_path(def_id, const_path) {
                         span_lint_and_sugg(
                             cx,
                             REPLACE_CONSTS,
@@ -74,21 +69,6 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ReplaceConsts {
 const REPLACEMENTS: &[(&[&str], &str)] = &[
     // Once
     (&["core", "sync", "ONCE_INIT"], "Once::new()"),
-    // Atomic
-    (
-        &["core", "sync", "atomic", "ATOMIC_BOOL_INIT"],
-        "AtomicBool::new(false)",
-    ),
-    (&["core", "sync", "atomic", "ATOMIC_ISIZE_INIT"], "AtomicIsize::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_I8_INIT"], "AtomicI8::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_I16_INIT"], "AtomicI16::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_I32_INIT"], "AtomicI32::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_I64_INIT"], "AtomicI64::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_USIZE_INIT"], "AtomicUsize::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_U8_INIT"], "AtomicU8::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_U16_INIT"], "AtomicU16::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_U32_INIT"], "AtomicU32::new(0)"),
-    (&["core", "sync", "atomic", "ATOMIC_U64_INIT"], "AtomicU64::new(0)"),
     // Min
     (&["core", "isize", "MIN"], "isize::min_value()"),
     (&["core", "i8", "MIN"], "i8::min_value()"),

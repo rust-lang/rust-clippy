@@ -1,40 +1,31 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! Lint on unnecessary double comparisons. Some examples:
 
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::source_map::Span;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::source_map::Span;
 
 use crate::utils::{snippet_with_applicability, span_lint_and_sugg, SpanlessEq};
 
-/// **What it does:** Checks for double comparions that could be simplified to a single expression.
-///
-///
-/// **Why is this bad?** Readability.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// x == y || x < y
-/// ```
-///
-/// Could be written as:
-///
-/// ```rust
-/// x <= y
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for double comparions that could be simplified to a single expression.
+    ///
+    ///
+    /// **Why is this bad?** Readability.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// x == y || x < y
+    /// ```
+    ///
+    /// Could be written as:
+    ///
+    /// ```rust
+    /// x <= y
+    /// ```
     pub DOUBLE_COMPARISONS,
     complexity,
     "unnecessary double comparisons that can be simplified"
@@ -45,6 +36,10 @@ pub struct Pass;
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(DOUBLE_COMPARISONS)
+    }
+
+    fn name(&self) -> &'static str {
+        "DoubleComparisons"
     }
 }
 

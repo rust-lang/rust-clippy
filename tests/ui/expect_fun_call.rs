@@ -1,18 +1,10 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+// run-rustfix
 
 #![warn(clippy::expect_fun_call)]
-#![allow(clippy::useless_format)]
 
 /// Checks implementation of the `EXPECT_FUN_CALL` lint
 
-fn expect_fun_call() {
+fn main() {
     struct Foo;
 
     impl Foo {
@@ -60,12 +52,36 @@ fn expect_fun_call() {
     let with_dummy_type_and_as_str = Foo::new();
     with_dummy_type_and_as_str.expect(format!("Error {}: fake error", error_code).as_str());
 
+    //Issue #2937
+    Some("foo").expect(format!("{} {}", 1, 2).as_ref());
+
     //Issue #2979 - this should not lint
-    let msg = "bar";
-    Some("foo").expect(msg);
+    {
+        let msg = "bar";
+        Some("foo").expect(msg);
+    }
 
-    Some("foo").expect({ &format!("error") });
-    Some("foo").expect(format!("error").as_ref());
+    {
+        fn get_string() -> String {
+            "foo".to_string()
+        }
+
+        fn get_static_str() -> &'static str {
+            "foo"
+        }
+
+        fn get_non_static_str(_: &u32) -> &str {
+            "foo"
+        }
+
+        Some("foo").expect(&get_string());
+        Some("foo").expect(get_string().as_ref());
+        Some("foo").expect(get_string().as_str());
+
+        Some("foo").expect(get_static_str());
+        Some("foo").expect(get_non_static_str(&0));
+    }
+
+    //Issue #3839
+    Some(true).expect(&format!("key {}, {}", 1, 2));
 }
-
-fn main() {}

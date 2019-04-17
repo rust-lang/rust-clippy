@@ -1,50 +1,67 @@
-# Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-# file at the top-level directory of this distribution and at
-# http://rust-lang.org/COPYRIGHT.
-#
-# Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-# http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-# <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-# option. This file may not be copied, modified, or distributed
-# except according to those terms.
-
-
 set -ex
 
 echo "Running clippy base tests"
 
 PATH=$PATH:./node_modules/.bin
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-  remark -f *.md > /dev/null
+  remark -f *.md -f doc/*.md > /dev/null
 fi
 # build clippy in debug mode and run tests
 cargo build --features debugging
 cargo test --features debugging
 # for faster build, share target dir between subcrates
 export CARGO_TARGET_DIR=`pwd`/target/
-cd clippy_lints && cargo test && cd ..
-cd rustc_tools_util && cargo test && cd ..
-cd clippy_dev && cargo test && cd ..
+(cd clippy_lints && cargo test)
+(cd rustc_tools_util && cargo test)
+(cd clippy_dev && cargo test)
 
 # make sure clippy can be called via ./path/to/cargo-clippy
-cd clippy_workspace_tests
-../target/debug/cargo-clippy
-cd ..
+(
+  cd clippy_workspace_tests
+  ../target/debug/cargo-clippy
+)
 
 # Perform various checks for lint registration
 ./util/dev update_lints --check
 cargo +nightly fmt --all -- --check
+
+# Check running clippy-driver without cargo
+(
+  export LD_LIBRARY_PATH=$(rustc --print sysroot)/lib
+
+  # Check sysroot handling
+  sysroot=$(./target/debug/clippy-driver --print sysroot)
+  test $sysroot = $(rustc --print sysroot)
+
+  sysroot=$(./target/debug/clippy-driver --sysroot /tmp --print sysroot)
+  test $sysroot = /tmp
+
+  sysroot=$(SYSROOT=/tmp ./target/debug/clippy-driver --print sysroot)
+  test $sysroot = /tmp
+
+  # Make sure this isn't set - clippy-driver should cope without it
+  unset CARGO_MANIFEST_DIR
+
+  # Run a lint and make sure it produces the expected output. It's also expected to exit with code 1
+  # XXX How to match the clippy invocation in compile-test.rs?
+  ! ./target/debug/clippy-driver -Dwarnings -Aunused -Zui-testing --emit metadata --crate-type bin tests/ui/cstring.rs 2> cstring.stderr
+  diff <(sed -e 's,tests/ui,$DIR,' -e '/= help/d' cstring.stderr) tests/ui/cstring.stderr
+
+  # TODO: CLIPPY_CONF_DIR / CARGO_MANIFEST_DIR
+)
 
 # make sure tests are formatted
 
 # some lints are sensitive to formatting, exclude some files
 tests_need_reformatting="false"
 # switch to nightly
-rustup default nightly
+rustup override set nightly
 # avoid loop spam and allow cmds with exit status != 0
 set +ex
 
-for file in `find tests -not -path "tests/ui/methods.rs" -not -path "tests/ui/format.rs" -not -path "tests/ui/formatting.rs" -not -path "tests/ui/empty_line_after_outer_attribute.rs" -not -path "tests/ui/double_parens.rs" -not -path "tests/ui/doc.rs" -not -path "tests/ui/unused_unit.rs" | grep "\.rs$"` ; do
+# Excluding `ice-3891.rs` because the code triggers a rustc parse error which
+# makes rustfmt fail.
+for file in `find tests -not -path "tests/ui/crashes/ice-3891.rs" | grep "\.rs$"` ; do
   rustfmt ${file} --check
   if [ $? -ne 0 ]; then
     echo "${file} needs reformatting!"
@@ -60,4 +77,4 @@ if [ "${tests_need_reformatting}" == "true" ] ; then
 fi
 
 # switch back to master
-rustup default master
+rustup override set master

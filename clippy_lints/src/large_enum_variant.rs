@@ -1,38 +1,29 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! lint when there is a large size difference between variants on an enum
 
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty::layout::LayoutOf;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
 use crate::utils::{snippet_opt, span_lint_and_then};
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty::layout::LayoutOf;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 
-/// **What it does:** Checks for large size differences between variants on
-/// `enum`s.
-///
-/// **Why is this bad?** Enum size is bounded by the largest variant. Having a
-/// large variant
-/// can penalize the memory layout of that enum.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// enum Test {
-///     A(i32),
-///     B([i32; 8000]),
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for large size differences between variants on
+    /// `enum`s.
+    ///
+    /// **Why is this bad?** Enum size is bounded by the largest variant. Having a
+    /// large variant
+    /// can penalize the memory layout of that enum.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// enum Test {
+    ///     A(i32),
+    ///     B([i32; 8000]),
+    /// }
+    /// ```
     pub LARGE_ENUM_VARIANT,
     perf,
     "large size difference between variants on an enum"
@@ -55,11 +46,15 @@ impl LintPass for LargeEnumVariant {
     fn get_lints(&self) -> LintArray {
         lint_array!(LARGE_ENUM_VARIANT)
     }
+
+    fn name(&self) -> &'static str {
+        "LargeEnumVariant"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LargeEnumVariant {
     fn check_item(&mut self, cx: &LateContext<'_, '_>, item: &Item) {
-        let did = cx.tcx.hir().local_def_id(item.id);
+        let did = cx.tcx.hir().local_def_id_from_hir_id(item.hir_id);
         if let ItemKind::Enum(ref def, _) = item.node {
             let ty = cx.tcx.type_of(did);
             let adt = ty.ty_adt_def().expect("already checked whether this is an enum");
@@ -99,13 +94,13 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LargeEnumVariant {
                         |db| {
                             if variant.fields.len() == 1 {
                                 let span = match def.variants[i].node.data {
-                                    VariantData::Struct(ref fields, _) | VariantData::Tuple(ref fields, _) => {
+                                    VariantData::Struct(ref fields, ..) | VariantData::Tuple(ref fields, ..) => {
                                         fields[0].ty.span
                                     },
-                                    VariantData::Unit(_) => unreachable!(),
+                                    VariantData::Unit(..) => unreachable!(),
                                 };
                                 if let Some(snip) = snippet_opt(cx, span) {
-                                    db.span_suggestion_with_applicability(
+                                    db.span_suggestion(
                                         span,
                                         "consider boxing the large fields to reduce the total size of the \
                                          enum",

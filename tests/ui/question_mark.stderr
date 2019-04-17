@@ -1,5 +1,5 @@
 error: this block may be rewritten with the `?` operator
-  --> $DIR/question_mark.rs:11:5
+  --> $DIR/question_mark.rs:2:5
    |
 LL | /     if a.is_none() {
 LL | |         return None;
@@ -35,5 +35,29 @@ LL | |             self.opt
 LL | |         };
    | |_________^ help: replace_it_with: `Some(self.opt?)`
 
-error: aborting due to 4 previous errors
+error: this block may be rewritten with the `?` operator
+  --> $DIR/question_mark.rs:72:9
+   |
+LL | /         if self.opt.is_none() {
+LL | |             return None;
+LL | |         }
+   | |_________^ help: replace_it_with: `self.opt.as_ref()?;`
+
+error: this block may be rewritten with the `?` operator
+  --> $DIR/question_mark.rs:80:9
+   |
+LL | /         if self.opt.is_none() {
+LL | |             return None;
+LL | |         }
+   | |_________^ help: replace_it_with: `self.opt.as_ref()?;`
+
+error: this block may be rewritten with the `?` operator
+  --> $DIR/question_mark.rs:88:9
+   |
+LL | /         if self.opt.is_none() {
+LL | |             return None;
+LL | |         }
+   | |_________^ help: replace_it_with: `self.opt.as_ref()?;`
+
+error: aborting due to 7 previous errors
 

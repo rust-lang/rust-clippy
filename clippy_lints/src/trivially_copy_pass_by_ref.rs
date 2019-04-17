@@ -1,63 +1,53 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 use std::cmp;
 
-use crate::rustc::hir;
-use crate::rustc::hir::intravisit::FnKind;
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::session::config::Config as SessionConfig;
-use crate::rustc::ty::{self, FnSig};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::rustc_target::abi::LayoutOf;
-use crate::rustc_target::spec::abi::Abi;
-use crate::syntax::ast::NodeId;
-use crate::syntax_pos::Span;
 use crate::utils::{in_macro, is_copy, is_self_ty, snippet, span_lint_and_sugg};
 use if_chain::if_chain;
 use matches::matches;
+use rustc::hir;
+use rustc::hir::intravisit::FnKind;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::session::config::Config as SessionConfig;
+use rustc::ty::{self, FnSig};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use rustc_target::abi::LayoutOf;
+use rustc_target::spec::abi::Abi;
+use syntax_pos::Span;
 
-/// **What it does:** Checks for functions taking arguments by reference, where
-/// the argument type is `Copy` and small enough to be more efficient to always
-/// pass by value.
-///
-/// **Why is this bad?** In many calling conventions instances of structs will
-/// be passed through registers if they fit into two or less general purpose
-/// registers.
-///
-/// **Known problems:** This lint is target register size dependent, it is
-/// limited to 32-bit to try and reduce portability problems between 32 and
-/// 64-bit, but if you are compiling for 8 or 16-bit targets then the limit
-/// will be different.
-///
-/// The configuration option `trivial_copy_size_limit` can be set to override
-/// this limit for a project.
-///
-/// This lint attempts to allow passing arguments by reference if a reference
-/// to that argument is returned. This is implemented by comparing the lifetime
-/// of the argument and return value for equality. However, this can cause
-/// false positives in cases involving multiple lifetimes that are bounded by
-/// each other.
-///
-/// **Example:**
-/// ```rust
-/// fn foo(v: &u32) {
-///     assert_eq!(v, 42);
-/// }
-/// // should be
-/// fn foo(v: u32) {
-///     assert_eq!(v, 42);
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for functions taking arguments by reference, where
+    /// the argument type is `Copy` and small enough to be more efficient to always
+    /// pass by value.
+    ///
+    /// **Why is this bad?** In many calling conventions instances of structs will
+    /// be passed through registers if they fit into two or less general purpose
+    /// registers.
+    ///
+    /// **Known problems:** This lint is target register size dependent, it is
+    /// limited to 32-bit to try and reduce portability problems between 32 and
+    /// 64-bit, but if you are compiling for 8 or 16-bit targets then the limit
+    /// will be different.
+    ///
+    /// The configuration option `trivial_copy_size_limit` can be set to override
+    /// this limit for a project.
+    ///
+    /// This lint attempts to allow passing arguments by reference if a reference
+    /// to that argument is returned. This is implemented by comparing the lifetime
+    /// of the argument and return value for equality. However, this can cause
+    /// false positives in cases involving multiple lifetimes that are bounded by
+    /// each other.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn foo(v: &u32) {
+    ///     assert_eq!(v, 42);
+    /// }
+    /// // should be
+    /// fn foo(v: u32) {
+    ///     assert_eq!(v, 42);
+    /// }
+    /// ```
     pub TRIVIALLY_COPY_PASS_BY_REF,
     perf,
     "functions taking small copyable arguments by reference"
@@ -82,11 +72,11 @@ impl<'a, 'tcx> TriviallyCopyPassByRef {
     }
 
     fn check_trait_method(&mut self, cx: &LateContext<'_, 'tcx>, item: &TraitItemRef) {
-        let method_def_id = cx.tcx.hir().local_def_id(item.id.node_id);
+        let method_def_id = cx.tcx.hir().local_def_id_from_hir_id(item.id.hir_id);
         let method_sig = cx.tcx.fn_sig(method_def_id);
         let method_sig = cx.tcx.erase_late_bound_regions(&method_sig);
 
-        let decl = match cx.tcx.hir().fn_decl(item.id.node_id) {
+        let decl = match cx.tcx.hir().fn_decl_by_hir_id(item.id.hir_id) {
             Some(b) => b,
             None => return,
         };
@@ -151,6 +141,10 @@ impl LintPass for TriviallyCopyPassByRef {
     fn get_lints(&self) -> LintArray {
         lint_array![TRIVIALLY_COPY_PASS_BY_REF]
     }
+
+    fn name(&self) -> &'static str {
+        "TrivallyCopyPassByRef"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
@@ -170,7 +164,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
         decl: &'tcx FnDecl,
         _body: &'tcx Body,
         span: Span,
-        node_id: NodeId,
+        hir_id: HirId,
     ) {
         if in_macro(span) {
             return;
@@ -182,7 +176,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
                     return;
                 }
                 for a in attrs {
-                    if a.meta_item_list().is_some() && a.name() == "proc_macro_derive" {
+                    if a.meta_item_list().is_some() && a.check_name("proc_macro_derive") {
                         return;
                     }
                 }
@@ -192,7 +186,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
         }
 
         // Exclude non-inherent impls
-        if let Some(Node::Item(item)) = cx.tcx.hir().find(cx.tcx.hir().get_parent_node(node_id)) {
+        if let Some(Node::Item(item)) = cx
+            .tcx
+            .hir()
+            .find_by_hir_id(cx.tcx.hir().get_parent_node_by_hir_id(hir_id))
+        {
             if matches!(item.node, ItemKind::Impl(_, _, _, _, Some(_), _, _) |
                 ItemKind::Trait(..))
             {
@@ -200,7 +198,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
             }
         }
 
-        let fn_def_id = cx.tcx.hir().local_def_id(node_id);
+        let fn_def_id = cx.tcx.hir().local_def_id_from_hir_id(hir_id);
 
         let fn_sig = cx.tcx.fn_sig(fn_def_id);
         let fn_sig = cx.tcx.erase_late_bound_regions(&fn_sig);

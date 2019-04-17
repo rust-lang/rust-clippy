@@ -1,43 +1,34 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! lint when items are used after statements
 
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast::*;
 use crate::utils::{in_macro, span_lint};
 use matches::matches;
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::*;
 
-/// **What it does:** Checks for items declared after some statement in a block.
-///
-/// **Why is this bad?** Items live for the entire scope they are declared
-/// in. But statements are processed in order. This might cause confusion as
-/// it's hard to figure out which item is meant in a statement.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// fn foo() {
-///     println!("cake");
-/// }
-///
-/// fn main() {
-///     foo(); // prints "foo"
-///     fn foo() {
-///         println!("foo");
-///     }
-///     foo(); // prints "foo"
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for items declared after some statement in a block.
+    ///
+    /// **Why is this bad?** Items live for the entire scope they are declared
+    /// in. But statements are processed in order. This might cause confusion as
+    /// it's hard to figure out which item is meant in a statement.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn foo() {
+    ///     println!("cake");
+    /// }
+    ///
+    /// fn main() {
+    ///     foo(); // prints "foo"
+    ///     fn foo() {
+    ///         println!("foo");
+    ///     }
+    ///     foo(); // prints "foo"
+    /// }
+    /// ```
     pub ITEMS_AFTER_STATEMENTS,
     pedantic,
     "blocks where an item comes after a statement"
@@ -48,6 +39,10 @@ pub struct ItemsAfterStatements;
 impl LintPass for ItemsAfterStatements {
     fn get_lints(&self) -> LintArray {
         lint_array!(ITEMS_AFTER_STATEMENTS)
+    }
+
+    fn name(&self) -> &'static str {
+        "ItemsAfterStatements"
     }
 }
 

@@ -1,12 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 use std::collections::*;
 use std::rc::Rc;
 
@@ -38,7 +29,7 @@ impl Unrelated {
     clippy::linkedlist,
     clippy::shadow_unrelated,
     clippy::unnecessary_mut_passed,
-    clippy::cyclomatic_complexity,
+    clippy::cognitive_complexity,
     clippy::similar_names
 )]
 #[allow(clippy::many_single_char_names, unused_variables, clippy::into_iter_on_array)]
@@ -333,37 +324,6 @@ fn main() {
     }
     println!("index: {}", index);
 
-    let m: HashMap<u64, u64> = HashMap::new();
-    for (_, v) in &m {
-        let _v = v;
-    }
-
-    let m: Rc<HashMap<u64, u64>> = Rc::new(HashMap::new());
-    for (_, v) in &*m {
-        let _v = v;
-        // Here the `*` is not actually necessary, but the test tests that we don't
-        // suggest
-        // `in *m.values()` as we used to
-    }
-
-    let mut m: HashMap<u64, u64> = HashMap::new();
-    for (_, v) in &mut m {
-        let _v = v;
-    }
-
-    let m: &mut HashMap<u64, u64> = &mut HashMap::new();
-    for (_, v) in &mut *m {
-        let _v = v;
-    }
-
-    let m: HashMap<u64, u64> = HashMap::new();
-    let rm = &m;
-    for (k, _value) in rm {
-        let _k = k;
-    }
-
-    test_for_kv_map();
-
     fn f<T>(_: &T, _: &T) -> bool {
         unimplemented!()
     }
@@ -381,17 +341,6 @@ fn main() {
     }
 }
 
-#[allow(clippy::used_underscore_binding)]
-fn test_for_kv_map() {
-    let m: HashMap<u64, u64> = HashMap::new();
-
-    // No error, _value is actually used
-    for (k, _value) in &m {
-        let _ = _value;
-        let _k = k;
-    }
-}
-
 #[allow(dead_code)]
 fn partition<T: PartialOrd + Send>(v: &mut [T]) -> usize {
     let pivot = v.len() - 1;
@@ -404,114 +353,6 @@ fn partition<T: PartialOrd + Send>(v: &mut [T]) -> usize {
     }
     v.swap(i, pivot);
     i
-}
-
-const LOOP_OFFSET: usize = 5000;
-
-#[warn(clippy::needless_range_loop)]
-pub fn manual_copy(src: &[i32], dst: &mut [i32], dst2: &mut [i32]) {
-    // plain manual memcpy
-    for i in 0..src.len() {
-        dst[i] = src[i];
-    }
-
-    // dst offset memcpy
-    for i in 0..src.len() {
-        dst[i + 10] = src[i];
-    }
-
-    // src offset memcpy
-    for i in 0..src.len() {
-        dst[i] = src[i + 10];
-    }
-
-    // src offset memcpy
-    for i in 11..src.len() {
-        dst[i] = src[i - 10];
-    }
-
-    // overwrite entire dst
-    for i in 0..dst.len() {
-        dst[i] = src[i];
-    }
-
-    // manual copy with branch - can't easily convert to memcpy!
-    for i in 0..src.len() {
-        dst[i] = src[i];
-        if dst[i] > 5 {
-            break;
-        }
-    }
-
-    // multiple copies - suggest two memcpy statements
-    for i in 10..256 {
-        dst[i] = src[i - 5];
-        dst2[i + 500] = src[i]
-    }
-
-    // this is a reversal - the copy lint shouldn't be triggered
-    for i in 10..LOOP_OFFSET {
-        dst[i + LOOP_OFFSET] = src[LOOP_OFFSET - i];
-    }
-
-    let some_var = 5;
-    // Offset in variable
-    for i in 10..LOOP_OFFSET {
-        dst[i + LOOP_OFFSET] = src[i - some_var];
-    }
-
-    // Non continuous copy - don't trigger lint
-    for i in 0..10 {
-        dst[i + i] = src[i];
-    }
-
-    let src_vec = vec![1, 2, 3, 4, 5];
-    let mut dst_vec = vec![0, 0, 0, 0, 0];
-
-    // make sure vectors are supported
-    for i in 0..src_vec.len() {
-        dst_vec[i] = src_vec[i];
-    }
-
-    // lint should not trigger when either
-    // source or destination type is not
-    // slice-like, like DummyStruct
-    struct DummyStruct(i32);
-
-    impl ::std::ops::Index<usize> for DummyStruct {
-        type Output = i32;
-
-        fn index(&self, _: usize) -> &i32 {
-            &self.0
-        }
-    }
-
-    let src = DummyStruct(5);
-    let mut dst_vec = vec![0; 10];
-
-    for i in 0..10 {
-        dst_vec[i] = src[i];
-    }
-
-    // Simplify suggestion (issue #3004)
-    let src = [0, 1, 2, 3, 4];
-    let mut dst = [0, 0, 0, 0, 0, 0];
-    let from = 1;
-
-    for i in from..from + src.len() {
-        dst[i] = src[i - from];
-    }
-
-    for i in from..from + 3 {
-        dst[i] = src[i - from];
-    }
-}
-
-#[warn(clippy::needless_range_loop)]
-pub fn manual_clone(src: &[String], dst: &mut [String]) {
-    for i in 0..src.len() {
-        dst[i] = src[i].clone();
-    }
 }
 
 #[warn(clippy::needless_range_loop)]

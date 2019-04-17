@@ -1,51 +1,42 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::LitKind;
-use crate::syntax::ptr::P;
 use crate::utils::{match_qpath, paths, snippet, span_lint_and_then};
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::LitKind;
+use syntax::ptr::P;
 
-/// **What it does:** Lint for redundant pattern matching over `Result` or
-/// `Option`
-///
-/// **Why is this bad?** It's more concise and clear to just use the proper
-/// utility function
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-///
-/// ```rust
-/// if let Ok(_) = Ok::<i32, i32>(42) {}
-/// if let Err(_) = Err::<i32, i32>(42) {}
-/// if let None = None::<()> {}
-/// if let Some(_) = Some(42) {}
-/// match Ok::<i32, i32>(42) {
-///     Ok(_) => true,
-///     Err(_) => false,
-/// };
-/// ```
-///
-/// The more idiomatic use would be:
-///
-/// ```rust
-/// if Ok::<i32, i32>(42).is_ok() {}
-/// if Err::<i32, i32>(42).is_err() {}
-/// if None::<()>.is_none() {}
-/// if Some(42).is_some() {}
-/// Ok::<i32, i32>(42).is_ok();
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Lint for redundant pattern matching over `Result` or
+    /// `Option`
+    ///
+    /// **Why is this bad?** It's more concise and clear to just use the proper
+    /// utility function
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// if let Ok(_) = Ok::<i32, i32>(42) {}
+    /// if let Err(_) = Err::<i32, i32>(42) {}
+    /// if let None = None::<()> {}
+    /// if let Some(_) = Some(42) {}
+    /// match Ok::<i32, i32>(42) {
+    ///     Ok(_) => true,
+    ///     Err(_) => false,
+    /// };
+    /// ```
+    ///
+    /// The more idiomatic use would be:
+    ///
+    /// ```rust
+    /// if Ok::<i32, i32>(42).is_ok() {}
+    /// if Err::<i32, i32>(42).is_err() {}
+    /// if None::<()>.is_none() {}
+    /// if Some(42).is_some() {}
+    /// Ok::<i32, i32>(42).is_ok();
+    /// ```
     pub REDUNDANT_PATTERN_MATCHING,
     style,
     "use the proper utility function avoiding an `if let`"
@@ -57,6 +48,10 @@ pub struct Pass;
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(REDUNDANT_PATTERN_MATCHING)
+    }
+
+    fn name(&self) -> &'static str {
+        "RedundantPatternMatching"
     }
 }
 
@@ -103,7 +98,7 @@ fn find_sugg_for_if_let<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr, 
             &format!("redundant pattern matching, consider using `{}`", good_method),
             |db| {
                 let span = expr.span.to(op.span);
-                db.span_suggestion_with_applicability(
+                db.span_suggestion(
                     span,
                     "try this",
                     format!("if {}.{}", snippet(cx, op.span, "_"), good_method),
@@ -168,7 +163,7 @@ fn find_sugg_for_match<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr, o
                 &format!("redundant pattern matching, consider using `{}`", good_method),
                 |db| {
                     let span = expr.span.to(op.span);
-                    db.span_suggestion_with_applicability(
+                    db.span_suggestion(
                         span,
                         "try this",
                         format!("{}.{}", snippet(cx, op.span, "_"), good_method),

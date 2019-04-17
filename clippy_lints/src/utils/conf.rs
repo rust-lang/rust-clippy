@@ -1,30 +1,19 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! Read configurations files.
 
 #![deny(clippy::missing_docs_in_private_items)]
 
-use crate::syntax::{ast, source_map};
 use lazy_static::lazy_static;
 use std::default::Default;
 use std::io::Read;
 use std::sync::Mutex;
 use std::{env, fmt, fs, io, path};
+use syntax::{ast, source_map};
 use toml;
 
-/// Get the configuration file from arguments.
-pub fn file_from_args(
-    args: &[source_map::Spanned<ast::NestedMetaItemKind>],
-) -> Result<Option<path::PathBuf>, (&'static str, source_map::Span)> {
-    for arg in args.iter().filter_map(|a| a.meta_item()) {
-        if arg.name() == "conf_file" {
+/// Gets the configuration file from arguments.
+pub fn file_from_args(args: &[ast::NestedMetaItem]) -> Result<Option<path::PathBuf>, (&'static str, source_map::Span)> {
+    for arg in args.iter().filter_map(syntax::ast::NestedMetaItem::meta_item) {
+        if arg.check_name("conf_file") {
             return match arg.node {
                 ast::MetaItemKind::Word | ast::MetaItemKind::List(_) => {
                     Err(("`conf_file` must be a named value", arg.span))
@@ -119,8 +108,10 @@ macro_rules! define_Conf {
 define_Conf! {
     /// Lint: BLACKLISTED_NAME. The list of blacklisted names to lint about
     (blacklisted_names, "blacklisted_names", ["foo", "bar", "baz", "quux"] => Vec<String>),
-    /// Lint: CYCLOMATIC_COMPLEXITY. The maximum cyclomatic complexity a function can have
-    (cyclomatic_complexity_threshold, "cyclomatic_complexity_threshold", 25 => u64),
+    /// Lint: COGNITIVE_COMPLEXITY. The maximum cognitive complexity a function can have
+    (cognitive_complexity_threshold, "cognitive_complexity_threshold", 25 => u64),
+    /// DEPRECATED LINT: CYCLOMATIC_COMPLEXITY. Use the Cognitive Complexity lint instead.
+    (cyclomatic_complexity_threshold, "cyclomatic_complexity_threshold", None => Option<u64>),
     /// Lint: DOC_MARKDOWN. The list of words this lint should not consider as identifiers needing ticks
     (doc_valid_idents, "doc_valid_idents", [
         "KiB", "MiB", "GiB", "TiB", "PiB", "EiB",
@@ -157,6 +148,8 @@ define_Conf! {
     (literal_representation_threshold, "literal_representation_threshold", 16384 => u64),
     /// Lint: TRIVIALLY_COPY_PASS_BY_REF. The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference.
     (trivial_copy_size_limit, "trivial_copy_size_limit", None => Option<u64>),
+    /// Lint: TOO_MANY_LINES. The maximum number of lines a function or method can have
+    (too_many_lines_threshold, "too_many_lines_threshold", 100 => u64),
 }
 
 impl Default for Conf {
@@ -170,8 +163,13 @@ pub fn lookup_conf_file() -> io::Result<Option<path::PathBuf>> {
     /// Possible filename to search for.
     const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
 
-    let mut current = path::PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set"));
-
+    // Start looking for a config file in CLIPPY_CONF_DIR, or failing that, CARGO_MANIFEST_DIR.
+    // If neither of those exist, use ".".
+    let mut current = path::PathBuf::from(
+        env::var("CLIPPY_CONF_DIR")
+            .or_else(|_| env::var("CARGO_MANIFEST_DIR"))
+            .unwrap_or_else(|_| ".".to_string()),
+    );
     loop {
         for config_file_name in &CONFIG_FILE_NAMES {
             let config_file = current.join(config_file_name);
@@ -229,13 +227,24 @@ pub fn read(path: Option<&path::Path>) -> (Conf, Vec<Error>) {
 
     assert!(ERRORS.lock().expect("no threading -> mutex always safe").is_empty());
     match toml::from_str(&file) {
-        Ok(toml) => (
-            toml,
-            ERRORS.lock().expect("no threading -> mutex always safe").split_off(0),
-        ),
+        Ok(toml) => {
+            let mut errors = ERRORS.lock().expect("no threading -> mutex always safe").split_off(0);
+
+            let toml_ref: &Conf = &toml;
+
+            let cyc_field: Option<u64> = toml_ref.cyclomatic_complexity_threshold;
+
+            if cyc_field.is_some() {
+                let cyc_err = "found deprecated field `cyclomatic-complexity-threshold`. Please use `cognitive-complexity-threshold` instead.".to_string();
+                errors.push(Error::Toml(cyc_err));
+            }
+
+            (toml, errors)
+        },
         Err(e) => {
             let mut errors = ERRORS.lock().expect("no threading -> mutex always safe").split_off(0);
             errors.push(Error::Toml(e.to_string()));
+
             default(errors)
         },
     }

@@ -1,19 +1,10 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 #![feature(const_string_new, const_vec_new)]
 #![allow(clippy::ref_in_deref, dead_code)]
 
 use std::borrow::Cow;
 use std::cell::Cell;
 use std::fmt::Display;
-use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Once;
 
 const ATOMIC: AtomicUsize = AtomicUsize::new(5); //~ ERROR interior mutable
@@ -103,9 +94,6 @@ impl<T: Trait2 + Trait<u32>, U: Trait2> Local<T, U> {
 fn main() {
     ATOMIC.store(1, Ordering::SeqCst); //~ ERROR interior mutability
     assert_eq!(ATOMIC.load(Ordering::SeqCst), 5); //~ ERROR interior mutability
-
-    ATOMIC_USIZE_INIT.store(2, Ordering::SeqCst); //~ ERROR interior mutability
-    assert_eq!(ATOMIC_USIZE_INIT.load(Ordering::SeqCst), 0); //~ ERROR interior mutability
 
     let _once = ONCE_INIT;
     let _once_ref = &ONCE_INIT; //~ ERROR interior mutability

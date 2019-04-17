@@ -1,38 +1,29 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::source_map::Spanned;
 use if_chain::if_chain;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::source_map::Spanned;
 
 use crate::consts::{constant, Constant};
 use crate::utils::paths;
 use crate::utils::{match_type, snippet_with_applicability, span_lint_and_sugg, walk_ptrs_ty};
 
-/// **What it does:** Checks for calculation of subsecond microseconds or milliseconds
-/// from other `Duration` methods.
-///
-/// **Why is this bad?** It's more concise to call `Duration::subsec_micros()` or
-/// `Duration::subsec_millis()` than to calculate them.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let dur = Duration::new(5, 0);
-/// let _micros = dur.subsec_nanos() / 1_000;
-/// let _millis = dur.subsec_nanos() / 1_000_000;
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for calculation of subsecond microseconds or milliseconds
+    /// from other `Duration` methods.
+    ///
+    /// **Why is this bad?** It's more concise to call `Duration::subsec_micros()` or
+    /// `Duration::subsec_millis()` than to calculate them.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let dur = Duration::new(5, 0);
+    /// let _micros = dur.subsec_nanos() / 1_000;
+    /// let _millis = dur.subsec_nanos() / 1_000_000;
+    /// ```
     pub DURATION_SUBSEC,
     complexity,
     "checks for calculation of subsecond microseconds or milliseconds"
@@ -44,6 +35,10 @@ pub struct DurationSubsec;
 impl LintPass for DurationSubsec {
     fn get_lints(&self) -> LintArray {
         lint_array!(DURATION_SUBSEC)
+    }
+
+    fn name(&self) -> &'static str {
+        "DurationSubsec"
     }
 }
 

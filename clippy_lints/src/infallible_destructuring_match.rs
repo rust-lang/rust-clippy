@@ -1,49 +1,40 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 use super::utils::{get_arg_name, match_var, remove_blocks, snippet_with_applicability, span_lint_and_sugg};
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
 use if_chain::if_chain;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 
-/// **What it does:** Checks for matches being used to destructure a single-variant enum
-/// or tuple struct where a `let` will suffice.
-///
-/// **Why is this bad?** Just readability – `let` doesn't nest, whereas a `match` does.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// enum Wrapper {
-///     Data(i32),
-/// }
-///
-/// let wrapper = Wrapper::Data(42);
-///
-/// let data = match wrapper {
-///     Wrapper::Data(i) => i,
-/// };
-/// ```
-///
-/// The correct use would be:
-/// ```rust
-/// enum Wrapper {
-///     Data(i32),
-/// }
-///
-/// let wrapper = Wrapper::Data(42);
-/// let Wrapper::Data(data) = wrapper;
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for matches being used to destructure a single-variant enum
+    /// or tuple struct where a `let` will suffice.
+    ///
+    /// **Why is this bad?** Just readability – `let` doesn't nest, whereas a `match` does.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// enum Wrapper {
+    ///     Data(i32),
+    /// }
+    ///
+    /// let wrapper = Wrapper::Data(42);
+    ///
+    /// let data = match wrapper {
+    ///     Wrapper::Data(i) => i,
+    /// };
+    /// ```
+    ///
+    /// The correct use would be:
+    /// ```rust
+    /// enum Wrapper {
+    ///     Data(i32),
+    /// }
+    ///
+    /// let wrapper = Wrapper::Data(42);
+    /// let Wrapper::Data(data) = wrapper;
+    /// ```
     pub INFALLIBLE_DESTRUCTURING_MATCH,
     style,
     "a match statement with a single infallible arm instead of a `let`"
@@ -55,6 +46,10 @@ pub struct Pass;
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(INFALLIBLE_DESTRUCTURING_MATCH)
+    }
+
+    fn name(&self) -> &'static str {
+        "InfallibleDestructingMatch"
     }
 }
 

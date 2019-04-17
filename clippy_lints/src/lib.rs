@@ -1,28 +1,18 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 // error-pattern:cargo-clippy
 
 #![feature(box_syntax)]
+#![feature(never_type)]
 #![feature(rustc_private)]
 #![feature(slice_patterns)]
 #![feature(stmt_expr_attributes)]
-#![feature(range_contains)]
-#![feature(str_escape)]
 #![allow(clippy::missing_docs_in_private_items)]
 #![recursion_limit = "256"]
 #![warn(rust_2018_idioms, trivial_casts, trivial_numeric_casts)]
+#![deny(internal)]
 #![feature(crate_visibility_modifier)]
-#![feature(try_from)]
 
 // FIXME: switch to something more ergonomic here, once available.
-// (currently there is no way to opt into sysroot crates w/o `extern crate`)
+// (Currently there is no way to opt into sysroot crates without `extern crate`.)
 #[allow(unused_extern_crates)]
 extern crate fmt_macros;
 #[allow(unused_extern_crates)]
@@ -31,6 +21,8 @@ extern crate rustc;
 extern crate rustc_data_structures;
 #[allow(unused_extern_crates)]
 extern crate rustc_errors;
+#[allow(unused_extern_crates)]
+extern crate rustc_mir;
 #[allow(unused_extern_crates)]
 extern crate rustc_plugin;
 #[allow(unused_extern_crates)]
@@ -44,39 +36,104 @@ extern crate syntax_pos;
 
 use toml;
 
-// Currently, categories "style", "correctness", "complexity" and "perf" are enabled by default,
-// as said in the README.md of this repository. If this changes, please update README.md.
+/// Macro used to declare a Clippy lint.
+///
+/// Every lint declaration consists of 4 parts:
+///
+/// 1. The documentation, which is used for the website
+/// 2. The `LINT_NAME`. See [lint naming][lint_naming] on lint naming conventions.
+/// 3. The `lint_level`, which is a mapping from *one* of our lint groups to `Allow`, `Warn` or
+///    `Deny`. The lint level here has nothing to do with what lint groups the lint is a part of.
+/// 4. The `description` that contains a short explanation on what's wrong with code where the
+///    lint is triggered.
+///
+/// Currently the categories `style`, `correctness`, `complexity` and `perf` are enabled by default.
+/// As said in the README.md of this repository, if the lint level mapping changes, please update
+/// README.md.
+///
+/// # Example
+///
+/// ```
+/// # #![feature(rustc_private)]
+/// # #[allow(unused_extern_crates)]
+/// # extern crate rustc;
+/// # #[macro_use]
+/// # use clippy_lints::declare_clippy_lint;
+/// use rustc::declare_tool_lint;
+///
+/// declare_clippy_lint! {
+///     /// **What it does:** Checks for ... (describe what the lint matches).
+///     ///
+///     /// **Why is this bad?** Supply the reason for linting the code.
+///     ///
+///     /// **Known problems:** None. (Or describe where it could go wrong.)
+///     ///
+///     /// **Example:**
+///     ///
+///     /// ```rust
+///     /// // Bad
+///     /// Insert a short example of code that triggers the lint
+///     ///
+///     /// // Good
+///     /// Insert a short example of improved code that doesn't trigger the lint
+///     /// ```
+///     pub LINT_NAME,
+///     pedantic,
+///     "description"
+/// }
+/// ```
+/// [lint_naming]: https://rust-lang.github.io/rfcs/0344-conventions-galore.html#lints
 #[macro_export]
 macro_rules! declare_clippy_lint {
-    { pub $name:tt, style, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, style, $description:tt } => {
+        declare_tool_lint! {
+            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, correctness, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Deny, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, correctness, $description:tt } => {
+        declare_tool_lint! {
+            $(#[$attr])* pub clippy::$name, Deny, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, complexity, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, complexity, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Warn, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, perf, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, perf, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Warn, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, pedantic, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, pedantic, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Allow, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, restriction, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, restriction, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Allow, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, cargo, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, cargo, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Allow, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, nursery, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, nursery, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Allow, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, internal, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Allow, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, internal, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Allow, $description, report_in_external_macro: true
+        }
     };
-    { pub $name:tt, internal_warn, $description:tt } => {
-        declare_tool_lint! { pub clippy::$name, Warn, $description, report_in_external_macro: true }
+    { $(#[$attr:meta])* pub $name:tt, internal_warn, $description:tt } => {
+        declare_tool_lint! {
+            pub clippy::$name, Warn, $description, report_in_external_macro: true
+        }
     };
 }
 
@@ -87,6 +144,7 @@ mod utils;
 // begin lints modules, do not remove this comment, it’s used in `update_lints`
 pub mod approx_const;
 pub mod arithmetic;
+pub mod assertions_on_constants;
 pub mod assign_ops;
 pub mod attrs;
 pub mod bit_mask;
@@ -95,17 +153,19 @@ pub mod block_in_if_condition;
 pub mod booleans;
 pub mod bytecount;
 pub mod cargo_common_metadata;
+pub mod cognitive_complexity;
 pub mod collapsible_if;
 pub mod const_static_lifetime;
 pub mod collect;
 pub mod copies;
 pub mod copy_iterator;
-pub mod cyclomatic_complexity;
+pub mod dbg_macro;
 pub mod default_trait_access;
 pub mod derive;
 pub mod doc;
 pub mod double_comparison;
 pub mod double_parens;
+pub mod drop_bounds;
 pub mod drop_forget_ref;
 pub mod duration_subsec;
 pub mod else_if_without_else;
@@ -153,6 +213,7 @@ pub mod methods;
 pub mod minmax;
 pub mod misc;
 pub mod misc_early;
+pub mod missing_const_for_fn;
 pub mod missing_doc;
 pub mod missing_inline;
 pub mod multiple_crate_versions;
@@ -196,6 +257,7 @@ pub mod suspicious_trait_impl;
 pub mod swap;
 pub mod temporary_assignment;
 pub mod transmute;
+pub mod transmuting_null;
 pub mod trivially_copy_pass_by_ref;
 pub mod types;
 pub mod unicode;
@@ -213,25 +275,42 @@ pub mod zero_div_zero;
 pub use crate::utils::conf::Conf;
 
 mod reexport {
-    crate use crate::syntax::ast::{Name, NodeId};
+    crate use syntax::ast::Name;
 }
 
+/// Register all pre expansion lints
+///
+/// Pre-expansion lints run before any macro expansion has happened.
+///
+/// Note that due to the architecture of the compiler, currently `cfg_attr` attributes on crate
+/// level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
+///
+/// Used in `./src/driver.rs`.
 pub fn register_pre_expansion_lints(
     session: &rustc::session::Session,
     store: &mut rustc::lint::LintStore,
     conf: &Conf,
 ) {
-    store.register_pre_expansion_pass(Some(session), box write::Pass);
-    store.register_pre_expansion_pass(Some(session), box redundant_field_names::RedundantFieldNames);
+    store.register_pre_expansion_pass(Some(session), true, false, box write::Pass);
     store.register_pre_expansion_pass(
         Some(session),
+        true,
+        false,
+        box redundant_field_names::RedundantFieldNames,
+    );
+    store.register_pre_expansion_pass(
+        Some(session),
+        true,
+        false,
         box non_expressive_names::NonExpressiveNames {
             single_char_binding_names_threshold: conf.single_char_binding_names_threshold,
         },
     );
-    store.register_pre_expansion_pass(Some(session), box attrs::CfgAttrPass);
+    store.register_pre_expansion_pass(Some(session), true, false, box attrs::CfgAttrPass);
+    store.register_pre_expansion_pass(Some(session), true, false, box dbg_macro::Pass);
 }
 
+#[doc(hidden)]
 pub fn read_conf(reg: &rustc_plugin::Registry<'_>) -> Conf {
     match utils::conf::file_from_args(reg.args()) {
         Ok(file_name) => {
@@ -264,7 +343,7 @@ pub fn read_conf(reg: &rustc_plugin::Registry<'_>) -> Conf {
                 }
             });
 
-            let (conf, errors) = utils::conf::read(file_name.as_ref().map(|p| p.as_ref()));
+            let (conf, errors) = utils::conf::read(file_name.as_ref().map(std::convert::AsRef::as_ref));
 
             // all conf errors are non-fatal, we just use the default conf in case of error
             for error in errors {
@@ -289,6 +368,10 @@ pub fn read_conf(reg: &rustc_plugin::Registry<'_>) -> Conf {
     }
 }
 
+/// Register all lints and lint groups with the rustc plugin registry
+///
+/// Used in `./src/driver.rs`.
+#[allow(clippy::too_many_lines)]
 #[rustfmt::skip]
 pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     let mut store = reg.sess.lint_store.borrow_mut();
@@ -327,7 +410,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     );
     store.register_removed(
         "assign_ops",
-        "using compound assignment operators (e.g. `+=`) is harmless",
+        "using compound assignment operators (e.g., `+=`) is harmless",
     );
     store.register_removed(
         "if_let_redundant_pattern_matching",
@@ -342,7 +425,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box serde_api::Serde);
     reg.register_early_lint_pass(box utils::internal_lints::Clippy);
     reg.register_late_lint_pass(box utils::internal_lints::CompilerLintFunctions::new());
-    reg.register_early_lint_pass(box utils::internal_lints::DefaultHashTypes::default());
     reg.register_late_lint_pass(box utils::internal_lints::LintWithoutLintPass::default());
     reg.register_late_lint_pass(box utils::inspector::Pass);
     reg.register_late_lint_pass(box utils::author::Pass);
@@ -398,7 +480,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box temporary_assignment::Pass);
     reg.register_late_lint_pass(box transmute::Transmute);
     reg.register_late_lint_pass(
-        box cyclomatic_complexity::CyclomaticComplexity::new(conf.cyclomatic_complexity_threshold)
+        box cognitive_complexity::CognitiveComplexity::new(conf.cognitive_complexity_threshold)
     );
     reg.register_late_lint_pass(box escape::Pass{too_large_for_stack: conf.too_large_for_stack});
     reg.register_early_lint_pass(box misc_early::MiscEarly);
@@ -407,6 +489,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box derive::Derive);
     reg.register_late_lint_pass(box types::CharLitAsU8);
     reg.register_late_lint_pass(box vec::Pass);
+    reg.register_late_lint_pass(box drop_bounds::Pass);
     reg.register_late_lint_pass(box drop_forget_ref::Pass);
     reg.register_late_lint_pass(box empty_enum::EmptyEnum);
     reg.register_late_lint_pass(box types::AbsurdExtremeComparisons);
@@ -423,9 +506,11 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box overflow_check_conditional::OverflowCheckConditional);
     reg.register_late_lint_pass(box unused_label::UnusedLabel);
     reg.register_late_lint_pass(box new_without_default::NewWithoutDefault::default());
-    reg.register_late_lint_pass(box blacklisted_name::BlackListedName::new(conf.blacklisted_names.clone()));
-    reg.register_late_lint_pass(box functions::Functions::new(conf.too_many_arguments_threshold));
-    reg.register_early_lint_pass(box doc::Doc::new(conf.doc_valid_idents.clone()));
+    reg.register_late_lint_pass(box blacklisted_name::BlackListedName::new(
+            conf.blacklisted_names.iter().cloned().collect()
+    ));
+    reg.register_late_lint_pass(box functions::Functions::new(conf.too_many_arguments_threshold, conf.too_many_lines_threshold));
+    reg.register_early_lint_pass(box doc::Doc::new(conf.doc_valid_idents.iter().cloned().collect()));
     reg.register_late_lint_pass(box neg_multiply::NegMultiply);
     reg.register_early_lint_pass(box unsafe_removed_from_name::UnsafeNameRemoval);
     reg.register_late_lint_pass(box mem_discriminant::MemDiscriminant);
@@ -485,17 +570,24 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box redundant_clone::RedundantClone);
     reg.register_late_lint_pass(box slow_vector_initialization::Pass);
     reg.register_late_lint_pass(box collect::Pass::new());
+    reg.register_late_lint_pass(box types::RefToMut);
+    reg.register_late_lint_pass(box assertions_on_constants::AssertionsOnConstants);
+    reg.register_late_lint_pass(box missing_const_for_fn::MissingConstForFn);
+    reg.register_late_lint_pass(box transmuting_null::Pass);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
         arithmetic::INTEGER_ARITHMETIC,
+        dbg_macro::DBG_MACRO,
         else_if_without_else::ELSE_IF_WITHOUT_ELSE,
         implicit_return::IMPLICIT_RETURN,
         indexing_slicing::INDEXING_SLICING,
         inherent_impl::MULTIPLE_INHERENT_IMPL,
         literal_representation::DECIMAL_LITERAL_REPRESENTATION,
+        matches::WILDCARD_ENUM_MATCH_ARM,
         mem_forget::MEM_FORGET,
         methods::CLONE_ON_REF_PTR,
+        methods::GET_UNWRAP,
         methods::OPTION_UNWRAP_USED,
         methods::RESULT_UNWRAP_USED,
         methods::WRONG_PUB_SELF_CONVENTION,
@@ -521,6 +613,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         enum_glob_use::ENUM_GLOB_USE,
         enum_variants::MODULE_NAME_REPETITIONS,
         enum_variants::PUB_ENUM_VARIANT_NAMES,
+        functions::TOO_MANY_LINES,
         if_not_else::IF_NOT_ELSE,
         infinite_iter::MAYBE_INFINITE_ITER,
         items_after_statements::ITEMS_AFTER_STATEMENTS,
@@ -556,12 +649,12 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_lint_group("clippy::internal", Some("clippy_internal"), vec![
         utils::internal_lints::CLIPPY_LINTS_INTERNAL,
         utils::internal_lints::COMPILER_LINT_FUNCTIONS,
-        utils::internal_lints::DEFAULT_HASH_TYPES,
         utils::internal_lints::LINT_WITHOUT_LINT_PASS,
     ]);
 
     reg.register_lint_group("clippy::all", Some("clippy"), vec![
         approx_const::APPROX_CONSTANT,
+        assertions_on_constants::ASSERTIONS_ON_CONSTANTS,
         assign_ops::ASSIGN_OP_PATTERN,
         assign_ops::MISREFACTORED_ASSIGN_OP,
         attrs::DEPRECATED_CFG_ATTR,
@@ -577,14 +670,15 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         booleans::LOGIC_BUG,
         booleans::NONMINIMAL_BOOL,
         bytecount::NAIVE_BYTECOUNT,
+        cognitive_complexity::COGNITIVE_COMPLEXITY,
         collapsible_if::COLLAPSIBLE_IF,
         const_static_lifetime::CONST_STATIC_LIFETIME,
         copies::IFS_SAME_COND,
         copies::IF_SAME_THEN_ELSE,
-        cyclomatic_complexity::CYCLOMATIC_COMPLEXITY,
         derive::DERIVE_HASH_XOR_EQ,
         double_comparison::DOUBLE_COMPARISONS,
         double_parens::DOUBLE_PARENS,
+        drop_bounds::DROP_BOUNDS,
         drop_forget_ref::DROP_COPY,
         drop_forget_ref::DROP_REF,
         drop_forget_ref::FORGET_COPY,
@@ -659,7 +753,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         methods::CLONE_ON_COPY,
         methods::EXPECT_FUN_CALL,
         methods::FILTER_NEXT,
-        methods::GET_UNWRAP,
         methods::INTO_ITER_ON_ARRAY,
         methods::INTO_ITER_ON_REF,
         methods::ITER_CLONED_COLLECT,
@@ -703,7 +796,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         neg_cmp_op_on_partial_ord::NEG_CMP_OP_ON_PARTIAL_ORD,
         neg_multiply::NEG_MULTIPLY,
         new_without_default::NEW_WITHOUT_DEFAULT,
-        new_without_default::NEW_WITHOUT_DEFAULT_DERIVE,
         no_effect::NO_EFFECT,
         no_effect::UNNECESSARY_OPERATION,
         non_copy_const::BORROW_INTERIOR_MUTABLE_CONST,
@@ -752,12 +844,14 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         transmute::TRANSMUTE_PTR_TO_REF,
         transmute::USELESS_TRANSMUTE,
         transmute::WRONG_TRANSMUTE,
+        transmuting_null::TRANSMUTING_NULL,
         trivially_copy_pass_by_ref::TRIVIALLY_COPY_PASS_BY_REF,
         types::ABSURD_EXTREME_COMPARISONS,
         types::BORROWED_BOX,
         types::BOX_VEC,
         types::CAST_LOSSLESS,
         types::CAST_PTR_ALIGNMENT,
+        types::CAST_REF_TO_MUT,
         types::CHAR_LIT_AS_U8,
         types::FN_TO_NUMERIC_CAST,
         types::FN_TO_NUMERIC_CAST_WITH_TRUNCATION,
@@ -784,6 +878,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     ]);
 
     reg.register_lint_group("clippy::style", Some("clippy_style"), vec![
+        assertions_on_constants::ASSERTIONS_ON_CONSTANTS,
         assign_ops::ASSIGN_OP_PATTERN,
         attrs::UNKNOWN_CLIPPY_LINTS,
         bit_mask::VERBOSE_BIT_MASK,
@@ -817,7 +912,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         matches::SINGLE_MATCH,
         mem_replace::MEM_REPLACE_OPTION_WITH_NONE,
         methods::CHARS_LAST_CMP,
-        methods::GET_UNWRAP,
         methods::INTO_ITER_ON_REF,
         methods::ITER_CLONED_COLLECT,
         methods::ITER_SKIP_NEXT,
@@ -839,7 +933,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         mut_reference::UNNECESSARY_MUT_PASSED,
         neg_multiply::NEG_MULTIPLY,
         new_without_default::NEW_WITHOUT_DEFAULT,
-        new_without_default::NEW_WITHOUT_DEFAULT_DERIVE,
         non_expressive_names::JUST_UNDERSCORES_AND_DIGITS,
         non_expressive_names::MANY_SINGLE_CHAR_NAMES,
         ok_if_let::IF_LET_SOME_RESULT,
@@ -872,7 +965,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         assign_ops::MISREFACTORED_ASSIGN_OP,
         attrs::DEPRECATED_CFG_ATTR,
         booleans::NONMINIMAL_BOOL,
-        cyclomatic_complexity::CYCLOMATIC_COMPLEXITY,
+        cognitive_complexity::COGNITIVE_COMPLEXITY,
         double_comparison::DOUBLE_COMPARISONS,
         double_parens::DOUBLE_PARENS,
         duration_subsec::DURATION_SUBSEC,
@@ -949,6 +1042,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         copies::IFS_SAME_COND,
         copies::IF_SAME_THEN_ELSE,
         derive::DERIVE_HASH_XOR_EQ,
+        drop_bounds::DROP_BOUNDS,
         drop_forget_ref::DROP_COPY,
         drop_forget_ref::DROP_REF,
         drop_forget_ref::FORGET_COPY,
@@ -988,8 +1082,10 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL,
         swap::ALMOST_SWAPPED,
         transmute::WRONG_TRANSMUTE,
+        transmuting_null::TRANSMUTING_NULL,
         types::ABSURD_EXTREME_COMPARISONS,
         types::CAST_PTR_ALIGNMENT,
+        types::CAST_REF_TO_MUT,
         types::UNIT_CMP,
         unicode::ZERO_WIDTH_SPACE,
         unused_io_amount::UNUSED_IO_AMOUNT,
@@ -1025,6 +1121,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         attrs::EMPTY_LINE_AFTER_OUTER_ATTR,
         collect::POSSIBLE_SHORTCIRCUITING_COLLECT,
         fallible_impl_from::FALLIBLE_IMPL_FROM,
+        missing_const_for_fn::MISSING_CONST_FOR_FN,
         mutex_atomic::MUTEX_INTEGER,
         needless_borrow::NEEDLESS_BORROW,
         redundant_clone::REDUNDANT_CLONE,
@@ -1033,8 +1130,13 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     ]);
 }
 
+/// Register renamed lints.
+///
+/// Used in `./src/driver.rs`.
 pub fn register_renamed(ls: &mut rustc::lint::LintStore) {
     ls.register_renamed("clippy::stutter", "clippy::module_name_repetitions");
+    ls.register_renamed("clippy::new_without_default_derive", "clippy::new_without_default");
+    ls.register_renamed("clippy::cyclomatic_complexity", "clippy::cognitive_complexity");
 }
 
 // only exists to let the dogfood integration test works.

@@ -1,39 +1,32 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::{Expr, ExprKind, MutMutable, QPath};
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::utils::{match_def_path, match_qpath, opt_def_id, paths, snippet_with_applicability, span_lint_and_sugg};
+use crate::utils::{match_qpath, paths, snippet_with_applicability, span_lint_and_sugg};
 use if_chain::if_chain;
+use rustc::hir::{Expr, ExprKind, MutMutable, QPath};
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 
-/// **What it does:** Checks for `mem::replace()` on an `Option` with
-/// `None`.
-///
-/// **Why is this bad?** `Option` already has the method `take()` for
-/// taking its current value (Some(..) or None) and replacing it with
-/// `None`.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let mut an_option = Some(0);
-/// let replaced = mem::replace(&mut an_option, None);
-/// ```
-/// Is better expressed with:
-/// ```rust
-/// let mut an_option = Some(0);
-/// let taken = an_option.take();
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for `mem::replace()` on an `Option` with
+    /// `None`.
+    ///
+    /// **Why is this bad?** `Option` already has the method `take()` for
+    /// taking its current value (Some(..) or None) and replacing it with
+    /// `None`.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// use std::mem;
+    ///
+    /// let mut an_option = Some(0);
+    /// let replaced = mem::replace(&mut an_option, None);
+    /// ```
+    /// Is better expressed with:
+    /// ```rust
+    /// let mut an_option = Some(0);
+    /// let taken = an_option.take();
+    /// ```
     pub MEM_REPLACE_OPTION_WITH_NONE,
     style,
     "replacing an `Option` with `None` instead of `take()`"
@@ -45,6 +38,10 @@ impl LintPass for MemReplace {
     fn get_lints(&self) -> LintArray {
         lint_array![MEM_REPLACE_OPTION_WITH_NONE]
     }
+
+    fn name(&self) -> &'static str {
+        "MemReplace"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MemReplace {
@@ -54,8 +51,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MemReplace {
             if let ExprKind::Call(ref func, ref func_args) = expr.node;
             if func_args.len() == 2;
             if let ExprKind::Path(ref func_qpath) = func.node;
-            if let Some(def_id) = opt_def_id(cx.tables.qpath_def(func_qpath, func.hir_id));
-            if match_def_path(cx.tcx, def_id, &paths::MEM_REPLACE);
+            if let Some(def_id) = cx.tables.qpath_def(func_qpath, func.hir_id).opt_def_id();
+            if cx.match_def_path(def_id, &paths::MEM_REPLACE);
 
             // Check that second argument is `Option::None`
             if let ExprKind::Path(ref replacement_qpath) = func_args[1].node;

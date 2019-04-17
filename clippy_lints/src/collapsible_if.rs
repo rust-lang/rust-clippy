@@ -1,12 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! Checks for if expressions that contain only an if expression.
 //!
 //! For example, the lint would catch:
@@ -21,63 +12,63 @@
 //!
 //! This lint is **warn** by default
 
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast;
 use if_chain::if_chain;
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast;
 
-use crate::rustc_errors::Applicability;
 use crate::utils::sugg::Sugg;
 use crate::utils::{in_macro, snippet_block, snippet_block_with_applicability, span_lint_and_sugg, span_lint_and_then};
+use rustc_errors::Applicability;
 
-/// **What it does:** Checks for nested `if` statements which can be collapsed
-/// by `&&`-combining their conditions and for `else { if ... }` expressions
-/// that
-/// can be collapsed to `else if ...`.
-///
-/// **Why is this bad?** Each `if`-statement adds one level of nesting, which
-/// makes code look more complex than it really is.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust,ignore
-/// if x {
-///     if y {
-///         …
-///     }
-/// }
-///
-/// // or
-///
-/// if x {
-///     …
-/// } else {
-///     if y {
-///         …
-///     }
-/// }
-/// ```
-///
-/// Should be written:
-///
-/// ```rust.ignore
-/// if x && y {
-///     …
-/// }
-///
-/// // or
-///
-/// if x {
-///     …
-/// } else if y {
-///     …
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for nested `if` statements which can be collapsed
+    /// by `&&`-combining their conditions and for `else { if ... }` expressions
+    /// that
+    /// can be collapsed to `else if ...`.
+    ///
+    /// **Why is this bad?** Each `if`-statement adds one level of nesting, which
+    /// makes code look more complex than it really is.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust,ignore
+    /// if x {
+    ///     if y {
+    ///         …
+    ///     }
+    /// }
+    ///
+    /// // or
+    ///
+    /// if x {
+    ///     …
+    /// } else {
+    ///     if y {
+    ///         …
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Should be written:
+    ///
+    /// ```rust.ignore
+    /// if x && y {
+    ///     …
+    /// }
+    ///
+    /// // or
+    ///
+    /// if x {
+    ///     …
+    /// } else if y {
+    ///     …
+    /// }
+    /// ```
     pub COLLAPSIBLE_IF,
     style,
-    "`if`s that can be collapsed (e.g. `if x { if y { ... } }` and `else { if x { ... } }`)"
+    "`if`s that can be collapsed (e.g., `if x { if y { ... } }` and `else { if x { ... } }`)"
 }
 
 #[derive(Copy, Clone)]
@@ -86,6 +77,10 @@ pub struct CollapsibleIf;
 impl LintPass for CollapsibleIf {
     fn get_lints(&self) -> LintArray {
         lint_array!(COLLAPSIBLE_IF)
+    }
+
+    fn name(&self) -> &'static str {
+        "CollapsibleIf"
     }
 }
 
@@ -159,7 +154,7 @@ fn check_collapsible_no_if_let(cx: &EarlyContext<'_>, expr: &ast::Expr, check: &
             span_lint_and_then(cx, COLLAPSIBLE_IF, expr.span, "this if statement can be collapsed", |db| {
                 let lhs = Sugg::ast(cx, check, "..");
                 let rhs = Sugg::ast(cx, check_inner, "..");
-                db.span_suggestion_with_applicability(
+                db.span_suggestion(
                     expr.span,
                     "try",
                     format!(

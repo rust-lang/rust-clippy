@@ -1,47 +1,41 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
 
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::utils::{get_trait_def_id, higher, implements_trait, match_qpath, paths, span_lint};
+use crate::utils::{get_trait_def_id, higher, implements_trait, match_qpath, match_type, paths, span_lint};
 
-/// **What it does:** Checks for iteration that is guaranteed to be infinite.
-///
-/// **Why is this bad?** While there may be places where this is acceptable
-/// (e.g. in event streams), in most cases this is simply an error.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// repeat(1_u8).iter().collect::<Vec<_>>()
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for iteration that is guaranteed to be infinite.
+    ///
+    /// **Why is this bad?** While there may be places where this is acceptable
+    /// (e.g., in event streams), in most cases this is simply an error.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```no_run
+    /// use std::iter;
+    ///
+    /// iter::repeat(1_u8).collect::<Vec<_>>();
+    /// ```
     pub INFINITE_ITER,
     correctness,
     "infinite iteration"
 }
 
-/// **What it does:** Checks for iteration that may be infinite.
-///
-/// **Why is this bad?** While there may be places where this is acceptable
-/// (e.g. in event streams), in most cases this is simply an error.
-///
-/// **Known problems:** The code may have a condition to stop iteration, but
-/// this lint is not clever enough to analyze it.
-///
-/// **Example:**
-/// ```rust
-/// [0..].iter().zip(infinite_iter.take_while(|x| x > 5))
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for iteration that may be infinite.
+    ///
+    /// **Why is this bad?** While there may be places where this is acceptable
+    /// (e.g., in event streams), in most cases this is simply an error.
+    ///
+    /// **Known problems:** The code may have a condition to stop iteration, but
+    /// this lint is not clever enough to analyze it.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// [0..].iter().zip(infinite_iter.take_while(|x| x > 5))
+    /// ```
     pub MAYBE_INFINITE_ITER,
     pedantic,
     "possible infinite iteration"
@@ -53,6 +47,10 @@ pub struct Pass;
 impl LintPass for Pass {
     fn get_lints(&self) -> LintArray {
         lint_array!(INFINITE_ITER, MAYBE_INFINITE_ITER)
+    }
+
+    fn name(&self) -> &'static str {
+        "InfiniteIter"
     }
 }
 
@@ -125,8 +123,8 @@ use self::Heuristic::{All, Always, Any, First};
 /// a slice of (method name, number of args, heuristic, bounds) tuples
 /// that will be used to determine whether the method in question
 /// returns an infinite or possibly infinite iterator. The finiteness
-/// is an upper bound, e.g. some methods can return a possibly
-/// infinite iterator at worst, e.g. `take_while`.
+/// is an upper bound, e.g., some methods can return a possibly
+/// infinite iterator at worst, e.g., `take_while`.
 static HEURISTICS: &[(&str, usize, Heuristic, Finiteness)] = &[
     ("zip", 2, All, Infinite),
     ("chain", 2, Any, Infinite),
@@ -200,7 +198,6 @@ static POSSIBLY_COMPLETING_METHODS: &[(&str, usize)] = &[
 /// their iterators
 static COMPLETING_METHODS: &[(&str, usize)] = &[
     ("count", 1),
-    ("collect", 1),
     ("fold", 3),
     ("for_each", 2),
     ("partition", 2),
@@ -212,6 +209,18 @@ static COMPLETING_METHODS: &[(&str, usize)] = &[
     ("min_by_key", 2),
     ("sum", 1),
     ("product", 1),
+];
+
+/// the paths of types that are known to be infinitely allocating
+static INFINITE_COLLECTORS: &[&[&str]] = &[
+    &paths::BINARY_HEAP,
+    &paths::BTREEMAP,
+    &paths::BTREESET,
+    &paths::HASHMAP,
+    &paths::HASHSET,
+    &paths::LINKED_LIST,
+    &paths::VEC,
+    &paths::VEC_DEQUE,
 ];
 
 fn complete_infinite_iter(cx: &LateContext<'_, '_>, expr: &Expr) -> Finiteness {
@@ -231,6 +240,11 @@ fn complete_infinite_iter(cx: &LateContext<'_, '_>, expr: &Expr) -> Finiteness {
                 let not_double_ended = get_trait_def_id(cx, &paths::DOUBLE_ENDED_ITERATOR)
                     .map_or(false, |id| !implements_trait(cx, cx.tables.expr_ty(&args[0]), id, &[]));
                 if not_double_ended {
+                    return is_infinite(cx, &args[0]);
+                }
+            } else if method.ident.name == "collect" {
+                let ty = cx.tables.expr_ty(expr);
+                if INFINITE_COLLECTORS.iter().any(|path| match_type(cx, ty, path)) {
                     return is_infinite(cx, &args[0]);
                 }
             }

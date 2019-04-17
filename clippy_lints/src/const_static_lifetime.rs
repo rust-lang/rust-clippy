@@ -1,35 +1,26 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::*;
 use crate::utils::{in_macro, snippet, span_lint_and_then};
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::*;
 
-/// **What it does:** Checks for constants with an explicit `'static` lifetime.
-///
-/// **Why is this bad?** Adding `'static` to every reference can create very
-/// complicated types.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// const FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =
-/// &[...]
-/// ```
-/// This code can be rewritten as
-/// ```rust
-///  const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for constants with an explicit `'static` lifetime.
+    ///
+    /// **Why is this bad?** Adding `'static` to every reference can create very
+    /// complicated types.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// const FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =
+    /// &[...]
+    /// ```
+    /// This code can be rewritten as
+    /// ```ignore
+    ///  const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]
+    /// ```
     pub CONST_STATIC_LIFETIME,
     style,
     "Using explicit `'static` lifetime for constants when elision rules would allow omitting them."
@@ -40,6 +31,10 @@ pub struct StaticConst;
 impl LintPass for StaticConst {
     fn get_lints(&self) -> LintArray {
         lint_array!(CONST_STATIC_LIFETIME)
+    }
+
+    fn name(&self) -> &'static str {
+        "StaticConst"
     }
 }
 
@@ -71,7 +66,7 @@ impl StaticConst {
                                     lifetime.ident.span,
                                     "Constants have by default a `'static` lifetime",
                                     |db| {
-                                        db.span_suggestion_with_applicability(
+                                        db.span_suggestion(
                                             ty.span,
                                             "consider removing `'static`",
                                             sugg,

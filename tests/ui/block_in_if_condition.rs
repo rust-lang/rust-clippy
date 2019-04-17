@@ -1,12 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 #![warn(clippy::block_in_if_condition_expr)]
 #![warn(clippy::block_in_if_condition_stmt)]
 #![allow(unused, clippy::let_and_return)]
@@ -57,9 +48,10 @@ fn predicate<F: FnOnce(T) -> bool, T>(pfn: F, val: T) -> bool {
 fn pred_test() {
     let v = 3;
     let sky = "blue";
-    // this is a sneaky case, where the block isn't directly in the condition, but is actually
-    // inside a closure that the condition is using.  same principle applies.  add some extra
-    // expressions to make sure linter isn't confused by them.
+    // This is a sneaky case, where the block isn't directly in the condition,
+    // but is actually nside a closure that the condition is using.
+    // The same principle applies -- add some extra expressions to make sure
+    // linter isn't confused by them.
     if v == 3
         && sky == "blue"
         && predicate(

@@ -1,37 +1,28 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax_pos::Span;
 use crate::utils::paths::{BEGIN_PANIC, BEGIN_PANIC_FMT, FROM_TRAIT, OPTION, RESULT};
-use crate::utils::{is_expn_of, match_def_path, method_chain_args, opt_def_id, span_lint_and_then, walk_ptrs_ty};
+use crate::utils::{is_expn_of, method_chain_args, span_lint_and_then, walk_ptrs_ty};
 use if_chain::if_chain;
+use rustc::hir;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty::{self, Ty};
+use rustc::{declare_tool_lint, lint_array};
+use syntax_pos::Span;
 
-/// **What it does:** Checks for impls of `From<..>` that contain `panic!()` or `unwrap()`
-///
-/// **Why is this bad?** `TryFrom` should be used if there's a possibility of failure.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// struct Foo(i32);
-/// impl From<String> for Foo {
-///     fn from(s: String) -> Self {
-///         Foo(s.parse().unwrap())
-///     }
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for impls of `From<..>` that contain `panic!()` or `unwrap()`
+    ///
+    /// **Why is this bad?** `TryFrom` should be used if there's a possibility of failure.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// struct Foo(i32);
+    /// impl From<String> for Foo {
+    ///     fn from(s: String) -> Self {
+    ///         Foo(s.parse().unwrap())
+    ///     }
+    /// }
+    /// ```
     pub FALLIBLE_IMPL_FROM,
     nursery,
     "Warn on impls of `From<..>` that contain `panic!()` or `unwrap()`"
@@ -43,16 +34,20 @@ impl LintPass for FallibleImplFrom {
     fn get_lints(&self) -> LintArray {
         lint_array!(FALLIBLE_IMPL_FROM)
     }
+
+    fn name(&self) -> &'static str {
+        "FallibleImpleFrom"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for FallibleImplFrom {
     fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::Item) {
         // check for `impl From<???> for ..`
-        let impl_def_id = cx.tcx.hir().local_def_id(item.id);
+        let impl_def_id = cx.tcx.hir().local_def_id_from_hir_id(item.hir_id);
         if_chain! {
             if let hir::ItemKind::Impl(.., ref impl_items) = item.node;
             if let Some(impl_trait_ref) = cx.tcx.impl_trait_ref(impl_def_id);
-            if match_def_path(cx.tcx, impl_trait_ref.def_id, &FROM_TRAIT);
+            if cx.match_def_path(impl_trait_ref.def_id, &FROM_TRAIT);
             then {
                 lint_impl_body(cx, item.span, impl_items);
             }
@@ -61,11 +56,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for FallibleImplFrom {
 }
 
 fn lint_impl_body<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, impl_span: Span, impl_items: &hir::HirVec<hir::ImplItemRef>) {
-    use crate::rustc::hir::intravisit::{self, NestedVisitorMap, Visitor};
-    use crate::rustc::hir::*;
+    use rustc::hir::intravisit::{self, NestedVisitorMap, Visitor};
+    use rustc::hir::*;
 
     struct FindPanicUnwrap<'a, 'tcx: 'a> {
-        tcx: ty::TyCtxt<'a, 'tcx, 'tcx>,
+        lcx: &'a LateContext<'a, 'tcx>,
         tables: &'tcx ty::TypeckTables<'tcx>,
         result: Vec<Span>,
     }
@@ -76,9 +71,9 @@ fn lint_impl_body<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, impl_span: Span, impl_it
             if_chain! {
                 if let ExprKind::Call(ref func_expr, _) = expr.node;
                 if let ExprKind::Path(QPath::Resolved(_, ref path)) = func_expr.node;
-                if let Some(path_def_id) = opt_def_id(path.def);
-                if match_def_path(self.tcx, path_def_id, &BEGIN_PANIC) ||
-                    match_def_path(self.tcx, path_def_id, &BEGIN_PANIC_FMT);
+                if let Some(path_def_id) = path.def.opt_def_id();
+                if self.lcx.match_def_path(path_def_id, &BEGIN_PANIC) ||
+                    self.lcx.match_def_path(path_def_id, &BEGIN_PANIC_FMT);
                 if is_expn_of(expr.span, "unreachable").is_none();
                 then {
                     self.result.push(expr.span);
@@ -88,7 +83,7 @@ fn lint_impl_body<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, impl_span: Span, impl_it
             // check for `unwrap`
             if let Some(arglists) = method_chain_args(expr, &["unwrap"]) {
                 let reciever_ty = walk_ptrs_ty(self.tables.expr_ty(&arglists[0][0]));
-                if match_type(self.tcx, reciever_ty, &OPTION) || match_type(self.tcx, reciever_ty, &RESULT) {
+                if match_type(self.lcx, reciever_ty, &OPTION) || match_type(self.lcx, reciever_ty, &RESULT) {
                     self.result.push(expr.span);
                 }
             }
@@ -110,9 +105,9 @@ fn lint_impl_body<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, impl_span: Span, impl_it
             then {
                 // check the body for `begin_panic` or `unwrap`
                 let body = cx.tcx.hir().body(body_id);
-                let impl_item_def_id = cx.tcx.hir().local_def_id(impl_item.id.node_id);
+                let impl_item_def_id = cx.tcx.hir().local_def_id_from_hir_id(impl_item.id.hir_id);
                 let mut fpu = FindPanicUnwrap {
-                    tcx: cx.tcx,
+                    lcx: cx,
                     tables: cx.tcx.typeck_tables_of(impl_item_def_id),
                     result: Vec::new(),
                 };
@@ -137,9 +132,9 @@ fn lint_impl_body<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, impl_span: Span, impl_it
     }
 }
 
-fn match_type(tcx: ty::TyCtxt<'_, '_, '_>, ty: ty::Ty<'_>, path: &[&str]) -> bool {
+fn match_type(cx: &LateContext<'_, '_>, ty: Ty<'_>, path: &[&str]) -> bool {
     match ty.sty {
-        ty::Adt(adt, _) => match_def_path(tcx, adt.did, path),
+        ty::Adt(adt, _) => cx.match_def_path(adt.did, path),
         _ => false,
     }
 }

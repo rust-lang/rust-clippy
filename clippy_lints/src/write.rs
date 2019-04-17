@@ -1,168 +1,168 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::*;
-use crate::syntax::parse::{parser, token};
-use crate::syntax::tokenstream::{ThinTokenStream, TokenStream};
 use crate::utils::{snippet_with_applicability, span_lint, span_lint_and_sugg};
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 use std::borrow::Cow;
+use syntax::ast::*;
+use syntax::parse::{parser, token};
+use syntax::tokenstream::{TokenStream, TokenTree};
 
-/// **What it does:** This lint warns when you use `println!("")` to
-/// print a newline.
-///
-/// **Why is this bad?** You should use `println!()`, which is simpler.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// println!("");
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** This lint warns when you use `println!("")` to
+    /// print a newline.
+    ///
+    /// **Why is this bad?** You should use `println!()`, which is simpler.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// println!("");
+    /// ```
     pub PRINTLN_EMPTY_STRING,
     style,
     "using `println!(\"\")` with an empty string"
 }
 
-/// **What it does:** This lint warns when you use `print!()` with a format
-/// string that
-/// ends in a newline.
-///
-/// **Why is this bad?** You should use `println!()` instead, which appends the
-/// newline.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// print!("Hello {}!\n", name);
-/// ```
-/// use println!() instead
-/// ```rust
-/// println!("Hello {}!", name);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** This lint warns when you use `print!()` with a format
+    /// string that
+    /// ends in a newline.
+    ///
+    /// **Why is this bad?** You should use `println!()` instead, which appends the
+    /// newline.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # let name = "World";
+    /// print!("Hello {}!\n", name);
+    /// ```
+    /// use println!() instead
+    /// ```rust
+    /// # let name = "World";
+    /// println!("Hello {}!", name);
+    /// ```
     pub PRINT_WITH_NEWLINE,
     style,
     "using `print!()` with a format string that ends in a single newline"
 }
 
-/// **What it does:** Checks for printing on *stdout*. The purpose of this lint
-/// is to catch debugging remnants.
-///
-/// **Why is this bad?** People often print on *stdout* while debugging an
-/// application and might forget to remove those prints afterward.
-///
-/// **Known problems:** Only catches `print!` and `println!` calls.
-///
-/// **Example:**
-/// ```rust
-/// println!("Hello world!");
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for printing on *stdout*. The purpose of this lint
+    /// is to catch debugging remnants.
+    ///
+    /// **Why is this bad?** People often print on *stdout* while debugging an
+    /// application and might forget to remove those prints afterward.
+    ///
+    /// **Known problems:** Only catches `print!` and `println!` calls.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// println!("Hello world!");
+    /// ```
     pub PRINT_STDOUT,
     restriction,
     "printing on stdout"
 }
 
-/// **What it does:** Checks for use of `Debug` formatting. The purpose of this
-/// lint is to catch debugging remnants.
-///
-/// **Why is this bad?** The purpose of the `Debug` trait is to facilitate
-/// debugging Rust code. It should not be used in in user-facing output.
-///
-/// **Example:**
-/// ```rust
-/// println!("{:?}", foo);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for use of `Debug` formatting. The purpose of this
+    /// lint is to catch debugging remnants.
+    ///
+    /// **Why is this bad?** The purpose of the `Debug` trait is to facilitate
+    /// debugging Rust code. It should not be used in in user-facing output.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// println!("{:?}", foo);
+    /// ```
     pub USE_DEBUG,
     restriction,
     "use of `Debug`-based formatting"
 }
 
-/// **What it does:** This lint warns about the use of literals as `print!`/`println!` args.
-///
-/// **Why is this bad?** Using literals as `println!` args is inefficient
-/// (c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary
-/// (i.e., just put the literal in the format string)
-///
-/// **Known problems:** Will also warn with macro calls as arguments that expand to literals
-/// -- e.g., `println!("{}", env!("FOO"))`.
-///
-/// **Example:**
-/// ```rust
-/// println!("{}", "foo");
-/// ```
-/// use the literal without formatting:
-/// ```rust
-/// println!("foo");
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** This lint warns about the use of literals as `print!`/`println!` args.
+    ///
+    /// **Why is this bad?** Using literals as `println!` args is inefficient
+    /// (c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary
+    /// (i.e., just put the literal in the format string)
+    ///
+    /// **Known problems:** Will also warn with macro calls as arguments that expand to literals
+    /// -- e.g., `println!("{}", env!("FOO"))`.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// println!("{}", "foo");
+    /// ```
+    /// use the literal without formatting:
+    /// ```rust
+    /// println!("foo");
+    /// ```
     pub PRINT_LITERAL,
     style,
     "printing a literal with a format string"
 }
 
-/// **What it does:** This lint warns when you use `writeln!(buf, "")` to
-/// print a newline.
-///
-/// **Why is this bad?** You should use `writeln!(buf)`, which is simpler.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// writeln!("");
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** This lint warns when you use `writeln!(buf, "")` to
+    /// print a newline.
+    ///
+    /// **Why is this bad?** You should use `writeln!(buf)`, which is simpler.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # use std::fmt::Write;
+    /// # let mut buf = String::new();
+    /// writeln!(buf, "");
+    /// ```
     pub WRITELN_EMPTY_STRING,
     style,
-    "using `writeln!(\"\")` with an empty string"
+    "using `writeln!(buf, \"\")` with an empty string"
 }
 
-/// **What it does:** This lint warns when you use `write!()` with a format
-/// string that
-/// ends in a newline.
-///
-/// **Why is this bad?** You should use `writeln!()` instead, which appends the
-/// newline.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// write!(buf, "Hello {}!\n", name);
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** This lint warns when you use `write!()` with a format
+    /// string that
+    /// ends in a newline.
+    ///
+    /// **Why is this bad?** You should use `writeln!()` instead, which appends the
+    /// newline.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # use std::fmt::Write;
+    /// # let mut buf = String::new();
+    /// # let name = "World";
+    /// write!(buf, "Hello {}!\n", name);
+    /// ```
     pub WRITE_WITH_NEWLINE,
     style,
     "using `write!()` with a format string that ends in a single newline"
 }
 
-/// **What it does:** This lint warns about the use of literals as `write!`/`writeln!` args.
-///
-/// **Why is this bad?** Using literals as `writeln!` args is inefficient
-/// (c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary
-/// (i.e., just put the literal in the format string)
-///
-/// **Known problems:** Will also warn with macro calls as arguments that expand to literals
-/// -- e.g., `writeln!(buf, "{}", env!("FOO"))`.
-///
-/// **Example:**
-/// ```rust
-/// writeln!(buf, "{}", "foo");
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** This lint warns about the use of literals as `write!`/`writeln!` args.
+    ///
+    /// **Why is this bad?** Using literals as `writeln!` args is inefficient
+    /// (c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary
+    /// (i.e., just put the literal in the format string)
+    ///
+    /// **Known problems:** Will also warn with macro calls as arguments that expand to literals
+    /// -- e.g., `writeln!(buf, "{}", env!("FOO"))`.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # use std::fmt::Write;
+    /// # let mut buf = String::new();
+    /// writeln!(buf, "{}", "foo");
+    /// ```
     pub WRITE_LITERAL,
     style,
     "writing a literal with a format string"
@@ -183,6 +183,10 @@ impl LintPass for Pass {
             WRITELN_EMPTY_STRING,
             WRITE_LITERAL
         )
+    }
+
+    fn name(&self) -> &'static str {
+        "Write"
     }
 }
 
@@ -205,8 +209,8 @@ impl EarlyLintPass for Pass {
             }
         } else if mac.node.path == "print" {
             span_lint(cx, PRINT_STDOUT, mac.span, "use of `print!`");
-            if let Some(fmtstr) = check_tts(cx, &mac.node.tts, false).0 {
-                if check_newlines(&fmtstr) {
+            if let (Some(fmtstr), _, is_raw) = check_tts(cx, &mac.node.tts, false) {
+                if check_newlines(&fmtstr, is_raw) {
                     span_lint(
                         cx,
                         PRINT_WITH_NEWLINE,
@@ -217,8 +221,8 @@ impl EarlyLintPass for Pass {
                 }
             }
         } else if mac.node.path == "write" {
-            if let Some(fmtstr) = check_tts(cx, &mac.node.tts, true).0 {
-                if check_newlines(&fmtstr) {
+            if let (Some(fmtstr), _, is_raw) = check_tts(cx, &mac.node.tts, true) {
+                if check_newlines(&fmtstr, is_raw) {
                     span_lint(
                         cx,
                         WRITE_WITH_NEWLINE,
@@ -257,45 +261,64 @@ impl EarlyLintPass for Pass {
 }
 
 /// Checks the arguments of `print[ln]!` and `write[ln]!` calls. It will return a tuple of two
-/// options. The first part of the tuple is `format_str` of the macros. The second part of the tuple
-/// is in the `write[ln]!` case the expression the `format_str` should be written to.
+/// options and a bool. The first part of the tuple is `format_str` of the macros. The second part
+/// of the tuple is in the `write[ln]!` case the expression the `format_str` should be written to.
+/// The final part is a boolean flag indicating if the string is a raw string.
 ///
 /// Example:
 ///
 /// Calling this function on
-/// ```rust,ignore
-/// writeln!(buf, "string to write: {}", something)
+/// ```rust
+/// # use std::fmt::Write;
+/// # let mut buf = String::new();
+/// # let something = "something";
+/// writeln!(buf, "string to write: {}", something);
 /// ```
 /// will return
 /// ```rust,ignore
-/// (Some("string to write: {}"), Some(buf))
+/// (Some("string to write: {}"), Some(buf), false)
 /// ```
-fn check_tts<'a>(cx: &EarlyContext<'a>, tts: &ThinTokenStream, is_write: bool) -> (Option<String>, Option<Expr>) {
-    use crate::fmt_macros::*;
-    let tts = TokenStream::from(tts.clone());
+fn check_tts<'a>(cx: &EarlyContext<'a>, tts: &TokenStream, is_write: bool) -> (Option<String>, Option<Expr>, bool) {
+    use fmt_macros::*;
+    let tts = tts.clone();
+    let mut is_raw = false;
+    if let TokenStream(Some(tokens)) = &tts {
+        for token in tokens.iter() {
+            if let (TokenTree::Token(_, token::Token::Literal(lit, _)), _) = token {
+                match lit {
+                    token::Lit::Str_(_) => break,
+                    token::Lit::StrRaw(_, _) => {
+                        is_raw = true;
+                        break;
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
     let mut parser = parser::Parser::new(&cx.sess.parse_sess, tts, None, false, false);
     let mut expr: Option<Expr> = None;
     if is_write {
         expr = match parser.parse_expr().map_err(|mut err| err.cancel()) {
             Ok(p) => Some(p.into_inner()),
-            Err(_) => return (None, None),
+            Err(_) => return (None, None, is_raw),
         };
         // might be `writeln!(foo)`
         if parser.expect(&token::Comma).map_err(|mut err| err.cancel()).is_err() {
-            return (None, expr);
+            return (None, expr, is_raw);
         }
     }
 
     let fmtstr = match parser.parse_str().map_err(|mut err| err.cancel()) {
         Ok(token) => token.0.to_string(),
-        Err(_) => return (None, expr),
+        Err(_) => return (None, expr, is_raw),
     };
     let tmp = fmtstr.clone();
     let mut args = vec![];
     let mut fmt_parser = Parser::new(&tmp, None, Vec::new(), false);
     while let Some(piece) = fmt_parser.next() {
         if !fmt_parser.errors.is_empty() {
-            return (None, expr);
+            return (None, expr, is_raw);
         }
         if let Piece::NextArgument(arg) = piece {
             if arg.format.ty == "?" {
@@ -317,11 +340,11 @@ fn check_tts<'a>(cx: &EarlyContext<'a>, tts: &ThinTokenStream, is_write: bool) -
             ty: "",
         };
         if !parser.eat(&token::Comma) {
-            return (Some(fmtstr), expr);
+            return (Some(fmtstr), expr, is_raw);
         }
         let token_expr = match parser.parse_expr().map_err(|mut err| err.cancel()) {
             Ok(expr) => expr,
-            Err(_) => return (Some(fmtstr), None),
+            Err(_) => return (Some(fmtstr), None, is_raw),
         };
         match &token_expr.node {
             ExprKind::Lit(_) => {
@@ -371,7 +394,14 @@ fn check_tts<'a>(cx: &EarlyContext<'a>, tts: &ThinTokenStream, is_write: bool) -
 }
 
 // Checks if `s` constains a single newline that terminates it
-fn check_newlines(s: &str) -> bool {
+// Literal and escaped newlines are both checked (only literal for raw strings)
+fn check_newlines(s: &str, is_raw: bool) -> bool {
+    if s.ends_with('\n') {
+        return true;
+    } else if is_raw {
+        return false;
+    }
+
     if s.len() < 2 {
         return false;
     }

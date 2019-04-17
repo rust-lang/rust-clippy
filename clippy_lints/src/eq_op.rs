@@ -1,54 +1,46 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
 use crate::utils::{
     implements_trait, in_macro, is_copy, multispan_sugg, snippet, span_lint, span_lint_and_then, SpanlessEq,
 };
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 
-/// **What it does:** Checks for equal operands to comparison, logical and
-/// bitwise, difference and division binary operators (`==`, `>`, etc., `&&`,
-/// `||`, `&`, `|`, `^`, `-` and `/`).
-///
-/// **Why is this bad?** This is usually just a typo or a copy and paste error.
-///
-/// **Known problems:** False negatives: We had some false positives regarding
-/// calls (notably [racer](https://github.com/phildawes/racer) had one instance
-/// of `x.pop() && x.pop()`), so we removed matching any function or method
-/// calls. We may introduce a whitelist of known pure functions in the future.
-///
-/// **Example:**
-/// ```rust
-/// x + 1 == x + 1
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for equal operands to comparison, logical and
+    /// bitwise, difference and division binary operators (`==`, `>`, etc., `&&`,
+    /// `||`, `&`, `|`, `^`, `-` and `/`).
+    ///
+    /// **Why is this bad?** This is usually just a typo or a copy and paste error.
+    ///
+    /// **Known problems:** False negatives: We had some false positives regarding
+    /// calls (notably [racer](https://github.com/phildawes/racer) had one instance
+    /// of `x.pop() && x.pop()`), so we removed matching any function or method
+    /// calls. We may introduce a whitelist of known pure functions in the future.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # let x = 1;
+    /// if x + 1 == x + 1 {}
+    /// ```
     pub EQ_OP,
     correctness,
-    "equal operands on both sides of a comparison or bitwise combination (e.g. `x == x`)"
+    "equal operands on both sides of a comparison or bitwise combination (e.g., `x == x`)"
 }
 
-/// **What it does:** Checks for arguments to `==` which have their address
-/// taken to satisfy a bound
-/// and suggests to dereference the other argument instead
-///
-/// **Why is this bad?** It is more idiomatic to dereference the other argument.
-///
-/// **Known problems:** None
-///
-/// **Example:**
-/// ```rust
-/// &x == y
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for arguments to `==` which have their address
+    /// taken to satisfy a bound
+    /// and suggests to dereference the other argument instead
+    ///
+    /// **Why is this bad?** It is more idiomatic to dereference the other argument.
+    ///
+    /// **Known problems:** None
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// &x == y
+    /// ```
     pub OP_REF,
     style,
     "taking a reference to satisfy the type constraints on `==`"
@@ -61,10 +53,14 @@ impl LintPass for EqOp {
     fn get_lints(&self) -> LintArray {
         lint_array!(EQ_OP, OP_REF)
     }
+
+    fn name(&self) -> &'static str {
+        "EqOp"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EqOp {
-    #[allow(clippy::similar_names)]
+    #[allow(clippy::similar_names, clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
         if let ExprKind::Binary(op, ref left, ref right) = e.node {
             if in_macro(e.span) {
@@ -131,7 +127,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EqOp {
                         {
                             span_lint_and_then(cx, OP_REF, e.span, "needlessly taken reference of left operand", |db| {
                                 let lsnip = snippet(cx, l.span, "...").to_string();
-                                db.span_suggestion_with_applicability(
+                                db.span_suggestion(
                                     left.span,
                                     "use the left value directly",
                                     lsnip,
@@ -149,7 +145,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EqOp {
                                 "needlessly taken reference of right operand",
                                 |db| {
                                     let rsnip = snippet(cx, r.span, "...").to_string();
-                                    db.span_suggestion_with_applicability(
+                                    db.span_suggestion(
                                         right.span,
                                         "use the right value directly",
                                         rsnip,
@@ -168,7 +164,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EqOp {
                         {
                             span_lint_and_then(cx, OP_REF, e.span, "needlessly taken reference of left operand", |db| {
                                 let lsnip = snippet(cx, l.span, "...").to_string();
-                                db.span_suggestion_with_applicability(
+                                db.span_suggestion(
                                     left.span,
                                     "use the left value directly",
                                     lsnip,
@@ -186,7 +182,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for EqOp {
                         {
                             span_lint_and_then(cx, OP_REF, e.span, "taken reference of right operand", |db| {
                                 let rsnip = snippet(cx, r.span, "...").to_string();
-                                db.span_suggestion_with_applicability(
+                                db.span_suggestion(
                                     right.span,
                                     "use the right value directly",
                                     rsnip,

@@ -1,20 +1,4 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 use crate::consts::{constant, Constant};
-use crate::rustc::hir::*;
-use crate::rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::ty::{self, Ty};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::LitKind;
-use crate::syntax::source_map::Span;
 use crate::utils::paths;
 use crate::utils::sugg::Sugg;
 use crate::utils::{
@@ -22,178 +6,213 @@ use crate::utils::{
     snippet_with_applicability, span_lint_and_sugg, span_lint_and_then, span_note_and_lint, walk_ptrs_ty,
 };
 use if_chain::if_chain;
+use rustc::hir::def::CtorKind;
+use rustc::hir::*;
+use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::ty::{self, Ty};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
 use std::cmp::Ordering;
 use std::collections::Bound;
+use std::ops::Deref;
+use syntax::ast::LitKind;
+use syntax::source_map::Span;
 
-/// **What it does:** Checks for matches with a single arm where an `if let`
-/// will usually suffice.
-///
-/// **Why is this bad?** Just readability – `if let` nests less than a `match`.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// match x {
-///     Some(ref foo) => bar(foo),
-///     _ => (),
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for matches with a single arm where an `if let`
+    /// will usually suffice.
+    ///
+    /// **Why is this bad?** Just readability – `if let` nests less than a `match`.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # fn bar(stool: &str) {}
+    /// # let x = Some("abc");
+    /// match x {
+    ///     Some(ref foo) => bar(foo),
+    ///     _ => (),
+    /// }
+    /// ```
     pub SINGLE_MATCH,
     style,
-    "a match statement with a single nontrivial arm (i.e. where the other arm is `_ => {}`) instead of `if let`"
+    "a match statement with a single nontrivial arm (i.e., where the other arm is `_ => {}`) instead of `if let`"
 }
 
-/// **What it does:** Checks for matches with a two arms where an `if let else` will
-/// usually suffice.
-///
-/// **Why is this bad?** Just readability – `if let` nests less than a `match`.
-///
-/// **Known problems:** Personal style preferences may differ.
-///
-/// **Example:**
-///
-/// Using `match`:
-///
-/// ```rust
-/// match x {
-///     Some(ref foo) => bar(foo),
-///     _ => bar(other_ref),
-/// }
-/// ```
-///
-/// Using `if let` with `else`:
-///
-/// ```rust
-/// if let Some(ref foo) = x {
-///     bar(foo);
-/// } else {
-///     bar(other_ref);
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for matches with a two arms where an `if let else` will
+    /// usually suffice.
+    ///
+    /// **Why is this bad?** Just readability – `if let` nests less than a `match`.
+    ///
+    /// **Known problems:** Personal style preferences may differ.
+    ///
+    /// **Example:**
+    ///
+    /// Using `match`:
+    ///
+    /// ```rust
+    /// match x {
+    ///     Some(ref foo) => bar(foo),
+    ///     _ => bar(other_ref),
+    /// }
+    /// ```
+    ///
+    /// Using `if let` with `else`:
+    ///
+    /// ```rust
+    /// if let Some(ref foo) = x {
+    ///     bar(foo);
+    /// } else {
+    ///     bar(other_ref);
+    /// }
+    /// ```
     pub SINGLE_MATCH_ELSE,
     pedantic,
     "a match statement with a two arms where the second arm's pattern is a placeholder instead of a specific match pattern"
 }
 
-/// **What it does:** Checks for matches where all arms match a reference,
-/// suggesting to remove the reference and deref the matched expression
-/// instead. It also checks for `if let &foo = bar` blocks.
-///
-/// **Why is this bad?** It just makes the code less readable. That reference
-/// destructuring adds nothing to the code.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// match x {
-///     &A(ref y) => foo(y),
-///     &B => bar(),
-///     _ => frob(&x),
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for matches where all arms match a reference,
+    /// suggesting to remove the reference and deref the matched expression
+    /// instead. It also checks for `if let &foo = bar` blocks.
+    ///
+    /// **Why is this bad?** It just makes the code less readable. That reference
+    /// destructuring adds nothing to the code.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust,ignore
+    /// match x {
+    ///     &A(ref y) => foo(y),
+    ///     &B => bar(),
+    ///     _ => frob(&x),
+    /// }
+    /// ```
     pub MATCH_REF_PATS,
     style,
     "a match or `if let` with all arms prefixed with `&` instead of deref-ing the match expression"
 }
 
-/// **What it does:** Checks for matches where match expression is a `bool`. It
-/// suggests to replace the expression with an `if...else` block.
-///
-/// **Why is this bad?** It makes the code less readable.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let condition: bool = true;
-/// match condition {
-///     true => foo(),
-///     false => bar(),
-/// }
-/// ```
-/// Use if/else instead:
-/// ```rust
-/// let condition: bool = true;
-/// if condition {
-///     foo();
-/// } else {
-///     bar();
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for matches where match expression is a `bool`. It
+    /// suggests to replace the expression with an `if...else` block.
+    ///
+    /// **Why is this bad?** It makes the code less readable.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # fn foo() {}
+    /// # fn bar() {}
+    /// let condition: bool = true;
+    /// match condition {
+    ///     true => foo(),
+    ///     false => bar(),
+    /// }
+    /// ```
+    /// Use if/else instead:
+    /// ```rust
+    /// # fn foo() {}
+    /// # fn bar() {}
+    /// let condition: bool = true;
+    /// if condition {
+    ///     foo();
+    /// } else {
+    ///     bar();
+    /// }
+    /// ```
     pub MATCH_BOOL,
     style,
     "a match on a boolean expression instead of an `if..else` block"
 }
 
-/// **What it does:** Checks for overlapping match arms.
-///
-/// **Why is this bad?** It is likely to be an error and if not, makes the code
-/// less obvious.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let x = 5;
-/// match x {
-///     1...10 => println!("1 ... 10"),
-///     5...15 => println!("5 ... 15"),
-///     _ => (),
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for overlapping match arms.
+    ///
+    /// **Why is this bad?** It is likely to be an error and if not, makes the code
+    /// less obvious.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x = 5;
+    /// match x {
+    ///     1...10 => println!("1 ... 10"),
+    ///     5...15 => println!("5 ... 15"),
+    ///     _ => (),
+    /// }
+    /// ```
     pub MATCH_OVERLAPPING_ARM,
     style,
     "a match with overlapping arms"
 }
 
-/// **What it does:** Checks for arm which matches all errors with `Err(_)`
-/// and take drastic actions like `panic!`.
-///
-/// **Why is this bad?** It is generally a bad practice, just like
-/// catching all exceptions in java with `catch(Exception)`
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let x: Result(i32, &str) = Ok(3);
-/// match x {
-///     Ok(_) => println!("ok"),
-///     Err(_) => panic!("err"),
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for arm which matches all errors with `Err(_)`
+    /// and take drastic actions like `panic!`.
+    ///
+    /// **Why is this bad?** It is generally a bad practice, just like
+    /// catching all exceptions in java with `catch(Exception)`
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x: Result<i32, &str> = Ok(3);
+    /// match x {
+    ///     Ok(_) => println!("ok"),
+    ///     Err(_) => panic!("err"),
+    /// }
+    /// ```
     pub MATCH_WILD_ERR_ARM,
     style,
     "a match with `Err(_)` arm and take drastic actions"
 }
 
-/// **What it does:** Checks for match which is used to add a reference to an
-/// `Option` value.
-///
-/// **Why is this bad?** Using `as_ref()` or `as_mut()` instead is shorter.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// let x: Option<()> = None;
-/// let r: Option<&()> = match x {
-///     None => None,
-///     Some(ref v) => Some(v),
-/// };
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for match which is used to add a reference to an
+    /// `Option` value.
+    ///
+    /// **Why is this bad?** Using `as_ref()` or `as_mut()` instead is shorter.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// let x: Option<()> = None;
+    /// let r: Option<&()> = match x {
+    ///     None => None,
+    ///     Some(ref v) => Some(v),
+    /// };
+    /// ```
     pub MATCH_AS_REF,
     complexity,
     "a match on an Option value instead of using `as_ref()` or `as_mut`"
+}
+
+declare_clippy_lint! {
+    /// **What it does:** Checks for wildcard enum matches using `_`.
+    ///
+    /// **Why is this bad?** New enum variants added by library updates can be missed.
+    ///
+    /// **Known problems:** Suggested replacements may be incorrect if guards exhaustively cover some
+    /// variants, and also may not use correct path to enum if it's not present in the current scope.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// match x {
+    ///     A => {},
+    ///     _ => {},
+    /// }
+    /// ```
+    pub WILDCARD_ENUM_MATCH_ARM,
+    restriction,
+    "a wildcard enum match arm using `_`"
 }
 
 #[allow(missing_copy_implementations)]
@@ -208,8 +227,13 @@ impl LintPass for MatchPass {
             SINGLE_MATCH_ELSE,
             MATCH_OVERLAPPING_ARM,
             MATCH_WILD_ERR_ARM,
-            MATCH_AS_REF
+            MATCH_AS_REF,
+            WILDCARD_ENUM_MATCH_ARM
         )
+    }
+
+    fn name(&self) -> &'static str {
+        "Matches"
     }
 }
 
@@ -223,6 +247,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MatchPass {
             check_match_bool(cx, ex, arms, expr);
             check_overlapping_arms(cx, ex, arms);
             check_wild_err_arm(cx, ex, arms);
+            check_wild_enum_match(cx, ex, arms);
             check_match_as_ref(cx, ex, arms, expr);
         }
         if let ExprKind::Match(ref ex, ref arms, _) = expr.node {
@@ -247,7 +272,7 @@ fn check_single_match(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr: &
             return;
         };
         let ty = cx.tables.expr_ty(ex);
-        if ty.sty != ty::Bool || is_allowed(cx, MATCH_BOOL, ex.id) {
+        if ty.sty != ty::Bool || is_allowed(cx, MATCH_BOOL, ex.hir_id) {
             check_single_match_single_pattern(cx, ex, arms, expr, els);
             check_single_match_opt_like(cx, ex, arms, expr, ty, els);
         }
@@ -303,7 +328,7 @@ fn check_single_match_opt_like(
     ty: Ty<'_>,
     els: Option<&Expr>,
 ) {
-    // list of candidate Enums we know will never get any more members
+    // list of candidate `Enum`s we know will never get any more members
     let candidates = &[
         (&paths::COW, "Borrowed"),
         (&paths::COW, "Cow::Borrowed"),
@@ -316,13 +341,13 @@ fn check_single_match_opt_like(
 
     let path = match arms[1].pats[0].node {
         PatKind::TupleStruct(ref path, ref inner, _) => {
-            // contains any non wildcard patterns? e.g. Err(err)
+            // Contains any non wildcard patterns (e.g., `Err(err)`)?
             if !inner.iter().all(is_wild) {
                 return;
             }
             print::to_string(print::NO_ANN, |s| s.print_qpath(path, false))
         },
-        PatKind::Binding(BindingAnnotation::Unannotated, _, ident, None) => ident.to_string(),
+        PatKind::Binding(BindingAnnotation::Unannotated, .., ident, None) => ident.to_string(),
         PatKind::Path(ref path) => print::to_string(print::NO_ANN, |s| s.print_qpath(path, false)),
         _ => return,
     };
@@ -335,7 +360,7 @@ fn check_single_match_opt_like(
 }
 
 fn check_match_bool(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr: &Expr) {
-    // type of expression == bool
+    // Type of expression is `bool`.
     if cx.tables.expr_ty(ex).sty == ty::Bool {
         span_lint_and_then(
             cx,
@@ -380,7 +405,7 @@ fn check_match_bool(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr: &Ex
                         };
 
                         if let Some(sugg) = sugg {
-                            db.span_suggestion_with_applicability(
+                            db.span_suggestion(
                                 expr.span,
                                 "consider using an if/else expression",
                                 sugg,
@@ -447,6 +472,93 @@ fn check_wild_err_arm(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm]) {
     }
 }
 
+fn check_wild_enum_match(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm]) {
+    let ty = cx.tables.expr_ty(ex);
+    if !ty.is_enum() {
+        // If there isn't a nice closed set of possible values that can be conveniently enumerated,
+        // don't complain about not enumerating the mall.
+        return;
+    }
+
+    // First pass - check for violation, but don't do much book-keeping because this is hopefully
+    // the uncommon case, and the book-keeping is slightly expensive.
+    let mut wildcard_span = None;
+    let mut wildcard_ident = None;
+    for arm in arms {
+        for pat in &arm.pats {
+            if let PatKind::Wild = pat.node {
+                wildcard_span = Some(pat.span);
+            } else if let PatKind::Binding(_, _, ident, None) = pat.node {
+                wildcard_span = Some(pat.span);
+                wildcard_ident = Some(ident);
+            }
+        }
+    }
+
+    if let Some(wildcard_span) = wildcard_span {
+        // Accumulate the variants which should be put in place of the wildcard because they're not
+        // already covered.
+
+        let mut missing_variants = vec![];
+        if let ty::Adt(def, _) = ty.sty {
+            for variant in &def.variants {
+                missing_variants.push(variant);
+            }
+        }
+
+        for arm in arms {
+            if arm.guard.is_some() {
+                // Guards mean that this case probably isn't exhaustively covered. Technically
+                // this is incorrect, as we should really check whether each variant is exhaustively
+                // covered by the set of guards that cover it, but that's really hard to do.
+                continue;
+            }
+            for pat in &arm.pats {
+                if let PatKind::Path(ref path) = pat.deref().node {
+                    if let QPath::Resolved(_, p) = path {
+                        missing_variants.retain(|e| e.ctor_def_id != Some(p.def.def_id()));
+                    }
+                } else if let PatKind::TupleStruct(ref path, ..) = pat.deref().node {
+                    if let QPath::Resolved(_, p) = path {
+                        missing_variants.retain(|e| e.ctor_def_id != Some(p.def.def_id()));
+                    }
+                }
+            }
+        }
+
+        let suggestion: Vec<String> = missing_variants
+            .iter()
+            .map(|v| {
+                let suffix = match v.ctor_kind {
+                    CtorKind::Fn => "(..)",
+                    CtorKind::Const | CtorKind::Fictive => "",
+                };
+                let ident_str = if let Some(ident) = wildcard_ident {
+                    format!("{} @ ", ident.name)
+                } else {
+                    String::new()
+                };
+                // This path assumes that the enum type is imported into scope.
+                format!("{}{}{}", ident_str, cx.tcx.def_path_str(v.def_id), suffix)
+            })
+            .collect();
+
+        if suggestion.is_empty() {
+            return;
+        }
+
+        span_lint_and_sugg(
+            cx,
+            WILDCARD_ENUM_MATCH_ARM,
+            wildcard_span,
+            "wildcard match will miss any future added variants.",
+            "try this",
+            suggestion.join(" | "),
+            Applicability::MachineApplicable,
+        )
+    }
+}
+
 // If the block contains only a `panic!` macro (as expression or statement)
 fn is_panic_block(block: &Block) -> bool {
     match (&block.expr, block.stmts.len(), block.stmts.first()) {
@@ -464,13 +576,15 @@ fn check_match_ref_pats(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr:
     if has_only_ref_pats(arms) {
         let mut suggs = Vec::new();
         let (title, msg) = if let ExprKind::AddrOf(Mutability::MutImmutable, ref inner) = ex.node {
-            suggs.push((ex.span, Sugg::hir(cx, inner, "..").to_string()));
+            let span = ex.span.source_callsite();
+            suggs.push((span, Sugg::hir_with_macro_callsite(cx, inner, "..").to_string()));
             (
                 "you don't need to add `&` to both the expression and the patterns",
                 "try",
             )
         } else {
-            suggs.push((ex.span, Sugg::hir(cx, ex, "..").deref().to_string()));
+            let span = ex.span.source_callsite();
+            suggs.push((span, Sugg::hir_with_macro_callsite(cx, ex, "..").deref().to_string()));
             (
                 "you don't need to add `&` to all patterns",
                 "instead of prefixing all patterns with `&`, you can dereference the expression",
@@ -531,7 +645,7 @@ fn check_match_as_ref(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr: &
     }
 }
 
-/// Get all arms that are unbounded `PatRange`s.
+/// Gets all arms that are unbounded `PatRange`s.
 fn all_ranges<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, arms: &'tcx [Arm]) -> Vec<SpannedRange<Constant>> {
     arms.iter()
         .flat_map(|arm| {
@@ -579,7 +693,7 @@ pub struct SpannedRange<T> {
 
 type TypedRanges = Vec<SpannedRange<u128>>;
 
-/// Get all `Int` ranges or all `Uint` ranges. Mixed types are an error anyway
+/// Gets all `Int` ranges or all `Uint` ranges. Mixed types are an error anyway
 /// and other types than
 /// `Uint` and `Int` probably don't make sense.
 fn type_ranges(ranges: &[SpannedRange<Constant>]) -> TypedRanges {
@@ -624,7 +738,7 @@ fn is_ref_some_arm(arm: &Arm) -> Option<BindingAnnotation> {
     if_chain! {
         if let PatKind::TupleStruct(ref path, ref pats, _) = arm.pats[0].node;
         if pats.len() == 1 && match_qpath(path, &paths::OPTION_SOME);
-        if let PatKind::Binding(rb, _, ident, _) = pats[0].node;
+        if let PatKind::Binding(rb, .., ident, _) = pats[0].node;
         if rb == BindingAnnotation::Ref || rb == BindingAnnotation::RefMut;
         if let ExprKind::Call(ref e, ref args) = remove_blocks(&arm.body).node;
         if let ExprKind::Path(ref some_path) = e.node;

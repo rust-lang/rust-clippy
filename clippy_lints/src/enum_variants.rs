@@ -1,117 +1,108 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! lint on enum variants that are prefixed or suffixed by the same characters
 
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, Lint, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast::*;
-use crate::syntax::source_map::Span;
-use crate::syntax::symbol::LocalInternedString;
 use crate::utils::{camel_case, in_macro};
 use crate::utils::{span_help_and_lint, span_lint};
+use rustc::lint::{EarlyContext, EarlyLintPass, Lint, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::*;
+use syntax::source_map::Span;
+use syntax::symbol::{InternedString, LocalInternedString};
 
-/// **What it does:** Detects enumeration variants that are prefixed or suffixed
-/// by the same characters.
-///
-/// **Why is this bad?** Enumeration variant names should specify their variant,
-/// not repeat the enumeration name.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// enum Cake {
-///     BlackForestCake,
-///     HummingbirdCake,
-///     BattenbergCake,
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Detects enumeration variants that are prefixed or suffixed
+    /// by the same characters.
+    ///
+    /// **Why is this bad?** Enumeration variant names should specify their variant,
+    /// not repeat the enumeration name.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// enum Cake {
+    ///     BlackForestCake,
+    ///     HummingbirdCake,
+    ///     BattenbergCake,
+    /// }
+    /// ```
     pub ENUM_VARIANT_NAMES,
     style,
     "enums where all variants share a prefix/postfix"
 }
 
-/// **What it does:** Detects enumeration variants that are prefixed or suffixed
-/// by the same characters.
-///
-/// **Why is this bad?** Enumeration variant names should specify their variant,
-/// not repeat the enumeration name.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// enum Cake {
-///     BlackForestCake,
-///     HummingbirdCake,
-///     BattenbergCake,
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Detects enumeration variants that are prefixed or suffixed
+    /// by the same characters.
+    ///
+    /// **Why is this bad?** Enumeration variant names should specify their variant,
+    /// not repeat the enumeration name.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// enum Cake {
+    ///     BlackForestCake,
+    ///     HummingbirdCake,
+    ///     BattenbergCake,
+    /// }
+    /// ```
     pub PUB_ENUM_VARIANT_NAMES,
     pedantic,
     "enums where all variants share a prefix/postfix"
 }
 
-/// **What it does:** Detects type names that are prefixed or suffixed by the
-/// containing module's name.
-///
-/// **Why is this bad?** It requires the user to type the module name twice.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// mod cake {
-///     struct BlackForestCake;
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Detects type names that are prefixed or suffixed by the
+    /// containing module's name.
+    ///
+    /// **Why is this bad?** It requires the user to type the module name twice.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// mod cake {
+    ///     struct BlackForestCake;
+    /// }
+    /// ```
     pub MODULE_NAME_REPETITIONS,
     pedantic,
     "type names prefixed/postfixed with their containing module's name"
 }
 
-/// **What it does:** Checks for modules that have the same name as their
-/// parent module
-///
-/// **Why is this bad?** A typical beginner mistake is to have `mod foo;` and
-/// again `mod foo { ..
-/// }` in `foo.rs`.
-/// The expectation is that items inside the inner `mod foo { .. }` are then
-/// available
-/// through `foo::x`, but they are only available through
-/// `foo::foo::x`.
-/// If this is done on purpose, it would be better to choose a more
-/// representative module name.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// // lib.rs
-/// mod foo;
-/// // foo.rs
-/// mod foo {
-///     ...
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for modules that have the same name as their
+    /// parent module
+    ///
+    /// **Why is this bad?** A typical beginner mistake is to have `mod foo;` and
+    /// again `mod foo { ..
+    /// }` in `foo.rs`.
+    /// The expectation is that items inside the inner `mod foo { .. }` are then
+    /// available
+    /// through `foo::x`, but they are only available through
+    /// `foo::foo::x`.
+    /// If this is done on purpose, it would be better to choose a more
+    /// representative module name.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// // lib.rs
+    /// mod foo;
+    /// // foo.rs
+    /// mod foo {
+    ///     ...
+    /// }
+    /// ```
     pub MODULE_INCEPTION,
     style,
     "modules that have the same name as their parent module"
 }
 
 pub struct EnumVariantNames {
-    modules: Vec<(LocalInternedString, String)>,
+    modules: Vec<(InternedString, String)>,
     threshold: u64,
 }
 
@@ -132,6 +123,10 @@ impl LintPass for EnumVariantNames {
             MODULE_NAME_REPETITIONS,
             MODULE_INCEPTION
         )
+    }
+
+    fn name(&self) -> &'static str {
+        "EnumVariantNames"
     }
 }
 
@@ -308,6 +303,6 @@ impl EarlyLintPass for EnumVariantNames {
             };
             check_variant(cx, self.threshold, def, &item_name, item_name_chars, item.span, lint);
         }
-        self.modules.push((item_name, item_camel));
+        self.modules.push((item_name.as_interned_str(), item_camel));
     }
 }

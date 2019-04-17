@@ -1,91 +1,83 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{in_external_macro, EarlyContext, EarlyLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast;
-use crate::syntax::source_map::Span;
-use crate::syntax::visit::FnKind;
-use crate::syntax_pos::BytePos;
-use crate::utils::{in_macro, match_path_ast, snippet_opt, span_lint_and_then, span_note_and_lint};
 use if_chain::if_chain;
+use rustc::lint::{in_external_macro, EarlyContext, EarlyLintPass, LintArray, LintContext, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast;
+use syntax::source_map::Span;
+use syntax::visit::FnKind;
+use syntax_pos::BytePos;
 
-/// **What it does:** Checks for return statements at the end of a block.
-///
-/// **Why is this bad?** Removing the `return` and semicolon will make the code
-/// more rusty.
-///
-/// **Known problems:** If the computation returning the value borrows a local
-/// variable, removing the `return` may run afoul of the borrow checker.
-///
-/// **Example:**
-/// ```rust
-/// fn foo(x: usize) {
-///     return x;
-/// }
-/// ```
-/// simplify to
-/// ```rust
-/// fn foo(x: usize) {
-///     x
-/// }
-/// ```
+use crate::utils::{in_macro, match_path_ast, snippet_opt, span_lint_and_then, span_note_and_lint};
+
 declare_clippy_lint! {
+    /// **What it does:** Checks for return statements at the end of a block.
+    ///
+    /// **Why is this bad?** Removing the `return` and semicolon will make the code
+    /// more rusty.
+    ///
+    /// **Known problems:** If the computation returning the value borrows a local
+    /// variable, removing the `return` may run afoul of the borrow checker.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn foo(x: usize) -> usize {
+    ///     return x;
+    /// }
+    /// ```
+    /// simplify to
+    /// ```rust
+    /// fn foo(x: usize) -> usize {
+    ///     x
+    /// }
+    /// ```
     pub NEEDLESS_RETURN,
     style,
     "using a return statement like `return expr;` where an expression would suffice"
 }
 
-/// **What it does:** Checks for `let`-bindings, which are subsequently
-/// returned.
-///
-/// **Why is this bad?** It is just extraneous code. Remove it to make your code
-/// more rusty.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// fn foo() -> String {
-///     let x = String::new();
-///     x
-/// }
-/// ```
-/// instead, use
-/// ```
-/// fn foo() -> String {
-///     String::new()
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for `let`-bindings, which are subsequently
+    /// returned.
+    ///
+    /// **Why is this bad?** It is just extraneous code. Remove it to make your code
+    /// more rusty.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn foo() -> String {
+    ///     let x = String::new();
+    ///     x
+    /// }
+    /// ```
+    /// instead, use
+    /// ```
+    /// fn foo() -> String {
+    ///     String::new()
+    /// }
+    /// ```
     pub LET_AND_RETURN,
     style,
     "creating a let-binding and then immediately returning it like `let x = expr; x` at the end of a block"
 }
 
-/// **What it does:** Checks for unit (`()`) expressions that can be removed.
-///
-/// **Why is this bad?** Such expressions add no value, but can make the code
-/// less readable. Depending on formatting they can make a `break` or `return`
-/// statement look like a function call.
-///
-/// **Known problems:** The lint currently misses unit return types in types,
-/// e.g. the `F` in `fn generic_unit<F: Fn() -> ()>(f: F) { .. }`.
-///
-/// **Example:**
-/// ```rust
-/// fn return_unit() -> () {
-///     ()
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for unit (`()`) expressions that can be removed.
+    ///
+    /// **Why is this bad?** Such expressions add no value, but can make the code
+    /// less readable. Depending on formatting they can make a `break` or `return`
+    /// statement look like a function call.
+    ///
+    /// **Known problems:** The lint currently misses unit return types in types,
+    /// e.g., the `F` in `fn generic_unit<F: Fn() -> ()>(f: F) { .. }`.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn return_unit() -> () {
+    ///     ()
+    /// }
+    /// ```
     pub UNUSED_UNIT,
     style,
     "needless unit expression"
@@ -144,7 +136,7 @@ impl ReturnPass {
         }
         span_lint_and_then(cx, NEEDLESS_RETURN, ret_span, "unneeded return statement", |db| {
             if let Some(snippet) = snippet_opt(cx, inner_span) {
-                db.span_suggestion_with_applicability(
+                db.span_suggestion(
                     ret_span,
                     "remove `return` as shown",
                     snippet,
@@ -189,6 +181,10 @@ impl LintPass for ReturnPass {
     fn get_lints(&self) -> LintArray {
         lint_array!(NEEDLESS_RETURN, LET_AND_RETURN, UNUSED_UNIT)
     }
+
+    fn name(&self) -> &'static str {
+        "Return"
+    }
 }
 
 impl EarlyLintPass for ReturnPass {
@@ -216,7 +212,7 @@ impl EarlyLintPass for ReturnPass {
                     (ty.span, Applicability::MaybeIncorrect)
                 };
                 span_lint_and_then(cx, UNUSED_UNIT, rspan, "unneeded unit return type", |db| {
-                    db.span_suggestion_with_applicability(
+                    db.span_suggestion(
                         rspan,
                         "remove the `-> ()`",
                         String::new(),
@@ -236,7 +232,7 @@ impl EarlyLintPass for ReturnPass {
             then {
                 let sp = expr.span;
                 span_lint_and_then(cx, UNUSED_UNIT, sp, "unneeded unit expression", |db| {
-                    db.span_suggestion_with_applicability(
+                    db.span_suggestion(
                         sp,
                         "remove the final `()`",
                         String::new(),
@@ -252,7 +248,7 @@ impl EarlyLintPass for ReturnPass {
             ast::ExprKind::Ret(Some(ref expr)) | ast::ExprKind::Break(_, Some(ref expr)) => {
                 if is_unit_expr(expr) && !in_macro(expr.span) {
                     span_lint_and_then(cx, UNUSED_UNIT, expr.span, "unneeded `()`", |db| {
-                        db.span_suggestion_with_applicability(
+                        db.span_suggestion(
                             expr.span,
                             "remove the `()`",
                             String::new(),
@@ -267,7 +263,7 @@ impl EarlyLintPass for ReturnPass {
 }
 
 fn attr_is_cfg(attr: &ast::Attribute) -> bool {
-    attr.meta_item_list().is_some() && attr.name() == "cfg"
+    attr.meta_item_list().is_some() && attr.check_name("cfg")
 }
 
 // get the def site

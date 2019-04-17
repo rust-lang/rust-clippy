@@ -1,12 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 #![warn(clippy::clone_on_ref_ptr)]
 #![allow(unused)]
 
@@ -75,6 +66,18 @@ fn iter_clone_collect() {
     let v2: Vec<isize> = v.iter().cloned().collect();
     let v3: HashSet<isize> = v.iter().cloned().collect();
     let v4: VecDeque<isize> = v.iter().cloned().collect();
+
+    // Handle macro expansion in suggestion
+    let _: Vec<isize> = vec![1, 2, 3].iter().cloned().collect();
+
+    // Issue #3704
+    unsafe {
+        let _: Vec<u8> = std::ffi::CStr::from_ptr(std::ptr::null())
+            .to_bytes()
+            .iter()
+            .cloned()
+            .collect();
+    }
 }
 
 mod many_derefs {

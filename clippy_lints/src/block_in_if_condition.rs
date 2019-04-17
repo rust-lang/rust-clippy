@@ -1,54 +1,45 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
 use crate::utils::*;
 use matches::matches;
+use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
 
-/// **What it does:** Checks for `if` conditions that use blocks to contain an
-/// expression.
-///
-/// **Why is this bad?** It isn't really Rust style, same as using parentheses
-/// to contain expressions.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// if { true } ..
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for `if` conditions that use blocks to contain an
+    /// expression.
+    ///
+    /// **Why is this bad?** It isn't really Rust style, same as using parentheses
+    /// to contain expressions.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// if { true } { /* ... */ }
+    /// ```
     pub BLOCK_IN_IF_CONDITION_EXPR,
     style,
-    "braces that can be eliminated in conditions, e.g. `if { true } ...`"
+    "braces that can be eliminated in conditions, e.g., `if { true } ...`"
 }
 
-/// **What it does:** Checks for `if` conditions that use blocks containing
-/// statements, or conditions that use closures with blocks.
-///
-/// **Why is this bad?** Using blocks in the condition makes it hard to read.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// if { let x = somefunc(); x } ..
-/// // or
-/// if somefunc(|x| { x == 47 }) ..
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for `if` conditions that use blocks containing
+    /// statements, or conditions that use closures with blocks.
+    ///
+    /// **Why is this bad?** Using blocks in the condition makes it hard to read.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// if { let x = somefunc(); x } {}
+    /// // or
+    /// if somefunc(|x| { x == 47 }) {}
+    /// ```
     pub BLOCK_IN_IF_CONDITION_STMT,
     style,
-    "complex blocks in conditions, e.g. `if { let x = true; x } ...`"
+    "complex blocks in conditions, e.g., `if { let x = true; x } ...`"
 }
 
 #[derive(Copy, Clone)]
@@ -57,6 +48,10 @@ pub struct BlockInIfCondition;
 impl LintPass for BlockInIfCondition {
     fn get_lints(&self) -> LintArray {
         lint_array!(BLOCK_IN_IF_CONDITION_EXPR, BLOCK_IN_IF_CONDITION_STMT)
+    }
+
+    fn name(&self) -> &'static str {
+        "BlockInIfCondition"
     }
 }
 
@@ -88,11 +83,11 @@ const COMPLEX_BLOCK_MESSAGE: &str = "in an 'if' condition, avoid complex blocks 
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
-        if let ExprKind::If(ref check, ref then, _) = expr.node {
-            if let ExprKind::Block(ref block, _) = check.node {
+        if let ExprKind::If(check, then, _) = &expr.node {
+            if let ExprKind::Block(block, _) = &check.node {
                 if block.rules == DefaultBlock {
                     if block.stmts.is_empty() {
-                        if let Some(ref ex) = block.expr {
+                        if let Some(ex) = &block.expr {
                             // don't dig into the expression here, just suggest that they remove
                             // the block
                             if in_macro(expr.span) || differing_macro_contexts(expr.span, ex.span) {

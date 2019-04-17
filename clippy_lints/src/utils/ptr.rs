@@ -1,19 +1,10 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
-use crate::rustc::hir::*;
-use crate::rustc::lint::LateContext;
-use crate::syntax::ast::Name;
-use crate::syntax::source_map::Span;
 use crate::utils::{get_pat_name, match_var, snippet};
+use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
+use rustc::hir::*;
+use rustc::lint::LateContext;
 use std::borrow::Cow;
+use syntax::ast::Name;
+use syntax::source_map::Span;
 
 pub fn get_spans(
     cx: &LateContext<'_, '_>,

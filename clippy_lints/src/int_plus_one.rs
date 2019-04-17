@@ -1,39 +1,30 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 //! lint on blocks unnecessarily using >= with a + 1 or - 1
 
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::*;
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::*;
 
 use crate::utils::{snippet_opt, span_lint_and_then};
 
-/// **What it does:** Checks for usage of `x >= y + 1` or `x - 1 >= y` (and `<=`) in a block
-///
-///
-/// **Why is this bad?** Readability -- better to use `> y` instead of `>= y + 1`.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// x >= y + 1
-/// ```
-///
-/// Could be written:
-///
-/// ```rust
-/// x > y
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `x >= y + 1` or `x - 1 >= y` (and `<=`) in a block
+    ///
+    ///
+    /// **Why is this bad?** Readability -- better to use `> y` instead of `>= y + 1`.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// x >= y + 1
+    /// ```
+    ///
+    /// Could be written:
+    ///
+    /// ```rust
+    /// x > y
+    /// ```
     pub INT_PLUS_ONE,
     complexity,
     "instead of using x >= y + 1, use x > y"
@@ -44,6 +35,10 @@ pub struct IntPlusOne;
 impl LintPass for IntPlusOne {
     fn get_lints(&self) -> LintArray {
         lint_array!(INT_PLUS_ONE)
+    }
+
+    fn name(&self) -> &'static str {
+        "IntPlusOne"
     }
 }
 
@@ -167,7 +162,7 @@ impl IntPlusOne {
             block.span,
             "Unnecessary `>= y + 1` or `x - 1 >=`",
             |db| {
-                db.span_suggestion_with_applicability(
+                db.span_suggestion(
                     block.span,
                     "change `>= y + 1` to `> y` as shown",
                     recommendation,

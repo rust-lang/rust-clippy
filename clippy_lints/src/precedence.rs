@@ -1,37 +1,28 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::*;
-use crate::syntax::source_map::Spanned;
 use crate::utils::{in_macro, snippet_with_applicability, span_lint_and_sugg};
+use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_errors::Applicability;
+use syntax::ast::*;
+use syntax::source_map::Spanned;
 
-/// **What it does:** Checks for operations where precedence may be unclear
-/// and suggests to add parentheses. Currently it catches the following:
-/// * mixed usage of arithmetic and bit shifting/combining operators without
-/// parentheses
-/// * a "negative" numeric literal (which is really a unary `-` followed by a
-/// numeric literal)
-///   followed by a method call
-///
-/// **Why is this bad?** Not everyone knows the precedence of those operators by
-/// heart, so expressions like these may trip others trying to reason about the
-/// code.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// * `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7
-/// * `-1i32.abs()` equals -1, while `(-1i32).abs()` equals 1
 declare_clippy_lint! {
+    /// **What it does:** Checks for operations where precedence may be unclear
+    /// and suggests to add parentheses. Currently it catches the following:
+    /// * mixed usage of arithmetic and bit shifting/combining operators without
+    /// parentheses
+    /// * a "negative" numeric literal (which is really a unary `-` followed by a
+    /// numeric literal)
+    ///   followed by a method call
+    ///
+    /// **Why is this bad?** Not everyone knows the precedence of those operators by
+    /// heart, so expressions like these may trip others trying to reason about the
+    /// code.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// * `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7
+    /// * `-1i32.abs()` equals -1, while `(-1i32).abs()` equals 1
     pub PRECEDENCE,
     complexity,
     "operations where precedence may be unclear"
@@ -43,6 +34,10 @@ pub struct Precedence;
 impl LintPass for Precedence {
     fn get_lints(&self) -> LintArray {
         lint_array!(PRECEDENCE)
+    }
+
+    fn name(&self) -> &'static str {
+        "Precedence"
     }
 }
 
@@ -138,7 +133,7 @@ fn is_arith_expr(expr: &Expr) -> bool {
 }
 
 fn is_bit_op(op: BinOpKind) -> bool {
-    use crate::syntax::ast::BinOpKind::*;
+    use syntax::ast::BinOpKind::*;
     match op {
         BitXor | BitAnd | BitOr | Shl | Shr => true,
         _ => false,
@@ -146,7 +141,7 @@ fn is_bit_op(op: BinOpKind) -> bool {
 }
 
 fn is_arith_op(op: BinOpKind) -> bool {
-    use crate::syntax::ast::BinOpKind::*;
+    use syntax::ast::BinOpKind::*;
     match op {
         Add | Sub | Mul | Div | Rem => true,
         _ => false,

@@ -1,14 +1,6 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
+// run-rustfix
 #![feature(integer_atomics)]
-#![allow(clippy::blacklisted_name)]
+#![allow(unused_variables, clippy::blacklisted_name)]
 #![deny(clippy::replace_consts)]
 
 use std::sync::atomic::*;
@@ -18,18 +10,6 @@ use std::sync::{Once, ONCE_INIT};
 fn bad() {
     // Once
     { let foo = ONCE_INIT; };
-    // Atomic
-    { let foo = ATOMIC_BOOL_INIT; };
-    { let foo = ATOMIC_ISIZE_INIT; };
-    { let foo = ATOMIC_I8_INIT; };
-    { let foo = ATOMIC_I16_INIT; };
-    { let foo = ATOMIC_I32_INIT; };
-    { let foo = ATOMIC_I64_INIT; };
-    { let foo = ATOMIC_USIZE_INIT; };
-    { let foo = ATOMIC_U8_INIT; };
-    { let foo = ATOMIC_U16_INIT; };
-    { let foo = ATOMIC_U32_INIT; };
-    { let foo = ATOMIC_U64_INIT; };
     // Min
     { let foo = std::isize::MIN; };
     { let foo = std::i8::MIN; };

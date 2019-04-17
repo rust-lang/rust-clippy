@@ -1,15 +1,6 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 #![feature(test)]
 
-extern crate compiletest_rs as compiletest;
+use compiletest_rs as compiletest;
 extern crate test;
 
 use std::env::{set_var, var};
@@ -83,6 +74,7 @@ fn run_mode(mode: &str, dir: PathBuf) {
     compiletest::run_tests(&cfg);
 }
 
+#[allow(clippy::identity_conversion)]
 fn run_ui_toml_tests(config: &compiletest::Config, mut tests: Vec<test::TestDescAndFn>) -> Result<bool, io::Error> {
     let mut result = true;
     let opts = compiletest::test_opts(config);
@@ -142,7 +134,6 @@ fn prepare_env() {
 #[test]
 fn compile_test() {
     prepare_env();
-    run_mode("run-pass", "tests/run-pass".into());
     run_mode("ui", "tests/ui".into());
     run_ui_toml();
 }

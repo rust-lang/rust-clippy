@@ -1,39 +1,30 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
 use crate::utils::{is_try, match_qpath, match_trait_method, paths, span_lint};
+use rustc::hir;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
 
-/// **What it does:** Checks for unused written/read amount.
-///
-/// **Why is this bad?** `io::Write::write` and `io::Read::read` are not
-/// guaranteed to
-/// process the entire buffer. They return how many bytes were processed, which
-/// might be smaller
-/// than a given buffer's length. If you don't need to deal with
-/// partial-write/read, use
-/// `write_all`/`read_exact` instead.
-///
-/// **Known problems:** Detects only common patterns.
-///
-/// **Example:**
-/// ```rust,ignore
-/// use std::io;
-/// fn foo<W: io::Write>(w: &mut W) -> io::Result<()> {
-///     // must be `w.write_all(b"foo")?;`
-///     w.write(b"foo")?;
-///     Ok(())
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for unused written/read amount.
+    ///
+    /// **Why is this bad?** `io::Write::write` and `io::Read::read` are not
+    /// guaranteed to
+    /// process the entire buffer. They return how many bytes were processed, which
+    /// might be smaller
+    /// than a given buffer's length. If you don't need to deal with
+    /// partial-write/read, use
+    /// `write_all`/`read_exact` instead.
+    ///
+    /// **Known problems:** Detects only common patterns.
+    ///
+    /// **Example:**
+    /// ```rust,ignore
+    /// use std::io;
+    /// fn foo<W: io::Write>(w: &mut W) -> io::Result<()> {
+    ///     // must be `w.write_all(b"foo")?;`
+    ///     w.write(b"foo")?;
+    ///     Ok(())
+    /// }
+    /// ```
     pub UNUSED_IO_AMOUNT,
     correctness,
     "unused written/read amount"
@@ -45,12 +36,16 @@ impl LintPass for UnusedIoAmount {
     fn get_lints(&self) -> LintArray {
         lint_array!(UNUSED_IO_AMOUNT)
     }
+
+    fn name(&self) -> &'static str {
+        "UnusedIoAmount"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnusedIoAmount {
     fn check_stmt(&mut self, cx: &LateContext<'_, '_>, s: &hir::Stmt) {
         let expr = match s.node {
-            hir::StmtKind::Semi(ref expr, _) | hir::StmtKind::Expr(ref expr, _) => &**expr,
+            hir::StmtKind::Semi(ref expr) | hir::StmtKind::Expr(ref expr) => &**expr,
             _ => return,
         };
 

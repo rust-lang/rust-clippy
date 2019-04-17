@@ -1,112 +1,103 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty::Ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_data_structures::fx::FxHashMap;
-use crate::syntax::symbol::LocalInternedString;
 use crate::utils::{get_parent_expr, in_macro, snippet, span_lint_and_then, span_note_and_lint};
 use crate::utils::{SpanlessEq, SpanlessHash};
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty::Ty;
+use rustc::{declare_tool_lint, lint_array};
+use rustc_data_structures::fx::FxHashMap;
 use smallvec::SmallVec;
 use std::collections::hash_map::Entry;
 use std::hash::BuildHasherDefault;
+use syntax::symbol::LocalInternedString;
 
-/// **What it does:** Checks for consecutive `if`s with the same condition.
-///
-/// **Why is this bad?** This is probably a copy & paste error.
-///
-/// **Known problems:** Hopefully none.
-///
-/// **Example:**
-/// ```rust
-/// if a == b {
-///     …
-/// } else if a == b {
-///     …
-/// }
-/// ```
-///
-/// Note that this lint ignores all conditions with a function call as it could
-/// have side effects:
-///
-/// ```rust
-/// if foo() {
-///     …
-/// } else if foo() { // not linted
-///     …
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for consecutive `if`s with the same condition.
+    ///
+    /// **Why is this bad?** This is probably a copy & paste error.
+    ///
+    /// **Known problems:** Hopefully none.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// if a == b {
+    ///     …
+    /// } else if a == b {
+    ///     …
+    /// }
+    /// ```
+    ///
+    /// Note that this lint ignores all conditions with a function call as it could
+    /// have side effects:
+    ///
+    /// ```ignore
+    /// if foo() {
+    ///     …
+    /// } else if foo() { // not linted
+    ///     …
+    /// }
+    /// ```
     pub IFS_SAME_COND,
     correctness,
     "consecutive `ifs` with the same condition"
 }
 
-/// **What it does:** Checks for `if/else` with the same body as the *then* part
-/// and the *else* part.
-///
-/// **Why is this bad?** This is probably a copy & paste error.
-///
-/// **Known problems:** Hopefully none.
-///
-/// **Example:**
-/// ```rust
-/// let foo = if … {
-///     42
-/// } else {
-///     42
-/// };
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for `if/else` with the same body as the *then* part
+    /// and the *else* part.
+    ///
+    /// **Why is this bad?** This is probably a copy & paste error.
+    ///
+    /// **Known problems:** Hopefully none.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// let foo = if … {
+    ///     42
+    /// } else {
+    ///     42
+    /// };
+    /// ```
     pub IF_SAME_THEN_ELSE,
     correctness,
     "if with the same *then* and *else* blocks"
 }
 
-/// **What it does:** Checks for `match` with identical arm bodies.
-///
-/// **Why is this bad?** This is probably a copy & paste error. If arm bodies
-/// are the same on purpose, you can factor them
-/// [using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).
-///
-/// **Known problems:** False positive possible with order dependent `match`
-/// (see issue
-/// [#860](https://github.com/rust-lang/rust-clippy/issues/860)).
-///
-/// **Example:**
-/// ```rust,ignore
-/// match foo {
-///     Bar => bar(),
-///     Quz => quz(),
-///     Baz => bar(), // <= oops
-/// }
-/// ```
-///
-/// This should probably be
-/// ```rust,ignore
-/// match foo {
-///     Bar => bar(),
-///     Quz => quz(),
-///     Baz => baz(), // <= fixed
-/// }
-/// ```
-///
-/// or if the original code was not a typo:
-/// ```rust,ignore
-/// match foo {
-///     Bar | Baz => bar(), // <= shows the intent better
-///     Quz => quz(),
-/// }
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for `match` with identical arm bodies.
+    ///
+    /// **Why is this bad?** This is probably a copy & paste error. If arm bodies
+    /// are the same on purpose, you can factor them
+    /// [using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).
+    ///
+    /// **Known problems:** False positive possible with order dependent `match`
+    /// (see issue
+    /// [#860](https://github.com/rust-lang/rust-clippy/issues/860)).
+    ///
+    /// **Example:**
+    /// ```rust,ignore
+    /// match foo {
+    ///     Bar => bar(),
+    ///     Quz => quz(),
+    ///     Baz => bar(), // <= oops
+    /// }
+    /// ```
+    ///
+    /// This should probably be
+    /// ```rust,ignore
+    /// match foo {
+    ///     Bar => bar(),
+    ///     Quz => quz(),
+    ///     Baz => baz(), // <= fixed
+    /// }
+    /// ```
+    ///
+    /// or if the original code was not a typo:
+    /// ```rust,ignore
+    /// match foo {
+    ///     Bar | Baz => bar(), // <= shows the intent better
+    ///     Quz => quz(),
+    /// }
+    /// ```
     pub MATCH_SAME_ARMS,
     pedantic,
     "`match` with identical arm bodies"
@@ -119,6 +110,10 @@ impl LintPass for CopyAndPaste {
     fn get_lints(&self) -> LintArray {
         lint_array![IFS_SAME_COND, IF_SAME_THEN_ELSE, MATCH_SAME_ARMS]
     }
+
+    fn name(&self) -> &'static str {
+        "CopyAndPaste"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CopyAndPaste {
@@ -130,7 +125,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CopyAndPaste {
                 ..
             }) = get_parent_expr(cx, expr)
             {
-                if else_expr.id == expr.id {
+                if else_expr.hir_id == expr.hir_id {
                     return;
                 }
             }
@@ -212,7 +207,7 @@ fn lint_match_arms(cx: &LateContext<'_, '_>, expr: &Expr) {
                 |db| {
                     db.span_note(i.body.span, "same as this");
 
-                    // Note: this does not use `span_suggestion_with_applicability` on purpose:
+                    // Note: this does not use `span_suggestion` on purpose:
                     // there is no clean way
                     // to remove the other arm. Building a span and suggest to replace it to ""
                     // makes an even more confusing error message. Also in order not to make up a
@@ -244,9 +239,9 @@ fn lint_match_arms(cx: &LateContext<'_, '_>, expr: &Expr) {
     }
 }
 
-/// Return the list of condition expressions and the list of blocks in a
+/// Returns the list of condition expressions and the list of blocks in a
 /// sequence of `if/else`.
-/// Eg. would return `([a, b], [c, d, e])` for the expression
+/// E.g., this returns `([a, b], [c, d, e])` for the expression
 /// `if a { c } else if b { d } else { e }`.
 fn if_sequence(mut expr: &Expr) -> (SmallVec<[&Expr; 1]>, SmallVec<[&Block; 1]>) {
     let mut conds = SmallVec::new();
@@ -277,7 +272,7 @@ fn if_sequence(mut expr: &Expr) -> (SmallVec<[&Expr; 1]>, SmallVec<[&Block; 1]>)
     (conds, blocks)
 }
 
-/// Return the list of bindings in a pattern.
+/// Returns the list of bindings in a pattern.
 fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> FxHashMap<LocalInternedString, Ty<'tcx>> {
     fn bindings_impl<'a, 'tcx>(
         cx: &LateContext<'a, 'tcx>,
@@ -291,7 +286,7 @@ fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> FxHashMap<LocalI
                     bindings_impl(cx, pat, map);
                 }
             },
-            PatKind::Binding(_, _, ident, ref as_pat) => {
+            PatKind::Binding(.., ident, ref as_pat) => {
                 if let Entry::Vacant(v) = map.entry(ident.as_str()) {
                     v.insert(cx.tables.pat_ty(pat));
                 }

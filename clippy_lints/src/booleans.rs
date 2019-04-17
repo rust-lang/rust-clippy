@@ -1,57 +1,48 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-use crate::rustc::hir::intravisit::*;
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::rustc_data_structures::thin_vec::ThinVec;
-use crate::rustc_errors::Applicability;
-use crate::syntax::ast::{LitKind, NodeId, DUMMY_NODE_ID};
-use crate::syntax::source_map::{dummy_spanned, Span, DUMMY_SP};
 use crate::utils::{
     get_trait_def_id, implements_trait, in_macro, match_type, paths, snippet_opt, span_lint_and_then, SpanlessEq,
 };
+use rustc::hir::intravisit::*;
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::{declare_tool_lint, lint_array};
+use rustc_data_structures::thin_vec::ThinVec;
+use rustc_errors::Applicability;
+use syntax::ast::LitKind;
+use syntax::source_map::{dummy_spanned, Span, DUMMY_SP};
 
-/// **What it does:** Checks for boolean expressions that can be written more
-/// concisely.
-///
-/// **Why is this bad?** Readability of boolean expressions suffers from
-/// unnecessary duplication.
-///
-/// **Known problems:** Ignores short circuiting behavior of `||` and
-/// `&&`. Ignores `|`, `&` and `^`.
-///
-/// **Example:**
-/// ```rust
-/// if a && true  // should be: if a
-/// if !(a == b)  // should be: if a != b
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for boolean expressions that can be written more
+    /// concisely.
+    ///
+    /// **Why is this bad?** Readability of boolean expressions suffers from
+    /// unnecessary duplication.
+    ///
+    /// **Known problems:** Ignores short circuiting behavior of `||` and
+    /// `&&`. Ignores `|`, `&` and `^`.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// if a && true  // should be: if a
+    /// if !(a == b)  // should be: if a != b
+    /// ```
     pub NONMINIMAL_BOOL,
     complexity,
     "boolean expressions that can be written more concisely"
 }
 
-/// **What it does:** Checks for boolean expressions that contain terminals that
-/// can be eliminated.
-///
-/// **Why is this bad?** This is most likely a logic bug.
-///
-/// **Known problems:** Ignores short circuiting behavior.
-///
-/// **Example:**
-/// ```rust
-/// if a && b || a { ... }
-/// ```
-/// The `b` is unnecessary, the expression is equivalent to `if a`.
 declare_clippy_lint! {
+    /// **What it does:** Checks for boolean expressions that contain terminals that
+    /// can be eliminated.
+    ///
+    /// **Why is this bad?** This is most likely a logic bug.
+    ///
+    /// **Known problems:** Ignores short circuiting behavior.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// if a && b || a { ... }
+    /// ```
+    /// The `b` is unnecessary, the expression is equivalent to `if a`.
     pub LOGIC_BUG,
     correctness,
     "boolean expressions that contain terminals which can be eliminated"
@@ -67,6 +58,10 @@ impl LintPass for NonminimalBool {
     fn get_lints(&self) -> LintArray {
         lint_array!(NONMINIMAL_BOOL, LOGIC_BUG)
     }
+
+    fn name(&self) -> &'static str {
+        "NonminimalBool"
+    }
 }
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NonminimalBool {
@@ -77,7 +72,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NonminimalBool {
         _: &'tcx FnDecl,
         body: &'tcx Body,
         _: Span,
-        _: NodeId,
+        _: HirId,
     ) {
         NonminimalBoolVisitor { cx }.visit_body(body)
     }
@@ -96,7 +91,7 @@ struct Hir2Qmm<'a, 'tcx: 'a, 'v> {
 impl<'a, 'tcx, 'v> Hir2Qmm<'a, 'tcx, 'v> {
     fn extract(&mut self, op: BinOpKind, a: &[&'v Expr], mut v: Vec<Bool>) -> Result<Vec<Bool>, String> {
         for a in a {
-            if let ExprKind::Binary(binop, ref lhs, ref rhs) = a.node {
+            if let ExprKind::Binary(binop, lhs, rhs) = &a.node {
                 if binop.node == op {
                     v = self.extract(op, &[lhs, rhs], v)?;
                     continue;
@@ -110,14 +105,14 @@ impl<'a, 'tcx, 'v> Hir2Qmm<'a, 'tcx, 'v> {
     fn run(&mut self, e: &'v Expr) -> Result<Bool, String> {
         // prevent folding of `cfg!` macros and the like
         if !in_macro(e.span) {
-            match e.node {
-                ExprKind::Unary(UnNot, ref inner) => return Ok(Bool::Not(box self.run(inner)?)),
-                ExprKind::Binary(binop, ref lhs, ref rhs) => match binop.node {
+            match &e.node {
+                ExprKind::Unary(UnNot, inner) => return Ok(Bool::Not(box self.run(inner)?)),
+                ExprKind::Binary(binop, lhs, rhs) => match &binop.node {
                     BinOpKind::Or => return Ok(Bool::Or(self.extract(BinOpKind::Or, &[lhs, rhs], Vec::new())?)),
                     BinOpKind::And => return Ok(Bool::And(self.extract(BinOpKind::And, &[lhs, rhs], Vec::new())?)),
                     _ => (),
                 },
-                ExprKind::Lit(ref lit) => match lit.node {
+                ExprKind::Lit(lit) => match lit.node {
                     LitKind::Bool(true) => return Ok(Bool::True),
                     LitKind::Bool(false) => return Ok(Bool::False),
                     _ => (),
@@ -130,14 +125,13 @@ impl<'a, 'tcx, 'v> Hir2Qmm<'a, 'tcx, 'v> {
                 #[allow(clippy::cast_possible_truncation)]
                 return Ok(Bool::Term(n as u8));
             }
-            let negated = match e.node {
-                ExprKind::Binary(binop, ref lhs, ref rhs) => {
+            let negated = match &e.node {
+                ExprKind::Binary(binop, lhs, rhs) => {
                     if !implements_ord(self.cx, lhs) {
                         continue;
                     }
 
                     let mk_expr = |op| Expr {
-                        id: DUMMY_NODE_ID,
                         hir_id: DUMMY_HIR_ID,
                         span: DUMMY_SP,
                         attrs: ThinVec::new(),
@@ -184,8 +178,8 @@ impl<'a, 'tcx, 'v> SuggestContext<'a, 'tcx, 'v> {
     }
 
     fn simplify_not(&self, expr: &Expr) -> Option<String> {
-        match expr.node {
-            ExprKind::Binary(binop, ref lhs, ref rhs) => {
+        match &expr.node {
+            ExprKind::Binary(binop, lhs, rhs) => {
                 if !implements_ord(self.cx, lhs) {
                     return None;
                 }
@@ -201,7 +195,7 @@ impl<'a, 'tcx, 'v> SuggestContext<'a, 'tcx, 'v> {
                 }
                 .and_then(|op| Some(format!("{}{}{}", self.snip(lhs)?, op, self.snip(rhs)?)))
             },
-            ExprKind::MethodCall(ref path, _, ref args) if args.len() == 1 => {
+            ExprKind::MethodCall(path, _, args) if args.len() == 1 => {
                 let type_of_receiver = self.cx.tables.expr_ty(&args[0]);
                 if !match_type(self.cx, type_of_receiver, &paths::OPTION)
                     && !match_type(self.cx, type_of_receiver, &paths::RESULT)
@@ -221,14 +215,14 @@ impl<'a, 'tcx, 'v> SuggestContext<'a, 'tcx, 'v> {
 
     fn recurse(&mut self, suggestion: &Bool) -> Option<()> {
         use quine_mc_cluskey::Bool::*;
-        match *suggestion {
+        match suggestion {
             True => {
                 self.output.push_str("true");
             },
             False => {
                 self.output.push_str("false");
             },
-            Not(ref inner) => match **inner {
+            Not(inner) => match **inner {
                 And(_) | Or(_) => {
                     self.output.push('!');
                     self.output.push('(');
@@ -251,7 +245,7 @@ impl<'a, 'tcx, 'v> SuggestContext<'a, 'tcx, 'v> {
                     self.recurse(inner)?;
                 },
             },
-            And(ref v) => {
+            And(v) => {
                 for (index, inner) in v.iter().enumerate() {
                     if index > 0 {
                         self.output.push_str(" && ");
@@ -265,7 +259,7 @@ impl<'a, 'tcx, 'v> SuggestContext<'a, 'tcx, 'v> {
                     }
                 }
             },
-            Or(ref v) => {
+            Or(v) => {
                 for (index, inner) in v.iter().enumerate() {
                     if index > 0 {
                         self.output.push_str(" || ");
@@ -273,7 +267,7 @@ impl<'a, 'tcx, 'v> SuggestContext<'a, 'tcx, 'v> {
                     self.recurse(inner);
                 }
             },
-            Term(n) => {
+            &Term(n) => {
                 let snip = self.snip(self.terminals[n as usize])?;
                 self.output.push_str(&snip);
             },
@@ -325,22 +319,22 @@ struct Stats {
 
 fn terminal_stats(b: &Bool) -> Stats {
     fn recurse(b: &Bool, stats: &mut Stats) {
-        match *b {
+        match b {
             True | False => stats.ops += 1,
-            Not(ref inner) => {
+            Not(inner) => {
                 match **inner {
                     And(_) | Or(_) => stats.ops += 1, // brackets are also operations
                     _ => stats.negations += 1,
                 }
                 recurse(inner, stats);
             },
-            And(ref v) | Or(ref v) => {
+            And(v) | Or(v) => {
                 stats.ops += v.len() - 1;
                 for inner in v {
                     recurse(inner, stats);
                 }
             },
-            Term(n) => stats.terminals[n as usize] += 1,
+            &Term(n) => stats.terminals[n as usize] += 1,
         }
     }
     use quine_mc_cluskey::Bool::*;
@@ -398,7 +392,7 @@ impl<'a, 'tcx> NonminimalBoolVisitor<'a, 'tcx> {
                                     "this expression can be optimized out by applying boolean operations to the \
                                      outer expression",
                                 );
-                                db.span_suggestion_with_applicability(
+                                db.span_suggestion(
                                     e.span,
                                     "it would look like the following",
                                     suggest(self.cx, suggestion, &h2q.terminals).0,
@@ -428,7 +422,7 @@ impl<'a, 'tcx> NonminimalBoolVisitor<'a, 'tcx> {
                     e.span,
                     "this boolean expression can be simplified",
                     |db| {
-                        db.span_suggestions_with_applicability(
+                        db.span_suggestions(
                             e.span,
                             "try",
                             suggestions.into_iter(),
@@ -461,11 +455,11 @@ impl<'a, 'tcx> Visitor<'tcx> for NonminimalBoolVisitor<'a, 'tcx> {
         if in_macro(e.span) {
             return;
         }
-        match e.node {
+        match &e.node {
             ExprKind::Binary(binop, _, _) if binop.node == BinOpKind::Or || binop.node == BinOpKind::And => {
                 self.bool_expr(e)
             },
-            ExprKind::Unary(UnNot, ref inner) => {
+            ExprKind::Unary(UnNot, inner) => {
                 if self.cx.tables.node_types()[inner.hir_id].is_bool() {
                     self.bool_expr(e);
                 } else {

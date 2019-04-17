@@ -1,11 +1,4 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+// run-rustfix
 
 #![warn(clippy::use_self)]
 #![allow(dead_code)]
@@ -51,8 +44,6 @@ mod better {
     }
 }
 
-//todo the lint does not handle lifetimed struct
-//the following module should trigger the lint on the third method only
 mod lifetimes {
     struct Foo<'a> {
         foo_str: &'a str,
@@ -69,7 +60,8 @@ mod lifetimes {
             Foo { foo_str: "foo" }
         }
 
-        // `Self` is applicable here
+        // FIXME: the lint does not handle lifetimed struct
+        // `Self` should be applicable here
         fn clone(&self) -> Foo<'a> {
             Foo { foo_str: self.foo_str }
         }
@@ -217,6 +209,72 @@ mod existential {
     }
 }
 
+mod tuple_structs {
+    pub struct TS(i32);
+
+    impl TS {
+        pub fn ts() -> Self {
+            TS(0)
+        }
+    }
+}
+
+mod macros {
+    macro_rules! use_self_expand {
+        () => {
+            fn new() -> Foo {
+                Foo {}
+            }
+        };
+    }
+
+    struct Foo {}
+
+    impl Foo {
+        use_self_expand!(); // Should lint in local macros
+    }
+}
+
+mod nesting {
+    struct Foo {}
+    impl Foo {
+        fn foo() {
+            #[allow(unused_imports)]
+            use self::Foo; // Can't use Self here
+            struct Bar {
+                foo: Foo, // Foo != Self
+            }
+
+            impl Bar {
+                fn bar() -> Bar {
+                    Bar { foo: Foo {} }
+                }
+            }
+
+            // Can't use Self here
+            fn baz() -> Foo {
+                Foo {}
+            }
+        }
+
+        // Should lint here
+        fn baz() -> Foo {
+            Foo {}
+        }
+    }
+
+    enum Enum {
+        A,
+    }
+    impl Enum {
+        fn method() {
+            #[allow(unused_imports)]
+            use self::Enum::*; // Issue 3425
+            static STATIC: Enum = Enum::A; // Can't use Self as type
+        }
+    }
+}
+
 mod issue3410 {
 
     struct A;
@@ -231,13 +289,22 @@ mod issue3410 {
     }
 }
 
-mod issue3425 {
-    enum Enum {
-        A,
+#[allow(clippy::no_effect, path_statements)]
+mod rustfix {
+    mod nested {
+        pub struct A {}
     }
-    impl Enum {
-        fn a() {
-            use self::Enum::*;
+
+    impl nested::A {
+        const A: bool = true;
+
+        fn fun_1() {}
+
+        fn fun_2() {
+            nested::A::fun_1();
+            nested::A::A;
+
+            nested::A {};
         }
     }
 }

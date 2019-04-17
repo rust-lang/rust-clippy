@@ -1,35 +1,27 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+use rustc::hir::*;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::ty;
+use rustc::{declare_tool_lint, lint_array};
+use syntax::source_map::Span;
 
 use crate::consts::{constant_simple, Constant};
-use crate::rustc::hir::*;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::source_map::Span;
 use crate::utils::{clip, in_macro, snippet, span_lint, unsext};
 
-/// **What it does:** Checks for identity operations, e.g. `x + 0`.
-///
-/// **Why is this bad?** This code can be removed without changing the
-/// meaning. So it just obscures what's going on. Delete it mercilessly.
-///
-/// **Known problems:** None.
-///
-/// **Example:**
-/// ```rust
-/// x / 1 + 0 * 1 - 0 | 0
-/// ```
 declare_clippy_lint! {
+    /// **What it does:** Checks for identity operations, e.g., `x + 0`.
+    ///
+    /// **Why is this bad?** This code can be removed without changing the
+    /// meaning. So it just obscures what's going on. Delete it mercilessly.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// x / 1 + 0 * 1 - 0 | 0
+    /// ```
     pub IDENTITY_OP,
     complexity,
-    "using identity operations, e.g. `x + 0` or `y / 1`"
+    "using identity operations, e.g., `x + 0` or `y / 1`"
 }
 
 #[derive(Copy, Clone)]
@@ -38,6 +30,10 @@ pub struct IdentityOp;
 impl LintPass for IdentityOp {
     fn get_lints(&self) -> LintArray {
         lint_array!(IDENTITY_OP)
+    }
+
+    fn name(&self) -> &'static str {
+        "IdentityOp"
     }
 }
 

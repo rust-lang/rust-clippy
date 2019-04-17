@@ -1,25 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-// This file incorporates work covered by the following copyright and
-// permission notice:
-//   Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT
-//   file at the top-level directory of this distribution and at
-//   http://rust-lang.org/COPYRIGHT.
-//
-//   Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-//   http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-//   <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-//   option. This file may not be copied, modified, or distributed
-//   except according to those terms.
-//
-
 // Note: More specifically this lint is largely inspired (aka copied) from
 // *rustc*'s
 // [`missing_doc`].
@@ -27,25 +5,26 @@
 // [`missing_doc`]: https://github.com/rust-lang/rust/blob/d6d05904697d89099b55da3331155392f1db9c00/src/librustc_lint/builtin.rs#L246
 //
 
-use crate::rustc::hir;
-use crate::rustc::lint::{LateContext, LateLintPass, LintArray, LintContext, LintPass};
-use crate::rustc::ty;
-use crate::rustc::{declare_tool_lint, lint_array};
-use crate::syntax::ast;
-use crate::syntax::attr;
-use crate::syntax::source_map::Span;
 use crate::utils::{in_macro, span_lint};
+use if_chain::if_chain;
+use rustc::hir;
+use rustc::lint::{LateContext, LateLintPass, LintArray, LintContext, LintPass};
+use rustc::ty;
+use rustc::{declare_tool_lint, lint_array};
+use syntax::ast::{self, MetaItem, MetaItemKind};
+use syntax::attr;
+use syntax::source_map::Span;
 
-/// **What it does:** Warns if there is missing doc for any documentable item
-/// (public or private).
-///
-/// **Why is this bad?** Doc is good. *rustc* has a `MISSING_DOCS`
-/// allowed-by-default lint for
-/// public members, but has no way to enforce documentation of private items.
-/// This lint fixes that.
-///
-/// **Known problems:** None.
 declare_clippy_lint! {
+    /// **What it does:** Warns if there is missing doc for any documentable item
+    /// (public or private).
+    ///
+    /// **Why is this bad?** Doc is good. *rustc* has a `MISSING_DOCS`
+    /// allowed-by-default lint for
+    /// public members, but has no way to enforce documentation of private items.
+    /// This lint fixes that.
+    ///
+    /// **Known problems:** None.
     pub MISSING_DOCS_IN_PRIVATE_ITEMS,
     restriction,
     "detects missing documentation for public and private members"
@@ -74,6 +53,20 @@ impl MissingDoc {
         *self.doc_hidden_stack.last().expect("empty doc_hidden_stack")
     }
 
+    fn has_include(meta: Option<MetaItem>) -> bool {
+        if_chain! {
+            if let Some(meta) = meta;
+            if let MetaItemKind::List(list) = meta.node;
+            if let Some(meta) = list.get(0);
+            if let Some(name) = meta.ident();
+            then {
+                name.as_str() == "include"
+            } else {
+                false
+            }
+        }
+    }
+
     fn check_missing_docs_attrs(
         &self,
         cx: &LateContext<'_, '_>,
@@ -96,7 +89,9 @@ impl MissingDoc {
             return;
         }
 
-        let has_doc = attrs.iter().any(|a| a.is_value_str() && a.name() == "doc");
+        let has_doc = attrs
+            .iter()
+            .any(|a| a.check_name("doc") && (a.is_value_str() || Self::has_include(a.meta())));
         if !has_doc {
             span_lint(
                 cx,
@@ -111,6 +106,10 @@ impl MissingDoc {
 impl LintPass for MissingDoc {
     fn get_lints(&self) -> LintArray {
         lint_array![MISSING_DOCS_IN_PRIVATE_ITEMS]
+    }
+
+    fn name(&self) -> &'static str {
+        "MissingDoc"
     }
 }
 
@@ -141,8 +140,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
             hir::ItemKind::Enum(..) => "an enum",
             hir::ItemKind::Fn(..) => {
                 // ignore main()
-                if it.name == "main" {
-                    let def_id = cx.tcx.hir().local_def_id(it.id);
+                if it.ident.name == "main" {
+                    let def_id = cx.tcx.hir().local_def_id_from_hir_id(it.hir_id);
                     let def_key = cx.tcx.hir().def_key(def_id);
                     if def_key.parent == Some(hir::def_id::CRATE_DEF_INDEX) {
                         return;
@@ -155,12 +154,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
             hir::ItemKind::Struct(..) => "a struct",
             hir::ItemKind::Trait(..) => "a trait",
             hir::ItemKind::TraitAlias(..) => "a trait alias",
-            hir::ItemKind::GlobalAsm(..) => "an assembly blob",
             hir::ItemKind::Ty(..) => "a type alias",
             hir::ItemKind::Union(..) => "a union",
             hir::ItemKind::Existential(..) => "an existential type",
             hir::ItemKind::ExternCrate(..)
             | hir::ItemKind::ForeignMod(..)
+            | hir::ItemKind::GlobalAsm(..)
             | hir::ItemKind::Impl(..)
             | hir::ItemKind::Use(..) => return,
         };
@@ -180,7 +179,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
 
     fn check_impl_item(&mut self, cx: &LateContext<'a, 'tcx>, impl_item: &'tcx hir::ImplItem) {
         // If the method is an impl for a trait, don't doc.
-        let def_id = cx.tcx.hir().local_def_id(impl_item.id);
+        let def_id = cx.tcx.hir().local_def_id_from_hir_id(impl_item.hir_id);
         match cx.tcx.associated_item(def_id).container {
             ty::TraitContainer(_) => return,
             ty::ImplContainer(cid) => {

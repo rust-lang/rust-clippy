@@ -1,12 +1,3 @@
-// Copyright 2014-2018 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
 #![warn(clippy::needless_pass_by_value)]
 #![allow(
     dead_code,
@@ -17,6 +8,7 @@
 )]
 
 use std::borrow::Borrow;
+use std::collections::HashSet;
 use std::convert::AsRef;
 
 // `v` should be warned
@@ -103,7 +95,7 @@ impl<T: Serialize, U> S<T, U> {
         s.len() + t.capacity()
     }
 
-    fn bar(_t: T // Ok, since `&T: Serialize` too
+    fn bar(_t: T, // Ok, since `&T: Serialize` too
     ) {
     }
 
@@ -154,4 +146,14 @@ trait Club<'a, A> {}
 impl<T> Club<'static, T> for T {}
 fn more_fun(_item: impl Club<'static, i32>) {}
 
-fn main() {}
+fn is_sync<T>(_: T)
+where
+    T: Sync,
+{
+}
+
+fn main() {
+    // This should not cause an ICE either
+    // https://github.com/rust-lang/rust-clippy/issues/3144
+    is_sync(HashSet::<usize>::new());
+}
