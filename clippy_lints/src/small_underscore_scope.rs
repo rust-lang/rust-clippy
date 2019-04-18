@@ -1,6 +1,6 @@
 use crate::utils::span_lint_and_sugg;
 use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
-use rustc::{declare_tool_lint, lint_array};
+use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_errors::Applicability;
 use syntax::ast::*;
 use syntax::source_map::Span;
@@ -28,20 +28,9 @@ declare_clippy_lint! {
     "wildcard binding occurs inside a struct, but the wildcard could be the entire binding"
 }
 
-#[derive(Copy, Clone)]
-pub struct Pass;
+declare_lint_pass!(SmallUnderscoreScope => [SMALL_UNDERSCORE_SCOPE]);
 
-impl LintPass for Pass {
-    fn get_lints(&self) -> LintArray {
-        lint_array!(SMALL_UNDERSCORE_SCOPE,)
-    }
-
-    fn name(&self) -> &'static str {
-        "SmallUnderscoreScope"
-    }
-}
-
-impl EarlyLintPass for Pass {
+impl EarlyLintPass for SmallUnderscoreScope {
     fn check_pat(&mut self, cx: &EarlyContext<'_>, pat: &Pat, _: &mut bool) {
         match pat.node {
             PatKind::TupleStruct(_, ref pats, _) | PatKind::Tuple(ref pats, _) => {

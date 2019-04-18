@@ -575,7 +575,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box missing_const_for_fn::MissingConstForFn);
     reg.register_late_lint_pass(box transmuting_null::TransmutingNull);
     reg.register_late_lint_pass(box path_buf_push_overwrite::PathBufPushOverwrite);
-    reg.register_late_lint_pass(box small_underscore_scope::Pass);
+    reg.register_early_lint_pass(box small_underscore_scope::SmallUnderscoreScope);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
