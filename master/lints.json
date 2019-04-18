@@ -1349,6 +1349,17 @@
   }, 
   {
     "docs": {
+      "What it does": "* Checks for [push](https://doc.rust-lang.org/std/path/struct.PathBuf.html#method.push)\ncalls on `PathBuf` that can cause overwrites.", 
+      "Why is this bad": "Calling `push` with a root path at the start can overwrite the\nprevious defined path.", 
+      "Example": "```rust\nuse std::path::PathBuf;\nlet mut x = PathBuf::from(\"/foo\");\nx.push(\"/bar\");\nassert_eq!(x, PathBuf::from(\"/bar\"));\n```\nCould be written:\n```rust\nuse std::path::PathBuf;\nlet mut x = PathBuf::from(\"/foo\");\nx.push(\"bar\");\nassert_eq!(x, PathBuf::from(\"/foo/bar\"));\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "correctness", 
+    "id": "path_buf_push_overwrite", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `write!()` / `writeln()!` which can be\nreplaced with `(e)print!()` / `(e)println!()`", 
       "Why is this bad": "Using `(e)println! is clearer and more concise", 
       "Example": "```rust\n// this would be clearer as `eprintln!(\"foo: {:?}\", bar);`\nwriteln!(&mut io::stderr(), \"foo: {:?}\", bar).unwrap();\n```", 
