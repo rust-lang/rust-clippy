@@ -24,7 +24,7 @@ declare_clippy_lint! {
     /// let _ = t;
     /// ```
     pub SMALL_UNDERSCORE_SCOPE,
-    pedantic,
+    style,
     "wildcard binding occurs inside a struct, but the wildcard could be the entire binding"
 }
 
