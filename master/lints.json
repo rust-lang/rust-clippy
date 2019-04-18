@@ -3338,7 +3338,7 @@
       "What it does": "Checks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,\netc., and suggests to use `unwrap_or_else` instead", 
       "Why is this bad": "The function will always be called.", 
       "Example": "```rust\nfoo.expect(&format!(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.expect(format!(\"Err {}: {}\", err_code, err_msg).as_str())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(|_| panic!(\"Err {}: {}\", err_code, err_msg))\n```", 
-      "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway."
+      "Known problems": "If the function has side-effects, not calling it will\nchange the semantics of the program, but you shouldn't rely on that anyway."
     }, 
     "group": "perf", 
     "id": "expect_fun_call", 
