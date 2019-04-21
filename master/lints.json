@@ -1354,9 +1354,9 @@
       "Example": "```rust\nuse std::path::PathBuf;\nlet mut x = PathBuf::from(\"/foo\");\nx.push(\"/bar\");\nassert_eq!(x, PathBuf::from(\"/bar\"));\n```\nCould be written:\n```rust\nuse std::path::PathBuf;\nlet mut x = PathBuf::from(\"/foo\");\nx.push(\"bar\");\nassert_eq!(x, PathBuf::from(\"/foo/bar\"));\n```", 
       "Known problems": "None."
     }, 
-    "group": "correctness", 
+    "group": "nursery", 
     "id": "path_buf_push_overwrite", 
-    "level": "Deny"
+    "level": "Allow"
   }, 
   {
     "docs": {
