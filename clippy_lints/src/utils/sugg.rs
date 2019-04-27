@@ -93,6 +93,7 @@ impl<'a> Sugg<'a> {
         match expr.node {
             hir::ExprKind::AddrOf(..)
             | hir::ExprKind::Box(..)
+            | hir::ExprKind::Use(..)
             | hir::ExprKind::Closure(.., _)
             | hir::ExprKind::If(..)
             | hir::ExprKind::Unary(..)

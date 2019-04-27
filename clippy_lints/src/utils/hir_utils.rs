@@ -101,6 +101,7 @@ impl<'a, 'tcx: 'a> SpanlessEq<'a, 'tcx> {
                     && both(le, re, |l, r| self.eq_expr(l, r))
             },
             (&ExprKind::Box(ref l), &ExprKind::Box(ref r)) => self.eq_expr(l, r),
+            (&ExprKind::Use(ref l), &ExprKind::Use(ref r)) => self.eq_expr(l, r),
             (&ExprKind::Call(ref l_fun, ref l_args), &ExprKind::Call(ref r_fun, ref r_args)) => {
                 !self.ignore_fn && self.eq_expr(l_fun, r_fun) && self.eq_exprs(l_args, r_args)
             },
@@ -451,6 +452,11 @@ impl<'a, 'tcx: 'a> SpanlessHash<'a, 'tcx> {
             },
             ExprKind::Box(ref e) => {
                 let c: fn(_) -> _ = ExprKind::Box;
+                c.hash(&mut self.s);
+                self.hash_expr(e);
+            },
+            ExprKind::Use(ref e) => {
+                let c: fn(_) -> _ = ExprKind::Use;
                 c.hash(&mut self.s);
                 self.hash_expr(e);
             },

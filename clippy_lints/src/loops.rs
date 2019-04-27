@@ -671,6 +671,7 @@ fn never_loop_expr(expr: &Expr, main_loop_id: HirId) -> NeverLoopResult {
     match expr.node {
         ExprKind::Box(ref e)
         | ExprKind::Unary(_, ref e)
+        | ExprKind::Use(ref e)
         | ExprKind::Cast(ref e, _)
         | ExprKind::Type(ref e, _)
         | ExprKind::Field(ref e, _)
@@ -1461,8 +1462,7 @@ fn check_for_loop_explicit_counter<'a, 'tcx>(
     let map = &cx.tcx.hir();
     let expr_node_id = expr.hir_id;
     let parent_scope = map
-        .get_enclosing_scope(expr_node_id)
-        .and_then(|id| map.get_enclosing_scope(id));
+        .get_enclosing_scope(expr_node_id);
     if let Some(parent_id) = parent_scope {
         if let Node::Block(block) = map.get_by_hir_id(parent_id) {
             for (id, _) in visitor.states.iter().filter(|&(_, v)| *v == VarState::IncrOnce) {

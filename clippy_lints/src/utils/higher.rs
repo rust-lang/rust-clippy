@@ -184,6 +184,7 @@ pub fn is_from_for_desugar(local: &hir::Local) -> bool {
 /// `for pat in arg { body }` becomes `(pat, arg, body)`.
 pub fn for_loop(expr: &hir::Expr) -> Option<(&hir::Pat, &hir::Expr, &hir::Expr)> {
     if_chain! {
+        if let hir::ExprKind::Use(ref expr) = expr.node;
         if let hir::ExprKind::Match(ref iterexpr, ref arms, hir::MatchSource::ForLoopDesugar) = expr.node;
         if let hir::ExprKind::Call(_, ref iterargs) = iterexpr.node;
         if iterargs.len() == 1 && arms.len() == 1 && arms[0].guard.is_none();

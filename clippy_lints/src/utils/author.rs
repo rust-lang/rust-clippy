@@ -492,6 +492,12 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
                 self.current = value_pat;
                 self.visit_expr(value);
             },
+            ExprKind::Use(ref inner) => {
+                let inner_pat = self.next("inner");
+                println!("Use(ref {}) = {};", inner_pat, current);
+                self.current = inner_pat;
+                self.visit_expr(inner);
+            }
             ExprKind::Err => {
                 println!("Err = {}", current);
             },
