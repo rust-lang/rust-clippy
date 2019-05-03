@@ -3059,8 +3059,8 @@
   {
     "docs": {
       "What it does": "Checks for `into_iter` calls on types which should be replaced by `iter` or\n`iter_mut`.", 
-      "Why is this bad": "Arrays and `PathBuf` do not yet have an `into_iter` method which move out\ntheir content into an iterator. Auto-referencing resolves the `into_iter` call to its reference\ninstead, like `<&[T; N] as IntoIterator>::into_iter`, which just iterates over item references\nlike calling `iter` would. Furthermore, when the standard library actually\n[implements the `into_iter` method][25725] which moves the content out of the array, the\noriginal use of `into_iter` got inferred with the wrong type and the code will be broken.", 
-      "Example": "```rust\nlet _ = [1, 2, 3].into_iter().map(|x| *x).collect::<Vec<u32>>();\n```\n[25725]: https://github.com/rust-lang/rust/issues/25725", 
+      "Why is this bad": "Arrays and `PathBuf` do not yet have an `into_iter` method which move out\ntheir content into an iterator. Auto-referencing resolves the `into_iter` call to its reference\ninstead, like `<&[T; N] as IntoIterator>::into_iter`, which just iterates over item references\nlike calling `iter` would. Furthermore, when the standard library actually\n[implements the `into_iter` method](https://github.com/rust-lang/rust/issues/25725) which moves\nthe content out of the array, the original use of `into_iter` got inferred with the wrong type\nand the code will be broken.", 
+      "Example": "```rust\nlet _ = [1, 2, 3].into_iter().map(|x| *x).collect::<Vec<u32>>();\n```", 
       "Known problems": "None"
     }, 
     "group": "correctness", 
