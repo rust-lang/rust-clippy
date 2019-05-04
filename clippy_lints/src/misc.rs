@@ -2,6 +2,7 @@ use if_chain::if_chain;
 use matches::matches;
 use rustc::hir::intravisit::FnKind;
 use rustc::hir::*;
+use rustc::hir::def::{Res, DefKind, CtorOf};
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::ty;
 use rustc::{declare_lint_pass, declare_tool_lint};
@@ -410,7 +411,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MiscLints {
                     binding != "_result" && // FIXME: #944
                     is_used(cx, expr) &&
                     // don't lint if the declaration is in a macro
-                    non_macro_local(cx, &cx.tables.qpath_def(qpath, expr.hir_id))
+                    non_macro_local(cx, &cx.tables.qpath_res(qpath, expr.hir_id))
                 {
                     Some(binding)
                 } else {
@@ -600,9 +601,9 @@ fn in_attributes_expansion(expr: &Expr) -> bool {
 }
 
 /// Tests whether `def` is a variable defined outside a macro.
-fn non_macro_local(cx: &LateContext<'_, '_>, def: &def::Def) -> bool {
+fn non_macro_local(cx: &LateContext<'_, '_>, def: &def::DefKind) -> bool {
     match *def {
-        def::Def::Local(id) | def::Def::Upvar(id, _, _) => !in_macro(cx.tcx.hir().span_by_hir_id(id)),
+        def::Res::Local(id) | def::Res(Res::Upvar(..), id, _, _) => !in_macro(cx.tcx.hir().span_by_hir_id(id)),
         _ => false,
     }
 }

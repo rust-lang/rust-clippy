@@ -2,7 +2,7 @@
 
 use crate::utils::{clip, sext, unsext};
 use if_chain::if_chain;
-use rustc::hir::def::Def;
+use rustc::hir::def::{Res, DefKind};
 use rustc::hir::*;
 use rustc::lint::LateContext;
 use rustc::ty::subst::{Subst, SubstsRef};
@@ -247,7 +247,7 @@ impl<'c, 'cc> ConstEvalLateContext<'c, 'cc> {
                 if_chain! {
                     if args.is_empty();
                     if let ExprKind::Path(qpath) = &callee.node;
-                    let def = self.tables.qpath_def(qpath, callee.hir_id);
+                    let def = self.tables.qpath_res(qpath, callee.hir_id);
                     if let Some(def_id) = def.opt_def_id();
                     let def_path = self.lcx.get_def_path(def_id)
                         .iter()
@@ -322,9 +322,9 @@ impl<'c, 'cc> ConstEvalLateContext<'c, 'cc> {
     fn fetch_path(&mut self, qpath: &QPath, id: HirId) -> Option<Constant> {
         use rustc::mir::interpret::GlobalId;
 
-        let def = self.tables.qpath_def(qpath, id);
+        let def = self.tables.qpath_res(qpath, id);
         match def {
-            Def::Const(def_id) | Def::AssociatedConst(def_id) => {
+            Res::Def(DefKind::Const, def_id) | Res::Def(DefKind::AssociatedConst, def_id) => {
                 let substs = self.tables.node_substs(id);
                 let substs = if self.substs.is_empty() {
                     substs
