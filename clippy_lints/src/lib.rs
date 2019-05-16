@@ -274,6 +274,7 @@ pub mod zero_div_zero;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
 pub use crate::utils::conf::Conf;
+pub use crate::utils::sym::PREINTERNED_SYMBOLS;
 
 mod reexport {
     crate use syntax::ast::Name;

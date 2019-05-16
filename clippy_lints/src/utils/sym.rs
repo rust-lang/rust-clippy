@@ -1,23 +1,31 @@
 #![allow(default_hash_types, non_upper_case_globals)]
 
 use lazy_static::lazy_static;
-use syntax::symbol::Symbol;
+use syntax::symbol::{Symbol, Interner};
+// this import is very important! otherwise we may redefine symbols that already exist in rustc
+// and thus cause two equal symbols to differ
+pub use syntax::symbol::sym::*;
 
 macro_rules! symbols_simple {
     ($($ident:ident,)*) => {
-        $(
-            lazy_static! {
-                pub(crate) static ref $ident: Symbol = Symbol::intern(stringify!($ident));
-            }
-        )*
-    };
-}
+        pub const PREINTERNED_SYMBOLS: &[&str] = &[
+            "<impl [T]>",
+            $(stringify!($ident)),*
+        ];
 
-macro_rules! symbols_init {
-    ($($ident:ident: $expr:expr,)*) => {
+        lazy_static! {
+            pub(crate) static ref impl_slice_t: Symbol = {
+                let sym = Symbol::intern("<impl [T]>");
+                assert_eq!(sym.as_u32(), Interner::FIRST_DRIVER_INDEX);
+                sym
+            };
+        }
         $(
             lazy_static! {
-                pub(crate) static ref $ident: Symbol = Symbol::intern($expr);
+                // we can keep using `from_str` here, because it'll fetch the preinterned symbol id
+                // and that will be stable across reruns of clippy even if the global table gets
+                // nuked.
+                pub(crate) static ref $ident: Symbol = Symbol::intern(stringify!($ident));
             }
         )*
     };
@@ -385,9 +393,4 @@ symbols_simple! {
     writeln,
     zeroed,
     zip,
-}
-
-symbols_init! {
-    impl_slice_t: "<impl [T]>",
-    empty_symbol: "",
 }
