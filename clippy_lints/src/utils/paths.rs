@@ -5,7 +5,7 @@
 
 use super::sym::{self, *};
 use lazy_static::lazy_static;
-use syntax::symbol::{Symbol, keywords};
+use syntax::symbol::{keywords, Symbol};
 
 lazy_static! {
     pub static ref ANY_TRAIT: [Symbol; 3] = [std, any, *Any];

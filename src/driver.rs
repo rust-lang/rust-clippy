@@ -198,9 +198,7 @@ pub fn main() {
             let callbacks: &mut (dyn rustc_driver::Callbacks + Send) =
                 if clippy_enabled { &mut clippy } else { &mut default };
             let args = args;
-            rustc_driver::run_compiler(
-                &args, clippy_lints::PREINTERNED_SYMBOLS, callbacks, None, None,
-            )
+            rustc_driver::run_compiler(&args, clippy_lints::PREINTERNED_SYMBOLS, callbacks, None, None)
         })
         .and_then(|result| result)
         .is_err() as i32,

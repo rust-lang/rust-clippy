@@ -1,7 +1,7 @@
 #![allow(default_hash_types, non_upper_case_globals)]
 
 use lazy_static::lazy_static;
-use syntax::symbol::{Symbol, Interner};
+use syntax::symbol::{Interner, Symbol};
 // this import is very important! otherwise we may redefine symbols that already exist in rustc
 // and thus cause two equal symbols to differ
 pub use syntax::symbol::sym::*;
