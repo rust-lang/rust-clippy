@@ -2467,6 +2467,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for constants with an explicit `'static` lifetime.", 
+      "Why is this bad": "Adding `'static` to every reference can create very\ncomplicated types.", 
+      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "const_static_lifetime", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for declaration of `const` items which is interior\nmutable (e.g., contains a `Cell`, `Mutex`, `AtomicXxxx`, etc.).", 
       "Why is this bad": "Consts are copied everywhere they are referenced, i.e.,\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.", 
       "Example": "```rust\nuse std::sync::atomic::{AtomicUsize, Ordering::SeqCst};\n// Bad.\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst); // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n// Good.\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```", 
@@ -3135,14 +3146,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for constants with an explicit `'static` lifetime.", 
-      "Why is this bad": "Adding `'static` to every reference can create very\ncomplicated types.", 
-      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for closures which only invoke a method on the closure\nargument and can be replaced by referencing the method directly.", 
+      "Why is this bad": "It's unnecessary to create the closure.", 
+      "Example": "```rust,ignore\nSome('a').map(|s| s.to_uppercase());\n```\nmay be rewritten as\n```rust,ignore\nSome('a').map(char::to_uppercase);\n```", 
+      "Known problems": "rust-lang/rust-clippy#3071, rust-lang/rust-clippy#4002,\nrust-lang/rust-clippy#3942"
     }, 
-    "group": "style", 
-    "id": "const_static_lifetime", 
-    "level": "Warn"
+    "group": "pedantic", 
+    "id": "redundant_closure_for_method_calls", 
+    "level": "Allow"
   }, 
   {
     "docs": {
