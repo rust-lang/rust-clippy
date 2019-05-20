@@ -304,14 +304,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `_.find(_).map(_)`.", 
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
-      "Example": "```rust\n (0..3).find(|x| x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```", 
-      "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure."
+      "What it does": "Checks for calls of `mem::discriminant()` on a non-enum type.", 
+      "Why is this bad": "The value of `mem::discriminant()` on non-enum types\nis unspecified.", 
+      "Example": "```rust\nuse std::mem;\nmem::discriminant(&\"hello\");\nmem::discriminant(&&Some(2));\n```", 
+      "Known problems": "None."
     }, 
-    "group": "pedantic", 
-    "id": "find_map", 
-    "level": "Allow"
+    "group": "correctness", 
+    "id": "mem_discriminant_non_enum", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -411,6 +411,17 @@
     "group": "style", 
     "id": "zero_ptr", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for usage of `_.find(_).map(_)`.", 
+      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
+      "Example": "```rust\n (0..3).find(|x| x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```", 
+      "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure."
+    }, 
+    "group": "pedantic", 
+    "id": "find_map", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1194,14 +1205,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calls of `mem::discriminant()` on a non-enum type.", 
-      "Why is this bad": "The value of `mem::discriminant()` on non-enum types\nis unspecified.", 
-      "Example": "```rust\nuse std::mem;\nmem::discriminant(&\"hello\");\nmem::discriminant(&&Some(2));\n```", 
+      "What it does": "Checks for explicit bounds checking when casting.", 
+      "Why is this bad": "Reduces the readability of statements & is error prone.", 
+      "Example": "```rust\n# let foo: u32 = 5;\n# let _ =\nfoo <= i32::max_value() as u32\n# ;\n```\nCould be written:\n```rust\n# let _ =\ni32::try_from(foo).is_ok()\n# ;\n```", 
       "Known problems": "None."
     }, 
-    "group": "correctness", 
-    "id": "mem_discriminant_non_enum", 
-    "level": "Deny"
+    "group": "pedantic", 
+    "id": "checked_conversions", 
+    "level": "Allow"
   }, 
   {
     "docs": {
