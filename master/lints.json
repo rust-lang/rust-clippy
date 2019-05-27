@@ -2579,7 +2579,7 @@
     "docs": {
       "What it does": "Checks for non-ASCII characters in string literals.", 
       "Why is this bad": "Yeah, we know, the 90's called and wanted their charset\nback. Even so, there still are editors and other programs out there that\ndon't work well with Unicode. So if the code is meant to be used\ninternationally, on multiple operating systems, or has other portability\nrequirements, activating this lint could be useful.", 
-      "Example": "```rust\nlet x = \"H\u00e4?\"\n```", 
+      "Example": "```rust\nlet x = String::from(\"\u20ac\");\n```\nCould be written as:\n```rust\nlet x = String::from(\"\\u{20ac}\");\n```", 
       "Known problems": "None."
     }, 
     "group": "pedantic", 
