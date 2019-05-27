@@ -2522,6 +2522,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for using `x.get(x.len() - 1)` instead of\n`x.last()`.", 
+      "Why is this bad": "Using `x.last()` is easier to read and has the same\nresult.\nNote that using `x[x.len() - 1]` is semantically different from\n`x.last()`.  Indexing into the array will panic on out-of-bounds\naccesses, while `x.get()` and `x.last()` will return `None`.\nThere is another lint (get_unwrap) that covers the case of using\n`x.get(index).unwrap()` instead of `x[index]`.", 
+      "Example": "```rust\n// Bad\nlet x = vec![2, 3, 5];\nlet last_element = x.get(x.len() - 1);\n// Good\nlet x = vec![2, 3, 5];\nlet last_element = x.last();\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "complexity", 
+    "id": "get_last_with_len", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.", 
       "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.", 
       "Example": "```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\n    call_some_ffi_func(c_str);\n}\n```\nHere `c_str` point to a freed address. The correct use would be:\n```rust,ignore\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```", 
