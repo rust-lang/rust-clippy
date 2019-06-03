@@ -615,7 +615,7 @@
     "docs": {
       "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
       "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
-      "Example": "```ignore\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```", 
+      "Example": "```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```\nCould be written as:\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in vec {\n    println!(\"{}\", i);\n}\n```", 
       "Known problems": "None."
     }, 
     "group": "style", 
