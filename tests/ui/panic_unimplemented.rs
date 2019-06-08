@@ -54,6 +54,7 @@ fn unimplemented() {
     let a = 2;
     unimplemented!();
     let b = a + 2;
+    unimplemented!("foo");
 }
 
 fn main() {

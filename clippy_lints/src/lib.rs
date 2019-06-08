@@ -311,6 +311,7 @@ pub fn register_pre_expansion_lints(
     );
     store.register_pre_expansion_pass(Some(session), true, false, box attrs::DeprecatedCfgAttribute);
     store.register_pre_expansion_pass(Some(session), true, false, box dbg_macro::DbgMacro);
+    store.register_pre_expansion_pass(Some(session), true, false, box panic_unimplemented::PanicUnimplemented);
 }
 
 #[doc(hidden)]
@@ -487,7 +488,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     );
     reg.register_late_lint_pass(box escape::BoxedLocal{too_large_for_stack: conf.too_large_for_stack});
     reg.register_early_lint_pass(box misc_early::MiscEarlyLints);
-    reg.register_late_lint_pass(box panic_unimplemented::PanicUnimplemented);
     reg.register_late_lint_pass(box strings::StringLitAsBytes);
     reg.register_late_lint_pass(box derive::Derive);
     reg.register_late_lint_pass(box types::CharLitAsU8);
