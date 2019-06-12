@@ -1793,6 +1793,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for division of integers", 
+      "Why is this bad": "When outside of some very specific algorithms,\ninteger division is very often a mistake because it discards the\nremainder.", 
+      "Example": "```rust\nfn main() {\n    let x = 3 / 2;\n    println!(\"{}\", x);\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "pedantic", 
+    "id": "integer_division", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for arguments to `==` which have their address\ntaken to satisfy a bound\nand suggests to dereference the other argument instead", 
       "Why is this bad": "It is more idiomatic to dereference the other argument.", 
       "Example": "```ignore\n&x == y\n```", 
