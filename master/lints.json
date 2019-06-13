@@ -326,7 +326,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for public functions that dereferences raw pointer\narguments but are not marked unsafe.", 
+      "What it does": "Checks for public functions that dereference raw pointer\narguments but are not marked unsafe.", 
       "Why is this bad": "The function should probably be marked `unsafe`, since\nfor an arbitrary raw pointer, there is no way of telling for sure if it is\nvalid.", 
       "Example": "```rust\npub fn foo(x: *const u8) {\n    println!(\"{}\", unsafe { *x });\n}\n```", 
       "Known problems": "* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't\ntrigger.\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`)."
@@ -810,7 +810,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `allow`/`warn`/`deny`/`forbid` attributes with scoped clippy\nlints and if those lints exist in clippy. If there is a uppercase letter in the lint name\n(not the tool name) and a lowercase version of this lint exists, it will suggest to lowercase\nthe lint name.", 
+      "What it does": "Checks for `allow`/`warn`/`deny`/`forbid` attributes with scoped clippy\nlints and if those lints exist in clippy. If there is an uppercase letter in the lint name\n(not the tool name) and a lowercase version of this lint exists, it will suggest to lowercase\nthe lint name.", 
       "Why is this bad": "A lint attribute with a mistyped lint name won't have an effect.", 
       "Example": "Bad:\n```rust\n#![warn(if_not_els)]\n#![deny(clippy::All)]\n```\nGood:\n```rust\n#![warn(if_not_else)]\n#![deny(clippy::all)]\n```", 
       "Known problems": "None."
@@ -1133,7 +1133,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of indexing or slicing. Arrays are special cased, this lint\ndoes report on arrays if we can tell that slicing operations are in bounds and does not\nlint on constant `usize` indexing on arrays because that is handled by rustc's `const_err` lint.", 
+      "What it does": "Checks for usage of indexing or slicing. Arrays are special cases, this lint\ndoes report on arrays if we can tell that slicing operations are in bounds and does not\nlint on constant `usize` indexing on arrays because that is handled by rustc's `const_err` lint.", 
       "Why is this bad": "Indexing and slicing can panic at runtime and there are\nsafe alternatives.", 
       "Example": "```rust\n// Vector\nlet x = vec![0; 5];\n// Bad\nx[2];\n&x[2..100];\n&x[2..];\n&x[..100];\n// Good\nx.get(2);\nx.get(2..100);\nx.get(2..);\nx.get(..100);\n// Array\nlet y = [0, 1, 2, 3];\n// Bad\n&y[10..100];\n&y[10..];\n&y[..100];\n// Good\n&y[2..];\n&y[..2];\n&y[0..3];\ny.get(10);\ny.get(10..100);\ny.get(10..);\ny.get(..100);\n```", 
       "Known problems": "Hopefully none."
@@ -2054,7 +2054,7 @@
   {
     "docs": {
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.", 
-      "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat is is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.", 
+      "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat it is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.", 
       "Example": "```rust\nlet vec: Vec<isize> = vec![];\nif vec.len() <= 0 {}\nif 100 > std::i32::MAX {}\n```", 
       "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g., 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation\nattributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead."
     }, 
@@ -2099,7 +2099,7 @@
       "What it does": "Checks for expressions of the form `if c { true } else {\nfalse }`\n(or vice versa) and suggest using the condition directly.", 
       "Why is this bad": "Redundant code.", 
       "Example": "```rust\nif x {\n    false\n} else {\n    true\n}\n```", 
-      "Known problems": "Maybe false positives: Sometimes, the two branches are\npainstakingly documented (which we of course do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code."
+      "Known problems": "Maybe false positives: Sometimes, the two branches are\npainstakingly documented (which we, of course, do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code."
     }, 
     "group": "complexity", 
     "id": "needless_bool", 
@@ -2811,7 +2811,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for double comparions that could be simplified to a single expression.", 
+      "What it does": "Checks for double comparisons that could be simplified to a single expression.", 
       "Why is this bad": "Readability.", 
       "Example": "```rust\nx == y || x < y\n```\nCould be written as:\n```rust\nx <= y\n```", 
       "Known problems": "None."
