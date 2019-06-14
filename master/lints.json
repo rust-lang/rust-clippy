@@ -613,13 +613,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
-      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
-      "Example": "```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```\nCould be written as:\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in vec {\n    println!(\"{}\", i);\n}\n```", 
-      "Known problems": "None."
+      "What it does": "Checks for usage of the `offset` pointer method with a `usize` casted to an\n`isize`.", 
+      "Why is this bad": "If we\u2019re always increasing the pointer address, we can avoid the numeric\ncast by using the `add` method instead.", 
+      "Example": "```rust\nlet vec = vec![b'a', b'b', b'c'];\nlet ptr = vec.as_ptr();\nlet offset = 1_usize;\nunsafe {\n    ptr.offset(offset as isize);\n}\n```\nCould be written:\n```rust\nlet vec = vec![b'a', b'b', b'c'];\nlet ptr = vec.as_ptr();\nlet offset = 1_usize;\nunsafe {\n    ptr.add(offset);\n}\n```", 
+      "Known problems": "None"
     }, 
-    "group": "style", 
-    "id": "needless_range_loop", 
+    "group": "complexity", 
+    "id": "ptr_offset_with_cast", 
     "level": "Warn"
   }, 
   {
@@ -2162,13 +2162,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of the `offset` pointer method with a `usize` casted to an\n`isize`.", 
-      "Why is this bad": "If we\u2019re always increasing the pointer address, we can avoid the numeric\ncast by using the `add` method instead.", 
-      "Example": "```rust\nlet vec = vec![b'a', b'b', b'c'];\nlet ptr = vec.as_ptr();\nlet offset = 1_usize;\nunsafe {\n    ptr.offset(offset as isize);\n}\n```\nCould be written:\n```rust\nlet vec = vec![b'a', b'b', b'c'];\nlet ptr = vec.as_ptr();\nlet offset = 1_usize;\nunsafe {\n    ptr.add(offset);\n}\n```", 
-      "Known problems": "None"
+      "What it does": "Checks for constants and statics with an explicit `'static` lifetime.", 
+      "Why is this bad": "Adding `'static` to every reference can create very\ncomplicated types.", 
+      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\nstatic FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n static FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```", 
+      "Known problems": "None."
     }, 
-    "group": "complexity", 
-    "id": "ptr_offset_with_cast", 
+    "group": "style", 
+    "id": "redundant_static_lifetimes", 
     "level": "Warn"
   }, 
   {
@@ -2485,17 +2485,6 @@
     }, 
     "group": "style", 
     "id": "new_without_default", 
-    "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "Checks for constants with an explicit `'static` lifetime.", 
-      "Why is this bad": "Adding `'static` to every reference can create very\ncomplicated types.", 
-      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```", 
-      "Known problems": "None."
-    }, 
-    "group": "style", 
-    "id": "const_static_lifetime", 
     "level": "Warn"
   }, 
   {
@@ -3131,6 +3120,17 @@
     }, 
     "group": "style", 
     "id": "infallible_destructuring_match", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
+      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
+      "Example": "```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```\nCould be written as:\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in vec {\n    println!(\"{}\", i);\n}\n```", 
+      "Known problems": "None."
+    }, 
+    "group": "style", 
+    "id": "needless_range_loop", 
     "level": "Warn"
   }, 
   {
