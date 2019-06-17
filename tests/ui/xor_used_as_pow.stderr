@@ -1,0 +1,10 @@
+error: `^` is not an exponentiation operator but was used as one
+  --> $DIR/xor_used_as_pow.rs:4:20
+   |
+LL |     println!("{}", 2 ^ 16);
+   |                    ^^^^^^ help: did you mean to write: `1 << 16`
+   |
+   = note: `-D clippy::xor-used-as-pow` implied by `-D warnings`
+
+error: aborting due to previous error
+

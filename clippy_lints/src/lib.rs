@@ -273,6 +273,7 @@ pub mod use_self;
 pub mod vec;
 pub mod wildcard_dependencies;
 pub mod write;
+pub mod xor_used_as_pow;
 pub mod zero_div_zero;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
@@ -582,6 +583,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box path_buf_push_overwrite::PathBufPushOverwrite);
     reg.register_late_lint_pass(box checked_conversions::CheckedConversions);
     reg.register_late_lint_pass(box integer_division::IntegerDivision);
+    reg.register_early_lint_pass(box xor_used_as_pow::XorUsedAsPow);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -889,6 +891,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         write::WRITELN_EMPTY_STRING,
         write::WRITE_LITERAL,
         write::WRITE_WITH_NEWLINE,
+        xor_used_as_pow::XOR_USED_AS_POW,
         zero_div_zero::ZERO_DIVIDED_BY_ZERO,
     ]);
 
@@ -1105,6 +1108,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         types::UNIT_CMP,
         unicode::ZERO_WIDTH_SPACE,
         unused_io_amount::UNUSED_IO_AMOUNT,
+        xor_used_as_pow::XOR_USED_AS_POW,
     ]);
 
     reg.register_lint_group("clippy::perf", Some("clippy_perf"), vec![
