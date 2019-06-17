@@ -25,12 +25,18 @@ LL |     panic!("{{{this}}}");
    |            ^^^^^^^^^^^^
 
 error: `unimplemented` should not be present in production code
-  --> $DIR/panic_unimplemented.rs:55:5
+  --> $DIR/panic_unimplemented.rs:61:5
    |
 LL |     unimplemented!();
-   |     ^^^^^^^^^^^^^^^^^
+   |     ^^^^^^^^^^^^^^^^
    |
    = note: `-D clippy::unimplemented` implied by `-D warnings`
 
-error: aborting due to 5 previous errors
+error: `unimplemented` should not be present in production code
+  --> $DIR/panic_unimplemented.rs:63:5
+   |
+LL |     unimplemented!("foo");
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 6 previous errors
 

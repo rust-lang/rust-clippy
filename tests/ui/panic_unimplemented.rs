@@ -50,11 +50,18 @@ fn ok_escaped() {
     panic!("{case }}");
 }
 
+macro_rules! outer_macro {
+    ($e:expr) => {
+        $e;
+    };
+}
+
 fn unimplemented() {
     let a = 2;
     unimplemented!();
     let b = a + 2;
     unimplemented!("foo");
+    outer_macro!(unimplemented!());
 }
 
 fn main() {
