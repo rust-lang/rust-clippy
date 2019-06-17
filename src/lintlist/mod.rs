@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 317] = [
+pub const ALL_LINTS: [Lint; 318] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -2197,6 +2197,13 @@ pub const ALL_LINTS: [Lint; 317] = [
         desc: "transmutes that are confusing at best, undefined behaviour at worst and always useless",
         deprecation: None,
         module: "transmute",
+    },
+    Lint {
+        name: "xor_used_as_pow",
+        group: "correctness",
+        desc: "use of `^` operator when exponentiation was intended",
+        deprecation: None,
+        module: "xor_used_as_pow",
     },
     Lint {
         name: "zero_divided_by_zero",
