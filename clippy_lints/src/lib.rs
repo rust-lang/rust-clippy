@@ -335,6 +335,7 @@ mod verbose_file_reads;
 mod wildcard_dependencies;
 mod wildcard_imports;
 mod write;
+mod xor_used_as_pow;
 mod zero_div_zero;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
@@ -909,6 +910,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &write::WRITELN_EMPTY_STRING,
         &write::WRITE_LITERAL,
         &write::WRITE_WITH_NEWLINE,
+        &xor_used_as_pow::XOR_USED_AS_POW,
         &zero_div_zero::ZERO_DIVIDED_BY_ZERO,
     ]);
     // end register lints, do not remove this comment, it’s used in `update_lints`
@@ -1148,6 +1150,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| box asm_syntax::InlineAsmX86AttSyntax);
     store.register_early_pass(|| box asm_syntax::InlineAsmX86IntelSyntax);
     store.register_late_pass(|| box undropped_manually_drops::UndroppedManuallyDrops);
+    store.register_early_pass(|| box xor_used_as_pow::XorUsedAsPow);
 
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
@@ -1557,6 +1560,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&write::WRITELN_EMPTY_STRING),
         LintId::of(&write::WRITE_LITERAL),
         LintId::of(&write::WRITE_WITH_NEWLINE),
+        LintId::of(&xor_used_as_pow::XOR_USED_AS_POW),
         LintId::of(&zero_div_zero::ZERO_DIVIDED_BY_ZERO),
     ]);
 
@@ -1820,6 +1824,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&unused_io_amount::UNUSED_IO_AMOUNT),
         LintId::of(&unwrap::PANICKING_UNWRAP),
         LintId::of(&vec_resize_to_zero::VEC_RESIZE_TO_ZERO),
+        LintId::of(&xor_used_as_pow::XOR_USED_AS_POW),
     ]);
 
     store.register_group(true, "clippy::perf", Some("clippy_perf"), vec![

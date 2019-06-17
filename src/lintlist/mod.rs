@@ -2854,6 +2854,13 @@ vec![
         module: "transmute",
     },
     Lint {
+        name: "xor_used_as_pow",
+        group: "correctness",
+        desc: "use of `^` operator when exponentiation was intended",
+        deprecation: None,
+        module: "xor_used_as_pow",
+    },
+    Lint {
         name: "zero_divided_by_zero",
         group: "complexity",
         desc: "usage of `0.0 / 0.0` to obtain NaN instead of `f32::NAN` or `f64::NAN`",

@@ -1,0 +1,24 @@
+error: it appears you are trying to get the maximum value of an integer, but `^` is not an exponentiation operator
+  --> $DIR/xor_used_as_pow.rs:12:20
+   |
+LL |     println!("{}", 2 ^ 16);
+   |                    ^^^^^^ help: try: `std::u16::MAX`
+   |
+   = note: `-D clippy::xor-used-as-pow` implied by `-D warnings`
+
+error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
+  --> $DIR/xor_used_as_pow.rs:13:20
+   |
+LL |     println!("{}", 2 ^ 7);
+   |                    ^^^^^ help: use a bitshift instead: `1 << 7`
+
+error: `^` is not an exponentiation operator but appears to have been used as one
+  --> $DIR/xor_used_as_pow.rs:14:20
+   |
+LL |     println!("{}", 9 ^ 3);
+   |                    ^^^^^
+   |
+   = help: did you mean to use .pow()?
+
+error: aborting due to 3 previous errors
+
