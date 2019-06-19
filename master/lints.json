@@ -1798,7 +1798,7 @@
       "Example": "```rust\nfn main() {\n    let x = 3 / 2;\n    println!(\"{}\", x);\n}\n```", 
       "Known problems": "None."
     }, 
-    "group": "pedantic", 
+    "group": "restriction", 
     "id": "integer_division", 
     "level": "Allow"
   }, 
