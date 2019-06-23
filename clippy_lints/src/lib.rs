@@ -633,6 +633,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         loops::EXPLICIT_ITER_LOOP,
         matches::SINGLE_MATCH_ELSE,
         methods::FILTER_MAP,
+        methods::FILTER_MAP_MAP,
         methods::FILTER_MAP_NEXT,
         methods::FIND_MAP,
         methods::MAP_FLATTEN,

@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 305] = [
+pub const ALL_LINTS: [Lint; 306] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -528,7 +528,14 @@ pub const ALL_LINTS: [Lint; 305] = [
     Lint {
         name: "filter_map",
         group: "pedantic",
-        desc: "using combinations of `filter`, `map`, `filter_map` and `flat_map` which can usually be written as a single method call",
+        desc: "using `filter` and `map` to destructure an iterator of Options or a Results instead of a single `filter_map` call",
+        deprecation: None,
+        module: "methods",
+    },
+    Lint {
+        name: "filter_map_map",
+        group: "pedantic",
+        desc: "using `filter_map` followed by `map` can more concisely be written as a single method call",
         deprecation: None,
         module: "methods",
     },
