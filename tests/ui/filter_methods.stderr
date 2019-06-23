@@ -1,0 +1,58 @@
+error: redundant closure found
+  --> $DIR/filter_methods.rs:19:14
+   |
+LL |         .map(|x| x.unwrap())
+   |              ^^^^^^^^^^^^^^ help: remove closure as shown: `std::option::Option::unwrap`
+   |
+   = note: `-D clippy::redundant-closure-for-method-calls` implied by `-D warnings`
+
+error: called `filter(p).map(q)` on an `Iterator<Option<_>>`. Consider calling `.filter_map(..)` instead.
+  --> $DIR/filter_methods.rs:18:10
+   |
+LL |           .filter(|x| x.is_some())
+   |  __________^
+LL | |         .map(|x| x.unwrap())
+   | |____________________________^
+   |
+   = note: `-D clippy::filter-map` implied by `-D warnings`
+
+error: redundant closure found
+  --> $DIR/filter_methods.rs:18:17
+   |
+LL |         .filter(|x| x.is_some())
+   |                 ^^^^^^^^^^^^^^^ help: remove closure as shown: `std::option::Option::is_some`
+
+error: redundant closure found
+  --> $DIR/filter_methods.rs:27:19
+   |
+LL |         .flat_map(|x| x.unwrap())
+   |                   ^^^^^^^^^^^^^^ help: remove closure as shown: `std::option::Option::unwrap`
+
+error: redundant closure found
+  --> $DIR/filter_methods.rs:26:17
+   |
+LL |         .filter(|x| x.is_some())
+   |                 ^^^^^^^^^^^^^^^ help: remove closure as shown: `std::option::Option::is_some`
+
+error: redundant closure found
+  --> $DIR/filter_methods.rs:34:14
+   |
+LL |         .map(|s| s.unwrap())
+   |              ^^^^^^^^^^^^^^ help: remove closure as shown: `std::result::Result::unwrap`
+
+error: called `filter(p).map(q)` on an `Iterator<Result<_>>`. Consider calling `.filter_map(..)` instead.
+  --> $DIR/filter_methods.rs:33:10
+   |
+LL |           .filter(|s| s.is_ok())
+   |  __________^
+LL | |         .map(|s| s.unwrap())
+   | |____________________________^
+
+error: redundant closure found
+  --> $DIR/filter_methods.rs:33:17
+   |
+LL |         .filter(|s| s.is_ok())
+   |                 ^^^^^^^^^^^^^ help: remove closure as shown: `std::result::Result::is_ok`
+
+error: aborting due to 8 previous errors
+
