@@ -13,6 +13,7 @@ use rustc::hir::intravisit::{self, Visitor};
 use rustc::lint::{in_external_macro, LateContext, LateLintPass, Lint, LintArray, LintContext, LintPass};
 use rustc::ty::{self, Predicate, Ty};
 use rustc::{declare_lint_pass, declare_tool_lint};
+use crate::rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use syntax::ast;
 use syntax::source_map::{BytePos, Span};
@@ -2052,10 +2053,10 @@ fn lint_filter_map<'a, 'tcx>(
     if_chain! {
         if match_trait_method(cx, expr, &paths::ITERATOR);
         if let hir::ExprKind::Closure(_, _, ref map_body_id, _, _) = map_args[1].node;
-        if let hir::ExprKind::MethodCall(ref map_ps, _, _) = cx.tcx.hir.body(*map_body_id).value.node;
-        if map_ps.ident.name == "unwrap".to_string();
+        if let hir::ExprKind::MethodCall(ref map_ps, _, _) = cx.tcx.hir().body(*map_body_id).value.node;
+        if map_ps.ident.name == sym!(unwrap);
         if let hir::ExprKind::Closure(_, _, ref filter_body_id, _, _) = filter_args[1].node;
-        if let hir::ExprKind::MethodCall(ref filter_ps, _, _) = cx.tcx.hir.body(*filter_body_id).value.node;
+        if let hir::ExprKind::MethodCall(ref filter_ps, _, _) = cx.tcx.hir().body(*filter_body_id).value.node;
         if responses.contains_key(&filter_ps.ident.name.to_string());
         if let hir::ExprKind::MethodCall(_, _, ref expr_vec) = expr.node;
         if let hir::ExprKind::MethodCall(_, ref filter_span, _) = expr_vec[0].node;
