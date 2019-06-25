@@ -280,7 +280,32 @@ declare_clippy_lint! {
     /// single method call.
     ///
     /// ** Example:**
+    /// ```rust
     /// let ws: Vec<String> = ["is", "this", "shizzle", "for", "rizzle"]
+    ///     .iter()
+    ///     .map(|s| s.to_string())
+    ///     .collect();
+    ///
+    /// let correct: Vec<String> = ws
+    ///     .iter()
+    ///     .filter_map(|s| if s.contains("izzle") { Some(s) } else { None })
+    ///     .map(|s| format!("{}{}", s, s))
+    ///     .collect();
+    ///
+    /// let more_correct: Vec<String> = ws
+    ///     .iter()
+    ///     .filter_map(|s| {
+    ///         if s.contains("izzle") {
+    ///             Some(format!("{}{}", s, s))
+    ///         } else {
+    ///             None
+    ///         }
+    ///     })
+    ///     .collect();
+    ///
+    /// println!("{:?}", correct);
+    /// assert_eq!(correct, more_correct);
+    /// ```
     ///             .iter()
     ///             .map(|s| s.to_string())
     ///             .collect();
