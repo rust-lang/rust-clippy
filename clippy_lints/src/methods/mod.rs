@@ -335,8 +335,8 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for usage of `_.filter(_).map(_)`,
-    /// `_.filter(_).flat_map(_)`, `_.filter_map(_).flat_map(_)` and similar.
+    /// **What it does:** Checks for usage of `_.filter(_).map(_)` to destructure an iterator of
+    /// Options or Results instead of a single `_.filter_map(_)` call.
     ///
     /// **Why is this bad?** Readability, this can be written more concisely as a
     /// single method call.
@@ -350,7 +350,7 @@ declare_clippy_lint! {
     /// ```
     pub FILTER_MAP,
     pedantic,
-    "using `filter` and `map` to destructure an iterator of Options or a Results instead of a single `filter_map` call"
+    "using `filter` and `map` to destructure an iterator of Options or Results instead of a single `filter_map` call"
 }
 
 declare_clippy_lint! {
