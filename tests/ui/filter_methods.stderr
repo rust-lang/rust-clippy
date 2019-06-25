@@ -1,3 +1,13 @@
+error: called `filter_map(p).map(q)` on an `Iterator`. This is more succinctly expressed by only calling `.filter_map(..)` instead.
+  --> $DIR/filter_methods.rs:12:10
+   |
+LL |           .filter_map(|x| x.checked_mul(2))
+   |  __________^
+LL | |         .map(|x| x.checked_mul(2))
+   | |__________________________________^
+   |
+   = note: `-D clippy::filter-map-map` implied by `-D warnings`
+
 error: redundant closure found
   --> $DIR/filter_methods.rs:19:14
    |
@@ -54,5 +64,5 @@ error: redundant closure found
 LL |         .filter(|s| s.is_ok())
    |                 ^^^^^^^^^^^^^ help: remove closure as shown: `std::result::Result::is_ok`
 
-error: aborting due to 8 previous errors
+error: aborting due to 9 previous errors
 
