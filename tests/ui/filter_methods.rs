@@ -45,4 +45,11 @@ fn main() {
         .filter(|i| i.len() > 1)
         .flat_map(|s| s.chars())
         .collect();
+
+    // validate filter_map + flat_map **does not** trigger linter
+    let _: Vec<_> = vec![5_i8; 6]
+        .into_iter()
+        .filter_map(|x| x.checked_mul(2))
+        .flat_map(|x| x.checked_mul(2))
+        .collect();
 }
