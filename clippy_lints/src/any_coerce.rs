@@ -29,6 +29,8 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// # use std::any::Any;
+    /// struct Foo;
     /// let box_foo: Box<Foo> = Box::new(Foo);
     /// let mut box_any: Box<dyn Any> = box_foo;
     /// let bad: &mut dyn Any = &mut box_any;
