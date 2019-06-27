@@ -99,11 +99,7 @@ fn check_unsize_coercion<'tcx>(
     let mut selcx = traits::SelectionContext::with_query_mode(&infcx, traits::TraitQueryMode::Canonical);
     let mut queue = VecDeque::new();
     queue.push_back(
-        ty::TraitRef::new(
-            coerce_unsized_trait_did,
-            tcx.mk_substs_trait(src_ty, &[tgt_ty.into()]),
-        )
-        .to_poly_trait_ref(),
+        ty::TraitRef::new(coerce_unsized_trait_did, tcx.mk_substs_trait(src_ty, &[tgt_ty.into()])).to_poly_trait_ref(),
     );
     while let Some(trait_ref) = queue.pop_front() {
         if_chain! {
@@ -155,10 +151,7 @@ fn type_contains_any<'tcx>(
     false
 }
 
-fn is_type_dyn_any<'tcx>(
-    cx: &LateContext<'_, 'tcx>,
-    ty: Ty<'tcx>,
-) -> bool {
+fn is_type_dyn_any<'tcx>(cx: &LateContext<'_, 'tcx>, ty: Ty<'tcx>) -> bool {
     if_chain! {
         if let ty::Dynamic(trait_list, _) = ty.sty;
         if let Some(principal_trait) = trait_list.skip_binder().principal();
@@ -217,7 +210,9 @@ fn deref_type<'tcx>(
             &mut obligations,
         );
         // only return something if all the obligations definitely hold
-        let obligations_ok = obligations.iter().all(|oblig| infcx.predicate_must_hold_considering_regions(oblig));
+        let obligations_ok = obligations
+            .iter()
+            .all(|oblig| infcx.predicate_must_hold_considering_regions(oblig));
         if obligations_ok {
             Some(infcx.resolve_vars_if_possible(&src_deref_ty))
         } else {
