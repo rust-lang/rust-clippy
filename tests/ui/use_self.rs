@@ -308,3 +308,30 @@ mod rustfix {
         }
     }
 }
+
+mod issue4143 {
+    use std::marker::PhantomData;
+
+    struct A<T> {
+        t: PhantomData<T>,
+    }
+
+    trait T {
+        fn f();
+        fn g();
+    }
+
+    impl T for A<u64> {
+        fn f() {}
+        fn g() {}
+    }
+
+    impl T for A<u32> {
+        fn f() {
+            <A<u64>>::f();
+        }
+        fn g() {
+            <A<u32>>::f();
+        }
+    }
+}

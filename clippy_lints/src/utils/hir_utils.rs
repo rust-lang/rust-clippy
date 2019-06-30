@@ -226,7 +226,7 @@ impl<'a, 'tcx> SpanlessEq<'a, 'tcx> {
         }
     }
 
-    fn eq_path(&mut self, left: &Path, right: &Path) -> bool {
+    pub fn eq_path(&mut self, left: &Path, right: &Path) -> bool {
         left.is_global() == right.is_global()
             && over(&left.segments, &right.segments, |l, r| self.eq_path_segment(l, r))
     }

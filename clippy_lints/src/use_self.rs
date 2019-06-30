@@ -1,7 +1,7 @@
 use if_chain::if_chain;
 use rustc::hir;
 use rustc::hir::def::{CtorKind, DefKind, Res};
-use rustc::hir::intravisit::{walk_item, walk_path, walk_ty, NestedVisitorMap, Visitor};
+use rustc::hir::intravisit::{walk_expr, walk_item, walk_ty, NestedVisitorMap, Visitor};
 use rustc::hir::*;
 use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
 use rustc::ty;
@@ -10,7 +10,7 @@ use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_errors::Applicability;
 use syntax_pos::symbol::kw;
 
-use crate::utils::span_lint_and_sugg;
+use crate::utils::{span_lint_and_sugg, SpanlessEq};
 
 declare_clippy_lint! {
     /// **What it does:** Checks for unnecessary repetition of structure name when a
@@ -52,10 +52,16 @@ declare_lint_pass!(UseSelf => [USE_SELF]);
 const SEGMENTS_MSG: &str = "segments should be composed of at least 1 element";
 
 fn span_use_self_lint(cx: &LateContext<'_, '_>, path: &Path) {
-    // Path segments only include actual path, no methods or fields.
-    let last_path_span = path.segments.last().expect(SEGMENTS_MSG).ident.span;
-    // Only take path up to the end of last_path_span.
-    let span = path.span.with_hi(last_path_span.hi());
+    let last_segment = path.segments.last().expect(SEGMENTS_MSG);
+    let no_args = last_segment.generic_args().is_empty();
+
+    let span = if no_args {
+        // The spans of paths with no generic args sometimes include
+        // extra segments that must be trimmed.
+        path.span.with_hi(last_segment.ident.span.hi())
+    } else {
+        path.span
+    };
 
     span_lint_and_sugg(
         cx,
@@ -218,18 +224,44 @@ struct UseSelfVisitor<'a, 'tcx> {
     cx: &'a LateContext<'a, 'tcx>,
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for UseSelfVisitor<'a, 'tcx> {
-    fn visit_path(&mut self, path: &'tcx Path, _id: HirId) {
-        if path.segments.last().expect(SEGMENTS_MSG).ident.name != kw::SelfUpper {
-            if self.item_path.res == path.res {
-                span_use_self_lint(self.cx, path);
-            } else if let Res::Def(DefKind::Ctor(def::CtorOf::Struct, CtorKind::Fn), ctor_did) = path.res {
-                if self.item_path.res.opt_def_id() == self.cx.tcx.parent(ctor_did) {
-                    span_use_self_lint(self.cx, path);
+impl<'a, 'tcx: 'a> UseSelfVisitor<'a, 'tcx> {
+    fn check_path(&self, path: &hir::QPath) {
+        if let hir::QPath::Resolved(_, path) = path {
+            let last_segment = path.segments.last().expect(SEGMENTS_MSG);
+            if last_segment.ident.name != kw::SelfUpper {
+                if self.item_path.res == path.res {
+                    if SpanlessEq::new(&self.cx).eq_path(self.item_path, path) {
+                        span_use_self_lint(self.cx, path);
+                    }
+                } else if let Res::Def(DefKind::Ctor(def::CtorOf::Struct, CtorKind::Fn), ctor_did) = path.res {
+                    if self.item_path.res.opt_def_id() == self.cx.tcx.parent(ctor_did) {
+                        span_use_self_lint(self.cx, path);
+                    }
                 }
             }
         }
-        walk_path(self, path);
+    }
+}
+
+impl<'a, 'tcx> Visitor<'tcx> for UseSelfVisitor<'a, 'tcx> {
+    fn visit_expr(&mut self, expr: &'tcx Expr) {
+        match &expr.node {
+            ExprKind::Struct(path, ..) => self.check_path(&*path),
+            ExprKind::Call(path, ..) => {
+                if let ExprKind::Path(path) = &path.node {
+                    self.check_path(&*path);
+                }
+            },
+            _ => {},
+        }
+        walk_expr(self, expr);
+    }
+
+    fn visit_ty(&mut self, t: &'tcx hir::Ty) {
+        if let hir::TyKind::Path(path) = &t.node {
+            self.check_path(path);
+        }
+        walk_ty(self, t);
     }
 
     fn visit_item(&mut self, item: &'tcx Item) {
