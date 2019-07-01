@@ -756,13 +756,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.clone()` on a ref-counted pointer,\n(`Rc`, `Arc`, `rc::Weak`, or `sync::Weak`), and suggests calling Clone via unified\nfunction syntax instead (e.g., `Rc::clone(foo)`).", 
-      "Why is this bad": "Calling '.clone()' on an Rc, Arc, or Weak\ncan obscure the fact that only the pointer is being cloned, not the underlying\ndata.", 
-      "Example": "```rust\nx.clone()\n```"
+      "What it does": "Checks for usages of `Err(x)?`.", 
+      "Why is this bad": "The `?` operator is designed to allow calls that\ncan fail to be easily chained. For example, `foo()?.bar()` or\n`foo(bar()?)`. Because `Err(x)?` can't be used that way (it will\nalways return), it is more clear to write `return Err(x)`.", 
+      "Example": "```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      Err(\"failed\")?;\n    }\n    Ok(0)\n}\n```\nCould be written:\n```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      return Err(\"failed\".into());\n    }\n    Ok(0)\n}\n```", 
+      "Known problems": "None."
     }, 
-    "group": "restriction", 
-    "id": "clone_on_ref_ptr", 
-    "level": "Allow"
+    "group": "style", 
+    "id": "try_err", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -1096,6 +1097,16 @@
     "group": "style", 
     "id": "duplicate_underscore_argument", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for usage of `.clone()` on a ref-counted pointer,\n(`Rc`, `Arc`, `rc::Weak`, or `sync::Weak`), and suggests calling Clone via unified\nfunction syntax instead (e.g., `Rc::clone(foo)`).", 
+      "Why is this bad": "Calling '.clone()' on an Rc, Arc, or Weak\ncan obscure the fact that only the pointer is being cloned, not the underlying\ndata.", 
+      "Example": "```rust\nx.clone()\n```"
+    }, 
+    "group": "restriction", 
+    "id": "clone_on_ref_ptr", 
+    "level": "Allow"
   }, 
   {
     "docs": {
