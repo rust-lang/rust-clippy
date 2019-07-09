@@ -191,7 +191,7 @@
       "What it does": "Checks for casts from a less-strictly-aligned pointer to a\nmore-strictly-aligned pointer", 
       "Why is this bad": "Dereferencing the resulting pointer may be undefined\nbehavior.", 
       "Example": "```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n```", 
-      "Known problems": "None."
+      "Known problems": "Using `std::ptr::read_unaligned` and `std::ptr::write_unaligned` or similar\non the resulting pointer is fine."
     }, 
     "group": "correctness", 
     "id": "cast_ptr_alignment", 
