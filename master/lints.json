@@ -2405,6 +2405,17 @@
     "level": "Deny"
   }, 
   {
+    "docs": {
+      "What id does": "Checks for the definition of inherent methods with a signature of `to_string(&self) -> String` and if the type implementing this method also implements the `Display` trait.", 
+      "Why is this bad": "This method is also implicitly defined if a type implements the `Display` trait. The less versatile inherent method will then shadow the implementation introduced by `Display`.", 
+      "Known problems": "None", 
+      " Example": "```rust\n// Bad\nuse std::fmt;\n\npub struct A;\n\nimpl A {\n    pub fn to_string(&self) -> String {\n        \"I am A\".to_string()\n    }\n}\n\nimpl fmt::Display for A {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"I am A, too\")\n    }\n}\n```\n\n```rust\n// Good\nuse std::fmt;\n\npub struct A;\n\nimpl fmt::Display for A {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"I am A\")\n    }\n}\n```"
+    }, 
+    "group": "correctness", 
+    "id": "inherent_to_string_shadow_display", 
+    "level": "Deny"
+  }, 
+  {
     "docs": {}, 
     "group": "deprecated", 
     "id": "misaligned_transmute", 
@@ -3135,13 +3146,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
-      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
-      "Known problems": "None.", 
-      "Example": "```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```\nCould be written as:\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in vec {\n    println!(\"{}\", i);\n}\n```"
+      "What id does": "Checks for the definition of inherent methods with a signature of `to_string(&self) -> String`.", 
+      "Why is this bad": "This method is also implicitly defined if a type implements the `Display` trait. As the functionality of `Display` is much more versatile, it should be preferred.", 
+      "Known problems": "None", 
+      " Example": "```rust\n// Bad\npub struct A;\n\nimpl A {\n    pub fn to_string(&self) -> String {\n        \"I am A\".to_string()\n    }\n}\n```\n\n```rust\n// Good\nuse std::fmt;\n\npub struct A;\n\nimpl fmt::Display for A {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"I am A\")\n    }\n}\n```"
     }, 
     "group": "style", 
-    "id": "needless_range_loop", 
+    "id": "inherent_to_string", 
     "level": "Warn"
   }, 
   {
@@ -3330,6 +3341,17 @@
     }, 
     "group": "complexity", 
     "id": "type_complexity", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for looping over the range of `0..len` of some\ncollection just to get the values by index.", 
+      "Why is this bad": "Just iterating the collection itself makes the intent\nmore clear and is probably faster.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```\nCould be written as:\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in vec {\n    println!(\"{}\", i);\n}\n```"
+    }, 
+    "group": "style", 
+    "id": "needless_range_loop", 
     "level": "Warn"
   }, 
   {
