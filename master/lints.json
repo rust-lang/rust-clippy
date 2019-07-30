@@ -635,6 +635,16 @@
   }, 
   {
     "docs": {
+      "What it does": "This lint warns about unnecessary type repetitions in trait bounds", 
+      "Why is this bad": "Repeating the type for every bound makes the code\nless readable than combining the bounds", 
+      "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone\n```"
+    }, 
+    "group": "complexity", 
+    "id": "type_repetition_in_bounds", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e., nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.", 
       "Why is this bad": "While such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.", 
       "Known problems": "None.", 
