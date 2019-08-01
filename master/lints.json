@@ -1653,11 +1653,11 @@
       "What it does": "Checks for calls of `unwrap[_err]()` that will always fail.", 
       "Why is this bad": "If panicking is desired, an explicit `panic!()` should be used.", 
       "Known problems": "This lint only checks `if` conditions not assignments.\nSo something like `let x: Option<()> = None; x.unwrap();` will not be recognized.", 
-      "Example": "```rust\nif option.is_none() {\n    do_something_with(option.unwrap())\n}\n```\n\nThis code will always panic. The if condition should probably be inverted."
+      "Example": "```rust\n# let option = Some(0);\n# fn do_something_with(_x: usize) {}\nif option.is_none() {\n    do_something_with(option.unwrap())\n}\n```\n\nThis code will always panic. The if condition should probably be inverted."
     }, 
-    "group": "nursery", 
+    "group": "correctness", 
     "id": "panicking_unwrap", 
-    "level": "Allow"
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -2384,12 +2384,12 @@
     "docs": {
       "What it does": "Checks for calls of `unwrap[_err]()` that cannot fail.", 
       "Why is this bad": "Using `if let` or `match` is more idiomatic.", 
-      "Known problems": "Limitations of the borrow checker might make unwrap() necessary sometimes?", 
-      "Example": "```rust\nif option.is_some() {\n    do_something_with(option.unwrap())\n}\n```\n\nCould be written:\n\n```rust\nif let Some(value) = option {\n    do_something_with(value)\n}\n```"
+      "Known problems": "None", 
+      "Example": "```rust\n# let option = Some(0);\n# fn do_something_with(_x: usize) {}\nif option.is_some() {\n    do_something_with(option.unwrap())\n}\n```\n\nCould be written:\n\n```rust\n# let option = Some(0);\n# fn do_something_with(_x: usize) {}\nif let Some(value) = option {\n    do_something_with(value)\n}\n```"
     }, 
-    "group": "nursery", 
+    "group": "complexity", 
     "id": "unnecessary_unwrap", 
-    "level": "Allow"
+    "level": "Warn"
   }, 
   {
     "docs": {
