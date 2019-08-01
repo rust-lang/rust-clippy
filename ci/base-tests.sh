@@ -6,9 +6,15 @@ PATH=$PATH:./node_modules/.bin
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
   remark -f *.md -f doc/*.md > /dev/null
 fi
+
+# using cargo from a custom toolchain is prone to errors on Windows due to
+# problems in rustup so use nightly cargo but specify master rustc
+master_rustc=$(rustup which rustc)
+
 # build clippy in debug mode and run tests
-cargo build --features "debugging deny-warnings"
-cargo test --features "debugging deny-warnings"
+RUSTC=$master_rustc cargo +nightly build --features "debugging deny-warnings"
+RUSTC=$master_rustc cargo +nightly test --features "debugging deny-warnings"
+
 # for faster build, share target dir between subcrates
 export CARGO_TARGET_DIR=`pwd`/target/
 (cd clippy_lints && cargo test)
