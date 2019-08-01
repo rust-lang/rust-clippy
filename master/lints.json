@@ -1672,7 +1672,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for on casts between numerical types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault.", 
+      "What it does": "Checks for casts between numerical types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault.", 
       "Why is this bad": "In some problem domains, it is good practice to avoid\ntruncation. This lint can be activated to help assess where additional\nchecks could be beneficial.", 
       "Known problems": "None.", 
       "Example": "```rust\nfn as_u8(x: u64) -> u8 {\n    x as u8\n}\n```"
@@ -2337,7 +2337,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for on casts between numerical types that may\nbe replaced by safe conversion functions.", 
+      "What it does": "Checks for casts between numerical types that may\nbe replaced by safe conversion functions.", 
       "Why is this bad": "Rust's `as` keyword will perform many kinds of\nconversions, including silently lossy conversions. Conversion functions such\nas `i32::from` will only perform lossless conversions. Using the conversion\nfunctions prevents conversions from turning into silent lossy conversions if\nthe types of the input expressions ever change, and make it easier for\npeople reading the code to know that the conversion is lossless.", 
       "Known problems": "None.", 
       "Example": "```rust\nfn as_u64(x: u8) -> u64 {\n    x as u64\n}\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 {\n    u64::from(x)\n}\n```"
