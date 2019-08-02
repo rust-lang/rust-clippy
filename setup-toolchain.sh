@@ -8,5 +8,5 @@ if ! command -v rustup-toolchain-install-master > /dev/null; then
 fi
 
 RUSTC_HASH=$(git ls-remote https://github.com/rust-lang/rust.git master | awk '{print $1}')
-rustup-toolchain-install-master -f -n master "$RUSTC_HASH"
+rustup-toolchain-install-master -f -n master "$RUSTC_HASH" -c cargo
 rustup override set master
