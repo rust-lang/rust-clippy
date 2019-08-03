@@ -147,7 +147,7 @@
       "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g., `x..(y+1)`.", 
       "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.", 
       "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.", 
-      "Example": "```rust\nfor x..(y+1) { .. }\n```"
+      "Example": "```rust,ignore\nfor x..(y+1) { .. }\n```"
     }, 
     "group": "complexity", 
     "id": "range_plus_one", 
@@ -202,7 +202,7 @@
       "What it does": "Detects closures called in the same expression where they\nare defined.", 
       "Why is this bad": "It is unnecessarily adding to the expression's\ncomplexity.", 
       "Known problems": "None.", 
-      "Example": "```rust\n(|| 42)()\n```"
+      "Example": "```rust,ignore\n(|| 42)()\n```"
     }, 
     "group": "complexity", 
     "id": "redundant_closure_call", 
@@ -285,7 +285,7 @@
       "What it does": "Checks for usage of `option.map(f)` where f is a function\nor closure that returns the unit type.", 
       "Why is this bad": "Readability, this can be written more clearly with\nan if let statement", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x: Option<&str> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)))\n```\n\nThe correct use would be:\n\n```rust\nlet x: Option<&str> = do_stuff();\nif let Some(msg) = x {\n    log_err_msg(msg)\n}\nif let Some(msg) = x {\n    log_err_msg(format_msg(msg))\n}\n```"
+      "Example": "```rust\n# fn do_stuff() -> Option<String> { Some(String::new()) }\n# fn log_err_msg(foo: String) -> Option<String> { Some(foo) }\n# fn format_msg(foo: String) -> String { String::new() }\nlet x: Option<String> = do_stuff();\nx.map(log_err_msg);\n# let x: Option<String> = do_stuff();\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\n# fn do_stuff() -> Option<String> { Some(String::new()) }\n# fn log_err_msg(foo: String) -> Option<String> { Some(foo) }\n# fn format_msg(foo: String) -> String { String::new() }\nlet x: Option<String> = do_stuff();\nif let Some(msg) = x {\n    log_err_msg(msg);\n}\n\n# let x: Option<String> = do_stuff();\nif let Some(msg) = x {\n    log_err_msg(format_msg(msg));\n}\n```"
     }, 
     "group": "complexity", 
     "id": "option_map_unit_fn", 
@@ -318,7 +318,7 @@
       "What it does": "Checks for transmutes to the original type of the object\nand transmutes that could be a cast.", 
       "Why is this bad": "Readability. The code tricks people into thinking that\nsomething complex is going on.", 
       "Known problems": "None.", 
-      "Example": "```rust\ncore::intrinsics::transmute(t) // where the result type is the same as `t`'s\n```"
+      "Example": "```rust,ignore\ncore::intrinsics::transmute(t); // where the result type is the same as `t`'s\n```"
     }, 
     "group": "complexity", 
     "id": "useless_transmute", 
@@ -340,7 +340,7 @@
       "What it does": "Detects classic underflow/overflow checks.", 
       "Why is this bad": "Most classic C underflow/overflow checks will fail in\nRust. Users can use functions like `overflowing_*` and `wrapping_*` instead.", 
       "Known problems": "None.", 
-      "Example": "```rust\na + b < a\n```"
+      "Example": "```rust\n# let a = 1;\n# let b = 2;\na + b < a;\n```"
     }, 
     "group": "complexity", 
     "id": "overflow_check_conditional", 
@@ -395,7 +395,7 @@
       "What it does": "Checks for transmutes from a pointer to a reference.", 
       "Why is this bad": "This can always be rewritten with `&` and `*`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet _: &T = std::mem::transmute(p); // where p: *const T\n\n// can be written:\nlet _: &T = &*p;\n```"
+      "Example": "```rust,ignore\nunsafe {\n    let _: &T = std::mem::transmute(p); // where p: *const T\n}\n\n// can be written:\nlet _: &T = &*p;\n```"
     }, 
     "group": "complexity", 
     "id": "transmute_ptr_to_ref", 
@@ -439,7 +439,7 @@
       "What it does": "Checks for usage of `.chars().next()` on a `str` to check\nif it starts with a given char.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.starts_with(_)`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nname.chars().next() == Some('_')\n```"
+      "Example": "```rust\nlet name = \"foo\";\nname.chars().next() == Some('_');\n```"
     }, 
     "group": "complexity", 
     "id": "chars_next_cmp", 
@@ -461,7 +461,7 @@
       "What it does": "Checks for transmutes from a `&[u8]` to a `&str`.", 
       "Why is this bad": "Not every byte slice is a valid UTF-8 string.", 
       "Known problems": "- [`from_utf8`] which this lint suggests using is slower than `transmute`\nas it needs to validate the input.\nIf you are certain that the input is always a valid UTF-8,\nuse [`from_utf8_unchecked`] which is as fast as `transmute`\nbut has a semantically meaningful name.\n- You might want to handle errors returned from [`from_utf8`] instead of calling `unwrap`.\n\n[`from_utf8`]: https://doc.rust-lang.org/std/str/fn.from_utf8.html\n[`from_utf8_unchecked`]: https://doc.rust-lang.org/std/str/fn.from_utf8_unchecked.html", 
-      "Example": "```rust\nlet _: &str = std::mem::transmute(b); // where b: &[u8]\n\n// should be:\nlet _ = std::str::from_utf8(b).unwrap();\n```"
+      "Example": "```rust\nlet b: &[u8] = &[1_u8, 2_u8];\nunsafe {\n    let _: &str = std::mem::transmute(b); // where b: &[u8]\n}\n\n// should be:\nlet _ = std::str::from_utf8(b).unwrap();\n```"
     }, 
     "group": "complexity", 
     "id": "transmute_bytes_to_str", 
@@ -505,7 +505,7 @@
       "What it does": "Checks for usage of `x >= y + 1` or `x - 1 >= y` (and `<=`) in a block", 
       "Why is this bad": "Readability -- better to use `> y` instead of `>= y + 1`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx >= y + 1\n```\n\nCould be written:\n\n```rust\nx > y\n```"
+      "Example": "```rust\n# let x = 1;\n# let y = 1;\nif x >= y + 1 {}\n```\n\nCould be written as:\n\n```rust\n# let x = 1;\n# let y = 1;\nif x > y {}\n```"
     }, 
     "group": "complexity", 
     "id": "int_plus_one", 
@@ -637,7 +637,7 @@
     "docs": {
       "What it does": "This lint warns about unnecessary type repetitions in trait bounds", 
       "Why is this bad": "Repeating the type for every bound makes the code\nless readable than combining the bounds", 
-      "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone\n```"
+      "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```"
     }, 
     "group": "complexity", 
     "id": "type_repetition_in_bounds", 
@@ -692,7 +692,7 @@
       "What it does": "Checks for transmutes between a type `T` and `*T`.", 
       "Why is this bad": "It's easy to mistakenly transmute between a type and a\npointer to that type.", 
       "Known problems": "None.", 
-      "Example": "```rust\ncore::intrinsics::transmute(t) // where the result type is the same as\n                               // `*t` or `&t`'s\n```"
+      "Example": "```rust,ignore\ncore::intrinsics::transmute(t) // where the result type is the same as\n                               // `*t` or `&t`'s\n```"
     }, 
     "group": "complexity", 
     "id": "crosspointer_transmute", 
@@ -846,7 +846,7 @@
       "What it does": "Checks for functions with too many parameters.", 
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.", 
       "Known problems": "None.", 
-      "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {\n    ..\n}\n```", 
+      "Example": "```rust\n# struct Color;\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {\n    // ..\n}\n```", 
       "Configuration": "This lint has the following configuration variables:\n\n* `too-many-arguments-threshold: u64`: The maximum number of argument a function or method can have (defaults to `7 `)."
     }, 
     "group": "complexity", 
@@ -880,7 +880,7 @@
       "What it does": "Checks for zipping a collection with the range of\n`0.._.len()`.", 
       "Why is this bad": "The code is better expressed with `.enumerate()`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx.iter().zip(0..x.len())\n```"
+      "Example": "```rust\n# let x = vec![1];\nx.iter().zip(0..x.len());\n```"
     }, 
     "group": "complexity", 
     "id": "range_zip_with_len", 
@@ -896,7 +896,7 @@
     "docs": {
       "What it does": "Checks for useless borrowed references.", 
       "Why is this bad": "It is mostly useless and make the code look more\ncomplex than it\nactually is.", 
-      "Known problems": "It seems that the `&ref` pattern is sometimes useful.\nFor instance in the following snippet:\n```rust\nenum Animal {\n    Cat(u64),\n    Dog(u64),\n}\n\nfn foo(a: &Animal, b: &Animal) {\n    match (a, b) {\n(&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime\nmismatch error\n        (&Animal::Dog(ref c), &Animal::Dog(_)) => ()\n    }\n}\n```\nThere is a lifetime mismatch error for `k` (indeed a and b have distinct\nlifetime).\nThis can be fixed by using the `&ref` pattern.\nHowever, the code can also be fixed by much cleaner ways", 
+      "Known problems": "It seems that the `&ref` pattern is sometimes useful.\nFor instance in the following snippet:\n```rust,ignore\nenum Animal {\n    Cat(u64),\n    Dog(u64),\n}\n\nfn foo(a: &Animal, b: &Animal) {\n    match (a, b) {\n        (&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime mismatch error\n        (&Animal::Dog(ref c), &Animal::Dog(_)) => ()\n    }\n}\n```\nThere is a lifetime mismatch error for `k` (indeed a and b have distinct\nlifetime).\nThis can be fixed by using the `&ref` pattern.\nHowever, the code can also be fixed by much cleaner ways", 
       "Example": "```rust\nlet mut v = Vec::<String>::new();\nlet _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\nThis closure takes a reference on something that has been matched as a\nreference and\nde-referenced.\nAs such, it could just be |a| a.is_empty()"
     }, 
     "group": "complexity", 
@@ -919,7 +919,7 @@
       "What it does": "Checks for usage of `.as_ref()` or `.as_mut()` where the\ntypes before and after the call are the same.", 
       "Why is this bad": "The call is unnecessary.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x: &[i32] = &[1, 2, 3, 4, 5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\nlet x: &[i32] = &[1, 2, 3, 4, 5];\ndo_stuff(x);\n```"
+      "Example": "```rust\n# fn do_stuff(x: &[i32]) {}\nlet x: &[i32] = &[1, 2, 3, 4, 5];\ndo_stuff(x.as_ref());\n```\nThe correct use would be:\n```rust\n# fn do_stuff(x: &[i32]) {}\nlet x: &[i32] = &[1, 2, 3, 4, 5];\ndo_stuff(x);\n```"
     }, 
     "group": "complexity", 
     "id": "useless_asref", 
@@ -980,7 +980,7 @@
       "What it does": "Checks for manual re-implementations of `PartialEq::ne`.", 
       "Why is this bad": "`PartialEq::ne` is required to always return the\nnegated result of `PartialEq::eq`, which is exactly what the default\nimplementation does. Therefore, there should never be any need to\nre-implement it.", 
       "Known problems": "None.", 
-      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { ... }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```"
+      "Example": "```rust\nstruct Foo;\n\nimpl PartialEq for Foo {\n   fn eq(&self, other: &Foo) -> bool { true }\n   fn ne(&self, other: &Foo) -> bool { !(self == other) }\n}\n```"
     }, 
     "group": "complexity", 
     "id": "partialeq_ne_impl", 
@@ -1041,7 +1041,7 @@
       "What it does": "Checks for the use of short circuit boolean conditions as\na\nstatement.", 
       "Why is this bad": "Using a short circuit boolean condition as a statement\nmay hide the fact that the second part is executed or not depending on the\noutcome of the first part.", 
       "Known problems": "None.", 
-      "Example": "```rust\nf() && g(); // We should write `if f() { g(); }`.\n```"
+      "Example": "```rust,ignore\nf() && g(); // We should write `if f() { g(); }`.\n```"
     }, 
     "group": "complexity", 
     "id": "short_circuit_statement", 
@@ -1069,7 +1069,7 @@
       "What it does": "Detects `loop + match` combinations that are easier\nwritten as a `while let` loop.", 
       "Why is this bad": "The `while let` loop is usually shorter and more\nreadable.", 
       "Known problems": "Sometimes the wrong binding is displayed (#383).", 
-      "Example": "```rust\nloop {\n    let x = match y {\n        Some(x) => x,\n        None => break,\n    }\n    // .. do something with x\n}\n// is easier written as\nwhile let Some(x) = y {\n    // .. do something with x\n}\n```"
+      "Example": "```rust,no_run\n# let y = Some(1);\nloop {\n    let x = match y {\n        Some(x) => x,\n        None => break,\n    };\n    // .. do something with x\n}\n// is easier written as\nwhile let Some(x) = y {\n    // .. do something with x\n};\n```"
     }, 
     "group": "complexity", 
     "id": "while_let_loop", 
@@ -1134,7 +1134,7 @@
       "What it does": "Checks for `0.0 / 0.0`.", 
       "Why is this bad": "It's less readable than `std::f32::NAN` or\n`std::f64::NAN`.", 
       "Known problems": "None.", 
-      "Example": "```rust\n0.0f32 / 0.0\n```"
+      "Example": "```rust\n0.0f32 / 0.0;\n```"
     }, 
     "group": "complexity", 
     "id": "zero_divided_by_zero", 
@@ -1207,7 +1207,7 @@
       "What it does": "Checks for inclusive ranges where 1 is subtracted from\nthe upper bound, e.g., `x..=(y-1)`.", 
       "Why is this bad": "The code is more readable with an exclusive range\nlike `x..y`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nfor x..=(y-1) { .. }\n```"
+      "Example": "```rust,ignore\nfor x..=(y-1) { .. }\n```"
     }, 
     "group": "complexity", 
     "id": "range_minus_one", 
@@ -1262,7 +1262,7 @@
       "What it does": "Checks for expression statements that can be reduced to a\nsub-expression.", 
       "Why is this bad": "Expressions by themselves often have no side-effects.\nHaving such expressions reduces readability.", 
       "Known problems": "None.", 
-      "Example": "```rust\ncompute_array()[0];\n```"
+      "Example": "```rust,ignore\ncompute_array()[0];\n```"
     }, 
     "group": "complexity", 
     "id": "unnecessary_operation", 
@@ -1417,7 +1417,7 @@
       "What it does": "Checks for usage of `write!()` / `writeln()!` which can be\nreplaced with `(e)print!()` / `(e)println!()`", 
       "Why is this bad": "Using `(e)println! is clearer and more concise", 
       "Known problems": "None.", 
-      "Example": "```rust\n// this would be clearer as `eprintln!(\"foo: {:?}\", bar);`\nwriteln!(&mut io::stderr(), \"foo: {:?}\", bar).unwrap();\n```"
+      "Example": "```rust\n# use std::io::Write;\n# let bar = \"furchtbar\";\n// this would be clearer as `eprintln!(\"foo: {:?}\", bar);`\nwriteln!(&mut std::io::stderr(), \"foo: {:?}\", bar).unwrap();\n```"
     }, 
     "group": "complexity", 
     "id": "explicit_write", 
@@ -1494,7 +1494,7 @@
       "What it does": "Checks for usage of `_.filter(_).next()`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.find(_)`.", 
       "Known problems": "None.", 
-      "Example": "```rust\niter.filter(|x| x == 0).next()\n```"
+      "Example": "```rust\n# let vec = vec![1];\nvec.iter().filter(|x| **x == 0).next();\n```"
     }, 
     "group": "complexity", 
     "id": "filter_next", 
@@ -1621,7 +1621,7 @@
       "What it does": "Checks `for` loops over slices with an explicit counter\nand suggests the use of `.enumerate()`.", 
       "Why is it bad": "Not only is the version using `.enumerate()` more\nreadable, the compiler is able to remove bounds checks which can lead to\nfaster code in some instances.", 
       "Known problems": "None.", 
-      "Example": "```ignore\nfor i in 0..v.len() { foo(v[i]);\nfor i in 0..v.len() { bar(i, v[i]); }\n```"
+      "Example": "```rust\n# let v = vec![1];\n# fn foo(bar: usize) {}\n# fn bar(bar: usize, baz: usize) {}\nfor i in 0..v.len() { foo(v[i]); }\nfor i in 0..v.len() { bar(i, v[i]); }\n```"
     }, 
     "group": "complexity", 
     "id": "explicit_counter_loop", 
@@ -1642,7 +1642,7 @@
       "What it does": "Checks for usage of `*&` and `*&mut` in expressions.", 
       "Why is this bad": "Immediately dereferencing a reference is no-op and\nmakes the code less clear.", 
       "Known problems": "Multiple dereference/addrof pairs are not handled so\nthe suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect.", 
-      "Example": "```rust\nlet a = f(*&mut b);\nlet c = *&d;\n```"
+      "Example": "```rust,ignore\nlet a = f(*&mut b);\nlet c = *&d;\n```"
     }, 
     "group": "complexity", 
     "id": "deref_addrof", 
@@ -1697,7 +1697,7 @@
       "What it does": "Checks for an iterator search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)`.", 
       "Known problems": "None.", 
-      "Example": "```rust\niter.find(|x| x == 0).is_some()\n```"
+      "Example": "```rust\n# let vec = vec![1];\nvec.iter().find(|x| **x == 0).is_some();\n```"
     }, 
     "group": "complexity", 
     "id": "search_is_some", 
@@ -1708,7 +1708,7 @@
       "What it does": "Checks for the use of `format!(\"string literal with no\nargument\")` and `format!(\"{}\", foo)` where `foo` is a string.", 
       "Why is this bad": "There is no point of doing that. `format!(\"foo\")` can\nbe replaced by `\"foo\".to_owned()` if you really need a `String`. The even\nworse `&format!(\"foo\")` is often encountered in the wild. `format!(\"{}\",\nfoo)` can be replaced by `foo.clone()` if `foo: String` or `foo.to_owned()`\nif `foo: &str`.", 
       "Known problems": "None.", 
-      "Examples": "```rust\nformat!(\"foo\")\nformat!(\"{}\", foo)\n```"
+      "Examples": "```rust\n# let foo = \"foo\";\nformat!(\"foo\");\nformat!(\"{}\", foo);\n```"
     }, 
     "group": "complexity", 
     "id": "useless_format", 
@@ -1752,7 +1752,7 @@
       "What it does": "Checks for diverging calls that are not match arms or\nstatements.", 
       "Why is this bad": "It is often confusing to read. In addition, the\nsub-expression evaluation order for Rust is not well documented.", 
       "Known problems": "Someone might want to use `some_bool || panic!()` as a\nshorthand.", 
-      "Example": "```rust\nlet a = b() || panic!() || c();\n// `c()` is dead, `panic!()` is only called if `b()` returns `false`\nlet x = (a, b, c, panic!());\n// can simply be replaced by `panic!()`\n```"
+      "Example": "```rust,no_run\n# fn b() -> bool { true }\n# fn c() -> bool { true }\nlet a = b() || panic!() || c();\n// `c()` is dead, `panic!()` is only called if `b()` returns `false`\nlet x = (a, b, c, panic!());\n// can simply be replaced by `panic!()`\n```"
     }, 
     "group": "complexity", 
     "id": "diverging_sub_expression", 
@@ -1773,7 +1773,7 @@
       "What it does": "Checks for transmutes from a pointer to a pointer, or\nfrom a reference to a reference.", 
       "Why is this bad": "Transmutes are dangerous, and these can instead be\nwritten as casts.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet ptr = &1u32 as *const u32;\nunsafe {\n    // pointer-to-pointer transmute\n    let _: *const f32 = std::mem::transmute(ptr);\n    // ref-ref transmute\n    let _: &f32 = std::mem::transmute(&1u32);\n}\n// These can be respectively written:\nlet _ = ptr as *const f32\nlet _ = unsafe{ &*(&1u32 as *const u32 as *const f32) };\n```"
+      "Example": "```rust\nlet ptr = &1u32 as *const u32;\nunsafe {\n    // pointer-to-pointer transmute\n    let _: *const f32 = std::mem::transmute(ptr);\n    // ref-ref transmute\n    let _: &f32 = std::mem::transmute(&1u32);\n}\n// These can be respectively written:\nlet _ = ptr as *const f32;\nlet _ = unsafe{ &*(&1u32 as *const u32 as *const f32) };\n```"
     }, 
     "group": "complexity", 
     "id": "transmute_ptr_to_ptr", 
@@ -1872,7 +1872,7 @@
       "What it does": "Checks for transmutes from an integer to a `char`.", 
       "Why is this bad": "Not every integer is a Unicode scalar value.", 
       "Known problems": "- [`from_u32`] which this lint suggests using is slower than `transmute`\nas it needs to validate the input.\nIf you are certain that the input is always a valid Unicode scalar value,\nuse [`from_u32_unchecked`] which is as fast as `transmute`\nbut has a semantically meaningful name.\n- You might want to handle `None` returned from [`from_u32`] instead of calling `unwrap`.\n\n[`from_u32`]: https://doc.rust-lang.org/std/char/fn.from_u32.html\n[`from_u32_unchecked`]: https://doc.rust-lang.org/std/char/fn.from_u32_unchecked.html", 
-      "Example": "```rust\nlet _: char = std::mem::transmute(x); // where x: u32\n\n// should be:\nlet _ = std::char::from_u32(x).unwrap();\n```"
+      "Example": "```rust\nlet x = 1_u32;\nunsafe {\n    let _: char = std::mem::transmute(x); // where x: u32\n}\n\n// should be:\nlet _ = std::char::from_u32(x).unwrap();\n```"
     }, 
     "group": "complexity", 
     "id": "transmute_int_to_char", 
@@ -2120,7 +2120,7 @@
       "What it does": "Checks for expressions of the form `if c { true } else {\nfalse }`\n(or vice versa) and suggest using the condition directly.", 
       "Why is this bad": "Redundant code.", 
       "Known problems": "Maybe false positives: Sometimes, the two branches are\npainstakingly documented (which we, of course, do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code.", 
-      "Example": "```rust\nif x {\n    false\n} else {\n    true\n}\n```"
+      "Example": "```rust,ignore\nif x {\n    false\n} else {\n    true\n}\n```"
     }, 
     "group": "complexity", 
     "id": "needless_bool", 
@@ -2164,7 +2164,7 @@
       "What it does": "Checks for `a op= a op b` or `a op= b op a` patterns.", 
       "Why is this bad": "Most likely these are bugs where one meant to write `a\nop= b`.", 
       "Known problems": "Clippy cannot know for sure if `a op= a op b` should have\nbeen `a = a op a op b` or `a = a op b`/`a op= b`. Therefore, it suggests both.\nIf `a op= a op b` is really the correct behaviour it should be\nwritten as `a = a op a op b` as it's less confusing.", 
-      "Example": "```rust\nlet mut a = 5;\n...\na += a + b;\n```"
+      "Example": "```rust\nlet mut a = 5;\nlet b = 2;\n// ...\na += a + b;\n```"
     }, 
     "group": "complexity", 
     "id": "misrefactored_assign_op", 
@@ -2307,7 +2307,7 @@
       "What it does": "Checks for expressions of the form `x == true`,\n`x != true` and order comparisons such as `x < true` (or vice versa) and\nsuggest using the variable directly.", 
       "Why is this bad": "Unnecessary code.", 
       "Known problems": "None.", 
-      "Example": "```rust\nif x == true {} // could be `if x { }`\n```"
+      "Example": "```rust,ignore\nif x == true {} // could be `if x { }`\n```"
     }, 
     "group": "complexity", 
     "id": "bool_comparison", 
@@ -2362,7 +2362,7 @@
       "What it does": "Checks for lifetimes in generics that are never used\nanywhere else.", 
       "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.", 
       "Known problems": "None.", 
-      "Example": "```rust\nfn unused_lifetime<'a>(x: u8) {\n    ..\n}\n```"
+      "Example": "```rust\nfn unused_lifetime<'a>(x: u8) {\n    // ..\n}\n```"
     }, 
     "group": "complexity", 
     "id": "extra_unused_lifetimes", 
@@ -2667,7 +2667,7 @@
       "What it does": "Checks for calculation of subsecond microseconds or milliseconds\nfrom other `Duration` methods.", 
       "Why is this bad": "It's more concise to call `Duration::subsec_micros()` or\n`Duration::subsec_millis()` than to calculate them.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet dur = Duration::new(5, 0);\nlet _micros = dur.subsec_nanos() / 1_000;\nlet _millis = dur.subsec_nanos() / 1_000_000;\n```"
+      "Example": "```rust\n# use std::time::Duration;\nlet dur = Duration::new(5, 0);\nlet _micros = dur.subsec_nanos() / 1_000;\nlet _millis = dur.subsec_nanos() / 1_000_000;\n```"
     }, 
     "group": "complexity", 
     "id": "duration_subsec", 
@@ -2711,7 +2711,7 @@
       "What it does": "Checks for casts to the same type.", 
       "Why is this bad": "It's just unnecessary.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet _ = 2i32 as i32\n```"
+      "Example": "```rust\nlet _ = 2i32 as i32;\n```"
     }, 
     "group": "complexity", 
     "id": "unnecessary_cast", 
@@ -2733,7 +2733,7 @@
       "What it does": "Checks for usage of `result.map(f)` where f is a function\nor closure that returns the unit type.", 
       "Why is this bad": "Readability, this can be written more clearly with\nan if let statement", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x: Result<&str, &str> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)))\n```\n\nThe correct use would be:\n\n```rust\nlet x: Result<&str, &str> = do_stuff();\nif let Ok(msg) = x {\n    log_err_msg(msg)\n}\nif let Ok(msg) = x {\n    log_err_msg(format_msg(msg))\n}\n```"
+      "Example": "```rust\n# fn do_stuff() -> Result<String, String> { Ok(String::new()) }\n# fn log_err_msg(foo: String) -> Result<String, String> { Ok(foo) }\n# fn format_msg(foo: String) -> String { String::new() }\nlet x: Result<String, String> = do_stuff();\nx.map(log_err_msg);\n# let x: Result<String, String> = do_stuff();\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\n# fn do_stuff() -> Result<String, String> { Ok(String::new()) }\n# fn log_err_msg(foo: String) -> Result<String, String> { Ok(foo) }\n# fn format_msg(foo: String) -> String { String::new() }\nlet x: Result<String, String> = do_stuff();\nif let Ok(msg) = x {\n    log_err_msg(msg);\n};\n# let x: Result<String, String> = do_stuff();\nif let Ok(msg) = x {\n    log_err_msg(format_msg(msg));\n};\n```"
     }, 
     "group": "complexity", 
     "id": "result_map_unit_fn", 
@@ -2802,7 +2802,7 @@
       "What it does": "Checks for passing a unit value as an argument to a function without using a\nunit literal (`()`).", 
       "Why is this bad": "This is likely the result of an accidental semicolon.", 
       "Known problems": "None.", 
-      "Example": "```rust\nfoo({\n    let a = bar();\n    baz(a);\n})\n```"
+      "Example": "```rust,ignore\nfoo({\n    let a = bar();\n    baz(a);\n})\n```"
     }, 
     "group": "complexity", 
     "id": "unit_arg", 
@@ -2835,7 +2835,7 @@
       "What it does": "Checks for double comparisons that could be simplified to a single expression.", 
       "Why is this bad": "Readability.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx == y || x < y\n```\n\nCould be written as:\n\n```rust\nx <= y\n```"
+      "Example": "```rust\n# let x = 1;\n# let y = 2;\nif x == y || x < y {}\n```\n\nCould be written as:\n\n```rust\n# let x = 1;\n# let y = 2;\nif x <= y {}\n```"
     }, 
     "group": "complexity", 
     "id": "double_comparisons", 
@@ -2867,7 +2867,7 @@
     "docs": {
       "What it does": "Checks for references in expressions that use\nauto dereference.", 
       "Why is this bad": "The reference is a no-op and is automatically\ndereferenced by the compiler and makes the code less clear.", 
-      "Example": "```rust\nstruct Point(u32, u32);\nlet point = Foo(30, 20);\nlet x = (&point).x;\n```"
+      "Example": "```rust\nstruct Point(u32, u32);\nlet point = Point(30, 20);\nlet x = (&point).0;\n```"
     }, 
     "group": "complexity", 
     "id": "ref_in_deref", 
@@ -2972,7 +2972,7 @@
       "What it does": "Checks for unnecessary double parentheses.", 
       "Why is this bad": "This makes code harder to read and might indicate a\nmistake.", 
       "Known problems": "None.", 
-      "Example": "```rust\n((0))\nfoo((0))\n((1, 2))\n```"
+      "Example": "```rust\n# fn foo(bar: usize) {}\n((0));\nfoo((0));\n((1, 2));\n```"
     }, 
     "group": "complexity", 
     "id": "double_parens", 
@@ -3049,7 +3049,7 @@
       "What it does": "Checks for transmutes from an integer to a `bool`.", 
       "Why is this bad": "This might result in an invalid in-memory representation of a `bool`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet _: bool = std::mem::transmute(x); // where x: u8\n\n// should be:\nlet _: bool = x != 0;\n```"
+      "Example": "```rust\nlet x = 1_u8;\nunsafe {\n    let _: bool = std::mem::transmute(x); // where x: u8\n}\n\n// should be:\nlet _: bool = x != 0;\n```"
     }, 
     "group": "complexity", 
     "id": "transmute_int_to_bool", 
@@ -3137,7 +3137,7 @@
       "What it does": "Checks for usage of `.clone()` on a `Copy` type.", 
       "Why is this bad": "The only reason `Copy` types implement `Clone` is for\ngenerics, not for using the `clone` method on a concrete type.", 
       "Known problems": "None.", 
-      "Example": "```rust\n42u64.clone()\n```"
+      "Example": "```rust\n42u64.clone();\n```"
     }, 
     "group": "complexity", 
     "id": "clone_on_copy", 
@@ -3192,7 +3192,7 @@
       "What it does": "Checks for identity operations, e.g., `x + 0`.", 
       "Why is this bad": "This code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx / 1 + 0 * 1 - 0 | 0\n```"
+      "Example": "```rust\n# let x = 1;\nx / 1 + 0 * 1 - 0 | 0;\n```"
     }, 
     "group": "complexity", 
     "id": "identity_op", 
@@ -3225,7 +3225,7 @@
       "What it does": "Checks for transmutes from an integer to a float.", 
       "Why is this bad": "Transmutes are dangerous and error-prone, whereas `from_bits` is intuitive\nand safe.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet _: f32 = std::mem::transmute(x); // where x: u32\n\n// should be:\nlet _: f32 = f32::from_bits(x);\n```"
+      "Example": "```rust\nunsafe {\n    let _: f32 = std::mem::transmute(1_u32); // where x: u32\n}\n\n// should be:\nlet _: f32 = f32::from_bits(1_u32);\n```"
     }, 
     "group": "complexity", 
     "id": "transmute_int_to_float", 
@@ -3247,7 +3247,7 @@
       "What it does": "Checks for needlessly including a base struct on update\nwhen all fields are changed anyway.", 
       "Why is this bad": "This will cost resources (because the base has to be\nsomewhere), and make the code less readable.", 
       "Known problems": "None.", 
-      "Example": "```rust\nPoint {\n    x: 1,\n    y: 0,\n    ..zero_point\n}\n```"
+      "Example": "```rust\n# struct Point {\n#     x: i32,\n#     y: i32,\n#     z: i32,\n# }\n# let zero_point = Point { x: 0, y: 0, z: 0 };\nPoint {\n    x: 1,\n    y: 1,\n    ..zero_point\n};\n```"
     }, 
     "group": "complexity", 
     "id": "needless_update", 
@@ -3280,7 +3280,7 @@
       "What it does": "Checks for manual swapping.", 
       "Why is this bad": "The `std::mem::swap` function exposes the intent better\nwithout deinitializing or copying either variable.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet t = b;\nb = a;\na = t;\n```\nUse std::mem::swap():\n```rust\nstd::mem::swap(&mut a, &mut b);\n```"
+      "Example": "```rust\nlet mut a = 42;\nlet mut b = 1337;\n\nlet t = b;\nb = a;\na = t;\n```\nUse std::mem::swap():\n```rust\nlet mut a = 1;\nlet mut b = 2;\nstd::mem::swap(&mut a, &mut b);\n```"
     }, 
     "group": "complexity", 
     "id": "manual_swap", 
@@ -3346,7 +3346,7 @@
       "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.", 
       "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.", 
       "Known problems": "None.", 
-      "Example": "```rust\nstruct Foo {\n    inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n```", 
+      "Example": "```rust\n# use std::rc::Rc;\nstruct Foo {\n    inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n```", 
       "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250 `)."
     }, 
     "group": "complexity", 
@@ -3425,7 +3425,7 @@
       "What it does": "Checks for expressions where a character literal is cast\nto `u8` and suggests using a byte literal instead.", 
       "Why is this bad": "In general, casting values to smaller types is\nerror-prone and should be avoided where possible. In the particular case of\nconverting a character literal to u8, it is easy to avoid by just using a\nbyte literal instead. As an added bonus, `b'a'` is even slightly shorter\nthan `'a' as u8`.", 
       "Known problems": "None.", 
-      "Example": "```rust\n'x' as u8\n```\n\nA better version, using the byte literal:\n\n```rust\nb'x'\n```"
+      "Example": "```rust,ignore\n'x' as u8\n```\n\nA better version, using the byte literal:\n\n```rust,ignore\nb'x'\n```"
     }, 
     "group": "complexity", 
     "id": "char_lit_as_u8", 
