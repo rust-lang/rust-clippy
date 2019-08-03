@@ -70,7 +70,7 @@
       "What it does": "Checks for usages of `Mutex<X>` where an atomic will do.", 
       "Why is this bad": "Using a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.", 
       "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section.", 
-      "Example": "```rust\nlet x = Mutex::new(&y);\n```"
+      "Example": "```rust\n# use std::sync::Mutex;\n# let y = 1;\nlet x = Mutex::new(&y);\n```"
     }, 
     "group": "perf", 
     "id": "mutex_atomic", 
@@ -450,7 +450,7 @@
       "What it does": "Checks for for-loops that manually copy items between\nslices that could be optimized by having a memcpy.", 
       "Why is this bad": "It is not as fast as a memcpy.", 
       "Known problems": "None.", 
-      "Example": "```ignore\nfor i in 0..src.len() {\n    dst[i + 64] = src[i];\n}\n```"
+      "Example": "```rust\n# let src = vec![1];\n# let mut dst = vec![0; 65];\nfor i in 0..src.len() {\n    dst[i + 64] = src[i];\n}\n```"
     }, 
     "group": "perf", 
     "id": "manual_memcpy", 
@@ -516,7 +516,7 @@
       "What it does": "Checks for usage of `Box<T>` where an unboxed `T` would\nwork fine.", 
       "Why is this bad": "This is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.", 
       "Known problems": "None.", 
-      "Example": "```rust\nfn main() {\n    let x = Box::new(1);\n    foo(*x);\n    println!(\"{}\", *x);\n}\n```", 
+      "Example": "```rust\n# fn foo(bar: usize) {}\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n```", 
       "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200 `)."
     }, 
     "group": "perf", 
@@ -1306,7 +1306,7 @@
       "What it does": "Checks for functions collecting an iterator when collect\nis not needed.", 
       "Why is this bad": "`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.", 
       "Known problems": "None", 
-      "Example": "```ignore\nlet len = iterator.collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```"
+      "Example": "```rust\n# let iterator = vec![1].into_iter();\nlet len = iterator.clone().collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```"
     }, 
     "group": "perf", 
     "id": "needless_collect", 
@@ -1460,8 +1460,8 @@
     "docs": {
       "What it does": "Checks for uses of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.", 
       "Why is this bad": "Using `entry` is more efficient.", 
-      "Known problems": "Some false negatives, eg.:\n```rust\nlet k = &key;\nif !m.contains_key(k) {\n    m.insert(k.clone(), v);\n}\n```", 
-      "Example": "```rust\nif !m.contains_key(&k) {\n    m.insert(k, v)\n}\n```\ncan be rewritten as:\n```rust\nm.entry(k).or_insert(v);\n```"
+      "Known problems": "Some false negatives, eg.:\n```rust\n# use std::collections::HashMap;\n# let mut map = HashMap::new();\n# let v = 1;\n# let k = 1;\nif !map.contains_key(&k) {\n    map.insert(k.clone(), v);\n}\n```", 
+      "Example": "```rust\n# use std::collections::HashMap;\n# let mut map = HashMap::new();\n# let k = 1;\n# let v = 1;\nif !map.contains_key(&k) {\n    map.insert(k, v);\n}\n```\ncan both be rewritten as:\n```rust\n# use std::collections::HashMap;\n# let mut map = HashMap::new();\n# let k = 1;\n# let v = 1;\nmap.entry(k).or_insert(v);\n```"
     }, 
     "group": "perf", 
     "id": "map_entry", 
@@ -1516,7 +1516,7 @@
       "What it does": "Checks for conversions to owned values just for the sake\nof a comparison.", 
       "Why is this bad": "The comparison can operate on a reference, so creating\nan owned value effectively throws it away directly afterwards, which is\nneedlessly consuming code and heap space.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx.to_owned() == y\n```"
+      "Example": "```rust\n# let x = \"foo\";\n# let y = String::from(\"foo\");\nif x.to_owned() == y {}\n```"
     }, 
     "group": "perf", 
     "id": "cmp_owned", 
@@ -1795,7 +1795,7 @@
       "What it does": "Checks for naive byte counts", 
       "Why is this bad": "The [`bytecount`](https://crates.io/crates/bytecount)\ncrate has methods to count your bytes faster, especially for large slices.", 
       "Known problems": "If you have predominantly small slices, the\n`bytecount::count(..)` method may actually be slower. However, if you can\nensure that less than 2\u00b3\u00b2-1 matches arise, the `naive_count_32(..)` can be\nfaster in those cases.", 
-      "Example": "```rust\n&my_data.filter(|&x| x == 0u8).count() // use bytecount::count instead\n```"
+      "Example": "```rust\n# let vec = vec![1_u8];\n&vec.iter().filter(|x| **x == 0u8).count(); // use bytecount::count instead\n```"
     }, 
     "group": "perf", 
     "id": "naive_bytecount", 
@@ -1944,7 +1944,7 @@
       "What it does": "Checks for functions taking arguments by reference, where\nthe argument type is `Copy` and small enough to be more efficient to always\npass by value.", 
       "Why is this bad": "In many calling conventions instances of structs will\nbe passed through registers if they fit into two or less general purpose\nregisters.", 
       "Known problems": "This lint is target register size dependent, it is\nlimited to 32-bit to try and reduce portability problems between 32 and\n64-bit, but if you are compiling for 8 or 16-bit targets then the limit\nwill be different.\n\nThe configuration option `trivial_copy_size_limit` can be set to override\nthis limit for a project.\n\nThis lint attempts to allow passing arguments by reference if a reference\nto that argument is returned. This is implemented by comparing the lifetime\nof the argument and return value for equality. However, this can cause\nfalse positives in cases involving multiple lifetimes that are bounded by\neach other.", 
-      "Example": "```rust\nfn foo(v: &u32) {\n    assert_eq!(v, 42);\n}\n// should be\nfn foo(v: u32) {\n    assert_eq!(v, 42);\n}\n```", 
+      "Example": "```rust\n// Bad\nfn foo(v: &u32) {}\n```\n\n```rust\n// Better\nfn foo(v: u32) {}\n```", 
       "Configuration": "This lint has the following configuration variables:\n\n* `trivial-copy-size-limit: Option<u64>`: The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference. (defaults to `None `)."
     }, 
     "group": "perf", 
@@ -2318,7 +2318,7 @@
       "What it does": "Checks slow zero-filled vector initialization", 
       "Why is this bad": "These structures are non-idiomatic and less efficient than simply using\n`vec![0; len]`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet mut vec1 = Vec::with_capacity(len);\nvec1.resize(len, 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.extend(repeat(0).take(len))\n```"
+      "Example": "```rust\n# use core::iter::repeat;\n# let len = 4;\nlet mut vec1 = Vec::with_capacity(len);\nvec1.resize(len, 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.extend(repeat(0).take(len))\n```"
     }, 
     "group": "perf", 
     "id": "slow_vector_initialization", 
@@ -3115,7 +3115,7 @@
       "What it does": "Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,\netc., and suggests to use `or_else`, `unwrap_or_else`, etc., or\n`unwrap_or_default` instead.", 
       "Why is this bad": "The function will always be called and potentially\nallocate an object acting as the default.", 
       "Known problems": "If the function has side-effects, not calling it will\nchange the semantic of the program, but you shouldn't rely on that anyway.", 
-      "Example": "```rust\nfoo.unwrap_or(String::new())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(String::new)\n```\nor\n```rust\nfoo.unwrap_or_default()\n```"
+      "Example": "```rust\n# let foo = Some(String::new());\nfoo.unwrap_or(String::new());\n```\nthis can instead be written:\n```rust\n# let foo = Some(String::new());\nfoo.unwrap_or_else(String::new);\n```\nor\n```rust\n# let foo = Some(String::new());\nfoo.unwrap_or_default();\n```"
     }, 
     "group": "perf", 
     "id": "or_fun_call", 
@@ -3447,7 +3447,7 @@
       "What it does": "Checks for calls to `.expect(&format!(...))`, `.expect(foo(..))`,\netc., and suggests to use `unwrap_or_else` instead", 
       "Why is this bad": "The function will always be called.", 
       "Known problems": "If the function has side-effects, not calling it will\nchange the semantics of the program, but you shouldn't rely on that anyway.", 
-      "Example": "```rust\nfoo.expect(&format!(\"Err {}: {}\", err_code, err_msg))\n```\nor\n```rust\nfoo.expect(format!(\"Err {}: {}\", err_code, err_msg).as_str())\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(|_| panic!(\"Err {}: {}\", err_code, err_msg))\n```"
+      "Example": "```rust\n# let foo = Some(String::new());\n# let err_code = \"418\";\n# let err_msg = \"I'm a teapot\";\nfoo.expect(&format!(\"Err {}: {}\", err_code, err_msg));\n```\nor\n```rust\n# let foo = Some(String::new());\n# let err_code = \"418\";\n# let err_msg = \"I'm a teapot\";\nfoo.expect(format!(\"Err {}: {}\", err_code, err_msg).as_str());\n```\nthis can instead be written:\n```rust\n# let foo = Some(String::new());\n# let err_code = \"418\";\n# let err_msg = \"I'm a teapot\";\nfoo.unwrap_or_else(|| panic!(\"Err {}: {}\", err_code, err_msg));\n```"
     }, 
     "group": "perf", 
     "id": "expect_fun_call", 
