@@ -26,7 +26,7 @@
       "What it does": "Checks for usage of `_.filter(_).map(_)`,\n`_.filter(_).flat_map(_)`, `_.filter_map(_).flat_map(_)` and similar.", 
       "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
       "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.", 
-      "Example": "```rust\niter.filter(|x| x == 0).map(|x| x * 2)\n```"
+      "Example": "```rust\nlet vec = vec![1];\nvec.iter().filter(|x| **x == 0).map(|x| *x * 2);\n```"
     }, 
     "group": "pedantic", 
     "id": "filter_map", 
@@ -48,7 +48,7 @@
       "What it does": "Checks for empty lines after outer attributes", 
       "Why is this bad": "Most likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.", 
       "Known problems": "Can cause false positives.\n\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect.", 
-      "Example": "```rust\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code(..) { ... }\n\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine(..) { ... }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too(..) { ... }\n```"
+      "Example": "```rust\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine() { }\n\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code() { }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too() { }\n```"
     }, 
     "group": "nursery", 
     "id": "empty_line_after_outer_attr", 
@@ -81,7 +81,7 @@
       "What it does": "Checks for explicit `Clone` implementations for `Copy`\ntypes.", 
       "Why is this bad": "To avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.", 
       "Known problems": "Bounds of generic types are sometimes wrong: https://github.com/rust-lang/rust/issues/26925", 
-      "Example": "```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    ..\n}\n```"
+      "Example": "```rust,ignore\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    // ..\n}\n```"
     }, 
     "group": "pedantic", 
     "id": "expl_impl_clone_on_copy", 
@@ -92,7 +92,7 @@
       "What it does": "Checks for usage of `result.map(_).unwrap_or_else(_)`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`result.ok().map_or_else(_, _)`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```"
+      "Example": "```rust\n# let x: Result<usize, ()> = Ok(1);\n# fn some_function(foo: ()) -> usize { 1 }\nx.map(|a| a + 1).unwrap_or_else(some_function);\n```"
     }, 
     "group": "pedantic", 
     "id": "result_map_unwrap_or_else", 
@@ -103,7 +103,7 @@
       "What it does": "Checks for matches with a two arms where an `if let else` will\nusually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
       "Known problems": "Personal style preferences may differ.", 
-      "Example": "Using `match`:\n\n```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(other_ref),\n}\n```\n\nUsing `if let` with `else`:\n\n```rust\nif let Some(ref foo) = x {\n    bar(foo);\n} else {\n    bar(other_ref);\n}\n```"
+      "Example": "Using `match`:\n\n```rust\n# fn bar(foo: &usize) {}\n# let other_ref: usize = 1;\n# let x: Option<&usize> = Some(&1);\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(&other_ref),\n}\n```\n\nUsing `if let` with `else`:\n\n```rust\n# fn bar(foo: &usize) {}\n# let other_ref: usize = 1;\n# let x: Option<&usize> = Some(&1);\nif let Some(ref foo) = x {\n    bar(foo);\n} else {\n    bar(&other_ref);\n}\n```"
     }, 
     "group": "pedantic", 
     "id": "single_match_else", 
@@ -252,7 +252,7 @@
       "What it does": "Checks for float arithmetic.", 
       "Why is this bad": "For some embedded systems or kernel development, it\ncan be useful to rule out floating-point numbers.", 
       "Known problems": "None.", 
-      "Example": "```rust\na + 1.0\n```"
+      "Example": "```rust\n# let a = 0.0;\na + 1.0;\n```"
     }, 
     "group": "restriction", 
     "id": "float_arithmetic", 
@@ -362,7 +362,7 @@
       "What it does": "Checks for functions taking arguments by value, but not\nconsuming them in its\nbody.", 
       "Why is this bad": "Taking arguments by reference is more flexible and can\nsometimes avoid\nunnecessary allocations.", 
       "Known problems": "* This lint suggests taking an argument by reference,\nhowever sometimes it is better to let users decide the argument type\n(by using `Borrow` trait, for example), depending on how the function is used.", 
-      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n// should be\nfn foo(v: &[i32]) {\n    assert_eq!(v.len(), 42);\n}\n```"
+      "Example": "```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n```\n\n```rust\n// should be\nfn foo(v: &[i32]) {\n    assert_eq!(v.len(), 42);\n}\n```"
     }, 
     "group": "pedantic", 
     "id": "needless_pass_by_value", 
@@ -417,7 +417,7 @@
       "What it does": "Checks for usage of `_.find(_).map(_)`.", 
       "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
       "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.", 
-      "Example": "```rust\n (0..3).find(|x| x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```"
+      "Example": "```rust\n (0..3).find(|x| *x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```"
     }, 
     "group": "pedantic", 
     "id": "find_map", 
@@ -605,7 +605,7 @@
       "What it does": "Checks for usages of `Mutex<X>` where `X` is an integral\ntype.", 
       "Why is this bad": "Using a mutex just to make access to a plain integer\nsequential is\nshooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.", 
       "Known problems": "This lint cannot detect if the mutex is actually used\nfor waiting before a critical section.", 
-      "Example": "```rust\nlet x = Mutex::new(0usize);\n```"
+      "Example": "```rust\n# use std::sync::Mutex;\nlet x = Mutex::new(0usize);\n```"
     }, 
     "group": "nursery", 
     "id": "mutex_integer", 
@@ -627,7 +627,7 @@
       "What it does": "Checks for usage of `_.map(_).unwrap_or_else(_)`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or_else(_, _)`.", 
       "Known problems": "The order of the arguments is not in execution order.", 
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function)\n```"
+      "Example": "```rust\n# let x = Some(1);\n# fn some_function() -> usize { 1 }\nx.map(|a| a + 1).unwrap_or_else(some_function);\n```"
     }, 
     "group": "pedantic", 
     "id": "option_map_unwrap_or_else", 
@@ -648,7 +648,7 @@
       "What it does": "Checks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e., nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.", 
       "Why is this bad": "While such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.", 
       "Known problems": "None.", 
-      "Example": "```rust\nu32::MAX as i32 // will yield a value of `-1`\n```"
+      "Example": "```rust\nstd::u32::MAX as i32; // will yield a value of `-1`\n```"
     }, 
     "group": "pedantic", 
     "id": "cast_possible_wrap", 
@@ -681,7 +681,7 @@
       "What it does": "Checks for casts from a signed to an unsigned numerical\ntype. In this case, negative values wrap around to large positive values,\nwhich can be quite surprising in practice. However, as the cast works as\ndefined, this lint is `Allow` by default.", 
       "Why is this bad": "Possibly surprising results. You can activate this lint\nas a one-time check to see where numerical wrapping can arise.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet y: i8 = -1;\ny as u128 // will return 18446744073709551615\n```"
+      "Example": "```rust\nlet y: i8 = -1;\ny as u128; // will return 18446744073709551615\n```"
     }, 
     "group": "pedantic", 
     "id": "cast_sign_loss", 
@@ -780,7 +780,7 @@
       "What it does": "Checks for usage of `std::mem::forget(t)` where `t` is\n`Drop`.", 
       "Why is this bad": "`std::mem::forget(t)` prevents `t` from running its\ndestructor, possibly causing leaks.", 
       "Known problems": "None.", 
-      "Example": "```rust\nmem::forget(Rc::new(55))\n```"
+      "Example": "```rust\n# use std::mem;\n# use std::rc::Rc;\nmem::forget(Rc::new(55))\n```"
     }, 
     "group": "restriction", 
     "id": "mem_forget", 
@@ -930,7 +930,7 @@
       "What it does": "This is the same as\n[`wrong_self_convention`](#wrong_self_convention), but for public items.", 
       "Why is this bad": "See [`wrong_self_convention`](#wrong_self_convention).", 
       "Known problems": "Actually *renaming* the function may break clients if\nthe function is part of the public interface. In that case, be mindful of\nthe stability guarantees you've given your users.", 
-      "Example": "```rust\nimpl X {\n    pub fn as_str(self) -> &str {\n        ..\n    }\n}\n```"
+      "Example": "```rust\n# struct X;\nimpl<'a> X {\n    pub fn as_str(self) -> &'a str {\n        \"foo\"\n    }\n}\n```"
     }, 
     "group": "restriction", 
     "id": "wrong_pub_self_convention", 
@@ -952,7 +952,7 @@
       "What it does": "Checks for all instances of `x + _` where `x` is of type\n`String`, but only if [`string_add_assign`](#string_add_assign) does *not*\nmatch.", 
       "Why is this bad": "It's not bad in and of itself. However, this particular\n`Add` implementation is asymmetric (the other operand need not be `String`,\nbut `x` does), while addition as mathematically defined is symmetric, also\nthe `String::push_str(_)` function is a perfectly good replacement.\nTherefore, some dislike it and wish not to have it in their code.\n\nThat said, other people think that string addition, having a long tradition\nin other languages is actually fine, which is why we decided to make this\nparticular lint `allow` by default.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x = \"Hello\".to_owned();\nx + \", World\"\n```"
+      "Example": "```rust\nlet x = \"Hello\".to_owned();\nx + \", World\";\n```"
     }, 
     "group": "restriction", 
     "id": "string_add", 
@@ -1030,7 +1030,7 @@
       "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
       "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make\nsense. It allows the crate to require all exported methods to be `#[inline]` by default, and\nthen opt out for specific methods where this might not make sense.", 
       "Known problems": "None.", 
-      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn priv() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn priv() {} // ok\n   pub not_ptriv() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```"
+      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn private() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn private() {} // ok\n   pub fn not_ptrivate() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```"
     }, 
     "group": "restriction", 
     "id": "missing_inline_in_public_items", 
@@ -1091,7 +1091,7 @@
       "What it does": "Checks for usage of `ATOMIC_X_INIT`, `ONCE_INIT`, and\n`uX/iX::MIN/MAX`.", 
       "Why is this bad": "`const fn`s exist", 
       "Known problems": "None.", 
-      "Example": "```rust\nstatic FOO: AtomicIsize = ATOMIC_ISIZE_INIT;\n```\n\nCould be written:\n\n```rust\nstatic FOO: AtomicIsize = AtomicIsize::new(0);\n```"
+      "Example": "```rust\n# use core::sync::atomic::{ATOMIC_ISIZE_INIT, AtomicIsize};\nstatic FOO: AtomicIsize = ATOMIC_ISIZE_INIT;\n```\n\nCould be written:\n\n```rust\n# use core::sync::atomic::AtomicIsize;\nstatic FOO: AtomicIsize = AtomicIsize::new(0);\n```"
     }, 
     "group": "pedantic", 
     "id": "replace_consts", 
@@ -1112,7 +1112,7 @@
     "docs": {
       "What it does": "Checks for usage of `.clone()` on a ref-counted pointer,\n(`Rc`, `Arc`, `rc::Weak`, or `sync::Weak`), and suggests calling Clone via unified\nfunction syntax instead (e.g., `Rc::clone(foo)`).", 
       "Why is this bad": "Calling '.clone()' on an Rc, Arc, or Weak\ncan obscure the fact that only the pointer is being cloned, not the underlying\ndata.", 
-      "Example": "```rust\nx.clone()\n```"
+      "Example": "```rust\n# use std::rc::Rc;\nlet x = Rc::new(1);\nx.clone();\n```"
     }, 
     "group": "restriction", 
     "id": "clone_on_ref_ptr", 
@@ -1157,7 +1157,7 @@
       "What it does": "Checks for usage of indexing or slicing. Arrays are special cases, this lint\ndoes report on arrays if we can tell that slicing operations are in bounds and does not\nlint on constant `usize` indexing on arrays because that is handled by rustc's `const_err` lint.", 
       "Why is this bad": "Indexing and slicing can panic at runtime and there are\nsafe alternatives.", 
       "Known problems": "Hopefully none.", 
-      "Example": "```rust\n// Vector\nlet x = vec![0; 5];\n\n// Bad\nx[2];\n&x[2..100];\n&x[2..];\n&x[..100];\n\n// Good\nx.get(2);\nx.get(2..100);\nx.get(2..);\nx.get(..100);\n\n// Array\nlet y = [0, 1, 2, 3];\n\n// Bad\n&y[10..100];\n&y[10..];\n&y[..100];\n\n// Good\n&y[2..];\n&y[..2];\n&y[0..3];\ny.get(10);\ny.get(10..100);\ny.get(10..);\ny.get(..100);\n```"
+      "Example": "```rust,no_run\n// Vector\nlet x = vec![0; 5];\n\n// Bad\nx[2];\n&x[2..100];\n&x[2..];\n&x[..100];\n\n// Good\nx.get(2);\nx.get(2..100);\nx.get(2..);\nx.get(..100);\n\n// Array\nlet y = [0, 1, 2, 3];\n\n// Bad\n&y[10..100];\n&y[10..];\n&y[..100];\n\n// Good\n&y[2..];\n&y[..2];\n&y[0..3];\ny.get(10);\ny.get(10..100);\ny.get(10..);\ny.get(..100);\n```"
     }, 
     "group": "restriction", 
     "id": "indexing_slicing", 
@@ -1229,7 +1229,7 @@
       "What it does": "Checks for explicit bounds checking when casting.", 
       "Why is this bad": "Reduces the readability of statements & is error prone.", 
       "Known problems": "None.", 
-      "Example": "```rust\n# let foo: u32 = 5;\n# let _ =\nfoo <= i32::max_value() as u32\n# ;\n```\n\nCould be written:\n\n```rust\n# let _ =\ni32::try_from(foo).is_ok()\n# ;\n```"
+      "Example": "```rust\n# let foo: u32 = 5;\n# let _ =\nfoo <= i32::max_value() as u32\n# ;\n```\n\nCould be written:\n\n```rust\n# use std::convert::TryFrom;\n# let foo = 1;\n# let _ =\ni32::try_from(foo).is_ok()\n# ;\n```"
     }, 
     "group": "pedantic", 
     "id": "checked_conversions", 
@@ -1251,7 +1251,7 @@
       "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
       "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
       "Known problems": "None", 
-      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n}\n```"
+      "Example": "```rust\n# fn condition() -> bool { false }\n# fn update_condition() {}\n# let x = false;\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\n# fn condition() -> bool { false }\n# fn update_condition() {}\n# let x = false;\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\n# fn waiting() -> bool { false }\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n    # break;\n}\n```\nCould be rewritten as\n\n```rust\n# fn waiting() -> bool { false }\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n    # break;\n}\n```"
     }, 
     "group": "pedantic", 
     "id": "needless_continue", 
@@ -1284,7 +1284,7 @@
       "What it does": "Checks for usage of if expressions with an `else if` branch,\nbut without a final `else` branch.", 
       "Why is this bad": "Some coding guidelines require this (e.g., MISRA-C:2004 Rule 14.10).", 
       "Known problems": "None.", 
-      "Example": "```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\n\nCould be written:\n\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // We don't care about zero.\n}\n```"
+      "Example": "```rust\n# fn a() {}\n# fn b() {}\n# let x: i32 = 1;\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\n\nCould be written:\n\n```rust\n# fn a() {}\n# fn b() {}\n# let x: i32 = 1;\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // We don't care about zero.\n}\n```"
     }, 
     "group": "restriction", 
     "id": "else_if_without_else", 
@@ -1428,7 +1428,7 @@
       "What it does": "Checks for bindings that shadow other bindings already in\nscope, while just changing reference level or mutability.", 
       "Why is this bad": "Not much, in fact it's a very common pattern in Rust\ncode. Still, some may opt to avoid it in their code base, they can set this\nlint to `Warn`.", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns.", 
-      "Example": "```rust\nlet x = &x;\n```"
+      "Example": "```rust\n# let x = 1;\nlet x = &x;\n```"
     }, 
     "group": "restriction", 
     "id": "shadow_same", 
@@ -1505,7 +1505,7 @@
       "What it does": "Checks for `.unwrap()` calls on `Result`s.", 
       "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx.unwrap()\n```"
+      "Example": "Using unwrap on an `Option`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.unwrap();\n```\n\nBetter:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"more helpful message\");\n```"
     }, 
     "group": "restriction", 
     "id": "result_unwrap_used", 
@@ -1582,7 +1582,7 @@
       "What it does": "Checks for plain integer arithmetic.", 
       "Why is this bad": "This is only checked against overflow in debug builds.\nIn some applications one wants explicitly checked, wrapping or saturating\narithmetic.", 
       "Known problems": "None.", 
-      "Example": "```rust\na + 1\n```"
+      "Example": "```rust\n# let a = 0;\na + 1;\n```"
     }, 
     "group": "restriction", 
     "id": "integer_arithmetic", 
@@ -1729,7 +1729,7 @@
       "What it does": "Checks for loops on `x.iter()` where `&x` will do, and\nsuggests the latter.", 
       "Why is this bad": "Readability.", 
       "Known problems": "False negatives. We currently only warn on some known\ntypes.", 
-      "Example": "```ignore\n// with `y` a `Vec` or slice:\nfor x in y.iter() {\n    ..\n}\n```\ncan be rewritten to\n```rust\nfor x in &y {\n    ..\n}\n```"
+      "Example": "```rust\n// with `y` a `Vec` or slice:\n# let y = vec![1];\nfor x in y.iter() {\n    // ..\n}\n```\ncan be rewritten to\n```rust\n# let y = vec![1];\nfor x in &y {\n    // ..\n}\n```"
     }, 
     "group": "pedantic", 
     "id": "explicit_iter_loop", 
@@ -1740,7 +1740,7 @@
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.", 
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.", 
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.", 
-      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar) { .. }\n```", 
+      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```", 
       "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\",\n        \"OpenGL\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ] `)."
     }, 
     "group": "pedantic", 
@@ -1762,7 +1762,7 @@
     "docs": {
       "What it does": "Checks for use of `Debug` formatting. The purpose of this\nlint is to catch debugging remnants.", 
       "Why is this bad": "The purpose of the `Debug` trait is to facilitate\ndebugging Rust code. It should not be used in in user-facing output.", 
-      "Example": "```rust\nprintln!(\"{:?}\", foo);\n```"
+      "Example": "```rust\n# let foo = \"bar\";\nprintln!(\"{:?}\", foo);\n```"
     }, 
     "group": "restriction", 
     "id": "use_debug", 
@@ -1933,7 +1933,7 @@
       "What it does": "Checks for instances of `mut mut` references.", 
       "Why is this bad": "Multiple `mut`s don't add anything meaningful to the\nsource. This is either a copy'n'paste error, or it shows a fundamental\nmisunderstanding of references.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x = &mut &mut y;\n```"
+      "Example": "```rust\n# let mut y = 1;\nlet x = &mut &mut y;\n```"
     }, 
     "group": "pedantic", 
     "id": "mut_mut", 
@@ -2033,7 +2033,7 @@
       "What it does": "Checks for usage of `!` or `!=` in an if condition with an\nelse branch.", 
       "Why is this bad": "Negations reduce the readability of statements.", 
       "Known problems": "None.", 
-      "Example": "```rust\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\n\nCould be written:\n\n```rust\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```"
+      "Example": "```rust\n# let v: Vec<usize> = vec![];\n# fn a() {}\n# fn b() {}\nif !v.is_empty() {\n    a()\n} else {\n    b()\n}\n```\n\nCould be written:\n\n```rust\n# let v: Vec<usize> = vec![];\n# fn a() {}\n# fn b() {}\nif v.is_empty() {\n    b()\n} else {\n    a()\n}\n```"
     }, 
     "group": "pedantic", 
     "id": "if_not_else", 
@@ -2066,7 +2066,7 @@
       "What it does": "Checks for wildcard enum matches using `_`.", 
       "Why is this bad": "New enum variants added by library updates can be missed.", 
       "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.", 
-      "Example": "```rust\nmatch x {\n    A => {},\n    _ => {},\n}\n```"
+      "Example": "```rust\n# enum Foo { A(usize), B(usize) }\n# let x = Foo::B(1);\nmatch x {\n    A => {},\n    _ => {},\n}\n```"
     }, 
     "group": "restriction", 
     "id": "wildcard_enum_match_arm", 
@@ -2285,7 +2285,7 @@
       "What it does": "Checks for bindings that shadow other bindings already in\nscope, while reusing the original value.", 
       "Why is this bad": "Not too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns.", 
-      "Example": "```rust\nlet x = x + 1;\n```\nuse different variable name:\n```rust\nlet y = x + 1;\n```"
+      "Example": "```rust\nlet x = 2;\nlet x = x + 1;\n```\nuse different variable name:\n```rust\nlet x = 2;\nlet y = x + 1;\n```"
     }, 
     "group": "restriction", 
     "id": "shadow_reuse", 
@@ -2480,7 +2480,7 @@
       "What it does": "Checks for usage of `_.map(_).unwrap_or(_)`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or(_, _)`.", 
       "Known problems": "The order of the arguments is not in execution order", 
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or(0)\n```"
+      "Example": "```rust\n# let x = Some(1);\nx.map(|a| a + 1).unwrap_or(0);\n```"
     }, 
     "group": "pedantic", 
     "id": "option_map_unwrap_or", 
@@ -2579,7 +2579,7 @@
       "What it does": "Checks for usage of any `LinkedList`, suggesting to use a\n`Vec` or a `VecDeque` (formerly called `RingBuf`).", 
       "Why is this bad": "Gankro says:\n\n> The TL;DR of `LinkedList` is that it's built on a massive amount of\npointers and indirection.\n> It wastes memory, it has terrible cache locality, and is all-around slow.\n`RingBuf`, while\n> \"only\" amortized for push/pop, should be faster in the general case for\nalmost every possible\n> workload, and isn't even amortized at all if you can predict the capacity\nyou need.\n>\n> `LinkedList`s are only really good if you're doing a lot of merging or\nsplitting of lists.\n> This is because they can just mangle some pointers instead of actually\ncopying the data. Even\n> if you're doing a lot of insertion in the middle of the list, `RingBuf`\ncan still be better\n> because of how expensive it is to seek to the middle of a `LinkedList`.", 
       "Known problems": "False positives \u2013 the instances where using a\n`LinkedList` makes sense are few and far between, but they can still happen.", 
-      "Example": "```rust\nlet x = LinkedList::new();\n```"
+      "Example": "```rust\n# use std::collections::LinkedList;\nlet x: LinkedList<usize> = LinkedList::new();\n```"
     }, 
     "group": "pedantic", 
     "id": "linkedlist", 
@@ -2700,7 +2700,7 @@
       "What it does": "Suggests the use of `const` in functions and methods where possible.", 
       "Why is this bad": "Not having the function const prevents callers of the function from being const as well.", 
       "Known problems": "Const functions are currently still being worked on, with some features only being available\non nightly. This lint does not consider all edge cases currently and the suggestions may be\nincorrect if you are using this lint on stable.\n\nAlso, the lint only runs one pass over the code. Consider these two non-const functions:\n\n```rust\nfn a() -> i32 {\n    0\n}\nfn b() -> i32 {\n    a()\n}\n```\n\nWhen running Clippy, the lint will only suggest to make `a` const, because `b` at this time\ncan't be const as it calls a non-const function. Making `a` const and running Clippy again,\nwill suggest to make `b` const, too.", 
-      "Example": "```rust\nfn new() -> Self {\n    Self { random_number: 42 }\n}\n```\n\nCould be a const fn:\n\n```rust\nconst fn new() -> Self {\n    Self { random_number: 42 }\n}\n```"
+      "Example": "```rust\n# struct Foo {\n#     random_number: usize,\n# }\n# impl Foo {\nfn new() -> Self {\n    Self { random_number: 42 }\n}\n# }\n```\n\nCould be a const fn:\n\n```rust\n# struct Foo {\n#     random_number: usize,\n# }\n# impl Foo {\nconst fn new() -> Self {\n    Self { random_number: 42 }\n}\n# }\n```"
     }, 
     "group": "nursery", 
     "id": "missing_const_for_fn", 
@@ -2857,7 +2857,7 @@
       "What it does": "Checks for casts from any numerical to a float type where\nthe receiving type cannot store all values from the original type without\nrounding errors. This possible rounding is to be expected, so this lint is\n`Allow` by default.\n\nBasically, this warns on casting any integer with 32 or more bits to `f32`\nor any 64-bit integer to `f64`.", 
       "Why is this bad": "It's not bad at all. But in some applications it can be\nhelpful to know where precision loss can take place. This lint can help find\nthose places in the code.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x = u64::MAX;\nx as f64\n```"
+      "Example": "```rust\nlet x = std::u64::MAX;\nx as f64;\n```"
     }, 
     "group": "pedantic", 
     "id": "cast_precision_loss", 
@@ -2878,7 +2878,7 @@
       "What it does": "Checks for iteration that may be infinite.", 
       "Why is this bad": "While there may be places where this is acceptable\n(e.g., in event streams), in most cases this is simply an error.", 
       "Known problems": "The code may have a condition to stop iteration, but\nthis lint is not clever enough to analyze it.", 
-      "Example": "```rust\n[0..].iter().zip(infinite_iter.take_while(|x| x > 5))\n```"
+      "Example": "```rust\nlet infinite_iter = 0..;\n[0..].iter().zip(infinite_iter.take_while(|x| *x > 5));\n```"
     }, 
     "group": "pedantic", 
     "id": "maybe_infinite_iter", 
@@ -2933,7 +2933,7 @@
       "What it does": "Checks for bindings that shadow other bindings already in\nscope, either without a initialization or with one that does not even use\nthe original value.", 
       "Why is this bad": "Name shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings or introducing more scopes to contain the bindings.", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns.", 
-      "Example": "```rust\nlet x = y;\nlet x = z; // shadows the earlier binding\n```"
+      "Example": "```rust\n# let y = 1;\n# let z = 2;\nlet x = y;\nlet x = z; // shadows the earlier binding\n```"
     }, 
     "group": "pedantic", 
     "id": "shadow_unrelated", 
@@ -2960,8 +2960,8 @@
     "docs": {
       "What it does": "Checks for a redudant `clone()` (and its relatives) which clones an owned\nvalue that is going to be dropped without further use.", 
       "Why is this bad": "It is not always possible for the compiler to eliminate useless\nallocations and deallocations generated by redundant `clone()`s.", 
-      "Known problems": "* Suggestions made by this lint could require NLL to be enabled.\n* False-positive if there is a borrow preventing the value from moving out.\n\n```rust\nlet x = String::new();\n\nlet y = &x;\n\nfoo(x.clone()); // This lint suggests to remove this `clone()`\n```", 
-      "Example": "```rust\n{\n    let x = Foo::new();\n    call(x.clone());\n    call(x.clone()); // this can just pass `x`\n}\n\n[\"lorem\", \"ipsum\"].join(\" \").to_string()\n\nPath::new(\"/a/b\").join(\"c\").to_path_buf()\n```"
+      "Known problems": "* Suggestions made by this lint could require NLL to be enabled.\n* False-positive if there is a borrow preventing the value from moving out.\n\n```rust\n# fn foo(x: String) {}\nlet x = String::new();\n\nlet y = &x;\n\nfoo(x.clone()); // This lint suggests to remove this `clone()`\n```", 
+      "Example": "```rust\n# use std::path::Path;\n# #[derive(Clone)]\n# struct Foo;\n# impl Foo {\n#     fn new() -> Self { Foo {} }\n# }\n# fn call(x: Foo) {}\n{\n    let x = Foo::new();\n    call(x.clone());\n    call(x.clone()); // this can just pass `x`\n}\n\n[\"lorem\", \"ipsum\"].join(\" \").to_string();\n\nPath::new(\"/a/b\").join(\"c\").to_path_buf();\n```"
     }, 
     "group": "nursery", 
     "id": "redundant_clone", 
@@ -2983,7 +2983,7 @@
       "What it does": "Checks for types that implement `Copy` as well as\n`Iterator`.", 
       "Why is this bad": "Implicit copies can be confusing when working with\niterator combinators.", 
       "Known problems": "None.", 
-      "Example": "```rust\n#[derive(Copy, Clone)]\nstruct Countdown(u8);\n\nimpl Iterator for Countdown {\n    // ...\n}\n\nlet a: Vec<_> = my_iterator.take(1).collect();\nlet b: Vec<_> = my_iterator.collect();\n```"
+      "Example": "```rust,ignore\n#[derive(Copy, Clone)]\nstruct Countdown(u8);\n\nimpl Iterator for Countdown {\n    // ...\n}\n\nlet a: Vec<_> = my_iterator.take(1).collect();\nlet b: Vec<_> = my_iterator.collect();\n```"
     }, 
     "group": "pedantic", 
     "id": "copy_iterator", 
@@ -3027,7 +3027,7 @@
       "What it does": "Checks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.", 
       "Why is this bad": "An expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.", 
       "Known problems": "https://github.com/rust-lang/rust-clippy/issues/886", 
-      "Example": "```rust\nlet x : u8 = ...; (x as u32) > 300\n```"
+      "Example": "```rust\nlet x: u8 = 1;\n(x as u32) > 300;\n```"
     }, 
     "group": "pedantic", 
     "id": "invalid_upcast_comparisons", 
@@ -3181,7 +3181,7 @@
       "What it does": "Checks for usage of `_.map(_).flatten(_)`,", 
       "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
       "Known problems": "", 
-      "Example": "```rust\niter.map(|x| x.iter()).flatten()\n```"
+      "Example": "```rust\nlet vec = vec![vec![1]];\nvec.iter().map(|x| x.iter()).flatten();\n```"
     }, 
     "group": "pedantic", 
     "id": "map_flatten", 
@@ -3302,7 +3302,7 @@
       "What it does": "Checks for `.unwrap()` calls on `Option`s.", 
       "Why is this bad": "Usually it is better to handle the `None` case, or to\nat least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx.unwrap()\n```"
+      "Example": "Using unwrap on an `Option`:\n\n```rust\nlet opt = Some(1);\nopt.unwrap();\n```\n\nBetter:\n\n```rust\nlet opt = Some(1);\nopt.expect(\"more helpful message\");\n```"
     }, 
     "group": "restriction", 
     "id": "option_unwrap_used", 
@@ -3414,7 +3414,7 @@
       "What it does": "Checks for (in-)equality comparisons on floating-point\nvalue and constant, except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).", 
       "Why is this bad": "Floating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).", 
       "Known problems": "None.", 
-      "Example": "```rust\nconst ONE = 1.00f64;\nx == ONE  // where both are floats\n```"
+      "Example": "```rust\nlet x: f64 = 1.0;\nconst ONE: f64 = 1.00;\nx == ONE;  // where both are floats\n```"
     }, 
     "group": "restriction", 
     "id": "float_cmp_const", 
@@ -3436,7 +3436,7 @@
       "What it does": "Checks for loops on `y.into_iter()` where `y` will do, and\nsuggests the latter.", 
       "Why is this bad": "Readability.", 
       "Known problems": "None", 
-      "Example": "```ignore\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() {\n    ..\n}\n```\ncan be rewritten to\n```ignore\nfor x in y {\n    ..\n}\n```"
+      "Example": "```rust\n# let y = vec![1];\n// with `y` a `Vec` or slice:\nfor x in y.into_iter() {\n    // ..\n}\n```\ncan be rewritten to\n```rust\n# let y = vec![1];\nfor x in y {\n    // ..\n}\n```"
     }, 
     "group": "pedantic", 
     "id": "explicit_into_iter_loop", 
