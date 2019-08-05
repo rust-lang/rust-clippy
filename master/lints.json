@@ -392,13 +392,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for transmutes from a pointer to a reference.", 
-      "Why is this bad": "This can always be rewritten with `&` and `*`.", 
+      "What it does": "Checks for recursion using the entrypoint.", 
+      "Why is this bad": "Apart from special setups (which we could detect following attributes like #![no_std]),\nrecursing into main() seems like an unintuitive antipattern we should be able to detect.", 
       "Known problems": "None.", 
-      "Example": "```rust,ignore\nunsafe {\n    let _: &T = std::mem::transmute(p); // where p: *const T\n}\n\n// can be written:\nlet _: &T = &*p;\n```"
+      "Example": "```no_run\nfn main() {\n    main();\n}\n```"
     }, 
-    "group": "complexity", 
-    "id": "transmute_ptr_to_ref", 
+    "group": "style", 
+    "id": "main_recursion", 
     "level": "Warn"
   }, 
   {
@@ -2224,6 +2224,17 @@
     "group": "pedantic", 
     "id": "similar_names", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for transmutes from a pointer to a reference.", 
+      "Why is this bad": "This can always be rewritten with `&` and `*`.", 
+      "Known problems": "None.", 
+      "Example": "```rust,ignore\nunsafe {\n    let _: &T = std::mem::transmute(p); // where p: *const T\n}\n\n// can be written:\nlet _: &T = &*p;\n```"
+    }, 
+    "group": "complexity", 
+    "id": "transmute_ptr_to_ref", 
+    "level": "Warn"
   }, 
   {
     "docs": {
