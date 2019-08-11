@@ -1761,7 +1761,7 @@
   {
     "docs": {
       "What it does": "Checks for use of `Debug` formatting. The purpose of this\nlint is to catch debugging remnants.", 
-      "Why is this bad": "The purpose of the `Debug` trait is to facilitate\ndebugging Rust code. It should not be used in in user-facing output.", 
+      "Why is this bad": "The purpose of the `Debug` trait is to facilitate\ndebugging Rust code. It should not be used in user-facing output.", 
       "Example": "```rust\n# let foo = \"bar\";\nprintln!(\"{:?}\", foo);\n```"
     }, 
     "group": "restriction", 
