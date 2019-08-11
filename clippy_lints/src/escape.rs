@@ -4,6 +4,7 @@ use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::middle::expr_use_visitor::*;
 use rustc::middle::mem_categorization::{cmt_, Categorization};
 use rustc::ty::layout::LayoutOf;
+use rustc::ty::query::TyCtxtAt;
 use rustc::ty::{self, Ty};
 use rustc::util::nodemap::HirIdSet;
 use rustc::{declare_tool_lint, impl_lint_pass};
@@ -142,7 +143,10 @@ impl<'a, 'tcx> Delegate<'tcx> for EscapeDelegate<'a, 'tcx> {
                 if let StmtKind::Local(ref loc) = st.node {
                     if let Some(ref ex) = loc.init {
                         if let ExprKind::Box(..) = ex.node {
-                            if is_non_trait_box(cmt.ty) && !self.is_large_box(cmt.ty) {
+                            if is_non_trait_box(cmt.ty)
+                                && !self.is_large_box(cmt.ty)
+                                && !self.is_unsized_box(cmt.ty, cmt.span)
+                            {
                                 // let x = box (...)
                                 self.set.insert(consume_pat.hir_id);
                             }
@@ -204,5 +208,14 @@ impl<'a, 'tcx> EscapeDelegate<'a, 'tcx> {
         } else {
             false
         }
+    }
+
+    fn is_unsized_box(&self, ty: Ty<'tcx>, span: Span) -> bool {
+        if !ty.is_box() {
+            return false;
+        }
+
+        !ty.boxed_ty()
+            .is_sized(TyCtxtAt { tcx: self.cx.tcx, span }, self.cx.param_env)
     }
 }

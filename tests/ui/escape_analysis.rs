@@ -109,6 +109,14 @@ fn nowarn_large_array() {
     }
 }
 
+fn nowarn_non_sized() {
+    let x: Box<[u32]> = box [1; 10000];
+    match &x {
+        // not moved
+        ref y => (),
+    }
+}
+
 /// ICE regression test
 pub trait Foo {
     type Item;
