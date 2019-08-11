@@ -3178,17 +3178,6 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for creation of references to zeroed or uninitialized memory.", 
-      "Why is this bad": "Creation of null references is undefined behavior.", 
-      "Known problems": "None.", 
-      "Example": "```no_run\nlet bad_ref: &usize = unsafe { std::mem::zeroed() };\n```"
-    }, 
-    "group": "correctness", 
-    "id": "invalid_ref", 
-    "level": "Deny"
-  }, 
-  {
-    "docs": {
       "What it does": "Checks for usage of `_.map(_).flatten(_)`,", 
       "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
       "Known problems": "", 
