@@ -3215,6 +3215,12 @@
     "level": "Warn"
   }, 
   {
+    "docs": {}, 
+    "group": "deprecated", 
+    "id": "invalid_ref", 
+    "level": "Deprecated"
+  }, 
+  {
     "docs": {
       "What it does": "Checks for usage of `_.map(_).flatten(_)`,", 
       "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
