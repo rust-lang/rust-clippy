@@ -1,4 +1,5 @@
 #![warn(clippy::redundant_closure_call)]
+#![allow(deprecated)] // for `try` macro
 
 fn main() {
     let a = (|| 42)();

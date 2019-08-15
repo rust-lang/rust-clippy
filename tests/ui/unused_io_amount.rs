@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(deprecated)] // for `try` macro
 #![warn(clippy::unused_io_amount)]
 
 use std::io;

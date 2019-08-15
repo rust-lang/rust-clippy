@@ -1,6 +1,7 @@
 #![allow(clippy::all)]
 #![warn(clippy::cognitive_complexity)]
 #![allow(unused)]
+#![allow(deprecated)] // for deprecated `try` macro
 
 #[rustfmt::skip]
 fn main() {

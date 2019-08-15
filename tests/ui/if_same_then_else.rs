@@ -10,6 +10,7 @@
     clippy::zero_divided_by_zero,
     clippy::unused_unit
 )]
+#![allow(deprecated)] // for `try` macro
 
 struct Foo {
     bar: u8,
