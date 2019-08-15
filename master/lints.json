@@ -1699,6 +1699,12 @@
     "level": "Warn"
   }, 
   {
+    "docs": {}, 
+    "group": "deprecated", 
+    "id": "unused_collect", 
+    "level": "Deprecated"
+  }, 
+  {
     "docs": {
       "What it does": "Checks for casts between numerical types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault.", 
       "Why is this bad": "In some problem domains, it is good practice to avoid\ntruncation. This lint can be activated to help assess where additional\nchecks could be beneficial.", 
@@ -1730,17 +1736,6 @@
     "group": "perf", 
     "id": "expect_fun_call", 
     "level": "Warn"
-  }, 
-  {
-    "docs": {
-      "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
-      "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make\nsense. It allows the crate to require all exported methods to be `#[inline]` by default, and\nthen opt out for specific methods where this might not make sense.", 
-      "Known problems": "None.", 
-      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn private() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn private() {} // ok\n   pub fn not_ptrivate() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```"
-    }, 
-    "group": "restriction", 
-    "id": "missing_inline_in_public_items", 
-    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2593,14 +2588,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for using `collect()` on an iterator without using\nthe result.", 
-      "Why is this bad": "It is more idiomatic to use a `for` loop over the\niterator instead.", 
+      "What it does": "it lints if an exported function, method, trait method with default impl,\nor trait method impl is not `#[inline]`.", 
+      "Why is this bad": "In general, it is not. Functions can be inlined across\ncrates when that's profitable as long as any form of LTO is used. When LTO is disabled,\nfunctions that are not `#[inline]` cannot be inlined across crates. Certain types of crates\nmight intend for most of the methods in their public API to be able to be inlined across\ncrates even when LTO is disabled. For these types of crates, enabling this lint might make\nsense. It allows the crate to require all exported methods to be `#[inline]` by default, and\nthen opt out for specific methods where this might not make sense.", 
       "Known problems": "None.", 
-      "Example": "```ignore\nvec.iter().map(|x| /* some operation returning () */).collect::<Vec<_>>();\n```"
+      "Example": "```rust\npub fn foo() {} // missing #[inline]\nfn ok() {} // ok\n#[inline] pub fn bar() {} // ok\n#[inline(always)] pub fn baz() {} // ok\n\npub trait Bar {\n  fn bar(); // ok\n  fn def_bar() {} // missing #[inline]\n}\n\nstruct Baz;\nimpl Baz {\n   fn private() {} // ok\n}\n\nimpl Bar for Baz {\n  fn bar() {} // ok - Baz is not exported\n}\n\npub struct PubBaz;\nimpl PubBaz {\n   fn private() {} // ok\n   pub fn not_ptrivate() {} // missing #[inline]\n}\n\nimpl Bar for PubBaz {\n   fn bar() {} // missing #[inline]\n   fn def_bar() {} // missing #[inline]\n}\n```"
     }, 
-    "group": "perf", 
-    "id": "unused_collect", 
-    "level": "Warn"
+    "group": "restriction", 
+    "id": "missing_inline_in_public_items", 
+    "level": "Allow"
   }, 
   {
     "docs": {
