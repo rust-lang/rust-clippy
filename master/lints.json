@@ -999,7 +999,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for matches with a two arms where an `if let else` will\nusually suffice.", 
+      "What it does": "Checks for matches with two arms where an `if let else` will\nusually suffice.", 
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.", 
       "Known problems": "Personal style preferences may differ.", 
       "Example": "Using `match`:\n\n```rust\n# fn bar(foo: &usize) {}\n# let other_ref: usize = 1;\n# let x: Option<&usize> = Some(&1);\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => bar(&other_ref),\n}\n```\n\nUsing `if let` with `else`:\n\n```rust\n# fn bar(foo: &usize) {}\n# let other_ref: usize = 1;\n# let x: Option<&usize> = Some(&1);\nif let Some(ref foo) = x {\n    bar(foo);\n} else {\n    bar(&other_ref);\n}\n```"
