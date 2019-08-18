@@ -2178,6 +2178,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for calls to `map` followed by a `count`.", 
+      "Why is this bad": "It looks suspicious. Maybe `map` was confused with `filter`.\nIf the `map` call is intentional, this should be rewritten.", 
+      "Known problems": "None", 
+      "Example": "```rust\nlet _ = (0..3).map(|x| x + 2).count();\n```"
+    }, 
+    "group": "complexity", 
+    "id": "suspicious_map", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for expressions of the form `if c { true } else {\nfalse }`\n(or vice versa) and suggest using the condition directly.", 
       "Why is this bad": "Redundant code.", 
       "Known problems": "Maybe false positives: Sometimes, the two branches are\npainstakingly documented (which we, of course, do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code.", 
