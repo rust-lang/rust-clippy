@@ -628,9 +628,9 @@
       "Why is this bad": "Repeating the type for every bound makes the code\nless readable than combining the bounds", 
       "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```"
     }, 
-    "group": "complexity", 
+    "group": "pedantic", 
     "id": "type_repetition_in_bounds", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
