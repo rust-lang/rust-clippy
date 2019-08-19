@@ -1,5 +1,5 @@
 error: using `Option.and_then(Some)`, which is a no-op
-  --> $DIR/option_and_then_some.rs:8:13
+  --> $DIR/option_and_then_some.rs:9:13
    |
 LL |     let _ = x.and_then(Some);
    |             ^^^^^^^^^^^^^^^^ help: use the expression directly: `x`
@@ -11,7 +11,7 @@ LL | #![deny(clippy::option_and_then_some)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: using `Option.and_then(|x| Some(y))`, which is more succinctly expressed as `map(|x| y)`
-  --> $DIR/option_and_then_some.rs:9:13
+  --> $DIR/option_and_then_some.rs:10:13
    |
 LL |     let _ = x.and_then(|o| Some(o + 1));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `x.map(|o| o + 1)`

@@ -1,5 +1,6 @@
 // run-rustfix
 #![deny(clippy::option_and_then_some)]
+#![allow(clippy::result_and_then_ok)]
 
 // need a main anyway, use it get rid of unused warnings too
 pub fn main() {
@@ -9,6 +10,10 @@ pub fn main() {
     let _ = x.and_then(|o| Some(o + 1));
     // and an easy counter-example
     let _ = x.and_then(|o| if o < 32 { Some(o) } else { None });
+
+    // Different type
+    let x: Result<u32, &str> = Ok(1);
+    let _ = x.and_then(Ok);
 }
 
 pub fn foo() -> Option<String> {

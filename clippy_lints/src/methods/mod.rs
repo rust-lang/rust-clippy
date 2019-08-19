@@ -301,14 +301,14 @@ declare_clippy_lint! {
     /// **Example:**
     ///
     /// ```rust
-    /// let x = Ok("foo");
+    /// let x: Result<&str, ()> = Ok("foo");
     /// let _ = x.and_then(|s| Ok(s.len()));
     /// ```
     ///
     /// The correct use would be:
     ///
     /// ```rust
-    /// let x = Ok("foo");
+    /// let x: Result<&str, ()> = Ok("foo");
     /// let _ = x.map(|s| s.len());
     /// ```
     pub RESULT_AND_THEN_OK,
@@ -2258,12 +2258,12 @@ fn lint_result_and_then_ok(cx: &LateContext<'_, '_>, expr: &hir::Expr, args: &[h
             let closure_body = cx.tcx.hir().body(body_id);
             let closure_expr = remove_blocks(&closure_body.value);
             if_chain! {
-                if let hir::ExprKind::Call(ref some_expr, ref some_args) = closure_expr.node;
-                if let hir::ExprKind::Path(ref qpath) = some_expr.node;
+                if let hir::ExprKind::Call(ref ok_expr, ref ok_args) = closure_expr.node;
+                if let hir::ExprKind::Path(ref qpath) = ok_expr.node;
                 if match_qpath(qpath, &paths::RESULT_OK);
-                if some_args.len() == 1;
+                if ok_args.len() == 1;
                 then {
-                    let inner_expr = &some_args[0];
+                    let inner_expr = &ok_args[0];
 
                     let mut finder = RetCallFinder { found: false };
                     finder.visit_expr(inner_expr);
@@ -2271,7 +2271,7 @@ fn lint_result_and_then_ok(cx: &LateContext<'_, '_>, expr: &hir::Expr, args: &[h
                         return;
                     }
 
-                    let some_inner_snip = if in_macro_or_desugar(inner_expr.span) {
+                    let ok_inner_snip = if in_macro_or_desugar(inner_expr.span) {
                         snippet_with_macro_callsite(cx, inner_expr.span, "_")
                     } else {
                         snippet(cx, inner_expr.span, "_")
@@ -2279,7 +2279,7 @@ fn lint_result_and_then_ok(cx: &LateContext<'_, '_>, expr: &hir::Expr, args: &[h
 
                     let closure_args_snip = snippet(cx, closure_args_span, "..");
                     let option_snip = snippet(cx, args[0].span, "..");
-                    let note = format!("{}.map({} {})", option_snip, closure_args_snip, some_inner_snip);
+                    let note = format!("{}.map({} {})", option_snip, closure_args_snip, ok_inner_snip);
                     span_lint_and_sugg(
                         cx,
                         RESULT_AND_THEN_OK,
