@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 311] = [
+pub const ALL_LINTS: [Lint; 312] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -1581,6 +1581,13 @@ pub const ALL_LINTS: [Lint; 311] = [
         desc: "Lint usages of standard library `const`s that could be replaced by `const fn`s",
         deprecation: None,
         module: "replace_consts",
+    },
+    Lint {
+        name: "result_and_then_ok",
+        group: "complexity",
+        desc: "using `Result.and_then(|x| Ok(y))`, which is more succinctly expressed as `map(|x| y)`",
+        deprecation: None,
+        module: "methods",
     },
     Lint {
         name: "result_map_unit_fn",

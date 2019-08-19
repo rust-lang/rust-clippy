@@ -1,0 +1,20 @@
+error: using `Result.and_then(Ok)`, which is a no-op
+  --> $DIR/result_and_then_ok.rs:7:13
+   |
+LL |     let _ = x.and_then(Ok);
+   |             ^^^^^^^^^^^^^^ help: use the expression directly: `x`
+   |
+note: lint level defined here
+  --> $DIR/result_and_then_ok.rs:2:9
+   |
+LL | #![deny(clippy::result_and_then_ok)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: using `Result.and_then(|x| Ok(y))`, which is more succinctly expressed as `map(|x| y)`
+  --> $DIR/result_and_then_ok.rs:8:13
+   |
+LL |     let _ = x.and_then(|o| Ok(o + 1));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `x.map(|o| o + 1)`
+
+error: aborting due to 2 previous errors
+
