@@ -1314,6 +1314,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `_.and_then(|x| Some(y))`.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.map(|x| y)`.", 
+      "Known problems": "None", 
+      "Example": "```rust\nlet x = Some(\"foo\");\nlet _ = x.and_then(|s| Some(s.len()));\n```\n\nThe correct use would be:\n\n```rust\nlet x = Some(\"foo\");\nlet _ = x.map(|s| s.len());\n```"
+    }, 
+    "group": "complexity", 
+    "id": "option_and_then_some", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of if expressions with an `else if` branch,\nbut without a final `else` branch.", 
       "Why is this bad": "Some coding guidelines require this (e.g., MISRA-C:2004 Rule 14.10).", 
       "Known problems": "None.", 
