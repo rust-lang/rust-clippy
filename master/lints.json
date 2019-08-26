@@ -439,7 +439,7 @@
       "What it does": "Checks for usage of `.chars().next()` on a `str` to check\nif it starts with a given char.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.starts_with(_)`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet name = \"foo\";\nname.chars().next() == Some('_');\n```"
+      "Example": "```rust\nlet name = \"foo\";\nif name.chars().next() == Some('_') {};\n```\nCould be written as\n```rust\nlet name = \"foo\";\nif name.starts_with('_') {};\n```"
     }, 
     "group": "complexity", 
     "id": "chars_next_cmp", 
@@ -550,7 +550,7 @@
       "What it does": "Checks for `foo = bar; bar = foo` sequences.", 
       "Why is this bad": "This looks like a failed attempt to swap.", 
       "Known problems": "None.", 
-      "Example": "```rust\na = b;\nb = a;\n```"
+      "Example": "```rust\na = b;\nb = a;\n```\nCould be written as:\n```rust\nstd::mem::swap(&mut a, &mut b);\n```"
     }, 
     "group": "correctness", 
     "id": "almost_swapped", 
@@ -869,7 +869,7 @@
       "What it does": "Checks for zipping a collection with the range of\n`0.._.len()`.", 
       "Why is this bad": "The code is better expressed with `.enumerate()`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nx.iter().zip(0..x.len());\n```"
+      "Example": "```rust\nx.iter().zip(0..x.len());\n```\nCould be written as\n```rust\nx.iter().enumerate();\n```"
     }, 
     "group": "complexity", 
     "id": "range_zip_with_len", 
@@ -1196,7 +1196,7 @@
       "What it does": "Checks for inclusive ranges where 1 is subtracted from\nthe upper bound, e.g., `x..=(y-1)`.", 
       "Why is this bad": "The code is more readable with an exclusive range\nlike `x..y`.", 
       "Known problems": "None.", 
-      "Example": "```rust,ignore\nfor x..=(y-1) { .. }\n```"
+      "Example": "```rust,ignore\nfor x..=(y-1) { .. }\n```\nCould be written as\n```rust,ignore\nfor x..y { .. }\n```"
     }, 
     "group": "complexity", 
     "id": "range_minus_one", 
@@ -1539,7 +1539,7 @@
       "What it does": "Checks for usage of `_.filter(_).next()`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.find(_)`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nvec.iter().filter(|x| **x == 0).next();\n```"
+      "Example": "```rust\nvec.iter().filter(|x| **x == 0).next();\n```\nCould be written as\n```rust\nvec.iter().find(|x| **x == 0);\n```"
     }, 
     "group": "complexity", 
     "id": "filter_next", 
@@ -1561,7 +1561,7 @@
       "What it does": "Checks for conversions to owned values just for the sake\nof a comparison.", 
       "Why is this bad": "The comparison can operate on a reference, so creating\nan owned value effectively throws it away directly afterwards, which is\nneedlessly consuming code and heap space.", 
       "Known problems": "None.", 
-      "Example": "```rust\nif x.to_owned() == y {}\n```"
+      "Example": "```rust\nif x.to_owned() == y {}\n```\nCould be written as\n```rust\nif x == y {}\n```"
     }, 
     "group": "perf", 
     "id": "cmp_owned", 
@@ -1671,7 +1671,7 @@
       "What it does": "Checks `for` loops over slices with an explicit counter\nand suggests the use of `.enumerate()`.", 
       "Why is it bad": "Not only is the version using `.enumerate()` more\nreadable, the compiler is able to remove bounds checks which can lead to\nfaster code in some instances.", 
       "Known problems": "None.", 
-      "Example": "```rust\nfor i in 0..v.len() { foo(v[i]); }\nfor i in 0..v.len() { bar(i, v[i]); }\n```"
+      "Example": "```rust\nfor i in 0..v.len() { foo(v[i]); }\nfor i in 0..v.len() { bar(i, v[i]); }\n```\nCould be written as\n```rust\nfor item in &v { foo(*item); }\nfor (i, item) in v.iter().enumerate() { bar(i, *item); }\n```"
     }, 
     "group": "complexity", 
     "id": "explicit_counter_loop", 
@@ -1731,7 +1731,7 @@
       "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g., `x..(y+1)`.", 
       "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.", 
       "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.", 
-      "Example": "```rust,ignore\nfor x..(y+1) { .. }\n```"
+      "Example": "```rust,ignore\nfor x..(y+1) { .. }\n```\nCould be written as\n```rust,ignore\nfor x..=y { .. }\n```"
     }, 
     "group": "complexity", 
     "id": "range_plus_one", 
@@ -1753,7 +1753,7 @@
       "What it does": "Checks for an iterator search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nvec.iter().find(|x| **x == 0).is_some();\n```"
+      "Example": "```rust\nvec.iter().find(|x| **x == 0).is_some();\n```\nCould be written as\n```rust\nvec.iter().any(|x| *x == 0);\n```"
     }, 
     "group": "complexity", 
     "id": "search_is_some", 
@@ -2203,7 +2203,7 @@
       "What it does": "Checks for expressions of the form `if c { true } else {\nfalse }`\n(or vice versa) and suggest using the condition directly.", 
       "Why is this bad": "Redundant code.", 
       "Known problems": "Maybe false positives: Sometimes, the two branches are\npainstakingly documented (which we, of course, do not detect), so they *may*\nhave some value. Even then, the documentation can be rewritten to match the\nshorter code.", 
-      "Example": "```rust,ignore\nif x {\n    false\n} else {\n    true\n}\n```"
+      "Example": "```rust,ignore\nif x {\n    false\n} else {\n    true\n}\n```\nCould be written as\n```rust,ignore\n!x\n```"
     }, 
     "group": "complexity", 
     "id": "needless_bool", 
@@ -3192,7 +3192,7 @@
       "What it does": "Checks for `into_iter` calls on types which should be replaced by `iter` or\n`iter_mut`.", 
       "Why is this bad": "Arrays and `PathBuf` do not yet have an `into_iter` method which move out\ntheir content into an iterator. Auto-referencing resolves the `into_iter` call to its reference\ninstead, like `<&[T; N] as IntoIterator>::into_iter`, which just iterates over item references\nlike calling `iter` would. Furthermore, when the standard library actually\n[implements the `into_iter` method](https://github.com/rust-lang/rust/issues/25725) which moves\nthe content out of the array, the original use of `into_iter` got inferred with the wrong type\nand the code will be broken.", 
       "Known problems": "None", 
-      "Example": "```rust\nlet _ = [1, 2, 3].into_iter().map(|x| *x).collect::<Vec<u32>>();\n```"
+      "Example": "```rust\nlet _ = [1, 2, 3].into_iter().map(|x| *x).collect::<Vec<u32>>();\n```\nCould be written as:\n```rust\nlet _ = [1, 2, 3].iter().map(|x| *x).collect::<Vec<u32>>();\n```"
     }, 
     "group": "correctness", 
     "id": "into_iter_on_array", 
