@@ -2963,6 +2963,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `MaybeUninit::uninit().assume_init()`.", 
+      "Why is this bad": "For most types, this is undefined behavior.", 
+      "Known problems": "For now, we accept empty tuples and tuples / arrays\nof `MaybeUninit`. There may be other types that allow uninitialized\ndata, but those are not yet rigorously defined.", 
+      "Example": "```rust\n// Beware the UB\nuse std::mem::MaybeUninit;\n\nlet _: usize = unsafe { MaybeUninit::uninit().assume_init() };\n```\n\nNote that the following is OK:\n\n```rust\nuse std::mem::MaybeUninit;\n\nlet _: [MaybeUninit<bool>; 5] = unsafe {\n    MaybeUninit::uninit().assume_init()\n};\n```"
+    }, 
+    "group": "correctness", 
+    "id": "uninit_assumed_init", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for return statements at the end of a block.", 
       "Why is this bad": "Removing the `return` and semicolon will make the code\nmore rusty.", 
       "Known problems": "If the computation returning the value borrows a local\nvariable, removing the `return` may run afoul of the borrow checker.", 
