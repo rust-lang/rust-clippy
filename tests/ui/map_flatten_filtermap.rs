@@ -8,4 +8,11 @@ fn main() {
         .map(|x| if *x > 10 { Some(x) } else { None })
         .flatten()
         .collect::<Vec<_>>();
+
+    let filtered2 = v
+        .iter()
+        .filter_map(|x| if *x > 10 { Some(x) } else { None })
+        .collect::<Vec<_>>();
+
+    assert_eq!(filtered1, filtered2);
 }
