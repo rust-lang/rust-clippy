@@ -240,7 +240,7 @@ pub const ALL_LINTS: [Lint; 313] = [
     },
     Lint {
         name: "cognitive_complexity",
-        group: "complexity",
+        group: "nursery",
         desc: "functions that should be split up into multiple functions",
         deprecation: None,
         module: "cognitive_complexity",
