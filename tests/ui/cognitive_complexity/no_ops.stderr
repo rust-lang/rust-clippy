@@ -1,0 +1,23 @@
+error: the function has a cognitive complexity of 10
+  --> $DIR/no_ops.rs:13:1
+   |
+LL | / fn chaining_with_one_block(a: bool, b: bool, c: bool) -> bool {
+LL | |     a ^ {b && c}
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::cognitive-complexity` implied by `-D warnings`
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 50
+  --> $DIR/no_ops.rs:69:1
+   |
+LL | / fn macros_are_not_expanded(n: usize) -> usize {
+LL | |     lucas_macro!(n)
+LL | | }
+   | |_^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: aborting due to 2 previous errors
+
