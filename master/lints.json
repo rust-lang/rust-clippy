@@ -469,6 +469,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `.checked_add/sub(x).unwrap_or(MAX/MIN)`.", 
+      "Why is this bad": "These can be written simply with `saturating_add/sub` methods.", 
+      "Example": "```rust\nlet add = x.checked_add(y).unwrap_or(u32::max_value());\nlet sub = x.checked_sub(y).unwrap_or(u32::min_value());\n```\n\ncan be written using dedicated methods for saturating addition/subtraction as:\n\n```rust\nlet add = x.saturating_add(y);\nlet sub = x.saturating_sub(y);\n```"
+    }, 
+    "group": "style", 
+    "id": "manual_saturating_arithmetic", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `.clone()` on an `&&T`.", 
       "Why is this bad": "Cloning an `&&T` copies the inner `&T`, instead of\ncloning the underlying `T`.", 
       "Known problems": "None.", 
