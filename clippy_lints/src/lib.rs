@@ -500,7 +500,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
     reg.register_late_lint_pass(box no_effect::NoEffect);
     reg.register_late_lint_pass(box temporary_assignment::TemporaryAssignment);
     reg.register_late_lint_pass(box transmute::Transmute);
-    reg.register_late_lint_pass(
+    reg.register_early_lint_pass(
         box cognitive_complexity::CognitiveComplexity::new(conf.cognitive_complexity_threshold)
     );
     reg.register_late_lint_pass(box escape::BoxedLocal{too_large_for_stack: conf.too_large_for_stack});
@@ -703,7 +703,6 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         booleans::LOGIC_BUG,
         booleans::NONMINIMAL_BOOL,
         bytecount::NAIVE_BYTECOUNT,
-        cognitive_complexity::COGNITIVE_COMPLEXITY,
         collapsible_if::COLLAPSIBLE_IF,
         copies::IFS_SAME_COND,
         copies::IF_SAME_THEN_ELSE,
@@ -1012,7 +1011,6 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         assign_ops::MISREFACTORED_ASSIGN_OP,
         attrs::DEPRECATED_CFG_ATTR,
         booleans::NONMINIMAL_BOOL,
-        cognitive_complexity::COGNITIVE_COMPLEXITY,
         double_comparison::DOUBLE_COMPARISONS,
         double_parens::DOUBLE_PARENS,
         duration_subsec::DURATION_SUBSEC,
@@ -1172,6 +1170,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
 
     reg.register_lint_group("clippy::nursery", Some("clippy_nursery"), vec![
         attrs::EMPTY_LINE_AFTER_OUTER_ATTR,
+        cognitive_complexity::COGNITIVE_COMPLEXITY,
         fallible_impl_from::FALLIBLE_IMPL_FROM,
         missing_const_for_fn::MISSING_CONST_FOR_FN,
         mutex_atomic::MUTEX_INTEGER,

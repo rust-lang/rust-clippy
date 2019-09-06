@@ -1,0 +1,323 @@
+error: the function has a cognitive complexity of 10
+  --> $DIR/ni_structures.rs:12:1
+   |
+LL | / fn func_calls() {
+LL | |     let _ = Vec::new();
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::cognitive-complexity` implied by `-D warnings`
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 40
+  --> $DIR/ni_structures.rs:17:1
+   |
+LL | / fn macro_calls() {
+LL | |     println!("Hello!");
+LL | | }
+   | |_^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:28:5
+   |
+LL | /     fn b_reak() {
+LL | |         loop {
+LL | |             break;
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:35:5
+   |
+LL | /     fn c_ontinue() {
+LL | |         loop {
+LL | |             continue;
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 30
+  --> $DIR/ni_structures.rs:42:5
+   |
+LL | /     fn break_plus_ni_expr() -> bool {
+LL | |         loop {
+LL | |             break {
+LL | |                 true || false
+LL | |             }
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 70
+  --> $DIR/ni_structures.rs:51:5
+   |
+LL | /     fn break_plus_nd_expr() -> bool {
+LL | |         loop {
+LL | |             break {
+LL | |                 if(true) {
+...  |
+LL | |         }
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 10
+  --> $DIR/ni_structures.rs:69:5
+   |
+LL | /     fn and(a: bool, b: bool) -> bool {
+LL | |         a && b
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 10
+  --> $DIR/ni_structures.rs:74:5
+   |
+LL | /     fn or(a: bool, b: bool) -> bool {
+LL | |         a || b
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 10
+  --> $DIR/ni_structures.rs:79:5
+   |
+LL | /     fn bit_and(a: bool, b: bool) -> bool {
+LL | |         a & b
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 10
+  --> $DIR/ni_structures.rs:84:5
+   |
+LL | /     fn bit_or(a: bool, b: bool) -> bool {
+LL | |         a | b
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 10
+  --> $DIR/ni_structures.rs:89:5
+   |
+LL | /     fn bit_xor(a: bool, b: bool) -> bool {
+LL | |         a ^ b
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:98:5
+   |
+LL | /     fn change_one_1(a: bool, b: bool, c: bool) -> bool {
+LL | |         a && b || c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:103:5
+   |
+LL | /     fn change_one_2(a: bool, b: bool, c: bool) -> bool {
+LL | |         a && b & c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:108:5
+   |
+LL | /     fn change_one_3(a: bool, b: bool, c: bool) -> bool {
+LL | |         a && b | c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:113:5
+   |
+LL | /     fn change_one_4(a: bool, b: bool, c: bool) -> bool {
+LL | |         a && b ^ c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:118:5
+   |
+LL | /     fn change_one_5(a: bool, b: bool, c: bool) -> bool {
+LL | |         a || b & c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:123:5
+   |
+LL | /     fn change_one_6(a: bool, b: bool, c: bool) -> bool {
+LL | |         a || b | c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:128:5
+   |
+LL | /     fn change_one_7(a: bool, b: bool, c: bool) -> bool {
+LL | |         a || b ^ c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:133:5
+   |
+LL | /     fn change_one_8(a: bool, b: bool, c: bool) -> bool {
+LL | |         a & b | c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:138:5
+   |
+LL | /     fn change_one_9(a: bool, b: bool, c: bool) -> bool {
+LL | |         a & b ^ c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:143:5
+   |
+LL | /     fn change_one_10(a: bool, b: bool, c: bool) -> bool {
+LL | |         a | b ^ c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:152:5
+   |
+LL | /     fn one_paren(a: bool, b: bool, c: bool) -> bool {
+LL | |         a && (b || c)
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:157:5
+   |
+LL | /     fn two_paren(a: bool, b: bool, c: bool) -> bool {
+LL | |         a & ((b | c))
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:162:5
+   |
+LL | /     fn one_unary(a: bool, b: bool, c: bool) -> bool {
+LL | |         a ^ b && !c
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 20
+  --> $DIR/ni_structures.rs:167:5
+   |
+LL | /     fn one_unary_one_paren(a: bool, b: bool, c: bool) -> bool {
+LL | |         a || !(b & c)
+LL | |     }
+   | |_____^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 40
+  --> $DIR/ni_structures.rs:179:9
+   |
+LL | /         fn right_side_is_a_trap_1(a: bool, b: bool, c: bool, d: bool, e: bool) -> bool {
+LL | |             // Here, if the algorithm recurses to the right instead of the left,
+LL | |             // it should produce a lower score.
+LL | |             (a && b) || ((c ^ d) || e)
+LL | |         }
+   | |_________^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 40
+  --> $DIR/ni_structures.rs:186:9
+   |
+LL | /         fn right_side_is_a_trap_2(a: bool, b: bool, c: bool, d: bool, e: bool) -> bool {
+LL | |             // Same as (right_side_is_a_trap_1), this tries to check that
+LL | |             // the algorithm's direction is correct
+LL | |             (a && b) || (((c ^ d) || e) || c)
+LL | |         }
+   | |_________^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 10
+  --> $DIR/ni_structures.rs:193:9
+   |
+LL | /         fn super_long_chain(a: bool, b: bool, c: bool, d: bool, e: bool) -> bool {
+LL | |             a && b && c && d && e
+LL | |         }
+   | |_________^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error[E0308]: mismatched types
+  --> $DIR/ni_structures.rs:54:26
+   |
+LL |                   if(true) {
+   |  __________________________^
+LL | |                     println!("Hello");
+LL | |                 }
+   | |_________________^ expected bool, found ()
+   |
+   = note: expected type `bool`
+              found type `()`
+
+error[E0308]: mismatched types
+  --> $DIR/ni_structures.rs:54:17
+   |
+LL | /                 if(true) {
+LL | |                     println!("Hello");
+LL | |                 }
+   | |_________________^ expected bool, found ()
+   |
+   = note: expected type `bool`
+              found type `()`
+
+error: aborting due to 30 previous errors
+
+For more information about this error, try `rustc --explain E0308`.

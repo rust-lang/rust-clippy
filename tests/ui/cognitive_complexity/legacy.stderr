@@ -1,20 +1,55 @@
-error: the function has a cognitive complexity of 1350
-  --> $DIR/cognitive_complexity.rs:6:1
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:225:13
    |
-LL | / fn main() {
-LL | |     if true {
-LL | |         println!("a");
-LL | |     }
-...  |
-LL | |     }
-LL | | }
-   | |_^
+LL |     let _ = try!(Ok(42));
+   |             ^^^
    |
-   = note: `-D clippy::cognitive-complexity` implied by `-D warnings`
-   = help: you could split it up into multiple smaller functions
+   = note: `-D deprecated` implied by `-D warnings`
+
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:226:13
+   |
+LL |     let _ = try!(Ok(43));
+   |             ^^^
+
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:227:13
+   |
+LL |     let _ = try!(Ok(44));
+   |             ^^^
+
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:228:13
+   |
+LL |     let _ = try!(Ok(45));
+   |             ^^^
+
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:229:13
+   |
+LL |     let _ = try!(Ok(46));
+   |             ^^^
+
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:230:13
+   |
+LL |     let _ = try!(Ok(47));
+   |             ^^^
+
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:231:13
+   |
+LL |     let _ = try!(Ok(48));
+   |             ^^^
+
+error: use of deprecated item 'try': use the `?` operator instead
+  --> $DIR/legacy.rs:232:13
+   |
+LL |     let _ = try!(Ok(49));
+   |             ^^^
 
 error: the function has a cognitive complexity of 180
-  --> $DIR/cognitive_complexity.rs:91:1
+  --> $DIR/legacy.rs:12:1
    |
 LL | / fn kaboom() {
 LL | |     let n = 0;
@@ -25,10 +60,11 @@ LL | |     }
 LL | | }
    | |_^
    |
+   = note: `-D clippy::cognitive-complexity` implied by `-D warnings`
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 770
-  --> $DIR/cognitive_complexity.rs:112:1
+  --> $DIR/legacy.rs:33:1
    |
 LL | / fn bloo() {
 LL | |     match 42 {
@@ -41,28 +77,8 @@ LL | | }
    |
    = help: you could split it up into multiple smaller functions
 
-error: the function has a cognitive complexity of 10
-  --> $DIR/cognitive_complexity.rs:137:1
-   |
-LL | / fn lots_of_short_circuits() -> bool {
-LL | |     true && false && true && false && true && false && true
-LL | | }
-   | |_^
-   |
-   = help: you could split it up into multiple smaller functions
-
-error: the function has a cognitive complexity of 10
-  --> $DIR/cognitive_complexity.rs:142:1
-   |
-LL | / fn lots_of_short_circuits2() -> bool {
-LL | |     true || false || true || false || true || false || true
-LL | | }
-   | |_^
-   |
-   = help: you could split it up into multiple smaller functions
-
 error: the function has a cognitive complexity of 120
-  --> $DIR/cognitive_complexity.rs:147:1
+  --> $DIR/legacy.rs:58:1
    |
 LL | / fn baa() {
 LL | |     let x = || match 99 {
@@ -76,7 +92,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 90
-  --> $DIR/cognitive_complexity.rs:165:1
+  --> $DIR/legacy.rs:76:1
    |
 LL | / fn bar() {
 LL | |     match 99 {
@@ -89,7 +105,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 170
-  --> $DIR/cognitive_complexity.rs:184:1
+  --> $DIR/legacy.rs:84:1
    |
 LL | / fn barr() {
 LL | |     match 99 {
@@ -103,7 +119,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 340
-  --> $DIR/cognitive_complexity.rs:194:1
+  --> $DIR/legacy.rs:94:1
    |
 LL | / fn barr2() {
 LL | |     match 99 {
@@ -117,7 +133,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 140
-  --> $DIR/cognitive_complexity.rs:210:1
+  --> $DIR/legacy.rs:110:1
    |
 LL | / fn barrr() {
 LL | |     match 99 {
@@ -131,7 +147,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 280
-  --> $DIR/cognitive_complexity.rs:220:1
+  --> $DIR/legacy.rs:120:1
    |
 LL | / fn barrr2() {
 LL | |     match 99 {
@@ -145,7 +161,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 140
-  --> $DIR/cognitive_complexity.rs:236:1
+  --> $DIR/legacy.rs:136:1
    |
 LL | / fn barrrr() {
 LL | |     match 99 {
@@ -159,7 +175,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 280
-  --> $DIR/cognitive_complexity.rs:246:1
+  --> $DIR/legacy.rs:146:1
    |
 LL | / fn barrrr2() {
 LL | |     match 99 {
@@ -173,7 +189,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 100
-  --> $DIR/cognitive_complexity.rs:262:1
+  --> $DIR/legacy.rs:162:1
    |
 LL | / fn cake() {
 LL | |     if 4 == 5 {
@@ -187,7 +203,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 270
-  --> $DIR/cognitive_complexity.rs:272:1
+  --> $DIR/legacy.rs:172:1
    |
 LL | / pub fn read_file(input_path: &str) -> String {
 LL | |     use std::fs::File;
@@ -201,7 +217,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 20
-  --> $DIR/cognitive_complexity.rs:303:1
+  --> $DIR/legacy.rs:203:1
    |
 LL | / fn void(void: Void) {
 LL | |     if true {
@@ -213,7 +229,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 20
-  --> $DIR/cognitive_complexity.rs:310:1
+  --> $DIR/legacy.rs:210:1
    |
 LL | / fn mcarton_sees_all() {
 LL | |     panic!("meh");
@@ -224,9 +240,9 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 30
-  --> $DIR/cognitive_complexity.rs:316:1
+  --> $DIR/legacy.rs:216:1
    |
-LL | / fn try_() -> Result<i32, &'static str> {
+LL | / fn try() -> Result<i32, &'static str> {
 LL | |     match 5 {
 LL | |         5 => Ok(5),
 LL | |         _ => return Err("bla"),
@@ -236,13 +252,13 @@ LL | | }
    |
    = help: you could split it up into multiple smaller functions
 
-error: the function has a cognitive complexity of 110
-  --> $DIR/cognitive_complexity.rs:324:1
+error: the function has a cognitive complexity of 350
+  --> $DIR/legacy.rs:224:1
    |
 LL | / fn try_again() -> Result<i32, &'static str> {
-LL | |     let _ = Ok(42)?;
-LL | |     let _ = Ok(43)?;
-LL | |     let _ = Ok(44)?;
+LL | |     let _ = try!(Ok(42));
+LL | |     let _ = try!(Ok(43));
+LL | |     let _ = try!(Ok(44));
 ...  |
 LL | |     }
 LL | | }
@@ -251,7 +267,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 90
-  --> $DIR/cognitive_complexity.rs:340:1
+  --> $DIR/legacy.rs:240:1
    |
 LL | / fn early() -> Result<i32, &'static str> {
 LL | |     return Ok(5);
@@ -265,7 +281,7 @@ LL | | }
    = help: you could split it up into multiple smaller functions
 
 error: the function has a cognitive complexity of 130
-  --> $DIR/cognitive_complexity.rs:354:1
+  --> $DIR/legacy.rs:254:1
    |
 LL | / fn early_ret() -> i32 {
 LL | |     let a = if true { 42 } else { return 0; };
@@ -278,5 +294,35 @@ LL | | }
    |
    = help: you could split it up into multiple smaller functions
 
-error: aborting due to 21 previous errors
+error: the function has a cognitive complexity of 30
+  --> $DIR/legacy.rs:274:1
+   |
+LL | / fn osscilating_logical_chain_1() -> bool {
+LL | |     true && false || true && false
+LL | | }
+   | |_^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 30
+  --> $DIR/legacy.rs:281:1
+   |
+LL | / fn osscilating_logical_chain_2() -> bool {
+LL | |     true && false && true && false || true && false && true && false
+LL | | }
+   | |_^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: the function has a cognitive complexity of 30
+  --> $DIR/legacy.rs:286:1
+   |
+LL | / fn osscilating_logical_chain_3() -> bool {
+LL | |     (true && false) || (true && false)
+LL | | }
+   | |_^
+   |
+   = help: you could split it up into multiple smaller functions
+
+error: aborting due to 29 previous errors
 
