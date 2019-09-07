@@ -1,3 +1,4 @@
+mod manual_saturating_arithmetic;
 mod option_map_unwrap_or;
 mod unnecessary_filter_map;
 
@@ -951,6 +952,65 @@ declare_clippy_lint! {
     "suspicious usage of map"
 }
 
+declare_clippy_lint! {
+    /// **What it does:** Checks for `MaybeUninit::uninit().assume_init()`.
+    ///
+    /// **Why is this bad?** For most types, this is undefined behavior.
+    ///
+    /// **Known problems:** For now, we accept empty tuples and tuples / arrays
+    /// of `MaybeUninit`. There may be other types that allow uninitialized
+    /// data, but those are not yet rigorously defined.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// // Beware the UB
+    /// use std::mem::MaybeUninit;
+    ///
+    /// let _: usize = unsafe { MaybeUninit::uninit().assume_init() };
+    /// ```
+    ///
+    /// Note that the following is OK:
+    ///
+    /// ```rust
+    /// use std::mem::MaybeUninit;
+    ///
+    /// let _: [MaybeUninit<bool>; 5] = unsafe {
+    ///     MaybeUninit::uninit().assume_init()
+    /// };
+    /// ```
+    pub UNINIT_ASSUMED_INIT,
+    correctness,
+    "`MaybeUninit::uninit().assume_init()`"
+}
+
+declare_clippy_lint! {
+    /// **What it does:** Checks for `.checked_add/sub(x).unwrap_or(MAX/MIN)`.
+    ///
+    /// **Why is this bad?** These can be written simply with `saturating_add/sub` methods.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// # let y: u32 = 0;
+    /// # let x: u32 = 100;
+    /// let add = x.checked_add(y).unwrap_or(u32::max_value());
+    /// let sub = x.checked_sub(y).unwrap_or(u32::min_value());
+    /// ```
+    ///
+    /// can be written using dedicated methods for saturating addition/subtraction as:
+    ///
+    /// ```rust
+    /// # let y: u32 = 0;
+    /// # let x: u32 = 100;
+    /// let add = x.saturating_add(y);
+    /// let sub = x.saturating_sub(y);
+    /// ```
+    pub MANUAL_SATURATING_ARITHMETIC,
+    style,
+    "`.chcked_add/sub(x).unwrap_or(MAX/MIN)`"
+}
+
 declare_lint_pass!(Methods => [
     OPTION_UNWRAP_USED,
     RESULT_UNWRAP_USED,
@@ -991,6 +1051,8 @@ declare_lint_pass!(Methods => [
     INTO_ITER_ON_ARRAY,
     INTO_ITER_ON_REF,
     SUSPICIOUS_MAP,
+    UNINIT_ASSUMED_INIT,
+    MANUAL_SATURATING_ARITHMETIC,
 ]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
@@ -1000,7 +1062,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             return;
         }
 
-        let (method_names, arg_lists) = method_calls(expr, 2);
+        let (method_names, arg_lists, method_spans) = method_calls(expr, 2);
         let method_names: Vec<LocalInternedString> = method_names.iter().map(|s| s.as_str()).collect();
         let method_names: Vec<&str> = method_names.iter().map(std::convert::AsRef::as_ref).collect();
 
@@ -1020,11 +1082,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             ["map", "find"] => lint_find_map(cx, expr, arg_lists[1], arg_lists[0]),
             ["flat_map", "filter"] => lint_filter_flat_map(cx, expr, arg_lists[1], arg_lists[0]),
             ["flat_map", "filter_map"] => lint_filter_map_flat_map(cx, expr, arg_lists[1], arg_lists[0]),
-            ["flat_map", ..] => lint_flat_map_identity(cx, expr, arg_lists[0]),
+            ["flat_map", ..] => lint_flat_map_identity(cx, expr, arg_lists[0], method_spans[0]),
             ["flatten", "map"] => lint_map_flatten(cx, expr, arg_lists[1]),
-            ["is_some", "find"] => lint_search_is_some(cx, expr, "find", arg_lists[1], arg_lists[0]),
-            ["is_some", "position"] => lint_search_is_some(cx, expr, "position", arg_lists[1], arg_lists[0]),
-            ["is_some", "rposition"] => lint_search_is_some(cx, expr, "rposition", arg_lists[1], arg_lists[0]),
+            ["is_some", "find"] => lint_search_is_some(cx, expr, "find", arg_lists[1], arg_lists[0], method_spans[1]),
+            ["is_some", "position"] => {
+                lint_search_is_some(cx, expr, "position", arg_lists[1], arg_lists[0], method_spans[1])
+            },
+            ["is_some", "rposition"] => {
+                lint_search_is_some(cx, expr, "rposition", arg_lists[1], arg_lists[0], method_spans[1])
+            },
             ["extend", ..] => lint_extend(cx, expr, arg_lists[0]),
             ["as_ptr", "unwrap"] | ["as_ptr", "expect"] => {
                 lint_cstring_as_ptr(cx, expr, &arg_lists[1][0], &arg_lists[0][0])
@@ -1035,9 +1101,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             ["collect", "cloned"] => lint_iter_cloned_collect(cx, expr, arg_lists[1]),
             ["as_ref"] => lint_asref(cx, expr, "as_ref", arg_lists[0]),
             ["as_mut"] => lint_asref(cx, expr, "as_mut", arg_lists[0]),
-            ["fold", ..] => lint_unnecessary_fold(cx, expr, arg_lists[0]),
+            ["fold", ..] => lint_unnecessary_fold(cx, expr, arg_lists[0], method_spans[0]),
             ["filter_map", ..] => unnecessary_filter_map::lint(cx, expr, arg_lists[0]),
             ["count", "map"] => lint_suspicious_map(cx, expr),
+            ["assume_init"] => lint_maybe_uninit(cx, &arg_lists[0][0], expr),
+            ["unwrap_or", arith @ "checked_add"]
+            | ["unwrap_or", arith @ "checked_sub"]
+            | ["unwrap_or", arith @ "checked_mul"] => {
+                manual_saturating_arithmetic::lint(cx, expr, &arg_lists, &arith["checked_".len()..])
+            },
             _ => {},
         }
 
@@ -1712,11 +1784,12 @@ fn lint_iter_cloned_collect<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &hir::Ex
     }
 }
 
-fn lint_unnecessary_fold(cx: &LateContext<'_, '_>, expr: &hir::Expr, fold_args: &[hir::Expr]) {
+fn lint_unnecessary_fold(cx: &LateContext<'_, '_>, expr: &hir::Expr, fold_args: &[hir::Expr], fold_span: Span) {
     fn check_fold_with_op(
         cx: &LateContext<'_, '_>,
         expr: &hir::Expr,
         fold_args: &[hir::Expr],
+        fold_span: Span,
         op: hir::BinOpKind,
         replacement_method_name: &str,
         replacement_has_args: bool,
@@ -1738,8 +1811,6 @@ fn lint_unnecessary_fold(cx: &LateContext<'_, '_>, expr: &hir::Expr, fold_args: 
             if match_var(&*left_expr, first_arg_ident);
             if replacement_has_args || match_var(&*right_expr, second_arg_ident);
 
-            if let hir::ExprKind::MethodCall(_, span, _) = &expr.node;
-
             then {
                 let mut applicability = Applicability::MachineApplicable;
                 let sugg = if replacement_has_args {
@@ -1759,7 +1830,7 @@ fn lint_unnecessary_fold(cx: &LateContext<'_, '_>, expr: &hir::Expr, fold_args: 
                 span_lint_and_sugg(
                     cx,
                     UNNECESSARY_FOLD,
-                    span.with_hi(expr.span.hi()),
+                    fold_span.with_hi(expr.span.hi()),
                     // TODO #2371 don't suggest e.g., .any(|x| f(x)) if we can suggest .any(f)
                     "this `.fold` can be written more succinctly using another method",
                     "try",
@@ -1783,10 +1854,18 @@ fn lint_unnecessary_fold(cx: &LateContext<'_, '_>, expr: &hir::Expr, fold_args: 
     // Check if the first argument to .fold is a suitable literal
     if let hir::ExprKind::Lit(ref lit) = fold_args[1].node {
         match lit.node {
-            ast::LitKind::Bool(false) => check_fold_with_op(cx, expr, fold_args, hir::BinOpKind::Or, "any", true),
-            ast::LitKind::Bool(true) => check_fold_with_op(cx, expr, fold_args, hir::BinOpKind::And, "all", true),
-            ast::LitKind::Int(0, _) => check_fold_with_op(cx, expr, fold_args, hir::BinOpKind::Add, "sum", false),
-            ast::LitKind::Int(1, _) => check_fold_with_op(cx, expr, fold_args, hir::BinOpKind::Mul, "product", false),
+            ast::LitKind::Bool(false) => {
+                check_fold_with_op(cx, expr, fold_args, fold_span, hir::BinOpKind::Or, "any", true)
+            },
+            ast::LitKind::Bool(true) => {
+                check_fold_with_op(cx, expr, fold_args, fold_span, hir::BinOpKind::And, "all", true)
+            },
+            ast::LitKind::Int(0, _) => {
+                check_fold_with_op(cx, expr, fold_args, fold_span, hir::BinOpKind::Add, "sum", false)
+            },
+            ast::LitKind::Int(1, _) => {
+                check_fold_with_op(cx, expr, fold_args, fold_span, hir::BinOpKind::Mul, "product", false)
+            },
             _ => (),
         }
     }
@@ -2323,22 +2402,21 @@ fn lint_flat_map_identity<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
     expr: &'tcx hir::Expr,
     flat_map_args: &'tcx [hir::Expr],
+    flat_map_span: Span,
 ) {
     if match_trait_method(cx, expr, &paths::ITERATOR) {
         let arg_node = &flat_map_args[1].node;
 
         let apply_lint = |message: &str| {
-            if let hir::ExprKind::MethodCall(_, span, _) = &expr.node {
-                span_lint_and_sugg(
-                    cx,
-                    FLAT_MAP_IDENTITY,
-                    span.with_hi(expr.span.hi()),
-                    message,
-                    "try",
-                    "flatten()".to_string(),
-                    Applicability::MachineApplicable,
-                );
-            }
+            span_lint_and_sugg(
+                cx,
+                FLAT_MAP_IDENTITY,
+                flat_map_span.with_hi(expr.span.hi()),
+                message,
+                "try",
+                "flatten()".to_string(),
+                Applicability::MachineApplicable,
+            );
         };
 
         if_chain! {
@@ -2375,6 +2453,7 @@ fn lint_search_is_some<'a, 'tcx>(
     search_method: &str,
     search_args: &'tcx [hir::Expr],
     is_some_args: &'tcx [hir::Expr],
+    method_span: Span,
 ) {
     // lint if caller of search is an Iterator
     if match_trait_method(cx, &is_some_args[0], &paths::ITERATOR) {
@@ -2386,31 +2465,36 @@ fn lint_search_is_some<'a, 'tcx>(
         let search_snippet = snippet(cx, search_args[1].span, "..");
         if search_snippet.lines().count() <= 1 {
             // suggest `any(|x| ..)` instead of `any(|&x| ..)` for `find(|&x| ..).is_some()`
+            // suggest `any(|..| *..)` instead of `any(|..| **..)` for `find(|..| **..).is_some()`
             let any_search_snippet = if_chain! {
                 if search_method == "find";
                 if let hir::ExprKind::Closure(_, _, body_id, ..) = search_args[1].node;
                 let closure_body = cx.tcx.hir().body(body_id);
                 if let Some(closure_arg) = closure_body.params.get(0);
-                if let hir::PatKind::Ref(..) = closure_arg.pat.node;
                 then {
-                    Some(search_snippet.replacen('&', "", 1))
+                    if let hir::PatKind::Ref(..) = closure_arg.pat.node {
+                        Some(search_snippet.replacen('&', "", 1))
+                    } else if let Some(name) = get_arg_name(&closure_arg.pat) {
+                        Some(search_snippet.replace(&format!("*{}", name), &name.as_str()))
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
             };
             // add note if not multi-line
-            span_note_and_lint(
+            span_lint_and_sugg(
                 cx,
                 SEARCH_IS_SOME,
-                expr.span,
+                method_span.with_hi(expr.span.hi()),
                 &msg,
-                expr.span,
-                &format!(
-                    "replace `{0}({1}).is_some()` with `any({2})`",
-                    search_method,
-                    search_snippet,
+                "try this",
+                format!(
+                    "any({})",
                     any_search_snippet.as_ref().map_or(&*search_snippet, String::as_str)
                 ),
+                Applicability::MachineApplicable,
             );
         } else {
             span_lint(cx, SEARCH_IS_SOME, expr.span, &msg);
@@ -2662,6 +2746,37 @@ fn lint_into_iter(cx: &LateContext<'_, '_>, expr: &hir::Expr, self_ref_ty: Ty<'_
     }
 }
 
+/// lint for `MaybeUninit::uninit().assume_init()` (we already have the latter)
+fn lint_maybe_uninit(cx: &LateContext<'_, '_>, expr: &hir::Expr, outer: &hir::Expr) {
+    if_chain! {
+        if let hir::ExprKind::Call(ref callee, ref args) = expr.node;
+        if args.is_empty();
+        if let hir::ExprKind::Path(ref path) = callee.node;
+        if match_qpath(path, &paths::MEM_MAYBEUNINIT_UNINIT);
+        if !is_maybe_uninit_ty_valid(cx, cx.tables.expr_ty_adjusted(outer));
+        then {
+            span_lint(
+                cx,
+                UNINIT_ASSUMED_INIT,
+                outer.span,
+                "this call for this type may be undefined behavior"
+            );
+        }
+    }
+}
+
+fn is_maybe_uninit_ty_valid(cx: &LateContext<'_, '_>, ty: Ty<'_>) -> bool {
+    match ty.sty {
+        ty::Array(ref component, _) => is_maybe_uninit_ty_valid(cx, component),
+        ty::Tuple(ref types) => types.types().all(|ty| is_maybe_uninit_ty_valid(cx, ty)),
+        ty::Adt(ref adt, _) => {
+            // needs to be a MaybeUninit
+            match_def_path(cx, adt.did, &paths::MEM_MAYBEUNINIT)
+        },
+        _ => false,
+    }
+}
+
 fn lint_suspicious_map(cx: &LateContext<'_, '_>, expr: &hir::Expr) {
     span_help_and_lint(
         cx,
@@ -2682,10 +2797,9 @@ fn get_error_type<'a>(cx: &LateContext<'_, '_>, ty: Ty<'a>) -> Option<Ty<'a>> {
 
 /// This checks whether a given type is known to implement Debug.
 fn has_debug_impl<'a, 'b>(ty: Ty<'a>, cx: &LateContext<'b, 'a>) -> bool {
-    match cx.tcx.get_diagnostic_item(sym::debug_trait) {
-        Some(debug) => implements_trait(cx, ty, debug, &[]),
-        None => false,
-    }
+    cx.tcx
+        .get_diagnostic_item(sym::debug_trait)
+        .map_or(false, |debug| implements_trait(cx, ty, debug, &[]))
 }
 
 enum Convention {

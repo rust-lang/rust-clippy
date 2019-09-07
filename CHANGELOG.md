@@ -1034,6 +1034,7 @@ Released 2018-09-13
 [`logic_bug`]: https://rust-lang.github.io/rust-clippy/master/index.html#logic_bug
 [`main_recursion`]: https://rust-lang.github.io/rust-clippy/master/index.html#main_recursion
 [`manual_memcpy`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_memcpy
+[`manual_saturating_arithmetic`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_saturating_arithmetic
 [`manual_swap`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_swap
 [`many_single_char_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#many_single_char_names
 [`map_clone`]: https://rust-lang.github.io/rust-clippy/master/index.html#map_clone
@@ -1176,6 +1177,7 @@ Released 2018-09-13
 [`type_repetition_in_bounds`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds
 [`unicode_not_nfc`]: https://rust-lang.github.io/rust-clippy/master/index.html#unicode_not_nfc
 [`unimplemented`]: https://rust-lang.github.io/rust-clippy/master/index.html#unimplemented
+[`uninit_assumed_init`]: https://rust-lang.github.io/rust-clippy/master/index.html#uninit_assumed_init
 [`unit_arg`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_arg
 [`unit_cmp`]: https://rust-lang.github.io/rust-clippy/master/index.html#unit_cmp
 [`unknown_clippy_lints`]: https://rust-lang.github.io/rust-clippy/master/index.html#unknown_clippy_lints

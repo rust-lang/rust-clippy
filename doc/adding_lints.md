@@ -77,7 +77,7 @@ fn main() {
 
 ```
 
-Now we can run the test with `TESTNAME=ui/foo_functions cargo uitest`.
+Now we can run the test with `TESTNAME=foo_functions cargo uitest`.
 Currently this test will fail. If you go through the output you will see that we
 are told that `clippy::foo_functions` is an unknown lint, which is expected.
 
@@ -86,9 +86,9 @@ test. That allows us to check if the output is turning into what we want.
 
 Once we are satisfied with the output, we need to run
 `tests/ui/update-all-references.sh` to update the `.stderr` file for our lint.
-Please note that, we should run `TESTNAME=ui/foo_functions cargo uitest`
+Please note that, we should run `TESTNAME=foo_functions cargo uitest`
 every time before running `tests/ui/update-all-references.sh`.
-Running `TESTNAME=ui/foo_functions cargo uitest` should pass then. When we
+Running `TESTNAME=foo_functions cargo uitest` should pass then. When we
 commit our lint, we need to commit the generated `.stderr` files, too.
 
 ### Rustfix tests

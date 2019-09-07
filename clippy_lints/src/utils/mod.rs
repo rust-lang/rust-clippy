@@ -342,26 +342,28 @@ pub fn resolve_node(cx: &LateContext<'_, '_>, qpath: &QPath, id: HirId) -> Res {
 }
 
 /// Returns the method names and argument list of nested method call expressions that make up
-/// `expr`.
-pub fn method_calls(expr: &Expr, max_depth: usize) -> (Vec<Symbol>, Vec<&[Expr]>) {
+/// `expr`. method/span lists are sorted with the most recent call first.
+pub fn method_calls(expr: &Expr, max_depth: usize) -> (Vec<Symbol>, Vec<&[Expr]>, Vec<Span>) {
     let mut method_names = Vec::with_capacity(max_depth);
     let mut arg_lists = Vec::with_capacity(max_depth);
+    let mut spans = Vec::with_capacity(max_depth);
 
     let mut current = expr;
     for _ in 0..max_depth {
-        if let ExprKind::MethodCall(path, _, args) = &current.node {
+        if let ExprKind::MethodCall(path, span, args) = &current.node {
             if args.iter().any(|e| e.span.from_expansion()) {
                 break;
             }
             method_names.push(path.ident.name);
             arg_lists.push(&**args);
+            spans.push(*span);
             current = &args[0];
         } else {
             break;
         }
     }
 
-    (method_names, arg_lists)
+    (method_names, arg_lists, spans)
 }
 
 /// Matches an `Expr` against a chain of methods, and return the matched `Expr`s.
@@ -396,10 +398,9 @@ pub fn method_chain_args<'a>(expr: &'a Expr, methods: &[&str]) -> Option<Vec<&'a
 
 /// Returns `true` if the provided `def_id` is an entrypoint to a program.
 pub fn is_entrypoint_fn(cx: &LateContext<'_, '_>, def_id: DefId) -> bool {
-    if let Some((entry_fn_def_id, _)) = cx.tcx.entry_fn(LOCAL_CRATE) {
-        return def_id == entry_fn_def_id;
-    }
-    false
+    cx.tcx
+        .entry_fn(LOCAL_CRATE)
+        .map_or(false, |(entry_fn_def_id, _)| def_id == entry_fn_def_id)
 }
 
 /// Gets the name of the item the expression is in, if available.
@@ -1124,7 +1125,6 @@ mod test {
 }
 
 pub fn match_def_path<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, did: DefId, syms: &[&str]) -> bool {
-    // HACK: find a way to use symbols from clippy or just go fully to diagnostic items
-    let syms: Vec<_> = syms.iter().map(|sym| Symbol::intern(sym)).collect();
-    cx.match_def_path(did, &syms)
+    let path = cx.get_def_path(did);
+    path.len() == syms.len() && path.into_iter().zip(syms.iter()).all(|(a, &b)| a.as_str() == b)
 }
