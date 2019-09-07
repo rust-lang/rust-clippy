@@ -480,11 +480,9 @@ impl<'ast> Visitor<'ast> for CoCHelper {
             // # asm!(), basically, inline assembly
             // ExprKind::InlineAsm(..) => {},
 
-            // Ill formed expressions.
-            ExprKind::Err => {
-                panic!("Found an ExprKind::Err. Is this a compiler bug??");
-            },
-
+            // Ill formed expressions. Just don't lint on them,
+            // otherwise this will raise an ICE.
+            // ExprKind::Err => {},
             _ => {
                 walk_expr(self, ex);
             },
