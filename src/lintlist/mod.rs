@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 313] = [
+pub const ALL_LINTS: [Lint; 314] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -970,6 +970,13 @@ pub const ALL_LINTS: [Lint; 313] = [
         name: "map_flatten",
         group: "pedantic",
         desc: "using combinations of `flatten` and `map` which can usually be written as a single method call",
+        deprecation: None,
+        module: "methods",
+    },
+    Lint {
+        name: "map_flatten_filtermap",
+        group: "style",
+        desc: "`.map().flatten() can be replaced with `.filter_map()`",
         deprecation: None,
         module: "methods",
     },

@@ -3,7 +3,7 @@
 fn main() {
     let v = [10, 20, 30];
 
-    let filter1 = v
+    let filtered1 = v
         .iter()
         .map(|x| if *x > 10 { Some(x) } else { None })
         .flatten()

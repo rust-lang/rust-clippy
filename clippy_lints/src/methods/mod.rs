@@ -1,6 +1,7 @@
 mod manual_saturating_arithmetic;
 mod option_map_unwrap_or;
 mod unnecessary_filter_map;
+mod map_flatten_filtermap;
 
 use std::borrow::Cow;
 use std::fmt;
@@ -1011,6 +1012,35 @@ declare_clippy_lint! {
     "`.chcked_add/sub(x).unwrap_or(MAX/MIN)`"
 }
 
+declare_clippy_lint! {
+    /// **What it does:** Checks for `.map().flatten()`.
+    ///
+    /// **Why is this bad?** These functions can be replaced with `filter_map()`.
+    ///
+    /// *+Example:**
+    ///
+    /// ```rust
+    /// let v = [10, 20, 30];
+    ///
+    /// let filtered1 = v
+    ///     .iter()
+    ///     .map(|x| if *x > 10 { Some(x) } else { None })
+    ///     .flatten()
+    ///     .collect::<Vec<_>>();
+    /// ```
+    ///
+    /// can be written using `filter_map()` instead:
+    ///
+    /// ```rust
+    /// let filtered2 = v
+    ///     .iter()
+    ///     .filter_map(|x| if *x > 10 { Some(x) } else { None })
+    ///     .collect::<Vec<_>>();
+    pub MAP_FLATTEN_FILTERMAP,
+    style,
+    "`.map().flatten() can be replaced with `.filter_map()`"
+}
+
 declare_lint_pass!(Methods => [
     OPTION_UNWRAP_USED,
     RESULT_UNWRAP_USED,
@@ -1053,6 +1083,7 @@ declare_lint_pass!(Methods => [
     SUSPICIOUS_MAP,
     UNINIT_ASSUMED_INIT,
     MANUAL_SATURATING_ARITHMETIC,
+    MAP_FLATTEN_FILTERMAP,
 ]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
@@ -1102,7 +1133,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             ["as_ref"] => lint_asref(cx, expr, "as_ref", arg_lists[0]),
             ["as_mut"] => lint_asref(cx, expr, "as_mut", arg_lists[0]),
             ["fold", ..] => lint_unnecessary_fold(cx, expr, arg_lists[0], method_spans[0]),
-            ["filter_map", ..] => unnecessary_filter_map::lint(cx, expr, arg_lists[0]),
+            // Temporarily commented out to test the map_flatten_filtermap alone
+            //["filter_map", ..] => unnecessary_filter_map::lint(cx, expr, arg_lists[0]),
             ["count", "map"] => lint_suspicious_map(cx, expr),
             ["assume_init"] => lint_maybe_uninit(cx, &arg_lists[0][0], expr),
             ["unwrap_or", arith @ "checked_add"]
@@ -1110,6 +1142,10 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             | ["unwrap_or", arith @ "checked_mul"] => {
                 manual_saturating_arithmetic::lint(cx, expr, &arg_lists, &arith["checked_".len()..])
             },
+            ["map", "flatten"] => {
+                println!("LINT CALLED");
+                map_flatten_filtermap::lint(cx, expr, arg_lists[0])
+            }
             _ => {},
         }
 
