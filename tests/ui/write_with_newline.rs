@@ -49,4 +49,8 @@ fn main() {
         r"
 "
     );
+
+    // strings ending with \r\n
+    write!(&mut v, "\r\n"); // 4208
+    write!(&mut v, "foobar123\r\n"); // 4208
 }

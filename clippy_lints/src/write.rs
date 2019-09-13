@@ -201,7 +201,7 @@ impl EarlyLintPass for Write {
         } else if mac.path == sym!(print) {
             span_lint(cx, PRINT_STDOUT, mac.span, "use of `print!`");
             if let (Some(fmt_str), _) = check_tts(cx, &mac.tts, false) {
-                if check_newlines(&fmt_str) {
+                if terminating_newline(&fmt_str) {
                     span_lint_and_then(
                         cx,
                         PRINT_WITH_NEWLINE,
@@ -222,7 +222,7 @@ impl EarlyLintPass for Write {
             }
         } else if mac.path == sym!(write) {
             if let (Some(fmt_str), _) = check_tts(cx, &mac.tts, true) {
-                if check_newlines(&fmt_str) {
+                if terminating_newline(&fmt_str) {
                     span_lint_and_then(
                         cx,
                         WRITE_WITH_NEWLINE,
@@ -440,12 +440,14 @@ fn check_tts<'a>(cx: &EarlyContext<'a>, tts: &TokenStream, is_write: bool) -> (O
     }
 }
 
-/// Checks if the format string constains a single newline that terminates it.
+/// Checks if the format string contains a single newline or \r\n that terminates it.
 ///
 /// Literal and escaped newlines are both checked (only literal for raw strings).
-fn check_newlines(fmt_str: &FmtStr) -> bool {
+fn terminating_newline(fmt_str: &FmtStr) -> bool {
     let s = &fmt_str.contents;
-
+    if s.ends_with("\\r\\n") {
+        return false;
+    }
     if s.ends_with('\n') {
         return true;
     } else if let StrStyle::Raw(_) = fmt_str.style {
