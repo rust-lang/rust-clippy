@@ -3,7 +3,7 @@
 //! This lint is **warn** by default
 
 use crate::utils::sugg::Sugg;
-use crate::utils::{higher, in_macro_or_desugar, span_lint, span_lint_and_sugg};
+use crate::utils::{higher, span_lint, span_lint_and_sugg};
 use rustc::hir::*;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
@@ -24,12 +24,16 @@ declare_clippy_lint! {
     /// shorter code.
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// if x {
     ///     false
     /// } else {
     ///     true
     /// }
+    /// ```
+    /// Could be written as
+    /// ```rust,ignore
+    /// !x
     /// ```
     pub NEEDLESS_BOOL,
     complexity,
@@ -46,7 +50,7 @@ declare_clippy_lint! {
     /// **Known problems:** None.
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// if x == true {} // could be `if x { }`
     /// ```
     pub BOOL_COMPARISON,
@@ -118,20 +122,18 @@ fn parent_node_is_if_expr<'a, 'b>(expr: &Expr, cx: &LateContext<'a, 'b>) -> bool
     let parent_id = cx.tcx.hir().get_parent_node(expr.hir_id);
     let parent_node = cx.tcx.hir().get(parent_id);
 
-    if let rustc::hir::Node::Expr(e) = parent_node {
-        if higher::if_block(&e).is_some() {
-            return true;
-        }
+    match parent_node {
+        rustc::hir::Node::Expr(e) => higher::if_block(&e).is_some(),
+        rustc::hir::Node::Arm(e) => higher::if_block(&e.body).is_some(),
+        _ => false,
     }
-
-    false
 }
 
 declare_lint_pass!(BoolComparison => [BOOL_COMPARISON]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoolComparison {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, e: &'tcx Expr) {
-        if in_macro_or_desugar(e.span) {
+        if e.span.from_expansion() {
             return;
         }
 

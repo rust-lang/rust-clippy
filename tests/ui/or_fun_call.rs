@@ -1,4 +1,7 @@
+// run-rustfix
+
 #![warn(clippy::or_fun_call)]
+#![allow(dead_code)]
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
@@ -94,6 +97,16 @@ fn test_or_with_ctors() {
     let b = "b".to_string();
     let _ = Some(Bar("a".to_string(), Duration::from_secs(1)))
         .or(Some(Bar(b, Duration::from_secs(2))));
+}
+
+// Issue 4514 - early return
+fn f() -> Option<()> {
+    let a = Some(1);
+    let b = 1i32;
+
+    let _ = a.unwrap_or(b.checked_mul(3)?.min(240));
+
+    Some(())
 }
 
 fn main() {}

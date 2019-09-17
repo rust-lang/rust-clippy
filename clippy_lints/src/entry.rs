@@ -1,5 +1,5 @@
 use crate::utils::SpanlessEq;
-use crate::utils::{get_item_name, higher, match_type, paths, snippet, span_lint_and_then, walk_ptrs_ty};
+use crate::utils::{get_item_name, higher, match_type, paths, snippet, snippet_opt, span_lint_and_then, walk_ptrs_ty};
 use if_chain::if_chain;
 use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
 use rustc::hir::*;
@@ -16,21 +16,32 @@ declare_clippy_lint! {
     ///
     /// **Known problems:** Some false negatives, eg.:
     /// ```rust
-    /// let k = &key;
-    /// if !m.contains_key(k) {
-    ///     m.insert(k.clone(), v);
+    /// # use std::collections::HashMap;
+    /// # let mut map = HashMap::new();
+    /// # let v = 1;
+    /// # let k = 1;
+    /// if !map.contains_key(&k) {
+    ///     map.insert(k.clone(), v);
     /// }
     /// ```
     ///
     /// **Example:**
     /// ```rust
-    /// if !m.contains_key(&k) {
-    ///     m.insert(k, v)
+    /// # use std::collections::HashMap;
+    /// # let mut map = HashMap::new();
+    /// # let k = 1;
+    /// # let v = 1;
+    /// if !map.contains_key(&k) {
+    ///     map.insert(k, v);
     /// }
     /// ```
-    /// can be rewritten as:
+    /// can both be rewritten as:
     /// ```rust
-    /// m.entry(k).or_insert(v);
+    /// # use std::collections::HashMap;
+    /// # let mut map = HashMap::new();
+    /// # let k = 1;
+    /// # let v = 1;
+    /// map.entry(k).or_insert(v);
     /// ```
     pub MAP_ENTRY,
     perf,
@@ -129,6 +140,7 @@ impl<'a, 'tcx, 'b> Visitor<'tcx> for InsertVisitor<'a, 'tcx, 'b> {
             if path.ident.name == sym!(insert);
             if get_item_name(self.cx, self.map) == get_item_name(self.cx, &params[0]);
             if SpanlessEq::new(self.cx).eq_expr(self.key, &params[1]);
+            if snippet_opt(self.cx, self.map.span) == snippet_opt(self.cx, params[0].span);
             then {
                 span_lint_and_then(self.cx, MAP_ENTRY, self.span,
                                    &format!("usage of `contains_key` followed by `insert` on a `{}`", self.ty), |db| {

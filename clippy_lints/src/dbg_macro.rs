@@ -31,8 +31,8 @@ declare_lint_pass!(DbgMacro => [DBG_MACRO]);
 
 impl EarlyLintPass for DbgMacro {
     fn check_mac(&mut self, cx: &EarlyContext<'_>, mac: &ast::Mac) {
-        if mac.node.path == sym!(dbg) {
-            if let Some(sugg) = tts_span(mac.node.tts.clone()).and_then(|span| snippet_opt(cx, span)) {
+        if mac.path == sym!(dbg) {
+            if let Some(sugg) = tts_span(mac.tts.clone()).and_then(|span| snippet_opt(cx, span)) {
                 span_lint_and_sugg(
                     cx,
                     DBG_MACRO,
@@ -59,9 +59,6 @@ impl EarlyLintPass for DbgMacro {
 fn tts_span(tts: TokenStream) -> Option<Span> {
     let mut cursor = tts.into_trees();
     let first = cursor.next()?.span();
-    let span = match cursor.last() {
-        Some(tree) => first.to(tree.span()),
-        None => first,
-    };
+    let span = cursor.last().map_or(first, |tree| first.to(tree.span()));
     Some(span)
 }

@@ -1,5 +1,7 @@
 //! Test for Clippy lint renames.
+// run-rustfix
 
+#![allow(dead_code)]
 // allow the new lint name here, to test if the new name works
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::new_without_default)]
@@ -15,10 +17,4 @@ fn main() {}
 struct Foo;
 
 #[warn(clippy::const_static_lifetime)]
-static Bar: &'static str = "baz";
-
-impl Foo {
-    fn new() -> Self {
-        Foo
-    }
-}
+fn foo() {}

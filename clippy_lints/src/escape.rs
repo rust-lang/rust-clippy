@@ -28,11 +28,10 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
-    /// fn main() {
-    ///     let x = Box::new(1);
-    ///     foo(*x);
-    ///     println!("{}", *x);
-    /// }
+    /// # fn foo(bar: usize) {}
+    /// let x = Box::new(1);
+    /// foo(*x);
+    /// println!("{}", *x);
     /// ```
     pub BOXED_LOCAL,
     perf,
@@ -109,7 +108,7 @@ fn is_argument(map: &hir::map::Map<'_>, id: HirId) -> bool {
     }
 
     match map.find(map.get_parent_node(id)) {
-        Some(Node::Arg(_)) => true,
+        Some(Node::Param(_)) => true,
         _ => false,
     }
 }

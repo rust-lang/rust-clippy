@@ -2,8 +2,8 @@
 
 use crate::reexport::*;
 use crate::utils::{
-    in_macro_or_desugar, is_present_in_source, last_line_of_span, match_def_path, paths, snippet_opt, span_lint,
-    span_lint_and_sugg, span_lint_and_then, without_block_comments,
+    is_present_in_source, last_line_of_span, match_def_path, paths, snippet_opt, span_lint, span_lint_and_sugg,
+    span_lint_and_then, without_block_comments,
 };
 use if_chain::if_chain;
 use rustc::hir::*;
@@ -113,19 +113,19 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
-    /// // Bad
-    /// #[inline(always)]
-    ///
-    /// fn not_quite_good_code(..) { ... }
-    ///
     /// // Good (as inner attribute)
     /// #![inline(always)]
     ///
-    /// fn this_is_fine(..) { ... }
+    /// fn this_is_fine() { }
+    ///
+    /// // Bad
+    /// #[inline(always)]
+    ///
+    /// fn not_quite_good_code() { }
     ///
     /// // Good (as outer attribute)
     /// #[inline(always)]
-    /// fn this_is_fine_too(..) { ... }
+    /// fn this_is_fine_too() { }
     /// ```
     pub EMPTY_LINE_AFTER_OUTER_ATTR,
     nursery,
@@ -277,7 +277,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Attributes {
                                                         line_span,
                                                         "if you just forgot a `!`, use",
                                                         sugg,
-                                                        Applicability::MachineApplicable,
+                                                        Applicability::MaybeIncorrect,
                                                     );
                                                 },
                                             );
@@ -319,7 +319,7 @@ fn check_clippy_lint_names(cx: &LateContext<'_, '_>, items: &[NestedMetaItem]) {
             let name = meta_item.path.segments.last().unwrap().ident.name;
             if let CheckLintNameResult::Tool(Err((None, _))) = lint_store.check_lint_name(
                 &name.as_str(),
-                Some(tool_name.as_str()),
+                Some(tool_name.name),
             );
             then {
                 span_lint_and_then(
@@ -332,7 +332,7 @@ fn check_clippy_lint_names(cx: &LateContext<'_, '_>, items: &[NestedMetaItem]) {
                             let name_lower = name.as_str().to_lowercase();
                             match lint_store.check_lint_name(
                                 &name_lower,
-                                Some(tool_name.as_str())
+                                Some(tool_name.name)
                             ) {
                                 // FIXME: can we suggest similar lint names here?
                                 // https://github.com/rust-lang/rust/pull/56992
@@ -412,7 +412,7 @@ fn is_relevant_expr(cx: &LateContext<'_, '_>, tables: &ty::TypeckTables<'_>, exp
 }
 
 fn check_attrs(cx: &LateContext<'_, '_>, span: Span, name: Name, attrs: &[Attribute]) {
-    if in_macro_or_desugar(span) {
+    if span.from_expansion() {
         return;
     }
 

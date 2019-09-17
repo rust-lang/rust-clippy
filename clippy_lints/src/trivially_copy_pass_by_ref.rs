@@ -1,6 +1,6 @@
 use std::cmp;
 
-use crate::utils::{in_macro_or_desugar, is_copy, is_self_ty, snippet, span_lint_and_sugg};
+use crate::utils::{is_copy, is_self_ty, snippet, span_lint_and_sugg};
 use if_chain::if_chain;
 use matches::matches;
 use rustc::hir;
@@ -39,14 +39,15 @@ declare_clippy_lint! {
     /// each other.
     ///
     /// **Example:**
+    ///
     /// ```rust
-    /// fn foo(v: &u32) {
-    ///     assert_eq!(v, 42);
-    /// }
-    /// // should be
-    /// fn foo(v: u32) {
-    ///     assert_eq!(v, 42);
-    /// }
+    /// // Bad
+    /// fn foo(v: &u32) {}
+    /// ```
+    ///
+    /// ```rust
+    /// // Better
+    /// fn foo(v: u32) {}
     /// ```
     pub TRIVIALLY_COPY_PASS_BY_REF,
     perf,
@@ -126,7 +127,7 @@ impl_lint_pass!(TriviallyCopyPassByRef => [TRIVIALLY_COPY_PASS_BY_REF]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
     fn check_trait_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx hir::TraitItem) {
-        if in_macro_or_desugar(item.span) {
+        if item.span.from_expansion() {
             return;
         }
 
@@ -144,7 +145,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for TriviallyCopyPassByRef {
         span: Span,
         hir_id: HirId,
     ) {
-        if in_macro_or_desugar(span) {
+        if span.from_expansion() {
             return;
         }
 

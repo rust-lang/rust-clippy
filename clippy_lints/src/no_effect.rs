@@ -1,4 +1,4 @@
-use crate::utils::{has_drop, in_macro_or_desugar, snippet_opt, span_lint, span_lint_and_sugg};
+use crate::utils::{has_drop, snippet_opt, span_lint, span_lint_and_sugg};
 use rustc::hir::def::{DefKind, Res};
 use rustc::hir::{BinOpKind, BlockCheckMode, Expr, ExprKind, Stmt, StmtKind, UnsafeSource};
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
@@ -34,7 +34,7 @@ declare_clippy_lint! {
     /// **Known problems:** None.
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// compute_array()[0];
     /// ```
     pub UNNECESSARY_OPERATION,
@@ -43,7 +43,7 @@ declare_clippy_lint! {
 }
 
 fn has_no_effect(cx: &LateContext<'_, '_>, expr: &Expr) -> bool {
-    if in_macro_or_desugar(expr.span) {
+    if expr.span.from_expansion() {
         return false;
     }
     match expr.node {
@@ -63,10 +63,7 @@ fn has_no_effect(cx: &LateContext<'_, '_>, expr: &Expr) -> bool {
         ExprKind::Struct(_, ref fields, ref base) => {
             !has_drop(cx, cx.tables.expr_ty(expr))
                 && fields.iter().all(|field| has_no_effect(cx, &field.expr))
-                && match *base {
-                    Some(ref base) => has_no_effect(cx, base),
-                    None => true,
-                }
+                && base.as_ref().map_or(true, |base| has_no_effect(cx, base))
         },
         ExprKind::Call(ref callee, ref args) => {
             if let ExprKind::Path(ref qpath) = callee.node {
@@ -82,12 +79,7 @@ fn has_no_effect(cx: &LateContext<'_, '_>, expr: &Expr) -> bool {
             }
         },
         ExprKind::Block(ref block, _) => {
-            block.stmts.is_empty()
-                && if let Some(ref expr) = block.expr {
-                    has_no_effect(cx, expr)
-                } else {
-                    false
-                }
+            block.stmts.is_empty() && block.expr.as_ref().map_or(false, |expr| has_no_effect(cx, expr))
         },
         _ => false,
     }
@@ -103,7 +95,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NoEffect {
             } else if let Some(reduced) = reduce_expression(cx, expr) {
                 let mut snippet = String::new();
                 for e in reduced {
-                    if in_macro_or_desugar(e.span) {
+                    if e.span.from_expansion() {
                         return;
                     }
                     if let Some(snip) = snippet_opt(cx, e.span) {
@@ -128,7 +120,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NoEffect {
 }
 
 fn reduce_expression<'a>(cx: &LateContext<'_, '_>, expr: &'a Expr) -> Option<Vec<&'a Expr>> {
-    if in_macro_or_desugar(expr.span) {
+    if expr.span.from_expansion() {
         return None;
     }
     match expr.node {

@@ -1,5 +1,5 @@
 use crate::utils::paths;
-use crate::utils::{in_macro_or_desugar, iter_input_pats, match_type, method_chain_args, snippet, span_lint_and_then};
+use crate::utils::{iter_input_pats, match_type, method_chain_args, snippet, span_lint_and_then};
 use if_chain::if_chain;
 use rustc::hir;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
@@ -20,20 +20,29 @@ declare_clippy_lint! {
     /// **Example:**
     ///
     /// ```rust
-    /// let x: Option<&str> = do_stuff();
+    /// # fn do_stuff() -> Option<String> { Some(String::new()) }
+    /// # fn log_err_msg(foo: String) -> Option<String> { Some(foo) }
+    /// # fn format_msg(foo: String) -> String { String::new() }
+    /// let x: Option<String> = do_stuff();
     /// x.map(log_err_msg);
-    /// x.map(|msg| log_err_msg(format_msg(msg)))
+    /// # let x: Option<String> = do_stuff();
+    /// x.map(|msg| log_err_msg(format_msg(msg)));
     /// ```
     ///
     /// The correct use would be:
     ///
     /// ```rust
-    /// let x: Option<&str> = do_stuff();
+    /// # fn do_stuff() -> Option<String> { Some(String::new()) }
+    /// # fn log_err_msg(foo: String) -> Option<String> { Some(foo) }
+    /// # fn format_msg(foo: String) -> String { String::new() }
+    /// let x: Option<String> = do_stuff();
     /// if let Some(msg) = x {
-    ///     log_err_msg(msg)
+    ///     log_err_msg(msg);
     /// }
+    ///
+    /// # let x: Option<String> = do_stuff();
     /// if let Some(msg) = x {
-    ///     log_err_msg(format_msg(msg))
+    ///     log_err_msg(format_msg(msg));
     /// }
     /// ```
     pub OPTION_MAP_UNIT_FN,
@@ -53,21 +62,29 @@ declare_clippy_lint! {
     /// **Example:**
     ///
     /// ```rust
-    /// let x: Result<&str, &str> = do_stuff();
+    /// # fn do_stuff() -> Result<String, String> { Ok(String::new()) }
+    /// # fn log_err_msg(foo: String) -> Result<String, String> { Ok(foo) }
+    /// # fn format_msg(foo: String) -> String { String::new() }
+    /// let x: Result<String, String> = do_stuff();
     /// x.map(log_err_msg);
-    /// x.map(|msg| log_err_msg(format_msg(msg)))
+    /// # let x: Result<String, String> = do_stuff();
+    /// x.map(|msg| log_err_msg(format_msg(msg)));
     /// ```
     ///
     /// The correct use would be:
     ///
     /// ```rust
-    /// let x: Result<&str, &str> = do_stuff();
+    /// # fn do_stuff() -> Result<String, String> { Ok(String::new()) }
+    /// # fn log_err_msg(foo: String) -> Result<String, String> { Ok(foo) }
+    /// # fn format_msg(foo: String) -> String { String::new() }
+    /// let x: Result<String, String> = do_stuff();
     /// if let Ok(msg) = x {
-    ///     log_err_msg(msg)
-    /// }
+    ///     log_err_msg(msg);
+    /// };
+    /// # let x: Result<String, String> = do_stuff();
     /// if let Ok(msg) = x {
-    ///     log_err_msg(format_msg(msg))
-    /// }
+    ///     log_err_msg(format_msg(msg));
+    /// };
     /// ```
     pub RESULT_MAP_UNIT_FN,
     complexity,
@@ -144,7 +161,10 @@ fn reduce_unit_expression<'a>(cx: &LateContext<'_, '_>, expr: &'a hir::Expr) -> 
     }
 }
 
-fn unit_closure<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'a hir::Expr) -> Option<(&'tcx hir::Arg, &'a hir::Expr)> {
+fn unit_closure<'a, 'tcx>(
+    cx: &LateContext<'a, 'tcx>,
+    expr: &'a hir::Expr,
+) -> Option<(&'tcx hir::Param, &'a hir::Expr)> {
     if let hir::ExprKind::Closure(_, ref decl, inner_expr_id, _, _) = expr.node {
         let body = cx.tcx.hir().body(inner_expr_id);
         let body_expr = &body.value;
@@ -240,7 +260,7 @@ fn lint_map_unit_fn(cx: &LateContext<'_, '_>, stmt: &hir::Stmt, expr: &hir::Expr
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MapUnit {
     fn check_stmt(&mut self, cx: &LateContext<'_, '_>, stmt: &hir::Stmt) {
-        if in_macro_or_desugar(stmt.span) {
+        if stmt.span.from_expansion() {
             return;
         }
 

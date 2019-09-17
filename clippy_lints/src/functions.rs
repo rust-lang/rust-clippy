@@ -23,8 +23,9 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// # struct Color;
     /// fn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {
-    ///     ..
+    ///     // ..
     /// }
     /// ```
     pub TOO_MANY_ARGUMENTS,
@@ -195,14 +196,8 @@ impl<'a, 'tcx> Functions {
         let mut code_in_line;
 
         // Skip the surrounding function decl.
-        let start_brace_idx = match code_snippet.find('{') {
-            Some(i) => i + 1,
-            None => 0,
-        };
-        let end_brace_idx = match code_snippet.find('}') {
-            Some(i) => i,
-            None => code_snippet.len(),
-        };
+        let start_brace_idx = code_snippet.find('{').map_or(0, |i| i + 1);
+        let end_brace_idx = code_snippet.rfind('}').unwrap_or_else(|| code_snippet.len());
         let function_lines = code_snippet[start_brace_idx..end_brace_idx].lines();
 
         for mut line in function_lines {
@@ -222,14 +217,8 @@ impl<'a, 'tcx> Functions {
                         None => break,
                     }
                 } else {
-                    let multi_idx = match line.find("/*") {
-                        Some(i) => i,
-                        None => line.len(),
-                    };
-                    let single_idx = match line.find("//") {
-                        Some(i) => i,
-                        None => line.len(),
-                    };
+                    let multi_idx = line.find("/*").unwrap_or_else(|| line.len());
+                    let single_idx = line.find("//").unwrap_or_else(|| line.len());
                     code_in_line |= multi_idx > 0 && single_idx > 0;
                     // Implies multi_idx is below line.len()
                     if multi_idx < single_idx {
@@ -279,7 +268,7 @@ impl<'a, 'tcx> Functions {
     }
 }
 
-fn raw_ptr_arg(arg: &hir::Arg, ty: &hir::Ty) -> Option<hir::HirId> {
+fn raw_ptr_arg(arg: &hir::Param, ty: &hir::Ty) -> Option<hir::HirId> {
     if let (&hir::PatKind::Binding(_, id, _, _), &hir::TyKind::Ptr(_)) = (&arg.pat.node, &ty.node) {
         Some(id)
     } else {

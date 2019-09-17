@@ -15,7 +15,7 @@ declare_clippy_lint! {
     /// **What it does:** Generates clippy code that detects the offending pattern
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// // ./tests/ui/my_lint.rs
     /// fn foo() {
     ///     // detect the following pattern
@@ -24,13 +24,14 @@ declare_clippy_lint! {
     ///         // but ignore everything from here on
     ///         #![clippy::author = "ignore"]
     ///     }
+    ///     ()
     /// }
     /// ```
     ///
     /// Running `TESTNAME=ui/my_lint cargo uitest` will produce
     /// a `./tests/ui/new_lint.stdout` file with the generated code:
     ///
-    /// ```rust
+    /// ```rust,ignore
     /// // ./tests/ui/new_lint.stdout
     /// if_chain! {
     ///     if let ExprKind::If(ref cond, ref then, None) = item.node,
@@ -89,12 +90,12 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Author {
         done();
     }
 
-    fn check_variant(&mut self, cx: &LateContext<'a, 'tcx>, var: &'tcx hir::Variant, generics: &hir::Generics) {
-        if !has_attr(cx.sess(), &var.node.attrs) {
+    fn check_variant(&mut self, cx: &LateContext<'a, 'tcx>, var: &'tcx hir::Variant) {
+        if !has_attr(cx.sess(), &var.attrs) {
             return;
         }
         prelude();
-        PrintVisitor::new("var").visit_variant(var, generics, hir::DUMMY_HIR_ID);
+        PrintVisitor::new("var").visit_variant(var, &hir::Generics::empty(), hir::DUMMY_HIR_ID);
         done();
     }
 
@@ -297,7 +298,7 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
                     },
                     LitKind::Str(ref text, _) => {
                         let str_pat = self.next("s");
-                        println!("    if let LitKind::Str(ref {}) = {}.node;", str_pat, lit_pat);
+                        println!("    if let LitKind::Str(ref {}, _) = {}.node;", str_pat, lit_pat);
                         println!("    if {}.as_str() == {:?}", str_pat, &*text.as_str())
                     },
                 }
@@ -545,6 +546,12 @@ impl<'tcx> Visitor<'tcx> for PrintVisitor {
                 );
                 self.current = path_pat;
                 self.print_qpath(path);
+                println!("    if {}.len() == {};", fields_pat, fields.len());
+                println!("    // unimplemented: field checks");
+            },
+            PatKind::Or(ref fields) => {
+                let fields_pat = self.next("fields");
+                println!("Or(ref {}) = {};", fields_pat, current);
                 println!("    if {}.len() == {};", fields_pat, fields.len());
                 println!("    // unimplemented: field checks");
             },

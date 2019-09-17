@@ -7,19 +7,22 @@ creating an example lint from scratch.
 To get started, we will create a lint that detects functions called `foo`,
 because that's clearly a non-descriptive name.
 
-* [Setup](#Setup)
-* [Testing](#Testing)
-* [Rustfix tests](#Rustfix-tests)
-* [Lint declaration](#Lint-declaration)
-* [Lint passes](#Lint-passes)
-* [Emitting a lint](#Emitting-a-lint)
-* [Adding the lint logic](#Adding-the-lint-logic)
-* [Author lint](#Author-lint)
-* [Documentation](#Documentation)
-* [Running rustfmt](#Running-rustfmt)
-* [Debugging](#Debugging)
-* [PR Checklist](#PR-Checklist)
-* [Cheatsheet](#Cheatsheet)
+- [Adding a new lint](#adding-a-new-lint)
+  - [Setup](#setup)
+  - [Testing](#testing)
+  - [Rustfix tests](#rustfix-tests)
+  - [Edition 2018 tests](#edition-2018-tests)
+  - [Testing manually](#testing-manually)
+  - [Lint declaration](#lint-declaration)
+  - [Lint passes](#lint-passes)
+  - [Emitting a lint](#emitting-a-lint)
+  - [Adding the lint logic](#adding-the-lint-logic)
+  - [Author lint](#author-lint)
+  - [Documentation](#documentation)
+  - [Running rustfmt](#running-rustfmt)
+  - [Debugging](#debugging)
+  - [PR Checklist](#pr-checklist)
+  - [Cheatsheet](#cheatsheet)
 
 ### Setup
 
@@ -76,7 +79,7 @@ fn main() {
 
 ```
 
-Now we can run the test with `TESTNAME=ui/foo_functions cargo uitest`.
+Now we can run the test with `TESTNAME=foo_functions cargo uitest`.
 Currently this test will fail. If you go through the output you will see that we
 are told that `clippy::foo_functions` is an unknown lint, which is expected.
 
@@ -85,7 +88,9 @@ test. That allows us to check if the output is turning into what we want.
 
 Once we are satisfied with the output, we need to run
 `tests/ui/update-all-references.sh` to update the `.stderr` file for our lint.
-Running `TESTNAME=ui/foo_functions cargo uitest` should pass then. When we
+Please note that, we should run `TESTNAME=foo_functions cargo uitest`
+every time before running `tests/ui/update-all-references.sh`.
+Running `TESTNAME=foo_functions cargo uitest` should pass then. When we
 commit our lint, we need to commit the generated `.stderr` files, too.
 
 ### Rustfix tests
@@ -100,6 +105,12 @@ Use `tests/ui/update-all-references.sh` to automatically generate the
 `.fixed` file after running the tests.
 
 With tests in place, let's have a look at implementing our lint now.
+
+### Edition 2018 tests
+
+Some features require the 2018 edition to work (e.g. `async_await`), but
+compile-test tests run on the 2015 edition by default. To change this behavior
+add `// compile-flags: --edition 2018` at the top of the test file.
 
 ### Testing manually
 
@@ -300,7 +311,7 @@ If you have trouble implementing your lint, there is also the internal `author`
 lint to generate Clippy code that detects the offending pattern. It does not
 work for all of the Rust syntax, but can give a good starting point.
 
-The quickest way to use it, is the [Rust playground][play].rust-lang.org).
+The quickest way to use it, is the [Rust playground: play.rust-lang.org][Play].
 Put the code you want to lint into the editor and add the `#[clippy::author]`
 attribute above the item. Then run Clippy via `Tools -> Clippy` and you should
 see the generated code in the output below.
@@ -368,10 +379,12 @@ output in the `stdout` part.
 
 Before submitting your PR make sure you followed all of the basic requirements:
 
+<!-- Sync this with `.github/PULL_REQUEST_TEMPLATE` -->
+
 - [ ] Followed [lint naming conventions][lint_naming]
 - [ ] Added passing UI tests (including committed `.stderr` file)
 - [ ] `cargo test` passes locally
-- [ ] Executed `util/dev update_lints`
+- [ ] Executed `./util/dev update_lints`
 - [ ] Added lint documentation
 - [ ] Run `./util/dev fmt`
 
@@ -383,7 +396,7 @@ Here are some pointers to things you are likely going to need for every lint:
   is already in here (`implements_trait`, `match_path`, `snippet`, etc)
 * [Clippy diagnostics][diagnostics]
 * [The `if_chain` macro][if_chain]
-* [`in_macro_or_desugar`][in_macro_or_desugar] and [`in_external_macro`][in_external_macro]
+* [`from_expansion`][from_expansion] and [`in_external_macro`][in_external_macro]
 * [`Span`][span]
 * [`Applicability`][applicability]
 * [The rustc guide][rustc_guide] explains a lot of internal compiler concepts
@@ -420,10 +433,10 @@ don't hesitate to ask on Discord, IRC or in the issue/PR.
 [ident]: https://doc.rust-lang.org/nightly/nightly-rustc/syntax/source_map/symbol/struct.Ident.html
 [span]: https://doc.rust-lang.org/nightly/nightly-rustc/syntax_pos/struct.Span.html
 [applicability]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_errors/enum.Applicability.html
-[if_chain]: https://docs.rs/if_chain/0.1.2/if_chain/
+[if_chain]: https://docs.rs/if_chain/*/if_chain/
 [ty]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc/ty/sty/index.html
 [ast]: https://doc.rust-lang.org/nightly/nightly-rustc/syntax/ast/index.html
-[in_macro_or_desugar]: https://github.com/rust-lang/rust-clippy/blob/d0717d1f9531a03d154aaeb0cad94c243915a146/clippy_lints/src/utils/mod.rs#L94
+[from_expansion]: https://doc.rust-lang.org/nightly/nightly-rustc/syntax_pos/struct.Span.html#method.from_expansion
 [in_external_macro]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc/lint/fn.in_external_macro.html
 [play]: https://play.rust-lang.org
 [author_example]: https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=f093b986e80ad62f3b67a1f24f5e66e2

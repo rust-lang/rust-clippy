@@ -112,6 +112,12 @@ mod traits {
         }
     }
 
+    impl Clone for Bad {
+        fn clone(&self) -> Self {
+            Bad
+        }
+    }
+
     #[derive(Default)]
     struct Good;
 
@@ -169,15 +175,6 @@ mod traits {
 
         fn vals(_: Self) -> Self {
             Self::default()
-        }
-    }
-
-    // Check that self arg isn't linted
-    impl Clone for Good {
-        fn clone(&self) -> Self {
-            // Note: Not linted and it wouldn't be valid
-            // because "can't use `Self` as a constructor`"
-            Good
         }
     }
 }
@@ -265,12 +262,20 @@ mod nesting {
 
     enum Enum {
         A,
+        B(u64),
+        C { field: bool },
     }
     impl Enum {
         fn method() {
             #[allow(unused_imports)]
             use self::Enum::*; // Issue 3425
             static STATIC: Enum = Enum::A; // Can't use Self as type
+        }
+
+        fn method2() {
+            let _ = Enum::B(42);
+            let _ = Enum::C { field: true };
+            let _ = Enum::A;
         }
     }
 }
@@ -305,6 +310,25 @@ mod rustfix {
             nested::A::A;
 
             nested::A {};
+        }
+    }
+}
+
+mod issue3567 {
+    struct TestStruct {}
+    impl TestStruct {
+        fn from_something() -> Self {
+            Self {}
+        }
+    }
+
+    trait Test {
+        fn test() -> TestStruct;
+    }
+
+    impl Test for TestStruct {
+        fn test() -> TestStruct {
+            TestStruct::from_something()
         }
     }
 }

@@ -15,16 +15,16 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
-    /// pub fn foo<T>(t: T) where T: Copy, T: Clone
+    /// pub fn foo<T>(t: T) where T: Copy, T: Clone {}
     /// ```
     ///
     /// Could be written as:
     ///
     /// ```rust
-    /// pub fn foo<T>(t: T) where T: Copy + Clone
+    /// pub fn foo<T>(t: T) where T: Copy + Clone {}
     /// ```
     pub TYPE_REPETITION_IN_BOUNDS,
-    complexity,
+    pedantic,
     "Types are repeated unnecessary in trait bounds use `+` instead of using `T: _, T: _`"
 }
 

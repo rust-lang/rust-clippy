@@ -2,8 +2,8 @@ use crate::consts::{constant, Constant};
 use crate::utils::paths;
 use crate::utils::sugg::Sugg;
 use crate::utils::{
-    expr_block, in_macro_or_desugar, is_allowed, is_expn_of, match_qpath, match_type, multispan_sugg, remove_blocks,
-    snippet, snippet_with_applicability, span_lint_and_sugg, span_lint_and_then, span_note_and_lint, walk_ptrs_ty,
+    expr_block, is_allowed, is_expn_of, match_qpath, match_type, multispan_sugg, remove_blocks, snippet,
+    snippet_with_applicability, span_lint_and_sugg, span_lint_and_then, span_note_and_lint, walk_ptrs_ty,
 };
 use if_chain::if_chain;
 use rustc::hir::def::CtorKind;
@@ -41,7 +41,7 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for matches with a two arms where an `if let else` will
+    /// **What it does:** Checks for matches with two arms where an `if let else` will
     /// usually suffice.
     ///
     /// **Why is this bad?** Just readability – `if let` nests less than a `match`.
@@ -53,24 +53,30 @@ declare_clippy_lint! {
     /// Using `match`:
     ///
     /// ```rust
+    /// # fn bar(foo: &usize) {}
+    /// # let other_ref: usize = 1;
+    /// # let x: Option<&usize> = Some(&1);
     /// match x {
     ///     Some(ref foo) => bar(foo),
-    ///     _ => bar(other_ref),
+    ///     _ => bar(&other_ref),
     /// }
     /// ```
     ///
     /// Using `if let` with `else`:
     ///
     /// ```rust
+    /// # fn bar(foo: &usize) {}
+    /// # let other_ref: usize = 1;
+    /// # let x: Option<&usize> = Some(&1);
     /// if let Some(ref foo) = x {
     ///     bar(foo);
     /// } else {
-    ///     bar(other_ref);
+    ///     bar(&other_ref);
     /// }
     /// ```
     pub SINGLE_MATCH_ELSE,
     pedantic,
-    "a match statement with a two arms where the second arm's pattern is a placeholder instead of a specific match pattern"
+    "a match statement with two arms where the second arm's pattern is a placeholder instead of a specific match pattern"
 }
 
 declare_clippy_lint! {
@@ -205,6 +211,8 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// # enum Foo { A(usize), B(usize) }
+    /// # let x = Foo::B(1);
     /// match x {
     ///     A => {},
     ///     _ => {},
@@ -589,7 +597,7 @@ fn check_match_ref_pats(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr:
         }));
 
         span_lint_and_then(cx, MATCH_REF_PATS, expr.span, title, |db| {
-            if !in_macro_or_desugar(expr.span) {
+            if !expr.span.from_expansion() {
                 multispan_sugg(db, msg.to_owned(), suggs);
             }
         });
@@ -616,6 +624,24 @@ fn check_match_as_ref(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr: &
             } else {
                 "as_mut"
             };
+
+            let output_ty = cx.tables.expr_ty(expr);
+            let input_ty = cx.tables.expr_ty(ex);
+
+            let cast = if_chain! {
+                if let ty::Adt(_, substs) = input_ty.sty;
+                let input_ty = substs.type_at(0);
+                if let ty::Adt(_, substs) = output_ty.sty;
+                let output_ty = substs.type_at(0);
+                if let ty::Ref(_, output_ty, _) = output_ty.sty;
+                if input_ty != output_ty;
+                then {
+                    ".map(|x| x as _)"
+                } else {
+                    ""
+                }
+            };
+
             let mut applicability = Applicability::MachineApplicable;
             span_lint_and_sugg(
                 cx,
@@ -624,9 +650,10 @@ fn check_match_as_ref(cx: &LateContext<'_, '_>, ex: &Expr, arms: &[Arm], expr: &
                 &format!("use {}() instead", suggestion),
                 "try this",
                 format!(
-                    "{}.{}()",
+                    "{}.{}(){}",
                     snippet_with_applicability(cx, ex.span, "_", &mut applicability),
-                    suggestion
+                    suggestion,
+                    cast,
                 ),
                 applicability,
             )

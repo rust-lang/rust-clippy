@@ -113,3 +113,20 @@ declare_deprecated_lint! {
     pub UNSAFE_VECTOR_INITIALIZATION,
     "the replacement suggested by this lint had substantially different behavior"
 }
+
+/// **What it does:** Nothing. This lint has been deprecated.
+///
+/// **Deprecation reason:** This lint has been superseded by the warn-by-default
+/// `invalid_value` rustc lint.
+declare_deprecated_lint! {
+    pub INVALID_REF,
+    "superseded by rustc lint `invalid_value`"
+}
+
+/// **What it does:** Nothing. This lint has been deprecated.
+///
+/// **Deprecation reason:** This lint has been superseded by #[must_use] in rustc.
+declare_deprecated_lint! {
+    pub UNUSED_COLLECT,
+    "`collect` has been marked as #[must_use] in rustc and that covers all cases of this lint"
+}

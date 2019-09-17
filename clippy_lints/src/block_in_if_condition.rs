@@ -2,7 +2,7 @@ use crate::utils::*;
 use matches::matches;
 use rustc::hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
 use rustc::hir::*;
-use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
+use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintContext, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
@@ -54,7 +54,7 @@ impl<'a, 'tcx> Visitor<'tcx> for ExVisitor<'a, 'tcx> {
         if let ExprKind::Closure(_, _, eid, _, _) = expr.node {
             let body = self.cx.tcx.hir().body(eid);
             let ex = &body.value;
-            if matches!(ex.node, ExprKind::Block(_, _)) && !in_macro_or_desugar(body.value.span) {
+            if matches!(ex.node, ExprKind::Block(_, _)) && !body.value.span.from_expansion() {
                 self.found_block = Some(ex);
                 return;
             }
@@ -72,6 +72,9 @@ const COMPLEX_BLOCK_MESSAGE: &str = "in an 'if' condition, avoid complex blocks 
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
+        if in_external_macro(cx.sess(), expr.span) {
+            return;
+        }
         if let Some((check, then, _)) = higher::if_block(&expr) {
             if let ExprKind::Block(block, _) = &check.node {
                 if block.rules == DefaultBlock {
@@ -79,7 +82,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
                         if let Some(ex) = &block.expr {
                             // don't dig into the expression here, just suggest that they remove
                             // the block
-                            if in_macro_or_desugar(expr.span) || differing_macro_contexts(expr.span, ex.span) {
+                            if expr.span.from_expansion() || differing_macro_contexts(expr.span, ex.span) {
                                 return;
                             }
                             span_help_and_lint(
@@ -96,7 +99,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
                         }
                     } else {
                         let span = block.expr.as_ref().map_or_else(|| block.stmts[0].span, |e| e.span);
-                        if in_macro_or_desugar(span) || differing_macro_contexts(expr.span, span) {
+                        if span.from_expansion() || differing_macro_contexts(expr.span, span) {
                             return;
                         }
                         // move block higher

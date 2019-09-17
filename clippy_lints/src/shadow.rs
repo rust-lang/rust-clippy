@@ -20,6 +20,7 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// # let x = 1;
     /// let x = &x;
     /// ```
     pub SHADOW_SAME,
@@ -41,10 +42,12 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// let x = 2;
     /// let x = x + 1;
     /// ```
     /// use different variable name:
     /// ```rust
+    /// let x = 2;
     /// let y = x + 1;
     /// ```
     pub SHADOW_REUSE,
@@ -67,6 +70,8 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// # let y = 1;
+    /// # let z = 2;
     /// let x = y;
     /// let x = z; // shadows the earlier binding
     /// ```
@@ -185,20 +190,20 @@ fn check_pat<'a, 'tcx>(
             if let Some(init_struct) = init {
                 if let ExprKind::Struct(_, ref efields, _) = init_struct.node {
                     for field in pfields {
-                        let name = field.node.ident.name;
+                        let name = field.ident.name;
                         let efield = efields
                             .iter()
                             .find_map(|f| if f.ident.name == name { Some(&*f.expr) } else { None });
-                        check_pat(cx, &field.node.pat, efield, span, bindings);
+                        check_pat(cx, &field.pat, efield, span, bindings);
                     }
                 } else {
                     for field in pfields {
-                        check_pat(cx, &field.node.pat, init, span, bindings);
+                        check_pat(cx, &field.pat, init, span, bindings);
                     }
                 }
             } else {
                 for field in pfields {
-                    check_pat(cx, &field.node.pat, None, span, bindings);
+                    check_pat(cx, &field.pat, None, span, bindings);
                 }
             }
         },

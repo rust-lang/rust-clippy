@@ -1,10 +1,11 @@
-use crate::utils::{is_entrypoint_fn, span_lint, trait_ref_of_method};
+use crate::utils::{has_drop, is_entrypoint_fn, span_lint, trait_ref_of_method};
 use rustc::hir;
 use rustc::hir::intravisit::FnKind;
-use rustc::hir::{Body, Constness, FnDecl, HirId};
+use rustc::hir::{Body, Constness, FnDecl, HirId, HirVec};
 use rustc::lint::{in_external_macro, LateContext, LateLintPass, LintArray, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_mir::transform::qualify_min_const_fn::is_min_const_fn;
+use rustc_typeck::hir_ty_to_ty;
 use syntax_pos::Span;
 
 declare_clippy_lint! {
@@ -40,17 +41,27 @@ declare_clippy_lint! {
     /// **Example:**
     ///
     /// ```rust
+    /// # struct Foo {
+    /// #     random_number: usize,
+    /// # }
+    /// # impl Foo {
     /// fn new() -> Self {
     ///     Self { random_number: 42 }
     /// }
+    /// # }
     /// ```
     ///
     /// Could be a const fn:
     ///
     /// ```rust
+    /// # struct Foo {
+    /// #     random_number: usize,
+    /// # }
+    /// # impl Foo {
     /// const fn new() -> Self {
     ///     Self { random_number: 42 }
     /// }
+    /// # }
     /// ```
     pub MISSING_CONST_FOR_FN,
     nursery,
@@ -84,7 +95,10 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingConstForFn {
                 }
             },
             FnKind::Method(_, sig, ..) => {
-                if trait_ref_of_method(cx, hir_id).is_some() || already_const(sig.header) {
+                if trait_ref_of_method(cx, hir_id).is_some()
+                    || already_const(sig.header)
+                    || method_accepts_dropable(cx, &sig.decl.inputs)
+                {
                     return;
                 }
             },
@@ -101,6 +115,16 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingConstForFn {
             span_lint(cx, MISSING_CONST_FOR_FN, span, "this could be a const_fn");
         }
     }
+}
+
+/// Returns true if any of the method parameters is a type that implements `Drop`. The method
+/// can't be made const then, because `drop` can't be const-evaluated.
+fn method_accepts_dropable(cx: &LateContext<'_, '_>, param_tys: &HirVec<hir::Ty>) -> bool {
+    // If any of the params are dropable, return true
+    param_tys.iter().any(|hir_ty| {
+        let ty_ty = hir_ty_to_ty(cx.tcx, hir_ty);
+        has_drop(cx, ty_ty)
+    })
 }
 
 // We don't have to lint on something that's already `const`

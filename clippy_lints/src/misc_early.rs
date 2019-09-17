@@ -1,10 +1,11 @@
-use crate::utils::{constants, snippet, snippet_opt, span_help_and_lint, span_lint, span_lint_and_then};
+use crate::utils::{
+    constants, snippet, snippet_opt, span_help_and_lint, span_lint, span_lint_and_sugg, span_lint_and_then,
+};
 use if_chain::if_chain;
 use rustc::lint::{in_external_macro, EarlyContext, EarlyLintPass, LintArray, LintContext, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
-use std::char;
 use syntax::ast::*;
 use syntax::source_map::Span;
 use syntax::visit::{walk_expr, FnKind, Visitor};
@@ -53,7 +54,7 @@ declare_clippy_lint! {
     /// **Known problems:** None.
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// (|| 42)()
     /// ```
     pub REDUNDANT_CLOSURE_CALL,
@@ -172,6 +173,28 @@ declare_clippy_lint! {
     "shadowing a builtin type"
 }
 
+declare_clippy_lint! {
+    /// **What it does:** Checks for patterns in the form `name @ _`.
+    ///
+    /// **Why is this bad?** It's almost always more readable to just use direct
+    /// bindings.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # let v = Some("abc");
+    ///
+    /// match v {
+    ///     Some(x) => (),
+    ///     y @ _ => (), // easier written as `y`,
+    /// }
+    /// ```
+    pub REDUNDANT_PATTERN,
+    style,
+    "using `name @ _` in a pattern"
+}
+
 declare_lint_pass!(MiscEarlyLints => [
     UNNEEDED_FIELD_PATTERN,
     DUPLICATE_UNDERSCORE_ARGUMENT,
@@ -180,7 +203,8 @@ declare_lint_pass!(MiscEarlyLints => [
     MIXED_CASE_HEX_LITERALS,
     UNSEPARATED_LITERAL_SUFFIX,
     ZERO_PREFIXED_LITERAL,
-    BUILTIN_TYPE_SHADOW
+    BUILTIN_TYPE_SHADOW,
+    REDUNDANT_PATTERN
 ]);
 
 // Used to find `return` statements or equivalents e.g., `?`
@@ -234,7 +258,7 @@ impl EarlyLintPass for MiscEarlyLints {
                 .name;
 
             for field in pfields {
-                if let PatKind::Wild = field.node.pat.node {
+                if let PatKind::Wild = field.pat.node {
                     wilds += 1;
                 }
             }
@@ -252,7 +276,7 @@ impl EarlyLintPass for MiscEarlyLints {
                 let mut normal = vec![];
 
                 for field in pfields {
-                    match field.node.pat.node {
+                    match field.pat.node {
                         PatKind::Wild => {},
                         _ => {
                             if let Ok(n) = cx.sess().source_map().span_to_snippet(field.span) {
@@ -262,7 +286,7 @@ impl EarlyLintPass for MiscEarlyLints {
                     }
                 }
                 for field in pfields {
-                    if let PatKind::Wild = field.node.pat.node {
+                    if let PatKind::Wild = field.pat.node {
                         wilds -= 1;
                         if wilds > 0 {
                             span_lint(
@@ -285,6 +309,23 @@ impl EarlyLintPass for MiscEarlyLints {
                 }
             }
         }
+
+        if let PatKind::Ident(_, ident, Some(ref right)) = pat.node {
+            if let PatKind::Wild = right.node {
+                span_lint_and_sugg(
+                    cx,
+                    REDUNDANT_PATTERN,
+                    pat.span,
+                    &format!(
+                        "the `{} @ _` pattern can be written as just `{}`",
+                        ident.name, ident.name,
+                    ),
+                    "try",
+                    format!("{}", ident.name),
+                    Applicability::MachineApplicable,
+                );
+            }
+        }
     }
 
     fn check_fn(&mut self, cx: &EarlyContext<'_>, _: FnKind<'_>, decl: &FnDecl, _: Span, _: NodeId) {
@@ -305,7 +346,7 @@ impl EarlyLintPass for MiscEarlyLints {
                                  name makes code comprehension and documentation more difficult",
                                 arg_name[1..].to_owned()
                             ),
-                        );;
+                        );
                     }
                 } else {
                     registered_names.insert(arg_name, arg.pat.span);
@@ -389,78 +430,92 @@ impl EarlyLintPass for MiscEarlyLints {
 
 impl MiscEarlyLints {
     fn check_lit(self, cx: &EarlyContext<'_>, lit: &Lit) {
-        if_chain! {
-            if let LitKind::Int(value, ..) = lit.node;
-            if let Some(src) = snippet_opt(cx, lit.span);
-            if let Some(firstch) = src.chars().next();
-            if char::to_digit(firstch, 10).is_some();
-            then {
-                let mut prev = '\0';
-                for ch in src.chars() {
-                    if ch == 'i' || ch == 'u' {
-                        if prev != '_' {
-                            span_lint(cx, UNSEPARATED_LITERAL_SUFFIX, lit.span,
-                                        "integer type suffix should be separated by an underscore");
-                        }
-                        break;
-                    }
-                    prev = ch;
-                }
-                if src.starts_with("0x") {
-                    let mut seen = (false, false);
-                    for ch in src.chars() {
-                        match ch {
-                            'a' ..= 'f' => seen.0 = true,
-                            'A' ..= 'F' => seen.1 = true,
-                            'i' | 'u'   => break,   // start of suffix already
-                            _ => ()
-                        }
+        // We test if first character in snippet is a number, because the snippet could be an expansion
+        // from a built-in macro like `line!()` or a proc-macro like `#[wasm_bindgen]`.
+        // Note that this check also covers special case that `line!()` is eagerly expanded by compiler.
+        // See <https://github.com/rust-lang/rust-clippy/issues/4507> for a regression.
+        // FIXME: Find a better way to detect those cases.
+        let lit_snip = match snippet_opt(cx, lit.span) {
+            Some(snip) if snip.chars().next().map_or(false, |c| c.is_digit(10)) => snip,
+            _ => return,
+        };
+
+        if let LitKind::Int(value, lit_int_type) = lit.node {
+            let suffix = match lit_int_type {
+                LitIntType::Signed(ty) => ty.ty_to_string(),
+                LitIntType::Unsigned(ty) => ty.ty_to_string(),
+                LitIntType::Unsuffixed => "",
+            };
+
+            let maybe_last_sep_idx = lit_snip.len() - suffix.len() - 1;
+            // Do not lint when literal is unsuffixed.
+            if !suffix.is_empty() && lit_snip.as_bytes()[maybe_last_sep_idx] != b'_' {
+                span_lint_and_sugg(
+                    cx,
+                    UNSEPARATED_LITERAL_SUFFIX,
+                    lit.span,
+                    "integer type suffix should be separated by an underscore",
+                    "add an underscore",
+                    format!("{}_{}", &lit_snip[..=maybe_last_sep_idx], suffix),
+                    Applicability::MachineApplicable,
+                );
+            }
+
+            if lit_snip.starts_with("0x") {
+                let mut seen = (false, false);
+                for ch in lit_snip.as_bytes()[2..=maybe_last_sep_idx].iter() {
+                    match ch {
+                        b'a'..=b'f' => seen.0 = true,
+                        b'A'..=b'F' => seen.1 = true,
+                        _ => {},
                     }
                     if seen.0 && seen.1 {
-                        span_lint(cx, MIXED_CASE_HEX_LITERALS, lit.span,
-                                    "inconsistent casing in hexadecimal literal");
+                        span_lint(
+                            cx,
+                            MIXED_CASE_HEX_LITERALS,
+                            lit.span,
+                            "inconsistent casing in hexadecimal literal",
+                        );
+                        break;
                     }
-                } else if src.starts_with("0b") || src.starts_with("0o") {
-                    /* nothing to do */
-                } else if value != 0 && src.starts_with('0') {
-                    span_lint_and_then(cx,
-                                        ZERO_PREFIXED_LITERAL,
-                                        lit.span,
-                                        "this is a decimal constant",
-                                        |db| {
+                }
+            } else if lit_snip.starts_with("0b") || lit_snip.starts_with("0o") {
+                /* nothing to do */
+            } else if value != 0 && lit_snip.starts_with('0') {
+                span_lint_and_then(
+                    cx,
+                    ZERO_PREFIXED_LITERAL,
+                    lit.span,
+                    "this is a decimal constant",
+                    |db| {
                         db.span_suggestion(
                             lit.span,
-                            "if you mean to use a decimal constant, remove the `0` to remove confusion",
-                            src.trim_start_matches(|c| c == '_' || c == '0').to_string(),
+                            "if you mean to use a decimal constant, remove the `0` to avoid confusion",
+                            lit_snip.trim_start_matches(|c| c == '_' || c == '0').to_string(),
                             Applicability::MaybeIncorrect,
                         );
                         db.span_suggestion(
                             lit.span,
                             "if you mean to use an octal constant, use `0o`",
-                            format!("0o{}", src.trim_start_matches(|c| c == '_' || c == '0')),
+                            format!("0o{}", lit_snip.trim_start_matches(|c| c == '_' || c == '0')),
                             Applicability::MaybeIncorrect,
                         );
-                    });
-                }
+                    },
+                );
             }
-        }
-        if_chain! {
-            if let LitKind::Float(..) = lit.node;
-            if let Some(src) = snippet_opt(cx, lit.span);
-            if let Some(firstch) = src.chars().next();
-            if char::to_digit(firstch, 10).is_some();
-            then {
-                let mut prev = '\0';
-                for ch in src.chars() {
-                    if ch == 'f' {
-                        if prev != '_' {
-                            span_lint(cx, UNSEPARATED_LITERAL_SUFFIX, lit.span,
-                                        "float type suffix should be separated by an underscore");
-                        }
-                        break;
-                    }
-                    prev = ch;
-                }
+        } else if let LitKind::Float(_, float_ty) = lit.node {
+            let suffix = float_ty.ty_to_string();
+            let maybe_last_sep_idx = lit_snip.len() - suffix.len() - 1;
+            if lit_snip.as_bytes()[maybe_last_sep_idx] != b'_' {
+                span_lint_and_sugg(
+                    cx,
+                    UNSEPARATED_LITERAL_SUFFIX,
+                    lit.span,
+                    "float type suffix should be separated by an underscore",
+                    "add an underscore",
+                    format!("{}_{}", &lit_snip[..=maybe_last_sep_idx], suffix),
+                    Applicability::MachineApplicable,
+                );
             }
         }
     }

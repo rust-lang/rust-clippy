@@ -13,14 +13,14 @@ declare_clippy_lint! {
     /// attribute
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// #[clippy::dump]
     /// extern crate foo;
     /// ```
     ///
     /// prints
     ///
-    /// ```
+    /// ```text
     /// item `foo`
     /// visibility inherited from outer item
     /// extern crate dylib source: "/path/to/foo.so"
@@ -63,8 +63,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for DeepCodeInspector {
                 print_expr(cx, &cx.tcx.hir().body(body_id).value, 1);
             },
             hir::ImplItemKind::Method(..) => println!("method"),
-            hir::ImplItemKind::Type(_) => println!("associated type"),
-            hir::ImplItemKind::Existential(_) => println!("existential type"),
+            hir::ImplItemKind::TyAlias(_) => println!("associated type"),
+            hir::ImplItemKind::OpaqueTy(_) => println!("existential type"),
         }
     }
     // fn check_trait_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx
@@ -144,6 +144,7 @@ fn has_attr(sess: &Session, attrs: &[Attribute]) -> bool {
 }
 
 #[allow(clippy::similar_names)]
+#[allow(clippy::too_many_lines)]
 fn print_expr(cx: &LateContext<'_, '_>, expr: &hir::Expr, indent: usize) {
     let ind = "  ".repeat(indent);
     println!("{}+", ind);
@@ -360,10 +361,10 @@ fn print_item(cx: &LateContext<'_, '_>, item: &hir::Item) {
         hir::ItemKind::Mod(..) => println!("module"),
         hir::ItemKind::ForeignMod(ref fm) => println!("foreign module with abi: {}", fm.abi),
         hir::ItemKind::GlobalAsm(ref asm) => println!("global asm: {:?}", asm),
-        hir::ItemKind::Ty(..) => {
+        hir::ItemKind::TyAlias(..) => {
             println!("type alias for {:?}", cx.tcx.type_of(did));
         },
-        hir::ItemKind::Existential(..) => {
+        hir::ItemKind::OpaqueTy(..) => {
             println!("existential type with real type {:?}", cx.tcx.type_of(did));
         },
         hir::ItemKind::Enum(..) => {
@@ -396,6 +397,7 @@ fn print_item(cx: &LateContext<'_, '_>, item: &hir::Item) {
 }
 
 #[allow(clippy::similar_names)]
+#[allow(clippy::too_many_lines)]
 fn print_pat(cx: &LateContext<'_, '_>, pat: &hir::Pat, indent: usize) {
     let ind = "  ".repeat(indent);
     println!("{}+", ind);
@@ -410,6 +412,12 @@ fn print_pat(cx: &LateContext<'_, '_>, pat: &hir::Pat, indent: usize) {
                 print_pat(cx, inner, indent + 1);
             }
         },
+        hir::PatKind::Or(ref fields) => {
+            println!("{}Or", ind);
+            for field in fields {
+                print_pat(cx, field, indent + 1);
+            }
+        },
         hir::PatKind::Struct(ref path, ref fields, ignore) => {
             println!("{}Struct", ind);
             println!(
@@ -420,11 +428,11 @@ fn print_pat(cx: &LateContext<'_, '_>, pat: &hir::Pat, indent: usize) {
             println!("{}ignore leftover fields: {}", ind, ignore);
             println!("{}fields:", ind);
             for field in fields {
-                println!("{}  field name: {}", ind, field.node.ident.name);
-                if field.node.is_shorthand {
+                println!("{}  field name: {}", ind, field.ident.name);
+                if field.is_shorthand {
                     println!("{}  in shorthand notation", ind);
                 }
-                print_pat(cx, &field.node.pat, indent + 1);
+                print_pat(cx, &field.pat, indent + 1);
             }
         },
         hir::PatKind::TupleStruct(ref path, ref fields, opt_dots_position) => {

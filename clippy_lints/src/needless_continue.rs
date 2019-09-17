@@ -39,7 +39,7 @@ use std::borrow::Cow;
 use syntax::ast;
 use syntax::source_map::{original_sp, DUMMY_SP};
 
-use crate::utils::{in_macro_or_desugar, snippet, snippet_block, span_help_and_lint, trim_multiline};
+use crate::utils::{snippet, snippet_block, span_help_and_lint, trim_multiline};
 
 declare_clippy_lint! {
     /// **What it does:** The lint checks for `if`-statements appearing in loops
@@ -57,6 +57,9 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// # fn condition() -> bool { false }
+    /// # fn update_condition() {}
+    /// # let x = false;
     /// while condition() {
     ///     update_condition();
     ///     if x {
@@ -71,6 +74,9 @@ declare_clippy_lint! {
     /// Could be rewritten as
     ///
     /// ```rust
+    /// # fn condition() -> bool { false }
+    /// # fn update_condition() {}
+    /// # let x = false;
     /// while condition() {
     ///     update_condition();
     ///     if x {
@@ -83,22 +89,26 @@ declare_clippy_lint! {
     /// As another example, the following code
     ///
     /// ```rust
+    /// # fn waiting() -> bool { false }
     /// loop {
     ///     if waiting() {
     ///         continue;
     ///     } else {
     ///         // Do something useful
     ///     }
+    ///     # break;
     /// }
     /// ```
     /// Could be rewritten as
     ///
     /// ```rust
+    /// # fn waiting() -> bool { false }
     /// loop {
     ///     if waiting() {
     ///         continue;
     ///     }
     ///     // Do something useful
+    ///     # break;
     /// }
     /// ```
     pub NEEDLESS_CONTINUE,
@@ -110,7 +120,7 @@ declare_lint_pass!(NeedlessContinue => [NEEDLESS_CONTINUE]);
 
 impl EarlyLintPass for NeedlessContinue {
     fn check_expr(&mut self, ctx: &EarlyContext<'_>, expr: &ast::Expr) {
-        if !in_macro_or_desugar(expr.span) {
+        if !expr.span.from_expansion() {
             check_and_warn(ctx, expr);
         }
     }

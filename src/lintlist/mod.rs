@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 309] = [
+pub const ALL_LINTS: [Lint; 313] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -171,7 +171,7 @@ pub const ALL_LINTS: [Lint; 309] = [
     Lint {
         name: "char_lit_as_u8",
         group: "complexity",
-        desc: "casting a character literal to u8",
+        desc: "casting a character literal to u8 truncates",
         deprecation: None,
         module: "types",
     },
@@ -554,6 +554,13 @@ pub const ALL_LINTS: [Lint; 309] = [
         module: "methods",
     },
     Lint {
+        name: "flat_map_identity",
+        group: "complexity",
+        desc: "call to `flat_map` where `flatten` is sufficient",
+        deprecation: None,
+        module: "methods",
+    },
+    Lint {
         name: "float_arithmetic",
         group: "restriction",
         desc: "any floating-point arithmetic statement",
@@ -792,13 +799,6 @@ pub const ALL_LINTS: [Lint; 309] = [
         module: "methods",
     },
     Lint {
-        name: "invalid_ref",
-        group: "correctness",
-        desc: "creation of invalid reference",
-        deprecation: None,
-        module: "invalid_ref",
-    },
-    Lint {
         name: "invalid_regex",
         group: "correctness",
         desc: "invalid regular expressions",
@@ -918,11 +918,25 @@ pub const ALL_LINTS: [Lint; 309] = [
         module: "booleans",
     },
     Lint {
+        name: "main_recursion",
+        group: "style",
+        desc: "recursion using the entrypoint",
+        deprecation: None,
+        module: "main_recursion",
+    },
+    Lint {
         name: "manual_memcpy",
         group: "perf",
         desc: "manually copying items between slices",
         deprecation: None,
         module: "loops",
+    },
+    Lint {
+        name: "manual_saturating_arithmetic",
+        group: "style",
+        desc: "`.chcked_add/sub(x).unwrap_or(MAX/MIN)`",
+        deprecation: None,
+        module: "methods",
     },
     Lint {
         name: "manual_swap",
@@ -1310,6 +1324,13 @@ pub const ALL_LINTS: [Lint; 309] = [
         module: "eq_op",
     },
     Lint {
+        name: "option_and_then_some",
+        group: "complexity",
+        desc: "using `Option.and_then(|x| Some(y))`, which is more succinctly expressed as `map(|x| y)`",
+        deprecation: None,
+        module: "methods",
+    },
+    Lint {
         name: "option_map_or_none",
         group: "style",
         desc: "using `Option.map_or(None, f)`, which is more succinctly expressed as `and_then(f)`",
@@ -1381,7 +1402,7 @@ pub const ALL_LINTS: [Lint; 309] = [
     },
     Lint {
         name: "panicking_unwrap",
-        group: "nursery",
+        group: "correctness",
         desc: "checks for calls of unwrap[_err]() that will always fail",
         deprecation: None,
         module: "unwrap",
@@ -1531,7 +1552,7 @@ pub const ALL_LINTS: [Lint; 309] = [
         group: "style",
         desc: "using `name @ _` in a pattern",
         deprecation: None,
-        module: "misc",
+        module: "misc_early",
     },
     Lint {
         name: "redundant_pattern_matching",
@@ -1669,7 +1690,7 @@ pub const ALL_LINTS: [Lint; 309] = [
     Lint {
         name: "single_match_else",
         group: "pedantic",
-        desc: "a match statement with a two arms where the second arm\'s pattern is a placeholder instead of a specific match pattern",
+        desc: "a match statement with two arms where the second arm\'s pattern is a placeholder instead of a specific match pattern",
         deprecation: None,
         module: "matches",
     },
@@ -1728,6 +1749,13 @@ pub const ALL_LINTS: [Lint; 309] = [
         desc: "suspicious formatting of `else`",
         deprecation: None,
         module: "formatting",
+    },
+    Lint {
+        name: "suspicious_map",
+        group: "complexity",
+        desc: "suspicious usage of map",
+        deprecation: None,
+        module: "methods",
     },
     Lint {
         name: "suspicious_op_assign_impl",
@@ -1850,7 +1878,7 @@ pub const ALL_LINTS: [Lint; 309] = [
     },
     Lint {
         name: "type_repetition_in_bounds",
-        group: "complexity",
+        group: "pedantic",
         desc: "Types are repeated unnecessary in trait bounds use `+` instead of using `T: _, T: _`",
         deprecation: None,
         module: "trait_bounds",
@@ -1858,7 +1886,7 @@ pub const ALL_LINTS: [Lint; 309] = [
     Lint {
         name: "unicode_not_nfc",
         group: "pedantic",
-        desc: "using a unicode literal not in NFC normal form (see [unicode tr15](http://www.unicode.org/reports/tr15/) for further information)",
+        desc: "using a Unicode literal not in NFC normal form (see [Unicode tr15](http://www.unicode.org/reports/tr15/) for further information)",
         deprecation: None,
         module: "unicode",
     },
@@ -1868,6 +1896,13 @@ pub const ALL_LINTS: [Lint; 309] = [
         desc: "`unimplemented!` should not be present in production code",
         deprecation: None,
         module: "panic_unimplemented",
+    },
+    Lint {
+        name: "uninit_assumed_init",
+        group: "correctness",
+        desc: "`MaybeUninit::uninit().assume_init()`",
+        deprecation: None,
+        module: "methods",
     },
     Lint {
         name: "unit_arg",
@@ -1927,7 +1962,7 @@ pub const ALL_LINTS: [Lint; 309] = [
     },
     Lint {
         name: "unnecessary_unwrap",
-        group: "nursery",
+        group: "complexity",
         desc: "checks for calls of unwrap[_err]() that cannot fail",
         deprecation: None,
         module: "unwrap",
@@ -1959,13 +1994,6 @@ pub const ALL_LINTS: [Lint; 309] = [
         desc: "literals whose suffix is not separated by an underscore",
         deprecation: None,
         module: "misc_early",
-    },
-    Lint {
-        name: "unused_collect",
-        group: "perf",
-        desc: "`collect()`ing an iterator without using the result; this is usually better written as a for loop",
-        deprecation: None,
-        module: "loops",
     },
     Lint {
         name: "unused_io_amount",

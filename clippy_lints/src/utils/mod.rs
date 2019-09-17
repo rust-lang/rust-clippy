@@ -47,6 +47,7 @@ use syntax::ext::hygiene::ExpnKind;
 use syntax::source_map::{Span, DUMMY_SP};
 use syntax::symbol::{kw, Symbol};
 
+use crate::consts::{constant, Constant};
 use crate::reexport::*;
 
 /// Returns `true` if the two spans come from differing expansions (i.e., one is
@@ -88,19 +89,18 @@ pub fn in_constant(cx: &LateContext<'_, '_>, id: HirId) -> bool {
             node: ItemKind::Fn(_, header, ..),
             ..
         }) => header.constness == Constness::Const,
+        Node::ImplItem(&ImplItem {
+            node: ImplItemKind::Method(ref sig, _),
+            ..
+        }) => sig.header.constness == Constness::Const,
         _ => false,
     }
 }
 
-/// Returns `true` if this `expn_info` was expanded by any macro or desugaring
-pub fn in_macro_or_desugar(span: Span) -> bool {
-    span.ctxt().outer_expn_info().is_some()
-}
-
-/// Returns `true` if this `expn_info` was expanded by any macro.
+/// Returns `true` if this `span` was expanded by any macro.
 pub fn in_macro(span: Span) -> bool {
-    if let Some(info) = span.ctxt().outer_expn_info() {
-        if let ExpnKind::Desugaring(..) = info.kind {
+    if span.from_expansion() {
+        if let ExpnKind::Desugaring(..) = span.ctxt().outer_expn_data().kind {
             false
         } else {
             true
@@ -127,6 +127,14 @@ pub fn is_present_in_source<T: LintContext>(cx: &T, span: Span) -> bool {
 pub fn match_type(cx: &LateContext<'_, '_>, ty: Ty<'_>, path: &[&str]) -> bool {
     match ty.sty {
         ty::Adt(adt, _) => match_def_path(cx, adt.did, path),
+        _ => false,
+    }
+}
+
+/// Checks if the type is equal to a diagnostic item
+pub fn is_type_diagnostic_item(cx: &LateContext<'_, '_>, ty: Ty<'_>, diag_item: Symbol) -> bool {
+    match ty.sty {
+        ty::Adt(adt, _) => cx.tcx.is_diagnostic_item(diag_item, adt.did),
         _ => false,
     }
 }
@@ -266,6 +274,7 @@ pub fn path_to_res(cx: &LateContext<'_, '_>, path: &[&str]) -> Option<(def::Res)
 }
 
 /// Convenience function to get the `DefId` of a trait by path.
+/// It could be a trait or trait alias.
 pub fn get_trait_def_id(cx: &LateContext<'_, '_>, path: &[&str]) -> Option<DefId> {
     let res = match path_to_res(cx, path) {
         Some(res) => res,
@@ -273,7 +282,8 @@ pub fn get_trait_def_id(cx: &LateContext<'_, '_>, path: &[&str]) -> Option<DefId
     };
 
     match res {
-        def::Res::Def(DefKind::Trait, trait_id) => Some(trait_id),
+        Res::Def(DefKind::Trait, trait_id) | Res::Def(DefKind::TraitAlias, trait_id) => Some(trait_id),
+        Res::Err => unreachable!("this trait resolution is impossible: {:?}", &path),
         _ => None,
     }
 }
@@ -341,26 +351,28 @@ pub fn resolve_node(cx: &LateContext<'_, '_>, qpath: &QPath, id: HirId) -> Res {
 }
 
 /// Returns the method names and argument list of nested method call expressions that make up
-/// `expr`.
-pub fn method_calls(expr: &Expr, max_depth: usize) -> (Vec<Symbol>, Vec<&[Expr]>) {
+/// `expr`. method/span lists are sorted with the most recent call first.
+pub fn method_calls(expr: &Expr, max_depth: usize) -> (Vec<Symbol>, Vec<&[Expr]>, Vec<Span>) {
     let mut method_names = Vec::with_capacity(max_depth);
     let mut arg_lists = Vec::with_capacity(max_depth);
+    let mut spans = Vec::with_capacity(max_depth);
 
     let mut current = expr;
     for _ in 0..max_depth {
-        if let ExprKind::MethodCall(path, _, args) = &current.node {
-            if args.iter().any(|e| in_macro_or_desugar(e.span)) {
+        if let ExprKind::MethodCall(path, span, args) = &current.node {
+            if args.iter().any(|e| e.span.from_expansion()) {
                 break;
             }
             method_names.push(path.ident.name);
             arg_lists.push(&**args);
+            spans.push(*span);
             current = &args[0];
         } else {
             break;
         }
     }
 
-    (method_names, arg_lists)
+    (method_names, arg_lists, spans)
 }
 
 /// Matches an `Expr` against a chain of methods, and return the matched `Expr`s.
@@ -376,7 +388,7 @@ pub fn method_chain_args<'a>(expr: &'a Expr, methods: &[&str]) -> Option<Vec<&'a
         // method chains are stored last -> first
         if let ExprKind::MethodCall(ref path, _, ref args) = current.node {
             if path.ident.name.as_str() == *method_name {
-                if args.iter().any(|e| in_macro_or_desugar(e.span)) {
+                if args.iter().any(|e| e.span.from_expansion()) {
                     return None;
                 }
                 matched.push(&**args); // build up `matched` backwards
@@ -395,10 +407,9 @@ pub fn method_chain_args<'a>(expr: &'a Expr, methods: &[&str]) -> Option<Vec<&'a
 
 /// Returns `true` if the provided `def_id` is an entrypoint to a program.
 pub fn is_entrypoint_fn(cx: &LateContext<'_, '_>, def_id: DefId) -> bool {
-    if let Some((entry_fn_def_id, _)) = cx.tcx.entry_fn(LOCAL_CRATE) {
-        return def_id == entry_fn_def_id;
-    }
-    false
+    cx.tcx
+        .entry_fn(LOCAL_CRATE)
+        .map_or(false, |(entry_fn_def_id, _)| def_id == entry_fn_def_id)
 }
 
 /// Gets the name of the item the expression is in, if available.
@@ -471,7 +482,7 @@ pub fn snippet_with_applicability<'a, T: LintContext>(
     default: &'a str,
     applicability: &mut Applicability,
 ) -> Cow<'a, str> {
-    if *applicability != Applicability::Unspecified && in_macro_or_desugar(span) {
+    if *applicability != Applicability::Unspecified && span.from_expansion() {
         *applicability = Applicability::MaybeIncorrect;
     }
     snippet_opt(cx, span).map_or_else(
@@ -536,7 +547,7 @@ pub fn last_line_of_span<T: LintContext>(cx: &T, span: Span) -> Span {
 pub fn expr_block<'a, T: LintContext>(cx: &T, expr: &Expr, option: Option<String>, default: &'a str) -> Cow<'a, str> {
     let code = snippet_block(cx, expr.span, default);
     let string = option.unwrap_or_default();
-    if in_macro_or_desugar(expr.span) {
+    if expr.span.from_expansion() {
         Cow::Owned(format!("{{ {} }}", snippet_with_macro_callsite(cx, expr.span, default)))
     } else if let ExprKind::Block(_, _) = expr.node {
         Cow::Owned(format!("{}{}", code, string))
@@ -659,6 +670,24 @@ pub fn walk_ptrs_ty_depth(ty: Ty<'_>) -> (Ty<'_>, usize) {
     inner(ty, 0)
 }
 
+/// Checks whether the given expression is a constant integer of the given value.
+/// unlike `is_integer_literal`, this version does const folding
+pub fn is_integer_const(cx: &LateContext<'_, '_>, e: &Expr, value: u128) -> bool {
+    if is_integer_literal(e, value) {
+        return true;
+    }
+    let map = cx.tcx.hir();
+    let parent_item = map.get_parent_item(e.hir_id);
+    if let Some((Constant::Int(v), _)) = map
+        .maybe_body_owned_by(parent_item)
+        .and_then(|body_id| constant(cx, cx.tcx.body_tables(body_id), e))
+    {
+        value == v
+    } else {
+        false
+    }
+}
+
 /// Checks whether the given expression is a constant literal of the given value.
 pub fn is_integer_literal(expr: &Expr, value: u128) -> bool {
     // FIXME: use constant folding
@@ -686,12 +715,18 @@ pub fn is_adjusted(cx: &LateContext<'_, '_>, e: &Expr) -> bool {
 /// See also `is_direct_expn_of`.
 pub fn is_expn_of(mut span: Span, name: &str) -> Option<Span> {
     loop {
-        let span_name_span = span.ctxt().outer_expn_info().map(|ei| (ei.kind.descr(), ei.call_site));
+        if span.from_expansion() {
+            let data = span.ctxt().outer_expn_data();
+            let mac_name = data.kind.descr();
+            let new_span = data.call_site;
 
-        match span_name_span {
-            Some((mac_name, new_span)) if mac_name.as_str() == name => return Some(new_span),
-            None => return None,
-            Some((_, new_span)) => span = new_span,
+            if mac_name.as_str() == name {
+                return Some(new_span);
+            } else {
+                span = new_span;
+            }
+        } else {
+            return None;
         }
     }
 }
@@ -706,11 +741,18 @@ pub fn is_expn_of(mut span: Span, name: &str) -> Option<Span> {
 /// `bar!` by
 /// `is_direct_expn_of`.
 pub fn is_direct_expn_of(span: Span, name: &str) -> Option<Span> {
-    let span_name_span = span.ctxt().outer_expn_info().map(|ei| (ei.kind.descr(), ei.call_site));
+    if span.from_expansion() {
+        let data = span.ctxt().outer_expn_data();
+        let mac_name = data.kind.descr();
+        let new_span = data.call_site;
 
-    match span_name_span {
-        Some((mac_name, new_span)) if mac_name.as_str() == name => Some(new_span),
-        _ => None,
+        if mac_name.as_str() == name {
+            Some(new_span)
+        } else {
+            None
+        }
+    } else {
+        None
     }
 }
 
@@ -778,12 +820,12 @@ pub fn is_refutable(cx: &LateContext<'_, '_>, pat: &Pat) -> bool {
         PatKind::Box(ref pat) | PatKind::Ref(ref pat, _) => is_refutable(cx, pat),
         PatKind::Lit(..) | PatKind::Range(..) => true,
         PatKind::Path(ref qpath) => is_enum_variant(cx, qpath, pat.hir_id),
-        PatKind::Tuple(ref pats, _) => are_refutable(cx, pats.iter().map(|pat| &**pat)),
+        PatKind::Or(ref pats) | PatKind::Tuple(ref pats, _) => are_refutable(cx, pats.iter().map(|pat| &**pat)),
         PatKind::Struct(ref qpath, ref fields, _) => {
             if is_enum_variant(cx, qpath, pat.hir_id) {
                 true
             } else {
-                are_refutable(cx, fields.iter().map(|field| &*field.node.pat))
+                are_refutable(cx, fields.iter().map(|field| &*field.pat))
             }
         },
         PatKind::TupleStruct(ref qpath, ref pats, _) => {
@@ -825,7 +867,7 @@ pub fn remove_blocks(expr: &Expr) -> &Expr {
     }
 }
 
-pub fn is_self(slf: &Arg) -> bool {
+pub fn is_self(slf: &Param) -> bool {
     if let PatKind::Binding(.., name, _) = slf.pat.node {
         name.name == kw::SelfLower
     } else {
@@ -845,8 +887,8 @@ pub fn is_self_ty(slf: &hir::Ty) -> bool {
     false
 }
 
-pub fn iter_input_pats<'tcx>(decl: &FnDecl, body: &'tcx Body) -> impl Iterator<Item = &'tcx Arg> {
-    (0..decl.inputs.len()).map(move |i| &body.arguments[i])
+pub fn iter_input_pats<'tcx>(decl: &FnDecl, body: &'tcx Body) -> impl Iterator<Item = &'tcx Param> {
+    (0..decl.inputs.len()).map(move |i| &body.params[i])
 }
 
 /// Checks if a given expression is a match expression expanded from the `?`
@@ -1110,7 +1152,6 @@ mod test {
 }
 
 pub fn match_def_path<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, did: DefId, syms: &[&str]) -> bool {
-    // HACK: find a way to use symbols from clippy or just go fully to diagnostic items
-    let syms: Vec<_> = syms.iter().map(|sym| Symbol::intern(sym)).collect();
-    cx.match_def_path(did, &syms)
+    let path = cx.get_def_path(did);
+    path.len() == syms.len() && path.into_iter().zip(syms.iter()).all(|(a, &b)| a.as_str() == b)
 }

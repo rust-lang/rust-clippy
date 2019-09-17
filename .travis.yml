@@ -22,7 +22,7 @@ env:
 install:
   - |
     if [ -z ${INTEGRATION} ]; then
-      # rustup component add rustfmt || cargo install --git https://github.com/rust-lang/rustfmt/ --force
+      rustup component add rustfmt || cargo install --git https://github.com/rust-lang/rustfmt/ --force
       if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         . $HOME/.nvm/nvm.sh
         nvm install stable
@@ -56,8 +56,8 @@ matrix:
       if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=rust-lang-nursery/chalk
       if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
-    - env: INTEGRATION=rust-lang/rls
-      if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
+    # - env: INTEGRATION=rust-lang/rls
+    #   if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=Geal/nom
       if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=rust-lang/rustfmt
@@ -82,7 +82,10 @@ matrix:
       if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=chronotope/chrono
       if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
-# prevent these jobs with default env vars
+  allow_failures:
+    - os: windows
+      env: CARGO_INCREMENTAL=0 BASE_TESTS=true OS_WINDOWS=true
+  # prevent these jobs with default env vars
   exclude:
     - os: linux
     - os: osx

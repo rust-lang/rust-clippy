@@ -24,7 +24,8 @@ declare_clippy_lint! {
     /// **Example:**
     ///
     /// ```rust
-    /// &my_data.filter(|&x| x == 0u8).count() // use bytecount::count instead
+    /// # let vec = vec![1_u8];
+    /// &vec.iter().filter(|x| **x == 0u8).count(); // use bytecount::count instead
     /// ```
     pub NAIVE_BYTECOUNT,
     perf,
@@ -46,8 +47,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ByteCount {
             then {
                 let body = cx.tcx.hir().body(body_id);
                 if_chain! {
-                    if body.arguments.len() == 1;
-                    if let Some(argname) = get_pat_name(&body.arguments[0].pat);
+                    if body.params.len() == 1;
+                    if let Some(argname) = get_pat_name(&body.params[0].pat);
                     if let ExprKind::Binary(ref op, ref l, ref r) = body.value.node;
                     if op.node == BinOpKind::Eq;
                     if match_type(cx,

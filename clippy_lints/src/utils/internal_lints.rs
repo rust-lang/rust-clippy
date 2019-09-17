@@ -38,7 +38,7 @@ declare_clippy_lint! {
     /// `declare_lint_pass!`, `impl_lint_pass!`, and `lint_array!` macros.
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// declare_lint! { pub LINT_1, ... }
     /// declare_lint! { pub LINT_2, ... }
     /// declare_lint! { pub FORGOTTEN_LINT, ... }
@@ -62,12 +62,12 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// Bad:
-    /// ```rust
+    /// ```rust,ignore
     /// cx.span_lint(LINT_NAME, "message");
     /// ```
     ///
     /// Good:
-    /// ```rust
+    /// ```rust,ignore
     /// utils::span_lint(cx, LINT_NAME, "message");
     /// ```
     pub COMPILER_LINT_FUNCTIONS,
@@ -76,26 +76,26 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for calls to `cx.outer().expn_info()` and suggests to use
-    /// the `cx.outer_expn_info()`
+    /// **What it does:** Checks for calls to `cx.outer().expn_data()` and suggests to use
+    /// the `cx.outer_expn_data()`
     ///
-    /// **Why is this bad?** `cx.outer_expn_info()` is faster and more concise.
+    /// **Why is this bad?** `cx.outer_expn_data()` is faster and more concise.
     ///
     /// **Known problems:** None.
     ///
     /// **Example:**
     /// Bad:
-    /// ```rust
-    /// expr.span.ctxt().outer().expn_info()
+    /// ```rust,ignore
+    /// expr.span.ctxt().outer().expn_data()
     /// ```
     ///
     /// Good:
-    /// ```rust
-    /// expr.span.ctxt().outer_expn_info()
+    /// ```rust,ignore
+    /// expr.span.ctxt().outer_expn_data()
     /// ```
-    pub OUTER_EXPN_EXPN_INFO,
+    pub OUTER_EXPN_EXPN_DATA,
     internal,
-    "using `cx.outer_expn().expn_info()` instead of `cx.outer_expn_info()`"
+    "using `cx.outer_expn().expn_data()` instead of `cx.outer_expn_data()`"
 }
 
 declare_lint_pass!(ClippyLintsInternal => [CLIPPY_LINTS_INTERNAL]);
@@ -180,11 +180,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LintWithoutLintPass {
             // not able to capture the error.
             // Therefore, we need to climb the macro expansion tree and find the
             // actual span that invoked `declare_tool_lint!`:
-            let lint_span = lint_span
-                .ctxt()
-                .outer_expn_info()
-                .map(|ei| ei.call_site)
-                .expect("unable to get call_site");
+            let lint_span = lint_span.ctxt().outer_expn_data().call_site;
 
             if !self.registered_lints.contains(lint_name) {
                 span_lint(
@@ -278,17 +274,17 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CompilerLintFunctions {
     }
 }
 
-pub struct OuterExpnInfoPass;
+pub struct OuterExpnDataPass;
 
-impl_lint_pass!(OuterExpnInfoPass => [OUTER_EXPN_EXPN_INFO]);
+impl_lint_pass!(OuterExpnDataPass => [OUTER_EXPN_EXPN_DATA]);
 
-impl<'a, 'tcx> LateLintPass<'a, 'tcx> for OuterExpnInfoPass {
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for OuterExpnDataPass {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx hir::Expr) {
-        let (method_names, arg_lists) = method_calls(expr, 2);
+        let (method_names, arg_lists, spans) = method_calls(expr, 2);
         let method_names: Vec<LocalInternedString> = method_names.iter().map(|s| s.as_str()).collect();
         let method_names: Vec<&str> = method_names.iter().map(std::convert::AsRef::as_ref).collect();
         if_chain! {
-            if let ["expn_info", "outer_expn"] = method_names.as_slice();
+            if let ["expn_data", "outer_expn"] = method_names.as_slice();
             let args = arg_lists[1];
             if args.len() == 1;
             let self_arg = &args[0];
@@ -297,11 +293,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for OuterExpnInfoPass {
             then {
                 span_lint_and_sugg(
                     cx,
-                    OUTER_EXPN_EXPN_INFO,
-                    expr.span.trim_start(self_arg.span).unwrap_or(expr.span),
-                    "usage of `outer_expn().expn_info()`",
+                    OUTER_EXPN_EXPN_DATA,
+                    spans[1].with_hi(expr.span.hi()),
+                    "usage of `outer_expn().expn_data()`",
                     "try",
-                    ".outer_expn_info()".to_string(),
+                    "outer_expn_data()".to_string(),
                     Applicability::MachineApplicable,
                 );
             }

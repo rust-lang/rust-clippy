@@ -1,6 +1,4 @@
-use crate::utils::{
-    get_parent_expr, higher, in_macro_or_desugar, same_tys, snippet, span_lint_and_then, span_note_and_lint,
-};
+use crate::utils::{get_parent_expr, higher, same_tys, snippet, span_lint_and_then, span_note_and_lint};
 use crate::utils::{SpanlessEq, SpanlessHash};
 use rustc::hir::*;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
@@ -10,7 +8,7 @@ use rustc_data_structures::fx::FxHashMap;
 use smallvec::SmallVec;
 use std::collections::hash_map::Entry;
 use std::hash::BuildHasherDefault;
-use syntax::symbol::LocalInternedString;
+use syntax::symbol::Symbol;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for consecutive `if`s with the same condition.
@@ -109,7 +107,7 @@ declare_lint_pass!(CopyAndPaste => [IFS_SAME_COND, IF_SAME_THEN_ELSE, MATCH_SAME
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for CopyAndPaste {
     fn check_expr(&mut self, cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr) {
-        if !in_macro_or_desugar(expr.span) {
+        if !expr.span.from_expansion() {
             // skip ifs directly in else, it will be checked in the parent if
             if let Some(expr) = get_parent_expr(cx, expr) {
                 if let Some((_, _, Some(ref else_expr))) = higher::if_block(&expr) {
@@ -170,8 +168,8 @@ fn lint_same_cond(cx: &LateContext<'_, '_>, conds: &[&Expr]) {
 fn lint_match_arms<'tcx>(cx: &LateContext<'_, 'tcx>, expr: &Expr) {
     fn same_bindings<'tcx>(
         cx: &LateContext<'_, 'tcx>,
-        lhs: &FxHashMap<LocalInternedString, Ty<'tcx>>,
-        rhs: &FxHashMap<LocalInternedString, Ty<'tcx>>,
+        lhs: &FxHashMap<Symbol, Ty<'tcx>>,
+        rhs: &FxHashMap<Symbol, Ty<'tcx>>,
     ) -> bool {
         lhs.len() == rhs.len()
             && lhs
@@ -277,12 +275,8 @@ fn if_sequence(mut expr: &Expr) -> (SmallVec<[&Expr; 1]>, SmallVec<[&Block; 1]>)
 }
 
 /// Returns the list of bindings in a pattern.
-fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> FxHashMap<LocalInternedString, Ty<'tcx>> {
-    fn bindings_impl<'a, 'tcx>(
-        cx: &LateContext<'a, 'tcx>,
-        pat: &Pat,
-        map: &mut FxHashMap<LocalInternedString, Ty<'tcx>>,
-    ) {
+fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> FxHashMap<Symbol, Ty<'tcx>> {
+    fn bindings_impl<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat, map: &mut FxHashMap<Symbol, Ty<'tcx>>) {
         match pat.node {
             PatKind::Box(ref pat) | PatKind::Ref(ref pat, _) => bindings_impl(cx, pat, map),
             PatKind::TupleStruct(_, ref pats, _) => {
@@ -291,21 +285,21 @@ fn bindings<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, pat: &Pat) -> FxHashMap<LocalI
                 }
             },
             PatKind::Binding(.., ident, ref as_pat) => {
-                if let Entry::Vacant(v) = map.entry(ident.as_str()) {
+                if let Entry::Vacant(v) = map.entry(ident.name) {
                     v.insert(cx.tables.pat_ty(pat));
                 }
                 if let Some(ref as_pat) = *as_pat {
                     bindings_impl(cx, as_pat, map);
                 }
             },
-            PatKind::Struct(_, ref fields, _) => {
-                for pat in fields {
-                    bindings_impl(cx, &pat.node.pat, map);
-                }
-            },
-            PatKind::Tuple(ref fields, _) => {
+            PatKind::Or(ref fields) | PatKind::Tuple(ref fields, _) => {
                 for pat in fields {
                     bindings_impl(cx, pat, map);
+                }
+            },
+            PatKind::Struct(_, ref fields, _) => {
+                for pat in fields {
+                    bindings_impl(cx, &pat.pat, map);
                 }
             },
             PatKind::Slice(ref lhs, ref mid, ref rhs) => {

@@ -98,7 +98,7 @@ impl ExcessivePrecision {
 /// Ex `1_000_000_000.0`
 /// Ex `1_000_000_000.`
 fn dot_zero_exclusion(s: &str) -> bool {
-    if let Some(after_dec) = s.split('.').nth(1) {
+    s.split('.').nth(1).map_or(false, |after_dec| {
         let mut decpart = after_dec.chars().take_while(|c| *c != 'e' || *c != 'E');
 
         match decpart.next() {
@@ -106,9 +106,7 @@ fn dot_zero_exclusion(s: &str) -> bool {
             Some(_) => false,
             None => true,
         }
-    } else {
-        false
-    }
+    })
 }
 
 fn max_digits(fty: FloatTy) -> u32 {
@@ -143,20 +141,20 @@ impl FloatFormat {
     fn new(s: &str) -> Self {
         s.chars()
             .find_map(|x| match x {
-                'e' => Some(FloatFormat::LowerExp),
-                'E' => Some(FloatFormat::UpperExp),
+                'e' => Some(Self::LowerExp),
+                'E' => Some(Self::UpperExp),
                 _ => None,
             })
-            .unwrap_or(FloatFormat::Normal)
+            .unwrap_or(Self::Normal)
     }
     fn format<T>(&self, f: T) -> String
     where
         T: fmt::UpperExp + fmt::LowerExp + fmt::Display,
     {
         match self {
-            FloatFormat::LowerExp => format!("{:e}", f),
-            FloatFormat::UpperExp => format!("{:E}", f),
-            FloatFormat::Normal => format!("{}", f),
+            Self::LowerExp => format!("{:e}", f),
+            Self::UpperExp => format!("{:E}", f),
+            Self::Normal => format!("{}", f),
         }
     }
 }

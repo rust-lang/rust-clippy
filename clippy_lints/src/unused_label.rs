@@ -1,11 +1,11 @@
-use crate::utils::{in_macro_or_desugar, span_lint};
+use crate::utils::span_lint;
 use rustc::hir;
 use rustc::hir::intravisit::{walk_expr, walk_fn, FnKind, NestedVisitorMap, Visitor};
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_data_structures::fx::FxHashMap;
 use syntax::source_map::Span;
-use syntax::symbol::LocalInternedString;
+use syntax::symbol::Symbol;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for unused labels.
@@ -28,7 +28,7 @@ declare_clippy_lint! {
 }
 
 struct UnusedLabelVisitor<'a, 'tcx> {
-    labels: FxHashMap<LocalInternedString, Span>,
+    labels: FxHashMap<Symbol, Span>,
     cx: &'a LateContext<'a, 'tcx>,
 }
 
@@ -44,7 +44,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnusedLabel {
         span: Span,
         fn_id: hir::HirId,
     ) {
-        if in_macro_or_desugar(span) {
+        if span.from_expansion() {
             return;
         }
 
@@ -65,11 +65,11 @@ impl<'a, 'tcx> Visitor<'tcx> for UnusedLabelVisitor<'a, 'tcx> {
         match expr.node {
             hir::ExprKind::Break(destination, _) | hir::ExprKind::Continue(destination) => {
                 if let Some(label) = destination.label {
-                    self.labels.remove(&label.ident.as_str());
+                    self.labels.remove(&label.ident.name);
                 }
             },
             hir::ExprKind::Loop(_, Some(label), _) => {
-                self.labels.insert(label.ident.as_str(), expr.span);
+                self.labels.insert(label.ident.name, expr.span);
             },
             _ => (),
         }

@@ -2,7 +2,7 @@
 //!
 //! This lint is **warn** by default
 
-use crate::utils::{in_macro_or_desugar, snippet, span_lint_and_then};
+use crate::utils::{snippet, span_lint_and_then};
 use if_chain::if_chain;
 use rustc::hir::{BindingAnnotation, MutImmutable, Pat, PatKind};
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
@@ -18,7 +18,7 @@ declare_clippy_lint! {
     ///
     /// **Known problems:** It seems that the `&ref` pattern is sometimes useful.
     /// For instance in the following snippet:
-    /// ```rust
+    /// ```rust,ignore
     /// enum Animal {
     ///     Cat(u64),
     ///     Dog(u64),
@@ -26,8 +26,7 @@ declare_clippy_lint! {
     ///
     /// fn foo(a: &Animal, b: &Animal) {
     ///     match (a, b) {
-    /// (&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime
-    /// mismatch error
+    ///         (&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime mismatch error
     ///         (&Animal::Dog(ref c), &Animal::Dog(_)) => ()
     ///     }
     /// }
@@ -55,7 +54,7 @@ declare_lint_pass!(NeedlessBorrowedRef => [NEEDLESS_BORROWED_REFERENCE]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessBorrowedRef {
     fn check_pat(&mut self, cx: &LateContext<'a, 'tcx>, pat: &'tcx Pat) {
-        if in_macro_or_desugar(pat.span) {
+        if pat.span.from_expansion() {
             // OK, simple enough, lints doesn't check in macro.
             return;
         }

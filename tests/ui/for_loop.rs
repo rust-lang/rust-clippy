@@ -24,7 +24,6 @@ impl Unrelated {
     clippy::reverse_range_loop,
     clippy::for_kv_map
 )]
-#[warn(clippy::unused_collect)]
 #[allow(
     clippy::linkedlist,
     clippy::shadow_unrelated,
@@ -275,6 +274,14 @@ fn main() {
 
     for mid in 1..vec.len() {
         let (_, _) = vec.split_at(mid);
+    }
+
+    const ZERO: usize = 0;
+
+    for i in ZERO..vec.len() {
+        if f(&vec[i], &vec[i]) {
+            panic!("at the disco");
+        }
     }
 }
 

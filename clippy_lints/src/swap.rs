@@ -1,6 +1,7 @@
 use crate::utils::sugg::Sugg;
 use crate::utils::{
-    differing_macro_contexts, match_type, paths, snippet, span_lint_and_then, walk_ptrs_ty, SpanlessEq,
+    differing_macro_contexts, is_type_diagnostic_item, match_type, paths, snippet, span_lint_and_then, walk_ptrs_ty,
+    SpanlessEq,
 };
 use if_chain::if_chain;
 use matches::matches;
@@ -9,6 +10,7 @@ use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::ty;
 use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_errors::Applicability;
+use syntax_pos::Symbol;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for manual swapping.
@@ -20,12 +22,17 @@ declare_clippy_lint! {
     ///
     /// **Example:**
     /// ```rust
+    /// let mut a = 42;
+    /// let mut b = 1337;
+    ///
     /// let t = b;
     /// b = a;
     /// a = t;
     /// ```
     /// Use std::mem::swap():
     /// ```rust
+    /// let mut a = 1;
+    /// let mut b = 2;
     /// std::mem::swap(&mut a, &mut b);
     /// ```
     pub MANUAL_SWAP,
@@ -46,6 +53,12 @@ declare_clippy_lint! {
     /// # let mut b = 2;
     /// a = b;
     /// b = a;
+    /// ```
+    /// Could be written as:
+    /// ```rust
+    /// # let mut a = 1;
+    /// # let mut b = 2;
+    /// std::mem::swap(&mut a, &mut b);
     /// ```
     pub ALMOST_SWAPPED,
     correctness,
@@ -96,7 +109,7 @@ fn check_manual_swap(cx: &LateContext<'_, '_>, block: &Block) {
 
                                 if matches!(ty.sty, ty::Slice(_)) ||
                                     matches!(ty.sty, ty::Array(_, _)) ||
-                                    match_type(cx, ty, &paths::VEC) ||
+                                    is_type_diagnostic_item(cx, ty, Symbol::intern("vec_type")) ||
                                     match_type(cx, ty, &paths::VEC_DEQUE) {
                                         return Some((lhs1, idx1, idx2));
                                 }
@@ -105,6 +118,14 @@ fn check_manual_swap(cx: &LateContext<'_, '_>, block: &Block) {
                     }
 
                     None
+                }
+
+                if let ExprKind::Field(ref lhs1, _) = lhs1.node {
+                    if let ExprKind::Field(ref lhs2, _) = lhs2.node {
+                        if lhs1.hir_id.owner_def_id() == lhs2.hir_id.owner_def_id() {
+                            return;
+                        }
+                    }
                 }
 
                 let (replace, what, sugg) = if let Some((slice, idx1, idx2)) = check_for_slice(cx, lhs1, lhs2) {

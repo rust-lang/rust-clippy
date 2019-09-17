@@ -1,4 +1,4 @@
-use crate::utils::{snippet_with_applicability, span_lint_and_sugg};
+use crate::utils::{in_macro, snippet_with_applicability, span_lint_and_sugg};
 use if_chain::if_chain;
 use rustc::lint::{EarlyContext, EarlyLintPass, LintArray, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
@@ -15,7 +15,7 @@ declare_clippy_lint! {
     /// the suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect.
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// let a = f(*&mut b);
     /// let c = *&d;
     /// ```
@@ -38,6 +38,7 @@ impl EarlyLintPass for DerefAddrOf {
         if_chain! {
             if let ExprKind::Unary(UnOp::Deref, ref deref_target) = e.node;
             if let ExprKind::AddrOf(_, ref addrof_target) = without_parens(deref_target).node;
+            if !in_macro(addrof_target.span);
             then {
                 let mut applicability = Applicability::MachineApplicable;
                 span_lint_and_sugg(
@@ -64,8 +65,8 @@ declare_clippy_lint! {
     /// **Example:**
     /// ```rust
     /// struct Point(u32, u32);
-    /// let point = Foo(30, 20);
-    /// let x = (&point).x;
+    /// let point = Point(30, 20);
+    /// let x = (&point).0;
     /// ```
     pub REF_IN_DEREF,
     complexity,

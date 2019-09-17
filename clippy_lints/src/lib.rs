@@ -23,11 +23,11 @@ extern crate rustc;
 #[allow(unused_extern_crates)]
 extern crate rustc_data_structures;
 #[allow(unused_extern_crates)]
+extern crate rustc_driver;
+#[allow(unused_extern_crates)]
 extern crate rustc_errors;
 #[allow(unused_extern_crates)]
 extern crate rustc_mir;
-#[allow(unused_extern_crates)]
-extern crate rustc_plugin;
 #[allow(unused_extern_crates)]
 extern crate rustc_target;
 #[allow(unused_extern_crates)]
@@ -100,42 +100,42 @@ macro_rules! declare_clippy_lint {
     };
     { $(#[$attr:meta])* pub $name:tt, complexity, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Warn, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
         }
     };
     { $(#[$attr:meta])* pub $name:tt, perf, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Warn, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
         }
     };
     { $(#[$attr:meta])* pub $name:tt, pedantic, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Allow, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
         }
     };
     { $(#[$attr:meta])* pub $name:tt, restriction, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Allow, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
         }
     };
     { $(#[$attr:meta])* pub $name:tt, cargo, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Allow, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
         }
     };
     { $(#[$attr:meta])* pub $name:tt, nursery, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Allow, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
         }
     };
     { $(#[$attr:meta])* pub $name:tt, internal, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Allow, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
         }
     };
     { $(#[$attr:meta])* pub $name:tt, internal_warn, $description:tt } => {
         declare_tool_lint! {
-            pub clippy::$name, Warn, $description, report_in_external_macro: true
+            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
         }
     };
 }
@@ -200,7 +200,6 @@ pub mod inherent_to_string;
 pub mod inline_fn_without_body;
 pub mod int_plus_one;
 pub mod integer_division;
-pub mod invalid_ref;
 pub mod items_after_statements;
 pub mod large_enum_variant;
 pub mod len_zero;
@@ -208,6 +207,7 @@ pub mod let_if_seq;
 pub mod lifetimes;
 pub mod literal_representation;
 pub mod loops;
+pub mod main_recursion;
 pub mod map_clone;
 pub mod map_unit_fn;
 pub mod matches;
@@ -320,7 +320,7 @@ pub fn register_pre_expansion_lints(
 }
 
 #[doc(hidden)]
-pub fn read_conf(reg: &rustc_plugin::Registry<'_>) -> Conf {
+pub fn read_conf(reg: &rustc_driver::plugin::Registry<'_>) -> Conf {
     match utils::conf::file_from_args(reg.args()) {
         Ok(file_name) => {
             // if the user specified a file, it must exist, otherwise default to `clippy.toml` but
@@ -382,52 +382,62 @@ pub fn read_conf(reg: &rustc_plugin::Registry<'_>) -> Conf {
 /// Used in `./src/driver.rs`.
 #[allow(clippy::too_many_lines)]
 #[rustfmt::skip]
-pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
+pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Conf) {
     let mut store = reg.sess.lint_store.borrow_mut();
+    register_removed_non_tool_lints(&mut store);
+
     // begin deprecated lints, do not remove this comment, it’s used in `update_lints`
     store.register_removed(
-        "should_assert_eq",
+        "clippy::should_assert_eq",
         "`assert!()` will be more flexible with RFC 2011",
     );
     store.register_removed(
-        "extend_from_slice",
+        "clippy::extend_from_slice",
         "`.extend_from_slice(_)` is a faster way to extend a Vec by a slice",
     );
     store.register_removed(
-        "range_step_by_zero",
+        "clippy::range_step_by_zero",
         "`iterator.step_by(0)` panics nowadays",
     );
     store.register_removed(
-        "unstable_as_slice",
+        "clippy::unstable_as_slice",
         "`Vec::as_slice` has been stabilized in 1.7",
     );
     store.register_removed(
-        "unstable_as_mut_slice",
+        "clippy::unstable_as_mut_slice",
         "`Vec::as_mut_slice` has been stabilized in 1.7",
     );
     store.register_removed(
-        "str_to_string",
+        "clippy::str_to_string",
         "using `str::to_string` is common even today and specialization will likely happen soon",
     );
     store.register_removed(
-        "string_to_string",
+        "clippy::string_to_string",
         "using `string::to_string` is common even today and specialization will likely happen soon",
     );
     store.register_removed(
-        "misaligned_transmute",
+        "clippy::misaligned_transmute",
         "this lint has been split into cast_ptr_alignment and transmute_ptr_to_ptr",
     );
     store.register_removed(
-        "assign_ops",
+        "clippy::assign_ops",
         "using compound assignment operators (e.g., `+=`) is harmless",
     );
     store.register_removed(
-        "if_let_redundant_pattern_matching",
+        "clippy::if_let_redundant_pattern_matching",
         "this lint has been changed to redundant_pattern_matching",
     );
     store.register_removed(
-        "unsafe_vector_initialization",
+        "clippy::unsafe_vector_initialization",
         "the replacement suggested by this lint had substantially different behavior",
+    );
+    store.register_removed(
+        "clippy::invalid_ref",
+        "superseded by rustc lint `invalid_value`",
+    );
+    store.register_removed(
+        "clippy::unused_collect",
+        "`collect` has been marked as #[must_use] in rustc and that covers all cases of this lint",
     );
     // end deprecated lints, do not remove this comment, it’s used in `update_lints`
 
@@ -435,7 +445,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_early_lint_pass(box utils::internal_lints::ClippyLintsInternal);
     reg.register_late_lint_pass(box utils::internal_lints::CompilerLintFunctions::new());
     reg.register_late_lint_pass(box utils::internal_lints::LintWithoutLintPass::default());
-    reg.register_late_lint_pass(box utils::internal_lints::OuterExpnInfoPass);
+    reg.register_late_lint_pass(box utils::internal_lints::OuterExpnDataPass);
     reg.register_late_lint_pass(box utils::inspector::DeepCodeInspector);
     reg.register_late_lint_pass(box utils::author::Author);
     reg.register_late_lint_pass(box types::Types);
@@ -473,6 +483,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box types::LetUnitValue);
     reg.register_late_lint_pass(box types::UnitCmp);
     reg.register_late_lint_pass(box loops::Loops);
+    reg.register_late_lint_pass(box main_recursion::MainRecursion::default());
     reg.register_late_lint_pass(box lifetimes::Lifetimes);
     reg.register_late_lint_pass(box entry::HashMapPass);
     reg.register_late_lint_pass(box ranges::Ranges);
@@ -556,7 +567,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
     reg.register_late_lint_pass(box bytecount::ByteCount);
     reg.register_late_lint_pass(box infinite_iter::InfiniteIter);
     reg.register_late_lint_pass(box inline_fn_without_body::InlineFnWithoutBody);
-    reg.register_late_lint_pass(box invalid_ref::InvalidRef);
     reg.register_late_lint_pass(box identity_conversion::IdentityConversion::default());
     reg.register_late_lint_pass(box types::ImplicitHasher);
     reg.register_early_lint_pass(box redundant_static_lifetimes::RedundantStaticLifetimes);
@@ -656,6 +666,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         replace_consts::REPLACE_CONSTS,
         shadow::SHADOW_UNRELATED,
         strings::STRING_ADD_ASSIGN,
+        trait_bounds::TYPE_REPETITION_IN_BOUNDS,
         types::CAST_POSSIBLE_TRUNCATION,
         types::CAST_POSSIBLE_WRAP,
         types::CAST_PRECISION_LOSS,
@@ -671,7 +682,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         utils::internal_lints::CLIPPY_LINTS_INTERNAL,
         utils::internal_lints::COMPILER_LINT_FUNCTIONS,
         utils::internal_lints::LINT_WITHOUT_LINT_PASS,
-        utils::internal_lints::OUTER_EXPN_EXPN_INFO,
+        utils::internal_lints::OUTER_EXPN_EXPN_DATA,
     ]);
 
     reg.register_lint_group("clippy::all", Some("clippy"), vec![
@@ -734,7 +745,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         inherent_to_string::INHERENT_TO_STRING_SHADOW_DISPLAY,
         inline_fn_without_body::INLINE_FN_WITHOUT_BODY,
         int_plus_one::INT_PLUS_ONE,
-        invalid_ref::INVALID_REF,
         large_enum_variant::LARGE_ENUM_VARIANT,
         len_zero::LEN_WITHOUT_IS_EMPTY,
         len_zero::LEN_ZERO,
@@ -756,10 +766,10 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         loops::NEEDLESS_RANGE_LOOP,
         loops::NEVER_LOOP,
         loops::REVERSE_RANGE_LOOP,
-        loops::UNUSED_COLLECT,
         loops::WHILE_IMMUTABLE_CONDITION,
         loops::WHILE_LET_LOOP,
         loops::WHILE_LET_ON_ITERATOR,
+        main_recursion::MAIN_RECURSION,
         map_clone::MAP_CLONE,
         map_unit_fn::OPTION_MAP_UNIT_FN,
         map_unit_fn::RESULT_MAP_UNIT_FN,
@@ -777,20 +787,25 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         methods::CLONE_ON_COPY,
         methods::EXPECT_FUN_CALL,
         methods::FILTER_NEXT,
+        methods::FLAT_MAP_IDENTITY,
         methods::INTO_ITER_ON_ARRAY,
         methods::INTO_ITER_ON_REF,
         methods::ITER_CLONED_COLLECT,
         methods::ITER_NTH,
         methods::ITER_SKIP_NEXT,
+        methods::MANUAL_SATURATING_ARITHMETIC,
         methods::NEW_RET_NO_SELF,
         methods::OK_EXPECT,
+        methods::OPTION_AND_THEN_SOME,
         methods::OPTION_MAP_OR_NONE,
         methods::OR_FUN_CALL,
         methods::SEARCH_IS_SOME,
         methods::SHOULD_IMPLEMENT_TRAIT,
         methods::SINGLE_CHAR_PATTERN,
         methods::STRING_EXTEND_CHARS,
+        methods::SUSPICIOUS_MAP,
         methods::TEMPORARY_CSTRING_AS_PTR,
+        methods::UNINIT_ASSUMED_INIT,
         methods::UNNECESSARY_FILTER_MAP,
         methods::UNNECESSARY_FOLD,
         methods::USELESS_ASREF,
@@ -800,7 +815,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         misc::CMP_OWNED,
         misc::FLOAT_CMP,
         misc::MODULO_ONE,
-        misc::REDUNDANT_PATTERN,
         misc::SHORT_CIRCUIT_STATEMENT,
         misc::TOPLEVEL_REF_ARG,
         misc::ZERO_PTR,
@@ -809,6 +823,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         misc_early::DUPLICATE_UNDERSCORE_ARGUMENT,
         misc_early::MIXED_CASE_HEX_LITERALS,
         misc_early::REDUNDANT_CLOSURE_CALL,
+        misc_early::REDUNDANT_PATTERN,
         misc_early::UNNEEDED_FIELD_PATTERN,
         misc_early::ZERO_PREFIXED_LITERAL,
         mut_reference::UNNECESSARY_MUT_PASSED,
@@ -860,7 +875,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         swap::ALMOST_SWAPPED,
         swap::MANUAL_SWAP,
         temporary_assignment::TEMPORARY_ASSIGNMENT,
-        trait_bounds::TYPE_REPETITION_IN_BOUNDS,
         transmute::CROSSPOINTER_TRANSMUTE,
         transmute::TRANSMUTE_BYTES_TO_STR,
         transmute::TRANSMUTE_INT_TO_BOOL,
@@ -894,6 +908,8 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME,
         unused_io_amount::UNUSED_IO_AMOUNT,
         unused_label::UNUSED_LABEL,
+        unwrap::PANICKING_UNWRAP,
+        unwrap::UNNECESSARY_UNWRAP,
         vec::USELESS_VEC,
         write::PRINTLN_EMPTY_STRING,
         write::PRINT_LITERAL,
@@ -931,6 +947,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         loops::FOR_KV_MAP,
         loops::NEEDLESS_RANGE_LOOP,
         loops::WHILE_LET_ON_ITERATOR,
+        main_recursion::MAIN_RECURSION,
         map_clone::MAP_CLONE,
         matches::MATCH_BOOL,
         matches::MATCH_OVERLAPPING_ARM,
@@ -942,6 +959,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         methods::INTO_ITER_ON_REF,
         methods::ITER_CLONED_COLLECT,
         methods::ITER_SKIP_NEXT,
+        methods::MANUAL_SATURATING_ARITHMETIC,
         methods::NEW_RET_NO_SELF,
         methods::OK_EXPECT,
         methods::OPTION_MAP_OR_NONE,
@@ -949,13 +967,13 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         methods::STRING_EXTEND_CHARS,
         methods::UNNECESSARY_FOLD,
         methods::WRONG_SELF_CONVENTION,
-        misc::REDUNDANT_PATTERN,
         misc::TOPLEVEL_REF_ARG,
         misc::ZERO_PTR,
         misc_early::BUILTIN_TYPE_SHADOW,
         misc_early::DOUBLE_NEG,
         misc_early::DUPLICATE_UNDERSCORE_ARGUMENT,
         misc_early::MIXED_CASE_HEX_LITERALS,
+        misc_early::REDUNDANT_PATTERN,
         misc_early::UNNEEDED_FIELD_PATTERN,
         mut_reference::UNNECESSARY_MUT_PASSED,
         neg_multiply::NEG_MULTIPLY,
@@ -1018,7 +1036,10 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         methods::CHARS_NEXT_CMP,
         methods::CLONE_ON_COPY,
         methods::FILTER_NEXT,
+        methods::FLAT_MAP_IDENTITY,
+        methods::OPTION_AND_THEN_SOME,
         methods::SEARCH_IS_SOME,
+        methods::SUSPICIOUS_MAP,
         methods::UNNECESSARY_FILTER_MAP,
         methods::USELESS_ASREF,
         misc::SHORT_CIRCUIT_STATEMENT,
@@ -1042,7 +1063,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         reference::REF_IN_DEREF,
         swap::MANUAL_SWAP,
         temporary_assignment::TEMPORARY_ASSIGNMENT,
-        trait_bounds::TYPE_REPETITION_IN_BOUNDS,
         transmute::CROSSPOINTER_TRANSMUTE,
         transmute::TRANSMUTE_BYTES_TO_STR,
         transmute::TRANSMUTE_INT_TO_BOOL,
@@ -1060,6 +1080,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         types::UNNECESSARY_CAST,
         types::VEC_BOX,
         unused_label::UNUSED_LABEL,
+        unwrap::UNNECESSARY_UNWRAP,
         zero_div_zero::ZERO_DIVIDED_BY_ZERO,
     ]);
 
@@ -1087,7 +1108,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         infinite_iter::INFINITE_ITER,
         inherent_to_string::INHERENT_TO_STRING_SHADOW_DISPLAY,
         inline_fn_without_body::INLINE_FN_WITHOUT_BODY,
-        invalid_ref::INVALID_REF,
         literal_representation::MISTYPED_LITERAL_SUFFIXES,
         loops::FOR_LOOP_OVER_OPTION,
         loops::FOR_LOOP_OVER_RESULT,
@@ -1099,6 +1119,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         methods::CLONE_DOUBLE_REF,
         methods::INTO_ITER_ON_ARRAY,
         methods::TEMPORARY_CSTRING_AS_PTR,
+        methods::UNINIT_ASSUMED_INIT,
         minmax::MIN_MAX,
         misc::CMP_NAN,
         misc::FLOAT_CMP,
@@ -1121,6 +1142,7 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         types::UNIT_CMP,
         unicode::ZERO_WIDTH_SPACE,
         unused_io_amount::UNUSED_IO_AMOUNT,
+        unwrap::PANICKING_UNWRAP,
     ]);
 
     reg.register_lint_group("clippy::perf", Some("clippy_perf"), vec![
@@ -1130,7 +1152,6 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         large_enum_variant::LARGE_ENUM_VARIANT,
         loops::MANUAL_MEMCPY,
         loops::NEEDLESS_COLLECT,
-        loops::UNUSED_COLLECT,
         methods::EXPECT_FUN_CALL,
         methods::ITER_NTH,
         methods::OR_FUN_CALL,
@@ -1157,9 +1178,55 @@ pub fn register_plugins(reg: &mut rustc_plugin::Registry<'_>, conf: &Conf) {
         needless_borrow::NEEDLESS_BORROW,
         path_buf_push_overwrite::PATH_BUF_PUSH_OVERWRITE,
         redundant_clone::REDUNDANT_CLONE,
-        unwrap::PANICKING_UNWRAP,
-        unwrap::UNNECESSARY_UNWRAP,
     ]);
+}
+
+#[rustfmt::skip]
+fn register_removed_non_tool_lints(store: &mut rustc::lint::LintStore) {
+    store.register_removed(
+        "should_assert_eq",
+        "`assert!()` will be more flexible with RFC 2011",
+    );
+    store.register_removed(
+        "extend_from_slice",
+        "`.extend_from_slice(_)` is a faster way to extend a Vec by a slice",
+    );
+    store.register_removed(
+        "range_step_by_zero",
+        "`iterator.step_by(0)` panics nowadays",
+    );
+    store.register_removed(
+        "unstable_as_slice",
+        "`Vec::as_slice` has been stabilized in 1.7",
+    );
+    store.register_removed(
+        "unstable_as_mut_slice",
+        "`Vec::as_mut_slice` has been stabilized in 1.7",
+    );
+    store.register_removed(
+        "str_to_string",
+        "using `str::to_string` is common even today and specialization will likely happen soon",
+    );
+    store.register_removed(
+        "string_to_string",
+        "using `string::to_string` is common even today and specialization will likely happen soon",
+    );
+    store.register_removed(
+        "misaligned_transmute",
+        "this lint has been split into cast_ptr_alignment and transmute_ptr_to_ptr",
+    );
+    store.register_removed(
+        "assign_ops",
+        "using compound assignment operators (e.g., `+=`) is harmless",
+    );
+    store.register_removed(
+        "if_let_redundant_pattern_matching",
+        "this lint has been changed to redundant_pattern_matching",
+    );
+    store.register_removed(
+        "unsafe_vector_initialization",
+        "the replacement suggested by this lint had substantially different behavior",
+    );
 }
 
 /// Register renamed lints.

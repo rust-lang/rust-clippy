@@ -1,5 +1,5 @@
 use crate::utils::{
-    in_macro_or_desugar, match_def_path,
+    match_def_path,
     paths::{BEGIN_PANIC, BEGIN_PANIC_FMT},
     resolve_node, snippet_opt, span_lint_and_then,
 };
@@ -46,8 +46,8 @@ static LINT_BREAK: &str = "change `break` to `return` as shown";
 static LINT_RETURN: &str = "add `return` as shown";
 
 fn lint(cx: &LateContext<'_, '_>, outer_span: Span, inner_span: Span, msg: &str) {
-    let outer_span = span_to_outer_expn(outer_span);
-    let inner_span = span_to_outer_expn(inner_span);
+    let outer_span = outer_span.source_callsite();
+    let inner_span = inner_span.source_callsite();
 
     span_lint_and_then(cx, IMPLICIT_RETURN, outer_span, "missing return statement", |db| {
         if let Some(snippet) = snippet_opt(cx, inner_span) {
@@ -59,14 +59,6 @@ fn lint(cx: &LateContext<'_, '_>, outer_span: Span, inner_span: Span, msg: &str)
             );
         }
     });
-}
-
-fn span_to_outer_expn(span: Span) -> Span {
-    if let Some(expr) = span.ctxt().outer_expn_info() {
-        span_to_outer_expn(expr.call_site)
-    } else {
-        span
-    }
 }
 
 fn expr_match(cx: &LateContext<'_, '_>, expr: &Expr) {
@@ -146,7 +138,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ImplicitReturn {
 
         // checking return type through MIR, HIR is not able to determine inferred closure return types
         // make sure it's not a macro
-        if !mir.return_ty().is_unit() && !in_macro_or_desugar(span) {
+        if !mir.return_ty().is_unit() && !span.from_expansion() {
             expr_match(cx, &body.value);
         }
     }

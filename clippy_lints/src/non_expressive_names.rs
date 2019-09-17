@@ -131,11 +131,14 @@ impl<'a, 'tcx, 'b> Visitor<'tcx> for SimilarNamesNameVisitor<'a, 'tcx, 'b> {
             PatKind::Ident(_, ident, _) => self.check_ident(ident),
             PatKind::Struct(_, ref fields, _) => {
                 for field in fields {
-                    if !field.node.is_shorthand {
-                        self.visit_pat(&field.node.pat);
+                    if !field.is_shorthand {
+                        self.visit_pat(&field.pat);
                     }
                 }
             },
+            // just go through the first pattern, as either all patterns
+            // bind the same bindings or rustc would have errored much earlier
+            PatKind::Or(ref pats) => self.visit_pat(&pats[0]),
             _ => walk_pat(self, pat),
         }
     }
@@ -325,9 +328,7 @@ impl<'a, 'tcx> Visitor<'tcx> for SimilarNamesLocalVisitor<'a, 'tcx> {
         self.single_char_names.push(vec![]);
 
         self.apply(|this| {
-            // just go through the first pattern, as either all patterns
-            // bind the same bindings or rustc would have errored much earlier
-            SimilarNamesNameVisitor(this).visit_pat(&arm.pats[0]);
+            SimilarNamesNameVisitor(this).visit_pat(&arm.pat);
             this.apply(|this| walk_expr(this, &arm.body));
         });
 

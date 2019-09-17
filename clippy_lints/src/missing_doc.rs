@@ -5,7 +5,7 @@
 // [`missing_doc`]: https://github.com/rust-lang/rust/blob/d6d05904697d89099b55da3331155392f1db9c00/src/librustc_lint/builtin.rs#L246
 //
 
-use crate::utils::{in_macro_or_desugar, span_lint};
+use crate::utils::span_lint;
 use if_chain::if_chain;
 use rustc::hir;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintContext, LintPass};
@@ -85,7 +85,7 @@ impl MissingDoc {
             return;
         }
 
-        if in_macro_or_desugar(sp) {
+        if sp.from_expansion() {
             return;
         }
 
@@ -146,9 +146,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
             hir::ItemKind::Struct(..) => "a struct",
             hir::ItemKind::Trait(..) => "a trait",
             hir::ItemKind::TraitAlias(..) => "a trait alias",
-            hir::ItemKind::Ty(..) => "a type alias",
+            hir::ItemKind::TyAlias(..) => "a type alias",
             hir::ItemKind::Union(..) => "a union",
-            hir::ItemKind::Existential(..) => "an existential type",
+            hir::ItemKind::OpaqueTy(..) => "an existential type",
             hir::ItemKind::ExternCrate(..)
             | hir::ItemKind::ForeignMod(..)
             | hir::ItemKind::GlobalAsm(..)
@@ -184,8 +184,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
         let desc = match impl_item.node {
             hir::ImplItemKind::Const(..) => "an associated constant",
             hir::ImplItemKind::Method(..) => "a method",
-            hir::ImplItemKind::Type(_) => "an associated type",
-            hir::ImplItemKind::Existential(_) => "an existential type",
+            hir::ImplItemKind::TyAlias(_) => "an associated type",
+            hir::ImplItemKind::OpaqueTy(_) => "an existential type",
         };
         self.check_missing_docs_attrs(cx, &impl_item.attrs, impl_item.span, desc);
     }
@@ -196,7 +196,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingDoc {
         }
     }
 
-    fn check_variant(&mut self, cx: &LateContext<'a, 'tcx>, v: &'tcx hir::Variant, _: &hir::Generics) {
-        self.check_missing_docs_attrs(cx, &v.node.attrs, v.span, "a variant");
+    fn check_variant(&mut self, cx: &LateContext<'a, 'tcx>, v: &'tcx hir::Variant) {
+        self.check_missing_docs_attrs(cx, &v.attrs, v.span, "a variant");
     }
 }

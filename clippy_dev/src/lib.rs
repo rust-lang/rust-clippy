@@ -123,13 +123,13 @@ pub fn gen_deprecated(lints: &[Lint]) -> Vec<String> {
     lints
         .iter()
         .filter_map(|l| {
-            l.clone().deprecation.and_then(|depr_text| {
-                Some(vec![
+            l.clone().deprecation.map(|depr_text| {
+                vec![
                     "    store.register_removed(".to_string(),
-                    format!("        \"{}\",", l.name),
+                    format!("        \"clippy::{}\",", l.name),
                     format!("        \"{}\",", depr_text),
                     "    );".to_string(),
-                ])
+                ]
             })
         })
         .flatten()
@@ -442,11 +442,11 @@ fn test_gen_deprecated() {
     ];
     let expected: Vec<String> = vec![
         "    store.register_removed(",
-        "        \"should_assert_eq\",",
+        "        \"clippy::should_assert_eq\",",
         "        \"has been superseded by should_assert_eq2\",",
         "    );",
         "    store.register_removed(",
-        "        \"another_deprecated\",",
+        "        \"clippy::another_deprecated\",",
         "        \"will be removed\",",
         "    );",
     ]

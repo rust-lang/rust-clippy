@@ -14,7 +14,7 @@ use rustc_errors::Applicability;
 use rustc_typeck::hir_ty_to_ty;
 use syntax_pos::{InnerSpan, Span, DUMMY_SP};
 
-use crate::utils::{in_constant, in_macro_or_desugar, is_copy, span_lint_and_then};
+use crate::utils::{in_constant, is_copy, span_lint_and_then};
 
 declare_clippy_lint! {
     /// **What it does:** Checks for declaration of `const` items which is interior
@@ -84,6 +84,7 @@ declare_clippy_lint! {
     "referencing const with interior mutability"
 }
 
+#[allow(dead_code)]
 #[derive(Copy, Clone)]
 enum Source {
     Item { item: Span },
@@ -94,12 +95,12 @@ enum Source {
 impl Source {
     fn lint(&self) -> (&'static Lint, &'static str, Span) {
         match self {
-            Source::Item { item } | Source::Assoc { item, .. } => (
+            Self::Item { item } | Self::Assoc { item, .. } => (
                 DECLARE_INTERIOR_MUTABLE_CONST,
                 "a const item should never be interior mutable",
                 *item,
             ),
-            Source::Expr { expr } => (
+            Self::Expr { expr } => (
                 BORROW_INTERIOR_MUTABLE_CONST,
                 "a const item with interior mutability should not be borrowed",
                 *expr,
@@ -118,7 +119,7 @@ fn verify_ty_bound<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, ty: Ty<'tcx>, source: S
 
     let (lint, msg, span) = source.lint();
     span_lint_and_then(cx, lint, span, msg, |db| {
-        if in_macro_or_desugar(span) {
+        if span.from_expansion() {
             return; // Don't give suggestions into macros.
         }
         match source {

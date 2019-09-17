@@ -1,3 +1,5 @@
+// run-rustfix
+
 #[allow(dead_code, unused_assignments)]
 #[warn(clippy::assign_op_pattern)]
 fn main() {
