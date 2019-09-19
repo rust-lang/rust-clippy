@@ -1086,6 +1086,13 @@ pub const ALL_LINTS: [Lint; 314] = [
         module: "missing_inline",
     },
     Lint {
+        name: "missing_safety_doc",
+        group: "style",
+        desc: "`pub unsafe fn` without `# Safety` docs",
+        deprecation: None,
+        module: "doc",
+    },
+    Lint {
         name: "mistyped_literal_suffixes",
         group: "correctness",
         desc: "mistyped literal suffix",
