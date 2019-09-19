@@ -436,6 +436,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `_.find(_).map(_)`.", 
+      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
+      "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.", 
+      "Example": "```rust\n (0..3).find(|x| *x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```"
+    }, 
+    "group": "pedantic", 
+    "id": "find_map", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `.chars().next()` on a `str` to check\nif it starts with a given char.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.starts_with(_)`.", 
       "Known problems": "None.", 
@@ -579,14 +590,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for multiple inherent implementations of a struct", 
-      "Why is this bad": "Splitting the implementation of a type makes the code harder to navigate.", 
+      "What it does": "Checks for the doc comments of publicly visible\nunsafe functions and warns if there is no `# Safety` section.", 
+      "Why is this bad": "Unsafe functions should document their safety\npreconditions, so that users can be sure they are using them safely.", 
       "Known problems": "None.", 
-      "Example": "```rust\nstruct X;\nimpl X {\n    fn one() {}\n}\nimpl X {\n    fn other() {}\n}\n```\n\nCould be written:\n\n```rust\nstruct X;\nimpl X {\n    fn one() {}\n    fn other() {}\n}\n```"
+      "Examples": ":\n```rust\n/// This function should really be documented\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nAt least write a line about safety:\n\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```"
     }, 
-    "group": "restriction", 
-    "id": "multiple_inherent_impl", 
-    "level": "Allow"
+    "group": "style", 
+    "id": "missing_safety_doc", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -3348,13 +3359,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `_.find(_).map(_)`.", 
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
-      "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.", 
-      "Example": "```rust\n (0..3).find(|x| *x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```"
+      "What it does": "Checks for wildcard enum matches using `_`.", 
+      "Why is this bad": "New enum variants added by library updates can be missed.", 
+      "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.", 
+      "Example": "```rust\nmatch x {\n    A => {},\n    _ => {},\n}\n```"
     }, 
-    "group": "pedantic", 
-    "id": "find_map", 
+    "group": "restriction", 
+    "id": "wildcard_enum_match_arm", 
     "level": "Allow"
   }, 
   {
@@ -3370,13 +3381,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for wildcard enum matches using `_`.", 
-      "Why is this bad": "New enum variants added by library updates can be missed.", 
-      "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.", 
-      "Example": "```rust\nmatch x {\n    A => {},\n    _ => {},\n}\n```"
+      "What it does": "Checks for multiple inherent implementations of a struct", 
+      "Why is this bad": "Splitting the implementation of a type makes the code harder to navigate.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nstruct X;\nimpl X {\n    fn one() {}\n}\nimpl X {\n    fn other() {}\n}\n```\n\nCould be written:\n\n```rust\nstruct X;\nimpl X {\n    fn one() {}\n    fn other() {}\n}\n```"
     }, 
     "group": "restriction", 
-    "id": "wildcard_enum_match_arm", 
+    "id": "multiple_inherent_impl", 
     "level": "Allow"
   }, 
   {
