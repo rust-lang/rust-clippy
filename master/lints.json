@@ -204,9 +204,9 @@
       "Known problems": "None.", 
       "Example": "```rust\nfn as_u64(x: u8) -> u64 {\n    x as u64\n}\n```\n\nUsing `::from` would look like this:\n\n```rust\nfn as_u64(x: u8) -> u64 {\n    u64::from(x)\n}\n```"
     }, 
-    "group": "complexity", 
+    "group": "pedantic", 
     "id": "cast_lossless", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
