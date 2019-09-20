@@ -1601,13 +1601,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for getting the remainder of a division by one.", 
-      "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
+      "What it does": "Checks for `mem::replace(&mut _, mem::uninitialized())`\nand `mem::replace(&mut _, mem::zeroed())`.", 
+      "Why is this bad": "This will lead to undefined behavior even if the\nvalue is overwritten later, because the uninitialized value may be\nobserved in the case of a panic.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet a = x % 1;\n```"
+      "Example": "```\nuse std::mem;\n# fn may_panic(v: Vec<i32>) -> Vec<i32> { v }\n\n#[allow(deprecated, invalid_value)]\nfn myfunc (v: &mut Vec<i32>) {\n    let taken_v = unsafe { mem::replace(v, mem::uninitialized()) };\n    let new_v = may_panic(taken_v); // undefined behavior on panic\n    mem::forget(mem::replace(v, new_v));\n}\n```\n\nThe [take_mut](https://docs.rs/take_mut) crate offers a sound solution,\nat the cost of either lazily creating a replacement value or aborting\non panic, to ensure that the uninitialized value cannot be observed."
     }, 
     "group": "correctness", 
-    "id": "modulo_one", 
+    "id": "mem_replace_with_uninit", 
     "level": "Deny"
   }, 
   {
@@ -1870,6 +1870,17 @@
     }, 
     "group": "style", 
     "id": "single_match", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for expressions that could be replaced by the question mark operator.", 
+      "Why is this bad": "Question mark usage is more idiomatic.", 
+      "Known problems": "None", 
+      "Example": "```ignore\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```ignore\noption?;\n```"
+    }, 
+    "group": "style", 
+    "id": "question_mark", 
     "level": "Warn"
   }, 
   {
@@ -2587,14 +2598,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for expressions that could be replaced by the question mark operator.", 
-      "Why is this bad": "Question mark usage is more idiomatic.", 
-      "Known problems": "None", 
-      "Example": "```ignore\nif option.is_none() {\n    return None;\n}\n```\n\nCould be written:\n\n```ignore\noption?;\n```"
+      "What it does": "Checks for getting the remainder of a division by one.", 
+      "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nlet a = x % 1;\n```"
     }, 
-    "group": "style", 
-    "id": "question_mark", 
-    "level": "Warn"
+    "group": "correctness", 
+    "id": "modulo_one", 
+    "level": "Deny"
   }, 
   {
     "docs": {
