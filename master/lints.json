@@ -1390,6 +1390,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for items that implement `.len()` but not\n`.is_empty()`.", 
+      "Why is this bad": "It is good custom to have both methods, because for\nsome data structures, asking about the length will be a costly operation,\nwhereas `.is_empty()` can usually answer in constant time. Also it used to\nlead to false positives on the [`len_zero`](#len_zero) lint \u2013 currently that\nlint will ignore such entities.", 
+      "Known problems": "None.", 
+      "Example": "```ignore\nimpl X {\n    pub fn len(&self) -> usize {\n        ..\n    }\n}\n```"
+    }, 
+    "group": "style", 
+    "id": "len_without_is_empty", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for expressions where `std::cmp::min` and `max` are\nused to clamp values, but switched so that the result is constant.", 
       "Why is this bad": "This is in all probability not the intended outcome. At\nthe least it hurts readability of the code.", 
       "Known problems": "None", 
@@ -2001,13 +2012,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for items that implement `.len()` but not\n`.is_empty()`.", 
-      "Why is this bad": "It is good custom to have both methods, because for\nsome data structures, asking about the length will be a costly operation,\nwhereas `.is_empty()` can usually answer in constant time. Also it used to\nlead to false positives on the [`len_zero`](#len_zero) lint \u2013 currently that\nlint will ignore such entities.", 
+      "What it does": "Checks for tuple patterns with a wildcard\npattern (`_`) is next to a rest pattern (`..`).\n\n_NOTE_: While `_, ..` means there is at least one element left, `..`\nmeans there are 0 or more elements left. This can make a difference\nwhen refactoring, but shouldn't result in errors in the refactored code,\nsince the wildcard pattern isn't used anyway.", 
+      "Why is this bad": "The wildcard pattern is unneeded as the rest pattern\ncan match that element as well.", 
       "Known problems": "None.", 
-      "Example": "```ignore\nimpl X {\n    pub fn len(&self) -> usize {\n        ..\n    }\n}\n```"
+      "Example": "```rust\n\nmatch t {\n    TupleStruct(0, .., _) => (),\n    _ => (),\n}\n```\ncan be written as\n```rust\n\nmatch t {\n    TupleStruct(0, ..) => (),\n    _ => (),\n}\n```"
     }, 
-    "group": "style", 
-    "id": "len_without_is_empty", 
+    "group": "complexity", 
+    "id": "unneeded_wildcard_pattern", 
     "level": "Warn"
   }, 
   {
