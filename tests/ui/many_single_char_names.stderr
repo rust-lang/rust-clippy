@@ -47,5 +47,15 @@ error: 8 bindings with single-character names in scope
 LL |     let (a, b, c, d, e, f, g, h) = unimplemented!();
    |          ^  ^  ^  ^  ^  ^  ^  ^
 
-error: aborting due to 5 previous errors
+error[E0282]: type annotations needed for `(_, _, _, _, _, _, _, _)`
+  --> $DIR/many_single_char_names.rs:32:10
+   |
+LL |     let (a, b, c, d, e, f, g, h) = unimplemented!();
+   |         -^----------------------
+   |         ||
+   |         |cannot infer type
+   |         consider giving this pattern the explicit type `(_, _, _, _, _, _, _, _)`, with the type parameters specified
 
+error: aborting due to 6 previous errors
+
+For more information about this error, try `rustc --explain E0282`.
