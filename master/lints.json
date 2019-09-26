@@ -2331,6 +2331,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks comparison chains written with `if` that can be\nrewritten with `match` and `cmp`.", 
+      "Why is this bad": "`if` is not guaranteed to be exhaustive and conditionals can get\nrepetitive", 
+      "Known problems": "None.", 
+      "Example": "```rust,ignore\nfn f(x: u8, y: u8) {\n    if x > y {\n        a()\n    } else if x < y {\n        b()\n    } else {\n        c()\n    }\n}\n```\n\nCould be written:\n\n```rust,ignore\nuse std::cmp::Ordering;\nfn f(x: u8, y: u8) {\n     match x.cmp(&y) {\n         Ordering::Greater => a(),\n         Ordering::Less => b(),\n         Ordering::Equal => c()\n     }\n}\n```"
+    }, 
+    "group": "style", 
+    "id": "comparison_chain", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for calls to `std::mem::forget` with a value that\nderives the Copy trait", 
       "Why is this bad": "Calling `std::mem::forget` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html) since the\nvalue will be copied and moved into the function on invocation.\n\nAn alternative, but also valid, explanation is that Copy types do not\nimplement\nthe Drop trait, which means they have no destructors. Without a destructor,\nthere\nis nothing for `std::mem::forget` to ignore.", 
       "Known problems": "None.", 
