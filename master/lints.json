@@ -1782,13 +1782,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for an iterator search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)`.", 
+      "What it does": "Checks for `fn main() { .. }` in doctests", 
+      "Why is this bad": "The test can be shorter (and likely more readable)\nif the `fn main()` is left implicit.", 
       "Known problems": "None.", 
-      "Example": "```rust\nvec.iter().find(|x| **x == 0).is_some();\n```\nCould be written as\n```rust\nvec.iter().any(|x| *x == 0);\n```"
+      "Examples": "``````rust\n/// An example of a doctest with a `main()` function\n///\n/// # Examples\n///\n/// ```\n/// fn main() {\n///     // this needs not be in an `fn`\n/// }\n/// ```\nfn needless_main() {\n    unimplemented!();\n}\n``````"
     }, 
-    "group": "complexity", 
-    "id": "search_is_some", 
+    "group": "style", 
+    "id": "needless_doctest_main", 
     "level": "Warn"
   }, 
   {
@@ -3410,6 +3410,17 @@
     }, 
     "group": "complexity", 
     "id": "manual_swap", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for an iterator search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)`.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nvec.iter().find(|x| **x == 0).is_some();\n```\nCould be written as\n```rust\nvec.iter().any(|x| *x == 0);\n```"
+    }, 
+    "group": "complexity", 
+    "id": "search_is_some", 
     "level": "Warn"
   }, 
   {
