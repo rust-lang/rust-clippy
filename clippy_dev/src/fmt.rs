@@ -1,3 +1,4 @@
+use home;
 use shell_escape::escape;
 use std::ffi::OsStr;
 use std::io;
@@ -29,6 +30,26 @@ impl From<walkdir::Error> for CliError {
 struct FmtContext {
     check: bool,
     verbose: bool,
+}
+
+fn cargo_fmt(context: &FmtContext, path: &Path) -> Result<bool, CliError> {
+    let mut args = vec!["+nightly", "fmt", "--all"];
+    if context.check {
+        args.push("--");
+        args.push("--check");
+    }
+    // in case something aliases cargo=cargo --foo, the order of args will be messed up
+    // because we will end up with cargo --foo +nightly fmt but the "+nightly" needs to come first
+    // get the absolute path to the cargo binary inside $CARGO_HOME
+    let cargo_home = home::cargo_home().expect("failed to get cargo home path!");
+    let cargo_path = cargo_home.join("bin").join("cargo");
+    assert!(
+        cargo_path.is_file(),
+        format!("ERROR: '{}' is not a path to the cargo binary!", cargo_path.display())
+    );
+    let success = exec(context, cargo_path, path, &args)?;
+
+    Ok(success)
 }
 
 pub fn run(check: bool, verbose: bool) {
@@ -130,17 +151,6 @@ fn exec(
     if !context.check && !success {
         return Err(CliError::CommandFailed(format_command(&program, &dir, args)));
     }
-
-    Ok(success)
-}
-
-fn cargo_fmt(context: &FmtContext, path: &Path) -> Result<bool, CliError> {
-    let mut args = vec!["+nightly", "fmt", "--all"];
-    if context.check {
-        args.push("--");
-        args.push("--check");
-    }
-    let success = exec(context, "cargo", path, &args)?;
 
     Ok(success)
 }
