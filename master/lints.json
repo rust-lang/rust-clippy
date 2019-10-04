@@ -1437,7 +1437,7 @@
     "docs": {
       "What it does": "Warns for mistyped suffix in literals", 
       "Why is this bad": "This is most probably a typo", 
-      "Known problems": "- Recommends a signed suffix, even though the number might be too big and an unsigned\n\t\tsuffix is required\n\t\t- Does not match on `_128` since that is a valid grouping for decimal and octal numbers", 
+      "Known problems": "- Recommends a signed suffix, even though the number might be too big and an unsigned\n  suffix is required\n- Does not match on `_128` since that is a valid grouping for decimal and octal numbers", 
       "Example": "```rust\n2_32;\n```"
     }, 
     "group": "correctness", 
