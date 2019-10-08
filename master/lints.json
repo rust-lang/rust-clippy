@@ -3061,7 +3061,7 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (SipHash).", 
+      "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (`SipHash`).", 
       "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.", 
       "Known problems": "Suggestions for replacing constructors can contain\nfalse-positives. Also applying suggestions can require modification of other\npieces of code, possibly including external crates.", 
       "Example": "```rust\nimpl<K: Hash + Eq, V> Serialize for HashMap<K, V> { }\n\npub fn foo(map: &mut HashMap<i32, i32>) { }\n```\ncould be rewritten as\n```rust\nimpl<K: Hash + Eq, V, S: BuildHasher> Serialize for HashMap<K, V, S> { }\n\npub fn foo<S: BuildHasher>(map: &mut HashMap<i32, i32, S>) { }\n```"
