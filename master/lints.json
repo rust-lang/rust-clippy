@@ -2580,10 +2580,15 @@
     "level": "Deny"
   }, 
   {
-    "docs": {}, 
-    "group": "deprecated", 
-    "id": "misaligned_transmute", 
-    "level": "Deprecated"
+    "docs": {
+      "What it does": "Checks for expressions of the form `a * b + c`\nor `c + a * b` where `a`, `b`, `c` are floats and suggests using\n`a.mul_add(b, c)` instead.", 
+      "Why is this bad": "Calculating `a * b + c` may lead to slight\nnumerical inaccuracies as `a * b` is rounded before being added to\n`c`. Depending on the target architecture, `mul_add()` may be more\nperformant.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nlet foo = (a * b) + c;\n```\n\ncan be written as\n\n```rust\nlet foo = a.mul_add(b, c);\n```"
+    }, 
+    "group": "perf", 
+    "id": "manual_mul_add", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2760,6 +2765,12 @@
     "group": "pedantic", 
     "id": "explicit_into_iter_loop", 
     "level": "Allow"
+  }, 
+  {
+    "docs": {}, 
+    "group": "deprecated", 
+    "id": "misaligned_transmute", 
+    "level": "Deprecated"
   }, 
   {
     "docs": {
