@@ -264,10 +264,15 @@
     "level": "Allow"
   }, 
   {
-    "docs": {}, 
-    "group": "deprecated", 
-    "id": "assign_ops", 
-    "level": "Deprecated"
+    "docs": {
+      "What it does": "Checks for transmutes between collections whose\ntypes have different ABI, size or alignment.", 
+      "Why is this bad": "This is undefined behavior.", 
+      "Known problems": "Currently, we cannot know whether a type is a\ncollection, so we just lint the ones that come with `std`.", 
+      "Example": "```rust\n// different size, therefore likely out-of-bounds memory access\n// You absolutely do not want this in your code!\nunsafe {\n    std::mem::transmute::<_, Vec<u32>>(vec![2_u16])\n};\n```\n\nYou must always iterate, map and collect the values:\n\n```rust\nvec![2_u16].into_iter().map(u32::from).collect::<Vec<_>>();\n```"
+    }, 
+    "group": "correctness", 
+    "id": "unsound_collection_transmute", 
+    "level": "Deny"
   }, 
   {
     "docs": {
@@ -1499,6 +1504,12 @@
     "group": "style", 
     "id": "block_in_if_condition_stmt", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {}, 
+    "group": "deprecated", 
+    "id": "assign_ops", 
+    "level": "Deprecated"
   }, 
   {
     "docs": {
