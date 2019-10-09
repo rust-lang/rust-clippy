@@ -1307,14 +1307,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for erasing operations, e.g., `x * 0`.", 
-      "Why is this bad": "The whole expression can be replaced by zero.\nThis is most likely not the intended outcome and should probably be\ncorrected", 
+      "What it does": "Checks the formatting of a unary operator on the right hand side\nof a binary operator. It lints if there is no space between the binary and unary operators,\nbut there is a space between the unary and its operand.", 
+      "Why is this bad": "This is either a typo in the binary operator or confusing.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x = 1;\n0 / x;\n0 * x;\nx & 0;\n```"
+      "Example": "```rust,ignore\nif foo <- 30 { // this should be `foo < -30` but looks like a different operator\n}\n\nif foo &&! bar { // this should be `foo && !bar` but looks like a different operator\n}\n```"
     }, 
-    "group": "correctness", 
-    "id": "erasing_op", 
-    "level": "Deny"
+    "group": "style", 
+    "id": "suspicious_unary_op_formatting", 
+    "level": "Warn"
   }, 
   {
     "docs": {
@@ -2556,6 +2556,17 @@
     "group": "perf", 
     "id": "large_enum_variant", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for erasing operations, e.g., `x * 0`.", 
+      "Why is this bad": "The whole expression can be replaced by zero.\nThis is most likely not the intended outcome and should probably be\ncorrected", 
+      "Known problems": "None.", 
+      "Example": "```rust\nlet x = 1;\n0 / x;\n0 * x;\nx & 0;\n```"
+    }, 
+    "group": "correctness", 
+    "id": "erasing_op", 
+    "level": "Deny"
   }, 
   {
     "docs": {
