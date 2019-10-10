@@ -224,6 +224,7 @@ pub mod misc_early;
 pub mod missing_const_for_fn;
 pub mod missing_doc;
 pub mod missing_inline;
+pub mod mul_add;
 pub mod multiple_crate_versions;
 pub mod mut_mut;
 pub mod mut_reference;
@@ -604,6 +605,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
     reg.register_late_lint_pass(box inherent_to_string::InherentToString);
     reg.register_late_lint_pass(box trait_bounds::TraitBounds);
     reg.register_late_lint_pass(box comparison_chain::ComparisonChain);
+    reg.register_late_lint_pass(box mul_add::MulAddCheck);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -741,6 +743,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         formatting::POSSIBLE_MISSING_COMMA,
         formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING,
         formatting::SUSPICIOUS_ELSE_FORMATTING,
+        formatting::SUSPICIOUS_UNARY_OP_FORMATTING,
         functions::NOT_UNSAFE_PTR_ARG_DEREF,
         functions::TOO_MANY_ARGUMENTS,
         get_last_with_len::GET_LAST_WITH_LEN,
@@ -837,6 +840,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         misc_early::UNNEEDED_FIELD_PATTERN,
         misc_early::UNNEEDED_WILDCARD_PATTERN,
         misc_early::ZERO_PREFIXED_LITERAL,
+        mul_add::MANUAL_MUL_ADD,
         mut_reference::UNNECESSARY_MUT_PASSED,
         mutex_atomic::MUTEX_ATOMIC,
         needless_bool::BOOL_COMPARISON,
@@ -951,6 +955,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         excessive_precision::EXCESSIVE_PRECISION,
         formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING,
         formatting::SUSPICIOUS_ELSE_FORMATTING,
+        formatting::SUSPICIOUS_UNARY_OP_FORMATTING,
         infallible_destructuring_match::INFALLIBLE_DESTRUCTURING_MATCH,
         inherent_to_string::INHERENT_TO_STRING,
         len_zero::LEN_WITHOUT_IS_EMPTY,
@@ -1175,6 +1180,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         methods::OR_FUN_CALL,
         methods::SINGLE_CHAR_PATTERN,
         misc::CMP_OWNED,
+        mul_add::MANUAL_MUL_ADD,
         mutex_atomic::MUTEX_ATOMIC,
         redundant_clone::REDUNDANT_CLONE,
         slow_vector_initialization::SLOW_VECTOR_INITIALIZATION,
