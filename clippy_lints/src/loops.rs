@@ -1118,18 +1118,7 @@ impl<'a, 'tcx> Visitor<'tcx> for ForPatternVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr) {
         // Recursively explore an expression until a ExprKind::Path is found
         match &expr.kind {
-            ExprKind::Box(expr) => self.visit_expr(expr),
-            ExprKind::Array(expr_list) => {
-                for expr in expr_list {
-                    self.visit_expr(expr)
-                }
-            },
-            ExprKind::MethodCall(_, _, expr_list) => {
-                for expr in expr_list {
-                    self.visit_expr(expr)
-                }
-            },
-            ExprKind::Tup(expr_list) => {
+            ExprKind::Array(expr_list) | ExprKind::MethodCall(_, _, expr_list) | ExprKind::Tup(expr_list) => {
                 for expr in expr_list {
                     self.visit_expr(expr)
                 }
@@ -1138,11 +1127,12 @@ impl<'a, 'tcx> Visitor<'tcx> for ForPatternVisitor<'a, 'tcx> {
                 self.visit_expr(lhs_expr);
                 self.visit_expr(rhs_expr);
             },
-            ExprKind::Unary(_, expr) => self.visit_expr(expr),
-            ExprKind::Cast(expr, _) => self.visit_expr(expr),
-            ExprKind::Type(expr, _) => self.visit_expr(expr),
-            ExprKind::AddrOf(_, expr) => self.visit_expr(expr),
-            ExprKind::Struct(_, _, Some(expr)) => self.visit_expr(expr),
+            ExprKind::Box(expr)
+            | ExprKind::Unary(_, expr)
+            | ExprKind::Cast(expr, _)
+            | ExprKind::Type(expr, _)
+            | ExprKind::AddrOf(_, expr)
+            | ExprKind::Struct(_, _, Some(expr)) => self.visit_expr(expr),
             _ => {
                 // Exploration cannot continue ... calculate the hir_id of the current
                 // expr assuming it is a Path
@@ -1164,6 +1154,55 @@ impl<'a, 'tcx> Visitor<'tcx> for ForPatternVisitor<'a, 'tcx> {
             if *hir_id == self.for_pattern_hir_id;
             then {
                 self.found_pattern = true;
+            }
+        }
+    }
+
+    fn nested_visit_map<'this>(&'this mut self) -> NestedVisitorMap<'this, 'tcx> {
+        NestedVisitorMap::None
+    }
+}
+
+// Scans the body of the for loop and determines whether lint should be given
+struct SameItemPushVisitor<'a, 'tcx> {
+    should_lint: bool,
+    // this field holds the last vec push operation visited, which should be the only push seen
+    vec_push: Option<(&'tcx Expr, &'tcx Expr)>,
+    cx: &'a LateContext<'a, 'tcx>,
+}
+
+impl<'a, 'tcx> Visitor<'tcx> for SameItemPushVisitor<'a, 'tcx> {
+    fn visit_expr(&mut self, expr: &'tcx Expr) {
+        match &expr.kind {
+            // Non-determinism may occur ... don't give a lint
+            ExprKind::Loop(_, _, _) | ExprKind::Match(_, _, _) => self.should_lint = false,
+            ExprKind::Block(block, _) => self.visit_block(block),
+            _ => {},
+        }
+    }
+
+    fn visit_block(&mut self, b: &'tcx Block) {
+        for stmt in b.stmts.iter() {
+            self.visit_stmt(stmt);
+        }
+    }
+
+    fn visit_stmt(&mut self, s: &'tcx Stmt) {
+        let vec_push_option = get_vec_push(self.cx, s);
+        if vec_push_option.is_none() {
+            // Current statement is not a push so visit inside
+            match &s.kind {
+                rustc::hir::StmtKind::Expr(expr) | rustc::hir::StmtKind::Semi(expr) => self.visit_expr(&expr),
+                _ => {},
+            }
+        } else {
+            // Current statement is a push ...check whether another
+            // push had been previously done
+            if self.vec_push.is_none() {
+                self.vec_push = vec_push_option;
+            } else {
+                // There are multiple pushes ... don't lint
+                self.should_lint = false;
             }
         }
     }
@@ -1201,22 +1240,17 @@ fn detect_same_item_push<'a, 'tcx>(
     body: &'tcx Expr,
     _: &'tcx Expr,
 ) {
-    // Extract for loop body
-    if let rustc::hir::ExprKind::Block(block, _) = &body.kind {
-        // Analyze only for loops with 1 push statement
-        let pushes: Vec<(&Expr, &Expr)> = block
-            .stmts
-            .iter()
-            // Map each statement to a Vec push (if possible)
-            .map(|stmt| get_vec_push(cx, stmt))
-            // Filter out statements that are not pushes
-            .filter(|stmt_option| stmt_option.is_some())
-            // Unwrap
-            .map(|stmt_option| stmt_option.unwrap())
-            .collect();
-        if pushes.len() == 1 {
+    // Determine whether it is safe to lint the body
+    let mut same_item_push_visitor = SameItemPushVisitor {
+        should_lint: true,
+        vec_push: None,
+        cx,
+    };
+    intravisit::walk_expr(&mut same_item_push_visitor, body);
+    if same_item_push_visitor.should_lint {
+        if let Some((vec, pushed_item)) = same_item_push_visitor.vec_push {
             // Make sure that the push does not involve possibly mutating values
-            if !has_mutable_variables(cx, pushes[0].1) {
+            if !has_mutable_variables(cx, pushed_item) {
                 // Walk through the expression being pushed and make sure that it
                 // does not contain the for loop pattern
                 let mut for_pat_visitor = ForPatternVisitor {
@@ -1224,16 +1258,16 @@ fn detect_same_item_push<'a, 'tcx>(
                     for_pattern_hir_id: pat.hir_id,
                     cx,
                 };
-                intravisit::walk_expr(&mut for_pat_visitor, pushes[0].1);
+                intravisit::walk_expr(&mut for_pat_visitor, pushed_item);
 
                 if !for_pat_visitor.found_pattern {
-                    let vec_str = snippet(cx, pushes[0].0.span, "");
-                    let item_str = snippet(cx, pushes[0].1.span, "");
+                    let vec_str = snippet(cx, vec.span, "");
+                    let item_str = snippet(cx, pushed_item.span, "");
 
                     span_help_and_lint(
                         cx,
                         SAME_ITEM_PUSH,
-                        pushes[0].0.span,
+                        vec.span,
                         "it looks like the same item is being pushed into this Vec",
                         &format!(
                             "try using vec![{};SIZE] or {}.resize(NEW_SIZE, {})",
