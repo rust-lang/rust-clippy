@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 319] = [
+pub const ALL_LINTS: [Lint; 320] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -1642,6 +1642,13 @@ pub const ALL_LINTS: [Lint; 319] = [
         name: "reverse_range_loop",
         group: "correctness",
         desc: "iteration over an empty range, such as `10..0` or `5..5`",
+        deprecation: None,
+        module: "loops",
+    },
+    Lint {
+        name: "same_item_push",
+        group: "style",
+        desc: "same item is being pushed inside of a for loop",
         deprecation: None,
         module: "loops",
     },

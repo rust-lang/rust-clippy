@@ -1166,6 +1166,7 @@ Released 2018-09-13
 [`result_map_unwrap_or_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_map_unwrap_or_else
 [`result_unwrap_used`]: https://rust-lang.github.io/rust-clippy/master/index.html#result_unwrap_used
 [`reverse_range_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#reverse_range_loop
+[`same_item_push`]: https://rust-lang.github.io/rust-clippy/master/index.html#same_item_push
 [`search_is_some`]: https://rust-lang.github.io/rust-clippy/master/index.html#search_is_some
 [`serde_api_misuse`]: https://rust-lang.github.io/rust-clippy/master/index.html#serde_api_misuse
 [`shadow_reuse`]: https://rust-lang.github.io/rust-clippy/master/index.html#shadow_reuse
