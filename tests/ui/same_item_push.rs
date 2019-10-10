@@ -47,9 +47,9 @@ fn main() {
         vec6.push(mutate_increment(item2));
     }
 
-    let mut vec7: Vec<u8> = Vec::new();
-    for i in 0..30 {
-        vec7.push(i);
+    let mut vec7: Vec<usize> = Vec::new();
+    for (a, b) in [0, 1, 4, 9, 16].iter().enumerate() {
+        vec7.push(a);
     }
 
     let mut vec8: Vec<u8> = Vec::new();

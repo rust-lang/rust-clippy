@@ -1110,7 +1110,7 @@ fn has_mutable_variables<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, expr: &'tcx Expr)
 struct ForPatternVisitor<'a, 'tcx> {
     found_pattern: bool,
     // Pattern that we are searching for
-    for_pattern_hir_id: HirId,
+    for_pattern: &'a rustc::hir::Pat,
     cx: &'a LateContext<'a, 'tcx>,
 }
 
@@ -1138,8 +1138,16 @@ impl<'a, 'tcx> Visitor<'tcx> for ForPatternVisitor<'a, 'tcx> {
                 // expr assuming it is a Path
                 if let Some(hir_id) = var_def_id(self.cx, &expr) {
                     // Pattern is found
-                    if hir_id == self.for_pattern_hir_id {
+                    if hir_id == self.for_pattern.hir_id {
                         self.found_pattern = true;
+                    }
+                    // If the for loop pattern is a tuple, determine whether the current
+                    // expr is inside that tuple pattern
+                    if let PatKind::Tuple(pat_list, _) = &self.for_pattern.kind {
+                        let hir_id_list: Vec<HirId> = pat_list.iter().map(|p| p.hir_id).collect();
+                        if hir_id_list.contains(&hir_id) {
+                            self.found_pattern = true;
+                        }
                     }
                 }
             },
@@ -1151,9 +1159,17 @@ impl<'a, 'tcx> Visitor<'tcx> for ForPatternVisitor<'a, 'tcx> {
         if_chain! {
             if let rustc::hir::QPath::Resolved(_, path) = qpath;
             if let rustc::hir::def::Res::Local(hir_id) = &path.res;
-            if *hir_id == self.for_pattern_hir_id;
             then {
-                self.found_pattern = true;
+                if *hir_id == self.for_pattern.hir_id{
+                    self.found_pattern = true;
+                }
+
+                if let PatKind::Tuple(pat_list, _) = &self.for_pattern.kind {
+                    let hir_id_list: Vec<HirId> = pat_list.iter().map(|p| p.hir_id).collect();
+                    if hir_id_list.contains(&hir_id) {
+                        self.found_pattern = true;
+                    }
+                }
             }
         }
     }
@@ -1255,7 +1271,7 @@ fn detect_same_item_push<'a, 'tcx>(
                 // does not contain the for loop pattern
                 let mut for_pat_visitor = ForPatternVisitor {
                     found_pattern: false,
-                    for_pattern_hir_id: pat.hir_id,
+                    for_pattern: pat,
                     cx,
                 };
                 intravisit::walk_expr(&mut for_pat_visitor, pushed_item);
