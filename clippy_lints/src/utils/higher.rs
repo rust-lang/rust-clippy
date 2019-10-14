@@ -3,13 +3,14 @@
 
 #![deny(clippy::missing_docs_in_private_items)]
 
-use crate::utils::{is_expn_of, match_def_path, match_qpath, paths, resolve_node};
+use crate::utils::{is_expn_of, match_def_path, match_qpath, paths};
 use if_chain::if_chain;
 use rustc::lint::LateContext;
 use rustc::{hir, ty};
 use syntax::ast;
 
 /// Converts a hir binary operator to the corresponding `ast` type.
+#[must_use]
 pub fn binop(op: hir::BinOpKind) -> ast::BinOpKind {
     match op {
         hir::BinOpKind::Eq => ast::BinOpKind::Eq,
@@ -250,9 +251,9 @@ pub enum VecArgs<'a> {
 pub fn vec_macro<'e>(cx: &LateContext<'_, '_>, expr: &'e hir::Expr) -> Option<VecArgs<'e>> {
     if_chain! {
         if let hir::ExprKind::Call(ref fun, ref args) = expr.kind;
-        if let hir::ExprKind::Path(ref path) = fun.kind;
+        if let hir::ExprKind::Path(ref qpath) = fun.kind;
         if is_expn_of(fun.span, "vec").is_some();
-        if let Some(fun_def_id) = resolve_node(cx, path, fun.hir_id).opt_def_id();
+        if let Some(fun_def_id) = cx.tables.qpath_res(qpath, fun.hir_id).opt_def_id();
         then {
             return if match_def_path(cx, fun_def_id, &paths::VEC_FROM_ELEM) && args.len() == 2 {
                 // `vec![elem; size]` case
