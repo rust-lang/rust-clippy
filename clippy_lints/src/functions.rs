@@ -12,6 +12,7 @@ use rustc_errors::Applicability;
 use rustc_target::spec::abi::Abi;
 use syntax::ast::Attribute;
 use syntax::source_map::Span;
+use syntax_pos::symbol::Symbol;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for functions with too many parameters.
@@ -464,7 +465,7 @@ fn check_must_use_candidate<'a, 'tcx>(
 fn must_use_attr(attrs: &[Attribute]) -> Option<&Attribute> {
     attrs
         .iter()
-        .find(|attr| attr.ident().map_or(false, |ident| "must_use" == &ident.as_str()))
+        .find(|attr| attr.ident().map_or(false, |ident| Symbol::intern("must_use") == ident.name))
 }
 
 fn returns_unit(decl: &hir::FnDecl) -> bool {

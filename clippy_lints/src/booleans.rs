@@ -10,6 +10,7 @@ use rustc::{declare_lint_pass, declare_tool_lint};
 use rustc_errors::Applicability;
 use syntax::ast::LitKind;
 use syntax::source_map::Span;
+use syntax_pos::symbol::Symbol;
 
 declare_clippy_lint! {
     /// **What it does:** Checks for boolean expressions that can be written more
@@ -255,7 +256,7 @@ fn simplify_not(cx: &LateContext<'_, '_>, expr: &Expr) -> Option<String> {
                 .iter()
                 .cloned()
                 .flat_map(|(a, b)| vec![(a, b), (b, a)])
-                .find(|&(a, _)| a == path.ident.name.as_str())
+                .find(|&(a, _)| Symbol::intern(a) == path.ident.name)
                 .and_then(|(_, neg_method)| Some(format!("{}.{}()", snippet_opt(cx, args[0].span)?, neg_method)))
         },
         _ => None,
