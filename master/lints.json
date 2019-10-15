@@ -56,13 +56,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for empty lines after outer attributes", 
-      "Why is this bad": "Most likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.", 
-      "Known problems": "Can cause false positives.\n\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect.", 
-      "Example": "```rust\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine() { }\n\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code() { }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too() { }\n```"
+      "What it does": "Checks methods that contain a `self` argument but don't use it", 
+      "Why is this bad": "It may be clearer to define the method as an associated function instead\nof an instance method if it doesn't require `self`.", 
+      "Known problems": "None.", 
+      "Example": "```rust,ignore\nstruct A;\nimpl A {\n    fn method(&self) {}\n}\n```\n\nCould be written:\n\n```rust,ignore\nstruct A;\nimpl A {\n    fn method() {}\n}\n```"
     }, 
-    "group": "nursery", 
-    "id": "empty_line_after_outer_attr", 
+    "group": "pedantic", 
+    "id": "unused_self", 
     "level": "Allow"
   }, 
   {
@@ -372,6 +372,17 @@
     "group": "complexity", 
     "id": "overflow_check_conditional", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for empty lines after outer attributes", 
+      "Why is this bad": "Most likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.", 
+      "Known problems": "Can cause false positives.\n\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect.", 
+      "Example": "```rust\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine() { }\n\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code() { }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too() { }\n```"
+    }, 
+    "group": "nursery", 
+    "id": "empty_line_after_outer_attr", 
+    "level": "Allow"
   }, 
   {
     "docs": {
