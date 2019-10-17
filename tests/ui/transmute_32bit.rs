@@ -1,6 +1,6 @@
 //ignore-x86_64
 
-#[warn(wrong_transmute)]
+#[warn(clippy::wrong_transmute)]
 fn main() {
     unsafe {
         let _: *const usize = std::mem::transmute(6.0f32);
