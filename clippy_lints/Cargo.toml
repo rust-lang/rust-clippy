@@ -35,3 +35,6 @@ smallvec = { version = "0.6.5", features = ["union"] }
 
 [features]
 debugging = []
+
+[profile.dev]
+opt-level = 1

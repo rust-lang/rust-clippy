@@ -10,3 +10,6 @@ keywords = ["rustc", "tool", "git", "version", "hash"]
 categories = ["development-tools"]
 edition = "2018"
 [dependencies]
+
+[profile.dev]
+opt-level = 1

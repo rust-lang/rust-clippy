@@ -18,3 +18,6 @@ name = "clippy_mini_macro_test"
 proc-macro = true
 
 [dependencies]
+
+[profile.dev]
+opt-level = 1

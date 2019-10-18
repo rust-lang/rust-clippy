@@ -5,3 +5,6 @@ edition = "2018"
 
 [workspace]
 members = ["subcrate"]
+
+[profile.dev]
+opt-level = 1

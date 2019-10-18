@@ -1,3 +1,6 @@
 [package]
 name = "subcrate"
 version = "0.1.0"
+
+[profile.dev]
+opt-level = 1

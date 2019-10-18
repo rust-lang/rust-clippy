@@ -15,3 +15,6 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 
 [build-dependencies]
 term = "0.5.1"
+
+[profile.dev]
+opt-level = 1
