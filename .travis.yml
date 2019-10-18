@@ -53,6 +53,7 @@ matrix:
   include:
     # Builds that are executed for every PR
     - os: osx # run base tests on both platforms
+      osx_image: xcode9.2 # macOS 10.12
       env: BASE_TESTS=true
     - os: linux
       env: BASE_TESTS=true
