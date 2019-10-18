@@ -3199,6 +3199,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `.to_string()` on an `&&T` where\n`T` implements `ToString` directly (like `&&str` or `&&String`).", 
+      "Why is this bad": "This bypasses the specialized implementation of\n`ToString` and instead goes through the more expensive string formatting\nfacilities.", 
+      "Known problems": "None.", 
+      "Example": "```rust\n// Generic implementation for `T: Display` is used (slow)\n[\"foo\", \"bar\"].iter().map(|s| s.to_string());\n\n// OK, the specialized impl is used\n[\"foo\", \"bar\"].iter().map(|&s| s.to_string());\n```"
+    }, 
+    "group": "perf", 
+    "id": "inefficient_to_string", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for loops which have a range bound that is a mutable variable", 
       "Why is this bad": "One might think that modifying the mutable variable changes the loop bounds", 
       "Known problems": "None", 
