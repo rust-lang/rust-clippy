@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 325] = [
+pub const ALL_LINTS: [Lint; 332] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -736,6 +736,13 @@ pub const ALL_LINTS: [Lint; 325] = [
         module: "bit_mask",
     },
     Lint {
+        name: "inefficient_to_string",
+        group: "perf",
+        desc: "using `to_string` on `&&T` where `T: ToString`",
+        deprecation: None,
+        module: "methods",
+    },
+    Lint {
         name: "infallible_destructuring_match",
         group: "style",
         desc: "a match statement with a single infallible arm instead of a `let`",
@@ -1387,6 +1394,13 @@ pub const ALL_LINTS: [Lint; 325] = [
         module: "methods",
     },
     Lint {
+        name: "option_expect_used",
+        group: "restriction",
+        desc: "using `Option.expect()`, which might be better handled",
+        deprecation: None,
+        module: "methods",
+    },
+    Lint {
         name: "option_map_or_none",
         group: "style",
         desc: "using `Option.map_or(None, f)`, which is more succinctly expressed as `and_then(f)`",
@@ -1448,6 +1462,13 @@ pub const ALL_LINTS: [Lint; 325] = [
         desc: "overflow checks inspired by C which are likely to panic",
         deprecation: None,
         module: "overflow_check_conditional",
+    },
+    Lint {
+        name: "panic",
+        group: "restriction",
+        desc: "usage of the `panic!` macro",
+        deprecation: None,
+        module: "panic_unimplemented",
     },
     Lint {
         name: "panic_params",
@@ -1644,6 +1665,13 @@ pub const ALL_LINTS: [Lint; 325] = [
         desc: "Lint usages of standard library `const`s that could be replaced by `const fn`s",
         deprecation: None,
         module: "replace_consts",
+    },
+    Lint {
+        name: "result_expect_used",
+        group: "restriction",
+        desc: "using `Result.expect()`, which might be better handled",
+        deprecation: None,
+        module: "methods",
     },
     Lint {
         name: "result_map_unit_fn",
@@ -1849,6 +1877,13 @@ pub const ALL_LINTS: [Lint; 325] = [
         module: "methods",
     },
     Lint {
+        name: "todo",
+        group: "restriction",
+        desc: "`todo!` should not be present in production code",
+        deprecation: None,
+        module: "panic_unimplemented",
+    },
+    Lint {
         name: "too_many_arguments",
         group: "complexity",
         desc: "functions with too many arguments",
@@ -2052,6 +2087,13 @@ pub const ALL_LINTS: [Lint; 325] = [
         module: "misc_early",
     },
     Lint {
+        name: "unreachable",
+        group: "restriction",
+        desc: "`unreachable!` should not be present in production code",
+        deprecation: None,
+        module: "panic_unimplemented",
+    },
+    Lint {
         name: "unreadable_literal",
         group: "style",
         desc: "long integer literal without underscores",
@@ -2092,6 +2134,13 @@ pub const ALL_LINTS: [Lint; 325] = [
         desc: "unused labels",
         deprecation: None,
         module: "unused_label",
+    },
+    Lint {
+        name: "unused_self",
+        group: "pedantic",
+        desc: "methods that contain a `self` argument but don\'t use it",
+        deprecation: None,
+        module: "unused_self",
     },
     Lint {
         name: "unused_unit",

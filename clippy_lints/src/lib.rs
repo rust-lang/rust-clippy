@@ -37,6 +37,8 @@ extern crate rustc_typeck;
 #[allow(unused_extern_crates)]
 extern crate syntax;
 #[allow(unused_extern_crates)]
+extern crate syntax_expand;
+#[allow(unused_extern_crates)]
 extern crate syntax_pos;
 
 use toml;
@@ -277,6 +279,7 @@ pub mod unicode;
 pub mod unsafe_removed_from_name;
 pub mod unused_io_amount;
 pub mod unused_label;
+pub mod unused_self;
 pub mod unwrap;
 pub mod use_self;
 pub mod vec;
@@ -606,6 +609,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
     reg.register_late_lint_pass(box trait_bounds::TraitBounds);
     reg.register_late_lint_pass(box comparison_chain::ComparisonChain);
     reg.register_late_lint_pass(box mul_add::MulAddCheck);
+    reg.register_late_lint_pass(box unused_self::UnusedSelf);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -621,13 +625,18 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         mem_forget::MEM_FORGET,
         methods::CLONE_ON_REF_PTR,
         methods::GET_UNWRAP,
+        methods::OPTION_EXPECT_USED,
         methods::OPTION_UNWRAP_USED,
+        methods::RESULT_EXPECT_USED,
         methods::RESULT_UNWRAP_USED,
         methods::WRONG_PUB_SELF_CONVENTION,
         misc::FLOAT_CMP_CONST,
         missing_doc::MISSING_DOCS_IN_PRIVATE_ITEMS,
         missing_inline::MISSING_INLINE_IN_PUBLIC_ITEMS,
+        panic_unimplemented::PANIC,
+        panic_unimplemented::TODO,
         panic_unimplemented::UNIMPLEMENTED,
+        panic_unimplemented::UNREACHABLE,
         shadow::SHADOW_REUSE,
         shadow::SHADOW_SAME,
         strings::STRING_ADD,
@@ -683,6 +692,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         types::LINKEDLIST,
         unicode::NON_ASCII_LITERAL,
         unicode::UNICODE_NOT_NFC,
+        unused_self::UNUSED_SELF,
         use_self::USE_SELF,
     ]);
 
@@ -804,6 +814,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         methods::EXPECT_FUN_CALL,
         methods::FILTER_NEXT,
         methods::FLAT_MAP_IDENTITY,
+        methods::INEFFICIENT_TO_STRING,
         methods::INTO_ITER_ON_ARRAY,
         methods::INTO_ITER_ON_REF,
         methods::ITER_CLONED_COLLECT,
@@ -1181,6 +1192,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         loops::MANUAL_MEMCPY,
         loops::NEEDLESS_COLLECT,
         methods::EXPECT_FUN_CALL,
+        methods::INEFFICIENT_TO_STRING,
         methods::ITER_NTH,
         methods::OR_FUN_CALL,
         methods::SINGLE_CHAR_PATTERN,

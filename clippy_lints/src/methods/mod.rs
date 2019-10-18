@@ -1,3 +1,4 @@
+mod inefficient_to_string;
 mod manual_saturating_arithmetic;
 mod option_map_unwrap_or;
 mod unnecessary_filter_map;
@@ -72,7 +73,7 @@ declare_clippy_lint! {
     /// **Known problems:** None.
     ///
     /// **Example:**
-    /// Using unwrap on an `Option`:
+    /// Using unwrap on an `Result`:
     ///
     /// ```rust
     /// let res: Result<usize, ()> = Ok(1);
@@ -88,6 +89,65 @@ declare_clippy_lint! {
     pub RESULT_UNWRAP_USED,
     restriction,
     "using `Result.unwrap()`, which might be better handled"
+}
+
+declare_clippy_lint! {
+    /// **What it does:** Checks for `.expect()` calls on `Option`s.
+    ///
+    /// **Why is this bad?** Usually it is better to handle the `None` case. Still,
+    ///  for a lot of quick-and-dirty code, `expect` is a good choice, which is why
+    ///  this lint is `Allow` by default.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// Using expect on an `Option`:
+    ///
+    /// ```rust
+    /// let opt = Some(1);
+    /// opt.expect("one");
+    /// ```
+    ///
+    /// Better:
+    ///
+    /// ```ignore
+    /// let opt = Some(1);
+    /// opt?;
+    /// # Some::<()>(())
+    /// ```
+    pub OPTION_EXPECT_USED,
+    restriction,
+    "using `Option.expect()`, which might be better handled"
+}
+
+declare_clippy_lint! {
+    /// **What it does:** Checks for `.expect()` calls on `Result`s.
+    ///
+    /// **Why is this bad?** `result.expect()` will let the thread panic on `Err`
+    /// values. Normally, you want to implement more sophisticated error handling,
+    /// and propagate errors upwards with `try!`.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// Using expect on an `Result`:
+    ///
+    /// ```rust
+    /// let res: Result<usize, ()> = Ok(1);
+    /// res.expect("one");
+    /// ```
+    ///
+    /// Better:
+    ///
+    /// ```
+    /// let res: Result<usize, ()> = Ok(1);
+    /// res?;
+    /// # Ok::<(), ()>(())
+    /// ```
+    pub RESULT_EXPECT_USED,
+    restriction,
+    "using `Result.expect()`, which might be better handled"
 }
 
 declare_clippy_lint! {
@@ -590,6 +650,29 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `.to_string()` on an `&&T` where
+    /// `T` implements `ToString` directly (like `&&str` or `&&String`).
+    ///
+    /// **Why is this bad?** This bypasses the specialized implementation of
+    /// `ToString` and instead goes through the more expensive string formatting
+    /// facilities.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// // Generic implementation for `T: Display` is used (slow)
+    /// ["foo", "bar"].iter().map(|s| s.to_string());
+    ///
+    /// // OK, the specialized impl is used
+    /// ["foo", "bar"].iter().map(|&s| s.to_string());
+    /// ```
+    pub INEFFICIENT_TO_STRING,
+    perf,
+    "using `to_string` on `&&T` where `T: ToString`"
+}
+
+declare_clippy_lint! {
     /// **What it does:** Checks for `new` not returning `Self`.
     ///
     /// **Why is this bad?** As a convention, `new` methods are used to make a new
@@ -1013,6 +1096,8 @@ declare_clippy_lint! {
 declare_lint_pass!(Methods => [
     OPTION_UNWRAP_USED,
     RESULT_UNWRAP_USED,
+    OPTION_EXPECT_USED,
+    RESULT_EXPECT_USED,
     SHOULD_IMPLEMENT_TRAIT,
     WRONG_SELF_CONVENTION,
     WRONG_PUB_SELF_CONVENTION,
@@ -1029,6 +1114,7 @@ declare_lint_pass!(Methods => [
     CLONE_ON_COPY,
     CLONE_ON_REF_PTR,
     CLONE_DOUBLE_REF,
+    INEFFICIENT_TO_STRING,
     NEW_RET_NO_SELF,
     SINGLE_CHAR_PATTERN,
     SEARCH_IS_SOME,
@@ -1070,6 +1156,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             ["unwrap", "get_mut"] => lint_get_unwrap(cx, expr, arg_lists[1], true),
             ["unwrap", ..] => lint_unwrap(cx, expr, arg_lists[0]),
             ["expect", "ok"] => lint_ok_expect(cx, expr, arg_lists[1]),
+            ["expect", ..] => lint_expect(cx, expr, arg_lists[0]),
             ["unwrap_or", "map"] => option_map_unwrap_or::lint(cx, expr, arg_lists[1], arg_lists[0]),
             ["unwrap_or_else", "map"] => lint_map_unwrap_or_else(cx, expr, arg_lists[1], arg_lists[0]),
             ["map_or", ..] => lint_map_or_none(cx, expr, arg_lists[0]),
@@ -1121,6 +1208,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
                 if args.len() == 1 && method_call.ident.name == sym!(clone) {
                     lint_clone_on_copy(cx, expr, &args[0], self_ty);
                     lint_clone_on_ref_ptr(cx, expr, &args[0]);
+                }
+                if args.len() == 1 && method_call.ident.name == sym!(to_string) {
+                    inefficient_to_string::lint(cx, expr, &args[0], self_ty);
                 }
 
                 match self_ty.kind {
@@ -2029,6 +2119,31 @@ fn lint_unwrap(cx: &LateContext<'_, '_>, expr: &hir::Expr, unwrap_args: &[hir::E
                 "used unwrap() on {} value. If you don't want to handle the {} case gracefully, consider \
                  using expect() to provide a better panic \
                  message",
+                kind, none_value
+            ),
+        );
+    }
+}
+
+/// lint use of `expect()` for `Option`s and `Result`s
+fn lint_expect(cx: &LateContext<'_, '_>, expr: &hir::Expr, expect_args: &[hir::Expr]) {
+    let obj_ty = walk_ptrs_ty(cx.tables.expr_ty(&expect_args[0]));
+
+    let mess = if match_type(cx, obj_ty, &paths::OPTION) {
+        Some((OPTION_EXPECT_USED, "an Option", "None"))
+    } else if match_type(cx, obj_ty, &paths::RESULT) {
+        Some((RESULT_EXPECT_USED, "a Result", "Err"))
+    } else {
+        None
+    };
+
+    if let Some((lint, kind, none_value)) = mess {
+        span_lint(
+            cx,
+            lint,
+            expr.span,
+            &format!(
+                "used expect() on {} value. If this value is an {} it will panic",
                 kind, none_value
             ),
         );
