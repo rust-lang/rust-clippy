@@ -10,8 +10,9 @@ cargo install --force --debug --path .
 
 echo "Running integration test for crate ${INTEGRATION}"
 
-git clone --depth=1 "https://github.com/${INTEGRATION}.git" checkout
-cd checkout || exit 1
+mkdir -p "checkout/$INTEGRATION"
+curl -sSL "https://github.com/$INTEGRATION/archive/master.tar.gz" | tar -xzf - -C "checkout/$INTEGRATION"
+cd "checkout/$INTEGRATION" || exit 1
 
 # run clippy on a project, try to be verbose and trigger as many warnings as possible for greater coverage
 RUST_BACKTRACE=full \
