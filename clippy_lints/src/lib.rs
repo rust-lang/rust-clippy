@@ -231,6 +231,7 @@ pub mod multiple_crate_versions;
 pub mod mut_mut;
 pub mod mut_reference;
 pub mod mutex_atomic;
+pub mod mutex_mutable_self;
 pub mod needless_bool;
 pub mod needless_borrow;
 pub mod needless_borrowed_ref;
@@ -610,6 +611,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
     reg.register_late_lint_pass(box comparison_chain::ComparisonChain);
     reg.register_late_lint_pass(box mul_add::MulAddCheck);
     reg.register_late_lint_pass(box unused_self::UnusedSelf);
+    reg.register_late_lint_pass(box mutex_mutable_self::MutexMutableSelf);
 
     reg.register_lint_group("clippy::restriction", Some("clippy_restriction"), vec![
         arithmetic::FLOAT_ARITHMETIC,
@@ -1011,6 +1013,7 @@ pub fn register_plugins(reg: &mut rustc_driver::plugin::Registry<'_>, conf: &Con
         misc_early::REDUNDANT_PATTERN,
         misc_early::UNNEEDED_FIELD_PATTERN,
         mut_reference::UNNECESSARY_MUT_PASSED,
+        mutex_mutable_self::MUTEX_MUTABLE_SELF,
         neg_multiply::NEG_MULTIPLY,
         new_without_default::NEW_WITHOUT_DEFAULT,
         non_expressive_names::JUST_UNDERSCORES_AND_DIGITS,

@@ -1,0 +1,11 @@
+error: exclusive mutex variable
+  --> $DIR/mutex_mutable_self.rs:9:6
+   |
+LL |     *m.lock().unwrap()
+   |      ^^^^^^^^
+   |
+   = note: `-D clippy::mutex-mutable-self` implied by `-D warnings`
+   = help: consider `Mutex::get_mut` instead
+
+error: aborting due to previous error
+

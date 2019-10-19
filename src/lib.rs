@@ -1,5 +1,4 @@
 // error-pattern:cargo-clippy
-#![feature(plugin_registrar)]
 #![feature(rustc_private)]
 #![warn(rust_2018_idioms)]
 
@@ -9,7 +8,6 @@
 extern crate rustc_driver;
 use self::rustc_driver::plugin::Registry;
 
-#[plugin_registrar]
 pub fn plugin_registrar(reg: &mut Registry<'_>) {
     reg.sess.lint_store.with_read_lock(|lint_store| {
         for (lint, _, _) in lint_store.get_lint_groups() {

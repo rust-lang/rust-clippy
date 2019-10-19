@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 331] = [
+pub const ALL_LINTS: [Lint; 332] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -1210,6 +1210,13 @@ pub const ALL_LINTS: [Lint; 331] = [
         desc: "using a mutex where an atomic value could be used instead",
         deprecation: None,
         module: "mutex_atomic",
+    },
+    Lint {
+        name: "mutex_mutable_self",
+        group: "style",
+        desc: "using `Mutex::lock` when `Mutex::get_mut` would suffice",
+        deprecation: None,
+        module: "mutex_mutable_self",
     },
     Lint {
         name: "mutex_integer",
