@@ -1,11 +1,6 @@
 dist: xenial
 language: bash
 
-os:
-  - linux
-  - osx
-  - windows
-
 branches:
   # Don't build these branches
   except:
@@ -51,14 +46,6 @@ install:
 matrix:
   fast_finish: true
   include:
-    # Builds that are executed for every PR
-    - os: osx # run base tests on both platforms
-      env: BASE_TESTS=true
-    - os: linux
-      env: BASE_TESTS=true
-    - os: windows
-      env: CARGO_INCREMENTAL=0 BASE_TESTS=true OS_WINDOWS=true
-
     # Builds that are only executed when a PR is r+ed or a try build is started
     # We don't want to run these always because they go towards
     # the build limit within the Travis rust-lang account.
@@ -84,23 +71,14 @@ matrix:
     - env: INTEGRATION=rust-random/rand
       if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=rust-lang-nursery/futures-rs
-      if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=Marwes/combine
-      if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=rust-lang-nursery/failure
-      if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=rust-lang-nursery/log
-      if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
     - env: INTEGRATION=chronotope/chrono
       if: repo =~ /^rust-lang\/rust-clippy$/ AND branch IN (auto, try)
   allow_failures:
     - os: windows
       env: CARGO_INCREMENTAL=0 BASE_TESTS=true OS_WINDOWS=true
-  # prevent these jobs with default env vars
-  exclude:
-    - os: linux
-    - os: osx
-    - os: windows
 
 before_script:
   - |
