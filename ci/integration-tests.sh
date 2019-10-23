@@ -12,6 +12,7 @@ echo "Running integration test for crate ${INTEGRATION}"
 
 git clone --single-branch --depth=1 "https://github.com/${INTEGRATION}.git" checkout
 cd checkout || exit 1
+rm -rf .git/
 
 # run clippy on a project, try to be verbose and trigger as many warnings as possible for greater coverage
 RUST_BACKTRACE=full \
