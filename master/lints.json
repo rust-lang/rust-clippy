@@ -2269,6 +2269,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for function/method calls with a mutable\nparameter in `debug_assert!`, `debug_assert_eq!` and `debug_assert_ne!` macros.", 
+      "Why is this bad": "In release builds `debug_assert!` macros are optimized out by the\ncompiler.\nTherefore mutating something in a `debug_assert!` macro results in different behaviour\nbetween a release and debug build.", 
+      "Known problems": "None", 
+      "Example": "```rust,ignore\ndebug_assert_eq!(vec![3].pop(), Some(3));\n// or\nfn take_a_mut_parameter(_: &mut u32) -> bool { unimplemented!() }\ndebug_assert!(take_a_mut_parameter(&mut 5));\n```"
+    }, 
+    "group": "correctness", 
+    "id": "debug_assert_with_mut_call", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for calls to `std::mem::forget` with a value that\nderives the Copy trait", 
       "Why is this bad": "Calling `std::mem::forget` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html) since the\nvalue will be copied and moved into the function on invocation.\n\nAn alternative, but also valid, explanation is that Copy types do not\nimplement\nthe Drop trait, which means they have no destructors. Without a destructor,\nthere\nis nothing for `std::mem::forget` to ignore.", 
       "Known problems": "None.", 
