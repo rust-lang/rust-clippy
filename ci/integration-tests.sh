@@ -19,7 +19,10 @@ RUST_BACKTRACE=full \
 cargo clippy \
     --all-targets \
     --all-features \
-    -- --cap-lints warn -W clippy::pedantic -W clippy::nursery \
+    -- \
+    --cap-lints warn \
+    -W clippy::pedantic \
+    -W clippy::nursery \
     2>& 1 \
 | tee clippy_output
 
