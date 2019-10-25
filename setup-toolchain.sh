@@ -5,9 +5,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-if [[ "$CI" == true ]] || ! command -v rustup-toolchain-install-master > /dev/null; then
-    cargo install -Z install-upgrade rustup-toolchain-install-master --bin rustup-toolchain-install-master
-fi
+cargo install -Z install-upgrade rustup-toolchain-install-master --bin rustup-toolchain-install-master
 
 RUST_COMMIT=$(git ls-remote https://github.com/rust-lang/rust master | awk '{print $1}')
 
