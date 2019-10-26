@@ -120,14 +120,6 @@ before_script:
         ;;
     esac
 
-script:
-  - |
-    if [[ -n ${INTEGRATION} ]]; then
-      ./ci/integration-tests.sh && sleep 5
-    else
-      ./ci/base-tests.sh && sleep 5
-    fi
-
 after_success:
   - ./.github/deploy.sh
 if: os = linux AND env(INTEGRATION) IS blank
