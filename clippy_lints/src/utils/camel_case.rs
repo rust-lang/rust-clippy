@@ -47,7 +47,7 @@ pub fn from(s: &str) -> usize {
     let mut last_i = s.len();
     for (i, c) in iter {
         if down {
-            if c.is_uppercase() {
+            if c.is_uppercase() && !s.chars().nth(i - 1).unwrap().is_uppercase() {
                 down = false;
                 last_i = i;
             } else if !c.is_lowercase() {
