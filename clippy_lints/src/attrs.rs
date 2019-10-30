@@ -417,11 +417,11 @@ fn check_attrs(cx: &LateContext<'_, '_>, span: Span, name: Name, attrs: &[Attrib
     }
 
     for attr in attrs {
-        if attr.is_sugared_doc {
+        if attr.is_doc_comment() {
             return;
         }
         if attr.style == AttrStyle::Outer {
-            if attr.tokens.is_empty() || !is_present_in_source(cx, attr.span) {
+            if attr.get_normal_item().tokens.is_empty() || !is_present_in_source(cx, attr.span) {
                 return;
             }
 

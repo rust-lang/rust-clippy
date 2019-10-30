@@ -57,46 +57,50 @@ pub fn get_attr<'a>(
     name: &'static str,
 ) -> impl Iterator<Item = &'a ast::Attribute> {
     attrs.iter().filter(move |attr| {
-        let attr_segments = &attr.path.segments;
-        if attr_segments.len() == 2 && attr_segments[0].ident.to_string() == "clippy" {
-            if let Some(deprecation_status) =
-                BUILTIN_ATTRIBUTES
-                    .iter()
-                    .find_map(|(builtin_name, deprecation_status)| {
-                        if *builtin_name == attr_segments[1].ident.to_string() {
-                            Some(deprecation_status)
-                        } else {
-                            None
-                        }
-                    })
-            {
-                let mut db = sess.struct_span_err(attr_segments[1].ident.span, "Usage of deprecated attribute");
-                match *deprecation_status {
-                    DeprecationStatus::Deprecated => {
-                        db.emit();
-                        false
-                    },
-                    DeprecationStatus::Replaced(new_name) => {
-                        db.span_suggestion(
-                            attr_segments[1].ident.span,
-                            "consider using",
-                            new_name.to_string(),
-                            Applicability::MachineApplicable,
-                        );
-                        db.emit();
-                        false
-                    },
-                    DeprecationStatus::None => {
-                        db.cancel();
-                        attr_segments[1].ident.to_string() == name
-                    },
+        if attr.is_doc_comment() {
+            false
+        } else {
+            let attr_segments = &attr.get_normal_item().path.segments;
+            if attr_segments.len() == 2 && attr_segments[0].ident.to_string() == "clippy" {
+                if let Some(deprecation_status) =
+                    BUILTIN_ATTRIBUTES
+                        .iter()
+                        .find_map(|(builtin_name, deprecation_status)| {
+                            if *builtin_name == attr_segments[1].ident.to_string() {
+                                Some(deprecation_status)
+                            } else {
+                                None
+                            }
+                        })
+                {
+                    let mut db = sess.struct_span_err(attr_segments[1].ident.span, "Usage of deprecated attribute");
+                    match *deprecation_status {
+                        DeprecationStatus::Deprecated => {
+                            db.emit();
+                            false
+                        },
+                        DeprecationStatus::Replaced(new_name) => {
+                            db.span_suggestion(
+                                attr_segments[1].ident.span,
+                                "consider using",
+                                new_name.to_string(),
+                                Applicability::MachineApplicable,
+                            );
+                            db.emit();
+                            false
+                        },
+                        DeprecationStatus::None => {
+                            db.cancel();
+                            attr_segments[1].ident.to_string() == name
+                        },
+                    }
+                } else {
+                    sess.span_err(attr_segments[1].ident.span, "Usage of unknown attribute");
+                    false
                 }
             } else {
-                sess.span_err(attr_segments[1].ident.span, "Usage of unknown attribute");
                 false
             }
-        } else {
-            false
         }
     })
 }
