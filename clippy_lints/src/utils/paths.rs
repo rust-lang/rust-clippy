@@ -40,6 +40,7 @@ pub const HASHSET: [&str; 5] = ["std", "collections", "hash", "set", "HashSet"];
 pub const INDEX: [&str; 3] = ["core", "ops", "Index"];
 pub const INDEX_MUT: [&str; 3] = ["core", "ops", "IndexMut"];
 pub const INTO: [&str; 3] = ["core", "convert", "Into"];
+pub const INTO_INTO: [&str; 4] = ["core", "convert", "Into", "into"];
 pub const INTO_ITERATOR: [&str; 5] = ["core", "iter", "traits", "collect", "IntoIterator"];
 pub const IO_READ: [&str; 3] = ["std", "io", "Read"];
 pub const IO_WRITE: [&str; 3] = ["std", "io", "Write"];

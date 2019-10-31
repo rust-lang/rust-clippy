@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 333] = [
+pub const ALL_LINTS: [Lint; 334] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -2085,6 +2085,13 @@ pub const ALL_LINTS: [Lint; 333] = [
         desc: "struct fields bound to a wildcard instead of using `..`",
         deprecation: None,
         module: "misc_early",
+    },
+    Lint {
+        name: "unneeded_try_convert",
+        group: "complexity",
+        desc: "unneeded conversion inside `?`",
+        deprecation: None,
+        module: "unneeded_try_convert",
     },
     Lint {
         name: "unneeded_wildcard_pattern",

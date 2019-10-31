@@ -282,6 +282,7 @@ pub mod trivially_copy_pass_by_ref;
 pub mod try_err;
 pub mod types;
 pub mod unicode;
+pub mod unneeded_try_convert;
 pub mod unsafe_removed_from_name;
 pub mod unused_io_amount;
 pub mod unused_label;
@@ -757,6 +758,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         &unicode::NON_ASCII_LITERAL,
         &unicode::UNICODE_NOT_NFC,
         &unicode::ZERO_WIDTH_SPACE,
+        &unneeded_try_convert::UNNEEDED_TRY_CONVERT,
         &unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME,
         &unused_io_amount::UNUSED_IO_AMOUNT,
         &unused_label::UNUSED_LABEL,
@@ -949,6 +951,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
     store.register_late_pass(|| box mutable_debug_assertion::DebugAssertWithMutCall);
     store.register_late_pass(|| box exit::Exit);
     store.register_late_pass(|| box to_digit_is_some::ToDigitIsSome);
+    store.register_late_pass(|| box unneeded_try_convert::UnneededTryConvert);
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
         LintId::of(&arithmetic::FLOAT_ARITHMETIC),
@@ -1274,6 +1277,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&types::UNNECESSARY_CAST),
         LintId::of(&types::VEC_BOX),
         LintId::of(&unicode::ZERO_WIDTH_SPACE),
+        LintId::of(&unneeded_try_convert::UNNEEDED_TRY_CONVERT),
         LintId::of(&unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME),
         LintId::of(&unused_io_amount::UNUSED_IO_AMOUNT),
         LintId::of(&unused_label::UNUSED_LABEL),
@@ -1455,6 +1459,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&types::UNIT_ARG),
         LintId::of(&types::UNNECESSARY_CAST),
         LintId::of(&types::VEC_BOX),
+        LintId::of(&unneeded_try_convert::UNNEEDED_TRY_CONVERT),
         LintId::of(&unused_label::UNUSED_LABEL),
         LintId::of(&unwrap::UNNECESSARY_UNWRAP),
         LintId::of(&zero_div_zero::ZERO_DIVIDED_BY_ZERO),

@@ -1,0 +1,119 @@
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:9:26
+   |
+LL |     option.ok_or_else(|| String::from("foo"))?;
+   |     ---------------------^^^^^^^^^^^^^^^^^^^- help: remove the conversion: `option.ok_or("foo")`
+   |
+note: lint level defined here
+  --> $DIR/unneeded_try_convert.rs:2:9
+   |
+LL | #![deny(clippy::unneeded_try_convert)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:10:26
+   |
+LL |     option.ok_or_else(|| String::from(complex_computation()))?;
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the conversion: `complex_computation()`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:17:24
+   |
+LL |     result.map_err(|_| String::from("foo"))?;
+   |                        ^^^^^^^^^^^^^^^^^^^ help: remove the conversion: `"foo"`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:18:24
+   |
+LL |     result.map_err(|_| String::from(complex_computation()))?;
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the conversion: `complex_computation()`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:21:24
+   |
+LL |     result.map_err(|x| String::from(x))?;
+   |                        ^^^^^^^^^^^^^^^ help: remove the conversion: `x`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:22:24
+   |
+LL |     result.map_err(|x| String::from(x.trim()))?;
+   |                        ^^^^^^^^^^^^^^^^^^^^^^ help: remove the conversion: `x.trim()`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:23:20
+   |
+LL |     result.map_err(String::from)?;
+   |     ---------------^^^^^^^^^^^^- help: remove the conversion: `result`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:24:33
+   |
+LL |     result.map_err::<String, _>(From::from)?;
+   |     ----------------------------^^^^^^^^^^- help: remove the conversion: `result`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:25:33
+   |
+LL |     result.map_err::<String, _>(Into::into)?;
+   |     ----------------------------^^^^^^^^^^- help: remove the conversion: `result`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:32:63
+   |
+LL |     let _ = || -> Result<_, String> { Ok(option.ok_or_else(|| String::from("foo"))?) };
+   |                                          ---------------------^^^^^^^^^^^^^^^^^^^- help: remove the conversion: `option.ok_or("foo")`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:38:60
+   |
+LL |     let _ = || -> Result<_, i32> { Ok(option.ok_or_else(|| i32::from(0_u8))?) };
+   |                                       ---------------------^^^^^^^^^^^^^^^- help: remove the conversion: `option.ok_or(0_u8)`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:40:60
+   |
+LL |     let _ = || -> Result<_, i32> { Ok(option.ok_or_else(|| i32::from(x))?) };
+   |                                       ---------------------^^^^^^^^^^^^- help: remove the conversion: `option.ok_or(x)`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:42:60
+   |
+LL |     let _ = || -> Result<_, i32> { Ok(option.ok_or_else(|| i32::from(X))?) };
+   |                                       ---------------------^^^^^^^^^^^^- help: remove the conversion: `option.ok_or(X)`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: unneeded conversion inside `?`
+  --> $DIR/unneeded_try_convert.rs:44:72
+   |
+LL |         || -> Result<_, Option<Option<i32>>> { Ok(option.ok_or_else(|| Option::<Option<_>>::from(Some(x as i32)))?) };
+   |                                                   ---------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^- help: remove the conversion: `option.ok_or(Some(x as i32))`
+   |
+   = note: the `?` operator will automatically call `from` in the `Err` case
+
+error: aborting due to 14 previous errors
+
