@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 355] = [
+pub const ALL_LINTS: [Lint; 356] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -566,6 +566,13 @@ pub const ALL_LINTS: [Lint; 355] = [
         desc: "`FileType::is_file` is not recommended to test for readable file type",
         deprecation: None,
         module: "methods",
+    },
+    Lint {
+        name: "field_reassign_with_default",
+        group: "pedantic",
+        desc: "instance initialized with Default should have its fields set in the initializer",
+        deprecation: None,
+        module: "field_reassign_with_default",
     },
     Lint {
         name: "filter_map",

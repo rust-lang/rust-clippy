@@ -207,6 +207,7 @@ pub mod excessive_precision;
 pub mod exit;
 pub mod explicit_write;
 pub mod fallible_impl_from;
+pub mod field_reassign_with_default;
 pub mod format;
 pub mod formatting;
 pub mod functions;
@@ -536,6 +537,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &exit::EXIT,
         &explicit_write::EXPLICIT_WRITE,
         &fallible_impl_from::FALLIBLE_IMPL_FROM,
+        &field_reassign_with_default::FIELD_REASSIGN_WITH_DEFAULT,
         &format::USELESS_FORMAT,
         &formatting::POSSIBLE_MISSING_COMMA,
         &formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING,
@@ -1062,6 +1064,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&eta_reduction::REDUNDANT_CLOSURE_FOR_METHOD_CALLS),
         LintId::of(&excessive_bools::FN_PARAMS_EXCESSIVE_BOOLS),
         LintId::of(&excessive_bools::STRUCT_EXCESSIVE_BOOLS),
+        LintId::of(&field_reassign_with_default::FIELD_REASSIGN_WITH_DEFAULT),
         LintId::of(&functions::MUST_USE_CANDIDATE),
         LintId::of(&functions::TOO_MANY_LINES),
         LintId::of(&if_not_else::IF_NOT_ELSE),
