@@ -1,4 +1,4 @@
-use rustc::lint::{EarlyLintPass, LintArray, LintPass};
+use rustc::lint::{LateLintPass, LintArray, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
@@ -9,4 +9,4 @@ declare_clippy_lint! {
 
 declare_lint_pass!(FieldReassignWithDefault => [FIELD_REASSIGN_WITH_DEFAULT]);
 
-impl EarlyLintPass for FieldReassignWithDefault {}
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for FieldReassignWithDefault {}
