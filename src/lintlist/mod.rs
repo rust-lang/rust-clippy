@@ -570,7 +570,7 @@ pub const ALL_LINTS: [Lint; 356] = [
     Lint {
         name: "field_reassign_with_default",
         group: "pedantic",
-        desc: "instance initialized with Default should have its fields set in the initializer",
+        desc: "binding initialized with Default should have its fields set in the initializer",
         deprecation: None,
         module: "field_reassign_with_default",
     },
