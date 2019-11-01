@@ -7,6 +7,31 @@ use rustc_span::symbol::Symbol;
 use syntax::ast::{BindingMode, Block, ExprKind, Mutability, PatKind, StmtKind};
 
 declare_clippy_lint! {
+    /// **What it does:** Checks for immediate reassignment of fields initialized
+    /// with Default::default().
+    ///
+    /// **Why is this bad?** Fields should be set using
+    /// T { field: value, ..Default::default() } syntax instead of using a mutable binding.
+    ///
+    /// **Known problems:** The lint does not detect calls to Default::default()
+    /// if they are made via another struct implementing the Default trait. This
+    /// may be corrected with a LateLintPass. If type inference stops requiring
+    /// an explicit type for assignment using Default::default() this lint will
+    /// not trigger for cases where the type is elided. This may also be corrected
+    /// with a LateLintPass.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// // Bad
+    /// let mut a: A = Default::default();
+    /// a.i = 42;
+    ///
+    /// // Good
+    /// let a = A {
+    ///     i: 42,
+    ///     .. Default::default()
+    /// };
+    /// ```
     pub FIELD_REASSIGN_WITH_DEFAULT,
     pedantic,
     "binding initialized with Default should have its fields set in the initializer"
