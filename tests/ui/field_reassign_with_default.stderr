@@ -1,0 +1,15 @@
+error: field assignment outside of initializer for an instance created with Default::default()
+  --> $DIR/field_reassign_with_default.rs:17:5
+   |
+LL |     a.i = 42;
+   |     ^^^^^^^^^
+   |
+   = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+note: consider initializing the variable immutably with `A { i: 42, ..Default::default() }`
+  --> $DIR/field_reassign_with_default.rs:16:5
+   |
+LL |     let mut a: A = Default::default();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to previous error
+
