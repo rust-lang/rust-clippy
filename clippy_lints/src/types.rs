@@ -1031,6 +1031,15 @@ fn check_loss_of_sign(cx: &LateContext<'_, '_>, expr: &Expr, op: &Expr, cast_fro
         }
     }
 
+    // don't lint for the result of `checked_abs`
+    if_chain! {
+        if let ExprKind::MethodCall(ref path, _, _) = op.kind;
+        if path.ident.name.as_str() == "checked_abs";
+        then {
+            return
+        }
+    }
+
     span_lint(
         cx,
         CAST_SIGN_LOSS,
