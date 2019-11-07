@@ -34,7 +34,7 @@ impl_lint_pass!(MainRecursion => [MAIN_RECURSION]);
 
 impl LateLintPass<'_, '_> for MainRecursion {
     fn check_crate(&mut self, _: &LateContext<'_, '_>, krate: &Crate) {
-        self.has_no_std_attr = krate.attrs.iter().any(|attr| attr.path == sym::no_std);
+        self.has_no_std_attr = krate.attrs.iter().any(|attr| attr.has_name(sym::no_std));
     }
 
     fn check_expr_post(&mut self, cx: &LateContext<'_, '_>, expr: &Expr) {

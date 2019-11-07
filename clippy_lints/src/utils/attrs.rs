@@ -57,7 +57,10 @@ pub fn get_attr<'a>(
     name: &'static str,
 ) -> impl Iterator<Item = &'a ast::Attribute> {
     attrs.iter().filter(move |attr| {
-        let attr_segments = &attr.path.segments;
+        if attr.is_doc_comment() {
+            return false;
+        }
+        let attr_segments = &attr.get_normal_item().path.segments;
         if attr_segments.len() == 2 && attr_segments[0].ident.to_string() == "clippy" {
             if let Some(deprecation_status) =
                 BUILTIN_ATTRIBUTES

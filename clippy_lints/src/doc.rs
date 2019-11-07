@@ -247,7 +247,7 @@ pub fn check_attrs<'a>(cx: &LateContext<'_, '_>, valid_idents: &FxHashSet<String
     let mut spans = vec![];
 
     for attr in attrs {
-        if attr.is_sugared_doc {
+        if attr.is_doc_comment() {
             if let Some(ref current) = attr.value_str() {
                 let current = current.to_string();
                 let (current, current_spans) = strip_doc_comment_decoration(&current, attr.span);
