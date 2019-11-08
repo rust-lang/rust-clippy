@@ -37,8 +37,6 @@ extern crate rustc_typeck;
 #[allow(unused_extern_crates)]
 extern crate syntax;
 #[allow(unused_extern_crates)]
-extern crate syntax_expand;
-#[allow(unused_extern_crates)]
 extern crate syntax_pos;
 
 use rustc::lint::{self, LintId};
@@ -190,6 +188,7 @@ pub mod escape;
 pub mod eta_reduction;
 pub mod eval_order_dependence;
 pub mod excessive_precision;
+pub mod exit;
 pub mod explicit_write;
 pub mod fallible_impl_from;
 pub mod format;
@@ -432,6 +431,10 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         "clippy::unused_collect",
         "`collect` has been marked as #[must_use] in rustc and that covers all cases of this lint",
     );
+    store.register_removed(
+        "clippy::into_iter_on_array",
+        "this lint has been uplifted to rustc and is now called `array_into_iter`",
+    );
     // end deprecated lints, do not remove this comment, it’s used in `update_lints`
 
     // begin register lints, do not remove this comment, it’s used in `update_lints`
@@ -499,6 +502,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         &eval_order_dependence::DIVERGING_SUB_EXPRESSION,
         &eval_order_dependence::EVAL_ORDER_DEPENDENCE,
         &excessive_precision::EXCESSIVE_PRECISION,
+        &exit::EXIT,
         &explicit_write::EXPLICIT_WRITE,
         &fallible_impl_from::FALLIBLE_IMPL_FROM,
         &format::USELESS_FORMAT,
@@ -587,7 +591,6 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         &methods::FLAT_MAP_IDENTITY,
         &methods::GET_UNWRAP,
         &methods::INEFFICIENT_TO_STRING,
-        &methods::INTO_ITER_ON_ARRAY,
         &methods::INTO_ITER_ON_REF,
         &methods::ITER_CLONED_COLLECT,
         &methods::ITER_NTH,
@@ -941,12 +944,14 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
     store.register_early_pass(move || box enum_variants::EnumVariantNames::new(enum_variant_name_threshold));
     store.register_late_pass(|| box unused_self::UnusedSelf);
     store.register_late_pass(|| box mutable_debug_assertion::DebugAssertWithMutCall);
+    store.register_late_pass(|| box exit::Exit);
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
         LintId::of(&arithmetic::FLOAT_ARITHMETIC),
         LintId::of(&arithmetic::INTEGER_ARITHMETIC),
         LintId::of(&dbg_macro::DBG_MACRO),
         LintId::of(&else_if_without_else::ELSE_IF_WITHOUT_ELSE),
+        LintId::of(&exit::EXIT),
         LintId::of(&implicit_return::IMPLICIT_RETURN),
         LintId::of(&indexing_slicing::INDEXING_SLICING),
         LintId::of(&inherent_impl::MULTIPLE_INHERENT_IMPL),
@@ -1146,7 +1151,6 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&methods::FILTER_NEXT),
         LintId::of(&methods::FLAT_MAP_IDENTITY),
         LintId::of(&methods::INEFFICIENT_TO_STRING),
-        LintId::of(&methods::INTO_ITER_ON_ARRAY),
         LintId::of(&methods::INTO_ITER_ON_REF),
         LintId::of(&methods::ITER_CLONED_COLLECT),
         LintId::of(&methods::ITER_NTH),
@@ -1185,7 +1189,6 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&misc_early::UNNEEDED_FIELD_PATTERN),
         LintId::of(&misc_early::UNNEEDED_WILDCARD_PATTERN),
         LintId::of(&misc_early::ZERO_PREFIXED_LITERAL),
-        LintId::of(&mul_add::MANUAL_MUL_ADD),
         LintId::of(&mut_reference::UNNECESSARY_MUT_PASSED),
         LintId::of(&mutable_debug_assertion::DEBUG_ASSERT_WITH_MUT_CALL),
         LintId::of(&mutex_atomic::MUTEX_ATOMIC),
@@ -1487,7 +1490,6 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&mem_discriminant::MEM_DISCRIMINANT_NON_ENUM),
         LintId::of(&mem_replace::MEM_REPLACE_WITH_UNINIT),
         LintId::of(&methods::CLONE_DOUBLE_REF),
-        LintId::of(&methods::INTO_ITER_ON_ARRAY),
         LintId::of(&methods::TEMPORARY_CSTRING_AS_PTR),
         LintId::of(&methods::UNINIT_ASSUMED_INIT),
         LintId::of(&minmax::MIN_MAX),
@@ -1530,7 +1532,6 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&methods::OR_FUN_CALL),
         LintId::of(&methods::SINGLE_CHAR_PATTERN),
         LintId::of(&misc::CMP_OWNED),
-        LintId::of(&mul_add::MANUAL_MUL_ADD),
         LintId::of(&mutex_atomic::MUTEX_ATOMIC),
         LintId::of(&redundant_clone::REDUNDANT_CLONE),
         LintId::of(&slow_vector_initialization::SLOW_VECTOR_INITIALIZATION),
@@ -1549,6 +1550,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&attrs::EMPTY_LINE_AFTER_OUTER_ATTR),
         LintId::of(&fallible_impl_from::FALLIBLE_IMPL_FROM),
         LintId::of(&missing_const_for_fn::MISSING_CONST_FOR_FN),
+        LintId::of(&mul_add::MANUAL_MUL_ADD),
         LintId::of(&mutex_atomic::MUTEX_INTEGER),
         LintId::of(&needless_borrow::NEEDLESS_BORROW),
         LintId::of(&path_buf_push_overwrite::PATH_BUF_PUSH_OVERWRITE),

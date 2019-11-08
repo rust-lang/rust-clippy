@@ -491,6 +491,13 @@ pub const ALL_LINTS: [Lint; 333] = [
         module: "excessive_precision",
     },
     Lint {
+        name: "exit",
+        group: "restriction",
+        desc: "`std::process::exit` is called, terminating the program",
+        deprecation: None,
+        module: "exit",
+    },
+    Lint {
         name: "expect_fun_call",
         group: "perf",
         desc: "using any `expect` method with a function call",
@@ -813,13 +820,6 @@ pub const ALL_LINTS: [Lint; 333] = [
         module: "integer_division",
     },
     Lint {
-        name: "into_iter_on_array",
-        group: "correctness",
-        desc: "using `.into_iter()` on an array",
-        deprecation: None,
-        module: "methods",
-    },
-    Lint {
         name: "into_iter_on_ref",
         group: "style",
         desc: "using `.into_iter()` on a reference",
@@ -961,7 +961,7 @@ pub const ALL_LINTS: [Lint; 333] = [
     },
     Lint {
         name: "manual_mul_add",
-        group: "perf",
+        group: "nursery",
         desc: "Using `a.mul_add(b, c)` for floating points has higher numerical precision than `a * b + c`",
         deprecation: None,
         module: "mul_add",

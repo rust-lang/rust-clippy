@@ -3,7 +3,7 @@ use rustc::hir::*;
 use rustc::lint::{LateContext, LateLintPass, LintArray, LintPass};
 use rustc::{declare_lint_pass, declare_tool_lint};
 use std::f64::consts as f64;
-use syntax::ast::{FloatTy, LitKind};
+use syntax::ast::{FloatTy, LitFloatType, LitKind};
 use syntax::symbol;
 
 declare_clippy_lint! {
@@ -62,9 +62,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ApproxConstant {
 
 fn check_lit(cx: &LateContext<'_, '_>, lit: &LitKind, e: &Expr) {
     match *lit {
-        LitKind::Float(s, FloatTy::F32) => check_known_consts(cx, e, s, "f32"),
-        LitKind::Float(s, FloatTy::F64) => check_known_consts(cx, e, s, "f64"),
-        LitKind::FloatUnsuffixed(s) => check_known_consts(cx, e, s, "f{32, 64}"),
+        LitKind::Float(s, LitFloatType::Suffixed(fty)) => match fty {
+            FloatTy::F32 => check_known_consts(cx, e, s, "f32"),
+            FloatTy::F64 => check_known_consts(cx, e, s, "f64"),
+        },
+        LitKind::Float(s, LitFloatType::Unsuffixed) => check_known_consts(cx, e, s, "f{32, 64}"),
         _ => (),
     }
 }
@@ -97,14 +99,11 @@ fn check_known_consts(cx: &LateContext<'_, '_>, e: &Expr, s: symbol::Symbol, mod
 fn is_approx_const(constant: f64, value: &str, min_digits: usize) -> bool {
     if value.len() <= min_digits {
         false
+    } else if constant.to_string().starts_with(value) {
+        // The value is a truncated constant
+        true
     } else {
         let round_const = format!("{:.*}", value.len() - 2, constant);
-
-        let mut trunc_const = constant.to_string();
-        if trunc_const.len() > value.len() {
-            trunc_const.truncate(value.len());
-        }
-
-        (value == round_const) || (value == trunc_const)
+        value == round_const
     }
 }

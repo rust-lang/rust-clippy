@@ -45,7 +45,7 @@ use syntax::ast::{self, LitKind};
 use syntax::attr;
 use syntax::source_map::{Span, DUMMY_SP};
 use syntax::symbol::{kw, Symbol};
-use syntax_expand::hygiene::ExpnKind;
+use syntax_pos::hygiene::ExpnKind;
 
 use crate::consts::{constant, Constant};
 use crate::reexport::*;
@@ -239,7 +239,7 @@ pub fn match_path_ast(path: &ast::Path, segments: &[&str]) -> bool {
 }
 
 /// Gets the definition associated to a path.
-pub fn path_to_res(cx: &LateContext<'_, '_>, path: &[&str]) -> Option<(def::Res)> {
+pub fn path_to_res(cx: &LateContext<'_, '_>, path: &[&str]) -> Option<def::Res> {
     let crates = cx.tcx.crates();
     let krate = crates
         .iter()
