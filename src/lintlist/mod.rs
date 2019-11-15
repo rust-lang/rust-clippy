@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 340] = [
+pub const ALL_LINTS: [Lint; 341] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -1707,6 +1707,13 @@ pub const ALL_LINTS: [Lint; 340] = [
         desc: "using `result.map(f)`, where f is a function or closure that returns ()",
         deprecation: None,
         module: "map_unit_fn",
+    },
+    Lint {
+        name: "result_map_unwrap_or",
+        group: "pedantic",
+        desc: "using `Result.map(f).unwrap_or(a)`, which is more succinctly expressed as `map_or(a, f)`",
+        deprecation: None,
+        module: "methods",
     },
     Lint {
         name: "result_map_unwrap_or_else",

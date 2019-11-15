@@ -1,6 +1,6 @@
 mod inefficient_to_string;
 mod manual_saturating_arithmetic;
-mod option_map_unwrap_or;
+mod map_unwrap_or;
 mod unnecessary_filter_map;
 
 use std::borrow::Cow;
@@ -252,7 +252,7 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for usage of `_.map(_).unwrap_or(_)`.
+    /// **What it does:** Checks for usage of `_.map(_).unwrap_or(_)` for `Option`.
     ///
     /// **Why is this bad?** Readability, this can be written more concisely as
     /// `_.map_or(_, _)`.
@@ -267,6 +267,24 @@ declare_clippy_lint! {
     pub OPTION_MAP_UNWRAP_OR,
     pedantic,
     "using `Option.map(f).unwrap_or(a)`, which is more succinctly expressed as `map_or(a, f)`"
+}
+
+declare_clippy_lint! {
+    /// **What it does:** Checks for usage of `_.map(_).unwrap_or(_)` for `Result`.
+    ///
+    /// **Why is this bad?** Readability, this can be written more concisely as
+    /// `_.map_or(_, _)`.
+    ///
+    /// **Known problems:** The order of the arguments is not in execution order
+    ///
+    /// **Example:**
+    /// ```rust
+    /// # let x: Result<usize, ()> = Ok(1);
+    /// x.map(|a| a + 1).unwrap_or(0);
+    /// ```
+    pub RESULT_MAP_UNWRAP_OR,
+    pedantic,
+    "using `Result.map(f).unwrap_or(a)`, which is more succinctly expressed as `map_or(a, f)`"
 }
 
 declare_clippy_lint! {
@@ -1093,6 +1111,7 @@ declare_lint_pass!(Methods => [
     WRONG_PUB_SELF_CONVENTION,
     OK_EXPECT,
     OPTION_MAP_UNWRAP_OR,
+    RESULT_MAP_UNWRAP_OR,
     OPTION_MAP_UNWRAP_OR_ELSE,
     RESULT_MAP_UNWRAP_OR_ELSE,
     OPTION_MAP_OR_NONE,
@@ -1147,7 +1166,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             ["unwrap", ..] => lint_unwrap(cx, expr, arg_lists[0]),
             ["expect", "ok"] => lint_ok_expect(cx, expr, arg_lists[1]),
             ["expect", ..] => lint_expect(cx, expr, arg_lists[0]),
-            ["unwrap_or", "map"] => option_map_unwrap_or::lint(cx, expr, arg_lists[1], arg_lists[0]),
+            ["unwrap_or", "map"] => map_unwrap_or::lint(cx, expr, arg_lists[1], arg_lists[0]),
             ["unwrap_or_else", "map"] => lint_map_unwrap_or_else(cx, expr, arg_lists[1], arg_lists[0]),
             ["map_or", ..] => lint_map_or_none(cx, expr, arg_lists[0]),
             ["and_then", ..] => lint_option_and_then_some(cx, expr, arg_lists[0]),

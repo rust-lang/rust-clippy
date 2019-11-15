@@ -6,17 +6,19 @@ use rustc::lint::LateContext;
 use rustc_data_structures::fx::FxHashSet;
 use syntax_pos::symbol::Symbol;
 
-use super::OPTION_MAP_UNWRAP_OR;
+use super::{OPTION_MAP_UNWRAP_OR, RESULT_MAP_UNWRAP_OR};
 
-/// lint use of `map().unwrap_or()` for `Option`s
+/// lint use of `map().unwrap_or()` for `Option`s and `Result`s
 pub(super) fn lint<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
     expr: &hir::Expr,
     map_args: &'tcx [hir::Expr],
     unwrap_args: &'tcx [hir::Expr],
 ) {
-    // lint if the caller of `map()` is an `Option`
-    if match_type(cx, cx.tables.expr_ty(&map_args[0]), &paths::OPTION) {
+    let is_option = match_type(cx, cx.tables.expr_ty(&map_args[0]), &paths::OPTION);
+    let is_result = match_type(cx, cx.tables.expr_ty(&map_args[0]), &paths::RESULT);
+
+    if is_option || is_result {
         if !is_copy(cx, cx.tables.expr_ty(&unwrap_args[1])) {
             // Do not lint if the `map` argument uses identifiers in the `map`
             // argument that are also used in the `unwrap_or` argument
@@ -43,19 +45,27 @@ pub(super) fn lint<'a, 'tcx>(
         let map_snippet = snippet(cx, map_args[1].span, "..");
         let unwrap_snippet = snippet(cx, unwrap_args[1].span, "..");
         // lint message
-        // comparing the snippet from source to raw text ("None") below is safe
-        // because we already have checked the type.
-        let arg = if unwrap_snippet == "None" { "None" } else { "a" };
-        let suggest = if unwrap_snippet == "None" {
-            "and_then(f)"
+        let msg = if is_option {
+            // comparing the snippet from source to raw text ("None") below is safe
+            // because we already have checked the type.
+            let arg = if unwrap_snippet == "None" { "None" } else { "a" };
+            let suggest = if unwrap_snippet == "None" {
+                "and_then(f)"
+            } else {
+                "map_or(a, f)"
+            };
+
+            format!(
+                "called `map(f).unwrap_or({})` on an Option value. \
+                 This can be done more directly by calling `{}` instead",
+                arg, suggest
+            )
         } else {
-            "map_or(a, f)"
+            "called `map(f).unwrap_or(a)` on a Result value. \
+             This can be done more directly by calling `map_or(a, f)` instead"
+                .to_string()
         };
-        let msg = &format!(
-            "called `map(f).unwrap_or({})` on an Option value. \
-             This can be done more directly by calling `{}` instead",
-            arg, suggest
-        );
+
         // lint, with note if neither arg is > 1 line and both map() and
         // unwrap_or() have the same span
         let multiline = map_snippet.lines().count() > 1 || unwrap_snippet.lines().count() > 1;
@@ -70,9 +80,29 @@ pub(super) fn lint<'a, 'tcx>(
                 "replace `map({}).unwrap_or({})` with `{}`",
                 map_snippet, unwrap_snippet, suggest
             );
-            span_note_and_lint(cx, OPTION_MAP_UNWRAP_OR, expr.span, msg, expr.span, &note);
+            span_note_and_lint(
+                cx,
+                if is_option {
+                    OPTION_MAP_UNWRAP_OR
+                } else {
+                    RESULT_MAP_UNWRAP_OR
+                },
+                expr.span,
+                &msg,
+                expr.span,
+                &note,
+            );
         } else if same_span && multiline {
-            span_lint(cx, OPTION_MAP_UNWRAP_OR, expr.span, msg);
+            span_lint(
+                cx,
+                if is_option {
+                    OPTION_MAP_UNWRAP_OR
+                } else {
+                    RESULT_MAP_UNWRAP_OR
+                },
+                expr.span,
+                &msg,
+            );
         };
     }
 }
