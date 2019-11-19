@@ -154,6 +154,15 @@ impl<T> MyTrait for Box<T> {
     fn do_sth(self) {}
 }
 
+/// Fix for #4804
+///
+/// This shouldn't warn for `boxed_local` as traits don't have a know size in compile time
+trait DefaultTraitImplTest {
+    fn default_impl(self: Box<Self>) -> u32 {
+        5
+    }
+}
+
 // Issue #3739 - capture in closures
 mod issue_3739 {
     use super::A;
