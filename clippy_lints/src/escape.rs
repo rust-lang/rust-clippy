@@ -68,6 +68,11 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoxedLocal {
             if let ItemKind::Impl(_, _, _, _, Some(..), _, _) = item.kind {
                 return;
             }
+
+            // Issue 4804 fix: don't warn if the method is a default trait impl
+            if let ItemKind::Trait(_, _, _, _, _) = item.kind {
+                return;
+            }
         }
 
         let mut v = EscapeDelegate {
