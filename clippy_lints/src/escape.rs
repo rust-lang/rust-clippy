@@ -17,7 +17,7 @@ pub struct BoxedLocal {
 }
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for usage of `Box<T>` where an unboxed `T` would
+    /// **What it does:** Checks for usage of `Box<T>` where an unboxed `T` or `&T` would
     /// work fine.
     ///
     /// **Why is this bad?** This is an unnecessary allocation, and bad for
@@ -30,8 +30,20 @@ declare_clippy_lint! {
     /// ```rust
     /// # fn foo(bar: usize) {}
     /// let x = Box::new(1);
-    /// foo(*x);
     /// println!("{}", *x);
+    ///
+    /// fn foo(arg: Box<[u32]>) {
+    ///     // code which doesn't move the box
+    /// }
+    /// ```
+    /// Should be written:
+    /// ```rust
+    /// let x = 1;
+    /// println!("{}", x);
+    ///
+    /// fn foo(array: &[u32]) {
+    ///     //...
+    /// }
     /// ```
     pub BOXED_LOCAL,
     perf,
@@ -55,7 +67,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoxedLocal {
         &mut self,
         cx: &LateContext<'a, 'tcx>,
         _: visit::FnKind<'tcx>,
-        _: &'tcx FnDecl,
+        fn_decl: &'tcx FnDecl,
         body: &'tcx Body,
         _: Span,
         hir_id: HirId,
@@ -69,9 +81,14 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoxedLocal {
                 return;
             }
 
-            // Issue 4804 fix: don't warn if the method is a default trait impl
+            // Issue 4804 fix: don't warn if the method is a default trait impl accepting "self"
             if let ItemKind::Trait(_, _, _, _, _) = item.kind {
-                return;
+                match fn_decl.implicit_self {
+                    ImplicitSelfKind::Imm
+                    | ImplicitSelfKind::Mut => return,
+
+                    _ => {}
+                }
             }
         }
 
@@ -90,7 +107,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoxedLocal {
                 cx,
                 BOXED_LOCAL,
                 cx.tcx.hir().span(node),
-                "local variable doesn't need to be boxed here",
+                "local variable doesn't need to be boxed here"
             );
         }
     }
