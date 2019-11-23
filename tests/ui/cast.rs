@@ -47,4 +47,9 @@ fn main() {
     (-1i32).abs() as u32;
     (-1i64).abs() as u64;
     (-1isize).abs() as usize;
+    (-1i8).checked_abs().unwrap() as u8;
+    (-1i16).checked_abs().unwrap() as u16;
+    (-1i32).checked_abs().unwrap() as u32;
+    (-1i64).checked_abs().unwrap() as u64;
+    (-1isize).checked_abs().unwrap() as usize;
 }
