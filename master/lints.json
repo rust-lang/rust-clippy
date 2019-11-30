@@ -45,6 +45,17 @@
   }, 
   {
     "docs": {
+      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
+      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
+      "Known problems": "None", 
+      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n    # break;\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n    # break;\n}\n```"
+    }, 
+    "group": "pedantic", 
+    "id": "needless_continue", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `MaybeUninit::uninit().assume_init()`.", 
       "Why is this bad": "For most types, this is undefined behavior.", 
       "Known problems": "For now, we accept empty tuples and tuples / arrays\nof `MaybeUninit`. There may be other types that allow uninitialized\ndata, but those are not yet rigorously defined.", 
@@ -366,6 +377,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `offset(_)`, `wrapping_`{`add`, `sub`}, etc. on raw pointers to\nzero-sized types", 
+      "Why is this bad": "This is a no-op, and likely unintended", 
+      "Known problems": "None", 
+      "Example": "```ignore\nunsafe { (&() as *const ()).offset(1) };\n```"
+    }, 
+    "group": "correctness", 
+    "id": "zst_offset", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for wildcard enum matches using `_`.", 
       "Why is this bad": "New enum variants added by library updates can be missed.", 
       "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.", 
@@ -395,6 +417,17 @@
     }, 
     "group": "style", 
     "id": "suspicious_else_formatting", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for the use of `.cloned().collect()` on slice to\ncreate a `Vec`.", 
+      "Why is this bad": "`.to_vec()` is clearer", 
+      "Known problems": "None.", 
+      "Example": "```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s.to_vec();\n```"
+    }, 
+    "group": "style", 
+    "id": "iter_cloned_collect", 
     "level": "Warn"
   }, 
   {
@@ -431,7 +464,10 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "The original rule will only lint for `if let`. After\nmaking it support to lint `match`, naming as `if let` is not suitable for it.\nSo, this lint is deprecated."
+    }, 
     "group": "deprecated", 
     "id": "if_let_redundant_pattern_matching", 
     "level": "Deprecated"
@@ -485,7 +521,7 @@
       "What it does": "Checks for lifetimes in generics that are never used\nanywhere else.", 
       "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.", 
       "Known problems": "None.", 
-      "Example": "```rust\nfn unused_lifetime<'a>(x: u8) {\n    // ..\n}\n```"
+      "Example": "```rust\n// Bad: unnecessary lifetimes\nfn unused_lifetime<'a>(x: u8) {\n    // ..\n}\n\n// Good\nfn no_lifetime(x: u8) {\n    // ...\n}\n```"
     }, 
     "group": "complexity", 
     "id": "extra_unused_lifetimes", 
@@ -506,12 +542,12 @@
     "docs": {
       "What it does": "Checks for expressions of the form `a * b + c`\nor `c + a * b` where `a`, `b`, `c` are floats and suggests using\n`a.mul_add(b, c)` instead.", 
       "Why is this bad": "Calculating `a * b + c` may lead to slight\nnumerical inaccuracies as `a * b` is rounded before being added to\n`c`. Depending on the target architecture, `mul_add()` may be more\nperformant.", 
-      "Known problems": "None.", 
+      "Known problems": "This lint can emit semantic incorrect suggestions.\nFor example, for `a * b * c + d` the suggestion `a * b.mul_add(c, d)`\nis emitted, which is equivalent to `a * (b * c + d)`. (#4735)", 
       "Example": "```rust\nlet foo = (a * b) + c;\n```\n\ncan be written as\n\n```rust\nlet foo = a.mul_add(b, c);\n```"
     }, 
-    "group": "perf", 
+    "group": "nursery", 
     "id": "manual_mul_add", 
-    "level": "Warn"
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -526,14 +562,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for the use of `.cloned().collect()` on slice to\ncreate a `Vec`.", 
-      "Why is this bad": "`.to_vec()` is clearer", 
-      "Known problems": "None.", 
-      "Example": "```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s.to_vec();\n```"
+      "What it does": "Checks for consecutive `if`s with the same function call.", 
+      "Why is this bad": "This is probably a copy & paste error.\nDespite the fact that function can have side effects and `if` works as\nintended, such an approach is implicit and can be considered a \"code smell\".", 
+      "Known problems": "Hopefully none.", 
+      "Example": "```ignore\nif foo() == bar {\n    \u2026\n} else if foo() == bar {\n    \u2026\n}\n```\n\nThis probably should be:\n```ignore\nif foo() == bar {\n    \u2026\n} else if foo() == baz {\n    \u2026\n}\n```\n\nor if the original code was not a typo and called function mutates a state,\nconsider move the mutation out of the `if` condition to avoid similarity to\na copy & paste error:\n\n```ignore\nlet first = foo();\nif first == bar {\n    \u2026\n} else {\n    let second = foo();\n    if second == bar {\n    \u2026\n    }\n}\n```"
     }, 
-    "group": "style", 
-    "id": "iter_cloned_collect", 
-    "level": "Warn"
+    "group": "pedantic", 
+    "id": "same_functions_in_if_condition", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -711,7 +747,10 @@
     "level": "Deny"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "`Range::step_by(0)` used to be linted since it's\nan infinite iterator, which is better expressed by `iter::repeat`,\nbut the method has been removed for `Iterator::step_by` which panics\nif given a zero"
+    }, 
     "group": "deprecated", 
     "id": "range_step_by_zero", 
     "level": "Deprecated"
@@ -774,7 +813,7 @@
   {
     "docs": {
       "What it does": "Checks for usage of `result.map(_).unwrap_or_else(_)`.", 
-      "Why is this bad": "Readability, this can be written more concisely as\n`result.ok().map_or_else(_, _)`.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`result.map_or_else(_, _)`.", 
       "Known problems": "None.", 
       "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function);\n```"
     }, 
@@ -795,14 +834,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for `into_iter` calls on types which should be replaced by `iter` or\n`iter_mut`.", 
-      "Why is this bad": "Arrays and `PathBuf` do not yet have an `into_iter` method which move out\ntheir content into an iterator. Auto-referencing resolves the `into_iter` call to its reference\ninstead, like `<&[T; N] as IntoIterator>::into_iter`, which just iterates over item references\nlike calling `iter` would. Furthermore, when the standard library actually\n[implements the `into_iter` method](https://github.com/rust-lang/rust/issues/25725) which moves\nthe content out of the array, the original use of `into_iter` got inferred with the wrong type\nand the code will be broken.", 
-      "Known problems": "None", 
-      "Example": "```rust\nlet _ = [1, 2, 3].into_iter().map(|x| *x).collect::<Vec<u32>>();\n```\nCould be written as:\n```rust\nlet _ = [1, 2, 3].iter().map(|x| *x).collect::<Vec<u32>>();\n```"
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint has been uplifted to rustc and is now called\n`array_into_iter`."
     }, 
-    "group": "correctness", 
+    "group": "deprecated", 
     "id": "into_iter_on_array", 
-    "level": "Deny"
+    "level": "Deprecated"
   }, 
   {
     "docs": {
@@ -816,7 +853,10 @@
     "level": "Deny"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint is too subjective, not having a good reason for being in clippy.\nAdditionally, compound assignment operators may be overloaded separately from their non-assigning\ncounterparts, so this lint may suggest a change in behavior or the code may not compile."
+    }, 
     "group": "deprecated", 
     "id": "assign_ops", 
     "level": "Deprecated"
@@ -943,6 +983,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks doc comments for usage of tab characters.", 
+      "Why is this bad": "The rust style-guide promotes spaces instead of tabs for indentation.\nTo keep a consistent view on the source, also doc comments should not have tabs.\nAlso, explaining ascii-diagrams containing tabs can get displayed incorrectly when the\ndisplay settings of the author and reader differ.", 
+      "Known problems": "None.", 
+      "Example": "```rust\n///\n/// Struct to hold two strings:\n/// \t- first\t\tone\n/// \t- second\tone\npub struct DoubleString {\n   ///\n   /// \t- First String:\n   /// \t\t- needs to be inside here\n   first_string: String,\n   ///\n   /// \t- Second String:\n   /// \t\t- needs to be inside here\n   second_string: String,\n}\n```\n\nWill be converted to:\n```rust\n///\n/// Struct to hold two strings:\n///     - first        one\n///     - second    one\npub struct DoubleString {\n   ///\n   ///     - First String:\n   ///         - needs to be inside here\n   first_string: String,\n   ///\n   ///     - Second String:\n   ///         - needs to be inside here\n   second_string: String,\n}\n```"
+    }, 
+    "group": "style", 
+    "id": "tabs_in_doc_comments", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for `allow`/`warn`/`deny`/`forbid` attributes with scoped clippy\nlints and if those lints exist in clippy. If there is an uppercase letter in the lint name\n(not the tool name) and a lowercase version of this lint exists, it will suggest to lowercase\nthe lint name.", 
       "Why is this bad": "A lint attribute with a mistyped lint name won't have an effect.", 
       "Known problems": "None.", 
@@ -975,7 +1026,20 @@
     "level": "Deny"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Checks for `.to_digit(..).is_some()` on `char`s.", 
+      "Why is this bad": "This is a convoluted way of checking if a `char` is a digit. It's\nmore straight forward to use the dedicated `is_digit` method.", 
+      "Example": "```rust\nlet is_digit = c.to_digit(radix).is_some();\n```\ncan be written as:\n```\n# let c = 'c';\n# let radix = 10;\nlet is_digit = c.is_digit(radix);\n```"
+    }, 
+    "group": "style", 
+    "id": "to_digit_is_some", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `assert!(a == b)` and recommend\nreplacement with `assert_eq!(a, b)`, but this is no longer needed after RFC 2011."
+    }, 
     "group": "deprecated", 
     "id": "should_assert_eq", 
     "level": "Deprecated"
@@ -1157,7 +1221,10 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint used to suggest replacing `let mut vec =\nVec::with_capacity(n); vec.set_len(n);` with `let vec = vec![0; n];`. The\nreplacement has very different performance characteristics so the lint is\ndeprecated."
+    }, 
     "group": "deprecated", 
     "id": "unsafe_vector_initialization", 
     "level": "Deprecated"
@@ -1172,6 +1239,17 @@
     "group": "style", 
     "id": "collapsible_if", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for usage of `as` conversions.", 
+      "Why is this bad": "`as` conversions will perform many kinds of\nconversions, including silently lossy conversions and dangerous coercions.\nThere are cases when it makes sense to use `as`, so the lint is\nAllow by default.", 
+      "Known problems": "None.", 
+      "Example": "```rust,ignore\nlet a: u32;\n...\nf(a as u16);\n```\n\nUsually better represents the semantics you expect:\n```rust,ignore\nf(a.try_into()?);\n```\nor\n```rust,ignore\nf(a.try_into().expect(\"Unexpected u16 overflow in f\"));\n```"
+    }, 
+    "group": "restriction", 
+    "id": "as_conversions", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -1362,7 +1440,10 @@
     "level": "Deny"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint has been superseded by #[must_use] in rustc."
+    }, 
     "group": "deprecated", 
     "id": "unused_collect", 
     "level": "Deprecated"
@@ -1811,7 +1892,10 @@
     "level": "Deny"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `.to_string()` method calls on values\nof type `String`. This is not unidiomatic and with specialization coming, `to_string` could be\nspecialized to be as efficient as `clone`."
+    }, 
     "group": "deprecated", 
     "id": "string_to_string", 
     "level": "Deprecated"
@@ -1832,7 +1916,7 @@
       "What it does": "Checks for lifetime annotations which can be removed by\nrelying on lifetime elision.", 
       "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.", 
       "Known problems": "Potential false negatives: we bail out if the function\nhas a `where` clause where lifetimes are mentioned.", 
-      "Example": "```rust\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {\n    x\n}\n```"
+      "Example": "```rust\n// Bad: unnecessary lifetime annotations\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {\n    x\n}\n\n// Good\nfn elided(x: &u8, y: u8) -> &u8 {\n    x\n}\n```"
     }, 
     "group": "complexity", 
     "id": "needless_lifetimes", 
@@ -2206,7 +2290,7 @@
       "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.", 
       "Why is this bad": "Usually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet x = 3.14;\n```"
+      "Example": "```rust\n// Bad\nlet x = 3.14;\nlet y = 1_f64 / x;\n\n// Good\nlet x = std::f32::consts::PI;\nlet y = std::f64::consts::FRAC_1_PI;\n```"
     }, 
     "group": "correctness", 
     "id": "approx_constant", 
@@ -2636,6 +2720,18 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for local arrays that may be too large.", 
+      "Why is this bad": "Large local arrays may cause stack overflow.", 
+      "Known problems": "None.", 
+      "Example": "```rust,ignore\nlet a = [0u32; 1_000_000];\n```", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `array-size-threshold: u64`: The maximum allowed size for arrays on the stack (defaults to `512_000 `)."
+    }, 
+    "group": "pedantic", 
+    "id": "large_stack_arrays", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for C-like enumerations that are\n`repr(isize/usize)` and have values that don't fit into an `i32`.", 
       "Why is this bad": "This will truncate the variant value on 32 bit\narchitectures, but works fine on 64 bit.", 
       "Known problems": "None.", 
@@ -2953,7 +3049,10 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `Vec::as_mut_slice`, which was unstable with good\nstable alternatives. `Vec::as_mut_slice` has now been stabilized."
+    }, 
     "group": "deprecated", 
     "id": "unstable_as_mut_slice", 
     "level": "Deprecated"
@@ -3025,7 +3124,10 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `Vec::as_slice`, which was unstable with good\nstable alternatives. `Vec::as_slice` has now been stabilized."
+    }, 
     "group": "deprecated", 
     "id": "unstable_as_slice", 
     "level": "Deprecated"
@@ -3037,7 +3139,7 @@
       "Known problems": "- False positive when using associated types (#2843)\n- False positives in some situations when using generics (#3410)", 
       "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```"
     }, 
-    "group": "pedantic", 
+    "group": "nursery", 
     "id": "use_self", 
     "level": "Allow"
   }, 
@@ -3075,7 +3177,10 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `Vec::extend`, which was slower than\n`Vec::extend_from_slice`. Thanks to specialization, this is no longer true."
+    }, 
     "group": "deprecated", 
     "id": "extend_from_slice", 
     "level": "Deprecated"
@@ -3093,13 +3198,13 @@
   }, 
   {
     "docs": {
-      "What it does": "The lint checks for `if`-statements appearing in loops\nthat contain a `continue` statement in either their main blocks or their\n`else`-blocks, when omitting the `else`-block possibly with some\nrearrangement of code can make the code easier to understand.", 
-      "Why is this bad": "Having explicit `else` blocks for `if` statements\ncontaining `continue` in their THEN branch adds unnecessary branching and\nnesting to the code. Having an else block containing just `continue` can\nalso be better written by grouping the statements following the whole `if`\nstatement within the THEN block and omitting the else block completely.", 
-      "Known problems": "None", 
-      "Example": "```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n    } else {\n        continue;\n    }\n    println!(\"Hello, world\");\n}\n```\n\nCould be rewritten as\n\n```rust\nwhile condition() {\n    update_condition();\n    if x {\n        // ...\n        println!(\"Hello, world\");\n    }\n}\n```\n\nAs another example, the following code\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    } else {\n        // Do something useful\n    }\n    # break;\n}\n```\nCould be rewritten as\n\n```rust\nloop {\n    if waiting() {\n        continue;\n    }\n    // Do something useful\n    # break;\n}\n```"
+      "What it does": "`exit()`  terminates the program and doesn't provide a\nstack trace.", 
+      "Why is this bad": "Ideally a program is terminated by finishing\nthe main function.", 
+      "Known problems": "None.", 
+      "Example": "```ignore\nstd::process::exit(0)\n```"
     }, 
-    "group": "pedantic", 
-    "id": "needless_continue", 
+    "group": "restriction", 
+    "id": "exit", 
     "level": "Allow"
   }, 
   {
@@ -3431,7 +3536,10 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint should never have applied to non-pointer types, as transmuting\nbetween non-pointer types of differing alignment is well-defined behavior (it's semantically\nequivalent to a memcpy). This lint has thus been refactored into two separate lints:\ncast_ptr_alignment and transmute_ptr_to_ptr."
+    }, 
     "group": "deprecated", 
     "id": "misaligned_transmute", 
     "level": "Deprecated"
@@ -3591,7 +3699,10 @@
     "level": "Deny"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This used to check for `.to_string()` method calls on values\nof type `&str`. This is not unidiomatic and with specialization coming, `to_string` could be\nspecialized to be as efficient as `to_owned`."
+    }, 
     "group": "deprecated", 
     "id": "str_to_string", 
     "level": "Deprecated"
@@ -3663,7 +3774,10 @@
     "level": "Warn"
   }, 
   {
-    "docs": {}, 
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint has been superseded by the warn-by-default\n`invalid_value` rustc lint."
+    }, 
     "group": "deprecated", 
     "id": "invalid_ref", 
     "level": "Deprecated"
