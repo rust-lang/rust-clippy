@@ -2556,7 +2556,7 @@
       "What it does": "Checks for the doc comments of publicly visible\nunsafe functions and warns if there is no `# Safety` section.", 
       "Why is this bad": "Unsafe functions should document their safety\npreconditions, so that users can be sure they are using them safely.", 
       "Known problems": "None.", 
-      "Examples": ":\n```rust\n/// This function should really be documented\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nAt least write a line about safety:\n\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```"
+      "Examples": "```rust\n/// This function should really be documented\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nAt least write a line about safety:\n\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```"
     }, 
     "group": "style", 
     "id": "missing_safety_doc", 
@@ -3403,6 +3403,17 @@
     "group": "style", 
     "id": "single_match", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks the doc comments of publicly visible functions that\nreturn a `Result` type and warns if there is no `# Errors` section.", 
+      "Why is this bad": "Documenting the type of errors that can be returned from a\nfunction can help callers write code to handle the errors appropriately.", 
+      "Known problems": "None.", 
+      "Examples": "Since the following function returns a `Result` it has an `# Errors` section in\nits doc comment:\n\n```rust\n/// # Errors\n///\n/// Will return `Err` if `filename` does not exist or the user does not have\n/// permission to read it.\npub fn read(filename: String) -> io::Result<String> {\n    unimplemented!();\n}\n```"
+    }, 
+    "group": "pedantic", 
+    "id": "missing_errors_doc", 
+    "level": "Allow"
   }, 
   {
     "docs": {
