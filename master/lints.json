@@ -1037,6 +1037,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for transmutes from a float to an integer.", 
+      "Why is this bad": "Transmutes are dangerous and error-prone, whereas `to_bits` is intuitive\nand safe.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nunsafe {\n    let _: u32 = std::mem::transmute(1f32);\n}\n\n// should be:\nlet _: u32 = 1f32.to_bits();\n```"
+    }, 
+    "group": "nursery", 
+    "id": "transmute_float_to_int", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Nothing. This lint has been deprecated.", 
       "Deprecation reason": "This used to check for `assert!(a == b)` and recommend\nreplacement with `assert_eq!(a, b)`, but this is no longer needed after RFC 2011."
     }, 
