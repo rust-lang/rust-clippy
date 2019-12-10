@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 340] = [
+pub const ALL_LINTS: [Lint; 341] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -1574,6 +1574,13 @@ pub const ALL_LINTS: [Lint; 340] = [
         desc: "fn arguments of the type `&Vec<...>` or `&String`, suggesting to use `&[...]` or `&str` instead, respectively",
         deprecation: None,
         module: "ptr",
+    },
+    Lint {
+        name: "ptr_eq",
+        group: "style",
+        desc: "use `std::ptr::eq` when comparing raw pointers",
+        deprecation: None,
+        module: "ptr_eq",
     },
     Lint {
         name: "ptr_offset_with_cast",

@@ -264,6 +264,7 @@ pub mod partialeq_ne_impl;
 pub mod path_buf_push_overwrite;
 pub mod precedence;
 pub mod ptr;
+pub mod ptr_eq;
 pub mod ptr_offset_with_cast;
 pub mod question_mark;
 pub mod ranges;
@@ -698,6 +699,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         &ptr::CMP_NULL,
         &ptr::MUT_FROM_REF,
         &ptr::PTR_ARG,
+        &ptr_eq::PTR_EQ,
         &ptr_offset_with_cast::PTR_OFFSET_WITH_CAST,
         &question_mark::QUESTION_MARK,
         &ranges::ITERATOR_STEP_BY_ZERO,
@@ -809,6 +811,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
     let verbose_bit_mask_threshold = conf.verbose_bit_mask_threshold;
     store.register_late_pass(move || box bit_mask::BitMask::new(verbose_bit_mask_threshold));
     store.register_late_pass(|| box ptr::Ptr);
+    store.register_late_pass(|| box ptr_eq::PtrEqLint);
     store.register_late_pass(|| box needless_bool::NeedlessBool);
     store.register_late_pass(|| box needless_bool::BoolComparison);
     store.register_late_pass(|| box approx_const::ApproxConstant);
@@ -1243,6 +1246,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&ptr::CMP_NULL),
         LintId::of(&ptr::MUT_FROM_REF),
         LintId::of(&ptr::PTR_ARG),
+        LintId::of(&ptr_eq::PTR_EQ),
         LintId::of(&ptr_offset_with_cast::PTR_OFFSET_WITH_CAST),
         LintId::of(&question_mark::QUESTION_MARK),
         LintId::of(&ranges::ITERATOR_STEP_BY_ZERO),
@@ -1386,6 +1390,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&panic_unimplemented::PANIC_PARAMS),
         LintId::of(&ptr::CMP_NULL),
         LintId::of(&ptr::PTR_ARG),
+        LintId::of(&ptr_eq::PTR_EQ),
         LintId::of(&question_mark::QUESTION_MARK),
         LintId::of(&redundant_field_names::REDUNDANT_FIELD_NAMES),
         LintId::of(&redundant_pattern_matching::REDUNDANT_PATTERN_MATCHING),
