@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 346] = [
+pub const ALL_LINTS: [Lint; 347] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -2078,6 +2078,13 @@ pub const ALL_LINTS: [Lint; 346] = [
         desc: "Types are repeated unnecessary in trait bounds use `+` instead of using `T: _, T: _`",
         deprecation: None,
         module: "trait_bounds",
+    },
+    Lint {
+        name: "unbound_return_lifetimes",
+        group: "correctness",
+        desc: "unbound lifetimes in function return values",
+        deprecation: None,
+        module: "unbound_return_lifetimes",
     },
     Lint {
         name: "unicode_not_nfc",

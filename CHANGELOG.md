@@ -1318,6 +1318,7 @@ Released 2018-09-13
 [`try_err`]: https://rust-lang.github.io/rust-clippy/master/index.html#try_err
 [`type_complexity`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_complexity
 [`type_repetition_in_bounds`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds
+[`unbound_return_lifetimes`]: https://rust-lang.github.io/rust-clippy/master/index.html#unbound_return_lifetimes
 [`unicode_not_nfc`]: https://rust-lang.github.io/rust-clippy/master/index.html#unicode_not_nfc
 [`unimplemented`]: https://rust-lang.github.io/rust-clippy/master/index.html#unimplemented
 [`uninit_assumed_init`]: https://rust-lang.github.io/rust-clippy/master/index.html#uninit_assumed_init

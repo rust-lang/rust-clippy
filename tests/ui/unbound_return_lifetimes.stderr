@@ -1,0 +1,10 @@
+error: lifetime is unconstrained
+  --> $DIR/unbound_return_lifetimes.rs:9:49
+   |
+LL | fn unbound_fun<'a>(x: impl AsRef<str> + 'a) -> &'a FooStr {
+   |                                                 ^^
+   |
+   = note: `-D clippy::unbound-return-lifetimes` implied by `-D warnings`
+
+error: aborting due to previous error
+

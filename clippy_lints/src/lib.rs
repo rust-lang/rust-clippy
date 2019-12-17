@@ -296,6 +296,7 @@ pub mod transmuting_null;
 pub mod trivially_copy_pass_by_ref;
 pub mod try_err;
 pub mod types;
+pub mod unbound_return_lifetimes;
 pub mod unicode;
 pub mod unsafe_removed_from_name;
 pub mod unused_io_amount;
@@ -786,6 +787,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         &types::UNIT_CMP,
         &types::UNNECESSARY_CAST,
         &types::VEC_BOX,
+        &unbound_return_lifetimes::UNBOUND_RETURN_LIFETIMES,
         &unicode::NON_ASCII_LITERAL,
         &unicode::UNICODE_NOT_NFC,
         &unicode::ZERO_WIDTH_SPACE,
@@ -953,6 +955,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
     store.register_late_pass(|| box mul_add::MulAddCheck);
     store.register_late_pass(|| box mut_key::MutableKeyType);
     store.register_late_pass(|| box modulo_arithmetic::ModuloArithmetic);
+    store.register_late_pass(|| box unbound_return_lifetimes::UnboundReturnLifetimes);
     store.register_early_pass(|| box reference::DerefAddrOf);
     store.register_early_pass(|| box reference::RefInDeref);
     store.register_early_pass(|| box double_parens::DoubleParens);
@@ -1326,6 +1329,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&types::UNIT_CMP),
         LintId::of(&types::UNNECESSARY_CAST),
         LintId::of(&types::VEC_BOX),
+        LintId::of(&unbound_return_lifetimes::UNBOUND_RETURN_LIFETIMES),
         LintId::of(&unicode::ZERO_WIDTH_SPACE),
         LintId::of(&unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME),
         LintId::of(&unused_io_amount::UNUSED_IO_AMOUNT),
@@ -1577,6 +1581,7 @@ pub fn register_plugins(store: &mut lint::LintStore, sess: &Session, conf: &Conf
         LintId::of(&types::CAST_PTR_ALIGNMENT),
         LintId::of(&types::CAST_REF_TO_MUT),
         LintId::of(&types::UNIT_CMP),
+        LintId::of(&unbound_return_lifetimes::UNBOUND_RETURN_LIFETIMES),
         LintId::of(&unicode::ZERO_WIDTH_SPACE),
         LintId::of(&unused_io_amount::UNUSED_IO_AMOUNT),
         LintId::of(&unwrap::PANICKING_UNWRAP),
