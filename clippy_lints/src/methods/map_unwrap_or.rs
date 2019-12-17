@@ -61,6 +61,7 @@ pub(super) fn lint<'a, 'tcx>(
                 arg, suggest
             )
         } else {
+            debug_assert!(is_result);
             "called `map(f).unwrap_or(a)` on a Result value. \
              This can be done more directly by calling `map_or(a, f)` instead"
                 .to_string()
