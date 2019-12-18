@@ -48,11 +48,10 @@ pub(super) fn lint<'a, 'tcx>(
         let msg = if is_option {
             // comparing the snippet from source to raw text ("None") below is safe
             // because we already have checked the type.
-            let arg = if unwrap_snippet == "None" { "None" } else { "a" };
-            let suggest = if unwrap_snippet == "None" {
-                "and_then(f)"
+            let (arg, suggest) = if unwrap_snippet == "None" {
+                ("None", "and_then(f)")
             } else {
-                "map_or(a, f)"
+                ("a", "map_or(a, f)")
             };
 
             format!(
@@ -65,6 +64,12 @@ pub(super) fn lint<'a, 'tcx>(
             "called `map(f).unwrap_or(a)` on a Result value. \
              This can be done more directly by calling `map_or(a, f)` instead"
                 .to_string()
+        };
+
+        let lint = if is_option {
+            OPTION_MAP_UNWRAP_OR
+        } else {
+            RESULT_MAP_UNWRAP_OR
         };
 
         // lint, with note if neither arg is > 1 line and both map() and
@@ -81,29 +86,9 @@ pub(super) fn lint<'a, 'tcx>(
                 "replace `map({}).unwrap_or({})` with `{}`",
                 map_snippet, unwrap_snippet, suggest
             );
-            span_note_and_lint(
-                cx,
-                if is_option {
-                    OPTION_MAP_UNWRAP_OR
-                } else {
-                    RESULT_MAP_UNWRAP_OR
-                },
-                expr.span,
-                &msg,
-                expr.span,
-                &note,
-            );
+            span_note_and_lint(cx, lint, expr.span, &msg, expr.span, &note);
         } else if same_span && multiline {
-            span_lint(
-                cx,
-                if is_option {
-                    OPTION_MAP_UNWRAP_OR
-                } else {
-                    RESULT_MAP_UNWRAP_OR
-                },
-                expr.span,
-                &msg,
-            );
+            span_lint(cx, lint, expr.span, &msg);
         };
     }
 }
