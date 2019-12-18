@@ -66,7 +66,7 @@ pub(super) fn lint<'a, 'tcx>(
                 .to_string()
         };
 
-        let lint = if is_option {
+        let lint_type = if is_option {
             OPTION_MAP_UNWRAP_OR
         } else {
             RESULT_MAP_UNWRAP_OR
@@ -86,9 +86,9 @@ pub(super) fn lint<'a, 'tcx>(
                 "replace `map({}).unwrap_or({})` with `{}`",
                 map_snippet, unwrap_snippet, suggest
             );
-            span_note_and_lint(cx, lint, expr.span, &msg, expr.span, &note);
+            span_note_and_lint(cx, lint_type, expr.span, &msg, expr.span, &note);
         } else if same_span && multiline {
-            span_lint(cx, lint, expr.span, &msg);
+            span_lint(cx, lint_type, expr.span, &msg);
         };
     }
 }
