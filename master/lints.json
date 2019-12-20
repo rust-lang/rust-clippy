@@ -790,10 +790,10 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for calling `.step_by(0)` on iterators,\nwhich never terminates.", 
-      "Why is this bad": "This very much looks like an oversight, since with\n`loop { .. }` there is an obvious better way to endlessly loop.", 
+      "What it does": "Checks for calling `.step_by(0)` on iterators which panics.", 
+      "Why is this bad": "This very much looks like an oversight. Use `panic!()` instead if you\nactually intend to panic.", 
       "Known problems": "None.", 
-      "Example": "```ignore\nfor x in (5..5).step_by(0) {\n    ..\n}\n```"
+      "Example": "```should_panic\nfor x in (0..100).step_by(0) {\n    //..\n}\n```"
     }, 
     "group": "correctness", 
     "id": "iterator_step_by_zero", 
