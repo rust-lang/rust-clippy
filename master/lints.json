@@ -606,14 +606,12 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for unused labels.", 
-      "Why is this bad": "Maybe the label should be used in which case there is\nan error in the code or it should be removed.", 
-      "Known problems": "Hopefully none.", 
-      "Example": "```rust,ignore\nfn unused_label() {\n    'label: for i in 1..2 {\n        if i > 4 { continue }\n    }\n```"
+      "What it does": "Nothing. This lint has been deprecated.", 
+      "Deprecation reason": "This lint has been uplifted to rustc and is now called\n`unused_labels`."
     }, 
-    "group": "complexity", 
+    "group": "deprecated", 
     "id": "unused_label", 
-    "level": "Warn"
+    "level": "Deprecated"
   }, 
   {
     "docs": {
