@@ -345,7 +345,7 @@ impl<'c, 'cc> ConstEvalLateContext<'c, 'cc> {
                     promoted: None,
                 };
 
-                let result = self.lcx.tcx.const_eval(self.param_env.and(gid)).ok()?;
+                let result = self.lcx.tcx.const_eval_validated(self.param_env.and(gid)).ok()?;
                 let result = miri_to_const(&result);
                 if result.is_some() {
                     self.needed_resolution = true;
