@@ -1592,6 +1592,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `let _ = <expr>`\nwhere expr is #[must_use]", 
+      "Why is this bad": "It's better to explicitly\nhandle the value of a #[must_use] expr", 
+      "Known problems": "None.", 
+      "Example": "```rust\nfn f() -> Result<u32, u32> {\n    Ok(0)\n}\n\nlet _ = f();\n// is_ok() is marked #[must_use]\nlet _ = f().is_ok();\n```"
+    }, 
+    "group": "restriction", 
+    "id": "let_underscore_must_use", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for bindings that shadow other bindings already in\nscope, either without a initialization or with one that does not even use\nthe original value.", 
       "Why is this bad": "Name shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings or introducing more scopes to contain the bindings.", 
       "Known problems": "This lint, as the other shadowing related lints,\ncurrently only catches very simple patterns.", 
