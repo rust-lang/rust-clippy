@@ -2176,6 +2176,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for sets/maps with mutable key types.", 
+      "Why is this bad": "All of `HashMap`, `HashSet`, `BTreeMap` and\n`BtreeSet` rely on either the hash or the order of keys be unchanging,\nso having types with interior mutability is a bad idea.", 
+      "Known problems": "We don't currently account for `Rc` or `Arc`, so\nthis may yield false positives.", 
+      "Example": "```rust\nuse std::cmp::{PartialEq, Eq};\nuse std::collections::HashSet;\nuse std::hash::{Hash, Hasher};\nuse std::sync::atomic::AtomicUsize;\n\nstruct Bad(AtomicUsize);\nimpl PartialEq for Bad {\n    fn eq(&self, rhs: &Self) -> bool {\n         ..\n; unimplemented!();\n    }\n}\n\nimpl Eq for Bad {}\n\nimpl Hash for Bad {\n    fn hash<H: Hasher>(&self, h: &mut H) {\n        ..\n; unimplemented!();\n    }\n}\n\nfn main() {\n    let _: HashSet<Bad> = HashSet::new();\n}\n```"
+    }, 
+    "group": "correctness", 
+    "id": "mutable_key_type", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for casts of a function pointer to a numeric type not wide enough to\nstore address.", 
       "Why is this bad": "Such a cast discards some bits of the function's address. If this is intended, it would be more\nclearly expressed by casting to usize first, then casting the usize to the intended type (with\na comment) to perform the truncation.", 
       "Example": "```rust\n// Bad\nfn fn1() -> i16 {\n    1\n};\nlet _ = fn1 as i32;\n\n// Better: Cast to usize first, then comment with the reason for the truncation\nfn fn2() -> i16 {\n    1\n};\nlet fn_ptr = fn2 as usize;\nlet fn_ptr_truncated = fn_ptr as i32;\n```"
