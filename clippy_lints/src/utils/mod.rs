@@ -5,7 +5,7 @@ pub mod attrs;
 pub mod author;
 pub mod camel_case;
 pub mod comparisons;
-pub mod conf;
+pub mod config;
 pub mod constants;
 mod diagnostics;
 pub mod higher;
