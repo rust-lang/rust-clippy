@@ -2274,13 +2274,13 @@
   }, 
   {
     "docs": {
-      "What it does": "Warns if literal suffixes are not separated by an\nunderscore.", 
-      "Why is this bad": "It is much less readable.", 
+      "What it does": "Checks for modulo arithemtic.", 
+      "Why is this bad": "The results of modulo (%) operation might differ\ndepending on the language, when negative numbers are involved.\nIf you interop with different languages it might be beneficial\nto double check all places that use modulo arithmetic.\n\nFor example, in Rust `17 % -3 = 2`, but in Python `17 % -3 = -1`.", 
       "Known problems": "None.", 
-      "Example": "```rust\nlet y = 123832i32;\n```"
+      "Example": "```rust\nlet x = -17 % 3;\n```"
     }, 
-    "group": "pedantic", 
-    "id": "unseparated_literal_suffix", 
+    "group": "restriction", 
+    "id": "modulo_arithmetic", 
     "level": "Allow"
   }, 
   {
@@ -3303,6 +3303,17 @@
     "group": "style", 
     "id": "block_in_if_condition_stmt", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Warns if literal suffixes are not separated by an\nunderscore.", 
+      "Why is this bad": "It is much less readable.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nlet y = 123832i32;\n```"
+    }, 
+    "group": "pedantic", 
+    "id": "unseparated_literal_suffix", 
+    "level": "Allow"
   }, 
   {
     "docs": {
