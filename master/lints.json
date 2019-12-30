@@ -2428,10 +2428,10 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `ATOMIC_X_INIT`, `ONCE_INIT`, and\n`uX/iX::MIN/MAX`.", 
+      "What it does": "Checks for usage of standard library\n`const`s that could be replaced by `const fn`s.", 
       "Why is this bad": "`const fn`s exist", 
       "Known problems": "None.", 
-      "Example": "```rust\nstatic FOO: AtomicIsize = ATOMIC_ISIZE_INIT;\n```\n\nCould be written:\n\n```rust\nstatic FOO: AtomicIsize = AtomicIsize::new(0);\n```"
+      "Example": "```rust\nlet x = std::u32::MIN;\nlet y = std::u32::MAX;\n```\n\nCould be written:\n\n```rust\nlet x = u32::min_value();\nlet y = u32::max_value();\n```"
     }, 
     "group": "pedantic", 
     "id": "replace_consts", 
