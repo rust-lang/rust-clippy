@@ -89,4 +89,29 @@ mod with_drop {
             B
         }
     }
+
+    struct CustomDrop {
+        field: i32,
+    }
+
+    impl Drop for CustomDrop {
+        fn drop(&mut self) {}
+    }
+
+    struct Bar {
+        field: CustomDrop,
+    }
+
+    impl Bar {
+        fn take(self) -> CustomDrop {
+            self.field
+        }
+    }
+
+    fn take() -> CustomDrop {
+        let x = Bar {
+            field: CustomDrop { field: 1 },
+        };
+        x.field
+    }
 }

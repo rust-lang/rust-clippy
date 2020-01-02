@@ -1,4 +1,4 @@
-use crate::utils::{has_drop, is_entrypoint_fn, span_lint, trait_ref_of_method};
+use crate::utils::{has_drop, is_entrypoint_fn, return_ty, span_lint, trait_ref_of_method};
 use rustc::declare_lint_pass;
 use rustc::hir;
 use rustc::hir::intravisit::FnKind;
@@ -91,7 +91,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingConstForFn {
         // can skip the actual const check and return early.
         match kind {
             FnKind::ItemFn(_, _, header, ..) => {
-                if already_const(header) {
+                if already_const(header) || returns_dropable(cx, hir_id) {
                     return;
                 }
             },
@@ -99,6 +99,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingConstForFn {
                 if trait_ref_of_method(cx, hir_id).is_some()
                     || already_const(sig.header)
                     || method_accepts_dropable(cx, sig.decl.inputs)
+                    || returns_dropable(cx, hir_id)
                 {
                     return;
                 }
@@ -126,6 +127,11 @@ fn method_accepts_dropable(cx: &LateContext<'_, '_>, param_tys: &[hir::Ty<'_>]) 
         let ty_ty = hir_ty_to_ty(cx.tcx, hir_ty);
         has_drop(cx, ty_ty)
     })
+}
+
+fn returns_dropable(cx: &LateContext<'_, '_>, ret_ty: hir::HirId) -> bool {
+    let return_ty = return_ty(cx, ret_ty);
+    has_drop(cx, return_ty)
 }
 
 // We don't have to lint on something that's already `const`
