@@ -29,6 +29,7 @@ LL |     unreachable!();
    |     ^^^^^^^^^^^^^^^
    |
    = note: `-D clippy::unreachable` implied by `-D warnings`
+   = help: ident is neither enable nor disable
 
 error: aborting due to 4 previous errors
 

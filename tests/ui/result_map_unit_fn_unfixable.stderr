@@ -1,3 +1,8 @@
+error[E0465]: multiple rlib candidates for `regex` found
+   |
+   = note: candidate #1: /Users/YusukeAbe/code/rust/rust-clippy/target/debug/deps/libregex-a27846278b6a956a.rlib
+   = note: candidate #2: /Users/YusukeAbe/code/rust/rust-clippy/target/debug/deps/libregex-18da0247c966b574.rlib
+
 error[E0425]: cannot find value `x` in this scope
   --> $DIR/result_map_unit_fn_unfixable.rs:17:5
    |
@@ -22,6 +27,6 @@ error[E0425]: cannot find value `x` in this scope
 LL |     x.field.map(|value| { do_nothing(value); do_nothing(value); });
    |     ^ not found in this scope
 
-error: aborting due to 4 previous errors
+error: aborting due to 5 previous errors
 
 For more information about this error, try `rustc --explain E0425`.

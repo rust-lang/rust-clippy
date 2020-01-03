@@ -1,4 +1,4 @@
-use crate::utils::{is_direct_expn_of, is_expn_of, match_function_call, paths, span_lint};
+use crate::utils::{is_direct_expn_of, is_expn_of, match_function_call, paths, span_help_and_lint, span_lint};
 use if_chain::if_chain;
 use rustc::declare_lint_pass;
 use rustc::hir::*;
@@ -110,8 +110,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for PanicUnimplemented {
                               "`todo` should not be present in production code");
                 } else if is_expn_of(expr.span, "unreachable").is_some() {
                     let span = get_outer_span(expr);
-                    span_lint(cx, UNREACHABLE, span,
-                              "`unreachable` should not be present in production code");
+                    span_help_and_lint(cx, UNREACHABLE, span,
+                              "`unreachable` should not be present in production code", "ident is neither enable nor disable");
                 } else if is_expn_of(expr.span, "panic").is_some() {
                     let span = get_outer_span(expr);
                     span_lint(cx, PANIC, span,

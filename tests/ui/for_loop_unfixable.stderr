@@ -1,9 +1,14 @@
+error[E0465]: multiple rlib candidates for `regex` found
+   |
+   = note: candidate #1: /Users/YusukeAbe/code/rust/rust-clippy/target/debug/deps/libregex-a27846278b6a956a.rlib
+   = note: candidate #2: /Users/YusukeAbe/code/rust/rust-clippy/target/debug/deps/libregex-18da0247c966b574.rlib
+
 error[E0425]: cannot find function `f` in this scope
   --> $DIR/for_loop_unfixable.rs:37:12
    |
 LL |         if f(&vec[i], &vec[i]) {
    |            ^ help: a local variable with a similar name exists: `i`
 
-error: aborting due to previous error
+error: aborting due to 2 previous errors
 
 For more information about this error, try `rustc --explain E0425`.
