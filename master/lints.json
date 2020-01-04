@@ -1625,6 +1625,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `std::mem::replace` on a value of type\n`T` with `T::default()`.", 
+      "Why is this bad": "`std::mem` module already has the method `take` to\ntake the current value and replace it with the default value of that type.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nlet mut text = String::from(\"foo\");\nlet replaced = std::mem::replace(&mut text, String::default());\n```\nIs better expressed with:\n```rust\nlet mut text = String::from(\"foo\");\nlet taken = std::mem::take(&mut text);\n```"
+    }, 
+    "group": "style", 
+    "id": "mem_replace_with_default", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for functions with too many parameters.", 
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.", 
       "Known problems": "None.", 
