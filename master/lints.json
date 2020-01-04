@@ -167,7 +167,7 @@
   {
     "docs": {
       "What it does": "Checks for `.expect()` calls on `Result`s.", 
-      "Why is this bad": "`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.", 
+      "Why is this bad": "`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.", 
       "Known problems": "None.", 
       "Example": "Using expect on an `Result`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"one\");\n```\n\nBetter:\n\n```\nlet res: Result<usize, ()> = Ok(1);\nres?;\n# Ok::<(), ()>(())\n```"
     }, 
@@ -2255,7 +2255,7 @@
       "What it does": "* Checks for unnecessary `ok()` in if let.", 
       "Why is this bad": "Calling `ok()` in if let is unnecessary, instead match\non `Ok(pat)`", 
       "Known problems": "None.", 
-      "Example": "```ignore\nfor result in iter {\n    if let Some(bench) = try!(result).parse().ok() {\n        vec.push(bench)\n    }\n}\n```\nCould be written:\n\n```ignore\nfor result in iter {\n    if let Ok(bench) = try!(result).parse() {\n        vec.push(bench)\n    }\n}\n```"
+      "Example": "```ignore\nfor i in iter {\n    if let Some(value) = i.parse().ok() {\n        vec.push(value)\n    }\n}\n```\nCould be written:\n\n```ignore\nfor i in iter {\n    if let Ok(value) = i.parse() {\n        vec.push(value)\n    }\n}\n```"
     }, 
     "group": "style", 
     "id": "if_let_some_result", 
@@ -3688,7 +3688,7 @@
   {
     "docs": {
       "What it does": "Checks for `.unwrap()` calls on `Result`s.", 
-      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `try!`.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
+      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.", 
       "Known problems": "None.", 
       "Example": "Using unwrap on an `Result`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.unwrap();\n```\n\nBetter:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"more helpful message\");\n```"
     }, 
