@@ -26,8 +26,12 @@ env:
 
 before_install:
   - export CARGO_TARGET_DIR="$TRAVIS_BUILD_DIR/target"
-  - curl -sSL https://sh.rustup.rs | sh -s -- -y --default-toolchain=nightly --profile=minimal
-  - export PATH="$HOME/.cargo/bin:$PATH"
+  - |
+    set -ex
+    TOOLCHAIN=nightly
+    [[ '$TRAVIS_OS_NAME' == windows ]] && TOOLCHAIN=nightly-x86_64-pc-windows-msvc
+    curl -sSL https://sh.rustup.rs | sh -s -- -y --default-toolchain="$TOOLCHAIN" --profile=minimal
+    export PATH="$HOME/.cargo/bin:$PATH"
 install:
   - |
     if [[ -z ${INTEGRATION} ]]; then
