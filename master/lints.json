@@ -2561,6 +2561,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of invalid atomic\nordering in Atomic*::{load, store} calls.", 
+      "Why is this bad": "Using an invalid atomic ordering\nwill cause a panic at run-time.", 
+      "Known problems": "None.", 
+      "Example": "```rust,no_run\n\nlet x = AtomicBool::new(true);\n\nlet _ = x.load(Ordering::Release);\nlet _ = x.load(Ordering::AcqRel);\n\nx.store(false, Ordering::Acquire);\nx.store(false, Ordering::AcqRel);\n```"
+    }, 
+    "group": "correctness", 
+    "id": "invalid_atomic_ordering", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Suggests the use of `const` in functions and methods where possible.", 
       "Why is this bad": "Not having the function const prevents callers of the function from being const as well.", 
       "Known problems": "Const functions are currently still being worked on, with some features only being available\non nightly. This lint does not consider all edge cases currently and the suggestions may be\nincorrect if you are using this lint on stable.\n\nAlso, the lint only runs one pass over the code. Consider these two non-const functions:\n\n```rust\nfn a() -> i32 {\n    0\n}\nfn b() -> i32 {\n    a()\n}\n```\n\nWhen running Clippy, the lint will only suggest to make `a` const, because `b` at this time\ncan't be const as it calls a non-const function. Making `a` const and running Clippy again,\nwill suggest to make `b` const, too.", 
