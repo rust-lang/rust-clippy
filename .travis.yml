@@ -69,7 +69,7 @@ matrix:
           packages:
             - gcc-multilib
             - libssl-dev:i386     # openssl dev in Cargo.toml
-      if: branch IN (auto, try)
+      # if: branch IN (auto, try)
     - os: windows
       env: CARGO_INCREMENTAL=0 OS_WINDOWS=true
 
