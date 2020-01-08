@@ -1040,9 +1040,9 @@
       "Known problems": "None.", 
       "Example": "```rust\nunsafe {\n    let _: u32 = std::mem::transmute(1f32);\n}\n\n// should be:\nlet _: u32 = 1f32.to_bits();\n```"
     }, 
-    "group": "nursery", 
+    "group": "complexity", 
     "id": "transmute_float_to_int", 
-    "level": "Allow"
+    "level": "Warn"
   }, 
   {
     "docs": {
