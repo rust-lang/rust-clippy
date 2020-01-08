@@ -27,7 +27,7 @@ use if_chain::if_chain;
 use matches::matches;
 use rustc::hir::intravisit::{NestedVisitorMap, Visitor};
 use rustc::lint::{LateContext, Level, Lint, LintContext};
-use rustc::traits;
+use rustc::traits::{self, predicate_for_trait_def};
 use rustc::ty::{
     self,
     layout::{self, IntegerExt},
@@ -312,7 +312,8 @@ pub fn implements_trait<'a, 'tcx>(
     ty_params: &[GenericArg<'tcx>],
 ) -> bool {
     let ty = cx.tcx.erase_regions(&ty);
-    let obligation = cx.tcx.predicate_for_trait_def(
+    let obligation = predicate_for_trait_def(
+        cx.tcx,
         cx.param_env,
         traits::ObligationCause::dummy(),
         trait_id,
