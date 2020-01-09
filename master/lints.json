@@ -2078,6 +2078,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for wildcard pattern used with others patterns in same match arm.", 
+      "Why is this bad": "Wildcard pattern already covers any other pattern as it will match anyway.\nIt makes the code less readable, especially to spot wildcard pattern use in match arm.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nmatch \"foo\" {\n    \"a\" => {},\n    \"bar\" | _ => {},\n}\n```"
+    }, 
+    "group": "complexity", 
+    "id": "wildcard_in_or_patterns", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `&vec![..]` when using `&[..]` would\nbe possible.", 
       "Why is this bad": "This is less efficient.", 
       "Known problems": "None.", 
