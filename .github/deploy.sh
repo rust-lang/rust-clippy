@@ -8,12 +8,14 @@ SOURCE_BRANCH="master"
 TARGET_BRANCH="gh-pages"
 
 # Save some useful information
-REPO=$(git config remote.origin.url)
-SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
+UPSTREAM_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name "${SOURCE_BRANCH}@{upstream}")
+UPSTREAM_REPO=$(echo "$UPSTREAM_BRANCH" | cut -d/ -f1)
+UPSTREAM_URL=$(git config --get remote."$UPSTREAM_REPO".url)
+UPSTREAM_SSH=${UPSTREAM_URL/https:\/\/github.com\//git@github.com:}
 SHA=$(git rev-parse --verify HEAD)
 
 # Clone the existing gh-pages for this repo into out/
-git clone --quiet --single-branch --branch "$TARGET_BRANCH" "$REPO" out
+git clone --quiet --single-branch --branch "$TARGET_BRANCH" "$UPSTREAM_URL" out
 
 echo "Removing the current docs for master"
 rm -rf out/master/ || exit 0
@@ -78,4 +80,4 @@ git add .
 git commit -m "Automatic deploy to GitHub Pages: ${SHA}"
 
 # Now that we're all set up, we can push.
-git push "$SSH_REPO" "$TARGET_BRANCH"
+git push "$UPSTREAM_SSH" "$TARGET_BRANCH"
