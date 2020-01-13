@@ -2605,6 +2605,16 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for `FileType::is_file()`.", 
+      "Why is this bad": "When people testing a file type with `FileType::is_file`\nthey are testing whether a path is something they can get bytes from. But\n`is_file` doesn't cover special file types in unix-like systems, and doesn't cover\nsymlink in windows. Using `!FileType::is_dir()` is a better way to that intention.", 
+      "Example": "```rust,ignore\nlet metadata = std::fs::metadata(\"foo.txt\")?;\nlet filetype = metadata.file_type();\n\nif filetype.is_file() {\n    // read file\n}\n```\n\nshould be written as:\n\n```rust,ignore\nlet metadata = std::fs::metadata(\"foo.txt\")?;\nlet filetype = metadata.file_type();\n\nif !filetype.is_dir() {\n    // read file\n}\n```"
+    }, 
+    "group": "restriction", 
+    "id": "filetype_is_file", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for passing a unit value as an argument to a function without using a\nunit literal (`()`).", 
       "Why is this bad": "This is likely the result of an accidental semicolon.", 
       "Known problems": "None.", 
