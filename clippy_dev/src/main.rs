@@ -1,10 +1,12 @@
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, ArgMatches, SubCommand};
 use clippy_dev::*;
 use std::path::Path;
 
 mod fmt;
+#[cfg(feature = "issues")]
+mod issues_for_lint;
 mod new_lint;
 mod stderr_length_check;
 
@@ -15,7 +17,7 @@ enum UpdateMode {
 }
 
 fn main() {
-    let matches = App::new("Clippy developer tooling")
+    let mut app = App::new("Clippy developer tooling")
         .subcommand(
             SubCommand::with_name("fmt")
                 .about("Run rustfmt on all projects and tests")
@@ -98,8 +100,31 @@ fn main() {
             Arg::with_name("limit-stderr-length")
                 .long("limit-stderr-length")
                 .help("Ensures that stderr files do not grow longer than a certain amount of lines."),
-        )
-        .get_matches();
+        );
+    if cfg!(feature = "issues") {
+        app = app.subcommand(
+            SubCommand::with_name("issues_for_lint")
+                .about(
+                    "Prints all issues where the specified lint is mentioned either in the title or in the description",
+                )
+                .arg(
+                    Arg::with_name("name")
+                        .short("n")
+                        .long("name")
+                        .help("The name of the lint")
+                        .takes_value(true)
+                        .required_unless("all"),
+                )
+                .arg(Arg::with_name("all").long("all").help("Create a list for all lints"))
+                .arg(
+                    Arg::with_name("filter")
+                        .long("filter")
+                        .takes_value(true)
+                        .help("Comma separated list of issue numbers, that should be filtered out"),
+                ),
+        );
+    }
+    let matches = app.get_matches();
 
     if matches.is_present("limit-stderr-length") {
         stderr_length_check::check();
@@ -128,7 +153,29 @@ fn main() {
                 Err(e) => eprintln!("Unable to create lint: {}", e),
             }
         },
+        ("issues_for_lint", Some(matches)) => issues_for_lint(matches),
         _ => {},
+    }
+}
+
+fn issues_for_lint(_matches: &ArgMatches<'_>) {
+    #[cfg(feature = "issues")]
+    {
+        let filter = if let Some(filter) = _matches.value_of("filter") {
+            let mut issue_nbs = vec![];
+            for nb in filter.split(',') {
+                issue_nbs.push(nb.trim().parse::<u32>().expect("only numbers are allowed as filter"));
+            }
+            issue_nbs
+        } else {
+            vec![]
+        };
+        if _matches.is_present("all") {
+            issues_for_lint::run_all(&filter);
+        } else {
+            let name = _matches.value_of("name").expect("checked by clap");
+            issues_for_lint::run(&name, &filter);
+        }
     }
 }
 

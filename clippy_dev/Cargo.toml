@@ -12,6 +12,9 @@ regex = "1"
 lazy_static = "1.0"
 shell-escape = "0.1"
 walkdir = "2"
+reqwest = { version = "0.10", features = ["blocking", "json"], optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
 
 [features]
 deny-warnings = []
+issues = ["reqwest", "serde"]
