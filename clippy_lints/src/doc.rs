@@ -395,11 +395,36 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     headers
 }
 
-static LEAVE_MAIN_PATTERNS: &[&str] = &["static", "fn main() {}", "extern crate"];
+fn needs_main(item: &syn::Item) -> bool {
+    match item {
+        syn::Item::Const(..) | syn::Item::Static(..) | syn::Item::ExternCrate(..) | syn::Item::ForeignMod(..) => true,
+        _ => false,
+    }
+}
 
-fn check_code(cx: &LateContext<'_, '_>, text: &str, span: Span) {
-    if text.contains("fn main() {") && !LEAVE_MAIN_PATTERNS.iter().any(|p| text.contains(p)) {
-        span_lint(cx, NEEDLESS_DOCTEST_MAIN, span, "needless `fn main` in doctest");
+// check a syn Item for non-empty `fn main() { .. }`
+fn is_default_main_fn(item: &syn::Item) -> bool {
+    match item {
+        syn::Item::Fn(syn::ItemFn { ref sig, ref block, .. }) => {
+            !block.stmts.is_empty()
+                && sig.ident == "main"
+                && match sig.output {
+                    syn::ReturnType::Default => true,
+                    syn::ReturnType::Type(_, ref ty) => match **ty {
+                        syn::Type::Tuple(syn::TypeTuple { ref elems, .. }) => elems.is_empty(),
+                        _ => false,
+                    },
+                }
+        },
+        _ => false,
+    }
+}
+
+fn check_code(cx: &LateContext<'_, '_>, code: &str, span: Span) {
+    if let Ok(file) = syn::parse_file(code) {
+        if file.items.iter().any(is_default_main_fn) && !file.items.iter().any(needs_main) {
+            span_lint(cx, NEEDLESS_DOCTEST_MAIN, span, "needless `fn main` in doctest");
+        }
     }
 }
 
