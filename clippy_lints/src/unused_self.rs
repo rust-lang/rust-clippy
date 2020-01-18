@@ -1,10 +1,11 @@
-use if_chain::if_chain;
 use rustc::hir::map::Map;
+use rustc::ty::AssocItemContainer;
 use rustc_hir::def::Res;
-use rustc_hir::intravisit::{walk_path, NestedVisitorMap, Visitor};
-use rustc_hir::{AssocItemKind, HirId, ImplItemKind, ImplItemRef, Item, ItemKind, Path};
+use rustc_hir::intravisit::{walk_path, FnKind, NestedVisitorMap, Visitor};
+use rustc_hir::{Body, FnDecl, HirId, ItemKind, Path};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::source_map::Span;
 
 use crate::utils::span_help_and_lint;
 
@@ -40,47 +41,56 @@ declare_clippy_lint! {
 declare_lint_pass!(UnusedSelf => [UNUSED_SELF]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UnusedSelf {
-    fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &Item<'_>) {
-        if item.span.from_expansion() {
+    fn check_fn(
+        &mut self,
+        cx: &LateContext<'a, 'tcx>,
+        fn_kind: FnKind<'tcx>,
+        _: &'tcx FnDecl<'_>,
+        body: &'tcx Body<'_>,
+        span: Span,
+        hir_id: HirId,
+    ) {
+        if span.from_expansion() {
             return;
         }
-        if let ItemKind::Impl {
-            of_trait: None,
-            items: impl_item_refs,
-            ..
-        } = item.kind
-        {
-            for impl_item_ref in impl_item_refs {
-                if_chain! {
-                    if let ImplItemRef {
-                        kind: AssocItemKind::Method { has_self: true },
-                        ..
-                    } = impl_item_ref;
-                    let impl_item = cx.tcx.hir().impl_item(impl_item_ref.id);
-                    if let ImplItemKind::Method(_, body_id) = &impl_item.kind;
-                    then {
-                        let body = cx.tcx.hir().body(*body_id);
-                        let self_param = &body.params[0];
-                        let self_hir_id = self_param.pat.hir_id;
-                        let mut visitor = UnusedSelfVisitor {
-                            cx,
-                            uses_self: false,
-                            self_hir_id: &self_hir_id,
-                        };
-                        visitor.visit_body(body);
-                        if !visitor.uses_self {
-                            span_help_and_lint(
-                                cx,
-                                UNUSED_SELF,
-                                self_param.span,
-                                "unused `self` argument",
-                                "consider refactoring to a associated function",
-                            )
-                        }
-                    }
-                }
+        if !matches!(fn_kind, FnKind::Method(..)) {
+            return;
+        }
+
+        let def_id = cx.tcx.hir().local_def_id(hir_id);
+        let associated_item = cx.tcx.associated_item(def_id);
+        if !associated_item.method_has_self_argument {
+            return;
+        }
+
+        if let AssocItemContainer::ImplContainer(container_def_id) = associated_item.container {
+            let container_id = cx.tcx.hir().local_def_id_to_hir_id(container_def_id.to_local());
+            let item = cx.tcx.hir().item(container_id);
+            if !matches!(item.kind, ItemKind::Impl{ of_trait: None, .. }) {
+                return;
             }
-        };
+        } else {
+            return;
+        }
+
+        if let [self_param, ..] = &body.params {
+            let self_hir_id = self_param.pat.hir_id;
+            let mut visitor = UnusedSelfVisitor {
+                cx,
+                uses_self: false,
+                self_hir_id: &self_hir_id,
+            };
+            visitor.visit_body(body);
+            if !visitor.uses_self {
+                span_help_and_lint(
+                    cx,
+                    UNUSED_SELF,
+                    self_param.span,
+                    "unused `self` argument",
+                    "consider refactoring to a associated function",
+                )
+            }
+        }
     }
 }
 

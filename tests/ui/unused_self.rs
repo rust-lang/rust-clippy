@@ -108,4 +108,13 @@ mod not_applicable {
     }
 }
 
+// Issue 5053 - allowing `unused_self` at function level
+mod issue5053 {
+    struct X {}
+    impl X {
+        #[allow(clippy::unused_self)]
+        fn test(&self) {}
+    }
+}
+
 fn main() {}
