@@ -78,7 +78,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for LenZero {
 
         match item.kind {
             ItemKind::Trait(_, _, _, _, ref trait_items) => check_trait_items(cx, item, trait_items),
-            ItemKind::Impl(_, _, _, _, None, _, ref impl_items) => check_impl_items(cx, item, impl_items),
+            ItemKind::Impl { of_trait: None, ref items, .. } => check_impl_items(cx, item, items),
             _ => (),
         }
     }

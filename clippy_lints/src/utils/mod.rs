@@ -357,8 +357,8 @@ pub fn trait_ref_of_method<'tcx>(cx: &LateContext<'_, 'tcx>, hir_id: HirId) -> O
     if_chain! {
         if parent_impl != hir::CRATE_HIR_ID;
         if let hir::Node::Item(item) = cx.tcx.hir().get(parent_impl);
-        if let hir::ItemKind::Impl(_, _, _, _, trait_ref, _, _) = &item.kind;
-        then { return trait_ref.as_ref(); }
+        if let hir::ItemKind::Impl { of_trait, .. } = &item.kind;
+        then { return of_trait.as_ref(); }
     }
     None
 }

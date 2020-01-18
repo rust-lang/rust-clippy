@@ -173,7 +173,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
             return;
         }
         if_chain! {
-            if let ItemKind::Impl(.., ref item_type, refs) = item.kind;
+            if let ItemKind::Impl { ref self_ty, ref items } = item.kind;
             if let TyKind::Path(QPath::Resolved(_, ref item_path)) = item_type.kind;
             then {
                 let parameters = &item_path.segments.last().expect(SEGMENTS_MSG).args;
@@ -195,7 +195,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
                     let impl_trait_ref = cx.tcx.impl_trait_ref(impl_def_id);
 
                     if let Some(impl_trait_ref) = impl_trait_ref {
-                        for impl_item_ref in refs {
+                        for impl_item_ref in items {
                             let impl_item = cx.tcx.hir().impl_item(impl_item_ref.id);
                             if let ImplItemKind::Method(FnSig{ decl: impl_decl, .. }, impl_body_id)
                                     = &impl_item.kind {
@@ -209,7 +209,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for UseSelf {
                             }
                         }
                     } else {
-                        for impl_item_ref in refs {
+                        for impl_item_ref in items {
                             let impl_item = cx.tcx.hir().impl_item(impl_item_ref.id);
                             visitor.visit_impl_item(impl_item);
                         }
@@ -269,7 +269,7 @@ impl<'a, 'tcx> Visitor<'tcx> for UseSelfVisitor<'a, 'tcx> {
             | ItemKind::Enum(..)
             | ItemKind::Struct(..)
             | ItemKind::Union(..)
-            | ItemKind::Impl(..)
+            | ItemKind::Impl { .. }
             | ItemKind::Fn(..) => {
                 // Don't check statements that shadow `Self` or where `Self` can't be used
             },

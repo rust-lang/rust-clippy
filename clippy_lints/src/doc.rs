@@ -159,15 +159,15 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for DocMarkdown {
                     lint_for_missing_headers(cx, item.hir_id, item.span, sig, headers);
                 }
             },
-            hir::ItemKind::Impl(_, _, _, _, ref trait_ref, ..) => {
-                self.in_trait_impl = trait_ref.is_some();
+            hir::ItemKind::Impl { ref of_trait, .. } => {
+                self.in_trait_impl = of_trait.is_some();
             },
             _ => {},
         }
     }
 
     fn check_item_post(&mut self, _cx: &LateContext<'a, 'tcx>, item: &'tcx hir::Item<'_>) {
-        if let hir::ItemKind::Impl(..) = item.kind {
+        if let hir::ItemKind::Impl { .. } = item.kind {
             self.in_trait_impl = false;
         }
     }
