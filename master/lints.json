@@ -334,7 +334,7 @@
   {
     "docs": {
       "What it does": "Checks for calls to `map` followed by a `count`.", 
-      "Why is this bad": "It looks suspicious. Maybe `map` was confused with `filter`.\nIf the `map` call is intentional, this should be rewritten.", 
+      "Why is this bad": "It looks suspicious. Maybe `map` was confused with `filter`.\nIf the `map` call is intentional, this should be rewritten. Or, if you intend to\ndrive the iterator to completion, you can just use `for_each` instead.", 
       "Known problems": "None", 
       "Example": "```rust\nlet _ = (0..3).map(|x| x + 2).count();\n```"
     }, 
