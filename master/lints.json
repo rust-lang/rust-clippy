@@ -1869,6 +1869,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `_.skip_while(condition).next()`.", 
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.find(!condition)`.", 
+      "Known problems": "None.", 
+      "Example": "```rust\nvec.iter().skip_while(|x| **x == 0).next();\n```\nCould be written as\n```rust\nvec.iter().find(|x| **x != 0);\n```"
+    }, 
+    "group": "complexity", 
+    "id": "skip_while_next", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for expressions that could be replaced by the question mark operator.", 
       "Why is this bad": "Question mark usage is more idiomatic.", 
       "Known problems": "None", 
