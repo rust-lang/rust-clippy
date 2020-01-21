@@ -1,0 +1,34 @@
+name: Clippy Dev Test
+
+on: [push, pull_request]
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  clippy_dev:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: rust-toolchain
+      uses: actions-rs/toolchain@v1.0.3
+      with:
+        toolchain: nightly
+        target: x86_64-unknown-linux-gnu
+        profile: minimal
+        components: rustfmt
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+
+    - name: Build
+      run: cargo build --features deny-warnings
+      working-directory: clippy_dev
+    - name: Test limit-stderr-length
+      run: cargo run -- --limit-stderr-length
+      working-directory: clippy_dev
+    - name: Test update_lints
+      run: cargo run -- update_lints --check
+      working-directory: clippy_dev
+    - name: Test fmt
+      run: cargo run -- fmt --check
+      working-directory: clippy_dev
