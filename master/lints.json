@@ -2583,10 +2583,10 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of invalid atomic\nordering in Atomic*::{load, store} calls.", 
+      "What it does": "Checks for usage of invalid atomic\nordering in atomic loads/stores and memory fences.", 
       "Why is this bad": "Using an invalid atomic ordering\nwill cause a panic at run-time.", 
       "Known problems": "None.", 
-      "Example": "```rust,no_run\n\nlet x = AtomicBool::new(true);\n\nlet _ = x.load(Ordering::Release);\nlet _ = x.load(Ordering::AcqRel);\n\nx.store(false, Ordering::Acquire);\nx.store(false, Ordering::AcqRel);\n```"
+      "Example": "```rust,no_run\n\nlet x = AtomicBool::new(true);\n\nlet _ = x.load(Ordering::Release);\nlet _ = x.load(Ordering::AcqRel);\n\nx.store(false, Ordering::Acquire);\nx.store(false, Ordering::AcqRel);\n\natomic::fence(Ordering::Relaxed);\natomic::compiler_fence(Ordering::Relaxed);\n```"
     }, 
     "group": "correctness", 
     "id": "invalid_atomic_ordering", 
