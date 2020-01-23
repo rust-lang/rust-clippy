@@ -2307,6 +2307,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `_.as_ref().map(Deref::deref)` or it's aliases (such as String::as_str).", 
+      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.", 
+      "Known problems": "None.", 
+      "Example": "```rust,ignore\n opt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust,ignore\n opt.as_deref()\n```"
+    }, 
+    "group": "complexity", 
+    "id": "option_as_ref_deref", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for items that implement `.len()` but not\n`.is_empty()`.", 
       "Why is this bad": "It is good custom to have both methods, because for\nsome data structures, asking about the length will be a costly operation,\nwhereas `.is_empty()` can usually answer in constant time. Also it used to\nlead to false positives on the [`len_zero`](#len_zero) lint \u2013 currently that\nlint will ignore such entities.", 
       "Known problems": "None.", 
