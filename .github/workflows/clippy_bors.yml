@@ -177,23 +177,24 @@ jobs:
     needs: changelog
     strategy:
       fail-fast: false
+      max-parallel: 6
       matrix:
         integration:
-        - 'rust-lang/rls'
         - 'rust-lang/cargo'
+        - 'rust-lang/rls'
         - 'rust-lang/chalk'
-        - 'Geal/nom'
         - 'rust-lang/rustfmt'
-        - 'hyperium/hyper'
-        - 'rust-itertools/itertools'
-        - 'serde-rs/serde'
+        - 'Marwes/combine'
+        - 'Geal/nom'
         - 'rust-lang/stdarch'
+        - 'serde-rs/serde'
+        - 'hyperium/hyper'
         - 'rust-random/rand'
         - 'rust-lang/futures-rs'
-        - 'Marwes/combine'
+        - 'chronotope/chrono'
+        - 'rust-itertools/itertools'
         - 'rust-lang-nursery/failure'
         - 'rust-lang/log'
-        - 'chronotope/chrono'
 
     runs-on: ubuntu-latest
 
