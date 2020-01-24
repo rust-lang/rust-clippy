@@ -5,9 +5,10 @@ on:
     branches: master
   release:
     types: [created]
+  pull_request:
 
 env:
-  TARGET_BRANCH: "gh-pages"
+  TARGET_BRANCH: "gh-test"
 
 jobs:
   deploy:
