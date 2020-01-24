@@ -2057,9 +2057,9 @@
   {
     "docs": {
       "What it does": "Checks for `enum`s with no variants.", 
-      "Why is this bad": "Enum's with no variants should be replaced with `!`,\nthe uninhabited type,\nor a wrapper around it.", 
+      "Why is this bad": "If you want to introduce a type which\ncan't be instantiated, you should use `!` (the never type),\nor a wrapper around it, because `!` has more extensive\ncompiler support (type inference, etc...) and wrappers\naround it are the conventional way to define an uninhabited type.\nFor further information visit [never type documentation](https://doc.rust-lang.org/std/primitive.never.html)", 
       "Known problems": "None.", 
-      "Example": "```rust\nenum Test {}\n```"
+      "Example": "Bad:\n```rust\nenum Test {}\n```\n\nGood:\n```rust\n#![feature(never_type)]\n\nstruct Test(!);\n```"
     }, 
     "group": "pedantic", 
     "id": "empty_enum", 
