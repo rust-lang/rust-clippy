@@ -358,7 +358,8 @@
       "What it does": "Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.", 
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.", 
       "Known problems": "Vec<Box<T: Sized>> makes sense if T is a large type (see #3530,\n1st comment).", 
-      "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```"
+      "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `vec-box-size-threshold: u64`: The size of the boxed type in bytes, where boxing in a `Vec` is allowed (defaults to `4096 `)."
     }, 
     "group": "complexity", 
     "id": "vec_box", 
