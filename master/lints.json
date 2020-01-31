@@ -2456,9 +2456,9 @@
       "Known problems": "None", 
       "Example": "```rust,ignore\ndebug_assert_eq!(vec![3].pop(), Some(3));\n// or\nfn take_a_mut_parameter(_: &mut u32) -> bool { unimplemented!() }\ndebug_assert!(take_a_mut_parameter(&mut 5));\n```"
     }, 
-    "group": "correctness", 
+    "group": "nursery", 
     "id": "debug_assert_with_mut_call", 
-    "level": "Deny"
+    "level": "Allow"
   }, 
   {
     "docs": {
