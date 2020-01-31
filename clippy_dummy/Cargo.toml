@@ -15,3 +15,7 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 
 [build-dependencies]
 term = "0.6"
+
+# Reduce build time by setting proc-macro crates non optimized.
+[profile.release.build-override]
+opt-level = 0

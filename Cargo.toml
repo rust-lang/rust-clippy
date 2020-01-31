@@ -62,3 +62,7 @@ rustc_tools_util = { version = "0.2.0", path = "rustc_tools_util"}
 [features]
 deny-warnings = []
 integration = ["git2", "tempfile"]
+
+# Reduce build time by setting proc-macro crates non optimized.
+[profile.release.build-override]
+opt-level = 0
