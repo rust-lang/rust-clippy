@@ -6,11 +6,11 @@ fn lint_something() {
     let note= "specificly note on this thing";
 
     let span = ?;
-    let lint = ?;
+    let lint = Lint.default_fields_for_macro();
     let cx = ?;
 
-    let sugg = ?;
-    let applicability = ?;
+    let sugg = "suggest changes";
+    let applicability = Applicability::MachineApllicable;
 
     span_lint_and_then(cx, lint, span, msg, |db| {
         db.span_help(span, help);
