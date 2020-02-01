@@ -14,7 +14,3 @@ walkdir = "2"
 
 [features]
 deny-warnings = []
-
-# Reduce build time by setting proc-macro crates non optimized.
-[profile.release.build-override]
-opt-level = 0
