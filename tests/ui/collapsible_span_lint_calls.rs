@@ -1,7 +1,7 @@
 [warn(clippy::collapsible_span_lint_calls)]
 
 fn lint_something() {
-    let msg = "";
+    let msg = "warn about something";
     let help = "";
     let note= "";
 
