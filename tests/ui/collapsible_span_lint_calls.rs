@@ -2,8 +2,8 @@
 
 fn lint_something() {
     let msg = "warn about something";
-    let help = "";
-    let note= "";
+    let help = "this would help";
+    let note= "specificly note on this thing";
 
     let span = ?;
     let lint = ?;
