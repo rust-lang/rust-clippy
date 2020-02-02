@@ -1574,7 +1574,7 @@
       "What it does": "Checks to see if multiple versions of a crate are being\nused.", 
       "Why is this bad": "This bloats the size of targets, and can lead to\nconfusing error messages when structs or traits are used interchangeably\nbetween different versions of a crate.", 
       "Known problems": "Because this can be caused purely by the dependencies\nthemselves, it's not always possible to fix this issue.", 
-      "Example": "```toml\n# This will pull in both winapi v0.3.4 and v0.2.8, triggering a warning.\n[dependencies]\nctrlc = \"3.1.0\"\nansi_term = \"0.11.0\"\n```"
+      "Example": "```toml\n# This will pull in both winapi v0.3.x and v0.2.x, triggering a warning.\n[dependencies]\nctrlc = \"=3.1.0\"\nansi_term = \"=0.11.0\"\n```"
     }, 
     "group": "cargo", 
     "id": "multiple_crate_versions", 
