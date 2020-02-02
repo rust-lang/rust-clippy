@@ -1,0 +1,22 @@
+error: a parameter was redefined as mutable, can be removed
+  --> $DIR/fn_param_redef_as_mutable.rs:3:1
+   |
+LL | / fn foobar(a: Vec<bool>) {
+LL | |     let mut c = a;
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::fn-param-redef-as-mutable` implied by `-D warnings`
+help: consider making this param `mut`
+  --> $DIR/fn_param_redef_as_mutable.rs:3:11
+   |
+LL | fn foobar(a: Vec<bool>) {
+   |           ^^^^^^^^^^^^^
+help: consider removing this local variable
+  --> $DIR/fn_param_redef_as_mutable.rs:4:5
+   |
+LL |     let mut c = a;
+   |     ^^^^^^^^^^^^^^
+
+error: aborting due to previous error
+

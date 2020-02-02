@@ -631,6 +631,13 @@ pub const ALL_LINTS: [Lint; 355] = [
         module: "excessive_bools",
     },
     Lint {
+        name: "fn_param_redef_as_mutable",
+        group: "complexity",
+        desc: "default lint description",
+        deprecation: None,
+        module: "fn_param_redef_as_mutable",
+    },
+    Lint {
         name: "fn_to_numeric_cast",
         group: "style",
         desc: "casting a function pointer to a numeric type other than usize",
