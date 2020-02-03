@@ -199,9 +199,18 @@ fn check_comparison<'a, 'tcx>(
 ) {
     use self::Expression::{Bool, Other};
 
-    if let ExprKind::Binary(_, ref left_side, ref right_side) = e.kind {
+    if let ExprKind::Binary(op, ref left_side, ref right_side) = e.kind {
         let (l_ty, r_ty) = (cx.tables.expr_ty(left_side), cx.tables.expr_ty(right_side));
         if l_ty.is_bool() && r_ty.is_bool() {
+            if let BinOpKind::Eq = op.node            {
+                if let ExprKind::Unary(unop, exx) = right_side.kind
+                {
+                    if let UnOp::UnNot = unop {
+                        // TODO: Lint here
+                    }
+                }
+            }
+
             let mut applicability = Applicability::MachineApplicable;
             match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
                 (Bool(true), Other) => left_true.map_or((), |(h, m)| {
