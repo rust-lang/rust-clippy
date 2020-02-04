@@ -117,4 +117,7 @@ fn issue4983() {
     let b = false;
 
     if a == !b {};
+    if !a == b {};
+    if a == b {};
+    if !a == !b {};
 }

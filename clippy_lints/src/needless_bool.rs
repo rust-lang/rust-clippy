@@ -2,8 +2,9 @@
 //!
 //! This lint is **warn** by default
 
+use if_chain::if_chain;
 use crate::utils::sugg::Sugg;
-use crate::utils::{higher, parent_node_is_if_expr, span_lint, span_lint_and_sugg};
+use crate::utils::{higher, parent_node_is_if_expr, span_lint, span_lint_and_help, span_lint_and_sugg};
 use rustc_errors::Applicability;
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
@@ -182,6 +183,21 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BoolComparison {
     }
 }
 
+fn is_unary_not<'tcx>(e: &'tcx Expr<'_>) -> bool {
+    if_chain! {
+        if let ExprKind::Unary(unop, _) = e.kind;
+        if let UnOp::UnNot = unop;
+        then {
+            return true;
+        }
+    };
+    false
+ }
+
+fn one_side_is_unary_not<'tcx>(left_side: &'tcx Expr<'_>, right_side: &'tcx Expr<'_>) -> bool {
+    is_unary_not(left_side) ^ is_unary_not(right_side)
+}
+
 fn check_comparison<'a, 'tcx>(
     cx: &LateContext<'a, 'tcx>,
     e: &'tcx Expr<'_>,
@@ -196,14 +212,13 @@ fn check_comparison<'a, 'tcx>(
     if let ExprKind::Binary(op, ref left_side, ref right_side) = e.kind {
         let (l_ty, r_ty) = (cx.tables.expr_ty(left_side), cx.tables.expr_ty(right_side));
         if l_ty.is_bool() && r_ty.is_bool() {
-            if let BinOpKind::Eq = op.node            {
-                if let ExprKind::Unary(unop, exx) = right_side.kind
-                {
-                    if let UnOp::UnNot = unop {
-                        // TODO: Lint here
-                    }
+            if_chain! {
+                if let BinOpKind::Eq = op.node;
+                if one_side_is_unary_not(&left_side, &right_side);
+                then {
+                    span_lint_and_help(cx, BOOL_COMPARISON, e.span, "help1", "help2");
                 }
-            }
+            };
 
             let mut applicability = Applicability::MachineApplicable;
             match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
