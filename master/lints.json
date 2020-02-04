@@ -789,6 +789,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for useless match that binds to only one value.", 
+      "Why is this bad": "Readability and needless complexity.", 
+      "Known problems": "Suggested replacements may be incorrect when `match`\nis actually binding temporary value, bringing a 'dropped while borrowed' error.", 
+      "Example": "```rust\n\n// Bad\nmatch (a, b) {\n    (c, d) => {\n        // useless match\n    }\n}\n\n// Good\nlet (c, d) = (a, b);\n```"
+    }, 
+    "group": "complexity", 
+    "id": "match_single_binding", 
+    "level": "Warn"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for calling `.step_by(0)` on iterators which panics.", 
       "Why is this bad": "This very much looks like an oversight. Use `panic!()` instead if you\nactually intend to panic.", 
       "Known problems": "None.", 
@@ -1527,14 +1538,15 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for usage of `.clone()` on a `Copy` type.", 
-      "Why is this bad": "The only reason `Copy` types implement `Clone` is for\ngenerics, not for using the `clone` method on a concrete type.", 
+      "What it does": "Checks for functions with a large amount of lines.", 
+      "Why is this bad": "Functions with a lot of lines are harder to understand\ndue to having to look at a larger amount of code to understand what the\nfunction is doing. Consider splitting the body of the function into\nmultiple functions.", 
       "Known problems": "None.", 
-      "Example": "```rust\n42u64.clone();\n```"
+      "Example": "``` rust\nfn im_too_long() {\nprintln!(\"\");\n// ... 100 more LoC\nprintln!(\"\");\n}\n```", 
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-many-lines-threshold: u64`: The maximum number of lines a function or method can have (defaults to `100 `)."
     }, 
-    "group": "complexity", 
-    "id": "clone_on_copy", 
-    "level": "Warn"
+    "group": "pedantic", 
+    "id": "too_many_lines", 
+    "level": "Allow"
   }, 
   {
     "docs": {
@@ -2727,15 +2739,14 @@
   }, 
   {
     "docs": {
-      "What it does": "Checks for functions with a large amount of lines.", 
-      "Why is this bad": "Functions with a lot of lines are harder to understand\ndue to having to look at a larger amount of code to understand what the\nfunction is doing. Consider splitting the body of the function into\nmultiple functions.", 
+      "What it does": "Checks for usage of `.clone()` on a `Copy` type.", 
+      "Why is this bad": "The only reason `Copy` types implement `Clone` is for\ngenerics, not for using the `clone` method on a concrete type.", 
       "Known problems": "None.", 
-      "Example": "``` rust\nfn im_too_long() {\nprintln!(\"\");\n// ... 100 more LoC\nprintln!(\"\");\n}\n```", 
-      "Configuration": "This lint has the following configuration variables:\n\n* `too-many-lines-threshold: u64`: The maximum number of lines a function or method can have (defaults to `100 `)."
+      "Example": "```rust\n42u64.clone();\n```"
     }, 
-    "group": "pedantic", 
-    "id": "too_many_lines", 
-    "level": "Allow"
+    "group": "complexity", 
+    "id": "clone_on_copy", 
+    "level": "Warn"
   }, 
   {
     "docs": {
