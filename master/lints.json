@@ -1698,6 +1698,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for excessive\nuse of bools in structs.", 
+      "Why is this bad": "Excessive bools in a struct\nis often a sign that it's used as a state machine,\nwhich is much better implemented as an enum.\nIf it's not the case, excessive bools usually benefit\nfrom refactoring into two-variant enums for better\nreadability and API.", 
+      "Known problems": "None.", 
+      "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```"
+    }, 
+    "group": "pedantic", 
+    "id": "struct_excessive_bools", 
+    "level": "Allow"
+  }, 
+  {
+    "docs": {
       "What it does": "Warns if there is a better representation for a numeric literal.", 
       "Why is this bad": "Especially for big powers of 2 a hexadecimal representation is more\nreadable than a decimal representation.", 
       "Known problems": "None.", 
@@ -3995,5 +4006,16 @@
     "group": "complexity", 
     "id": "match_as_ref", 
     "level": "Warn"
+  }, 
+  {
+    "docs": {
+      "What it does": "Checks for excessive use of\nbools in function definitions.", 
+      "Why is this bad": "Calls to such functions\nare confusing and error prone, because it's\nhard to remember argument order and you have\nno type system support to back you up. Using\ntwo-variant enums instead of bools often makes\nAPI easier to use.", 
+      "Known problems": "None.", 
+      "Example": "Bad:\n```rust,ignore\nfn f(is_round: bool, is_hot: bool) { ... }\n```\n\nGood:\n```rust,ignore\nenum Shape {\n    Round,\n    Spiky,\n}\n\nenum Temperature {\n    Hot,\n    IceCold,\n}\n\nfn f(shape: Shape, temperature: Temperature) { ... }\n```"
+    }, 
+    "group": "pedantic", 
+    "id": "fn_params_excessive_bools", 
+    "level": "Allow"
   }
 ]
