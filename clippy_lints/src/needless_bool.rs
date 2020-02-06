@@ -2,10 +2,10 @@
 //!
 //! This lint is **warn** by default
 
-use if_chain::if_chain;
 use crate::utils::sugg::Sugg;
 use rustc_ast::ast::LitKind;
 use crate::utils::{higher, parent_node_is_if_expr, span_lint, span_lint_and_help, span_lint_and_sugg};
+use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Block, Expr, ExprKind, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -198,7 +198,7 @@ fn is_unary_not<'tcx>(e: &'tcx Expr<'_>) -> bool {
         }
     };
     false
- }
+}
 
 fn one_side_is_unary_not<'tcx>(left_side: &'tcx Expr<'_>, right_side: &'tcx Expr<'_>) -> bool {
     is_unary_not(left_side) ^ is_unary_not(right_side)
@@ -222,7 +222,7 @@ fn check_comparison<'a, 'tcx>(
                 if let BinOpKind::Eq = op.node;
                 if one_side_is_unary_not(&left_side, &right_side);
                 then {
-                    span_lint_and_help(cx, BOOL_COMPARISON, e.span, "help1", "help2");
+                    span_lint_and_help(cx, BOOL_COMPARISON, e.span, "Here comes", "the suggestion");
                 }
             };
 
