@@ -764,6 +764,17 @@
   }, 
   {
     "docs": {
+      "What it does": "Checks for usage of `option_env!(...).unwrap()` and\nsuggests usage of the `env!` macro.", 
+      "Why is this bad": "Unwrapping the result of `option_env!` will panic\nat run-time if the environment variable doesn't exist, whereas `env!`\ncatches it at compile-time.", 
+      "Known problems": "None.", 
+      "Example": "```rust,no_run\nlet _ = option_env!(\"HOME\").unwrap();\n```\n\nIs better expressed as:\n\n```rust,no_run\nlet _ = env!(\"HOME\");\n```"
+    }, 
+    "group": "correctness", 
+    "id": "option_env_unwrap", 
+    "level": "Deny"
+  }, 
+  {
+    "docs": {
       "What it does": "Checks for usage of `_.filter(_).next()`.", 
       "Why is this bad": "Readability, this can be written more concisely as\n`_.find(_)`.", 
       "Known problems": "None.", 
