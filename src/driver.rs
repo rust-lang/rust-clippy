@@ -292,12 +292,29 @@ fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<Pat
     })
 }
 
+fn print_rustc_version(args: &[String]) {
+    // make "clippy-driver rustc --version" print rustc --version output
+    if args.len() > 2 && args[1..2] == ["rustc".to_string(), "--version".to_string()] {
+        let rustc_version = Command::new("rustc")
+            .arg("--version")
+            .arg("--verbose")
+            .output()
+            .ok()
+            .and_then(|out| String::from_utf8(out.stdout).ok())
+            .unwrap();
+        print!("{}", rustc_version);
+        exit(0);
+    }
+}
+
 pub fn main() {
     rustc_driver::init_rustc_env_logger();
     lazy_static::initialize(&ICE_HOOK);
     exit(
         rustc_driver::catch_fatal_errors(move || {
             let mut orig_args: Vec<String> = env::args().collect();
+
+            print_rustc_version(&orig_args);
 
             if orig_args.iter().any(|a| a == "--version" || a == "-V") {
                 let version_info = rustc_tools_util::get_version_info!();
