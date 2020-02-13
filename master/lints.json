@@ -301,7 +301,7 @@
       "Known problems": "None.", 
       "Example": "```rust\nlet name = \"foo\";\nif name.chars().next() == Some('_') {};\n```\nCould be written as\n```rust\nlet name = \"foo\";\nif name.starts_with('_') {};\n```"
     }, 
-    "group": "complexity", 
+    "group": "style", 
     "id": "chars_next_cmp", 
     "level": "Warn"
   }, 
