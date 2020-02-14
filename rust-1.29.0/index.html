@@ -4,7 +4,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <title>Clippy</title>
+    <title>ALL the Clippy Lints</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/github.min.css"/>
@@ -13,6 +13,9 @@
         [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak { display: none !important; }
 
         .form-inline .checkbox { margin-right: 0.6em }
+
+        .panel-heading { cursor: pointer; }
+        .panel-heading:hover { background-color: #eee; }
 
         .panel-title { display: flex; }
         .panel-title .label { display: inline-block; }
@@ -73,8 +76,8 @@
                 <div class="panel-body row">
                     <div class="col-md-12 form-horizontal">
                         <div class="input-group">
-                            <span class="input-group-addon" id="filter-label">Filter:</span>
-                            <input type="text" class="form-control" placeholder="Keywords or search string" aria-describedby="filter-label" ng-model="search" />
+                            <label class="input-group-addon" id="filter-label" for="filter-input">Filter:</label>
+                            <input type="text" class="form-control" placeholder="Keywords or search string" id="filter-input" ng-model="search" />
                             <span class="input-group-btn">
                                 <button class="btn btn-default" type="button" ng-click="search = ''">
                                     Clear
@@ -122,7 +125,7 @@
         </div>
     </div>
 
-    <a href="https://github.com/rust-lang-nursery/rust-clippy">
+    <a href="https://github.com/rust-lang/rust-clippy">
         <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on Github"/>
     </a>
 
@@ -162,6 +165,19 @@
                 scrollToLint(window.location.hash.slice(1));
                 removeListener();
             });
+        }
+
+        function selectGroup($scope, selectedGroup) {
+            var groups = $scope.groups;
+            for (var group in groups) {
+                if (groups.hasOwnProperty(group)) {
+                    if (group === selectedGroup) {
+                        groups[group] = true;
+                    } else {
+                        groups[group] = false;
+                    }
+                }
+            }
         }
 
         angular.module("clippy", [])
@@ -220,6 +236,11 @@
                     return result;
                 }, {});
 
+                var selectedGroup = getQueryVariable("sel");
+                if (selectedGroup) {
+                    selectGroup($scope, selectedGroup.toLowerCase());
+                }
+
                 scrollToLintByURL($scope);
             })
             .error(function (data) {
@@ -240,6 +261,17 @@
             }, false);
         });
     })();
+
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (decodeURIComponent(pair[0]) == variable) {
+                return decodeURIComponent(pair[1]);
+            }
+        }
+    }
     </script>
 </body>
 </html>
