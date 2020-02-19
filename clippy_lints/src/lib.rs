@@ -17,7 +17,8 @@
 #[allow(unused_extern_crates)]
 extern crate fmt_macros;
 #[allow(unused_extern_crates)]
-extern crate rustc;
+extern crate rustc
+;
 #[allow(unused_extern_crates)]
 extern crate rustc_ast_pretty;
 #[allow(unused_extern_crates)]
