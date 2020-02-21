@@ -3569,8 +3569,8 @@
   },
   {
     "id": "unneeded_field_pattern",
-    "group": "style",
-    "level": "Warn",
+    "group": "restriction",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for structure field patterns bound to wildcards.",
       "Why is this bad": "Using `..` instead is shorter and leaves the focus on\nthe fields that are actually bound.",
