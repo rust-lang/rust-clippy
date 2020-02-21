@@ -768,13 +768,13 @@
   },
   {
     "id": "excessive_precision",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "style",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for float literals with a precision greater\nthan that supported by the underlying type.",
-      "Why is this bad": "Rust will silently lose precision during conversion\nto a float.",
+      "Why is this bad": "Rust will truncate the literal silently.",
       "Known problems": "None.",
-      "Example": "```rust\n// Bad\nlet a: f32 = 0.123_456_789_9; // 0.123_456_789\nlet b: f32 = 16_777_217.0; // 16_777_216.0\n\n// Good\nlet a: f64 = 0.123_456_789_9;\nlet b: f64 = 16_777_216.0;\n```"
+      "Example": "```rust\n// Bad\nlet v: f32 = 0.123_456_789_9;\nprintln!(\"{}\", v); //  0.123_456_789\n\n// Good\nlet v: f64 = 0.123_456_789_9;\nprintln!(\"{}\", v); //  0.123_456_789_9\n```"
     }
   },
   {
@@ -1600,6 +1600,17 @@
       "Why is this bad": "This is most likely a logic bug.",
       "Known problems": "Ignores short circuiting behavior.",
       "Example": "```ignore\nif a && b || a { ... }\n```\nThe `b` is unnecessary, the expression is equivalent to `if a`."
+    }
+  },
+  {
+    "id": "lossy_float_literal",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for whole number float literals that\ncannot be represented as the underlying type without loss.",
+      "Why is this bad": "Rust will silently lose precision during\nconversion to a float.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet _: f32 = 16_777_217.0; // 16_777_216.0\n\n// Good\nlet _: f32 = 16_777_216.0;\nlet _: f64 = 16_777_217.0;\n```"
     }
   },
   {
