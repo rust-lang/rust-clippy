@@ -1189,6 +1189,17 @@
     }
   },
   {
+    "id": "imprecise_flops",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Looks for floating-point expressions that\ncan be expressed using built-in methods to improve accuracy\nat the cost of performance.",
+      "Why is this bad": "Negatively impacts accuracy.",
+      "Known problems": "None",
+      "Example": "```rust\n\nlet a = 3f32;\nlet _ = a.powf(1.0 / 3.0);\nlet _ = (1.0 + a).ln();\nlet _ = a.exp() - 1.0;\n```\n\nis better expressed as\n\n```rust\n\nlet a = 3f32;\nlet _ = a.cbrt();\nlet _ = a.ln_1p();\nlet _ = a.exp_m1();\n```"
+    }
+  },
+  {
     "id": "inconsistent_digit_grouping",
     "group": "style",
     "level": "Warn",
@@ -1633,17 +1644,6 @@
       "Why is this bad": "It is not as fast as a memcpy.",
       "Known problems": "None.",
       "Example": "```rust\nfor i in 0..src.len() {\n    dst[i + 64] = src[i];\n}\n```\nCould be written as:\n```rust\ndst[64..(src.len() + 64)].clone_from_slice(&src[..]);\n```"
-    }
-  },
-  {
-    "id": "manual_mul_add",
-    "group": "nursery",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for expressions of the form `a * b + c`\nor `c + a * b` where `a`, `b`, `c` are floats and suggests using\n`a.mul_add(b, c)` instead.",
-      "Why is this bad": "Calculating `a * b + c` may lead to slight\nnumerical inaccuracies as `a * b` is rounded before being added to\n`c`. Depending on the target architecture, `mul_add()` may be more\nperformant.",
-      "Known problems": "This lint can emit semantic incorrect suggestions.\nFor example, for `a * b * c + d` the suggestion `a * b.mul_add(c, d)`\nis emitted, which is equivalent to `a * (b * c + d)`. (#4735)",
-      "Example": "```rust\nlet foo = (a * b) + c;\n```\n\ncan be written as\n\n```rust\nlet foo = a.mul_add(b, c);\n```"
     }
   },
   {
@@ -3149,6 +3149,17 @@
       "Why is this bad": "Excessive bools in a struct\nis often a sign that it's used as a state machine,\nwhich is much better implemented as an enum.\nIf it's not the case, excessive bools usually benefit\nfrom refactoring into two-variant enums for better\nreadability and API.",
       "Known problems": "None.",
       "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```"
+    }
+  },
+  {
+    "id": "suboptimal_flops",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Looks for floating-point expressions that\ncan be expressed using built-in methods to improve both\naccuracy and performance.",
+      "Why is this bad": "Negatively impacts accuracy and performance.",
+      "Known problems": "None",
+      "Example": "```rust\nuse std::f32::consts::E;\n\nlet a = 3f32;\nlet _ = (2f32).powf(a);\nlet _ = E.powf(a);\nlet _ = a.powf(1.0 / 2.0);\nlet _ = a.log(2.0);\nlet _ = a.log(10.0);\nlet _ = a.log(E);\nlet _ = a.powf(2.0);\nlet _ = a * 2.0 + 4.0;\n```\n\nis better expressed as\n\n```rust\nuse std::f32::consts::E;\n\nlet a = 3f32;\nlet _ = a.exp2();\nlet _ = a.exp();\nlet _ = a.sqrt();\nlet _ = a.log2();\nlet _ = a.log10();\nlet _ = a.ln();\nlet _ = a.powi(2);\nlet _ = a.mul_add(2.0, 4.0);\n```"
     }
   },
   {
