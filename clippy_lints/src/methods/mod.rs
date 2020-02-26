@@ -3109,20 +3109,38 @@ fn lint_into_iter(cx: &LateContext<'_, '_>, expr: &hir::Expr<'_>, self_ref_ty: T
 
 /// lint for `MaybeUninit::uninit().assume_init()` (we already have the latter)
 fn lint_maybe_uninit(cx: &LateContext<'_, '_>, expr: &hir::Expr<'_>, outer: &hir::Expr<'_>) {
-    if_chain! {
-        if let hir::ExprKind::Call(ref callee, ref args) = expr.kind;
-        if args.is_empty();
-        if let hir::ExprKind::Path(ref path) = callee.kind;
-        if match_qpath(path, &paths::MEM_MAYBEUNINIT_UNINIT);
-        if !is_maybe_uninit_ty_valid(cx, cx.tables.expr_ty_adjusted(outer));
-        then {
-            span_lint(
-                cx,
-                UNINIT_ASSUMED_INIT,
-                outer.span,
-                "this call for this type may be undefined behavior"
-            );
-        }
+    let mut is_recv_maybe_uninit = false;
+
+    match &expr.kind {
+        hir::ExprKind::Call(ref callee, ref args) => {
+            if_chain! {
+                if args.is_empty();
+                if let hir::ExprKind::Path(ref path) = callee.kind;
+                if match_qpath(path, &paths::MEM_MAYBEUNINIT_UNINIT);
+                then {
+                    is_recv_maybe_uninit = true;
+                }
+            }
+        },
+        hir::ExprKind::Path(..) => {
+            if_chain! {
+                if let ty::Adt(def, ..) = cx.tables.expr_ty(expr).kind;
+                if match_def_path(cx, def.did, &paths::MEM_MAYBEUNINIT);
+                then {
+                    is_recv_maybe_uninit = true;
+                }
+            }
+        },
+        _ => {},
+    };
+
+    if is_recv_maybe_uninit && !is_maybe_uninit_ty_valid(cx, cx.tables.expr_ty_adjusted(outer)) {
+        span_lint(
+            cx,
+            UNINIT_ASSUMED_INIT,
+            outer.span,
+            "this call for this type may be undefined behavior",
+        );
     }
 }
 

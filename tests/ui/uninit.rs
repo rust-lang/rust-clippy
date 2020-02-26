@@ -20,4 +20,22 @@ fn main() {
 
     // This is OK, because all constitutent types are uninit-compatible.
     let _: (MaybeUninit<usize>, [MaybeUninit<bool>; 2]) = unsafe { MaybeUninit::uninit().assume_init() };
+
+    let mut x: MaybeUninit<usize> = MaybeUninit::uninit();
+    let _: usize = unsafe { x.assume_init() };
+
+    let mut x: MaybeUninit<[u8; 0]> = MaybeUninit::uninit();
+    let _: [u8; 0] = unsafe { x.assume_init() };
+
+    let mut x: MaybeUninit<()> = MaybeUninit::uninit();
+    let _: () = unsafe { x.assume_init() };
+
+    let x: MaybeUninit<MaybeUninit<usize>> = MaybeUninit::uninit();
+    let _: MaybeUninit<usize> = unsafe { x.assume_init() };
+
+    let x: MaybeUninit<(MaybeUninit<usize>, MaybeUninit<bool>)> = MaybeUninit::uninit();
+    let _: (MaybeUninit<usize>, MaybeUninit<bool>) = unsafe { x.assume_init() };
+
+    let x: MaybeUninit<(MaybeUninit<usize>, [MaybeUninit<bool>; 2])> = MaybeUninit::uninit();
+    let _: (MaybeUninit<usize>, [MaybeUninit<bool>; 2]) = unsafe { x.assume_init() };
 }
