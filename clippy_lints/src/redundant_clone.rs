@@ -82,6 +82,10 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for RedundantClone {
         let mir = cx.tcx.optimized_mir(def_id);
         let mir_read_only = mir.unwrap_read_only();
 
+        if mir.generator_drop.is_some() {
+            return;
+        }
+
         let maybe_storage_live_result = MaybeStorageLive
             .into_engine(cx.tcx, mir, def_id)
             .iterate_to_fixpoint()
