@@ -311,6 +311,37 @@ declare_clippy_lint! {
     "a match with a single binding instead of using `let` statement"
 }
 
+declare_clippy_lint! {
+    /// **What it does:** Checks for invoking `borrow/borrow_mut` method of `core::cell::RefCell`
+    /// inside scrutinee of a match expression.
+    ///
+    /// **Why is this bad?** Unexpected panicking of `BorrowError` at runtime.
+    ///
+    /// **Known problems:**
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// # use std::cell::RefCell;
+    /// # let ref_cell = RefCell::new(Some(bool));
+    ///
+    /// // Bad
+    /// if let Some(_) = *ref_cell.borrow() {
+    ///     *ref_cell.borrow_mut() = None;
+    /// }
+    ///
+    /// // God
+    /// let tmp = *ref_cell.borrow();
+    /// if let Some(_) = tmp {
+    ///     ref_cell.borrow_mut() = None;
+    ///
+    /// }
+    /// ```
+    pub REFCELL_BORROW,
+    restriction,
+    "move borrow of `RefCell` into `let` statement instead of inside scrutinee of match expression",
+}
+
 #[derive(Default)]
 pub struct Matches {
     infallible_destructuring_match_linted: bool,
@@ -327,7 +358,8 @@ impl_lint_pass!(Matches => [
     WILDCARD_ENUM_MATCH_ARM,
     WILDCARD_IN_OR_PATTERNS,
     MATCH_SINGLE_BINDING,
-    INFALLIBLE_DESTRUCTURING_MATCH
+    INFALLIBLE_DESTRUCTURING_MATCH,
+    REFCELL_BORROW,
 ]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Matches {
@@ -352,6 +384,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Matches {
         }
         if let ExprKind::Match(ref ex, ref arms, _) = expr.kind {
             check_match_ref_pats(cx, ex, arms, expr);
+            check_match_refcell_borrow(cx, ex);
         }
     }
 
@@ -889,6 +922,30 @@ fn check_match_single_binding(cx: &LateContext<'_, '_>, ex: &Expr<'_>, arms: &[A
             );
         },
         _ => (),
+    }
+}
+
+fn check_match_refcell_borrow(cx: &LateContext<'_, '_>, expr: &Expr) {
+    match &expr.kind {
+        ExprKind::MethodCall(_, _, args) => {
+            if let [arg] = &**args {
+                let method_def_id = cx.tables.type_dependent_def_id(expr.hir_id).unwrap();
+                if crate::utils::match_def_path(cx, method_def_id, &paths::REFCELL_BORROW) || crates::utils::match_def_path(cx, method_def_id, &paths::REFCELL_BORROWMUT) {
+                    span_lint_and_help(
+                        cx,
+                        REFCELL_BORROW,
+                        expr.span,
+                        "consider move this into a `let` binding",
+                    );
+                } else {
+                    check_match_refcell_borrow(cx, arg);
+                }
+            }
+        },
+        ExprKind::Unary(_, e) | ExprKind::Field(e, _) | ExprKind::Index(e, _) => {
+            check_match_refcell_borrow(cx, e);
+        },
+        _ => {}
     }
 }
 
