@@ -2850,6 +2850,17 @@
     }
   },
   {
+    "id": "rest_pat_in_fully_bound_structs",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for unnecessary '..' pattern binding on struct when all fields are explicitly matched.",
+      "Why is this bad": "Correctness and readability. It's like having a wildcard pattern after\nmatching all enum variants explicitly.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet a = A { a: 5 };\n\n// Bad\nmatch a {\n    A { a: 5, .. } => {},\n    _ => {},\n}\n\n// Good\nmatch a {\n    A { a: 5 } => {},\n    _ => {},\n}\n```"
+    }
+  },
+  {
     "id": "result_expect_used",
     "group": "restriction",
     "level": "Allow",
