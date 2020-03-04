@@ -3159,7 +3159,7 @@
       "What it does": "Looks for floating-point expressions that\ncan be expressed using built-in methods to improve both\naccuracy and performance.",
       "Why is this bad": "Negatively impacts accuracy and performance.",
       "Known problems": "None",
-      "Example": "```rust\nuse std::f32::consts::E;\n\nlet a = 3f32;\nlet _ = (2f32).powf(a);\nlet _ = E.powf(a);\nlet _ = a.powf(1.0 / 2.0);\nlet _ = a.log(2.0);\nlet _ = a.log(10.0);\nlet _ = a.log(E);\nlet _ = a.powf(2.0);\nlet _ = a * 2.0 + 4.0;\n```\n\nis better expressed as\n\n```rust\nuse std::f32::consts::E;\n\nlet a = 3f32;\nlet _ = a.exp2();\nlet _ = a.exp();\nlet _ = a.sqrt();\nlet _ = a.log2();\nlet _ = a.log10();\nlet _ = a.ln();\nlet _ = a.powi(2);\nlet _ = a.mul_add(2.0, 4.0);\n```"
+      "Example": "```rust\nuse std::f32::consts::E;\n\nlet a = 3f32;\nlet _ = (2f32).powf(a);\nlet _ = E.powf(a);\nlet _ = a.powf(1.0 / 2.0);\nlet _ = a.log(2.0);\nlet _ = a.log(10.0);\nlet _ = a.log(E);\nlet _ = a.powf(2.0);\nlet _ = a * 2.0 + 4.0;\nlet _ = if a < 0.0 {\n    -a\n} else {\n    a\n};\nlet _ = if a < 0.0 {\n    a\n} else {\n    -a\n};\n```\n\nis better expressed as\n\n```rust\nuse std::f32::consts::E;\n\nlet a = 3f32;\nlet _ = a.exp2();\nlet _ = a.exp();\nlet _ = a.sqrt();\nlet _ = a.log2();\nlet _ = a.log10();\nlet _ = a.ln();\nlet _ = a.powi(2);\nlet _ = a.mul_add(2.0, 4.0);\nlet _ = a.abs();\nlet _ = -a.abs();\n```"
     }
   },
   {
