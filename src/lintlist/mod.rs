@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 359] = [
+pub const ALL_LINTS: [Lint; 360] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -1518,6 +1518,13 @@ pub const ALL_LINTS: [Lint; 359] = [
         desc: "using `Option.expect()`, which might be better handled",
         deprecation: None,
         module: "methods",
+    },
+    Lint {
+        name: "option_if_let_else",
+        group: "style",
+        desc: "default lint description",
+        deprecation: None,
+        module: "option_if_let_else",
     },
     Lint {
         name: "option_map_or_none",

@@ -269,6 +269,7 @@ pub mod non_copy_const;
 pub mod non_expressive_names;
 pub mod open_options;
 pub mod option_env_unwrap;
+pub mod option_if_let_else;
 pub mod overflow_check_conditional;
 pub mod panic_unimplemented;
 pub mod partialeq_ne_impl;
@@ -719,6 +720,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &non_expressive_names::SIMILAR_NAMES,
         &open_options::NONSENSICAL_OPEN_OPTIONS,
         &option_env_unwrap::OPTION_ENV_UNWRAP,
+        &option_if_let_else::OPTION_IF_LET_ELSE,
         &overflow_check_conditional::OVERFLOW_CHECK_CONDITIONAL,
         &panic_unimplemented::PANIC,
         &panic_unimplemented::PANIC_PARAMS,
@@ -1298,6 +1300,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&non_expressive_names::MANY_SINGLE_CHAR_NAMES),
         LintId::of(&open_options::NONSENSICAL_OPEN_OPTIONS),
         LintId::of(&option_env_unwrap::OPTION_ENV_UNWRAP),
+        LintId::of(&option_if_let_else::OPTION_IF_LET_ELSE),
         LintId::of(&overflow_check_conditional::OVERFLOW_CHECK_CONDITIONAL),
         LintId::of(&panic_unimplemented::PANIC_PARAMS),
         LintId::of(&partialeq_ne_impl::PARTIALEQ_NE_IMPL),
@@ -1446,6 +1449,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&new_without_default::NEW_WITHOUT_DEFAULT),
         LintId::of(&non_expressive_names::JUST_UNDERSCORES_AND_DIGITS),
         LintId::of(&non_expressive_names::MANY_SINGLE_CHAR_NAMES),
+        LintId::of(&option_if_let_else::OPTION_IF_LET_ELSE),
         LintId::of(&panic_unimplemented::PANIC_PARAMS),
         LintId::of(&ptr::CMP_NULL),
         LintId::of(&ptr::PTR_ARG),
