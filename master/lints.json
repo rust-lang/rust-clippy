@@ -1625,7 +1625,7 @@
     }
   },
   {
-    "id": "macro_use_import",
+    "id": "macro_use_imports",
     "group": "pedantic",
     "level": "Allow",
     "docs": {
