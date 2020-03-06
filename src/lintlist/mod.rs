@@ -1522,7 +1522,7 @@ pub const ALL_LINTS: [Lint; 360] = [
     Lint {
         name: "option_if_let_else",
         group: "style",
-        desc: "default lint description",
+        desc: "reimplementation of Option::map_or",
         deprecation: None,
         module: "option_if_let_else",
     },
