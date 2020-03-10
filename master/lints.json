@@ -3887,6 +3887,17 @@
     }
   },
   {
+    "id": "verbose_file_reads",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for use of File::read_to_end and File::read_to_string.",
+      "Why is this bad": "`fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.\nSee also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)",
+      "Known problems": "None.",
+      "Example": "```rust,no_run\nlet mut f = File::open(\"foo.txt\").unwrap();\nlet mut bytes = Vec::new();\nf.read_to_end(&mut bytes).unwrap();\n```\nCan be written more concisely as\n```rust,no_run\nlet mut bytes = fs::read(\"foo.txt\").unwrap();\n```"
+    }
+  },
+  {
     "id": "while_immutable_condition",
     "group": "correctness",
     "level": "Deny",
