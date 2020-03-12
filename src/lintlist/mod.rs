@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 361] = [
+pub const ALL_LINTS: [Lint; 362] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -95,6 +95,13 @@ pub const ALL_LINTS: [Lint; 361] = [
         name: "borrowed_box",
         group: "complexity",
         desc: "a borrow of a boxed type",
+        deprecation: None,
+        module: "types",
+    },
+    Lint {
+        name: "box_borrows",
+        group: "perf",
+        desc: "a box of borrowed type",
         deprecation: None,
         module: "types",
     },

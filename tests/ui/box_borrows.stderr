@@ -1,0 +1,51 @@
+error: usage of `Box<&T>`
+  --> $DIR/box_borrows.rs:16:21
+   |
+LL | pub fn test<T>(foo: Box<&T>) {}
+   |                     ^^^^^^^
+   |
+   = note: `-D clippy::box-borrows` implied by `-D warnings`
+   = help: try `&T`
+
+error: usage of `Box<&T>`
+  --> $DIR/box_borrows.rs:18:19
+   |
+LL | pub fn test1(foo: Box<&usize>) {}
+   |                   ^^^^^^^^^^^
+   |
+   = help: try `&usize`
+
+error: usage of `Box<&T>`
+  --> $DIR/box_borrows.rs:20:19
+   |
+LL | pub fn test2(foo: Box<&MyStruct>) {}
+   |                   ^^^^^^^^^^^^^^
+   |
+   = help: try `&MyStruct`
+
+error: usage of `Box<&T>`
+  --> $DIR/box_borrows.rs:22:19
+   |
+LL | pub fn test3(foo: Box<&MyEnum>) {}
+   |                   ^^^^^^^^^^^^
+   |
+   = help: try `&MyEnum`
+
+error: usage of `Box<&T>`
+  --> $DIR/box_borrows.rs:24:19
+   |
+LL | pub fn test4(foo: Box<&&MyEnum>) {}
+   |                   ^^^^^^^^^^^^^
+   |
+   = help: try `&&MyEnum`
+
+error: usage of `Box<&T>`
+  --> $DIR/box_borrows.rs:26:23
+   |
+LL | pub fn test5(foo: Box<Box<&usize>>) {}
+   |                       ^^^^^^^^^^^
+   |
+   = help: try `&usize`
+
+error: aborting due to 6 previous errors
+

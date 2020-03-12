@@ -171,11 +171,34 @@ declare_clippy_lint! {
     "a borrow of a boxed type"
 }
 
+declare_clippy_lint! {
+    /// **What it does:** Checks for use of `Box<&T>` anywhere in the code.
+    ///
+    /// **Why is this bad?** Any `Box<&T>` can also be a `&T`, which is more
+    /// general.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust
+    /// fn foo(bar: Box<&usize>) {}
+    /// ```
+    ///
+    /// Better:
+    ///
+    /// ```rust
+    /// fn foo(bar: &usize) {}
+    /// ```
+    pub BOX_BORROWS,
+    perf,
+    "a box of borrowed type"
+}
+
 pub struct Types {
     vec_box_size_threshold: u64,
 }
 
-impl_lint_pass!(Types => [BOX_VEC, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX]);
+impl_lint_pass!(Types => [BOX_VEC, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX, BOX_BORROWS]);
 
 impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Types {
     fn check_fn(
@@ -257,6 +280,7 @@ impl Types {
     /// The parameter `is_local` distinguishes the context of the type; types from
     /// local bindings should only be checked for the `BORROWED_BOX` lint.
     #[allow(clippy::too_many_lines)]
+    #[allow(clippy::cognitive_complexity)]
     fn check_ty(&mut self, cx: &LateContext<'_, '_>, hir_ty: &hir::Ty<'_>, is_local: bool) {
         if hir_ty.span.from_expansion() {
             return;
@@ -267,6 +291,27 @@ impl Types {
                 let res = qpath_res(cx, qpath, hir_id);
                 if let Some(def_id) = res.opt_def_id() {
                     if Some(def_id) == cx.tcx.lang_items().owned_box() {
+                        if_chain! {
+                            let last = last_path_segment(qpath);
+                            if let Some(ref params) = last.args;
+                            if !params.parenthesized;
+                            if let Some(ty) = params.args.iter().find_map(|arg| match arg {
+                                GenericArg::Type(ty) => Some(ty),
+                                _ => None,
+                            });
+                            if let TyKind::Rptr(..) = ty.kind;
+                            let ty_ty = hir_ty_to_ty(cx.tcx, ty);
+                            then {
+                                span_lint_and_help(
+                                    cx,
+                                    BOX_BORROWS,
+                                    hir_ty.span,
+                                    "usage of `Box<&T>`",
+                                    format!("try `{}`", ty_ty).as_str(),
+                                );
+                                return; // don't recurse into the type
+                            }
+                        }
                         if match_type_parameter(cx, qpath, &paths::VEC) {
                             span_lint_and_help(
                                 cx,

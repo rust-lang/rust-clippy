@@ -788,6 +788,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &try_err::TRY_ERR,
         &types::ABSURD_EXTREME_COMPARISONS,
         &types::BORROWED_BOX,
+        &types::BOX_BORROWS,
         &types::BOX_VEC,
         &types::CAST_LOSSLESS,
         &types::CAST_POSSIBLE_TRUNCATION,
@@ -1358,6 +1359,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&try_err::TRY_ERR),
         LintId::of(&types::ABSURD_EXTREME_COMPARISONS),
         LintId::of(&types::BORROWED_BOX),
+        LintId::of(&types::BOX_BORROWS),
         LintId::of(&types::BOX_VEC),
         LintId::of(&types::CAST_PTR_ALIGNMENT),
         LintId::of(&types::CAST_REF_TO_MUT),
@@ -1650,6 +1652,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&redundant_clone::REDUNDANT_CLONE),
         LintId::of(&slow_vector_initialization::SLOW_VECTOR_INITIALIZATION),
         LintId::of(&trivially_copy_pass_by_ref::TRIVIALLY_COPY_PASS_BY_REF),
+        LintId::of(&types::BOX_BORROWS),
         LintId::of(&types::BOX_VEC),
         LintId::of(&vec::USELESS_VEC),
     ]);
