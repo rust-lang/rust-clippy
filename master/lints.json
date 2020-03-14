@@ -3958,7 +3958,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for wildcard imports `use _::*`.",
-      "Why is this bad": "wildcard imports can polute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.",
+      "Why is this bad": "wildcard imports can polute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.\n\nNote that this will not warn about wildcard imports from modules named `prelude`; many\ncrates (including the standard library) provide modules named \"prelude\" specifically\ndesigned for wildcard import.",
       "Known problems": "If macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.",
       "Example": "Bad:\n```rust,ignore\nuse crate1::*;\n\nfoo();\n```\n\nGood:\n```rust,ignore\nuse crate1::foo;\n\nfoo();\n```"
     }
