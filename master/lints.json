@@ -7,7 +7,7 @@
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.",
       "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat it is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.",
       "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g., 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation\nattributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead.",
-      "Example": "```rust\nlet vec: Vec<isize> = vec![];\nif vec.len() <= 0 {}\nif 100 > std::i32::MAX {}\n```"
+      "Example": "```rust\nlet vec: Vec<isize> = Vec::new();\nif vec.len() <= 0 {}\nif 100 > std::i32::MAX {}\n```"
     }
   },
   {
@@ -18,7 +18,7 @@
       "What it does": "Checks for `foo = bar; bar = foo` sequences.",
       "Why is this bad": "This looks like a failed attempt to swap.",
       "Known problems": "None.",
-      "Example": "```rust\na = b;\nb = a;\n```\nCould be written as:\n```rust\nstd::mem::swap(&mut a, &mut b);\n```"
+      "Example": "```rust\na = b;\nb = a;\n```\nIf swapping is intended, use `swap()` instead:\n```rust\nstd::mem::swap(&mut a, &mut b);\n```"
     }
   },
   {
@@ -29,7 +29,7 @@
       "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.",
       "Why is this bad": "Usually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).",
       "Known problems": "None.",
-      "Example": "```rust\n// Bad\nlet x = 3.14;\nlet y = 1_f64 / x;\n\n// Good\nlet x = std::f32::consts::PI;\nlet y = std::f64::consts::FRAC_1_PI;\n```"
+      "Example": "```rust\nlet x = 3.14;\nlet y = 1_f64 / x;\n```\nUse predefined constants instead:\n```rust\nlet x = std::f32::consts::PI;\nlet y = std::f64::consts::FRAC_1_PI;\n```"
     }
   },
   {
@@ -49,9 +49,9 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for `assert!(true)` and `assert!(false)` calls.",
-      "Why is this bad": "Will be optimized out by the compiler or should probably be replaced by a\npanic!() or unreachable!()",
+      "Why is this bad": "Will be optimized out by the compiler or should probably be replaced by a\n`panic!()` or `unreachable!()`",
       "Known problems": "None",
-      "Example": "```rust,ignore\nassert!(false)\n// or\nassert!(true)\n// or\nconst B: bool = false;\nassert!(B)\n```"
+      "Example": "```rust,ignore\nassert!(false)\nassert!(true)\nconst B: bool = false;\nassert!(B)\n```"
     }
   },
   {
@@ -115,7 +115,7 @@
       "What it does": "Checks for `if` conditions that use blocks containing\nstatements, or conditions that use closures with blocks.",
       "Why is this bad": "Using blocks in the condition makes it hard to read.",
       "Known problems": "None.",
-      "Example": "```ignore\nif { let x = somefunc(); x } {}\n// or\nif somefunc(|x| { x == 47 }) {}\n```"
+      "Example": "```rust,ignore\nif { let x = somefunc(); x } {}\n// or\nif somefunc(|x| { x == 47 }) {}\n```"
     }
   },
   {
@@ -126,7 +126,7 @@
       "What it does": "Checks for expressions of the form `x == true`,\n`x != true` and order comparisons such as `x < true` (or vice versa) and\nsuggest using the variable directly.",
       "Why is this bad": "Unnecessary code.",
       "Known problems": "None.",
-      "Example": "```rust,ignore\nif x == true {} // could be `if x { }`\n```"
+      "Example": "```rust,ignore\nif x == true {}\nif y == false {}\n```\nuse `x` directly:\n```rust,ignore\nif x {}\nif !y {}\n```"
     }
   },
   {
