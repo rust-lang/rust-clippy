@@ -209,6 +209,7 @@ jobs:
       run: |
         DIR=$CARGO_TARGET_DIR/debug
         find $DIR ! -executable -o -type d ! -path $DIR | xargs rm -rf
+        mkdir -p $DIR/integration
         mv $DIR/integration-* $DIR/integration
         rm -rf $CARGO_TARGET_DIR/release
 
