@@ -310,6 +310,7 @@ pub mod try_err;
 pub mod types;
 pub mod unicode;
 pub mod unnamed_address;
+pub mod unintentional_unit_return;
 pub mod unsafe_removed_from_name;
 pub mod unused_io_amount;
 pub mod unused_self;
@@ -821,6 +822,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &unicode::ZERO_WIDTH_SPACE,
         &unnamed_address::FN_ADDRESS_COMPARISONS,
         &unnamed_address::VTABLE_ADDRESS_COMPARISONS,
+        &unintentional_unit_return::UNINTENTIONAL_UNIT_RETURN,
         &unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME,
         &unused_io_amount::UNUSED_IO_AMOUNT,
         &unused_self::UNUSED_SELF,
@@ -1031,6 +1033,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box verbose_file_reads::VerboseFileReads);
     store.register_late_pass(|| box redundant_pub_crate::RedundantPubCrate::default());
     store.register_late_pass(|| box unnamed_address::UnnamedAddress);
+    store.register_late_pass(|| box unintentional_unit_return::UnintentionalUnitReturn);
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
         LintId::of(&arithmetic::FLOAT_ARITHMETIC),
@@ -1682,6 +1685,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&path_buf_push_overwrite::PATH_BUF_PUSH_OVERWRITE),
         LintId::of(&redundant_pub_crate::REDUNDANT_PUB_CRATE),
         LintId::of(&transmute::USELESS_TRANSMUTE),
+        LintId::of(&unintentional_unit_return::UNINTENTIONAL_UNIT_RETURN),
         LintId::of(&use_self::USE_SELF),
     ]);
 }

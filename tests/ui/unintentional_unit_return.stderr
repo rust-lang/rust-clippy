@@ -1,0 +1,16 @@
+error: Semi-colon on the last line of this closure returns the unit type which also implements Ord.
+  --> $DIR/unintentional_unit_return.rs:23:9
+   |
+LL |         double(s.field);
+   |         ^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::unintentional-unit-return` implied by `-D warnings`
+
+error: Semi-colon on the last line of this closure returns the unit type which also implements PartialOrd.
+  --> $DIR/unintentional_unit_return.rs:27:9
+   |
+LL |         double(s.field);
+   |         ^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+

@@ -2202,6 +2202,13 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         module: "methods",
     },
     Lint {
+        name: "unintentional_unit_return",
+        group: "nursery",
+        desc: "fn arguments of type Fn(...) -> Once having last statements with a semi-colon, suggesting to remove the semi-colon if it is unintentional.",
+        deprecation: None,
+        module: "unintentional_unit_return",
+    },
+    Lint {
         name: "unit_arg",
         group: "complexity",
         desc: "passing unit to a function",
