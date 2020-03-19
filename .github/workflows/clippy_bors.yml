@@ -204,6 +204,9 @@ jobs:
     - name: Build Integration Test
       run: cargo test --test integration --features integration --no-run
 
+    - name: Debug
+      run: ls target/debug -l
+
     # Upload
     - name: Extract Binaries
       run: |
