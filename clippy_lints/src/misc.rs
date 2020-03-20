@@ -380,16 +380,18 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MiscLints {
                         let lhs = Sugg::hir(cx, left, "..");
                         let rhs = Sugg::hir(cx, right, "..");
 
-                        db.span_suggestion(
-                            expr.span,
-                            "consider comparing them within some error",
-                            format!(
-                                "({}).abs() {} error",
-                                lhs - rhs,
-                                if op == BinOpKind::Eq { '<' } else { '>' }
-                            ),
-                            Applicability::HasPlaceholders, // snippet
-                        );
+                        if !(is_array(cx, left) || is_array(cx, right)) {
+                            db.span_suggestion(
+                                expr.span,
+                                "consider comparing them within some error",
+                                format!(
+                                    "({}).abs() {} error",
+                                    lhs - rhs,
+                                    if op == BinOpKind::Eq { '<' } else { '>' }
+                                ),
+                                Applicability::HasPlaceholders, // snippet
+                            );
+                        }
                         db.span_note(expr.span, "`std::f32::EPSILON` and `std::f64::EPSILON` are available.");
                     });
                 } else if op == BinOpKind::Rem && is_integer_const(cx, right, 1) {
@@ -513,6 +515,10 @@ fn is_float(cx: &LateContext<'_, '_>, expr: &Expr<'_>) -> bool {
     };
 
     matches!(value, ty::Float(_))
+}
+
+fn is_array(cx: &LateContext<'_, '_>, expr: &Expr<'_>) -> bool {
+    matches!(&walk_ptrs_ty(cx.tables.expr_ty(expr)).kind, ty::Array(_, _))
 }
 
 fn check_to_owned(cx: &LateContext<'_, '_>, expr: &Expr<'_>, other: &Expr<'_>) {
