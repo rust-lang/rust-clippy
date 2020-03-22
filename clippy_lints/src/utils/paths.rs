@@ -116,6 +116,7 @@ pub const STRING: [&str; 3] = ["alloc", "string", "String"];
 pub const STRING_AS_MUT_STR: [&str; 4] = ["alloc", "string", "String", "as_mut_str"];
 pub const STRING_AS_STR: [&str; 4] = ["alloc", "string", "String", "as_str"];
 pub const SYNTAX_CONTEXT: [&str; 3] = ["rustc_span", "hygiene", "SyntaxContext"];
+pub const THREAD_SPAWN: [&str; 3] = ["std", "thread", "spawn"];
 pub const TO_OWNED: [&str; 3] = ["alloc", "borrow", "ToOwned"];
 pub const TO_OWNED_METHOD: [&str; 4] = ["alloc", "borrow", "ToOwned", "to_owned"];
 pub const TO_STRING: [&str; 3] = ["alloc", "string", "ToString"];

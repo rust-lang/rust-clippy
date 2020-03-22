@@ -1,0 +1,10 @@
+error: Empty closure may be removed
+  --> $DIR/empty_closure.rs:5:24
+   |
+LL |     std::thread::spawn(|| {});
+   |                        ^^^^^
+   |
+   = note: `-D clippy::empty-closure` implied by `-D warnings`
+
+error: aborting due to previous error
+

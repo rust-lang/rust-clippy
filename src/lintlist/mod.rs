@@ -6,7 +6,7 @@ pub use lint::Lint;
 pub use lint::LINT_LEVELS;
 
 // begin lint list, do not remove this comment, it’s used in `update_lints`
-pub const ALL_LINTS: [Lint; 361] = [
+pub const ALL_LINTS: [Lint; 362] = [
     Lint {
         name: "absurd_extreme_comparisons",
         group: "correctness",
@@ -426,6 +426,13 @@ pub const ALL_LINTS: [Lint; 361] = [
         desc: "`if` expression with an `else if`, but without a final `else` branch",
         deprecation: None,
         module: "else_if_without_else",
+    },
+    Lint {
+        name: "empty_closure",
+        group: "style",
+        desc: "closure with empty body",
+        deprecation: None,
+        module: "empty_closure",
     },
     Lint {
         name: "empty_enum",

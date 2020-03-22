@@ -199,6 +199,7 @@ pub mod drop_bounds;
 pub mod drop_forget_ref;
 pub mod duration_subsec;
 pub mod else_if_without_else;
+pub mod empty_closure;
 pub mod empty_enum;
 pub mod entry;
 pub mod enum_clike;
@@ -527,6 +528,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &drop_forget_ref::FORGET_REF,
         &duration_subsec::DURATION_SUBSEC,
         &else_if_without_else::ELSE_IF_WITHOUT_ELSE,
+        &empty_closure::EMPTY_CLOSURE,
         &empty_enum::EMPTY_ENUM,
         &entry::MAP_ENTRY,
         &enum_clike::ENUM_CLIKE_UNPORTABLE_VARIANT,
@@ -1027,6 +1029,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| box macro_use::MacroUseImports);
     store.register_late_pass(|| box verbose_file_reads::VerboseFileReads);
     store.register_late_pass(|| box redundant_pub_crate::RedundantPubCrate::default());
+    store.register_late_pass(|| box empty_closure::EmptyClosure);
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
         LintId::of(&arithmetic::FLOAT_ARITHMETIC),
@@ -1172,6 +1175,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&drop_forget_ref::FORGET_COPY),
         LintId::of(&drop_forget_ref::FORGET_REF),
         LintId::of(&duration_subsec::DURATION_SUBSEC),
+        LintId::of(&empty_closure::EMPTY_CLOSURE),
         LintId::of(&entry::MAP_ENTRY),
         LintId::of(&enum_clike::ENUM_CLIKE_UNPORTABLE_VARIANT),
         LintId::of(&enum_variants::ENUM_VARIANT_NAMES),
@@ -1404,6 +1408,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&comparison_chain::COMPARISON_CHAIN),
         LintId::of(&doc::MISSING_SAFETY_DOC),
         LintId::of(&doc::NEEDLESS_DOCTEST_MAIN),
+        LintId::of(&empty_closure::EMPTY_CLOSURE),
         LintId::of(&enum_variants::ENUM_VARIANT_NAMES),
         LintId::of(&enum_variants::MODULE_INCEPTION),
         LintId::of(&eq_op::OP_REF),
