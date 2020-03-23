@@ -3870,8 +3870,8 @@
   },
   {
     "id": "useless_transmute",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for transmutes to the original type of the object\nand transmutes that could be a cast.",
       "Why is this bad": "Readability. The code tricks people into thinking that\nsomething complex is going on.",
