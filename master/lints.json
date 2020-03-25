@@ -2829,8 +2829,8 @@
   },
   {
     "id": "redundant_pub_crate",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for items declared `pub(crate)` that are not crate visible because they\nare inside a private module.",
       "Why is this bad": "Writing `pub(crate)` is misleading when it's redundant due to the parent\nmodule's visibility.",
