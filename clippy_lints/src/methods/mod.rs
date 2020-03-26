@@ -1084,7 +1084,8 @@ declare_clippy_lint! {
     /// If the `map` call is intentional, this should be rewritten. Or, if you intend to
     /// drive the iterator to completion, you can just use `for_each` instead.
     ///
-    /// **Known problems:** None
+    /// **Known problems:** Named functions which mutate other data internally are not
+    /// detected as non-suspicious.
     ///
     /// **Example:**
     ///
@@ -1341,7 +1342,7 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Methods {
             ["as_mut"] => lint_asref(cx, expr, "as_mut", arg_lists[0]),
             ["fold", ..] => lint_unnecessary_fold(cx, expr, arg_lists[0], method_spans[0]),
             ["filter_map", ..] => unnecessary_filter_map::lint(cx, expr, arg_lists[0]),
-            ["count", "map"] => lint_suspicious_map(cx, expr),
+            ["count", "map"] => lint_suspicious_map(cx, expr, &arg_lists[1][1]),
             ["assume_init"] => lint_maybe_uninit(cx, &arg_lists[0][0], expr),
             ["unwrap_or", arith @ "checked_add"]
             | ["unwrap_or", arith @ "checked_sub"]
@@ -3142,7 +3143,17 @@ fn is_maybe_uninit_ty_valid(cx: &LateContext<'_, '_>, ty: Ty<'_>) -> bool {
     }
 }
 
-fn lint_suspicious_map(cx: &LateContext<'_, '_>, expr: &hir::Expr<'_>) {
+fn lint_suspicious_map<'tcx>(cx: &LateContext<'_, 'tcx>, expr: &hir::Expr<'tcx>, map_arg: &'tcx hir::Expr<'_>) {
+    if let Some(body_id) = cx.tcx.hir().maybe_body_owned_by(map_arg.hir_id) {
+        let closure_body = cx.tcx.hir().body(body_id);
+        if let Some(map_mutated_vars) = mutated_variables(&closure_body.value, cx) {
+            // A variable is used mutably inside of the closure. Suppress the lint.
+            if !map_mutated_vars.is_empty() {
+                return;
+            }
+        }
+    }
+
     span_lint_and_help(
         cx,
         SUSPICIOUS_MAP,
