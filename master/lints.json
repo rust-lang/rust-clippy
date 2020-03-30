@@ -990,6 +990,17 @@
     }
   },
   {
+    "id": "fn_address_comparisons",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for comparisons with an address of a function item.",
+      "Why is this bad": "Function item address is not guaranteed to be unique and could vary\nbetween different code generation units. Furthermore different function items could have\nthe same address after being merged together.",
+      "Known problems": "None.",
+      "Example": "```rust\ntype F = fn();\nfn a() {}\nlet f: F = a;\nif f == a {\n    // ...\n}\n```"
+    }
+  },
+  {
     "id": "fn_params_excessive_bools",
     "group": "pedantic",
     "level": "Allow",
@@ -3921,6 +3932,17 @@
       "Why is this bad": "`fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.\nSee also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)",
       "Known problems": "None.",
       "Example": "```rust,no_run\nlet mut f = File::open(\"foo.txt\").unwrap();\nlet mut bytes = Vec::new();\nf.read_to_end(&mut bytes).unwrap();\n```\nCan be written more concisely as\n```rust,no_run\nlet mut bytes = fs::read(\"foo.txt\").unwrap();\n```"
+    }
+  },
+  {
+    "id": "vtable_address_comparisons",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for comparisons with an address of a trait vtable.",
+      "Why is this bad": "Comparing trait objects pointers compares an vtable addresses which\nare not guaranteed to be unique and could vary between different code generation units.\nFurthermore vtables for different types could have the same address after being merged\ntogether.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nlet a: Rc<dyn Trait> = ...\nlet b: Rc<dyn Trait> = ...\nif Rc::ptr_eq(&a, &b) {\n    ...\n}\n```"
     }
   },
   {
