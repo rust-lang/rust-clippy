@@ -2872,13 +2872,11 @@
   },
   {
     "id": "replace_consts",
-    "group": "pedantic",
-    "level": "Allow",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "Checks for usage of standard library\n`const`s that could be replaced by `const fn`s.",
-      "Why is this bad": "`const fn`s exist",
-      "Known problems": "None.",
-      "Example": "```rust\nlet x = std::u32::MIN;\nlet y = std::u32::MAX;\n```\n\nCould be written:\n\n```rust\nlet x = u32::min_value();\nlet y = u32::max_value();\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "Associated-constants are now preferred."
     }
   },
   {
