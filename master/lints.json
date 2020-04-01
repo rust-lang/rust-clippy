@@ -2501,8 +2501,8 @@
   },
   {
     "id": "option_option",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for use of `Option<Option<_>>` in function signatures and type\ndefinitions",
       "Why is this bad": "`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.",
