@@ -7,7 +7,7 @@
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.",
       "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat it is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.",
       "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g., 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation\nattributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead.",
-      "Example": "```rust\nlet vec: Vec<isize> = Vec::new();\nif vec.len() <= 0 {}\nif 100 > std::i32::MAX {}\n```"
+      "Example": "```rust\nlet vec: Vec<isize> = Vec::new();\nif vec.len() <= 0 {}\nif 100 > i32::MAX {}\n```"
     }
   },
   {
@@ -227,7 +227,7 @@
       "What it does": "Checks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e., nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.",
       "Why is this bad": "While such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.",
       "Known problems": "None.",
-      "Example": "```rust\nstd::u32::MAX as i32; // will yield a value of `-1`\n```"
+      "Example": "```rust\nu32::MAX as i32; // will yield a value of `-1`\n```"
     }
   },
   {
@@ -238,7 +238,7 @@
       "What it does": "Checks for casts from any numerical to a float type where\nthe receiving type cannot store all values from the original type without\nrounding errors. This possible rounding is to be expected, so this lint is\n`Allow` by default.\n\nBasically, this warns on casting any integer with 32 or more bits to `f32`\nor any 64-bit integer to `f64`.",
       "Why is this bad": "It's not bad at all. But in some applications it can be\nhelpful to know where precision loss can take place. This lint can help find\nthose places in the code.",
       "Known problems": "None.",
-      "Example": "```rust\nlet x = std::u64::MAX;\nx as f64;\n```"
+      "Example": "```rust\nlet x = u64::MAX;\nx as f64;\n```"
     }
   },
   {
@@ -315,7 +315,7 @@
       "What it does": "Checks for explicit bounds checking when casting.",
       "Why is this bad": "Reduces the readability of statements & is error prone.",
       "Known problems": "None.",
-      "Example": "```rust\nfoo <= i32::max_value() as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```"
+      "Example": "```rust\nfoo <= i32::MAX as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```"
     }
   },
   {
@@ -358,7 +358,7 @@
       "What it does": "Checks for comparisons to NaN.",
       "Why is this bad": "NaN does not compare meaningfully to anything \u2013 not\neven itself \u2013 so those comparisons are simply wrong.",
       "Known problems": "None.",
-      "Example": "```rust\n\nif x == NAN { }\n```"
+      "Example": "```rust\n\nif x == f32::NAN { }\n```"
     }
   },
   {
@@ -1684,7 +1684,7 @@
     "docs": {
       "What it does": "Checks for `.checked_add/sub(x).unwrap_or(MAX/MIN)`.",
       "Why is this bad": "These can be written simply with `saturating_add/sub` methods.",
-      "Example": "```rust\nlet add = x.checked_add(y).unwrap_or(u32::max_value());\nlet sub = x.checked_sub(y).unwrap_or(u32::min_value());\n```\n\ncan be written using dedicated methods for saturating addition/subtraction as:\n\n```rust\nlet add = x.saturating_add(y);\nlet sub = x.saturating_sub(y);\n```"
+      "Example": "```rust\nlet add = x.checked_add(y).unwrap_or(u32::MAX);\nlet sub = x.checked_sub(y).unwrap_or(u32::MIN);\n```\n\ncan be written using dedicated methods for saturating addition/subtraction as:\n\n```rust\nlet add = x.saturating_add(y);\nlet sub = x.saturating_sub(y);\n```"
     }
   },
   {
@@ -2287,7 +2287,7 @@
       "What it does": "Checks for the usage of negated comparison operators on types which only implement\n`PartialOrd` (e.g., `f64`).",
       "Why is this bad": "These operators make it easy to forget that the underlying types actually allow not only three\npotential Orderings (Less, Equal, Greater) but also a fourth one (Uncomparable). This is\nespecially easy to miss if the operator based comparison result is negated.",
       "Known problems": "None.",
-      "Example": "```rust\nuse std::cmp::Ordering;\n\n// Bad\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = !(a <= b);\n\n// Good\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = match a.partial_cmp(&b) {\n    None | Some(Ordering::Greater) => true,\n    _ => false,\n};\n```"
+      "Example": "```rust\nuse std::cmp::Ordering;\n\n// Bad\nlet a = 1.0;\nlet b = f64::NAN;\n\nlet _not_less_or_equal = !(a <= b);\n\n// Good\nlet a = 1.0;\nlet b = f64::NAN;\n\nlet _not_less_or_equal = match a.partial_cmp(&b) {\n    None | Some(Ordering::Greater) => true,\n    _ => false,\n};\n```"
     }
   },
   {
@@ -4105,7 +4105,7 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for `0.0 / 0.0`.",
-      "Why is this bad": "It's less readable than `std::f32::NAN` or\n`std::f64::NAN`.",
+      "Why is this bad": "It's less readable than `f32::NAN` or `f64::NAN`.",
       "Known problems": "None.",
       "Example": "```rust\n0.0f32 / 0.0;\n```"
     }
