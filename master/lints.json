@@ -1252,8 +1252,8 @@
   },
   {
     "id": "inefficient_to_string",
-    "group": "perf",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `.to_string()` on an `&&T` where\n`T` implements `ToString` directly (like `&&str` or `&&String`).",
       "Why is this bad": "This bypasses the specialized implementation of\n`ToString` and instead goes through the more expensive string formatting\nfacilities.",
@@ -1602,8 +1602,8 @@
   },
   {
     "id": "let_unit_value",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for binding a unit value.",
       "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.",
@@ -2314,8 +2314,8 @@
   },
   {
     "id": "new_ret_no_self",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for `new` not returning `Self`.",
       "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.",
@@ -2924,6 +2924,17 @@
     }
   },
   {
+    "id": "result_map_or_into_option",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.map_or(None, Some)`.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.ok()`.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust\nassert_eq!(Some(1), r.map_or(None, Some));\n```\n\nGood:\n```rust\nassert_eq!(Some(1), r.ok());\n```"
+    }
+  },
+  {
     "id": "result_map_unit_fn",
     "group": "complexity",
     "level": "Warn",
@@ -3482,8 +3493,8 @@
   },
   {
     "id": "trivially_copy_pass_by_ref",
-    "group": "perf",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for functions taking arguments by reference, where\nthe argument type is `Copy` and small enough to be more efficient to always\npass by value.",
       "Why is this bad": "In many calling conventions instances of structs will\nbe passed through registers if they fit into two or less general purpose\nregisters.",
@@ -3692,8 +3703,8 @@
   },
   {
     "id": "unreadable_literal",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Warns if a long integral or floating-point constant does\nnot contain underscores.",
       "Why is this bad": "Reading long numbers is difficult without separators.",
