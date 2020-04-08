@@ -1186,8 +1186,8 @@
   },
   {
     "id": "implicit_hasher",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (`SipHash`).",
       "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.",
