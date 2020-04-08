@@ -385,8 +385,8 @@
   },
   {
     "id": "cognitive_complexity",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for methods with high cognitive complexity.",
       "Why is this bad": "Methods of high cognitive complexity tend to be hard to\nboth read and maintain. Also LLVM will tend to optimize small methods better.",
