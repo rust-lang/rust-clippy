@@ -2314,8 +2314,8 @@
   },
   {
     "id": "new_ret_no_self",
-    "group": "pedantic",
-    "level": "Allow",
+    "group": "style",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for `new` not returning `Self`.",
       "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.",
