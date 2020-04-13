@@ -2317,10 +2317,10 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for `new` not returning `Self`.",
+      "What it does": "Checks for `new` not returning a type that contains `Self`.",
       "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.",
       "Known problems": "None.",
-      "Example": "```rust\nimpl Foo {\n    fn new() -> NotAFoo {\n    }\n}\n```"
+      "Example": "```rust\nimpl Foo {\n    fn new() -> NotAFoo {\n    }\n}\n```\n\n```rust\nimpl Foo {\n    // Good. Return type contains `Self`\n    fn new() -> Result<Foo, FooError> {\n        # Ok(Foo)\n    }\n}\n```\n\n```rust\nstruct Bar(Foo);\nimpl Foo {\n    // Bad. The type name must contain `Self`.\n    fn new() -> Bar {\n        # Bar(Foo)\n    }\n}\n```"
     }
   },
   {
