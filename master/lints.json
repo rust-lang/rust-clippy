@@ -828,6 +828,16 @@
     }
   },
   {
+    "id": "explicit_deref_methods",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for explicit `deref()` or `deref_mut()` method calls.",
+      "Why is this bad": "Derefencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.",
+      "Example": "```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\nCould be written as:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes\n```rust,ignore\nlet _ = d.unwrap().deref();\n```"
+    }
+  },
+  {
     "id": "explicit_into_iter_loop",
     "group": "pedantic",
     "level": "Allow",
@@ -1343,8 +1353,8 @@
     "group": "restriction",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for plain integer arithmetic.",
-      "Why is this bad": "This is only checked against overflow in debug builds.\nIn some applications one wants explicitly checked, wrapping or saturating\narithmetic.",
+      "What it does": "Checks for integer arithmetic operations which could overflow or panic.\n\nSpecifically, checks for any operators (`+`, `-`, `*`, `<<`, etc) which are capable\nof overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor which can panic (`/`, `%`). No bounds analysis or sophisticated reasoning is\nattempted.",
+      "Why is this bad": "Integer overflow will trigger a panic in debug builds or will wrap in\nrelease mode. Division by zero will cause a panic in either mode. In some applications one\nwants explicitly checked, wrapping or saturating arithmetic.",
       "Known problems": "None.",
       "Example": "```rust\na + 1;\n```"
     }
@@ -1511,6 +1521,18 @@
     }
   },
   {
+    "id": "large_const_arrays",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for large `const` arrays that should\nbe defined as `static` instead.",
+      "Why is this bad": "Performance: const variables are inlined upon use.\nStatic items result in only one instance and has a fixed location in memory.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\n// Bad\npub const a = [0u32; 1_000_000];\n\n// Good\npub static a = [0u32; 1_000_000];\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `array-size-threshold: u64`: The maximum allowed size for arrays on the stack (defaults to `512_000`)."
+    }
+  },
+  {
     "id": "large_digit_groups",
     "group": "pedantic",
     "level": "Allow",
@@ -1529,7 +1551,7 @@
       "What it does": "Checks for large size differences between variants on\n`enum`s.",
       "Why is this bad": "Enum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.",
       "Known problems": "This lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.",
-      "Example": "```rust\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n```",
+      "Example": "```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-size-threshold: u64`: The maximum size of a enum's variant to avoid box suggestion (defaults to `200`)."
     }
   },
@@ -1707,7 +1729,7 @@
       "Why is this bad": "It's hard to memorize what a variable means without a\ndescriptive name.",
       "Known problems": "None?",
       "Example": "```ignore\nlet (a, b, c, d, e, f, g) = (...);\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `single-char-binding-names-threshold: u64`: The maximum number of single char bindings a scope may have (defaults to `5`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `single-char-binding-names-threshold: u64`: The maximum number of single char bindings a scope may have (defaults to `4`)."
     }
   },
   {
