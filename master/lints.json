@@ -1098,6 +1098,17 @@
     }
   },
   {
+    "id": "future_not_send",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "This lint requires Future implementations returned from\nfunctions and methods to implement the `Send` marker trait. It is mostly\nused by library authors (public and internal) that target an audience where\nmultithreaded executors are likely to be used for running these Futures.",
+      "Why is this bad": "A Future implementation captures some state that it\nneeds to eventually produce its final value. When targeting a multithreaded\nexecutor (which is the norm on non-embedded devices) this means that this\nstate may need to be transported to other threads, in other words the\nwhole Future needs to implement the `Send` marker trait. If it does not,\nthen the resulting Future cannot be submitted to a thread pool in the\nend user\u2019s code.\n\nEspecially for generic functions it can be confusing to leave the\ndiscovery of this problem to the end user: the reported error location\nwill be far from its cause and can in many cases not even be fixed without\nmodifying the library where the offending Future implementation is\nproduced.",
+      "Known problems": "None.",
+      "Example": "```rust\nasync fn not_send(bytes: std::rc::Rc<[u8]>) {}\n```\nUse instead:\n```rust\nasync fn is_send(bytes: std::sync::Arc<[u8]>) {}\n```"
+    }
+  },
+  {
     "id": "get_last_with_len",
     "group": "complexity",
     "level": "Warn",
