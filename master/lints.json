@@ -1228,6 +1228,17 @@
     }
   },
   {
+    "id": "implicit_saturating_sub",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for implicit saturating subtraction.",
+      "Why is this bad": "Simplicity and readability. Instead we can easily use an builtin function.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet end: u32 = 10;\nlet start: u32 = 5;\n\nlet mut i: u32 = end - start;\n\n// Bad\nif i != 0 {\n    i -= 1;\n}\n```\nUse instead:\n```rust\nlet end: u32 = 10;\nlet start: u32 = 5;\n\nlet mut i: u32 = end - start;\n\n// Good\ni = i.saturating_sub(1);\n```"
+    }
+  },
+  {
     "id": "imprecise_flops",
     "group": "nursery",
     "level": "Allow",
