@@ -3757,6 +3757,17 @@
     }
   },
   {
+    "id": "unsafe_derive_deserialize",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for deriving `serde::Deserialize` on a type that\nhas methods using `unsafe`.",
+      "Why is this bad": "Deriving `serde::Deserialize` will create a constructor\nthat may violate invariants hold by another constructor.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nuse serde::Deserialize;\n\n#[derive(Deserialize)]\npub struct Foo {\n    // ..\n}\n\nimpl Foo {\n    pub fn new() -> Self {\n        // setup here ..\n    }\n\n    pub unsafe fn parts() -> (&str, &str) {\n        // assumes invariants hold\n    }\n}\n```"
+    }
+  },
+  {
     "id": "unsafe_removed_from_name",
     "group": "style",
     "level": "Warn",
