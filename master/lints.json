@@ -1153,6 +1153,17 @@
     }
   },
   {
+    "id": "if_let_mutex",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for `Mutex::lock` calls in `if let` expression\nwith lock calls in any of the else blocks.",
+      "Why is this bad": "The Mutex lock remains held for the whole\n`if let ... else` block and deadlocks.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nif let Ok(thing) = mutex.lock() {\n    do_thing();\n} else {\n    mutex.lock();\n}\n```\nShould be written\n```rust,ignore\nlet locked = mutex.lock();\nif let Ok(thing) = locked {\n    do_thing(thing);\n} else {\n    use_locked(locked);\n}\n```"
+    }
+  },
+  {
     "id": "if_let_redundant_pattern_matching",
     "group": "deprecated",
     "level": "Deprecated",
