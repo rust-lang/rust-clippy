@@ -7,7 +7,7 @@
       "What it does": "Checks for comparisons where one side of the relation is\neither the minimum or maximum value for its type and warns if it involves a\ncase that is always true or always false. Only integer and boolean types are\nchecked.",
       "Why is this bad": "An expression like `min <= x` may misleadingly imply\nthat it is possible for `x` to be less than the minimum. Expressions like\n`max < x` are probably mistakes.",
       "Known problems": "For `usize` the size of the current compile target will\nbe assumed (e.g., 64 bits on 64 bit systems). This means code that uses such\na comparison to detect target pointer width will trigger this lint. One can\nuse `mem::sizeof` and compare its value or conditional compilation\nattributes\nlike `#[cfg(target_pointer_width = \"64\")] ..` instead.",
-      "Example": "```rust\nlet vec: Vec<isize> = vec![];\nif vec.len() <= 0 {}\nif 100 > std::i32::MAX {}\n```"
+      "Example": "```rust\nlet vec: Vec<isize> = Vec::new();\nif vec.len() <= 0 {}\nif 100 > i32::MAX {}\n```"
     }
   },
   {
@@ -18,7 +18,7 @@
       "What it does": "Checks for `foo = bar; bar = foo` sequences.",
       "Why is this bad": "This looks like a failed attempt to swap.",
       "Known problems": "None.",
-      "Example": "```rust\na = b;\nb = a;\n```\nCould be written as:\n```rust\nstd::mem::swap(&mut a, &mut b);\n```"
+      "Example": "```rust\na = b;\nb = a;\n```\nIf swapping is intended, use `swap()` instead:\n```rust\nstd::mem::swap(&mut a, &mut b);\n```"
     }
   },
   {
@@ -29,7 +29,7 @@
       "What it does": "Checks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.",
       "Why is this bad": "Usually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).",
       "Known problems": "None.",
-      "Example": "```rust\n// Bad\nlet x = 3.14;\nlet y = 1_f64 / x;\n\n// Good\nlet x = std::f32::consts::PI;\nlet y = std::f64::consts::FRAC_1_PI;\n```"
+      "Example": "```rust\nlet x = 3.14;\nlet y = 1_f64 / x;\n```\nUse predefined constants instead:\n```rust\nlet x = std::f32::consts::PI;\nlet y = std::f64::consts::FRAC_1_PI;\n```"
     }
   },
   {
@@ -49,9 +49,9 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for `assert!(true)` and `assert!(false)` calls.",
-      "Why is this bad": "Will be optimized out by the compiler or should probably be replaced by a\npanic!() or unreachable!()",
+      "Why is this bad": "Will be optimized out by the compiler or should probably be replaced by a\n`panic!()` or `unreachable!()`",
       "Known problems": "None",
-      "Example": "```rust,ignore\nassert!(false)\n// or\nassert!(true)\n// or\nconst B: bool = false;\nassert!(B)\n```"
+      "Example": "```rust,ignore\nassert!(false)\nassert!(true)\nconst B: bool = false;\nassert!(B)\n```"
     }
   },
   {
@@ -75,6 +75,17 @@
     }
   },
   {
+    "id": "await_holding_lock",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for calls to await while holding a\nnon-async-aware MutexGuard.",
+      "Why is this bad": "The Mutex types found in syd::sync and parking_lot\nare not designed to operator in an async context across await points.\n\nThere are two potential solutions. One is to use an asynx-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  let guard = x.lock().unwrap();\n  *guard += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  bar.await;\n}\n```"
+    }
+  },
+  {
     "id": "bad_bit_mask",
     "group": "correctness",
     "level": "Deny",
@@ -93,7 +104,8 @@
       "What it does": "Checks for usage of blacklisted names for variables, such\nas `foo`.",
       "Why is this bad": "These names are usually placeholder names and should be\navoided.",
       "Known problems": "None.",
-      "Example": "```rust\nlet foo = 3.14;\n```"
+      "Example": "```rust\nlet foo = 3.14;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted-names: Vec<String>`: The list of blacklisted names to lint about (defaults to `[\"foo\", \"bar\", \"baz\", \"quux\"]`)."
     }
   },
   {
@@ -115,7 +127,7 @@
       "What it does": "Checks for `if` conditions that use blocks containing\nstatements, or conditions that use closures with blocks.",
       "Why is this bad": "Using blocks in the condition makes it hard to read.",
       "Known problems": "None.",
-      "Example": "```ignore\nif { let x = somefunc(); x } {}\n// or\nif somefunc(|x| { x == 47 }) {}\n```"
+      "Example": "```rust,ignore\nif { let x = somefunc(); x } {}\n// or\nif somefunc(|x| { x == 47 }) {}\n```"
     }
   },
   {
@@ -126,7 +138,7 @@
       "What it does": "Checks for expressions of the form `x == true`,\n`x != true` and order comparisons such as `x < true` (or vice versa) and\nsuggest using the variable directly.",
       "Why is this bad": "Unnecessary code.",
       "Known problems": "None.",
-      "Example": "```rust,ignore\nif x == true {} // could be `if x { }`\n```"
+      "Example": "```rust,ignore\nif x == true {}\nif y == false {}\n```\nuse `x` directly:\n```rust,ignore\nif x {}\nif !y {}\n```"
     }
   },
   {
@@ -170,7 +182,8 @@
       "What it does": "Checks for usage of `Box<T>` where an unboxed `T` would\nwork fine.",
       "Why is this bad": "This is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.",
       "Known problems": "None.",
-      "Example": "```rust\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n```"
+      "Example": "```rust\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)."
     }
   },
   {
@@ -225,7 +238,7 @@
       "What it does": "Checks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e., nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.",
       "Why is this bad": "While such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.",
       "Known problems": "None.",
-      "Example": "```rust\nstd::u32::MAX as i32; // will yield a value of `-1`\n```"
+      "Example": "```rust\nu32::MAX as i32; // will yield a value of `-1`\n```"
     }
   },
   {
@@ -236,7 +249,7 @@
       "What it does": "Checks for casts from any numerical to a float type where\nthe receiving type cannot store all values from the original type without\nrounding errors. This possible rounding is to be expected, so this lint is\n`Allow` by default.\n\nBasically, this warns on casting any integer with 32 or more bits to `f32`\nor any 64-bit integer to `f64`.",
       "Why is this bad": "It's not bad at all. But in some applications it can be\nhelpful to know where precision loss can take place. This lint can help find\nthose places in the code.",
       "Known problems": "None.",
-      "Example": "```rust\nlet x = std::u64::MAX;\nx as f64;\n```"
+      "Example": "```rust\nlet x = u64::MAX;\nx as f64;\n```"
     }
   },
   {
@@ -313,7 +326,7 @@
       "What it does": "Checks for explicit bounds checking when casting.",
       "Why is this bad": "Reduces the readability of statements & is error prone.",
       "Known problems": "None.",
-      "Example": "```rust\nfoo <= i32::max_value() as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```"
+      "Example": "```rust\nfoo <= i32::MAX as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```"
     }
   },
   {
@@ -356,7 +369,7 @@
       "What it does": "Checks for comparisons to NaN.",
       "Why is this bad": "NaN does not compare meaningfully to anything \u2013 not\neven itself \u2013 so those comparisons are simply wrong.",
       "Known problems": "None.",
-      "Example": "```rust\n\nif x == NAN { }\n```"
+      "Example": "```rust\n\nif x == f32::NAN { }\n```"
     }
   },
   {
@@ -383,13 +396,14 @@
   },
   {
     "id": "cognitive_complexity",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for methods with high cognitive complexity.",
       "Why is this bad": "Methods of high cognitive complexity tend to be hard to\nboth read and maintain. Also LLVM will tend to optimize small methods better.",
       "Known problems": "Sometimes it's hard to find a way to reduce the\ncomplexity.",
-      "Example": "No. You'll see it when you get the warning."
+      "Example": "No. You'll see it when you get the warning.",
+      "Configuration": "This lint has the following configuration variables:\n\n* `cognitive-complexity-threshold: u64`: The maximum cognitive complexity a function can have (defaults to `25`)."
     }
   },
   {
@@ -466,7 +480,8 @@
       "What it does": "Warns if there is a better representation for a numeric literal.",
       "Why is this bad": "Especially for big powers of 2 a hexadecimal representation is more\nreadable than a decimal representation.",
       "Known problems": "None.",
-      "Example": "`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`"
+      "Example": "`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`",
+      "Configuration": "This lint has the following configuration variables:\n\n* `literal-representation-threshold: u64`: The lower bound for linting decimal literals (defaults to `16384`)."
     }
   },
   {
@@ -554,7 +569,8 @@
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.",
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.",
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.",
-      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```"
+      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\",\n        \"OpenGL\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
     }
   },
   {
@@ -730,7 +746,8 @@
       "What it does": "Detects enumeration variants that are prefixed or suffixed\nby the same characters.",
       "Why is this bad": "Enumeration variant names should specify their variant,\nnot repeat the enumeration name.",
       "Known problems": "None.",
-      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```"
+      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-name-threshold: u64`: The minimum number of enum variants for the lints about variant names to trigger (defaults to `3`)."
     }
   },
   {
@@ -819,6 +836,16 @@
       "Why is it bad": "Using `.enumerate()` makes the intent more clear,\ndeclutters the code and may be faster in some instances.",
       "Known problems": "None.",
       "Example": "```rust\nlet mut i = 0;\nfor item in &v {\n    bar(i, *item);\n    i += 1;\n}\n```\nCould be written as\n```rust\nfor (i, item) in v.iter().enumerate() { bar(i, *item); }\n```"
+    }
+  },
+  {
+    "id": "explicit_deref_methods",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for explicit `deref()` or `deref_mut()` method calls.",
+      "Why is this bad": "Derefencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.",
+      "Example": "```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\nCould be written as:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes\n```rust,ignore\nlet _ = d.unwrap().deref();\n```"
     }
   },
   {
@@ -984,6 +1011,17 @@
     }
   },
   {
+    "id": "fn_address_comparisons",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for comparisons with an address of a function item.",
+      "Why is this bad": "Function item address is not guaranteed to be unique and could vary\nbetween different code generation units. Furthermore different function items could have\nthe same address after being merged together.",
+      "Known problems": "None.",
+      "Example": "```rust\ntype F = fn();\nfn a() {}\nlet f: F = a;\nif f == a {\n    // ...\n}\n```"
+    }
+  },
+  {
     "id": "fn_params_excessive_bools",
     "group": "pedantic",
     "level": "Allow",
@@ -991,7 +1029,8 @@
       "What it does": "Checks for excessive use of\nbools in function definitions.",
       "Why is this bad": "Calls to such functions\nare confusing and error prone, because it's\nhard to remember argument order and you have\nno type system support to back you up. Using\ntwo-variant enums instead of bools often makes\nAPI easier to use.",
       "Known problems": "None.",
-      "Example": "Bad:\n```rust,ignore\nfn f(is_round: bool, is_hot: bool) { ... }\n```\n\nGood:\n```rust,ignore\nenum Shape {\n    Round,\n    Spiky,\n}\n\nenum Temperature {\n    Hot,\n    IceCold,\n}\n\nfn f(shape: Shape, temperature: Temperature) { ... }\n```"
+      "Example": "Bad:\n```rust,ignore\nfn f(is_round: bool, is_hot: bool) { ... }\n```\n\nGood:\n```rust,ignore\nenum Shape {\n    Round,\n    Spiky,\n}\n\nenum Temperature {\n    Hot,\n    IceCold,\n}\n\nfn f(shape: Shape, temperature: Temperature) { ... }\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-fn-params-bools: u64`: The maximum number of bools function parameters can have (defaults to `3`)."
     }
   },
   {
@@ -1070,6 +1109,17 @@
     }
   },
   {
+    "id": "future_not_send",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "This lint requires Future implementations returned from\nfunctions and methods to implement the `Send` marker trait. It is mostly\nused by library authors (public and internal) that target an audience where\nmultithreaded executors are likely to be used for running these Futures.",
+      "Why is this bad": "A Future implementation captures some state that it\nneeds to eventually produce its final value. When targeting a multithreaded\nexecutor (which is the norm on non-embedded devices) this means that this\nstate may need to be transported to other threads, in other words the\nwhole Future needs to implement the `Send` marker trait. If it does not,\nthen the resulting Future cannot be submitted to a thread pool in the\nend user\u2019s code.\n\nEspecially for generic functions it can be confusing to leave the\ndiscovery of this problem to the end user: the reported error location\nwill be far from its cause and can in many cases not even be fixed without\nmodifying the library where the offending Future implementation is\nproduced.",
+      "Known problems": "None.",
+      "Example": "```rust\nasync fn not_send(bytes: std::rc::Rc<[u8]>) {}\n```\nUse instead:\n```rust\nasync fn is_send(bytes: std::sync::Arc<[u8]>) {}\n```"
+    }
+  },
+  {
     "id": "get_last_with_len",
     "group": "complexity",
     "level": "Warn",
@@ -1111,6 +1161,17 @@
       "Why is this bad": "This code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.",
       "Known problems": "None.",
       "Example": "```rust\nx / 1 + 0 * 1 - 0 | 0;\n```"
+    }
+  },
+  {
+    "id": "if_let_mutex",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for `Mutex::lock` calls in `if let` expression\nwith lock calls in any of the else blocks.",
+      "Why is this bad": "The Mutex lock remains held for the whole\n`if let ... else` block and deadlocks.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nif let Ok(thing) = mutex.lock() {\n    do_thing();\n} else {\n    mutex.lock();\n}\n```\nShould be written\n```rust,ignore\nlet locked = mutex.lock();\nif let Ok(thing) = locked {\n    do_thing(thing);\n} else {\n    use_locked(locked);\n}\n```"
     }
   },
   {
@@ -1168,8 +1229,8 @@
   },
   {
     "id": "implicit_hasher",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for public `impl` or `fn` missing generalization\nover different hashers and implicitly defaulting to the default hashing\nalgorithm (`SipHash`).",
       "Why is this bad": "`HashMap` or `HashSet` with custom hashers cannot be\nused with them.",
@@ -1186,6 +1247,17 @@
       "Why is this bad": "Actually omitting the return keyword is idiomatic Rust code. Programmers\ncoming from other languages might prefer the expressiveness of `return`. It's possible to miss\nthe last returning statement because the only difference is a missing `;`. Especially in bigger\ncode with multiple return paths having a `return` keyword makes it easier to find the\ncorresponding statements.",
       "Known problems": "None.",
       "Example": "```rust\nfn foo(x: usize) -> usize {\n    x\n}\n```\nadd return\n```rust\nfn foo(x: usize) -> usize {\n    return x;\n}\n```"
+    }
+  },
+  {
+    "id": "implicit_saturating_sub",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for implicit saturating subtraction.",
+      "Why is this bad": "Simplicity and readability. Instead we can easily use an builtin function.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet end: u32 = 10;\nlet start: u32 = 5;\n\nlet mut i: u32 = end - start;\n\n// Bad\nif i != 0 {\n    i -= 1;\n}\n```\nUse instead:\n```rust\nlet end: u32 = 10;\nlet start: u32 = 5;\n\nlet mut i: u32 = end - start;\n\n// Good\ni = i.saturating_sub(1);\n```"
     }
   },
   {
@@ -1234,8 +1306,8 @@
   },
   {
     "id": "inefficient_to_string",
-    "group": "perf",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `.to_string()` on an `&&T` where\n`T` implements `ToString` directly (like `&&str` or `&&String`).",
       "Why is this bad": "This bypasses the specialized implementation of\n`ToString` and instead goes through the more expensive string formatting\nfacilities.",
@@ -1325,8 +1397,8 @@
     "group": "restriction",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for plain integer arithmetic.",
-      "Why is this bad": "This is only checked against overflow in debug builds.\nIn some applications one wants explicitly checked, wrapping or saturating\narithmetic.",
+      "What it does": "Checks for integer arithmetic operations which could overflow or panic.\n\nSpecifically, checks for any operators (`+`, `-`, `*`, `<<`, etc) which are capable\nof overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor which can panic (`/`, `%`). No bounds analysis or sophisticated reasoning is\nattempted.",
+      "Why is this bad": "Integer overflow will trigger a panic in debug builds or will wrap in\nrelease mode. Division by zero will cause a panic in either mode. In some applications one\nwants explicitly checked, wrapping or saturating arithmetic.",
       "Known problems": "None.",
       "Example": "```rust\na + 1;\n```"
     }
@@ -1493,6 +1565,18 @@
     }
   },
   {
+    "id": "large_const_arrays",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for large `const` arrays that should\nbe defined as `static` instead.",
+      "Why is this bad": "Performance: const variables are inlined upon use.\nStatic items result in only one instance and has a fixed location in memory.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\n// Bad\npub const a = [0u32; 1_000_000];\n\n// Good\npub static a = [0u32; 1_000_000];\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `array-size-threshold: u64`: The maximum allowed size for arrays on the stack (defaults to `512_000`)."
+    }
+  },
+  {
     "id": "large_digit_groups",
     "group": "pedantic",
     "level": "Allow",
@@ -1509,9 +1593,10 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for large size differences between variants on\n`enum`s.",
-      "Why is this bad": "Enum size is bounded by the largest variant. Having a\nlarge variant\ncan penalize the memory layout of that enum.",
-      "Known problems": "None.",
-      "Example": "```rust\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n```"
+      "Why is this bad": "Enum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.",
+      "Known problems": "This lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.",
+      "Example": "```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-size-threshold: u64`: The maximum size of a enum's variant to avoid box suggestion (defaults to `200`)."
     }
   },
   {
@@ -1522,7 +1607,8 @@
       "What it does": "Checks for local arrays that may be too large.",
       "Why is this bad": "Large local arrays may cause stack overflow.",
       "Known problems": "None.",
-      "Example": "```rust,ignore\nlet a = [0u32; 1_000_000];\n```"
+      "Example": "```rust,ignore\nlet a = [0u32; 1_000_000];\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `array-size-threshold: u64`: The maximum allowed size for arrays on the stack (defaults to `512_000`)."
     }
   },
   {
@@ -1582,8 +1668,8 @@
   },
   {
     "id": "let_unit_value",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for binding a unit value.",
       "Why is this bad": "A unit value cannot usefully be used anywhere. So\nbinding one is kind of pointless.",
@@ -1625,6 +1711,17 @@
     }
   },
   {
+    "id": "macro_use_imports",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `#[macro_use] use...`.",
+      "Why is this bad": "Since the Rust 2018 edition you can import\nmacro's directly, this is considered idiomatic.",
+      "Known problems": "This lint does not generate an auto-applicable suggestion.",
+      "Example": "```rust\n#[macro_use]\nuse lazy_static;\n```"
+    }
+  },
+  {
     "id": "main_recursion",
     "group": "style",
     "level": "Warn",
@@ -1653,7 +1750,7 @@
     "docs": {
       "What it does": "Checks for `.checked_add/sub(x).unwrap_or(MAX/MIN)`.",
       "Why is this bad": "These can be written simply with `saturating_add/sub` methods.",
-      "Example": "```rust\nlet add = x.checked_add(y).unwrap_or(u32::max_value());\nlet sub = x.checked_sub(y).unwrap_or(u32::min_value());\n```\n\ncan be written using dedicated methods for saturating addition/subtraction as:\n\n```rust\nlet add = x.saturating_add(y);\nlet sub = x.saturating_sub(y);\n```"
+      "Example": "```rust\nlet add = x.checked_add(y).unwrap_or(u32::MAX);\nlet sub = x.checked_sub(y).unwrap_or(u32::MIN);\n```\n\ncan be written using dedicated methods for saturating addition/subtraction as:\n\n```rust\nlet add = x.saturating_add(y);\nlet sub = x.saturating_sub(y);\n```"
     }
   },
   {
@@ -1675,7 +1772,8 @@
       "What it does": "Checks for too many variables whose name consists of a\nsingle character.",
       "Why is this bad": "It's hard to memorize what a variable means without a\ndescriptive name.",
       "Known problems": "None?",
-      "Example": "```ignore\nlet (a, b, c, d, e, f, g) = (...);\n```"
+      "Example": "```ignore\nlet (a, b, c, d, e, f, g) = (...);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `single-char-binding-names-threshold: u64`: The maximum number of single char bindings a scope may have (defaults to `4`)."
     }
   },
   {
@@ -2255,7 +2353,7 @@
       "What it does": "Checks for the usage of negated comparison operators on types which only implement\n`PartialOrd` (e.g., `f64`).",
       "Why is this bad": "These operators make it easy to forget that the underlying types actually allow not only three\npotential Orderings (Less, Equal, Greater) but also a fourth one (Uncomparable). This is\nespecially easy to miss if the operator based comparison result is negated.",
       "Known problems": "None.",
-      "Example": "```rust\nuse std::cmp::Ordering;\n\n// Bad\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = !(a <= b);\n\n// Good\nlet a = 1.0;\nlet b = std::f64::NAN;\n\nlet _not_less_or_equal = match a.partial_cmp(&b) {\n    None | Some(Ordering::Greater) => true,\n    _ => false,\n};\n```"
+      "Example": "```rust\nuse std::cmp::Ordering;\n\n// Bad\nlet a = 1.0;\nlet b = f64::NAN;\n\nlet _not_less_or_equal = !(a <= b);\n\n// Good\nlet a = 1.0;\nlet b = f64::NAN;\n\nlet _not_less_or_equal = match a.partial_cmp(&b) {\n    None | Some(Ordering::Greater) => true,\n    _ => false,\n};\n```"
     }
   },
   {
@@ -2285,10 +2383,10 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for `new` not returning `Self`.",
+      "What it does": "Checks for `new` not returning a type that contains `Self`.",
       "Why is this bad": "As a convention, `new` methods are used to make a new\ninstance of a type.",
       "Known problems": "None.",
-      "Example": "```rust\nimpl Foo {\n    fn new() -> NotAFoo {\n    }\n}\n```"
+      "Example": "```rust\nimpl Foo {\n    fn new() -> NotAFoo {\n    }\n}\n```\n\n```rust\nimpl Foo {\n    // Good. Return type contains `Self`\n    fn new() -> Result<Foo, FooError> {\n        # Ok(Foo)\n    }\n}\n```\n\n```rust\nstruct Bar(Foo);\nimpl Foo {\n    // Bad. The type name must contain `Self`.\n    fn new() -> Bar {\n        # Bar(Foo)\n    }\n}\n```"
     }
   },
   {
@@ -2469,13 +2567,13 @@
   },
   {
     "id": "option_option",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for use of `Option<Option<_>>` in function signatures and type\ndefinitions",
-      "Why is this bad": "`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.",
+      "Why is this bad": "`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.\n\nIf you have a case where `Some(Some(_))`, `Some(None)` and `None` are distinct cases,\nconsider a custom `enum` instead, with clear names for each case.",
       "Known problems": "None.",
-      "Example": "```rust\nfn x() -> Option<Option<u32>> {\n    None\n}\n```"
+      "Example": "```rust\nfn get_data() -> Option<Option<u32>> {\n    None\n}\n```\n\nBetter:\n\n```rust\npub enum Contents {\n    Data(Vec<u8>), // Was Some(Some(Vec<u8>))\n    NotYetFetched, // Was Some(None)\n    None,          // Was None\n}\n\nfn get_data() -> Contents {\n    Contents::None\n}\n```"
     }
   },
   {
@@ -2730,6 +2828,17 @@
     }
   },
   {
+    "id": "redundant_allocation",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for use of redundant allocations anywhere in the code.",
+      "Why is this bad": "Expressions such as `Rc<&T>`, `Rc<Rc<T>>`, `Rc<Box<T>>`, `Box<&T>`\nadd an unnecessary level of indirection.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn foo(bar: Rc<&usize>) {}\n```\n\nBetter:\n\n```rust\nfn foo(bar: &usize) {}\n```"
+    }
+  },
+  {
     "id": "redundant_clone",
     "group": "perf",
     "level": "Warn",
@@ -2807,6 +2916,17 @@
     }
   },
   {
+    "id": "redundant_pub_crate",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for items declared `pub(crate)` that are not crate visible because they\nare inside a private module.",
+      "Why is this bad": "Writing `pub(crate)` is misleading when it's redundant due to the parent\nmodule's visibility.",
+      "Known problems": "None.",
+      "Example": "```rust\nmod internal {\n    pub(crate) fn internal_fn() { }\n}\n```\nThis function is not visible outside the module and it can be declared with `pub` or\nprivate visibility\n```rust\nmod internal {\n    pub fn internal_fn() { }\n}\n```"
+    }
+  },
+  {
     "id": "redundant_static_lifetimes",
     "group": "style",
     "level": "Warn",
@@ -2840,13 +2960,11 @@
   },
   {
     "id": "replace_consts",
-    "group": "pedantic",
-    "level": "Allow",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "Checks for usage of standard library\n`const`s that could be replaced by `const fn`s.",
-      "Why is this bad": "`const fn`s exist",
-      "Known problems": "None.",
-      "Example": "```rust\nlet x = std::u32::MIN;\nlet y = std::u32::MAX;\n```\n\nCould be written:\n\n```rust\nlet x = u32::min_value();\nlet y = u32::max_value();\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "Associated-constants are now preferred."
     }
   },
   {
@@ -2869,6 +2987,17 @@
       "Why is this bad": "`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.",
       "Known problems": "None.",
       "Example": "Using expect on an `Result`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"one\");\n```\n\nBetter:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres?;\n```"
+    }
+  },
+  {
+    "id": "result_map_or_into_option",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.map_or(None, Some)`.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.ok()`.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust\nassert_eq!(Some(1), r.map_or(None, Some));\n```\n\nGood:\n```rust\nassert_eq!(Some(1), r.ok());\n```"
     }
   },
   {
@@ -3159,7 +3288,8 @@
       "What it does": "Checks for excessive\nuse of bools in structs.",
       "Why is this bad": "Excessive bools in a struct\nis often a sign that it's used as a state machine,\nwhich is much better implemented as an enum.\nIf it's not the case, excessive bools usually benefit\nfrom refactoring into two-variant enums for better\nreadability and API.",
       "Known problems": "None.",
-      "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```"
+      "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-struct-bools: u64`: The maximum number of bools a struct can have (defaults to `3`)."
     }
   },
   {
@@ -3301,7 +3431,8 @@
       "What it does": "Checks for functions with too many parameters.",
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.",
       "Known problems": "None.",
-      "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {\n    // ..\n}\n```"
+      "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {\n    // ..\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-many-arguments-threshold: u64`: The maximum number of argument a function or method can have (defaults to `7`)."
     }
   },
   {
@@ -3312,7 +3443,8 @@
       "What it does": "Checks for functions with a large amount of lines.",
       "Why is this bad": "Functions with a lot of lines are harder to understand\ndue to having to look at a larger amount of code to understand what the\nfunction is doing. Consider splitting the body of the function into\nmultiple functions.",
       "Known problems": "None.",
-      "Example": "``` rust\nfn im_too_long() {\nprintln!(\"\");\n// ... 100 more LoC\nprintln!(\"\");\n}\n```"
+      "Example": "``` rust\nfn im_too_long() {\nprintln!(\"\");\n// ... 100 more LoC\nprintln!(\"\");\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-many-lines-threshold: u64`: The maximum number of lines a function or method can have (defaults to `100`)."
     }
   },
   {
@@ -3427,13 +3559,14 @@
   },
   {
     "id": "trivially_copy_pass_by_ref",
-    "group": "perf",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for functions taking arguments by reference, where\nthe argument type is `Copy` and small enough to be more efficient to always\npass by value.",
       "Why is this bad": "In many calling conventions instances of structs will\nbe passed through registers if they fit into two or less general purpose\nregisters.",
       "Known problems": "This lint is target register size dependent, it is\nlimited to 32-bit to try and reduce portability problems between 32 and\n64-bit, but if you are compiling for 8 or 16-bit targets then the limit\nwill be different.\n\nThe configuration option `trivial_copy_size_limit` can be set to override\nthis limit for a project.\n\nThis lint attempts to allow passing arguments by reference if a reference\nto that argument is returned. This is implemented by comparing the lifetime\nof the argument and return value for equality. However, this can cause\nfalse positives in cases involving multiple lifetimes that are bounded by\neach other.",
-      "Example": "```rust\n// Bad\nfn foo(v: &u32) {}\n```\n\n```rust\n// Better\nfn foo(v: u32) {}\n```"
+      "Example": "```rust\n// Bad\nfn foo(v: &u32) {}\n```\n\n```rust\n// Better\nfn foo(v: u32) {}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `trivial-copy-size-limit: Option<u64>`: The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference. (defaults to `None`)."
     }
   },
   {
@@ -3455,7 +3588,8 @@
       "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.",
       "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.",
       "Known problems": "None.",
-      "Example": "```rust\nstruct Foo {\n    inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n```"
+      "Example": "```rust\nstruct Foo {\n    inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250`)."
     }
   },
   {
@@ -3635,13 +3769,24 @@
   },
   {
     "id": "unreadable_literal",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Warns if a long integral or floating-point constant does\nnot contain underscores.",
       "Why is this bad": "Reading long numbers is difficult without separators.",
       "Known problems": "None.",
       "Example": "```rust\nlet x: u64 = 61864918973511;\n```"
+    }
+  },
+  {
+    "id": "unsafe_derive_deserialize",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for deriving `serde::Deserialize` on a type that\nhas methods using `unsafe`.",
+      "Why is this bad": "Deriving `serde::Deserialize` will create a constructor\nthat may violate invariants hold by another constructor.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nuse serde::Deserialize;\n\n#[derive(Deserialize)]\npub struct Foo {\n    // ..\n}\n\nimpl Foo {\n    pub fn new() -> Self {\n        // setup here ..\n    }\n\n    pub unsafe fn parts() -> (&str, &str) {\n        // assumes invariants hold\n    }\n}\n```"
     }
   },
   {
@@ -3833,8 +3978,8 @@
   },
   {
     "id": "useless_transmute",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for transmutes to the original type of the object\nand transmutes that could be a cast.",
       "Why is this bad": "Readability. The code tricks people into thinking that\nsomething complex is going on.",
@@ -3861,7 +4006,8 @@
       "What it does": "Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.",
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.",
       "Known problems": "Vec<Box<T: Sized>> makes sense if T is a large type (see #3530,\n1st comment).",
-      "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```"
+      "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `vec-box-size-threshold: u64`: The size of the boxed type in bytes, where boxing in a `Vec` is allowed (defaults to `4096`)."
     }
   },
   {
@@ -3872,7 +4018,30 @@
       "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`",
       "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`",
       "Known problems": "llvm generates better code for `x & 15 == 0` on x86",
-      "Example": "```rust\nif x & 0x1111 == 0 { }\n```"
+      "Example": "```rust\nif x & 0b1111 == 0 { }\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `verbose-bit-mask-threshold: u64`: The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros' (defaults to `1`)."
+    }
+  },
+  {
+    "id": "verbose_file_reads",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for use of File::read_to_end and File::read_to_string.",
+      "Why is this bad": "`fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.\nSee also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)",
+      "Known problems": "None.",
+      "Example": "```rust,no_run\nlet mut f = File::open(\"foo.txt\").unwrap();\nlet mut bytes = Vec::new();\nf.read_to_end(&mut bytes).unwrap();\n```\nCan be written more concisely as\n```rust,no_run\nlet mut bytes = fs::read(\"foo.txt\").unwrap();\n```"
+    }
+  },
+  {
+    "id": "vtable_address_comparisons",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for comparisons with an address of a trait vtable.",
+      "Why is this bad": "Comparing trait objects pointers compares an vtable addresses which\nare not guaranteed to be unique and could vary between different code generation units.\nFurthermore vtables for different types could have the same address after being merged\ntogether.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nlet a: Rc<dyn Trait> = ...\nlet b: Rc<dyn Trait> = ...\nif Rc::ptr_eq(&a, &b) {\n    ...\n}\n```"
     }
   },
   {
@@ -3936,7 +4105,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for wildcard imports `use _::*`.",
-      "Why is this bad": "wildcard imports can polute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.",
+      "Why is this bad": "wildcard imports can polute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.\n\nNote that this will not warn about wildcard imports from modules named `prelude`; many\ncrates (including the standard library) provide modules named \"prelude\" specifically\ndesigned for wildcard import.",
       "Known problems": "If macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.",
       "Example": "Bad:\n```rust,ignore\nuse crate1::*;\n\nfoo();\n```\n\nGood:\n```rust,ignore\nuse crate1::foo;\n\nfoo();\n```"
     }
@@ -4024,7 +4193,7 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for `0.0 / 0.0`.",
-      "Why is this bad": "It's less readable than `std::f32::NAN` or\n`std::f64::NAN`.",
+      "Why is this bad": "It's less readable than `f32::NAN` or `f64::NAN`.",
       "Known problems": "None.",
       "Example": "```rust\n0.0f32 / 0.0;\n```"
     }
