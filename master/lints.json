@@ -1822,8 +1822,8 @@
   },
   {
     "id": "match_bool",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for matches where match expression is a `bool`. It\nsuggests to replace the expression with an `if...else` block.",
       "Why is this bad": "It makes the code less readable.",
