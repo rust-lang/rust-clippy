@@ -1973,6 +1973,17 @@
     }
   },
   {
+    "id": "mismatched_target_os",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for cfg attributes having operating systems used in target family position.",
+      "Why is this bad": "The configuration option will not be recognised and the related item will not be included\nby the conditional compilation engine.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust\n#[cfg(linux)]\nfn conditional() { }\n```\n\nGood:\n```rust\n#[cfg(target_os = \"linux\")]\nfn conditional() { }\n```\n\nOr:\n```rust\n#[cfg(unix)]\nfn conditional() { }\n```"
+    }
+  },
+  {
     "id": "misrefactored_assign_op",
     "group": "complexity",
     "level": "Warn",
