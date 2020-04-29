@@ -1,3 +1,11 @@
+error: this arithmetic operation will overflow
+  --> $DIR/implicit_saturating_sub.rs:31:25
+   |
+LL |     let mut u_16: u16 = end_16 - start_16;
+   |                         ^^^^^^^^^^^^^^^^^ attempt to subtract with overflow
+   |
+   = note: `#[deny(arithmetic_overflow)]` on by default
+
 error: Implicitly performing saturating subtraction
   --> $DIR/implicit_saturating_sub.rs:13:5
    |
@@ -184,5 +192,5 @@ LL | |         i_64 -= 1;
 LL | |     }
    | |_____^ help: try: `i_64 = i_64.saturating_sub(1);`
 
-error: aborting due to 23 previous errors
+error: aborting due to 24 previous errors
 
