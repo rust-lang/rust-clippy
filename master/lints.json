@@ -1833,8 +1833,8 @@
   },
   {
     "id": "match_on_vec_items",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for `match vec[idx]` or `match vec[n..m]`.",
       "Why is this bad": "This can panic at runtime.",
