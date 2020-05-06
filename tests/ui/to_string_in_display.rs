@@ -1,4 +1,4 @@
-#![warn(clippy::no_to_string_in_display)]
+#![warn(clippy::to_string_in_display)]
 
 use std::fmt;
 

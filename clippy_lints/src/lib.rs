@@ -279,7 +279,6 @@ mod neg_cmp_op_on_partial_ord;
 mod neg_multiply;
 mod new_without_default;
 mod no_effect;
-mod no_to_string_in_display;
 mod non_copy_const;
 mod non_expressive_names;
 mod open_options;
@@ -311,6 +310,7 @@ mod swap;
 mod tabs_in_doc_comments;
 mod temporary_assignment;
 mod to_digit_is_some;
+mod to_string_in_display;
 mod trait_bounds;
 mod transmute;
 mod transmuting_null;
@@ -745,7 +745,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &new_without_default::NEW_WITHOUT_DEFAULT,
         &no_effect::NO_EFFECT,
         &no_effect::UNNECESSARY_OPERATION,
-        &no_to_string_in_display::NO_TO_STRING_IN_DISPLAY,
         &non_copy_const::BORROW_INTERIOR_MUTABLE_CONST,
         &non_copy_const::DECLARE_INTERIOR_MUTABLE_CONST,
         &non_expressive_names::JUST_UNDERSCORES_AND_DIGITS,
@@ -799,6 +798,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &tabs_in_doc_comments::TABS_IN_DOC_COMMENTS,
         &temporary_assignment::TEMPORARY_ASSIGNMENT,
         &to_digit_is_some::TO_DIGIT_IS_SOME,
+        &to_string_in_display::TO_STRING_IN_DISPLAY,
         &trait_bounds::TYPE_REPETITION_IN_BOUNDS,
         &transmute::CROSSPOINTER_TRANSMUTE,
         &transmute::TRANSMUTE_BYTES_TO_STR,
@@ -1019,7 +1019,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| box reference::DerefAddrOf);
     store.register_early_pass(|| box reference::RefInDeref);
     store.register_early_pass(|| box double_parens::DoubleParens);
-    store.register_late_pass(|| box no_to_string_in_display::NoToStringInDisplay);
+    store.register_late_pass(|| box to_string_in_display::ToStringInDisplay);
     store.register_early_pass(|| box unsafe_removed_from_name::UnsafeNameRemoval);
     store.register_early_pass(|| box if_not_else::IfNotElse);
     store.register_early_pass(|| box else_if_without_else::ElseIfWithoutElse);
@@ -1365,7 +1365,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&new_without_default::NEW_WITHOUT_DEFAULT),
         LintId::of(&no_effect::NO_EFFECT),
         LintId::of(&no_effect::UNNECESSARY_OPERATION),
-        LintId::of(&no_to_string_in_display::NO_TO_STRING_IN_DISPLAY),
         LintId::of(&non_copy_const::BORROW_INTERIOR_MUTABLE_CONST),
         LintId::of(&non_copy_const::DECLARE_INTERIOR_MUTABLE_CONST),
         LintId::of(&non_expressive_names::JUST_UNDERSCORES_AND_DIGITS),
@@ -1406,6 +1405,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&tabs_in_doc_comments::TABS_IN_DOC_COMMENTS),
         LintId::of(&temporary_assignment::TEMPORARY_ASSIGNMENT),
         LintId::of(&to_digit_is_some::TO_DIGIT_IS_SOME),
+        LintId::of(&to_string_in_display::TO_STRING_IN_DISPLAY),
         LintId::of(&transmute::CROSSPOINTER_TRANSMUTE),
         LintId::of(&transmute::TRANSMUTE_BYTES_TO_STR),
         LintId::of(&transmute::TRANSMUTE_FLOAT_TO_INT),
@@ -1668,7 +1668,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&misc::FLOAT_CMP),
         LintId::of(&misc::MODULO_ONE),
         LintId::of(&mut_key::MUTABLE_KEY_TYPE),
-        LintId::of(&no_to_string_in_display::NO_TO_STRING_IN_DISPLAY),
         LintId::of(&non_copy_const::BORROW_INTERIOR_MUTABLE_CONST),
         LintId::of(&non_copy_const::DECLARE_INTERIOR_MUTABLE_CONST),
         LintId::of(&open_options::NONSENSICAL_OPEN_OPTIONS),
@@ -1679,6 +1678,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&suspicious_trait_impl::SUSPICIOUS_ARITHMETIC_IMPL),
         LintId::of(&suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL),
         LintId::of(&swap::ALMOST_SWAPPED),
+        LintId::of(&to_string_in_display::TO_STRING_IN_DISPLAY),
         LintId::of(&transmute::UNSOUND_COLLECTION_TRANSMUTE),
         LintId::of(&transmute::WRONG_TRANSMUTE),
         LintId::of(&transmuting_null::TRANSMUTING_NULL),

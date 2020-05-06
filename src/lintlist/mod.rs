@@ -1530,13 +1530,6 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         module: "no_effect",
     },
     Lint {
-        name: "no_to_string_in_display",
-        group: "correctness",
-        desc: "to_string method used while implementing Display trait",
-        deprecation: None,
-        module: "no_to_string_in_display",
-    },
-    Lint {
         name: "non_ascii_literal",
         group: "pedantic",
         desc: "using any literal non-ASCII chars in a string literal instead of using the `\\\\u` escape",
@@ -2144,6 +2137,13 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         desc: "`char.is_digit()` is clearer",
         deprecation: None,
         module: "to_digit_is_some",
+    },
+    Lint {
+        name: "to_string_in_display",
+        group: "correctness",
+        desc: "to_string method used while implementing Display trait",
+        deprecation: None,
+        module: "to_string_in_display",
     },
     Lint {
         name: "todo",

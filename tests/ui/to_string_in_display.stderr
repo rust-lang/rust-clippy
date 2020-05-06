@@ -1,10 +1,10 @@
 error: Using to_string in fmt::Display implementation might lead to infinite recursion
-  --> $DIR/no_to_string_in_display.rs:24:25
+  --> $DIR/to_string_in_display.rs:24:25
    |
 LL |         write!(f, "{}", self.to_string())
    |                         ^^^^^^^^^^^^^^^^
    |
-   = note: `-D clippy::no-to-string-in-display` implied by `-D warnings`
+   = note: `-D clippy::to-string-in-display` implied by `-D warnings`
 
 error: aborting due to previous error
 

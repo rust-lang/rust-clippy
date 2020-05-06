@@ -38,14 +38,14 @@ declare_clippy_lint! {
     ///     }
     /// }
     /// ```
-    pub NO_TO_STRING_IN_DISPLAY,
+    pub TO_STRING_IN_DISPLAY,
     correctness,
     "to_string method used while implementing Display trait"
 }
 
-declare_lint_pass!(NoToStringInDisplay => [NO_TO_STRING_IN_DISPLAY]);
+declare_lint_pass!(ToStringInDisplay => [TO_STRING_IN_DISPLAY]);
 
-impl LateLintPass<'_, '_> for NoToStringInDisplay {
+impl LateLintPass<'_, '_> for ToStringInDisplay {
     fn check_expr(&mut self, cx: &LateContext<'_, '_>, expr: &Expr<'_>) {
         let parent_id = cx.tcx.hir().get_parent_item(expr.hir_id);
         let parent_node = cx.tcx.hir().find(parent_id);
@@ -67,7 +67,7 @@ impl LateLintPass<'_, '_> for NoToStringInDisplay {
             then {
                 span_lint(
                     cx,
-                    NO_TO_STRING_IN_DISPLAY,
+                    TO_STRING_IN_DISPLAY,
                     expr.span,
                     "Using to_string in fmt::Display implementation might lead to infinite recursion",
                 );

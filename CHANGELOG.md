@@ -1487,7 +1487,6 @@ Released 2018-09-13
 [`new_ret_no_self`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_ret_no_self
 [`new_without_default`]: https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
 [`no_effect`]: https://rust-lang.github.io/rust-clippy/master/index.html#no_effect
-[`no_to_string_in_display`]: https://rust-lang.github.io/rust-clippy/master/index.html#no_to_string_in_display
 [`non_ascii_literal`]: https://rust-lang.github.io/rust-clippy/master/index.html#non_ascii_literal
 [`nonminimal_bool`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonminimal_bool
 [`nonsensical_open_options`]: https://rust-lang.github.io/rust-clippy/master/index.html#nonsensical_open_options
@@ -1580,6 +1579,7 @@ Released 2018-09-13
 [`temporary_assignment`]: https://rust-lang.github.io/rust-clippy/master/index.html#temporary_assignment
 [`temporary_cstring_as_ptr`]: https://rust-lang.github.io/rust-clippy/master/index.html#temporary_cstring_as_ptr
 [`to_digit_is_some`]: https://rust-lang.github.io/rust-clippy/master/index.html#to_digit_is_some
+[`to_string_in_display`]: https://rust-lang.github.io/rust-clippy/master/index.html#to_string_in_display
 [`todo`]: https://rust-lang.github.io/rust-clippy/master/index.html#todo
 [`too_many_arguments`]: https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments
 [`too_many_lines`]: https://rust-lang.github.io/rust-clippy/master/index.html#too_many_lines
