@@ -1532,7 +1532,7 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
     Lint {
         name: "no_to_string_in_display",
         group: "correctness",
-        desc: "default lint description",
+        desc: "to_string method used while implementing Display trait",
         deprecation: None,
         module: "no_to_string_in_display",
     },
