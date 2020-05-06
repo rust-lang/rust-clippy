@@ -1019,6 +1019,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| box reference::DerefAddrOf);
     store.register_early_pass(|| box reference::RefInDeref);
     store.register_early_pass(|| box double_parens::DoubleParens);
+    store.register_late_pass(|| box no_to_string_in_display::NoToStringInDisplay);
     store.register_early_pass(|| box unsafe_removed_from_name::UnsafeNameRemoval);
     store.register_early_pass(|| box if_not_else::IfNotElse);
     store.register_early_pass(|| box else_if_without_else::ElseIfWithoutElse);
