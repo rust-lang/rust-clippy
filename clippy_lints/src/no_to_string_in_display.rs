@@ -1,6 +1,6 @@
 use crate::utils::{match_def_path, paths, span_lint};
 use if_chain::if_chain;
-use rustc_hir::*;
+use rustc_hir::{Expr, ExprKind, FnDecl, FnSig, ImplItem, ImplItemKind, MutTy, Node, Path, QPath, Ty, TyKind, def};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 
