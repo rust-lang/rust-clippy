@@ -279,6 +279,7 @@ mod neg_cmp_op_on_partial_ord;
 mod neg_multiply;
 mod new_without_default;
 mod no_effect;
+mod no_to_string_in_display;
 mod non_copy_const;
 mod non_expressive_names;
 mod open_options;
@@ -744,6 +745,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &new_without_default::NEW_WITHOUT_DEFAULT,
         &no_effect::NO_EFFECT,
         &no_effect::UNNECESSARY_OPERATION,
+        &no_to_string_in_display::NO_TO_STRING_IN_DISPLAY,
         &non_copy_const::BORROW_INTERIOR_MUTABLE_CONST,
         &non_copy_const::DECLARE_INTERIOR_MUTABLE_CONST,
         &non_expressive_names::JUST_UNDERSCORES_AND_DIGITS,
@@ -1157,6 +1159,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&mut_mut::MUT_MUT),
         LintId::of(&needless_continue::NEEDLESS_CONTINUE),
         LintId::of(&needless_pass_by_value::NEEDLESS_PASS_BY_VALUE),
+        LintId::of(&no_to_string_in_display::NO_TO_STRING_IN_DISPLAY),
         LintId::of(&non_expressive_names::SIMILAR_NAMES),
         LintId::of(&ranges::RANGE_PLUS_ONE),
         LintId::of(&shadow::SHADOW_UNRELATED),

@@ -1530,6 +1530,13 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         module: "no_effect",
     },
     Lint {
+        name: "no_to_string_in_display",
+        group: "correctness",
+        desc: "default lint description",
+        deprecation: None,
+        module: "no_to_string_in_display",
+    },
+    Lint {
         name: "non_ascii_literal",
         group: "pedantic",
         desc: "using any literal non-ASCII chars in a string literal instead of using the `\\\\u` escape",
