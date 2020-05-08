@@ -3786,7 +3786,7 @@
       "What it does": "Checks for structure field patterns bound to wildcards.",
       "Why is this bad": "Using `..` instead is shorter and leaves the focus on\nthe fields that are actually bound.",
       "Known problems": "None.",
-      "Example": "```ignore\nlet { a: _, b: ref b, c: _ } = ..\n```"
+      "Example": "```rust\nlet f = Foo { a: 0, b: 0, c: 0 };\n\n// Bad\nmatch f {\n    Foo { a: _, b: 0, .. } => {},\n    Foo { a: _, b: _, c: _ } => {},\n}\n\n// Good\nmatch f {\n    Foo { b: 0, .. } => {},\n    Foo { .. } => {},\n}\n```"
     }
   },
   {
