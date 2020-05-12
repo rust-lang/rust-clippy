@@ -1,7 +1,10 @@
-#![warn(clippy::while_let_on_iterator)]
-#![allow(clippy::never_loop)]
+// run-rustfix
 
-fn main() {
+#![warn(clippy::while_let_on_iterator)]
+#![allow(clippy::never_loop, unreachable_code, unused_mut)]
+#![feature(or_patterns)]
+
+fn base() {
     let mut iter = 1..20;
     while let Option::Some(x) = iter.next() {
         println!("{}", x);
@@ -26,26 +29,26 @@ fn main() {
 
     // the following shouldn't warn because it can't be written with a for loop
     let mut iter = 1u32..20;
-    while let Some(x) = iter.next() {
+    while let Some(_) = iter.next() {
         println!("next: {:?}", iter.next())
     }
 
     // neither can this
     let mut iter = 1u32..20;
-    while let Some(x) = iter.next() {
+    while let Some(_) = iter.next() {
         println!("next: {:?}", iter.next());
     }
 
     // or this
     let mut iter = 1u32..20;
-    while let Some(x) = iter.next() {
+    while let Some(_) = iter.next() {
         break;
     }
     println!("Remaining iter {:?}", iter);
 
     // or this
     let mut iter = 1u32..20;
-    while let Some(x) = iter.next() {
+    while let Some(_) = iter.next() {
         iter = 1..20;
     }
 }
@@ -75,24 +78,80 @@ fn refutable() {
     // */
 }
 
+fn refutable2() {
+    // Issue 3780
+    {
+        let v = vec![1, 2, 3];
+        let mut it = v.windows(2);
+        while let Some([x, y]) = it.next() {
+            println!("x: {}", x);
+            println!("y: {}", y);
+        }
+
+        let mut it = v.windows(2);
+        while let Some([x, ..]) = it.next() {
+            println!("x: {}", x);
+        }
+
+        let mut it = v.windows(2);
+        while let Some([.., y]) = it.next() {
+            println!("y: {}", y);
+        }
+
+        let mut it = v.windows(2);
+        while let Some([..]) = it.next() {}
+
+        let v = vec![[1], [2], [3]];
+        let mut it = v.iter();
+        while let Some([1]) = it.next() {}
+
+        let mut it = v.iter();
+        while let Some([_x]) = it.next() {}
+    }
+
+    // binding
+    {
+        let v = vec![1, 2, 3];
+        let mut it = v.iter();
+        while let Some(x @ 1) = it.next() {
+            println!("{}", x);
+        }
+
+        let v = vec![[1], [2], [3]];
+        let mut it = v.iter();
+        while let Some(x @ [_]) = it.next() {
+            println!("{:?}", x);
+        }
+    }
+
+    // false negative
+    {
+        let v = vec![1, 2, 3];
+        let mut it = v.iter().map(Some);
+        while let Some(Some(_) | None) = it.next() {
+            println!("1");
+        }
+    }
+}
+
 fn nested_loops() {
     let a = [42, 1337];
     let mut y = a.iter();
     loop {
         // x is reused, so don't lint here
-        while let Some(v) = y.next() {}
+        while let Some(_) = y.next() {}
     }
 
     let mut y = a.iter();
     for _ in 0..2 {
-        while let Some(v) = y.next() {
+        while let Some(_) = y.next() {
             // y is reused, don't lint
         }
     }
 
     loop {
         let mut y = a.iter();
-        while let Some(v) = y.next() {
+        while let Some(_) = y.next() {
             // use a for loop here
         }
     }
@@ -117,9 +176,7 @@ fn issue2965() {
     let mut values = HashSet::new();
     values.insert(1);
 
-    while let Some(..) = values.iter().next() {
-        values.remove(&1);
-    }
+    while let Some(..) = values.iter().next() {}
 }
 
 fn issue3670() {
@@ -129,4 +186,33 @@ fn issue3670() {
     while let Some(elem) = iter.next() {
         let _ = elem.or_else(|| *iter.next()?);
     }
+}
+
+fn issue1654() {
+    // should not lint if the iterator is generated on every iteration
+    use std::collections::HashSet;
+    let mut values = HashSet::new();
+    values.insert(1);
+
+    while let Some(..) = values.iter().next() {
+        values.remove(&1);
+    }
+
+    while let Some(..) = values.iter().map(|x| x + 1).next() {}
+
+    let chars = "Hello, World!".char_indices();
+    while let Some((i, ch)) = chars.clone().next() {
+        println!("{}: {}", i, ch);
+    }
+}
+
+fn main() {
+    base();
+    refutable();
+    refutable2();
+    nested_loops();
+    issue1121();
+    issue2965();
+    issue3670();
+    issue1654();
 }

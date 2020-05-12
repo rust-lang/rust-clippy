@@ -1,6 +1,6 @@
 use crate::utils::{
-    fn_has_unsatisfiable_preds, has_drop, is_copy, match_def_path, match_type, paths, snippet_opt, span_lint_hir,
-    span_lint_hir_and_then, walk_ptrs_ty_depth,
+    fn_has_unsatisfiable_preds, has_drop, is_copy, is_type_diagnostic_item, match_def_path, match_type, paths,
+    snippet_opt, span_lint_hir, span_lint_hir_and_then, walk_ptrs_ty_depth,
 };
 use if_chain::if_chain;
 use rustc_data_structures::{fx::FxHashMap, transitive_relation::TransitiveRelation};
@@ -113,7 +113,8 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for RedundantClone {
 
             let from_borrow = match_def_path(cx, fn_def_id, &paths::CLONE_TRAIT_METHOD)
                 || match_def_path(cx, fn_def_id, &paths::TO_OWNED_METHOD)
-                || (match_def_path(cx, fn_def_id, &paths::TO_STRING_METHOD) && match_type(cx, arg_ty, &paths::STRING));
+                || (match_def_path(cx, fn_def_id, &paths::TO_STRING_METHOD)
+                    && is_type_diagnostic_item(cx, arg_ty, sym!(string_type)));
 
             let from_deref = !from_borrow
                 && (match_def_path(cx, fn_def_id, &paths::PATH_TO_PATH_BUF)
@@ -590,7 +591,7 @@ struct PossibleBorrowerMap<'a, 'tcx> {
 impl PossibleBorrowerMap<'_, '_> {
     /// Returns true if the set of borrowers of `borrowed` living at `at` matches with `borrowers`.
     fn only_borrowers(&mut self, borrowers: &[mir::Local], borrowed: mir::Local, at: mir::Location) -> bool {
-        self.maybe_live.seek_after(at);
+        self.maybe_live.seek_after_primary_effect(at);
 
         self.bitset.0.clear();
         let maybe_live = &mut self.maybe_live;
