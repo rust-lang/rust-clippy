@@ -4011,8 +4011,8 @@
   },
   {
     "id": "useless_let_if_seq",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for variable declarations immediately followed by a\nconditional affectation.",
       "Why is this bad": "This is not idiomatic Rust.",
