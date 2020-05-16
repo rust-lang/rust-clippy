@@ -109,25 +109,14 @@
     }
   },
   {
-    "id": "block_in_if_condition_expr",
+    "id": "blocks_in_if_conditions",
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for `if` conditions that use blocks to contain an\nexpression.",
-      "Why is this bad": "It isn't really Rust style, same as using parentheses\nto contain expressions.",
+      "What it does": "Checks for `if` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.",
+      "Why is this bad": "Style, using blocks in the condition makes it hard to read.",
       "Known problems": "None.",
-      "Example": "```rust\nif { true } { /* ... */ }\n```"
-    }
-  },
-  {
-    "id": "block_in_if_condition_stmt",
-    "group": "style",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Checks for `if` conditions that use blocks containing\nstatements, or conditions that use closures with blocks.",
-      "Why is this bad": "Using blocks in the condition makes it hard to read.",
-      "Known problems": "None.",
-      "Example": "```rust,ignore\nif { let x = somefunc(); x } {}\n// or\nif somefunc(|x| { x == 47 }) {}\n```"
+      "Examples": "```rust\n// Bad\nif { true } { /* ... */ }\n\n// Good\nif true { /* ... */ }\n```\n\n// or\n\n```rust\n\n// Bad\nif { let x = somefunc(); x } { /* ... */ }\n\n// Good\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```"
     }
   },
   {
@@ -817,6 +806,17 @@
     }
   },
   {
+    "id": "expect_used",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `.expect()` calls on `Option`s and `Result`s.",
+      "Why is this bad": "Usually it is better to handle the `None` or `Err` case.\nStill, for a lot of quick-and-dirty code, `expect` is a good choice, which is why\nthis lint is `Allow` by default.\n\n`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.",
+      "Known problems": "None.",
+      "Examples": "```rust,ignore\n\n// Bad\nopt.expect(\"one\");\n\n// Good\nlet opt = Some(1);\nopt?;\n```\n\n// or\n\n```rust\n\n// Bad\nres.expect(\"one\");\n\n// Good\nres?;\n```"
+    }
+  },
+  {
     "id": "expl_impl_clone_on_copy",
     "group": "pedantic",
     "level": "Allow",
@@ -1065,25 +1065,14 @@
     }
   },
   {
-    "id": "for_loop_over_option",
+    "id": "for_loops_over_fallibles",
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Checks for `for` loops over `Option` values.",
+      "What it does": "Checks for `for` loops over `Option` or `Result` values.",
       "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.",
       "Known problems": "None.",
-      "Example": "```ignore\nfor x in option {\n    ..\n}\n```\n\nThis should be\n```ignore\nif let Some(x) = option {\n    ..\n}\n```"
-    }
-  },
-  {
-    "id": "for_loop_over_result",
-    "group": "correctness",
-    "level": "Deny",
-    "docs": {
-      "What it does": "Checks for `for` loops over `Result` values.",
-      "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.",
-      "Known problems": "None.",
-      "Example": "```ignore\nfor x in result {\n    ..\n}\n```\n\nThis should be\n```ignore\nif let Ok(x) = result {\n    ..\n}\n```"
+      "Example": "```rust\n\n// Bad\nfor x in opt {\n    // ..\n}\n\n// Good\nif let Some(x) = opt {\n    // ..\n}\n```\n\n// or\n\n```rust\n\n// Bad\nfor x in &res {\n    // ..\n}\n\n// Good\nif let Ok(x) = res {\n    // ..\n}\n```"
     }
   },
   {
@@ -1832,6 +1821,17 @@
     }
   },
   {
+    "id": "map_unwrap_or",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.",
+      "Why is this bad": "Readability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.",
+      "Known problems": "The order of the arguments is not in execution order",
+      "Examples": "```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or(0);\n\n// Good\nx.map_or(0, |a| a + 1);\n```\n\n// or\n\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or_else(some_function);\n\n// Good\nx.map_or_else(some_function, |a| a + 1);\n```"
+    }
+  },
+  {
     "id": "match_as_ref",
     "group": "complexity",
     "level": "Warn",
@@ -2555,17 +2555,6 @@
     }
   },
   {
-    "id": "option_expect_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.expect()` calls on `Option`s.",
-      "Why is this bad": "Usually it is better to handle the `None` case. Still,\n for a lot of quick-and-dirty code, `expect` is a good choice, which is why\n this lint is `Allow` by default.",
-      "Known problems": "None.",
-      "Example": "Using expect on an `Option`:\n\n```rust\nlet opt = Some(1);\nopt.expect(\"one\");\n```\n\nBetter:\n\n```rust,ignore\nlet opt = Some(1);\nopt?;\n```"
-    }
-  },
-  {
     "id": "option_map_or_none",
     "group": "style",
     "level": "Warn",
@@ -2588,28 +2577,6 @@
     }
   },
   {
-    "id": "option_map_unwrap_or",
-    "group": "pedantic",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for usage of `_.map(_).unwrap_or(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or(_, _)`.",
-      "Known problems": "The order of the arguments is not in execution order",
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or(0);\n```"
-    }
-  },
-  {
-    "id": "option_map_unwrap_or_else",
-    "group": "pedantic",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for usage of `_.map(_).unwrap_or_else(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or_else(_, _)`.",
-      "Known problems": "The order of the arguments is not in execution order.",
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function);\n```"
-    }
-  },
-  {
     "id": "option_option",
     "group": "pedantic",
     "level": "Allow",
@@ -2618,17 +2585,6 @@
       "Why is this bad": "`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.\n\nIf you have a case where `Some(Some(_))`, `Some(None)` and `None` are distinct cases,\nconsider a custom `enum` instead, with clear names for each case.",
       "Known problems": "None.",
       "Example": "```rust\nfn get_data() -> Option<Option<u32>> {\n    None\n}\n```\n\nBetter:\n\n```rust\npub enum Contents {\n    Data(Vec<u8>), // Was Some(Some(Vec<u8>))\n    NotYetFetched, // Was Some(None)\n    None,          // Was None\n}\n\nfn get_data() -> Contents {\n    Contents::None\n}\n```"
-    }
-  },
-  {
-    "id": "option_unwrap_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Option`s.",
-      "Why is this bad": "Usually it is better to handle the `None` case, or to\nat least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.",
-      "Known problems": "None.",
-      "Example": "Using unwrap on an `Option`:\n\n```rust\nlet opt = Some(1);\nopt.unwrap();\n```\n\nBetter:\n\n```rust\nlet opt = Some(1);\nopt.expect(\"more helpful message\");\n```"
     }
   },
   {
@@ -3023,17 +2979,6 @@
     }
   },
   {
-    "id": "result_expect_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.expect()` calls on `Result`s.",
-      "Why is this bad": "`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.",
-      "Known problems": "None.",
-      "Example": "Using expect on an `Result`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"one\");\n```\n\nBetter:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres?;\n```"
-    }
-  },
-  {
     "id": "result_map_or_into_option",
     "group": "style",
     "level": "Warn",
@@ -3053,28 +2998,6 @@
       "Why is this bad": "Readability, this can be written more clearly with\nan if let statement",
       "Known problems": "None.",
       "Example": "```rust\nlet x: Result<String, String> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\nlet x: Result<String, String> = do_stuff();\nif let Ok(msg) = x {\n    log_err_msg(msg);\n};\nif let Ok(msg) = x {\n    log_err_msg(format_msg(msg));\n};\n```"
-    }
-  },
-  {
-    "id": "result_map_unwrap_or_else",
-    "group": "pedantic",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for usage of `result.map(_).unwrap_or_else(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`result.map_or_else(_, _)`.",
-      "Known problems": "None.",
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function);\n```"
-    }
-  },
-  {
-    "id": "result_unwrap_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Result`s.",
-      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.",
-      "Known problems": "None.",
-      "Example": "Using unwrap on an `Result`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.unwrap();\n```\n\nBetter:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"more helpful message\");\n```"
     }
   },
   {
@@ -3942,6 +3865,17 @@
       "Why is this bad": "Such expressions add no value, but can make the code\nless readable. Depending on formatting they can make a `break` or `return`\nstatement look like a function call.",
       "Known problems": "The lint currently misses unit return types in types,\ne.g., the `F` in `fn generic_unit<F: Fn() -> ()>(f: F) { .. }`.",
       "Example": "```rust\nfn return_unit() -> () {\n    ()\n}\n```"
+    }
+  },
+  {
+    "id": "unwrap_used",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `.unwrap()` calls on `Option`s and on `Result`s.",
+      "Why is this bad": "It is better to handle the `None` or `Err` case,\nor at least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.\n\n`result.unwrap()` will let the thread panic on `Err` values.\nNormally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.",
+      "Known problems": "None.",
+      "Examples": "```rust\n\n// Bad\nopt.unwrap();\n\n// Good\nopt.expect(\"more helpful message\");\n```\n\n// or\n\n```rust\n\n// Bad\nres.unwrap();\n\n// Good\nres.expect(\"more helpful message\");\n```"
     }
   },
   {
