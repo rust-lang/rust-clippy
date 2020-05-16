@@ -482,10 +482,11 @@ fn check_newlines(fmtstr: &StrLit) -> bool {
         }
     };
 
-    match fmtstr.style {
-        StrStyle::Cooked => unescape::unescape_str(contents, &mut cb),
-        StrStyle::Raw(_) => unescape::unescape_raw_str(contents, &mut cb),
-    }
+    let unescape_mode = match fmtstr.style {
+        StrStyle::Cooked => unescape::Mode::Str,
+        StrStyle::Raw(_) => unescape::Mode::RawStr,
+    };
+    unescape::unescape_literal(contents, unescape_mode, &mut cb);
 
     should_lint
 }
