@@ -1142,17 +1142,6 @@
     }
   },
   {
-    "id": "identity_conversion",
-    "group": "complexity",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Checks for always-identical `Into`/`From`/`IntoIter` conversions.",
-      "Why is this bad": "Redundant code.",
-      "Known problems": "None.",
-      "Example": "```rust\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n```"
-    }
-  },
-  {
     "id": "identity_op",
     "group": "complexity",
     "level": "Warn",
@@ -3930,6 +3919,17 @@
       "Why is this bad": "Lint attributes have no effect on crate imports. Most\nlikely a `!` was forgotten.",
       "Known problems": "None.",
       "Example": "```ignore\n// Bad\n#[deny(dead_code)]\nextern crate foo;\n#[forbid(dead_code)]\nuse foo::bar;\n\n// Ok\n#[allow(unused_imports)]\nuse foo::baz;\n#[allow(unused_imports)]\n#[macro_use]\nextern crate baz;\n```"
+    }
+  },
+  {
+    "id": "useless_conversion",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `Into`/`From`/`IntoIter` calls that useless converts\nto the same type as caller.",
+      "Why is this bad": "Redundant code.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n\n// Good\nlet s: String = format!(\"hello\");\n```"
     }
   },
   {
