@@ -97,6 +97,17 @@
     }
   },
   {
+    "id": "bind_instead_of_map",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.and_then(|x| Some(y))`, `_.and_then(|x| Ok(y))` or\n`_.or_else(|x| Err(y))`.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.map(|x| y)` or `_.map_err(|x| y)`.",
+      "Known problems": "None",
+      "Example": "```rust\nlet _ = opt().and_then(|s| Some(s.len()));\nlet _ = res().and_then(|s| if s.len() == 42 { Ok(10) } else { Ok(20) });\nlet _ = res().or_else(|s| if s.len() == 42 { Err(10) } else { Err(20) });\n```\n\nThe correct use would be:\n\n```rust\nlet _ = opt().map(|s| s.len());\nlet _ = res().map(|s| if s.len() == 42 { 10 } else { 20 });\nlet _ = res().map_err(|s| if s.len() == 42 { 10 } else { 20 });\n```"
+    }
+  },
+  {
     "id": "blacklisted_name",
     "group": "style",
     "level": "Warn",
@@ -2519,17 +2530,6 @@
       "Why is this bad": "It is more idiomatic to dereference the other argument.",
       "Known problems": "None",
       "Example": "```ignore\n&x == y\n```"
-    }
-  },
-  {
-    "id": "option_and_then_some",
-    "group": "complexity",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Checks for usage of `_.and_then(|x| Some(y))`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map(|x| y)`.",
-      "Known problems": "None",
-      "Example": "```rust\nlet x = Some(\"foo\");\nlet _ = x.and_then(|s| Some(s.len()));\n```\n\nThe correct use would be:\n\n```rust\nlet x = Some(\"foo\");\nlet _ = x.map(|s| s.len());\n```"
     }
   },
   {
