@@ -1910,11 +1910,11 @@
   },
   {
     "id": "match_wild_err_arm",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for arm which matches all errors with `Err(_)`\nand take drastic actions like `panic!`.",
-      "Why is this bad": "It is generally a bad practice, just like\ncatching all exceptions in java with `catch(Exception)`",
+      "Why is this bad": "It is generally a bad practice, similar to\ncatching all exceptions in java with `catch(Exception)`",
       "Known problems": "None.",
       "Example": "```rust\nlet x: Result<i32, &str> = Ok(3);\nmatch x {\n    Ok(_) => println!(\"ok\"),\n    Err(_) => panic!(\"err\"),\n}\n```"
     }
