@@ -1920,6 +1920,17 @@
     }
   },
   {
+    "id": "match_wildcard_for_single_variants",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for wildcard enum matches for a single variant.",
+      "Why is this bad": "New enum variants added by library updates can be missed.",
+      "Known problems": "Suggested replacements may not use correct path to enum\nif it's not present in the current scope.",
+      "Example": "```rust\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    _ => {},\n}\n```\nUse instead:\n```rust\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    Foo::C => {},\n}\n```"
+    }
+  },
+  {
     "id": "maybe_infinite_iter",
     "group": "pedantic",
     "level": "Allow",
@@ -4074,7 +4085,7 @@
       "What it does": "Checks for wildcard enum matches using `_`.",
       "Why is this bad": "New enum variants added by library updates can be missed.",
       "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.",
-      "Example": "```rust\nmatch x {\n    A => {},\n    _ => {},\n}\n```"
+      "Example": "```rust\nmatch x {\n    Foo::A(_) => {},\n    _ => {},\n}\n```"
     }
   },
   {
