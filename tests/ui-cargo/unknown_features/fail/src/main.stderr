@@ -1,0 +1,34 @@
+error: unknown feature `mispelled`
+  --> $DIR/main.rs:5:21
+   |
+LL |     #[cfg(feature = "mispelled")]
+   |                     ^^^^^^^^^^^ help: a feature with a similar name exists: `"misspelled"`
+   |
+   = note: `-D clippy::unknown-features` implied by `-D warnings`
+
+error: unknown feature `dependency/unknown`
+  --> $DIR/main.rs:8:21
+   |
+LL |     #[cfg(feature = "dependency/unknown")]
+   |                     ^^^^^^^^^^^^^^^^^^^^
+
+error: unknown feature `misspeled`
+  --> $DIR/main.rs:11:29
+   |
+LL |     #[cfg(any(not(feature = "misspeled"), feature = "not-found"))]
+   |                             ^^^^^^^^^^^ help: a feature with a similar name exists: `"misspelled"`
+
+error: unknown feature `not-found`
+  --> $DIR/main.rs:11:53
+   |
+LL |     #[cfg(any(not(feature = "misspeled"), feature = "not-found"))]
+   |                                                     ^^^^^^^^^^^
+
+error: unknown feature `nothe`
+  --> $DIR/main.rs:14:23
+   |
+LL |     if cfg!(feature = "nothe") {}
+   |                       ^^^^^^^ help: a feature with a similar name exists: `"another"`
+
+error: aborting due to 5 previous errors
+

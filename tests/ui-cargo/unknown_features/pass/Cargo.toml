@@ -1,0 +1,14 @@
+
+# Features from this crate and from dependencies are correctly referenced in the code
+
+[package]
+name = "unknown_features"
+version = "0.1.0"
+publish = false
+
+[dependencies]
+serde = { version = "1.0.110", features = ["derive"] }
+
+[features]
+fancy = []
+another = []

@@ -317,6 +317,7 @@ mod trivially_copy_pass_by_ref;
 mod try_err;
 mod types;
 mod unicode;
+mod unknown_features;
 mod unnamed_address;
 mod unsafe_removed_from_name;
 mod unused_io_amount;
@@ -355,6 +356,7 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, conf: &Co
     });
     store.register_pre_expansion_pass(|| box attrs::EarlyAttributes);
     store.register_pre_expansion_pass(|| box dbg_macro::DbgMacro);
+    store.register_pre_expansion_pass(|| box unknown_features::UnknownFeatures::default());
 }
 
 #[doc(hidden)]
@@ -835,6 +837,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &unicode::NON_ASCII_LITERAL,
         &unicode::UNICODE_NOT_NFC,
         &unicode::ZERO_WIDTH_SPACE,
+        &unknown_features::UNKNOWN_FEATURES,
         &unnamed_address::FN_ADDRESS_COMPARISONS,
         &unnamed_address::VTABLE_ADDRESS_COMPARISONS,
         &unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME,
@@ -1703,6 +1706,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_group(true, "clippy::cargo", Some("clippy_cargo"), vec![
         LintId::of(&cargo_common_metadata::CARGO_COMMON_METADATA),
         LintId::of(&multiple_crate_versions::MULTIPLE_CRATE_VERSIONS),
+        LintId::of(&unknown_features::UNKNOWN_FEATURES),
         LintId::of(&wildcard_dependencies::WILDCARD_DEPENDENCIES),
     ]);
 

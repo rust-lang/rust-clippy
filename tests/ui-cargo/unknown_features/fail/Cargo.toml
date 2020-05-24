@@ -1,0 +1,11 @@
+
+# Features referenced in the code are not found in this manifest
+
+[package]
+name = "unknown_features"
+version = "0.1.0"
+publish = false
+
+[features]
+misspelled = []
+another = []

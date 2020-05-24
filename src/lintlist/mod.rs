@@ -2258,6 +2258,13 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         module: "attrs",
     },
     Lint {
+        name: "unknown_features",
+        group: "cargo",
+        desc: "usage of features not defined in the cargo manifest file",
+        deprecation: None,
+        module: "unknown_features",
+    },
+    Lint {
         name: "unnecessary_cast",
         group: "complexity",
         desc: "cast to the same type, e.g., `x as i32` where `x: i32`",
