@@ -2449,10 +2449,10 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).\n\nIt detects both the case when a manual\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)\nimplementation is required and also when it can be created with\n`#[derive(Default)]`",
+      "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).",
       "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.",
       "Known problems": "Hopefully none.",
-      "Example": "```ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nInstead, use:\n\n```ignore\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nOr, if\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)\ncan be derived by `#[derive(Default)]`:\n\n```rust\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nInstead, use:\n\n```rust\n#[derive(Default)]\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nYou can also have `new()` call `Default::default()`."
+      "Example": "```ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, and a `Default` implementation that delegates to `new`:\n\n```ignore\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```"
     }
   },
   {
