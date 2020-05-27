@@ -3937,7 +3937,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for `Into`/`From`/`IntoIter` calls that useless converts\nto the same type as caller.",
+      "What it does": "Checks for `Into`, `TryInto`, `From`, `TryFrom`,`IntoIter` calls\nthat useless converts to the same type as caller.",
       "Why is this bad": "Redundant code.",
       "Known problems": "None.",
       "Example": "```rust\n// Bad\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n\n// Good\nlet s: String = format!(\"hello\");\n```"
