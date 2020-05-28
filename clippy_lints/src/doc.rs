@@ -417,8 +417,9 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     // text "http://example.com" by pulldown-cmark
                     continue;
                 }
-                headers.safety |= in_heading && text.trim() == "Safety";
-                headers.errors |= in_heading && text.trim() == "Errors";
+                let trimmed = text.trim();
+                headers.safety |= has_header(trimmed, in_heading, "# Safety");
+                headers.errors |= has_header(trimmed, in_heading, "# Errors");
                 let index = match spans.binary_search_by(|c| c.0.cmp(&range.start)) {
                     Ok(o) => o,
                     Err(e) => e - 1,
@@ -438,6 +439,24 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
         }
     }
     headers
+}
+
+// Normally, the first `if` should suffice, but this also accounts for misplaced headings
+fn has_header(trimmed_text: &str, in_heading: bool, header: &'static str) -> bool {
+    if in_heading && trimmed_text == &header[2..] {
+        return true;
+    }
+    if let Some(index) = trimmed_text.find(header) {
+        let bytes = trimmed_text.as_bytes();
+        for &b in bytes[0..index].iter().rev() {
+            if b != b' ' && b != b'\t' {
+                return b == b'\n';
+            }
+        }
+        true
+    } else {
+        false
+    }
 }
 
 static LEAVE_MAIN_PATTERNS: &[&str] = &["static", "fn main() {}", "extern crate", "async fn main() {"];

@@ -43,5 +43,13 @@ LL |   very_unsafe!();
    |
    = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: aborting due to 5 previous errors
+error: unsafe function's docs miss `# Safety` section
+  --> $DIR/doc_unsafe.rs:102:1
+   |
+LL | / pub unsafe fn ceci_n_est_pas_un_titre() {
+LL | |     unimplemented!();
+LL | | }
+   | |_^
+
+error: aborting due to 6 previous errors
 

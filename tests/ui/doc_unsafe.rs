@@ -88,6 +88,21 @@ very_unsafe!();
 // we don't lint code from external macros
 undocd_unsafe!();
 
+/** This safety section is now recognized.
+
+   # Safety
+
+   No risk, no fun.
+*/
+pub unsafe fn strange_doc_comments() {
+    unimplemented!();
+}
+
+/// This is not a # Safety section.
+pub unsafe fn ceci_n_est_pas_un_titre() {
+    unimplemented!();
+}
+
 fn main() {
     unsafe {
         you_dont_see_me();
@@ -96,5 +111,7 @@ fn main() {
         apocalypse(&mut universe);
         private_mod::only_crate_wide_accessible();
         drive();
+        strange_doc_comments();
+        ceci_n_est_pas_un_titre();
     }
 }
