@@ -6,11 +6,52 @@ document.
 
 ## Unreleased / In Rust Nightly
 
-[891e1a8...master](https://github.com/rust-lang/rust-clippy/compare/891e1a8...master)
+[fcc0e8f...master](https://github.com/rust-lang/rust-clippy/compare/fcc0e8f...master)
+
+## Rust 1.45
+
+Current beta, release 2020-07-16
+
+[891e1a8...fcc0e8f](https://github.com/rust-lang/rust-clippy/compare/891e1a8...fcc0e8f)
+
+### New lints
+
+* [`unsafe_derive_deserialize`] [#5493](https://github.com/rust-lang/rust-clippy/pull/5493)
+* [`if_let_mutex`] [#5332](https://github.com/rust-lang/rust-clippy/pull/5332)
+* [`mismatched_target_os`] [#5506](https://github.com/rust-lang/rust-clippy/pull/5506)
+* [`await_holding_lock`] [#5439](https://github.com/rust-lang/rust-clippy/pull/5439)
+* [`match_on_vec_items`] [#5522](https://github.com/rust-lang/rust-clippy/pull/5522)
+
+### Moves and Deprecations
+
+* Downgrade [`match_bool`] to pedantic [#5408](https://github.com/rust-lang/rust-clippy/pull/5408)
+
+### Enhancements
+
+* Avoid running cargo/internal lints when not enabled. [#5505](https://github.com/rust-lang/rust-clippy/pull/5505)
+* Do not trigger [`borrowed_box`] on mutable references. [#5491](https://github.com/rust-lang/rust-clippy/pull/5491)
+
+### False Positive Fixes
+
+* [`while_let_on_iterator`] [#5525](https://github.com/rust-lang/rust-clippy/pull/5525)
+* Don't trigger [`used_underscore_binding`] in await desugaring. [#5535](https://github.com/rust-lang/rust-clippy/pull/5535)
+
+### Suggestion Improvements
+
+* Fix suggestion in [`redundant_pattern_matching`] for macros. [#5511](https://github.com/rust-lang/rust-clippy/pull/5511)
+* Avoid suggesting `copied()` for mutable references in [`map_clone`]. [#5530](https://github.com/rust-lang/rust-clippy/pull/5530)
+* Improve help message for [`clone_double_ref`]. [#5547](https://github.com/rust-lang/rust-clippy/pull/5547)
+
+### ICE Fixes
+
+* Fix crash on rustc test issue-69020-assoc-const-arith-overflow.rs [#5499](https://github.com/rust-lang/rust-clippy/pull/5499)
+
+### Documentation
+
 
 ## Rust 1.44
 
-Current beta, release 2020-06-04
+Current stable, released 2020-06-04
 
 [204bb9b...891e1a8](https://github.com/rust-lang/rust-clippy/compare/204bb9b...891e1a8)
 
@@ -93,7 +134,7 @@ Current beta, release 2020-06-04
 
 ## Rust 1.43
 
-Current stable, released 2020-04-23
+Released 2020-04-23
 
 [4ee1206...204bb9b](https://github.com/rust-lang/rust-clippy/compare/4ee1206...204bb9b)
 
