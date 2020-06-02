@@ -1499,6 +1499,17 @@
     }
   },
   {
+    "id": "iter_next_slice",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `iter().next()` on a Slice or an Array",
+      "Why is this bad": "These can be shortened into `.get()`",
+      "Known problems": "None.",
+      "Example": "```rust\na[2..].iter().next();\nb.iter().next();\n```\nshould be written as:\n```rust\na.get(2);\nb.get(0);\n```"
+    }
+  },
+  {
     "id": "iter_nth",
     "group": "perf",
     "level": "Warn",
