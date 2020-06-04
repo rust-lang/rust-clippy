@@ -1938,7 +1938,7 @@
       "What it does": "Checks for wildcard enum matches for a single variant.",
       "Why is this bad": "New enum variants added by library updates can be missed.",
       "Known problems": "Suggested replacements may not use correct path to enum\nif it's not present in the current scope.",
-      "Example": "```rust\n\n// Bad\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    _ => {},\n}\n\n// Good\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    Foo::C => {},\n}\n```"
+      "Example": "```rust\n// Bad\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    _ => {},\n}\n\n// Good\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    Foo::C => {},\n}\n```"
     }
   },
   {
