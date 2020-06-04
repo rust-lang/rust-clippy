@@ -911,6 +911,7 @@ pub fn is_ctor_or_promotable_const_function(cx: &LateContext<'_, '_>, expr: &Exp
         if let ExprKind::Path(ref qp) = fun.kind {
             let res = cx.tables.qpath_res(qp, fun.hir_id);
             return match res {
+                def::Res::Def(DefKind::Fn, def_id) => rustc_mir::const_eval::is_const_fn(cx.tcx, def_id),
                 def::Res::Def(DefKind::Variant | DefKind::Ctor(..), ..) => true,
                 def::Res::Def(_, def_id) => cx.tcx.is_promotable_const_fn(def_id),
                 _ => false,

@@ -1685,12 +1685,7 @@ fn lint_or_fun_call<'a, 'tcx>(
             if path.ident.as_str() == "len" {
                 let ty = walk_ptrs_ty(cx.tables.expr_ty(&args[0]));
 
-                match ty.kind {
-                    ty::Slice(_) | ty::Array(_, _) => return,
-                    _ => (),
-                }
-
-                if match_type(cx, ty, &paths::VEC) {
+                if matches!(ty.kind, ty::Slice(_) | ty::Array(..)) || match_type(cx, ty, &paths::VEC) {
                     return;
                 }
             }
