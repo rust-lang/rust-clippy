@@ -75,6 +75,17 @@
     }
   },
   {
+    "id": "await_holding_lock",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for calls to await while holding a\nnon-async-aware MutexGuard.",
+      "Why is this bad": "The Mutex types found in syd::sync and parking_lot\nare not designed to operator in an async context across await points.\n\nThere are two potential solutions. One is to use an asynx-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  let guard = x.lock().unwrap();\n  *guard += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  bar.await;\n}\n```"
+    }
+  },
+  {
     "id": "bad_bit_mask",
     "group": "correctness",
     "level": "Deny",
@@ -83,6 +94,17 @@
       "Why is this bad": "If the bits that the comparison cares about are always\nset to zero or one by the bit mask, the comparison is constant `true` or\n`false` (depending on mask, compared value, and operators).\n\nSo the code is actively misleading, and the only reason someone would write\nthis intentionally is to win an underhanded Rust contest or create a\ntest-case for this lint.",
       "Known problems": "None.",
       "Example": "```rust\nif (x & 1 == 2) { }\n```"
+    }
+  },
+  {
+    "id": "bind_instead_of_map",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.and_then(|x| Some(y))`, `_.and_then(|x| Ok(y))` or\n`_.or_else(|x| Err(y))`.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.map(|x| y)` or `_.map_err(|x| y)`.",
+      "Known problems": "None",
+      "Example": "```rust\nlet _ = opt().and_then(|s| Some(s.len()));\nlet _ = res().and_then(|s| if s.len() == 42 { Ok(10) } else { Ok(20) });\nlet _ = res().or_else(|s| if s.len() == 42 { Err(10) } else { Err(20) });\n```\n\nThe correct use would be:\n\n```rust\nlet _ = opt().map(|s| s.len());\nlet _ = res().map(|s| if s.len() == 42 { 10 } else { 20 });\nlet _ = res().map_err(|s| if s.len() == 42 { 10 } else { 20 });\n```"
     }
   },
   {
@@ -98,25 +120,14 @@
     }
   },
   {
-    "id": "block_in_if_condition_expr",
+    "id": "blocks_in_if_conditions",
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for `if` conditions that use blocks to contain an\nexpression.",
-      "Why is this bad": "It isn't really Rust style, same as using parentheses\nto contain expressions.",
+      "What it does": "Checks for `if` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.",
+      "Why is this bad": "Style, using blocks in the condition makes it hard to read.",
       "Known problems": "None.",
-      "Example": "```rust\nif { true } { /* ... */ }\n```"
-    }
-  },
-  {
-    "id": "block_in_if_condition_stmt",
-    "group": "style",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Checks for `if` conditions that use blocks containing\nstatements, or conditions that use closures with blocks.",
-      "Why is this bad": "Using blocks in the condition makes it hard to read.",
-      "Known problems": "None.",
-      "Example": "```rust,ignore\nif { let x = somefunc(); x } {}\n// or\nif somefunc(|x| { x == 47 }) {}\n```"
+      "Examples": "```rust\n// Bad\nif { true } { /* ... */ }\n\n// Good\nif true { /* ... */ }\n```\n\n// or\n\n```rust\n\n// Bad\nif { let x = somefunc(); x } { /* ... */ }\n\n// Good\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```"
     }
   },
   {
@@ -194,7 +205,7 @@
       "What it does": "Checks to see if all common metadata is defined in\n`Cargo.toml`. See: https://rust-lang-nursery.github.io/api-guidelines/documentation.html#cargotoml-includes-all-common-metadata-c-metadata",
       "Why is this bad": "It will be more difficult for users to discover the\npurpose of the crate, and key information related to it.",
       "Known problems": "None.",
-      "Example": "```toml\n# This `Cargo.toml` is missing an authors field:\n[package]\nname = \"clippy\"\nversion = \"0.0.212\"\ndescription = \"A bunch of helpful lints to avoid common pitfalls in Rust\"\nrepository = \"https://github.com/rust-lang/rust-clippy\"\nreadme = \"README.md\"\nlicense = \"MIT OR Apache-2.0\"\nkeywords = [\"clippy\", \"lint\", \"plugin\"]\ncategories = [\"development-tools\", \"development-tools::cargo-plugins\"]\n```"
+      "Example": "```toml\n# This `Cargo.toml` is missing an authors field:\n[package]\nname = \"clippy\"\nversion = \"0.0.212\"\nauthors = [\"Someone <someone@rust-lang.org>\"]\ndescription = \"A bunch of helpful lints to avoid common pitfalls in Rust\"\nrepository = \"https://github.com/rust-lang/rust-clippy\"\nreadme = \"README.md\"\nlicense = \"MIT OR Apache-2.0\"\nkeywords = [\"clippy\", \"lint\", \"plugin\"]\ncategories = [\"development-tools\", \"development-tools::cargo-plugins\"]\n```"
     }
   },
   {
@@ -559,7 +570,7 @@
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.",
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.",
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"JavaScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\",\n        \"OpenGL\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\",\n        \"OCaml\",\n        \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\",\n        \"TensorFlow\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
     }
   },
   {
@@ -803,6 +814,17 @@
       "Why is this bad": "The function will always be called.",
       "Known problems": "If the function has side-effects, not calling it will\nchange the semantics of the program, but you shouldn't rely on that anyway.",
       "Example": "```rust\nfoo.expect(&format!(\"Err {}: {}\", err_code, err_msg));\n```\nor\n```rust\nfoo.expect(format!(\"Err {}: {}\", err_code, err_msg).as_str());\n```\nthis can instead be written:\n```rust\nfoo.unwrap_or_else(|| panic!(\"Err {}: {}\", err_code, err_msg));\n```"
+    }
+  },
+  {
+    "id": "expect_used",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `.expect()` calls on `Option`s and `Result`s.",
+      "Why is this bad": "Usually it is better to handle the `None` or `Err` case.\nStill, for a lot of quick-and-dirty code, `expect` is a good choice, which is why\nthis lint is `Allow` by default.\n\n`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.",
+      "Known problems": "None.",
+      "Examples": "```rust,ignore\n\n// Bad\nopt.expect(\"one\");\n\n// Good\nlet opt = Some(1);\nopt?;\n```\n\n// or\n\n```rust\n\n// Bad\nres.expect(\"one\");\n\n// Good\nres?;\n```"
     }
   },
   {
@@ -1054,25 +1076,14 @@
     }
   },
   {
-    "id": "for_loop_over_option",
+    "id": "for_loops_over_fallibles",
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Checks for `for` loops over `Option` values.",
+      "What it does": "Checks for `for` loops over `Option` or `Result` values.",
       "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.",
       "Known problems": "None.",
-      "Example": "```ignore\nfor x in option {\n    ..\n}\n```\n\nThis should be\n```ignore\nif let Some(x) = option {\n    ..\n}\n```"
-    }
-  },
-  {
-    "id": "for_loop_over_result",
-    "group": "correctness",
-    "level": "Deny",
-    "docs": {
-      "What it does": "Checks for `for` loops over `Result` values.",
-      "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.",
-      "Known problems": "None.",
-      "Example": "```ignore\nfor x in result {\n    ..\n}\n```\n\nThis should be\n```ignore\nif let Ok(x) = result {\n    ..\n}\n```"
+      "Example": "```rust\n\n// Bad\nfor x in opt {\n    // ..\n}\n\n// Good\nif let Some(x) = opt {\n    // ..\n}\n```\n\n// or\n\n```rust\n\n// Bad\nfor x in &res {\n    // ..\n}\n\n// Good\nif let Ok(x) = res {\n    // ..\n}\n```"
     }
   },
   {
@@ -1131,17 +1142,6 @@
     }
   },
   {
-    "id": "identity_conversion",
-    "group": "complexity",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Checks for always-identical `Into`/`From`/`IntoIter` conversions.",
-      "Why is this bad": "Redundant code.",
-      "Known problems": "None.",
-      "Example": "```rust\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n```"
-    }
-  },
-  {
     "id": "identity_op",
     "group": "complexity",
     "level": "Warn",
@@ -1150,6 +1150,17 @@
       "Why is this bad": "This code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.",
       "Known problems": "None.",
       "Example": "```rust\nx / 1 + 0 * 1 - 0 | 0;\n```"
+    }
+  },
+  {
+    "id": "if_let_mutex",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for `Mutex::lock` calls in `if let` expression\nwith lock calls in any of the else blocks.",
+      "Why is this bad": "The Mutex lock remains held for the whole\n`if let ... else` block and deadlocks.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nif let Ok(thing) = mutex.lock() {\n    do_thing();\n} else {\n    mutex.lock();\n}\n```\nShould be written\n```rust,ignore\nlet locked = mutex.lock();\nif let Ok(thing) = locked {\n    do_thing(thing);\n} else {\n    use_locked(locked);\n}\n```"
     }
   },
   {
@@ -1711,6 +1722,17 @@
     }
   },
   {
+    "id": "manual_async_fn",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "It checks for manual implementations of `async` functions.",
+      "Why is this bad": "It's more idiomatic to use the dedicated syntax.",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::future::Future;\n\nfn foo() -> impl Future<Output = i32> { async { 42 } }\n```\nUse instead:\n```rust\nuse std::future::Future;\n\nasync fn foo() -> i32 { 42 }\n```"
+    }
+  },
+  {
     "id": "manual_memcpy",
     "group": "perf",
     "level": "Warn",
@@ -1719,6 +1741,17 @@
       "Why is this bad": "It is not as fast as a memcpy.",
       "Known problems": "None.",
       "Example": "```rust\nfor i in 0..src.len() {\n    dst[i + 64] = src[i];\n}\n```\nCould be written as:\n```rust\ndst[64..(src.len() + 64)].clone_from_slice(&src[..]);\n```"
+    }
+  },
+  {
+    "id": "manual_non_exhaustive",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for manual implementations of the non-exhaustive pattern.",
+      "Why is this bad": "Using the #[non_exhaustive] attribute expresses better the intent\nand allows possible optimizations when applied to enums.",
+      "Known problems": "None.",
+      "Example": "```rust\nstruct S {\n    pub a: i32,\n    pub b: i32,\n    _c: (),\n}\n\nenum E {\n    A,\n    B,\n    #[doc(hidden)]\n    _C,\n}\n\nstruct T(pub i32, pub i32, ());\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct S {\n    pub a: i32,\n    pub b: i32,\n}\n\n#[non_exhaustive]\nenum E {\n    A,\n    B,\n}\n\n#[non_exhaustive]\nstruct T(pub i32, pub i32);\n```"
     }
   },
   {
@@ -1788,6 +1821,17 @@
     }
   },
   {
+    "id": "map_unwrap_or",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.",
+      "Why is this bad": "Readability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.",
+      "Known problems": "The order of the arguments is not in execution order",
+      "Examples": "```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or(0);\n\n// Good\nx.map_or(0, |a| a + 1);\n```\n\n// or\n\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or_else(some_function);\n\n// Good\nx.map_or_else(some_function, |a| a + 1);\n```"
+    }
+  },
+  {
     "id": "match_as_ref",
     "group": "complexity",
     "level": "Warn",
@@ -1800,13 +1844,24 @@
   },
   {
     "id": "match_bool",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for matches where match expression is a `bool`. It\nsuggests to replace the expression with an `if...else` block.",
       "Why is this bad": "It makes the code less readable.",
       "Known problems": "None.",
       "Example": "```rust\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```\nUse if/else instead:\n```rust\nlet condition: bool = true;\nif condition {\n    foo();\n} else {\n    bar();\n}\n```"
+    }
+  },
+  {
+    "id": "match_on_vec_items",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `match vec[idx]` or `match vec[n..m]`.",
+      "Why is this bad": "This can panic at runtime.",
+      "Known problems": "None.",
+      "Example": "```rust, no_run\nlet arr = vec![0, 1, 2, 3];\nlet idx = 1;\n\n// Bad\nmatch arr[idx] {\n    0 => println!(\"{}\", 0),\n    1 => println!(\"{}\", 3),\n    _ => {},\n}\n```\nUse instead:\n```rust, no_run\nlet arr = vec![0, 1, 2, 3];\nlet idx = 1;\n\n// Good\nmatch arr.get(idx) {\n    Some(0) => println!(\"{}\", 0),\n    Some(1) => println!(\"{}\", 3),\n    _ => {},\n}\n```"
     }
   },
   {
@@ -1855,13 +1910,24 @@
   },
   {
     "id": "match_wild_err_arm",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for arm which matches all errors with `Err(_)`\nand take drastic actions like `panic!`.",
-      "Why is this bad": "It is generally a bad practice, just like\ncatching all exceptions in java with `catch(Exception)`",
+      "Why is this bad": "It is generally a bad practice, similar to\ncatching all exceptions in java with `catch(Exception)`",
       "Known problems": "None.",
       "Example": "```rust\nlet x: Result<i32, &str> = Ok(3);\nmatch x {\n    Ok(_) => println!(\"ok\"),\n    Err(_) => panic!(\"err\"),\n}\n```"
+    }
+  },
+  {
+    "id": "match_wildcard_for_single_variants",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for wildcard enum matches for a single variant.",
+      "Why is this bad": "New enum variants added by library updates can be missed.",
+      "Known problems": "Suggested replacements may not use correct path to enum\nif it's not present in the current scope.",
+      "Example": "```rust\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    _ => {},\n}\n```\nUse instead:\n```rust\nmatch x {\n    Foo::A => {},\n    Foo::B => {},\n    Foo::C => {},\n}\n```"
     }
   },
   {
@@ -1948,6 +2014,17 @@
     "docs": {
       "What it does": "Nothing. This lint has been deprecated.",
       "Deprecation reason": "This lint should never have applied to non-pointer types, as transmuting\nbetween non-pointer types of differing alignment is well-defined behavior (it's semantically\nequivalent to a memcpy). This lint has thus been refactored into two separate lints:\ncast_ptr_alignment and transmute_ptr_to_ptr."
+    }
+  },
+  {
+    "id": "mismatched_target_os",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for cfg attributes having operating systems used in target family position.",
+      "Why is this bad": "The configuration option will not be recognised and the related item will not be included\nby the conditional compilation engine.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust\n#[cfg(linux)]\nfn conditional() { }\n```\n\nGood:\n```rust\n#[cfg(target_os = \"linux\")]\nfn conditional() { }\n```\n\nOr:\n```rust\n#[cfg(unix)]\nfn conditional() { }\n```\nCheck the [Rust Reference](https://doc.rust-lang.org/reference/conditional-compilation.html#target_os) for more details."
     }
   },
   {
@@ -2372,10 +2449,10 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).\n\nIt detects both the case when a manual\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)\nimplementation is required and also when it can be created with\n`#[derive(Default)]`",
+      "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).",
       "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.",
       "Known problems": "Hopefully none.",
-      "Example": "```ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nInstead, use:\n\n```ignore\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nOr, if\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html)\ncan be derived by `#[derive(Default)]`:\n\n```rust\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nInstead, use:\n\n```rust\n#[derive(Default)]\nstruct Foo;\n\nimpl Foo {\n    fn new() -> Self {\n        Foo\n    }\n}\n```\n\nYou can also have `new()` call `Default::default()`."
+      "Example": "```ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, and a `Default` implementation that delegates to `new`:\n\n```ignore\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```"
     }
   },
   {
@@ -2456,17 +2533,6 @@
     }
   },
   {
-    "id": "option_and_then_some",
-    "group": "complexity",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Checks for usage of `_.and_then(|x| Some(y))`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map(|x| y)`.",
-      "Known problems": "None",
-      "Example": "```rust\nlet x = Some(\"foo\");\nlet _ = x.and_then(|s| Some(s.len()));\n```\n\nThe correct use would be:\n\n```rust\nlet x = Some(\"foo\");\nlet _ = x.map(|s| s.len());\n```"
-    }
-  },
-  {
     "id": "option_as_ref_deref",
     "group": "complexity",
     "level": "Warn",
@@ -2486,17 +2552,6 @@
       "Why is this bad": "Unwrapping the result of `option_env!` will panic\nat run-time if the environment variable doesn't exist, whereas `env!`\ncatches it at compile-time.",
       "Known problems": "None.",
       "Example": "```rust,no_run\nlet _ = option_env!(\"HOME\").unwrap();\n```\n\nIs better expressed as:\n\n```rust,no_run\nlet _ = env!(\"HOME\");\n```"
-    }
-  },
-  {
-    "id": "option_expect_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.expect()` calls on `Option`s.",
-      "Why is this bad": "Usually it is better to handle the `None` case. Still,\n for a lot of quick-and-dirty code, `expect` is a good choice, which is why\n this lint is `Allow` by default.",
-      "Known problems": "None.",
-      "Example": "Using expect on an `Option`:\n\n```rust\nlet opt = Some(1);\nopt.expect(\"one\");\n```\n\nBetter:\n\n```rust,ignore\nlet opt = Some(1);\nopt?;\n```"
     }
   },
   {
@@ -2522,28 +2577,6 @@
     }
   },
   {
-    "id": "option_map_unwrap_or",
-    "group": "pedantic",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for usage of `_.map(_).unwrap_or(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or(_, _)`.",
-      "Known problems": "The order of the arguments is not in execution order",
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or(0);\n```"
-    }
-  },
-  {
-    "id": "option_map_unwrap_or_else",
-    "group": "pedantic",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for usage of `_.map(_).unwrap_or_else(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.map_or_else(_, _)`.",
-      "Known problems": "The order of the arguments is not in execution order.",
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function);\n```"
-    }
-  },
-  {
     "id": "option_option",
     "group": "pedantic",
     "level": "Allow",
@@ -2552,17 +2585,6 @@
       "Why is this bad": "`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.\n\nIf you have a case where `Some(Some(_))`, `Some(None)` and `None` are distinct cases,\nconsider a custom `enum` instead, with clear names for each case.",
       "Known problems": "None.",
       "Example": "```rust\nfn get_data() -> Option<Option<u32>> {\n    None\n}\n```\n\nBetter:\n\n```rust\npub enum Contents {\n    Data(Vec<u8>), // Was Some(Some(Vec<u8>))\n    NotYetFetched, // Was Some(None)\n    None,          // Was None\n}\n\nfn get_data() -> Contents {\n    Contents::None\n}\n```"
-    }
-  },
-  {
-    "id": "option_unwrap_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Option`s.",
-      "Why is this bad": "Usually it is better to handle the `None` case, or to\nat least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.",
-      "Known problems": "None.",
-      "Example": "Using unwrap on an `Option`:\n\n```rust\nlet opt = Some(1);\nopt.unwrap();\n```\n\nBetter:\n\n```rust\nlet opt = Some(1);\nopt.expect(\"more helpful message\");\n```"
     }
   },
   {
@@ -2957,17 +2979,6 @@
     }
   },
   {
-    "id": "result_expect_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.expect()` calls on `Result`s.",
-      "Why is this bad": "`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.",
-      "Known problems": "None.",
-      "Example": "Using expect on an `Result`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"one\");\n```\n\nBetter:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres?;\n```"
-    }
-  },
-  {
     "id": "result_map_or_into_option",
     "group": "style",
     "level": "Warn",
@@ -2990,36 +3001,14 @@
     }
   },
   {
-    "id": "result_map_unwrap_or_else",
-    "group": "pedantic",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for usage of `result.map(_).unwrap_or_else(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`result.map_or_else(_, _)`.",
-      "Known problems": "None.",
-      "Example": "```rust\nx.map(|a| a + 1).unwrap_or_else(some_function);\n```"
-    }
-  },
-  {
-    "id": "result_unwrap_used",
-    "group": "restriction",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for `.unwrap()` calls on `Result`s.",
-      "Why is this bad": "`result.unwrap()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.",
-      "Known problems": "None.",
-      "Example": "Using unwrap on an `Result`:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.unwrap();\n```\n\nBetter:\n\n```rust\nlet res: Result<usize, ()> = Ok(1);\nres.expect(\"more helpful message\");\n```"
-    }
-  },
-  {
-    "id": "reverse_range_loop",
+    "id": "reversed_empty_ranges",
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Checks for loops over ranges `x..y` where both `x` and `y`\nare constant and `x` is greater or equal to `y`, unless the range is\nreversed or has a negative `.step_by(_)`.",
-      "Why is it bad": "Such loops will either be skipped or loop until\nwrap-around (in debug code, this may `panic!()`). Both options are probably\nnot intended.",
-      "Known problems": "The lint cannot catch loops over dynamically defined\nranges. Doing this would require simulating all possible inputs and code\npaths through the program, which would be complex and error-prone.",
-      "Example": "```ignore\nfor x in 5..10 - 5 {\n    ..\n} // oops, stray `-`\n```"
+      "What it does": "Checks for range expressions `x..y` where both `x` and `y`\nare constant and `x` is greater or equal to `y`.",
+      "Why is this bad": "Empty ranges yield no values so iterating them is a no-op.\nMoreover, trying to use a reversed range to index a slice will panic at run-time.",
+      "Known problems": "None.",
+      "Example": "```rust,no_run\nfn main() {\n    (10..=0).for_each(|x| println!(\"{}\", x));\n\n    let arr = [1, 2, 3, 4, 5];\n    let sub = &arr[3..1];\n}\n```\nUse instead:\n```rust\nfn main() {\n    (0..=10).rev().for_each(|x| println!(\"{}\", x));\n\n    let arr = [1, 2, 3, 4, 5];\n    let sub = &arr[1..3];\n}\n```"
     }
   },
   {
@@ -3684,7 +3673,7 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Detects giving a mutable reference to a function that only\nrequires an immutable reference.",
+      "What it does": "Detects passing a mutable reference to a function that only\nrequires an immutable reference.",
       "Why is this bad": "The immutable reference rules out all other references\nto the value. Also the code misleads about the intent of the call site.",
       "Known problems": "None.",
       "Example": "```ignore\nmy_vec.push(&mut value)\n```"
@@ -3720,7 +3709,7 @@
       "What it does": "Checks for structure field patterns bound to wildcards.",
       "Why is this bad": "Using `..` instead is shorter and leaves the focus on\nthe fields that are actually bound.",
       "Known problems": "None.",
-      "Example": "```ignore\nlet { a: _, b: ref b, c: _ } = ..\n```"
+      "Example": "```rust\nlet f = Foo { a: 0, b: 0, c: 0 };\n\n// Bad\nmatch f {\n    Foo { a: _, b: 0, .. } => {},\n    Foo { a: _, b: _, c: _ } => {},\n}\n\n// Good\nmatch f {\n    Foo { b: 0, .. } => {},\n    Foo { .. } => {},\n}\n```"
     }
   },
   {
@@ -3754,6 +3743,17 @@
       "Why is this bad": "Reading long numbers is difficult without separators.",
       "Known problems": "None.",
       "Example": "```rust\nlet x: u64 = 61864918973511;\n```"
+    }
+  },
+  {
+    "id": "unsafe_derive_deserialize",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for deriving `serde::Deserialize` on a type that\nhas methods using `unsafe`.",
+      "Why is this bad": "Deriving `serde::Deserialize` will create a constructor\nthat may violate invariants hold by another constructor.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nuse serde::Deserialize;\n\n#[derive(Deserialize)]\npub struct Foo {\n    // ..\n}\n\nimpl Foo {\n    pub fn new() -> Self {\n        // setup here ..\n    }\n\n    pub unsafe fn parts() -> (&str, &str) {\n        // assumes invariants hold\n    }\n}\n```"
     }
   },
   {
@@ -3868,6 +3868,17 @@
     }
   },
   {
+    "id": "unwrap_used",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `.unwrap()` calls on `Option`s and on `Result`s.",
+      "Why is this bad": "It is better to handle the `None` or `Err` case,\nor at least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.\n\n`result.unwrap()` will let the thread panic on `Err` values.\nNormally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.",
+      "Known problems": "None.",
+      "Examples": "```rust\n\n// Bad\nopt.unwrap();\n\n// Good\nopt.expect(\"more helpful message\");\n```\n\n// or\n\n```rust\n\n// Bad\nres.unwrap();\n\n// Good\nres.expect(\"more helpful message\");\n```"
+    }
+  },
+  {
     "id": "use_debug",
     "group": "restriction",
     "level": "Allow",
@@ -3922,6 +3933,17 @@
     }
   },
   {
+    "id": "useless_conversion",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `Into`, `TryInto`, `From`, `TryFrom`,`IntoIter` calls\nthat useless converts to the same type as caller.",
+      "Why is this bad": "Redundant code.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n\n// Good\nlet s: String = format!(\"hello\");\n```"
+    }
+  },
+  {
     "id": "useless_format",
     "group": "complexity",
     "level": "Warn",
@@ -3934,8 +3956,8 @@
   },
   {
     "id": "useless_let_if_seq",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for variable declarations immediately followed by a\nconditional affectation.",
       "Why is this bad": "This is not idiomatic Rust.",
@@ -4063,7 +4085,7 @@
       "What it does": "Checks for wildcard enum matches using `_`.",
       "Why is this bad": "New enum variants added by library updates can be missed.",
       "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.",
-      "Example": "```rust\nmatch x {\n    A => {},\n    _ => {},\n}\n```"
+      "Example": "```rust\nmatch x {\n    Foo::A(_) => {},\n    _ => {},\n}\n```"
     }
   },
   {
@@ -4072,9 +4094,11 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for wildcard imports `use _::*`.",
-      "Why is this bad": "wildcard imports can polute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.\n\nNote that this will not warn about wildcard imports from modules named `prelude`; many\ncrates (including the standard library) provide modules named \"prelude\" specifically\ndesigned for wildcard import.",
+      "Why is this bad": "wildcard imports can polute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.",
+      "Exceptions": "Wildcard imports are allowed from modules named `prelude`. Many crates (including the standard library)\nprovide modules named \"prelude\" specifically designed for wildcard import.\n\n`use super::*` is allowed in test modules. This is defined as any module with \"test\" in the name.\n\nThese exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.",
       "Known problems": "If macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.",
-      "Example": "Bad:\n```rust,ignore\nuse crate1::*;\n\nfoo();\n```\n\nGood:\n```rust,ignore\nuse crate1::foo;\n\nfoo();\n```"
+      "Example": "Bad:\n```rust,ignore\nuse crate1::*;\n\nfoo();\n```\n\nGood:\n```rust,ignore\nuse crate1::foo;\n\nfoo();\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `warn-on-all-wildcard-imports: bool`: Whether to allow certain wildcard imports (prelude, super in tests). (defaults to `false`)."
     }
   },
   {
