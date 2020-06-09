@@ -1717,7 +1717,7 @@
     "docs": {
       "What it does": "Checks for `#[macro_use] use...`.",
       "Why is this bad": "Since the Rust 2018 edition you can import\nmacro's directly, this is considered idiomatic.",
-      "Known problems": "This lint does not generate an auto-applicable suggestion.",
+      "Known problems": "None.",
       "Example": "```rust\n#[macro_use]\nuse lazy_static;\n```"
     }
   },
