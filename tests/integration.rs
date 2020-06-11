@@ -37,6 +37,7 @@ fn integration_test() {
         .env("CARGO_TARGET_DIR", target_dir)
         .args(&[
             "clippy",
+            "-vvvvv",
             "--all-targets",
             "--all-features",
             "--",
