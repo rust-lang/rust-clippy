@@ -116,7 +116,7 @@
       "Why is this bad": "These names are usually placeholder names and should be\navoided.",
       "Known problems": "None.",
       "Example": "```rust\nlet foo = 3.14;\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted-names: Vec<String>`: The list of blacklisted names to lint about (defaults to `[\"foo\", \"bar\", \"baz\", \"quux\"]`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted-names: Vec<String>`: The list of blacklisted names to lint about. NB: `bar` is not here since it has legitimate uses (defaults to `[\"foo\", \"baz\", \"quux\"]`)."
     }
   },
   {
@@ -1650,7 +1650,7 @@
     "level": "Deny",
     "docs": {
       "What it does": "Checks for `let _ = sync_lock`",
-      "Why is this bad": "This statement immediately drops the lock instead of\nextending it's lifetime to the end of the scope, which is often not intended.\nTo extend lock lifetime to the end of the scope, use an underscore-prefixed\nname instead (i.e. _lock). If you want to explicitly drop the lock,\n`std::mem::drop` conveys your intention better and is less error-prone.",
+      "Why is this bad": "This statement immediately drops the lock instead of\nextending its lifetime to the end of the scope, which is often not intended.\nTo extend lock lifetime to the end of the scope, use an underscore-prefixed\nname instead (i.e. _lock). If you want to explicitly drop the lock,\n`std::mem::drop` conveys your intention better and is less error-prone.",
       "Known problems": "None.",
       "Example": "Bad:\n```rust,ignore\nlet _ = mutex.lock();\n```\n\nGood:\n```rust,ignore\nlet _lock = mutex.lock();\n```"
     }
@@ -2463,7 +2463,7 @@
       "What it does": "Checks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).",
       "Why is this bad": "The user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.",
       "Known problems": "Hopefully none.",
-      "Example": "```ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, and a `Default` implementation that delegates to `new`:\n\n```ignore\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```"
+      "Example": "```ignore\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, add a `Default` implementation that delegates to `new`:\n\n```ignore\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```"
     }
   },
   {
@@ -3747,8 +3747,8 @@
   },
   {
     "id": "unnested_or_patterns",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for unnested or-patterns, e.g., `Some(0) | Some(2)` and\nsuggests replacing the pattern with a nested one, `Some(0 | 2)`.\n\nAnother way to think of this is that it rewrites patterns in\n*disjunctive normal form (DNF)* into *conjunctive normal form (CNF)*.",
       "Why is this bad": "In the example above, `Some` is repeated, which unncessarily complicates the pattern.",
@@ -4138,7 +4138,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for wildcard imports `use _::*`.",
-      "Why is this bad": "wildcard imports can polute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.",
+      "Why is this bad": "wildcard imports can pollute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust,ignore\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.",
       "Exceptions": "Wildcard imports are allowed from modules named `prelude`. Many crates (including the standard library)\nprovide modules named \"prelude\" specifically designed for wildcard import.\n\n`use super::*` is allowed in test modules. This is defined as any module with \"test\" in the name.\n\nThese exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.",
       "Known problems": "If macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.",
       "Example": "```rust,ignore\n// Bad\nuse crate1::*;\n\nfoo();\n```\n\n```rust,ignore\n// Good\nuse crate1::foo;\n\nfoo();\n```",
