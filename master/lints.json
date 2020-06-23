@@ -1832,6 +1832,17 @@
     }
   },
   {
+    "id": "map_identity",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for instances of `map(f)` where `f` is the identity function.",
+      "Why is this bad": "It can be written more concisely without the call to `map`.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| x).map(|x| 2*x).collect();\n```\nUse instead:\n```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| 2*x).collect();\n```"
+    }
+  },
+  {
     "id": "map_unwrap_or",
     "group": "pedantic",
     "level": "Allow",
