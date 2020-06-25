@@ -80,7 +80,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for calls to await while holding a\nnon-async-aware MutexGuard.",
-      "Why is this bad": "The Mutex types found in syd::sync and parking_lot\nare not designed to operator in an async context across await points.\n\nThere are two potential solutions. One is to use an asynx-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.",
+      "Why is this bad": "The Mutex types found in syd::sync and parking_lot\nare not designed to operate in an async context across await points.\n\nThere are two potential solutions. One is to use an asynx-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.",
       "Known problems": "None.",
       "Example": "```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  let guard = x.lock().unwrap();\n  *guard += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  bar.await;\n}\n```"
     }
