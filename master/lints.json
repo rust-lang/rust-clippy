@@ -2709,6 +2709,17 @@
     }
   },
   {
+    "id": "pattern_type_mismatch",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for patterns that aren't exact representations of the types\nthey are applied to.\n\nTo satisfy this lint, you will have to adjust either the expression that is matched\nagainst or the pattern itself, as well as the bindings that are introduced by the\nadjusted patterns. For matching you will have to either dereference the expression\nwith the `*` operator, or amend the patterns to explicitly match against `&<pattern>`\nor `&mut <pattern>` depending on the reference mutability. For the bindings you need\nto use the inverse. You can leave them as plain bindings if you wish for the value\nto be copied, but you must use `ref mut <variable>` or `ref <variable>` to construct\na reference into the matched structure.\n\nIf you are looking for a way to learn about ownership semantics in more detail, it\nis recommended to look at IDE options available to you to highlight types, lifetimes\nand reference semantics in your code. The available tooling would expose these things\nin a general way even outside of the various pattern matching mechanics. Of course\nthis lint can still be used to highlight areas of interest and ensure a good understanding\nof ownership semantics.",
+      "Why is this bad": "It isn't bad in general. But in some contexts it can be desirable\nbecause it increases ownership hints in the code, and will guard against some changes\nin ownership.",
+      "Known problems": "None.",
+      "Example": "This example shows the basic adjustments necessary to satisfy the lint. Note how\nthe matched expression is explicitly dereferenced with `*` and the `inner` variable\nis bound to a shared borrow via `ref inner`.\n\n```rust,ignore\n// Bad\nlet value = &Some(Box::new(23));\nmatch value {\n    Some(inner) => println!(\"{}\", inner),\n    None => println!(\"none\"),\n}\n\n// Good\nlet value = &Some(Box::new(23));\nmatch *value {\n    Some(ref inner) => println!(\"{}\", inner),\n    None => println!(\"none\"),\n}\n```\n\nThe following example demonstrates one of the advantages of the more verbose style.\nNote how the second version uses `ref mut a` to explicitly declare `a` a shared mutable\nborrow, while `b` is simply taken by value. This ensures that the loop body cannot\naccidentally modify the wrong part of the structure.\n\n```rust,ignore\n// Bad\nlet mut values = vec![(2, 3), (3, 4)];\nfor (a, b) in &mut values {\n    *a += *b;\n}\n\n// Good\nlet mut values = vec![(2, 3), (3, 4)];\nfor &mut (ref mut a, b) in &mut values {\n    *a += b;\n}\n```"
+    }
+  },
+  {
     "id": "possible_missing_comma",
     "group": "correctness",
     "level": "Deny",
