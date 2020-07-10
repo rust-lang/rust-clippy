@@ -1887,6 +1887,17 @@
     }
   },
   {
+    "id": "match_like_matches_macro",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `match`  or `if let` expressions producing a\n`bool` that could be written using `matches!`",
+      "Why is this bad": "Readability and needless complexity.",
+      "Known problems": "None",
+      "Example": "```rust\nlet x = Some(5);\n\n// Bad\nlet a = match x {\n    Some(0) => true,\n    _ => false,\n};\n\nlet a = if let Some(0) = x {\n    true\n} else {\n    false\n};\n\n// Good\nlet a = matches!(x, Some(0));\n```"
+    }
+  },
+  {
     "id": "match_on_vec_items",
     "group": "pedantic",
     "level": "Allow",
