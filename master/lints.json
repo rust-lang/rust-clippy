@@ -2853,12 +2853,12 @@
   },
   {
     "id": "range_minus_one",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for inclusive ranges where 1 is subtracted from\nthe upper bound, e.g., `x..=(y-1)`.",
       "Why is this bad": "The code is more readable with an exclusive range\nlike `x..y`.",
-      "Known problems": "None.",
+      "Known problems": "This will cause a warning that cannot be fixed if\nthe consumer of the range only accepts a specific range type, instead of\nthe generic `RangeBounds` trait\n([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).",
       "Example": "```rust,ignore\nfor x..=(y-1) { .. }\n```\nCould be written as\n```rust,ignore\nfor x..y { .. }\n```"
     }
   },
@@ -2869,7 +2869,7 @@
     "docs": {
       "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g., `x..(y+1)`.",
       "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.",
-      "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.\n\nAlso in many cases, inclusive ranges are still slower to run than\nexclusive ranges, because they essentially add an extra branch that\nLLVM may fail to hoist out of the loop.",
+      "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.\n\nAlso in many cases, inclusive ranges are still slower to run than\nexclusive ranges, because they essentially add an extra branch that\nLLVM may fail to hoist out of the loop.\n\nThis will cause a warning that cannot be fixed if the consumer of the\nrange only accepts a specific range type, instead of the generic\n`RangeBounds` trait\n([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).",
       "Example": "```rust,ignore\nfor x..(y+1) { .. }\n```\nCould be written as\n```rust,ignore\nfor x..=y { .. }\n```"
     }
   },
@@ -3761,9 +3761,9 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Detects when people use `Vec::sort_by` and pass in a function\nwhich compares the two arguments, either directly or indirectly.",
-      "Why is this bad": "It is more clear to use `Vec::sort_by_key` (or `Vec::sort` if\npossible) than to use `Vec::sort_by` and and a more complicated\nclosure.",
-      "Known problems": "If the suggested `Vec::sort_by_key` uses Reverse and it isn't\nimported by a use statement in the current frame, then a `use`\nstatement that imports it will need to be added (which this lint\ncan't do).",
+      "What it does": "Detects uses of `Vec::sort_by` passing in a closure\nwhich compares the two arguments, either directly or indirectly.",
+      "Why is this bad": "It is more clear to use `Vec::sort_by_key` (or `Vec::sort` if\npossible) than to use `Vec::sort_by` and a more complicated\nclosure.",
+      "Known problems": "If the suggested `Vec::sort_by_key` uses Reverse and it isn't already\nimported by a use statement, then it will need to be added manually.",
       "Example": "```rust\nvec.sort_by(|a, b| a.foo().cmp(&b.foo()));\n```\nUse instead:\n```rust\nvec.sort_by_key(|a| a.foo());\n```"
     }
   },
