@@ -3023,6 +3023,17 @@
     }
   },
   {
+    "id": "repeat_once",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `.repeat(1)` and suggest the following method for each types.\n- `.to_string()` for `str`\n- `.clone()` for `String`\n- `.to_vec()` for `slice`",
+      "Why is this bad": "For example, `String.repeat(1)` is equivalent to `.clone()`. If cloning the string is the intention behind this, `clone()` should be used.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn main() {\n    let x = String::from(\"hello world\").repeat(1);\n}\n```\nUse instead:\n```rust\nfn main() {\n    let x = String::from(\"hello world\").clone();\n}\n```"
+    }
+  },
+  {
     "id": "replace_consts",
     "group": "deprecated",
     "level": "Deprecated",
