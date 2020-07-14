@@ -3702,6 +3702,17 @@
     }
   },
   {
+    "id": "unit_return_expecting_ord",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for functions that expect closures of type\nFn(...) -> Ord where the implemented closure returns the unit type.\nThe lint also suggests to remove the semi-colon at the end of the statement if present.",
+      "Why is this bad": "Likely, returning the unit type is unintentional, and\ncould simply be caused by an extra semi-colon. Since () implements Ord\nit doesn't cause a compilation error.\nThis is the same reasoning behind the unit_cmp lint.",
+      "Known problems": "If returning unit is intentional, then there is no\nway of specifying this without triggering needless_return lint",
+      "Example": "```rust\nlet mut twins = vec!((1,1), (2,2));\ntwins.sort_by_key(|x| { x.1; });\n```"
+    }
+  },
+  {
     "id": "unknown_clippy_lints",
     "group": "style",
     "level": "Warn",
