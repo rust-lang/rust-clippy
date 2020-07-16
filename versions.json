@@ -122,6 +122,7 @@
   "rust-1.43.1",
   "rust-1.44.0",
   "rust-1.44.1",
+  "rust-1.45.0",
   "beta",
   "stable",
   "master"
