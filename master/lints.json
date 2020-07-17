@@ -866,7 +866,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for explicit `deref()` or `deref_mut()` method calls.",
-      "Why is this bad": "Derefencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.",
+      "Why is this bad": "Dereferencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.",
       "Example": "```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\nCould be written as:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes\n```rust,ignore\nlet _ = d.unwrap().deref();\n```"
     }
   },
@@ -2185,7 +2185,7 @@
     "group": "restriction",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for modulo arithemtic.",
+      "What it does": "Checks for modulo arithmetic.",
       "Why is this bad": "The results of modulo (%) operation might differ\ndepending on the language, when negative numbers are involved.\nIf you interop with different languages it might be beneficial\nto double check all places that use modulo arithmetic.\n\nFor example, in Rust `17 % -3 = 2`, but in Python `17 % -3 = -1`.",
       "Known problems": "None.",
       "Example": "```rust\nlet x = -17 % 3;\n```"
