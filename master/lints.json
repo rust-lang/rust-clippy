@@ -4114,7 +4114,7 @@
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Finds occurences of `Vec::resize(0, an_int)`",
+      "What it does": "Finds occurrences of `Vec::resize(0, an_int)`",
       "Why is this bad": "This is probably an argument inversion mistake.",
       "Known problems": "None.",
       "Example": "```rust\nvec!(1, 2, 3, 4, 5).resize(0, 5)\n```"
