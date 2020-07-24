@@ -1,3 +1,5 @@
+// compile-flags: --test
+
 #![warn(clippy::unwrap_used)]
 
 fn unwrap_option() {
@@ -10,7 +12,13 @@ fn unwrap_result() {
     let _ = res.unwrap();
 }
 
-fn main() {
-    unwrap_option();
-    unwrap_result();
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_flag() {
+        let opt = Some(0);
+        let _ = opt.unwrap();
+    }
 }
+
+fn main() {}

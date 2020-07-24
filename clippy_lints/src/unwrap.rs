@@ -1,15 +1,15 @@
 use crate::utils::{
-    differing_macro_contexts, higher::if_block, is_type_diagnostic_item, span_lint_and_then,
-    usage::is_potentially_mutated,
+    differing_macro_contexts, higher::if_block, is_test_module_or_function, is_type_diagnostic_item,
+    span_lint_and_then, usage::is_potentially_mutated,
 };
 use if_chain::if_chain;
 use rustc_hir::intravisit::{walk_expr, walk_fn, FnKind, NestedVisitorMap, Visitor};
-use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Path, QPath, UnOp};
+use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Item, Path, QPath, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::map::Map;
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::Ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::source_map::Span;
 
 declare_clippy_lint! {
@@ -207,9 +207,25 @@ impl<'a, 'tcx> Visitor<'tcx> for UnwrappableVariablesVisitor<'a, 'tcx> {
     }
 }
 
-declare_lint_pass!(Unwrap => [PANICKING_UNWRAP, UNNECESSARY_UNWRAP]);
+#[derive(Default)]
+pub struct Unwrap {
+    test_modules_deep: u32,
+}
+
+impl Unwrap {
+    pub fn new() -> Self {
+        Self { test_modules_deep: 0 }
+    }
+}
+
+impl_lint_pass!(Unwrap => [PANICKING_UNWRAP, UNNECESSARY_UNWRAP]);
 
 impl<'tcx> LateLintPass<'tcx> for Unwrap {
+    fn check_item(&mut self, _: &LateContext<'_>, item: &Item<'_>) {
+        if is_test_module_or_function(item) {
+            self.test_modules_deep = self.test_modules_deep.saturating_add(1);
+        }
+    }
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -219,15 +235,24 @@ impl<'tcx> LateLintPass<'tcx> for Unwrap {
         span: Span,
         fn_id: HirId,
     ) {
-        if span.from_expansion() {
-            return;
+        if_chain! {
+            if !span.from_expansion();
+            if !self.check_test_module();
+            if let mut v = UnwrappableVariablesVisitor { cx, unwrappables: Vec::new(), };
+            then {
+                walk_fn(&mut v, kind, decl, body.id(), span, fn_id);
+            }
         }
+    }
+    fn check_item_post(&mut self, _: &LateContext<'_>, item: &Item<'_>) {
+        if is_test_module_or_function(item) {
+            self.test_modules_deep = self.test_modules_deep.saturating_sub(1);
+        }
+    }
+}
 
-        let mut v = UnwrappableVariablesVisitor {
-            cx,
-            unwrappables: Vec::new(),
-        };
-
-        walk_fn(&mut v, kind, decl, body.id(), span, fn_id);
+impl Unwrap {
+    fn check_test_module(&self) -> bool {
+        self.test_modules_deep > 0
     }
 }

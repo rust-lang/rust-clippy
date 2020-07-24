@@ -1021,7 +1021,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box map_unit_fn::MapUnit);
     store.register_late_pass(|| box inherent_impl::MultipleInherentImpl::default());
     store.register_late_pass(|| box neg_cmp_op_on_partial_ord::NoNegCompOpForPartialOrd);
-    store.register_late_pass(|| box unwrap::Unwrap);
+    store.register_late_pass(|| box unwrap::Unwrap::new());
     store.register_late_pass(|| box duration_subsec::DurationSubsec);
     store.register_late_pass(|| box default_trait_access::DefaultTraitAccess);
     store.register_late_pass(|| box indexing_slicing::IndexingSlicing);

@@ -1,4 +1,4 @@
-use crate::utils::{in_macro, snippet, snippet_with_applicability, span_lint_and_sugg};
+use crate::utils::{in_macro, is_test_module_or_function, snippet, snippet_with_applicability, span_lint_and_sugg};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{
@@ -204,8 +204,4 @@ fn is_prelude_import(segments: &[PathSegment<'_>]) -> bool {
 // Allow "super::*" imports in tests.
 fn is_super_only_import(segments: &[PathSegment<'_>]) -> bool {
     segments.len() == 1 && segments[0].ident.as_str() == "super"
-}
-
-fn is_test_module_or_function(item: &Item<'_>) -> bool {
-    matches!(item.kind, ItemKind::Mod(..)) && item.ident.name.as_str().contains("test")
 }

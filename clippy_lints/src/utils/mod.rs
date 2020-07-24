@@ -1440,6 +1440,11 @@ pub fn is_slice_of_primitives(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<S
     None
 }
 
+// Check if item is #[test]ing code.
+pub fn is_test_module_or_function(item: &Item<'_>) -> bool {
+    matches!(item.kind, ItemKind::Mod(..)) && item.ident.name.as_str().contains("test")
+}
+
 #[macro_export]
 macro_rules! unwrap_cargo_metadata {
     ($cx: ident, $lint: ident, $deps: expr) => {{
