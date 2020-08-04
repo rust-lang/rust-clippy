@@ -562,6 +562,17 @@
     }
   },
   {
+    "id": "derive_ord_xor_partial_ord",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for deriving `Ord` but implementing `PartialOrd`\nexplicitly or vice versa.",
+      "Why is this bad": "The implementation of these traits must agree (for\nexample for use with `sort`) so it\u2019s probably a bad idea to use a\ndefault-generated `Ord` implementation with an explicitly defined\n`PartialOrd`. In particular, the following must hold for any type\nimplementing `Ord`:\n\n```text\nk1.cmp(&k2) == k1.partial_cmp(&k2).unwrap()\n```",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\n#[derive(Ord, PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    ...\n}\n```\nUse instead:\n```rust,ignore\n#[derive(PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    fn partial_cmp(&self, other: &Foo) -> Option<Ordering> {\n       Some(self.cmp(other))\n    }\n}\n\nimpl Ord for Foo {\n    ...\n}\n```\nor, if you don't need a custom ordering:\n```rust,ignore\n#[derive(Ord, PartialOrd, PartialEq, Eq)]\nstruct Foo;\n```"
+    }
+  },
+  {
     "id": "diverging_sub_expression",
     "group": "complexity",
     "level": "Warn",
@@ -3498,6 +3509,17 @@
       "Why is this bad": "The `ref` declaration makes the function take an owned\nvalue, but turns the argument into a reference (which means that the value\nis destroyed when exiting the function). This adds not much value: either\ntake a reference type, or take an owned value and create references in the\nbody.\n\nFor let bindings, `let x = &foo;` is preferred over `let ref x = foo`. The\ntype of `x` is more obvious with the former.",
       "Known problems": "If the argument is dereferenced within the function,\nremoving the `ref` will lead to errors. This can be fixed by removing the\ndereferences, e.g., changing `*x` to `x` within the function.",
       "Example": "```rust,ignore\n// Bad\nfn foo(ref x: u8) -> bool {\n    true\n}\n\n// Good\nfn foo(x: &u8) -> bool {\n    true\n}\n```"
+    }
+  },
+  {
+    "id": "trait_duplication_in_bounds",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for cases where generics are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.",
+      "Why is this bad": "Duplicate bounds makes the code\nless readable than specifing them only once.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nCould be written as:\n\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n```\nor\n ///\n```rust\nfn func<T>(arg: T) where T: Clone + Default {}\n```"
     }
   },
   {
