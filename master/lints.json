@@ -3272,6 +3272,17 @@
     }
   },
   {
+    "id": "stable_sort_primitive",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "When sorting primitive values (integers, bools, chars, as well\nas arrays, slices, and tuples of such items), it is better to\nuse an unstable sort than a stable sort.",
+      "Why is this bad": "Using a stable sort consumes more memory and cpu cycles. Because\nvalues which compare equal are identical, preserving their\nrelative order (the guarantee that a stable sort provides) means\nnothing, while the extra costs still apply.",
+      "Known problems": "None",
+      "Example": "```rust\nlet mut vec = vec![2, 1, 3];\nvec.sort();\n```\nUse instead:\n```rust\nlet mut vec = vec![2, 1, 3];\nvec.sort_unstable();\n```"
+    }
+  },
+  {
     "id": "str_to_string",
     "group": "deprecated",
     "level": "Deprecated",
