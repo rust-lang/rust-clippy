@@ -70,7 +70,7 @@ impl ClippyCmd {
     where
         I: Iterator<Item = String>,
     {
-        let mut cargo_subcommand = "check";
+        let mut cargo_subcommand = "clippy";
         let mut unstable_options = false;
         let mut args = vec![];
 
@@ -205,7 +205,7 @@ mod tests {
     fn check() {
         let args = "cargo clippy".split_whitespace().map(ToString::to_string);
         let cmd = ClippyCmd::new(args);
-        assert_eq!("check", cmd.cargo_subcommand);
+        assert_eq!("clippy", cmd.cargo_subcommand);
         assert_eq!("RUSTC_WRAPPER", cmd.path_env());
     }
 
@@ -215,7 +215,7 @@ mod tests {
             .split_whitespace()
             .map(ToString::to_string);
         let cmd = ClippyCmd::new(args);
-        assert_eq!("check", cmd.cargo_subcommand);
+        assert_eq!("clippy", cmd.cargo_subcommand);
         assert_eq!("RUSTC_WORKSPACE_WRAPPER", cmd.path_env());
     }
 }
