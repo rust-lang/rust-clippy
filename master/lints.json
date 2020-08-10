@@ -2059,7 +2059,7 @@
       "What it does": "Checks for expressions where `std::cmp::min` and `max` are\nused to clamp values, but switched so that the result is constant.",
       "Why is this bad": "This is in all probability not the intended outcome. At\nthe least it hurts readability of the code.",
       "Known problems": "None",
-      "Example": "```ignore\nmin(0, max(100, x))\n```\nIt will always be equal to `0`. Probably the author meant to clamp the value\nbetween 0 and 100, but has erroneously swapped `min` and `max`."
+      "Example": "```ignore\nmin(0, max(100, x))\n```\nor\n```ignore\nx.max(100).min(0)\n```\nIt will always be equal to `0`. Probably the author meant to clamp the value\nbetween 0 and 100, but has erroneously swapped `min` and `max`."
     }
   },
   {
@@ -2332,6 +2332,17 @@
       "Why is this bad": "The [`bytecount`](https://crates.io/crates/bytecount)\ncrate has methods to count your bytes faster, especially for large slices.",
       "Known problems": "If you have predominantly small slices, the\n`bytecount::count(..)` method may actually be slower. However, if you can\nensure that less than 2\u00b3\u00b2-1 matches arise, the `naive_count_32(..)` can be\nfaster in those cases.",
       "Example": "```rust\n&vec.iter().filter(|x| **x == 0u8).count(); // use bytecount::count instead\n```"
+    }
+  },
+  {
+    "id": "needless_arbitrary_self_type",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "The lint checks for `self` in fn parameters that\nspecify the `Self`-type explicitly",
+      "Why is this bad": "Increases the amount and decreases the readability of code",
+      "Known problems": "None",
+      "Example": "```rust\nenum ValType {\n    I32,\n    I64,\n    F32,\n    F64,\n}\n\nimpl ValType {\n    pub fn bytes(self: Self) -> usize {\n        match self {\n            Self::I32 | Self::F32 => 4,\n            Self::I64 | Self::F64 => 8,\n        }\n    }\n}\n```\n\nCould be rewritten as\n\n```rust\nenum ValType {\n    I32,\n    I64,\n    F32,\n    F64,\n}\n\nimpl ValType {\n    pub fn bytes(self) -> usize {\n        match self {\n            Self::I32 | Self::F32 => 4,\n            Self::I64 | Self::F64 => 8,\n        }\n    }\n}\n```"
     }
   },
   {
@@ -3109,6 +3120,17 @@
     }
   },
   {
+    "id": "same_item_push",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks whether a for loop is being used to push a constant\nvalue into a Vec.",
+      "Why is this bad": "This kind of operation can be expressed more succinctly with\n`vec![item;SIZE]` or `vec.resize(NEW_SIZE, item)` and using these alternatives may also\nhave better performance.",
+      "Known problems": "None",
+      "Example": "```rust\nlet item1 = 2;\nlet item2 = 3;\nlet mut vec: Vec<u8> = Vec::new();\nfor _ in 0..20 {\n   vec.push(item1);\n}\nfor _ in 0..30 {\n    vec.push(item2);\n}\n```\ncould be written as\n```rust\nlet item1 = 2;\nlet item2 = 3;\nlet mut vec: Vec<u8> = vec![item1; 20];\nvec.resize(20 + 30, item2);\n```"
+    }
+  },
+  {
     "id": "search_is_some",
     "group": "complexity",
     "level": "Warn",
@@ -3530,7 +3552,7 @@
       "What it does": "Checks for cases where generics are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.",
       "Why is this bad": "Duplicate bounds makes the code\nless readable than specifing them only once.",
       "Known problems": "None.",
-      "Example": "```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nCould be written as:\n\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n```\nor\n ///\n```rust\nfn func<T>(arg: T) where T: Clone + Default {}\n```"
+      "Example": "```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nCould be written as:\n\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n```\nor\n\n```rust\nfn func<T>(arg: T) where T: Clone + Default {}\n```"
     }
   },
   {
