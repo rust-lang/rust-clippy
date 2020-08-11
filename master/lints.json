@@ -3633,6 +3633,17 @@
     }
   },
   {
+    "id": "transmutes_expressible_as_ptr_casts",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for transmutes that could be a pointer cast.",
+      "Why is this bad": "Readability. The code tricks people into thinking that\nsomething complex is going on.",
+      "Known problems": "None.",
+      "Example": "```rust\nunsafe { std::mem::transmute::<*const [i32], *const [u16]>(p) };\n```\nUse instead:\n```rust\np as *const [u16];\n```"
+    }
+  },
+  {
     "id": "transmuting_null",
     "group": "correctness",
     "level": "Deny",
