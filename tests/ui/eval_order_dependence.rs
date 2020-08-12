@@ -5,7 +5,7 @@
     clippy::many_single_char_names,
     clippy::no_effect,
     dead_code,
-    clippy::blacklisted_name
+    clippy::disallowed_name
 )]
 fn main() {
     let mut x = 0;

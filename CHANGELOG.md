@@ -39,7 +39,7 @@ Current beta, release 2020-08-27
   [#5692](https://github.com/rust-lang/rust-clippy/pull/5692)
 * [`if_same_then_else`]: Don't assume multiplication is always commutative
   [#5702](https://github.com/rust-lang/rust-clippy/pull/5702)
-* [`blacklisted_name`]: Remove `bar` from the default configuration
+* [`disallowed_name`]: Remove `bar` from the default configuration
   [#5712](https://github.com/rust-lang/rust-clippy/pull/5712)
 * [`redundant_pattern_matching`]: Avoid suggesting non-`const fn` calls in const contexts
   [#5724](https://github.com/rust-lang/rust-clippy/pull/5724)
@@ -1413,7 +1413,7 @@ Released 2018-09-13
 [`await_holding_lock`]: https://rust-lang.github.io/rust-clippy/master/index.html#await_holding_lock
 [`bad_bit_mask`]: https://rust-lang.github.io/rust-clippy/master/index.html#bad_bit_mask
 [`bind_instead_of_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#bind_instead_of_map
-[`blacklisted_name`]: https://rust-lang.github.io/rust-clippy/master/index.html#blacklisted_name
+[`disallowed_name`]: https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_name
 [`blanket_clippy_restriction_lints`]: https://rust-lang.github.io/rust-clippy/master/index.html#blanket_clippy_restriction_lints
 [`blocks_in_if_conditions`]: https://rust-lang.github.io/rust-clippy/master/index.html#blocks_in_if_conditions
 [`bool_comparison`]: https://rust-lang.github.io/rust-clippy/master/index.html#bool_comparison

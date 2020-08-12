@@ -1,7 +1,7 @@
 // run-pass
 
 #![warn(clippy::all)]
-#![allow(clippy::blacklisted_name)]
+#![allow(clippy::disallowed_name)]
 #![allow(unused)]
 
 /// Test for https://github.com/rust-lang/rust-clippy/issues/3462

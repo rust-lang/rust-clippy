@@ -74,11 +74,11 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         module: "methods",
     },
     Lint {
-        name: "blacklisted_name",
+        name: "disallowed_name",
         group: "style",
-        desc: "usage of a blacklisted/placeholder name",
+        desc: "usage of a disallowed/placeholder name",
         deprecation: None,
-        module: "blacklisted_name",
+        module: "disallowed_name",
     },
     Lint {
         name: "blanket_clippy_restriction_lints",

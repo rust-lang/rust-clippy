@@ -5,7 +5,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for usage of blacklisted names for variables, such
+    /// **What it does:** Checks for usage of disallowed names for variables, such
     /// as `foo`.
     ///
     /// **Why is this bad?** These names are usually placeholder names and should be
@@ -17,33 +17,33 @@ declare_clippy_lint! {
     /// ```rust
     /// let foo = 3.14;
     /// ```
-    pub BLACKLISTED_NAME,
+    pub DISALLOWED_NAME,
     style,
-    "usage of a blacklisted/placeholder name"
+    "usage of a disallowed/placeholder name"
 }
 
 #[derive(Clone, Debug)]
-pub struct BlacklistedName {
-    blacklist: FxHashSet<String>,
+pub struct DisAllowedName {
+    disallowlist: FxHashSet<String>,
 }
 
-impl BlacklistedName {
-    pub fn new(blacklist: FxHashSet<String>) -> Self {
-        Self { blacklist }
+impl DisAllowedName {
+    pub fn new(disallowlist: FxHashSet<String>) -> Self {
+        Self { disallowlist }
     }
 }
 
-impl_lint_pass!(BlacklistedName => [BLACKLISTED_NAME]);
+impl_lint_pass!(DisAllowedName => [DISALLOWED_NAME]);
 
-impl<'tcx> LateLintPass<'tcx> for BlacklistedName {
+impl<'tcx> LateLintPass<'tcx> for DisAllowedName {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {
         if let PatKind::Binding(.., ident, _) = pat.kind {
-            if self.blacklist.contains(&ident.name.to_string()) {
+            if self.disallowlist.contains(&ident.name.to_string()) {
                 span_lint(
                     cx,
-                    BLACKLISTED_NAME,
+                    DISALLOWED_NAME,
                     ident.span,
-                    &format!("use of a blacklisted/placeholder name `{}`", ident.name),
+                    &format!("use of a disallowed/placeholder name `{}`", ident.name),
                 );
             }
         }

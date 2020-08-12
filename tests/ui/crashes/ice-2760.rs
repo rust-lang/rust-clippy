@@ -2,7 +2,7 @@
 
 #![allow(
     unused_variables,
-    clippy::blacklisted_name,
+    clippy::disallowed_name,
     clippy::needless_pass_by_value,
     dead_code
 )]

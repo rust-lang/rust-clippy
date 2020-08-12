@@ -1,4 +1,4 @@
-#![allow(unused_imports, clippy::blacklisted_name)]
+#![allow(unused_imports, clippy::disallowed_name)]
 #![warn(clippy::explicit_write)]
 
 fn main() {

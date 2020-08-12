@@ -1,5 +1,5 @@
 #![warn(clippy::match_same_arms)]
-#![allow(clippy::blacklisted_name)]
+#![allow(clippy::disallowed_name)]
 
 fn bar<T>(_: T) {}
 fn foo() -> bool {

@@ -1,1 +1,1 @@
-blacklisted-names = ["toto", "tata", "titi"]
+disallowed-names = ["toto", "tata", "titi"]

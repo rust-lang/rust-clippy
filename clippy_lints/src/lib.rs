@@ -158,7 +158,7 @@ mod atomic_ordering;
 mod attrs;
 mod await_holding_lock;
 mod bit_mask;
-mod blacklisted_name;
+mod disallowed_name;
 mod blocks_in_if_conditions;
 mod booleans;
 mod bytecount;
@@ -494,7 +494,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &bit_mask::BAD_BIT_MASK,
         &bit_mask::INEFFECTIVE_BIT_MASK,
         &bit_mask::VERBOSE_BIT_MASK,
-        &blacklisted_name::BLACKLISTED_NAME,
+        &disallowed_name::DISALLOWED_NAME,
         &blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS,
         &booleans::LOGIC_BUG,
         &booleans::NONMINIMAL_BOOL,
@@ -954,8 +954,8 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box swap::Swap);
     store.register_late_pass(|| box overflow_check_conditional::OverflowCheckConditional);
     store.register_late_pass(|| box new_without_default::NewWithoutDefault::default());
-    let blacklisted_names = conf.blacklisted_names.iter().cloned().collect::<FxHashSet<_>>();
-    store.register_late_pass(move || box blacklisted_name::BlacklistedName::new(blacklisted_names.clone()));
+    let disallowed_names = conf.disallowed_names.iter().cloned().collect::<FxHashSet<_>>();
+    store.register_late_pass(move || box disallowed_name::DisAllowedName::new(disallowed_names.clone()));
     let too_many_arguments_threshold1 = conf.too_many_arguments_threshold;
     let too_many_lines_threshold2 = conf.too_many_lines_threshold;
     store.register_late_pass(move || box functions::Functions::new(too_many_arguments_threshold1, too_many_lines_threshold2));
@@ -1235,7 +1235,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&bit_mask::BAD_BIT_MASK),
         LintId::of(&bit_mask::INEFFECTIVE_BIT_MASK),
         LintId::of(&bit_mask::VERBOSE_BIT_MASK),
-        LintId::of(&blacklisted_name::BLACKLISTED_NAME),
+        LintId::of(&disallowed_name::DISALLOWED_NAME),
         LintId::of(&blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS),
         LintId::of(&booleans::LOGIC_BUG),
         LintId::of(&booleans::NONMINIMAL_BOOL),
@@ -1492,7 +1492,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&attrs::BLANKET_CLIPPY_RESTRICTION_LINTS),
         LintId::of(&attrs::UNKNOWN_CLIPPY_LINTS),
         LintId::of(&bit_mask::VERBOSE_BIT_MASK),
-        LintId::of(&blacklisted_name::BLACKLISTED_NAME),
+        LintId::of(&disallowed_name::DISALLOWED_NAME),
         LintId::of(&blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS),
         LintId::of(&collapsible_if::COLLAPSIBLE_IF),
         LintId::of(&comparison_chain::COMPARISON_CHAIN),

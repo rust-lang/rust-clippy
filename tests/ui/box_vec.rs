@@ -1,6 +1,6 @@
 #![warn(clippy::all)]
 #![allow(clippy::boxed_local, clippy::needless_pass_by_value)]
-#![allow(clippy::blacklisted_name)]
+#![allow(clippy::disallowed_name)]
 
 macro_rules! boxit {
     ($init:expr, $x:ty) => {

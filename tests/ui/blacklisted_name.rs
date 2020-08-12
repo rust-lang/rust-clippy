@@ -6,7 +6,7 @@
     unused_mut,
     unused_variables
 )]
-#![warn(clippy::blacklisted_name)]
+#![warn(clippy::disallowed_name)]
 
 fn test(foo: ()) {}
 

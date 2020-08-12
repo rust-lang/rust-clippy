@@ -2,7 +2,7 @@
 // aux-build:option_helpers.rs
 
 #![warn(clippy::iter_skip_next)]
-#![allow(clippy::blacklisted_name)]
+#![allow(clippy::disallowed_name)]
 #![allow(clippy::iter_nth)]
 
 extern crate option_helpers;
