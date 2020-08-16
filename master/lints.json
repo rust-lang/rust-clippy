@@ -3142,6 +3142,17 @@
     }
   },
   {
+    "id": "self_assignment",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for explicit self-assignments.",
+      "Why is this bad": "Self-assignments are redundant and unlikely to be\nintentional.",
+      "Known problems": "If expression contains any deref coercions or\nindexing operations they are assumed not to have any side effects.",
+      "Example": "```rust\nstruct Event {\n    id: usize,\n    x: i32,\n    y: i32,\n}\n\nfn copy_position(a: &mut Event, b: &Event) {\n    a.x = b.x;\n    a.y = a.y;\n}\n```"
+    }
+  },
+  {
     "id": "serde_api_misuse",
     "group": "correctness",
     "level": "Deny",
