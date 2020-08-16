@@ -4182,7 +4182,8 @@
       "What it does": "Checks for usage of `&vec![..]` when using `&[..]` would\nbe possible.",
       "Why is this bad": "This is less efficient.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nfoo(&vec![1, 2]);\n\n// Good\nfoo(&[1, 2]);\n```"
+      "Example": "```rust\n\n// Bad\nfoo(&vec![1, 2]);\n\n// Good\nfoo(&[1, 2]);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)."
     }
   },
   {
