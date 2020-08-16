@@ -3499,6 +3499,17 @@
     }
   },
   {
+    "id": "to_string_in_display",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for uses of `to_string()` in `Display` traits.",
+      "Why is this bad": "Usually `to_string` is implemented indirectly\nvia `Display`. Hence using it while implementing `Display` would\nlead to infinite recursion.",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.to_string())\n    }\n}\n\n```\nUse instead:\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.0)\n    }\n}\n```"
+    }
+  },
+  {
     "id": "todo",
     "group": "restriction",
     "level": "Allow",
