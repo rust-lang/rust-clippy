@@ -3845,6 +3845,17 @@
     }
   },
   {
+    "id": "unnecessary_lazy_evaluations",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "As the counterpart to `or_fun_call`, this lint looks for unnecessary\nlazily evaluated closures on `Option` and `Result`.\n\nThis lint suggests changing the following functions, when eager evaluation results in\nsimpler code:\n - `unwrap_or_else` to `unwrap_or`\n - `and_then` to `and`\n - `or_else` to `or`\n - `get_or_insert_with` to `get_or_insert`\n - `ok_or_else` to `ok_or`",
+      "Why is this bad": "Using eager evaluation is shorter and simpler in some cases.",
+      "Known problems": "It is possible, but not recommended for `Deref` and `Index` to have\nside effects. Eagerly evaluating them can change the semantics of the program.",
+      "Example": "```rust\n// example code where clippy issues a warning\nlet opt: Option<u32> = None;\n\nopt.unwrap_or_else(|| 42);\n```\nUse instead:\n```rust\nlet opt: Option<u32> = None;\n\nopt.unwrap_or(42);\n```"
+    }
+  },
+  {
     "id": "unnecessary_mut_passed",
     "group": "style",
     "level": "Warn",
