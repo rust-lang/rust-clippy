@@ -2,7 +2,7 @@
 
 #![warn(
     clippy::fn_to_numeric_cast,
-    fn_to_numeric_cast_usize,
+    clippy::fn_to_numeric_cast_usize,
     clippy::fn_to_numeric_cast_with_truncation
 )]
 
