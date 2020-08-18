@@ -1,9 +1,4 @@
-#![allow(
-    unused_variables,
-    unused_assignments,
-    clippy::similar_names,
-    clippy::disallowed_name
-)]
+#![allow(unused_variables, unused_assignments, clippy::similar_names, clippy::disallowed_name)]
 #![warn(clippy::useless_let_if_seq)]
 
 fn f() -> bool {
