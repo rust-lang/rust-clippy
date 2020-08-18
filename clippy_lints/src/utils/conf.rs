@@ -236,7 +236,7 @@ pub fn read(path: &Path) -> (Conf, Vec<Error>) {
                 errors.push(Error::Toml(cyc_err));
             }
 
-            let block_ls_field = toml_ref.blacklisted_names;
+            let block_ls_field = &toml_ref.blacklisted_names;
             if !block_ls_field.is_empty() {
                 let block_err = "found deprecated field `blacklisted-names`. Please use `disallowed-names` instead.".to_string();
                 errors.push(Error::Toml(block_err));

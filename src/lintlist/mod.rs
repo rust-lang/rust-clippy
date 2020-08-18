@@ -74,13 +74,6 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         module: "methods",
     },
     Lint {
-        name: "disallowed_name",
-        group: "style",
-        desc: "usage of a disallowed/placeholder name",
-        deprecation: None,
-        module: "disallowed_name",
-    },
-    Lint {
         name: "blanket_clippy_restriction_lints",
         group: "style",
         desc: "enabling the complete restriction group",
@@ -366,6 +359,13 @@ pub static ref ALL_LINTS: Vec<Lint> = vec![
         desc: "deriving `Ord` but implementing `PartialOrd` explicitly",
         deprecation: None,
         module: "derive",
+    },
+    Lint {
+        name: "disallowed_name",
+        group: "style",
+        desc: "usage of a disallowed/placeholder name",
+        deprecation: None,
+        module: "disallowed_name",
     },
     Lint {
         name: "diverging_sub_expression",

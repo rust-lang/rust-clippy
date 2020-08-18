@@ -158,7 +158,6 @@ mod atomic_ordering;
 mod attrs;
 mod await_holding_lock;
 mod bit_mask;
-mod disallowed_name;
 mod blocks_in_if_conditions;
 mod booleans;
 mod bytecount;
@@ -173,6 +172,7 @@ mod dbg_macro;
 mod default_trait_access;
 mod dereference;
 mod derive;
+mod disallowed_name;
 mod doc;
 mod double_comparison;
 mod double_parens;
@@ -494,7 +494,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &bit_mask::BAD_BIT_MASK,
         &bit_mask::INEFFECTIVE_BIT_MASK,
         &bit_mask::VERBOSE_BIT_MASK,
-        &disallowed_name::DISALLOWED_NAME,
         &blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS,
         &booleans::LOGIC_BUG,
         &booleans::NONMINIMAL_BOOL,
@@ -516,6 +515,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &derive::DERIVE_ORD_XOR_PARTIAL_ORD,
         &derive::EXPL_IMPL_CLONE_ON_COPY,
         &derive::UNSAFE_DERIVE_DESERIALIZE,
+        &disallowed_name::DISALLOWED_NAME,
         &doc::DOC_MARKDOWN,
         &doc::MISSING_ERRORS_DOC,
         &doc::MISSING_SAFETY_DOC,
@@ -1235,7 +1235,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&bit_mask::BAD_BIT_MASK),
         LintId::of(&bit_mask::INEFFECTIVE_BIT_MASK),
         LintId::of(&bit_mask::VERBOSE_BIT_MASK),
-        LintId::of(&disallowed_name::DISALLOWED_NAME),
         LintId::of(&blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS),
         LintId::of(&booleans::LOGIC_BUG),
         LintId::of(&booleans::NONMINIMAL_BOOL),
@@ -1246,6 +1245,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&copies::IF_SAME_THEN_ELSE),
         LintId::of(&derive::DERIVE_HASH_XOR_EQ),
         LintId::of(&derive::DERIVE_ORD_XOR_PARTIAL_ORD),
+        LintId::of(&disallowed_name::DISALLOWED_NAME),
         LintId::of(&doc::MISSING_SAFETY_DOC),
         LintId::of(&doc::NEEDLESS_DOCTEST_MAIN),
         LintId::of(&double_comparison::DOUBLE_COMPARISONS),
@@ -1492,10 +1492,10 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&attrs::BLANKET_CLIPPY_RESTRICTION_LINTS),
         LintId::of(&attrs::UNKNOWN_CLIPPY_LINTS),
         LintId::of(&bit_mask::VERBOSE_BIT_MASK),
-        LintId::of(&disallowed_name::DISALLOWED_NAME),
         LintId::of(&blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS),
         LintId::of(&collapsible_if::COLLAPSIBLE_IF),
         LintId::of(&comparison_chain::COMPARISON_CHAIN),
+        LintId::of(&disallowed_name::DISALLOWED_NAME),
         LintId::of(&doc::MISSING_SAFETY_DOC),
         LintId::of(&doc::NEEDLESS_DOCTEST_MAIN),
         LintId::of(&enum_variants::ENUM_VARIANT_NAMES),
