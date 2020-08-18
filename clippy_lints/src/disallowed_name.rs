@@ -23,19 +23,19 @@ declare_clippy_lint! {
 }
 
 #[derive(Clone, Debug)]
-pub struct DisAllowedName {
+pub struct DisallowedName {
     disallowlist: FxHashSet<String>,
 }
 
-impl DisAllowedName {
+impl DisallowedName {
     pub fn new(disallowlist: FxHashSet<String>) -> Self {
         Self { disallowlist }
     }
 }
 
-impl_lint_pass!(DisAllowedName => [DISALLOWED_NAME]);
+impl_lint_pass!(DisallowedName => [DISALLOWED_NAME]);
 
-impl<'tcx> LateLintPass<'tcx> for DisAllowedName {
+impl<'tcx> LateLintPass<'tcx> for DisallowedName {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {
         if let PatKind::Binding(.., ident, _) = pat.kind {
             if self.disallowlist.contains(&ident.name.to_string()) {

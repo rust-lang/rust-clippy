@@ -106,6 +106,8 @@ macro_rules! define_Conf {
 
 pub use self::helpers::Conf;
 define_Conf! {
+    /// DEPRECATED LINT: BLACKLISTED_NAME. Use the Disallowed Names lint instead.
+    (blacklisted_names, "blacklisted_names": Vec<String>, ["foo", "baz", "quux"].iter().map(ToString::to_string).collect()),
     /// Lint: DISALLOWED_NAME. The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses
     (disallowed_names, "disallowed_names": Vec<String>, ["foo", "baz", "quux"].iter().map(ToString::to_string).collect()),
     /// Lint: COGNITIVE_COMPLEXITY. The maximum cognitive complexity a function can have
@@ -232,6 +234,12 @@ pub fn read(path: &Path) -> (Conf, Vec<Error>) {
             if cyc_field.is_some() {
                 let cyc_err = "found deprecated field `cyclomatic-complexity-threshold`. Please use `cognitive-complexity-threshold` instead.".to_string();
                 errors.push(Error::Toml(cyc_err));
+            }
+
+            let block_ls_field = toml_ref.blacklisted_names;
+            if !block_ls_field.is_empty() {
+                let block_err = "found deprecated field `blacklisted-names`. Please use `disallowed-names` instead.".to_string();
+                errors.push(Error::Toml(block_err));
             }
 
             (toml, errors)

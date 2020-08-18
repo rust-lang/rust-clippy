@@ -955,7 +955,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box overflow_check_conditional::OverflowCheckConditional);
     store.register_late_pass(|| box new_without_default::NewWithoutDefault::default());
     let disallowed_names = conf.disallowed_names.iter().cloned().collect::<FxHashSet<_>>();
-    store.register_late_pass(move || box disallowed_name::DisAllowedName::new(disallowed_names.clone()));
+    store.register_late_pass(move || box disallowed_name::DisallowedName::new(disallowed_names.clone()));
     let too_many_arguments_threshold1 = conf.too_many_arguments_threshold;
     let too_many_lines_threshold2 = conf.too_many_lines_threshold;
     store.register_late_pass(move || box functions::Functions::new(too_many_arguments_threshold1, too_many_lines_threshold2));
@@ -1859,6 +1859,7 @@ pub fn register_renamed(ls: &mut rustc_lint::LintStore) {
     ls.register_renamed("clippy::for_loop_over_option", "clippy::for_loops_over_fallibles");
     ls.register_renamed("clippy::for_loop_over_result", "clippy::for_loops_over_fallibles");
     ls.register_renamed("clippy::identity_conversion", "clippy::useless_conversion");
+    ls.register_renamed("clippy::blacklisted_name", "clippy::disallowed_name");
 }
 
 // only exists to let the dogfood integration test works.
