@@ -278,6 +278,7 @@ mod new_without_default;
 mod no_effect;
 mod non_copy_const;
 mod non_expressive_names;
+mod not_exhaustive_enough;
 mod open_options;
 mod option_env_unwrap;
 mod option_if_let_else;
@@ -810,6 +811,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &non_expressive_names::JUST_UNDERSCORES_AND_DIGITS,
         &non_expressive_names::MANY_SINGLE_CHAR_NAMES,
         &non_expressive_names::SIMILAR_NAMES,
+        &not_exhaustive_enough::NOT_EXHAUSTIVE_ENOUGH,
         &open_options::NONSENSICAL_OPEN_OPTIONS,
         &option_env_unwrap::OPTION_ENV_UNWRAP,
         &option_if_let_else::OPTION_IF_LET_ELSE,
@@ -1124,6 +1126,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box path_buf_push_overwrite::PathBufPushOverwrite);
     store.register_late_pass(|| box integer_division::IntegerDivision);
     store.register_late_pass(|| box inherent_to_string::InherentToString);
+    store.register_late_pass(|| box not_exhaustive_enough::NotExhaustiveEnough);
     let max_trait_bounds = conf.max_trait_bounds;
     store.register_late_pass(move || box trait_bounds::TraitBounds::new(max_trait_bounds));
     store.register_late_pass(|| box comparison_chain::ComparisonChain);
@@ -1319,6 +1322,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&needless_continue::NEEDLESS_CONTINUE),
         LintId::of(&needless_pass_by_value::NEEDLESS_PASS_BY_VALUE),
         LintId::of(&non_expressive_names::SIMILAR_NAMES),
+        LintId::of(&not_exhaustive_enough::NOT_EXHAUSTIVE_ENOUGH),
         LintId::of(&option_if_let_else::OPTION_IF_LET_ELSE),
         LintId::of(&pass_by_ref_or_value::LARGE_TYPES_PASSED_BY_VALUE),
         LintId::of(&pass_by_ref_or_value::TRIVIALLY_COPY_PASS_BY_REF),

@@ -1,0 +1,76 @@
+error: Enum not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:29:11
+   |
+LL |     match e {
+   |           ^ help: try adding missing field/s: `E::Third`
+   |
+   = note: `-D clippy::not-exhaustive-enough` implied by `-D warnings`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:37:9
+   |
+LL |     let S { a: _, b: _, .. } = S::default();
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:40:9
+   |
+LL |         S { a: 42, b: 21, .. } => {},
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:41:9
+   |
+LL |         S { a: _, b: _, .. } => {},
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:44:12
+   |
+LL |     if let S { a: 42, b: _, .. } = S::default() {}
+   |            ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:48:9
+   |
+LL |     for S { a: _, b: _, .. } in v {}
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:52:9
+   |
+LL |     let T { 0: _, 1: _, .. } = T::default();
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:55:9
+   |
+LL |         T { 0: 42, 1: 21, .. } => {},
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:56:9
+   |
+LL |         T { 0: _, 1: _, .. } => {},
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:59:12
+   |
+LL |     if let T { 0: 42, 1: _, .. } = T::default() {}
+   |            ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+
+error: Struct not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:62:9
+   |
+LL |     for T { 0: _, 1: _, .. } in v {}
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+
+error: Enum not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:67:11
+   |
+LL |     match error_kind {
+   |           ^^^^^^^^^^ help: try adding missing field/s: `std::io::ErrorKind::WouldBlock , std::io::ErrorKind::InvalidInput , std::io::ErrorKind::InvalidData , std::io::ErrorKind::TimedOut , std::io::ErrorKind::WriteZero , std::io::ErrorKind::Interrupted , std::io::ErrorKind::Other , std::io::ErrorKind::UnexpectedEof`
+
+error: aborting due to 12 previous errors
+
