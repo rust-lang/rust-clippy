@@ -107,7 +107,7 @@ macro_rules! define_Conf {
 pub use self::helpers::Conf;
 define_Conf! {
     /// DEPRECATED LINT: BLACKLISTED_NAME. Use the Disallowed Names lint instead.
-    (blacklisted_names, "blacklisted_names": Vec<String>, ["foo", "baz", "quux"].iter().map(ToString::to_string).collect()),
+    (blacklisted_names, "blacklisted_names": Vec<String>, vec![]),
     /// Lint: DISALLOWED_NAME. The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses
     (disallowed_names, "disallowed_names": Vec<String>, ["foo", "baz", "quux"].iter().map(ToString::to_string).collect()),
     /// Lint: COGNITIVE_COMPLEXITY. The maximum cognitive complexity a function can have
