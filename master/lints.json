@@ -1044,6 +1044,17 @@
     }
   },
   {
+    "id": "float_equality_without_abs",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for statements of the form `(a - b) < f32::EPSILON` or\n`(a - b) < f64::EPSILON`. Notes the missing `.abs()`.",
+      "Why is this bad": "The code without `.abs()` is more likely to have a bug.",
+      "Known problems": "If the user can ensure that b is larger than a, the `.abs()` is\ntechnically unneccessary. However, it will make the code more robust and doesn't have any\nlarge performance implications. If the abs call was deliberately left out for performance\nreasons, it is probably better to state this explicitly in the code, which then can be done\nwith an allow.",
+      "Example": "```rust\npub fn is_roughly_equal(a: f32, b: f32) -> bool {\n    (a - b) < f32::EPSILON\n}\n```\nUse instead:\n```rust\npub fn is_roughly_equal(a: f32, b: f32) -> bool {\n    (a - b).abs() < f32::EPSILON\n}\n```"
+    }
+  },
+  {
     "id": "fn_address_comparisons",
     "group": "correctness",
     "level": "Deny",
