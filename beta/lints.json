@@ -80,7 +80,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for calls to await while holding a\nnon-async-aware MutexGuard.",
-      "Why is this bad": "The Mutex types found in syd::sync and parking_lot\nare not designed to operator in an async context across await points.\n\nThere are two potential solutions. One is to use an asynx-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.",
+      "Why is this bad": "The Mutex types found in syd::sync and parking_lot\nare not designed to operate in an async context across await points.\n\nThere are two potential solutions. One is to use an asynx-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.",
       "Known problems": "None.",
       "Example": "```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  let guard = x.lock().unwrap();\n  *guard += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  bar.await;\n}\n```"
     }
@@ -117,6 +117,17 @@
       "Known problems": "None.",
       "Example": "```rust\nlet foo = 3.14;\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted-names: Vec<String>`: The list of blacklisted names to lint about. NB: `bar` is not here since it has legitimate uses (defaults to `[\"foo\", \"baz\", \"quux\"]`)."
+    }
+  },
+  {
+    "id": "blanket_clippy_restriction_lints",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `warn`/`deny`/`forbid` attributes targeting the whole clippy::restriction category.",
+      "Why is this bad": "Restriction lints sometimes are in contrast with other lints or even go against idiomatic rust.\nThese lints should only be enabled on a lint-by-lint basis and with careful consideration.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust\n#![deny(clippy::restriction)]\n```\n\nGood:\n```rust\n#![deny(clippy::as_conversions)]\n```"
     }
   },
   {
@@ -551,6 +562,17 @@
     }
   },
   {
+    "id": "derive_ord_xor_partial_ord",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for deriving `Ord` but implementing `PartialOrd`\nexplicitly or vice versa.",
+      "Why is this bad": "The implementation of these traits must agree (for\nexample for use with `sort`) so it\u2019s probably a bad idea to use a\ndefault-generated `Ord` implementation with an explicitly defined\n`PartialOrd`. In particular, the following must hold for any type\nimplementing `Ord`:\n\n```text\nk1.cmp(&k2) == k1.partial_cmp(&k2).unwrap()\n```",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\n#[derive(Ord, PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    ...\n}\n```\nUse instead:\n```rust,ignore\n#[derive(PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    fn partial_cmp(&self, other: &Foo) -> Option<Ordering> {\n       Some(self.cmp(other))\n    }\n}\n\nimpl Ord for Foo {\n    ...\n}\n```\nor, if you don't need a custom ordering:\n```rust,ignore\n#[derive(Ord, PartialOrd, PartialEq, Eq)]\nstruct Foo;\n```"
+    }
+  },
+  {
     "id": "diverging_sub_expression",
     "group": "complexity",
     "level": "Warn",
@@ -757,7 +779,7 @@
     "docs": {
       "What it does": "Checks for equal operands to comparison, logical and\nbitwise, difference and division binary operators (`==`, `>`, etc., `&&`,\n`||`, `&`, `|`, `^`, `-` and `/`).",
       "Why is this bad": "This is usually just a typo or a copy and paste error.",
-      "Known problems": "False negatives: We had some false positives regarding\ncalls (notably [racer](https://github.com/phildawes/racer) had one instance\nof `x.pop() && x.pop()`), so we removed matching any function or method\ncalls. We may introduce a whitelist of known pure functions in the future.",
+      "Known problems": "False negatives: We had some false positives regarding\ncalls (notably [racer](https://github.com/phildawes/racer) had one instance\nof `x.pop() && x.pop()`), so we removed matching any function or method\ncalls. We may introduce a list of known pure functions in the future.",
       "Example": "```rust\nif x + 1 == x + 1 {}\n```"
     }
   },
@@ -855,7 +877,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for explicit `deref()` or `deref_mut()` method calls.",
-      "Why is this bad": "Derefencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.",
+      "Why is this bad": "Dereferencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.",
       "Example": "```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\nCould be written as:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes\n```rust,ignore\nlet _ = d.unwrap().deref();\n```"
     }
   },
@@ -1007,7 +1029,7 @@
       "What it does": "Checks for (in-)equality comparisons on floating-point\nvalues (apart from zero), except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).",
       "Why is this bad": "Floating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).",
       "Known problems": "None.",
-      "Example": "```rust\nlet x = 1.2331f64;\nlet y = 1.2332f64;\n\n// Bad\nif y == 1.23f64 { }\nif y != x {} // where both are floats\n\n// Good\nlet error = 0.01f64; // Use an epsilon for comparison\nif (y - 1.23f64).abs() < error { }\nif (y - x).abs() > error { }\n```"
+      "Example": "```rust\nlet x = 1.2331f64;\nlet y = 1.2332f64;\n\n// Bad\nif y == 1.23f64 { }\nif y != x {} // where both are floats\n\n// Good\nlet error = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error = std::f64::EPSILON;\nif (y - 1.23f64).abs() < error { }\nif (y - x).abs() > error { }\n```"
     }
   },
   {
@@ -1018,7 +1040,7 @@
       "What it does": "Checks for (in-)equality comparisons on floating-point\nvalue and constant, except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).",
       "Why is this bad": "Floating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).",
       "Known problems": "None.",
-      "Example": "```rust\nlet x: f64 = 1.0;\nconst ONE: f64 = 1.00;\n\n// Bad\nif x == ONE { }  // where both are floats\n\n// Good\nlet error = 0.1f64; // Use an epsilon for comparison\nif (x - ONE).abs() < error { }\n```"
+      "Example": "```rust\nlet x: f64 = 1.0;\nconst ONE: f64 = 1.00;\n\n// Bad\nif x == ONE { } // where both are floats\n\n// Good\nlet error = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error = std::f64::EPSILON;\nif (x - ONE).abs() < error { }\n```"
     }
   },
   {
@@ -1740,7 +1762,7 @@
       "What it does": "It checks for manual implementations of `async` functions.",
       "Why is this bad": "It's more idiomatic to use the dedicated syntax.",
       "Known problems": "None.",
-      "Example": "```rust\nuse std::future::Future;\n\nfn foo() -> impl Future<Output = i32> { async { 42 } }\n```\nUse instead:\n```rust\nuse std::future::Future;\n\nasync fn foo() -> i32 { 42 }\n```"
+      "Example": "```rust\nuse std::future::Future;\n\nfn foo() -> impl Future<Output = i32> { async { 42 } }\n```\nUse instead:\n```rust\nasync fn foo() -> i32 { 42 }\n```"
     }
   },
   {
@@ -1832,6 +1854,17 @@
     }
   },
   {
+    "id": "map_identity",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for instances of `map(f)` where `f` is the identity function.",
+      "Why is this bad": "It can be written more concisely without the call to `map`.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| x).map(|x| 2*x).collect();\n```\nUse instead:\n```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| 2*x).collect();\n```"
+    }
+  },
+  {
     "id": "map_unwrap_or",
     "group": "pedantic",
     "level": "Allow",
@@ -1862,6 +1895,17 @@
       "Why is this bad": "It makes the code less readable.",
       "Known problems": "None.",
       "Example": "```rust\nlet condition: bool = true;\nmatch condition {\n    true => foo(),\n    false => bar(),\n}\n```\nUse if/else instead:\n```rust\nlet condition: bool = true;\nif condition {\n    foo();\n} else {\n    bar();\n}\n```"
+    }
+  },
+  {
+    "id": "match_like_matches_macro",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `match`  or `if let` expressions producing a\n`bool` that could be written using `matches!`",
+      "Why is this bad": "Readability and needless complexity.",
+      "Known problems": "None",
+      "Example": "```rust\nlet x = Some(5);\n\n// Bad\nlet a = match x {\n    Some(0) => true,\n    _ => false,\n};\n\nlet a = if let Some(0) = x {\n    true\n} else {\n    false\n};\n\n// Good\nlet a = matches!(x, Some(0));\n```"
     }
   },
   {
@@ -2015,7 +2059,7 @@
       "What it does": "Checks for expressions where `std::cmp::min` and `max` are\nused to clamp values, but switched so that the result is constant.",
       "Why is this bad": "This is in all probability not the intended outcome. At\nthe least it hurts readability of the code.",
       "Known problems": "None",
-      "Example": "```ignore\nmin(0, max(100, x))\n```\nIt will always be equal to `0`. Probably the author meant to clamp the value\nbetween 0 and 100, but has erroneously swapped `min` and `max`."
+      "Example": "```ignore\nmin(0, max(100, x))\n```\nor\n```ignore\nx.max(100).min(0)\n```\nIt will always be equal to `0`. Probably the author meant to clamp the value\nbetween 0 and 100, but has erroneously swapped `min` and `max`."
     }
   },
   {
@@ -2152,7 +2196,7 @@
     "group": "restriction",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for modulo arithemtic.",
+      "What it does": "Checks for modulo arithmetic.",
       "Why is this bad": "The results of modulo (%) operation might differ\ndepending on the language, when negative numbers are involved.\nIf you interop with different languages it might be beneficial\nto double check all places that use modulo arithmetic.\n\nFor example, in Rust `17 % -3 = 2`, but in Python `17 % -3 = -1`.",
       "Known problems": "None.",
       "Example": "```rust\nlet x = -17 % 3;\n```"
@@ -2288,6 +2332,17 @@
       "Why is this bad": "The [`bytecount`](https://crates.io/crates/bytecount)\ncrate has methods to count your bytes faster, especially for large slices.",
       "Known problems": "If you have predominantly small slices, the\n`bytecount::count(..)` method may actually be slower. However, if you can\nensure that less than 2\u00b3\u00b2-1 matches arise, the `naive_count_32(..)` can be\nfaster in those cases.",
       "Example": "```rust\n&vec.iter().filter(|x| **x == 0u8).count(); // use bytecount::count instead\n```"
+    }
+  },
+  {
+    "id": "needless_arbitrary_self_type",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "The lint checks for `self` in fn parameters that\nspecify the `Self`-type explicitly",
+      "Why is this bad": "Increases the amount and decreases the readability of code",
+      "Known problems": "None",
+      "Example": "```rust\nenum ValType {\n    I32,\n    I64,\n    F32,\n    F64,\n}\n\nimpl ValType {\n    pub fn bytes(self: Self) -> usize {\n        match self {\n            Self::I32 | Self::F32 => 4,\n            Self::I64 | Self::F64 => 8,\n        }\n    }\n}\n```\n\nCould be rewritten as\n\n```rust\nenum ValType {\n    I32,\n    I64,\n    F32,\n    F64,\n}\n\nimpl ValType {\n    pub fn bytes(self) -> usize {\n        match self {\n            Self::I32 | Self::F32 => 4,\n            Self::I64 | Self::F64 => 8,\n        }\n    }\n}\n```"
     }
   },
   {
@@ -2566,6 +2621,17 @@
     }
   },
   {
+    "id": "option_if_let_else",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Lints usage of  `if let Some(v) = ... { y } else { x }` which is more\nidiomatically done with `Option::map_or` (if the else bit is a simple\nexpression) or `Option::map_or_else` (if the else bit is a longer\nblock).",
+      "Why is this bad": "Using the dedicated functions of the Option type is clearer and\nmore concise than an if let expression.",
+      "Known problems": "This lint uses whether the block is just an expression or if it has\nmore statements to decide whether to use `Option::map_or` or\n`Option::map_or_else`. If you have a single expression which calls\nan expensive function, then it would be more efficient to use\n`Option::map_or_else`, but this lint would suggest `Option::map_or`.\n\nAlso, this lint uses a deliberately conservative metric for checking\nif the inside of either body contains breaks or continues which will\ncause it to not suggest a fix if either block contains a loop with\ncontinues or breaks contained within the loop.",
+      "Example": "```rust\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    5\n};\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    let y = do_complicated_function();\n    y*y\n};\n```\n\nshould be\n\n```rust\nlet _ = optional.map_or(5, |foo| foo);\nlet _ = optional.map_or_else(||{\n    let y = do_complicated_function();\n    y*y\n}, |foo| foo);\n```"
+    }
+  },
+  {
     "id": "option_map_or_none",
     "group": "style",
     "level": "Warn",
@@ -2687,6 +2753,17 @@
     }
   },
   {
+    "id": "pattern_type_mismatch",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for patterns that aren't exact representations of the types\nthey are applied to.\n\nTo satisfy this lint, you will have to adjust either the expression that is matched\nagainst or the pattern itself, as well as the bindings that are introduced by the\nadjusted patterns. For matching you will have to either dereference the expression\nwith the `*` operator, or amend the patterns to explicitly match against `&<pattern>`\nor `&mut <pattern>` depending on the reference mutability. For the bindings you need\nto use the inverse. You can leave them as plain bindings if you wish for the value\nto be copied, but you must use `ref mut <variable>` or `ref <variable>` to construct\na reference into the matched structure.\n\nIf you are looking for a way to learn about ownership semantics in more detail, it\nis recommended to look at IDE options available to you to highlight types, lifetimes\nand reference semantics in your code. The available tooling would expose these things\nin a general way even outside of the various pattern matching mechanics. Of course\nthis lint can still be used to highlight areas of interest and ensure a good understanding\nof ownership semantics.",
+      "Why is this bad": "It isn't bad in general. But in some contexts it can be desirable\nbecause it increases ownership hints in the code, and will guard against some changes\nin ownership.",
+      "Known problems": "None.",
+      "Example": "This example shows the basic adjustments necessary to satisfy the lint. Note how\nthe matched expression is explicitly dereferenced with `*` and the `inner` variable\nis bound to a shared borrow via `ref inner`.\n\n```rust,ignore\n// Bad\nlet value = &Some(Box::new(23));\nmatch value {\n    Some(inner) => println!(\"{}\", inner),\n    None => println!(\"none\"),\n}\n\n// Good\nlet value = &Some(Box::new(23));\nmatch *value {\n    Some(ref inner) => println!(\"{}\", inner),\n    None => println!(\"none\"),\n}\n```\n\nThe following example demonstrates one of the advantages of the more verbose style.\nNote how the second version uses `ref mut a` to explicitly declare `a` a shared mutable\nborrow, while `b` is simply taken by value. This ensures that the loop body cannot\naccidentally modify the wrong part of the structure.\n\n```rust,ignore\n// Bad\nlet mut values = vec![(2, 3), (3, 4)];\nfor (a, b) in &mut values {\n    *a += *b;\n}\n\n// Good\nlet mut values = vec![(2, 3), (3, 4)];\nfor &mut (ref mut a, b) in &mut values {\n    *a += b;\n}\n```"
+    }
+  },
+  {
     "id": "possible_missing_comma",
     "group": "correctness",
     "level": "Deny",
@@ -2798,12 +2875,12 @@
   },
   {
     "id": "range_minus_one",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for inclusive ranges where 1 is subtracted from\nthe upper bound, e.g., `x..=(y-1)`.",
       "Why is this bad": "The code is more readable with an exclusive range\nlike `x..y`.",
-      "Known problems": "None.",
+      "Known problems": "This will cause a warning that cannot be fixed if\nthe consumer of the range only accepts a specific range type, instead of\nthe generic `RangeBounds` trait\n([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).",
       "Example": "```rust,ignore\nfor x..=(y-1) { .. }\n```\nCould be written as\n```rust,ignore\nfor x..y { .. }\n```"
     }
   },
@@ -2814,7 +2891,7 @@
     "docs": {
       "What it does": "Checks for exclusive ranges where 1 is added to the\nupper bound, e.g., `x..(y+1)`.",
       "Why is this bad": "The code is more readable with an inclusive range\nlike `x..=y`.",
-      "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.\n\nAlso in many cases, inclusive ranges are still slower to run than\nexclusive ranges, because they essentially add an extra branch that\nLLVM may fail to hoist out of the loop.",
+      "Known problems": "Will add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.\n\nAlso in many cases, inclusive ranges are still slower to run than\nexclusive ranges, because they essentially add an extra branch that\nLLVM may fail to hoist out of the loop.\n\nThis will cause a warning that cannot be fixed if the consumer of the\nrange only accepts a specific range type, instead of the generic\n`RangeBounds` trait\n([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).",
       "Example": "```rust,ignore\nfor x..(y+1) { .. }\n```\nCould be written as\n```rust,ignore\nfor x..=y { .. }\n```"
     }
   },
@@ -2960,13 +3037,22 @@
   },
   {
     "id": "regex_macro",
-    "group": "style",
+    "group": "deprecated",
+    "level": "Deprecated",
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "The regex! macro does not exist anymore."
+    }
+  },
+  {
+    "id": "repeat_once",
+    "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for usage of `regex!(_)` which (as of now) is\nusually slower than `Regex::new(_)` unless called in a loop (which is a bad\nidea anyway).",
-      "Why is this bad": "Performance, at least for now. The macro version is\nlikely to catch up long-term, but for now the dynamic version is faster.",
+      "What it does": "Checks for usage of `.repeat(1)` and suggest the following method for each types.\n- `.to_string()` for `str`\n- `.clone()` for `String`\n- `.to_vec()` for `slice`",
+      "Why is this bad": "For example, `String.repeat(1)` is equivalent to `.clone()`. If cloning the string is the intention behind this, `clone()` should be used.",
       "Known problems": "None.",
-      "Example": "```ignore\nregex!(\"foo|bar\")\n```"
+      "Example": "```rust\nfn main() {\n    let x = String::from(\"hello world\").repeat(1);\n}\n```\nUse instead:\n```rust\nfn main() {\n    let x = String::from(\"hello world\").clone();\n}\n```"
     }
   },
   {
@@ -3031,6 +3117,17 @@
       "Why is this bad": "This is probably a copy & paste error.\nDespite the fact that function can have side effects and `if` works as\nintended, such an approach is implicit and can be considered a \"code smell\".",
       "Known problems": "Hopefully none.",
       "Example": "```ignore\nif foo() == bar {\n    \u2026\n} else if foo() == bar {\n    \u2026\n}\n```\n\nThis probably should be:\n```ignore\nif foo() == bar {\n    \u2026\n} else if foo() == baz {\n    \u2026\n}\n```\n\nor if the original code was not a typo and called function mutates a state,\nconsider move the mutation out of the `if` condition to avoid similarity to\na copy & paste error:\n\n```ignore\nlet first = foo();\nif first == bar {\n    \u2026\n} else {\n    let second = foo();\n    if second == bar {\n    \u2026\n    }\n}\n```"
+    }
+  },
+  {
+    "id": "same_item_push",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks whether a for loop is being used to push a constant\nvalue into a Vec.",
+      "Why is this bad": "This kind of operation can be expressed more succinctly with\n`vec![item;SIZE]` or `vec.resize(NEW_SIZE, item)` and using these alternatives may also\nhave better performance.",
+      "Known problems": "None",
+      "Example": "```rust\nlet item1 = 2;\nlet item2 = 3;\nlet mut vec: Vec<u8> = Vec::new();\nfor _ in 0..20 {\n   vec.push(item1);\n}\nfor _ in 0..30 {\n    vec.push(item2);\n}\n```\ncould be written as\n```rust\nlet item1 = 2;\nlet item2 = 3;\nlet mut vec: Vec<u8> = vec![item1; 20];\nvec.resize(20 + 30, item2);\n```"
     }
   },
   {
@@ -3194,6 +3291,17 @@
       "Why is this bad": "These structures are non-idiomatic and less efficient than simply using\n`vec![0; len]`.",
       "Known problems": "None.",
       "Example": "```rust\n\n// Bad\nlet mut vec1 = Vec::with_capacity(len);\nvec1.resize(len, 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.extend(repeat(0).take(len));\n\n// Good\nlet mut vec1 = vec![0; len];\nlet mut vec2 = vec![0; len];\n```"
+    }
+  },
+  {
+    "id": "stable_sort_primitive",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "When sorting primitive values (integers, bools, chars, as well\nas arrays, slices, and tuples of such items), it is better to\nuse an unstable sort than a stable sort.",
+      "Why is this bad": "Using a stable sort consumes more memory and cpu cycles. Because\nvalues which compare equal are identical, preserving their\nrelative order (the guarantee that a stable sort provides) means\nnothing, while the extra costs still apply.",
+      "Known problems": "None",
+      "Example": "```rust\nlet mut vec = vec![2, 1, 3];\nvec.sort();\n```\nUse instead:\n```rust\nlet mut vec = vec![2, 1, 3];\nvec.sort_unstable();\n```"
     }
   },
   {
@@ -3437,6 +3545,17 @@
     }
   },
   {
+    "id": "trait_duplication_in_bounds",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for cases where generics are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.",
+      "Why is this bad": "Duplicate bounds makes the code\nless readable than specifing them only once.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nCould be written as:\n\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n```\nor\n\n```rust\nfn func<T>(arg: T) where T: Clone + Default {}\n```"
+    }
+  },
+  {
     "id": "transmute_bytes_to_str",
     "group": "complexity",
     "level": "Warn",
@@ -3514,6 +3633,17 @@
     }
   },
   {
+    "id": "transmutes_expressible_as_ptr_casts",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for transmutes that could be a pointer cast.",
+      "Why is this bad": "Readability. The code tricks people into thinking that\nsomething complex is going on.",
+      "Known problems": "None.",
+      "Example": "```rust\nunsafe { std::mem::transmute::<*const [i32], *const [u16]>(p) };\n```\nUse instead:\n```rust\np as *const [u16];\n```"
+    }
+  },
+  {
     "id": "transmuting_null",
     "group": "correctness",
     "level": "Deny",
@@ -3577,7 +3707,9 @@
     "docs": {
       "What it does": "This lint warns about unnecessary type repetitions in trait bounds",
       "Why is this bad": "Repeating the type for every bound makes the code\nless readable than combining the bounds",
-      "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```"
+      "Known problems": "None.",
+      "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-trait-bounds: u64`: The maximum number of bounds a trait can have to be linted (defaults to `3`)."
     }
   },
   {
@@ -3636,6 +3768,17 @@
     }
   },
   {
+    "id": "unit_return_expecting_ord",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for functions that expect closures of type\nFn(...) -> Ord where the implemented closure returns the unit type.\nThe lint also suggests to remove the semi-colon at the end of the statement if present.",
+      "Why is this bad": "Likely, returning the unit type is unintentional, and\ncould simply be caused by an extra semi-colon. Since () implements Ord\nit doesn't cause a compilation error.\nThis is the same reasoning behind the unit_cmp lint.",
+      "Known problems": "If returning unit is intentional, then there is no\nway of specifying this without triggering needless_return lint",
+      "Example": "```rust\nlet mut twins = vec!((1,1), (2,2));\ntwins.sort_by_key(|x| { x.1; });\n```"
+    }
+  },
+  {
     "id": "unknown_clippy_lints",
     "group": "style",
     "level": "Warn",
@@ -3675,7 +3818,7 @@
     "docs": {
       "What it does": "Checks for using `fold` when a more succinct alternative exists.\nSpecifically, this checks for `fold`s which could be replaced by `any`, `all`,\n`sum` or `product`.",
       "Why is this bad": "Readability.",
-      "Known problems": "False positive in pattern guards. Will be resolved once\nnon-lexical lifetimes are stable.",
+      "Known problems": "None.",
       "Example": "```rust\nlet _ = (0..3).fold(false, |acc, x| acc || x > 2);\n```\nThis could be written as:\n```rust\nlet _ = (0..3).any(|x| x > 2);\n```"
     }
   },
@@ -3706,9 +3849,9 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Detects when people use `Vec::sort_by` and pass in a function\nwhich compares the two arguments, either directly or indirectly.",
-      "Why is this bad": "It is more clear to use `Vec::sort_by_key` (or `Vec::sort` if\npossible) than to use `Vec::sort_by` and and a more complicated\nclosure.",
-      "Known problems": "If the suggested `Vec::sort_by_key` uses Reverse and it isn't\nimported by a use statement in the current frame, then a `use`\nstatement that imports it will need to be added (which this lint\ncan't do).",
+      "What it does": "Detects uses of `Vec::sort_by` passing in a closure\nwhich compares the two arguments, either directly or indirectly.",
+      "Why is this bad": "It is more clear to use `Vec::sort_by_key` (or `Vec::sort` if\npossible) than to use `Vec::sort_by` and a more complicated\nclosure.",
+      "Known problems": "If the suggested `Vec::sort_by_key` uses Reverse and it isn't already\nimported by a use statement, then it will need to be added manually.",
       "Example": "```rust\nvec.sort_by(|a, b| a.foo().cmp(&b.foo()));\n```\nUse instead:\n```rust\nvec.sort_by_key(|a| a.foo());\n```"
     }
   },
@@ -3959,7 +4102,7 @@
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Checks for `extern crate` and `use` items annotated with\nlint attributes.\n\nThis lint whitelists `#[allow(unused_imports)]`, `#[allow(deprecated)]` and\n`#[allow(unreachable_pub)]` on `use` items and `#[allow(unused_imports)]` on\n`extern crate` items with a `#[macro_use]` attribute.",
+      "What it does": "Checks for `extern crate` and `use` items annotated with\nlint attributes.\n\nThis lint permits `#[allow(unused_imports)]`, `#[allow(deprecated)]` and\n`#[allow(unreachable_pub)]` on `use` items and `#[allow(unused_imports)]` on\n`extern crate` items with a `#[macro_use]` attribute.",
       "Why is this bad": "Lint attributes have no effect on crate imports. Most\nlikely a `!` was forgotten.",
       "Known problems": "None.",
       "Example": "```ignore\n// Bad\n#[deny(dead_code)]\nextern crate foo;\n#[forbid(dead_code)]\nuse foo::bar;\n\n// Ok\n#[allow(unused_imports)]\nuse foo::baz;\n#[allow(unused_imports)]\n#[macro_use]\nextern crate baz;\n```"
@@ -4037,7 +4180,7 @@
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Finds occurences of `Vec::resize(0, an_int)`",
+      "What it does": "Finds occurrences of `Vec::resize(0, an_int)`",
       "Why is this bad": "This is probably an argument inversion mistake.",
       "Known problems": "None.",
       "Example": "```rust\nvec!(1, 2, 3, 4, 5).resize(0, 5)\n```"
