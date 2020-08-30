@@ -3265,10 +3265,10 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Warns when using push_str with a single-character string literal,\nand push with a char would work fine.",
-      "Why is this bad": "It's less clear that we are pushing a single character",
+      "What it does": "Warns when using `push_str` with a single-character string literal,\nand `push` with a `char` would work fine.",
+      "Why is this bad": "It's less clear that we are pushing a single character.",
       "Known problems": "None",
-      "Example": "```\nlet mut string = String::new();\nstring.push_str(\"R\");\n```\nCould be written as\n```\nlet mut string = String::new();\nstring.push('R');\n```"
+      "Example": "```rust\nlet mut string = String::new();\nstring.push_str(\"R\");\n```\nCould be written as\n```rust\nlet mut string = String::new();\nstring.push('R');\n```"
     }
   },
   {
