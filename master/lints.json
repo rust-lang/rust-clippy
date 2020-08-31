@@ -75,6 +75,17 @@
     }
   },
   {
+    "id": "async_yields_async",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for async blocks that yield values of types\nthat can themselves be awaited.",
+      "Why is this bad": "An await is likely missing.",
+      "Known problems": "None.",
+      "Example": "```rust\nasync fn foo() {}\n\nfn bar() {\n  let x = async {\n    foo()\n  };\n}\n```\nUse instead:\n```rust\nasync fn foo() {}\n\nfn bar() {\n  let x = async {\n    foo().await\n  };\n}\n```"
+    }
+  },
+  {
     "id": "await_holding_lock",
     "group": "pedantic",
     "level": "Allow",
