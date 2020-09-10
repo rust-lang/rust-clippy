@@ -43,6 +43,7 @@ pub const FMT_ARGUMENTS_NEW_V1: [&str; 4] = ["core", "fmt", "Arguments", "new_v1
 pub const FMT_ARGUMENTS_NEW_V1_FORMATTED: [&str; 4] = ["core", "fmt", "Arguments", "new_v1_formatted"];
 pub const FMT_ARGUMENTV1_NEW: [&str; 4] = ["core", "fmt", "ArgumentV1", "new"];
 pub const FROM_FROM: [&str; 4] = ["core", "convert", "From", "from"];
+pub const FROM_ITERATOR_TRAIT: [&str; 3] = ["std", "iter", "FromIterator"];
 pub const FROM_TRAIT: [&str; 3] = ["core", "convert", "From"];
 pub const FUTURE_FROM_GENERATOR: [&str; 3] = ["core", "future", "from_generator"];
 pub const HASH: [&str; 2] = ["hash", "Hash"];
