@@ -179,7 +179,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for use of `&Box<T>` anywhere in the code.",
+      "What it does": "Checks for use of `&Box<T>` anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.",
       "Why is this bad": "Any `&Box<T>` can also be a `&T`, which is more\ngeneral.",
       "Known problems": "None.",
       "Example": "```rust,ignore\nfn foo(bar: &Box<T>) { ... }\n```\n\nBetter:\n\n```rust,ignore\nfn foo(bar: &T) { ... }\n```"
@@ -190,7 +190,7 @@
     "group": "perf",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for use of `Box<Vec<_>>` anywhere in the code.",
+      "What it does": "Checks for use of `Box<Vec<_>>` anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.",
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` it, you just add another level of indirection\nwithout any benefit whatsoever.",
       "Known problems": "None.",
       "Example": "```rust,ignore\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust,ignore\nstruct X {\n    values: Vec<Foo>,\n}\n```"
@@ -4246,7 +4246,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.",
+      "What it does": "Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.",
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.",
       "Known problems": "Vec<Box<T: Sized>> makes sense if T is a large type (see #3530,\n1st comment).",
       "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```",
