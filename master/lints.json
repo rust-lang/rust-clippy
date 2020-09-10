@@ -2330,7 +2330,7 @@
     "docs": {
       "What it does": "Checks for sets/maps with mutable key types.",
       "Why is this bad": "All of `HashMap`, `HashSet`, `BTreeMap` and\n`BtreeSet` rely on either the hash or the order of keys be unchanging,\nso having types with interior mutability is a bad idea.",
-      "Known problems": "We don't currently account for `Rc` or `Arc`, so\nthis may yield false positives.",
+      "Known problems": "It's correct to use a struct, that contains interior mutability\nas a key, when its `Hash` implementation doesn't access any of the interior mutable types.\nHowever, this lint is unable to recognize this, so it causes a false positive in theses cases.\nThe `bytes` crate is a great example of this.",
       "Example": "```rust\nuse std::cmp::{PartialEq, Eq};\nuse std::collections::HashSet;\nuse std::hash::{Hash, Hasher};\nuse std::sync::atomic::AtomicUsize;\n\nstruct Bad(AtomicUsize);\nimpl PartialEq for Bad {\n    fn eq(&self, rhs: &Self) -> bool {\n         ..\n; unimplemented!();\n    }\n}\n\nimpl Eq for Bad {}\n\nimpl Hash for Bad {\n    fn hash<H: Hasher>(&self, h: &mut H) {\n        ..\n; unimplemented!();\n    }\n}\n\nfn main() {\n    let _: HashSet<Bad> = HashSet::new();\n}\n```"
     }
   },
