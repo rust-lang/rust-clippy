@@ -2742,6 +2742,17 @@
     }
   },
   {
+    "id": "panic_in_result_fn",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of `panic!`, `unimplemented!`, `todo!` or `unreachable!` in a function of type result.",
+      "Why is this bad": "For some codebases, it is desirable for functions of type result to return an error instead of crashing. Hence unimplemented, panic and unreachable should be avoided.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn result_with_panic() -> Result<bool, String>\n{\n    panic!(\"error\");\n}\n```"
+    }
+  },
+  {
     "id": "panic_params",
     "group": "style",
     "level": "Warn",
