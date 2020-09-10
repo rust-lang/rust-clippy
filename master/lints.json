@@ -2669,7 +2669,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for usage of `option.map(f)` where f is a function\nor closure that returns the unit type.",
+      "What it does": "Checks for usage of `option.map(f)` where f is a function\nor closure that returns the unit type `()`.",
       "Why is this bad": "Readability, this can be written more clearly with\nan if let statement",
       "Known problems": "None.",
       "Example": "```rust\nlet x: Option<String> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\nlet x: Option<String> = do_stuff();\nif let Some(msg) = x {\n    log_err_msg(msg);\n}\n\nif let Some(msg) = x {\n    log_err_msg(format_msg(msg));\n}\n```"
@@ -3113,7 +3113,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for usage of `result.map(f)` where f is a function\nor closure that returns the unit type.",
+      "What it does": "Checks for usage of `result.map(f)` where f is a function\nor closure that returns the unit type `()`.",
       "Why is this bad": "Readability, this can be written more clearly with\nan if let statement",
       "Known problems": "None.",
       "Example": "```rust\nlet x: Result<String, String> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\nlet x: Result<String, String> = do_stuff();\nif let Ok(msg) = x {\n    log_err_msg(msg);\n};\nif let Ok(msg) = x {\n    log_err_msg(format_msg(msg));\n};\n```"
