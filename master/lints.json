@@ -4288,8 +4288,8 @@
   },
   {
     "id": "verbose_bit_mask",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`",
       "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`",
