@@ -1051,7 +1051,7 @@
       "What it does": "Checks for (in-)equality comparisons on floating-point\nvalues (apart from zero), except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).",
       "Why is this bad": "Floating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).",
       "Known problems": "None.",
-      "Example": "```rust\nlet x = 1.2331f64;\nlet y = 1.2332f64;\n\n// Bad\nif y == 1.23f64 { }\nif y != x {} // where both are floats\n\n// Good\nlet error = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error = std::f64::EPSILON;\nif (y - 1.23f64).abs() < error { }\nif (y - x).abs() > error { }\n```"
+      "Example": "```rust\nlet x = 1.2331f64;\nlet y = 1.2332f64;\n\n// Bad\nif y == 1.23f64 { }\nif y != x {} // where both are floats\n\n// Good\nlet error_margin = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error_margin = std::f64::EPSILON;\nif (y - 1.23f64).abs() < error_margin { }\nif (y - x).abs() > error_margin { }\n```"
     }
   },
   {
@@ -1062,7 +1062,7 @@
       "What it does": "Checks for (in-)equality comparisons on floating-point\nvalue and constant, except in functions called `*eq*` (which probably\nimplement equality for a type involving floats).",
       "Why is this bad": "Floating point calculations are usually imprecise, so\nasking if two values are *exactly* equal is asking for trouble. For a good\nguide on what to do, see [the floating point\nguide](http://www.floating-point-gui.de/errors/comparison).",
       "Known problems": "None.",
-      "Example": "```rust\nlet x: f64 = 1.0;\nconst ONE: f64 = 1.00;\n\n// Bad\nif x == ONE { } // where both are floats\n\n// Good\nlet error = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error = std::f64::EPSILON;\nif (x - ONE).abs() < error { }\n```"
+      "Example": "```rust\nlet x: f64 = 1.0;\nconst ONE: f64 = 1.00;\n\n// Bad\nif x == ONE { } // where both are floats\n\n// Good\nlet error_margin = f64::EPSILON; // Use an epsilon for comparison\n// Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.\n// let error_margin = std::f64::EPSILON;\nif (x - ONE).abs() < error_margin { }\n```"
     }
   },
   {
