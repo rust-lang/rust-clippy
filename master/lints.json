@@ -1483,10 +1483,10 @@
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Checks for usage of invalid atomic\nordering in atomic loads/stores and memory fences.",
+      "What it does": "Checks for usage of invalid atomic\nordering in atomic loads/stores/exchanges/updates and\nmemory fences.",
       "Why is this bad": "Using an invalid atomic ordering\nwill cause a panic at run-time.",
       "Known problems": "None.",
-      "Example": "```rust,no_run\n\nlet x = AtomicBool::new(true);\n\nlet _ = x.load(Ordering::Release);\nlet _ = x.load(Ordering::AcqRel);\n\nx.store(false, Ordering::Acquire);\nx.store(false, Ordering::AcqRel);\n\natomic::fence(Ordering::Relaxed);\natomic::compiler_fence(Ordering::Relaxed);\n```"
+      "Example": "```rust,no_run\n\nlet x = AtomicU8::new(0);\n\n// Bad: `Release` and `AcqRel` cannot be used for `load`.\nlet _ = x.load(Ordering::Release);\nlet _ = x.load(Ordering::AcqRel);\n\n// Bad: `Acquire` and `AcqRel` cannot be used for `store`.\nx.store(1, Ordering::Acquire);\nx.store(2, Ordering::AcqRel);\n\n// Bad: `Relaxed` cannot be used as a fence's ordering.\natomic::fence(Ordering::Relaxed);\natomic::compiler_fence(Ordering::Relaxed);\n\n// Bad: `Release` and `AcqRel` are both always invalid\n// for the failure ordering (the last arg).\nlet _ = x.compare_exchange(1, 2, Ordering::SeqCst, Ordering::Release);\nlet _ = x.compare_exchange_weak(2, 3, Ordering::AcqRel, Ordering::AcqRel);\n\n// Bad: The failure ordering is not allowed to be\n// stronger than the success order, and `SeqCst` is\n// stronger than `Relaxed`.\nlet _ = x.fetch_update(Ordering::Relaxed, Ordering::SeqCst, |val| Some(val + val));\n```"
     }
   },
   {
