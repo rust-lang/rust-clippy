@@ -2680,9 +2680,9 @@
     "group": "pedantic",
     "level": "Allow",
     "docs": {
-      "What it does": "Lints usage of  `if let Some(v) = ... { y } else { x }` which is more\nidiomatically done with `Option::map_or` (if the else bit is a simple\nexpression) or `Option::map_or_else` (if the else bit is a longer\nblock).",
+      "What it does": "Lints usage of  `if let Some(v) = ... { y } else { x }` which is more\nidiomatically done with `Option::map_or` (if the else bit is a pure\nexpression) or `Option::map_or_else` (if the else bit is an impure\nexpresion).",
       "Why is this bad": "Using the dedicated functions of the Option type is clearer and\nmore concise than an if let expression.",
-      "Known problems": "This lint uses whether the block is just an expression or if it has\nmore statements to decide whether to use `Option::map_or` or\n`Option::map_or_else`. If you have a single expression which calls\nan expensive function, then it would be more efficient to use\n`Option::map_or_else`, but this lint would suggest `Option::map_or`.\n\nAlso, this lint uses a deliberately conservative metric for checking\nif the inside of either body contains breaks or continues which will\ncause it to not suggest a fix if either block contains a loop with\ncontinues or breaks contained within the loop.",
+      "Known problems": "This lint uses a deliberately conservative metric for checking\nif the inside of either body contains breaks or continues which will\ncause it to not suggest a fix if either block contains a loop with\ncontinues or breaks contained within the loop.",
       "Example": "```rust\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    5\n};\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    let y = do_complicated_function();\n    y*y\n};\n```\n\nshould be\n\n```rust\nlet _ = optional.map_or(5, |foo| foo);\nlet _ = optional.map_or_else(||{\n    let y = do_complicated_function();\n    y*y\n}, |foo| foo);\n```"
     }
   },
