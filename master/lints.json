@@ -1831,6 +1831,17 @@
     }
   },
   {
+    "id": "manual_strip",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Suggests using `strip_{prefix,suffix}` over `str::{starts,ends}_with` and slicing using\nthe pattern's length.",
+      "Why is this bad": "Using `str:strip_{prefix,suffix}` is safer and may have better performance as there is no\nslicing which may panic and the compiler does not need to insert this panic code. It is\nalso sometimes more readable as it removes the need for duplicating or storing the pattern\nused by `str::{starts,ends}_with` and in the slicing.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet s = \"hello, world!\";\nif s.starts_with(\"hello, \") {\n    assert_eq!(s[\"hello, \".len()..].to_uppercase(), \"WORLD!\");\n}\n```\nUse instead:\n```rust\nlet s = \"hello, world!\";\nif let Some(end) = s.strip_prefix(\"hello, \") {\n    assert_eq!(end.to_uppercase(), \"WORLD!\");\n}\n```"
+    }
+  },
+  {
     "id": "manual_swap",
     "group": "complexity",
     "level": "Warn",
