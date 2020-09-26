@@ -595,6 +595,18 @@
     }
   },
   {
+    "id": "disallowed_method",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Lints for specific trait methods defined in clippy.toml",
+      "Why is this bad": "Some methods are undesirable in certain contexts,\nand it would be beneficial to lint for them as needed.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\n// example code where clippy issues a warning\nfoo.bad_method(); // Foo::bad_method is disallowed in the configuration\n```\nUse instead:\n```rust,ignore\n// example code which does not raise clippy warning\ngoodStruct.bad_method(); // GoodStruct::bad_method is not disallowed\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of blacklisted methods to lint about. NB: `bar` is not here since it has legitimate uses (defaults to `Vec::<String>::new(`)."
+    }
+  },
+  {
     "id": "diverging_sub_expression",
     "group": "complexity",
     "level": "Warn",
