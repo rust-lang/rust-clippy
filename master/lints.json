@@ -1427,6 +1427,28 @@
     }
   },
   {
+    "id": "inline_asm_x86_att_syntax",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of AT&T x86 assembly syntax.",
+      "Why is this bad": "The lint has been enabled to indicate a preference\nfor Intel x86 assembly syntax.",
+      "Known problems": "None.",
+      "Example": "```rust,no_run\nasm!(\"lea ({}), {}\", in(reg) ptr, lateout(reg) _, options(att_syntax));\n```\nUse instead:\n```rust,no_run\nasm!(\"lea {}, [{}]\", lateout(reg) _, in(reg) ptr);\n```"
+    }
+  },
+  {
+    "id": "inline_asm_x86_intel_syntax",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of Intel x86 assembly syntax.",
+      "Why is this bad": "The lint has been enabled to indicate a preference\nfor AT&T x86 assembly syntax.",
+      "Known problems": "None.",
+      "Example": "```rust,no_run\nasm!(\"lea {}, [{}]\", lateout(reg) _, in(reg) ptr);\n```\nUse instead:\n```rust,no_run\nasm!(\"lea ({}), {}\", in(reg) ptr, lateout(reg) _, options(att_syntax));\n```"
+    }
+  },
+  {
     "id": "inline_fn_without_body",
     "group": "correctness",
     "level": "Deny",
