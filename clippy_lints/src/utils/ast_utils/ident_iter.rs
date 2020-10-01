@@ -3,15 +3,19 @@ use rustc_ast::{Expr, ExprKind, MacCall};
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
 
-type Inner<'a> = Box<dyn Iterator<Item = <IdentIter<'a> as Iterator>::Item> + 'a>;
+pub type IdentIter<'a> = Box<dyn Iterator<Item = Ident> + 'a>;
 
-struct IdentIter<'expr> {
+pub fn from_expr<'expr>(expr: &'expr Expr) -> IdentIter<'expr> {
+    Box::new(ExprIdentIter::new(expr))
+}
+
+struct ExprIdentIter<'expr> {
     expr: &'expr Expr,
-    inner: Option<Inner<'expr>>,
+    inner: Option<IdentIter<'expr>>,
     done: bool,
 }
 
-impl <'expr> IdentIter<'expr> {
+impl <'expr> ExprIdentIter<'expr> {
     fn new(expr: &'expr Expr) -> Self {
         Self {
             expr,
@@ -26,7 +30,7 @@ impl <'expr> IdentIter<'expr> {
     }
 }
 
-impl <'expr> Iterator for IdentIter<'expr> {
+impl <'expr> Iterator for ExprIdentIter<'expr> {
     type Item = Ident;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -69,21 +73,21 @@ impl <'expr> Iterator for IdentIter<'expr> {
             ExprKind::Box(ref expr)
             | ExprKind::Unary(_, ref expr) => {
                 set_and_call_next!(
-                    IdentIter::new(expr)
+                    ExprIdentIter::new(expr)
                 )
             },
             ExprKind::Array(ref exprs)|ExprKind::Tup(ref exprs) => {
                 set_and_call_next!(
                     exprs.iter()
-                        .flat_map(IdentIter::new_p)
+                        .flat_map(ExprIdentIter::new_p)
                 )
             },
             ExprKind::Call(ref func, ref args) => {
                 set_and_call_next!(
-                    IdentIter::new(func)
+                    ExprIdentIter::new(func)
                         .chain(
                             args.iter()
-                                .flat_map(IdentIter::new_p)
+                                .flat_map(ExprIdentIter::new_p)
                         )
                 )
             },
@@ -92,15 +96,15 @@ impl <'expr> Iterator for IdentIter<'expr> {
                     iter::once(method_name.ident)
                         .chain(
                             args.iter()
-                                .flat_map(IdentIter::new_p)
+                                .flat_map(ExprIdentIter::new_p)
                         )
                 )
             },
             ExprKind::Binary(_, ref left, ref right) => {
                 set_and_call_next!(
-                    IdentIter::new(left)
+                    ExprIdentIter::new(left)
                         .chain(
-                            IdentIter::new(right)
+                            ExprIdentIter::new(right)
                         )
                 )
             },
@@ -115,4 +119,4 @@ impl <'expr> Iterator for IdentIter<'expr> {
     }
 }
 
-impl <'expr> FusedIterator for IdentIter<'expr> {}
+impl <'expr> FusedIterator for ExprIdentIter<'expr> {}
