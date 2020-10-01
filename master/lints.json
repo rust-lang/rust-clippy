@@ -2507,7 +2507,7 @@
     "docs": {
       "What it does": "Checks for lifetime annotations which can be removed by\nrelying on lifetime elision.",
       "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.",
-      "Known problems": "Potential false negatives: we bail out if the function\nhas a `where` clause where lifetimes are mentioned.",
+      "Known problems": "- We bail out if the function has a `where` clause where lifetimes\nare mentioned due to potenial false positives.\n- Lifetime bounds such as `impl Foo + 'a` and `T: 'a` must be elided with the\nplaceholder notation `'_` because the fully elided notation leaves the type bound to `'static`.",
       "Example": "```rust\n// Bad: unnecessary lifetime annotations\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {\n    x\n}\n\n// Good\nfn elided(x: &u8, y: u8) -> &u8 {\n    x\n}\n```"
     }
   },
