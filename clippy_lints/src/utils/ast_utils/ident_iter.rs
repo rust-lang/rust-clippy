@@ -1,5 +1,19 @@
 use core::iter::{self, FusedIterator};
-use rustc_ast::{Expr, ExprKind, GenericBound, MacCall, MutTy, Ty, TyKind};
+use rustc_ast::{
+    AttrKind,
+    Attribute,
+    Expr,
+    ExprKind,
+    GenericBound,
+    GenericParam,
+    GenericParamKind,
+    Path,
+    PolyTraitRef,
+    MacCall,
+    MutTy,
+    Ty,
+    TyKind,
+};
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
 
@@ -70,8 +84,7 @@ impl <'expr> Iterator for ExprIdentIter<'expr> {
             ExprKind::Path(_, ref path)
             | ExprKind::MacCall(MacCall{ ref path, ..}) => {
                 set_and_call_next!(
-                    path.segments.iter()
-                        .map(|s| s.ident)
+                    path_iter(path)
                 )
             },
             ExprKind::Box(ref expr)
@@ -228,8 +241,7 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
             TyKind::Path(_, ref path)
             | TyKind::MacCall(MacCall{ ref path, ..}) => {
                 set_and_call_next!(
-                    path.segments.iter()
-                        .map(|s| s.ident)
+                    path_iter(path)
                 )
             },
             TyKind::TraitObject(ref bounds, _)
@@ -305,7 +317,22 @@ impl <'bound> Iterator for GenericBoundIdentIter<'bound> {
                     iter::once(lifetime.ident)
                 )
             },
-            _ => todo!(),
+            GenericBound::Trait(
+                PolyTraitRef{
+                    ref bound_generic_params,
+                    ref trait_ref,
+                    span: _,
+                },
+                _
+            ) => {
+                set_and_call_next!(
+                    bound_generic_params.iter()
+                        .flat_map(generic_param_iter)
+                        .chain(
+                            path_iter(&trait_ref.path)
+                        )
+                )
+            },
         };
 
         if output.is_none() {
@@ -317,3 +344,42 @@ impl <'bound> Iterator for GenericBoundIdentIter<'bound> {
 }
 
 impl <'bound> FusedIterator for GenericBoundIdentIter<'bound> {}
+
+fn generic_param_iter(param: &GenericParam) -> IdentIter<'_> {
+    Box::new(
+        param.attrs
+            .iter()
+            .flat_map(attribute_iter)
+            .chain(iter::once(param.ident))
+            .chain({
+                let i_i: IdentIter<'_> = match param.kind {
+                    GenericParamKind::Lifetime
+                    | GenericParamKind::Type { default: None } => {
+                        Box::new(iter::empty())
+                    },
+                    GenericParamKind::Type { default: Some(ref ty), }
+                    | GenericParamKind::Const { ref ty, .. } => {
+                        Box::new(TyIdentIter::new(ty))
+                    },
+                };
+
+                i_i
+            })
+            .chain(
+                param.bounds.iter()
+                    .flat_map(GenericBoundIdentIter::new)
+            )
+    )
+}
+
+fn attribute_iter(attribute: &Attribute) -> IdentIter<'_> {
+    match attribute.kind {
+        AttrKind::Normal(ref attr_item) => Box::new(path_iter(&attr_item.path)),
+        AttrKind::DocComment(_, _) => Box::new(iter::empty()),
+    }
+}
+
+fn path_iter(path: &Path) -> impl Iterator<Item = Ident> + '_ {
+    path.segments.iter()
+        .map(|s| s.ident)
+}
