@@ -190,7 +190,8 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
             TyKind::Never
             | TyKind::Infer
             | TyKind::Err
-            | TyKind::CVarArgs => None,
+            | TyKind::CVarArgs
+            | TyKind::ImplicitSelf => None,
             TyKind::Rptr(Some(ref lifetime), MutTy{ ref ty, .. }) => {
                 set_and_call_next!(
                     iter::once(lifetime.ident)
@@ -217,6 +218,11 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
                 set_and_call_next!(
                     ty_vec.iter()
                         .flat_map(TyIdentIter::new_p)
+                )
+            },
+            TyKind::Typeof(ref anon_const) => {
+                set_and_call_next!(
+                    ExprIdentIter::new(&anon_const.value)
                 )
             },
             _ => todo!(),
