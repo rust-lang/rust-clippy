@@ -1555,6 +1555,17 @@
     }
   },
   {
+    "id": "invisible_characters",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for invisible Unicode characters in the code.",
+      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.",
+      "Known problems": "None.",
+      "Example": "You don't see it, but there may be a zero-width space or soft hyphen\nsome\u00adwhere in this text."
+    }
+  },
+  {
     "id": "items_after_statements",
     "group": "pedantic",
     "level": "Allow",
@@ -4563,17 +4574,6 @@
       "Why is this bad": "This generally means `null` and is better expressed as\n{`std`, `core`}`::ptr::`{`null`, `null_mut`}.",
       "Known problems": "None.",
       "Example": "```rust\n// Bad\nlet a = 0 as *const u32;\n\n// Good\nlet a = std::ptr::null::<u32>();\n```"
-    }
-  },
-  {
-    "id": "zero_width_space",
-    "group": "correctness",
-    "level": "Deny",
-    "docs": {
-      "What it does": "Checks for the Unicode zero-width space in the code.",
-      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.",
-      "Known problems": "None.",
-      "Example": "You don't see it, but there may be a zero-width space\nsomewhere in this text."
     }
   },
   {
