@@ -225,6 +225,13 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
                     ExprIdentIter::new(&anon_const.value)
                 )
             },
+            TyKind::Path(_, ref path)
+            | TyKind::MacCall(MacCall{ ref path, ..}) => {
+                set_and_call_next!(
+                    path.segments.iter()
+                        .map(|s| s.ident)
+                )
+            },
             _ => todo!(),
         };
 
