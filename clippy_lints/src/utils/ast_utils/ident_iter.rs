@@ -1,5 +1,5 @@
 use core::iter::{self, FusedIterator};
-use rustc_ast::{Expr, ExprKind, MacCall, Ty, TyKind};
+use rustc_ast::{Expr, ExprKind, MacCall, MutTy, Ty, TyKind};
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
 
@@ -148,6 +148,11 @@ impl <'ty> TyIdentIter<'ty> {
             done: false,
         }
     }
+
+    /// This is a convenience method to help with type inference.
+    fn new_p(ty: &'ty P<Ty>) -> Self {
+        Self::new(ty)
+    }
 }
 
 impl <'ty> Iterator for TyIdentIter<'ty> {
@@ -206,6 +211,12 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
                 set_and_call_next!(
                     TyIdentIter::new(ty)
                         .chain(ExprIdentIter::new(&anon_const.value))
+                )
+            },
+            TyKind::Tup(ref ty_vec) => {
+                set_and_call_next!(
+                    ty_vec.iter()
+                        .flat_map(TyIdentIter::new_p)
                 )
             },
             _ => todo!(),
