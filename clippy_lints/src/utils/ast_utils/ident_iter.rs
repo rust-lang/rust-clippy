@@ -186,8 +186,17 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
             | TyKind::Infer
             | TyKind::Err
             | TyKind::CVarArgs => None,
+            TyKind::Rptr(Some(ref lifetime), MutTy{ ref ty, .. }) => {
+                set_and_call_next!(
+                    iter::once(lifetime.ident)
+                        .chain(
+                            TyIdentIter::new(ty)
+                        )
+                )
+            },
             TyKind::Slice(ref ty)
             | TyKind::Ptr(MutTy{ ref ty, .. })
+            | TyKind::Rptr(None, MutTy{ ref ty, .. })
             | TyKind::Paren(ref ty) => {
                 set_and_call_next!(
                     TyIdentIter::new(ty)
