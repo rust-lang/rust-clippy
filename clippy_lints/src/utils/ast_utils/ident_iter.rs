@@ -186,7 +186,9 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
             | TyKind::Infer
             | TyKind::Err
             | TyKind::CVarArgs => None,
-            TyKind::Slice(ref ty) => {
+            TyKind::Slice(ref ty)
+            | TyKind::Ptr(MutTy{ ref ty, .. })
+            | TyKind::Paren(ref ty) => {
                 set_and_call_next!(
                     TyIdentIter::new(ty)
                 )
