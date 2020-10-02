@@ -1,5 +1,5 @@
 use core::iter::{self, FusedIterator};
-use rustc_ast::{Expr, ExprKind, MacCall, MutTy, Ty, TyKind};
+use rustc_ast::{Expr, ExprKind, GenericBound, MacCall, MutTy, Ty, TyKind};
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
 
@@ -232,6 +232,13 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
                         .map(|s| s.ident)
                 )
             },
+            TyKind::TraitObject(ref bounds, _)
+            | TyKind::ImplTrait(_, ref bounds) => {
+                set_and_call_next!(
+                    bounds.iter()
+                        .flat_map(GenericBoundIdentIter::new)
+                )
+            },
             _ => todo!(),
         };
 
@@ -243,4 +250,70 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
     }
 }
 
-impl <'expr> FusedIterator for TyIdentIter<'expr> {}
+impl <'ty> FusedIterator for TyIdentIter<'ty> {}
+
+struct GenericBoundIdentIter<'bound> {
+    bound: &'bound GenericBound,
+    inner: Option<IdentIter<'bound>>,
+    done: bool,
+}
+
+impl <'bound> GenericBoundIdentIter<'bound> {
+    fn new(bound: &'bound GenericBound) -> Self {
+        Self {
+            bound,
+            inner: None,
+            done: false,
+        }
+    }
+}
+
+impl <'bound> Iterator for GenericBoundIdentIter<'bound> {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let inner_opt = &mut self.inner;
+
+        if let Some(mut inner) = inner_opt.take() {
+            let output = inner.next();
+
+            if output.is_some() {
+                *inner_opt = Some(inner);
+                return output;
+            }
+        }
+
+        macro_rules! set_and_call_next {
+            ($iter: expr) => {{
+                let mut p_iter = $iter;
+
+                let next_item = p_iter.next();
+
+                *inner_opt = Some(Box::new(p_iter));
+
+                next_item
+            }}
+        }
+
+        let output = match self.bound {
+            GenericBound::Outlives(ref lifetime) => {
+                set_and_call_next!(
+                    iter::once(lifetime.ident)
+                )
+            },
+            _ => todo!(),
+        };
+
+        if output.is_none() {
+            self.done = true;
+        }
+
+        output
+    }
+}
+
+impl <'bound> FusedIterator for GenericBoundIdentIter<'bound> {}
