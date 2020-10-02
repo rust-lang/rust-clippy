@@ -191,6 +191,12 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
                     TyIdentIter::new(ty)
                 )
             },
+            TyKind::Array(ref ty, ref anon_const) => {
+                set_and_call_next!(
+                    TyIdentIter::new(ty)
+                        .chain(ExprIdentIter::new(&anon_const.value))
+                )
+            },
             _ => todo!(),
         };
 
