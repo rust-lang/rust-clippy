@@ -4,9 +4,14 @@ use rustc_ast::{
     Attribute,
     Expr,
     ExprKind,
+    FnDecl,
+    FnRetTy,
     GenericBound,
     GenericParam,
     GenericParamKind,
+    Param,
+    Pat,
+    PatKind,
     Path,
     PolyTraitRef,
     MacCall,
@@ -251,7 +256,15 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
                         .flat_map(GenericBoundIdentIter::new)
                 )
             },
-            _ => todo!(),
+            TyKind::BareFn(ref bare_fn_ty) => {
+                set_and_call_next!(
+                    bare_fn_ty.generic_params.iter()
+                        .flat_map(generic_param_iter)
+                        .chain(
+                            fn_decl_iter(&bare_fn_ty.decl)
+                        )
+                )
+            },
         };
 
         if output.is_none() {
@@ -263,6 +276,69 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
 }
 
 impl <'ty> FusedIterator for TyIdentIter<'ty> {}
+
+struct PatIdentIter<'pat> {
+    pat: &'pat Pat,
+    inner: Option<IdentIter<'pat>>,
+    done: bool,
+}
+
+impl <'pat> PatIdentIter<'pat> {
+    fn new(pat: &'pat Pat) -> Self {
+        Self {
+            pat,
+            inner: None,
+            done: false,
+        }
+    }
+}
+
+impl <'pat> Iterator for PatIdentIter<'pat> {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let inner_opt = &mut self.inner;
+
+        if let Some(mut inner) = inner_opt.take() {
+            let output = inner.next();
+
+            if output.is_some() {
+                *inner_opt = Some(inner);
+                return output;
+            }
+        }
+
+        macro_rules! set_and_call_next {
+            ($iter: expr) => {{
+                let mut p_iter = $iter;
+
+                let next_item = p_iter.next();
+
+                *inner_opt = Some(Box::new(p_iter));
+
+                next_item
+            }}
+        }
+
+        let output = match self.pat.kind {
+            PatKind::Wild 
+            | PatKind::Rest => None,
+            _ => todo!(),
+        };
+
+        if output.is_none() {
+            self.done = true;
+        }
+
+        output
+    }
+}
+
+impl <'pat> FusedIterator for PatIdentIter<'pat> {}
 
 struct GenericBoundIdentIter<'bound> {
     bound: &'bound GenericBound,
@@ -382,4 +458,33 @@ fn attribute_iter(attribute: &Attribute) -> IdentIter<'_> {
 fn path_iter(path: &Path) -> impl Iterator<Item = Ident> + '_ {
     path.segments.iter()
         .map(|s| s.ident)
+}
+
+fn fn_decl_iter(fn_decl: &FnDecl) -> impl Iterator<Item = Ident> + '_ {
+    fn_decl.inputs
+        .iter()
+        .flat_map(param_iter)
+        .chain({
+            let i_i: IdentIter<'_> = match fn_decl.output {
+                FnRetTy::Default(_) => {
+                    Box::new(iter::empty())
+                },
+                FnRetTy::Ty(ref ty) => {
+                    Box::new(TyIdentIter::new(ty))
+                }
+            };
+
+            i_i
+        })
+}
+
+fn param_iter(param: &Param) -> impl Iterator<Item = Ident> + '_ {
+    param.attrs.iter()
+        .flat_map(attribute_iter)
+        .chain(
+            TyIdentIter::new(&param.ty)
+        )
+        .chain(
+            PatIdentIter::new(&param.pat)
+        )
 }
