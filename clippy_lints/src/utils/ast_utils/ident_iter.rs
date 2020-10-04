@@ -378,6 +378,13 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
                         )
                 )
             },
+            PatKind::Box(ref pat)
+            | PatKind::Ref(ref pat, _)
+            | PatKind::Paren(ref pat) => {
+                set_and_call_next!(
+                    PatIdentIter::new(pat)
+                )
+            },
             _ => todo!(),
         };
 
