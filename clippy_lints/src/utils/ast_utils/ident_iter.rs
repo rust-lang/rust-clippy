@@ -331,7 +331,8 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
 
         let output = match self.pat.kind {
             PatKind::Wild 
-            | PatKind::Rest => None,
+            | PatKind::Rest
+            | PatKind::Range(None, None, _) => None,
             PatKind::Ident(_, ident, None) => {
                 self.done = true;
                 Some(ident)
@@ -391,12 +392,21 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
                     path_iter(path)
                 )
             },
-            PatKind::Lit(ref expr) => {
+            PatKind::Lit(ref expr)
+            | PatKind::Range(Some(ref expr), None, _)
+            | PatKind::Range(None, Some(ref expr), _) => {
                 set_and_call_next!(
                     ExprIdentIter::new(expr)
                 )
             },
-            _ => todo!(),
+            PatKind::Range(Some(ref expr1), Some(ref expr2), _) => {
+                set_and_call_next!(
+                    ExprIdentIter::new(expr1)
+                    .chain(
+                        ExprIdentIter::new(expr2)
+                    )
+                )
+            },
         };
 
         if output.is_none() {
