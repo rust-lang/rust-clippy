@@ -291,6 +291,11 @@ impl <'pat> PatIdentIter<'pat> {
             done: false,
         }
     }
+
+    /// This is a convenience method to help with type inference.
+    fn new_p(pat: &'pat P<Pat>) -> Self {
+        Self::new(pat)
+    }
 }
 
 impl <'pat> Iterator for PatIdentIter<'pat> {
@@ -352,6 +357,17 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
                         )
                 )
             },
+            PatKind::TupleStruct(ref path, ref pats) => {
+                set_and_call_next!(
+                    path_iter(path)
+                        .chain(
+                            pats.iter()
+                                .flat_map(
+                                    PatIdentIter::new_p
+                                )
+                        )
+                )
+            }
             _ => todo!(),
         };
 
