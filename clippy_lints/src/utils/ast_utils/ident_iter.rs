@@ -367,7 +367,17 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
                                 )
                         )
                 )
-            }
+            },
+            PatKind::Or(ref pats)
+            | PatKind::Tuple(ref pats)
+            | PatKind::Slice(ref pats) => {
+                set_and_call_next!(
+                    pats.iter()
+                        .flat_map(
+                            PatIdentIter::new_p
+                        )
+                )
+            },
             _ => todo!(),
         };
 
