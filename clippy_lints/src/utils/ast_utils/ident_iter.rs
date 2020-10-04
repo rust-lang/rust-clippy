@@ -139,6 +139,14 @@ impl <'expr> Iterator for ExprIdentIter<'expr> {
                         )
                 )
             },
+            ExprKind::Let(ref pat, ref expr) => {
+                set_and_call_next!(
+                    PatIdentIter::new(pat)
+                        .chain(
+                            ExprIdentIter::new(expr)
+                        )
+                )
+            },
             _ => todo!(),
         };
 
