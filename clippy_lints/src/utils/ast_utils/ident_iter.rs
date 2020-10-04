@@ -337,6 +337,21 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
                         .chain(PatIdentIter::new(pat))
                 )
             },
+            PatKind::Struct(ref path, ref field_pats, _) => {
+                set_and_call_next!(
+                    path_iter(path)
+                        .chain(
+                            field_pats.iter()
+                                .flat_map(|f_p|
+                                    f_p.attrs
+                                        .iter()
+                                        .flat_map(attribute_iter)
+                                        .chain(iter::once(f_p.ident))
+                                        .chain(PatIdentIter::new(&f_p.pat))
+                                )
+                        )
+                )
+            },
             _ => todo!(),
         };
 
