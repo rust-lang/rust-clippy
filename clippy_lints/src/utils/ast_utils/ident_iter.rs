@@ -385,6 +385,17 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
                     PatIdentIter::new(pat)
                 )
             },
+            PatKind::Path(_, ref path)
+            | PatKind::MacCall(MacCall{ ref path, ..}) => {
+                set_and_call_next!(
+                    path_iter(path)
+                )
+            },
+            PatKind::Lit(ref expr) => {
+                set_and_call_next!(
+                    ExprIdentIter::new(expr)
+                )
+            },
             _ => todo!(),
         };
 
