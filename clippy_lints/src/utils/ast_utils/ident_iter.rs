@@ -327,6 +327,16 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
         let output = match self.pat.kind {
             PatKind::Wild 
             | PatKind::Rest => None,
+            PatKind::Ident(_, ident, None) => {
+                self.done = true;
+                Some(ident)
+            }
+            PatKind::Ident(_, ident, Some(ref pat)) => {
+                set_and_call_next!(
+                    iter::once(ident)
+                        .chain(PatIdentIter::new(pat))
+                )
+            },
             _ => todo!(),
         };
 
