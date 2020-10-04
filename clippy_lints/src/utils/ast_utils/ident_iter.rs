@@ -16,6 +16,8 @@ use rustc_ast::{
     PolyTraitRef,
     MacCall,
     MutTy,
+    Stmt,
+    StmtKind,
     Ty,
     TyKind,
 };
@@ -144,6 +146,19 @@ impl <'expr> Iterator for ExprIdentIter<'expr> {
                     PatIdentIter::new(pat)
                         .chain(
                             ExprIdentIter::new(expr)
+                        )
+                )
+            },
+            ExprKind::If(ref condition_expr, ref block, Some(ref else_expr)) => {
+                set_and_call_next!(
+                    ExprIdentIter::new(condition_expr)
+                        .chain(
+                            block.stmts
+                                .iter()
+                                .flat_map(StmtIdentIter::new)
+                        )
+                        .chain(
+                            ExprIdentIter::new(else_expr)
                         )
                 )
             },
@@ -426,6 +441,79 @@ impl <'pat> Iterator for PatIdentIter<'pat> {
 }
 
 impl <'pat> FusedIterator for PatIdentIter<'pat> {}
+
+struct StmtIdentIter<'stmt> {
+    stmt: &'stmt Stmt,
+    inner: Option<IdentIter<'stmt>>,
+    done: bool,
+}
+
+impl <'stmt> StmtIdentIter<'stmt> {
+    fn new(stmt: &'stmt Stmt) -> Self {
+        Self {
+            stmt,
+            inner: None,
+            done: false,
+        }
+    }
+
+    /// This is a convenience method to help with type inference.
+    fn new_p(stmt: &'stmt P<Stmt>) -> Self {
+        Self::new(stmt)
+    }
+}
+
+impl <'stmt> Iterator for StmtIdentIter<'stmt> {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let inner_opt = &mut self.inner;
+
+        if let Some(mut inner) = inner_opt.take() {
+            let output = inner.next();
+
+            if output.is_some() {
+                *inner_opt = Some(inner);
+                return output;
+            }
+        }
+
+        macro_rules! set_and_call_next {
+            ($iter: expr) => {{
+                let mut p_iter = $iter;
+
+                let next_item = p_iter.next();
+
+                *inner_opt = Some(Box::new(p_iter));
+
+                next_item
+            }}
+        }
+
+        let output = match self.stmt.kind {
+            StmtKind::Empty => None,
+            StmtKind::Expr(ref expr)
+            | StmtKind::Semi(ref expr) => {
+                set_and_call_next!(
+                    ExprIdentIter::new(expr)
+                )
+            },
+            _ => todo!(),
+        };
+
+        if output.is_none() {
+            self.done = true;
+        }
+
+        output
+    }
+}
+
+impl <'stmt> FusedIterator for StmtIdentIter<'stmt> {}
 
 struct GenericBoundIdentIter<'bound> {
     bound: &'bound GenericBound,
