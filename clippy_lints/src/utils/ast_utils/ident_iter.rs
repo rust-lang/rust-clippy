@@ -15,6 +15,7 @@ use rustc_ast::{
     Path,
     PolyTraitRef,
     MacCall,
+    MacCallStmt,
     MutTy,
     Stmt,
     StmtKind,
@@ -563,6 +564,19 @@ impl <'stmt> Iterator for StmtIdentIter<'stmt> {
                         )
                     }
                 }
+            },
+            StmtKind::MacCall(ref mac_call_stmt) => {
+                let mcs: &MacCallStmt = &mac_call_stmt;
+                let MacCallStmt{
+                    ref attrs,
+                    mac: MacCall{ ref path, ..},
+                    ..
+                } = mcs;
+                set_and_call_next!(
+                    attrs.iter()
+                        .flat_map(attribute_iter)
+                        .chain(path_iter(path))
+                )
             },
             _ => todo!(),
         };
