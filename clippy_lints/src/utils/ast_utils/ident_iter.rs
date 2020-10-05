@@ -9,6 +9,8 @@ use rustc_ast::{
     GenericBound,
     GenericParam,
     GenericParamKind,
+    Item,
+    ItemKind,
     Param,
     Pat,
     PatKind,
@@ -458,11 +460,6 @@ impl <'stmt> StmtIdentIter<'stmt> {
             done: false,
         }
     }
-
-    /// This is a convenience method to help with type inference.
-    fn new_p(stmt: &'stmt P<Stmt>) -> Self {
-        Self::new(stmt)
-    }
 }
 
 impl <'stmt> Iterator for StmtIdentIter<'stmt> {
@@ -578,7 +575,11 @@ impl <'stmt> Iterator for StmtIdentIter<'stmt> {
                         .chain(path_iter(path))
                 )
             },
-            _ => todo!(),
+            StmtKind::Item(ref item) => {
+                set_and_call_next!(
+                    ItemIdentIter::new(item)
+                )
+            },
         };
 
         if output.is_none() {
@@ -590,6 +591,68 @@ impl <'stmt> Iterator for StmtIdentIter<'stmt> {
 }
 
 impl <'stmt> FusedIterator for StmtIdentIter<'stmt> {}
+
+struct ItemIdentIter<'item> {
+    item: &'item Item,
+    inner: Option<IdentIter<'item>>,
+    done: bool,
+}
+
+impl <'item> ItemIdentIter<'item> {
+    fn new(item: &'item Item) -> Self {
+        Self {
+            item,
+            inner: None,
+            done: false,
+        }
+    }
+}
+
+impl <'item> Iterator for ItemIdentIter<'item> {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let inner_opt = &mut self.inner;
+
+        if let Some(mut inner) = inner_opt.take() {
+            let output = inner.next();
+
+            if output.is_some() {
+                *inner_opt = Some(inner);
+                return output;
+            }
+        }
+
+        macro_rules! set_and_call_next {
+            ($iter: expr) => {{
+                let mut p_iter = $iter;
+
+                let next_item = p_iter.next();
+
+                *inner_opt = Some(Box::new(p_iter));
+
+                next_item
+            }}
+        }
+
+        let output = match self.item.kind {
+            ItemKind::ExternCrate(_) => None,
+            _ => todo!(),
+        };
+
+        if output.is_none() {
+            self.done = true;
+        }
+
+        output
+    }
+}
+
+impl <'item> FusedIterator for ItemIdentIter<'item> {}
 
 struct GenericBoundIdentIter<'bound> {
     bound: &'bound GenericBound,
