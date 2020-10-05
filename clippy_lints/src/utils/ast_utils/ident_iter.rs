@@ -177,6 +177,21 @@ impl <'expr> Iterator for ExprIdentIter<'expr> {
                         .chain(iter::once(label.ident))
                 )
             },
+            ExprKind::ForLoop(ref pat, ref expr, ref block, Some(ref label)) => {
+                set_and_call_next!(
+                    PatIdentIter::new(pat)
+                        .chain(ExprIdentIter::new(expr))
+                        .chain(block_iter(block))
+                        .chain(iter::once(label.ident))
+                )
+            },
+            ExprKind::ForLoop(ref pat, ref expr, ref block, None) => {
+                set_and_call_next!(
+                    PatIdentIter::new(pat)
+                        .chain(ExprIdentIter::new(expr))
+                        .chain(block_iter(block))
+                )
+            },
             _ => todo!(),
         };
 
