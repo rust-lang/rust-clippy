@@ -648,6 +648,19 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                     use_tree_iter(use_tree)
                 )
             },
+            ItemKind::Static(ref ty, _, None)
+            | ItemKind::Const(_, ref ty, None) => {
+                set_and_call_next!(
+                    TyIdentIter::new(ty)
+                )
+            },
+            ItemKind::Static(ref ty, _, Some(ref expr))
+            | ItemKind::Const(_, ref ty, Some(ref expr)) => {
+                set_and_call_next!(
+                    TyIdentIter::new(ty)
+                        .chain(ExprIdentIter::new(expr))
+                )
+            },
             _ => todo!(),
         };
 
