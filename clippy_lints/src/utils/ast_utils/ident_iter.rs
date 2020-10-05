@@ -18,6 +18,7 @@ use rustc_ast::{
     MutTy,
     Stmt,
     StmtKind,
+    Local,
     Ty,
     TyKind,
 };
@@ -501,6 +502,67 @@ impl <'stmt> Iterator for StmtIdentIter<'stmt> {
                 set_and_call_next!(
                     ExprIdentIter::new(expr)
                 )
+            },
+            StmtKind::Local(ref local) => {
+                let l: &Local = local;
+                match l {
+                    Local{
+                        ref attrs,
+                        ref pat,
+                        ty: Some(ref ty),
+                        init: Some(ref expr),
+                        ..
+                    } => {
+                        set_and_call_next!(
+                            attrs.iter()
+                                .flat_map(attribute_iter)
+                                .chain(PatIdentIter::new(pat))
+                                .chain(TyIdentIter::new(ty))
+                                .chain(ExprIdentIter::new(expr))
+                        )
+                    },
+                    Local{
+                        ref attrs,
+                        ref pat,
+                        ty: Some(ref ty),
+                        init: None,
+                        ..
+                    } => {
+                        set_and_call_next!(
+                            attrs.iter()
+                                .flat_map(attribute_iter)
+                                .chain(PatIdentIter::new(pat))
+                                .chain(TyIdentIter::new(ty))
+                        )
+                    },
+                    Local{
+                        ref attrs,
+                        ref pat,
+                        ty: None,
+                        init: Some(ref expr),
+                        ..
+                    } => {
+                        set_and_call_next!(
+                            attrs.iter()
+                                .flat_map(attribute_iter)
+                                .chain(PatIdentIter::new(pat))
+                                .chain(ExprIdentIter::new(expr))
+                        )
+                    },
+                    Local{
+                        ref attrs,
+                        ref pat,
+                        ty: None,
+                        init: None,
+                        ..
+                    } => {
+                        set_and_call_next!(
+                            attrs.iter()
+                                .flat_map(attribute_iter)
+                                .chain(PatIdentIter::new(pat))
+                        )
+                    }
+                }
             },
             _ => todo!(),
         };
