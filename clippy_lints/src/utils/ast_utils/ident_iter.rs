@@ -7,6 +7,7 @@ use rustc_ast::{
     ExprKind,
     FnDecl,
     FnRetTy,
+    Generics,
     GenericBound,
     GenericParam,
     GenericParamKind,
@@ -27,6 +28,7 @@ use rustc_ast::{
     TyKind,
     UseTree,
     UseTreeKind,
+    WherePredicate,
 };
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
@@ -685,6 +687,19 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         .chain(ExprIdentIter::new(expr))
                 )
             },
+            ItemKind::Fn(_, ref fn_sig, ref generics, None) => {
+                set_and_call_next!(
+                    fn_decl_iter(&fn_sig.decl)
+                        .chain(generics_iter(generics))
+                )
+            },
+            ItemKind::Fn(_, ref fn_sig, ref generics, Some(ref block)) => {
+                set_and_call_next!(
+                    fn_decl_iter(&fn_sig.decl)
+                        .chain(generics_iter(generics))
+                        .chain(block_iter(block))
+                )
+            },
             _ => todo!(),
         };
 
@@ -875,4 +890,27 @@ fn use_tree_iter(use_tree: &UseTree) -> IdentIter<'_> {
             Box::new(path_iter(&use_tree.prefix))
         },
     }
+}
+
+fn generics_iter(generics: &Generics) -> impl Iterator<Item = Ident> + '_ {
+    generics.params
+        .iter()
+        .flat_map(generic_param_iter)
+        .chain(
+            generics.where_clause
+                .predicates
+                .iter()
+                .flat_map(|pred| match pred {
+                    WherePredicate::BoundPredicate(ref bound) => {
+                        todo!()
+                    },
+                    WherePredicate::RegionPredicate(ref region) => {
+                        todo!()
+                    },
+                    WherePredicate::EqPredicate(ref eq) => {
+                        TyIdentIter::new(&eq.lhs_ty)
+                            .chain(TyIdentIter::new(&eq.rhs_ty))
+                    },
+                })
+        )
 }
