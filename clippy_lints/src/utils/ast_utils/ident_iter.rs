@@ -24,6 +24,8 @@ use rustc_ast::{
     Local,
     Ty,
     TyKind,
+    UseTree,
+    UseTreeKind,
 };
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
@@ -641,6 +643,11 @@ impl <'item> Iterator for ItemIdentIter<'item> {
 
         let output = match self.item.kind {
             ItemKind::ExternCrate(_) => None,
+            ItemKind::Use(ref use_tree) => {
+                set_and_call_next!(
+                    use_tree_iter(use_tree)
+                )
+            },
             _ => todo!(),
         };
 
@@ -801,4 +808,28 @@ fn param_iter(param: &Param) -> impl Iterator<Item = Ident> + '_ {
         .chain(
             PatIdentIter::new(&param.pat)
         )
+}
+
+fn use_tree_iter(use_tree: &UseTree) -> IdentIter<'_> {
+    match use_tree.kind {
+        UseTreeKind::Simple(Some(ident), _, _) => {
+            Box::new(
+                path_iter(&use_tree.prefix)
+                    .chain(iter::once(ident))
+            )
+        },
+        UseTreeKind::Nested(ref nested_trees) => {
+            Box::new(
+                path_iter(&use_tree.prefix)
+                    .chain(
+                        nested_trees.iter()
+                            .flat_map(|(ref u_t, _)| use_tree_iter(u_t))
+                    )
+            )
+        },
+        UseTreeKind::Glob
+        | UseTreeKind::Simple(None, _, _) => {
+            Box::new(path_iter(&use_tree.prefix))
+        },
+    }
 }
