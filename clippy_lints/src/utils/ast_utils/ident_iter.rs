@@ -2,6 +2,7 @@ use core::iter::{self, FusedIterator};
 use rustc_ast::{
     AttrKind,
     Attribute,
+    Block,
     Expr,
     ExprKind,
     FnDecl,
@@ -158,14 +159,22 @@ impl <'expr> Iterator for ExprIdentIter<'expr> {
             ExprKind::If(ref condition_expr, ref block, Some(ref else_expr)) => {
                 set_and_call_next!(
                     ExprIdentIter::new(condition_expr)
-                        .chain(
-                            block.stmts
-                                .iter()
-                                .flat_map(StmtIdentIter::new)
-                        )
-                        .chain(
-                            ExprIdentIter::new(else_expr)
-                        )
+                        .chain(block_iter(block))
+                        .chain(ExprIdentIter::new(else_expr))
+                )
+            },
+            ExprKind::While(ref condition_expr, ref block, None)
+            | ExprKind::If(ref condition_expr, ref block, None) => {
+                set_and_call_next!(
+                    ExprIdentIter::new(condition_expr)
+                        .chain(block_iter(block))
+                )
+            },
+            ExprKind::While(ref expr, ref block, Some(ref label)) => {
+                set_and_call_next!(
+                    ExprIdentIter::new(expr)
+                        .chain(block_iter(block))
+                        .chain(iter::once(label.ident))
                 )
             },
             _ => todo!(),
@@ -821,6 +830,12 @@ fn param_iter(param: &Param) -> impl Iterator<Item = Ident> + '_ {
         .chain(
             PatIdentIter::new(&param.pat)
         )
+}
+
+fn block_iter(block: &Block) -> impl Iterator<Item = Ident> + '_ {
+    block.stmts
+        .iter()
+        .flat_map(StmtIdentIter::new)
 }
 
 fn use_tree_iter(use_tree: &UseTree) -> IdentIter<'_> {
