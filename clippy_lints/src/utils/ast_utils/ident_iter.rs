@@ -914,7 +914,13 @@ fn generics_iter(generics: &Generics) -> impl Iterator<Item = Ident> + '_ {
                             )
                         },
                         WherePredicate::RegionPredicate(ref region) => {
-                            todo!()
+                            Box::new(
+                                iter::once(region.lifetime.ident)
+                                    .chain(
+                                        region.bounds.iter()
+                                            .flat_map(GenericBoundIdentIter::new)
+                                    )
+                            )
                         },
                         WherePredicate::EqPredicate(ref eq) => {
                             Box::new(
