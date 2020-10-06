@@ -634,6 +634,11 @@ impl <'item> ItemIdentIter<'item> {
             done: false,
         }
     }
+
+    /// This is a convenience method to help with type inference.
+    fn new_p(item: &'item P<Item>) -> Self {
+        Self::new(item)
+    }
 }
 
 impl <'item> Iterator for ItemIdentIter<'item> {
@@ -698,6 +703,12 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                     fn_decl_iter(&fn_sig.decl)
                         .chain(generics_iter(generics))
                         .chain(block_iter(block))
+                )
+            },
+            ItemKind::Mod(ref mod_) => {
+                set_and_call_next!(
+                    mod_.items.iter()
+                        .flat_map(ItemIdentIter::new_p)
                 )
             },
             _ => todo!(),
