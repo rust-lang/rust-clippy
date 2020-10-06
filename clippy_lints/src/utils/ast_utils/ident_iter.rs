@@ -5,6 +5,8 @@ use rustc_ast::{
     Block,
     Expr,
     ExprKind,
+    ForeignItem,
+    ForeignItemKind,
     FnDecl,
     FnRetTy,
     Generics,
@@ -721,25 +723,12 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         .flat_map(ItemIdentIter::new_p)
                 )
             },
-            //GlobalAsm(P<GlobalAsm>),
-            //TyAlias(Defaultness, Generics, GenericBounds, Option<P<Ty>>),
-            //Enum(EnumDef, Generics),
-            //Struct(VariantData, Generics),
-            //Union(VariantData, Generics),
-            //Trait(IsAuto, Unsafe, Generics, GenericBounds, Vec<P<AssocItem>>),
-            //TraitAlias(Generics, GenericBounds),
-            //Impl {
-            //    unsafety: Unsafe,
-            //    polarity: ImplPolarity,
-            //    defaultness: Defaultness,
-            //    constness: Const,
-            //    generics: Generics,
-            //    of_trait: Option<TraitRef>,
-            //    self_ty: P<Ty>,
-            //    items: Vec<P<AssocItem>>,
-            //},
-            //MacCall(MacCall),
-            //MacroDef(MacroDef),
+            ItemKind::ForeignMod(ref foreign_mod) => {
+                set_and_call_next_with_own_ident!(
+                    foreign_mod.items.iter()
+                        .flat_map(ForeignItemIdentIter::new_p)
+                )
+            },
             _ => todo!(),
         };
 
@@ -752,6 +741,107 @@ impl <'item> Iterator for ItemIdentIter<'item> {
 }
 
 impl <'item> FusedIterator for ItemIdentIter<'item> {}
+
+struct ForeignItemIdentIter<'item> {
+    item: &'item ForeignItem,
+    inner: Option<IdentIter<'item>>,
+    done: bool,
+}
+
+impl <'item> ForeignItemIdentIter<'item> {
+    fn new(item: &'item ForeignItem) -> Self {
+        Self {
+            item,
+            inner: None,
+            done: false,
+        }
+    }
+
+    fn new_p(item: &'item P<ForeignItem>) -> Self {
+        Self::new(item)
+    }
+}
+
+impl <'item> Iterator for ForeignItemIdentIter<'item> {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let inner_opt = &mut self.inner;
+
+        if let Some(mut inner) = inner_opt.take() {
+            let output = inner.next();
+
+            if output.is_some() {
+                *inner_opt = Some(inner);
+                return output;
+            }
+        }
+
+        macro_rules! set_and_call_next_with_own_ident {
+            () => {
+                set_and_call_next_with_own_ident!(
+                    inner iter::once(self.item.ident)
+                )
+            };
+            ($iter: expr) => {
+                set_and_call_next_with_own_ident!(
+                    inner $iter.chain(iter::once(self.item.ident))
+                )
+            };
+            (inner $iter: expr) => {{
+                let mut p_iter = $iter;
+
+                let next_item = p_iter.next();
+
+                *inner_opt = Some(Box::new(p_iter));
+
+                next_item
+            }}
+        }
+
+        let output = match self.item.kind {
+            ForeignItemKind::Static(ref ty, _, None) => {
+                set_and_call_next_with_own_ident!(
+                    TyIdentIter::new(ty)
+                )
+            },
+            ForeignItemKind::Static(ref ty, _, Some(ref expr)) => {
+                set_and_call_next_with_own_ident!(
+                    TyIdentIter::new(ty)
+                        .chain(ExprIdentIter::new(expr))
+                )
+            },
+            ForeignItemKind::Fn(_, ref fn_sig, ref generics, None) => {
+                set_and_call_next_with_own_ident!(
+                    fn_decl_iter(&fn_sig.decl)
+                        .chain(generics_iter(generics))
+                )
+            },
+            ForeignItemKind::Fn(_, ref fn_sig, ref generics, Some(ref block)) => {
+                set_and_call_next_with_own_ident!(
+                    fn_decl_iter(&fn_sig.decl)
+                        .chain(generics_iter(generics))
+                        .chain(block_iter(block))
+                )
+            },
+            //TyAlias(Defaultness, Generics, GenericBounds, Option<P<Ty>>),
+            //MacCall(MacCall),
+            _ => todo!(),
+        };
+
+        if output.is_none() {
+            self.done = true;
+        }
+
+        output
+    }
+}
+
+impl <'item> FusedIterator for ForeignItemIdentIter<'item> {}
 
 struct GenericBoundIdentIter<'bound> {
     bound: &'bound GenericBound,
