@@ -900,17 +900,31 @@ fn generics_iter(generics: &Generics) -> impl Iterator<Item = Ident> + '_ {
             generics.where_clause
                 .predicates
                 .iter()
-                .flat_map(|pred| match pred {
-                    WherePredicate::BoundPredicate(ref bound) => {
-                        todo!()
-                    },
-                    WherePredicate::RegionPredicate(ref region) => {
-                        todo!()
-                    },
-                    WherePredicate::EqPredicate(ref eq) => {
-                        TyIdentIter::new(&eq.lhs_ty)
-                            .chain(TyIdentIter::new(&eq.rhs_ty))
-                    },
+                .flat_map(|pred| {
+                    let i_i: IdentIter<'_> = match pred {
+                        WherePredicate::BoundPredicate(ref bound) => {
+                            Box::new(
+                                bound.bound_generic_params.iter()
+                                    .flat_map(generic_param_iter)
+                                    .chain(TyIdentIter::new(&bound.bounded_ty))
+                                    .chain(
+                                        bound.bounds.iter()
+                                            .flat_map(GenericBoundIdentIter::new)
+                                    )
+                            )
+                        },
+                        WherePredicate::RegionPredicate(ref region) => {
+                            todo!()
+                        },
+                        WherePredicate::EqPredicate(ref eq) => {
+                            Box::new(
+                                TyIdentIter::new(&eq.lhs_ty)
+                                    .chain(TyIdentIter::new(&eq.rhs_ty))
+                            )
+                        },
+                    };
+
+                    i_i
                 })
         )
 }
