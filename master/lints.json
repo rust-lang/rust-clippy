@@ -993,7 +993,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.filter(_).map(_)`,\n`_.filter(_).flat_map(_)`, `_.filter_map(_).flat_map(_)` and similar.",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.filter_map(_)`.",
       "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.",
       "Example": "```rust\nlet vec = vec![1];\n\n// Bad\nvec.iter().filter(|x| **x == 0).map(|x| *x * 2);\n\n// Good\nvec.iter().filter_map(|x| if *x == 0 {\n    Some(*x * 2)\n} else {\n    None\n});\n```"
     }
@@ -1004,7 +1004,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.filter_map(_).next()`.",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.find_map(_)`.",
       "Known problems": "None",
       "Example": "```rust\n (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();\n```\nCan be written as\n\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x) } else { None });\n```"
     }
@@ -1026,7 +1026,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.find(_).map(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.find_map(_)`.",
       "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.",
       "Example": "```rust\n (0..3).find(|x| *x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```"
     }
@@ -1946,7 +1946,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.map(_).flatten(_)`,",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call using `_.flat_map(_)`",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.flat_map(_)`",
       "Known problems": "",
       "Example": "```rust\nlet vec = vec![vec![1]];\n\n// Bad\nvec.iter().map(|x| x.iter()).flatten();\n\n// Good\nvec.iter().flat_map(|x| x.iter());\n```"
     }
@@ -2702,7 +2702,7 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for usage of `_.as_ref().map(Deref::deref)` or it's aliases (such as String::as_str).",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.as_deref()`.",
       "Known problems": "None.",
       "Example": "```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```"
     }
