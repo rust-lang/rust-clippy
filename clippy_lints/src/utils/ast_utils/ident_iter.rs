@@ -660,8 +660,18 @@ impl <'item> Iterator for ItemIdentIter<'item> {
             }
         }
 
-        macro_rules! set_and_call_next {
-            ($iter: expr) => {{
+        macro_rules! set_and_call_next_with_own_ident {
+            () => {
+                set_and_call_next_with_own_ident!(
+                    inner iter::once(self.item.ident)
+                )
+            };
+            ($iter: expr) => {
+                set_and_call_next_with_own_ident!(
+                    inner $iter.chain(iter::once(self.item.ident))
+                )
+            };
+            (inner $iter: expr) => {{
                 let mut p_iter = $iter;
 
                 let next_item = p_iter.next();
@@ -673,44 +683,63 @@ impl <'item> Iterator for ItemIdentIter<'item> {
         }
 
         let output = match self.item.kind {
-            ItemKind::ExternCrate(_) => None,
+            ItemKind::ExternCrate(_) => set_and_call_next_with_own_ident!(),
             ItemKind::Use(ref use_tree) => {
-                set_and_call_next!(
+                set_and_call_next_with_own_ident!(
                     use_tree_iter(use_tree)
                 )
             },
             ItemKind::Static(ref ty, _, None)
             | ItemKind::Const(_, ref ty, None) => {
-                set_and_call_next!(
+                set_and_call_next_with_own_ident!(
                     TyIdentIter::new(ty)
                 )
             },
             ItemKind::Static(ref ty, _, Some(ref expr))
             | ItemKind::Const(_, ref ty, Some(ref expr)) => {
-                set_and_call_next!(
+                set_and_call_next_with_own_ident!(
                     TyIdentIter::new(ty)
                         .chain(ExprIdentIter::new(expr))
                 )
             },
             ItemKind::Fn(_, ref fn_sig, ref generics, None) => {
-                set_and_call_next!(
+                set_and_call_next_with_own_ident!(
                     fn_decl_iter(&fn_sig.decl)
                         .chain(generics_iter(generics))
                 )
             },
             ItemKind::Fn(_, ref fn_sig, ref generics, Some(ref block)) => {
-                set_and_call_next!(
+                set_and_call_next_with_own_ident!(
                     fn_decl_iter(&fn_sig.decl)
                         .chain(generics_iter(generics))
                         .chain(block_iter(block))
                 )
             },
             ItemKind::Mod(ref mod_) => {
-                set_and_call_next!(
+                set_and_call_next_with_own_ident!(
                     mod_.items.iter()
                         .flat_map(ItemIdentIter::new_p)
                 )
             },
+            //GlobalAsm(P<GlobalAsm>),
+            //TyAlias(Defaultness, Generics, GenericBounds, Option<P<Ty>>),
+            //Enum(EnumDef, Generics),
+            //Struct(VariantData, Generics),
+            //Union(VariantData, Generics),
+            //Trait(IsAuto, Unsafe, Generics, GenericBounds, Vec<P<AssocItem>>),
+            //TraitAlias(Generics, GenericBounds),
+            //Impl {
+            //    unsafety: Unsafe,
+            //    polarity: ImplPolarity,
+            //    defaultness: Defaultness,
+            //    constness: Const,
+            //    generics: Generics,
+            //    of_trait: Option<TraitRef>,
+            //    self_ty: P<Ty>,
+            //    items: Vec<P<AssocItem>>,
+            //},
+            //MacCall(MacCall),
+            //MacroDef(MacroDef),
             _ => todo!(),
         };
 
