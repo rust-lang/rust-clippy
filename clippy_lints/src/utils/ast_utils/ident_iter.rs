@@ -11,6 +11,7 @@ use rustc_ast::{
     FnRetTy,
     Generics,
     GenericBound,
+    GenericBounds,
     GenericParam,
     GenericParamKind,
     Item,
@@ -308,10 +309,7 @@ impl <'ty> Iterator for TyIdentIter<'ty> {
             },
             TyKind::TraitObject(ref bounds, _)
             | TyKind::ImplTrait(_, ref bounds) => {
-                set_and_call_next!(
-                    bounds.iter()
-                        .flat_map(GenericBoundIdentIter::new)
-                )
+                set_and_call_next!(generic_bounds_iter(bounds))
             },
             TyKind::BareFn(ref bare_fn_ty) => {
                 set_and_call_next!(
@@ -731,6 +729,19 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         .flat_map(ForeignItemIdentIter::new_p)
                 )
             },
+            ItemKind::TyAlias(_, ref generics, ref bounds, None) => {
+                set_and_call_next_with_own_ident!(
+                    generics_iter(generics)
+                        .chain(generic_bounds_iter(bounds))
+                )
+            },
+            ItemKind::TyAlias(_, ref generics, ref bounds, Some(ref ty)) => {
+                set_and_call_next_with_own_ident!(
+                    generics_iter(generics)
+                        .chain(generic_bounds_iter(bounds))
+                        .chain(TyIdentIter::new(ty))
+                )
+            },
             _ => todo!(),
         };
 
@@ -830,7 +841,19 @@ impl <'item> Iterator for ForeignItemIdentIter<'item> {
                         .chain(block_iter(block))
                 )
             },
-            //TyAlias(Defaultness, Generics, GenericBounds, Option<P<Ty>>),
+            ForeignItemKind::TyAlias(_, ref generics, ref bounds, None) => {
+                set_and_call_next_with_own_ident!(
+                    generics_iter(generics)
+                        .chain(generic_bounds_iter(bounds))
+                )
+            },
+            ForeignItemKind::TyAlias(_, ref generics, ref bounds, Some(ref ty)) => {
+                set_and_call_next_with_own_ident!(
+                    generics_iter(generics)
+                        .chain(generic_bounds_iter(bounds))
+                        .chain(TyIdentIter::new(ty))
+                )
+            },
             //MacCall(MacCall),
             _ => todo!(),
         };
@@ -946,11 +969,13 @@ fn generic_param_iter(param: &GenericParam) -> IdentIter<'_> {
 
                 i_i
             })
-            .chain(
-                param.bounds.iter()
-                    .flat_map(GenericBoundIdentIter::new)
-            )
+            .chain(generic_bounds_iter(&param.bounds))
     )
+}
+
+fn generic_bounds_iter(bounds: &GenericBounds) -> impl Iterator<Item = Ident> + '_ {
+    bounds.iter()
+        .flat_map(GenericBoundIdentIter::new)
 }
 
 fn attribute_iter(attribute: &Attribute) -> IdentIter<'_> {
@@ -1039,19 +1064,13 @@ fn generics_iter(generics: &Generics) -> impl Iterator<Item = Ident> + '_ {
                                 bound.bound_generic_params.iter()
                                     .flat_map(generic_param_iter)
                                     .chain(TyIdentIter::new(&bound.bounded_ty))
-                                    .chain(
-                                        bound.bounds.iter()
-                                            .flat_map(GenericBoundIdentIter::new)
-                                    )
+                                    .chain(generic_bounds_iter(&bound.bounds))
                             )
                         },
                         WherePredicate::RegionPredicate(ref region) => {
                             Box::new(
                                 iter::once(region.lifetime.ident)
-                                    .chain(
-                                        region.bounds.iter()
-                                            .flat_map(GenericBoundIdentIter::new)
-                                    )
+                                    .chain(generic_bounds_iter(&region.bounds))
                             )
                         },
                         WherePredicate::EqPredicate(ref eq) => {
