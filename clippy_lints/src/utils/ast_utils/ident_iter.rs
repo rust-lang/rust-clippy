@@ -685,7 +685,9 @@ impl <'item> Iterator for ItemIdentIter<'item> {
         }
 
         let output = match self.item.kind {
-            ItemKind::ExternCrate(_) => set_and_call_next_with_own_ident!(),
+            ItemKind::ExternCrate(_)
+            | ItemKind::GlobalAsm(_)
+            | ItemKind::MacroDef(_) => set_and_call_next_with_own_ident!(),
             ItemKind::Use(ref use_tree) => {
                 set_and_call_next_with_own_ident!(
                     use_tree_iter(use_tree)
