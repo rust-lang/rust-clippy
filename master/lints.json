@@ -3026,8 +3026,8 @@
   },
   {
     "id": "rc_buffer",
-    "group": "perf",
-    "level": "Warn",
+    "group": "restriction",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for `Rc<T>` and `Arc<T>` when `T` is a mutable buffer type such as `String` or `Vec`.",
       "Why is this bad": "Expressions such as `Rc<String>` usually have no advantage over `Rc<str>`, since\nit is larger and involves an extra level of indirection, and doesn't implement `Borrow<str>`.\n\nWhile mutating a buffer type would still be possible with `Rc::get_mut()`, it only\nworks if there are no additional references yet, which usually defeats the purpose of\nenclosing it in a shared ownership type. Instead, additionally wrapping the inner\ntype with an interior mutable container (such as `RefCell` or `Mutex`) would normally\nbe used.",
