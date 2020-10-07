@@ -31,6 +31,8 @@ use rustc_ast::{
     TyKind,
     UseTree,
     UseTreeKind,
+    Visibility,
+    VisibilityKind,
     WherePredicate,
 };
 use rustc_ast::ptr::P;
@@ -660,15 +662,17 @@ impl <'item> Iterator for ItemIdentIter<'item> {
             }
         }
 
-        macro_rules! set_and_call_next_with_own_ident {
+        macro_rules! set_and_call_next_with_own_idents {
             () => {
-                set_and_call_next_with_own_ident!(
-                    inner iter::once(self.item.ident)
+                set_and_call_next_with_own_idents!(
+                    inner visibility_iter(&self.item.vis)
+                        .chain(iter::once(self.item.ident))
                 )
             };
             ($iter: expr) => {
-                set_and_call_next_with_own_ident!(
-                    inner $iter.chain(iter::once(self.item.ident))
+                set_and_call_next_with_own_idents!(
+                    inner $iter.chain(visibility_iter(&self.item.vis))
+                        .chain(iter::once(self.item.ident))
                 )
             };
             (inner $iter: expr) => {{
@@ -685,58 +689,58 @@ impl <'item> Iterator for ItemIdentIter<'item> {
         let output = match self.item.kind {
             ItemKind::ExternCrate(_)
             | ItemKind::GlobalAsm(_)
-            | ItemKind::MacroDef(_) => set_and_call_next_with_own_ident!(),
+            | ItemKind::MacroDef(_) => set_and_call_next_with_own_idents!(),
             ItemKind::Use(ref use_tree) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     use_tree_iter(use_tree)
                 )
             },
             ItemKind::Static(ref ty, _, None)
             | ItemKind::Const(_, ref ty, None) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     TyIdentIter::new(ty)
                 )
             },
             ItemKind::Static(ref ty, _, Some(ref expr))
             | ItemKind::Const(_, ref ty, Some(ref expr)) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     TyIdentIter::new(ty)
                         .chain(ExprIdentIter::new(expr))
                 )
             },
             ItemKind::Fn(_, ref fn_sig, ref generics, None) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     fn_decl_iter(&fn_sig.decl)
                         .chain(generics_iter(generics))
                 )
             },
             ItemKind::Fn(_, ref fn_sig, ref generics, Some(ref block)) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     fn_decl_iter(&fn_sig.decl)
                         .chain(generics_iter(generics))
                         .chain(block_iter(block))
                 )
             },
             ItemKind::Mod(ref mod_) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     mod_.items.iter()
                         .flat_map(ItemIdentIter::new_p)
                 )
             },
             ItemKind::ForeignMod(ref foreign_mod) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     foreign_mod.items.iter()
                         .flat_map(ForeignItemIdentIter::new_p)
                 )
             },
             ItemKind::TyAlias(_, ref generics, ref bounds, None) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     generics_iter(generics)
                         .chain(generic_bounds_iter(bounds))
                 )
             },
             ItemKind::TyAlias(_, ref generics, ref bounds, Some(ref ty)) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     generics_iter(generics)
                         .chain(generic_bounds_iter(bounds))
                         .chain(TyIdentIter::new(ty))
@@ -794,15 +798,17 @@ impl <'item> Iterator for ForeignItemIdentIter<'item> {
             }
         }
 
-        macro_rules! set_and_call_next_with_own_ident {
+        macro_rules! set_and_call_next_with_own_idents {
             () => {
-                set_and_call_next_with_own_ident!(
-                    inner iter::once(self.item.ident)
+                set_and_call_next_with_own_idents!(
+                    inner visibility_iter(&self.item.vis)
+                        .chain(iter::once(self.item.ident))
                 )
             };
             ($iter: expr) => {
-                set_and_call_next_with_own_ident!(
-                    inner $iter.chain(iter::once(self.item.ident))
+                set_and_call_next_with_own_idents!(
+                    inner $iter.chain(visibility_iter(&self.item.vis))
+                        .chain(iter::once(self.item.ident))
                 )
             };
             (inner $iter: expr) => {{
@@ -818,37 +824,37 @@ impl <'item> Iterator for ForeignItemIdentIter<'item> {
 
         let output = match self.item.kind {
             ForeignItemKind::Static(ref ty, _, None) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     TyIdentIter::new(ty)
                 )
             },
             ForeignItemKind::Static(ref ty, _, Some(ref expr)) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     TyIdentIter::new(ty)
                         .chain(ExprIdentIter::new(expr))
                 )
             },
             ForeignItemKind::Fn(_, ref fn_sig, ref generics, None) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     fn_decl_iter(&fn_sig.decl)
                         .chain(generics_iter(generics))
                 )
             },
             ForeignItemKind::Fn(_, ref fn_sig, ref generics, Some(ref block)) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     fn_decl_iter(&fn_sig.decl)
                         .chain(generics_iter(generics))
                         .chain(block_iter(block))
                 )
             },
             ForeignItemKind::TyAlias(_, ref generics, ref bounds, None) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     generics_iter(generics)
                         .chain(generic_bounds_iter(bounds))
                 )
             },
             ForeignItemKind::TyAlias(_, ref generics, ref bounds, Some(ref ty)) => {
-                set_and_call_next_with_own_ident!(
+                set_and_call_next_with_own_idents!(
                     generics_iter(generics)
                         .chain(generic_bounds_iter(bounds))
                         .chain(TyIdentIter::new(ty))
@@ -1084,4 +1090,20 @@ fn generics_iter(generics: &Generics) -> impl Iterator<Item = Ident> + '_ {
                     i_i
                 })
         )
+}
+
+fn visibility_iter(vis: &Visibility) -> IdentIter<'_> {
+    match vis.kind {
+        VisibilityKind::Public
+        | VisibilityKind::Inherited
+        | VisibilityKind::Crate(_) => {
+            Box::new(iter::empty())
+        },
+        VisibilityKind::Restricted {
+            ref path,
+            ..
+        } => {
+            Box::new(path_iter(path))
+        },
+    }
 }
