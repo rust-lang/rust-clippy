@@ -3490,12 +3490,12 @@
   },
   {
     "id": "string_lit_as_bytes",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for the `as_bytes` method called on string literals\nthat contain only ASCII characters.",
       "Why is this bad": "Byte string literals (e.g., `b\"foo\"`) can be used\ninstead. They are shorter but less discoverable than `as_bytes()`.",
-      "Known Problems": "None.",
+      "Known Problems": "`\"str\".as_bytes()` and the suggested replacement of `b\"str\"` are not\nequivalent because they have different types. The former is `&[u8]`\nwhile the latter is `&[u8; 3]`. That means in general they will have a\ndifferent set of methods and different trait implementations.\n\n```compile_fail\nfn f(v: Vec<u8>) {}\n\nf(\"...\".as_bytes().to_owned()); // works\nf(b\"...\".to_owned()); // does not work, because arg is [u8; 3] not Vec<u8>\n\nfn g(r: impl std::io::Read) {}\n\ng(\"...\".as_bytes()); // works\ng(b\"...\"); // does not work\n```\n\nThe actual equivalent of `\"str\".as_bytes()` with the same type is not\n`b\"str\"` but `&b\"str\"[..]`, which is a great deal of punctuation and not\nmore readable than a function call.",
       "Example": "```rust\n// Bad\nlet bs = \"a byte string\".as_bytes();\n\n// Good\nlet bs = b\"a byte string\";\n```"
     }
   },
