@@ -736,7 +736,8 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         .flat_map(ForeignItemIdentIter::new_p)
                 )
             },
-            ItemKind::TyAlias(_, ref generics, ref bounds, None) => {
+            ItemKind::TyAlias(_, ref generics, ref bounds, None)
+            | ItemKind::TraitAlias(ref generics, ref bounds) => {
                 set_and_call_next_with_own_idents!(
                     generics_iter(generics)
                         .chain(generic_bounds_iter(bounds))
