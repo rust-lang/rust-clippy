@@ -1,5 +1,7 @@
 use core::iter::{self, FusedIterator};
 use rustc_ast::{
+    AssocItem,
+    AssocItemKind,
     AttrKind,
     Attribute,
     Block,
@@ -777,6 +779,16 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         .chain(variant_data_iter(variant_data))
                 )
             },
+            ItemKind::Trait(_, _, ref generics, ref bounds, ref assoc_items) => {
+                set_and_call_next_with_own_idents!(
+                    generics_iter(generics)
+                        .chain(generic_bounds_iter(bounds))
+                        .chain(
+                            assoc_items.iter()
+                                .flat_map(AssocItemIdentIter::new_p)
+                        )
+                )
+            },
             _ => todo!(),
         };
 
@@ -904,6 +916,121 @@ impl <'item> Iterator for ForeignItemIdentIter<'item> {
 }
 
 impl <'item> FusedIterator for ForeignItemIdentIter<'item> {}
+
+struct AssocItemIdentIter<'item> {
+    item: &'item AssocItem,
+    inner: Option<IdentIter<'item>>,
+    done: bool,
+}
+
+impl <'item> AssocItemIdentIter<'item> {
+    fn new(item: &'item AssocItem) -> Self {
+        Self {
+            item,
+            inner: None,
+            done: false,
+        }
+    }
+
+    fn new_p(item: &'item P<AssocItem>) -> Self {
+        Self::new(item)
+    }
+}
+
+impl <'item> Iterator for AssocItemIdentIter<'item> {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let inner_opt = &mut self.inner;
+
+        if let Some(mut inner) = inner_opt.take() {
+            let output = inner.next();
+
+            if output.is_some() {
+                *inner_opt = Some(inner);
+                return output;
+            }
+        }
+
+        macro_rules! set_and_call_next_with_own_idents {
+            () => {
+                set_and_call_next_with_own_idents!(
+                    inner visibility_iter(&self.item.vis)
+                        .chain(iter::once(self.item.ident))
+                )
+            };
+            ($iter: expr) => {
+                set_and_call_next_with_own_idents!(
+                    inner $iter.chain(visibility_iter(&self.item.vis))
+                        .chain(iter::once(self.item.ident))
+                )
+            };
+            (inner $iter: expr) => {{
+                let mut p_iter = $iter;
+
+                let next_item = p_iter.next();
+
+                *inner_opt = Some(Box::new(p_iter));
+
+                next_item
+            }}
+        }
+
+        let output = match self.item.kind {
+            AssocItemKind::Const(_, ref ty, None) => {
+                set_and_call_next_with_own_idents!(
+                    TyIdentIter::new(ty)
+                )
+            },
+            AssocItemKind::Const(_, ref ty, Some(ref expr)) => {
+                set_and_call_next_with_own_idents!(
+                    TyIdentIter::new(ty)
+                        .chain(ExprIdentIter::new(expr))
+                )
+            },
+            AssocItemKind::Fn(_, ref fn_sig, ref generics, None) => {
+                set_and_call_next_with_own_idents!(
+                    fn_decl_iter(&fn_sig.decl)
+                        .chain(generics_iter(generics))
+                )
+            },
+            AssocItemKind::Fn(_, ref fn_sig, ref generics, Some(ref block)) => {
+                set_and_call_next_with_own_idents!(
+                    fn_decl_iter(&fn_sig.decl)
+                        .chain(generics_iter(generics))
+                        .chain(block_iter(block))
+                )
+            },
+            AssocItemKind::TyAlias(_, ref generics, ref bounds, None) => {
+                set_and_call_next_with_own_idents!(
+                    generics_iter(generics)
+                        .chain(generic_bounds_iter(bounds))
+                )
+            },
+            AssocItemKind::TyAlias(_, ref generics, ref bounds, Some(ref ty)) => {
+                set_and_call_next_with_own_idents!(
+                    generics_iter(generics)
+                        .chain(generic_bounds_iter(bounds))
+                        .chain(TyIdentIter::new(ty))
+                )
+            },
+            //MacCall(MacCall),
+            _ => todo!(),
+        };
+
+        if output.is_none() {
+            self.done = true;
+        }
+
+        output
+    }
+}
+
+impl <'item> FusedIterator for AssocItemIdentIter<'item> {}
 
 struct GenericBoundIdentIter<'bound> {
     bound: &'bound GenericBound,
