@@ -31,6 +31,7 @@ use rustc_ast::{
     TyKind,
     UseTree,
     UseTreeKind,
+    VariantData,
     Visibility,
     VisibilityKind,
     WherePredicate,
@@ -746,6 +747,29 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         .chain(TyIdentIter::new(ty))
                 )
             },
+            ItemKind::Enum(ref enum_def, ref generics) => {
+                set_and_call_next_with_own_idents!(
+                    generics_iter(generics)
+                        .chain(
+                            enum_def.variants.iter()
+                                .flat_map(|variant| {
+                                    variant.attrs.iter()
+                                        .flat_map(attribute_iter)
+                                        .chain(visibility_iter(&variant.vis))
+                                        .chain(iter::once(variant.ident))
+                                        .chain(variant_data_iter(&variant.data))
+                                        .chain(
+                                            variant.disr_expr
+                                                .as_ref()
+                                                .into_iter()
+                                                .flat_map(|a_c| 
+                                                    ExprIdentIter::new(&a_c.value)
+                                                )
+                                        )
+                                })
+                        )
+                )
+            },
             _ => todo!(),
         };
 
@@ -1090,6 +1114,25 @@ fn generics_iter(generics: &Generics) -> impl Iterator<Item = Ident> + '_ {
                     i_i
                 })
         )
+}
+
+fn variant_data_iter(data: &VariantData) -> IdentIter<'_> {
+    match data {
+        VariantData::Struct(ref struct_fields, _)
+        | VariantData::Tuple(ref struct_fields, _) => {
+            Box::new(
+                struct_fields.iter()
+                    .flat_map(|s_f| {
+                        s_f.attrs.iter()
+                            .flat_map(attribute_iter)
+                            .chain(visibility_iter(&s_f.vis))
+                            .chain(s_f.ident.into_iter())
+                            .chain(TyIdentIter::new(&s_f.ty))
+                    })
+            )
+        },
+        VariantData::Unit(_) => Box::new(iter::empty()),
+    }
 }
 
 fn visibility_iter(vis: &Visibility) -> IdentIter<'_> {
