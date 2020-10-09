@@ -789,6 +789,11 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         )
                 )
             },
+            ItemKind::MacCall(MacCall{ ref path, ..}) => {
+                set_and_call_next_with_own_idents!(
+                    path_iter(path)
+                )
+            },
             _ => todo!(),
         };
 
@@ -903,8 +908,11 @@ impl <'item> Iterator for ForeignItemIdentIter<'item> {
                         .chain(TyIdentIter::new(ty))
                 )
             },
-            //MacCall(MacCall),
-            _ => todo!(),
+            ForeignItemKind::MacCall(MacCall{ ref path, ..}) => {
+                set_and_call_next_with_own_idents!(
+                    path_iter(path)
+                )
+            },
         };
 
         if output.is_none() {
@@ -1018,8 +1026,11 @@ impl <'item> Iterator for AssocItemIdentIter<'item> {
                         .chain(TyIdentIter::new(ty))
                 )
             },
-            //MacCall(MacCall),
-            _ => todo!(),
+            AssocItemKind::MacCall(MacCall{ ref path, ..}) => {
+                set_and_call_next_with_own_idents!(
+                    path_iter(path)
+                )
+            },
         };
 
         if output.is_none() {
