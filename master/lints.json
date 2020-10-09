@@ -2950,6 +2950,17 @@
     }
   },
   {
+    "id": "ptr_eq",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Use `std::ptr::eq` when applicable",
+      "Why is this bad": "`ptr::eq` can be used to compare `&T` references\n(which coerce to `*const T` implicitly) by their address rather than\ncomparing the values they point to.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet a = &[1, 2, 3];\nlet b = &[1, 2, 3];\n\nassert!(a as *const _ as usize == b as *const _ as usize);\n```\nUse instead:\n```rust\nlet a = &[1, 2, 3];\nlet b = &[1, 2, 3];\n\nassert!(std::ptr::eq(a, b));\n```"
+    }
+  },
+  {
     "id": "ptr_offset_with_cast",
     "group": "complexity",
     "level": "Warn",
