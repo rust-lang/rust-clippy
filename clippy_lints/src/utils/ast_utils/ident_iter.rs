@@ -770,6 +770,13 @@ impl <'item> Iterator for ItemIdentIter<'item> {
                         )
                 )
             },
+            ItemKind::Struct(ref variant_data, ref generics)
+            | ItemKind::Union(ref variant_data, ref generics) => {
+                set_and_call_next_with_own_idents!(
+                    generics_iter(generics)
+                        .chain(variant_data_iter(variant_data))
+                )
+            },
             _ => todo!(),
         };
 
