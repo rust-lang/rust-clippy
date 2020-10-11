@@ -3229,6 +3229,17 @@
     }
   },
   {
+    "id": "result_unit_err",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for public functions that return a `Result`\nwith an `Err` type of `()`. It suggests using a custom type that\nimplements [`std::error::Error`].",
+      "Why is this bad": "Unit does not implement `Error` and carries no\nfurther information about what went wrong.",
+      "Known problems": "Of course, this lint assumes that `Result` is used\nfor a fallible operation (which is after all the intended use). However\ncode may opt to (mis)use it as a basic two-variant-enum. In that case,\nthe suggestion is misguided, and the code should use a custom enum\ninstead.",
+      "Examples": "```rust\npub fn read_u8() -> Result<u8, ()> { Err(()) }\n```\nshould become\n```rust,should_panic\nuse std::fmt;\n\n#[derive(Debug)]\npub struct EndOfStream;\n\nimpl fmt::Display for EndOfStream {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        write!(f, \"End of Stream\")\n    }\n}\n\nimpl std::error::Error for EndOfStream { }\n\npub fn read_u8() -> Result<u8, EndOfStream> { Err(EndOfStream) }\n```\n\nNote that there are crates that simplify creating the error type, e.g.\n[`thiserror`](https://docs.rs/thiserror)."
+    }
+  },
+  {
     "id": "reversed_empty_ranges",
     "group": "correctness",
     "level": "Deny",
