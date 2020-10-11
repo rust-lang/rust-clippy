@@ -4,14 +4,28 @@ use rustc_ast::*;
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
 
-pub type IdentIter<'a> = Box<dyn Iterator<Item = Ident> + 'a>;
+pub struct IdentIterator<'a>(IdentIter<'a>);
 
-pub fn from_expr<'expr>(expr: &'expr Expr) -> IdentIter<'expr> {
-    Box::new(ExprIdentIter::new(expr))
+type IdentIter<'a> = Box<dyn Iterator<Item = Ident> + 'a>;
+
+impl <'expr> Iterator for IdentIterator<'expr> {
+    type Item = Ident;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
 }
 
-pub fn from_ty<'ty>(ty: &'ty Ty) -> IdentIter<'ty> {
-    Box::new(TyIdentIter::new(ty))
+impl <'expr> From<&'expr Expr> for IdentIterator<'expr> {
+    fn from(expr: &'expr Expr) -> Self {
+        IdentIterator(Box::new(ExprIdentIter::new(expr)))
+    }
+}
+
+impl <'ty> From<&'ty Ty> for IdentIterator<'ty> {
+    fn from(ty: &'ty Ty) -> Self {
+        IdentIterator(Box::new(TyIdentIter::new(ty)))
+    }
 }
 
 struct ExprIdentIter<'expr> {
