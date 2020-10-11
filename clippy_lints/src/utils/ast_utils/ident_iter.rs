@@ -1,43 +1,6 @@
+#![allow(clippy::enum_glob_use)]
 use core::iter::{self, FusedIterator};
-use rustc_ast::{
-    AssocItem,
-    AssocItemKind,
-    AttrKind,
-    Attribute,
-    Block,
-    Expr,
-    ExprKind,
-    ForeignItem,
-    ForeignItemKind,
-    FnDecl,
-    FnRetTy,
-    Generics,
-    GenericBound,
-    GenericBounds,
-    GenericParam,
-    GenericParamKind,
-    Item,
-    ItemKind,
-    Param,
-    Pat,
-    PatKind,
-    Path,
-    PolyTraitRef,
-    MacCall,
-    MacCallStmt,
-    MutTy,
-    Stmt,
-    StmtKind,
-    Local,
-    Ty,
-    TyKind,
-    UseTree,
-    UseTreeKind,
-    VariantData,
-    Visibility,
-    VisibilityKind,
-    WherePredicate,
-};
+use rustc_ast::*;
 use rustc_ast::ptr::P;
 use rustc_span::symbol::Ident;
 
