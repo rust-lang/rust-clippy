@@ -2893,14 +2893,12 @@ fn check_needless_collect_indirect_usage<'tcx>(expr: &'tcx Expr<'_>, cx: &LateCo
                         NEEDLESS_COLLECT_MSG,
                         |diag| {
                             let iter_replacement = format!("{}{}", Sugg::hir(cx, iter_source, ".."), iter_call.get_iter_method(cx));
-                            diag.multipart_suggestion(
+                            diag.span_suggestion(
+                                stmt.span.to(iter_call.span),
                                 iter_call.get_suggestion_text(),
-                                vec![
-                                    (stmt.span, String::new()),
-                                    (iter_call.span, iter_replacement)
-                                ],
-                                Applicability::MachineApplicable,// MaybeIncorrect,
-                            ).emit();
+                                iter_replacement,
+                                Applicability::MaybeIncorrect,
+                            );
                         },
                     );
                 }

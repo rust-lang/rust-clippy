@@ -16,4 +16,14 @@ fn main() {
         .into_iter()
         .map(|x| (*x, *x + 1))
         .collect::<HashMap<_, _>>();
+
+    // Partially fix #6164
+    let indirect_contains_with_comments = sample.iter().collect::<VecDeque<_>>();
+    // This is some stuff,
+    // to pretend that we have some more
+    // code present here
+    // like we did
+    // in the real
+    // deal.
+    indirect_contains_with_comments.contains(&&5);
 }
