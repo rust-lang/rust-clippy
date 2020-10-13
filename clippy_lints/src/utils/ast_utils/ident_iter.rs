@@ -28,7 +28,7 @@ impl From<&Expr> for IdentIterator {
 }
 
 /// An estimate of the amount of code bytes that one should expect to look at
-/// berfore seeing an `Ident`. This value is used to estimate how many `Ident`
+/// before seeing an `Ident`. This value is used to estimate how many `Ident`
 /// slots to pre-allocate for a given `Span`.
 const ESTIMATED_BYTES_OF_CODE_PER_IDENT: usize = 32;
 
