@@ -19,7 +19,8 @@ impl From<&Expr> for IdentIterator {
     fn from(expr: &Expr) -> Self {
         let byte_count = (expr.span.hi() - expr.span.lo()).0 as usize;
 
-        let mut visitor = IdentCollector(Vec::with_capacity(ESTIMATED_BYTES_OF_CODE_PER_IDENT * byte_count));
+        // bytes / (bytes / idents) = idents
+        let mut visitor = IdentCollector(Vec::with_capacity(byte_count / ESTIMATED_BYTES_OF_CODE_PER_IDENT));
 
         walk_expr(&mut visitor, expr);
 
@@ -30,7 +31,7 @@ impl From<&Expr> for IdentIterator {
 /// An estimate of the amount of code bytes that one should expect to look at
 /// before seeing an `Ident`. This value is used to estimate how many `Ident`
 /// slots to pre-allocate for a given `Span`.
-const ESTIMATED_BYTES_OF_CODE_PER_IDENT: usize = 32;
+const ESTIMATED_BYTES_OF_CODE_PER_IDENT: usize = 16;
 
 struct IdentCollector(Vec<Ident>);
 
