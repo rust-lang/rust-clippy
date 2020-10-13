@@ -1,11 +1,11 @@
 use core::iter::FusedIterator;
 use rustc_ast::visit::{walk_expr, Visitor};
 use rustc_ast::Expr;
-use rustc_span::symbol::Ident;
+use rustc_span::{Span, symbol::Ident};
 
-pub struct IdentIterator(std::vec::IntoIter<Ident>);
+pub struct IdentIter(std::vec::IntoIter<Ident>);
 
-impl Iterator for IdentIterator {
+impl Iterator for IdentIter {
     type Item = Ident;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -13,18 +13,15 @@ impl Iterator for IdentIterator {
     }
 }
 
-impl FusedIterator for IdentIterator {}
+impl FusedIterator for IdentIter {}
 
-impl From<&Expr> for IdentIterator {
+impl From<&Expr> for IdentIter {
     fn from(expr: &Expr) -> Self {
-        let byte_count = (expr.span.hi() - expr.span.lo()).0 as usize;
-
-        // bytes / (bytes / idents) = idents
-        let mut visitor = IdentCollector(Vec::with_capacity(byte_count / ESTIMATED_BYTES_OF_CODE_PER_IDENT));
+        let mut visitor = IdentCollector::new(&expr.span);
 
         walk_expr(&mut visitor, expr);
 
-        IdentIterator(visitor.0.into_iter())
+        IdentIter(visitor.0.into_iter())
     }
 }
 
@@ -34,6 +31,17 @@ impl From<&Expr> for IdentIterator {
 const ESTIMATED_BYTES_OF_CODE_PER_IDENT: usize = 16;
 
 struct IdentCollector(Vec<Ident>);
+
+impl IdentCollector {
+    fn new(span: &Span) -> Self {
+        let byte_count = (span.hi() - span.lo()).0 as usize;
+
+        // bytes / (bytes / idents) = idents
+        IdentCollector(
+            Vec::with_capacity(byte_count / ESTIMATED_BYTES_OF_CODE_PER_IDENT)
+        )
+    }
+}
 
 impl Visitor<'_> for IdentCollector {
     fn visit_ident(&mut self, ident: Ident) {
