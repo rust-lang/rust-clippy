@@ -1,6 +1,6 @@
 use core::iter::FusedIterator;
-use rustc_ast::visit::{walk_expr, Visitor};
-use rustc_ast::Expr;
+use rustc_ast::visit::{walk_attribute, walk_expr, Visitor};
+use rustc_ast::{Attribute, Expr};
 use rustc_span::{Span, symbol::Ident};
 
 pub struct IdentIter(std::vec::IntoIter<Ident>);
@@ -20,6 +20,16 @@ impl From<&Expr> for IdentIter {
         let mut visitor = IdentCollector::new(&expr.span);
 
         walk_expr(&mut visitor, expr);
+
+        IdentIter(visitor.0.into_iter())
+    }
+}
+
+impl From<&Attribute> for IdentIter {
+    fn from(attr: &Attribute) -> Self {
+        let mut visitor = IdentCollector::new(&attr.span);
+
+        walk_attribute(&mut visitor, attr);
 
         IdentIter(visitor.0.into_iter())
     }
