@@ -3803,7 +3803,7 @@
     "docs": {
       "What it does": "Checks for transmutes from a pointer to a reference.",
       "Why is this bad": "This can always be rewritten with `&` and `*`.",
-      "Known problems": "None.",
+      "Known problems": "- `mem::transmute` in statics and constants is stable from Rust 1.46.0,\nwhile dereferencing raw pointer is not stable yet.\nIf you need to do this in those places,\nyou would have to use `transmute` instead.",
       "Example": "```rust,ignore\nunsafe {\n    let _: &T = std::mem::transmute(p); // where p: *const T\n}\n\n// can be written:\nlet _: &T = &*p;\n```"
     }
   },
