@@ -1,7 +1,7 @@
 use core::iter::FusedIterator;
 use rustc_ast::visit::{walk_attribute, walk_expr, Visitor};
 use rustc_ast::{Attribute, Expr};
-use rustc_span::{Span, symbol::Ident};
+use rustc_span::{symbol::Ident, Span};
 
 pub struct IdentIter(std::vec::IntoIter<Ident>);
 
@@ -17,7 +17,7 @@ impl FusedIterator for IdentIter {}
 
 impl From<&Expr> for IdentIter {
     fn from(expr: &Expr) -> Self {
-        let mut visitor = IdentCollector::new(&expr.span);
+        let mut visitor = IdentCollector::new(expr.span);
 
         walk_expr(&mut visitor, expr);
 
@@ -27,7 +27,7 @@ impl From<&Expr> for IdentIter {
 
 impl From<&Attribute> for IdentIter {
     fn from(attr: &Attribute) -> Self {
-        let mut visitor = IdentCollector::new(&attr.span);
+        let mut visitor = IdentCollector::new(attr.span);
 
         walk_attribute(&mut visitor, attr);
 
@@ -43,13 +43,11 @@ const ESTIMATED_BYTES_OF_CODE_PER_IDENT: usize = 16;
 struct IdentCollector(Vec<Ident>);
 
 impl IdentCollector {
-    fn new(span: &Span) -> Self {
+    fn new(span: Span) -> Self {
         let byte_count = (span.hi() - span.lo()).0 as usize;
 
         // bytes / (bytes / idents) = idents
-        IdentCollector(
-            Vec::with_capacity(byte_count / ESTIMATED_BYTES_OF_CODE_PER_IDENT)
-        )
+        IdentCollector(Vec::with_capacity(byte_count / ESTIMATED_BYTES_OF_CODE_PER_IDENT))
     }
 }
 
