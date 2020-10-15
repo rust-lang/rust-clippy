@@ -236,9 +236,6 @@ impl<'a, 'tcx> Visitor<'tcx> for FnSigVisitor<'a, 'tcx> {
                             kind: ExprKind::Path(QPath::TypeRelative(_, segment)),
                             ..
                         })) => {
-                            // The following block correctly identifies applicable lint locations
-                            // but `hir_ty_to_ty` calls cause odd ICEs.
-                            //
                             if hir_ty_to_ty(self.cx.tcx, hir_ty) == self.self_ty {
                                 // fixme: this span manipulation should not be necessary
                                 // @flip1995 found an ast lowering issue in
