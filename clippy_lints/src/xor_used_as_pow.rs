@@ -1,9 +1,10 @@
-use crate::utils::{span_help_and_lint, span_lint_and_sugg};
+use crate::utils::{span_lint_and_help, span_lint_and_sugg};
 use if_chain::if_chain;
-use rustc::lint::{in_external_macro, EarlyContext, EarlyLintPass, LintArray, LintPass};
-use rustc::{declare_lint_pass, declare_tool_lint};
+use rustc_ast::{BinOpKind, Expr, ExprKind, LitKind};
 use rustc_errors::Applicability;
-use syntax::ast::{BinOpKind, Expr, ExprKind, LitKind};
+use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_middle::lint::in_external_macro;
+use rustc_session::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
     /// **What it does:** Checks for use of `^` operator when exponentiation was intended.
@@ -33,12 +34,12 @@ impl EarlyLintPass for XorUsedAsPow {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
         if_chain! {
             if !in_external_macro(cx.sess, expr.span);
-            if let ExprKind::Binary(op, left, right) = &expr.node;
+            if let ExprKind::Binary(op, left, right) = &expr.kind;
             if BinOpKind::BitXor == op.node;
-            if let ExprKind::Lit(lit) = &left.node;
-            if let LitKind::Int(lhs, _) = lit.node;
-            if let ExprKind::Lit(lit) = &right.node;
-            if let LitKind::Int(rhs, _) = lit.node;
+            if let ExprKind::Lit(lit) = &left.kind;
+            if let LitKind::Int(lhs, _) = lit.kind;
+            if let ExprKind::Lit(lit) = &right.kind;
+            if let LitKind::Int(rhs, _) = lit.kind;
             then {
                 if lhs == 2 {
                     if rhs == 8 || rhs == 16 || rhs == 32 || rhs == 64 || rhs == 128 {
@@ -63,11 +64,12 @@ impl EarlyLintPass for XorUsedAsPow {
                         )
                     }
                 } else {
-                    span_help_and_lint(
+                    span_lint_and_help(
                         cx,
                         XOR_USED_AS_POW,
                         expr.span,
                         "`^` is not an exponentiation operator but appears to have been used as one",
+                        None,
                         "did you mean to use .pow()?"
                     )
                 }
