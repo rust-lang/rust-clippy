@@ -62,7 +62,7 @@ fn or_fun_call() {
     map.entry(42).or_insert_with(String::new);
 
     let mut btree = BTreeMap::<u64, String>::new();
-    btree.entry(42).or_insert_with(String::new);
+    btree.entry(42).or_insert(String::new());
 
     let stringy = Some(String::from(""));
     let _ = stringy.unwrap_or_else(|| "".to_owned());
