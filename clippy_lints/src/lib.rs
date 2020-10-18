@@ -1150,7 +1150,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| box asm_syntax::InlineAsmX86AttSyntax);
     store.register_early_pass(|| box asm_syntax::InlineAsmX86IntelSyntax);
     store.register_late_pass(|| box undropped_manually_drops::UndroppedManuallyDrops);
-    store.register_early_pass(|| box xor_used_as_pow::XorUsedAsPow);
+    store.register_late_pass(|| box xor_used_as_pow::XorUsedAsPow);
 
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![

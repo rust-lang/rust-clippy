@@ -2856,7 +2856,7 @@ vec![
     Lint {
         name: "xor_used_as_pow",
         group: "correctness",
-        desc: "use of `^` operator when exponentiation was intended",
+        desc: "use of `^` operator when exponentiation was probably intended",
         deprecation: None,
         module: "xor_used_as_pow",
     },

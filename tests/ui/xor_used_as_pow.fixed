@@ -20,14 +20,14 @@ fn main() {
     let _ = 10 ^ -18; // negative rhs
 
     // These should fail
-    let _ = 2 ^ 3;
+    let _ = 1_u32 << 3;
     let _ = 10 ^ 4;
-    let _ = 2 ^ 32;
-    let _ = 2 ^ 0;
+    let _ = 1_u64 << 32;
+    let _ = 1;
     let _ = 10 ^ 0;
     {
         let x = 15;
-        let _ = 2 ^ x;
+        let _ = 1 << x;
         let _ = 10 ^ x;
     }
 }
