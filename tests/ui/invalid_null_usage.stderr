@@ -1,0 +1,16 @@
+error: pointer must be non-null
+  --> $DIR/invalid_null_usage.rs:4:64
+   |
+LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(std::ptr::null(), 0) };
+   |                                                                ^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+   |
+   = note: `#[deny(clippy::invalid_null_usage)]` on by default
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_usage.rs:5:64
+   |
+LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(core::ptr::null(), 0) };
+   |                                                                ^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: aborting due to 2 previous errors
+

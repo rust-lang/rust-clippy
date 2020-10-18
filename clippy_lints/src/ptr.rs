@@ -2,8 +2,8 @@
 
 use crate::utils::ptr::get_spans;
 use crate::utils::{
-    is_allowed, is_type_diagnostic_item, match_qpath, match_type, paths, snippet_opt, span_lint, span_lint_and_sugg,
-    span_lint_and_then, walk_ptrs_hir_ty,
+    is_allowed, is_type_diagnostic_item, match_function_call, match_qpath, match_type, paths, snippet_opt, span_lint,
+    span_lint_and_sugg, span_lint_and_then, walk_ptrs_hir_ty,
 };
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -119,7 +119,28 @@ declare_clippy_lint! {
     "fns that create mutable refs from immutable ref args"
 }
 
-declare_lint_pass!(Ptr => [PTR_ARG, CMP_NULL, MUT_FROM_REF]);
+declare_clippy_lint! {
+    /// **What it does:** This lint checks for invalid usages of `ptr::null`.
+    ///
+    /// **Why is this bad?** This causes undefined behavior.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```ignore
+    /// // Bad. Undefined behavior
+    /// unsafe { std::slice::from_raw_parts(ptr::null(), 0); }
+    /// ```
+    ///
+    /// // Good
+    /// unsafe { std::slice::from_raw_parts(NonNull::dangling().as_ptr(), 0); }
+    /// ```
+    pub INVALID_NULL_USAGE,
+    correctness,
+    "invalid usage of a null pointer, suggesting `NonNull::dangling()` instead."
+}
+
+declare_lint_pass!(Ptr => [PTR_ARG, CMP_NULL, MUT_FROM_REF, INVALID_NULL_USAGE]);
 
 impl<'tcx> LateLintPass<'tcx> for Ptr {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
@@ -160,6 +181,20 @@ impl<'tcx> LateLintPass<'tcx> for Ptr {
                     expr.span,
                     "comparing with null is better expressed by the `.is_null()` method",
                 );
+            }
+        } else if let Some(args) = match_function_call(cx, expr, &paths::SLICE_FROM_RAW_PARTS) {
+            if let Some(arg) = args.first() {
+                if is_null_path(arg) {
+                    span_lint_and_sugg(
+                        cx,
+                        INVALID_NULL_USAGE,
+                        arg.span,
+                        "pointer must be non-null",
+                        "change this to",
+                        "core::ptr::NonNull::dangling().as_ptr()".to_string(),
+                        Applicability::MachineApplicable,
+                    );
+                }
             }
         }
     }
