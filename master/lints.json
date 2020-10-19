@@ -812,7 +812,7 @@
       "What it does": "Checks for equal operands to comparison, logical and\nbitwise, difference and division binary operators (`==`, `>`, etc., `&&`,\n`||`, `&`, `|`, `^`, `-` and `/`).",
       "Why is this bad": "This is usually just a typo or a copy and paste error.",
       "Known problems": "False negatives: We had some false positives regarding\ncalls (notably [racer](https://github.com/phildawes/racer) had one instance\nof `x.pop() && x.pop()`), so we removed matching any function or method\ncalls. We may introduce a list of known pure functions in the future.",
-      "Example": "```rust\nif x + 1 == x + 1 {}\n```"
+      "Example": "```rust\nif x + 1 == x + 1 {}\n```\nor\n```rust\nassert_eq!(a, a);\n```"
     }
   },
   {
