@@ -2525,6 +2525,13 @@ vec![
         module: "misc_early",
     },
     Lint {
+        name: "unneeded_pub_crate",
+        group: "pedantic",
+        desc: "Using `pub(crate)` visibility on items that are only accessed from within the module that contains the item.",
+        deprecation: None,
+        module: "unneeded_pub_crate",
+    },
+    Lint {
         name: "unneeded_wildcard_pattern",
         group: "complexity",
         desc: "tuple patterns with a wildcard pattern (`_`) is next to a rest pattern (`..`)",

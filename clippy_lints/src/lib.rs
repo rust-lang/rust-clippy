@@ -318,6 +318,7 @@ mod unicode;
 mod unit_return_expecting_ord;
 mod unnamed_address;
 mod unnecessary_sort_by;
+mod unneeded_pub_crate;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
 mod unused_io_amount;
@@ -869,6 +870,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &unnamed_address::FN_ADDRESS_COMPARISONS,
         &unnamed_address::VTABLE_ADDRESS_COMPARISONS,
         &unnecessary_sort_by::UNNECESSARY_SORT_BY,
+        &unneeded_pub_crate::UNNEEDED_PUB_CRATE,
         &unnested_or_patterns::UNNESTED_OR_PATTERNS,
         &unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME,
         &unused_io_amount::UNUSED_IO_AMOUNT,
@@ -1137,6 +1139,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(move || box disallowed_method::DisallowedMethod::new(&disallowed_methods));
     store.register_early_pass(|| box asm_syntax::InlineAsmX86AttSyntax);
     store.register_early_pass(|| box asm_syntax::InlineAsmX86IntelSyntax);
+    store.register_late_pass(|| box unneeded_pub_crate::UnneededPubCrate::default());
 
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
@@ -1257,6 +1260,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&types::OPTION_OPTION),
         LintId::of(&unicode::NON_ASCII_LITERAL),
         LintId::of(&unicode::UNICODE_NOT_NFC),
+        LintId::of(&unneeded_pub_crate::UNNEEDED_PUB_CRATE),
         LintId::of(&unnested_or_patterns::UNNESTED_OR_PATTERNS),
         LintId::of(&unused_self::UNUSED_SELF),
         LintId::of(&wildcard_imports::ENUM_GLOB_USE),

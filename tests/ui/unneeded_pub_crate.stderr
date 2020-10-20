@@ -1,0 +1,22 @@
+error: pub(crate) item is never used outside of its defining module
+  --> $DIR/unneeded_pub_crate.rs:21:9
+   |
+LL |         pub(crate) fn foo() {}
+   |         ^^^^^^^^^^ help: consider removing pub(crate)
+   |
+   = note: `-D clippy::unneeded-pub-crate` implied by `-D warnings`
+
+error: pub(crate) item is never used outside of its defining module
+  --> $DIR/unneeded_pub_crate.rs:5:1
+   |
+LL | pub(crate) struct Baz {
+   | ^^^^^^^^^^ help: consider removing pub(crate)
+
+error: pub(crate) item is never used outside of its defining module
+  --> $DIR/unneeded_pub_crate.rs:13:9
+   |
+LL |         pub(crate) trait Baz {
+   |         ^^^^^^^^^^ help: consider removing pub(crate)
+
+error: aborting due to 3 previous errors
+
