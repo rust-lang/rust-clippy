@@ -21,7 +21,7 @@ declare_clippy_lint! {
     ///
     /// You may be decieved into thinking an item is used far away, when it is not!
     ///
-    /// **Known problems:** Does not check methods, const/static items, struct/enum/union fields, or type aliases.
+    /// **Known problems:** Does not check positional fields.
     ///
     /// **Example:**
     ///

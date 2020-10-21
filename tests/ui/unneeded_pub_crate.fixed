@@ -30,17 +30,19 @@ mod outer {
                 not_used_outside: 0,
             }
         }
+        pub(crate) struct S1(u8, pub(crate) u8);
     }
     pub(crate) struct ReturnStruct {
         pub(crate) used_outside: u8,
          not_used_outside: u8,
     }
-    pub(crate) fn main() -> ReturnStruct {
+    pub(crate) fn main() -> (ReturnStruct, inner::S1) {
         inner::bar()
     }
 }
 
 fn main() {
-    let value_outside = crate::outer::main();
+    let (value_outside, s1) = crate::outer::main();
+    s1.1 = 42;
     let _ = value_outside.used_outside;
 }
