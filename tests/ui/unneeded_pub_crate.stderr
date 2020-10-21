@@ -1,12 +1,3 @@
-error[E0446]: crate-visible type `outer::ReturnStruct` in public interface
-  --> $DIR/unneeded_pub_crate.rs:38:5
-   |
-LL |     pub(crate) struct ReturnStruct {
-   |     ---------- `outer::ReturnStruct` declared as crate-visible
-...
-LL |     pub fn main() -> ReturnStruct {
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ can't leak crate-visible type
-
 error: pub(crate) item is never used outside of its defining module
   --> $DIR/unneeded_pub_crate.rs:6:5
    |
@@ -14,12 +5,6 @@ LL |     pub(crate) field: u8,
    |     ^^^^^^^^^^ help: consider removing pub(crate)
    |
    = note: `-D clippy::unneeded-pub-crate` implied by `-D warnings`
-
-error: pub(crate) item is never used outside of its defining module
-  --> $DIR/unneeded_pub_crate.rs:34:5
-   |
-LL |     pub(crate) struct ReturnStruct {
-   |     ^^^^^^^^^^ help: consider removing pub(crate)
 
 error: pub(crate) item is never used outside of its defining module
   --> $DIR/unneeded_pub_crate.rs:12:9
@@ -46,17 +31,10 @@ LL |         pub(crate) fn foo() {}
    |         ^^^^^^^^^^ help: consider removing pub(crate)
 
 error: pub(crate) item is never used outside of its defining module
-  --> $DIR/unneeded_pub_crate.rs:35:9
-   |
-LL |         pub(crate) used_outside: u8,
-   |         ^^^^^^^^^^ help: consider removing pub(crate)
-
-error: pub(crate) item is never used outside of its defining module
   --> $DIR/unneeded_pub_crate.rs:36:9
    |
 LL |         pub(crate) not_used_outside: u8,
    |         ^^^^^^^^^^ help: consider removing pub(crate)
 
-error: aborting due to 9 previous errors
+error: aborting due to 6 previous errors
 
-For more information about this error, try `rustc --explain E0446`.

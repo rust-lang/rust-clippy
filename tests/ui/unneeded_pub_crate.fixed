@@ -31,7 +31,7 @@ mod outer {
             }
         }
     }
-    pub(crate) struct ReturnStruct {
+     struct ReturnStruct {
         pub(crate) used_outside: u8,
          not_used_outside: u8,
     }

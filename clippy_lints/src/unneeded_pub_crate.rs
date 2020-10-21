@@ -9,7 +9,7 @@ use rustc_hir::CRATE_HIR_ID;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
-use rustc_span::{Span, Symbol};
+use rustc_span::{symbol::Ident, Span, Symbol};
 
 declare_clippy_lint! {
     /// **What it does:**
@@ -142,43 +142,53 @@ impl<'tcx> Visitor<'tcx> for UseScanner<'tcx> {
     }
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
-        let def = match expr.kind {
-            hir::ExprKind::MethodCall(..) => self
-                .maybe_typeck_results
-                .and_then(|typeck_results| typeck_results.type_dependent_def(expr.hir_id))
-                .map(|(kind, def_id)| (kind, def_id)),
-            hir::ExprKind::Struct(qpath, fields, _base) => {
-                if let Some(hir::Node::Item(hir::Item {
-                    kind: hir::ItemKind::Struct(variant_data, _generics),
-                    hir_id: struct_hir_id,
-                    ..
-                })) = self
+        match expr.kind {
+            hir::ExprKind::MethodCall(..) => {
+                self.maybe_typeck_results
+                    .and_then(|typeck_results| typeck_results.type_dependent_def(expr.hir_id))
+                    .map(|(_kind, def_id)| self.examine_use(def_id, expr.hir_id));
+            },
+            hir::ExprKind::Struct(_qpath, fields, _base) => {
+                if let Some(ty::Adt(adt_def, _substs)) = self
                     .maybe_typeck_results
-                    .and_then(|typeck_results| typeck_results.qpath_res(qpath, expr.hir_id).opt_def_id())
-                    .and_then(|def_id| self.tcx.hir().get_if_local(def_id))
+                    .map(|typeck_results| typeck_results.expr_ty(expr).kind())
                 {
-                    self.examine_use(self.tcx.hir().local_def_id(*struct_hir_id).to_def_id(), expr.hir_id);
-                    // TODO: match up by name, not assume the positions are good?
-                    for (field, decl) in fields.iter().zip(variant_data.fields()) {
-                        self.examine_use(self.tcx.hir().local_def_id(decl.hir_id).to_def_id(), expr.hir_id);
-                        if field.ident.name != decl.ident.name {
-                            eprintln!("ERROR: fields mismatch :(");
-                        }
+                    self.examine_use(adt_def.did, expr.hir_id);
+                    let ty_fields = adt_def
+                        .all_fields()
+                        .map(|f| (f.ident, f))
+                        .collect::<FxHashMap<Ident, _>>();
+                    for field in fields.iter() {
+                        let ty_field = ty_fields.get(&field.ident).expect("referenced a nonexistent field?");
+                        self.examine_use(ty_field.did, expr.hir_id);
                     }
                 }
-                None
             },
-            _ => None,
+            hir::ExprKind::Field(base, field) => {
+                if let Some(ty::Adt(adt_def, _substs)) = self
+                    .maybe_typeck_results
+                    .map(|typeck_results| typeck_results.expr_ty(base).kind())
+                {
+                    self.examine_use(adt_def.did, expr.hir_id);
+                    let our_field = adt_def
+                        .all_fields()
+                        .filter(|f| f.ident == field)
+                        .next()
+                        .expect("referenced a nonexistent field?");
+                    self.examine_use(our_field.did, expr.hir_id);
+                }
+            },
+            _ => {},
         };
-        if let Some((_kind, def_id)) = def {
-            self.examine_use(def_id, expr.hir_id);
-        }
         intravisit::walk_expr(self, expr);
     }
 
-    fn visit_trait_ref(&mut self, item: &'tcx hir::TraitRef<'tcx>) {
-        self.examine_use(item.trait_def_id().expect("impl of a non-trait? what?"), CRATE_HIR_ID);
-        intravisit::walk_trait_ref(self, item);
+    fn visit_trait_ref(&mut self, trait_ref: &'tcx hir::TraitRef<'tcx>) {
+        self.examine_use(
+            trait_ref.trait_def_id().expect("impl of a non-trait? what?"),
+            CRATE_HIR_ID,
+        );
+        intravisit::walk_trait_ref(self, trait_ref);
     }
 
     fn visit_qpath(&mut self, qpath: &'tcx hir::QPath<'tcx>, hir_id: hir::HirId, span: Span) {
@@ -219,14 +229,14 @@ impl<'tcx> UseScanner<'tcx> {
                     watch_item.status.observe(how);
                     worklist.extend(watch_item.linked_fate.iter().cloned().filter(|e| !seen.contains(&e)))
                 },
-                None => eprintln!("uh, why couldn't i find this? their fates are supposed to be linked!"),
+                None => panic!("uh, why couldn't i find this? their fates are supposed to be linked!"),
             }
         }
     }
 
-    fn examine_use(&mut self, def_id: DefId, used_by: hir::HirId) {
+    fn examine_use(&mut self, def_id: DefId, _used_by: hir::HirId) {
+        // that _used_by is super useful when debugging :)
         if let Some(node) = self.tcx.hir().get_if_local(def_id) {
-            print!("{:?} used in {}; ", def_id, self.tcx.hir().node_to_string(used_by));
             match node.hir_id() {
                 Some(hir_id) => {
                     if let Some(watch_item) = self.watched_item_map.get(&hir_id).map(WatchedItem::clone) {
@@ -236,25 +246,24 @@ impl<'tcx> UseScanner<'tcx> {
                             // somewhere, we would have been able to
                             // reference it even if it weren't marked
                             // `pub(crate)`.
-                            println!("it's a local reference");
                             self.observe(hir_id, LocalReference);
                         } else {
-                            println!("it's a crate reference");
                             self.observe(hir_id, CrateReference);
                         }
                     } else {
-                        println!("it's not tracked")
+                        // not a tracked item
                     }
                 },
-                None => println!("ignoring use of {:?}, couldn't find hir_id", node),
+                None => { /* ignore it if no HIR id */ }
             }
         } else {
-            println!("ignoring use of {:?} from Not Here", def_id);
+            // ignore it if not a local item
         }
     }
 }
 
 impl UnneededPubCrate {
+    /// link the fate of the constructors of data to the type definining them.
     fn notice_variant_data<'tcx>(&mut self, vd: &hir::VariantData<'tcx>, span: Span, parent_id: hir::HirId) {
         if let Some(ctor_hir_id) = vd.ctor_hir_id() {
             self.watched_item_map.insert(
@@ -269,6 +278,17 @@ impl UnneededPubCrate {
             self.watched_item_map
                 .get_mut(&parent_id)
                 .map(|item| item.linked_fate.push(ctor_hir_id));
+        }
+        for field in vd.fields() {
+            self.watched_item_map.insert(
+                field.hir_id,
+                WatchedItem {
+                    enclosing_module: *self.current_module_path.last().unwrap(),
+                    status: Unreferenced,
+                    span: field.vis.span,
+                    linked_fate: vec![], // should the fields be linked as well?
+                }
+            );
         }
     }
 }
@@ -326,41 +346,11 @@ impl<'tcx> LateLintPass<'tcx> for UnneededPubCrate {
         }
     }
 
-    fn check_struct_field(&mut self, cx: &LateContext<'tcx>, item: &hir::StructField<'tcx>) {
-        if matches!(item.vis.node, hir::VisibilityKind::Crate { .. }) && !cx.access_levels.is_exported(item.hir_id) {
-            self.watched_item_map.insert(
-                item.hir_id,
-                WatchedItem {
-                    enclosing_module: *self.current_module_path.last().unwrap(),
-                    status: Unreferenced,
-                    span: item.vis.span,
-                    linked_fate: vec![], // link this to the struct itself?
-                },
-            );
-        }
-    }
-
-    /*
-    fn check_variant(&mut self, cx: &LateContext<'tcx>, item: &hir::Variant<'tcx>) {
-        self.watched_item_map.insert(
-            item.data.ctor_hir_id(),
-            WatchedItem {
-                    enclosing_module: *self.current_module_path.last().unwrap(),
-                    status: Unreferenced,
-                    span:
-            }
-        )
-    }*/
-
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>, crate_: &'tcx hir::Crate<'tcx>) {
         // ok, now that we have scanned the entire crate for things with
         // visibility and filled the watched item map, let's scan it again for
         // any uses of those items.
         let watched_item_map = std::mem::replace(&mut self.watched_item_map, FxHashMap::default());
-        println!("about to look for:");
-        for (k, v) in &watched_item_map {
-            println!("{:?} \t => {:?}", k, v);
-        }
         let mut use_scanner = UseScanner {
             tcx: cx.tcx,
             maybe_typeck_results: cx.maybe_typeck_results(),
@@ -370,7 +360,7 @@ impl<'tcx> LateLintPass<'tcx> for UnneededPubCrate {
 
         intravisit::walk_crate(&mut use_scanner, crate_);
 
-        for (watched_id, watched_item) in use_scanner.watched_item_map {
+        for (_watched_id, watched_item) in use_scanner.watched_item_map {
             if let LocalReference = watched_item.status {
                 span_lint_and_then(
                     cx,
@@ -386,10 +376,6 @@ impl<'tcx> LateLintPass<'tcx> for UnneededPubCrate {
                         );
                     },
                 );
-            }
-
-            if let Unreferenced = watched_item.status {
-                println!("why didn't i see {:?} aka {:?}?", watched_id, watched_item);
             }
         }
     }

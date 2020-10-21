@@ -35,7 +35,7 @@ mod outer {
         pub(crate) used_outside: u8,
         pub(crate) not_used_outside: u8,
     }
-    pub fn main() -> ReturnStruct {
+    pub(crate) fn main() -> ReturnStruct {
         inner::bar()
     }
 }
