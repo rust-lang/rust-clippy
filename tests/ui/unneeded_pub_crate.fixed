@@ -3,13 +3,13 @@
 #![warn(clippy::unneeded_pub_crate)]
 
  struct Baz {
-    pub(crate) field: u8,
+     field: u8,
 }
 
 mod outer {
     mod inner {
         // do these things _really_ need to be `pub(crate)`?
-        pub(crate) struct Foo;
+         struct Foo;
          trait Baz {
             fn the_goods(&self);
             fn secret_thing(&self);
@@ -19,19 +19,28 @@ mod outer {
             fn secret_thing(&self) {}
         }
          fn foo() {}
-        pub(crate) fn bar() {
+        pub(crate) fn bar() -> super::ReturnStruct {
             foo();
             let _ = Foo;
             let x = crate::Baz { field: 3 };
             x.the_goods();
             x.secret_thing();
+            super::ReturnStruct {
+                used_outside: 0,
+                not_used_outside: 0,
+            }
         }
     }
-    pub fn main() {
-        inner::bar();
+    pub(crate) struct ReturnStruct {
+        pub(crate) used_outside: u8,
+         not_used_outside: u8,
+    }
+    pub fn main() -> ReturnStruct {
+        inner::bar()
     }
 }
 
 fn main() {
-    crate::outer::main();
+    let value_outside = crate::outer::main();
+    let _ = value_outside.used_outside;
 }

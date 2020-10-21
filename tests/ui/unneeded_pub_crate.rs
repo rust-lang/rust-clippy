@@ -19,19 +19,28 @@ mod outer {
             fn secret_thing(&self) {}
         }
         pub(crate) fn foo() {}
-        pub(crate) fn bar() {
+        pub(crate) fn bar() -> super::ReturnStruct {
             foo();
             let _ = Foo;
             let x = crate::Baz { field: 3 };
             x.the_goods();
             x.secret_thing();
+            super::ReturnStruct {
+                used_outside: 0,
+                not_used_outside: 0,
+            }
         }
     }
-    pub fn main() {
-        inner::bar();
+    pub(crate) struct ReturnStruct {
+        pub(crate) used_outside: u8,
+        pub(crate) not_used_outside: u8,
+    }
+    pub fn main() -> ReturnStruct {
+        inner::bar()
     }
 }
 
 fn main() {
-    crate::outer::main();
+    let value_outside = crate::outer::main();
+    let _ = value_outside.used_outside;
 }
