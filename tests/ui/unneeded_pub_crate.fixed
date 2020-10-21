@@ -31,11 +31,11 @@ mod outer {
             }
         }
     }
-     struct ReturnStruct {
+    pub(crate) struct ReturnStruct {
         pub(crate) used_outside: u8,
          not_used_outside: u8,
     }
-    pub fn main() -> ReturnStruct {
+    pub(crate) fn main() -> ReturnStruct {
         inner::bar()
     }
 }

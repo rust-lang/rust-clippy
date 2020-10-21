@@ -159,8 +159,9 @@ impl<'tcx> Visitor<'tcx> for UseScanner<'tcx> {
                         .map(|f| (f.ident, f))
                         .collect::<FxHashMap<Ident, _>>();
                     for field in fields.iter() {
-                        let ty_field = ty_fields.get(&field.ident).expect("referenced a nonexistent field?");
-                        self.examine_use(ty_field.did, expr.hir_id);
+                        if let Some(ty_field) = ty_fields.get(&field.ident) {
+                            self.examine_use(ty_field.did, expr.hir_id);
+                        }
                     }
                 }
             },
@@ -170,12 +171,9 @@ impl<'tcx> Visitor<'tcx> for UseScanner<'tcx> {
                     .map(|typeck_results| typeck_results.expr_ty(base).kind())
                 {
                     self.examine_use(adt_def.did, expr.hir_id);
-                    let our_field = adt_def
-                        .all_fields()
-                        .filter(|f| f.ident == field)
-                        .next()
-                        .expect("referenced a nonexistent field?");
-                    self.examine_use(our_field.did, expr.hir_id);
+                    if let Some(our_field) = adt_def.all_fields().filter(|f| f.ident == field).next() {
+                        self.examine_use(our_field.did, expr.hir_id);
+                    }
                 }
             },
             _ => {},
@@ -184,10 +182,9 @@ impl<'tcx> Visitor<'tcx> for UseScanner<'tcx> {
     }
 
     fn visit_trait_ref(&mut self, trait_ref: &'tcx hir::TraitRef<'tcx>) {
-        self.examine_use(
-            trait_ref.trait_def_id().expect("impl of a non-trait? what?"),
-            CRATE_HIR_ID,
-        );
+        if let Some(trait_ref) = trait_ref.trait_def_id() {
+            self.examine_use(trait_ref, CRATE_HIR_ID);
+        }
         intravisit::walk_trait_ref(self, trait_ref);
     }
 
@@ -254,7 +251,7 @@ impl<'tcx> UseScanner<'tcx> {
                         // not a tracked item
                     }
                 },
-                None => { /* ignore it if no HIR id */ }
+                None => { /* ignore it if no HIR id */ },
             }
         } else {
             // ignore it if not a local item
@@ -280,15 +277,17 @@ impl UnneededPubCrate {
                 .map(|item| item.linked_fate.push(ctor_hir_id));
         }
         for field in vd.fields() {
-            self.watched_item_map.insert(
-                field.hir_id,
-                WatchedItem {
-                    enclosing_module: *self.current_module_path.last().unwrap(),
-                    status: Unreferenced,
-                    span: field.vis.span,
-                    linked_fate: vec![], // should the fields be linked as well?
-                }
-            );
+            if matches!(field.vis.node, hir::VisibilityKind::Crate{..}) {
+                self.watched_item_map.insert(
+                    field.hir_id,
+                    WatchedItem {
+                        enclosing_module: *self.current_module_path.last().unwrap(),
+                        status: Unreferenced,
+                        span: field.vis.span,
+                        linked_fate: vec![], // should the fields be linked as well?
+                    },
+                );
+            }
         }
     }
 }
