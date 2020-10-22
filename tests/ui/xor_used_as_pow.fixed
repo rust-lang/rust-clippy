@@ -1,5 +1,6 @@
 // run-rustfix
 #![warn(clippy::xor_used_as_pow)]
+#![allow(clippy::identity_op)]
 
 // Should not be linted
 #[allow(dead_code)]

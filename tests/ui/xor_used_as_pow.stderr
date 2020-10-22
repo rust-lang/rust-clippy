@@ -1,5 +1,5 @@
 error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
-  --> $DIR/xor_used_as_pow.rs:23:13
+  --> $DIR/xor_used_as_pow.rs:24:13
    |
 LL |     let _ = 2 ^ 3;
    |             ^^^^^ help: use a bitshift or constant instead: `1_u32 << 3`
@@ -7,7 +7,7 @@ LL |     let _ = 2 ^ 3;
    = note: `-D clippy::xor-used-as-pow` implied by `-D warnings`
 
 error: `^` is not an exponentiation operator but appears to have been used as one
-  --> $DIR/xor_used_as_pow.rs:24:13
+  --> $DIR/xor_used_as_pow.rs:25:13
    |
 LL |     let _ = 10 ^ 4;
    |             ^^^^^^
@@ -15,33 +15,19 @@ LL |     let _ = 10 ^ 4;
    = help: did you mean to use .pow()?
 
 error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
-  --> $DIR/xor_used_as_pow.rs:25:13
+  --> $DIR/xor_used_as_pow.rs:26:13
    |
 LL |     let _ = 2 ^ 32;
    |             ^^^^^^ help: use a bitshift or constant instead: `1_u64 << 32`
 
-error: the operation is ineffective. Consider reducing it to `2`
-  --> $DIR/xor_used_as_pow.rs:26:13
-   |
-LL |     let _ = 2 ^ 0;
-   |             ^^^^^
-   |
-   = note: `-D clippy::identity-op` implied by `-D warnings`
-
 error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
-  --> $DIR/xor_used_as_pow.rs:26:13
+  --> $DIR/xor_used_as_pow.rs:27:13
    |
 LL |     let _ = 2 ^ 0;
    |             ^^^^^ help: use a bitshift or constant instead: `1`
 
-error: the operation is ineffective. Consider reducing it to `10`
-  --> $DIR/xor_used_as_pow.rs:27:13
-   |
-LL |     let _ = 10 ^ 0;
-   |             ^^^^^^
-
 error: `^` is not an exponentiation operator but appears to have been used as one
-  --> $DIR/xor_used_as_pow.rs:27:13
+  --> $DIR/xor_used_as_pow.rs:28:13
    |
 LL |     let _ = 10 ^ 0;
    |             ^^^^^^
@@ -49,18 +35,18 @@ LL |     let _ = 10 ^ 0;
    = help: did you mean to use .pow()?
 
 error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
-  --> $DIR/xor_used_as_pow.rs:30:17
+  --> $DIR/xor_used_as_pow.rs:31:17
    |
 LL |         let _ = 2 ^ x;
    |                 ^^^^^ help: use a bitshift or constant instead: `1 << x`
 
 error: `^` is not an exponentiation operator but appears to have been used as one
-  --> $DIR/xor_used_as_pow.rs:31:17
+  --> $DIR/xor_used_as_pow.rs:32:17
    |
 LL |         let _ = 10 ^ x;
    |                 ^^^^^^
    |
    = help: did you mean to use .pow()?
 
-error: aborting due to 9 previous errors
+error: aborting due to 7 previous errors
 
