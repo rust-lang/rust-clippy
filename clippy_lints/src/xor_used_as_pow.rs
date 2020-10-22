@@ -55,7 +55,7 @@ impl LateLintPass<'_> for XorUsedAsPow {
             if let ExprKind::Binary(op, left, right) = &expr.kind;
             if BinOpKind::BitXor == op.node;
             if let ExprKind::Lit(lhs) = &left.kind;
-            if let Some((lhs_val, lhs_type)) = unwrap_dec_int_literal(cx, lhs);
+            if let Some((lhs_val, _)) = unwrap_dec_int_literal(cx, lhs);
             then {
                 match &right.kind {
                     ExprKind::Lit(rhs) => {
@@ -110,10 +110,10 @@ fn unwrap_dec_int_literal(cx: &LateContext<'_>, lit: &Lit) -> Option<(u128, LitI
         if let Some(decoded) = NumericLiteral::from_lit_kind(&snippet, &lit.node);
         if decoded.is_decimal();
         then {
-            return Some((val, val_type));
+            Some((val, val_type))
         }
         else {
-            return None;
+            None
         }
     }
 }
@@ -130,16 +130,11 @@ fn report_with_ident(cx: &LateContext<'_>, lhs: u128, rhs: &QPath<'_>, span: Spa
 }
 
 fn report_with_lit(cx: &LateContext<'_>, lhs: u128, rhs: u128, span: Span) {
-    if rhs > 127 {
+    if rhs > 127 || rhs == 0 {
         return;
     }
     match lhs {
         2 => {
-            if rhs == 0 {
-                report_pow_of_two(cx, format!("1"), span);
-                return;
-            }
-
             let lhs_str = if rhs <= 31 {
                 "1_u32"
             } else if rhs <= 63 {

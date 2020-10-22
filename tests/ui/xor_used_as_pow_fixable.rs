@@ -1,3 +1,4 @@
+// run-rustfix
 #![warn(clippy::xor_used_as_pow)]
 #![allow(clippy::identity_op)]
 
@@ -21,9 +22,10 @@ fn main() {
     let _ = 2 ^ 0; // zero rhs
 
     // These should fail
-    let _ = 10 ^ 4;
+    let _ = 2 ^ 3;
+    let _ = 2 ^ 32;
     {
         let x = 15;
-        let _ = 10 ^ x;
+        let _ = 2 ^ x;
     }
 }

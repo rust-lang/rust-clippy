@@ -1,0 +1,22 @@
+error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
+  --> $DIR/xor_used_as_pow_fixable.rs:25:13
+   |
+LL |     let _ = 2 ^ 3;
+   |             ^^^^^ help: use a bitshift or constant instead: `1_u32 << 3`
+   |
+   = note: `-D clippy::xor-used-as-pow` implied by `-D warnings`
+
+error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
+  --> $DIR/xor_used_as_pow_fixable.rs:26:13
+   |
+LL |     let _ = 2 ^ 32;
+   |             ^^^^^^ help: use a bitshift or constant instead: `1_u64 << 32`
+
+error: it appears you are trying to get a power of two, but `^` is not an exponentiation operator
+  --> $DIR/xor_used_as_pow_fixable.rs:29:17
+   |
+LL |         let _ = 2 ^ x;
+   |                 ^^^^^ help: use a bitshift or constant instead: `1 << x`
+
+error: aborting due to 3 previous errors
+
