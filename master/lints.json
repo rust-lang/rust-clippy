@@ -1710,6 +1710,16 @@
     }
   },
   {
+    "id": "large_types_passed_by_value",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for functions taking arguments by value, where\nthe argument type is `Copy` and large enough to be worth considering\npassing by reference. Does not trigger if the function is being exported,\nbecause that might induce API breakage, if the parameter is declared as mutable,\nor if the argument is a `self`.",
+      "Why is this bad": "Arguments passed by value might result in an unnecessary\nshallow copy, taking up more space in the stack and requiring a call to\n`memcpy`, which which can be expensive.",
+      "Example": "```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Bad\nfn foo(v: TooLarge) {}\n```\n```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Good\nfn foo(v: &TooLarge) {}\n```"
+    }
+  },
+  {
     "id": "len_without_is_empty",
     "group": "style",
     "level": "Warn",
