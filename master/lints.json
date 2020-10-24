@@ -1910,7 +1910,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Finds patterns that reimplement `Option::unwrap_or`.",
+      "What it does": "Finds patterns that reimplement `Option::unwrap_or` or `Result::unwrap_or`.",
       "Why is this bad": "Concise code helps focusing on behavior instead of boilerplate.",
       "Known problems": "None.",
       "Example": "```rust\nlet foo: Option<i32> = None;\nmatch foo {\n    Some(v) => v,\n    None => 1,\n};\n```\n\nUse instead:\n```rust\nlet foo: Option<i32> = None;\nfoo.unwrap_or(1);\n```"
