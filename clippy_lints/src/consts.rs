@@ -5,7 +5,7 @@ use if_chain::if_chain;
 use rustc_ast::ast::{FloatTy, LitFloatType, LitKind};
 use rustc_data_structures::sync::Lrc;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{BinOp, BinOpKind, Block, Expr, ExprKind, HirId, QPath, UnOp};
+use rustc_hir::{BinOp, BinOpKind, Block, Expr, ExprKind, Guard, HirId, Pat, PatKind, QPath, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty::subst::{Subst, SubstsRef};
 use rustc_middle::ty::{self, Ty, TyCtxt};
@@ -189,6 +189,7 @@ pub fn constant<'tcx>(
         typeck_results,
         param_env: lcx.param_env,
         needed_resolution: false,
+        match_bindings: Vec::new(),
         substs: lcx.tcx.intern_substs(&[]),
     };
     cx.expr(e).map(|cst| (cst, cx.needed_resolution))
@@ -212,6 +213,7 @@ pub fn constant_context<'a, 'tcx>(
         typeck_results,
         param_env: lcx.param_env,
         needed_resolution: false,
+        match_bindings: Vec::new(),
         substs: lcx.tcx.intern_substs(&[]),
     }
 }
@@ -221,6 +223,7 @@ pub struct ConstEvalLateContext<'a, 'tcx> {
     typeck_results: &'a ty::TypeckResults<'tcx>,
     param_env: ty::ParamEnv<'tcx>,
     needed_resolution: bool,
+    match_bindings: Vec<(HirId, Constant)>,
     substs: SubstsRef<'tcx>,
 }
 
@@ -277,7 +280,84 @@ impl<'a, 'tcx> ConstEvalLateContext<'a, 'tcx> {
             },
             ExprKind::Index(ref arr, ref index) => self.index(arr, index),
             ExprKind::AddrOf(_, _, ref inner) => self.expr(inner).map(|r| Constant::Ref(Box::new(r))),
+            ExprKind::Match(ref matchee, &ref arms, _) => {
+                self.expr(matchee).and_then(|m| {
+                    let outer_bindings = self.match_bindings.len();
+                    for arm in arms {
+                        self.match_bindings.truncate(outer_bindings);
+                        match self.matches_pat(&m, &arm.pat) {
+                            Some(true) => {
+                                // add bindings to expr call
+                                if let Some(Guard::If(ref guard_expr)) = arm.guard {
+                                    match self.expr(guard_expr) {
+                                        Some(Constant::Bool(b)) if b => {},
+                                        Some(Constant::Bool(_)) => continue,
+                                        _ => {
+                                            self.match_bindings.truncate(outer_bindings);
+                                            return None;
+                                        },
+                                    }
+                                }
+                                let result = self.expr(&arm.body);
+                                self.match_bindings.truncate(outer_bindings);
+                                return result;
+                            },
+                            Some(false) => {},
+                            None => return None,
+                        }
+                    }
+                    None
+                })
+            },
             // TODO: add other expressions.
+            _ => None,
+        }
+    }
+
+    fn matches_pat<'c>(&mut self, matchee: &'c Constant, pat: &Pat<'_>) -> Option<bool> {
+        match (matchee, &pat.kind) {
+            (_, &PatKind::Wild) => Some(true),
+            (&Constant::Tuple(ref cs), &PatKind::Tuple(ps, None)) => {
+                for (c, p) in cs.iter().zip(ps.iter()) {
+                    let subpat_match = self.matches_pat(c, p);
+                    if let Some(true) = subpat_match {
+                        continue;
+                    }
+                    return subpat_match;
+                }
+                Some(true)
+            },
+            (&Constant::Ref(ref c), &PatKind::Ref(ref p, _)) => self.matches_pat(c, p),
+            (c, &PatKind::Or(ps)) => {
+                let bindings_len = self.match_bindings.len();
+                for p in ps {
+                    let subpat_match = self.matches_pat(c, p);
+                    match subpat_match {
+                        Some(false) => {
+                            self.match_bindings.truncate(bindings_len);
+                            continue;
+                        },
+                        a => return a,
+                    }
+                }
+                Some(false)
+            },
+            (c, &PatKind::Lit(ref expr)) => match self.expr(expr).as_ref() {
+                Some(e) if e == c => Some(true),
+                Some(_) => Some(false),
+                None => None,
+            },
+            (c, &PatKind::Binding(ref _annot, ref hir_id, ref _ident, ref subpat)) => {
+                if let Some(ref pat) = subpat {
+                    match self.matches_pat(c, pat) {
+                        Some(true) => {},
+                        res => return res,
+                    }
+                }
+                self.match_bindings.push((*hir_id, c.clone()));
+                Some(true)
+            },
+            //TODO: insert other pattern types
             _ => None,
         }
     }
@@ -327,6 +407,16 @@ impl<'a, 'tcx> ConstEvalLateContext<'a, 'tcx> {
 
     /// Lookup a possibly constant expression from a `ExprKind::Path`.
     fn fetch_path(&mut self, qpath: &QPath<'_>, id: HirId, ty: Ty<'tcx>) -> Option<Constant> {
+        //TODO: if resolved qpath, get res HirId, check backwards in self.match_bindings
+        if let QPath::Resolved(_ty, path) = qpath {
+            if path.segments.len() == 1 {
+                if let Res::Local(id) = path.res {
+                    if let Some((_, ref val)) = self.match_bindings.iter().rfind(|(cid, _)| *cid == id) {
+                        return Some(val.clone());
+                    }
+                }
+            }
+        }
         let res = self.typeck_results.qpath_res(qpath, id);
         match res {
             Res::Def(DefKind::Const | DefKind::AssocConst, def_id) => {
