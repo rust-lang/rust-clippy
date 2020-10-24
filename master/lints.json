@@ -3990,10 +3990,10 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for casts to the same type.",
+      "What it does": "Checks for casts to the same type, casts of int literals to integer types\nand casts of float literals to float types.",
       "Why is this bad": "It's just unnecessary.",
       "Known problems": "None.",
-      "Example": "```rust\nlet _ = 2i32 as i32;\n```"
+      "Example": "```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```"
     }
   },
   {
