@@ -2410,6 +2410,17 @@
     }
   },
   {
+    "id": "mut_mutex_lock",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `&mut Mutex::lock` calls",
+      "Why is this bad": "`Mutex::lock` is less efficient than\ncalling `Mutex::get_mut`. In addition you also have a statically\nguarantee that the mutex isn't locked, instead of just a runtime\nguarantee.",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::sync::{Arc, Mutex};\n\nlet mut value_rc = Arc::new(Mutex::new(42_u8));\nlet value_mutex = Arc::get_mut(&mut value_rc).unwrap();\n\nlet mut value = value_mutex.lock().unwrap();\n*value += 1;\n```\nUse instead:\n```rust\nuse std::sync::{Arc, Mutex};\n\nlet mut value_rc = Arc::new(Mutex::new(42_u8));\nlet value_mutex = Arc::get_mut(&mut value_rc).unwrap();\n\nlet value = value_mutex.get_mut().unwrap();\n*value += 1;\n```"
+    }
+  },
+  {
     "id": "mut_range_bound",
     "group": "complexity",
     "level": "Warn",
