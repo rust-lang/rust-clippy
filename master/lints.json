@@ -3931,6 +3931,17 @@
     }
   },
   {
+    "id": "undropped_manually_drops",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Prevents the safe `std::mem::drop` function from being called on `std::mem::ManuallyDrop`.",
+      "Why is this bad": "The safe `drop` function does not drop the inner value of a `ManuallyDrop`.",
+      "Known problems": "Does not catch cases if the user binds `std::mem::drop`\nto a different name and calls it that way.",
+      "Example": "```rust\nstruct S;\ndrop(std::mem::ManuallyDrop::new(S));\n```\nUse instead:\n```rust\nstruct S;\nunsafe {\n    std::mem::ManuallyDrop::drop(&mut std::mem::ManuallyDrop::new(S));\n}\n```"
+    }
+  },
+  {
     "id": "unicode_not_nfc",
     "group": "pedantic",
     "level": "Allow",
