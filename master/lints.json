@@ -3446,6 +3446,17 @@
     }
   },
   {
+    "id": "single_element_loop",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks whether a for loop has a single element.",
+      "Why is this bad": "There is no reason to have a loop of a\nsingle element.",
+      "Known problems": "None",
+      "Example": "```rust\nlet item1 = 2;\nfor item in &[item1] {\n    println!(\"{}\", item);\n}\n```\ncould be written as\n```rust\nlet item1 = 2;\nlet item = &item1;\nprintln!(\"{}\", item);\n```"
+    }
+  },
+  {
     "id": "single_match",
     "group": "style",
     "level": "Warn",
