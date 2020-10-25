@@ -160,7 +160,7 @@
       "What it does": "Checks for `if` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.",
       "Why is this bad": "Style, using blocks in the condition makes it hard to read.",
       "Known problems": "None.",
-      "Examples": "```rust\n// Bad\nif { true } { /* ... */ }\n\n// Good\nif true { /* ... */ }\n```\n\n// or\n\n```rust\n\n// Bad\nif { let x = somefunc(); x } { /* ... */ }\n\n// Good\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```"
+      "Examples": "```rust\n// Bad\nif { true } { /* ... */ }\n\n// Good\nif true { /* ... */ }\n```\n\n// or\n\n```rust\n// Bad\nif { let x = somefunc(); x } { /* ... */ }\n\n// Good\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```"
     }
   },
   {
@@ -215,7 +215,7 @@
       "What it does": "Checks for usage of `Box<T>` where an unboxed `T` would\nwork fine.",
       "Why is this bad": "This is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n\n// Good\nlet x = 1;\nfoo(x);\nprintln!(\"{}\", x);\n```",
+      "Example": "```rust\n// Bad\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n\n// Good\nlet x = 1;\nfoo(x);\nprintln!(\"{}\", x);\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)."
     }
   },
@@ -3486,7 +3486,7 @@
       "What it does": "Checks for matches with a single arm where an `if let`\nwill usually suffice.",
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n\n// Good\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```"
+      "Example": "```rust\n// Bad\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n\n// Good\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```"
     }
   },
   {
@@ -4147,7 +4147,7 @@
       "What it does": "Checks for tuple patterns with a wildcard\npattern (`_`) is next to a rest pattern (`..`).\n\n_NOTE_: While `_, ..` means there is at least one element left, `..`\nmeans there are 0 or more elements left. This can make a difference\nwhen refactoring, but shouldn't result in errors in the refactored code,\nsince the wildcard pattern isn't used anyway.",
       "Why is this bad": "The wildcard pattern is unneeded as the rest pattern\ncan match that element as well.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nmatch t {\n    TupleStruct(0, .., _) => (),\n    _ => (),\n}\n\n// Good\nmatch t {\n    TupleStruct(0, ..) => (),\n    _ => (),\n}\n```"
+      "Example": "```rust\n// Bad\nmatch t {\n    TupleStruct(0, .., _) => (),\n    _ => (),\n}\n\n// Good\nmatch t {\n    TupleStruct(0, ..) => (),\n    _ => (),\n}\n```"
     }
   },
   {
@@ -4557,7 +4557,7 @@
       "What it does": "Checks for wildcard enum matches using `_`.",
       "Why is this bad": "New enum variants added by library updates can be missed.",
       "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.",
-      "Example": "```rust\n\n// Bad\nmatch x {\n    Foo::A(_) => {},\n    _ => {},\n}\n\n// Good\nmatch x {\n    Foo::A(_) => {},\n    Foo::B(_) => {},\n}\n```"
+      "Example": "```rust\n// Bad\nmatch x {\n    Foo::A(_) => {},\n    _ => {},\n}\n\n// Good\nmatch x {\n    Foo::A(_) => {},\n    Foo::B(_) => {},\n}\n```"
     }
   },
   {
