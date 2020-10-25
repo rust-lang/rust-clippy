@@ -1885,6 +1885,17 @@
     }
   },
   {
+    "id": "manual_range_contains",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for expressions like `x >= 3 && x < 8` that could\nbe more readably expressed as `(3..8).contains(x)`.",
+      "Why is this bad": "`contains` expresses the intent better and has less\nfailure modes (such as fencepost errors or using `||` instead of `&&`).",
+      "Known problems": "None.",
+      "Example": "```rust\n// given\nlet x = 6;\n\nassert!(x >= 3 && x < 8);\n```\nUse instead:\n```rust\nassert!((3..8).contains(&x));\n```"
+    }
+  },
+  {
     "id": "manual_saturating_arithmetic",
     "group": "style",
     "level": "Warn",
