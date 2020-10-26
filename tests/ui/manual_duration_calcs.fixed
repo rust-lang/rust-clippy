@@ -1,6 +1,6 @@
 // run-rustfix
 #![allow(dead_code)]
-#![warn(clippy::duration_subsec)]
+#![warn(clippy::manual_duration_calcs)]
 
 use std::time::Duration;
 

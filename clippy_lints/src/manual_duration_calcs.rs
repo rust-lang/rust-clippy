@@ -31,14 +31,14 @@ declare_clippy_lint! {
     /// let _micros = dur.subsec_micros();
     /// let _millis = dur.subsec_millis();
     /// ```
-    pub DURATION_SUBSEC,
+    pub MANUAL_DURATION_CALCS,
     complexity,
     "checks for calculation of subsecond microseconds or milliseconds"
 }
 
-declare_lint_pass!(DurationSubsec => [DURATION_SUBSEC]);
+declare_lint_pass!(ManualDurationCalcs => [MANUAL_DURATION_CALCS]);
 
-impl<'tcx> LateLintPass<'tcx> for DurationSubsec {
+impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
             if let ExprKind::Binary(Spanned { node: BinOpKind::Div, .. }, ref left, ref right) = expr.kind;
@@ -54,7 +54,7 @@ impl<'tcx> LateLintPass<'tcx> for DurationSubsec {
                 let mut applicability = Applicability::MachineApplicable;
                 span_lint_and_sugg(
                     cx,
-                    DURATION_SUBSEC,
+                    MANUAL_DURATION_CALCS,
                     expr.span,
                     &format!("calling `{}()` is more concise than this calculation", suggested_fn),
                     "try",

@@ -187,7 +187,7 @@ mod doc;
 mod double_comparison;
 mod double_parens;
 mod drop_forget_ref;
-mod duration_subsec;
+mod manual_duration_calcs;
 mod else_if_without_else;
 mod empty_enum;
 mod entry;
@@ -582,7 +582,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &drop_forget_ref::DROP_REF,
         &drop_forget_ref::FORGET_COPY,
         &drop_forget_ref::FORGET_REF,
-        &duration_subsec::DURATION_SUBSEC,
+        &manual_duration_calcs::MANUAL_DURATION_CALCS,
         &else_if_without_else::ELSE_IF_WITHOUT_ELSE,
         &empty_enum::EMPTY_ENUM,
         &entry::MAP_ENTRY,
@@ -1108,6 +1108,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box neg_cmp_op_on_partial_ord::NoNegCompOpForPartialOrd);
     store.register_late_pass(|| box unwrap::Unwrap);
     store.register_late_pass(|| box duration_subsec::DurationSubsec);
+    store.register_late_pass(|| box default_trait_access::DefaultTraitAccess);
     store.register_late_pass(|| box indexing_slicing::IndexingSlicing);
     store.register_late_pass(|| box non_copy_const::NonCopyConst);
     store.register_late_pass(|| box ptr_offset_with_cast::PtrOffsetWithCast);
@@ -1397,7 +1398,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&drop_forget_ref::DROP_REF),
         LintId::of(&drop_forget_ref::FORGET_COPY),
         LintId::of(&drop_forget_ref::FORGET_REF),
-        LintId::of(&duration_subsec::DURATION_SUBSEC),
+        LintId::of(&manual_duration_calcs::MANUAL_DURATION_CALCS),
         LintId::of(&entry::MAP_ENTRY),
         LintId::of(&enum_clike::ENUM_CLIKE_UNPORTABLE_VARIANT),
         LintId::of(&enum_variants::ENUM_VARIANT_NAMES),
@@ -1758,7 +1759,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&booleans::NONMINIMAL_BOOL),
         LintId::of(&double_comparison::DOUBLE_COMPARISONS),
         LintId::of(&double_parens::DOUBLE_PARENS),
-        LintId::of(&duration_subsec::DURATION_SUBSEC),
+        LintId::of(&manual_duration_calcs::MANUAL_DURATION_CALCS),
         LintId::of(&eval_order_dependence::DIVERGING_SUB_EXPRESSION),
         LintId::of(&eval_order_dependence::EVAL_ORDER_DEPENDENCE),
         LintId::of(&explicit_write::EXPLICIT_WRITE),
