@@ -26,4 +26,11 @@ fn main() {
 
     // Other literals aren't linted
     let _ = dur.subsec_nanos() / 699;
+
+    // Manual implementation
+    let _nanos = diff.as_secs() * 1_000_000_000 + diff.subsec_nanos() as u64;
+    let _milis = diff.as_secs() * 1_000 + diff.subsec_milis() as u64;
+    let _secs_f64_1 = (diff.as_secs() as f64 * 1_000.0 + diff.subsec_milis() as f64) / 100.0;
+    let _secs_f64_2 = diff.as_secs() as f64 + diff.subsec_milis() as f64 / 1_000.0;
+    let _secs_f64_3 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
 }
