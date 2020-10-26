@@ -495,6 +495,13 @@ vec![
         module: "loops",
     },
     Lint {
+        name: "entry_or_insert_with_default",
+        group: "style",
+        desc: "calling `or_insert_with` on an `Entry` with `Default::default`",
+        deprecation: None,
+        module: "methods",
+    },
+    Lint {
         name: "enum_clike_unportable_variant",
         group: "correctness",
         desc: "C-like enums that are `repr(isize/usize)` and have values that don\'t fit into an `i32`",

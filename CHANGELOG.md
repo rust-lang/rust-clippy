@@ -1694,6 +1694,7 @@ Released 2018-09-13
 [`empty_enum`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_enum
 [`empty_line_after_outer_attr`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_line_after_outer_attr
 [`empty_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_loop
+[`entry_or_insert_with_default`]: https://rust-lang.github.io/rust-clippy/master/index.html#entry_or_insert_with_default
 [`enum_clike_unportable_variant`]: https://rust-lang.github.io/rust-clippy/master/index.html#enum_clike_unportable_variant
 [`enum_glob_use`]: https://rust-lang.github.io/rust-clippy/master/index.html#enum_glob_use
 [`enum_variant_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#enum_variant_names

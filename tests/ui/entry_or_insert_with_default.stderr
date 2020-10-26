@@ -1,0 +1,28 @@
+error: use of `or_insert_with` with `Default::default`
+  --> $DIR/entry_or_insert_with_default.rs:6:19
+   |
+LL |     map.entry(42).or_insert_with(Default::default);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `or_default()`
+   |
+   = note: `-D clippy::entry-or-insert-with-default` implied by `-D warnings`
+
+error: use of `or_insert_with` with `Default::default`
+  --> $DIR/entry_or_insert_with_default.rs:7:19
+   |
+LL |     map.entry(42).or_insert_with(i32::default);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `or_default()`
+
+error: use of `or_insert_with` with `Default::default`
+  --> $DIR/entry_or_insert_with_default.rs:12:19
+   |
+LL |     map.entry(42).or_insert_with(Default::default);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `or_default()`
+
+error: use of `or_insert_with` with `Default::default`
+  --> $DIR/entry_or_insert_with_default.rs:13:19
+   |
+LL |     map.entry(42).or_insert_with(i32::default);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `or_default()`
+
+error: aborting due to 4 previous errors
+

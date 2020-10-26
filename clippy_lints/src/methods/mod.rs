@@ -564,6 +564,46 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    /// **What it does:** Checks for calls to `.or_insert_with` on `Entry`
+    /// (for `BTreeMap` or `HashMap`) with `Default::default` or equivalent
+    /// as the argument, and suggests `.or_default`.
+    ///
+    /// **Why is this bad?** There is a specific method for this, and using it can make
+    /// the code cleaner.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// use std::collections::{BTreeMap, HashMap};
+    ///
+    /// fn btree(map: &mut BTreeMap<i32, i32>) {
+    ///     map.entry(42).or_insert_with(Default::default);
+    /// }
+    ///
+    /// fn hash(map: &mut HashMap<i32, i32>) {
+    ///     map.entry(42).or_insert_with(i32::default);
+    /// }
+    /// ```
+    /// both can be instead written as
+    /// ```rust
+    /// use std::collections::{BTreeMap, HashMap};
+    ///
+    /// fn btree(map: &mut BTreeMap<i32, i32>) {
+    ///     map.entry(42).or_default();
+    /// }
+    ///
+    /// fn hash(map: &mut HashMap<i32, i32>) {
+    ///     map.entry(42).or_default();
+    /// }
+    /// ```
+    pub ENTRY_OR_INSERT_WITH_DEFAULT,
+    style,
+    "calling `or_insert_with` on an `Entry` with `Default::default`"
+}
+
+declare_clippy_lint! {
     /// **What it does:** Checks for calls to `.or(foo(..))`, `.unwrap_or(foo(..))`,
     /// etc., and suggests to use `or_else`, `unwrap_or_else`, etc., or
     /// `unwrap_or_default` instead.
@@ -1394,6 +1434,7 @@ declare_lint_pass!(Methods => [
     RESULT_MAP_OR_INTO_OPTION,
     OPTION_MAP_OR_NONE,
     BIND_INSTEAD_OF_MAP,
+    ENTRY_OR_INSERT_WITH_DEFAULT,
     OR_FUN_CALL,
     EXPECT_FUN_CALL,
     CHARS_NEXT_CMP,
@@ -1515,6 +1556,9 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             ["unwrap_or_else", ..] => unnecessary_lazy_eval::lint(cx, expr, arg_lists[0], "unwrap_or"),
             ["get_or_insert_with", ..] => unnecessary_lazy_eval::lint(cx, expr, arg_lists[0], "get_or_insert"),
             ["ok_or_else", ..] => unnecessary_lazy_eval::lint(cx, expr, arg_lists[0], "ok_or"),
+            ["or_insert_with", ..] => {
+                lint_entry_or_insert_with_default(cx, method_spans[0].with_hi(expr.span.hi()), arg_lists[0])
+            },
             _ => {},
         }
 
@@ -1705,6 +1749,28 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     "methods called `new` usually return `Self`",
                 );
             }
+        }
+    }
+}
+
+/// Checks for the `ENTRY_OR_INSERT_WITH_DEFAULT` lint.
+fn lint_entry_or_insert_with_default(cx: &LateContext<'tcx>, span: Span, args: &'tcx [hir::Expr<'_>]) {
+    if_chain! {
+        let ty = cx.typeck_results().expr_ty(&args[0]);
+        if match_type(cx, ty, &paths::BTREEMAP_ENTRY) || match_type(cx, ty, &paths::HASHMAP_ENTRY);
+        if let hir::ExprKind::Path(arg_path) = &args[1].kind;
+        if let hir::def::Res::Def(_, arg_def_id) = cx.qpath_res(&arg_path, args[1].hir_id);
+        if match_def_path(cx, arg_def_id, &paths::DEFAULT_TRAIT_METHOD);
+        then {
+            span_lint_and_sugg(
+                cx,
+                ENTRY_OR_INSERT_WITH_DEFAULT,
+                span,
+                "use of `or_insert_with` with `Default::default`",
+                "replace with",
+                "or_default()".to_owned(),
+                Applicability::MachineApplicable,
+            );
         }
     }
 }
