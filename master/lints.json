@@ -3708,13 +3708,11 @@
   },
   {
     "id": "temporary_cstring_as_ptr",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.",
-      "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.",
-      "Known problems": "None.",
-      "Example": "```rust\n#\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\n    call_some_ffi_func(c_str);\n}\n```\nHere `c_str` points to a freed address. The correct use would be:\n```rust\n#\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "This lint has been uplifted to rustc and is now called\n`temporary_cstring_as_ptr`."
     }
   },
   {
