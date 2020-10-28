@@ -317,6 +317,7 @@ mod try_err;
 mod types;
 mod undropped_manually_drops;
 mod unicode;
+mod uninformative_asserts;
 mod unit_return_expecting_ord;
 mod unnamed_address;
 mod unnecessary_sort_by;
@@ -352,6 +353,7 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore) {
     store.register_pre_expansion_pass(|| box write::Write::default());
     store.register_pre_expansion_pass(|| box attrs::EarlyAttributes);
     store.register_pre_expansion_pass(|| box dbg_macro::DbgMacro);
+    store.register_pre_expansion_pass(|| box uninformative_asserts::UninformativeAsserts::default());
 }
 
 #[doc(hidden)]
@@ -874,6 +876,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &unicode::INVISIBLE_CHARACTERS,
         &unicode::NON_ASCII_LITERAL,
         &unicode::UNICODE_NOT_NFC,
+        &uninformative_asserts::UNINFORMATIVE_ASSERTS,
         &unit_return_expecting_ord::UNIT_RETURN_EXPECTING_ORD,
         &unnamed_address::FN_ADDRESS_COMPARISONS,
         &unnamed_address::VTABLE_ADDRESS_COMPARISONS,
@@ -1271,6 +1274,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&types::OPTION_OPTION),
         LintId::of(&unicode::NON_ASCII_LITERAL),
         LintId::of(&unicode::UNICODE_NOT_NFC),
+        LintId::of(&uninformative_asserts::UNINFORMATIVE_ASSERTS),
         LintId::of(&unnested_or_patterns::UNNESTED_OR_PATTERNS),
         LintId::of(&unused_self::UNUSED_SELF),
         LintId::of(&wildcard_imports::ENUM_GLOB_USE),

@@ -1,0 +1,67 @@
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:10:9
+   |
+LL |         assert!(some_condition(foo));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::uninformative-asserts` implied by `-D warnings`
+   = help: consider adding a custom panic message
+
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:11:9
+   |
+LL |         assert!(some_condition(foo),);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a custom panic message
+
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:12:9
+   |
+LL |         debug_assert!(some_condition(foo));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a custom panic message
+
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:13:9
+   |
+LL |         assert_eq!(a, bar(b));
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a custom panic message
+
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:14:9
+   |
+LL |         assert_eq!(a, bar(b),);
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a custom panic message
+
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:15:9
+   |
+LL |         assert_ne!(a, bar(b));
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a custom panic message
+
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:16:9
+   |
+LL |         debug_assert_eq!(a, bar(b));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a custom panic message
+
+error: `assert!` called without custom panic message
+  --> $DIR/uninformative_asserts.rs:17:9
+   |
+LL |         debug_assert_ne!(a, bar(b));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding a custom panic message
+
+error: aborting due to 8 previous errors
+

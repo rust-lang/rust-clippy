@@ -2469,6 +2469,13 @@ vec![
         module: "panic_unimplemented",
     },
     Lint {
+        name: "uninformative_asserts",
+        group: "pedantic",
+        desc: "using `assert!` without custom panic message",
+        deprecation: None,
+        module: "uninformative_asserts",
+    },
+    Lint {
         name: "uninit_assumed_init",
         group: "correctness",
         desc: "`MaybeUninit::uninit().assume_init()`",
