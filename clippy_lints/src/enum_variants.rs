@@ -263,7 +263,7 @@ fn to_camel_case(item_name: &str) -> String {
 impl EarlyLintPass for EnumVariantNames {
     fn check_item_post(&mut self, _cx: &EarlyContext<'_>, _item: &Item) {
         let last = self.modules.pop();
-        assert!(last.is_some());
+        assert!(last.is_some(), "exited more items than entered");
     }
 
     #[allow(clippy::similar_names)]

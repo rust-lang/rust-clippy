@@ -25,7 +25,7 @@ fn integration_test() {
         ])
         .status()
         .expect("unable to run git");
-    assert!(st.success());
+    assert!(st.success(), "git failed");
 
     let root_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let target_dir = std::path::Path::new(&root_dir).join("target");

@@ -84,7 +84,7 @@ fn str_span(base: Span, c: regex_syntax::ast::Span, offset: u16) -> Span {
     let offset = u32::from(offset);
     let end = base.lo() + BytePos(u32::try_from(c.end.offset).expect("offset too large") + offset);
     let start = base.lo() + BytePos(u32::try_from(c.start.offset).expect("offset too large") + offset);
-    assert!(start <= end);
+    assert!(start <= end, "span had negative length");
     Span::new(start, end, base.ctxt())
 }
 

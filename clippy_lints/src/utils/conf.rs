@@ -224,7 +224,10 @@ pub fn read(path: &Path) -> (Conf, Vec<Error>) {
         Err(err) => return default(vec![err.into()]),
     };
 
-    assert!(ERRORS.lock().expect("no threading -> mutex always safe").is_empty());
+    assert!(
+        ERRORS.lock().expect("no threading -> mutex always safe").is_empty(),
+        "ERRORS was not empty at the start of toml parsing"
+    );
     match toml::from_str(&content) {
         Ok(toml) => {
             let mut errors = ERRORS.lock().expect("no threading -> mutex always safe").split_off(0);

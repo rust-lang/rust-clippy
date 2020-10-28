@@ -169,7 +169,7 @@ impl<'a> NumericLiteral<'a> {
     }
 
     pub fn group_digits(output: &mut String, input: &str, group_size: usize, partial_group_first: bool, pad: bool) {
-        debug_assert!(group_size > 0);
+        debug_assert!(group_size > 0, "cannot group into groups of 0");
 
         let mut digits = input.chars().filter(|&c| c != '_');
 
@@ -202,7 +202,10 @@ impl<'a> NumericLiteral<'a> {
 }
 
 fn split_suffix<'a>(src: &'a str, lit_kind: &LitKind) -> (&'a str, Option<&'a str>) {
-    debug_assert!(lit_kind.is_numeric());
+    debug_assert!(
+        lit_kind.is_numeric(),
+        "non-numeric literal does not have numeric suffix"
+    );
     lit_suffix_length(lit_kind).map_or((src, None), |suffix_length| {
         let (unsuffixed, suffix) = src.split_at(src.len() - suffix_length);
         (unsuffixed, Some(suffix))
@@ -210,7 +213,10 @@ fn split_suffix<'a>(src: &'a str, lit_kind: &LitKind) -> (&'a str, Option<&'a st
 }
 
 fn lit_suffix_length(lit_kind: &LitKind) -> Option<usize> {
-    debug_assert!(lit_kind.is_numeric());
+    debug_assert!(
+        lit_kind.is_numeric(),
+        "non-numeric literal does not have numeric suffix"
+    );
     let suffix = match lit_kind {
         LitKind::Int(_, int_lit_kind) => match int_lit_kind {
             LitIntType::Signed(int_ty) => Some(int_ty.name_str()),

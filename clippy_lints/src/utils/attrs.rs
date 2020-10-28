@@ -29,7 +29,7 @@ pub struct LimitStack {
 
 impl Drop for LimitStack {
     fn drop(&mut self) {
-        assert_eq!(self.stack.len(), 1);
+        assert_eq!(self.stack.len(), 1, "LimitStack was not empty when dropped");
     }
 }
 
@@ -47,7 +47,9 @@ impl LimitStack {
     }
     pub fn pop_attrs(&mut self, sess: &Session, attrs: &[ast::Attribute], name: &'static str) {
         let stack = &mut self.stack;
-        parse_attrs(sess, attrs, name, |val| assert_eq!(stack.pop(), Some(val)));
+        parse_attrs(sess, attrs, name, |val| {
+            assert_eq!(stack.pop(), Some(val), "popped non-matching attr value")
+        });
     }
 }
 
