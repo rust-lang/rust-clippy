@@ -10,7 +10,8 @@
     unused_variables,
     clippy::manual_unwrap_or,
     clippy::missing_docs_in_private_items,
-    clippy::single_match
+    clippy::single_match,
+    clippy::uninformative_asserts
 )]
 
 fn id<T>(x: T) -> T {

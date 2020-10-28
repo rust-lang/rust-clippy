@@ -1,4 +1,5 @@
 #![warn(clippy::all, clippy::pedantic)]
+#![allow(clippy::uninformative_asserts)]
 
 fn main() {
     let a = ["1", "lol", "3", "NaN", "5"];
