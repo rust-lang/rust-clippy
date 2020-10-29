@@ -462,6 +462,17 @@
     }
   },
   {
+    "id": "comparison_to_empty",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for comparing to an empty slice such as \"\" or [],`\nand suggests using `.is_empty()` where applicable.",
+      "Why is this bad": "Some structures can answer `.is_empty()` much faster\nthan checking for equality. So it is good to get into the habit of using\n`.is_empty()`, and having it is cheap.\nBesides, it makes the intent clearer than a manual comparison in some contexts.",
+      "Known problems": "None.",
+      "Example": "```ignore\nif s == \"\" {\n    ..\n}\n\nif arr == [] {\n    ..\n}\n```\nUse instead:\n```ignore\nif s.is_empty() {\n    ..\n}\n\nif arr.is_empty() {\n    ..\n}\n```"
+    }
+  },
+  {
     "id": "copy_iterator",
     "group": "pedantic",
     "level": "Allow",
