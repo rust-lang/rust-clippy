@@ -1973,6 +1973,17 @@
     }
   },
   {
+    "id": "map_collect_result_unit",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.map(_).collect::<Result<(),_>()`.",
+      "Why is this bad": "Using `try_for_each` instead is more readable and idiomatic.",
+      "Known problems": "None",
+      "Example": "```rust\n(0..3).map(|t| Err(t)).collect::<Result<(), _>>();\n```\nUse instead:\n```rust\n(0..3).try_for_each(|t| Err(t));\n```"
+    }
+  },
+  {
     "id": "map_entry",
     "group": "perf",
     "level": "Warn",
