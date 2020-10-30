@@ -75,7 +75,7 @@ impl<'tcx> ManualDurationCalcs {
         }
     }
 
-    pub fn manual_re_implementation_as_secs_f64(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+    pub fn manual_re_implementation_as_secs_f64_for_div(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
             // Extraction necessary expression(left)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
@@ -145,7 +145,7 @@ impl<'tcx> ManualDurationCalcs {
 
 impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        self.manual_re_implementation_as_secs_f64(cx, expr);
+        self.manual_re_implementation_as_secs_f64_for_div(cx, expr);
         self.duration_subsec(cx, expr);
     }
 }
