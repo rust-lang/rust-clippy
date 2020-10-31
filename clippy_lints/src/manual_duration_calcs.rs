@@ -165,7 +165,7 @@ impl<'tcx> ManualDurationCalcs {
                     (
                         // Split mol expr
                         // let _nanos = dur.subsec_nanos() as u64 + dur.as_secs() * 1_000_000_000
-                        //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        //              ^^^^^^^^^^^^^^^^^^^^^^^^^
                         ExprKind::Cast(
                             Expr {
                                 kind: ExprKind::MethodCall(
