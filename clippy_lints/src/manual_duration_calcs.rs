@@ -1,11 +1,11 @@
 use if_chain::if_chain;
+use rustc_ast::ast::{FloatTy, LitKind};
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind, TyKind, QPath, Path, PrimTy, PathSegment, Ty};
 use rustc_hir::def::Res;
+use rustc_hir::{BinOpKind, Expr, ExprKind, Path, PathSegment, PrimTy, QPath, Ty, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::source_map::Spanned;
-use rustc_ast::ast::{LitKind, FloatTy};
 
 use crate::consts::{constant, Constant};
 use crate::utils::paths;
@@ -75,19 +75,243 @@ impl<'tcx> ManualDurationCalcs {
         }
     }
 
+    pub fn manual_re_implementation_as_secs_f64_for_mul(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        // Extract mul expr
+        // let _nanos = dur.as_secs() * 1_000_000_000 + dur.subsec_nanos() as u64;
+        //              ^^^^^^^^^^^^^   ^^^^^^^^^^^^^
+        // let _nanos = 1_000_000_000 * dur.as_secs() + dur.subsec_nanos() as u64;
+        //              ^^^^^^^^^^^^^   ^^^^^^^^^^^^^
+        fn mul_extractor(
+            method_call: &'tcx ExprKind<'tcx>,
+            mul_lit: &'tcx ExprKind<'tcx>,
+        ) -> Option<(&'tcx rustc_span::symbol::Ident, &'tcx rustc_hir::Expr<'tcx>, &'tcx u128)> {
+            if_chain! {
+                if let ExprKind::MethodCall(PathSegment { ident, .. }, _, [receiver], _) = method_call;
+                if let ExprKind::Lit(Spanned { node: LitKind::Int(multiplier, _), .. }) = mul_lit;
+                then {
+                    return Some((ident, receiver, multiplier))
+                }
+                else {
+                    return None;
+                }
+            }
+        }
+
+        // Split add expr
+        // let _nanos = dur.as_secs() * 1_000_000_000 + dur.subsec_nanos() as u64;
+        //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        if let ExprKind::Binary(
+            Spanned {
+                node: BinOpKind::Add, ..
+            },
+            ref left,
+            ref right,
+        ) = expr.kind
+        {
+            if_chain! {
+                if let Some((mul_ident, mul_receiver, multiplier, plus_ident, plus_receiver, plus_cast_type)) =
+                    match (&left.kind, &right.kind) {
+                       (
+                           ExprKind::Binary(
+                               Spanned {
+                                   node: BinOpKind::Mul,
+                                   ..
+                               }
+                               ref mul_left,
+                               ref mul_right
+                           ),
+                           ExprKind::Cast(
+                               Expr {
+                                   kind: ExprKind::MethodCall(
+                                     PathSegment {
+                                         ident: plus_ident,
+                                         ..
+                                     },
+                                     _,
+                                     [plus_receiver],
+                                     _
+                                   ), ..
+                               },
+                               Ty {
+                                   kind: TyKind::Path(
+                                             QPath::Resolved(None, Path { res: Res::PrimTy(plus_cast_type), .. })
+                                         ),
+                                   ..
+                               }
+                           )
+                       ) => {
+                           match (&mul_left.kind, &mul_right.kind) {
+                               // Split mol expr
+                               // let _nanos = dur.as_secs() * 1_000_000_000 + dur.subsec_nanos() as u64;
+                               //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               (ExprKind::MethodCall(_, _, _, _), ExprKind::Lit(_)) => {
+                                   mul_extractor(
+                                       &mul_left.kind,
+                                       &mul_right.kind
+                                   ).map(|(i,r,m)| { (i,r,m,plus_ident,plus_receiver,plus_cast_type) })
+                               },
+                               // Split mol expr
+                               // let _nanos = 1_000_000_000 * dur.as_secs() + dur.subsec_nanos() as u64;
+                               //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               (ExprKind::Lit(_), ExprKind::MethodCall(_, _, _, _)) => {
+                                   mul_extractor(
+                                       &mul_right.kind,
+                                       &mul_left.kind
+                                   ).map(|(i,r,m)| { (i,r,m,plus_ident,plus_receiver,plus_cast_type) })
+                               },
+                               _ => None
+                           }
+                        },
+                    (
+                        // Split mol expr
+                        // let _nanos = dur.subsec_nanos() as u64 + dur.as_secs() * 1_000_000_000
+                        //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        ExprKind::Cast(
+                            Expr {
+                                kind: ExprKind::MethodCall(
+                                          PathSegment {
+                                              ident: plus_ident,
+                                              ..
+                                          },
+                                          _,
+                                          [plus_receiver],
+                                          _
+                                      ),
+                                ..
+                            },
+                            Ty {
+                                kind: TyKind::Path(
+                                          QPath::Resolved(
+                                              None,
+                                              Path { res: Res::PrimTy(plus_cast_type), .. }
+                                          )
+                                      ),
+                                ..
+                               }
+                        ),
+                        ExprKind::Binary(
+                            Spanned { node: BinOpKind::Mul, .. },
+                            ref mul_left,
+                            ref mul_right
+                        )
+                    ) => {
+                        match (&mul_left.kind, &mul_right.kind) {
+                            // Split mol expr
+                            // let _nanos = dur.subsec_nanos() as u64 + dur.as_secs() * 1_000_000_000
+                            //                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                            (ExprKind::MethodCall(_, _, _, _), ExprKind::Lit(_)) => {
+                                mul_extractor(
+                                    &mul_left.kind,
+                                    &mul_right.kind
+                                ).map(|(i,r,m)| { (i,r,m,plus_ident,plus_receiver,plus_cast_type) })
+                            },
+                            // Split mol expr
+                            // let _nanos = dur.subsec_nanos() as u64 + 1_000_000_000 * dur.as_secs()
+                            //                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                            (ExprKind::Lit(_), ExprKind::MethodCall(_, _, _, _)) => {
+                                mul_extractor(
+                                    &mul_right.kind,
+                                    &mul_left.kind
+                                ).map(|(i,r,m)| { (i,r,m,plus_ident,plus_receiver,plus_cast_type) })
+                            },
+                            _ => None
+                        }
+                    },
+                    _ => None
+                };
+
+                then {
+                    dbg!(
+                        mul_ident,
+                        mul_receiver,
+                        multiplier,
+                        &right.kind,
+                        plus_ident,
+                        plus_receiver,
+                        plus_cast_type
+                    );
+                }
+            }
+        }
+    }
+
     pub fn manual_re_implementation_as_secs_f64_for_div(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
             // Extraction necessary expression(left)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
             //                ^^^^^^^^^^^^^^^^^^^^^
-            if let ExprKind::Binary(Spanned { node: BinOpKind::Add, .. }, ref plus_cast_left_expr, ref rest)  = expr.kind;
-            if let ExprKind::Cast( Expr { kind: ExprKind::MethodCall(PathSegment { ident: left_ident, .. }, _,  [left_receiver], _), .. }, Ty { kind: TyKind::Path(QPath::Resolved(None, Path { res: Res::PrimTy(left_type), .. })), .. } )= plus_cast_left_expr.kind;
+            if let ExprKind::Binary(
+                Spanned {
+                    node: BinOpKind::Add,
+                    ..
+                },
+                ref plus_cast_left_expr,
+                ref rest,
+            ) = expr.kind;
+            if let ExprKind::Cast(
+                Expr {
+                    kind:
+                        ExprKind::MethodCall(
+                            PathSegment {
+                                ident: left_ident, ..
+                            },
+                            _,
+                            [left_receiver],
+                            _,
+                        ),
+                    ..
+                },
+                Ty {
+                    kind:
+                        TyKind::Path(QPath::Resolved(
+                            None,
+                            Path {
+                                res: Res::PrimTy(left_type),
+                                ..
+                            },
+                        )),
+                    ..
+                },
+            ) = plus_cast_left_expr.kind
 
             // Extraction necessary expression(right)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
             //                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
-            if let ExprKind::Binary( Spanned { node: BinOpKind::Div, .. }, ref plus_cast_right_expr, ref divisor_expr) = rest.kind;
-            if let ExprKind::Cast( Expr { kind: ExprKind::MethodCall(PathSegment { ident: right_ident, .. }, _, [right_receiver], _), .. }, Ty { kind: TyKind::Path(QPath::Resolved(None, Path { res: Res::PrimTy(right_type), .. })), .. } ) = plus_cast_right_expr.kind;
+            if let ExprKind::Binary(
+                Spanned {
+                    node: BinOpKind::Div,
+                    ..
+                },
+                ref plus_cast_right_expr,
+                ref divisor_expr,
+            ) = rest.kind;
+
+            if let ExprKind::Cast(
+                Expr {
+                    kind: ExprKind::MethodCall(
+                              PathSegment {
+                                  ident: right_ident,
+                                  ..
+                              },
+                              _,
+                              [right_receiver],
+                              _
+                          ),
+                    ..
+                },
+                Ty {
+                    kind: TyKind::Path(
+                              QPath::Resolved(
+                                  None,
+                                  Path {
+                                      res: Res::PrimTy(right_type),
+                                      ..
+                                  }
+                              )
+                          ),
+                    ..
+                }
+            ) = plus_cast_right_expr.kind;
 
             // Extraction necessary expression(divisor literal)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
@@ -98,8 +322,30 @@ impl<'tcx> ManualDurationCalcs {
             // Extraction necessary expression(method receiver)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
             //                ^^^^                    ^^^^
-            if let Expr { kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: left_receiver_ident, .. }], .. })),.. } = left_receiver;
-            if let Expr { kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: right_receiver_ident, .. }], .. })),.. } = right_receiver;
+            if let Expr {
+                kind: ExprKind::Path(
+                          QPath::Resolved(
+                              None,
+                              Path {
+                                  segments: [PathSegment { ident: left_receiver_ident, .. }],
+                                  ..
+                              }
+                          )
+                      ),
+                ..
+            } = left_receiver;
+            if let Expr {
+                kind: ExprKind::Path(
+                          QPath::Resolved(
+                              None,
+                              Path {
+                                  segments: [PathSegment { ident: right_receiver_ident, .. }],
+                                  ..
+                              }
+                          )
+                      ),
+                ..
+            } = right_receiver;
 
             // same receiver guard
             if left_receiver_ident == right_receiver_ident;
@@ -145,6 +391,7 @@ impl<'tcx> ManualDurationCalcs {
 
 impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        self.manual_re_implementation_as_secs_f64_for_mul(cx, expr);
         self.manual_re_implementation_as_secs_f64_for_div(cx, expr);
         self.duration_subsec(cx, expr);
     }
