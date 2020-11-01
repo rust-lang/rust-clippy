@@ -288,6 +288,7 @@ mod ptr_eq;
 mod ptr_offset_with_cast;
 mod question_mark;
 mod ranges;
+mod rebind_fn_arg_as_mut;
 mod redundant_clone;
 mod redundant_closure_call;
 mod redundant_field_names;
@@ -798,6 +799,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &ranges::RANGE_PLUS_ONE,
         &ranges::RANGE_ZIP_WITH_LEN,
         &ranges::REVERSED_EMPTY_RANGES,
+        &rebind_fn_arg_as_mut::REBIND_FN_ARG_AS_MUT,
         &redundant_clone::REDUNDANT_CLONE,
         &redundant_closure_call::REDUNDANT_CLOSURE_CALL,
         &redundant_field_names::REDUNDANT_FIELD_NAMES,
@@ -959,6 +961,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box lifetimes::Lifetimes);
     store.register_late_pass(|| box entry::HashMapPass);
     store.register_late_pass(|| box ranges::Ranges);
+    store.register_late_pass(|| box rebind_fn_arg_as_mut::RebindFnArgAsMut);
     store.register_late_pass(|| box types::Casts);
     let type_complexity_threshold = conf.type_complexity_threshold;
     store.register_late_pass(move || box types::TypeComplexity::new(type_complexity_threshold));
@@ -1489,6 +1492,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&ranges::MANUAL_RANGE_CONTAINS),
         LintId::of(&ranges::RANGE_ZIP_WITH_LEN),
         LintId::of(&ranges::REVERSED_EMPTY_RANGES),
+        LintId::of(&rebind_fn_arg_as_mut::REBIND_FN_ARG_AS_MUT),
         LintId::of(&redundant_clone::REDUNDANT_CLONE),
         LintId::of(&redundant_closure_call::REDUNDANT_CLOSURE_CALL),
         LintId::of(&redundant_field_names::REDUNDANT_FIELD_NAMES),
@@ -1646,6 +1650,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&ptr_eq::PTR_EQ),
         LintId::of(&question_mark::QUESTION_MARK),
         LintId::of(&ranges::MANUAL_RANGE_CONTAINS),
+        LintId::of(&rebind_fn_arg_as_mut::REBIND_FN_ARG_AS_MUT),
         LintId::of(&redundant_field_names::REDUNDANT_FIELD_NAMES),
         LintId::of(&redundant_static_lifetimes::REDUNDANT_STATIC_LIFETIMES),
         LintId::of(&regex::TRIVIAL_REGEX),

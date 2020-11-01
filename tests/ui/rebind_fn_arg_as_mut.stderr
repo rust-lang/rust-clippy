@@ -1,0 +1,51 @@
+error: argument `x` is declared as not mutable, and later rebound as mutable
+  --> $DIR/rebind_fn_arg_as_mut.rs:5:6
+   |
+LL | fn f(x: bool) {
+   |      ^ help: consider just declaring as mutable: `mut x`
+   |
+   = note: `-D clippy::rebind-fn-arg-as-mut` implied by `-D warnings`
+help: and remove this
+  --> $DIR/rebind_fn_arg_as_mut.rs:6:5
+   |
+LL |     let mut x = x;
+   |     ^^^^^^^^^^^^^^
+
+error: argument `x` is declared as not mutable, and later rebound as mutable
+  --> $DIR/rebind_fn_arg_as_mut.rs:10:12
+   |
+LL |     fn tm1(x: bool) {
+   |            ^ help: consider just declaring as mutable: `mut x`
+   |
+help: and remove this
+  --> $DIR/rebind_fn_arg_as_mut.rs:11:9
+   |
+LL |         let mut x = x;
+   |         ^^^^^^^^^^^^^^
+
+error: argument `x` is declared as not mutable, and later rebound as mutable
+  --> $DIR/rebind_fn_arg_as_mut.rs:19:10
+   |
+LL |     fn m(x: bool) {
+   |          ^ help: consider just declaring as mutable: `mut x`
+   |
+help: and remove this
+  --> $DIR/rebind_fn_arg_as_mut.rs:20:9
+   |
+LL |         let mut x = x;
+   |         ^^^^^^^^^^^^^^
+
+error: argument `x` is declared as not mutable, and later rebound as mutable
+  --> $DIR/rebind_fn_arg_as_mut.rs:25:12
+   |
+LL |     fn tm2(x: bool) {
+   |            ^ help: consider just declaring as mutable: `mut x`
+   |
+help: and remove this
+  --> $DIR/rebind_fn_arg_as_mut.rs:26:9
+   |
+LL |         let mut x = x;
+   |         ^^^^^^^^^^^^^^
+
+error: aborting due to 4 previous errors
+

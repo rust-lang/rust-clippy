@@ -1937,6 +1937,13 @@ vec![
         module: "types",
     },
     Lint {
+        name: "rebind_fn_arg_as_mut",
+        group: "style",
+        desc: "non-mutable function argument rebound as mutable",
+        deprecation: None,
+        module: "rebind_fn_arg_as_mut",
+    },
+    Lint {
         name: "redundant_allocation",
         group: "perf",
         desc: "redundant allocation",
