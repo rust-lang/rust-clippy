@@ -1,5 +1,5 @@
 use if_chain::if_chain;
-use rustc_ast::ast::{FloatTy, LitKind};
+use rustc_ast::ast::{FloatTy, LitKind, IntTy};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BinOpKind, Expr, ExprKind, Path, PathSegment, PrimTy, QPath, Ty, TyKind};
@@ -84,9 +84,9 @@ impl<'tcx> ManualDurationCalcs {
         fn mul_extractor(
             method_call: &'tcx ExprKind<'tcx>,
             mul_lit: &'tcx ExprKind<'tcx>,
-        ) -> Option<(&'tcx rustc_span::symbol::Ident, &'tcx rustc_hir::Expr<'tcx>, &'tcx u128)> {
+        ) -> Option<(&'tcx rustc_span::symbol::Ident, &'tcx rustc_span::symbol::Ident, &'tcx u128)> {
             if_chain! {
-                if let ExprKind::MethodCall(PathSegment { ident, .. }, _, [receiver], _) = method_call;
+                if let ExprKind::MethodCall(PathSegment { ident, .. }, _, [Expr{ kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: receiver, .. }], .. })), .. }], _) = method_call;
                 if let ExprKind::Lit(Spanned { node: LitKind::Int(multiplier, _), .. }) = mul_lit;
                 then {
                     return Some((ident, receiver, multiplier))
@@ -116,7 +116,7 @@ impl<'tcx> ManualDurationCalcs {
                                Spanned {
                                    node: BinOpKind::Mul,
                                    ..
-                               }
+                               },
                                ref mul_left,
                                ref mul_right
                            ),
@@ -128,7 +128,7 @@ impl<'tcx> ManualDurationCalcs {
                                          ..
                                      },
                                      _,
-                                     [plus_receiver],
+                                     [Expr{ kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: plus_receiver, .. }], .. })), .. }],
                                      _
                                    ), ..
                                },
@@ -174,7 +174,7 @@ impl<'tcx> ManualDurationCalcs {
                                               ..
                                           },
                                           _,
-                                          [plus_receiver],
+                                          [Expr{ kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: plus_receiver, .. }], .. })), .. }],
                                           _
                                       ),
                                 ..
@@ -220,16 +220,46 @@ impl<'tcx> ManualDurationCalcs {
                     _ => None
                 };
 
+
+                if mul_receiver == plus_receiver;
+
                 then {
-                    dbg!(
-                        mul_ident,
-                        mul_receiver,
-                        multiplier,
-                        &right.kind,
-                        plus_ident,
-                        plus_receiver,
-                        plus_cast_type
+
+                    let mul_method_name: &str = &mul_ident.as_str().to_string();
+                    let plus_method_name: &str = &plus_ident.as_str().to_string();
+                    let suggested_fn = match (mul_method_name, plus_method_name, multiplier) {
+                        ("as_secs", "subsec_nanos", 1_000_000_000) => "as_nanos",
+                        ("as_secs", "subsec_millis", 1_000) => "as_millis",
+                        _ => return,
+                    };
+
+
+                    let mut applicability = Applicability::MachineApplicable;
+                    span_lint_and_sugg(
+                        cx,
+                        MANUAL_DURATION_CALCS,
+                        expr.span,
+                        &format!("no manual re-implementationa of the {}", suggested_fn),
+                        "try",
+                        format!(
+                            "{}.{}() as {}",
+                            snippet_with_applicability(cx, plus_receiver.span, "_", &mut applicability),
+                            suggested_fn,
+                            plus_cast_type.name_str()
+                        ),
+                        applicability,
                     );
+
+                    // let suggested_fn = match (
+                    //     mul_ident,
+                    //     multiplier,
+                    //     &right.kind,
+                    //     plus_ident,
+                    //     plus_receiver,
+                    //     plus_cast_type
+                    // ) {
+                    //     ()
+                    // }
                 }
             }
         }
@@ -248,6 +278,7 @@ impl<'tcx> ManualDurationCalcs {
                 ref plus_cast_left_expr,
                 ref rest,
             ) = expr.kind;
+
             if let ExprKind::Cast(
                 Expr {
                     kind:
@@ -272,7 +303,7 @@ impl<'tcx> ManualDurationCalcs {
                         )),
                     ..
                 },
-            ) = plus_cast_left_expr.kind
+            ) = plus_cast_left_expr.kind;
 
             // Extraction necessary expression(right)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
@@ -384,15 +415,14 @@ impl<'tcx> ManualDurationCalcs {
                     applicability,
                 );
             }
-
-        }
+        };
     }
 }
 
 impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        self.manual_re_implementation_as_secs_f64_for_mul(cx, expr);
         self.manual_re_implementation_as_secs_f64_for_div(cx, expr);
+        self.manual_re_implementation_as_secs_f64_for_mul(cx, expr);
         self.duration_subsec(cx, expr);
     }
 }
