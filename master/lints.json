@@ -1196,6 +1196,17 @@
     }
   },
   {
+    "id": "from_iter_instead_of_collect",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `from_iter()` function calls on types that implement the `FromIterator`\ntrait.",
+      "Why is this bad": "It is recommended style to use collect. See\n[FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::iter::FromIterator;\n\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v = Vec::from_iter(five_fives);\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```\nUse instead:\n```rust\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v: Vec<i32> = five_fives.collect();\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```"
+    }
+  },
+  {
     "id": "future_not_send",
     "group": "nursery",
     "level": "Allow",
