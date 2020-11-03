@@ -3457,6 +3457,17 @@
     }
   },
   {
+    "id": "single_char_add_str",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Warns when using `push_str`/`insert_str` with a single-character string literal\nwhere `push`/`insert` with a `char` would work fine.",
+      "Why is this bad": "It's less clear that we are pushing a single character.",
+      "Known problems": "None",
+      "Example": "```rust\nlet mut string = String::new();\nstring.insert_str(0, \"R\");\nstring.push_str(\"R\");\n```\nCould be written as\n```rust\nlet mut string = String::new();\nstring.insert(0, 'R');\nstring.push('R');\n```"
+    }
+  },
+  {
     "id": "single_char_pattern",
     "group": "perf",
     "level": "Warn",
@@ -3465,17 +3476,6 @@
       "Why is this bad": "Performing these methods using a `char` is faster than\nusing a `str`.",
       "Known problems": "Does not catch multi-byte unicode characters.",
       "Example": "```rust,ignore\n// Bad\n_.split(\"x\");\n\n// Good\n_.split('x');"
-    }
-  },
-  {
-    "id": "single_char_push_str",
-    "group": "style",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Warns when using `push_str` with a single-character string literal,\nand `push` with a `char` would work fine.",
-      "Why is this bad": "It's less clear that we are pushing a single character.",
-      "Known problems": "None",
-      "Example": "```rust\nlet mut string = String::new();\nstring.push_str(\"R\");\n```\nCould be written as\n```rust\nlet mut string = String::new();\nstring.push('R');\n```"
     }
   },
   {
