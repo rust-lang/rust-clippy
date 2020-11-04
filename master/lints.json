@@ -1000,6 +1000,17 @@
     }
   },
   {
+    "id": "field_reassign_with_default",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for immediate reassignment of fields initialized\nwith Default::default().",
+      "Why is this bad": "It's more idiomatic to use the [functional update syntax](https://doc.rust-lang.org/reference/expressions/struct-expr.html#functional-update-syntax).",
+      "Known problems": "Assignments to patterns that are of tuple type are not linted.",
+      "Example": "Bad:\n```\n# #[derive(Default)]\n# struct A { i: i32 }\nlet mut a: A = Default::default();\na.i = 42;\n```\nUse instead:\n```\n# #[derive(Default)]\n# struct A { i: i32 }\nlet a = A {\n    i: 42,\n    .. Default::default()\n};\n```"
+    }
+  },
+  {
     "id": "filetype_is_file",
     "group": "restriction",
     "level": "Allow",
