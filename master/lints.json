@@ -3642,6 +3642,17 @@
     }
   },
   {
+    "id": "string_from_utf8_as_bytes",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Check if the string is transformed to byte array and casted back to string.",
+      "Why is this bad": "It's unnecessary, the string can be used directly.",
+      "Known problems": "None",
+      "Example": "```rust\nlet _ = std::str::from_utf8(&\"Hello World!\".as_bytes()[6..11]).unwrap();\n```\ncould be written as\n```rust\nlet _ = &\"Hello World!\"[6..11];\n```"
+    }
+  },
+  {
     "id": "string_lit_as_bytes",
     "group": "nursery",
     "level": "Allow",
