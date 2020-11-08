@@ -1,4 +1,4 @@
-use crate::utils::{is_direct_expn_of, is_expn_of, match_function_call, paths, span_lint};
+use crate::utils::{is_direct_expn_of, is_expn_of, match_panic_call, span_lint};
 use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_hir::{Expr, ExprKind};
@@ -96,8 +96,7 @@ impl<'tcx> LateLintPass<'tcx> for PanicUnimplemented {
         if_chain! {
             if let ExprKind::Block(ref block, _) = expr.kind;
             if let Some(ref ex) = block.expr;
-            if let Some(params) = match_function_call(cx, ex, &paths::BEGIN_PANIC)
-                .or_else(|| match_function_call(cx, ex, &paths::BEGIN_PANIC_FMT));
+            if let Some(params) = match_panic_call(cx, ex, );
             then {
                 let span = get_outer_span(expr);
                 if is_expn_of(expr.span, "unimplemented").is_some() {
