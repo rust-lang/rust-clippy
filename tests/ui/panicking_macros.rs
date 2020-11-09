@@ -33,9 +33,17 @@ fn unreachable() {
     let b = a + 2;
 }
 
+fn core_versions() {
+    core::panic!();
+    core::todo!();
+    core::unimplemented!();
+    core::unreachable!();
+}
+
 fn main() {
     panic();
     todo();
     unimplemented();
     unreachable();
+    core_versions();
 }

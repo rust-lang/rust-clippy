@@ -84,5 +84,23 @@ error: `unreachable` should not be present in production code
 LL |     unreachable!("{} {}", "panic with", "multiple arguments");
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 12 previous errors
+error: `panic` should not be present in production code
+  --> $DIR/panicking_macros.rs:38:5
+   |
+LL |     core::todo!();
+   |     ^^^^^^^^^^^^^^
+
+error: `panic` should not be present in production code
+  --> $DIR/panicking_macros.rs:39:5
+   |
+LL |     core::unimplemented!();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `panic` should not be present in production code
+  --> $DIR/panicking_macros.rs:40:5
+   |
+LL |     core::unreachable!();
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 15 previous errors
 
