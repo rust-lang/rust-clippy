@@ -1797,6 +1797,17 @@
     }
   },
   {
+    "id": "let_underscore_drop",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `let _ = <expr>`\nwhere expr has a type that implements `Drop`",
+      "Why is this bad": "This statement immediately drops the initializer\nexpression instead of extending its lifetime to the end of the scope, which\nis often not intended. To extend the expression's lifetime to the end of the\nscope, use an underscore-prefixed name instead (i.e. _var). If you want to\nexplicitly drop the expression, `std::mem::drop` conveys your intention\nbetter and is less error-prone.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust,ignore\nstruct Droppable;\nimpl Drop for Droppable {\n    fn drop(&mut self) {}\n}\n{\n    let _ = Droppable;\n    //               ^ dropped here\n    /* more code */\n}\n```\n\nGood:\n```rust,ignore\n{\n    let _droppable = Droppable;\n    /* more code */\n    // dropped at end of scope\n}\n```"
+    }
+  },
+  {
     "id": "let_underscore_lock",
     "group": "correctness",
     "level": "Deny",
