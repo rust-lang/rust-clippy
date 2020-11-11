@@ -1,6 +1,8 @@
 #![warn(clippy::unimplemented, clippy::unreachable, clippy::todo, clippy::panic)]
 #![allow(clippy::assertions_on_constants)]
 
+extern crate core;
+
 fn panic() {
     let a = 2;
     panic!();
@@ -34,10 +36,11 @@ fn unreachable() {
 }
 
 fn core_versions() {
-    core::panic!();
-    core::todo!();
-    core::unimplemented!();
-    core::unreachable!();
+    use core::{panic, todo, unimplemented, unreachable};
+    panic!();
+    todo!();
+    unimplemented!();
+    unreachable!();
 }
 
 fn main() {
