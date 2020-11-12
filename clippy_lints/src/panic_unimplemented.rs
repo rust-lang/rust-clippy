@@ -94,9 +94,7 @@ declare_lint_pass!(PanicUnimplemented => [PANIC_PARAMS, UNIMPLEMENTED, UNREACHAB
 impl<'tcx> LateLintPass<'tcx> for PanicUnimplemented {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
-            if let ExprKind::Block(ref block, _) = expr.kind;
-            if let Some(ref ex) = block.expr;
-            if let Some(params) = match_panic_call(cx, ex);
+            if let Some(params) = match_panic_call(cx, expr);
             then {
                 let span = get_outer_span(expr);
                 if is_expn_of(expr.span, "unimplemented").is_some() {

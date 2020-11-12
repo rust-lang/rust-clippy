@@ -84,13 +84,29 @@ error: `unreachable` should not be present in production code
 LL |     unreachable!("{} {}", "panic with", "multiple arguments");
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+error: `panic` should not be present in production code
+  --> $DIR/panicking_macros.rs:40:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^^
+
+error: `todo` should not be present in production code
+  --> $DIR/panicking_macros.rs:41:5
+   |
+LL |     todo!();
+   |     ^^^^^^^^
+
+error: `unimplemented` should not be present in production code
+  --> $DIR/panicking_macros.rs:42:5
+   |
+LL |     unimplemented!();
+   |     ^^^^^^^^^^^^^^^^^
+
 error: `unreachable` should not be present in production code
   --> $DIR/panicking_macros.rs:43:5
    |
 LL |     unreachable!();
    |     ^^^^^^^^^^^^^^^
-   |
-   = note: this error originates in a macro (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: aborting due to 13 previous errors
+error: aborting due to 16 previous errors
 
