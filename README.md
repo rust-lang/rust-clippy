@@ -7,27 +7,21 @@ A collection of lints to catch common mistakes and improve your [Rust](https://g
 
 [There are over 400 lints included in this crate!](https://rust-lang.github.io/rust-clippy/master/index.html)
 
-We have a bunch of lint categories to allow you to choose how much Clippy is supposed to ~~annoy~~ help you:
+Lints are divided into categories, each with a default [lint level](https://doc.rust-lang.org/rustc/lints/levels.html).
+You can choose how much Clippy is supposed to ~~annoy~~ help you by changing the lint level by category.
 
-* `clippy::all` (everything that is on by default: all the categories below except for `nursery`, `pedantic`, and `cargo`)
-* `clippy::correctness` (code that is just **outright wrong** or **very very useless**, causes hard errors by default)
-* `clippy::style` (code that should be written in a more idiomatic way)
-* `clippy::complexity` (code that does something simple but in a complex way)
-* `clippy::perf` (code that can be written in a faster way)
-* `clippy::pedantic` (lints which are rather strict, off by default)
-* `clippy::nursery` (new lints that aren't quite ready yet, off by default)
-* `clippy::cargo` (checks against the cargo manifest, off by default)
+Category | Description | Default level
+-- | -- | --
+`clippy::all` | all lints that are on by default (correctness, style, complexity, perf) | **warn/deny**
+`clippy::correctness` | code that is outright wrong or very useless | **deny**
+`clippy::style` | code that should be written in a more idiomatic way | **warn**
+`clippy::complexity` | code that does something simple but in a complex way | **warn**
+`clippy::perf` | code that can be written to run faster | **warn**
+`clippy::pedantic` | lints which are rather strict or might have false positives | allow
+`clippy::nursery` | new lints that are still under development | allow
+`clippy::cargo` | lints for the cargo manifest | allow
 
 More to come, please [file an issue](https://github.com/rust-lang/rust-clippy/issues) if you have ideas!
-
-Only the following of those categories are enabled by default:
-
-* `clippy::style`
-* `clippy::correctness`
-* `clippy::complexity`
-* `clippy::perf`
-
-Other categories need to be enabled in order for their lints to be executed.
 
 The [lint list](https://rust-lang.github.io/rust-clippy/master/index.html) also contains "restriction lints", which are
 for things which are usually not considered "bad", but may be useful to turn on in specific cases. These should be used
@@ -167,18 +161,21 @@ You can add options to your code to `allow`/`warn`/`deny` Clippy lints:
 
 *   `allow`/`warn`/`deny` can be limited to a single function or module using `#[allow(...)]`, etc.
 
-Note: `deny` produces errors instead of warnings.
+Note: `allow` means to suppress the lint for your code. With `warn` the lint
+will only emit a warning, while with `deny` the lint will emit an error, when
+triggering for your code. An error causes clippy to exit with an error code, so
+is useful in scripts like CI/CD.
 
-If you do not want to include your lint levels in your code, you can globally enable/disable lints
-by passing extra flags to Clippy during the run:
+If you do not want to include your lint levels in your code, you can globally
+enable/disable lints by passing extra flags to Clippy during the run:
 
-To disable `lint_name`, run
+To allow `lint_name`, run
 
 ```terminal
 cargo clippy -- -A clippy::lint_name
 ```
 
-And to enable `lint_name`, run
+And to warn on `lint_name`, run
 
 ```terminal
 cargo clippy -- -W clippy::lint_name
@@ -190,7 +187,7 @@ can run Clippy with warnings for all lints enabled:
 cargo clippy -- -W clippy::pedantic
 ```
 
-If you care only about a single lint, you can allow all others and then explicitly reenable
+If you care only about a single lint, you can allow all others and then explicitly warn on
 the lint(s) you are interested in:
 ```terminal
 cargo clippy -- -A clippy::all -W clippy::useless_format -W clippy::...
