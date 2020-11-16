@@ -3408,8 +3408,8 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for an iterator search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)`.",
+      "What it does": "Checks for an iterator or string search (such as `find()`,\n`position()`, or `rposition()`) followed by a call to `is_some()`.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.any(_)` or `_.contains(_)`.",
       "Known problems": "None.",
       "Example": "```rust\nvec.iter().find(|x| **x == 0).is_some();\n```\nCould be written as\n```rust\nvec.iter().any(|x| *x == 0);\n```"
     }
