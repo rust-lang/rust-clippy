@@ -2010,7 +2010,7 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for usage of `iterator.map(|x| x.clone())` and suggests\n`iterator.cloned()` instead",
+      "What it does": "Checks for usage of `map(|x| x.clone())` or\ndereferencing closures for `Copy` types, on `Iterator` or `Option`,\nand suggests `cloned()` or `copied()` instead",
       "Why is this bad": "Readability, this can be written more concisely",
       "Known problems": "None",
       "Example": "```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```"
