@@ -12,5 +12,17 @@ error: pointer must be non-null
 LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(core::ptr::null(), 0) };
    |                                                                ^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
 
-error: aborting due to 2 previous errors
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:6:64
+   |
+LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(std::ptr::null_mut(), 0) };
+   |                                                                ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:7:64
+   |
+LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(core::ptr::null_mut(), 0) };
+   |                                                                ^^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: aborting due to 4 previous errors
 
