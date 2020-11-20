@@ -356,7 +356,10 @@ fn is_null_path(expr: &Expr<'_>) -> bool {
     if let ExprKind::Call(ref pathexp, ref args) = expr.kind {
         if args.is_empty() {
             if let ExprKind::Path(ref path) = pathexp.kind {
-                return match_qpath(path, &paths::PTR_NULL) || match_qpath(path, &paths::PTR_NULL_MUT);
+                return match_qpath(path, &paths::PTR_NULL)
+                    || match_qpath(path, &paths::PTR_NULL_MUT)
+                    || match_qpath(path, &paths::STD_PTR_NULL)
+                    || match_qpath(path, &paths::STD_PTR_NULL_MUT);
             }
         }
     }
