@@ -94,7 +94,7 @@ declare_clippy_lint! {
     /// ```
     pub CMP_NULL,
     style,
-    "comparing a pointer to a null pointer, suggesting to use `.is_null()` instead."
+    "comparing a pointer to a null pointer, suggesting to use `.is_null()` instead"
 }
 
 declare_clippy_lint! {
@@ -137,7 +137,7 @@ declare_clippy_lint! {
     /// ```
     pub INVALID_NULL_PTR_USAGE,
     correctness,
-    "invalid usage of a null pointer, suggesting `NonNull::dangling()` instead."
+    "invalid usage of a null pointer, suggesting `NonNull::dangling()` instead"
 }
 
 declare_lint_pass!(Ptr => [PTR_ARG, CMP_NULL, MUT_FROM_REF, INVALID_NULL_PTR_USAGE]);
