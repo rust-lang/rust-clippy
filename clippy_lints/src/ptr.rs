@@ -135,12 +135,12 @@ declare_clippy_lint! {
     /// // Good
     /// unsafe { std::slice::from_raw_parts(NonNull::dangling().as_ptr(), 0); }
     /// ```
-    pub INVALID_NULL_USAGE,
+    pub INVALID_NULL_PTR_USAGE,
     correctness,
     "invalid usage of a null pointer, suggesting `NonNull::dangling()` instead."
 }
 
-declare_lint_pass!(Ptr => [PTR_ARG, CMP_NULL, MUT_FROM_REF, INVALID_NULL_USAGE]);
+declare_lint_pass!(Ptr => [PTR_ARG, CMP_NULL, MUT_FROM_REF, INVALID_NULL_PTR_USAGE]);
 
 impl<'tcx> LateLintPass<'tcx> for Ptr {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
@@ -187,7 +187,7 @@ impl<'tcx> LateLintPass<'tcx> for Ptr {
                 if is_null_path(arg) {
                     span_lint_and_sugg(
                         cx,
-                        INVALID_NULL_USAGE,
+                        INVALID_NULL_PTR_USAGE,
                         arg.span,
                         "pointer must be non-null",
                         "change this to",
