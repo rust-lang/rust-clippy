@@ -173,6 +173,9 @@ impl<'tcx> LateLintPass<'tcx> for Ptr {
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        const INVALID_NULL_PTR_USAGE_FNS: [&[&'static str]; 2] =
+            [&paths::SLICE_FROM_RAW_PARTS, &paths::SLICE_FROM_RAW_PARTS_MUT];
+
         if let ExprKind::Binary(ref op, ref l, ref r) = expr.kind {
             if (op.node == BinOpKind::Eq || op.node == BinOpKind::Ne) && (is_null_path(l) || is_null_path(r)) {
                 span_lint(
@@ -182,19 +185,22 @@ impl<'tcx> LateLintPass<'tcx> for Ptr {
                     "comparing with null is better expressed by the `.is_null()` method",
                 );
             }
-        } else if let Some(args) = match_function_call(cx, expr, &paths::SLICE_FROM_RAW_PARTS) {
-            if let Some(arg) = args.first() {
-                if is_null_path(arg) {
-                    span_lint_and_sugg(
-                        cx,
-                        INVALID_NULL_PTR_USAGE,
-                        arg.span,
-                        "pointer must be non-null",
-                        "change this to",
-                        "core::ptr::NonNull::dangling().as_ptr()".to_string(),
-                        Applicability::MachineApplicable,
-                    );
-                }
+        } else if let Some(arg) = INVALID_NULL_PTR_USAGE_FNS
+            .iter()
+            .filter_map(|fn_name| match_function_call(cx, expr, fn_name))
+            .next()
+            .and_then(|args| args.first())
+        {
+            if is_null_path(arg) {
+                span_lint_and_sugg(
+                    cx,
+                    INVALID_NULL_PTR_USAGE,
+                    arg.span,
+                    "pointer must be non-null",
+                    "change this to",
+                    "core::ptr::NonNull::dangling().as_ptr()".to_string(),
+                    Applicability::MachineApplicable,
+                );
             }
         }
     }
