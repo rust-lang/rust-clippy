@@ -39,18 +39,13 @@ async fn also_bad(x: &RefCell<u32>) -> u32 {
     first + second + third
 }
 
-async fn less_bad(x: &RefCell<u32>) -> u32 {
-    let first = baz().await;
-
+async fn dropped_in_time(x: &RefCell<u32>) -> u32 {
     let b = x.borrow_mut();
-
-    let second = baz().await;
-
+    let c = *b;
     drop(b);
 
-    let third = baz().await;
-
-    first + second + third
+    let a = baz().await;
+    a + c
 }
 
 async fn not_good(x: &RefCell<u32>) -> u32 {
@@ -80,7 +75,7 @@ fn main() {
     bad(&rc);
     bad_mut(&rc);
     also_bad(&rc);
-    less_bad(&rc);
+    dropped_in_time(&rc);
     not_good(&rc);
     block_bad(&rc);
 }
