@@ -87,13 +87,24 @@
   },
   {
     "id": "await_holding_lock",
-    "group": "pedantic",
-    "level": "Allow",
+    "group": "correctness",
+    "level": "Deny",
     "docs": {
       "What it does": "Checks for calls to await while holding a\nnon-async-aware MutexGuard.",
       "Why is this bad": "The Mutex types found in std::sync and parking_lot\nare not designed to operate in an async context across await points.\n\nThere are two potential solutions. One is to use an asynx-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.",
       "Known problems": "None.",
       "Example": "```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  let guard = x.lock().unwrap();\n  *guard += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust,ignore\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  bar.await;\n}\n```"
+    }
+  },
+  {
+    "id": "await_holding_refcell_ref",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for calls to await while holding a\n`RefCell` `Ref` or `RefMut`.",
+      "Why is this bad": "`RefCell` refs only check for exclusive mutable access\nat runtime. Holding onto a `RefCell` ref across an `await` suspension point\nrisks panics from a mutable ref shared while other refs are outstanding.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\nuse std::cell::RefCell;\n\nasync fn foo(x: &RefCell<u32>) {\n  let b = x.borrow_mut()();\n  *ref += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust,ignore\nuse std::cell::RefCell;\n\nasync fn foo(x: &RefCell<u32>) {\n  {\n    let b = x.borrow_mut();\n    *ref += 1;\n  }\n  bar.await;\n}\n```"
     }
   },
   {
@@ -149,7 +160,7 @@
       "What it does": "Checks for `if` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.",
       "Why is this bad": "Style, using blocks in the condition makes it hard to read.",
       "Known problems": "None.",
-      "Examples": "```rust\n// Bad\nif { true } { /* ... */ }\n\n// Good\nif true { /* ... */ }\n```\n\n// or\n\n```rust\n\n// Bad\nif { let x = somefunc(); x } { /* ... */ }\n\n// Good\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```"
+      "Examples": "```rust\n// Bad\nif { true } { /* ... */ }\n\n// Good\nif true { /* ... */ }\n```\n\n// or\n\n```rust\n// Bad\nif { let x = somefunc(); x } { /* ... */ }\n\n// Good\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```"
     }
   },
   {
@@ -165,12 +176,12 @@
   },
   {
     "id": "borrow_interior_mutable_const",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "style",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks if `const` items which is interior mutable (e.g.,\ncontains a `Cell`, `Mutex`, `AtomicXxxx`, etc.) has been borrowed directly.",
       "Why is this bad": "Consts are copied everywhere they are referenced, i.e.,\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\n\nThe `const` value should be stored inside a `static` item.",
-      "Known problems": "None",
+      "Known problems": "When an enum has variants with interior mutability, use of its non\ninterior mutable variants can generate false positives. See issue\n[#3962](https://github.com/rust-lang/rust-clippy/issues/3962)\n\nTypes that have underlying or potential interior mutability trigger the lint whether\nthe interior mutable field is used or not. See issues\n[#5812](https://github.com/rust-lang/rust-clippy/issues/5812) and\n[#3825](https://github.com/rust-lang/rust-clippy/issues/3825)",
       "Example": "```rust\nuse std::sync::atomic::{AtomicUsize, Ordering::SeqCst};\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\n\n// Bad.\nCONST_ATOM.store(6, SeqCst); // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = CONST_ATOM;\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```"
     }
   },
@@ -204,7 +215,7 @@
       "What it does": "Checks for usage of `Box<T>` where an unboxed `T` would\nwork fine.",
       "Why is this bad": "This is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n\n// Good\nlet x = 1;\nfoo(x);\nprintln!(\"{}\", x);\n```",
+      "Example": "```rust\n// Bad\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n\n// Good\nlet x = 1;\nfoo(x);\nprintln!(\"{}\", x);\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)."
     }
   },
@@ -451,6 +462,17 @@
     }
   },
   {
+    "id": "comparison_to_empty",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for comparing to an empty slice such as \"\" or [],`\nand suggests using `.is_empty()` where applicable.",
+      "Why is this bad": "Some structures can answer `.is_empty()` much faster\nthan checking for equality. So it is good to get into the habit of using\n`.is_empty()`, and having it is cheap.\nBesides, it makes the intent clearer than a manual comparison in some contexts.",
+      "Known problems": "None.",
+      "Example": "```ignore\nif s == \"\" {\n    ..\n}\n\nif arr == [] {\n    ..\n}\n```\nUse instead:\n```ignore\nif s.is_empty() {\n    ..\n}\n\nif arr.is_empty() {\n    ..\n}\n```"
+    }
+  },
+  {
     "id": "copy_iterator",
     "group": "pedantic",
     "level": "Allow",
@@ -519,12 +541,12 @@
   },
   {
     "id": "declare_interior_mutable_const",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "style",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for declaration of `const` items which is interior\nmutable (e.g., contains a `Cell`, `Mutex`, `AtomicXxxx`, etc.).",
       "Why is this bad": "Consts are copied everywhere they are referenced, i.e.,\nevery time you refer to the const a fresh instance of the `Cell` or `Mutex`\nor `AtomicXxxx` will be created, which defeats the whole purpose of using\nthese types in the first place.\n\nThe `const` should better be replaced by a `static` item if a global\nvariable is wanted, or replaced by a `const fn` if a constructor is wanted.",
-      "Known problems": "A \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g., the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed.",
+      "Known problems": "A \"non-constant\" const item is a legacy way to supply an\ninitialized value to downstream `static` items (e.g., the\n`std::sync::ONCE_INIT` constant). In this case the use of `const` is legit,\nand this lint should be suppressed.\n\nWhen an enum has variants with interior mutability, use of its non interior mutable\nvariants can generate false positives. See issue\n[#3962](https://github.com/rust-lang/rust-clippy/issues/3962)\n\nTypes that have underlying or potential interior mutability trigger the lint whether\nthe interior mutable field is used or not. See issues\n[#5812](https://github.com/rust-lang/rust-clippy/issues/5812) and\n[#3825](https://github.com/rust-lang/rust-clippy/issues/3825)",
       "Example": "```rust\nuse std::sync::atomic::{AtomicUsize, Ordering::SeqCst};\n\n// Bad.\nconst CONST_ATOM: AtomicUsize = AtomicUsize::new(12);\nCONST_ATOM.store(6, SeqCst); // the content of the atomic is unchanged\nassert_eq!(CONST_ATOM.load(SeqCst), 12); // because the CONST_ATOM in these lines are distinct\n\n// Good.\nstatic STATIC_ATOM: AtomicUsize = AtomicUsize::new(15);\nSTATIC_ATOM.store(9, SeqCst);\nassert_eq!(STATIC_ATOM.load(SeqCst), 9); // use a `static` item to refer to the same instance\n```"
     }
   },
@@ -595,6 +617,18 @@
     }
   },
   {
+    "id": "disallowed_method",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Lints for specific trait methods defined in clippy.toml",
+      "Why is this bad": "Some methods are undesirable in certain contexts,\nand it would be beneficial to lint for them as needed.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\n// example code where clippy issues a warning\nfoo.bad_method(); // Foo::bad_method is disallowed in the configuration\n```\nUse instead:\n```rust,ignore\n// example code which does not raise clippy warning\ngoodStruct.bad_method(); // GoodStruct::bad_method is not disallowed\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of blacklisted methods to lint about. NB: `bar` is not here since it has legitimate uses (defaults to `Vec::<String>::new(`)."
+    }
+  },
+  {
     "id": "diverging_sub_expression",
     "group": "complexity",
     "level": "Warn",
@@ -612,8 +646,8 @@
     "docs": {
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.",
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.",
-      "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.",
-      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```",
+      "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therfore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.",
+      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\", \"GraphQL\",\n        \"OCaml\",\n        \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\",\n        \"TensorFlow\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
     }
   },
@@ -663,13 +697,11 @@
   },
   {
     "id": "drop_bounds",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "Checks for generics with `std::ops::Drop` as bounds.",
-      "Why is this bad": "`Drop` bounds do not really accomplish anything.\nA type may have compiler-generated drop glue without implementing the\n`Drop` trait itself. The `Drop` trait also only has one method,\n`Drop::drop`, and that function is by fiat not callable in user code.\nSo there is really no use case for using `Drop` in trait bounds.\n\nThe most likely use case of a drop bound is to distinguish between types\nthat have destructors and types that don't. Combined with specialization,\na naive coder would write an implementation that assumed a type could be\ntrivially dropped, then write a specialization for `T: Drop` that actually\ncalls the destructor. Except that doing so is not correct; String, for\nexample, doesn't actually implement Drop, but because String contains a\nVec, assuming it can be trivially dropped will leak memory.",
-      "Known problems": "None.",
-      "Example": "```rust\nfn foo<T: Drop>() {}\n```\nCould be written as:\n```rust\nfn foo<T>() {}\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "This lint has been uplifted to rustc and is now called\n`drop_bounds`."
     }
   },
   {
@@ -746,7 +778,7 @@
       "What it does": "Checks for empty lines after outer attributes",
       "Why is this bad": "Most likely the attribute was meant to be an inner attribute using a '!'.\nIf it was meant to be an outer attribute, then the following item\nshould not be separated by empty lines.",
       "Known problems": "Can cause false positives.\n\nFrom the clippy side it's difficult to detect empty lines between an attributes and the\nfollowing item because empty lines and comments are not part of the AST. The parsing\ncurrently works for basic cases but is not perfect.",
-      "Example": "```rust\n// Good (as inner attribute)\n#![inline(always)]\n\nfn this_is_fine() { }\n\n// Bad\n#[inline(always)]\n\nfn not_quite_good_code() { }\n\n// Good (as outer attribute)\n#[inline(always)]\nfn this_is_fine_too() { }\n```"
+      "Example": "```rust\n// Good (as inner attribute)\n#![allow(dead_code)]\n\nfn this_is_fine() { }\n\n// Bad\n#[allow(dead_code)]\n\nfn not_quite_good_code() { }\n\n// Good (as outer attribute)\n#[allow(dead_code)]\nfn this_is_fine_too() { }\n```"
     }
   },
   {
@@ -755,7 +787,7 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for empty `loop` expressions.",
-      "Why is this bad": "Those busy loops burn CPU cycles without doing\nanything. Think of the environment and either block on something or at least\nmake the thread sleep for some microseconds.",
+      "Why is this bad": "These busy loops burn CPU cycles without doing\nanything. It is _almost always_ a better idea to `panic!` than to have\na busy loop.\n\nIf panicking isn't possible, think of the environment and either:\n  - block on something\n  - sleep the thread for some microseconds\n  - yield or pause the thread\n\nFor `std` targets, this can be done with\n[`std::thread::sleep`](https://doc.rust-lang.org/std/thread/fn.sleep.html)\nor [`std::thread::yield_now`](https://doc.rust-lang.org/std/thread/fn.yield_now.html).\n\nFor `no_std` targets, doing this is more complicated, especially because\n`#[panic_handler]`s can't panic. To stop/pause the thread, you will\nprobably need to invoke some target-specific intrinsic. Examples include:\n  - [`x86_64::instructions::hlt`](https://docs.rs/x86_64/0.12.2/x86_64/instructions/fn.hlt.html)\n  - [`cortex_m::asm::wfi`](https://docs.rs/cortex-m/0.6.3/cortex_m/asm/fn.wfi.html)",
       "Known problems": "None.",
       "Example": "```no_run\nloop {}\n```"
     }
@@ -802,7 +834,7 @@
       "What it does": "Checks for equal operands to comparison, logical and\nbitwise, difference and division binary operators (`==`, `>`, etc., `&&`,\n`||`, `&`, `|`, `^`, `-` and `/`).",
       "Why is this bad": "This is usually just a typo or a copy and paste error.",
       "Known problems": "False negatives: We had some false positives regarding\ncalls (notably [racer](https://github.com/phildawes/racer) had one instance\nof `x.pop() && x.pop()`), so we removed matching any function or method\ncalls. We may introduce a list of known pure functions in the future.",
-      "Example": "```rust\nif x + 1 == x + 1 {}\n```"
+      "Example": "```rust\nif x + 1 == x + 1 {}\n```\nor\n```rust\nassert_eq!(a, a);\n```"
     }
   },
   {
@@ -968,6 +1000,17 @@
     }
   },
   {
+    "id": "field_reassign_with_default",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for immediate reassignment of fields initialized\nwith Default::default().",
+      "Why is this bad": "It's more idiomatic to use the [functional update syntax](https://doc.rust-lang.org/reference/expressions/struct-expr.html#functional-update-syntax).",
+      "Known problems": "Assignments to patterns that are of tuple type are not linted.",
+      "Example": "Bad:\n```\n# #[derive(Default)]\n# struct A { i: i32 }\nlet mut a: A = Default::default();\na.i = 42;\n```\nUse instead:\n```\n# #[derive(Default)]\n# struct A { i: i32 }\nlet a = A {\n    i: 42,\n    .. Default::default()\n};\n```"
+    }
+  },
+  {
     "id": "filetype_is_file",
     "group": "restriction",
     "level": "Allow",
@@ -983,7 +1026,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.filter(_).map(_)`,\n`_.filter(_).flat_map(_)`, `_.filter_map(_).flat_map(_)` and similar.",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.filter_map(_)`.",
       "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.",
       "Example": "```rust\nlet vec = vec![1];\n\n// Bad\nvec.iter().filter(|x| **x == 0).map(|x| *x * 2);\n\n// Good\nvec.iter().filter_map(|x| if *x == 0 {\n    Some(*x * 2)\n} else {\n    None\n});\n```"
     }
@@ -994,7 +1037,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.filter_map(_).next()`.",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.find_map(_)`.",
       "Known problems": "None",
       "Example": "```rust\n (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();\n```\nCan be written as\n\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x) } else { None });\n```"
     }
@@ -1016,7 +1059,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.find(_).map(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.find_map(_)`.",
       "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.",
       "Example": "```rust\n (0..3).find(|x| *x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```"
     }
@@ -1161,6 +1204,17 @@
       "Why is this bad": "Calling `forget` on a reference will only forget the\nreference itself, which is a no-op. It will not forget the underlying\nreferenced\nvalue, which is likely what was intended.",
       "Known problems": "None.",
       "Example": "```rust\nlet x = Box::new(1);\nstd::mem::forget(&x) // Should have been forget(x), x will still be dropped\n```"
+    }
+  },
+  {
+    "id": "from_iter_instead_of_collect",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `from_iter()` function calls on types that implement the `FromIterator`\ntrait.",
+      "Why is this bad": "It is recommended style to use collect. See\n[FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::iter::FromIterator;\n\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v = Vec::from_iter(five_fives);\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```\nUse instead:\n```rust\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v: Vec<i32> = five_fives.collect();\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```"
     }
   },
   {
@@ -1415,6 +1469,28 @@
     }
   },
   {
+    "id": "inline_asm_x86_att_syntax",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of AT&T x86 assembly syntax.",
+      "Why is this bad": "The lint has been enabled to indicate a preference\nfor Intel x86 assembly syntax.",
+      "Known problems": "None.",
+      "Example": "```rust,no_run\nasm!(\"lea ({}), {}\", in(reg) ptr, lateout(reg) _, options(att_syntax));\n```\nUse instead:\n```rust,no_run\nasm!(\"lea {}, [{}]\", lateout(reg) _, in(reg) ptr);\n```"
+    }
+  },
+  {
+    "id": "inline_asm_x86_intel_syntax",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of Intel x86 assembly syntax.",
+      "Why is this bad": "The lint has been enabled to indicate a preference\nfor AT&T x86 assembly syntax.",
+      "Known problems": "None.",
+      "Example": "```rust,no_run\nasm!(\"lea {}, [{}]\", lateout(reg) _, in(reg) ptr);\n```\nUse instead:\n```rust,no_run\nasm!(\"lea ({}), {}\", in(reg) ptr, lateout(reg) _, options(att_syntax));\n```"
+    }
+  },
+  {
     "id": "inline_fn_without_body",
     "group": "correctness",
     "level": "Deny",
@@ -1518,6 +1594,17 @@
       "Why is this bad": "An expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.",
       "Known problems": "https://github.com/rust-lang/rust-clippy/issues/886",
       "Example": "```rust\nlet x: u8 = 1;\n(x as u32) > 300;\n```"
+    }
+  },
+  {
+    "id": "invisible_characters",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for invisible Unicode characters in the code.",
+      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.",
+      "Known problems": "None.",
+      "Example": "You don't see it, but there may be a zero-width space or soft hyphen\nsome\u00adwhere in this text."
     }
   },
   {
@@ -1667,6 +1754,16 @@
     }
   },
   {
+    "id": "large_types_passed_by_value",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for functions taking arguments by value, where\nthe argument type is `Copy` and large enough to be worth considering\npassing by reference. Does not trigger if the function is being exported,\nbecause that might induce API breakage, if the parameter is declared as mutable,\nor if the argument is a `self`.",
+      "Why is this bad": "Arguments passed by value might result in an unnecessary\nshallow copy, taking up more space in the stack and requiring a call to\n`memcpy`, which which can be expensive.",
+      "Example": "```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Bad\nfn foo(v: TooLarge) {}\n```\n```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Good\nfn foo(v: &TooLarge) {}\n```"
+    }
+  },
+  {
     "id": "len_without_is_empty",
     "group": "style",
     "level": "Warn",
@@ -1773,7 +1870,7 @@
       "What it does": "Checks for `#[macro_use] use...`.",
       "Why is this bad": "Since the Rust 2018 edition you can import\nmacro's directly, this is considered idiomatic.",
       "Known problems": "None.",
-      "Example": "```rust\n#[macro_use]\nuse lazy_static;\n```"
+      "Example": "```rust,ignore\n#[macro_use]\nuse some_macro;\n```"
     }
   },
   {
@@ -1821,6 +1918,28 @@
     }
   },
   {
+    "id": "manual_ok_or",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Finds patterns that reimplement `Option::ok_or`.",
+      "Why is this bad": "Concise code helps focusing on behavior instead of boilerplate.",
+      "Known problems": "None.",
+      "Examples": "```rust\nlet foo: Option<i32> = None;\nfoo.map_or(Err(\"error\"), |v| Ok(v));\n\nlet foo: Option<i32> = None;\nfoo.map_or(Err(\"error\"), |v| Ok(v));\n```\n\nUse instead:\n```rust\nlet foo: Option<i32> = None;\nfoo.ok_or(\"error\");\n```"
+    }
+  },
+  {
+    "id": "manual_range_contains",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for expressions like `x >= 3 && x < 8` that could\nbe more readably expressed as `(3..8).contains(x)`.",
+      "Why is this bad": "`contains` expresses the intent better and has less\nfailure modes (such as fencepost errors or using `||` instead of `&&`).",
+      "Known problems": "None.",
+      "Example": "```rust\n// given\nlet x = 6;\n\nassert!(x >= 3 && x < 8);\n```\nUse instead:\n```rust\nassert!((3..8).contains(&x));\n```"
+    }
+  },
+  {
     "id": "manual_saturating_arithmetic",
     "group": "style",
     "level": "Warn",
@@ -1853,6 +1972,17 @@
     }
   },
   {
+    "id": "manual_unwrap_or",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Finds patterns that reimplement `Option::unwrap_or` or `Result::unwrap_or`.",
+      "Why is this bad": "Concise code helps focusing on behavior instead of boilerplate.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet foo: Option<i32> = None;\nmatch foo {\n    Some(v) => v,\n    None => 1,\n};\n```\n\nUse instead:\n```rust\nlet foo: Option<i32> = None;\nfoo.unwrap_or(1);\n```"
+    }
+  },
+  {
     "id": "many_single_char_names",
     "group": "style",
     "level": "Warn",
@@ -1873,6 +2003,17 @@
       "Why is this bad": "Readability, this can be written more concisely",
       "Known problems": "None",
       "Example": "```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```"
+    }
+  },
+  {
+    "id": "map_collect_result_unit",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.map(_).collect::<Result<(),_>()`.",
+      "Why is this bad": "Using `try_for_each` instead is more readable and idiomatic.",
+      "Known problems": "None",
+      "Example": "```rust\n(0..3).map(|t| Err(t)).collect::<Result<(), _>>();\n```\nUse instead:\n```rust\n(0..3).try_for_each(|t| Err(t));\n```"
     }
   },
   {
@@ -1903,7 +2044,7 @@
     "level": "Allow",
     "docs": {
       "What it does": "Checks for usage of `_.map(_).flatten(_)`,",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call using `_.flat_map(_)`",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.flat_map(_)`",
       "Known problems": "",
       "Example": "```rust\nlet vec = vec![vec![1]];\n\n// Bad\nvec.iter().map(|x| x.iter()).flatten();\n\n// Good\nvec.iter().flat_map(|x| x.iter());\n```"
     }
@@ -2335,6 +2476,17 @@
     }
   },
   {
+    "id": "mut_mutex_lock",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for `&mut Mutex::lock` calls",
+      "Why is this bad": "`Mutex::lock` is less efficient than\ncalling `Mutex::get_mut`. In addition you also have a statically\nguarantee that the mutex isn't locked, instead of just a runtime\nguarantee.",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::sync::{Arc, Mutex};\n\nlet mut value_rc = Arc::new(Mutex::new(42_u8));\nlet value_mutex = Arc::get_mut(&mut value_rc).unwrap();\n\nlet mut value = value_mutex.lock().unwrap();\n*value += 1;\n```\nUse instead:\n```rust\nuse std::sync::{Arc, Mutex};\n\nlet mut value_rc = Arc::new(Mutex::new(42_u8));\nlet value_mutex = Arc::get_mut(&mut value_rc).unwrap();\n\nlet value = value_mutex.get_mut().unwrap();\n*value += 1;\n```"
+    }
+  },
+  {
     "id": "mut_range_bound",
     "group": "complexity",
     "level": "Warn",
@@ -2473,7 +2625,7 @@
     "docs": {
       "What it does": "Checks for lifetime annotations which can be removed by\nrelying on lifetime elision.",
       "Why is this bad": "The additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.",
-      "Known problems": "Potential false negatives: we bail out if the function\nhas a `where` clause where lifetimes are mentioned.",
+      "Known problems": "- We bail out if the function has a `where` clause where lifetimes\nare mentioned due to potenial false positives.\n- Lifetime bounds such as `impl Foo + 'a` and `T: 'a` must be elided with the\nplaceholder notation `'_` because the fully elided notation leaves the type bound to `'static`.",
       "Example": "```rust\n// Bad: unnecessary lifetime annotations\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {\n    x\n}\n\n// Good\nfn elided(x: &u8, y: u8) -> &u8 {\n    x\n}\n```"
     }
   },
@@ -2659,7 +2811,7 @@
     "level": "Warn",
     "docs": {
       "What it does": "Checks for usage of `_.as_ref().map(Deref::deref)` or it's aliases (such as String::as_str).",
-      "Why is this bad": "Readability, this can be written more concisely as a\nsingle method call.",
+      "Why is this bad": "Readability, this can be written more concisely as\n`_.as_deref()`.",
       "Known problems": "None.",
       "Example": "```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```"
     }
@@ -2680,8 +2832,8 @@
     "group": "pedantic",
     "level": "Allow",
     "docs": {
-      "What it does": "Lints usage of  `if let Some(v) = ... { y } else { x }` which is more\nidiomatically done with `Option::map_or` (if the else bit is a pure\nexpression) or `Option::map_or_else` (if the else bit is an impure\nexpresion).",
-      "Why is this bad": "Using the dedicated functions of the Option type is clearer and\nmore concise than an if let expression.",
+      "What it does": "Lints usage of `if let Some(v) = ... { y } else { x }` which is more\nidiomatically done with `Option::map_or` (if the else bit is a pure\nexpression) or `Option::map_or_else` (if the else bit is an impure\nexpression).",
+      "Why is this bad": "Using the dedicated functions of the Option type is clearer and\nmore concise than an `if let` expression.",
       "Known problems": "This lint uses a deliberately conservative metric for checking\nif the inside of either body contains breaks or continues which will\ncause it to not suggest a fix if either block contains a loop with\ncontinues or breaks contained within the loop.",
       "Example": "```rust\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    5\n};\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    let y = do_complicated_function();\n    y*y\n};\n```\n\nshould be\n\n```rust\nlet _ = optional.map_or(5, |foo| foo);\nlet _ = optional.map_or_else(||{\n    let y = do_complicated_function();\n    y*y\n}, |foo| foo);\n```"
     }
@@ -2907,6 +3059,17 @@
     }
   },
   {
+    "id": "ptr_eq",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Use `std::ptr::eq` when applicable",
+      "Why is this bad": "`ptr::eq` can be used to compare `&T` references\n(which coerce to `*const T` implicitly) by their address rather than\ncomparing the values they point to.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet a = &[1, 2, 3];\nlet b = &[1, 2, 3];\n\nassert!(a as *const _ as usize == b as *const _ as usize);\n```\nUse instead:\n```rust\nlet a = &[1, 2, 3];\nlet b = &[1, 2, 3];\n\nassert!(std::ptr::eq(a, b));\n```"
+    }
+  },
+  {
     "id": "ptr_offset_with_cast",
     "group": "complexity",
     "level": "Warn",
@@ -2983,12 +3146,12 @@
   },
   {
     "id": "rc_buffer",
-    "group": "perf",
-    "level": "Warn",
+    "group": "restriction",
+    "level": "Allow",
     "docs": {
-      "What it does": "Checks for Rc<T> and Arc<T> when T is a mutable buffer type such as String or Vec",
-      "Why is this bad": "Expressions such as Rc<String> have no advantage over Rc<str>, since\nit is larger and involves an extra level of indirection, and doesn't implement Borrow<str>.\n\nWhile mutating a buffer type would still be possible with Rc::get_mut(), it only\nworks if there are no additional references yet, which defeats the purpose of\nenclosing it in a shared ownership type. Instead, additionally wrapping the inner\ntype with an interior mutable container (such as RefCell or Mutex) would normally\nbe used.",
-      "Known problems": "None.",
+      "What it does": "Checks for `Rc<T>` and `Arc<T>` when `T` is a mutable buffer type such as `String` or `Vec`.",
+      "Why is this bad": "Expressions such as `Rc<String>` usually have no advantage over `Rc<str>`, since\nit is larger and involves an extra level of indirection, and doesn't implement `Borrow<str>`.\n\nWhile mutating a buffer type would still be possible with `Rc::get_mut()`, it only\nworks if there are no additional references yet, which usually defeats the purpose of\nenclosing it in a shared ownership type. Instead, additionally wrapping the inner\ntype with an interior mutable container (such as `RefCell` or `Mutex`) would normally\nbe used.",
+      "Known problems": "This pattern can be desirable to avoid the overhead of a `RefCell` or `Mutex` for\ncases where mutation only happens before there are any additional references.",
       "Example": "```rust,ignore\nfn foo(interned: Rc<String>) { ... }\n```\n\nBetter:\n\n```rust,ignore\nfn foo(interned: Rc<str>) { ... }\n```"
     }
   },
@@ -3113,6 +3276,17 @@
     }
   },
   {
+    "id": "ref_option_ref",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of `&Option<&T>`.",
+      "Why is this bad": "Since `&` is Copy, it's useless to have a\nreference on `Option<&T>`.",
+      "Known problems": "It may be irrevelent to use this lint on\npublic API code as it will make a breaking change to apply it.",
+      "Example": "```rust,ignore\nlet x: &Option<&u32> = &Some(&0u32);\n```\nUse instead:\n```rust,ignore\nlet x: Option<&u32> = Some(&0u32);\n```"
+    }
+  },
+  {
     "id": "regex_macro",
     "group": "deprecated",
     "level": "Deprecated",
@@ -3172,6 +3346,17 @@
       "Why is this bad": "Readability, this can be written more clearly with\nan if let statement",
       "Known problems": "None.",
       "Example": "```rust\nlet x: Result<String, String> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\nlet x: Result<String, String> = do_stuff();\nif let Ok(msg) = x {\n    log_err_msg(msg);\n};\nif let Ok(msg) = x {\n    log_err_msg(format_msg(msg));\n};\n```"
+    }
+  },
+  {
+    "id": "result_unit_err",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for public functions that return a `Result`\nwith an `Err` type of `()`. It suggests using a custom type that\nimplements [`std::error::Error`].",
+      "Why is this bad": "Unit does not implement `Error` and carries no\nfurther information about what went wrong.",
+      "Known problems": "Of course, this lint assumes that `Result` is used\nfor a fallible operation (which is after all the intended use). However\ncode may opt to (mis)use it as a basic two-variant-enum. In that case,\nthe suggestion is misguided, and the code should use a custom enum\ninstead.",
+      "Examples": "```rust\npub fn read_u8() -> Result<u8, ()> { Err(()) }\n```\nshould become\n```rust,should_panic\nuse std::fmt;\n\n#[derive(Debug)]\npub struct EndOfStream;\n\nimpl fmt::Display for EndOfStream {\n    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {\n        write!(f, \"End of Stream\")\n    }\n}\n\nimpl std::error::Error for EndOfStream { }\n\npub fn read_u8() -> Result<u8, EndOfStream> { Err(EndOfStream) }\n```\n\nNote that there are crates that simplify creating the error type, e.g.\n[`thiserror`](https://docs.rs/thiserror)."
     }
   },
   {
@@ -3316,6 +3501,17 @@
     }
   },
   {
+    "id": "single_char_add_str",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Warns when using `push_str`/`insert_str` with a single-character string literal\nwhere `push`/`insert` with a `char` would work fine.",
+      "Why is this bad": "It's less clear that we are pushing a single character.",
+      "Known problems": "None",
+      "Example": "```rust\nlet mut string = String::new();\nstring.insert_str(0, \"R\");\nstring.push_str(\"R\");\n```\nCould be written as\n```rust\nlet mut string = String::new();\nstring.insert(0, 'R');\nstring.push('R');\n```"
+    }
+  },
+  {
     "id": "single_char_pattern",
     "group": "perf",
     "level": "Warn",
@@ -3324,17 +3520,6 @@
       "Why is this bad": "Performing these methods using a `char` is faster than\nusing a `str`.",
       "Known problems": "Does not catch multi-byte unicode characters.",
       "Example": "```rust,ignore\n// Bad\n_.split(\"x\");\n\n// Good\n_.split('x');"
-    }
-  },
-  {
-    "id": "single_char_push_str",
-    "group": "style",
-    "level": "Warn",
-    "docs": {
-      "What it does": "Warns when using `push_str` with a single-character string literal,\nand `push` with a `char` would work fine.",
-      "Why is this bad": "It's less clear that we are pushing a single character.",
-      "Known problems": "None",
-      "Example": "```rust\nlet mut string = String::new();\nstring.push_str(\"R\");\n```\nCould be written as\n```rust\nlet mut string = String::new();\nstring.push('R');\n```"
     }
   },
   {
@@ -3349,6 +3534,17 @@
     }
   },
   {
+    "id": "single_element_loop",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks whether a for loop has a single element.",
+      "Why is this bad": "There is no reason to have a loop of a\nsingle element.",
+      "Known problems": "None",
+      "Example": "```rust\nlet item1 = 2;\nfor item in &[item1] {\n    println!(\"{}\", item);\n}\n```\ncould be written as\n```rust\nlet item1 = 2;\nlet item = &item1;\nprintln!(\"{}\", item);\n```"
+    }
+  },
+  {
     "id": "single_match",
     "group": "style",
     "level": "Warn",
@@ -3356,7 +3552,7 @@
       "What it does": "Checks for matches with a single arm where an `if let`\nwill usually suffice.",
       "Why is this bad": "Just readability \u2013 `if let` nests less than a `match`.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n\n// Good\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```"
+      "Example": "```rust\n// Bad\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n\n// Good\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```"
     }
   },
   {
@@ -3447,12 +3643,12 @@
   },
   {
     "id": "string_lit_as_bytes",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for the `as_bytes` method called on string literals\nthat contain only ASCII characters.",
       "Why is this bad": "Byte string literals (e.g., `b\"foo\"`) can be used\ninstead. They are shorter but less discoverable than `as_bytes()`.",
-      "Known Problems": "None.",
+      "Known Problems": "`\"str\".as_bytes()` and the suggested replacement of `b\"str\"` are not\nequivalent because they have different types. The former is `&[u8]`\nwhile the latter is `&[u8; 3]`. That means in general they will have a\ndifferent set of methods and different trait implementations.\n\n```compile_fail\nfn f(v: Vec<u8>) {}\n\nf(\"...\".as_bytes().to_owned()); // works\nf(b\"...\".to_owned()); // does not work, because arg is [u8; 3] not Vec<u8>\n\nfn g(r: impl std::io::Read) {}\n\ng(\"...\".as_bytes()); // works\ng(b\"...\"); // does not work\n```\n\nThe actual equivalent of `\"str\".as_bytes()` with the same type is not\n`b\"str\"` but `&b\"str\"[..]`, which is a great deal of punctuation and not\nmore readable than a function call.",
       "Example": "```rust\n// Bad\nlet bs = \"a byte string\".as_bytes();\n\n// Good\nlet bs = b\"a byte string\";\n```"
     }
   },
@@ -3578,13 +3774,11 @@
   },
   {
     "id": "temporary_cstring_as_ptr",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "Checks for getting the inner pointer of a temporary\n`CString`.",
-      "Why is this bad": "The inner pointer of a `CString` is only valid as long\nas the `CString` is alive.",
-      "Known problems": "None.",
-      "Example": "```rust\n#\nlet c_str = CString::new(\"foo\").unwrap().as_ptr();\nunsafe {\n    call_some_ffi_func(c_str);\n}\n```\nHere `c_str` points to a freed address. The correct use would be:\n```rust\n#\nlet c_str = CString::new(\"foo\").unwrap();\nunsafe {\n    call_some_ffi_func(c_str.as_ptr());\n}\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "This lint has been uplifted to rustc and is now called\n`temporary_cstring_as_ptr`."
     }
   },
   {
@@ -3738,7 +3932,7 @@
     "docs": {
       "What it does": "Checks for transmutes from a pointer to a reference.",
       "Why is this bad": "This can always be rewritten with `&` and `*`.",
-      "Known problems": "None.",
+      "Known problems": "- `mem::transmute` in statics and constants is stable from Rust 1.46.0,\nwhile dereferencing raw pointer is not stable yet.\nIf you need to do this in those places,\nyou would have to use `transmute` instead.",
       "Example": "```rust,ignore\nunsafe {\n    let _: &T = std::mem::transmute(p); // where p: *const T\n}\n\n// can be written:\nlet _: &T = &*p;\n```"
     }
   },
@@ -3823,6 +4017,17 @@
     }
   },
   {
+    "id": "undropped_manually_drops",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Prevents the safe `std::mem::drop` function from being called on `std::mem::ManuallyDrop`.",
+      "Why is this bad": "The safe `drop` function does not drop the inner value of a `ManuallyDrop`.",
+      "Known problems": "Does not catch cases if the user binds `std::mem::drop`\nto a different name and calls it that way.",
+      "Example": "```rust\nstruct S;\ndrop(std::mem::ManuallyDrop::new(S));\n```\nUse instead:\n```rust\nstruct S;\nunsafe {\n    std::mem::ManuallyDrop::drop(&mut std::mem::ManuallyDrop::new(S));\n}\n```"
+    }
+  },
+  {
     "id": "unicode_not_nfc",
     "group": "pedantic",
     "level": "Allow",
@@ -3904,10 +4109,10 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for casts to the same type.",
+      "What it does": "Checks for casts to the same type, casts of int literals to integer types\nand casts of float literals to float types.",
       "Why is this bad": "It's just unnecessary.",
       "Known problems": "None.",
-      "Example": "```rust\nlet _ = 2i32 as i32;\n```"
+      "Example": "```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```"
     }
   },
   {
@@ -4006,7 +4211,7 @@
       "What it does": "Checks for tuple patterns with a wildcard\npattern (`_`) is next to a rest pattern (`..`).\n\n_NOTE_: While `_, ..` means there is at least one element left, `..`\nmeans there are 0 or more elements left. This can make a difference\nwhen refactoring, but shouldn't result in errors in the refactored code,\nsince the wildcard pattern isn't used anyway.",
       "Why is this bad": "The wildcard pattern is unneeded as the rest pattern\ncan match that element as well.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nmatch t {\n    TupleStruct(0, .., _) => (),\n    _ => (),\n}\n\n// Good\nmatch t {\n    TupleStruct(0, ..) => (),\n    _ => (),\n}\n```"
+      "Example": "```rust\n// Bad\nmatch t {\n    TupleStruct(0, .., _) => (),\n    _ => (),\n}\n\n// Good\nmatch t {\n    TupleStruct(0, ..) => (),\n    _ => (),\n}\n```"
     }
   },
   {
@@ -4162,6 +4367,17 @@
       "Why is this bad": "Such expressions add no value, but can make the code\nless readable. Depending on formatting they can make a `break` or `return`\nstatement look like a function call.",
       "Known problems": "None.",
       "Example": "```rust\nfn return_unit() -> () {\n    ()\n}\n```"
+    }
+  },
+  {
+    "id": "unusual_byte_groupings",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Warns if hexadecimal or binary literals are not grouped\nby nibble or byte.",
+      "Why is this bad": "Negatively impacts readability.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet x: u32 = 0xFFF_FFF;\nlet y: u8 = 0b01_011_101;\n```"
     }
   },
   {
@@ -4405,7 +4621,7 @@
       "What it does": "Checks for wildcard enum matches using `_`.",
       "Why is this bad": "New enum variants added by library updates can be missed.",
       "Known problems": "Suggested replacements may be incorrect if guards exhaustively cover some\nvariants, and also may not use correct path to enum if it's not present in the current scope.",
-      "Example": "```rust\n\n// Bad\nmatch x {\n    Foo::A(_) => {},\n    _ => {},\n}\n\n// Good\nmatch x {\n    Foo::A(_) => {},\n    Foo::B(_) => {},\n}\n```"
+      "Example": "```rust\n// Bad\nmatch x {\n    Foo::A(_) => {},\n    _ => {},\n}\n\n// Good\nmatch x {\n    Foo::A(_) => {},\n    Foo::B(_) => {},\n}\n```"
     }
   },
   {
@@ -4529,17 +4745,6 @@
       "Why is this bad": "This generally means `null` and is better expressed as\n{`std`, `core`}`::ptr::`{`null`, `null_mut`}.",
       "Known problems": "None.",
       "Example": "```rust\n// Bad\nlet a = 0 as *const u32;\n\n// Good\nlet a = std::ptr::null::<u32>();\n```"
-    }
-  },
-  {
-    "id": "zero_width_space",
-    "group": "correctness",
-    "level": "Deny",
-    "docs": {
-      "What it does": "Checks for the Unicode zero-width space in the code.",
-      "Why is this bad": "Having an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.",
-      "Known problems": "None.",
-      "Example": "You don't see it, but there may be a zero-width space\nsomewhere in this text."
     }
   },
   {
