@@ -466,7 +466,7 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for comparing to an empty slice such as \"\" or [],`\nand suggests using `.is_empty()` where applicable.",
+      "What it does": "Checks for comparing to an empty slice such as `\"\"` or `[]`,\nand suggests using `.is_empty()` where applicable.",
       "Why is this bad": "Some structures can answer `.is_empty()` much faster\nthan checking for equality. So it is good to get into the habit of using\n`.is_empty()`, and having it is cheap.\nBesides, it makes the intent clearer than a manual comparison in some contexts.",
       "Known problems": "None.",
       "Example": "```ignore\nif s == \"\" {\n    ..\n}\n\nif arr == [] {\n    ..\n}\n```\nUse instead:\n```ignore\nif s.is_empty() {\n    ..\n}\n\nif arr.is_empty() {\n    ..\n}\n```"
@@ -1579,7 +1579,7 @@
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Checks [regex](https://crates.io/crates/regex) creation\n(with `Regex::new`,`RegexBuilder::new` or `RegexSet::new`) for correct\nregex syntax.",
+      "What it does": "Checks [regex](https://crates.io/crates/regex) creation\n(with `Regex::new`, `RegexBuilder::new`, or `RegexSet::new`) for correct\nregex syntax.",
       "Why is this bad": "This will lead to a runtime panic.",
       "Known problems": "None.",
       "Example": "```ignore\nRegex::new(\"|\")\n```"
@@ -2021,7 +2021,7 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for usage of `_.map(_).collect::<Result<(),_>()`.",
+      "What it does": "Checks for usage of `_.map(_).collect::<Result<(), _>()`.",
       "Why is this bad": "Using `try_for_each` instead is more readable and idiomatic.",
       "Known problems": "None",
       "Example": "```rust\n(0..3).map(|t| Err(t)).collect::<Result<(), _>>();\n```\nUse instead:\n```rust\n(0..3).try_for_each(|t| Err(t));\n```"
@@ -3980,7 +3980,7 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for trivial [regex](https://crates.io/crates/regex)\ncreation (with `Regex::new`, `RegexBuilder::new` or `RegexSet::new`).",
+      "What it does": "Checks for trivial [regex](https://crates.io/crates/regex)\ncreation (with `Regex::new`, `RegexBuilder::new`, or `RegexSet::new`).",
       "Why is this bad": "Matching the regex can likely be replaced by `==` or\n`str::starts_with`, `str::ends_with` or `std::contains` or other `str`\nmethods.",
       "Known problems": "None.",
       "Example": "```ignore\nRegex::new(\"^foobar\")\n```"
@@ -4107,7 +4107,7 @@
       "What it does": "Checks for functions that expect closures of type\nFn(...) -> Ord where the implemented closure returns the unit type.\nThe lint also suggests to remove the semi-colon at the end of the statement if present.",
       "Why is this bad": "Likely, returning the unit type is unintentional, and\ncould simply be caused by an extra semi-colon. Since () implements Ord\nit doesn't cause a compilation error.\nThis is the same reasoning behind the unit_cmp lint.",
       "Known problems": "If returning unit is intentional, then there is no\nway of specifying this without triggering needless_return lint",
-      "Example": "```rust\nlet mut twins = vec!((1,1), (2,2));\ntwins.sort_by_key(|x| { x.1; });\n```"
+      "Example": "```rust\nlet mut twins = vec!((1, 1), (2, 2));\ntwins.sort_by_key(|x| { x.1; });\n```"
     }
   },
   {
@@ -4489,7 +4489,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for `Into`, `TryInto`, `From`, `TryFrom`,`IntoIter` calls\nthat useless converts to the same type as caller.",
+      "What it does": "Checks for `Into`, `TryInto`, `From`, `TryFrom`, or `IntoIter` calls\nwhich uselessly convert to the same type.",
       "Why is this bad": "Redundant code.",
       "Known problems": "None.",
       "Example": "```rust\n// Bad\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n\n// Good\nlet s: String = format!(\"hello\");\n```"
