@@ -1,40 +1,130 @@
 error: pointer must be non-null
-  --> $DIR/invalid_null_ptr_usage.rs:4:64
+  --> $DIR/invalid_null_ptr_usage.rs:5:59
    |
-LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(std::ptr::null(), 0) };
-   |                                                                ^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+LL |         let _slice: &[usize] = std::slice::from_raw_parts(std::ptr::null(), 0);
+   |                                                           ^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
    |
    = note: `#[deny(clippy::invalid_null_ptr_usage)]` on by default
 
 error: pointer must be non-null
-  --> $DIR/invalid_null_ptr_usage.rs:5:64
+  --> $DIR/invalid_null_ptr_usage.rs:6:59
    |
-LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(core::ptr::null(), 0) };
-   |                                                                ^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+LL |         let _slice: &[usize] = std::slice::from_raw_parts(std::ptr::null_mut(), 0);
+   |                                                           ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
 
 error: pointer must be non-null
-  --> $DIR/invalid_null_ptr_usage.rs:6:64
+  --> $DIR/invalid_null_ptr_usage.rs:8:63
    |
-LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(std::ptr::null_mut(), 0) };
-   |                                                                ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+LL |         let _slice: &[usize] = std::slice::from_raw_parts_mut(std::ptr::null_mut(), 0);
+   |                                                               ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
 
 error: pointer must be non-null
-  --> $DIR/invalid_null_ptr_usage.rs:7:64
+  --> $DIR/invalid_null_ptr_usage.rs:19:36
    |
-LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts(core::ptr::null_mut(), 0) };
-   |                                                                ^^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+LL |         let _a: A = std::ptr::read(std::ptr::null());
+   |                                    ^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
 
 error: pointer must be non-null
-  --> $DIR/invalid_null_ptr_usage.rs:9:68
+  --> $DIR/invalid_null_ptr_usage.rs:20:36
    |
-LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts_mut(std::ptr::null_mut(), 0) };
-   |                                                                    ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+LL |         let _a: A = std::ptr::read(std::ptr::null_mut());
+   |                                    ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
 
 error: pointer must be non-null
-  --> $DIR/invalid_null_ptr_usage.rs:10:68
+  --> $DIR/invalid_null_ptr_usage.rs:22:46
    |
-LL |     let _slice: &[usize] = unsafe { std::slice::from_raw_parts_mut(core::ptr::null_mut(), 0) };
-   |                                                                    ^^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+LL |         let _a: A = std::ptr::read_unaligned(std::ptr::null());
+   |                                              ^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
 
-error: aborting due to 6 previous errors
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:23:46
+   |
+LL |         let _a: A = std::ptr::read_unaligned(std::ptr::null_mut());
+   |                                              ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:25:45
+   |
+LL |         let _a: A = std::ptr::read_volatile(std::ptr::null());
+   |                                             ^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:26:45
+   |
+LL |         let _a: A = std::ptr::read_volatile(std::ptr::null_mut());
+   |                                             ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:28:39
+   |
+LL |         let _a: A = std::ptr::replace(std::ptr::null_mut(), A);
+   |                                       ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:30:69
+   |
+LL |         let _slice: *const [usize] = std::ptr::slice_from_raw_parts(std::ptr::null(), 0);
+   |                                                                     ^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:31:69
+   |
+LL |         let _slice: *const [usize] = std::ptr::slice_from_raw_parts(std::ptr::null_mut(), 0);
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:33:73
+   |
+LL |         let _slice: *const [usize] = std::ptr::slice_from_raw_parts_mut(std::ptr::null_mut(), 0);
+   |                                                                         ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:35:29
+   |
+LL |         std::ptr::swap::<A>(std::ptr::null_mut(), &mut A);
+   |                             ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:36:37
+   |
+LL |         std::ptr::swap::<A>(&mut A, std::ptr::null_mut());
+   |                                     ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:38:44
+   |
+LL |         std::ptr::swap_nonoverlapping::<A>(std::ptr::null_mut(), &mut A, 0);
+   |                                            ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:39:52
+   |
+LL |         std::ptr::swap_nonoverlapping::<A>(&mut A, std::ptr::null_mut(), 0);
+   |                                                    ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:41:25
+   |
+LL |         std::ptr::write(std::ptr::null_mut(), A);
+   |                         ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:43:35
+   |
+LL |         std::ptr::write_unaligned(std::ptr::null_mut(), A);
+   |                                   ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:45:34
+   |
+LL |         std::ptr::write_volatile(std::ptr::null_mut(), A);
+   |                                  ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: pointer must be non-null
+  --> $DIR/invalid_null_ptr_usage.rs:47:40
+   |
+LL |         std::ptr::write_bytes::<usize>(std::ptr::null_mut(), 42, 0);
+   |                                        ^^^^^^^^^^^^^^^^^^^^ help: change this to: `core::ptr::NonNull::dangling().as_ptr()`
+
+error: aborting due to 21 previous errors
 
