@@ -213,13 +213,10 @@ fn check_invalid_ptr_usage<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -
         (&paths::PTR_WRITE_BYTES, 0),
     ];
 
-    let arg = INVALID_NULL_PTR_USAGE_TABLE
-        .iter()
-        .filter_map(|(fn_name, arg_idx)| {
-            let args = match_function_call(cx, expr, fn_name)?;
-            args.iter().nth(*arg_idx).filter(|arg| is_null_path(arg))
-        })
-        .next()?;
+    let arg = INVALID_NULL_PTR_USAGE_TABLE.iter().find_map(|(fn_name, arg_idx)| {
+        let args = match_function_call(cx, expr, fn_name)?;
+        args.get(*arg_idx).filter(|arg| is_null_path(arg))
+    })?;
 
     span_lint_and_sugg(
         cx,
@@ -227,7 +224,7 @@ fn check_invalid_ptr_usage<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -
         arg.span,
         "pointer must be non-null",
         "change this to",
-        format!("core::ptr::NonNull::dangling().as_ptr()"),
+        "core::ptr::NonNull::dangling().as_ptr()".to_string(),
         Applicability::MachineApplicable,
     );
 
