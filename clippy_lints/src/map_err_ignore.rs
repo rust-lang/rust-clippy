@@ -110,12 +110,12 @@ fn is_unit_enum_variant(input: &ExprKind<'_>) -> bool {
         ExprKind::Path(qpath) => {
             match qpath {
                 QPath::Resolved(None, enum_path) => {
-                    match enum_path.res {
-                        // the definition should be a enum constructor with a
-                        // Const (unit) enum variant (and we do not want to match on the `DefId`)
-                        Res::Def(DefKind::Ctor(CtorOf::Variant, CtorKind::Const), _) => true,
-                        _ => false,
-                    }
+                    // the definition should be a enum constructor with a
+                    // Const (unit) enum variant (and we do not want to match on the `DefId`)
+                    matches!(
+                        enum_path.res,
+                        Res::Def(DefKind::Ctor(CtorOf::Variant, CtorKind::Const), _)
+                    )
                 },
                 // If this is not a resolved qualified path it isn't a unit enum
                 _ => false,
