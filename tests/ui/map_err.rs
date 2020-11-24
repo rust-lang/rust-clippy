@@ -56,5 +56,8 @@ fn main() -> Result<(), Errors> {
     // Should warn you here because you are just ignoring the original error
     println!("{:?}", x.map_err(|_| Errors::Ignored));
 
+    // Should not warn you because you explicitly ignore the parameter
+    println!("{:?}", x.map_err(|_ignored_no_extra_context| Errors::Ignored));
+
     Ok(())
 }

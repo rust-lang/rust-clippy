@@ -158,7 +158,7 @@ impl<'tcx> LateLintPass<'tcx> for MapErrIgnore {
                                         body_span,
                                         "`map_err(|_|...` ignores the original error",
                                         None,
-                                        "Consider wrapping the error in an enum variant",
+                                        "Consider wrapping the error in an enum variant, or giving the closure parameter a name to intentionally ignore the error (e.g. `.map_err(|_ignored| ...)`",
                                     );
                                 }
                             }
