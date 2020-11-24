@@ -1,6 +1,6 @@
 use crate::utils::span_lint_and_help;
 
-use rustc_hir::{CaptureBy, Expr, ExprKind, PatKind, QPath, def::Res, def::DefKind, def::CtorKind, def::CtorOf};
+use rustc_hir::{def::CtorKind, def::CtorOf, def::DefKind, def::Res, CaptureBy, Expr, ExprKind, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 
@@ -111,17 +111,17 @@ fn is_unit_enum_variant(input: &ExprKind<'_>) -> bool {
             match qpath {
                 QPath::Resolved(None, enum_path) => {
                     match enum_path.res {
-                        // the definition should be a enum constructor with a 
+                        // the definition should be a enum constructor with a
                         // Const (unit) enum variant (and we do not want to match on the `DefId`)
                         Res::Def(DefKind::Ctor(CtorOf::Variant, CtorKind::Const), _) => true,
                         _ => false,
                     }
-                }, 
+                },
                 // If this is not a resolved qualified path it isn't a unit enum
-                _ => false,    
+                _ => false,
             }
-        }
-        // if this expression isn't a path it isn't an enum 
+        },
+        // if this expression isn't a path it isn't an enum
         _ => false,
     }
 }
@@ -148,7 +148,7 @@ impl<'tcx> LateLintPass<'tcx> for MapErrIgnore {
                         if closure_body.params.len() == 1 {
                             // make sure that parameter is the wild token (`_`)
                             if let PatKind::Wild = closure_body.params[0].pat.kind {
-                                // check the value of the body is only a unit enum 
+                                // check the value of the body is only a unit enum
                                 if is_unit_enum_variant(&closure_body.value.kind) {
                                     // span the area of the closure capture and warn that the
                                     // original error will be thrown away

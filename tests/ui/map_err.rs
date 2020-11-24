@@ -8,7 +8,7 @@ use std::fmt;
 enum Errors {
     Ignored,
     OwnContext(u32),
-    WithContext(std::num::TryFromIntError)
+    WithContext(std::num::TryFromIntError),
 }
 
 impl Error for Errors {}
@@ -21,7 +21,7 @@ impl fmt::Display for Errors {
 
 #[derive(Debug)]
 struct SError {
-    x: u32
+    x: u32,
 }
 
 fn test_fn_call() -> u32 {
@@ -30,7 +30,7 @@ fn test_fn_call() -> u32 {
 
 fn main() -> Result<(), Errors> {
     let x = u32::try_from(-123_i32);
-    let y = 0; 
+    let y = 0;
 
     // Should not warn you here, because you are giving context with a non-unit enum variant
     println!("{:?}", x.map_err(|_| Errors::OwnContext(0)));
@@ -47,11 +47,11 @@ fn main() -> Result<(), Errors> {
     // Should not warn you here, because you are calling a function for context
     println!("{:?}", x.map_err(|_| test_fn_call()));
 
-    // Should not warn you here, because you are providing a variable for context 
+    // Should not warn you here, because you are providing a variable for context
     println!("{:?}", x.map_err(|_| y));
 
-    // Should not warn you here, because you are providing a struct for context 
-    println!("{:?}", x.map_err(|_| SError{x: 0}));
+    // Should not warn you here, because you are providing a struct for context
+    println!("{:?}", x.map_err(|_| SError { x: 0 }));
 
     // Should warn you here because you are just ignoring the original error
     println!("{:?}", x.map_err(|_| Errors::Ignored));
