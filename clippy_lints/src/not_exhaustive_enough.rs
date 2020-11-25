@@ -8,8 +8,9 @@ use rustc_session::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
     /// **What it does:**
-    /// As suggested in the [non_exhaustive RFC](https://github.com/rust-lang/rfcs/blob/master/text/2008-non-exhaustive.md#unresolved-questions), when using non-exhaustive enums and structs in patterns,
-    /// the lint would warn the user for missing variants or fields despite having a wildcard arm or a rest pattern.
+    /// As suggested in the [non_exhaustive RFC](https://github.com/rust-lang/rfcs/blob/master/text/2008-non-exhaustive.md#unresolved-questions), 
+    /// when using non-exhaustive enums and structs in patterns,
+    /// this lint warns the user for missing variants or fields despite having a wildcard arm or a rest pattern.
     ///
     /// **Why is this bad?**
     /// When new fields/variants are added by the upstream crate they might go unnoticed.
