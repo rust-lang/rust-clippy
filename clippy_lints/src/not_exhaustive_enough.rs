@@ -37,7 +37,7 @@ declare_clippy_lint! {
     /// ```
     pub NOT_EXHAUSTIVE_ENOUGH,
     pedantic,
-    "warn the user for missing variants or fields despite having a wildcard arm or a rest pattern"
+    "missing variants or fields in a pattern despite having a wildcard arm or a rest pattern"
 }
 
 declare_lint_pass!(NotExhaustiveEnough => [NOT_EXHAUSTIVE_ENOUGH]);
