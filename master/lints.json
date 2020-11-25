@@ -3611,11 +3611,13 @@
   },
   {
     "id": "str_to_string",
-    "group": "deprecated",
-    "level": "Deprecated",
+    "group": "restriction",
+    "level": "Allow",
     "docs": {
-      "What it does": "Nothing. This lint has been deprecated.",
-      "Deprecation reason": "This used to check for `.to_string()` method calls on values\nof type `&str`. This is not unidiomatic and with specialization coming, `to_string` could be\nspecialized to be as efficient as `to_owned`."
+      "What it does": "This lint checks for `.to_string()` method calls on values of type `&str`.",
+      "Why is this bad": "The `to_string` method is also used on other types to convert them to a string.\nWhen called on a `&str` it turns the `&str` into the owned variant `String`, which can be better\nexpressed with `.to_owned()`.",
+      "Known problems": "None.",
+      "Example": "```rust\n// example code where clippy issues a warning\nlet _ = \"str\".to_string();\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nlet _ = \"str\".to_owned();\n```"
     }
   },
   {
@@ -3675,11 +3677,13 @@
   },
   {
     "id": "string_to_string",
-    "group": "deprecated",
-    "level": "Deprecated",
+    "group": "restriction",
+    "level": "Allow",
     "docs": {
-      "What it does": "Nothing. This lint has been deprecated.",
-      "Deprecation reason": "This used to check for `.to_string()` method calls on values\nof type `String`. This is not unidiomatic and with specialization coming, `to_string` could be\nspecialized to be as efficient as `clone`."
+      "What it does": "This lint checks for `.to_string()` method calls on values of type `String`.",
+      "Why is this bad": "The `to_string` method is also used on other types to convert them to a string.\nWhen called on a `String` it only clones the `String`, which can be better expressed with `.clone()`.",
+      "Known problems": "None.",
+      "Example": "```rust\n// example code where clippy issues a warning\nlet msg = String::from(\"Hello World\");\nlet _ = msg.to_string();\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nlet msg = String::from(\"Hello World\");\nlet _ = msg.clone();\n```"
     }
   },
   {
