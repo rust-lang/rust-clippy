@@ -1925,7 +1925,8 @@
       "What it does": "Checks for manual implementations of the non-exhaustive pattern.",
       "Why is this bad": "Using the #[non_exhaustive] attribute expresses better the intent\nand allows possible optimizations when applied to enums.",
       "Known problems": "None.",
-      "Example": "```rust\nstruct S {\n    pub a: i32,\n    pub b: i32,\n    _c: (),\n}\n\nenum E {\n    A,\n    B,\n    #[doc(hidden)]\n    _C,\n}\n\nstruct T(pub i32, pub i32, ());\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct S {\n    pub a: i32,\n    pub b: i32,\n}\n\n#[non_exhaustive]\nenum E {\n    A,\n    B,\n}\n\n#[non_exhaustive]\nstruct T(pub i32, pub i32);\n```"
+      "Example": "```rust\nstruct S {\n    pub a: i32,\n    pub b: i32,\n    _c: (),\n}\n\nenum E {\n    A,\n    B,\n    #[doc(hidden)]\n    _C,\n}\n\nstruct T(pub i32, pub i32, ());\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct S {\n    pub a: i32,\n    pub b: i32,\n}\n\n#[non_exhaustive]\nenum E {\n    A,\n    B,\n}\n\n#[non_exhaustive]\nstruct T(pub i32, pub i32);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -1968,7 +1969,8 @@
       "What it does": "Suggests using `strip_{prefix,suffix}` over `str::{starts,ends}_with` and slicing using\nthe pattern's length.",
       "Why is this bad": "Using `str:strip_{prefix,suffix}` is safer and may have better performance as there is no\nslicing which may panic and the compiler does not need to insert this panic code. It is\nalso sometimes more readable as it removes the need for duplicating or storing the pattern\nused by `str::{starts,ends}_with` and in the slicing.",
       "Known problems": "None.",
-      "Example": "```rust\nlet s = \"hello, world!\";\nif s.starts_with(\"hello, \") {\n    assert_eq!(s[\"hello, \".len()..].to_uppercase(), \"WORLD!\");\n}\n```\nUse instead:\n```rust\nlet s = \"hello, world!\";\nif let Some(end) = s.strip_prefix(\"hello, \") {\n    assert_eq!(end.to_uppercase(), \"WORLD!\");\n}\n```"
+      "Example": "```rust\nlet s = \"hello, world!\";\nif s.starts_with(\"hello, \") {\n    assert_eq!(s[\"hello, \".len()..].to_uppercase(), \"WORLD!\");\n}\n```\nUse instead:\n```rust\nlet s = \"hello, world!\";\nif let Some(end) = s.strip_prefix(\"hello, \") {\n    assert_eq!(end.to_uppercase(), \"WORLD!\");\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2112,7 +2114,8 @@
       "What it does": "Checks for `match`  or `if let` expressions producing a\n`bool` that could be written using `matches!`",
       "Why is this bad": "Readability and needless complexity.",
       "Known problems": "None",
-      "Example": "```rust\nlet x = Some(5);\n\n// Bad\nlet a = match x {\n    Some(0) => true,\n    _ => false,\n};\n\nlet a = if let Some(0) = x {\n    true\n} else {\n    false\n};\n\n// Good\nlet a = matches!(x, Some(0));\n```"
+      "Example": "```rust\nlet x = Some(5);\n\n// Bad\nlet a = match x {\n    Some(0) => true,\n    _ => false,\n};\n\nlet a = if let Some(0) = x {\n    true\n} else {\n    false\n};\n\n// Good\nlet a = matches!(x, Some(0));\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2824,7 +2827,8 @@
       "What it does": "Checks for usage of `_.as_ref().map(Deref::deref)` or it's aliases (such as String::as_str).",
       "Why is this bad": "Readability, this can be written more concisely as\n`_.as_deref()`.",
       "Known problems": "None.",
-      "Example": "```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```"
+      "Example": "```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
