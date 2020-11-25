@@ -18,7 +18,7 @@ declare_clippy_lint! {
     /// **Known problems:** None.
     ///
     /// **Example:**
-    /// ```rust
+    /// ```rust,ignore
     /// #[non_exhaustive]
     /// # enum E {First,Second,Third}
     /// # let e = E::First;
