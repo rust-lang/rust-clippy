@@ -3247,10 +3247,10 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Lint for redundant pattern matching over `Result`, `Option` or\n`std::task::Poll`",
+      "What it does": "Lint for redundant pattern matching over `Result`, `Option`,\n`std::task::Poll` or `std::net::IpAddr`",
       "Why is this bad": "It's more concise and clear to just use the proper\nutility function",
       "Known problems": "None.",
-      "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\nif let Poll::Pending = Poll::Pending::<()> {}\nif let Poll::Ready(_) = Poll::Ready(42) {}\nmatch Ok::<i32, i32>(42) {\n    Ok(_) => true,\n    Err(_) => false,\n};\n```\n\nThe more idiomatic use would be:\n\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\nif Poll::Pending::<()>.is_pending() {}\nif Poll::Ready(42).is_ready() {}\nOk::<i32, i32>(42).is_ok();\n```"
+      "Example": "```rust\nif let Ok(_) = Ok::<i32, i32>(42) {}\nif let Err(_) = Err::<i32, i32>(42) {}\nif let None = None::<()> {}\nif let Some(_) = Some(42) {}\nif let Poll::Pending = Poll::Pending::<()> {}\nif let Poll::Ready(_) = Poll::Ready(42) {}\nif let IpAddr::V4(_) = IpAddr::V4(Ipv4Addr::LOCALHOST) {}\nif let IpAddr::V6(_) = IpAddr::V6(Ipv6Addr::LOCALHOST) {}\nmatch Ok::<i32, i32>(42) {\n    Ok(_) => true,\n    Err(_) => false,\n};\n```\n\nThe more idiomatic use would be:\n\n```rust\nif Ok::<i32, i32>(42).is_ok() {}\nif Err::<i32, i32>(42).is_err() {}\nif None::<()>.is_none() {}\nif Some(42).is_some() {}\nif Poll::Pending::<()>.is_pending() {}\nif Poll::Ready(42).is_ready() {}\nif IpAddr::V4(Ipv4Addr::LOCALHOST).is_ipv4() {}\nif IpAddr::V6(Ipv6Addr::LOCALHOST).is_ipv6() {}\nOk::<i32, i32>(42).is_ok();\n```"
     }
   },
   {
