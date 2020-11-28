@@ -2417,10 +2417,10 @@
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Checks for getting the remainder of a division by one.",
-      "Why is this bad": "The result can only ever be zero. No one will write\nsuch code deliberately, unless trying to win an Underhanded Rust\nContest. Even for that contest, it's probably a bad idea. Use something more\nunderhanded.",
+      "What it does": "Checks for getting the remainder of a division by one or minus\none.",
+      "Why is this bad": "The result for a divisor of one can only ever be zero; for\nminus one it can cause panic/overflow (if the left operand is the minimal value of\nthe respective integer type) or results in zero. No one will write such code\ndeliberately, unless trying to win an Underhanded Rust Contest. Even for that\ncontest, it's probably a bad idea. Use something more underhanded.",
       "Known problems": "None.",
-      "Example": "```rust\nlet a = x % 1;\n```"
+      "Example": "```rust\nlet a = x % 1;\nlet a = x % -1;\n```"
     }
   },
   {
