@@ -2113,7 +2113,7 @@
     "docs": {
       "What it does": "Checks for `match`  or `if let` expressions producing a\n`bool` that could be written using `matches!`",
       "Why is this bad": "Readability and needless complexity.",
-      "Known problems": "None",
+      "Known problems": "This lint falsely triggers, if there are arms with\n`cfg` attributes that remove an arm evaluating to `false`.",
       "Example": "```rust\nlet x = Some(5);\n\n// Bad\nlet a = match x {\n    Some(0) => true,\n    _ => false,\n};\n\nlet a = if let Some(0) = x {\n    true\n} else {\n    false\n};\n\n// Good\nlet a = matches!(x, Some(0));\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
