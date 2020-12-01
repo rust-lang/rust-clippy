@@ -39,7 +39,7 @@ use crate::utils::{
 
 declare_clippy_lint! {
     /// **What it does:** Checks for use of `Box<Vec<_>>` anywhere in the code.
-    /// Check the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.
+    /// Check the [Box documentation](std::boxed) for more information.
     ///
     /// **Why is this bad?** `Vec` already keeps its contents in a separate area on
     /// the heap. So if you `Box` it, you just add another level of indirection
@@ -68,7 +68,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// **What it does:** Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.
-    /// Check the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.
+    /// Check the [Box documentation](std::boxed) for more information.
     ///
     /// **Why is this bad?** `Vec` already keeps its contents in a separate area on
     /// the heap. So if you `Box` its contents, you just add another level of indirection.
@@ -171,7 +171,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// **What it does:** Checks for use of `&Box<T>` anywhere in the code.
-    /// Check the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.
+    /// Check the [Box documentation](std::boxed) for more information.
     ///
     /// **Why is this bad?** Any `&Box<T>` can also be a `&T`, which is more
     /// general.

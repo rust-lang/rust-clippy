@@ -212,7 +212,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Note that there are crates that simplify creating the error type, e.g.
-    /// [`thiserror`](https://docs.rs/thiserror).
+    /// [`thiserror`].
     pub RESULT_UNIT_ERR,
     style,
     "public function returning `Result` with an `Err` type of `()`"

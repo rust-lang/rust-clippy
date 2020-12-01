@@ -14,10 +14,10 @@ use rustc_span::sym;
 declare_clippy_lint! {
     /// **What it does:** Checks for types with a `fn new() -> Self` method and no
     /// implementation of
-    /// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).
+    /// [`Default`](std::default::Default).
     ///
     /// **Why is this bad?** The user might expect to be able to use
-    /// [`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the
+    /// [`Default`](std::default::Default) as the
     /// type can be constructed without arguments.
     ///
     /// **Known problems:** Hopefully none.

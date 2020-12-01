@@ -304,14 +304,14 @@ declare_clippy_lint! {
     ///   - yield or pause the thread
     ///
     /// For `std` targets, this can be done with
-    /// [`std::thread::sleep`](https://doc.rust-lang.org/std/thread/fn.sleep.html)
-    /// or [`std::thread::yield_now`](https://doc.rust-lang.org/std/thread/fn.yield_now.html).
+    /// [`std::thread::sleep`](std::thread::sleep())
+    /// or [`std::thread::yield_now`](std::thread::yield_now()).
     ///
     /// For `no_std` targets, doing this is more complicated, especially because
     /// `#[panic_handler]`s can't panic. To stop/pause the thread, you will
     /// probably need to invoke some target-specific intrinsic. Examples include:
-    ///   - [`x86_64::instructions::hlt`](https://docs.rs/x86_64/0.12.2/x86_64/instructions/fn.hlt.html)
-    ///   - [`cortex_m::asm::wfi`](https://docs.rs/cortex-m/0.6.3/cortex_m/asm/fn.wfi.html)
+    ///   - [`x86_64::instructions::hlt`](x86_64::instructions::hlt())
+    ///   - [`cortex_m::asm::wfi`](cortex_m::asm::wfi())
     ///
     /// **Known problems:** None.
     ///

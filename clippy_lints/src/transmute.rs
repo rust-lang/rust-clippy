@@ -131,8 +131,8 @@ declare_clippy_lint! {
     /// but has a semantically meaningful name.
     /// - You might want to handle `None` returned from [`from_u32`] instead of calling `unwrap`.
     ///
-    /// [`from_u32`]: https://doc.rust-lang.org/std/char/fn.from_u32.html
-    /// [`from_u32_unchecked`]: https://doc.rust-lang.org/std/char/fn.from_u32_unchecked.html
+    /// [`from_u32`]: std::char::from_u32()
+    /// [`from_u32_unchecked`]: std::char::from_u32_unchecked()
     ///
     /// **Example:**
     /// ```rust
@@ -162,8 +162,8 @@ declare_clippy_lint! {
     /// but has a semantically meaningful name.
     /// - You might want to handle errors returned from [`from_utf8`] instead of calling `unwrap`.
     ///
-    /// [`from_utf8`]: https://doc.rust-lang.org/std/str/fn.from_utf8.html
-    /// [`from_utf8_unchecked`]: https://doc.rust-lang.org/std/str/fn.from_utf8_unchecked.html
+    /// [`from_utf8`]: std::str::from_utf8()
+    /// [`from_utf8_unchecked`]: std::str::from_utf8_unchecked()
     ///
     /// **Example:**
     /// ```rust
