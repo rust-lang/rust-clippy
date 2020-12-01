@@ -8,7 +8,7 @@ declare_clippy_lint! {
     /// **What it does:** Checks for use of File::read_to_end and File::read_to_string.
     ///
     /// **Why is this bad?** `fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.
-    /// See also: [fs::read docs](std::fs::read()), [fs::read_to_string docs](std::fs::read_to_string())
+    /// See also: [`fs::read` docs](std::fs::read()), [`fs::read_to_string` docs](std::fs::read_to_string())
     ///
     /// **Known problems:** None.
     ///

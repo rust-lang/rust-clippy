@@ -1376,7 +1376,7 @@ declare_clippy_lint! {
     /// trait.
     ///
     /// **Why is this bad?** It is recommended style to use collect. See
-    /// [FromIterator documentation](std::iter::FromIterator)
+    /// [`FromIterator` documentation](std::iter::FromIterator)
     ///
     /// **Known problems:** None.
     ///

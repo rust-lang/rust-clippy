@@ -62,7 +62,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     ///
-    /// The [take_mut] crate offers a sound solution,
+    /// The [`take_mut`](https://docs.rs/take_mut) crate offers a sound solution,
     /// at the cost of either lazily creating a replacement value or aborting
     /// on panic, to ensure that the uninitialized value cannot be observed.
     pub MEM_REPLACE_WITH_UNINIT,
