@@ -451,6 +451,17 @@
     }
   },
   {
+    "id": "collapsible_match",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Finds nested `match` or `if let` expressions where the patterns may be \"collapsed\" together\nwithout adding any branches.\n\nNote that this lint is not intended to find _all_ cases where nested match patterns can be merged, but only\ncases where merging would most likely make the code more readable.",
+      "Why is this bad": "It is unnecessarily verbose and complex.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn func(opt: Option<Result<u64, String>>) {\n    let n = match opt {\n        Some(n) => match n {\n            Ok(n) => n,\n            _ => return,\n        }\n        None => return,\n    };\n}\n```\nUse instead:\n```rust\nfn func(opt: Option<Result<u64, String>>) {\n    let n = match opt {\n        Some(Ok(n)) => n,\n        _ => return,\n    };\n}\n```"
+    }
+  },
+  {
     "id": "comparison_chain",
     "group": "style",
     "level": "Warn",
