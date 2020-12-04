@@ -3592,10 +3592,10 @@
     "group": "correctness",
     "level": "Deny",
     "docs": {
-      "What it does": "Detects expressions where\nsize_of::<T> or size_of_val::<T> is used as a\ncount of elements of type T",
-      "Why is this bad": "These functions expect a count\nof T and not a number of bytes",
+      "What it does": "Detects expressions where\n`size_of::<T>` or `size_of_val::<T>` is used as a\ncount of elements of type `T`",
+      "Why is this bad": "These functions expect a count\nof `T` and not a number of bytes",
       "Known problems": "None.",
-      "Example": "```rust,no_run\n\nconst SIZE: usize = 128;\nlet x = [2u8; SIZE];\nlet mut y = [2u8; SIZE];\nunsafe { copy_nonoverlapping(x.as_ptr(), y.as_mut_ptr(), size_of::<u8>() * SIZE) };\n```"
+      "Example": "```rust,no_run\nconst SIZE: usize = 128;\nlet x = [2u8; SIZE];\nlet mut y = [2u8; SIZE];\nunsafe { copy_nonoverlapping(x.as_ptr(), y.as_mut_ptr(), size_of::<u8>() * SIZE) };\n```"
     }
   },
   {
