@@ -4313,7 +4313,8 @@
       "What it does": "Warns if a long integral or floating-point constant does\nnot contain underscores.",
       "Why is this bad": "Reading long numbers is difficult without separators.",
       "Known problems": "None.",
-      "Example": "```rust\n// Bad\nlet x: u64 = 61864918973511;\n\n// Good\nlet x: u64 = 61_864_918_973_511;\n```"
+      "Example": "```rust\n// Bad\nlet x: u64 = 61864918973511;\n\n// Good\nlet x: u64 = 61_864_918_973_511;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `unreadable-literal-lint-fractions: bool`: Should the fraction of a decimal be linted to include separators. (defaults to `true`)."
     }
   },
   {
