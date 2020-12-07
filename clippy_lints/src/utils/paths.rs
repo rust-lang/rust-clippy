@@ -139,6 +139,7 @@ pub const STD_FS_CREATE_DIR: [&str; 3] = ["std", "fs", "create_dir"];
 pub const STD_MEM_TRANSMUTE: [&str; 3] = ["std", "mem", "transmute"];
 pub const STD_PTR_NULL: [&str; 3] = ["std", "ptr", "null"];
 pub const STD_OPS_ADD: [&str; 3] = ["std", "ops", "Add"];
+pub const STD_OPS_SUB: [&str; 3] = ["std", "ops", "Sub"];
 pub const STRING: [&str; 3] = ["alloc", "string", "String"];
 pub const STRING_AS_MUT_STR: [&str; 4] = ["alloc", "string", "String", "as_mut_str"];
 pub const STRING_AS_STR: [&str; 4] = ["alloc", "string", "String", "as_str"];

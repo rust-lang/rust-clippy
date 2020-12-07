@@ -17,7 +17,7 @@ use rustc_hir as hir;
 use rustc_hir::{TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, Lint, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_middle::ty::{self, TraitRef, Ty, TyS};
+use rustc_middle::ty::{self, TraitRef, Ty, TyS, subst::GenericArg};
 use rustc_semver::RustcVersion;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::source_map::Span;
@@ -3773,23 +3773,26 @@ struct MethodCallOnOperatorTraidCase {
     pub param_count: usize,
     /// The format how the operation should be called instead
     pub preffered_impl: &'static str,
+    /// The trait path to load the traid id
+    pub trait_path: &'static [&'static str]
 }
 impl MethodCallOnOperatorTraidCase {
     #[allow(dead_code)]
-    const fn new(trait_name: &'static str, method_name: &'static str, param_count: usize, preffered_impl: &'static str) -> Self {
+    const fn new(trait_name: &'static str, method_name: &'static str, param_count: usize, preffered_impl: &'static str, trait_path: &'static [&'static str]) -> Self {
         Self {
             trait_name,
             method_name,
             param_count,
             preffered_impl,
+            trait_path,
         }
     }
 }
 
 #[rustfmt::skip]
 const TRAIT_METHODS_WITH_OPERATOR: [MethodCallOnOperatorTraidCase; 2] = [
-    MethodCallOnOperatorTraidCase::new("std::ops::Add", "add",  2, "{} + {}"),
-    MethodCallOnOperatorTraidCase::new("std::ops::Sub", "sub",  2, "{} - {}"),
+    MethodCallOnOperatorTraidCase::new("std::ops::Add", "add",  2, "{} + {}", &paths::STD_OPS_ADD),
+    MethodCallOnOperatorTraidCase::new("std::ops::Sub", "sub",  2, "{} - {}", &paths::STD_OPS_SUB),
 ];
 
 fn lint_method_call_on_operator_trait(
@@ -3803,14 +3806,15 @@ fn lint_method_call_on_operator_trait(
 
     if method_name == case.method_name {
         if args.len() == case.param_count {
+            let trait_id = get_trait_def_id(cx, case.trait_path).unwrap();
             
-            // TODO xFrednet 2020.12.07: support ops with one param_count (Using a slice)
+            // All traits have atleast self, [0] is therefore always valid
             let self_type = cx.typeck_results().expr_ty(&args[0]);
-            let other_type = cx.typeck_results().expr_ty(&args[1]);
-            
-            let trait_id = get_trait_def_id(cx, &paths::STD_OPS_ADD).unwrap();
-            let imples = implements_trait(cx, self_type, trait_id, &[other_type.into()]);
-            println!("-- {:?} {:?} -> {:?}", self_type, other_type, imples);
+            let other_type: Vec<GenericArg<'_>> = args.iter().skip(1).map(|x| cx.typeck_results().expr_ty(x).into()).collect();
+
+            if implements_trait(cx, self_type, trait_id, &other_type) {
+                println!("Lint trigger for {:?}", self_type);
+            }
         }
     }
 }
