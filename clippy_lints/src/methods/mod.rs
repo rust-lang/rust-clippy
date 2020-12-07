@@ -1404,6 +1404,29 @@ declare_clippy_lint! {
     "use `.collect()` instead of `::from_iter()`"
 }
 
+declare_clippy_lint! {
+    /// **What it does:** This lint validates that the code uses the operation symbol for
+    /// the `std::ops` operations.
+    ///
+    /// **Why is this bad?** The operation traits are meant to be called by their operation
+    /// symbols. Using the operators makes code more concise.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    ///
+    /// ```rust
+    /// // Bad
+    /// let a = b.add(c);
+    /// 
+    /// // Good
+    /// let a = b + c;
+    /// ```
+    pub USE_OF_OPERATOR_TRAIT_METHOD,
+    style,
+    "Use the operation symbol instead of the trait function."
+}
+
 pub struct Methods {
     msrv: Option<RustcVersion>,
 }
@@ -1466,6 +1489,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_LAZY_EVALUATIONS,
     MAP_COLLECT_RESULT_UNIT,
     FROM_ITER_INSTEAD_OF_COLLECT,
+    USE_OF_OPERATOR_TRAIT_METHOD,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Methods {
@@ -1566,6 +1590,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             hir::ExprKind::MethodCall(ref method_call, ref method_span, ref args, _) => {
                 lint_or_fun_call(cx, expr, *method_span, &method_call.ident.as_str(), args);
                 lint_expect_fun_call(cx, expr, *method_span, &method_call.ident.as_str(), args);
+                lint_method_call_on_operator_trait(cx, expr, *method_span, &method_call.ident.as_str(), args);
 
                 let self_ty = cx.typeck_results().expr_ty_adjusted(&args[0]);
                 if args.len() == 1 && method_call.ident.name == sym!(clone) {
@@ -3737,6 +3762,58 @@ const TRAIT_METHODS: [ShouldImplTraitCase; 30] = [
     ShouldImplTraitCase::new("std::ops::Shr", "shr",  2,  FN_HEADER,  SelfKind::Value,  OutType::Any, true),
     ShouldImplTraitCase::new("std::ops::Sub", "sub",  2,  FN_HEADER,  SelfKind::Value,  OutType::Any, true),
 ];
+
+/// This struct holds information to validate the `TRAIT_OPERATOR_INSTEAD_OF_FUNCTION` lint
+struct MethodCallOnOperatorTraidCase {
+    /// The name of the trait including the namespace
+    pub trait_name: &'static str,
+    /// The function of the trait
+    pub method_name: &'static str,
+    /// The amount of parameters that the trait function takes
+    pub param_count: usize,
+    /// The format how the operation should be called instead
+    pub preffered_impl: &'static str,
+}
+impl MethodCallOnOperatorTraidCase {
+    #[allow(dead_code)]
+    const fn new(trait_name: &'static str, method_name: &'static str, param_count: usize, preffered_impl: &'static str) -> Self {
+        Self {
+            trait_name,
+            method_name,
+            param_count,
+            preffered_impl,
+        }
+    }
+}
+
+#[rustfmt::skip]
+const TRAIT_METHODS_WITH_OPERATOR: [MethodCallOnOperatorTraidCase; 2] = [
+    MethodCallOnOperatorTraidCase::new("std::ops::Add", "add",  2, "{} + {}"),
+    MethodCallOnOperatorTraidCase::new("std::ops::Sub", "sub",  2, "{} - {}"),
+];
+
+fn lint_method_call_on_operator_trait(
+    cx: &LateContext<'_>,
+    _expr: &hir::Expr<'_>,
+    _method_span: Span,
+    method_name: &str,
+    args: &[hir::Expr<'_>],
+) {
+    let case = &TRAIT_METHODS_WITH_OPERATOR[0];
+
+    if method_name == case.method_name {
+        if args.len() == case.param_count {
+            
+            // TODO xFrednet 2020.12.07: support ops with one param_count (Using a slice)
+            let self_type = cx.typeck_results().expr_ty(&args[0]);
+            let other_type = cx.typeck_results().expr_ty(&args[1]);
+            
+            let trait_id = get_trait_def_id(cx, &paths::STD_OPS_ADD).unwrap();
+            let imples = implements_trait(cx, self_type, trait_id, &[other_type.into()]);
+            println!("-- {:?} {:?} -> {:?}", self_type, other_type, imples);
+        }
+    }
+}
 
 #[rustfmt::skip]
 const PATTERN_METHODS: [(&str, usize); 17] = [

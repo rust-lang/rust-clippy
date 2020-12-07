@@ -2139,6 +2139,7 @@ Released 2018-09-13
 [`unwrap_in_result`]: https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_in_result
 [`unwrap_used`]: https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_used
 [`use_debug`]: https://rust-lang.github.io/rust-clippy/master/index.html#use_debug
+[`use_of_operator_trait_method`]: https://rust-lang.github.io/rust-clippy/master/index.html#use_of_operator_trait_method
 [`use_self`]: https://rust-lang.github.io/rust-clippy/master/index.html#use_self
 [`used_underscore_binding`]: https://rust-lang.github.io/rust-clippy/master/index.html#used_underscore_binding
 [`useless_asref`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_asref
