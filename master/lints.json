@@ -2946,10 +2946,10 @@
     "group": "restriction",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for usage of `panic!`, `unimplemented!`, `todo!` or `unreachable!` in a function of type result.",
-      "Why is this bad": "For some codebases, it is desirable for functions of type result to return an error instead of crashing. Hence unimplemented, panic and unreachable should be avoided.",
-      "Known problems": "None.",
-      "Example": "```rust\nfn result_with_panic() -> Result<bool, String>\n{\n    panic!(\"error\");\n}\n```"
+      "What it does": "Checks for usage of `panic!`, `unimplemented!`, `todo!`, `unreachable!` or assertions in a function of type result.",
+      "Why is this bad": "For some codebases, it is desirable for functions of type result to return an error instead of crashing. Hence panicking macros should be avoided.",
+      "Known problems": "Functions called from a function returning a `Result` may invoke a panicking macro. This is not checked.",
+      "Example": "```rust\nfn result_with_panic() -> Result<bool, String>\n{\n    panic!(\"error\");\n}\n```\nUse instead:\n```rust\nfn result_without_panic() -> Result<bool, String> {\n    Err(String::from(\"error\"))\n}\n```"
     }
   },
   {
