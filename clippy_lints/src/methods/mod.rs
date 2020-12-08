@@ -1405,13 +1405,13 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
-    /// **What it does:** This lint validates that the code uses the operation symbol for
-    /// the `std::ops` operations.
+    /// **What it does:** This lint checks that the code used th operators of the
+    /// `std::ops::*` traits.
     ///
-    /// **Why is this bad?** The operation traits are meant to be called by their operation
-    /// symbols. Using the operators makes code more concise.
+    /// **Why is this bad?** Using the operators usually makes the code more readable
+    /// and consistent among all types.
     ///
-    /// **Known problems:** None.
+    /// **Known problems:** The suggestion don't take the operator priorities into account.
     ///
     /// **Example:**
     ///
@@ -1424,7 +1424,7 @@ declare_clippy_lint! {
     /// ```
     pub USE_OF_OPERATOR_TRAIT_METHOD,
     style,
-    "Use the operation symbol instead of the trait function."
+    "Use the operator instead of the trait method"
 }
 
 pub struct Methods {
@@ -3809,7 +3809,7 @@ const TRAIT_METHODS_WITH_OPERATOR: [MethodCallOnOperatorTraitCase; 24] = [
     MethodCallOnOperatorTraitCase::new("std::ops::Rem", "rem", 2, "{a} % {b}", &paths::STD_OPS_REM, Applicability::MaybeIncorrect),
     MethodCallOnOperatorTraitCase::new("std::ops::Shl", "shl", 2, "{a} << {b}", &paths::STD_OPS_SHL, Applicability::MaybeIncorrect),
     MethodCallOnOperatorTraitCase::new("std::ops::Shr", "shr", 2, "{a} >> {b}", &paths::STD_OPS_SHR, Applicability::MaybeIncorrect),
-    MethodCallOnOperatorTraitCase::new("std::ops::BitAnd", "bit_and", 2, "{a} & {b}", &paths::STD_OPS_BIT_AND, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitAnd", "bitand", 2, "{a} & {b}", &paths::STD_OPS_BIT_AND, Applicability::MaybeIncorrect),
     MethodCallOnOperatorTraitCase::new("std::ops::BitOr", "bitor", 2, "{a} | {b}", &paths::STD_OPS_BITOR, Applicability::MaybeIncorrect),
     MethodCallOnOperatorTraitCase::new("std::ops::BitXor", "bitxor", 2, "{a} ^ {b}", &paths::STD_OPS_BITXOR, Applicability::MaybeIncorrect),
     MethodCallOnOperatorTraitCase::new("std::ops::AddAssign", "add_assign", 2, "{a} += {b}", &paths::STD_OPS_ADD_ASSIGN, Applicability::MachineApplicable),
@@ -3819,7 +3819,7 @@ const TRAIT_METHODS_WITH_OPERATOR: [MethodCallOnOperatorTraitCase; 24] = [
     MethodCallOnOperatorTraitCase::new("std::ops::RemAssign", "rem_assign", 2, "{a} %= {b}", &paths::STD_OPS_REM_ASSIGN, Applicability::MachineApplicable),
     MethodCallOnOperatorTraitCase::new("std::ops::ShlAssign", "shl_assign", 2, "{a} <<= {b}", &paths::STD_OPS_SHL_ASSIGN, Applicability::MachineApplicable),
     MethodCallOnOperatorTraitCase::new("std::ops::ShrAssign", "shr_assign", 2, "{a} >>= {b}", &paths::STD_OPS_SHR_ASSIGN, Applicability::MachineApplicable),
-    MethodCallOnOperatorTraitCase::new("std::ops::BitAndAssign", "bit_and_assign", 2, "{a} &= {b}", &paths::STD_OPS_BIT_AND_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitAndAssign", "bitand_assign", 2, "{a} &= {b}", &paths::STD_OPS_BIT_AND_ASSIGN, Applicability::MachineApplicable),
     MethodCallOnOperatorTraitCase::new("std::ops::BitOrAssign", "bitor_assign", 2, "{a} |= {b}", &paths::STD_OPS_BITOR_ASSIGN, Applicability::MachineApplicable),
     MethodCallOnOperatorTraitCase::new("std::ops::BitXorAssign", "bitxor_assign", 2, "{a} ^= {b}", &paths::STD_OPS_BITXOR_ASSIGN, Applicability::MachineApplicable),
     MethodCallOnOperatorTraitCase::new("std::ops::Neg", "neg",  1, "-{a}", &paths::STD_OPS_NEG, Applicability::MaybeIncorrect),
@@ -3849,14 +3849,19 @@ fn lint_method_call_on_operator_trait(
             if implements_trait(cx, self_type, trait_id, &other_type) {
                 let mut applicability = case.applicability;
 
-                
                 let suggestion = {
                     let mut suggestion = case.suggestion.to_string();
-                    suggestion = suggestion.replace("{a}", snippet_with_applicability(cx, args[0].span, "_", &mut applicability).as_ref());
+                    suggestion = suggestion.replace(
+                        "{a}",
+                        snippet_with_applicability(cx, args[0].span, "_", &mut applicability).as_ref(),
+                    );
                     if args.len() == 2 {
-                        suggestion = suggestion.replace("{b}", snippet_with_applicability(cx, args[1].span, "_", &mut applicability).as_ref());
+                        suggestion = suggestion.replace(
+                            "{b}",
+                            snippet_with_applicability(cx, args[1].span, "_", &mut applicability).as_ref(),
+                        );
                     }
-                    
+
                     suggestion
                 };
 

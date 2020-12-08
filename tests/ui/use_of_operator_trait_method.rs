@@ -18,7 +18,7 @@ impl Add for A {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        Self (self.0 + other.0)
+        Self(self.0 + other.0)
     }
 }
 
@@ -71,7 +71,7 @@ fn test_custom_impl() {
 fn main() {
     test_primitives();
     test_custom_impl();
-    
+
     // Don't warn in macros
     foo!();
 
