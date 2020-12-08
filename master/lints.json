@@ -3036,6 +3036,17 @@
     }
   },
   {
+    "id": "print_stderr",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for printing on *stderr*. The purpose of this lint\nis to catch debugging remnants.",
+      "Why is this bad": "People often print on *stderr* while debugging an\napplication and might forget to remove those prints afterward.",
+      "Known problems": "Only catches `eprint!` and `eprintln!` calls.",
+      "Example": "```rust\neprintln!(\"Hello world!\");\n```"
+    }
+  },
+  {
     "id": "print_stdout",
     "group": "restriction",
     "level": "Allow",
