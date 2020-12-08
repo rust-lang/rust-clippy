@@ -3232,6 +3232,17 @@
     }
   },
   {
+    "id": "redundant_else",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `else` blocks that can be removed without changing semantics.",
+      "Why is this bad": "The `else` block adds unnecessary indentation and verbosity.",
+      "Known problems": "Some may prefer to keep the `else` block for clarity.",
+      "Example": "```rust\nfn my_func(count: u32) {\n    if count == 0 {\n        print!(\"Nothing to do\");\n        return;\n    } else {\n        print!(\"Moving on...\");\n    }\n}\n```\nUse instead:\n```rust\nfn my_func(count: u32) {\n    if count == 0 {\n        print!(\"Nothing to do\");\n        return;\n    }\n    print!(\"Moving on...\");\n}\n```"
+    }
+  },
+  {
     "id": "redundant_field_names",
     "group": "style",
     "level": "Warn",
