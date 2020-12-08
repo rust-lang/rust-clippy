@@ -18,7 +18,7 @@ LL |     if !fs::metadata("foo.txt")?.file_type().is_file() {
 error: `FileType::is_file()` only covers regular files
   --> $DIR/filetype_is_file.rs:18:9
    |
-LL |     if !fs::metadata("foo.txt")?.file_type().is_file().bitor(true) {
+LL |     if !fs::metadata("foo.txt")?.file_type().is_file().eq(&true) {
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = help: use `!FileType::is_dir()` instead

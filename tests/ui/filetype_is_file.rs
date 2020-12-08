@@ -15,7 +15,7 @@ fn main() -> std::io::Result<()> {
     }
 
     // false positive of filetype.is_dir()
-    if !fs::metadata("foo.txt")?.file_type().is_file().bitor(true) {
+    if !fs::metadata("foo.txt")?.file_type().is_file().eq(&true) {
         // ...
     }
 

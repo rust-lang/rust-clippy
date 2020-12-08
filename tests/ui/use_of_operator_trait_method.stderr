@@ -1,0 +1,94 @@
+error: use of `add` method of the operator trait `std::ops::Add`
+  --> $DIR/use_of_operator_trait_method.rs:46:13
+   |
+LL |     let _ = 16_i32.add(13);
+   |             ^^^^^^^^^^^^^^ help: consider using the operator like this: : `16_i32 + 13`
+   |
+   = note: `-D clippy::use-of-operator-trait-method` implied by `-D warnings`
+
+error: use of `sub` method of the operator trait `std::ops::Sub`
+  --> $DIR/use_of_operator_trait_method.rs:47:13
+   |
+LL |     let _ = 7_i32.sub(19);
+   |             ^^^^^^^^^^^^^ help: consider using the operator like this: : `7_i32 - 19`
+
+error: use of `mul` method of the operator trait `std::ops::Mul`
+  --> $DIR/use_of_operator_trait_method.rs:48:13
+   |
+LL |     let _ = 15_i32.mul(33);
+   |             ^^^^^^^^^^^^^^ help: consider using the operator like this: : `15_i32 * 33`
+
+error: use of `div` method of the operator trait `std::ops::Div`
+  --> $DIR/use_of_operator_trait_method.rs:49:13
+   |
+LL |     let _ = 26_i32.div(7);
+   |             ^^^^^^^^^^^^^ help: consider using the operator like this: : `26_i32 / 7`
+
+error: use of `sub_assign` method of the operator trait `std::ops::SubAssign`
+  --> $DIR/use_of_operator_trait_method.rs:52:5
+   |
+LL |     num.sub_assign(4.0);
+   |     ^^^^^^^^^^^^^^^^^^^ help: consider using the operator like this: : `num -= 4.0`
+
+error: use of `add_assign` method of the operator trait `std::ops::AddAssign`
+  --> $DIR/use_of_operator_trait_method.rs:53:5
+   |
+LL |     num.add_assign(8.0);
+   |     ^^^^^^^^^^^^^^^^^^^ help: consider using the operator like this: : `num += 8.0`
+
+error: use of `mul_assign` method of the operator trait `std::ops::MulAssign`
+  --> $DIR/use_of_operator_trait_method.rs:54:5
+   |
+LL |     num.mul_assign(2.0);
+   |     ^^^^^^^^^^^^^^^^^^^ help: consider using the operator like this: : `num *= 2.0`
+
+error: use of `div_assign` method of the operator trait `std::ops::DivAssign`
+  --> $DIR/use_of_operator_trait_method.rs:55:5
+   |
+LL |     num.div_assign(6.0);
+   |     ^^^^^^^^^^^^^^^^^^^ help: consider using the operator like this: : `num /= 6.0`
+
+error: use of `neg` method of the operator trait `std::ops::Neg`
+  --> $DIR/use_of_operator_trait_method.rs:56:13
+   |
+LL |     let _ = num.neg();
+   |             ^^^^^^^^^ help: consider using the operator like this: : `-num`
+
+error: use of `not` method of the operator trait `std::ops::Not`
+  --> $DIR/use_of_operator_trait_method.rs:58:13
+   |
+LL |     let _ = true.not();
+   |             ^^^^^^^^^^ help: consider using the operator like this: : `!true`
+
+error: use of `bitxor` method of the operator trait `std::ops::BitXor`
+  --> $DIR/use_of_operator_trait_method.rs:60:13
+   |
+LL |     let _ = 0xff_u8.bitand(0xf0).bitor(0x04).bitxor(0x80);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using the operator like this: : `0xff_u8.bitand(0xf0).bitor(0x04) ^ 0x80`
+
+error: use of `bitor` method of the operator trait `std::ops::BitOr`
+  --> $DIR/use_of_operator_trait_method.rs:60:13
+   |
+LL |     let _ = 0xff_u8.bitand(0xf0).bitor(0x04).bitxor(0x80);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using the operator like this: : `0xff_u8.bitand(0xf0) | 0x04`
+
+error: use of `add` method of the operator trait `std::ops::Add`
+  --> $DIR/use_of_operator_trait_method.rs:64:13
+   |
+LL |     let _ = A(5).add(A(5));
+   |             ^^^^^^^^^^^^^^ help: consider using the operator like this: : `A(5) + A(5)`
+
+error: use of `sub` method of the operator trait `std::ops::Sub`
+  --> $DIR/use_of_operator_trait_method.rs:65:13
+   |
+LL |     let _ = B(34).sub(B(21));
+   |             ^^^^^^^^^^^^^^^^ help: consider using the operator like this: : `B(34) - B(21)`
+
+error: use of `div` method of the operator trait `std::ops::Div`
+  --> $DIR/use_of_operator_trait_method.rs:66:13
+   |
+LL |     let _ = A(1).div(B(17));
+   |             ^^^^^^^^^^^^^^^ help: consider using the operator like this: : `A(1) / B(17)`
+
+error: aborting due to 15 previous errors
+

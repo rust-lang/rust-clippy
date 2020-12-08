@@ -17,7 +17,7 @@ use rustc_hir as hir;
 use rustc_hir::{TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, Lint, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_middle::ty::{self, TraitRef, Ty, TyS, subst::GenericArg};
+use rustc_middle::ty::{self, subst::GenericArg, TraitRef, Ty, TyS};
 use rustc_semver::RustcVersion;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::source_map::Span;
@@ -1418,7 +1418,7 @@ declare_clippy_lint! {
     /// ```rust
     /// // Bad
     /// let a = b.add(c);
-    /// 
+    ///
     /// // Good
     /// let a = b + c;
     /// ```
@@ -1590,7 +1590,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             hir::ExprKind::MethodCall(ref method_call, ref method_span, ref args, _) => {
                 lint_or_fun_call(cx, expr, *method_span, &method_call.ident.as_str(), args);
                 lint_expect_fun_call(cx, expr, *method_span, &method_call.ident.as_str(), args);
-                lint_method_call_on_operator_trait(cx, expr, *method_span, &method_call.ident.as_str(), args);
+                lint_method_call_on_operator_trait(cx, expr, &method_call.ident.as_str(), args);
 
                 let self_ty = cx.typeck_results().expr_ty_adjusted(&args[0]);
                 if args.len() == 1 && method_call.ident.name == sym!(clone) {
@@ -3764,7 +3764,7 @@ const TRAIT_METHODS: [ShouldImplTraitCase; 30] = [
 ];
 
 /// This struct holds information to validate the `TRAIT_OPERATOR_INSTEAD_OF_FUNCTION` lint
-struct MethodCallOnOperatorTraidCase {
+struct MethodCallOnOperatorTraitCase {
     /// The name of the trait including the namespace
     pub trait_name: &'static str,
     /// The function of the trait
@@ -3772,48 +3772,106 @@ struct MethodCallOnOperatorTraidCase {
     /// The amount of parameters that the trait function takes
     pub param_count: usize,
     /// The format how the operation should be called instead
-    pub preffered_impl: &'static str,
+    pub suggestion: &'static str,
     /// The trait path to load the traid id
-    pub trait_path: &'static [&'static str]
+    pub trait_path: &'static [&'static str],
+    /// Applicability of the operator. This is used for operators where the result could be effected
+    /// by the operator priority.
+    pub applicability: Applicability,
 }
-impl MethodCallOnOperatorTraidCase {
+impl MethodCallOnOperatorTraitCase {
     #[allow(dead_code)]
-    const fn new(trait_name: &'static str, method_name: &'static str, param_count: usize, preffered_impl: &'static str, trait_path: &'static [&'static str]) -> Self {
+    const fn new(
+        trait_name: &'static str,
+        method_name: &'static str,
+        param_count: usize,
+        suggestion: &'static str,
+        trait_path: &'static [&'static str],
+        applicability: Applicability,
+    ) -> Self {
         Self {
             trait_name,
             method_name,
             param_count,
-            preffered_impl,
+            suggestion,
             trait_path,
+            applicability,
         }
     }
 }
 
 #[rustfmt::skip]
-const TRAIT_METHODS_WITH_OPERATOR: [MethodCallOnOperatorTraidCase; 2] = [
-    MethodCallOnOperatorTraidCase::new("std::ops::Add", "add",  2, "{} + {}", &paths::STD_OPS_ADD),
-    MethodCallOnOperatorTraidCase::new("std::ops::Sub", "sub",  2, "{} - {}", &paths::STD_OPS_SUB),
+const TRAIT_METHODS_WITH_OPERATOR: [MethodCallOnOperatorTraitCase; 24] = [
+    MethodCallOnOperatorTraitCase::new("std::ops::Add", "add", 2, "{a} + {b}", &paths::STD_OPS_ADD, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Div", "div", 2, "{a} \\ {b}", &paths::STD_OPS_DIV, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Mul", "mul", 2, "{a} * {b}", &paths::STD_OPS_MUL, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Sub", "sub", 2, "{a} - {b}", &paths::STD_OPS_SUB, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Rem", "rem", 2, "{a} % {b}", &paths::STD_OPS_REM, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Shl", "shl", 2, "{a} << {b}", &paths::STD_OPS_SHL, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Shr", "shr", 2, "{a} >> {b}", &paths::STD_OPS_SHR, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitAnd", "bit_and", 2, "{a} & {b}", &paths::STD_OPS_BIT_AND, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitOr", "bitor", 2, "{a} | {b}", &paths::STD_OPS_BITOR, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitXor", "bitxor", 2, "{a} ^ {b}", &paths::STD_OPS_BITXOR, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::AddAssign", "add_assign", 2, "{a} += {b}", &paths::STD_OPS_ADD_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::DivAssign", "div_assign", 2, "{a} \\= {b}", &paths::STD_OPS_DIV_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::MulAssign", "mul_assign", 2, "{a} *= {b}", &paths::STD_OPS_MUL_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::SubAssign", "sub_assign", 2, "{a} -= {b}", &paths::STD_OPS_SUB_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::RemAssign", "rem_assign", 2, "{a} %= {b}", &paths::STD_OPS_REM_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::ShlAssign", "shl_assign", 2, "{a} <<= {b}", &paths::STD_OPS_SHL_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::ShrAssign", "shr_assign", 2, "{a} >>= {b}", &paths::STD_OPS_SHR_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitAndAssign", "bit_and_assign", 2, "{a} &= {b}", &paths::STD_OPS_BIT_AND_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitOrAssign", "bitor_assign", 2, "{a} |= {b}", &paths::STD_OPS_BITOR_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::BitXorAssign", "bitxor_assign", 2, "{a} ^= {b}", &paths::STD_OPS_BITXOR_ASSIGN, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::Neg", "neg",  1, "-{a}", &paths::STD_OPS_NEG, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Not", "not",  1, "!{a}", &paths::STD_OPS_NOT, Applicability::MaybeIncorrect),
+    MethodCallOnOperatorTraitCase::new("std::ops::Index", "index",  1, "{a}[]", &paths::STD_OPS_INDEX, Applicability::MachineApplicable),
+    MethodCallOnOperatorTraitCase::new("std::ops::IndexMut", "index_mut",  1, "{a}[]", &paths::STD_OPS_INDEX_MUT, Applicability::MachineApplicable),
 ];
 
 fn lint_method_call_on_operator_trait(
     cx: &LateContext<'_>,
-    _expr: &hir::Expr<'_>,
-    _method_span: Span,
+    expr: &hir::Expr<'_>,
     method_name: &str,
     args: &[hir::Expr<'_>],
 ) {
-    let case = &TRAIT_METHODS_WITH_OPERATOR[0];
-
-    if method_name == case.method_name {
-        if args.len() == case.param_count {
+    for case in &TRAIT_METHODS_WITH_OPERATOR {
+        if method_name == case.method_name && args.len() == case.param_count {
             let trait_id = get_trait_def_id(cx, case.trait_path).unwrap();
-            
+
             // All traits have atleast self, [0] is therefore always valid
             let self_type = cx.typeck_results().expr_ty(&args[0]);
-            let other_type: Vec<GenericArg<'_>> = args.iter().skip(1).map(|x| cx.typeck_results().expr_ty(x).into()).collect();
+            let other_type: Vec<GenericArg<'_>> = args
+                .iter()
+                .skip(1)
+                .map(|x| cx.typeck_results().expr_ty(x).into())
+                .collect();
 
             if implements_trait(cx, self_type, trait_id, &other_type) {
-                println!("Lint trigger for {:?}", self_type);
+                let mut applicability = case.applicability;
+
+                
+                let suggestion = {
+                    let mut suggestion = case.suggestion.to_string();
+                    suggestion = suggestion.replace("{a}", snippet_with_applicability(cx, args[0].span, "_", &mut applicability).as_ref());
+                    if args.len() == 2 {
+                        suggestion = suggestion.replace("{b}", snippet_with_applicability(cx, args[1].span, "_", &mut applicability).as_ref());
+                    }
+                    
+                    suggestion
+                };
+
+                span_lint_and_sugg(
+                    cx,
+                    USE_OF_OPERATOR_TRAIT_METHOD,
+                    expr.span,
+                    &format!(
+                        "use of `{}` method of the operator trait `{}`",
+                        case.method_name, case.trait_name
+                    ),
+                    &format!("consider using the operator like this: "),
+                    suggestion,
+                    applicability,
+                );
             }
         }
     }
