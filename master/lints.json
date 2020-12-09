@@ -4840,6 +4840,17 @@
     }
   },
   {
+    "id": "zero_sized_map_values",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for maps with zero-sized value types anywhere in the code.",
+      "Why is this bad": "Since there is only a single value for a zero-sized type, a map\ncontaining zero sized values is effectively a set. Using a set in that case improves\nreadability and communicates intent more clearly.",
+      "Known problems": "* A zero-sized type cannot be recovered later if it contains private fields.\n* This lints the signature of public items",
+      "Example": "```rust\nfn unique_words(text: &str) -> HashMap<&str, ()> {\n    todo!();\n}\n```\nUse instead:\n```rust\nfn unique_words(text: &str) -> HashSet<&str> {\n    todo!();\n}\n```"
+    }
+  },
+  {
     "id": "zst_offset",
     "group": "correctness",
     "level": "Deny",
