@@ -10,6 +10,7 @@ use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::LateContext;
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty;
+use rustc_span::sym;
 use rustc_span::symbol::{Ident, Symbol};
 use rustc_typeck::expr_use_visitor::{ConsumeMode, Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
 
@@ -227,4 +228,41 @@ pub fn contains_return_break_continue_macro(expression: &Expr<'_>) -> bool {
     let mut recursive_visitor = ReturnBreakContinueMacroVisitor::new();
     recursive_visitor.visit_expr(expression);
     recursive_visitor.seen_return_break_continue
+}
+
+pub struct UsesOptionOrResult<'a, 'tcx> {
+    cx: &'a LateContext<'tcx>,
+    pub found: bool,
+}
+
+impl<'a, 'tcx> UsesOptionOrResult<'a, 'tcx> {
+    pub fn new(cx: &'a LateContext<'tcx>) -> Self {
+        Self { cx, found: false }
+    }
+
+    fn check_place_with_id(&mut self, place_with_id: &PlaceWithHirId<'tcx>) {
+        if !self.found {
+            if let Some(adt_def) = place_with_id.place.ty().peel_refs().ty_adt_def() {
+                if self.cx.tcx.is_diagnostic_item(sym::option_type, adt_def.did)
+                    || self.cx.tcx.is_diagnostic_item(sym::result_type, adt_def.did)
+                {
+                    self.found = true;
+                }
+            }
+        }
+    }
+}
+
+impl<'a, 'tcx> Delegate<'tcx> for UsesOptionOrResult<'a, 'tcx> {
+    fn consume(&mut self, place_with_id: &PlaceWithHirId<'tcx>, _: HirId, _: ConsumeMode) {
+        self.check_place_with_id(place_with_id);
+    }
+
+    fn borrow(&mut self, place_with_id: &PlaceWithHirId<'tcx>, _: HirId, _: ty::BorrowKind) {
+        self.check_place_with_id(place_with_id);
+    }
+
+    fn mutate(&mut self, place_with_id: &PlaceWithHirId<'tcx>, _: HirId) {
+        self.check_place_with_id(place_with_id);
+    }
 }

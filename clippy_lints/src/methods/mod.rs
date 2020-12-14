@@ -14,7 +14,8 @@ use if_chain::if_chain;
 use rustc_ast::ast;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_hir::{TraitItem, TraitItemKind};
+use rustc_hir::{ExprKind, TraitItem, TraitItemKind};
+use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, LateLintPass, Lint, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::{self, TraitRef, Ty, TyS};
@@ -22,10 +23,11 @@ use rustc_semver::RustcVersion;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::source_map::Span;
 use rustc_span::symbol::{sym, SymbolStr};
+use rustc_typeck::expr_use_visitor::ExprUseVisitor;
 
 use crate::consts::{constant, Constant};
 use crate::utils::eager_or_lazy::is_lazyness_candidate;
-use crate::utils::usage::mutated_variables;
+use crate::utils::usage::{mutated_variables, UsesOptionOrResult};
 use crate::utils::{
     contains_return, contains_ty, get_arg_name, get_parent_expr, get_trait_def_id, has_iter_method, higher,
     implements_trait, in_macro, is_copy, is_expn_of, is_type_diagnostic_item, iter_input_pats, last_path_segment,
@@ -2927,15 +2929,39 @@ fn lint_skip_while_next<'tcx>(
 fn lint_filter_map<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx hir::Expr<'_>,
-    _filter_args: &'tcx [hir::Expr<'_>],
+    filter_args: &'tcx [hir::Expr<'_>],
     _map_args: &'tcx [hir::Expr<'_>],
 ) {
-    // lint if caller of `.filter().map()` is an Iterator
-    if match_trait_method(cx, expr, &paths::ITERATOR) {
-        let msg = "called `filter(..).map(..)` on an `Iterator`";
-        let hint = "this is more succinctly expressed by calling `.filter_map(..)` instead";
-        span_lint_and_help(cx, FILTER_MAP, expr.span, msg, None, hint);
+    if_chain! {
+        // lint if caller of `.filter().map()` is an Iterator
+        if match_trait_method(cx, expr, &paths::ITERATOR);
+        if let [_, filter_arg] = filter_args;
+        if filter_map_heuristic(filter_arg, cx);
+        then {
+            let msg = "called `filter(..).map(..)` on an `Iterator`";
+            let hint = "this is more succinctly expressed by calling `.filter_map(..)` instead";
+            span_lint_and_help(cx, FILTER_MAP, expr.span, msg, None, hint);
+        }
     }
+}
+
+/// Checks the argument to `filter` to see if it is a candidate for replacement with `filter_map`.
+/// Or similarly check `find` for replacement with `find_map`.
+/// It simply checks if `Option` or `Result` is used at all.
+fn filter_map_heuristic(filter_arg: &hir::Expr<'_>, cx: &LateContext<'_>) -> bool {
+    if let ExprKind::Closure(_, _, body_id, ..) = filter_arg.kind {
+        let map = cx.tcx.hir();
+        let fn_def_id = map.local_def_id(filter_arg.hir_id);
+        let body = map.body(body_id);
+        let mut delegate = UsesOptionOrResult::new(cx);
+        cx.tcx.infer_ctxt().enter(|infcx| {
+            ExprUseVisitor::new(&mut delegate, &infcx, fn_def_id, cx.param_env, cx.typeck_results()).consume_body(body);
+        });
+        if delegate.found {
+            return true;
+        }
+    }
+    false
 }
 
 const FILTER_MAP_NEXT_MSRV: RustcVersion = RustcVersion::new(1, 30, 0);
