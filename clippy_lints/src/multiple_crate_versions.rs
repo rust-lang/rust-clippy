@@ -51,7 +51,8 @@ impl LateLintPass<'_> for MultipleCrateVersions {
             if let Some(resolve) = &metadata.resolve;
             if let Some(local_id) = packages
                 .iter()
-                .find_map(|p| if p.name == *local_name { Some(&p.id) } else { None });
+                .find(|p| p.name == *local_name)
+                .map(|p| &p.id);
             then {
                 for (name, group) in &packages.iter().group_by(|p| p.name.clone()) {
                     let group: Vec<&Package> = group.collect();

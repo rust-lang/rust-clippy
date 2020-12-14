@@ -203,9 +203,7 @@ fn check_pat<'tcx>(
                 if let ExprKind::Struct(_, ref efields, _) = init_struct.kind {
                     for field in pfields {
                         let name = field.ident.name;
-                        let efield = efields
-                            .iter()
-                            .find_map(|f| if f.ident.name == name { Some(&*f.expr) } else { None });
+                        let efield = efields.iter().find(|f| f.ident.name == name).map(|f| f.expr);
                         check_pat(cx, &field.pat, efield, span, bindings);
                     }
                 } else {

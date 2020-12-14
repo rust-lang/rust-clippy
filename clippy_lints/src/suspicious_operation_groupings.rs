@@ -688,6 +688,5 @@ fn skip_index<A, Iter>(iter: Iter, index: usize) -> impl Iterator<Item = A>
 where
     Iter: Iterator<Item = A>,
 {
-    iter.enumerate()
-        .filter_map(move |(i, a)| if i == index { None } else { Some(a) })
+    iter.enumerate().filter(move |&(i, _)| i != index).map(|(_, a)| a)
 }
