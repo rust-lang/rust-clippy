@@ -356,8 +356,6 @@ pub fn path_to_res(cx: &LateContext<'_>, path: &[&str]) -> Option<def::Res> {
                 let item_def_id = current_item.res.def_id();
                 if cx.tcx.def_kind(item_def_id) == DefKind::Struct;
                 then {
-                    // Bad `find_map` suggestion. See #4193.
-                    #[allow(clippy::find_map)]
                     return cx.tcx.inherent_impls(item_def_id).iter()
                         .flat_map(|&impl_def_id| cx.tcx.item_children(impl_def_id))
                         .find(|item| item.ident.name.as_str() == *segment)
