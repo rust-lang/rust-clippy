@@ -3002,14 +3002,19 @@ fn lint_filter_map_next<'tcx>(
 fn lint_find_map<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx hir::Expr<'_>,
-    _find_args: &'tcx [hir::Expr<'_>],
+    find_args: &'tcx [hir::Expr<'_>],
     map_args: &'tcx [hir::Expr<'_>],
 ) {
-    // lint if caller of `.filter().map()` is an Iterator
-    if match_trait_method(cx, &map_args[0], &paths::ITERATOR) {
-        let msg = "called `find(..).map(..)` on an `Iterator`";
-        let hint = "this is more succinctly expressed by calling `.find_map(..)` instead";
-        span_lint_and_help(cx, FIND_MAP, expr.span, msg, None, hint);
+    if_chain! {
+        // lint if caller of `.filter().map()` is an Iterator
+        if match_trait_method(cx, &map_args[0], &paths::ITERATOR);
+        if let [_, find_arg] = find_args;
+        if filter_map_heuristic(find_arg, cx);
+        then {
+            let msg = "called `find(..).map(..)` on an `Iterator`";
+            let hint = "this is more succinctly expressed by calling `.find_map(..)` instead";
+            span_lint_and_help(cx, FIND_MAP, expr.span, msg, None, hint);
+        }
     }
 }
 
