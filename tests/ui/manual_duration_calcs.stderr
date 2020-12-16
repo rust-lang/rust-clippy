@@ -30,5 +30,47 @@ error: calling `subsec_micros()` is more concise than this calculation
 LL |     let _ = dur.subsec_nanos() / NANOS_IN_MICRO;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.subsec_micros()`
 
-error: aborting due to 5 previous errors
+error: no manual re-implementationa of the as_nanos
+  --> $DIR/manual_duration_calcs.rs:31:18
+   |
+LL |     let _nanos = dur.as_secs() * 1_000_000_000 + dur.subsec_nanos() as u64;
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_nanos() as u64`
+
+error: no manual re-implementationa of the as_millis
+  --> $DIR/manual_duration_calcs.rs:32:18
+   |
+LL |     let _milis = dur.as_secs() * 1_000 + dur.subsec_millis() as u64;
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_millis() as u64`
+
+error: no manual re-implementationa of the as_secs_f64
+  --> $DIR/manual_duration_calcs.rs:33:23
+   |
+LL |     let _secs_f64_1 = (dur.as_secs() as f64 * 1_000.0 + dur.subsec_millis() as f64) / 1000.0;
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_secs_f64()`
+
+error: no manual re-implementationa of the as_secs_f64
+  --> $DIR/manual_duration_calcs.rs:34:23
+   |
+LL |     let _secs_f64_2 = dur.as_secs() as f64 + dur.subsec_millis() as f64 / 1_000.0;
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_secs_f64()`
+
+error: no manual re-implementationa of the as_secs_f64
+  --> $DIR/manual_duration_calcs.rs:35:23
+   |
+LL |     let _secs_f64_3 = dur.as_secs() as f64 + dur.subsec_nanos() as f64 / 1_000_000_000.0;
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_secs_f64()`
+
+error: no manual re-implementationa of the as_secs_f32
+  --> $DIR/manual_duration_calcs.rs:37:23
+   |
+LL |     let _secs_f32_2 = dur.as_secs() as f32 + dur.subsec_millis() as f32 / 1_000.0;
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_secs_f32()`
+
+error: no manual re-implementationa of the as_secs_f32
+  --> $DIR/manual_duration_calcs.rs:38:23
+   |
+LL |     let _secs_f32_3 = dur.as_secs() as f32 + dur.subsec_nanos() as f32 / 1_000_000_000.0;
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_secs_f32()`
+
+error: aborting due to 12 previous errors
 

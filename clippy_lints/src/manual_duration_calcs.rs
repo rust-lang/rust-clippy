@@ -84,9 +84,24 @@ impl<'tcx> ManualDurationCalcs {
         fn mul_extractor(
             method_call: &'tcx ExprKind<'tcx>,
             mul_lit: &'tcx ExprKind<'tcx>,
-            ) -> Option<(&'tcx rustc_span::symbol::Ident, &'tcx rustc_span::symbol::Ident, &'tcx u128)> {
+        ) -> Option<(
+            &'tcx rustc_span::symbol::Ident,
+            &'tcx rustc_span::symbol::Ident,
+            &'tcx u128,
+        )> {
             if_chain! {
-                if let ExprKind::MethodCall(PathSegment { ident, .. }, _, [Expr{ kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: receiver, .. }], .. })), .. }], _) = method_call;
+                if let ExprKind::MethodCall(
+                    PathSegment { ident, .. },
+                    _,
+                    [Expr {
+                        kind: ExprKind::Path(
+                                  QPath::Resolved(
+                                      None, Path { segments: [PathSegment { ident: receiver, .. }], .. }
+                                  )
+                              ),
+                        ..
+                    }
+                   ], _) = method_call;
                 if let ExprKind::Lit(Spanned { node: LitKind::Int(multiplier, _), .. }) = mul_lit;
                 then {
                     return Some((ident, receiver, multiplier))
@@ -100,7 +115,13 @@ impl<'tcx> ManualDurationCalcs {
         // Split add expr
         // let _nanos = dur.as_secs() * 1_000_000_000 + dur.subsec_nanos() as u64;
         //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        if let ExprKind::Binary( Spanned { node: BinOpKind::Add, ..  }, ref left, ref right,) = expr.kind
+        if let ExprKind::Binary(
+            Spanned {
+                node: BinOpKind::Add, ..
+            },
+            ref left,
+            ref right,
+        ) = expr.kind
         {
             if_chain! {
                 if let Some((mul_ident, mul_receiver, multiplier, plus_ident, plus_receiver, plus_cast_type)) =
@@ -112,12 +133,33 @@ impl<'tcx> ManualDurationCalcs {
                                     kind: ExprKind::MethodCall(
                                               PathSegment { ident: plus_ident, ..  },
                                               _,
-                                              [Expr{ kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: plus_receiver, .. }], .. })), .. }],
+                                              [Expr{
+                                                  kind: ExprKind::Path(
+                                                            QPath::Resolved(
+                                                                None,
+                                                                Path {
+                                                                    segments: [
+                                                                        PathSegment {
+                                                                            ident: plus_receiver,
+                                                                            ..
+                                                                       }
+                                                                    ],
+                                                                    ..
+                                                                }
+                                                            )
+                                                        ),
+                                                  ..
+                                              }],
                                               _
-                                              ),
-                                              ..
+                                          ),
+                                    ..
                                 },
-                                Ty { kind: TyKind::Path( QPath::Resolved(None, Path { res: Res::PrimTy(plus_cast_type), .. })), ..  }
+                                Ty {
+                                     kind:TyKind::Path(QPath::Resolved(None, Path {
+                                         res: Res::PrimTy(plus_cast_type), ..
+                                     })),
+                                     ..
+                                }
                                 )
                         ) => {
                             match (&mul_left.kind, &mul_right.kind) {
@@ -154,7 +196,13 @@ impl<'tcx> ManualDurationCalcs {
                                                   ..
                                               },
                                               _,
-                                              [Expr{ kind: ExprKind::Path(QPath::Resolved(None, Path { segments: [PathSegment { ident: plus_receiver, .. }], .. })), .. }],
+                                              [Expr{
+                                                  kind: ExprKind::Path(QPath::Resolved(None, Path {
+                                                      segments: [PathSegment { ident: plus_receiver, .. }],
+                                                      ..
+                                                  })),
+                                                  ..
+                                              }],
                                               _
                                           ),
                                         ..
@@ -235,20 +283,34 @@ impl<'tcx> ManualDurationCalcs {
             // Extraction necessary expression(left)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
             //                ^^^^^^^^^^^^^^^^^^^^^
-            if let ExprKind::Binary( Spanned { node: BinOpKind::Add, ..  }, ref plus_cast_left_expr, ref rest,) = expr.kind;
+            if let ExprKind::Binary(
+                Spanned { node: BinOpKind::Add, ..  },
+                ref plus_cast_left_expr,
+                ref rest,
+            ) = expr.kind;
 
             if let ExprKind::Cast(
-                Expr { kind: ExprKind::MethodCall( PathSegment { ident: left_ident, ..  }, _, [left_receiver], _,), ..  },
+                Expr {
+                    kind: ExprKind::MethodCall(PathSegment { ident: left_ident, ..  }, _, [left_receiver], _,),
+                     ..
+                 },
                 Ty { kind: TyKind::Path(QPath::Resolved( None, Path { res: Res::PrimTy(left_type), ..  },)), ..  },
-                ) = plus_cast_left_expr.kind;
+            ) = plus_cast_left_expr.kind;
 
             // Extraction necessary expression(right)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
             //                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
-            if let ExprKind::Binary( Spanned { node: BinOpKind::Div, ..  }, ref plus_cast_right_expr, ref divisor_expr,) = rest.kind;
+            if let ExprKind::Binary(
+                Spanned { node: BinOpKind::Div, ..  },
+                ref plus_cast_right_expr,
+                ref divisor_expr,
+            ) = rest.kind;
 
             if let ExprKind::Cast(
-                Expr { kind: ExprKind::MethodCall( PathSegment { ident: right_ident, ..  }, _, [right_receiver], _), ..  },
+                Expr {
+                    kind: ExprKind::MethodCall( PathSegment { ident: right_ident, ..  }, _, [right_receiver], _),
+                    ..
+                },
                 Ty { kind: TyKind::Path( QPath::Resolved( None, Path { res: Res::PrimTy(right_type), ..  })), ..  }
             ) = plus_cast_right_expr.kind;
 
@@ -356,20 +418,29 @@ impl<'tcx> ManualDurationCalcs {
         #[derive(Debug)]
         enum Number {
             Int(u128),
-            Float(f64)
+            Float(f64),
         }
 
         fn mul_extractor(
             cx: &LateContext<'tcx>,
             multiplier_expr: &'tcx ExprKind<'tcx>,
         ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
-            if let ExprKind::Binary(Spanned { node: BinOpKind::Mul, .. }, ref mul_left, ref mul_right) = multiplier_expr {
+            if let ExprKind::Binary(
+                Spanned {
+                    node: BinOpKind::Mul, ..
+                },
+                ref mul_left,
+                ref mul_right,
+            ) = multiplier_expr
+            {
                 if let Some(result) = manual_milli_sec_implementation_extractor(cx, &mul_left.kind, &mul_right.kind) {
-                    return Some(result)
-                } else if let Some(result) = manual_milli_sec_implementation_extractor(cx,&mul_right.kind, &mul_left.kind) {
-                    return Some(result)
+                    return Some(result);
+                } else if let Some(result) =
+                    manual_milli_sec_implementation_extractor(cx, &mul_right.kind, &mul_left.kind)
+                {
+                    return Some(result);
                 } else {
-                    return None
+                    return None;
                 }
             } else {
                 None
@@ -379,7 +450,7 @@ impl<'tcx> ManualDurationCalcs {
         fn cast_extractor(
             cx: &LateContext<'tcx>,
             cast_expr: &'tcx ExprKind<'tcx>,
-        ) -> Option<(PrimTy, &'tcx PathSegment<'tcx>, Span)>{
+        ) -> Option<(PrimTy, &'tcx PathSegment<'tcx>, Span)> {
             if_chain! {
                 if let ExprKind::Cast(
                     Expr {
@@ -404,7 +475,7 @@ impl<'tcx> ManualDurationCalcs {
             cx: &LateContext<'tcx>,
             mul_left: &'tcx ExprKind<'tcx>,
             mul_right: &'tcx ExprKind<'tcx>,
-        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)>  {
+        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
             if_chain! {
                 if let ExprKind::Lit(Spanned { node, .. }) = &mul_left;
                 if let Some((cast_type, method_path, method_receiver)) = cast_extractor(cx, mul_right);
