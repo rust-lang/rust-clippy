@@ -359,7 +359,8 @@
       "What it does": "Checks for explicit bounds checking when casting.",
       "Why is this bad": "Reduces the readability of statements & is error prone.",
       "Known problems": "None.",
-      "Example": "```rust\nfoo <= i32::MAX as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```"
+      "Example": "```rust\nfoo <= i32::MAX as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -1050,7 +1051,8 @@
       "What it does": "Checks for usage of `_.filter_map(_).next()`.",
       "Why is this bad": "Readability, this can be written more concisely as\n`_.find_map(_)`.",
       "Known problems": "None",
-      "Example": "```rust\n (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();\n```\nCan be written as\n\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x) } else { None });\n```"
+      "Example": "```rust\n (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();\n```\nCan be written as\n\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x) } else { None });\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -1959,7 +1961,8 @@
       "What it does": "Checks for expressions like `x >= 3 && x < 8` that could\nbe more readably expressed as `(3..8).contains(x)`.",
       "Why is this bad": "`contains` expresses the intent better and has less\nfailure modes (such as fencepost errors or using `||` instead of `&&`).",
       "Known problems": "None.",
-      "Example": "```rust\n// given\nlet x = 6;\n\nassert!(x >= 3 && x < 8);\n```\nUse instead:\n```rust\nassert!((3..8).contains(&x));\n```"
+      "Example": "```rust\n// given\nlet x = 6;\n\nassert!(x >= 3 && x < 8);\n```\nUse instead:\n```rust\nassert!((3..8).contains(&x));\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2092,7 +2095,8 @@
       "What it does": "Checks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.",
       "Why is this bad": "Readability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.",
       "Known problems": "The order of the arguments is not in execution order",
-      "Examples": "```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or(0);\n\n// Good\nx.map_or(0, |a| a + 1);\n```\n\n// or\n\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or_else(some_function);\n\n// Good\nx.map_or_else(some_function, |a| a + 1);\n```"
+      "Examples": "```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or(0);\n\n// Good\nx.map_or(0, |a| a + 1);\n```\n\n// or\n\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or_else(some_function);\n\n// Good\nx.map_or_else(some_function, |a| a + 1);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2258,7 +2262,8 @@
       "What it does": "Checks for `std::mem::replace` on a value of type\n`T` with `T::default()`.",
       "Why is this bad": "`std::mem` module already has the method `take` to\ntake the current value and replace it with the default value of that type.",
       "Known problems": "None.",
-      "Example": "```rust\nlet mut text = String::from(\"foo\");\nlet replaced = std::mem::replace(&mut text, String::default());\n```\nIs better expressed with:\n```rust\nlet mut text = String::from(\"foo\");\nlet taken = std::mem::take(&mut text);\n```"
+      "Example": "```rust\nlet mut text = String::from(\"foo\");\nlet replaced = std::mem::replace(&mut text, String::default());\n```\nIs better expressed with:\n```rust\nlet mut text = String::from(\"foo\");\nlet taken = std::mem::take(&mut text);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2322,7 +2327,8 @@
       "What it does": "Suggests the use of `const` in functions and methods where possible.",
       "Why is this bad": "Not having the function const prevents callers of the function from being const as well.",
       "Known problems": "Const functions are currently still being worked on, with some features only being available\non nightly. This lint does not consider all edge cases currently and the suggestions may be\nincorrect if you are using this lint on stable.\n\nAlso, the lint only runs one pass over the code. Consider these two non-const functions:\n\n```rust\nfn a() -> i32 {\n    0\n}\nfn b() -> i32 {\n    a()\n}\n```\n\nWhen running Clippy, the lint will only suggest to make `a` const, because `b` at this time\ncan't be const as it calls a non-const function. Making `a` const and running Clippy again,\nwill suggest to make `b` const, too.",
-      "Example": "```rust\nfn new() -> Self {\n    Self { random_number: 42 }\n}\n```\n\nCould be a const fn:\n\n```rust\nconst fn new() -> Self {\n    Self { random_number: 42 }\n}\n```"
+      "Example": "```rust\nfn new() -> Self {\n    Self { random_number: 42 }\n}\n```\n\nCould be a const fn:\n\n```rust\nconst fn new() -> Self {\n    Self { random_number: 42 }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -3261,7 +3267,8 @@
       "What it does": "Checks for fields in struct literals where shorthands\ncould be used.",
       "Why is this bad": "If the field and variable names are the same,\nthe field name is redundant.",
       "Known problems": "None.",
-      "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo { bar: bar };\n```\nthe last line can be simplified to\n```ignore\nlet foo = Foo { bar };\n```"
+      "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo { bar: bar };\n```\nthe last line can be simplified to\n```ignore\nlet foo = Foo { bar };\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -3305,7 +3312,8 @@
       "What it does": "Checks for constants and statics with an explicit `'static` lifetime.",
       "Why is this bad": "Adding `'static` to every reference can create very\ncomplicated types.",
       "Known problems": "None.",
-      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\nstatic FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n static FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```"
+      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\nstatic FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n static FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -4512,7 +4520,8 @@
       "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.",
       "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.",
       "Known problems": "- False positive when using associated types (#2843)\n- False positives in some situations when using generics (#3410)",
-      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```"
+      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
