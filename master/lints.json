@@ -2698,7 +2698,7 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for needlessly including a base struct on update\nwhen all fields are changed anyway.",
+      "What it does": "Checks for needlessly including a base struct on update\nwhen all fields are changed anyway.\n\nThis lint is not applied to structs marked with\n[non_exhaustive](https://doc.rust-lang.org/reference/attributes/type_system.html).",
       "Why is this bad": "This will cost resources (because the base has to be\nsomewhere), and make the code less readable.",
       "Known problems": "None.",
       "Example": "```rust\n\n// Bad\nPoint {\n    x: 1,\n    y: 1,\n    z: 1,\n    ..zero_point\n};\n\n// Ok\nPoint {\n    x: 1,\n    y: 1,\n    ..zero_point\n};\n```"
