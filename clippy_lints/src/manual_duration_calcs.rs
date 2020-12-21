@@ -323,8 +323,40 @@ impl<'tcx> ManualDurationCalcs {
             // Extraction necessary expression(method receiver)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
             //                ^^^^                    ^^^^
-            if let Expr { kind: ExprKind::Path( QPath::Resolved( None, Path { segments: [PathSegment { ident: left_receiver_ident, .. }], ..  })), ..  } = left_receiver;
-            if let Expr { kind: ExprKind::Path( QPath::Resolved( None, Path { segments: [PathSegment { ident: right_receiver_ident, .. }], ..  })), ..  } = right_receiver;
+            if let Expr {
+                kind: ExprKind::Path(
+                          QPath::Resolved(
+                              None,
+                              Path {
+                                  segments: [
+                                      PathSegment {
+                                          ident: left_receiver_ident,
+                                          ..
+                                      }
+                                  ],
+                              ..
+                              }
+                          )
+                      ),
+                ..
+            } = left_receiver;
+            if let Expr {
+                kind: ExprKind::Path(
+                          QPath::Resolved(
+                              None,
+                              Path {
+                                  segments: [
+                                      PathSegment {
+                                          ident: right_receiver_ident,
+                                          ..
+                                      }
+                                  ],
+                                  ..
+                              }
+                              )
+                          ),
+                          ..
+            } = right_receiver;
 
             // same receiver guard
             if left_receiver_ident == right_receiver_ident;
@@ -368,12 +400,23 @@ impl<'tcx> ManualDurationCalcs {
 
     pub fn manual_re_implementation_as_secs_f64_for_div_and_mul(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
-            if let ExprKind::Binary( Spanned { node: BinOpKind::Div, ..  }, ref div_left_expr, ref div_right_expr) = expr.kind;
-            if let ExprKind::Binary( Spanned { node: BinOpKind::Add, ..  }, ref plus_left_expr, ref plus_right_expr,) = div_left_expr.kind;
+            if let ExprKind::Binary(
+                Spanned { node: BinOpKind::Div, ..  },
+                ref div_left_expr,
+                ref div_right_expr
+            ) = expr.kind;
+            if let ExprKind::Binary(
+                Spanned { node: BinOpKind::Add, ..  },
+                ref plus_left_expr,
+                ref plus_right_expr,
+            ) = div_left_expr.kind;
             if let Expr { kind: ExprKind::Lit(Spanned { node, .. }), .. } = div_right_expr;
 
             then {
-                let multi_expr_option = match (mul_extractor(cx, &plus_left_expr.kind), mul_extractor(cx, &plus_right_expr.kind)) {
+                let multi_expr_option = match (
+                    mul_extractor(cx, &plus_left_expr.kind),
+                    mul_extractor(cx, &plus_right_expr.kind)
+                ) {
                     (Some(result), None) | (None, Some(result)) => {
                         Some(result)
                     }
@@ -482,7 +525,13 @@ impl<'tcx> ManualDurationCalcs {
                 then {
                     match node {
                         LitKind::Float(multiplier, _) => {
-                            return multiplier.as_str().parse::<f64>().map_or_else(|_| None, |m| Some((Number::Float(m), cast_type, method_path, method_receiver)))
+                            return multiplier
+                                .as_str().
+                                parse::<f64>().
+                                map_or_else(
+                                    |_| None,
+                                    |m| Some((Number::Float(m), cast_type, method_path, method_receiver))
+                                )
                         }
                         LitKind::Int(multiplier, _) => {
                             return Some((Number::Int(*multiplier), cast_type, method_path, method_receiver))
