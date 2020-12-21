@@ -55,7 +55,7 @@ declare_clippy_lint! {
 declare_lint_pass!(ManualDurationCalcs => [MANUAL_DURATION_CALCS]);
 
 impl<'tcx> ManualDurationCalcs {
-    pub fn duration_subsec(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+    pub fn duration_subsec(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
             if let ExprKind::Binary(Spanned { node: BinOpKind::Div, .. }, ref left, ref right) = expr.kind;
             if let ExprKind::MethodCall(ref method_path, _ , ref args, _) = left.kind;
@@ -85,43 +85,7 @@ impl<'tcx> ManualDurationCalcs {
         }
     }
 
-    pub fn manual_re_implementation_as_secs_f64_for_mul(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        // Extract mul expr
-        // let _nanos = dur.as_secs() * 1_000_000_000 + dur.subsec_nanos() as u64;
-        //              ^^^^^^^^^^^^^   ^^^^^^^^^^^^^
-        // let _nanos = 1_000_000_000 * dur.as_secs() + dur.subsec_nanos() as u64;
-        //              ^^^^^^^^^^^^^   ^^^^^^^^^^^^^
-        fn mul_extractor(
-            method_call: &'tcx ExprKind<'tcx>,
-            mul_lit: &'tcx ExprKind<'tcx>,
-        ) -> Option<(
-            &'tcx rustc_span::symbol::Ident,
-            &'tcx rustc_span::symbol::Ident,
-            &'tcx u128,
-        )> {
-            if_chain! {
-                if let ExprKind::MethodCall(
-                    PathSegment { ident, .. },
-                    _,
-                    [Expr {
-                        kind: ExprKind::Path(
-                                  QPath::Resolved(
-                                      None, Path { segments: [PathSegment { ident: receiver, .. }], .. }
-                                  )
-                              ),
-                        ..
-                    }
-                   ], _) = method_call;
-                if let ExprKind::Lit(Spanned { node: LitKind::Int(multiplier, _), .. }) = mul_lit;
-                then {
-                    return Some((ident, receiver, multiplier))
-                }
-                else {
-                    return None;
-                }
-            }
-        }
-
+    pub fn manual_re_implementation_as_secs_f64_for_mul(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         // Split add expr
         // let _nanos = dur.as_secs() * 1_000_000_000 + dur.subsec_nanos() as u64;
         //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -288,7 +252,7 @@ impl<'tcx> ManualDurationCalcs {
         }
     }
 
-    pub fn manual_re_implementation_as_secs_f64_for_div(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+    pub fn manual_re_implementation_as_secs_f64_for_div(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
             // Extraction necessary expression(left)
             // let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
@@ -408,7 +372,91 @@ impl<'tcx> ManualDurationCalcs {
         };
     }
 
-    pub fn manual_re_implementation_as_secs_f64_for_div_and_mul(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+    pub fn manual_re_implementation_as_secs_f64_for_div_and_mul(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        #[derive(Debug)]
+        enum Number {
+            Int(u128),
+            Float(f64),
+        };
+
+        fn mul_extractor(
+            cx: &LateContext<'tcx>,
+            multiplier_expr: &'tcx ExprKind<'tcx>,
+        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
+            if let ExprKind::Binary(
+                Spanned {
+                    node: BinOpKind::Mul, ..
+                },
+                ref mul_left,
+                ref mul_right,
+            ) = multiplier_expr
+            {
+                if let Some(result) = manual_milli_sec_implementation_extractor(cx, &mul_left.kind, &mul_right.kind) {
+                    return Some(result);
+                } else if let Some(result) =
+                    manual_milli_sec_implementation_extractor(cx, &mul_right.kind, &mul_left.kind)
+                {
+                    return Some(result);
+                }
+                return None;
+            }
+            None
+        }
+
+        fn cast_extractor(
+            cx: &LateContext<'tcx>,
+            cast_expr: &'tcx ExprKind<'tcx>,
+        ) -> Option<(PrimTy, &'tcx PathSegment<'tcx>, Span)> {
+            if_chain! {
+                if let ExprKind::Cast(
+                    Expr {
+                        kind: ExprKind::MethodCall(ref method_path, _ , ref args, _),
+                        ..
+                    },
+                    Ty {
+                        kind: TyKind::Path(QPath::Resolved(None, Path { res: Res::PrimTy(cast_type), .. })),
+                        ..
+                    }
+                ) = &cast_expr;
+                if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
+                then {
+                    Some((*cast_type, method_path, args[0].span))
+                } else {
+                    None
+                }
+            }
+        }
+
+        fn manual_milli_sec_implementation_extractor(
+            cx: &LateContext<'tcx>,
+            mul_left: &'tcx ExprKind<'tcx>,
+            mul_right: &'tcx ExprKind<'tcx>,
+        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
+            if_chain! {
+                if let ExprKind::Lit(Spanned { node, .. }) = &mul_left;
+                if let Some((cast_type, method_path, method_receiver)) = cast_extractor(cx, mul_right);
+                then {
+                    match node {
+                        LitKind::Float(multiplier, _) => {
+                            return multiplier
+                                .as_str().
+                                parse::<f64>().
+                                map_or_else(
+                                    |_| None,
+                                    |m| Some((Number::Float(m), cast_type, method_path, method_receiver))
+                                )
+                        }
+                        LitKind::Int(multiplier, _) => {
+                            return Some((Number::Int(*multiplier), cast_type, method_path, method_receiver))
+                        }
+                        _ => None
+                    }
+                } else {
+                    None
+                }
+            }
+        }
+
         if_chain! {
             if let ExprKind::Binary(
                 Spanned { node: BinOpKind::Div, ..  },
@@ -467,90 +515,35 @@ impl<'tcx> ManualDurationCalcs {
                 }
             }
         }
+    }
 
-        #[derive(Debug)]
-        enum Number {
-            Int(u128),
-            Float(f64),
-        }
-
-        fn mul_extractor(
-            cx: &LateContext<'tcx>,
-            multiplier_expr: &'tcx ExprKind<'tcx>,
-        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
-            if let ExprKind::Binary(
-                Spanned {
-                    node: BinOpKind::Mul, ..
-                },
-                ref mul_left,
-                ref mul_right,
-            ) = multiplier_expr
-            {
-                if let Some(result) = manual_milli_sec_implementation_extractor(cx, &mul_left.kind, &mul_right.kind) {
-                    return Some(result);
-                } else if let Some(result) =
-                    manual_milli_sec_implementation_extractor(cx, &mul_right.kind, &mul_left.kind)
-                {
-                    return Some(result);
-                } else {
-                    return None;
+    fn mul_extractor(
+        method_call: &'tcx ExprKind<'tcx>,
+        mul_lit: &'tcx ExprKind<'tcx>,
+    ) -> Option<(
+        &'tcx rustc_span::symbol::Ident,
+        &'tcx rustc_span::symbol::Ident,
+        &'tcx u128,
+    )> {
+        if_chain! {
+            if let ExprKind::MethodCall(
+                PathSegment { ident, .. },
+                _,
+                [Expr {
+                    kind: ExprKind::Path(
+                              QPath::Resolved(
+                                  None, Path { segments: [PathSegment { ident: receiver, .. }], .. }
+                              )
+                          ),
+                    ..
                 }
-            } else {
-                None
+               ], _) = method_call;
+            if let ExprKind::Lit(Spanned { node: LitKind::Int(multiplier, _), .. }) = mul_lit;
+            then {
+                return Some((ident, receiver, multiplier))
             }
-        }
-
-        fn cast_extractor(
-            cx: &LateContext<'tcx>,
-            cast_expr: &'tcx ExprKind<'tcx>,
-        ) -> Option<(PrimTy, &'tcx PathSegment<'tcx>, Span)> {
-            if_chain! {
-                if let ExprKind::Cast(
-                    Expr {
-                        kind: ExprKind::MethodCall(ref method_path, _ , ref args, _),
-                        ..
-                    },
-                    Ty {
-                        kind: TyKind::Path(QPath::Resolved(None, Path { res: Res::PrimTy(cast_type), .. })),
-                        ..
-                    }
-                ) = &cast_expr;
-                if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
-                then {
-                    Some((*cast_type, method_path, args[0].span))
-                } else {
-                    None
-                }
-            }
-        }
-
-        fn manual_milli_sec_implementation_extractor(
-            cx: &LateContext<'tcx>,
-            mul_left: &'tcx ExprKind<'tcx>,
-            mul_right: &'tcx ExprKind<'tcx>,
-        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
-            if_chain! {
-                if let ExprKind::Lit(Spanned { node, .. }) = &mul_left;
-                if let Some((cast_type, method_path, method_receiver)) = cast_extractor(cx, mul_right);
-                then {
-                    match node {
-                        LitKind::Float(multiplier, _) => {
-                            return multiplier
-                                .as_str().
-                                parse::<f64>().
-                                map_or_else(
-                                    |_| None,
-                                    |m| Some((Number::Float(m), cast_type, method_path, method_receiver))
-                                )
-                        }
-                        LitKind::Int(multiplier, _) => {
-                            return Some((Number::Int(*multiplier), cast_type, method_path, method_receiver))
-                        }
-                        _ => None
-                    }
-                } else {
-                    None
-                }
+            else {
+                return None;
             }
         }
     }
@@ -558,9 +551,9 @@ impl<'tcx> ManualDurationCalcs {
 
 impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        self.manual_re_implementation_as_secs_f64_for_div(cx, expr);
-        self.manual_re_implementation_as_secs_f64_for_mul(cx, expr);
-        self.manual_re_implementation_as_secs_f64_for_div_and_mul(cx, expr);
-        self.duration_subsec(cx, expr);
+        ManualDurationCalcs::manual_re_implementation_as_secs_f64_for_div(cx, expr);
+        ManualDurationCalcs::manual_re_implementation_as_secs_f64_for_mul(cx, expr);
+        ManualDurationCalcs::manual_re_implementation_as_secs_f64_for_div_and_mul(cx, expr);
+        ManualDurationCalcs::duration_subsec(cx, expr);
     }
 }
