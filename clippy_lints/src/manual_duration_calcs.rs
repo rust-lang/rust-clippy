@@ -16,7 +16,7 @@ declare_clippy_lint! {
     /// from other `Duration` methods.
     ///
     /// **Why is this bad?** It's more concise to call `Duration::subsec_micros()` or
-    /// `Duration::subsec_millis()` than to calculate them.
+    /// `Duration::subsec_millis()` or `Duration::as_secs` than to calculate them.
     ///
     /// **Known problems:** None.
     ///
@@ -30,12 +30,22 @@ declare_clippy_lint! {
     /// let _millis = dur.subsec_nanos() / 1_000_000;
     /// let secs_f64 = diff.as_secs() as f64 + diff.subsec_milis() as f64 / 1_000.0;
     /// let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
+    /// let secs_f64 = diff.as_secs() as f64 + diff.subsec_nanos() as f64 / 1_000_000_000.0;
+    ///
+    /// let secs_f32 = diff.as_secs() as f32 + diff.subsec_milis() as f32 / 1_000.0;
+    /// let secs_f32 = diff.as_secs() as f32 + diff.subsec_nanos() as f32 / 1_000_000_000.0;
+    /// let secs_f32 = diff.as_secs() as f32 + diff.subsec_nanos() as f32 / 1_000_000_000.0;
     ///
     /// // Good
     /// let _micros = dur.subsec_micros();
     /// let _millis = dur.subsec_millis();
     /// let secs_f64 = diff.as_secs_f64();
     /// let secs_f64 = diff.as_secs_f64();
+    /// let secs_f64 = diff.as_secs_f64();
+    ///
+    /// let secs_f32 = diff.as_secs_f32();
+    /// let secs_f32 = diff.as_secs_f32();
+    /// let secs_f32 = diff.as_secs_f32();
     /// ```
     pub MANUAL_DURATION_CALCS,
     complexity,
