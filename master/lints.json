@@ -1231,6 +1231,17 @@
     }
   },
   {
+    "id": "from_over_into",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Searches for implementations of the `Into<..>` trait and suggests to implement `From<..>` instead.",
+      "Why is this bad": "According the std docs implementing `From<..>` is preferred since it gives you `Into<..>` for free where the reverse isn't true.",
+      "Known problems": "None.",
+      "Example": "```rust\nstruct StringWrapper(String);\n\nimpl Into<StringWrapper> for String {\n    fn into(self) -> StringWrapper {\n        StringWrapper(self)\n    }\n}\n```\nUse instead:\n```rust\nstruct StringWrapper(String);\n\nimpl From<String> for StringWrapper {\n    fn from(s: String) -> StringWrapper {\n        StringWrapper(s)\n    }\n}\n```"
+    }
+  },
+  {
     "id": "future_not_send",
     "group": "nursery",
     "level": "Allow",
