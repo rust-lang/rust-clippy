@@ -65,11 +65,11 @@ fn get_cast_type<'tcx>(ty: &'tcx Ty<'_>) -> Option<&'tcx PrimTy> {
     None
 }
 
-fn extract_multiple_expr<'tcx>(expr: &'tcx Expr<'_>, cx: &LateContext<'tcx>) -> Option<(SymbolStr, u128)> {
+fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<(SymbolStr, u128)> {
     fn parse<'tcx>(
+        cx: &LateContext<'tcx>,
         method_call_expr: &'tcx Expr<'_>,
         multiplier_expr: &'tcx Expr<'_>,
-        cx: &LateContext<'tcx>,
     ) -> Option<(SymbolStr, u128)> {
         if_chain! {
             if let ExprKind::MethodCall(ref method_path, _ , ref args, _) = method_call_expr.kind;
@@ -95,7 +95,7 @@ fn extract_multiple_expr<'tcx>(expr: &'tcx Expr<'_>, cx: &LateContext<'tcx>) -> 
     }
     .map_or(None, |splited_mul| {
         let patterns = [(splited_mul.0, splited_mul.1), (splited_mul.1, splited_mul.0)];
-        patterns.iter().filter_map(|expr| parse(expr.0, expr.1, cx)).next()
+        patterns.iter().filter_map(|expr| parse(cx, expr.0, expr.1)).next()
     })
 }
 
@@ -132,22 +132,22 @@ impl<'tcx> ManualDurationCalcs {
 
     pub fn manual_re_implementation_lower_the_unit(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         fn parse<'tcx>(
+            cx: &LateContext<'tcx>,
             multipilication_expr: &'tcx Expr<'_>,
             method_call_expr: &'tcx Expr<'_>,
             cast_type: Option<&'tcx PrimTy>,
-            cx: &LateContext<'tcx>,
         ) -> Option<(SymbolStr, u128, SymbolStr, Option<&'tcx PrimTy>, Span)> {
             if_chain! {
                 if let ExprKind::Cast(expr, ty) = method_call_expr.kind;
                 if let Some(ct) = get_cast_type(ty);
                 then {
-                    return parse(multipilication_expr, expr, Some(ct), cx)
+                    return parse(cx, multipilication_expr, expr, Some(ct))
                 }
             }
 
             if_chain! {
                 if let ExprKind::MethodCall(ref method_path, _ , ref args, _) = method_call_expr.kind;
-                if let Some((mul_method_name, multiplier)) = extract_multiple_expr(multipilication_expr, cx);
+                if let Some((mul_method_name, multiplier)) = extract_multiple_expr(cx, multipilication_expr);
                 if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
                 then  {
                     Some((mul_method_name, multiplier, method_path.ident.as_str(), cast_type, args[0].span))
@@ -167,7 +167,7 @@ impl<'tcx> ManualDurationCalcs {
         {
             [(left, right), (right, left)]
                 .iter()
-                .flat_map(|expr| parse(expr.0, expr.1, None, cx))
+                .flat_map(|expr| parse(cx, expr.0, expr.1, None))
                 .for_each(|r| {
                     let suggested_fn = match (r.0.to_string().as_str(), r.1, r.2.to_string().as_str()) {
                         ("as_secs", 1_000_000_000, "subsec_nanos") => "as_nanos",
