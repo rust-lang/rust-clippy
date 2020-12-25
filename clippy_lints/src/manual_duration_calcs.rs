@@ -103,16 +103,10 @@ fn parse_method_call_expr<'tcx>(
 }
 
 #[derive(Debug)]
-enum Numeral<'t> {
-    Integer(&'t u128),
-    Float(f64),
-}
-
-#[derive(Debug)]
 struct ParsedDivisionExpr<'tcx> {
     receiver: Span,
     method_name: SymbolStr,
-    divisor: Numeral<'tcx>,
+    divisor: Constant,
     cast_type: Option<&'tcx PrimTy>,
 }
 
@@ -120,7 +114,7 @@ impl ParsedDivisionExpr<'tcx> {
     fn new(
         receiver: Span,
         method_name: SymbolStr,
-        divisor: Numeral<'tcx>,
+        divisor: Constant,
         cast_type: Option<&'tcx PrimTy>,
     ) -> ParsedDivisionExpr<'tcx> {
         ParsedDivisionExpr {
@@ -133,24 +127,6 @@ impl ParsedDivisionExpr<'tcx> {
 }
 
 fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<ParsedDivisionExpr<'tcx>> {
-    fn get_divisor(expr: &'tcx Expr<'_>) -> Option<Numeral<'tcx>> {
-        if let ExprKind::Lit(Spanned { node, .. }) = &expr.kind {
-            match node {
-                LitKind::Float(divisor, _) => {
-                    return divisor
-                        .as_str()
-                        .parse::<f64>()
-                        .map_or_else(|_| None, |d| Some(Numeral::Float(d)));
-                },
-                LitKind::Int(divisor, _) => {
-                    return Some(Numeral::Integer(divisor));
-                },
-                _ => return None,
-            }
-        }
-        None
-    }
-
     if_chain! {
         if let ExprKind::Binary(
             Spanned {
@@ -160,7 +136,7 @@ fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<P
             ref divisor_expression,
         ) = expr.kind;
         if let Some(dividend) = parse_method_call_expr(cx, dividend_expr, None);
-        if let Some(divisor) = get_divisor(divisor_expression);
+        if let Some((divisor, _)) = constant(cx, cx.typeck_results(), divisor_expression);
         then {
             Some(ParsedDivisionExpr::new(dividend.receiver, dividend.method_name, divisor, dividend.cast_type))
         } else {
@@ -169,18 +145,18 @@ fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<P
     }
 }
 
-fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<(SymbolStr, u128)> {
+fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<(SymbolStr, Constant)> {
     fn parse<'tcx>(
         cx: &LateContext<'tcx>,
         method_call_expr: &'tcx Expr<'_>,
         multiplier_expr: &'tcx Expr<'_>,
-    ) -> Option<(SymbolStr, u128)> {
+    ) -> Option<(SymbolStr, Constant)> {
         if_chain! {
             if let ExprKind::MethodCall(ref method_path, _ , ref args, _) = method_call_expr.kind;
             if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
-            if let Some((Constant::Int(multiplier), _)) = constant(cx, cx.typeck_results(), multiplier_expr);
+            if let Some((multipiler, _)) = constant(cx, cx.typeck_results(), multiplier_expr);
             then {
-                Some((method_path.ident.as_str(), multiplier))
+                Some((method_path.ident.as_str(), multipiler))
             } else {
                 None
             }
@@ -240,7 +216,7 @@ impl<'tcx> ManualDurationCalcs {
             multipilication_expr: &'tcx Expr<'_>,
             method_call_expr: &'tcx Expr<'_>,
             cast_type: Option<&'tcx PrimTy>,
-        ) -> Option<(SymbolStr, u128, SymbolStr, Option<&'tcx PrimTy>, Span)> {
+        ) -> Option<(SymbolStr, Constant, SymbolStr, Option<&'tcx PrimTy>, Span)> {
             if_chain! {
                 if let ExprKind::Cast(expr, ty) = method_call_expr.kind;
                 if let Some(ct) = get_cast_type(ty);
@@ -274,8 +250,8 @@ impl<'tcx> ManualDurationCalcs {
                 .flat_map(|expr| parse(cx, expr.0, expr.1, None))
                 .for_each(|r| {
                     let suggested_fn = match (r.0.to_string().as_str(), r.1, r.2.to_string().as_str()) {
-                        ("as_secs", 1_000_000_000, "subsec_nanos") => "as_nanos",
-                        ("as_secs", 1_000, "subsec_millis") => "as_millis",
+                        ("as_secs", Constant::Int(1_000_000_000), "subsec_nanos") => "as_nanos",
+                        ("as_secs", Constant::Int(1_000), "subsec_millis") => "as_millis",
                         _ => return,
                     };
 
@@ -320,16 +296,16 @@ impl<'tcx> ManualDurationCalcs {
                     parsed_div.cast_type,
                     parsed_div.divisor
                 ) {
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Some(PrimTy::Float(FloatTy::F64)), Numeral::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Some(PrimTy::Float(FloatTy::F64)), Constant::F64(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
                         "as_secs_f64"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F64)), Numeral::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F64)), Constant::F64(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
                         "as_secs_f64"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Some(PrimTy::Float(FloatTy::F32)), Numeral::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Some(PrimTy::Float(FloatTy::F32)), Constant::F32(divisor)) if (divisor - 1000.0).abs() < f32::EPSILON => {
                         "as_secs_f32"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F32)), Numeral::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F32)), Constant::F32(divisor)) if (divisor - 1_000_000_000.0).abs() < f32::EPSILON => {
                         "as_secs_f32"
                     },
                     _ => { return;  }
