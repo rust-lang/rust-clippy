@@ -104,8 +104,8 @@ fn parse_method_call_expr<'tcx>(
 
 #[derive(Debug)]
 enum Divisor<'t> {
-    U128(&'t u128),
-    F64(f64),
+    Integer(&'t u128),
+    Float(f64),
 }
 
 #[derive(Debug)]
@@ -140,10 +140,10 @@ fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<P
                     return divisor
                         .as_str()
                         .parse::<f64>()
-                        .map_or_else(|_| None, |d| Some(Divisor::F64(d)));
+                        .map_or_else(|_| None, |d| Some(Divisor::Float(d)));
                 },
                 LitKind::Int(divisor, _) => {
-                    return Some(Divisor::U128(divisor));
+                    return Some(Divisor::Integer(divisor));
                 },
                 _ => return None,
             }
@@ -320,16 +320,16 @@ impl<'tcx> ManualDurationCalcs {
                     parsed_div.cast_type,
                     parsed_div.divisor
                 ) {
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Some(PrimTy::Float(FloatTy::F64)), Divisor::F64(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Some(PrimTy::Float(FloatTy::F64)), Divisor::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
                         "as_secs_f64"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F64)), Divisor::F64(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F64)), Divisor::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
                         "as_secs_f64"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Some(PrimTy::Float(FloatTy::F32)), Divisor::F64(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Some(PrimTy::Float(FloatTy::F32)), Divisor::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
                         "as_secs_f32"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F32)), Divisor::F64(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F32)), Divisor::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
                         "as_secs_f32"
                     },
                     _ => { return;  }
