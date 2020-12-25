@@ -145,18 +145,31 @@ fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<P
     }
 }
 
-fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<(SymbolStr, Constant)> {
+struct ParsedMultipleExpr {
+    method_name: SymbolStr,
+    multipilier: Constant,
+}
+
+impl ParsedMultipleExpr {
+    fn new(method_name: SymbolStr, multipilier: Constant) -> ParsedMultipleExpr {
+        ParsedMultipleExpr {
+            method_name,
+            multipilier,
+        }
+    }
+}
+
+fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<ParsedMultipleExpr> {
     fn parse<'tcx>(
         cx: &LateContext<'tcx>,
         method_call_expr: &'tcx Expr<'_>,
         multiplier_expr: &'tcx Expr<'_>,
-    ) -> Option<(SymbolStr, Constant)> {
+    ) -> Option<ParsedMultipleExpr> {
         if_chain! {
-            if let ExprKind::MethodCall(ref method_path, _ , ref args, _) = method_call_expr.kind;
-            if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
+            if let Some(method_call) = parse_method_call_expr(cx, method_call_expr, None);
             if let Some((multipiler, _)) = constant(cx, cx.typeck_results(), multiplier_expr);
             then {
-                Some((method_path.ident.as_str(), multipiler))
+                Some(ParsedMultipleExpr::new(method_call.method_name, multipiler))
             } else {
                 None
             }
@@ -227,10 +240,10 @@ impl<'tcx> ManualDurationCalcs {
 
             if_chain! {
                 if let ExprKind::MethodCall(ref method_path, _ , ref args, _) = method_call_expr.kind;
-                if let Some((mul_method_name, multiplier)) = extract_multiple_expr(cx, multipilication_expr);
+                if let Some(ParsedMultipleExpr { method_name: mul_method_name, multipilier, .. }) = extract_multiple_expr(cx, multipilication_expr);
                 if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
                 then  {
-                    Some((mul_method_name, multiplier, method_path.ident.as_str(), cast_type, args[0].span))
+                    Some((mul_method_name, multipilier, method_path.ident.as_str(), cast_type, args[0].span))
                 } else {
                     None
                 }
