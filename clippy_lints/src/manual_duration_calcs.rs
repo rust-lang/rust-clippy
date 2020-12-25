@@ -55,6 +55,102 @@ declare_clippy_lint! {
 declare_lint_pass!(ManualDurationCalcs => [MANUAL_DURATION_CALCS]);
 
 fn get_cast_type<'tcx>(ty: &'tcx Ty<'_>) -> Option<&'tcx PrimTy> {
+    if let TyKind::Path(QPath::Resolved(_, Path { res: Res::PrimTy(pt), .. }))  = ty.kind {
+        return Some(pt)
+    }
+    None
+}
+
+#[derive(Debug)]
+struct ParsedMethodCallExpr<'tcx> {
+    receiver: Span,
+    method_name: SymbolStr,
+    cast_type: Option<&'tcx PrimTy>,
+}
+
+impl ParsedMethodCallExpr<'tcx> {
+    fn new(receiver: Span, method_name: SymbolStr, cast_type: Option<&'tcx PrimTy>) -> ParsedMethodCallExpr<'tcx> {
+        ParsedMethodCallExpr {
+            receiver,
+            method_name,
+            cast_type,
+        }
+    }
+}
+
+fn parse_method_call_expr<'tcx>(
+    cx: &LateContext<'tcx>,
+    value_expr: &'tcx Expr<'_>,
+    cast_type: Option<&'tcx PrimTy>,
+) -> Option<ParsedMethodCallExpr<'tcx>> {
+    match value_expr.kind {
+        ExprKind::Cast(expr, ty) => {
+            let cast_type = get_cast_type(ty);
+            parse_method_call_expr(cx, &expr, cast_type)
+        },
+        ExprKind::MethodCall(ref method_path, _, ref args, _) => {
+            if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION) {
+                return Some(ParsedMethodCallExpr::new(
+                    args[0].span,
+                    method_path.ident.as_str(),
+                    cast_type,
+                ));
+            }
+            None
+        },
+        _ => None,
+    }
+}
+
+#[derive(Debug)]
+enum Divisor<'t> {
+    U128(&'t u128),
+    F64(f64),
+}
+
+#[derive(Debug)]
+struct ParsedDivisionExpr<'tcx> {
+    receiver: Span,
+    method_name: SymbolStr,
+    divisor: Divisor<'tcx>,
+    cast_type: Option<&'tcx PrimTy>,
+}
+
+impl ParsedDivisionExpr<'tcx> {
+    fn new(
+        receiver: Span,
+        method_name: SymbolStr,
+        divisor: Divisor<'tcx>,
+        cast_type: Option<&'tcx PrimTy>,
+    ) -> ParsedDivisionExpr<'tcx> {
+        ParsedDivisionExpr {
+            receiver,
+            method_name,
+            divisor,
+            cast_type,
+        }
+    }
+}
+
+fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<ParsedDivisionExpr<'tcx>> {
+    fn get_divisor(expr: &'tcx Expr<'_>) -> Option<Divisor<'tcx>> {
+        if let ExprKind::Lit(Spanned { node, .. }) = &expr.kind {
+            match node {
+                LitKind::Float(divisor, _) => {
+                    return divisor
+                        .as_str()
+                        .parse::<f64>()
+                        .map_or_else(|_| None, |d| Some(Divisor::F64(d)));
+                },
+                LitKind::Int(divisor, _) => {
+                    return Some(Divisor::U128(divisor));
+                },
+                _ => return None,
+            }
+        }
+        None
+    }
+
     if_chain! {
         if let TyKind::Path(QPath::Resolved(_, Path { res, .. }))  = ty.kind;
         if let Res::PrimTy(pt) = res;
