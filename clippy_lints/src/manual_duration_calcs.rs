@@ -103,7 +103,7 @@ fn parse_method_call_expr<'tcx>(
 }
 
 #[derive(Debug)]
-enum Divisor<'t> {
+enum Numeral<'t> {
     Integer(&'t u128),
     Float(f64),
 }
@@ -112,7 +112,7 @@ enum Divisor<'t> {
 struct ParsedDivisionExpr<'tcx> {
     receiver: Span,
     method_name: SymbolStr,
-    divisor: Divisor<'tcx>,
+    divisor: Numeral<'tcx>,
     cast_type: Option<&'tcx PrimTy>,
 }
 
@@ -120,7 +120,7 @@ impl ParsedDivisionExpr<'tcx> {
     fn new(
         receiver: Span,
         method_name: SymbolStr,
-        divisor: Divisor<'tcx>,
+        divisor: Numeral<'tcx>,
         cast_type: Option<&'tcx PrimTy>,
     ) -> ParsedDivisionExpr<'tcx> {
         ParsedDivisionExpr {
@@ -133,17 +133,17 @@ impl ParsedDivisionExpr<'tcx> {
 }
 
 fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<ParsedDivisionExpr<'tcx>> {
-    fn get_divisor(expr: &'tcx Expr<'_>) -> Option<Divisor<'tcx>> {
+    fn get_divisor(expr: &'tcx Expr<'_>) -> Option<Numeral<'tcx>> {
         if let ExprKind::Lit(Spanned { node, .. }) = &expr.kind {
             match node {
                 LitKind::Float(divisor, _) => {
                     return divisor
                         .as_str()
                         .parse::<f64>()
-                        .map_or_else(|_| None, |d| Some(Divisor::Float(d)));
+                        .map_or_else(|_| None, |d| Some(Numeral::Float(d)));
                 },
                 LitKind::Int(divisor, _) => {
-                    return Some(Divisor::Integer(divisor));
+                    return Some(Numeral::Integer(divisor));
                 },
                 _ => return None,
             }
@@ -320,16 +320,16 @@ impl<'tcx> ManualDurationCalcs {
                     parsed_div.cast_type,
                     parsed_div.divisor
                 ) {
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Some(PrimTy::Float(FloatTy::F64)), Divisor::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Some(PrimTy::Float(FloatTy::F64)), Numeral::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
                         "as_secs_f64"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F64)), Divisor::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F64)), Numeral::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
                         "as_secs_f64"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Some(PrimTy::Float(FloatTy::F32)), Divisor::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Some(PrimTy::Float(FloatTy::F32)), Numeral::Float(divisor)) if (divisor - 1000.0).abs() < f64::EPSILON => {
                         "as_secs_f32"
                     },
-                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F32)), Divisor::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
+                    ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_nanos", Some(PrimTy::Float(FloatTy::F32)), Numeral::Float(divisor)) if (divisor - 1_000_000_000.0).abs() < f64::EPSILON => {
                         "as_secs_f32"
                     },
                     _ => { return;  }
@@ -504,7 +504,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         ManualDurationCalcs::manual_re_implementation_lower_the_unit(cx, expr);
         ManualDurationCalcs::manual_re_implementation_upper_the_unit(cx, expr);
-        ManualDurationCalcs::manual_re_implementation_as_secs_f64_for_div_and_mul(cx, expr);
         ManualDurationCalcs::duration_subsec(cx, expr);
     }
 }
