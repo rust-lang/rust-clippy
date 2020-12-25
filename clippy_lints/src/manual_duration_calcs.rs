@@ -223,6 +223,36 @@ impl<'tcx> ManualDurationCalcs {
         }
     }
 
+    pub fn duration_as_secs(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        if_chain! {
+            if let ExprKind::Binary(Spanned { node: BinOpKind::Div, .. }, ref left, ref right) = expr.kind;
+            if let Some(method_call) = parse_method_call_expr(cx, left, None);
+            if let Some((divisor, _)) = constant(cx, cx.typeck_results(), right);
+            then {
+                let suggested_fn = match (method_call.method_name.to_string().as_str(), divisor) {
+                    ("as_millis", Constant::Int(1_000)) => "as_secs",
+                    ("as_millis", Constant::F64(divisor)) if (divisor - 1_000.0).abs() < f64::EPSILON => "as_secs_f64",
+                    ("as_millis", Constant::F32(divisor)) if (divisor - 1_000.0).abs() < f32::EPSILON => "as_secs_f32",
+                    _ => return,
+                };
+                let mut applicability = Applicability::MachineApplicable;
+                span_lint_and_sugg(
+                    cx,
+                    MANUAL_DURATION_CALCS,
+                    expr.span,
+                    &format!("calling `{}()` is more concise than this calculation", suggested_fn),
+                    "try",
+                    format!(
+                        "{}.{}()",
+                        snippet_with_applicability(cx, method_call.receiver, "_", &mut applicability),
+                            suggested_fn
+                        ),
+                        applicability,
+                    );
+            }
+        }
+    }
+
     pub fn manual_re_implementation_lower_the_unit(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         fn parse<'tcx>(
             cx: &LateContext<'tcx>,
@@ -498,5 +528,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
         ManualDurationCalcs::manual_re_implementation_lower_the_unit(cx, expr);
         ManualDurationCalcs::manual_re_implementation_upper_the_unit(cx, expr);
         ManualDurationCalcs::duration_subsec(cx, expr);
+        ManualDurationCalcs::duration_as_secs(cx, expr);
     }
 }
