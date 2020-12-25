@@ -180,7 +180,7 @@ fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> 
             if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
             if let Some((Constant::Int(multiplier), _)) = constant(cx, cx.typeck_results(), multiplier_expr);
             then {
-                Some((method_path.ident.as_str().clone(), multiplier))
+                Some((method_path.ident.as_str(), multiplier))
             } else {
                 None
             }
@@ -197,9 +197,9 @@ fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> 
         ) => Some((left, right)),
         _ => None,
     }
-    .map_or(None, |splited_mul| {
+    .and_then(|splited_mul| {
         let patterns = [(splited_mul.0, splited_mul.1), (splited_mul.1, splited_mul.0)];
-        patterns.iter().filter_map(|expr| parse(cx, expr.0, expr.1)).next()
+        patterns.iter().find_map(|expr| parse(cx, expr.0, expr.1))
     })
 }
 
