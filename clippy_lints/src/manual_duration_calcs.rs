@@ -252,6 +252,10 @@ impl<'tcx> ManualDurationCalcs {
                     let suggested_fn = match (r.0.to_string().as_str(), r.1, r.2.to_string().as_str()) {
                         ("as_secs", Constant::Int(1_000_000_000), "subsec_nanos") => "as_nanos",
                         ("as_secs", Constant::Int(1_000), "subsec_millis") => "as_millis",
+                        ("as_secs", Constant::F64(multiplier), "subsec_millis") if (multiplier - 1_000_000_000.0).abs() < f64::EPSILON => "as_millis",
+                        ("as_secs", Constant::F32(multiplier), "subsec_millis") if (multiplier - 1_000_000_000.0).abs() < f32::EPSILON => "as_millis",
+                        ("as_secs", Constant::F64(multiplier), "subsec_millis") if (multiplier - 1_000.0).abs() < f64::EPSILON => "as_millis",
+                        ("as_secs", Constant::F32(multiplier), "subsec_millis") if (multiplier - 1_000.0).abs() < f32::EPSILON => "as_millis",
                         _ => return,
                     };
 
