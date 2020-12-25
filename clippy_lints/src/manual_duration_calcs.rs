@@ -152,13 +152,21 @@ fn parse_division_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<P
     }
 
     if_chain! {
-        if let TyKind::Path(QPath::Resolved(_, Path { res, .. }))  = ty.kind;
-        if let Res::PrimTy(pt) = res;
+        if let ExprKind::Binary(
+            Spanned {
+                node: BinOpKind::Div, ..
+            },
+            ref dividend_expr,
+            ref divisor_expression,
+        ) = expr.kind;
+        if let Some(dividend) = parse_method_call_expr(cx, dividend_expr, None);
+        if let Some(divisor) = get_divisor(divisor_expression);
         then {
-            return Some(pt)
+            Some(ParsedDivisionExpr::new(dividend.receiver, dividend.method_name, divisor, dividend.cast_type))
+        } else {
+            None
         }
     }
-    None
 }
 
 fn extract_multiple_expr<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<(SymbolStr, u128)> {
