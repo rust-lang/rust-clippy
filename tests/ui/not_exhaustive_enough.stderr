@@ -1,76 +1,148 @@
-error: Enum not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:29:11
+error: enum match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:42:11
    |
 LL |     match e {
-   |           ^ help: try adding missing field/s: `E::Third`
+   |           ^ help: try adding missing variants: `E::Third`
    |
    = note: `-D clippy::not-exhaustive-enough` implied by `-D warnings`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:37:9
+error: enum match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:52:11
+   |
+LL |     match k {
+   |           ^ help: try adding missing variants: `K::Third`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:60:9
    |
 LL |     let S { a: _, b: _, .. } = S::default();
-   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `c: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:40:9
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:63:9
    |
 LL |         S { a: 42, b: 21, .. } => {},
-   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `c: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:41:9
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:64:9
    |
 LL |         S { a: _, b: _, .. } => {},
-   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `c: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:44:12
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:67:12
    |
 LL |     if let S { a: 42, b: _, .. } = S::default() {}
-   |            ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+   |            ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `c: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:48:9
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:71:9
    |
 LL |     for S { a: _, b: _, .. } in v {}
-   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `c`
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `c: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:52:9
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:73:15
+   |
+LL |     while let S { a: 42, b: _, .. } = S::default() {
+   |               ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `c: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:77:19
+   |
+LL |     pub fn take_s(S { a, b, .. }: S) -> (i32, i32) {
+   |                   ^^^^^^^^^^^^^^ help: try adding missing fields: `c: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:83:9
    |
 LL |     let T { 0: _, 1: _, .. } = T::default();
-   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:55:9
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:86:9
    |
 LL |         T { 0: 42, 1: 21, .. } => {},
-   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:56:9
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:87:9
    |
 LL |         T { 0: _, 1: _, .. } => {},
-   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:59:12
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:90:12
    |
 LL |     if let T { 0: 42, 1: _, .. } = T::default() {}
-   |            ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+   |            ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
 
-error: Struct not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:62:9
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:93:9
    |
 LL |     for T { 0: _, 1: _, .. } in v {}
-   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing field/s: `2`
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
 
-error: Enum not exhaustive enough
-  --> $DIR/not_exhaustive_enough.rs:67:11
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:95:15
+   |
+LL |     while let T { 0: 42, 1: _, .. } = T::default() {
+   |               ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:99:19
+   |
+LL |     pub fn take_t(T { 0: _, 1: _, .. }: T) -> (i32, i32) {
+   |                   ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:105:9
+   |
+LL |     let W { 0: _, 1: _, .. } = W::default();
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:108:9
+   |
+LL |         W { 0: 42, 1: 21, .. } => {},
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:109:9
+   |
+LL |         W { 0: _, 1: _, .. } => {},
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:112:12
+   |
+LL |     if let W { 0: 42, 1: _, .. } = W::default() {}
+   |            ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:115:9
+   |
+LL |     for W { 0: _, 1: _, .. } in m {}
+   |         ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:117:15
+   |
+LL |     while let W { 0: 42, 1: _, .. } = W::default() {
+   |               ^^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: struct match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:121:19
+   |
+LL |     pub fn take_w(W { 0: _, 1: _, .. }: W) -> (i32, i32) {
+   |                   ^^^^^^^^^^^^^^^^^^^^ help: try adding missing fields: `2: _`
+
+error: enum match is not exhaustive enough
+  --> $DIR/not_exhaustive_enough.rs:128:11
    |
 LL |     match error_kind {
-   |           ^^^^^^^^^^ help: try adding missing field/s: `std::io::ErrorKind::WouldBlock , std::io::ErrorKind::InvalidInput , std::io::ErrorKind::InvalidData , std::io::ErrorKind::TimedOut , std::io::ErrorKind::WriteZero , std::io::ErrorKind::Interrupted , std::io::ErrorKind::Other , std::io::ErrorKind::UnexpectedEof`
+   |           ^^^^^^^^^^ help: try adding missing variants: `std::io::ErrorKind::WouldBlock , std::io::ErrorKind::InvalidInput , std::io::ErrorKind::InvalidData , std::io::ErrorKind::TimedOut , std::io::ErrorKind::WriteZero , std::io::ErrorKind::Interrupted , std::io::ErrorKind::Other , std::io::ErrorKind::UnexpectedEof`
 
-error: aborting due to 12 previous errors
+error: aborting due to 24 previous errors
 

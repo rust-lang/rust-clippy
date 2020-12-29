@@ -8,7 +8,7 @@ use rustc_session::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
     /// **What it does:**
-    /// As suggested in the [non_exhaustive RFC](https://github.com/rust-lang/rfcs/blob/master/text/2008-non-exhaustive.md#unresolved-questions), 
+    /// As suggested in the [non_exhaustive RFC](https://github.com/rust-lang/rfcs/blob/master/text/2008-non-exhaustive.md#unresolved-questions),
     /// when using non-exhaustive enums and structs in patterns,
     /// this lint warns the user for missing variants or fields despite having a wildcard arm or a rest pattern.
     ///
@@ -82,8 +82,8 @@ fn check_path_pat<'tcx>(cx: &LateContext<'tcx>, arms: &[Arm<'_>], e: &'tcx Expr<
         cx,
         NOT_EXHAUSTIVE_ENOUGH,
         e.span,
-        "Enum not exhaustive enough",
-        "try adding missing field/s",
+        "enum match is not exhaustive enough",
+        "try adding missing variants",
         missing_variants.join(" , "),
         Applicability::MaybeIncorrect,
     );
@@ -96,13 +96,15 @@ fn check_struct_pat<'tcx>(
     field_defs: &[ty::FieldDef],
 ) {
     let missing_fields = get_missing_fields(field_pats, field_defs);
+    let mut suggestions = vec![];
+    suggestions = missing_fields.iter().map(|v| v.to_owned() + ": _").collect();
     span_lint_and_sugg(
         cx,
         NOT_EXHAUSTIVE_ENOUGH,
         pat.span,
-        "Struct not exhaustive enough",
-        "try adding missing field/s",
-        missing_fields.join(" , "),
+        "struct match is not exhaustive enough",
+        "try adding missing fields",
+        suggestions.join(" , "),
         Applicability::MaybeIncorrect,
     );
 }
@@ -134,7 +136,6 @@ fn get_missing_variants<'tcx>(cx: &LateContext<'tcx>, arms: &[Arm<'_>], e: &'tcx
     missing_variants
 }
 
-// refactor - better way?
 fn get_missing_fields(field_pats: &[FieldPat<'_>], field_defs: &[ty::FieldDef]) -> Vec<String> {
     let mut missing_fields = vec![];
     let mut field_match = false;
