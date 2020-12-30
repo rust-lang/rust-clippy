@@ -122,6 +122,7 @@ fn get_missing_variants<'tcx>(cx: &LateContext<'tcx>, arms: &[Arm<'_>], e: &'tcx
     for arm in arms {
         if let PatKind::Path(ref path) = arm.pat.kind {
             if let QPath::Resolved(_, p) = path {
+                println!("{:?}", path);
                 missing_variants.retain(|e| e.ctor_def_id != Some(p.res.def_id()));
             }
         } else if let PatKind::TupleStruct(ref path, ref patterns, ..) = arm.pat.kind {
