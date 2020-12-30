@@ -96,6 +96,7 @@ fn check_struct_pat<'tcx>(
     field_defs: &[ty::FieldDef],
 ) {
     let missing_fields = get_missing_fields(field_pats, field_defs);
+    if missing_fields.len() > 0 {
     let mut suggestions = vec![];
     suggestions = missing_fields.iter().map(|v| v.to_owned() + ": _").collect();
     span_lint_and_sugg(
@@ -107,6 +108,7 @@ fn check_struct_pat<'tcx>(
         suggestions.join(" , "),
         Applicability::MaybeIncorrect,
     );
+    }
 }
 
 fn get_missing_variants<'tcx>(cx: &LateContext<'tcx>, arms: &[Arm<'_>], e: &'tcx Expr<'_>) -> Vec<String> {
@@ -147,7 +149,7 @@ fn get_missing_fields(field_pats: &[FieldPat<'_>], field_defs: &[ty::FieldDef]) 
                 break;
             }
         }
-        if !&field_match {
+        if !&field_match && field_def.vis.is_visible_locally() {
             missing_fields.push(field_def.ident.name.to_ident_string())
         }
         field_match = false;
