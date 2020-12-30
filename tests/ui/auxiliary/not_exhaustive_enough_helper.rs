@@ -1,5 +1,3 @@
-
-
 #[non_exhaustive]
 pub enum AnotherCrateEnum {
     AFirst,

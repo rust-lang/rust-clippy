@@ -47,7 +47,6 @@ impl<'tcx> LateLintPass<'tcx> for NotExhaustiveEnough {
         if_chain! {
             if let PatKind::Struct(_, ref field_pats, ref rest_pat) = &pat.kind;
             if let ty::Adt(adt_def, _) = cx.typeck_results().pat_ty(pat).kind();
-            if adt_def.is_struct();
             if is_struct_not_exhaustive(adt_def);
             if *rest_pat;
             if !field_pats.is_empty();
@@ -96,18 +95,17 @@ fn check_struct_pat<'tcx>(
     field_defs: &[ty::FieldDef],
 ) {
     let missing_fields = get_missing_fields(field_pats, field_defs);
-    if missing_fields.len() > 0 {
-    let mut suggestions = vec![];
-    suggestions = missing_fields.iter().map(|v| v.to_owned() + ": _").collect();
-    span_lint_and_sugg(
-        cx,
-        NOT_EXHAUSTIVE_ENOUGH,
-        pat.span,
-        "struct match is not exhaustive enough",
-        "try adding missing fields",
-        suggestions.join(" , "),
-        Applicability::MaybeIncorrect,
-    );
+    if !missing_fields.is_empty() {
+        let suggestions: Vec<String> = missing_fields.iter().map(|v| v.to_owned() + ": _").collect();
+        span_lint_and_sugg(
+            cx,
+            NOT_EXHAUSTIVE_ENOUGH,
+            pat.span,
+            "struct match is not exhaustive enough",
+            "try adding missing fields",
+            suggestions.join(" , "),
+            Applicability::MaybeIncorrect,
+        );
     }
 }
 
@@ -122,16 +120,12 @@ fn get_missing_variants<'tcx>(cx: &LateContext<'tcx>, arms: &[Arm<'_>], e: &'tcx
     for arm in arms {
         if let PatKind::Path(ref path) = arm.pat.kind {
             if let QPath::Resolved(_, p) = path {
-                println!("{:?}", path);
                 missing_variants.retain(|e| e.ctor_def_id != Some(p.res.def_id()));
             }
-        } else if let PatKind::TupleStruct(ref path, ref patterns, ..) = arm.pat.kind {
-            if let QPath::Resolved(_, p) = path {
-                let is_pattern_exhaustive =
-                    |pat: &&Pat<'_>| matches!(pat.kind, PatKind::Wild | PatKind::Binding(.., None));
-                if patterns.iter().all(is_pattern_exhaustive) {
-                    missing_variants.retain(|e| e.ctor_def_id != Some(p.res.def_id()));
-                }
+        } else if let PatKind::TupleStruct(QPath::Resolved(_, p), ref patterns, ..) = arm.pat.kind {
+            let is_pattern_exhaustive = |pat: &&Pat<'_>| matches!(pat.kind, PatKind::Wild | PatKind::Binding(.., None));
+            if patterns.iter().all(is_pattern_exhaustive) {
+                missing_variants.retain(|e| e.ctor_def_id != Some(p.res.def_id()));
             }
         }
     }

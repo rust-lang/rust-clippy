@@ -9,33 +9,38 @@ extern crate not_exhaustive_enough_helper;
 use not_exhaustive_enough_helper::{AnotherCrateEnum, AnotherCrateStruct, TPrivateField};
 
 #[non_exhaustive]
-pub enum E {
+pub enum DefaultEnum {
     First,
     Second,
     Third,
 }
 
 #[non_exhaustive]
-pub enum K {
+pub enum DataEnum {
     First(String),
     Second(u32, u32),
-    Third(String)
+    Third(String),
 }
 
-enum EF {
+pub enum StructVariantEnum1 {
     #[non_exhaustive]
-    V{a: i32, b: i32}
+    V { a: i32, b: i32 },
 }
 
-enum F {
+pub enum StructVariantEnum2 {
     #[non_exhaustive]
-    V{a: i32, b: i32},
-    A{c: u32}
+    V {
+        a: i32,
+        b: i32,
+    },
+    A {
+        c: u32,
+    },
 }
 
 #[derive(Default)]
 #[non_exhaustive]
-pub struct S {
+pub struct DefaultStruct {
     pub a: i32,
     pub b: i32,
     pub c: i32,
@@ -43,82 +48,85 @@ pub struct S {
 
 #[derive(Default)]
 #[non_exhaustive]
-pub struct T(pub i32, pub i32, pub i32);
-
+pub struct DefaultTuple(pub i32, pub i32, pub i32);
 
 fn main() {
     //////// Enum
 
-    let e = E::First;
+    let default_enum = DefaultEnum::First;
 
-    let ef = EF::V{a: 1, b:2};
+    let struct_variant_enum_1 = StructVariantEnum1::V { a: 1, b: 2 };
 
-    let f = F::V{a:1, b:2};
+    let struct_variant_enum_2 = StructVariantEnum2::V { a: 1, b: 2 };
 
-    match e {
-        E::First => {},
-        E::Second => {},
+    match default_enum {
+        DefaultEnum::First => {},
+        DefaultEnum::Second => {},
         _ => {},
     }
 
-    match ef {
-        EF::V{a:_, ..} => {}
+    match struct_variant_enum_1 {
+        StructVariantEnum1::V { a: _, .. } => {},
     }
 
-    if let F::V{a:_, ..} = f {}
+    match struct_variant_enum_2 {
+        StructVariantEnum2::V { a: _, .. } => {},
+        _ => {},
+    }
 
     //
-    let example = "Example".to_string();
-    let k = K::First(example);
 
-    match k {
-        K::First(..) => {},
-        K::Second(..) => {},
+    let example = "Example".to_string();
+    let data_enum = DataEnum::First(example);
+
+    match data_enum {
+        DataEnum::First(..) => {},
+        DataEnum::Second(..) => {},
         _ => {},
     }
 
     //////// Struct
 
-    let S { a: _, b: _, .. } = S::default();
+    let DefaultStruct { a: _, b: _, .. } = DefaultStruct::default();
 
-    match S::default() {
-        S { a: 42, b: 21, .. } => {},
-        S { a: _, b: _, .. } => {},
+    match DefaultStruct::default() {
+        DefaultStruct { a: 42, b: 21, .. } => {},
+        DefaultStruct { a: _, b: _, .. } => {},
     }
 
-    if let S { a: 42, b: _, .. } = S::default() {}
+    if let DefaultStruct { a: 42, b: _, .. } = DefaultStruct::default() {}
 
-    let v = vec![S::default()];
+    let v = vec![DefaultStruct::default()];
 
-    for S { a: _, b: _, .. } in v {}
+    for DefaultStruct { a: _, b: _, .. } in v {}
 
-    while let S { a: 42, b: _, .. } = S::default() {
+    while let DefaultStruct { a: 42, b: _, .. } = DefaultStruct::default() {
         break;
     }
 
-    pub fn take_s(S { a, b, .. }: S) -> (i32, i32) {
+    pub fn take_s(DefaultStruct { a, b, .. }: DefaultStruct) -> (i32, i32) {
         (a, b)
     }
 
     //////// Tuple Struct
 
-    let T { 0: _, 1: _, .. } = T::default();
+    let DefaultTuple { 0: _, 1: _, .. } = DefaultTuple::default();
 
-    match T::default() {
-        T { 0: 42, 1: 21, .. } => {},
-        T { 0: _, 1: _, .. } => {},
+    match DefaultTuple::default() {
+        DefaultTuple { 0: 42, 1: 21, .. } => {},
+        DefaultTuple { 0: _, 1: _, .. } => {},
     }
 
-    if let T { 0: 42, 1: _, .. } = T::default() {}
+    if let DefaultTuple { 0: 42, 1: _, .. } = DefaultTuple::default() {}
 
-    let v = vec![T::default()];
-    for T { 0: _, 1: _, .. } in v {}
+    let default_tuple = vec![DefaultTuple::default()];
+    for DefaultTuple { 0: _, 1: _, .. } in default_tuple {}
 
-    while let T { 0: 42, 1: _, .. } = T::default() {
+    while let DefaultTuple { 0: 42, 1: _, .. } = DefaultTuple::default() {
         break;
     }
 
-    pub fn take_t(T { 0: _, 1: _, .. }: T) -> (i32, i32) {
+    pub fn take_t(DefaultTuple { 0: _, 1: _, .. }: DefaultTuple) -> (i32, i32) {
         (0, 1)
     }
 
@@ -132,8 +140,8 @@ fn main() {
     }
 
     match TPrivateField::default() {
-        TPrivateField {1: 21, .. } => {},
-        _ => {}
+        TPrivateField { 1: 21, .. } => {},
+        _ => {},
     }
 
     if let TPrivateField { 0: 42, 1: _, .. } = TPrivateField::default() {}
