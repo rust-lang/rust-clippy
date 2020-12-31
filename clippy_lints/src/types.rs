@@ -67,6 +67,34 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    /// **What it does:** Checks for use of `&[char]` anywhere in the code.
+    ///
+    /// **Why is this bad?** `char` represents a Unicode codepoint, not a
+    /// character. Usually users of `&[char]` want O(1) indexing on characters,
+    /// not codepoints.
+    ///
+    /// **Known problems:** None.
+    ///
+    /// **Example:**
+    /// ```rust,ignore
+    /// struct X {
+    ///     chars: &[char]
+    /// }
+    /// ```
+    ///
+    /// Better:
+    ///
+    /// ```rust,ignore
+    /// struct X {
+    ///     chars: &[&str]
+    /// }
+    /// ```
+    pub CHAR_SLICES,
+    pedantic,
+    "usage of `&[char]`, usually you want to index characters instead of codepoints"
+}
+
+declare_clippy_lint! {
     /// **What it does:** Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.
     /// Check the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.
     ///
@@ -252,7 +280,7 @@ pub struct Types {
     vec_box_size_threshold: u64,
 }
 
-impl_lint_pass!(Types => [BOX_VEC, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX, REDUNDANT_ALLOCATION, RC_BUFFER]);
+impl_lint_pass!(Types => [BOX_VEC, VEC_BOX, CHAR_SLICES, OPTION_OPTION, LINKEDLIST, BORROWED_BOX, REDUNDANT_ALLOCATION, RC_BUFFER]);
 
 impl<'tcx> LateLintPass<'tcx> for Types {
     fn check_fn(&mut self, cx: &LateContext<'_>, _: FnKind<'_>, decl: &FnDecl<'_>, _: &Body<'_>, _: Span, id: HirId) {
@@ -581,6 +609,24 @@ impl Types {
                             "a `VecDeque` might work",
                         );
                         return; // don't recurse into the type
+                    } else if let TyKind::Slice(s) = hir_ty.kind {
+                        if let TyKind::Path(ref qpath) = s.kind {
+                            if !is_local {
+                                let hir_id = hir_ty.hir_id;
+                                let res = qpath_res(cx, qpath, hir_id);
+                                if let Some(def_id) = res.opt_def_id() {
+                                    if Some(def_id) == cx.tcx.lang_items().char_impl() {
+                                        span_lint(
+                                            cx,
+                                            CHAR_SLICES,
+                                            hir_ty.span,
+                                            "consider using `&[&str]` instead of `&[char]`",
+                                        );
+                                        return; // don't recurse into the type
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 match *qpath {
@@ -713,6 +759,25 @@ impl Types {
                     }
                 };
                 self.check_ty(cx, &mut_ty.ty, is_local);
+            },
+            TyKind::Slice(ref s) => {
+                if let TyKind::Path(ref qpath) = s.kind {
+                    if !is_local {
+                        let hir_id = hir_ty.hir_id;
+                        let res = qpath_res(cx, qpath, hir_id);
+                        if let Some(def_id) = res.opt_def_id() {
+                            if Some(def_id) == cx.tcx.lang_items().char_impl() {
+                                span_lint(
+                                    cx,
+                                    CHAR_SLICES,
+                                    hir_ty.span,
+                                    "consider using `&[&str]` instead of `&[char]`",
+                                );
+                                return; // don't recurse into the type
+                            }
+                        }
+                    }
+                }
             },
             _ => self.check_ty(cx, &mut_ty.ty, is_local),
         }
