@@ -224,31 +224,67 @@ impl<'tcx> ManualDurationCalcs {
     }
 
     pub fn duration_as_secs(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        #[derive(Debug)]
+        struct ParsedExpr<'tcx> {
+            receiver: Span,
+            add_method_name: String,
+            cast_type: Option<&'tcx PrimTy>,
+            multipilier_method_name: String,
+            multipilier: Constant,
+        }
+
+        fn parse<'tcx>(
+            cx: &LateContext<'tcx>,
+            multiplier_expr: &'tcx Expr<'_>,
+            method_call_expr: &'tcx Expr<'_>,
+        ) -> Option<ParsedExpr<'tcx>> {
+            if_chain! {
+                if let Some(mul) = extract_multiple_expr(cx, multiplier_expr);
+                if let Some(method_call) = parse_method_call_expr(cx, method_call_expr, None);
+                then {
+                    Some(ParsedExpr {
+                        receiver: method_call.receiver,
+                        add_method_name: method_call.method_name.to_string(),
+                        cast_type: method_call.cast_type,
+                        multipilier_method_name: mul.method_name.to_string(),
+                        multipilier: mul.multipilier
+                    })
+                } else {
+                    None
+                }
+            }
+        }
+
         if_chain! {
-            if let ExprKind::Binary(Spanned { node: BinOpKind::Div, .. }, ref left, ref right) = expr.kind;
-            if let Some(method_call) = parse_method_call_expr(cx, left, None);
+            if let ExprKind::Binary(Spanned { node: BinOpKind::Div, .. }, left, right) = expr.kind;
+            if let ExprKind::Binary(Spanned { node: BinOpKind::Add, .. }, add_left, add_right) = left.kind;
             if let Some((divisor, _)) = constant(cx, cx.typeck_results(), right);
             then {
-                let suggested_fn = match (method_call.method_name.to_string().as_str(), divisor) {
-                    ("as_millis", Constant::Int(1_000)) => "as_secs",
-                    ("as_millis", Constant::F64(divisor)) if (divisor - 1_000.0).abs() < f64::EPSILON => "as_secs_f64",
-                    ("as_millis", Constant::F32(divisor)) if (divisor - 1_000.0).abs() < f32::EPSILON => "as_secs_f32",
-                    _ => return,
-                };
-                let mut applicability = Applicability::MachineApplicable;
-                span_lint_and_sugg(
-                    cx,
-                    MANUAL_DURATION_CALCS,
-                    expr.span,
-                    &format!("calling `{}()` is more concise than this calculation", suggested_fn),
-                    "try",
-                    format!(
-                        "{}.{}()",
-                        snippet_with_applicability(cx, method_call.receiver, "_", &mut applicability),
-                            suggested_fn
-                        ),
-                        applicability,
-                    );
+                [(add_right, add_left), (add_left, add_right)]
+                    .iter()
+                    .flat_map(|e| parse(cx, e.0, e.1))
+                    .for_each(|e| {
+                        let suggested_fn = match (e.multipilier_method_name.as_str(), e.cast_type, e.add_method_name.as_str(), &divisor) {
+                            ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Constant::F64(divisor)) if (divisor - 1_000.0).abs() < f64::EPSILON => "as_secs_f64",
+                            ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Constant::F32(divisor)) if (divisor - 1_000.0).abs() < f32::EPSILON => "as_secs_f32",
+                            _ => return
+                        };
+
+                        let mut applicability = Applicability::MachineApplicable;
+                        span_lint_and_sugg(
+                            cx,
+                            MANUAL_DURATION_CALCS,
+                            expr.span,
+                            &format!("calling `{}()` is more concise than this calculation", suggested_fn),
+                            "try",
+                            format!(
+                                "{}.{}()",
+                                snippet_with_applicability(cx, e.receiver, "_", &mut applicability),
+                                    suggested_fn
+                                ),
+                                applicability,
+                        );
+                    })
             }
         }
     }
@@ -376,158 +412,13 @@ impl<'tcx> ManualDurationCalcs {
             }
         }
     }
-
-    pub fn manual_re_implementation_as_secs_f64_for_div_and_mul(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        #[derive(Debug)]
-        enum Number {
-            Int(u128),
-            Float(f64),
-        };
-
-        fn mul_extractor(
-            cx: &LateContext<'tcx>,
-            multiplier_expr: &'tcx ExprKind<'tcx>,
-        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
-            if let ExprKind::Binary(
-                Spanned {
-                    node: BinOpKind::Mul, ..
-                },
-                ref mul_left,
-                ref mul_right,
-            ) = multiplier_expr
-            {
-                if let Some(result) = manual_milli_sec_implementation_extractor(cx, &mul_left.kind, &mul_right.kind) {
-                    return Some(result);
-                } else if let Some(result) =
-                    manual_milli_sec_implementation_extractor(cx, &mul_right.kind, &mul_left.kind)
-                {
-                    return Some(result);
-                }
-                return None;
-            }
-            None
-        }
-
-        fn cast_extractor(
-            cx: &LateContext<'tcx>,
-            cast_expr: &'tcx ExprKind<'tcx>,
-        ) -> Option<(PrimTy, &'tcx PathSegment<'tcx>, Span)> {
-            if_chain! {
-                if let ExprKind::Cast(
-                    Expr {
-                        kind: ExprKind::MethodCall(ref method_path, _ , ref args, _),
-                        ..
-                    },
-                    Ty {
-                        kind: TyKind::Path(QPath::Resolved(None, Path { res: Res::PrimTy(cast_type), .. })),
-                        ..
-                    }
-                ) = &cast_expr;
-                if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
-                then {
-                    Some((*cast_type, method_path, args[0].span))
-                } else {
-                    None
-                }
-            }
-        }
-
-        fn manual_milli_sec_implementation_extractor(
-            cx: &LateContext<'tcx>,
-            mul_left: &'tcx ExprKind<'tcx>,
-            mul_right: &'tcx ExprKind<'tcx>,
-        ) -> Option<(Number, PrimTy, &'tcx PathSegment<'tcx>, Span)> {
-            if_chain! {
-                if let ExprKind::Lit(Spanned { node, .. }) = &mul_left;
-                if let Some((cast_type, method_path, method_receiver)) = cast_extractor(cx, mul_right);
-                then {
-                    match node {
-                        LitKind::Float(multiplier, _) => {
-                            return multiplier
-                                .as_str().
-                                parse::<f64>().
-                                map_or_else(
-                                    |_| None,
-                                    |m| Some((Number::Float(m), cast_type, method_path, method_receiver))
-                                )
-                        }
-                        LitKind::Int(multiplier, _) => {
-                            return Some((Number::Int(*multiplier), cast_type, method_path, method_receiver))
-                        }
-                        _ => None
-                    }
-                } else {
-                    None
-                }
-            }
-        }
-
-        if_chain! {
-            if let ExprKind::Binary(
-                Spanned { node: BinOpKind::Div, ..  },
-                ref div_left_expr,
-                ref div_right_expr
-            ) = expr.kind;
-            if let ExprKind::Binary(
-                Spanned { node: BinOpKind::Add, ..  },
-                ref plus_left_expr,
-                ref plus_right_expr,
-            ) = div_left_expr.kind;
-            if let Expr { kind: ExprKind::Lit(Spanned { node, .. }), .. } = div_right_expr;
-
-            then {
-                let multi_expr_option = match (
-                    mul_extractor(cx, &plus_left_expr.kind),
-                    mul_extractor(cx, &plus_right_expr.kind)
-                ) {
-                    (Some(result), None) | (None, Some(result)) => {
-                        Some(result)
-                    }
-                    _ => None
-                };
-                let divisor_option = match node {
-                    LitKind::Float(div, _) => {
-                        div.as_str().parse::<f64>().map_or_else(|_| None, |d| Some(Number::Float(d)))
-                    }
-                    LitKind::Int(div, _) => {
-                        Some(Number::Int(*div))
-                    }
-                    _ => None
-                };
-
-                if let (Some(multi_expr), Some(divisor)) = (multi_expr_option, divisor_option) {
-                    let suggested_fn = match (multi_expr.0, multi_expr.1, multi_expr.2, divisor) {
-                        (Number::Float(mul), PrimTy::Float(FloatTy::F64), _, Number::Float(dur)) if mul == 1000.0 && dur == 1000.0  => { "as_secs_f64" }
-                        (Number::Float(mul), PrimTy::Float(FloatTy::F32), _, Number::Float(dur)) if mul == 1000.0 && dur == 1000.0 => { "as_secs_f32" }
-                        _ => { return }
-                    };
-
-                    let mut applicability = Applicability::MachineApplicable;
-
-                    span_lint_and_sugg(
-                        cx,
-                        MANUAL_DURATION_CALCS,
-                        expr.span,
-                        &format!("no manual re-implementationa of the {}", suggested_fn),
-                        "try",
-                        format!(
-                            "{}.{}()",
-                            snippet_with_applicability(cx, multi_expr.3, "_", &mut applicability),
-                            suggested_fn
-                        ),
-                        applicability,
-                    );
-                }
-            }
-        }
-    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for ManualDurationCalcs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        ManualDurationCalcs::duration_as_secs(cx, expr);
         ManualDurationCalcs::manual_re_implementation_lower_the_unit(cx, expr);
         ManualDurationCalcs::manual_re_implementation_upper_the_unit(cx, expr);
         ManualDurationCalcs::duration_subsec(cx, expr);
-        ManualDurationCalcs::duration_as_secs(cx, expr);
     }
 }
