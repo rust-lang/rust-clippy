@@ -4659,6 +4659,17 @@
     }
   },
   {
+    "id": "vec_init_then_push",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for calls to `push` immediately after creating a new `Vec`.",
+      "Why is this bad": "The `vec![]` macro is both more performant and easier to read than\nmultiple `push` calls.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet mut v = Vec::new();\nv.push(0);\n```\nUse instead:\n```rust\nlet v = vec![0];\n```"
+    }
+  },
+  {
     "id": "vec_resize_to_zero",
     "group": "correctness",
     "level": "Deny",
