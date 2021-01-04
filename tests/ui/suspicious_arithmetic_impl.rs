@@ -1,4 +1,5 @@
 #![warn(clippy::suspicious_arithmetic_impl)]
+#![allow(clippy::int_min_max_value)]
 use std::ops::{
     Add, AddAssign, BitAnd, BitOr, BitOrAssign, BitXor, Div, DivAssign, Mul, MulAssign, Rem, Shl, Shr, Sub,
 };

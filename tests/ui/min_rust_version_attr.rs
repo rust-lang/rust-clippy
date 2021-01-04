@@ -123,6 +123,11 @@ fn missing_const_for_fn() -> i32 {
     1
 }
 
+fn int_min_max_value() {
+    let min = u32::min_value();
+    let max = isize::max_value();
+}
+
 fn main() {
     filter_map_next();
     checked_conversion();
@@ -138,6 +143,7 @@ fn main() {
     replace_with_default();
     map_unwrap_or();
     missing_const_for_fn();
+    int_min_max_value();
 }
 
 mod meets_msrv {

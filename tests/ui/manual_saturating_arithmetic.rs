@@ -1,6 +1,6 @@
 // run-rustfix
 
-#![allow(unused_imports)]
+#![allow(unused_imports, clippy::int_min_max_value)]
 
 use std::{i128, i32, u128, u32};
 

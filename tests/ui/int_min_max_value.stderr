@@ -1,0 +1,22 @@
+error: `min_value` is soft-deprecated
+  --> $DIR/int_min_max_value.rs:9:15
+   |
+LL |     let min = u32::min_value();
+   |               ^^^^^^^^^^^^^^^^ help: use constant instead: `u32::MIN`
+   |
+   = note: `-D clippy::int-min-max-value` implied by `-D warnings`
+
+error: `max_value` is soft-deprecated
+  --> $DIR/int_min_max_value.rs:10:15
+   |
+LL |     let max = isize::max_value();
+   |               ^^^^^^^^^^^^^^^^^^ help: use constant instead: `isize::MAX`
+
+error: `min_value` is soft-deprecated
+  --> $DIR/int_min_max_value.rs:11:15
+   |
+LL |     let min = crate::Uint::min_value();
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^ help: use constant instead: `crate::Uint::MIN`
+
+error: aborting due to 3 previous errors
+

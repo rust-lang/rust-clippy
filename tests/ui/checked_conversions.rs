@@ -4,6 +4,7 @@
     clippy::cast_lossless,
     // Int::max_value will be deprecated in the future
     deprecated,
+    clippy::int_min_max_value,
 )]
 #![warn(clippy::checked_conversions)]
 
