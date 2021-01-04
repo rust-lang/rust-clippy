@@ -441,14 +441,25 @@
     }
   },
   {
+    "id": "collapsible_else_if",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for collapsible `else { if ... }` expressions\nthat can be collapsed to `else if ...`.",
+      "Why is this bad": "Each `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.",
+      "Known problems": "None.",
+      "Example": "```rust,ignore\n\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\n\nShould be written:\n\n```rust.ignore\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```"
+    }
+  },
+  {
     "id": "collapsible_if",
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions and for `else { if ... }` expressions\nthat\ncan be collapsed to `else if ...`.",
+      "What it does": "Checks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions.",
       "Why is this bad": "Each `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.",
       "Known problems": "None.",
-      "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n\n// or\n\nif x {\n    \u2026\n} else {\n    if y {\n        \u2026\n    }\n}\n```\n\nShould be written:\n\n```rust.ignore\nif x && y {\n    \u2026\n}\n\n// or\n\nif x {\n    \u2026\n} else if y {\n    \u2026\n}\n```"
+      "Example": "```rust,ignore\nif x {\n    if y {\n        \u2026\n    }\n}\n\n```\n\nShould be written:\n\n```rust.ignore\nif x && y {\n    \u2026\n}\n```"
     }
   },
   {
