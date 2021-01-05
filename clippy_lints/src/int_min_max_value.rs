@@ -1,6 +1,5 @@
 use crate::utils::{meets_msrv, snippet_with_applicability, span_lint_and_sugg};
 use if_chain::if_chain;
-use rustc_ast::{IntTy, UintTy};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
@@ -31,7 +30,7 @@ declare_clippy_lint! {
     /// ```
     pub INT_MIN_MAX_VALUE,
     style,
-    "default lint description"
+    "use of `min_value()` and `max_value()` for primitive integer types"
 }
 
 impl_lint_pass!(IntMinMaxValue => [INT_MIN_MAX_VALUE]);
@@ -75,7 +74,7 @@ impl LateLintPass<'_> for IntMinMaxValue {
                     Cow::Owned(x) => {
                         Cow::Owned(x.rsplitn(2, "::").nth(1).unwrap_or("_").into())
                     }
-                    x => x,
+                    Cow::Borrowed(x) => Cow::Borrowed(x),
                 };
                 span_lint_and_sugg(cx, INT_MIN_MAX_VALUE, expr.span, msg, "use constant instead", format!("{}::{}", sugg_path, new_name), app);
             }
