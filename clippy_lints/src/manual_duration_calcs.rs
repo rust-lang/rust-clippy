@@ -55,8 +55,14 @@ declare_clippy_lint! {
 declare_lint_pass!(ManualDurationCalcs => [MANUAL_DURATION_CALCS]);
 
 fn get_cast_type<'tcx>(ty: &'tcx Ty<'_>) -> Option<&'tcx PrimTy> {
-    if let TyKind::Path(QPath::Resolved(_, Path { res: Res::PrimTy(pt), .. }))  = ty.kind {
-        return Some(pt)
+    if let TyKind::Path(QPath::Resolved(
+        _,
+        Path {
+            res: Res::PrimTy(pt), ..
+        },
+    )) = ty.kind
+    {
+        return Some(pt);
     }
     None
 }
@@ -264,7 +270,12 @@ impl<'tcx> ManualDurationCalcs {
                     .iter()
                     .flat_map(|e| parse(cx, e.0, e.1))
                     .for_each(|e| {
-                        let suggested_fn = match (e.multipilier_method_name.as_str(), e.cast_type, e.add_method_name.as_str(), &divisor) {
+                        let suggested_fn = match (
+                            e.multipilier_method_name.as_str(),
+                            e.cast_type,
+                            e.add_method_name.as_str(),
+                            &divisor
+                        ) {
                             ("as_secs", Some(PrimTy::Float(FloatTy::F64)), "subsec_millis", Constant::F64(divisor)) if (divisor - 1_000.0).abs() < f64::EPSILON => "as_secs_f64",
                             ("as_secs", Some(PrimTy::Float(FloatTy::F32)), "subsec_millis", Constant::F32(divisor)) if (divisor - 1_000.0).abs() < f32::EPSILON => "as_secs_f32",
                             _ => return
@@ -306,7 +317,9 @@ impl<'tcx> ManualDurationCalcs {
 
             if_chain! {
                 if let ExprKind::MethodCall(ref method_path, _ , ref args, _) = method_call_expr.kind;
-                if let Some(ParsedMultipleExpr { method_name: mul_method_name, multipilier, .. }) = extract_multiple_expr(cx, multipilication_expr);
+                if let Some(ParsedMultipleExpr {
+                    method_name: mul_method_name, multipilier, ..
+                }) = extract_multiple_expr(cx, multipilication_expr);
                 if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
                 then  {
                     Some((mul_method_name, multipilier, method_path.ident.as_str(), cast_type, args[0].span))
@@ -331,10 +344,26 @@ impl<'tcx> ManualDurationCalcs {
                     let suggested_fn = match (r.0.to_string().as_str(), r.1, r.2.to_string().as_str()) {
                         ("as_secs", Constant::Int(1_000_000_000), "subsec_nanos") => "as_nanos",
                         ("as_secs", Constant::Int(1_000), "subsec_millis") => "as_millis",
-                        ("as_secs", Constant::F64(multiplier), "subsec_millis") if (multiplier - 1_000_000_000.0).abs() < f64::EPSILON => "as_millis",
-                        ("as_secs", Constant::F32(multiplier), "subsec_millis") if (multiplier - 1_000_000_000.0).abs() < f32::EPSILON => "as_millis",
-                        ("as_secs", Constant::F64(multiplier), "subsec_millis") if (multiplier - 1_000.0).abs() < f64::EPSILON => "as_millis",
-                        ("as_secs", Constant::F32(multiplier), "subsec_millis") if (multiplier - 1_000.0).abs() < f32::EPSILON => "as_millis",
+                        ("as_secs", Constant::F64(multiplier), "subsec_millis")
+                            if (multiplier - 1_000_000_000.0).abs() < f64::EPSILON =>
+                        {
+                            "as_millis"
+                        },
+                        ("as_secs", Constant::F32(multiplier), "subsec_millis")
+                            if (multiplier - 1_000_000_000.0).abs() < f32::EPSILON =>
+                        {
+                            "as_millis"
+                        },
+                        ("as_secs", Constant::F64(multiplier), "subsec_millis")
+                            if (multiplier - 1_000.0).abs() < f64::EPSILON =>
+                        {
+                            "as_millis"
+                        },
+                        ("as_secs", Constant::F32(multiplier), "subsec_millis")
+                            if (multiplier - 1_000.0).abs() < f32::EPSILON =>
+                        {
+                            "as_millis"
+                        },
                         _ => return,
                     };
 
