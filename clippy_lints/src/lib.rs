@@ -1107,7 +1107,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box inherent_impl::MultipleInherentImpl::default());
     store.register_late_pass(|| box neg_cmp_op_on_partial_ord::NoNegCompOpForPartialOrd);
     store.register_late_pass(|| box unwrap::Unwrap);
-    store.register_late_pass(|| box manual_duration_calcs::ManualDurationCalcs);
     store.register_late_pass(|| box indexing_slicing::IndexingSlicing);
     store.register_late_pass(|| box non_copy_const::NonCopyConst);
     store.register_late_pass(|| box ptr_offset_with_cast::PtrOffsetWithCast);
@@ -2026,6 +2025,7 @@ pub fn register_renamed(ls: &mut rustc_lint::LintStore) {
     ls.register_renamed("clippy::identity_conversion", "clippy::useless_conversion");
     ls.register_renamed("clippy::zero_width_space", "clippy::invisible_characters");
     ls.register_renamed("clippy::single_char_push_str", "clippy::single_char_add_str");
+    ls.register_renamed("clippy::duration_subsec", "clippy::manual_duration_calcs")
 }
 
 // only exists to let the dogfood integration test works.
