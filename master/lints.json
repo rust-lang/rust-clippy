@@ -787,8 +787,8 @@
     "group": "pedantic",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for `enum`s with no variants.",
-      "Why is this bad": "If you want to introduce a type which\ncan't be instantiated, you should use `!` (the never type),\nor a wrapper around it, because `!` has more extensive\ncompiler support (type inference, etc...) and wrappers\naround it are the conventional way to define an uninhabited type.\nFor further information visit [never type documentation](https://doc.rust-lang.org/std/primitive.never.html)",
+      "What it does": "Checks for `enum`s with no variants.\n\nAs of this writing, the `never_type` is still a\nnightly-only experimental API. Therefore, this lint is only triggered\nif the `never_type` is enabled.",
+      "Why is this bad": "If you want to introduce a type which\ncan't be instantiated, you should use `!` (the primitive type \"never\"),\nor a wrapper around it, because `!` has more extensive\ncompiler support (type inference, etc...) and wrappers\naround it are the conventional way to define an uninhabited type.\nFor further information visit [never type documentation](https://doc.rust-lang.org/std/primitive.never.html)",
       "Known problems": "None.",
       "Example": "Bad:\n```rust\nenum Test {}\n```\n\nGood:\n```rust\n#![feature(never_type)]\n\nstruct Test(!);\n```"
     }
