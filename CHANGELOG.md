@@ -1797,7 +1797,6 @@ Released 2018-09-13
 [`drop_copy`]: https://rust-lang.github.io/rust-clippy/master/index.html#drop_copy
 [`drop_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#drop_ref
 [`duplicate_underscore_argument`]: https://rust-lang.github.io/rust-clippy/master/index.html#duplicate_underscore_argument
-[`duration_subsec`]: https://rust-lang.github.io/rust-clippy/master/index.html#duration_subsec
 [`else_if_without_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#else_if_without_else
 [`empty_enum`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_enum
 [`empty_line_after_outer_attr`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_line_after_outer_attr
@@ -1904,6 +1903,7 @@ Released 2018-09-13
 [`macro_use_imports`]: https://rust-lang.github.io/rust-clippy/master/index.html#macro_use_imports
 [`main_recursion`]: https://rust-lang.github.io/rust-clippy/master/index.html#main_recursion
 [`manual_async_fn`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_async_fn
+[`manual_duration_calcs`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_duration_calcs
 [`manual_memcpy`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_memcpy
 [`manual_non_exhaustive`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_non_exhaustive
 [`manual_ok_or`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_ok_or
