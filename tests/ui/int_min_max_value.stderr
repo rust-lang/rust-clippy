@@ -1,10 +1,17 @@
+error: use of the module constants `MIN` and `MAX` for primitive integer types is soft-deprecated
+  --> $DIR/int_min_max_value.rs:4:1
+   |
+LL | use std::i32;
+   | ^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::int-min-max-value` implied by `-D warnings`
+   = help: remove this import
+
 error: `min_value` is soft-deprecated
   --> $DIR/int_min_max_value.rs:9:15
    |
 LL |     let min = u32::min_value();
    |               ^^^^^^^^^^^^^^^^ help: use constant instead: `u32::MIN`
-   |
-   = note: `-D clippy::int-min-max-value` implied by `-D warnings`
 
 error: `max_value` is soft-deprecated
   --> $DIR/int_min_max_value.rs:10:15
@@ -18,5 +25,11 @@ error: `min_value` is soft-deprecated
 LL |     let min = crate::Uint::min_value();
    |               ^^^^^^^^^^^^^^^^^^^^^^^^ help: use constant instead: `crate::Uint::MIN`
 
-error: aborting due to 3 previous errors
+error: `std::u32::MAX` is soft-deprecated
+  --> $DIR/int_min_max_value.rs:12:15
+   |
+LL |     let max = std::u32::MAX;
+   |               ^^^^^^^^^^^^^ help: use associated constant instead: `u32::MAX`
+
+error: aborting due to 5 previous errors
 
