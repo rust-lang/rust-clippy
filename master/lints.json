@@ -2699,7 +2699,7 @@
     "level": "Warn",
     "docs": {
       "What it does": "Suggests alternatives for useless applications of `?` in terminating expressions",
-      "Why is this bad": "There's no reason to use ? to short-circuit when execution of the body will end there anyway.",
+      "Why is this bad": "There's no reason to use `?` to short-circuit when execution of the body will end there anyway.",
       "Known problems": "None.",
       "Example": "```rust\nstruct TO {\n    magic: Option<usize>,\n}\n\nfn f(to: TO) -> Option<usize> {\n    Some(to.magic?)\n}\n\nstruct TR {\n    magic: Result<usize, bool>,\n}\n\nfn g(tr: Result<TR, bool>) -> Result<usize, bool> {\n    tr.and_then(|t| Ok(t.magic?))\n}\n\n```\nUse instead:\n```rust\nstruct TO {\n    magic: Option<usize>,\n}\n\nfn f(to: TO) -> Option<usize> {\n   to.magic\n}\n\nstruct TR {\n    magic: Result<usize, bool>,\n}\n\nfn g(tr: Result<TR, bool>) -> Result<usize, bool> {\n    tr.and_then(|t| t.magic)\n}\n```"
     }
