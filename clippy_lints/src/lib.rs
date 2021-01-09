@@ -1270,6 +1270,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box redundant_slicing::RedundantSlicing);
     store.register_late_pass(|| box from_str_radix_10::FromStrRadix10);
     store.register_late_pass(|| box manual_map::ManualMap);
+    store.register_late_pass(|| box into_and_try_into_instead_of_from_and_try_from::IntoAndTryIntoInsteadOfFromAndTryFrom);
 
     store.register_group(true, "clippy::restriction", Some("clippy_restriction"), vec![
         LintId::of(&arithmetic::FLOAT_ARITHMETIC),
