@@ -62,7 +62,7 @@ impl LateLintPass<'_> for IntMinMaxValue {
             if let ItemKind::Use(path, UseKind::Single) = item.kind;
             if let [crate_name, mod_name] = path.segments;
             then {
-                if !(crate_name.ident.as_str() == "std" || crate_name.ident.as_str() == "core") {
+                if !(crate_name.ident.name == sym::std || crate_name.ident.name == sym::core) {
                     return;
                 }
 
