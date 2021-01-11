@@ -290,10 +290,10 @@
     "group": "pedantic",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for casts from a less-strictly-aligned pointer to a\nmore-strictly-aligned pointer",
+      "What it does": "Checks for casts, using `as` or `pointer::cast`,\nfrom a less-strictly-aligned pointer to a more-strictly-aligned pointer",
       "Why is this bad": "Dereferencing the resulting pointer may be undefined\nbehavior.",
       "Known problems": "Using `std::ptr::read_unaligned` and `std::ptr::write_unaligned` or similar\non the resulting pointer is fine. Is over-zealous: Casts with manual alignment checks or casts like\nu64-> u8 -> u16 can be fine. Miri is able to do a more in-depth analysis.",
-      "Example": "```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n```"
+      "Example": "```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n\n(&1u8 as *const u8).cast::<u16>();\n(&mut 1u8 as *mut u8).cast::<u16>();\n```"
     }
   },
   {
