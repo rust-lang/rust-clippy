@@ -480,7 +480,7 @@
     "docs": {
       "What it does": "Checks comparison chains written with `if` that can be\nrewritten with `match` and `cmp`.",
       "Why is this bad": "`if` is not guaranteed to be exhaustive and conditionals can get\nrepetitive",
-      "Known problems": "The match statement may be slower due to the compiler\nnot inlining the call to cmp. See issue #5354",
+      "Known problems": "The match statement may be slower due to the compiler\nnot inlining the call to cmp. See issue [#5354](https://github.com/rust-lang/rust-clippy/issues/5354)",
       "Example": "```rust,ignore\nfn f(x: u8, y: u8) {\n    if x > y {\n        a()\n    } else if x < y {\n        b()\n    } else {\n        c()\n    }\n}\n```\n\nCould be written:\n\n```rust,ignore\nuse std::cmp::Ordering;\nfn f(x: u8, y: u8) {\n     match x.cmp(&y) {\n         Ordering::Greater => a(),\n         Ordering::Less => b(),\n         Ordering::Equal => c()\n     }\n}\n```"
     }
   },
@@ -3266,7 +3266,7 @@
     "docs": {
       "What it does": "Checks for closures which just call another function where\nthe function can be called directly. `unsafe` functions or calls where types\nget adjusted are ignored.",
       "Why is this bad": "Needlessly creating a closure adds code for no benefit\nand gives the optimizer more work.",
-      "Known problems": "If creating the closure inside the closure has a side-\neffect then moving the closure creation out will change when that side-\neffect runs.\nSee rust-lang/rust-clippy#1439 for more details.",
+      "Known problems": "If creating the closure inside the closure has a side-\neffect then moving the closure creation out will change when that side-\neffect runs.\nSee [#1439](https://github.com/rust-lang/rust-clippy/issues/1439) for more details.",
       "Example": "```rust,ignore\n// Bad\nxs.map(|x| foo(x))\n\n// Good\nxs.map(foo)\n```\nwhere `foo(_)` is a plain function that takes the exact argument type of\n`x`."
     }
   },
@@ -3288,7 +3288,7 @@
     "docs": {
       "What it does": "Checks for closures which only invoke a method on the closure\nargument and can be replaced by referencing the method directly.",
       "Why is this bad": "It's unnecessary to create the closure.",
-      "Known problems": "rust-lang/rust-clippy#3071, rust-lang/rust-clippy#4002,\nrust-lang/rust-clippy#3942",
+      "Known problems": "[#3071](https://github.com/rust-lang/rust-clippy/issues/3071),\n[#3942](https://github.com/rust-lang/rust-clippy/issues/3942),\n[#4002](https://github.com/rust-lang/rust-clippy/issues/4002)",
       "Example": "```rust,ignore\nSome('a').map(|s| s.to_uppercase());\n```\nmay be rewritten as\n```rust,ignore\nSome('a').map(char::to_uppercase);\n```"
     }
   },
@@ -4563,7 +4563,7 @@
     "docs": {
       "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.",
       "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.",
-      "Known problems": "- False positive when using associated types (#2843)\n- False positives in some situations when using generics (#3410)",
+      "Known problems": "- False positive when using associated types ([#2843](https://github.com/rust-lang/rust-clippy/issues/2843))\n- False positives in some situations when using generics ([#3410](https://github.com/rust-lang/rust-clippy/issues/3410))",
       "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
@@ -4664,7 +4664,7 @@
     "docs": {
       "What it does": "Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.",
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.",
-      "Known problems": "Vec<Box<T: Sized>> makes sense if T is a large type (see #3530,\n1st comment).",
+      "Known problems": "Vec<Box<T: Sized>> makes sense if T is a large type (see [#3530](https://github.com/rust-lang/rust-clippy/issues/3530),\n1st comment).",
       "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `vec-box-size-threshold: u64`: The size of the boxed type in bytes, where boxing in a `Vec` is allowed (defaults to `4096`)."
     }
@@ -4743,7 +4743,7 @@
     "docs": {
       "What it does": "Detects `loop + match` combinations that are easier\nwritten as a `while let` loop.",
       "Why is this bad": "The `while let` loop is usually shorter and more\nreadable.",
-      "Known problems": "Sometimes the wrong binding is displayed (#383).",
+      "Known problems": "Sometimes the wrong binding is displayed ([#383](https://github.com/rust-lang/rust-clippy/issues/383)).",
       "Example": "```rust,no_run\nloop {\n    let x = match y {\n        Some(x) => x,\n        None => break,\n    };\n    // .. do something with x\n}\n// is easier written as\nwhile let Some(x) = y {\n    // .. do something with x\n};\n```"
     }
   },
