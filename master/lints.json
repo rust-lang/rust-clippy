@@ -242,6 +242,17 @@
     }
   },
   {
+    "id": "case_sensitive_file_extension_comparisons",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for calls to `ends_with` with possible file extensions\nand suggests to use a case-insensitive approach instead.",
+      "Why is this bad": "`ends_with` is case-sensitive and may not detect files with a valid extension.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn is_rust_file(filename: &str) -> bool {\n    filename.ends_with(\".rs\")\n}\n```\nUse instead:\n```rust\nfn is_rust_file(filename: &str) -> bool {\n    filename.rsplit('.').next().map(|ext| ext.eq_ignore_ascii_case(\"rs\")) == Some(true)\n}\n```"
+    }
+  },
+  {
     "id": "cast_lossless",
     "group": "pedantic",
     "level": "Allow",
