@@ -1548,6 +1548,17 @@
     }
   },
   {
+    "id": "inspect_for_each",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `inspect().for_each()`.",
+      "Why is this bad": "It is the same as performing the computation\ninside `inspect` at the beginning of the closure in `for_each`.",
+      "Known problems": "None.",
+      "Example": "```rust\n[1,2,3,4,5].iter()\n.inspect(|&x| println!(\"inspect the number: {}\", x))\n.for_each(|&x| {\n    assert!(x >= 0);\n});\n```\nCan be written as\n```rust\n[1,2,3,4,5].iter()\n.for_each(|&x| {\n    println!(\"inspect the number: {}\", x);\n    assert!(x >= 0);\n});\n```"
+    }
+  },
+  {
     "id": "int_plus_one",
     "group": "complexity",
     "level": "Warn",
