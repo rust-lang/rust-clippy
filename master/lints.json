@@ -4580,6 +4580,17 @@
     }
   },
   {
+    "id": "upper_case_acronyms",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for camel case name containing a capitalized acronym.",
+      "Why is this bad": "In CamelCase, acronyms count as one word.\nSee [naming conventions](https://rust-lang.github.io/api-guidelines/naming.html#casing-conforms-to-rfc-430-c-case)\nfor more.",
+      "Known problems": "When two acronyms are contiguous, the lint can't tell where\nthe first acronym ends and the second starts, so it suggests to lowercase all of\nthe letters in the second acronym.",
+      "Example": "```rust\nstruct HTTPResponse;\n```\nUse instead:\n```rust\nstruct HttpResponse;\n```"
+    }
+  },
+  {
     "id": "use_debug",
     "group": "restriction",
     "level": "Allow",
