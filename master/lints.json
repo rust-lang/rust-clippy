@@ -1090,14 +1090,9 @@
   },
   {
     "id": "find_map",
-    "group": "pedantic",
-    "level": "Allow",
-    "docs": {
-      "What it does": "Checks for usage of `_.find(_).map(_)`.",
-      "Why is this bad": "Readability, this can be written more concisely as\n`_.find_map(_)`.",
-      "Known problems": "Often requires a condition + Option/Iterator creation\ninside the closure.",
-      "Example": "```rust\n (0..3).find(|x| *x == 2).map(|x| x * 2);\n```\nCan be written as\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x * 2) } else { None });\n```"
-    }
+    "group": "deprecated",
+    "level": "Deprecated",
+    "docs": {}
   },
   {
     "id": "flat_map_identity",
@@ -1961,6 +1956,28 @@
       "Why is this bad": "It's more idiomatic to use the dedicated syntax.",
       "Known problems": "None.",
       "Example": "```rust\nuse std::future::Future;\n\nfn foo() -> impl Future<Output = i32> { async { 42 } }\n```\nUse instead:\n```rust\nasync fn foo() -> i32 { 42 }\n```"
+    }
+  },
+  {
+    "id": "manual_filter_map",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.filter(_).map(_)` that can be written more simply\nas `filter_map(_)`.",
+      "Why is this bad": "Redundant code in the `filter` and `map` operations is poor style and\nless performant.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust\n(0_i32..10)\n    .filter(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nGood:\n```rust\n(0_i32..10).filter_map(|n| n.checked_add(1));\n```"
+    }
+  },
+  {
+    "id": "manual_find_map",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `_.find(_).map(_)` that can be written more simply\nas `find_map(_)`.",
+      "Why is this bad": "Redundant code in the `find` and `map` operations is poor style and\nless performant.",
+      "Known problems": "None.",
+      "Example": "Bad:\n```rust\n(0_i32..10)\n    .find(|n| n.checked_add(1).is_some())\n    .map(|n| n.checked_add(1).unwrap());\n```\n\nGood:\n```rust\n(0_i32..10).find_map(|n| n.checked_add(1));\n```"
     }
   },
   {
