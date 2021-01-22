@@ -3400,7 +3400,7 @@
     "docs": {
       "What it does": "Checks for references in expressions that use\nauto dereference.",
       "Why is this bad": "The reference is a no-op and is automatically\ndereferenced by the compiler and makes the code less clear.",
-      "Example": "```rust\nstruct Point(u32, u32);\nlet point = Point(30, 20);\nlet x = (&point).0;\n```"
+      "Example": "```rust\nstruct Point(u32, u32);\nlet point = Point(30, 20);\nlet x = (&point).0;\n```\nUse instead:\n```rust\nlet x = point.0;\n```"
     }
   },
   {
