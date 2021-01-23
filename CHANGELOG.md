@@ -2125,7 +2125,7 @@ Released 2018-09-13
 [`int_plus_one`]: https://rust-lang.github.io/rust-clippy/master/index.html#int_plus_one
 [`integer_arithmetic`]: https://rust-lang.github.io/rust-clippy/master/index.html#integer_arithmetic
 [`integer_division`]: https://rust-lang.github.io/rust-clippy/master/index.html#integer_division
-[`into_and_try_into_instead_of_from_and_try_from`]: https://rust-lang.github.io/rust-clippy/master/index.html#into_and_try_into_instead_of_from_and_try_from
+[`into_instead_of_from`]: https://rust-lang.github.io/rust-clippy/master/index.html#into_instead_of_from
 [`into_iter_on_array`]: https://rust-lang.github.io/rust-clippy/master/index.html#into_iter_on_array
 [`into_iter_on_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#into_iter_on_ref
 [`invalid_atomic_ordering`]: https://rust-lang.github.io/rust-clippy/master/index.html#invalid_atomic_ordering
