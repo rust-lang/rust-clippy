@@ -905,6 +905,28 @@
     }
   },
   {
+    "id": "exhaustive_enums",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Warns on any exported `enum`s that are not tagged `#[non_exhaustive]`",
+      "Why is this bad": "Exhaustive enums are typically fine, but a project which does\nnot wish to make a stability commitment around exported enums may wish to\ndisable them by default.",
+      "Known problems": "None.",
+      "Example": "```rust\nenum Foo {\n    Bar,\n    Baz\n}\n```\nUse instead:\n```rust\n#[non_exhaustive]\nenum Foo {\n    Bar,\n    Baz\n}\n```"
+    }
+  },
+  {
+    "id": "exhaustive_structs",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Warns on any exported `structs`s that are not tagged `#[non_exhaustive]`",
+      "Why is this bad": "Exhaustive structs are typically fine, but a project which does\nnot wish to make a stability commitment around exported structs may wish to\ndisable them by default.",
+      "Known problems": "None.",
+      "Example": "```rust\nstruct Foo {\n    bar: u8,\n    baz: String,\n}\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct Foo {\n    bar: u8,\n    baz: String,\n}\n```"
+    }
+  },
+  {
     "id": "exit",
     "group": "restriction",
     "level": "Allow",
