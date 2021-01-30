@@ -1114,7 +1114,10 @@
     "id": "find_map",
     "group": "deprecated",
     "level": "Deprecated",
-    "docs": {}
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "This lint has been replaced by `manual_find_map`, a\nmore specific lint."
+    }
   },
   {
     "id": "flat_map_identity",
@@ -3056,7 +3059,10 @@
     "id": "panic_params",
     "group": "deprecated",
     "level": "Deprecated",
-    "docs": {}
+    "docs": {
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "This lint has been uplifted to rustc and is now called\n`panic_fmt`."
+    }
   },
   {
     "id": "panicking_unwrap",
@@ -4299,13 +4305,11 @@
   },
   {
     "id": "unknown_clippy_lints",
-    "group": "style",
-    "level": "Warn",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "Checks for `allow`/`warn`/`deny`/`forbid` attributes with scoped clippy\nlints and if those lints exist in clippy. If there is an uppercase letter in the lint name\n(not the tool name) and a lowercase version of this lint exists, it will suggest to lowercase\nthe lint name.",
-      "Why is this bad": "A lint attribute with a mistyped lint name won't have an effect.",
-      "Known problems": "None.",
-      "Example": "Bad:\n```rust\n#![warn(if_not_els)]\n#![deny(clippy::All)]\n```\n\nGood:\n```rust\n#![warn(if_not_else)]\n#![deny(clippy::all)]\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "This lint has been integrated into the `unknown_lints`\nrustc lint."
     }
   },
   {
