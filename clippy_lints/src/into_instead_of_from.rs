@@ -37,7 +37,6 @@ impl LateLintPass<'tcx> for IntoInsteadOfFrom {
                 if_chain! {
                     if let Some(tr_ref) = wbp.bounds[0].trait_ref();
                     if let Some(def_id) = tr_ref.trait_def_id();
-                    if cx.tcx.is_diagnostic_item(sym::from_trait, def_id);
                     then {
                         if cx.tcx.is_diagnostic_item(sym::from_trait, def_id) {
                             span_lint(
