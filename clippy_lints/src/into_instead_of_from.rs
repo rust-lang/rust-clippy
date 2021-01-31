@@ -39,12 +39,22 @@ impl LateLintPass<'tcx> for IntoInsteadOfFrom {
                     if let Some(def_id) = tr_ref.trait_def_id();
                     if cx.tcx.is_diagnostic_item(sym::from_trait, def_id);
                     then {
-                        span_lint(
-                            cx,
-                            INTO_INSTEAD_OF_FROM,
-                            wp.span(),
-                            "What is WHERE PREDICATE"
-                        );
+                        if cx.tcx.is_diagnostic_item(sym::from_trait, def_id) {
+                            span_lint(
+                                cx,
+                                INTO_INSTEAD_OF_FROM,
+                                wp.span(),
+                                "That is from_trait"
+                            );
+                        };
+                        if cx.tcx.is_diagnostic_item(sym::try_from_trait, def_id) {
+                            span_lint(
+                                cx,
+                                INTO_INSTEAD_OF_FROM,
+                                wp.span(),
+                                "That is try_from_trait"
+                            );
+                        };
                     }
                 }
             },
