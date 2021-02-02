@@ -8,20 +8,25 @@ use rustc_span::symbol::sym;
 use if_chain::if_chain;
 
 declare_clippy_lint! {
-    /// **What it does:**
+    /// **What it does:** Checking for using of Into or TryInto trait as a generic bound.
     ///
-    /// **Why is this bad?**
+    /// **Why is this bad?** Into and TryInto are supersets of From and TryFrom. Due to 
+    /// coherence rules, sometimes Into and TryInto are forbid to implemented but From and 
+    /// TryFrom are not. So Into is a more generic bound than From, We should choose Into or
+    /// TryInto instead of From or TryFrom.
     ///
     /// **Known problems:** None.
     ///
     /// **Example:**
     ///
     /// ```rust
-    /// // example code where clippy issues a warning
+    /// fn foo<T>(a: T) where u32: From<T> {}
+    /// fn bar<T>(a: T) where u32: TryFrom<T> {}
     /// ```
     /// Use instead:
     /// ```rust
-    /// // example code which does not raise clippy warning
+    /// fn foo<T>(a: T) where T: Into<u32> {}
+    /// fn bar<T>(a: T) where T: TryFrom<u32> {}
     /// ```
     pub INTO_INSTEAD_OF_FROM,
     style,
