@@ -1,5 +1,5 @@
 // use crate::utils::span_lint_and_help;
-use crate::utils::span_lint;
+use crate::utils::span_lint_and_sugg;
 use rustc_lint::{LateLintPass, LateContext};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_hir::*;
@@ -8,11 +8,11 @@ use rustc_span::symbol::sym;
 use if_chain::if_chain;
 
 declare_clippy_lint! {
-    /// **What it does:** Checking for using of Into or TryInto trait as a generic bound.
+    /// **What it does:** Checking for using of From or TryFrom trait as a generic bound.
     ///
     /// **Why is this bad?** Into and TryInto are supersets of From and TryFrom. Due to 
-    /// coherence rules, sometimes Into and TryInto are forbid to implemented but From and 
-    /// TryFrom are not. So Into is a more generic bound than From, We should choose Into or
+    /// coherence rules, sometimes From and TryFrom are forbid to implemented but Into and 
+    /// TryInto are not. So Into is a more generic bound than From, We should choose Into or
     /// TryInto instead of From or TryFrom.
     ///
     /// **Known problems:** None.
@@ -26,11 +26,11 @@ declare_clippy_lint! {
     /// Use instead:
     /// ```rust
     /// fn foo<T>(a: T) where T: Into<u32> {}
-    /// fn bar<T>(a: T) where T: TryFrom<u32> {}
+    /// fn bar<T>(a: T) where T: TryInto<u32> {}
     /// ```
     pub INTO_INSTEAD_OF_FROM,
     style,
-    "default lint description"
+    "Into or TryInto trait is a better choice than From or TryFrom trait as a generic bound"
 }
 
 declare_lint_pass!(IntoInsteadOfFrom => [INTO_INSTEAD_OF_FROM]);
@@ -44,19 +44,27 @@ impl LateLintPass<'tcx> for IntoInsteadOfFrom {
                     if let Some(def_id) = tr_ref.trait_def_id();
                     then {
                         if cx.tcx.is_diagnostic_item(sym::from_trait, def_id) {
-                            span_lint(
+                            let sugg = ""; //Todo
+                            span_lint_and_sugg(
                                 cx,
                                 INTO_INSTEAD_OF_FROM,
                                 wp.span(),
-                                "That is from_trait"
+                                "Into trait is a more preferable choice than From as a generic bound",
+                                format!("try `{}` instead", sugg),
+                                sugg,
+                                Applicability::MachineApplicable
                             );
                         };
                         if cx.tcx.is_diagnostic_item(sym::try_from_trait, def_id) {
-                            span_lint(
+                            let sugg = ""; //Todo
+                            span_lint_and_sugg(
                                 cx,
                                 INTO_INSTEAD_OF_FROM,
                                 wp.span(),
-                                "That is try_from_trait"
+                                "TryInto trait is a more preferable choice than TryFrom as a generic bound",
+                                format!("try `{}` instead", sugg),
+                                sugg,
+                                Applicability::MachineApplicable
                             );
                         };
                     }
