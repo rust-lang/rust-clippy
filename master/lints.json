@@ -2450,6 +2450,17 @@
     }
   },
   {
+    "id": "missing_panics_doc",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks the doc comments of publicly visible functions that\nmay panic and warns if there is no `# Panics` section.",
+      "Why is this bad": "Documenting the scenarios in which panicking occurs\ncan help callers who do not want to panic to avoid those situations.",
+      "Known problems": "None.",
+      "Examples": "Since the following function may panic it has a `# Panics` section in\nits doc comment:\n\n```rust\n/// # Panics\n///\n/// Will panic if y is 0\npub fn divide_by(x: i32, y: i32) -> i32 {\n    if y == 0 {\n        panic!(\"Cannot divide by 0\")\n    } else {\n        x / y\n    }\n}\n```"
+    }
+  },
+  {
     "id": "missing_safety_doc",
     "group": "style",
     "level": "Warn",
