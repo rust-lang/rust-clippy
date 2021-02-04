@@ -2006,6 +2006,17 @@
     }
   },
   {
+    "id": "manual_flatten",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Check for unnecessary `if let` usage in a for loop\nwhere only the `Some` or `Ok` variant of the iterator element is used.",
+      "Why is this bad": "It is verbose and can be simplified\nby first calling the `flatten` method on the `Iterator`.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x {\n    if let Some(n) = n {\n        println!(\"{}\", n);\n    }\n}\n```\nUse instead:\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x.into_iter().flatten() {\n    println!(\"{}\", n);\n}\n```"
+    }
+  },
+  {
     "id": "manual_memcpy",
     "group": "perf",
     "level": "Warn",
