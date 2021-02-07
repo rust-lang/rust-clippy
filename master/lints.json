@@ -3610,6 +3610,17 @@
     }
   },
   {
+    "id": "semicolon_if_nothing_returned",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Looks for blocks of expressions and fires if the last expression returns `()`\nbut is not followed by a semicolon.",
+      "Why is this bad": "The semicolon might be optional but when\nextending the block with new code, it doesn't require a change in previous last line.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn main() {\n    println!(\"Hello world\")\n}\n```\nUse instead:\n```rust\nfn main() {\n    println!(\"Hello world\");\n}\n```"
+    }
+  },
+  {
     "id": "serde_api_misuse",
     "group": "correctness",
     "level": "Deny",
