@@ -1088,6 +1088,17 @@
     }
   },
   {
+    "id": "filter_map_identity",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `filter_map(|x| x)`.",
+      "Why is this bad": "Readability, this can be written more concisely by using `flatten`.",
+      "Known problems": "None.",
+      "Example": "```rust\niter.filter_map(|x| x);\n```\nUse instead:\n```rust\niter.flatten();\n```"
+    }
+  },
+  {
     "id": "filter_map_next",
     "group": "pedantic",
     "level": "Allow",
