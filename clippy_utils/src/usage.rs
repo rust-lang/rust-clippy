@@ -1,5 +1,5 @@
-use crate::utils;
-use crate::utils::match_var;
+use crate as utils;
+use crate::match_var;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir as hir;
 use rustc_hir::def::Res;
