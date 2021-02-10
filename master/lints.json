@@ -231,6 +231,17 @@
     }
   },
   {
+    "id": "bytes_nth",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for the use of `.bytes().nth()`.",
+      "Why is this bad": "`.as_bytes().get()` is more efficient and more\nreadable.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet _ = \"Hello\".bytes().nth(3);;\n\n// Good\nlet _ = \"Hello\".as_bytes().get(3);\n```"
+    }
+  },
+  {
     "id": "cargo_common_metadata",
     "group": "cargo",
     "level": "Allow",
