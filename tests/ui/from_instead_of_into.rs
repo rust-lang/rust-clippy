@@ -1,5 +1,5 @@
 // run-rustfix
-#![warn(clippy::into_instead_of_from)]
+#![warn(clippy::from_instead_of_into)]
 use std::convert::TryFrom;
 
 fn foo<T>(a: T) where u32: From<T> {}

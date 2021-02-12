@@ -28,14 +28,14 @@ declare_clippy_lint! {
     /// fn foo<T>(a: T) where T: Into<u32> {}
     /// fn bar<T>(a: T) where T: TryInto<u32> {}
     /// ```
-    pub INTO_INSTEAD_OF_FROM,
+    pub FROM_INSTEAD_OF_INTO,
     style,
     "Into or TryInto trait is a better choice than From or TryFrom trait as a generic bound"
 }
 
-declare_lint_pass!(IntoInsteadOfFrom => [INTO_INSTEAD_OF_FROM]);
+declare_lint_pass!(FromInsteadOfInto => [FROM_INSTEAD_OF_INTO]);
 
-impl LateLintPass<'tcx> for IntoInsteadOfFrom {
+impl LateLintPass<'tcx> for FromInsteadOfInto {
     fn check_where_predicate(&mut self, cx: &LateContext<'tcx>, wp: &'tcx WherePredicate<'tcx>) {
         match wp {
             WherePredicate::BoundPredicate(wbp) => {
@@ -52,9 +52,9 @@ impl LateLintPass<'tcx> for IntoInsteadOfFrom {
                             let sugg = format!("{}: Into<{}>", generic_arg_of_from_or_try_from, bounded_ty);
                             span_lint_and_sugg(
                                 cx,
-                                INTO_INSTEAD_OF_FROM,
+                                FROM_INSTEAD_OF_INTO,
                                 wp.span(),
-                                "Into trait is a more preferable choice than From as a generic bound",
+                                "Into trait is preferable than From as a generic bound",
                                 "try",
                                 sugg,
                                 Applicability::MachineApplicable
@@ -65,9 +65,9 @@ impl LateLintPass<'tcx> for IntoInsteadOfFrom {
                             let sugg = format!("{}: TryInto<{}>", generic_arg_of_from_or_try_from, bounded_ty);
                             span_lint_and_sugg(
                                 cx,
-                                INTO_INSTEAD_OF_FROM,
+                                FROM_INSTEAD_OF_INTO,
                                 wp.span(),
-                                "TryInto trait is a more preferable choice than TryFrom as a generic bound",
+                                "TryInto trait is preferable than TryFrom as a generic bound",
                                 "try",
                                 sugg,
                                 Applicability::MachineApplicable
