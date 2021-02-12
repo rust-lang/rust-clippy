@@ -6,9 +6,7 @@ use std::ptr;
 
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{
-    BodyId, Expr, ExprKind, HirId, Impl, ImplItem, ImplItemKind, Item, ItemKind, Node, TraitItem, TraitItemKind, UnOp,
-};
+use rustc_hir::*;
 use rustc_infer::traits::specialization_graph;
 use rustc_lint::{LateContext, LateLintPass, Lint};
 use rustc_middle::mir::interpret::{ConstValue, ErrorHandled};
@@ -369,8 +367,17 @@ impl<'tcx> LateLintPass<'tcx> for NonCopyConst {
                                 .typeck_results()
                                 .expr_adjustments(dereferenced_expr)
                                 .iter()
-                                .any(|adj| matches!(adj.kind, Adjust::Deref(_)))
+                                .map(|x| Some(x))
+                                .flatten()
+                                .any(|adj| match adj.kind {
+                                    Adjust::Deref(_) => true,
+                                    _ => false,
+                                })
                             {
+                                let a = 0.0;
+                                if a == f32::NAN {
+                                    dbg!()
+                                }
                                 break;
                             }
 
