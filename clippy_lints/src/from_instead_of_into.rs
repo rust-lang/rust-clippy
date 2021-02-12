@@ -1,17 +1,17 @@
-use crate::utils::span_lint_and_sugg;
 use crate::utils::snippet;
-use rustc_errors::Applicability;
-use rustc_lint::{LateLintPass, LateContext};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_hir::*;
-use rustc_span::symbol::sym;
+use crate::utils::span_lint_and_sugg;
 use if_chain::if_chain;
+use rustc_errors::Applicability;
+use rustc_hir::*;
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::symbol::sym;
 
 declare_clippy_lint! {
     /// **What it does:** Checking for using of From or TryFrom trait as a generic bound.
     ///
-    /// **Why is this bad?** Into and TryInto are supersets of From and TryFrom. Due to 
-    /// coherence rules, sometimes From and TryFrom are forbid to implemented but Into and 
+    /// **Why is this bad?** Into and TryInto are supersets of From and TryFrom. Due to
+    /// coherence rules, sometimes From and TryFrom are forbid to implemented but Into and
     /// TryInto are not. So Into is a more generic bound than From, We should choose Into or
     /// TryInto instead of From or TryFrom.
     ///
@@ -78,6 +78,5 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
             },
             _ => (),
         };
-        
     }
 }
