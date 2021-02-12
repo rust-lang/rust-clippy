@@ -1,9 +1,9 @@
-// use crate::utils::span_lint_and_help;
 use crate::utils::span_lint_and_sugg;
+use crate::utils::snippet;
+use rustc_errors::Applicability;
 use rustc_lint::{LateLintPass, LateContext};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_hir::*;
-// use rustc_span::Span;
 use rustc_span::symbol::sym;
 use if_chain::if_chain;
 
@@ -42,27 +42,33 @@ impl LateLintPass<'tcx> for IntoInsteadOfFrom {
                 if_chain! {
                     if let Some(tr_ref) = wbp.bounds[0].trait_ref();
                     if let Some(def_id) = tr_ref.trait_def_id();
+                    if let Some(last_seg) = tr_ref.path.segments.last();
+                    if let Some(generic_arg) = last_seg.args().args.first();
                     then {
+                        let bounded_ty = snippet(cx, wbp.bounded_ty.span, "..");
+                        let generic_arg_of_from_or_try_from = snippet(cx, generic_arg.span(), "..");
+
                         if cx.tcx.is_diagnostic_item(sym::from_trait, def_id) {
-                            let sugg = ""; //Todo
+                            let sugg = format!("{}: Into<{}>", generic_arg_of_from_or_try_from, bounded_ty);
                             span_lint_and_sugg(
                                 cx,
                                 INTO_INSTEAD_OF_FROM,
                                 wp.span(),
                                 "Into trait is a more preferable choice than From as a generic bound",
-                                format!("try `{}` instead", sugg),
+                                "try",
                                 sugg,
                                 Applicability::MachineApplicable
                             );
                         };
+
                         if cx.tcx.is_diagnostic_item(sym::try_from_trait, def_id) {
-                            let sugg = ""; //Todo
+                            let sugg = format!("{}: TryInto<{}>", generic_arg_of_from_or_try_from, bounded_ty);
                             span_lint_and_sugg(
                                 cx,
                                 INTO_INSTEAD_OF_FROM,
                                 wp.span(),
                                 "TryInto trait is a more preferable choice than TryFrom as a generic bound",
-                                format!("try `{}` instead", sugg),
+                                "try",
                                 sugg,
                                 Applicability::MachineApplicable
                             );
