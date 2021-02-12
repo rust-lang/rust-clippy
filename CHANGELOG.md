@@ -2091,6 +2091,7 @@ Released 2018-09-13
 [`for_loops_over_fallibles`]: https://rust-lang.github.io/rust-clippy/master/index.html#for_loops_over_fallibles
 [`forget_copy`]: https://rust-lang.github.io/rust-clippy/master/index.html#forget_copy
 [`forget_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#forget_ref
+[`from_instead_of_into`]: https://rust-lang.github.io/rust-clippy/master/index.html#from_instead_of_into
 [`from_iter_instead_of_collect`]: https://rust-lang.github.io/rust-clippy/master/index.html#from_iter_instead_of_collect
 [`from_over_into`]: https://rust-lang.github.io/rust-clippy/master/index.html#from_over_into
 [`from_str_radix_10`]: https://rust-lang.github.io/rust-clippy/master/index.html#from_str_radix_10
@@ -2125,7 +2126,6 @@ Released 2018-09-13
 [`int_plus_one`]: https://rust-lang.github.io/rust-clippy/master/index.html#int_plus_one
 [`integer_arithmetic`]: https://rust-lang.github.io/rust-clippy/master/index.html#integer_arithmetic
 [`integer_division`]: https://rust-lang.github.io/rust-clippy/master/index.html#integer_division
-[`from_instead_of_into`]: https://rust-lang.github.io/rust-clippy/master/index.html#from_instead_of_into
 [`into_iter_on_array`]: https://rust-lang.github.io/rust-clippy/master/index.html#into_iter_on_array
 [`into_iter_on_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#into_iter_on_ref
 [`invalid_atomic_ordering`]: https://rust-lang.github.io/rust-clippy/master/index.html#invalid_atomic_ordering

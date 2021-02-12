@@ -211,6 +211,7 @@ mod float_literal;
 mod floating_point_arithmetic;
 mod format;
 mod formatting;
+mod from_instead_of_into;
 mod from_over_into;
 mod from_str_radix_10;
 mod functions;
@@ -230,7 +231,6 @@ mod inherent_to_string;
 mod inline_fn_without_body;
 mod int_plus_one;
 mod integer_division;
-mod from_instead_of_into;
 mod items_after_statements;
 mod large_const_arrays;
 mod large_enum_variant;
@@ -643,6 +643,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING,
         &formatting::SUSPICIOUS_ELSE_FORMATTING,
         &formatting::SUSPICIOUS_UNARY_OP_FORMATTING,
+        &from_instead_of_into::FROM_INSTEAD_OF_INTO,
         &from_over_into::FROM_OVER_INTO,
         &from_str_radix_10::FROM_STR_RADIX_10,
         &functions::DOUBLE_MUST_USE,
@@ -671,7 +672,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         &inline_fn_without_body::INLINE_FN_WITHOUT_BODY,
         &int_plus_one::INT_PLUS_ONE,
         &integer_division::INTEGER_DIVISION,
-        &from_instead_of_into::FROM_INSTEAD_OF_INTO,
         &items_after_statements::ITEMS_AFTER_STATEMENTS,
         &large_const_arrays::LARGE_CONST_ARRAYS,
         &large_enum_variant::LARGE_ENUM_VARIANT,
@@ -1486,6 +1486,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING),
         LintId::of(&formatting::SUSPICIOUS_ELSE_FORMATTING),
         LintId::of(&formatting::SUSPICIOUS_UNARY_OP_FORMATTING),
+        LintId::of(&from_instead_of_into::FROM_INSTEAD_OF_INTO),
         LintId::of(&from_over_into::FROM_OVER_INTO),
         LintId::of(&from_str_radix_10::FROM_STR_RADIX_10),
         LintId::of(&functions::DOUBLE_MUST_USE),
@@ -1504,7 +1505,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&inherent_to_string::INHERENT_TO_STRING_SHADOW_DISPLAY),
         LintId::of(&inline_fn_without_body::INLINE_FN_WITHOUT_BODY),
         LintId::of(&int_plus_one::INT_PLUS_ONE),
-        LintId::of(&from_instead_of_into::FROM_INSTEAD_OF_INTO),
         LintId::of(&large_const_arrays::LARGE_CONST_ARRAYS),
         LintId::of(&large_enum_variant::LARGE_ENUM_VARIANT),
         LintId::of(&len_zero::COMPARISON_TO_EMPTY),
@@ -1744,6 +1744,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING),
         LintId::of(&formatting::SUSPICIOUS_ELSE_FORMATTING),
         LintId::of(&formatting::SUSPICIOUS_UNARY_OP_FORMATTING),
+        LintId::of(&from_instead_of_into::FROM_INSTEAD_OF_INTO),
         LintId::of(&from_over_into::FROM_OVER_INTO),
         LintId::of(&from_str_radix_10::FROM_STR_RADIX_10),
         LintId::of(&functions::DOUBLE_MUST_USE),
@@ -1752,7 +1753,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&if_let_some_result::IF_LET_SOME_RESULT),
         LintId::of(&inconsistent_struct_constructor::INCONSISTENT_STRUCT_CONSTRUCTOR),
         LintId::of(&inherent_to_string::INHERENT_TO_STRING),
-        LintId::of(&from_instead_of_into::FROM_INSTEAD_OF_INTO),
         LintId::of(&len_zero::COMPARISON_TO_EMPTY),
         LintId::of(&len_zero::LEN_WITHOUT_IS_EMPTY),
         LintId::of(&len_zero::LEN_ZERO),
