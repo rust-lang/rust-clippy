@@ -1,16 +1,16 @@
 error: Into trait is preferable than From as a generic bound
-  --> $DIR/from_instead_of_into.rs:5:23
+  --> $DIR/from_instead_of_into.rs:7:5
    |
-LL | fn foo<T>(a: T) where u32: From<T> {}
-   |                       ^^^^^^^^^^^^ help: try: `T: Into<u32>`
+LL |     u32: From<T>,
+   |     ^^^^^^^^^^^^ help: try: `T: Into<u32>`
    |
    = note: `-D clippy::from-instead-of-into` implied by `-D warnings`
 
 error: TryInto trait is preferable than TryFrom as a generic bound
-  --> $DIR/from_instead_of_into.rs:6:23
+  --> $DIR/from_instead_of_into.rs:12:5
    |
-LL | fn bar<T>(a: T) where u32: TryFrom<T> {}
-   |                       ^^^^^^^^^^^^^^^ help: try: `T: TryInto<u32>`
+LL |     u32: TryFrom<T>,
+   |     ^^^^^^^^^^^^^^^ help: try: `T: TryInto<u32>`
 
 error: aborting due to 2 previous errors
 
