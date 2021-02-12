@@ -18,6 +18,9 @@ build = "build.rs"
 edition = "2018"
 publish = false
 
+[workspace]
+members = ["clippy_dev", "clippy_lints"]
+
 [[bin]]
 name = "cargo-clippy"
 test = false
