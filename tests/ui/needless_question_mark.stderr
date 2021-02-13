@@ -67,19 +67,19 @@ LL |         return Ok(t.magic?);
    |                ^^^^^^^^^^^^ help: try: `t.magic`
 
 error: Question mark operator is useless here
-  --> $DIR/needless_question_mark.rs:138:9
+  --> $DIR/needless_question_mark.rs:139:9
    |
 LL |         Ok(to.magic?) // should be triggered
    |         ^^^^^^^^^^^^^ help: try: `to.magic`
 
 error: Question mark operator is useless here
-  --> $DIR/needless_question_mark.rs:154:9
+  --> $DIR/needless_question_mark.rs:155:9
    |
 LL |         Some(to.magic?) // should be triggered
    |         ^^^^^^^^^^^^^^^ help: try: `to.magic`
 
 error: Question mark operator is useless here
-  --> $DIR/needless_question_mark.rs:162:9
+  --> $DIR/needless_question_mark.rs:163:9
    |
 LL |         Ok(to.magic?) // should be triggered
    |         ^^^^^^^^^^^^^ help: try: `to.magic`

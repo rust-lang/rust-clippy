@@ -87,6 +87,7 @@ fn also_bad(tr: Result<TR, bool>) -> Result<usize, bool> {
     Err(false)
 }
 
+#[allow(clippy::from_instead_of_into)]
 fn false_positive_test<U, T>(x: Result<(), U>) -> Result<(), T>
 where
     T: From<U>,
