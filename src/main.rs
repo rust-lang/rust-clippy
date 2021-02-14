@@ -5,6 +5,7 @@
 use rustc_tools_util::VersionInfo;
 use std::env;
 use std::ffi::OsString;
+use std::fs::canonicalize;
 use std::path::PathBuf;
 use std::process::{self, Command};
 
@@ -15,6 +16,7 @@ Usage:
 
 Common options:
     -h, --help               Print this message
+        --plugin PLUGIN      Load lints in PLUGIN
     -V, --version            Print version info and exit
 
 Other options are the same as `cargo check`.
@@ -73,11 +75,20 @@ impl ClippyCmd {
         let mut cargo_subcommand = "check";
         let mut unstable_options = false;
         let mut args = vec![];
+        let mut clippy_args = vec![];
 
-        for arg in old_args.by_ref() {
+        while let Some(arg) = old_args.next() {
             match arg.as_str() {
                 "--fix" => {
                     cargo_subcommand = "fix";
+                    continue;
+                },
+                "--plugin" => {
+                    let plugin = old_args.next().expect("missing argument to `--plugin`");
+                    // smoelius: canonicalize in case clippy-driver is run from a different directory.
+                    let path = canonicalize(&plugin).unwrap_or_else(|_| panic!("could not find `{}`", plugin));
+                    clippy_args.push(arg);
+                    clippy_args.push(path.to_string_lossy().to_string());
                     continue;
                 },
                 "--" => break,
@@ -99,7 +110,7 @@ impl ClippyCmd {
             args.insert(0, "+nightly".to_string());
         }
 
-        let mut clippy_args: Vec<String> = old_args.collect();
+        clippy_args.extend(old_args);
         if cargo_subcommand == "fix" && !clippy_args.iter().any(|arg| arg == "--no-deps") {
             clippy_args.push("--no-deps".into());
         }

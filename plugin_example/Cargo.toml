@@ -1,0 +1,17 @@
+[package]
+name = "plugin_example"
+version = "0.1.0"
+authors = ["The Rust Clippy Developers"]
+edition = "2018"
+
+[lib]
+name = "plugin_example"
+crate-type = ["dylib"]
+
+[dependencies]
+clippy_utils = { path = "../clippy_utils" }
+if_chain = "1.0.1"
+
+[dev-dependencies]
+assert_cmd = "1.0.3"
+lazy_static = "1.4.0"

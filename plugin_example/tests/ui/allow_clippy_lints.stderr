@@ -1,0 +1,14 @@
+error: `allow`ing Clippy lints `deny`s your project of its true potential
+ --> src/main.rs:1:1
+  |
+1 | #[allow(clippy::assertions_on_constants)]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `#[deny(clippy::restriction, clippy::style, clippy::pedantic, clippy::complexity, clippy::perf, clippy::cargo, clippy::nursery)]`
+  |
+  = note: `#[deny(clippy::allow_clippy_lints)]` on by default
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#allow_clippy_lints
+
+error: aborting due to previous error
+
+error: could not compile `allow_clippy_lints`
+
+To learn more, run the command again with --verbose.

@@ -11,12 +11,16 @@
 extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate rustc_interface;
+extern crate rustc_lint;
 extern crate rustc_middle;
+extern crate rustc_session;
 
 use rustc_interface::interface;
 use rustc_middle::ty::TyCtxt;
+use rustc_session::{config::ErrorOutputType, early_error, Session};
 use rustc_tools_util::VersionInfo;
 
+use clippy_utils::conf::Conf;
 use std::borrow::Cow;
 use std::env;
 use std::lazy::SyncLazy;
@@ -64,10 +68,57 @@ fn test_arg_value() {
 struct DefaultCallbacks;
 impl rustc_driver::Callbacks for DefaultCallbacks {}
 
-struct ClippyCallbacks;
+type RegisterPluginsFunc = unsafe fn(store: &mut rustc_lint::LintStore, sess: &Session, conf: &Conf);
+
+/// A Clippy plugin that has been loaded but not necessarily registered.
+struct LoadedPlugin {
+    path: PathBuf,
+    lib: libloading::Library,
+}
+
+impl LoadedPlugin {
+    fn register_plugins(&self, store: &mut rustc_lint::LintStore, sess: &Session, conf: &Conf) {
+        if let Ok(func) = unsafe { self.lib.get::<RegisterPluginsFunc>(b"register_plugins") } {
+            unsafe {
+                func(store, sess, conf);
+            }
+        } else {
+            sess.err(&format!(
+                "could not find `register_plugins` in `{}`",
+                self.path.to_string_lossy()
+            ));
+        }
+    }
+}
+
+struct ClippyCallbacks {
+    loaded_plugins: Vec<LoadedPlugin>,
+}
+
+impl ClippyCallbacks {
+    // smoelius: Load the libraries when ClippyCallbacks is created and not later (e.g., in `config`)
+    // to ensure that the libraries live long enough.
+    fn new(clippy_plugins: Vec<PathBuf>) -> ClippyCallbacks {
+        let mut loaded_plugins = Vec::new();
+        for path in clippy_plugins {
+            unsafe {
+                let lib = libloading::Library::new(&path).unwrap_or_else(|_| {
+                    early_error(
+                        ErrorOutputType::default(),
+                        &format!("could not load plugin `{}`", path.to_string_lossy()),
+                    );
+                });
+                loaded_plugins.push(LoadedPlugin { path, lib });
+            }
+        }
+        ClippyCallbacks { loaded_plugins }
+    }
+}
+
 impl rustc_driver::Callbacks for ClippyCallbacks {
     fn config(&mut self, config: &mut interface::Config) {
         let previous = config.register_lints.take();
+        let loaded_plugins = self.loaded_plugins.split_off(0);
         config.register_lints = Some(Box::new(move |sess, mut lint_store| {
             // technically we're ~guaranteed that this is none but might as well call anything that
             // is there already. Certainly it can't hurt.
@@ -77,6 +128,9 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
 
             let conf = clippy_lints::read_conf(&[], &sess);
             clippy_lints::register_plugins(&mut lint_store, &sess, &conf);
+            for loaded_plugin in &loaded_plugins {
+                loaded_plugin.register_plugins(&mut lint_store, &sess, &conf);
+            }
             clippy_lints::register_pre_expansion_lints(&mut lint_store);
             clippy_lints::register_renamed(&mut lint_store);
         }));
@@ -279,19 +333,30 @@ pub fn main() {
         };
 
         let mut no_deps = false;
-        let clippy_args = env::var("CLIPPY_ARGS")
-            .unwrap_or_default()
-            .split("__CLIPPY_HACKERY__")
-            .filter_map(|s| match s {
-                "" => None,
-                "--no-deps" => {
-                    no_deps = true;
-                    None
-                },
-                _ => Some(s.to_string()),
-            })
-            .chain(vec!["--cfg".into(), r#"feature="cargo-clippy""#.into()])
-            .collect::<Vec<String>>();
+        let mut clippy_args = Vec::new();
+        let mut clippy_plugins = Vec::new();
+        if let Ok(args) = env::var("CLIPPY_ARGS") {
+            let mut iter = args.split("__CLIPPY_HACKERY__");
+            while let Some(s) = iter.next() {
+                match s {
+                    "" => {},
+                    "--no-deps" => {
+                        no_deps = true;
+                    },
+                    "--plugin" => {
+                        // smoelius: The paths should already have bee canonicalized in `ClippyCmd::new`.
+                        let path = iter.next().expect("missing argument to `--plugin`");
+                        clippy_plugins.push(PathBuf::from(path));
+                    },
+                    _ => {
+                        clippy_args.push(s.to_string());
+                    },
+                }
+            }
+        }
+
+        clippy_args.push("--cfg".into());
+        clippy_args.push(r#"feature="cargo-clippy""#.into());
 
         // We enable Clippy if one of the following conditions is met
         // - IF Clippy is run on its test suite OR
@@ -307,7 +372,7 @@ pub fn main() {
             args.extend(clippy_args);
         }
 
-        let mut clippy = ClippyCallbacks;
+        let mut clippy = ClippyCallbacks::new(clippy_plugins);
         let mut default = DefaultCallbacks;
         let callbacks: &mut (dyn rustc_driver::Callbacks + Send) =
             if clippy_enabled { &mut clippy } else { &mut default };
