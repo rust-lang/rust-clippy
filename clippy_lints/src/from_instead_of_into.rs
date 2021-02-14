@@ -70,7 +70,7 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
                                 "TryInto trait is preferable than TryFrom as a generic bound",
                                 "try",
                                 sugg,
-                                Applicability::MachineApplicable
+                                Applicability::MaybeIncorrect
                             );
                         };
                     }
