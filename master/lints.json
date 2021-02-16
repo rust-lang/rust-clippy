@@ -596,6 +596,17 @@
     }
   },
   {
+    "id": "default_numeric_fallback",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of unconstrained numeric literals which may cause default numeric fallback in type\ninference.\n\nDefault numeric fallback means that if numeric types have not yet been bound to concrete\ntypes at the end of type inference, then integer type is bound to `i32`, and similarly\nfloating type is bound to `f64`.\n\nSee [RFC0212](https://github.com/rust-lang/rfcs/blob/master/text/0212-restore-int-fallback.md) for more information about the fallback.",
+      "Why is this bad": "For those who are very careful about types, default numeric fallback\ncan be a pitfall that cause unexpected runtime behavior.",
+      "Known problems": "This lint can only be allowed at the function level or above.",
+      "Example": "```rust\nlet i = 10;\nlet f = 1.23;\n```\n\nUse instead:\n```rust\nlet i = 10i32;\nlet f = 1.23f64;\n```"
+    }
+  },
+  {
     "id": "default_trait_access",
     "group": "pedantic",
     "level": "Allow",
