@@ -69,7 +69,7 @@ fn check_clippy_lint_names(cx: &LateContext<'_>, attr: &Attribute, items: &[Nest
             cx,
             ALLOW_CLIPPY_LINTS,
             attr.span,
-            "`allow`ing Clippy lints `deny`s your project of its true potential",
+            "allowing Clippy lints denies your project of its true potential",
             "use",
             "#[deny(clippy::restriction, clippy::style, clippy::pedantic, clippy::complexity, clippy::perf, clippy::cargo, clippy::nursery)]".to_string(),
             Applicability::MachineApplicable,

@@ -16,6 +16,7 @@ Usage:
 
 Common options:
     -h, --help               Print this message
+        --no-builtins        Do not load builtin lints
         --plugin PLUGIN      Load lints in PLUGIN
     -V, --version            Print version info and exit
 
@@ -81,6 +82,10 @@ impl ClippyCmd {
             match arg.as_str() {
                 "--fix" => {
                     cargo_subcommand = "fix";
+                    continue;
+                },
+                "--no-builtins" => {
+                    clippy_args.push(arg);
                     continue;
                 },
                 "--plugin" => {

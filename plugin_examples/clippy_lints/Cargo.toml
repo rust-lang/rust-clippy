@@ -1,0 +1,14 @@
+[package]
+name = "clippy_lints"
+version = "0.1.0"
+authors = ["The Rust Clippy Developers"]
+description = "All of the Clippy lints as a Clippy plugin"
+edition = "2018"
+
+[lib]
+name = "clippy_lints"
+crate-type = ["dylib"]
+
+[dependencies]
+clippy_lints = { path = "../../clippy_lints" }
+clippy_utils = { path = "../../clippy_utils" }

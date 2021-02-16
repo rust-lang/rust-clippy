@@ -5,10 +5,10 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 lazy_static! {
-    static ref CLIPPY: PathBuf = canonicalize("../target/debug/cargo-clippy").unwrap();
+    static ref CLIPPY: PathBuf = canonicalize("../../target/debug/cargo-clippy").unwrap();
 }
 
-const PLUGIN: &str = "libplugin_example.so";
+const PLUGIN: &str = "liballow_clippy_lints.so";
 
 #[test]
 fn clippy_test() {
@@ -17,7 +17,7 @@ fn clippy_test() {
         .join("..")
         .join("..")
         .join("target")
-        .join("release")
+        .join("debug")
         .join(PLUGIN);
 
     for entry in read_dir(src_base).unwrap() {

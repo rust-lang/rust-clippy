@@ -9,6 +9,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 mod cargo;
 
@@ -98,6 +99,51 @@ fn default_config() -> compiletest::Config {
 fn run_mode(cfg: &mut compiletest::Config) {
     cfg.mode = TestMode::Ui;
     cfg.src_base = Path::new("tests").join("ui");
+    compiletest::run_tests(&cfg);
+}
+
+fn build_clippy_lints_plugin() {
+    assert!(Command::new("cargo")
+        .args(&[
+            "build",
+            "--manifest-path",
+            &Path::new("plugin_examples")
+                .join("clippy_lints")
+                .join("Cargo.toml")
+                .to_string_lossy(),
+        ])
+        .status()
+        .unwrap()
+        .success());
+}
+
+fn encode_clippy_args(clippy_args: &[&str]) -> String {
+    clippy_args
+        .iter()
+        .map(|arg| format!("{}__CLIPPY_HACKERY__", arg))
+        .collect()
+}
+
+/// Like the `run_mode` ui tests but with all of the Clippy lints loaded from a plugin.
+fn run_ui_plugin(cfg: &mut compiletest::Config) {
+    build_clippy_lints_plugin();
+    cfg.mode = TestMode::Ui;
+    cfg.src_base = Path::new("tests").join("ui");
+    set_var(
+        "CLIPPY_ARGS",
+        &encode_clippy_args(&[
+            "--no-builtins",
+            "--plugin",
+            &Path::new("plugin_examples")
+                .join("clippy_lints")
+                .join("target")
+                .join("debug")
+                .join("libclippy_lints.so")
+                .canonicalize()
+                .unwrap()
+                .to_string_lossy(),
+        ]),
+    );
     compiletest::run_tests(&cfg);
 }
 
@@ -265,6 +311,7 @@ fn compile_test() {
     prepare_env();
     let mut config = default_config();
     run_mode(&mut config);
+    run_ui_plugin(&mut config);
     run_ui_toml(&mut config);
     run_ui_cargo(&mut config);
     run_internal_tests(&mut config);

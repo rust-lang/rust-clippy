@@ -92,13 +92,14 @@ impl LoadedPlugin {
 }
 
 struct ClippyCallbacks {
+    no_builtins: bool,
     loaded_plugins: Vec<LoadedPlugin>,
 }
 
 impl ClippyCallbacks {
     // smoelius: Load the libraries when ClippyCallbacks is created and not later (e.g., in `config`)
     // to ensure that the libraries live long enough.
-    fn new(clippy_plugins: Vec<PathBuf>) -> ClippyCallbacks {
+    fn new(no_builtins: bool, clippy_plugins: Vec<PathBuf>) -> ClippyCallbacks {
         let mut loaded_plugins = Vec::new();
         for path in clippy_plugins {
             unsafe {
@@ -111,13 +112,17 @@ impl ClippyCallbacks {
                 loaded_plugins.push(LoadedPlugin { path, lib });
             }
         }
-        ClippyCallbacks { loaded_plugins }
+        ClippyCallbacks {
+            no_builtins,
+            loaded_plugins,
+        }
     }
 }
 
 impl rustc_driver::Callbacks for ClippyCallbacks {
     fn config(&mut self, config: &mut interface::Config) {
         let previous = config.register_lints.take();
+        let no_builtins = self.no_builtins;
         let loaded_plugins = self.loaded_plugins.split_off(0);
         config.register_lints = Some(Box::new(move |sess, mut lint_store| {
             // technically we're ~guaranteed that this is none but might as well call anything that
@@ -127,12 +132,12 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             }
 
             let conf = clippy_lints::read_conf(&[], &sess);
-            clippy_lints::register_plugins(&mut lint_store, &sess, &conf);
+            if !no_builtins {
+                clippy_lints::register_plugins(&mut lint_store, &sess, &conf);
+            }
             for loaded_plugin in &loaded_plugins {
                 loaded_plugin.register_plugins(&mut lint_store, &sess, &conf);
             }
-            clippy_lints::register_pre_expansion_lints(&mut lint_store);
-            clippy_lints::register_renamed(&mut lint_store);
         }));
 
         // FIXME: #4825; This is required, because Clippy lints that are based on MIR have to be
@@ -332,6 +337,7 @@ pub fn main() {
             args.extend(vec!["--sysroot".into(), sys_root]);
         };
 
+        let mut no_builtins = false;
         let mut no_deps = false;
         let mut clippy_args = Vec::new();
         let mut clippy_plugins = Vec::new();
@@ -340,6 +346,9 @@ pub fn main() {
             while let Some(s) = iter.next() {
                 match s {
                     "" => {},
+                    "--no-builtins" => {
+                        no_builtins = true;
+                    },
                     "--no-deps" => {
                         no_deps = true;
                     },
@@ -372,7 +381,7 @@ pub fn main() {
             args.extend(clippy_args);
         }
 
-        let mut clippy = ClippyCallbacks::new(clippy_plugins);
+        let mut clippy = ClippyCallbacks::new(no_builtins, clippy_plugins);
         let mut default = DefaultCallbacks;
         let callbacks: &mut (dyn rustc_driver::Callbacks + Send) =
             if clippy_enabled { &mut clippy } else { &mut default };

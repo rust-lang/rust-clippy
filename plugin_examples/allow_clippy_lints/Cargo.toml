@@ -1,15 +1,16 @@
 [package]
-name = "plugin_example"
+name = "allow_clippy_lints"
 version = "0.1.0"
 authors = ["The Rust Clippy Developers"]
+description = "A tongue-in-cheek example of a Clippy plugin"
 edition = "2018"
 
 [lib]
-name = "plugin_example"
+name = "allow_clippy_lints"
 crate-type = ["dylib"]
 
 [dependencies]
-clippy_utils = { path = "../clippy_utils" }
+clippy_utils = { path = "../../clippy_utils" }
 if_chain = "1.0.1"
 
 [dev-dependencies]

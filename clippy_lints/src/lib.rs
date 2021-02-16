@@ -282,7 +282,7 @@ pub use crate::utils::conf::Conf;
 /// level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
 ///
 /// Used in `./src/driver.rs`.
-pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore) {
+fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore) {
     store.register_pre_expansion_pass(|| box write::Write::default());
     store.register_pre_expansion_pass(|| box attrs::EarlyAttributes);
     store.register_pre_expansion_pass(|| box dbg_macro::DbgMacro);
@@ -1931,6 +1931,9 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(&transmute::USELESS_TRANSMUTE),
         LintId::of(&use_self::USE_SELF),
     ]);
+
+    register_pre_expansion_lints(store);
+    register_renamed(store);
 }
 
 #[rustfmt::skip]
@@ -1980,7 +1983,7 @@ fn register_removed_non_tool_lints(store: &mut rustc_lint::LintStore) {
 /// Register renamed lints.
 ///
 /// Used in `./src/driver.rs`.
-pub fn register_renamed(ls: &mut rustc_lint::LintStore) {
+fn register_renamed(ls: &mut rustc_lint::LintStore) {
     ls.register_renamed("clippy::stutter", "clippy::module_name_repetitions");
     ls.register_renamed("clippy::new_without_default_derive", "clippy::new_without_default");
     ls.register_renamed("clippy::cyclomatic_complexity", "clippy::cognitive_complexity");

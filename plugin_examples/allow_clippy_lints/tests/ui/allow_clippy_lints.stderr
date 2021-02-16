@@ -1,4 +1,4 @@
-error: `allow`ing Clippy lints `deny`s your project of its true potential
+error: allowing Clippy lints denies your project of its true potential
  --> src/main.rs:1:1
   |
 1 | #[allow(clippy::assertions_on_constants)]
