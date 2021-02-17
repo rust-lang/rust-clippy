@@ -1,5 +1,6 @@
 use crate::utils::snippet;
 use crate::utils::span_lint_and_sugg;
+use std::ptr;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::*;
@@ -52,12 +53,11 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
                             }
                         }
                     });
-                    // if let Some(tr_ref) = wbp.bounds[0].trait_ref();
-                    if wbp.bounds.len() == 1;
                     if let Some(tr_ref) = target_bound.trait_ref();
                     if let Some(def_id) = tr_ref.trait_def_id();
                     if let Some(last_seg) = tr_ref.path.segments.last();
                     if let Some(generic_arg) = last_seg.args().args.first();
+                    if wbp.bounds.len() == 1;
                     then {
                         let bounded_ty = snippet(cx, wbp.bounded_ty.span, "..");
                         let generic_arg_of_from_or_try_from = snippet(cx, generic_arg.span(), "..");
@@ -74,7 +74,17 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
 
                         if !replace_trait_name.is_empty() && !target_trait_name.is_empty() {
                             let message = format!("{} trait is preferable than {} as a generic bound", replace_trait_name, target_trait_name);
-                            let sugg = format!("{}: {}<{}>", generic_arg_of_from_or_try_from, replace_trait_name, bounded_ty);
+                            let extracted_where_predicate = format!("{}: {}<{}>,", generic_arg_of_from_or_try_from, replace_trait_name, bounded_ty);
+                            let sugg;
+                            if wbp.bounds.len() == 1 {
+                                sugg = extracted_where_predicate;
+                            } else {
+                                let bounds: &[&GenericBound<'_>] = wbp.bounds.iter().filter(|b| ptr::eq(*b, target_bound)).collect();
+                                let bounds = bounds.map(|b| snippet(cx, b.span(), ".."));
+                                let first = bounds[0].to_string();
+                                let bounds_str = bounds[1..].fold(first, |s, &e| s + " + " + snippet(cx, e.span(), ".."));
+                                sugg = format!("{} {}: {}", extracted_where_predicate, bounded_ty, bounds_str);
+                            }
                             span_lint_and_sugg(
                                 cx,
                                 FROM_INSTEAD_OF_INTO,
