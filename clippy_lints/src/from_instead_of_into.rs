@@ -82,7 +82,7 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
                             if wbp.bounds.len() == 1 {
                                 sugg = extracted_where_predicate;
                             } else {
-                                let bounds: &[&GenericBound<'_>] = wbp.bounds.iter().filter(|b| ptr::eq(*b, target_bound)).collect();
+                                let bounds: &[&GenericBound<'_>] = wbp.bounds.iter().filter(|b| !ptr::eq(*b, target_bound)).collect();
                                 let bounds = bounds.map(|b| snippet(cx, b.span(), ".."));
                                 let first = bounds[0].to_string();
                                 let bounds_str = bounds[1..].fold(first, |s, &e| s + " + " + snippet(cx, e.span(), ".."));
