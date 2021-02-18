@@ -38,38 +38,41 @@ declare_lint_pass!(FromInsteadOfInto => [FROM_INSTEAD_OF_INTO]);
 
 impl LateLintPass<'tcx> for FromInsteadOfInto {
     fn check_where_predicate(&mut self, cx: &LateContext<'tcx>, wp: &'tcx WherePredicate<'tcx>) {
+        let is_target_generic_bound = |b| {
+            if_chain! {
+                if let Some(r) = b.trait_ref();
+                if let Some(def_id) = r.trait_def_id();
+                then {
+                    cx.tcx.is_diagnostic_item(sym::from_trait, def_id) || 
+                    cx.tcx.is_diagnostic_item(sym::try_from_trait, def_id) 
+                } else {
+                    false
+                }
+            }    
+        };
         match wp {
             WherePredicate::BoundPredicate(wbp) => {
                 if_chain! {
-                    if let Some(target_bound) = wbp.bounds.iter().find(|b| {
-                        if_chain! {
-                            if let Some(r) = b.trait_ref();
-                            if let Some(def_id) = r.trait_def_id();
-                            then {
-                                cx.tcx.is_diagnostic_item(sym::from_trait, def_id) || 
-                                cx.tcx.is_diagnostic_item(sym::try_from_trait, def_id) 
-                            } else {
-                                false
-                            }
-                        }
-                    });
+                    if let Some(target_bound) = wbp.bounds.iter().find(|b| is_target_generic_bound(b));
                     if let Some(tr_ref) = target_bound.trait_ref();
                     if let Some(def_id) = tr_ref.trait_def_id();
                     if let Some(last_seg) = tr_ref.path.segments.last();
                     if let Some(generic_arg) = last_seg.args().args.first();
+                    if let Some(bounded_ty) = snippet_opt(cx, wbp.bounded_ty.span);
+                    if let Some(generic_arg_of_from_or_try_from) = snippet_opt(cx, generic_arg.span());
                     if wbp.bounds.len() == 1;
                     then {
-                        let bounded_ty = snippet(cx, wbp.bounded_ty.span, "..");
-                        let generic_arg_of_from_or_try_from = snippet(cx, generic_arg.span(), "..");
-
-                        let mut replace_trait_name = "";
-                        let mut target_trait_name = "";
+                        let replace_trait_name;
+                        let target_trait_name;
                         if cx.tcx.is_diagnostic_item(sym::from_trait, def_id) {
                             replace_trait_name = "Into";
                             target_trait_name = "From";
                         } else if cx.tcx.is_diagnostic_item(sym::try_from_trait, def_id) {
                             replace_trait_name = "TryInto";
                             target_trait_name = "TryFrom";
+                        } else {
+                            replace_trait_name = "";
+                            target_trait_name = "";
                         }
 
                         if !replace_trait_name.is_empty() && !target_trait_name.is_empty() {

@@ -22,7 +22,7 @@ where
 
 fn bar1<T>(a: T)
 where
-    u32: Copy + Clone + TryFrom<T>,
+    u32: Copy + TryFrom<T> + Clone,
 {
 }
 
