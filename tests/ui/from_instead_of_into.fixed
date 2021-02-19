@@ -1,15 +1,35 @@
 // run-rustfix
+#![allow(unused_imports)]
 #![warn(clippy::from_instead_of_into)]
 use std::convert::TryFrom;
+use std::convert::TryInto;
 
 fn foo<T>(a: T)
 where
     T: Into<u32>,
 {
 }
+
+fn foo1<T>(a: T)
+where T: Into<u32>, u32: Copy + Clone,
+{
+}
+
 fn bar<T>(a: T)
 where
     T: TryInto<u32>,
+{
+}
+
+fn bar1<T>(a: T)
+where
+    T: TryInto<u32>, u32: Copy + Clone,
+{
+}
+
+fn bar2<T>(a: T)
+where
+    T: TryInto<u32>, u32: Copy + Clone,
 {
 }
 

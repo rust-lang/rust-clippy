@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 #![warn(clippy::from_instead_of_into)]
 use std::convert::TryFrom;
+use std::convert::TryInto;
 
 fn foo<T>(a: T)
 where
@@ -10,7 +11,8 @@ where
 }
 
 fn foo1<T>(a: T)
-where u32: Copy + Clone + From<T>,
+where
+    u32: Copy + Clone + From<T>,
 {
 }
 
@@ -23,6 +25,12 @@ where
 fn bar1<T>(a: T)
 where
     u32: Copy + TryFrom<T> + Clone,
+{
+}
+
+fn bar2<T>(a: T)
+where
+    u32: TryFrom<T> + Copy + Clone,
 {
 }
 
