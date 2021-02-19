@@ -11,7 +11,8 @@ where
 }
 
 fn foo1<T>(a: T)
-where T: Into<u32>, u32: Copy + Clone,
+where
+    T: Into<u32>, u32: Copy + Clone,
 {
 }
 
