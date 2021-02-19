@@ -6,6 +6,7 @@ use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::symbol::sym;
+use std::borrow::Cow;
 
 declare_clippy_lint! {
     /// **What it does:** Checking for using of From or TryFrom trait as a generic bound.
@@ -37,7 +38,7 @@ declare_lint_pass!(FromInsteadOfInto => [FROM_INSTEAD_OF_INTO]);
 
 impl LateLintPass<'tcx> for FromInsteadOfInto {
     fn check_where_predicate(&mut self, cx: &LateContext<'tcx>, wp: &'tcx WherePredicate<'tcx>) {
-        let is_target_generic_bound = |b: &GenericBound<'_>| {
+        fn is_target_generic_bound(cx: &LateContext<'tcx>, b: &GenericBound<'_>) -> bool {
             if_chain! {
                 if let Some(r) = b.trait_ref();
                 if let Some(def_id) = r.trait_def_id();
@@ -48,12 +49,49 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
                     false
                 }
             }
-        };
+        }
+
+        fn get_reduced_bounds_str(
+            cx: &LateContext<'tcx>,
+            position: usize,
+            bounds: GenericBounds<'tcx>,
+        ) -> Cow<'tcx, str> {
+            let before;
+            if position == 0 {
+                before = None;
+            } else {
+                let first_bound = &bounds[0];
+                let previous_bound = &bounds[position - 1];
+                before = Some(snippet(
+                    cx,
+                    first_bound.span().with_hi(previous_bound.span().hi()),
+                    "..",
+                ));
+            }
+
+            let after;
+            let last_position = bounds.len() - 1;
+            if position == last_position {
+                after = None;
+            } else {
+                let last_bound = &bounds[last_position];
+                let after_bound = &bounds[position + 1];
+                after = Some(snippet(cx, after_bound.span().with_hi(last_bound.span().hi()), ".."));
+            }
+
+            match (before, after) {
+                (None, None) => unreachable!(),
+                (Some(b), None) => b,
+                (None, Some(a)) => a,
+                (Some(b), Some(a)) => b + " + " + a,
+            }
+        }
+
         match wp {
             WherePredicate::BoundPredicate(wbp) => {
                 if_chain! {
                     let bounds = wbp.bounds;
-                    if let Some(position) = bounds.iter().position(|b| is_target_generic_bound(b));
+                    if let Some(position) = bounds.iter().position(|b| is_target_generic_bound(cx, b));
                     let target_bound = &bounds[position];
                     if let Some(tr_ref) = target_bound.trait_ref();
                     if let Some(def_id) = tr_ref.trait_def_id();
@@ -61,7 +99,6 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
                     if let Some(generic_arg) = last_seg.args().args.first();
                     if let Some(bounded_ty) = snippet_opt(cx, wbp.bounded_ty.span);
                     if let Some(generic_arg_of_from_or_try_from) = snippet_opt(cx, generic_arg.span());
-                    // if wbp.bounds.len() == 1;
                     then {
                         let replace_trait_name;
                         let target_trait_name;
@@ -84,33 +121,8 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
                             if bounds.len() == 1 {
                                 sugg = extracted_where_predicate;
                             } else {
-                                let before;
-                                if position == 0 {
-                                    before = None;
-                                } else {
-                                    let first_bound = &bounds[0];
-                                    let previous_bound = &bounds[position-1];
-                                    before = Some(snippet(cx, first_bound.span().with_hi(previous_bound.span().hi()), ".."));
-                                }
-
-                                let after;
-                                let last_position = bounds.len() - 1;
-                                if position == last_position {
-                                    after = None;
-                                } else {
-                                    let last_bound = &bounds[last_position];
-                                    let after_bound = &bounds[position + 1];
-                                    after = Some(snippet(cx, after_bound.span().with_hi(last_bound.span().hi()), ".."));
-                                }
-
-                                let bounds_str = match (before, after) {
-                                    (None, None) => unreachable!(),
-                                    (Some(b), None) => b,
-                                    (None, Some(a)) => a,
-                                    (Some(b), Some(a)) => b + " + " + a,
-                                };
-
-                                sugg = format!("{}, {}: {}", extracted_where_predicate, bounded_ty, bounds_str);
+                                let bounds = get_reduced_bounds_str(cx, position, bounds);
+                                sugg = format!("{}, {}: {}", extracted_where_predicate, bounded_ty, bounds);
                             }
                             span_lint_and_sugg(
                                 cx,

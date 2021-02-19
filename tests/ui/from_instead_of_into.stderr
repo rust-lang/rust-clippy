@@ -1,5 +1,5 @@
 error: Into trait is preferable than From as a generic bound
-  --> $DIR/from_instead_of_into.rs:9:5
+  --> $DIR/from_instead_of_into.rs:11:5
    |
 LL |     u32: From<T>,
    |     ^^^^^^^^^^^^ help: try: `T: Into<u32>`
@@ -7,25 +7,25 @@ LL |     u32: From<T>,
    = note: `-D clippy::from-instead-of-into` implied by `-D warnings`
 
 error: Into trait is preferable than From as a generic bound
-  --> $DIR/from_instead_of_into.rs:15:5
+  --> $DIR/from_instead_of_into.rs:17:5
    |
 LL |     u32: Copy + Clone + From<T>,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `T: Into<u32>, u32: Copy + Clone`
 
 error: TryInto trait is preferable than TryFrom as a generic bound
-  --> $DIR/from_instead_of_into.rs:21:5
+  --> $DIR/from_instead_of_into.rs:23:5
    |
 LL |     u32: TryFrom<T>,
    |     ^^^^^^^^^^^^^^^ help: try: `T: TryInto<u32>`
 
 error: TryInto trait is preferable than TryFrom as a generic bound
-  --> $DIR/from_instead_of_into.rs:27:5
+  --> $DIR/from_instead_of_into.rs:29:5
    |
 LL |     u32: Copy + TryFrom<T> + Clone,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `T: TryInto<u32>, u32: Copy + Clone`
 
 error: TryInto trait is preferable than TryFrom as a generic bound
-  --> $DIR/from_instead_of_into.rs:33:5
+  --> $DIR/from_instead_of_into.rs:35:5
    |
 LL |     u32: TryFrom<T> + Copy + Clone,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `T: TryInto<u32>, u32: Copy + Clone`

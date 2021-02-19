@@ -1,5 +1,7 @@
 // run-rustfix
 #![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
 #![warn(clippy::from_instead_of_into)]
 use std::convert::TryFrom;
 use std::convert::TryInto;
