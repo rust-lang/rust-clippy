@@ -1317,6 +1317,17 @@
     }
   },
   {
+    "id": "from_str_radix_10",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for function invocations of the form `primitive::from_str_radix(s, 10)`",
+      "Why is this bad": "This specific common use case can be rewritten as `s.parse::<primitive>()`\n(and in most cases, the turbofish can be removed), which reduces code length\nand complexity.",
+      "Known problems": "This lint may suggest using (&<expression>).parse() instead of <expression>.parse() directly\nin some cases, which is correct but adds unnecessary complexity to the code.",
+      "Example": "```ignore\nlet input: &str = get_input();\nlet num = u16::from_str_radix(input, 10)?;\n```\nUse instead:\n```ignore\nlet input: &str = get_input();\nlet num: u16 = input.parse()?;\n```"
+    }
+  },
+  {
     "id": "future_not_send",
     "group": "nursery",
     "level": "Allow",
