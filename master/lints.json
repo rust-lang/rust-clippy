@@ -4479,12 +4479,12 @@
   },
   {
     "id": "unnecessary_wraps",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for private functions that only return `Ok` or `Some`.",
       "Why is this bad": "It is not meaningful to wrap values when no `None` or `Err` is returned.",
-      "Known problems": "Since this lint changes function type signature, you may need to\nadjust some code at callee side.",
+      "Known problems": "There can be false positives if the function signature is designed to\nfit some external requirement.",
       "Example": "```rust\nfn get_cool_number(a: bool, b: bool) -> Option<i32> {\n    if a && b {\n        return Some(50);\n    }\n    if a {\n        Some(0)\n    } else {\n        Some(10)\n    }\n}\n```\nUse instead:\n```rust\nfn get_cool_number(a: bool, b: bool) -> i32 {\n    if a && b {\n        return 50;\n    }\n    if a {\n        0\n    } else {\n        10\n    }\n}\n```"
     }
   },
