@@ -49,7 +49,7 @@ impl<'tcx> LateLintPass<'tcx> for EmptyEnum {
             return;
         }
 
-        let did = cx.tcx.hir().local_def_id(item.hir_id);
+        let did = cx.tcx.hir().local_def_id(item.hir_id());
         if let ItemKind::Enum(..) = item.kind {
             let ty = cx.tcx.type_of(did);
             let adt = ty.ty_adt_def().expect("already checked whether this is an enum");

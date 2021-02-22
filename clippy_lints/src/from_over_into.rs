@@ -60,7 +60,7 @@ impl LateLintPass<'_> for FromOverInto {
             return;
         }
 
-        let impl_def_id = cx.tcx.hir().local_def_id(item.hir_id);
+        let impl_def_id = cx.tcx.hir().local_def_id(item.hir_id());
         if_chain! {
             if let hir::ItemKind::Impl{ .. } = &item.kind;
             if let Some(impl_trait_ref) = cx.tcx.impl_trait_ref(impl_def_id);

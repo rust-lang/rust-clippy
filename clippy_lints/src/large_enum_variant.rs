@@ -62,7 +62,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeEnumVariant {
         if in_external_macro(cx.tcx.sess, item.span) {
             return;
         }
-        let did = cx.tcx.hir().local_def_id(item.hir_id);
+        let did = cx.tcx.hir().local_def_id(item.hir_id());
         if let ItemKind::Enum(ref def, _) = item.kind {
             let ty = cx.tcx.type_of(did);
             let adt = ty.ty_adt_def().expect("already checked whether this is an enum");

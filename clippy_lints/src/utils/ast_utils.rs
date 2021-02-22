@@ -234,7 +234,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
         (Fn(box FnKind(ld, lf, lg, lb)), Fn(box FnKind(rd, rf, rg, rb))) => {
             eq_defaultness(*ld, *rd) && eq_fn_sig(lf, rf) && eq_generics(lg, rg) && both(lb, rb, |l, r| eq_block(l, r))
         },
-        (Mod(l), Mod(r)) => l.inline == r.inline && over(&l.items, &r.items, |l, r| eq_item(l, r, eq_item_kind)),
+        (Mod(_, ModKind::Loaded(l_items, l_inline, _)), Mod(_, ModKind::Loaded(r_items, r_inline, _))) => l_inline == r_inline && over(&l_items, &r_items, |l, r| eq_item(l, r, eq_item_kind)),
         (ForeignMod(l), ForeignMod(r)) => {
             both(&l.abi, &r.abi, |l, r| eq_str_lit(l, r))
                 && over(&l.items, &r.items, |l, r| eq_item(l, r, eq_foreign_item_kind))

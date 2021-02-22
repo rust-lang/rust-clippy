@@ -14,7 +14,6 @@ extern crate rustc_interface;
 extern crate rustc_middle;
 
 use rustc_interface::interface;
-use rustc_middle::ty::TyCtxt;
 use rustc_tools_util::VersionInfo;
 
 use std::borrow::Cow;
@@ -168,7 +167,7 @@ fn report_clippy_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
     let num_frames = if backtrace { None } else { Some(2) };
 
-    TyCtxt::try_print_query_stack(&handler, num_frames);
+    interface::try_print_query_stack(&handler, num_frames);
 }
 
 fn toolchain_path(home: Option<String>, toolchain: Option<String>) -> Option<PathBuf> {
