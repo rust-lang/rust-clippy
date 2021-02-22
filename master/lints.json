@@ -4712,8 +4712,8 @@
   },
   {
     "id": "upper_case_acronyms",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for camel case name containing a capitalized acronym.",
       "Why is this bad": "In CamelCase, acronyms count as one word.\nSee [naming conventions](https://rust-lang.github.io/api-guidelines/naming.html#casing-conforms-to-rfc-430-c-case)\nfor more.",
