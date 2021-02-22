@@ -1491,6 +1491,17 @@
     }
   },
   {
+    "id": "inconsistent_struct_constructor",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for struct constructors where the order of the field init\nshorthand in the constructor is inconsistent with the order in the struct definition.",
+      "Why is this bad": "Since the order of fields in a constructor doesn't affect the\nresulted instance as the below example indicates,\n\n```rust\n#[derive(Debug, PartialEq, Eq)]\nstruct Foo {\n    x: i32,\n    y: i32,\n}\nlet x = 1;\nlet y = 2;\n\n// This assertion never fails.\nassert_eq!(Foo { x, y }, Foo { y, x });\n```\n\ninconsistent order means nothing and just decreases readability and consistency.",
+      "Known problems": "None.",
+      "Example": "```rust\nstruct Foo {\n    x: i32,\n    y: i32,\n}\nlet x = 1;\nlet y = 2;\nFoo { y, x };\n```\n\nUse instead:\n```rust\nFoo { x, y };\n```"
+    }
+  },
+  {
     "id": "indexing_slicing",
     "group": "restriction",
     "level": "Allow",
