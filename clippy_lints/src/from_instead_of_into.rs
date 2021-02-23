@@ -1,12 +1,11 @@
-use crate::utils::span_lint_and_sugg;
-use crate::utils::{snippet, snippet_opt};
+use crate::utils::span_lint_and_then;
+use crate::utils::snippet_opt;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
-use rustc_hir::{GenericBound, GenericBounds, WherePredicate};
+use rustc_hir::{GenericBound, WherePredicate};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::symbol::sym;
-use std::borrow::Cow;
 
 declare_clippy_lint! {
     /// **What it does:** Checking for using of From or TryFrom trait as a generic bound.
@@ -51,42 +50,6 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
             }
         }
 
-        fn get_reduced_bounds_str(
-            cx: &LateContext<'tcx>,
-            position: usize,
-            bounds: GenericBounds<'tcx>,
-        ) -> Cow<'tcx, str> {
-            let before;
-            if position == 0 {
-                before = None;
-            } else {
-                let first_bound = &bounds[0];
-                let previous_bound = &bounds[position - 1];
-                before = Some(snippet(
-                    cx,
-                    first_bound.span().with_hi(previous_bound.span().hi()),
-                    "..",
-                ));
-            }
-
-            let after;
-            let last_position = bounds.len() - 1;
-            if position == last_position {
-                after = None;
-            } else {
-                let last_bound = &bounds[last_position];
-                let after_bound = &bounds[position + 1];
-                after = Some(snippet(cx, after_bound.span().with_hi(last_bound.span().hi()), ".."));
-            }
-
-            match (before, after) {
-                (None, None) => unreachable!(),
-                (Some(b), None) => b,
-                (None, Some(a)) => a,
-                (Some(b), Some(a)) => b + " + " + a,
-            }
-        }
-
         if let WherePredicate::BoundPredicate(wbp) = wp {
             if_chain! {
                 let bounds = wbp.bounds;
@@ -108,31 +71,47 @@ impl LateLintPass<'tcx> for FromInsteadOfInto {
                         replace_trait_name = "TryInto";
                         target_trait_name = "TryFrom";
                     } else {
-                        replace_trait_name = "";
-                        target_trait_name = "";
+                        return;
                     }
+                    let message = format!("{} trait is preferable than {} as a generic bound", replace_trait_name, target_trait_name);
+                    let switched_predicate = format!("{}: {}<{}>", generic_arg_of_from_or_try_from, replace_trait_name, bounded_ty);
 
-                    if !replace_trait_name.is_empty() && !target_trait_name.is_empty() {
-                        let message = format!("{} trait is preferable than {} as a generic bound", replace_trait_name, target_trait_name);
+                    let low;
+                    if position == 0 {
+                        low = wp.span().lo();
+                    } else {
+                        let previous_bound = &bounds[position -1];
+                        low = previous_bound.span().hi();
+                    }
+                    let removed_span = target_bound.span().with_lo(low);
 
-                        let extracted_where_predicate = format!("{}: {}<{}>", generic_arg_of_from_or_try_from, replace_trait_name, bounded_ty);
-                        let sugg;
-                        if bounds.len() == 1 {
-                            sugg = extracted_where_predicate;
-                        } else {
-                            let bounds = get_reduced_bounds_str(cx, position, bounds);
-                            sugg = format!("{}, {}: {}", extracted_where_predicate, bounded_ty, bounds);
+                    span_lint_and_then(
+                        cx,
+                        FROM_INSTEAD_OF_INTO,
+                        wp.span(),
+                        &message,
+                        |diag| {
+                            diag.span_suggestion(
+                                removed_span,
+                                &format!("remove {} bound", target_trait_name),
+                                "".to_string(),
+                                Applicability::MaybeIncorrect,
+                            );
+
+                            let sugg;
+                            if bounds.len() == 1 {
+                                sugg = switched_predicate;
+                            } else {
+                                sugg = format!(", {}", switched_predicate);
+                            }
+                            diag.span_suggestion(
+                                wp.span().with_lo(wp.span().hi()),
+                                "Add this bound predicate",
+                                sugg,
+                                Applicability::MaybeIncorrect,
+                            );
                         }
-                        span_lint_and_sugg(
-                            cx,
-                            FROM_INSTEAD_OF_INTO,
-                            wp.span(),
-                            &message,
-                            "try",
-                            sugg,
-                            Applicability::MaybeIncorrect
-                        );
-                    }
+                    );
                 }
             }
         }
