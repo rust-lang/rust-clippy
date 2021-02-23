@@ -4987,7 +4987,7 @@
       "What it does": "This lint warns about the use of literals as `write!`/`writeln!` args.",
       "Why is this bad": "Using literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)",
       "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`.",
-      "Example": "```rust\n\n// Bad\nwriteln!(buf, \"{}\", \"foo\");\n\n// Good\nwriteln!(buf, \"foo\");\n```"
+      "Example": "```rust\n// Bad\nwriteln!(buf, \"{}\", \"foo\");\n\n// Good\nwriteln!(buf, \"foo\");\n```"
     }
   },
   {
@@ -4998,7 +4998,7 @@
       "What it does": "This lint warns when you use `write!()` with a format\nstring that\nends in a newline.",
       "Why is this bad": "You should use `writeln!()` instead, which appends the\nnewline.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nwrite!(buf, \"Hello {}!\\n\", name);\n\n// Good\nwriteln!(buf, \"Hello {}!\", name);\n```"
+      "Example": "```rust\n// Bad\nwrite!(buf, \"Hello {}!\\n\", name);\n\n// Good\nwriteln!(buf, \"Hello {}!\", name);\n```"
     }
   },
   {
@@ -5009,7 +5009,7 @@
       "What it does": "This lint warns when you use `writeln!(buf, \"\")` to\nprint a newline.",
       "Why is this bad": "You should use `writeln!(buf)`, which is simpler.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nwriteln!(buf, \"\");\n\n// Good\nwriteln!(buf);\n```"
+      "Example": "```rust\n// Bad\nwriteln!(buf, \"\");\n\n// Good\nwriteln!(buf);\n```"
     }
   },
   {
