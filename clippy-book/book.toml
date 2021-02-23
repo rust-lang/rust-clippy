@@ -1,0 +1,7 @@
+[book]
+authors = ["Moaz bin Mohamed Mokhtar"]
+language = "en"
+multilingual = false
+src = "src"
+title = "rust-clippy book"
+
