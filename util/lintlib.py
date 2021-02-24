@@ -87,7 +87,7 @@ def parse_lints(lints, filepath):
 
 def parse_configs(path):
     configs = {}
-    with open(os.path.join(path, 'utils/conf.rs')) as fp:
+    with open(path) as fp:
         contents = fp.read()
 
     match = re.search(conf_re, contents)
@@ -108,7 +108,7 @@ def parse_all(path="clippy_lints/src"):
 
     log.info("got %s lints", len(lints))
 
-    configs = parse_configs(path)
+    configs = parse_configs("clippy_utils/src/conf.rs")
     log.info("got %d configs", len(configs))
 
     return lints, configs
