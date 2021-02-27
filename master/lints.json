@@ -1436,6 +1436,17 @@
     }
   },
   {
+    "id": "implicit_clone",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for the usage of `_.to_owned()`, `vec.to_vec()`, or similar when calling `_.clone()` would be clearer.",
+      "Why is this bad": "These methods do the same thing as `_.clone()` but may be confusing as\nto why we are calling `to_vec` on something that is already a `Vec` or calling `to_owned` on something that is already owned.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet a = vec![1, 2, 3];\nlet b = a.to_vec();\nlet c = a.to_owned();\n```\nUse instead:\n```rust\nlet a = vec![1, 2, 3];\nlet b = a.clone();\nlet c = a.clone();\n```"
+    }
+  },
+  {
     "id": "implicit_hasher",
     "group": "pedantic",
     "level": "Allow",
