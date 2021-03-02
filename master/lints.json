@@ -2095,12 +2095,12 @@
   },
   {
     "id": "manual_map",
-    "group": "nursery",
-    "level": "Allow",
+    "group": "style",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for usages of `match` which could be implemented using `map`",
       "Why is this bad": "Using the `map` method is clearer and more concise.",
-      "Known problems": "`map` is not capable of representing some control flow which works fine in `match`.",
+      "Known problems": "None.",
       "Example": "```rust\nmatch Some(0) {\n    Some(x) => Some(x + 1),\n    None => None,\n};\n```\nUse instead:\n```rust\nSome(0).map(|x| x + 1);\n```"
     }
   },
