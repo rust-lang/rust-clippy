@@ -1773,6 +1773,17 @@
     }
   },
   {
+    "id": "iter_count",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for the use of `.iter().count()`.",
+      "Why is this bad": "`.len()` is more efficient and more\nreadable.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet some_vec = vec![0, 1, 2, 3];\nlet _ = some_vec.iter().count();\nlet _ = &some_vec[..].iter().count();\n\n// Good\nlet some_vec = vec![0, 1, 2, 3];\nlet _ = some_vec.len();\nlet _ = &some_vec[..].len();\n```"
+    }
+  },
+  {
     "id": "iter_next_loop",
     "group": "correctness",
     "level": "Deny",
