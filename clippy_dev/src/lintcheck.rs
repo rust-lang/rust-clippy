@@ -6,6 +6,7 @@
 
 #![cfg(feature = "lintcheck")]
 #![allow(clippy::filter_map, clippy::collapsible_else_if)]
+#![allow(clippy::blocks_in_if_conditions)] // FP on `if x.iter().any(|x| ...)`
 
 use crate::clippy_project_root;
 
@@ -330,8 +331,9 @@ impl LintcheckConfig {
         // by default use a single thread
         let max_jobs = match clap_config.value_of("threads") {
             Some(threads) => {
-                let err_msg = format!("Failed to parse '{}' to a digit", threads);
-                let threads: usize = threads.parse().expect(&err_msg);
+                let threads: usize = threads
+                    .parse()
+                    .unwrap_or_else(|_| panic!("Failed to parse '{}' to a digit", threads));
                 if threads == 0 {
                     // automatic choice
                     // Rayon seems to return thread count so half that for core count
@@ -751,9 +753,7 @@ fn lintcheck_test() {
         "lintcheck",
         "--",
         "lintcheck",
-        //"--",
         "--crates-toml",
-        //"--",
         "clippy_dev/ci_test_sources.toml",
     ];
     let status = std::process::Command::new("cargo")
