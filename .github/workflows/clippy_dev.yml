@@ -51,6 +51,15 @@ jobs:
       - name: Test fmt
         run: cargo dev fmt --check
 
+      # Lintcheck
+      - name: build lintcheck
+        run: cargo build --features lintcheck,deny-warnings
+        working-directory: clippy_dev
+
+      - name: test lintcheck
+        run: cargo test --features lintcheck,deny-warnings
+        working-directory: clippy_dev
+
   # These jobs doesn't actually test anything, but they're only used to tell
   # bors the build completed, as there is no practical way to detect when a
   # workflow is successful listening to webhooks only.
