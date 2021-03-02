@@ -25,6 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2.3.3
 
+      # To test formatting, we need to temporarily disable the rust-toolchain file
       - name: remove toolchain file
         run: rm rust-toolchain
 
@@ -37,6 +38,13 @@ jobs:
           components: rustfmt
           default: true
 
+      - name: Test fmt
+        run: cargo dev fmt --check
+
+      # Restore the rust-toolchain-file
+      - name: Restore rust-toolchain-file
+        run: git checkout rust-toolchain
+
       # Run
       - name: Build
         run: cargo build --features deny-warnings
@@ -47,9 +55,6 @@ jobs:
 
       - name: Test update_lints
         run: cargo dev update_lints --check
-
-      - name: Test fmt
-        run: cargo dev fmt --check
 
       # Lintcheck
       - name: build lintcheck
