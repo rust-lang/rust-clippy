@@ -8,10 +8,10 @@ on:
   pull_request:
     # Only run on paths, that get checked by the clippy_dev tool
     paths:
-    - 'CHANGELOG.md'
-    - 'README.md'
-    - '**.stderr'
-    - '**.rs'
+      - "CHANGELOG.md"
+      - "README.md"
+      - "**.stderr"
+      - "**.rs"
 
 env:
   RUST_BACKTRACE: 1
@@ -21,35 +21,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Setup
-    - name: Checkout
-      uses: actions/checkout@v2.3.3
+      # Setup
+      - name: Checkout
+        uses: actions/checkout@v2.3.3
 
-    - name: remove toolchain file
-      run: rm rust-toolchain
+      - name: remove toolchain file
+        run: rm rust-toolchain
 
-    - name: rust-toolchain
-      uses: actions-rs/toolchain@v1.0.6
-      with:
-        toolchain: nightly
-        target: x86_64-unknown-linux-gnu
-        profile: minimal
-        components: rustfmt
-        default: true
+      - name: rust-toolchain
+        uses: actions-rs/toolchain@v1.0.6
+        with:
+          toolchain: nightly
+          target: x86_64-unknown-linux-gnu
+          profile: minimal
+          components: rustfmt
+          default: true
 
-    # Run
-    - name: Build
-      run: cargo build --features deny-warnings
-      working-directory: clippy_dev
+      # Run
+      - name: Build
+        run: cargo build --features deny-warnings
+        working-directory: clippy_dev
 
-    - name: Test limit_stderr_length
-      run: cargo dev limit_stderr_length
+      - name: Test limit_stderr_length
+        run: cargo dev limit_stderr_length
 
-    - name: Test update_lints
-      run: cargo dev update_lints --check
+      - name: Test update_lints
+        run: cargo dev update_lints --check
 
-    - name: Test fmt
-      run: cargo dev fmt --check
+      - name: Test fmt
+        run: cargo dev fmt --check
 
   # These jobs doesn't actually test anything, but they're only used to tell
   # bors the build completed, as there is no practical way to detect when a
