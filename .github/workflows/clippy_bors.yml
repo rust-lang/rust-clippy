@@ -133,7 +133,7 @@ jobs:
       working-directory: clippy_workspace_tests
 
     - name: Test cargo-clippy --fix
-      run: ../target/debug/cargo-clippy clippy -- --fix
+      run: ../target/debug/cargo-clippy clippy --fix -Zunstable-options
       working-directory: clippy_workspace_tests
 
     - name: Test clippy-driver
