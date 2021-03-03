@@ -38,13 +38,6 @@ jobs:
           components: rustfmt
           default: true
 
-      - name: Test fmt
-        run: cargo dev fmt --check
-
-      # Restore the rust-toolchain-file
-      - name: Restore rust-toolchain-file
-        run: git checkout rust-toolchain
-
       # Run
       - name: Build
         run: cargo build --features deny-warnings
@@ -55,6 +48,13 @@ jobs:
 
       - name: Test update_lints
         run: cargo dev update_lints --check
+
+      - name: Test fmt
+        run: cargo dev fmt --check
+
+      # Restore the rust-toolchain-file
+      - name: Restore rust-toolchain-file
+        run: git checkout rust-toolchain
 
       # Lintcheck
       - name: build lintcheck
