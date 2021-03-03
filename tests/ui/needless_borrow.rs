@@ -19,15 +19,28 @@ fn main() {
     let vec_val = g(&vec); // should not error, because `&Vec<T>` derefs to `&[T]`
     h(&"foo"); // should not error, because the `&&str` is required, due to `&Trait`
     if let Some(ref cake) = Some(&5) {}
+    let ref_a = &a;
     let garbl = match 42 {
         44 => &a,
         45 => {
             println!("foo");
-            &&a // FIXME: this should lint, too
+            &&a
         },
         46 => &&a,
+        #[allow(clippy::never_loop)]
+        47 => loop {
+            break &ref_a;
+        },
+        48 =>
+        {
+            #[allow(clippy::never_loop)]
+            loop {
+                break &ref_a;
+            }
+        },
         _ => panic!(),
     };
+    x(&Box::new(0)); // shouldn't error.
 }
 
 fn f<T: Copy>(y: &T) -> T {

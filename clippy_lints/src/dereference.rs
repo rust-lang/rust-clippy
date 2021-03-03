@@ -1,3 +1,4 @@
+use crate::needless_borrow::NEEDLESS_BORROW;
 use crate::utils::{
     get_node_span, get_parent_node, in_macro, is_allowed, peel_mid_ty_refs, snippet_with_context, span_lint_and_sugg,
 };
@@ -5,7 +6,11 @@ use rustc_ast::util::parser::PREC_PREFIX;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Destination, Expr, ExprKind, HirId, MatchSource, Mutability, Node, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, adjustment::Adjustment, Ty, TyCtxt, TyS, TypeckResults};
+use rustc_middle::ty::{
+    self,
+    adjustment::{Adjust, Adjustment},
+    Ty, TyCtxt, TyS, TypeckResults,
+};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::{symbol::sym, Span};
 
@@ -38,6 +43,7 @@ declare_clippy_lint! {
 
 impl_lint_pass!(Dereferencing => [
     EXPLICIT_DEREF_METHODS,
+    NEEDLESS_BORROW,
 ]);
 
 #[derive(Default)]
@@ -63,6 +69,10 @@ enum State {
         // The number of calls in a sequence which changed the referenced type
         ty_changed_count: usize,
         is_final_ufcs: bool,
+    },
+    NeedlessBorrow {
+        // The number of borrows remaining
+        remaining: usize,
     },
 }
 
@@ -111,15 +121,50 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing {
 
                 let expr_adjustments = find_adjustments(cx.tcx, typeck, expr);
                 let expr_ty = typeck.expr_ty(expr);
-                let target_mut =
-                    if let ty::Ref(_, _, mutability) = *expr_adjustments.last().map_or(expr_ty, |a| a.target).kind() {
+                let data = StateData {
+                    span: expr.span,
+                    target_mut: if let ty::Ref(_, _, mutability) =
+                        *expr_adjustments.last().map_or(expr_ty, |a| a.target).kind()
+                    {
                         mutability
                     } else {
                         Mutability::Not
-                    };
+                    },
+                };
 
-                match kind {
-                    RefOp::Method
+                match (kind, expr_adjustments) {
+                    (
+                        RefOp::AddrOf,
+                        [Adjustment {
+                            kind: Adjust::Deref(None),
+                            target,
+                        }, Adjustment {
+                            kind: Adjust::Deref(None),
+                            ..
+                        }, adjustments @ ..],
+                    ) if target.is_ref() => {
+                        let count = adjustments
+                            .iter()
+                            .take_while(|&a| matches!(a.kind, Adjust::Deref(None)) && a.target.is_ref())
+                            .count();
+                        self.state = Some((
+                            State::NeedlessBorrow {
+                                remaining: if matches!(
+                                    adjustments.get(count),
+                                    Some(Adjustment {
+                                        kind: Adjust::Borrow(_),
+                                        ..
+                                    })
+                                ) {
+                                    count
+                                } else {
+                                    count + 1
+                                },
+                            },
+                            data,
+                        ));
+                    },
+                    (RefOp::Method, _)
                         if !is_allowed(cx, EXPLICIT_DEREF_METHODS, expr.hir_id)
                             && is_linted_explicit_deref_position(parent, expr.hir_id) =>
                     {
@@ -132,10 +177,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing {
                                 },
                                 is_final_ufcs: matches!(expr.kind, ExprKind::Call(..)),
                             },
-                            StateData {
-                                span: expr.span,
-                                target_mut,
-                            },
+                            data,
                         ));
                     }
                     _ => (),
@@ -154,7 +196,14 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing {
                     data,
                 ));
             },
-
+            (Some((State::NeedlessBorrow { remaining }, data)), RefOp::AddrOf) if remaining != 0 => {
+                self.state = Some((
+                    State::NeedlessBorrow {
+                        remaining: remaining - 1,
+                    },
+                    data,
+                ))
+            },
             (Some((state, data)), _) => report(cx, expr, state, data),
         }
     }
@@ -347,6 +396,33 @@ fn report(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, state: State, data: Stat
                 "explicit `deref` method call",
                 "try this",
                 format!("{}{}{}", addr_of_str, deref_str, expr_str),
+                app,
+            );
+        },
+        State::NeedlessBorrow { .. } => {
+            let ty = cx.typeck_results().expr_ty(expr);
+            let mut app = Applicability::MachineApplicable;
+            let (expr_str, _) = snippet_with_context(cx, expr.span, data.span.ctxt(), "..", &mut app);
+
+            // let reported_ty = if ty.is_ref() {
+            //     ty
+            // } else if let Some(Node::Expr(e)) = get_parent_node(cx.tcx, expr.hir_id) {
+            //     cx.typeck_results().expr_ty(e)
+            // } else {
+            //     ty
+            // };
+
+            span_lint_and_sugg(
+                cx,
+                NEEDLESS_BORROW,
+                data.span,
+                &format!(
+                    "this expression borrows a reference (`{}`) that is immediately dereferenced \
+                            by the compiler",
+                    ty,
+                ),
+                "change this to",
+                expr_str.into(),
                 app,
             );
         },

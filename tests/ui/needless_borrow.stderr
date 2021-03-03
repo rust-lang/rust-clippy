@@ -13,16 +13,34 @@ LL |     if let Some(ref cake) = Some(&5) {}
    |                 ^^^^^^^^ help: change this to: `cake`
 
 error: this expression borrows a reference (`&i32`) that is immediately dereferenced by the compiler
-  --> $DIR/needless_borrow.rs:28:15
+  --> $DIR/needless_borrow.rs:27:13
+   |
+LL |             &&a
+   |             ^^^ help: change this to: `&a`
+
+error: this expression borrows a reference (`&i32`) that is immediately dereferenced by the compiler
+  --> $DIR/needless_borrow.rs:29:15
    |
 LL |         46 => &&a,
    |               ^^^ help: change this to: `&a`
 
+error: this expression borrows a reference (`&i32`) that is immediately dereferenced by the compiler
+  --> $DIR/needless_borrow.rs:32:19
+   |
+LL |             break &ref_a;
+   |                   ^^^^^^ help: change this to: `ref_a`
+
+error: this expression borrows a reference (`&i32`) that is immediately dereferenced by the compiler
+  --> $DIR/needless_borrow.rs:38:23
+   |
+LL |                 break &ref_a;
+   |                       ^^^^^^ help: change this to: `ref_a`
+
 error: this pattern creates a reference to a reference
-  --> $DIR/needless_borrow.rs:51:31
+  --> $DIR/needless_borrow.rs:64:31
    |
 LL |     let _ = v.iter().filter(|&ref a| a.is_empty());
    |                               ^^^^^ help: change this to: `a`
 
-error: aborting due to 4 previous errors
+error: aborting due to 7 previous errors
 

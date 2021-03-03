@@ -1788,6 +1788,19 @@ pub fn peel_n_hir_expr_refs(expr: &'a Expr<'a>, count: usize) -> (&'a Expr<'a>, 
     f(expr, 0, count)
 }
 
+/// Peels off all references on the type. Returns the underlying type and the number of references
+/// removed.
+pub fn peel_hir_ty_refs(ty: &'tcx hir::Ty<'_>) -> (&'tcx hir::Ty<'tcx>, usize) {
+    fn peel(ty: &'tcx hir::Ty<'_>, count: usize) -> (&'tcx hir::Ty<'tcx>, usize) {
+        if let TyKind::Rptr(_, ty) = &ty.kind {
+            peel(ty.ty, count + 1)
+        } else {
+            (ty, count)
+        }
+    }
+    peel(ty, 0)
+}
+
 /// Peels off all references on the expression. Returns the underlying expression and the number of
 /// references removed.
 pub fn peel_hir_expr_refs(expr: &'a Expr<'a>) -> (&'a Expr<'a>, usize) {

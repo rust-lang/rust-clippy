@@ -5,10 +5,9 @@
 use crate::utils::{is_automatically_derived, snippet_opt, span_lint_and_then};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
-use rustc_hir::{BindingAnnotation, BorrowKind, Expr, ExprKind, Item, Mutability, Pat, PatKind};
+use rustc_hir::{BindingAnnotation, Item, Mutability, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_middle::ty::adjustment::{Adjust, Adjustment};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::def_id::LocalDefId;
 
@@ -42,47 +41,6 @@ pub struct NeedlessBorrow {
 impl_lint_pass!(NeedlessBorrow => [NEEDLESS_BORROW]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessBorrow {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
-        if e.span.from_expansion() || self.derived_item.is_some() {
-            return;
-        }
-        if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, ref inner) = e.kind {
-            if let ty::Ref(_, ty, _) = cx.typeck_results().expr_ty(inner).kind() {
-                for adj3 in cx.typeck_results().expr_adjustments(e).windows(3) {
-                    if let [Adjustment {
-                        kind: Adjust::Deref(_), ..
-                    }, Adjustment {
-                        kind: Adjust::Deref(_), ..
-                    }, Adjustment {
-                        kind: Adjust::Borrow(_),
-                        ..
-                    }] = *adj3
-                    {
-                        span_lint_and_then(
-                            cx,
-                            NEEDLESS_BORROW,
-                            e.span,
-                            &format!(
-                                "this expression borrows a reference (`&{}`) that is immediately dereferenced \
-                             by the compiler",
-                                ty
-                            ),
-                            |diag| {
-                                if let Some(snippet) = snippet_opt(cx, inner.span) {
-                                    diag.span_suggestion(
-                                        e.span,
-                                        "change this to",
-                                        snippet,
-                                        Applicability::MachineApplicable,
-                                    );
-                                }
-                            },
-                        );
-                    }
-                }
-            }
-        }
-    }
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {
         if pat.span.from_expansion() || self.derived_item.is_some() {
             return;
