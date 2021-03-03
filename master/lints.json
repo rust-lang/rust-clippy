@@ -2759,8 +2759,8 @@
   },
   {
     "id": "naive_bytecount",
-    "group": "perf",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for naive byte counts",
       "Why is this bad": "The [`bytecount`](https://crates.io/crates/bytecount)\ncrate has methods to count your bytes faster, especially for large slices.",
