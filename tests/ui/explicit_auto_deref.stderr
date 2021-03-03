@@ -1,0 +1,94 @@
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:18:20
+   |
+LL |     let _: &str = &*String::new();
+   |                    ^^^^^^^^^^^^^^ help: try this: `String::new()`
+   |
+   = note: `-D clippy::explicit-auto-deref` implied by `-D warnings`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:19:21
+   |
+LL |     let _: &Path = &*PathBuf::new();
+   |                     ^^^^^^^^^^^^^^^ help: try this: `PathBuf::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:20:19
+   |
+LL |     let _: &[_] = vec![0u32, 1u32, 2u32].deref();
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&vec![0u32, 1u32, 2u32]`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:23:8
+   |
+LL |     f2(vec![0u32].deref());
+   |        ^^^^^^^^^^^^^^^^^^ help: try this: `&vec![0u32]`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:27:10
+   |
+LL |         &*S
+   |          ^^ help: try this: `S`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:31:8
+   |
+LL |     f4(Box::new((0u32, 0i32)).deref());
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `&Box::new((0u32, 0i32))`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:34:9
+   |
+LL |     f5(&*String::new());
+   |         ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:37:12
+   |
+LL |         f(&*String::new());
+   |            ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:41:12
+   |
+LL |         f(&*String::new());
+   |            ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:53:16
+   |
+LL |             f(&*String::new());
+   |                ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:54:23
+   |
+LL |             (self.0)(&*String::new());
+   |                       ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:63:28
+   |
+LL |         f.next().unwrap()(&*String::new())
+   |                            ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:69:22
+   |
+LL |     let _ = S2 { x: &*String::new() };
+   |                      ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:72:17
+   |
+LL |     let _ = S3(&*String::new());
+   |                 ^^^^^^^^^^^^^^ help: try this: `String::new()`
+
+error: explicit dereference in auto-deref context
+  --> $DIR/explicit_auto_deref.rs:87:19
+   |
+LL |     let _: &str = &**m2!(String::new());
+   |                   ^^^^^^^^^^^^^^^^^^^^^ help: try this: `m2!(String::new())`
+
+error: aborting due to 15 previous errors
+

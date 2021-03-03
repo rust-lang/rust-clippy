@@ -70,8 +70,10 @@ use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, Level, Lint, LintContext};
 use rustc_middle::hir::exports::Export;
 use rustc_middle::hir::map::Map;
-use rustc_middle::ty::subst::{GenericArg, GenericArgKind};
-use rustc_middle::ty::{self, layout::IntegerExt, DefIdTree, Ty, TyCtxt, TypeFoldable};
+use rustc_middle::ty::subst::{GenericArg, GenericArgKind, Subst};
+use rustc_middle::ty::{
+    self, layout::IntegerExt, Binder, DefIdTree, FnSig, PredicateKind, Ty, TyCtxt, TypeFoldable, TypeckResults,
+};
 use rustc_semver::RustcVersion;
 use rustc_session::Session;
 use rustc_span::hygiene::{self, ExpnKind, MacroKind};
@@ -1761,6 +1763,96 @@ where
     }
 
     match_expr_list
+}
+
+/// If expr is a path, resolves it. Otherwise returns `None`.
+pub fn expr_res(typeck: &TypeckResults<'_>, expr: &Expr<'_>) -> Option<Res> {
+    if let ExprKind::Path(p) = &expr.kind {
+        Some(typeck.qpath_res(p, expr.hir_id))
+    } else {
+        None
+    }
+}
+
+/// A signature for a function like type.
+pub enum ExprFnSig<'tcx> {
+    Sig(Binder<FnSig<'tcx>>),
+    Closure(Binder<FnSig<'tcx>>),
+    Trait(Binder<Ty<'tcx>>),
+}
+impl ExprFnSig<'tcx> {
+    /// Gets the argument type at the given offset.
+    pub fn input(&self, i: usize) -> Binder<Ty<'tcx>> {
+        match self {
+            Self::Sig(sig) => sig.input(i),
+            Self::Closure(sig) => sig.input(0).map_bound(|ty| ty.tuple_element_ty(i).unwrap()),
+            Self::Trait(sig) => sig.map_bound(|ty| ty.tuple_element_ty(i).unwrap()),
+        }
+    }
+}
+
+/// If expr is function like, get the signature for it.
+pub fn expr_sig(tcx: TyCtxt<'tcx>, typeck: &TypeckResults<'tcx>, expr: &Expr<'_>) -> Option<ExprFnSig<'tcx>> {
+    match expr_res(typeck, expr) {
+        Some(Res::Def(DefKind::Fn | DefKind::Ctor(_, CtorKind::Fn) | DefKind::AssocFn, id) | Res::SelfCtor(id)) => {
+            Some(ExprFnSig::Sig(tcx.fn_sig(id)))
+        },
+        _ => {
+            let ty = typeck.expr_ty_adjusted(expr).peel_refs();
+            match *ty.kind() {
+                ty::Closure(_, subs) => Some(ExprFnSig::Closure(subs.as_closure().sig())),
+                ty::FnDef(id, subs) => Some(ExprFnSig::Sig(tcx.fn_sig(id).subst(tcx, subs))),
+                ty::FnPtr(sig) => Some(ExprFnSig::Sig(sig)),
+                ty::Dynamic(bounds, _) => {
+                    let lang_items = tcx.lang_items();
+                    match bounds.principal() {
+                        Some(bound)
+                            if Some(bound.def_id()) == lang_items.fn_trait()
+                                || Some(bound.def_id()) == lang_items.fn_once_trait()
+                                || Some(bound.def_id()) == lang_items.fn_mut_trait() =>
+                        {
+                            Some(ExprFnSig::Trait(bound.map_bound(|b| b.substs.type_at(0))))
+                        },
+                        _ => None,
+                    }
+                },
+                ty::Param(_) | ty::Projection(..) => {
+                    let mut id = typeck.hir_owner.to_def_id();
+                    loop {
+                        let predicates = tcx.predicates_of(id);
+                        let lang_items = tcx.lang_items();
+                        if let Some(res) = predicates
+                            .predicates
+                            .iter()
+                            .find_map(|&(p, _)| {
+                                p.kind()
+                                    .map_bound(|kind| match kind {
+                                        PredicateKind::Trait(p, _)
+                                            if (lang_items.fn_trait() == Some(p.def_id())
+                                                || lang_items.fn_mut_trait() == Some(p.def_id())
+                                                || lang_items.fn_once_trait() == Some(p.def_id()))
+                                                && p.self_ty() == ty =>
+                                        {
+                                            Some(p.trait_ref.substs.type_at(1))
+                                        },
+                                        _ => None,
+                                    })
+                                    .transpose()
+                            })
+                            .map(ExprFnSig::Trait)
+                        {
+                            break Some(res);
+                        } else if let Some(parent_id) = predicates.parent {
+                            id = parent_id;
+                        } else {
+                            break None;
+                        }
+                    }
+                },
+                _ => None,
+            }
+        },
+    }
 }
 
 /// Peels off all references on the pattern. Returns the underlying pattern and the number of

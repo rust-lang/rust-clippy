@@ -39,7 +39,7 @@ fn not_ok() {
     let mut mrslice: &mut [i32] = &mut [1, 2, 3];
 
     {
-        let rslice: &[i32] = &*mrslice;
+        let rslice: &[i32] = mrslice;
         foo_rstr(rstr.as_ref());
         foo_rstr(rstr);
         foo_rslice(rslice.as_ref());
