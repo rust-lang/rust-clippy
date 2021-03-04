@@ -8,21 +8,21 @@ on:
       - try
     # Don't run Clippy tests, when only textfiles were modified
     paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
+      - "COPYRIGHT"
+      - "LICENSE-*"
+      - "**.md"
+      - "**.txt"
   pull_request:
     # Don't run Clippy tests, when only textfiles were modified
     paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
+      - "COPYRIGHT"
+      - "LICENSE-*"
+      - "**.md"
+      - "**.txt"
 
 env:
   RUST_BACKTRACE: 1
-  CARGO_TARGET_DIR: '${{ github.workspace }}/target'
+  CARGO_TARGET_DIR: "${{ github.workspace }}/target"
   NO_FMT_TEST: 1
 
 jobs:
@@ -31,57 +31,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Setup
-    - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
-      with:
-        github_token: "${{ secrets.github_token }}"
+      # Setup
+      - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+        with:
+          github_token: "${{ secrets.github_token }}"
 
-    - name: Checkout
-      uses: actions/checkout@v2.3.3
+      - name: Checkout
+        uses: actions/checkout@v2.3.3
 
-    - name: Install toolchain
-      run: rustup show active-toolchain
+      - name: Install toolchain
+        run: rustup show active-toolchain
 
-    # Run
-    - name: Set LD_LIBRARY_PATH (Linux)
-      run: |
-        SYSROOT=$(rustc --print sysroot)
-        echo "LD_LIBRARY_PATH=${SYSROOT}/lib${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}" >> $GITHUB_ENV
+      # Run
+      - name: Set LD_LIBRARY_PATH (Linux)
+        run: |
+          SYSROOT=$(rustc --print sysroot)
+          echo "LD_LIBRARY_PATH=${SYSROOT}/lib${LD_LIBRARY_PATH+:${LD_LIBRARY_PATH}}" >> $GITHUB_ENV
 
-    - name: Build
-      run: cargo build --features deny-warnings,internal-lints
+      - name: Build
+        run: cargo build --features deny-warnings,internal-lints
 
-    - name: Test
-      run: cargo test --features deny-warnings,internal-lints
+      - name: Test
+        run: cargo test --features deny-warnings,internal-lints
 
-    - name: Test clippy_lints
-      run: cargo test --features deny-warnings,internal-lints
-      working-directory: clippy_lints
+      - name: Test clippy_lints
+        run: cargo test --features deny-warnings,internal-lints
+        working-directory: clippy_lints
 
-    - name: Test rustc_tools_util
-      run: cargo test --features deny-warnings
-      working-directory: rustc_tools_util
+      - name: Test rustc_tools_util
+        run: cargo test --features deny-warnings
+        working-directory: rustc_tools_util
 
-    - name: Test clippy_dev
-      run: cargo test --features deny-warnings
-      working-directory: clippy_dev
+      - name: Test clippy_dev
+        run: cargo test --features deny-warnings
+        working-directory: clippy_dev
 
-    - name: Test cargo-clippy
-      run: ../target/debug/cargo-clippy
-      working-directory: clippy_workspace_tests
+      - name: Test cargo-clippy
+        run: ../target/debug/cargo-clippy
+        working-directory: clippy_workspace_tests
 
-    - name: Test cargo-clippy --fix
-      run: ../target/debug/cargo-clippy clippy --fix -Zunstable-options
-      working-directory: clippy_workspace_tests
+      - name: Test cargo-clippy --fix
+        run: ../target/debug/cargo-clippy clippy --fix -Zunstable-options
+        working-directory: clippy_workspace_tests
 
-    - name: Test clippy-driver
-      run: bash .github/driver.sh
-      env:
-        OS: ${{ runner.os }}
+      - name: Test clippy-driver
+        run: bash .github/driver.sh
+        env:
+          OS: ${{ runner.os }}
 
-    - name: Test cargo dev new lint
-      run: |
-        cargo dev new_lint --name new_early_pass --pass early
-        cargo dev new_lint --name new_late_pass --pass late
-        cargo check
-        git reset --hard HEAD
+      - name: Test cargo dev new lint
+        run: |
+          cargo dev new_lint --name new_early_pass --pass early
+          cargo dev new_lint --name new_late_pass --pass late
+          cargo check
+          git reset --hard HEAD
