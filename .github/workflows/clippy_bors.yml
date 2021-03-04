@@ -130,6 +130,12 @@ jobs:
         run: cargo test --features deny-warnings
         working-directory: rustc_tools_util
 
+      # This test was moved here from clippy_dev.yml because it requires to build clippy
+      # and we do that there anyway
+      - name: Test clippy_dev (lintcheck)
+        run: cargo test lintcheck --features lintcheck,deny-warnings
+        working-directory: clippy_dev
+
       - name: Test clippy_dev
         run: cargo test --features deny-warnings
         working-directory: clippy_dev
