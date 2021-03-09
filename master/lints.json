@@ -2255,7 +2255,7 @@
     "group": "pedantic",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for usage of `_.map(_).flatten(_)`,",
+      "What it does": "Checks for usage of `_.map(_).flatten(_)` on `Iterator` and `Option`",
       "Why is this bad": "Readability, this can be written more concisely as\n`_.flat_map(_)`",
       "Known problems": "",
       "Example": "```rust\nlet vec = vec![vec![1]];\n\n// Bad\nvec.iter().map(|x| x.iter()).flatten();\n\n// Good\nvec.iter().flat_map(|x| x.iter());\n```"
