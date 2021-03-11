@@ -1,0 +1,409 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Raodmap 2021 - Rust Clippy book</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../index.html">Home</a></li><li class="chapter-item expanded affix "><a href="basics.html">Basics</a></li><li class="chapter-item expanded affix "><a href="adding_lints.html">Adding a new lint</a></li><li class="chapter-item expanded affix "><a href="common_tools_writing_lints.html">Common tools for writing lints</a></li><li class="chapter-item expanded affix "><a href="changelog_update.html">Changelog Update</a></li><li class="chapter-item expanded affix "><a href="backport.html">Backport Changes</a></li><li class="chapter-item expanded affix "><a href="roadmap-2021.html" class="active">Raodmap 2021</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Rust Clippy book</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#roadmap-2021" id="roadmap-2021">Roadmap 2021</a></h1>
+<h1><a class="header" href="#summary" id="summary">Summary</a></h1>
+<p>This Roadmap lays out the plans for Clippy in 2021:</p>
+<ul>
+<li>Improving usability and reliability</li>
+<li>Improving experience of contributors and maintainers</li>
+<li>Develop and specify processes</li>
+</ul>
+<p>Members of the Clippy team will be assigned tasks from one or more of these
+topics. The team member is then responsible to complete the assigned tasks. This
+can either be done by implementing them or by providing mentorship to interested
+contributors.</p>
+<h1><a class="header" href="#motivation" id="motivation">Motivation</a></h1>
+<p>With the ongoing growth of the Rust language and with that of the whole
+ecosystem, also Clippy gets more and more users and contributors. This is good
+for the project, but also brings challenges along. Some of these challenges are:</p>
+<ul>
+<li>More issues about reliability or usability are popping up</li>
+<li>Traffic is hard to handle for a small team</li>
+<li>Bigger projects don't get completed due to the lack of processes and/or time
+of the team members</li>
+</ul>
+<p>Additionally, according to the <a href="https://github.com/rust-lang/rfcs/pull/3037">Rust Roadmap 2021</a>, clear processes should be
+defined by every team and unified across teams. This Roadmap is the first step
+towards this.</p>
+<h1><a class="header" href="#explanation" id="explanation">Explanation</a></h1>
+<p>This section will explain the things that should be done in 2021. It is
+important to note, that this document focuses on the &quot;What?&quot;, not the &quot;How?&quot;.
+The later will be addressed in follow-up tracking issue, with an assigned team
+member.</p>
+<p>The following is split up in two major sections. The first section covers the
+user facing plans, the second section the internal plans.</p>
+<h2><a class="header" href="#user-facing" id="user-facing">User Facing</a></h2>
+<p>Clippy should be as pleasant to use and configure as possible. This section
+covers plans that should be implemented to improve the situation of Clippy in
+this regard.</p>
+<h3><a class="header" href="#usability" id="usability">Usability</a></h3>
+<p>In the following, plans to improve the usability are covered.</p>
+<h4><a class="header" href="#no-output-after-cargo-check" id="no-output-after-cargo-check">No Output After <code>cargo check</code></a></h4>
+<p>Currently when <code>cargo clippy</code> is run after <code>cargo check</code>, it does not produce
+any output. This is especially problematic since <code>rust-analyzer</code> is on the rise
+and it uses <code>cargo check</code> for checking code. A fix is already implemented, but
+it still has to be pushed over the finish line. This also includes the
+stabilization of the <code>cargo clippy --fix</code> command or the support of multi-span
+suggestions in <code>rustfix</code>.</p>
+<ul>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/4612">#4612</a></li>
+</ul>
+<h4><a class="header" href="#lintstoml-configuration" id="lintstoml-configuration"><code>lints.toml</code> Configuration</a></h4>
+<p>This is something that comes up every now and then: a reusable configuration
+file, where lint levels can be defined. Discussions about this often lead to
+nothing specific or to &quot;we need an RFC for this&quot;. And this is exactly what needs
+to be done. Get together with the cargo team and write an RFC and implement such
+a configuration file somehow and somewhere.</p>
+<ul>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/3164">#3164</a></li>
+<li><a href="https://github.com/rust-lang/cargo/issues/5034">cargo#5034</a></li>
+<li><a href="https://internals.rust-lang.org/t/proposal-cargo-lint-configuration/9135/8">IRLO</a></li>
+</ul>
+<h4><a class="header" href="#lint-groups" id="lint-groups">Lint Groups</a></h4>
+<p>There are more and more issues about managing lints in Clippy popping up. Lints
+are hard to implement with a guarantee of no/few false positives (FPs). One way
+to address this might be to introduce more lint groups to give users the ability
+to better manage lints, or improve the process of classifying lints, so that
+disabling lints due to FPs becomes rare. It is important to note, that Clippy
+lints are less conservative than <code>rustc</code> lints, which won't change in the
+future.</p>
+<ul>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/5537">#5537</a></li>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/6366">#6366</a></li>
+</ul>
+<h3><a class="header" href="#reliability" id="reliability">Reliability</a></h3>
+<p>In the following, plans to improve the reliability are covered.</p>
+<h4><a class="header" href="#false-positive-rate" id="false-positive-rate">False Positive Rate</a></h4>
+<p>In the worst case, new lints are only available in nightly for 2 weeks, before
+hitting beta and ultimately stable. This and the fact that fewer people use
+nightly Rust nowadays makes it more probable that a lint with many FPs hits
+stable. This leads to annoyed users, that will disable these new lints in the
+best case and to more annoyed users, that will stop using Clippy in the worst.
+A process should be developed and implemented to prevent this from happening.</p>
+<ul>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/6429">#6429</a></li>
+</ul>
+<h2><a class="header" href="#internal" id="internal">Internal</a></h2>
+<p>(The end of) 2020 has shown, that Clippy has to think about the available
+resources, especially regarding management and maintenance of the project. This
+section address issues affecting team members and contributors.</p>
+<h3><a class="header" href="#management" id="management">Management</a></h3>
+<p>In 2020 Clippy achieved over 1000 open issues with regularly between 25-35 open
+PRs. This is simultaneously a win and a loss. More issues and PRs means more
+people are interested in Clippy and in contributing to it. On the other hand, it
+means for team members more work and for contributors longer wait times for
+reviews. The following will describe plans how to improve the situation for both
+team members and contributors.</p>
+<h4><a class="header" href="#clear-expectations-for-team-members" id="clear-expectations-for-team-members">Clear Expectations for Team Members</a></h4>
+<p>According to the <a href="https://github.com/rust-lang/rfcs/pull/3037">Rust Roadmap 2021</a>, a document specifying what it means to be
+a member of the team should be produced. This should not put more pressure on
+the team members, but rather help them and interested folks to know what the
+expectations are. With this it should also be easier to recruit new team members
+and may encourage people to get in touch, if they're interested to join.</p>
+<h4><a class="header" href="#scaling-up-the-team" id="scaling-up-the-team">Scaling up the Team</a></h4>
+<p>More people means less work for each individual. Together with the document
+about expectations for team members, a document defining the process of how to
+join the team should be produced. This can also increase the stability of the
+team, in case of current members dropping out (temporarily). There can also be
+different roles in the team, like people triaging vs. people reviewing.</p>
+<h4><a class="header" href="#regular-meetings" id="regular-meetings">Regular Meetings</a></h4>
+<p>Other teams have regular meetings. Clippy is big enough that it might be worth
+to also do them. Especially if more people join the team, this can be important
+for sync-ups. Besides the asynchronous communication, that works well for
+working on separate lints, a meeting adds a synchronous alternative at a known
+time. This is especially helpful if there are bigger things that need to be
+discussed (like the projects in this roadmap). For starters bi-weekly meetings
+before Rust syncs might make sense.</p>
+<h4><a class="header" href="#triaging" id="triaging">Triaging</a></h4>
+<p>To get a handle on the influx of open issues, a process for triaging issues and
+PRs should be developed. Officially, Clippy follows the Rust triage process, but
+currently no one enforces it. This can be improved by sharing triage teams
+across projects or by implementing dashboards / tools which simplify triaging.</p>
+<h3><a class="header" href="#development" id="development">Development</a></h3>
+<p>Improving the developer and contributor experience is something the Clippy team
+works on regularly. Though, some things might need special attention and
+planing. These topics are listed in the following.</p>
+<h4><a class="header" href="#process-for-new-and-existing-lints" id="process-for-new-and-existing-lints">Process for New and Existing Lints</a></h4>
+<p>As already mentioned above, classifying new lints gets quite hard, because the
+probability of a buggy lint getting into stable is quite high. A process should
+be implemented on how to classify lints. In addition, a test system should be
+developed to find out which lints are currently problematic in real world code
+to fix or disable them.</p>
+<ul>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/6429#issuecomment-741056379">#6429 (comment)</a></li>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/6429#issuecomment-741153345">#6429 (comment)</a></li>
+</ul>
+<h4><a class="header" href="#processes" id="processes">Processes</a></h4>
+<p>Related to the point before, a process for suggesting and discussing major
+changes should be implemented. It's also not clearly defined when a lint should
+be enabled or disabled by default. This can also be improved by the test system
+mentioned above.</p>
+<h4><a class="header" href="#dev-tools" id="dev-tools">Dev-Tools</a></h4>
+<p>There's already <code>cargo dev</code> which makes Clippy development easier and more
+pleasant. This can still be expanded, so that it covers more areas of the
+development process.</p>
+<ul>
+<li><a href="https://github.com/rust-lang/rust-clippy/issues/5394">#5394</a></li>
+</ul>
+<h4><a class="header" href="#contributor-guide" id="contributor-guide">Contributor Guide</a></h4>
+<p>Similar to a Clippy Book, which describes how to use Clippy, a book about how to
+contribute to Clippy might be helpful for new and existing contributors. There's
+already the <code>doc</code> directory in the Clippy repo, this can be turned into a
+<code>mdbook</code>.</p>
+<h4><a class="header" href="#rustc-integration" id="rustc-integration"><code>rustc</code> integration</a></h4>
+<p>Recently Clippy was integrated with <code>git subtree</code> into the <code>rust-lang/rust</code>
+repository. This made syncing between the two repositories easier. A
+<code>#[non_exhaustive]</code> list of things that still can be improved is:</p>
+<ol>
+<li>Use the same <code>rustfmt</code> version and configuration as <code>rustc</code>.</li>
+<li>Make <code>cargo dev</code> work in the Rust repo, just as it works in the Clippy repo.
+E.g. <code>cargo dev bless</code> or <code>cargo dev update_lints</code>. And even add more things
+to it that might be useful for the Rust repo, e.g. <code>cargo dev deprecate</code>.</li>
+<li>Easier sync process. The <code>subtree</code> situation is not ideal.</li>
+</ol>
+<h2><a class="header" href="#prioritization" id="prioritization">Prioritization</a></h2>
+<p>The most pressing issues for users of Clippy are of course the user facing
+issues. So there should be a priority on those issues, but without losing track
+of the internal issues listed in this document.</p>
+<p>Getting the FP rate of warn/deny-by-default lints under control should have the
+highest priority. Other user facing issues should also get a high priority, but
+shouldn't be in the way of addressing internal issues.</p>
+<p>To better manage the upcoming projects, the basic internal processes, like
+meetings, tracking issues and documentation, should be established as soon as
+possible. They might even be necessary to properly manage the projects,
+regarding the user facing issues.</p>
+<h1><a class="header" href="#prior-art" id="prior-art">Prior Art</a></h1>
+<h2><a class="header" href="#rust-roadmap" id="rust-roadmap">Rust Roadmap</a></h2>
+<p>Rust's roadmap process was established by <a href="https://rust-lang.github.io/rfcs/1728-north-star.html">RFC 1728</a> in 2016. Since then every
+year a roadmap was published, that defined the bigger plans for the coming
+years. This years roadmap can be found <a href="https://github.com/rust-lang/rfcs/pull/3037">here</a>.</p>
+<h1><a class="header" href="#drawbacks" id="drawbacks">Drawbacks</a></h1>
+<h2><a class="header" href="#big-roadmap" id="big-roadmap">Big Roadmap</a></h2>
+<p>This roadmap is pretty big and not all items listed in this document might be
+addressed during 2021. Because this is the first roadmap for Clippy, having open
+tasks at the end of 2021 is fine, but they should be revisited in the 2022
+roadmap.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="backport.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="backport.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
