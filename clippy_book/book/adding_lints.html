@@ -182,6 +182,7 @@ because that's clearly a non-descriptive name.</p>
 <li><a href="#lint-passes">Lint passes</a></li>
 <li><a href="#emitting-a-lint">Emitting a lint</a></li>
 <li><a href="#adding-the-lint-logic">Adding the lint logic</a></li>
+<li><a href="#specifying-the-lints-minimum-supported-rust-version-msrv">Specifying the lint's minimum supported Rust version (msrv)</a></li>
 <li><a href="#author-lint">Author lint</a></li>
 <li><a href="#documentation">Documentation</a></li>
 <li><a href="#running-rustfmt">Running rustfmt</a></li>
@@ -412,7 +413,7 @@ the next section. Let's worry about the details later and emit our lint for
 <em>every</em> function definition first.</p>
 <p>Depending on how complex we want our lint message to be, we can choose from a
 variety of lint emission functions. They can all be found in
-<a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/utils/diagnostics.rs"><code>clippy_lints/src/utils/diagnostics.rs</code></a>.</p>
+<a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/diagnostics.rs"><code>clippy_utils/src/diagnostics.rs</code></a>.</p>
 <p><code>span_lint_and_help</code> seems most appropriate in this case. It allows us to
 provide an extra help message and we can't really suggest a better name
 automatically. This is how it looks:</p>
@@ -619,7 +620,7 @@ behavior that can be seen as a false positive for some users. Adding a configura
 in the following steps:</p>
 <ol>
 <li>
-<p>Adding a new configuration entry to <a href="/clippy_lints/src/utils/conf.rs">clippy_lints::utils::conf</a>
+<p>Adding a new configuration entry to <a href="/clippy_utils/src/conf.rs">clippy_utils::conf</a>
 like this:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -713,9 +714,9 @@ otherwise be written as usual.</li>
 <h2><a class="header" href="#cheatsheet" id="cheatsheet">Cheatsheet</a></h2>
 <p>Here are some pointers to things you are likely going to need for every lint:</p>
 <ul>
-<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/utils/mod.rs">Clippy utils</a> - Various helper functions. Maybe the function you need
+<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/lib.rs">Clippy utils</a> - Various helper functions. Maybe the function you need
 is already in here (<code>implements_trait</code>, <code>match_path</code>, <code>snippet</code>, etc)</li>
-<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/utils/diagnostics.rs">Clippy diagnostics</a></li>
+<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/diagnostics.rs">Clippy diagnostics</a></li>
 <li><a href="https://docs.rs/if_chain/*/if_chain/">The <code>if_chain</code> macro</a></li>
 <li><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.Span.html#method.from_expansion"><code>from_expansion</code></a> and <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/lint/fn.in_external_macro.html"><code>in_external_macro</code></a></li>
 <li><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.Span.html"><code>Span</code></a></li>

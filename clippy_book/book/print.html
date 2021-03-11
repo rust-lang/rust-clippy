@@ -229,6 +229,15 @@ will run Clippy on the <code>example</code> crate:</p>
 If you want to run Clippy <strong>only</strong> on the given crate, use the <code>--no-deps</code> option like this:</p>
 <pre><code class="language-terminal">cargo clippy -p example -- --no-deps 
 </code></pre>
+<h3><a class="header" href="#as-a-rustc-replacement-clippy-driver" id="as-a-rustc-replacement-clippy-driver">As a rustc replacement (<code>clippy-driver</code>)</a></h3>
+<p>Clippy can also be used in projects that do not use cargo. To do so, you will need to replace
+your <code>rustc</code> compilation commands with <code>clippy-driver</code>. For example, if your project runs:</p>
+<pre><code class="language-terminal">rustc --edition 2018 -Cpanic=abort foo.rs
+</code></pre>
+<p>Then, to enable Clippy, you will need to call:</p>
+<pre><code class="language-terminal">clippy-driver --edition 2018 -Cpanic=abort foo.rs
+</code></pre>
+<p>Note that <code>rustc</code> will still run, i.e. it will still emit the output files it normally does.</p>
 <h3><a class="header" href="#travis-ci" id="travis-ci">Travis CI</a></h3>
 <p>You can add Clippy to Travis CI in the same way you use it locally:</p>
 <pre><code class="language-yml">language: rust
@@ -297,7 +306,6 @@ can run Clippy with warnings for all lints enabled:</p>
 the lint(s) you are interested in:</p>
 <pre><code class="language-terminal">cargo clippy -- -A clippy::all -W clippy::useless_format -W clippy::...
 </code></pre>
-<p>Note that if you've run clippy before, this may only take effect after you've modified a file or ran <code>cargo clean</code>.</p>
 <h3><a class="header" href="#specifying-the-minimum-supported-rust-version" id="specifying-the-minimum-supported-rust-version">Specifying the minimum supported Rust version</a></h3>
 <p>Projects that intend to support old versions of Rust can disable lints pertaining to newer features by
 specifying the minimum supported Rust version (MSRV) in the clippy configuration file.</p>
@@ -334,8 +342,9 @@ the codebase take a look at <a href="https://github.com/rust-lang/rust-clippy/bl
 <li><a href="basics.html#get-the-code">Get the Code</a></li>
 <li><a href="basics.html#building-and-testing">Building and Testing</a></li>
 <li><a href="basics.html#cargo-dev"><code>cargo dev</code></a></li>
-<li><a href="basics.html#common-abbreviations">Common Abbreviations</a></li>
+<li><a href="basics.html#lintcheck">lintcheck</a></li>
 <li><a href="basics.html#pr">PR</a></li>
+<li><a href="basics.html#common-abbreviations">Common Abbreviations</a></li>
 </ul>
 </li>
 </ul>
@@ -391,6 +400,13 @@ cargo dev new_lint
 # (experimental) Setup Clippy to work with rust-analyzer
 cargo dev ra_setup
 </code></pre>
+<h2><a class="header" href="#lintcheck" id="lintcheck">lintcheck</a></h2>
+<p><code>cargo lintcheck</code> will build and run clippy on a fixed set of crates and generate a log of the results.<br />
+You can <code>git diff</code> the updated log against its previous version and 
+see what impact your lint made on a small set of crates.<br />
+If you add a new lint, please audit the resulting warnings and make sure 
+there are no false positives and that the suggestions are valid.</p>
+<p>Refer to the tools <a href="https://github.com/rust-lang/rust-clippy/blob/master/lintcheck/README.md">README</a> for more details.</p>
 <h2><a class="header" href="#pr" id="pr">PR</a></h2>
 <p>We follow a rustc no merge-commit policy.
 See <a href="https://rustc-dev-guide.rust-lang.org/contributing.html#opening-a-pr">https://rustc-dev-guide.rust-lang.org/contributing.html#opening-a-pr</a>.</p>
@@ -427,6 +443,7 @@ because that's clearly a non-descriptive name.</p>
 <li><a href="adding_lints.html#lint-passes">Lint passes</a></li>
 <li><a href="adding_lints.html#emitting-a-lint">Emitting a lint</a></li>
 <li><a href="adding_lints.html#adding-the-lint-logic">Adding the lint logic</a></li>
+<li><a href="adding_lints.html#specifying-the-lints-minimum-supported-rust-version-msrv">Specifying the lint's minimum supported Rust version (msrv)</a></li>
 <li><a href="adding_lints.html#author-lint">Author lint</a></li>
 <li><a href="adding_lints.html#documentation">Documentation</a></li>
 <li><a href="adding_lints.html#running-rustfmt">Running rustfmt</a></li>
@@ -657,7 +674,7 @@ the next section. Let's worry about the details later and emit our lint for
 <em>every</em> function definition first.</p>
 <p>Depending on how complex we want our lint message to be, we can choose from a
 variety of lint emission functions. They can all be found in
-<a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/utils/diagnostics.rs"><code>clippy_lints/src/utils/diagnostics.rs</code></a>.</p>
+<a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/diagnostics.rs"><code>clippy_utils/src/diagnostics.rs</code></a>.</p>
 <p><code>span_lint_and_help</code> seems most appropriate in this case. It allows us to
 provide an extra help message and we can't really suggest a better name
 automatically. This is how it looks:</p>
@@ -864,7 +881,7 @@ behavior that can be seen as a false positive for some users. Adding a configura
 in the following steps:</p>
 <ol>
 <li>
-<p>Adding a new configuration entry to <a href="/clippy_lints/src/utils/conf.rs">clippy_lints::utils::conf</a>
+<p>Adding a new configuration entry to <a href="/clippy_utils/src/conf.rs">clippy_utils::conf</a>
 like this:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
@@ -958,9 +975,9 @@ otherwise be written as usual.</li>
 <h2><a class="header" href="#cheatsheet" id="cheatsheet">Cheatsheet</a></h2>
 <p>Here are some pointers to things you are likely going to need for every lint:</p>
 <ul>
-<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/utils/mod.rs">Clippy utils</a> - Various helper functions. Maybe the function you need
+<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/lib.rs">Clippy utils</a> - Various helper functions. Maybe the function you need
 is already in here (<code>implements_trait</code>, <code>match_path</code>, <code>snippet</code>, etc)</li>
-<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/utils/diagnostics.rs">Clippy diagnostics</a></li>
+<li><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/diagnostics.rs">Clippy diagnostics</a></li>
 <li><a href="https://docs.rs/if_chain/*/if_chain/">The <code>if_chain</code> macro</a></li>
 <li><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.Span.html#method.from_expansion"><code>from_expansion</code></a> and <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/lint/fn.in_external_macro.html"><code>in_external_macro</code></a></li>
 <li><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/struct.Span.html"><code>Span</code></a></li>
@@ -1067,7 +1084,7 @@ of expressions, ways to resolve methods and so on.</li>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>use crate::utils::{implements_trait, match_trait_method, paths};
+</span>use clippy_utils::{implements_trait, match_trait_method, paths};
 
 impl LateLintPass&lt;'_&gt; for MyStructLint {
     fn check_expr(&amp;mut self, cx: &amp;LateContext&lt;'_&gt;, expr: &amp;Expr&lt;'_&gt;) {
@@ -1093,14 +1110,14 @@ impl LateLintPass&lt;'_&gt; for MyStructLint {
 <blockquote>
 <p>Prefer using lang items, if the target trait is available there.</p>
 </blockquote>
-<p>A list of defined paths for Clippy can be found in <a href="../clippy_lints/src/utils/paths.rs">paths.rs</a></p>
+<p>A list of defined paths for Clippy can be found in <a href="../clippy_utils/src/paths.rs">paths.rs</a></p>
 <p>We access lang items through the type context <code>tcx</code>. <code>tcx</code> is of type <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html"><code>TyCtxt</code></a> and is defined in the <code>rustc_middle</code> crate.</p>
 <h1><a class="header" href="#checking-if-a-type-defines-a-specific-method" id="checking-if-a-type-defines-a-specific-method">Checking if a type defines a specific method</a></h1>
 <p>To check if our type defines a method called <code>some_method</code>:</p>
 <pre><pre class="playground"><code class="language-rust">
 <span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>use crate::utils::{is_type_diagnostic_item, return_ty};
+</span>use clippy_utils::{is_type_diagnostic_item, return_ty};
 
 impl&lt;'tcx&gt; LateLintPass&lt;'tcx&gt; for MyTypeImpl {
     fn check_impl_item(&amp;mut self, cx: &amp;LateContext&lt;'tcx&gt;, impl_item: &amp;'tcx ImplItem&lt;'_&gt;) {
@@ -1122,7 +1139,7 @@ impl&lt;'tcx&gt; LateLintPass&lt;'tcx&gt; for MyTypeImpl {
 <span class="boring">}
 </span></code></pre></pre>
 <h1><a class="header" href="#dealing-with-macros" id="dealing-with-macros">Dealing with macros</a></h1>
-<p>There are several helpers in Clippy's utils to deal with macros:</p>
+<p>There are several helpers in <a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/lib.rs"><code>clippy_utils</code></a> to deal with macros:</p>
 <ul>
 <li><code>in_macro()</code>: detect if the given span is expanded by a macro</li>
 </ul>

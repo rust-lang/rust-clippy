@@ -227,6 +227,15 @@ will run Clippy on the <code>example</code> crate:</p>
 If you want to run Clippy <strong>only</strong> on the given crate, use the <code>--no-deps</code> option like this:</p>
 <pre><code class="language-terminal">cargo clippy -p example -- --no-deps 
 </code></pre>
+<h3><a class="header" href="#as-a-rustc-replacement-clippy-driver" id="as-a-rustc-replacement-clippy-driver">As a rustc replacement (<code>clippy-driver</code>)</a></h3>
+<p>Clippy can also be used in projects that do not use cargo. To do so, you will need to replace
+your <code>rustc</code> compilation commands with <code>clippy-driver</code>. For example, if your project runs:</p>
+<pre><code class="language-terminal">rustc --edition 2018 -Cpanic=abort foo.rs
+</code></pre>
+<p>Then, to enable Clippy, you will need to call:</p>
+<pre><code class="language-terminal">clippy-driver --edition 2018 -Cpanic=abort foo.rs
+</code></pre>
+<p>Note that <code>rustc</code> will still run, i.e. it will still emit the output files it normally does.</p>
 <h3><a class="header" href="#travis-ci" id="travis-ci">Travis CI</a></h3>
 <p>You can add Clippy to Travis CI in the same way you use it locally:</p>
 <pre><code class="language-yml">language: rust
@@ -295,7 +304,6 @@ can run Clippy with warnings for all lints enabled:</p>
 the lint(s) you are interested in:</p>
 <pre><code class="language-terminal">cargo clippy -- -A clippy::all -W clippy::useless_format -W clippy::...
 </code></pre>
-<p>Note that if you've run clippy before, this may only take effect after you've modified a file or ran <code>cargo clean</code>.</p>
 <h3><a class="header" href="#specifying-the-minimum-supported-rust-version" id="specifying-the-minimum-supported-rust-version">Specifying the minimum supported Rust version</a></h3>
 <p>Projects that intend to support old versions of Rust can disable lints pertaining to newer features by
 specifying the minimum supported Rust version (MSRV) in the clippy configuration file.</p>

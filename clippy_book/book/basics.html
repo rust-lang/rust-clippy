@@ -173,8 +173,9 @@ the codebase take a look at <a href="https://github.com/rust-lang/rust-clippy/bl
 <li><a href="#get-the-code">Get the Code</a></li>
 <li><a href="#building-and-testing">Building and Testing</a></li>
 <li><a href="#cargo-dev"><code>cargo dev</code></a></li>
-<li><a href="#common-abbreviations">Common Abbreviations</a></li>
+<li><a href="#lintcheck">lintcheck</a></li>
 <li><a href="#pr">PR</a></li>
+<li><a href="#common-abbreviations">Common Abbreviations</a></li>
 </ul>
 </li>
 </ul>
@@ -230,6 +231,13 @@ cargo dev new_lint
 # (experimental) Setup Clippy to work with rust-analyzer
 cargo dev ra_setup
 </code></pre>
+<h2><a class="header" href="#lintcheck" id="lintcheck">lintcheck</a></h2>
+<p><code>cargo lintcheck</code> will build and run clippy on a fixed set of crates and generate a log of the results.<br />
+You can <code>git diff</code> the updated log against its previous version and 
+see what impact your lint made on a small set of crates.<br />
+If you add a new lint, please audit the resulting warnings and make sure 
+there are no false positives and that the suggestions are valid.</p>
+<p>Refer to the tools <a href="https://github.com/rust-lang/rust-clippy/blob/master/lintcheck/README.md">README</a> for more details.</p>
 <h2><a class="header" href="#pr" id="pr">PR</a></h2>
 <p>We follow a rustc no merge-commit policy.
 See <a href="https://rustc-dev-guide.rust-lang.org/contributing.html#opening-a-pr">https://rustc-dev-guide.rust-lang.org/contributing.html#opening-a-pr</a>.</p>
