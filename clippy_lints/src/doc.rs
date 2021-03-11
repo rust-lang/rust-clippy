@@ -208,26 +208,33 @@ impl_lint_pass!(DocMarkdown =>
 );
 
 impl<'tcx> LateLintPass<'tcx> for DocMarkdown {
-    fn check_crate(&mut self, cx: &LateContext<'tcx>, krate: &'tcx hir::Crate<'_>) {
-        check_attrs(cx, &self.valid_idents, &krate.item.attrs);
+    fn check_crate(&mut self, cx: &LateContext<'tcx>, _: &'tcx hir::Crate<'_>) {
+        let attrs = cx.tcx.hir().attrs(hir::CRATE_HIR_ID);
+        check_attrs(cx, &self.valid_idents, attrs);
     }
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {
-        let headers = check_attrs(cx, &self.valid_idents, &item.attrs);
+        let attrs = cx.tcx.hir().attrs(item.hir_id());
+        let headers = check_attrs(cx, &self.valid_idents, attrs);
         match item.kind {
             hir::ItemKind::Fn(ref sig, _, body_id) => {
-                if !(is_entrypoint_fn(cx, cx.tcx.hir().local_def_id(item.hir_id).to_def_id())
-                    || in_external_macro(cx.tcx.sess, item.span))
-                {
+                if !(is_entrypoint_fn(cx, item.def_id.to_def_id()) || in_external_macro(cx.tcx.sess, item.span)) {
                     let body = cx.tcx.hir().body(body_id);
-                    let impl_item_def_id = cx.tcx.hir().local_def_id(item.hir_id);
                     let mut fpu = FindPanicUnwrap {
                         cx,
-                        typeck_results: cx.tcx.typeck(impl_item_def_id),
+                        typeck_results: cx.tcx.typeck(item.def_id),
                         panic_span: None,
                     };
                     fpu.visit_expr(&body.value);
-                    lint_for_missing_headers(cx, item.hir_id, item.span, sig, headers, Some(body_id), fpu.panic_span);
+                    lint_for_missing_headers(
+                        cx,
+                        item.hir_id(),
+                        item.span,
+                        sig,
+                        headers,
+                        Some(body_id),
+                        fpu.panic_span,
+                    );
                 }
             },
             hir::ItemKind::Impl(ref impl_) => {
@@ -244,29 +251,38 @@ impl<'tcx> LateLintPass<'tcx> for DocMarkdown {
     }
 
     fn check_trait_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::TraitItem<'_>) {
-        let headers = check_attrs(cx, &self.valid_idents, &item.attrs);
+        let attrs = cx.tcx.hir().attrs(item.hir_id());
+        let headers = check_attrs(cx, &self.valid_idents, attrs);
         if let hir::TraitItemKind::Fn(ref sig, ..) = item.kind {
             if !in_external_macro(cx.tcx.sess, item.span) {
-                lint_for_missing_headers(cx, item.hir_id, item.span, sig, headers, None, None);
+                lint_for_missing_headers(cx, item.hir_id(), item.span, sig, headers, None, None);
             }
         }
     }
 
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::ImplItem<'_>) {
-        let headers = check_attrs(cx, &self.valid_idents, &item.attrs);
+        let attrs = cx.tcx.hir().attrs(item.hir_id());
+        let headers = check_attrs(cx, &self.valid_idents, attrs);
         if self.in_trait_impl || in_external_macro(cx.tcx.sess, item.span) {
             return;
         }
         if let hir::ImplItemKind::Fn(ref sig, body_id) = item.kind {
             let body = cx.tcx.hir().body(body_id);
-            let impl_item_def_id = cx.tcx.hir().local_def_id(item.hir_id);
             let mut fpu = FindPanicUnwrap {
                 cx,
-                typeck_results: cx.tcx.typeck(impl_item_def_id),
+                typeck_results: cx.tcx.typeck(item.def_id),
                 panic_span: None,
             };
             fpu.visit_expr(&body.value);
-            lint_for_missing_headers(cx, item.hir_id, item.span, sig, headers, Some(body_id), fpu.panic_span);
+            lint_for_missing_headers(
+                cx,
+                item.hir_id(),
+                item.span,
+                sig,
+                headers,
+                Some(body_id),
+                fpu.panic_span,
+            );
         }
     }
 }
@@ -313,9 +329,9 @@ fn lint_for_missing_headers<'tcx>(
             if_chain! {
                 if let Some(body_id) = body_id;
                 if let Some(future) = cx.tcx.lang_items().future_trait();
-                let def_id = cx.tcx.hir().body_owner_def_id(body_id);
-                let mir = cx.tcx.optimized_mir(def_id.to_def_id());
-                let ret_ty = mir.return_ty();
+                let typeck = cx.tcx.typeck_body(body_id);
+                let body = cx.tcx.hir().body(body_id);
+                let ret_ty = typeck.expr_ty(&body.value);
                 if implements_trait(cx, ret_ty, future, &[]);
                 if let ty::Opaque(_, subs) = ret_ty.kind();
                 if let Some(gen) = subs.types().next();

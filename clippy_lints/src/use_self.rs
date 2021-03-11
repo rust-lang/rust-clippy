@@ -111,7 +111,7 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
                 } else {
                     false
                 };
-                let impl_trait_ref_def_id = of_trait.as_ref().map(|_| cx.tcx.hir().local_def_id(item.hir_id));
+                let impl_trait_ref_def_id = of_trait.as_ref().map(|_| cx.tcx.hir().local_def_id(item.hir_id()));
                 if should_check {
                     self.stack.push(StackItem::Check {
                         hir_id: hir_self_ty.hir_id,
@@ -262,12 +262,17 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
             // FIXME: this span manipulation should not be necessary
             // @flip1995 found an ast lowering issue in
             // https://github.com/rust-lang/rust/blob/master/src/librustc_ast_lowering/path.rs#l142-l162
-            match cx.tcx.hir().find(cx.tcx.hir().get_parent_node(hir_ty.hir_id)) {
-                Some(Node::Expr(Expr {
-                    kind: ExprKind::Path(QPath::TypeRelative(_, segment)),
-                    ..
-                })) => span_lint_until_last_segment(cx, hir_ty.span, segment),
-                _ => span_lint(cx, hir_ty.span),
+            let hir = cx.tcx.hir();
+            let id = hir.get_parent_node(hir_ty.hir_id);
+
+            if !hir.opt_span(id).map_or(false, in_macro) {
+                match hir.find(id) {
+                    Some(Node::Expr(Expr {
+                        kind: ExprKind::Path(QPath::TypeRelative(_, segment)),
+                        ..
+                    })) => span_lint_until_last_segment(cx, hir_ty.span, segment),
+                    _ => span_lint(cx, hir_ty.span),
+                }
             }
         }
     }
