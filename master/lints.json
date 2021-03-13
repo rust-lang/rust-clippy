@@ -1425,6 +1425,17 @@
     }
   },
   {
+    "id": "if_then_some_else_none",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for if-else that could be written to `bool::then`.",
+      "Why is this bad": "Looks a little redundant. Using `bool::then` helps it have less lines of code.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet a = if v.is_empty() {\n    println!(\"true!\");\n    Some(42)\n} else {\n    None\n};\n```\n\nCould be written:\n\n```rust\nlet a = v.is_empty().then(|| {\n    println!(\"true!\");\n    42\n});\n```"
+    }
+  },
+  {
     "id": "ifs_same_cond",
     "group": "correctness",
     "level": "Deny",
