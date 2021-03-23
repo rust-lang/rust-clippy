@@ -236,7 +236,10 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
     }
 
     fn check_ty(&mut self, cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>) {
-        if in_macro(hir_ty.span) | in_impl(cx, hir_ty) | !meets_msrv(self.msrv.as_ref(), &USE_SELF_MSRV) {
+        if in_macro_recursively(cx, hir_ty.hir_id)
+            | in_impl(cx, hir_ty)
+            | !meets_msrv(self.msrv.as_ref(), &USE_SELF_MSRV)
+        {
             return;
         }
 
@@ -265,15 +268,12 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
             // https://github.com/rust-lang/rust/blob/master/src/librustc_ast_lowering/path.rs#l142-l162
             let hir = cx.tcx.hir();
             let id = hir.get_parent_node(hir_ty.hir_id);
-
-            if !hir.opt_span(id).map_or(false, in_macro) {
-                match hir.find(id) {
-                    Some(Node::Expr(Expr {
-                        kind: ExprKind::Path(QPath::TypeRelative(_, segment)),
-                        ..
-                    })) => span_lint_until_last_segment(cx, hir_ty.span, segment),
-                    _ => span_lint(cx, hir_ty.span),
-                }
+            match hir.find(id) {
+                Some(Node::Expr(Expr {
+                    kind: ExprKind::Path(QPath::TypeRelative(_, segment)),
+                    ..
+                })) => span_lint_until_last_segment(cx, hir_ty.span, segment),
+                _ => span_lint(cx, hir_ty.span),
             }
         }
     }
@@ -288,7 +288,7 @@ impl<'tcx> LateLintPass<'tcx> for UseSelf {
             }
         }
 
-        if in_macro(expr.span) | !meets_msrv(self.msrv.as_ref(), &USE_SELF_MSRV) {
+        if in_macro_recursively(cx, expr.hir_id) | !meets_msrv(self.msrv.as_ref(), &USE_SELF_MSRV) {
             return;
         }
 
@@ -466,4 +466,19 @@ fn should_lint_ty(hir_ty: &hir::Ty<'_>, ty: Ty<'_>, self_ty: Ty<'_>) -> bool {
             false
         }
     }
+}
+
+fn in_macro_recursively(cx: &LateContext<'_>, hir_id: HirId) -> bool {
+    let map = cx.tcx.hir();
+    if map.opt_span(hir_id).map_or(false, in_macro) {
+        return true;
+    }
+
+    for (parent_id, _) in map.parent_iter(hir_id) {
+        if map.opt_span(parent_id).map_or(false, in_macro) {
+            return true;
+        }
+    }
+
+    false
 }

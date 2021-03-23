@@ -461,3 +461,11 @@ mod issue6818 {
         a: i32,
     }
 }
+
+mod issue6902 {
+    #[derive(serde::Deserialize)]
+    #[serde(untagged)]
+    enum Direction {
+        North,
+    }
+}
