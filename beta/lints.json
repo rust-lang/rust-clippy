@@ -231,6 +231,17 @@
     }
   },
   {
+    "id": "bytes_nth",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for the use of `.bytes().nth()`.",
+      "Why is this bad": "`.as_bytes().get()` is more efficient and more\nreadable.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet _ = \"Hello\".bytes().nth(3);\n\n// Good\nlet _ = \"Hello\".as_bytes().get(3);\n```"
+    }
+  },
+  {
     "id": "cargo_common_metadata",
     "group": "cargo",
     "level": "Allow",
@@ -585,6 +596,17 @@
     }
   },
   {
+    "id": "default_numeric_fallback",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of unconstrained numeric literals which may cause default numeric fallback in type\ninference.\n\nDefault numeric fallback means that if numeric types have not yet been bound to concrete\ntypes at the end of type inference, then integer type is bound to `i32`, and similarly\nfloating type is bound to `f64`.\n\nSee [RFC0212](https://github.com/rust-lang/rfcs/blob/master/text/0212-restore-int-fallback.md) for more information about the fallback.",
+      "Why is this bad": "For those who are very careful about types, default numeric fallback\ncan be a pitfall that cause unexpected runtime behavior.",
+      "Known problems": "This lint can only be allowed at the function level or above.",
+      "Example": "```rust\nlet i = 10;\nlet f = 1.23;\n```\n\nUse instead:\n```rust\nlet i = 10i32;\nlet f = 1.23f64;\n```"
+    }
+  },
+  {
     "id": "default_trait_access",
     "group": "pedantic",
     "level": "Allow",
@@ -655,11 +677,11 @@
     "group": "nursery",
     "level": "Allow",
     "docs": {
-      "What it does": "Lints for specific trait methods defined in clippy.toml",
-      "Why is this bad": "Some methods are undesirable in certain contexts,\nand it would be beneficial to lint for them as needed.",
-      "Known problems": "None.",
-      "Example": "```rust\n// example code where clippy issues a warning\nfoo.bad_method(); // Foo::bad_method is disallowed in the configuration\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\ngoodStruct.bad_method(); // GoodStruct::bad_method is not disallowed\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of blacklisted methods to lint about. NB: `bar` is not here since it has legitimate uses (defaults to `Vec::<String>::new(`)."
+      "What it does": "Denies the configured methods and functions in clippy.toml",
+      "Why is this bad": "Some methods are undesirable in certain contexts,\nand it's beneficial to lint for them as needed.",
+      "Known problems": "Currently, you must write each function as a\nfully-qualified path. This lint doesn't support aliases or reexported\nnames; be aware that many types in `std` are actually reexports.\n\nFor example, if you want to disallow `Duration::as_secs`, your clippy.toml\nconfiguration would look like\n`disallowed-methods = [\"core::time::Duration::as_secs\"]` and not\n`disallowed-methods = [\"std::time::Duration::as_secs\"]` as you might expect.",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of disallowed methods, written as fully qualified paths. (defaults to `Vec::<String>::new(`)."
     }
   },
   {
@@ -682,7 +704,7 @@
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.",
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therfore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.",
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\", \"GraphQL\",\n        \"OCaml\",\n        \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\",\n        \"WebGL\",\n        \"TensorFlow\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\", \"GraphQL\",\n        \"OCaml\",\n        \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenDNS\",\n        \"WebGL\",\n        \"TensorFlow\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
     }
   },
   {
@@ -1088,6 +1110,17 @@
     }
   },
   {
+    "id": "filter_map_identity",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `filter_map(|x| x)`.",
+      "Why is this bad": "Readability, this can be written more concisely by using `flatten`.",
+      "Known problems": "None.",
+      "Example": "```rust\niter.filter_map(|x| x);\n```\nUse instead:\n```rust\niter.flatten();\n```"
+    }
+  },
+  {
     "id": "filter_map_next",
     "group": "pedantic",
     "level": "Allow",
@@ -1284,6 +1317,17 @@
     }
   },
   {
+    "id": "from_str_radix_10",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for function invocations of the form `primitive::from_str_radix(s, 10)`",
+      "Why is this bad": "This specific common use case can be rewritten as `s.parse::<primitive>()`\n(and in most cases, the turbofish can be removed), which reduces code length\nand complexity.",
+      "Known problems": "This lint may suggest using (&<expression>).parse() instead of <expression>.parse() directly\nin some cases, which is correct but adds unnecessary complexity to the code.",
+      "Example": "```ignore\nlet input: &str = get_input();\nlet num = u16::from_str_radix(input, 10)?;\n```\nUse instead:\n```ignore\nlet input: &str = get_input();\nlet num: u16 = input.parse()?;\n```"
+    }
+  },
+  {
     "id": "future_not_send",
     "group": "nursery",
     "level": "Allow",
@@ -1392,6 +1436,17 @@
     }
   },
   {
+    "id": "implicit_clone",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for the usage of `_.to_owned()`, `vec.to_vec()`, or similar when calling `_.clone()` would be clearer.",
+      "Why is this bad": "These methods do the same thing as `_.clone()` but may be confusing as\nto why we are calling `to_vec` on something that is already a `Vec` or calling `to_owned` on something that is already owned.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet a = vec![1, 2, 3];\nlet b = a.to_vec();\nlet c = a.to_owned();\n```\nUse instead:\n```rust\nlet a = vec![1, 2, 3];\nlet b = a.clone();\nlet c = a.clone();\n```"
+    }
+  },
+  {
     "id": "implicit_hasher",
     "group": "pedantic",
     "level": "Allow",
@@ -1444,6 +1499,17 @@
       "Why is this bad": "Readers may incorrectly interpret inconsistently\ngrouped digits.",
       "Known problems": "None.",
       "Example": "```rust\n// Bad\nlet x: u64 = 618_64_9189_73_511;\n\n// Good\nlet x: u64 = 61_864_918_973_511;\n```"
+    }
+  },
+  {
+    "id": "inconsistent_struct_constructor",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for struct constructors where the order of the field init\nshorthand in the constructor is inconsistent with the order in the struct definition.",
+      "Why is this bad": "Since the order of fields in a constructor doesn't affect the\nresulted instance as the below example indicates,\n\n```rust\n#[derive(Debug, PartialEq, Eq)]\nstruct Foo {\n    x: i32,\n    y: i32,\n}\nlet x = 1;\nlet y = 2;\n\n// This assertion never fails.\nassert_eq!(Foo { x, y }, Foo { y, x });\n```\n\ninconsistent order means nothing and just decreases readability and consistency.",
+      "Known problems": "None.",
+      "Example": "```rust\nstruct Foo {\n    x: i32,\n    y: i32,\n}\nlet x = 1;\nlet y = 2;\nFoo { y, x };\n```\n\nUse instead:\n```rust\nFoo { x, y };\n```"
     }
   },
   {
@@ -1704,6 +1770,17 @@
       "Why is this bad": "`.to_vec()` is clearer",
       "Known problems": "None.",
       "Example": "```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s[..].iter().cloned().collect();\n```\nThe better use would be:\n```rust\nlet s = [1, 2, 3, 4, 5];\nlet s2: Vec<isize> = s.to_vec();\n```"
+    }
+  },
+  {
+    "id": "iter_count",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for the use of `.iter().count()`.",
+      "Why is this bad": "`.len()` is more efficient and more\nreadable.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet some_vec = vec![0, 1, 2, 3];\nlet _ = some_vec.iter().count();\nlet _ = &some_vec[..].iter().count();\n\n// Good\nlet some_vec = vec![0, 1, 2, 3];\nlet _ = some_vec.len();\nlet _ = &some_vec[..].len();\n```"
     }
   },
   {
@@ -2006,6 +2083,28 @@
     }
   },
   {
+    "id": "manual_flatten",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Check for unnecessary `if let` usage in a for loop\nwhere only the `Some` or `Ok` variant of the iterator element is used.",
+      "Why is this bad": "It is verbose and can be simplified\nby first calling the `flatten` method on the `Iterator`.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x {\n    if let Some(n) = n {\n        println!(\"{}\", n);\n    }\n}\n```\nUse instead:\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x.into_iter().flatten() {\n    println!(\"{}\", n);\n}\n```"
+    }
+  },
+  {
+    "id": "manual_map",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usages of `match` which could be implemented using `map`",
+      "Why is this bad": "Using the `map` method is clearer and more concise.",
+      "Known problems": "None.",
+      "Example": "```rust\nmatch Some(0) {\n    Some(x) => Some(x + 1),\n    None => None,\n};\n```\nUse instead:\n```rust\nSome(0).map(|x| x + 1);\n```"
+    }
+  },
+  {
     "id": "manual_memcpy",
     "group": "perf",
     "level": "Warn",
@@ -2156,7 +2255,7 @@
     "group": "pedantic",
     "level": "Allow",
     "docs": {
-      "What it does": "Checks for usage of `_.map(_).flatten(_)`,",
+      "What it does": "Checks for usage of `_.map(_).flatten(_)` on `Iterator` and `Option`",
       "Why is this bad": "Readability, this can be written more concisely as\n`_.flat_map(_)`",
       "Known problems": "",
       "Example": "```rust\nlet vec = vec![vec![1]];\n\n// Bad\nvec.iter().map(|x| x.iter()).flatten();\n\n// Good\nvec.iter().flat_map(|x| x.iter());\n```"
@@ -2660,8 +2759,8 @@
   },
   {
     "id": "naive_bytecount",
-    "group": "perf",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for naive byte counts",
       "Why is this bad": "The [`bytecount`](https://crates.io/crates/bytecount)\ncrate has methods to count your bytes faster, especially for large slices.",
@@ -2707,10 +2806,10 @@
     "group": "complexity",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for useless borrowed references.",
-      "Why is this bad": "It is mostly useless and make the code look more\ncomplex than it\nactually is.",
-      "Known problems": "It seems that the `&ref` pattern is sometimes useful.\nFor instance in the following snippet:\n```rust\nenum Animal {\n    Cat(u64),\n    Dog(u64),\n}\n\nfn foo(a: &Animal, b: &Animal) {\n    match (a, b) {\n        (&Animal::Cat(v), k) | (k, &Animal::Cat(v)) => (), // lifetime mismatch error\n        (&Animal::Dog(ref c), &Animal::Dog(_)) => ()\n    }\n}\n```\nThere is a lifetime mismatch error for `k` (indeed a and b have distinct\nlifetime).\nThis can be fixed by using the `&ref` pattern.\nHowever, the code can also be fixed by much cleaner ways",
-      "Example": "```rust\nlet mut v = Vec::<String>::new();\nlet _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\nThis closure takes a reference on something that has been matched as a\nreference and\nde-referenced.\nAs such, it could just be |a| a.is_empty()"
+      "What it does": "Checks for bindings that destructure a reference and borrow the inner\nvalue with `&ref`.",
+      "Why is this bad": "This pattern has no effect in almost all cases.",
+      "Known problems": "In some cases, `&ref` is needed to avoid a lifetime mismatch error.\nExample:\n```rust\nfn foo(a: &Option<String>, b: &Option<String>) {\n    match (a, b) {\n        (None, &ref c) | (&ref c, None) => (),\n        (&Some(ref c), _) => (),\n    };\n}\n```",
+      "Example": "Bad:\n```rust\nlet mut v = Vec::<String>::new();\nlet _ = v.iter_mut().filter(|&ref a| a.is_empty());\n```\n\nGood:\n```rust\nlet mut v = Vec::<String>::new();\nlet _ = v.iter_mut().filter(|a| a.is_empty());\n```"
     }
   },
   {
@@ -3599,6 +3698,17 @@
     }
   },
   {
+    "id": "semicolon_if_nothing_returned",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Looks for blocks of expressions and fires if the last expression returns `()`\nbut is not followed by a semicolon.",
+      "Why is this bad": "The semicolon might be optional but when\nextending the block with new code, it doesn't require a change in previous last line.",
+      "Known problems": "None.",
+      "Example": "```rust\nfn main() {\n    println!(\"Hello world\")\n}\n```\nUse instead:\n```rust\nfn main() {\n    println!(\"Hello world\");\n}\n```"
+    }
+  },
+  {
     "id": "serde_api_misuse",
     "group": "correctness",
     "level": "Deny",
@@ -4181,12 +4291,12 @@
   },
   {
     "id": "trivial_regex",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for trivial [regex](https://crates.io/crates/regex)\ncreation (with `Regex::new`, `RegexBuilder::new`, or `RegexSet::new`).",
       "Why is this bad": "Matching the regex can likely be replaced by `==` or\n`str::starts_with`, `str::ends_with` or `std::contains` or other `str`\nmethods.",
-      "Known problems": "None.",
+      "Known problems": "If the same regex is going to be applied to multiple\ninputs, the precomputations done by `Regex` construction can give\nsignificantly better performance than any of the `str`-based methods.",
       "Example": "```ignore\nRegex::new(\"^foobar\")\n```"
     }
   },
@@ -4413,12 +4523,12 @@
   },
   {
     "id": "unnecessary_wraps",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for private functions that only return `Ok` or `Some`.",
       "Why is this bad": "It is not meaningful to wrap values when no `None` or `Err` is returned.",
-      "Known problems": "Since this lint changes function type signature, you may need to\nadjust some code at callee side.",
+      "Known problems": "There can be false positives if the function signature is designed to\nfit some external requirement.",
       "Example": "```rust\nfn get_cool_number(a: bool, b: bool) -> Option<i32> {\n    if a && b {\n        return Some(50);\n    }\n    if a {\n        Some(0)\n    } else {\n        Some(10)\n    }\n}\n```\nUse instead:\n```rust\nfn get_cool_number(a: bool, b: bool) -> i32 {\n    if a && b {\n        return 50;\n    }\n    if a {\n        0\n    } else {\n        10\n    }\n}\n```"
     }
   },
@@ -4638,10 +4748,11 @@
     "group": "style",
     "level": "Warn",
     "docs": {
-      "What it does": "Checks for camel case name containing a capitalized acronym.",
-      "Why is this bad": "In CamelCase, acronyms count as one word.\nSee [naming conventions](https://rust-lang.github.io/api-guidelines/naming.html#casing-conforms-to-rfc-430-c-case)\nfor more.",
+      "What it does": "Checks for fully capitalized names and optionally names containing a capitalized acronym.",
+      "Why is this bad": "In CamelCase, acronyms count as one word.\nSee [naming conventions](https://rust-lang.github.io/api-guidelines/naming.html#casing-conforms-to-rfc-430-c-case)\nfor more.\n\nBy default, the lint only triggers on fully-capitalized names.\nYou can use the `upper-case-acronyms-aggressive: true` config option to enable linting\non all camel case names",
       "Known problems": "When two acronyms are contiguous, the lint can't tell where\nthe first acronym ends and the second starts, so it suggests to lowercase all of\nthe letters in the second acronym.",
-      "Example": "```rust\nstruct HTTPResponse;\n```\nUse instead:\n```rust\nstruct HttpResponse;\n```"
+      "Example": "```rust\nstruct HTTPResponse;\n```\nUse instead:\n```rust\nstruct HttpResponse;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `upper-case-acronyms-aggressive: bool`: Enables verbose mode. Triggers if there is more than one uppercase char next to each other (defaults to `false`)."
     }
   },
   {
@@ -4661,7 +4772,7 @@
     "docs": {
       "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.",
       "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.",
-      "Known problems": "- False positive when using associated types ([#2843](https://github.com/rust-lang/rust-clippy/issues/2843))\n- False positives in some situations when using generics ([#3410](https://github.com/rust-lang/rust-clippy/issues/3410))",
+      "Known problems": "- Unaddressed false negative in fn bodies of trait implementations\n- False positive with assotiated types in traits (#4140)",
       "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
@@ -4718,7 +4829,7 @@
       "What it does": "Checks for the use of `format!(\"string literal with no\nargument\")` and `format!(\"{}\", foo)` where `foo` is a string.",
       "Why is this bad": "There is no point of doing that. `format!(\"foo\")` can\nbe replaced by `\"foo\".to_owned()` if you really need a `String`. The even\nworse `&format!(\"foo\")` is often encountered in the wild. `format!(\"{}\",\nfoo)` can be replaced by `foo.clone()` if `foo: String` or `foo.to_owned()`\nif `foo: &str`.",
       "Known problems": "None.",
-      "Examples": "```rust\n\n// Bad\nformat!(\"{}\", foo);\n\n// Good\nformat!(\"foo\");\n```"
+      "Examples": "```rust\n\n// Bad\nlet foo = \"foo\";\nformat!(\"{}\", foo);\n\n// Good\nfoo.to_owned();\n```"
     }
   },
   {
@@ -4910,7 +5021,7 @@
       "What it does": "This lint warns about the use of literals as `write!`/`writeln!` args.",
       "Why is this bad": "Using literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)",
       "Known problems": "Will also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`.",
-      "Example": "```rust\n\n// Bad\nwriteln!(buf, \"{}\", \"foo\");\n\n// Good\nwriteln!(buf, \"foo\");\n```"
+      "Example": "```rust\n// Bad\nwriteln!(buf, \"{}\", \"foo\");\n\n// Good\nwriteln!(buf, \"foo\");\n```"
     }
   },
   {
@@ -4921,7 +5032,7 @@
       "What it does": "This lint warns when you use `write!()` with a format\nstring that\nends in a newline.",
       "Why is this bad": "You should use `writeln!()` instead, which appends the\nnewline.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nwrite!(buf, \"Hello {}!\\n\", name);\n\n// Good\nwriteln!(buf, \"Hello {}!\", name);\n```"
+      "Example": "```rust\n// Bad\nwrite!(buf, \"Hello {}!\\n\", name);\n\n// Good\nwriteln!(buf, \"Hello {}!\", name);\n```"
     }
   },
   {
@@ -4932,7 +5043,7 @@
       "What it does": "This lint warns when you use `writeln!(buf, \"\")` to\nprint a newline.",
       "Why is this bad": "You should use `writeln!(buf)`, which is simpler.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nwriteln!(buf, \"\");\n\n// Good\nwriteln!(buf);\n```"
+      "Example": "```rust\n// Bad\nwriteln!(buf, \"\");\n\n// Good\nwriteln!(buf);\n```"
     }
   },
   {
