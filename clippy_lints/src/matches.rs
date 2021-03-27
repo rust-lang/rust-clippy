@@ -290,7 +290,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     pub MATCH_WILDCARD_FOR_SINGLE_VARIANTS,
-    pedantic,
+    nursery,
     "a wildcard enum match for a single variant"
 }
 
