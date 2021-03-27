@@ -33,6 +33,7 @@ def parse_lints(lints, filepath):
     comment = []
     clippy = False
     deprecated = False
+    externaldoc = False
     name = ""
 
     with open(filepath) as fp:
@@ -60,11 +61,14 @@ def parse_lints(lints, filepath):
 
                     log.info("found %s with level %s in %s",
                              name, level, filepath)
+                    if externaldoc:
+                        comment = open(f"clippy_lints/docs/{group}/{name}.md").read().splitlines()
                     lints.append(Lint(name, level, comment, filepath, group))
                     comment = []
 
                     clippy = False
                     deprecated = False
+                    externaldoc = False
                     name = ""
                 else:
                     m = comment_re.search(line)
@@ -73,9 +77,15 @@ def parse_lints(lints, filepath):
             elif line.startswith("declare_clippy_lint!"):
                 clippy = True
                 deprecated = False
+                externaldoc = False
+            elif line.startswith("declare_clippy_lint_new!"):
+                clippy = True
+                deprecated = False
+                externaldoc = True
             elif line.startswith("declare_deprecated_lint!"):
                 clippy = False
                 deprecated = True
+                externaldoc = False
             elif line.startswith("declare_lint!"):
                 import sys
                 print(

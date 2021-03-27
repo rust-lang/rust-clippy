@@ -6,31 +6,7 @@ use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::symbol;
 use std::f64::consts as f64;
 
-declare_clippy_lint! {
-    /// **What it does:** Checks for floating point literals that approximate
-    /// constants which are defined in
-    /// [`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)
-    /// or
-    /// [`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),
-    /// respectively, suggesting to use the predefined constant.
-    ///
-    /// **Why is this bad?** Usually, the definition in the standard library is more
-    /// precise than what people come up with. If you find that your definition is
-    /// actually more precise, please [file a Rust
-    /// issue](https://github.com/rust-lang/rust/issues).
-    ///
-    /// **Known problems:** None.
-    ///
-    /// **Example:**
-    /// ```rust
-    /// let x = 3.14;
-    /// let y = 1_f64 / x;
-    /// ```
-    /// Use predefined constants instead:
-    /// ```rust
-    /// let x = std::f32::consts::PI;
-    /// let y = std::f64::consts::FRAC_1_PI;
-    /// ```
+declare_clippy_lint_new! {
     pub APPROX_CONSTANT,
     correctness,
     "the approximate of a known float constant (in `std::fXX::consts`)"

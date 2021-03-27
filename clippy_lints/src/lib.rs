@@ -3,6 +3,7 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(drain_filter)]
+#![feature(extended_key_value_attributes)]
 #![feature(in_band_lifetimes)]
 #![feature(once_cell)]
 #![feature(rustc_private)]
@@ -141,6 +142,16 @@ macro_rules! declare_clippy_lint {
     { $(#[$attr:meta])* pub $name:tt, internal_warn, $description:tt } => {
         declare_tool_lint! {
             $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
+        }
+    };
+}
+
+macro_rules! declare_clippy_lint_new {
+    { $(#[$attr:meta])* pub $name:tt, $category:tt $($tail:tt)* } => {
+        declare_clippy_lint! {
+            #[doc = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/docs/",
+                stringify!($category), "/", stringify!($name), ".md"))]
+            $(#[$attr])* pub $name, $category $($tail)*
         }
     };
 }
