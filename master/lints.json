@@ -1313,7 +1313,8 @@
       "What it does": "Searches for implementations of the `Into<..>` trait and suggests to implement `From<..>` instead.",
       "Why is this bad": "According the std docs implementing `From<..>` is preferred since it gives you `Into<..>` for free where the reverse isn't true.",
       "Known problems": "None.",
-      "Example": "```rust\nstruct StringWrapper(String);\n\nimpl Into<StringWrapper> for String {\n    fn into(self) -> StringWrapper {\n        StringWrapper(self)\n    }\n}\n```\nUse instead:\n```rust\nstruct StringWrapper(String);\n\nimpl From<String> for StringWrapper {\n    fn from(s: String) -> StringWrapper {\n        StringWrapper(s)\n    }\n}\n```"
+      "Example": "```rust\nstruct StringWrapper(String);\n\nimpl Into<StringWrapper> for String {\n    fn into(self) -> StringWrapper {\n        StringWrapper(self)\n    }\n}\n```\nUse instead:\n```rust\nstruct StringWrapper(String);\n\nimpl From<String> for StringWrapper {\n    fn from(s: String) -> StringWrapper {\n        StringWrapper(s)\n    }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2886,7 +2887,8 @@
       "What it does": "Suggests alternatives for useless applications of `?` in terminating expressions",
       "Why is this bad": "There's no reason to use `?` to short-circuit when execution of the body will end there anyway.",
       "Known problems": "None.",
-      "Example": "```rust\nstruct TO {\n    magic: Option<usize>,\n}\n\nfn f(to: TO) -> Option<usize> {\n    Some(to.magic?)\n}\n\nstruct TR {\n    magic: Result<usize, bool>,\n}\n\nfn g(tr: Result<TR, bool>) -> Result<usize, bool> {\n    tr.and_then(|t| Ok(t.magic?))\n}\n\n```\nUse instead:\n```rust\nstruct TO {\n    magic: Option<usize>,\n}\n\nfn f(to: TO) -> Option<usize> {\n   to.magic\n}\n\nstruct TR {\n    magic: Result<usize, bool>,\n}\n\nfn g(tr: Result<TR, bool>) -> Result<usize, bool> {\n    tr.and_then(|t| t.magic)\n}\n```"
+      "Example": "```rust\nstruct TO {\n    magic: Option<usize>,\n}\n\nfn f(to: TO) -> Option<usize> {\n    Some(to.magic?)\n}\n\nstruct TR {\n    magic: Result<usize, bool>,\n}\n\nfn g(tr: Result<TR, bool>) -> Result<usize, bool> {\n    tr.and_then(|t| Ok(t.magic?))\n}\n\n```\nUse instead:\n```rust\nstruct TO {\n    magic: Option<usize>,\n}\n\nfn f(to: TO) -> Option<usize> {\n   to.magic\n}\n\nstruct TR {\n    magic: Result<usize, bool>,\n}\n\nfn g(tr: Result<TR, bool>) -> Result<usize, bool> {\n    tr.and_then(|t| t.magic)\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -3325,7 +3327,8 @@
       "What it does": "Checks for `as` casts between raw pointers without changing its mutability,\nnamely `*const T` to `*const U` and `*mut T` to `*mut U`.",
       "Why is this bad": "Though `as` casts between raw pointers is not terrible, `pointer::cast` is safer because\nit cannot accidentally change the pointer's mutability nor cast the pointer to other types like `usize`.",
       "Known problems": "None.",
-      "Example": "```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```"
+      "Example": "```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
