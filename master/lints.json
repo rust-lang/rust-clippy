@@ -3002,6 +3002,17 @@
     }
   },
   {
+    "id": "non_octal_unix_permissions",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for non-octal values used to set Unix file permissions.",
+      "Why is this bad": "They will be converted into octal, creating potentially\nunintended file permissions.",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::fs::OpenOptions;\nuse std::os::unix::fs::OpenOptionsExt;\n\nlet mut options = OpenOptions::new();\noptions.mode(644);\n```\nUse instead:\n```rust\nuse std::fs::OpenOptions;\nuse std::os::unix::fs::OpenOptionsExt;\n\nlet mut options = OpenOptions::new();\noptions.mode(0o644);\n```"
+    }
+  },
+  {
     "id": "nonminimal_bool",
     "group": "complexity",
     "level": "Warn",
