@@ -2858,6 +2858,17 @@
     }
   },
   {
+    "id": "needless_for_each",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of `for_each` that would be more simply written as a\n`for` loop.",
+      "Why is this bad": "`for_each` may be used after applying iterator transformers like\n`filter` for better readability and performance. It may also be used to fit a simple\noperation on one line.\nBut when none of these apply, a simple `for` loop is more idiomatic.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| {\n    println!(\"{}\", elem);\n})\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\nfor elem in v.iter() {\n    println!(\"{}\", elem);\n}\n```"
+    }
+  },
+  {
     "id": "needless_lifetimes",
     "group": "complexity",
     "level": "Warn",
