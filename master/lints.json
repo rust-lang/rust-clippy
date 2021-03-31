@@ -3102,6 +3102,17 @@
     }
   },
   {
+    "id": "option_filter_map",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for indirect collection of populated `Option`",
+      "Why is this bad": "`Option` is like a collection of 0-1 things, so `flatten`\nautomatically does this without suspicious-looking `unwrap` calls.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet _ = std::iter::empty::<Option<i32>>().filter(Option::is_some).map(Option::unwrap);\n```\nUse instead:\n```rust\nlet _ = std::iter::empty::<Option<i32>>().flatten();\n```"
+    }
+  },
+  {
     "id": "option_if_let_else",
     "group": "pedantic",
     "level": "Allow",
