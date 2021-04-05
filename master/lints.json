@@ -220,6 +220,17 @@
     }
   },
   {
+    "id": "branches_sharing_code",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks if the `if` and `else` block contain shared code that can be\nmoved out of the blocks.",
+      "Why is this bad": "Duplicate code is less maintainable.",
+      "Known problems": "Hopefully none.",
+      "Example": "```ignore\nlet foo = if \u2026 {\n    println!(\"Hello World\");\n    13\n} else {\n    println!(\"Hello World\");\n    42\n};\n```\n\nCould be written as:\n```ignore\nprintln!(\"Hello World\");\nlet foo = if \u2026 {\n    13\n} else {\n    42\n};\n```"
+    }
+  },
+  {
     "id": "builtin_type_shadow",
     "group": "style",
     "level": "Warn",
