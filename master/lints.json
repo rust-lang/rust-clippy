@@ -1732,6 +1732,17 @@
     }
   },
   {
+    "id": "invalid_null_ptr_usage",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "This lint checks for invalid usages of `ptr::null`.",
+      "Why is this bad": "This causes undefined behavior.",
+      "Known problems": "None.",
+      "Example": "```ignore\n// Bad. Undefined behavior\nunsafe { std::slice::from_raw_parts(ptr::null(), 0); }\n```\n\n// Good\nunsafe { std::slice::from_raw_parts(NonNull::dangling().as_ptr(), 0); }\n```"
+    }
+  },
+  {
     "id": "invalid_ref",
     "group": "deprecated",
     "level": "Deprecated",
