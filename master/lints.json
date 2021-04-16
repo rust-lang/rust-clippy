@@ -429,6 +429,17 @@
     }
   },
   {
+    "id": "cloned_instead_of_copied",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usages of `cloned()` on an `Iterator` or `Option` where\n`copied()` could be used instead.",
+      "Why is this bad": "`copied()` is better because it guarantees that the type being cloned\nimplements `Copy`.",
+      "Known problems": "None.",
+      "Example": "```rust\n[1, 2, 3].iter().cloned();\n```\nUse instead:\n```rust\n[1, 2, 3].iter().copied();\n```"
+    }
+  },
+  {
     "id": "cmp_nan",
     "group": "correctness",
     "level": "Deny",
