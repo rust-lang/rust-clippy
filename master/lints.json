@@ -1175,6 +1175,17 @@
     }
   },
   {
+    "id": "flat_map_option",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usages of `Iterator::flat_map()` where `filter_map()` could be\nused instead.",
+      "Why is this bad": "When applicable, `filter_map()` is more clear since it shows that\n`Option` is used to produce 0 or 1 items.",
+      "Known problems": "None.",
+      "Example": "```rust\nlet nums: Vec<i32> = [\"1\", \"2\", \"whee!\"].iter().flat_map(|x| x.parse().ok()).collect();\n```\nUse instead:\n```rust\nlet nums: Vec<i32> = [\"1\", \"2\", \"whee!\"].iter().filter_map(|x| x.parse().ok()).collect();\n```"
+    }
+  },
+  {
     "id": "float_arithmetic",
     "group": "restriction",
     "level": "Allow",
