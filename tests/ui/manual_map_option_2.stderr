@@ -1,0 +1,75 @@
+error: manual implementation of `Option::map`
+  --> $DIR/manual_map_option_2.rs:21:29
+   |
+LL |       let _: Option<String> = match Some(0) {
+   |  _____________________________^
+LL | |         Some(_) => Some(f1(s)),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try this: `Some(0).map(move |_| f1(s))`
+   |
+   = note: `-D clippy::manual-map` implied by `-D warnings`
+
+error: manual implementation of `Option::map`
+  --> $DIR/manual_map_option_2.rs:29:37
+   |
+LL |       let _: Option<(String, &str)> = match Some(0) {
+   |  _____________________________________^
+LL | |         Some(_) => Some((f1(s), s2.as_str())),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try this: `Some(0).map(move |_| (f1(s), s2.as_str()))`
+
+error: manual implementation of `Option::map`
+  --> $DIR/manual_map_option_2.rs:38:35
+   |
+LL |       let _: Option<(&str, &str)> = match Some(0) {
+   |  ___________________________________^
+LL | |         Some(_) => Some((s.as_str(), s2.as_str())),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try this: `Some(0).map(|_| (s.as_str(), s2.as_str()))`
+
+error: manual implementation of `Option::map`
+  --> $DIR/manual_map_option_2.rs:51:39
+   |
+LL |       let _: Option<(&str, &mut str)> = match Some(0) {
+   |  _______________________________________^
+LL | |         Some(_) => Some((s.as_str(), f2(s2))),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try this: `Some(0).map(|_| (s.as_str(), f2(s2)))`
+
+error: manual implementation of `Option::map`
+  --> $DIR/manual_map_option_2.rs:59:26
+   |
+LL |       let _: Option<u32> = match Some(0) {
+   |  __________________________^
+LL | |         Some(i) => Some(v[i]),
+LL | |         None => None,
+LL | |     };
+   | |_____^ help: try this: `Some(0).map(|i| v[i])`
+
+error: manual implementation of `Option::map`
+  --> $DIR/manual_map_option_2.rs:66:29
+   |
+LL |       let _: Option<String> = match Some(0) {
+   |  _____________________________^
+LL | |         Some(_) => Some({
+LL | |             let s = String::new();
+LL | |             f1(s)
+LL | |         }),
+LL | |         None => None,
+LL | |     };
+   | |_____^
+   |
+help: try this
+   |
+LL |     let _: Option<String> = Some(0).map(|_| {
+LL |             let s = String::new();
+LL |             f1(s)
+LL |         });
+   |
+
+error: aborting due to 6 previous errors
+

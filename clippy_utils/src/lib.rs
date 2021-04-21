@@ -60,17 +60,19 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{DefId, LOCAL_CRATE};
+use rustc_hir::hir_id::HirIdSet;
 use rustc_hir::intravisit::{self, walk_expr, ErasedMap, NestedVisitorMap, Visitor};
 use rustc_hir::LangItem::{ResultErr, ResultOk};
 use rustc_hir::{
-    def, Arm, BindingAnnotation, Block, Body, Constness, Destination, Expr, ExprKind, FnDecl, GenericArgs, HirId, Impl,
-    ImplItem, ImplItemKind, Item, ItemKind, LangItem, Local, MatchSource, Node, Param, Pat, PatKind, Path, PathSegment,
-    QPath, Stmt, StmtKind, TraitItem, TraitItemKind, TraitRef, TyKind,
+    def, Arm, BindingAnnotation, Block, Body, CaptureBy, Constness, Destination, Expr, ExprKind, FnDecl, GenericArgs,
+    HirId, Impl, ImplItem, ImplItemKind, Item, ItemKind, LangItem, Local, MatchSource, Mutability, Node, Param, Pat,
+    PatKind, Path, PathSegment, QPath, Stmt, StmtKind, TraitItem, TraitItemKind, TraitRef, TyKind, UnOp,
 };
 use rustc_lint::{LateContext, Level, Lint, LintContext};
 use rustc_middle::hir::exports::Export;
 use rustc_middle::hir::map::Map;
 use rustc_middle::ty as rustc_ty;
+use rustc_middle::ty::adjustment::Adjust;
 use rustc_middle::ty::{layout::IntegerExt, DefIdTree, Ty, TyCtxt, TypeFoldable};
 use rustc_semver::RustcVersion;
 use rustc_session::Session;
@@ -82,7 +84,7 @@ use rustc_span::{Span, DUMMY_SP};
 use rustc_target::abi::Integer;
 
 use crate::consts::{constant, Constant};
-use crate::ty::{can_partially_move_ty, is_recursively_primitive_type};
+use crate::ty::{can_partially_move_ty, is_copy, is_recursively_primitive_type};
 
 pub fn parse_msrv(msrv: &str, sess: Option<&Session>, span: Option<Span>) -> Option<RustcVersion> {
     if let Ok(version) = RustcVersion::parse(msrv) {
@@ -549,7 +551,12 @@ pub fn trait_ref_of_method<'tcx>(cx: &LateContext<'tcx>, hir_id: HirId) -> Optio
 }
 
 /// Checks if the top level expression can be moved into a closure as is.
-pub fn can_move_expr_to_closure_no_visit(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, jump_targets: &[HirId]) -> bool {
+pub fn can_move_expr_to_closure_no_visit(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
+    jump_targets: &[HirId],
+    ignore_locals: &HirIdSet,
+) -> bool {
     match expr.kind {
         ExprKind::Break(Destination { target_id: Ok(id), .. }, _)
         | ExprKind::Continue(Destination { target_id: Ok(id), .. })
@@ -565,25 +572,53 @@ pub fn can_move_expr_to_closure_no_visit(cx: &LateContext<'tcx>, expr: &'tcx Exp
         | ExprKind::LlvmInlineAsm(_) => false,
         // Accessing a field of a local value can only be done if the type isn't
         // partially moved.
-        ExprKind::Field(base_expr, _)
-            if matches!(
-                base_expr.kind,
-                ExprKind::Path(QPath::Resolved(_, Path { res: Res::Local(_), .. }))
-            ) && can_partially_move_ty(cx, cx.typeck_results().expr_ty(base_expr)) =>
-        {
+        ExprKind::Field(
+            &Expr {
+                hir_id,
+                kind:
+                    ExprKind::Path(QPath::Resolved(
+                        _,
+                        Path {
+                            res: Res::Local(local_id),
+                            ..
+                        },
+                    )),
+                ..
+            },
+            _,
+        ) if !ignore_locals.contains(&local_id) && can_partially_move_ty(cx, cx.typeck_results().node_type(hir_id)) => {
             // TODO: check if the local has been partially moved. Assume it has for now.
             false
-        }
+        },
         _ => true,
     }
 }
 
-/// Checks if the expression can be moved into a closure as is.
-pub fn can_move_expr_to_closure(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool {
+/// Checks if the expression can be moved into a closure as is and how the locals are to be
+/// captured.
+#[allow(clippy::too_many_lines)]
+pub fn can_move_expr_to_closure(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<CaptureBy> {
+    #[derive(Clone, Copy)]
+    enum RefOp {
+        Borrow,
+        Deref,
+        Field,
+    }
+
     struct V<'cx, 'tcx> {
         cx: &'cx LateContext<'tcx>,
+        // Stack of potential break targets contained in the expression.
         loops: Vec<HirId>,
+        /// Local variables created in the expression. These don't need to be captured.
+        locals: HirIdSet,
+        /// The operation applied by the parent expression, if any.
+        prev_ref_op: Option<RefOp>,
+        /// Whether this expression can be turned into a closure.
         allow_closure: bool,
+        /// Whether any locals would need to be captured by reference.
+        borrows_local: bool,
+        /// Whether any locals would need to be captured by value.
+        moves_local: bool,
     }
     impl Visitor<'tcx> for V<'_, 'tcx> {
         type Map = ErasedMap<'tcx>;
@@ -597,22 +632,126 @@ pub fn can_move_expr_to_closure(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) ->
             }
             if let ExprKind::Loop(b, ..) = e.kind {
                 self.loops.push(e.hir_id);
+                self.prev_ref_op = None;
                 self.visit_block(b);
                 self.loops.pop();
-            } else {
-                self.allow_closure &= can_move_expr_to_closure_no_visit(self.cx, e, &self.loops);
-                walk_expr(self, e);
+                return;
             }
+
+            self.allow_closure = can_move_expr_to_closure_no_visit(self.cx, e, &self.loops, &self.locals);
+            if !self.allow_closure {
+                return;
+            }
+
+            // The following is used to check if any value needs to be captured by value, by reference, or if it
+            // could be either. Some thing to keep in mind:
+            // * Closures either capture everything by value or by reference.
+            // * The full local is captured, not just the field being used.
+            // * If a field is moved, a closure can only be made if the local is unused afterwards.
+            // * If a reference is taken, this value might be used afterwards.
+            // * If a reference is taken and it escapes from the closure, a move closure can't be used.
+            match e.kind {
+                ExprKind::AddrOf(_, _, e) => {
+                    self.prev_ref_op = Some(RefOp::Borrow);
+                    self.visit_expr(e);
+                },
+                ExprKind::Assign(left, right, _) | ExprKind::AssignOp(_, left, right) => {
+                    // Assignment needs a borrow of the place.
+                    self.prev_ref_op = Some(RefOp::Borrow);
+                    self.visit_expr(left);
+                    self.visit_expr(right);
+                },
+                ExprKind::Unary(UnOp::Deref, e) => {
+                    self.prev_ref_op = Some(RefOp::Deref);
+                    self.visit_expr(e);
+                },
+                ExprKind::DropTemps(e) => self.visit_expr(e),
+                ExprKind::Field(base, _) | ExprKind::Index(base, _) => {
+                    self.prev_ref_op = match self.prev_ref_op {
+                        // Deref of reference. This is treated as the same as accessing a field.
+                        Some(RefOp::Deref) if self.cx.typeck_results().expr_ty(base).is_ref() => Some(RefOp::Field),
+                        // The `Deref` trait takes a reference.
+                        Some(RefOp::Deref) => Some(RefOp::Borrow),
+                        Some(x) => Some(x),
+                        None => match self.cx.typeck_results().expr_adjustments(e).first().map(|a| &a.kind) {
+                            // Auto-borrow for method call.
+                            Some(Adjust::Borrow(_)) => Some(RefOp::Borrow),
+                            // Auto-deref requires a reference, same as explicitly dereferencing it.
+                            Some(Adjust::Deref(_)) => Some(RefOp::Field),
+                            _ if is_copy(self.cx, self.cx.typeck_results().expr_ty(e)) => Some(RefOp::Field),
+                            // Partial move of a local. The local may be used afterwards, but a closure would have to
+                            // capture the whole thing.
+                            _ => {
+                                self.allow_closure = false;
+                                return;
+                            },
+                        },
+                    };
+                    walk_expr(self, e);
+                },
+                ExprKind::Path(QPath::Resolved(
+                    _,
+                    &Path {
+                        res: Res::Local(local_id),
+                        ..
+                    },
+                )) if !self.locals.contains(&local_id) => {
+                    let ty = self.cx.typeck_results().node_type(local_id);
+                    match self.prev_ref_op {
+                        // Deref of an immutable pointer, can work by value or reference
+                        Some(RefOp::Deref) if matches!(*ty.kind(), rustc_ty::Ref(_, _, Mutability::Not)) => (),
+                        // The `Deref` trait takes the value by reference.
+                        Some(RefOp::Borrow | RefOp::Deref) => self.borrows_local = true,
+                        // The field is copied, so this can be by value or reference.
+                        Some(RefOp::Field) if is_copy(self.cx, ty) => (),
+                        // The field is copied, but the local can only be moved. Since we don't know if it's used
+                        // afterwards this can only capture by reference.
+                        Some(RefOp::Field) => self.borrows_local = true,
+                        None => match self.cx.typeck_results().expr_adjustments(e).first().map(|a| &a.kind) {
+                            Some(Adjust::Borrow(_)) => self.borrows_local = true,
+                            // Deref on an immutable reference can work on a copy or reference.
+                            Some(Adjust::Deref(_)) if matches!(*ty.kind(), rustc_ty::Ref(_, _, Mutability::Not)) => (),
+                            // The `Deref` trait takes the value by reference
+                            Some(Adjust::Deref(_)) => self.borrows_local = true,
+                            _ if is_copy(self.cx, ty) => (),
+                            _ => self.moves_local = true,
+                        },
+                    }
+                    self.prev_ref_op = None;
+                },
+                _ => {
+                    // Reset to by value capture for all other expressions.
+                    self.prev_ref_op = None;
+                    walk_expr(self, e);
+                },
+            }
+        }
+
+        fn visit_pat(&mut self, p: &'tcx Pat<'tcx>) {
+            p.each_binding_or_first(&mut |_, id, _, _| {
+                self.locals.insert(id);
+            });
         }
     }
 
     let mut v = V {
         cx,
-        allow_closure: true,
         loops: Vec::new(),
+        locals: HirIdSet::default(),
+        prev_ref_op: None,
+        allow_closure: true,
+        borrows_local: false,
+        moves_local: false,
     };
     v.visit_expr(expr);
-    v.allow_closure
+    // TODO: A move closure can always be used if none of the captured locals are used afterwards.
+    (v.allow_closure && !(v.borrows_local && v.moves_local)).then(|| {
+        if v.moves_local {
+            CaptureBy::Value
+        } else {
+            CaptureBy::Ref
+        }
+    })
 }
 
 /// Returns the method names and argument list of nested method call expressions that make up

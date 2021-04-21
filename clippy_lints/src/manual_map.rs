@@ -8,7 +8,7 @@ use clippy_utils::{
 use rustc_ast::util::parser::PREC_POSTFIX;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
-use rustc_hir::{Arm, BindingAnnotation, Block, Expr, ExprKind, MatchSource, Mutability, Pat, PatKind};
+use rustc_hir::{Arm, BindingAnnotation, Block, CaptureBy, Expr, ExprKind, MatchSource, Mutability, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -114,9 +114,11 @@ impl LateLintPass<'_> for ManualMap {
                 return;
             }
 
-            if !can_move_expr_to_closure(cx, some_expr) {
-                return;
-            }
+            let capture_by_str = match can_move_expr_to_closure(cx, some_expr) {
+                Some(CaptureBy::Value) => "move ",
+                Some(CaptureBy::Ref) => "",
+                None => return,
+            };
 
             // Determine which binding mode to use.
             let explicit_ref = some_pat.contains_explicit_ref_binding();
@@ -161,7 +163,8 @@ impl LateLintPass<'_> for ManualMap {
                             ""
                         };
                         format!(
-                            "|{}{}| {}",
+                            "{}|{}{}| {}",
+                            capture_by_str,
                             annotation,
                             some_binding,
                             snippet_with_context(cx, some_expr.span, expr_ctxt, "..", &mut app).0
@@ -171,7 +174,8 @@ impl LateLintPass<'_> for ManualMap {
             } else if !is_wild_none && explicit_ref.is_none() {
                 // TODO: handle explicit reference annotations.
                 format!(
-                    "|{}| {}",
+                    "{}|{}| {}",
+                    capture_by_str,
                     snippet_with_context(cx, some_pat.span, expr_ctxt, "..", &mut app).0,
                     snippet_with_context(cx, some_expr.span, expr_ctxt, "..", &mut app).0
                 )
