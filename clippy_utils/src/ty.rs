@@ -30,7 +30,10 @@ pub fn can_partially_move_ty(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     }
     match ty.kind() {
         ty::Param(_) => false,
-        ty::Adt(def, subs) => def.all_fields().any(|f| !is_copy(cx, f.ty(cx.tcx, subs))),
+        // Fields can't be moved if they can't be accessed.
+        ty::Adt(def, subs) => def
+            .all_fields()
+            .any(|f| f.vis.is_visible_locally() && !is_copy(cx, f.ty(cx.tcx, subs))),
         _ => true,
     }
 }
