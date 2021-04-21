@@ -164,6 +164,17 @@
     }
   },
   {
+    "id": "bool_assert_comparison",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "This lint warns about boolean comparisons in assert-like macros.",
+      "Why is this bad": "It is shorter to use the equivalent.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nassert_eq!(\"a\".is_empty(), false);\nassert_ne!(\"a\".is_empty(), true);\n\n// Good\nassert!(!\"a\".is_empty());\n```"
+    }
+  },
+  {
     "id": "bool_comparison",
     "group": "complexity",
     "level": "Warn",
