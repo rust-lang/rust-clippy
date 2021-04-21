@@ -4546,6 +4546,17 @@
     }
   },
   {
+    "id": "unnecessary_self_imports",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for imports ending in `::{self}`.",
+      "Why is this bad": "In most cases, this can be written much more cleanly by omitting `::{self}`.",
+      "Known problems": "Removing `::{self}` will cause any non-module items at the same path to also be imported.\nThis might cause a naming conflict (https://github.com/rust-lang/rustfmt/issues/3568). This lint makes no attempt\nto detect this scenario and that is why it is a restriction lint.",
+      "Example": "```rust\nuse std::io::{self};\n```\nUse instead:\n```rust\nuse std::io;\n```"
+    }
+  },
+  {
     "id": "unnecessary_sort_by",
     "group": "complexity",
     "level": "Warn",
