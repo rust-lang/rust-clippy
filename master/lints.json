@@ -4302,8 +4302,8 @@
   },
   {
     "id": "transmute_ptr_to_ptr",
-    "group": "complexity",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for transmutes from a pointer to a pointer, or\nfrom a reference to a reference.",
       "Why is this bad": "Transmutes are dangerous, and these can instead be\nwritten as casts.",
