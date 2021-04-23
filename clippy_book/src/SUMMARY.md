@@ -1,6 +1,6 @@
 # Summary
 
-[Home](../../README.md)
+[Home](README.md)
 <!-- [Basics](../../doc/basics.md)
 [Adding a new lint](../../doc/adding_lints.md)
 [Common tools for writing lints](../../doc/common_tools_writing_lints.md)
