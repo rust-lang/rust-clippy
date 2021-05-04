@@ -83,5 +83,5 @@ jobs:
       run: |
         cargo dev new_lint --name new_early_pass --pass early
         cargo dev new_lint --name new_late_pass --pass late
-        cargo check
+        cargo check --features deny-warnings,internal-lints
         git reset --hard HEAD
