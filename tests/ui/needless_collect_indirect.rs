@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 
 fn main() {
     let sample = [1; 5];
-    let indirect_iter = sample.iter().collect::<Vec<_>>();
+    let indirect_iter: Vec<_> = sample.iter().collect();
     indirect_iter.into_iter().map(|x| (x, x + 1)).collect::<HashMap<_, _>>();
     let indirect_len = sample.iter().collect::<VecDeque<_>>();
     indirect_len.len();

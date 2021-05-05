@@ -14,10 +14,4 @@ impl Iterator for Countdown {
     }
 }
 
-fn main() {
-    let my_iterator = Countdown(5);
-    let a: Vec<_> = my_iterator.take(1).collect();
-    assert_eq!(a.len(), 1);
-    let b: Vec<_> = my_iterator.collect();
-    assert_eq!(b.len(), 5);
-}
+fn main() {}

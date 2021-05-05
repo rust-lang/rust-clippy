@@ -7,7 +7,7 @@ use clippy_utils::{is_trait_method, path_to_local_id, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{walk_block, walk_expr, NestedVisitorMap, Visitor};
-use rustc_hir::{Block, Expr, ExprKind, GenericArg, HirId, Local, Pat, PatKind, QPath, StmtKind};
+use rustc_hir::{Block, Expr, ExprKind, HirId, Local, Pat, PatKind, QPath, StmtKind};
 use rustc_lint::LateContext;
 use rustc_middle::hir::map::Map;
 use rustc_span::symbol::{sym, Ident};
@@ -24,9 +24,7 @@ fn check_needless_collect_direct_usage<'tcx>(expr: &'tcx Expr<'_>, cx: &LateCont
         if let ExprKind::MethodCall(method, _, args, _) = expr.kind;
         if let ExprKind::MethodCall(chain_method, method0_span, _, _) = args[0].kind;
         if chain_method.ident.name == sym!(collect) && is_trait_method(cx, &args[0], sym::Iterator);
-        if let Some(generic_args) = chain_method.args;
-        if let Some(GenericArg::Type(ref ty)) = generic_args.args.get(0);
-        let ty = cx.typeck_results().node_type(ty.hir_id);
+        let ty = cx.typeck_results().expr_ty(&args[0]);
         if is_type_diagnostic_item(cx, ty, sym::vec_type)
             || is_type_diagnostic_item(cx, ty, sym::vecdeque_type)
             || match_type(cx, ty, &paths::BTREEMAP)
@@ -67,9 +65,7 @@ fn check_needless_collect_indirect_usage<'tcx>(expr: &'tcx Expr<'_>, cx: &LateCo
                 ) = stmt.kind;
                 if let ExprKind::MethodCall(method_name, collect_span, &[ref iter_source], ..) = init_expr.kind;
                 if method_name.ident.name == sym!(collect) && is_trait_method(cx, init_expr, sym::Iterator);
-                if let Some(generic_args) = method_name.args;
-                if let Some(GenericArg::Type(ref ty)) = generic_args.args.get(0);
-                if let ty = cx.typeck_results().node_type(ty.hir_id);
+                if let ty = cx.typeck_results().expr_ty(init_expr);
                 if is_type_diagnostic_item(cx, ty, sym::vec_type) ||
                     is_type_diagnostic_item(cx, ty, sym::vecdeque_type) ||
                     match_type(cx, ty, &paths::LINKED_LIST);

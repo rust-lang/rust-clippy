@@ -1,8 +1,8 @@
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:5:39
+  --> $DIR/needless_collect_indirect.rs:5:47
    |
-LL |     let indirect_iter = sample.iter().collect::<Vec<_>>();
-   |                                       ^^^^^^^
+LL |     let indirect_iter: Vec<_> = sample.iter().collect();
+   |                                               ^^^^^^^
 LL |     indirect_iter.into_iter().map(|x| (x, x + 1)).collect::<HashMap<_, _>>();
    |     ------------------------- the iterator could be used here instead
    |
