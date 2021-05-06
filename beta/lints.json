@@ -137,7 +137,8 @@
       "What it does": "Checks for usage of blacklisted names for variables, such\nas `foo`.",
       "Why is this bad": "These names are usually placeholder names and should be\navoided.",
       "Known problems": "None.",
-      "Example": "```rust\nlet foo = 3.14;\n```"
+      "Example": "```rust\nlet foo = 3.14;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `blacklisted-names: Vec<String>`: The list of blacklisted names to lint about. NB: `bar` is not here since it has legitimate uses (defaults to `[\"foo\", \"baz\", \"quux\"]`)."
     }
   },
   {
@@ -225,7 +226,8 @@
       "What it does": "Checks for usage of `Box<T>` where an unboxed `T` would\nwork fine.",
       "Why is this bad": "This is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.",
       "Known problems": "None.",
-      "Example": "```rust\n// Bad\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n\n// Good\nlet x = 1;\nfoo(x);\nprintln!(\"{}\", x);\n```"
+      "Example": "```rust\n// Bad\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n\n// Good\nlet x = 1;\nfoo(x);\nprintln!(\"{}\", x);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)."
     }
   },
   {
@@ -401,7 +403,8 @@
       "What it does": "Checks for explicit bounds checking when casting.",
       "Why is this bad": "Reduces the readability of statements & is error prone.",
       "Known problems": "None.",
-      "Example": "```rust\nfoo <= i32::MAX as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```"
+      "Example": "```rust\nfoo <= i32::MAX as u32\n```\n\nCould be written:\n\n```rust\ni32::try_from(foo).is_ok()\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -444,7 +447,8 @@
       "What it does": "Checks for usages of `cloned()` on an `Iterator` or `Option` where\n`copied()` could be used instead.",
       "Why is this bad": "`copied()` is better because it guarantees that the type being cloned\nimplements `Copy`.",
       "Known problems": "None.",
-      "Example": "```rust\n[1, 2, 3].iter().cloned();\n```\nUse instead:\n```rust\n[1, 2, 3].iter().copied();\n```"
+      "Example": "```rust\n[1, 2, 3].iter().cloned();\n```\nUse instead:\n```rust\n[1, 2, 3].iter().copied();\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -488,7 +492,8 @@
       "What it does": "Checks for methods with high cognitive complexity.",
       "Why is this bad": "Methods of high cognitive complexity tend to be hard to\nboth read and maintain. Also LLVM will tend to optimize small methods better.",
       "Known problems": "Sometimes it's hard to find a way to reduce the\ncomplexity.",
-      "Example": "No. You'll see it when you get the warning."
+      "Example": "No. You'll see it when you get the warning.",
+      "Configuration": "This lint has the following configuration variables:\n\n* `cognitive-complexity-threshold: u64`: The maximum cognitive complexity a function can have (defaults to `25`)."
     }
   },
   {
@@ -609,7 +614,8 @@
       "What it does": "Warns if there is a better representation for a numeric literal.",
       "Why is this bad": "Especially for big powers of 2 a hexadecimal representation is more\nreadable than a decimal representation.",
       "Known problems": "None.",
-      "Example": "`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`"
+      "Example": "`255` => `0xFF`\n`65_535` => `0xFFFF`\n`4_042_322_160` => `0xF0F0_F0F0`",
+      "Configuration": "This lint has the following configuration variables:\n\n* `literal-representation-threshold: u64`: The lower bound for linting decimal literals (defaults to `16384`)."
     }
   },
   {
@@ -708,7 +714,8 @@
       "What it does": "Denies the configured methods and functions in clippy.toml",
       "Why is this bad": "Some methods are undesirable in certain contexts,\nand it's beneficial to lint for them as needed.",
       "Known problems": "Currently, you must write each function as a\nfully-qualified path. This lint doesn't support aliases or reexported\nnames; be aware that many types in `std` are actually reexports.\n\nFor example, if you want to disallow `Duration::as_secs`, your clippy.toml\nconfiguration would look like\n`disallowed-methods = [\"core::time::Duration::as_secs\"]` and not\n`disallowed-methods = [\"std::time::Duration::as_secs\"]` as you might expect.",
-      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```"
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of disallowed methods, written as fully qualified paths. (defaults to `Vec::<String>::new(`)."
     }
   },
   {
@@ -730,7 +737,8 @@
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.",
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.",
       "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therfore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.",
-      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```"
+      "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\", \"GraphQL\",\n        \"OCaml\",\n        \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenDNS\",\n        \"WebGL\",\n        \"TensorFlow\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
     }
   },
   {
@@ -895,7 +903,8 @@
       "What it does": "Detects enumeration variants that are prefixed or suffixed\nby the same characters.",
       "Why is this bad": "Enumeration variant names should specify their variant,\nnot repeat the enumeration name.",
       "Known problems": "None.",
-      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```\nCould be written as:\n```rust\nenum Cake {\n    BlackForest,\n    Hummingbird,\n    Battenberg,\n}\n```"
+      "Example": "```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```\nCould be written as:\n```rust\nenum Cake {\n    BlackForest,\n    Hummingbird,\n    Battenberg,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-name-threshold: u64`: The minimum number of enum variants for the lints about variant names to trigger (defaults to `3`)."
     }
   },
   {
@@ -1142,7 +1151,8 @@
       "What it does": "Checks for usage of `_.filter_map(_).next()`.",
       "Why is this bad": "Readability, this can be written more concisely as\n`_.find_map(_)`.",
       "Known problems": "None",
-      "Example": "```rust\n (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();\n```\nCan be written as\n\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x) } else { None });\n```"
+      "Example": "```rust\n (0..3).filter_map(|x| if x == 2 { Some(x) } else { None }).next();\n```\nCan be written as\n\n```rust\n (0..3).find_map(|x| if x == 2 { Some(x) } else { None });\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -1250,7 +1260,8 @@
       "What it does": "Checks for excessive use of\nbools in function definitions.",
       "Why is this bad": "Calls to such functions\nare confusing and error prone, because it's\nhard to remember argument order and you have\nno type system support to back you up. Using\ntwo-variant enums instead of bools often makes\nAPI easier to use.",
       "Known problems": "None.",
-      "Example": "Bad:\n```rust\nfn f(is_round: bool, is_hot: bool) { ... }\n```\n\nGood:\n```rust\nenum Shape {\n    Round,\n    Spiky,\n}\n\nenum Temperature {\n    Hot,\n    IceCold,\n}\n\nfn f(shape: Shape, temperature: Temperature) { ... }\n```"
+      "Example": "Bad:\n```rust\nfn f(is_round: bool, is_hot: bool) { ... }\n```\n\nGood:\n```rust\nenum Shape {\n    Round,\n    Spiky,\n}\n\nenum Temperature {\n    Hot,\n    IceCold,\n}\n\nfn f(shape: Shape, temperature: Temperature) { ... }\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-fn-params-bools: u64`: The maximum number of bools function parameters can have (defaults to `3`)."
     }
   },
   {
@@ -1336,7 +1347,8 @@
       "What it does": "Searches for implementations of the `Into<..>` trait and suggests to implement `From<..>` instead.",
       "Why is this bad": "According the std docs implementing `From<..>` is preferred since it gives you `Into<..>` for free where the reverse isn't true.",
       "Known problems": "None.",
-      "Example": "```rust\nstruct StringWrapper(String);\n\nimpl Into<StringWrapper> for String {\n    fn into(self) -> StringWrapper {\n        StringWrapper(self)\n    }\n}\n```\nUse instead:\n```rust\nstruct StringWrapper(String);\n\nimpl From<String> for StringWrapper {\n    fn from(s: String) -> StringWrapper {\n        StringWrapper(s)\n    }\n}\n```"
+      "Example": "```rust\nstruct StringWrapper(String);\n\nimpl Into<StringWrapper> for String {\n    fn into(self) -> StringWrapper {\n        StringWrapper(self)\n    }\n}\n```\nUse instead:\n```rust\nstruct StringWrapper(String);\n\nimpl From<String> for StringWrapper {\n    fn from(s: String) -> StringWrapper {\n        StringWrapper(s)\n    }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -1895,7 +1907,8 @@
       "What it does": "Checks for large `const` arrays that should\nbe defined as `static` instead.",
       "Why is this bad": "Performance: const variables are inlined upon use.\nStatic items result in only one instance and has a fixed location in memory.",
       "Known problems": "None.",
-      "Example": "```rust\n// Bad\npub const a = [0u32; 1_000_000];\n\n// Good\npub static a = [0u32; 1_000_000];\n```"
+      "Example": "```rust\n// Bad\npub const a = [0u32; 1_000_000];\n\n// Good\npub static a = [0u32; 1_000_000];\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `array-size-threshold: u64`: The maximum allowed size for arrays on the stack (defaults to `512_000`)."
     }
   },
   {
@@ -1917,7 +1930,8 @@
       "What it does": "Checks for large size differences between variants on\n`enum`s.",
       "Why is this bad": "Enum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.",
       "Known problems": "This lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.",
-      "Example": "```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```"
+      "Example": "```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `enum-variant-size-threshold: u64`: The maximum size of a enum's variant to avoid box suggestion (defaults to `200`)."
     }
   },
   {
@@ -1928,7 +1942,8 @@
       "What it does": "Checks for local arrays that may be too large.",
       "Why is this bad": "Large local arrays may cause stack overflow.",
       "Known problems": "None.",
-      "Example": "```rust\nlet a = [0u32; 1_000_000];\n```"
+      "Example": "```rust\nlet a = [0u32; 1_000_000];\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `array-size-threshold: u64`: The maximum allowed size for arrays on the stack (defaults to `512_000`)."
     }
   },
   {
@@ -2147,7 +2162,8 @@
       "What it does": "Checks for manual implementations of the non-exhaustive pattern.",
       "Why is this bad": "Using the #[non_exhaustive] attribute expresses better the intent\nand allows possible optimizations when applied to enums.",
       "Known problems": "None.",
-      "Example": "```rust\nstruct S {\n    pub a: i32,\n    pub b: i32,\n    _c: (),\n}\n\nenum E {\n    A,\n    B,\n    #[doc(hidden)]\n    _C,\n}\n\nstruct T(pub i32, pub i32, ());\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct S {\n    pub a: i32,\n    pub b: i32,\n}\n\n#[non_exhaustive]\nenum E {\n    A,\n    B,\n}\n\n#[non_exhaustive]\nstruct T(pub i32, pub i32);\n```"
+      "Example": "```rust\nstruct S {\n    pub a: i32,\n    pub b: i32,\n    _c: (),\n}\n\nenum E {\n    A,\n    B,\n    #[doc(hidden)]\n    _C,\n}\n\nstruct T(pub i32, pub i32, ());\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct S {\n    pub a: i32,\n    pub b: i32,\n}\n\n#[non_exhaustive]\nenum E {\n    A,\n    B,\n}\n\n#[non_exhaustive]\nstruct T(pub i32, pub i32);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2169,7 +2185,8 @@
       "What it does": "Checks for expressions like `x >= 3 && x < 8` that could\nbe more readably expressed as `(3..8).contains(x)`.",
       "Why is this bad": "`contains` expresses the intent better and has less\nfailure modes (such as fencepost errors or using `||` instead of `&&`).",
       "Known problems": "None.",
-      "Example": "```rust\n// given\nlet x = 6;\n\nassert!(x >= 3 && x < 8);\n```\nUse instead:\n```rust\nassert!((3..8).contains(&x));\n```"
+      "Example": "```rust\n// given\nlet x = 6;\n\nassert!(x >= 3 && x < 8);\n```\nUse instead:\n```rust\nassert!((3..8).contains(&x));\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2190,7 +2207,8 @@
       "What it does": "Suggests using `strip_{prefix,suffix}` over `str::{starts,ends}_with` and slicing using\nthe pattern's length.",
       "Why is this bad": "Using `str:strip_{prefix,suffix}` is safer and may have better performance as there is no\nslicing which may panic and the compiler does not need to insert this panic code. It is\nalso sometimes more readable as it removes the need for duplicating or storing the pattern\nused by `str::{starts,ends}_with` and in the slicing.",
       "Known problems": "None.",
-      "Example": "```rust\nlet s = \"hello, world!\";\nif s.starts_with(\"hello, \") {\n    assert_eq!(s[\"hello, \".len()..].to_uppercase(), \"WORLD!\");\n}\n```\nUse instead:\n```rust\nlet s = \"hello, world!\";\nif let Some(end) = s.strip_prefix(\"hello, \") {\n    assert_eq!(end.to_uppercase(), \"WORLD!\");\n}\n```"
+      "Example": "```rust\nlet s = \"hello, world!\";\nif s.starts_with(\"hello, \") {\n    assert_eq!(s[\"hello, \".len()..].to_uppercase(), \"WORLD!\");\n}\n```\nUse instead:\n```rust\nlet s = \"hello, world!\";\nif let Some(end) = s.strip_prefix(\"hello, \") {\n    assert_eq!(end.to_uppercase(), \"WORLD!\");\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2223,7 +2241,8 @@
       "What it does": "Checks for too many variables whose name consists of a\nsingle character.",
       "Why is this bad": "It's hard to memorize what a variable means without a\ndescriptive name.",
       "Known problems": "None?",
-      "Example": "```ignore\nlet (a, b, c, d, e, f, g) = (...);\n```"
+      "Example": "```ignore\nlet (a, b, c, d, e, f, g) = (...);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `single-char-binding-names-threshold: u64`: The maximum number of single char bindings a scope may have (defaults to `4`)."
     }
   },
   {
@@ -2300,7 +2319,8 @@
       "What it does": "Checks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.",
       "Why is this bad": "Readability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.",
       "Known problems": "The order of the arguments is not in execution order",
-      "Examples": "```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or(0);\n\n// Good\nx.map_or(0, |a| a + 1);\n```\n\n// or\n\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or_else(some_function);\n\n// Good\nx.map_or_else(some_function, |a| a + 1);\n```"
+      "Examples": "```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or(0);\n\n// Good\nx.map_or(0, |a| a + 1);\n```\n\n// or\n\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or_else(some_function);\n\n// Good\nx.map_or_else(some_function, |a| a + 1);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2333,7 +2353,8 @@
       "What it does": "Checks for `match`  or `if let` expressions producing a\n`bool` that could be written using `matches!`",
       "Why is this bad": "Readability and needless complexity.",
       "Known problems": "This lint falsely triggers, if there are arms with\n`cfg` attributes that remove an arm evaluating to `false`.",
-      "Example": "```rust\nlet x = Some(5);\n\n// Bad\nlet a = match x {\n    Some(0) => true,\n    _ => false,\n};\n\nlet a = if let Some(0) = x {\n    true\n} else {\n    false\n};\n\n// Good\nlet a = matches!(x, Some(0));\n```"
+      "Example": "```rust\nlet x = Some(5);\n\n// Bad\nlet a = match x {\n    Some(0) => true,\n    _ => false,\n};\n\nlet a = if let Some(0) = x {\n    true\n} else {\n    false\n};\n\n// Good\nlet a = matches!(x, Some(0));\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2465,7 +2486,8 @@
       "What it does": "Checks for `std::mem::replace` on a value of type\n`T` with `T::default()`.",
       "Why is this bad": "`std::mem` module already has the method `take` to\ntake the current value and replace it with the default value of that type.",
       "Known problems": "None.",
-      "Example": "```rust\nlet mut text = String::from(\"foo\");\nlet replaced = std::mem::replace(&mut text, String::default());\n```\nIs better expressed with:\n```rust\nlet mut text = String::from(\"foo\");\nlet taken = std::mem::take(&mut text);\n```"
+      "Example": "```rust\nlet mut text = String::from(\"foo\");\nlet replaced = std::mem::replace(&mut text, String::default());\n```\nIs better expressed with:\n```rust\nlet mut text = String::from(\"foo\");\nlet taken = std::mem::take(&mut text);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2529,7 +2551,8 @@
       "What it does": "Suggests the use of `const` in functions and methods where possible.",
       "Why is this bad": "Not having the function const prevents callers of the function from being const as well.",
       "Known problems": "Const functions are currently still being worked on, with some features only being available\non nightly. This lint does not consider all edge cases currently and the suggestions may be\nincorrect if you are using this lint on stable.\n\nAlso, the lint only runs one pass over the code. Consider these two non-const functions:\n\n```rust\nfn a() -> i32 {\n    0\n}\nfn b() -> i32 {\n    a()\n}\n```\n\nWhen running Clippy, the lint will only suggest to make `a` const, because `b` at this time\ncan't be const as it calls a non-const function. Making `a` const and running Clippy again,\nwill suggest to make `b` const, too.",
-      "Example": "```rust\nfn new() -> Self {\n    Self { random_number: 42 }\n}\n```\n\nCould be a const fn:\n\n```rust\nconst fn new() -> Self {\n    Self { random_number: 42 }\n}\n```"
+      "Example": "```rust\nfn new() -> Self {\n    Self { random_number: 42 }\n}\n```\n\nCould be a const fn:\n\n```rust\nconst fn new() -> Self {\n    Self { random_number: 42 }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -3089,7 +3112,8 @@
       "What it does": "Checks for usage of `_.as_ref().map(Deref::deref)` or it's aliases (such as String::as_str).",
       "Why is this bad": "Readability, this can be written more concisely as\n`_.as_deref()`.",
       "Known problems": "None.",
-      "Example": "```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```"
+      "Example": "```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -3353,7 +3377,8 @@
       "What it does": "Checks for `as` casts between raw pointers without changing its mutability,\nnamely `*const T` to `*const U` and `*mut T` to `*mut U`.",
       "Why is this bad": "Though `as` casts between raw pointers is not terrible, `pointer::cast` is safer because\nit cannot accidentally change the pointer's mutability nor cast the pointer to other types like `usize`.",
       "Known problems": "None.",
-      "Example": "```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```"
+      "Example": "```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -3527,7 +3552,8 @@
       "What it does": "Checks for fields in struct literals where shorthands\ncould be used.",
       "Why is this bad": "If the field and variable names are the same,\nthe field name is redundant.",
       "Known problems": "None.",
-      "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo { bar: bar };\n```\nthe last line can be simplified to\n```ignore\nlet foo = Foo { bar };\n```"
+      "Example": "```rust\nlet bar: u8 = 123;\n\nstruct Foo {\n    bar: u8,\n}\n\nlet foo = Foo { bar: bar };\n```\nthe last line can be simplified to\n```ignore\nlet foo = Foo { bar };\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -3582,7 +3608,8 @@
       "What it does": "Checks for constants and statics with an explicit `'static` lifetime.",
       "Why is this bad": "Adding `'static` to every reference can create very\ncomplicated types.",
       "Known problems": "None.",
-      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\nstatic FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n static FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```"
+      "Example": "```ignore\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\nstatic FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```ignore\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n static FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -4026,7 +4053,8 @@
       "What it does": "Checks for excessive\nuse of bools in structs.",
       "Why is this bad": "Excessive bools in a struct\nis often a sign that it's used as a state machine,\nwhich is much better implemented as an enum.\nIf it's not the case, excessive bools usually benefit\nfrom refactoring into two-variant enums for better\nreadability and API.",
       "Known problems": "None.",
-      "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```"
+      "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-struct-bools: u64`: The maximum number of bools a struct can have (defaults to `3`)."
     }
   },
   {
@@ -4179,7 +4207,8 @@
       "What it does": "Checks for functions with too many parameters.",
       "Why is this bad": "Functions with lots of parameters are considered bad\nstyle and reduce readability (\u201cwhat does the 5th parameter mean?\u201d). Consider\ngrouping some parameters into a new type.",
       "Known problems": "None.",
-      "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {\n    // ..\n}\n```"
+      "Example": "```rust\nfn foo(x: u32, y: u32, name: &str, c: Color, w: f32, h: f32, a: f32, b: f32) {\n    // ..\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-many-arguments-threshold: u64`: The maximum number of argument a function or method can have (defaults to `7`)."
     }
   },
   {
@@ -4190,7 +4219,8 @@
       "What it does": "Checks for functions with a large amount of lines.",
       "Why is this bad": "Functions with a lot of lines are harder to understand\ndue to having to look at a larger amount of code to understand what the\nfunction is doing. Consider splitting the body of the function into\nmultiple functions.",
       "Known problems": "None.",
-      "Example": "```rust\nfn im_too_long() {\n    println!(\"\");\n    // ... 100 more LoC\n    println!(\"\");\n}\n```"
+      "Example": "```rust\nfn im_too_long() {\n    println!(\"\");\n    // ... 100 more LoC\n    println!(\"\");\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-many-lines-threshold: u64`: The maximum number of lines a function or method can have (defaults to `100`)."
     }
   },
   {
@@ -4333,7 +4363,8 @@
       "What it does": "Checks for functions taking arguments by reference, where\nthe argument type is `Copy` and small enough to be more efficient to always\npass by value.",
       "Why is this bad": "In many calling conventions instances of structs will\nbe passed through registers if they fit into two or less general purpose\nregisters.",
       "Known problems": "This lint is target register size dependent, it is\nlimited to 32-bit to try and reduce portability problems between 32 and\n64-bit, but if you are compiling for 8 or 16-bit targets then the limit\nwill be different.\n\nThe configuration option `trivial_copy_size_limit` can be set to override\nthis limit for a project.\n\nThis lint attempts to allow passing arguments by reference if a reference\nto that argument is returned. This is implemented by comparing the lifetime\nof the argument and return value for equality. However, this can cause\nfalse positives in cases involving multiple lifetimes that are bounded by\neach other.\n\nAlso, it does not take account of other similar cases where getting memory addresses\nmatters; namely, returning the pointer to the argument in question,\nand passing the argument, as both references and pointers,\nto a function that needs the memory address. For further details, refer to\n[this issue](https://github.com/rust-lang/rust-clippy/issues/5953)\nthat explains a real case in which this false positive\nled to an **undefined behaviour** introduced with unsafe code.",
-      "Example": "```rust\n// Bad\nfn foo(v: &u32) {}\n```\n\n```rust\n// Better\nfn foo(v: u32) {}\n```"
+      "Example": "```rust\n// Bad\nfn foo(v: &u32) {}\n```\n\n```rust\n// Better\nfn foo(v: u32) {}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `trivial-copy-size-limit: Option<u64>`: The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference. (defaults to `None`)."
     }
   },
   {
@@ -4355,7 +4386,8 @@
       "What it does": "Checks for types used in structs, parameters and `let`\ndeclarations above a certain complexity threshold.",
       "Why is this bad": "Too complex types make the code less readable. Consider\nusing a `type` definition to simplify them.",
       "Known problems": "None.",
-      "Example": "```rust\nstruct Foo {\n    inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n```"
+      "Example": "```rust\nstruct Foo {\n    inner: Rc<Vec<Vec<Box<(u32, u32, u32, u32)>>>>,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `type-complexity-threshold: u64`: The maximum complexity a type can have (defaults to `250`)."
     }
   },
   {
@@ -4366,7 +4398,8 @@
       "What it does": "This lint warns about unnecessary type repetitions in trait bounds",
       "Why is this bad": "Repeating the type for every bound makes the code\nless readable than combining the bounds",
       "Known problems": "None.",
-      "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```"
+      "Example": "```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-trait-bounds: u64`: The maximum number of bounds a trait can have to be linted (defaults to `3`)."
     }
   },
   {
@@ -4586,7 +4619,8 @@
       "What it does": "Checks for unnested or-patterns, e.g., `Some(0) | Some(2)` and\nsuggests replacing the pattern with a nested one, `Some(0 | 2)`.\n\nAnother way to think of this is that it rewrites patterns in\n*disjunctive normal form (DNF)* into *conjunctive normal form (CNF)*.",
       "Why is this bad": "In the example above, `Some` is repeated, which unncessarily complicates the pattern.",
       "Known problems": "None.",
-      "Example": "```rust\nfn main() {\n    if let Some(0) | Some(2) = Some(0) {}\n}\n```\nUse instead:\n```rust\n#![feature(or_patterns)]\n\nfn main() {\n    if let Some(0 | 2) = Some(0) {}\n}\n```"
+      "Example": "```rust\nfn main() {\n    if let Some(0) | Some(2) = Some(0) {}\n}\n```\nUse instead:\n```rust\n#![feature(or_patterns)]\n\nfn main() {\n    if let Some(0 | 2) = Some(0) {}\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -4608,7 +4642,8 @@
       "What it does": "Warns if a long integral or floating-point constant does\nnot contain underscores.",
       "Why is this bad": "Reading long numbers is difficult without separators.",
       "Known problems": "None.",
-      "Example": "```rust\n// Bad\nlet x: u64 = 61864918973511;\n\n// Good\nlet x: u64 = 61_864_918_973_511;\n```"
+      "Example": "```rust\n// Bad\nlet x: u64 = 61864918973511;\n\n// Good\nlet x: u64 = 61_864_918_973_511;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `unreadable-literal-lint-fractions: bool`: Should the fraction of a decimal be linted to include separators. (defaults to `true`)."
     }
   },
   {
@@ -4765,7 +4800,8 @@
       "What it does": "Checks for fully capitalized names and optionally names containing a capitalized acronym.",
       "Why is this bad": "In CamelCase, acronyms count as one word.\nSee [naming conventions](https://rust-lang.github.io/api-guidelines/naming.html#casing-conforms-to-rfc-430-c-case)\nfor more.\n\nBy default, the lint only triggers on fully-capitalized names.\nYou can use the `upper-case-acronyms-aggressive: true` config option to enable linting\non all camel case names",
       "Known problems": "When two acronyms are contiguous, the lint can't tell where\nthe first acronym ends and the second starts, so it suggests to lowercase all of\nthe letters in the second acronym.",
-      "Example": "```rust\nstruct HTTPResponse;\n```\nUse instead:\n```rust\nstruct HttpResponse;\n```"
+      "Example": "```rust\nstruct HTTPResponse;\n```\nUse instead:\n```rust\nstruct HttpResponse;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `upper-case-acronyms-aggressive: bool`: Enables verbose mode. Triggers if there is more than one uppercase char next to each other (defaults to `false`)."
     }
   },
   {
@@ -4786,7 +4822,8 @@
       "What it does": "Checks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.",
       "Why is this bad": "Unnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.",
       "Known problems": "- Unaddressed false negative in fn bodies of trait implementations\n- False positive with assotiated types in traits (#4140)",
-      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```"
+      "Example": "```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo {}\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -4874,7 +4911,8 @@
       "What it does": "Checks for usage of `&vec![..]` when using `&[..]` would\nbe possible.",
       "Why is this bad": "This is less efficient.",
       "Known problems": "None.",
-      "Example": "```rust\n\n// Bad\nfoo(&vec![1, 2]);\n\n// Good\nfoo(&[1, 2]);\n```"
+      "Example": "```rust\n\n// Bad\nfoo(&vec![1, 2]);\n\n// Good\nfoo(&[1, 2]);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `too-large-for-stack: u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)."
     }
   },
   {
@@ -4885,7 +4923,8 @@
       "What it does": "Checks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.",
       "Why is this bad": "`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.",
       "Known problems": "Vec<Box<T: Sized>> makes sense if T is a large type (see [#3530](https://github.com/rust-lang/rust-clippy/issues/3530),\n1st comment).",
-      "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```"
+      "Example": "```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `vec-box-size-threshold: u64`: The size of the boxed type in bytes, where boxing in a `Vec` is allowed (defaults to `4096`)."
     }
   },
   {
@@ -4918,7 +4957,8 @@
       "What it does": "Checks for bit masks that can be replaced by a call\nto `trailing_zeros`",
       "Why is this bad": "`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`",
       "Known problems": "llvm generates better code for `x & 15 == 0` on x86",
-      "Example": "```rust\nif x & 0b1111 == 0 { }\n```"
+      "Example": "```rust\nif x & 0b1111 == 0 { }\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `verbose-bit-mask-threshold: u64`: The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros' (defaults to `1`)."
     }
   },
   {
@@ -5007,7 +5047,8 @@
       "Why is this bad": "wildcard imports can pollute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.",
       "Exceptions": "Wildcard imports are allowed from modules named `prelude`. Many crates (including the standard library)\nprovide modules named \"prelude\" specifically designed for wildcard import.\n\n`use super::*` is allowed in test modules. This is defined as any module with \"test\" in the name.\n\nThese exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.",
       "Known problems": "If macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.",
-      "Example": "```rust\n// Bad\nuse crate1::*;\n\nfoo();\n```\n\n```rust\n// Good\nuse crate1::foo;\n\nfoo();\n```"
+      "Example": "```rust\n// Bad\nuse crate1::*;\n\nfoo();\n```\n\n```rust\n// Good\nuse crate1::foo;\n\nfoo();\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `warn-on-all-wildcard-imports: bool`: Whether to allow certain wildcard imports (prelude, super in tests). (defaults to `false`)."
     }
   },
   {
