@@ -41,12 +41,25 @@ impl EarlyLintPass for SingleComponentPathImports {
         if cx.sess.opts.edition < Edition::Edition2018 {
             return;
         }
-        check_mod(cx, &krate.items);
+
+        // keep track of crate-roots and super-roots
+        // such as `super::crypto_hash` in the example below
+        // ```rust,ignore
+        // use super::crypto_hash::{Algorithm, Hasher};
+        // ```
+        // or
+        // ```rust,ignore
+        // use crate::crypto_hash::{Algorithm, Hasher};
+        // ```
+        // This one needs to persist.
+
+        let mut imports_reused_as_roots = Vec::new();
+        check_mod(cx, &krate.items, &mut imports_reused_as_roots);
     }
 }
 
-fn check_mod(cx: &EarlyContext<'_>, items: &[P<Item>]) {
-    // keep track of imports reused with `self` keyword,
+fn check_mod(cx: &EarlyContext<'_>, items: &[P<Item>], mut imports_reused_as_roots: &mut Vec<Symbol>) {
+    // keep track of imports reused with `self` keyword
     // such as `self::crypto_hash` in the example below
     // ```rust,ignore
     // use self::crypto_hash::{Algorithm, Hasher};
@@ -72,13 +85,14 @@ fn check_mod(cx: &EarlyContext<'_>, items: &[P<Item>]) {
             cx,
             &item,
             &mut imports_reused_with_self,
+            &mut imports_reused_as_roots,
             &mut single_use_usages,
             &mut macros,
         );
     }
 
     for single_use in &single_use_usages {
-        if !imports_reused_with_self.contains(&single_use.0) {
+        if !imports_reused_with_self.contains(&single_use.0) && !imports_reused_as_roots.contains(&single_use.0) {
             let can_suggest = single_use.2;
             if can_suggest {
                 span_lint_and_sugg(
@@ -108,6 +122,7 @@ fn track_uses(
     cx: &EarlyContext<'_>,
     item: &Item,
     imports_reused_with_self: &mut Vec<Symbol>,
+    imports_reused_as_roots: &mut Vec<Symbol>,
     single_use_usages: &mut Vec<(Symbol, Span, bool)>,
     macros: &mut Vec<Symbol>,
 ) {
@@ -117,14 +132,13 @@ fn track_uses(
 
     match &item.kind {
         ItemKind::Mod(_, ModKind::Loaded(ref items, ..)) => {
-            check_mod(cx, &items);
+            check_mod(cx, &items, imports_reused_as_roots);
         },
         ItemKind::MacroDef(MacroDef { macro_rules: true, .. }) => {
             macros.push(item.ident.name);
         },
         ItemKind::Use(use_tree) => {
             let segments = &use_tree.prefix.segments;
-
             let should_report =
                 |name: &Symbol| !macros.contains(name) || matches!(item.vis.kind, VisibilityKind::Inherited);
 
@@ -155,9 +169,28 @@ fn track_uses(
                     }
                 }
             } else {
-                // keep track of `use self::some_module` usages
-                if segments[0].ident.name == kw::SelfLower {
-                    // simple case such as `use self::module::SomeStruct`
+                // keep track of `use {super|crate}::some_module` usages
+                if segments[0].ident.name == kw::Crate || segments[0].ident.name == kw::Super {
+                    // simple cases such as `use self::module::SomeStruct`
+                    if segments.len() > 1 {
+                        // Using the last node, as we may be dealing with
+                        // something like this:
+                        // `use super::super::super::super::super::module`
+                        imports_reused_as_roots.push(segments[segments.len() - 1].ident.name);
+                        return;
+                    }
+                    // nested case such as `use self::{module1::Struct1, module2::Struct2}`
+                    if let UseTreeKind::Nested(trees) = &use_tree.kind {
+                        for tree in trees {
+                            let segments = &tree.0.prefix.segments;
+                            if !segments.is_empty() {
+                                imports_reused_as_roots.push(segments[0].ident.name);
+                            }
+                        }
+                    }
+                    // keep track of `use self::some_module` usages
+                } else if segments[0].ident.name == kw::SelfLower {
+                    // simple cases such as `use self::module::SomeStruct`
                     if segments.len() > 1 {
                         imports_reused_with_self.push(segments[1].ident.name);
                         return;
