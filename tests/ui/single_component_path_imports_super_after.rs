@@ -7,7 +7,7 @@ use regex;
 mod foo {
     use super::regex::Regex;
     pub fn bar() {
-        regex::Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
+        Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap();
     }
 }
 

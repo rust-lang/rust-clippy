@@ -173,11 +173,15 @@ fn track_uses(
                 if segments[0].ident.name == kw::Crate || segments[0].ident.name == kw::Super {
                     // simple cases such as `use self::module::SomeStruct`
                     if segments.len() > 1 {
-                        // Using the last node, as we may be dealing with
+                        // Get the first one that is NOT super or crate
                         // something like this:
                         // `use super::super::super::super::super::module`
-                        imports_reused_as_roots.push(segments[segments.len() - 1].ident.name);
-                        return;
+                        for segment in segments {
+                            if segment.ident.name != kw::Super && segment.ident.name != kw::Crate {
+                                imports_reused_as_roots.push(segment.ident.name);
+                                return;
+                            }
+                        }
                     }
                     // nested case such as `use self::{module1::Struct1, module2::Struct2}`
                     if let UseTreeKind::Nested(trees) = &use_tree.kind {
