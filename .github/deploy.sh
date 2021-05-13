@@ -4,11 +4,22 @@ set -ex
 
 echo "Removing the current docs for master"
 rm -rf out/master/ || exit 0
+rm -rf out/dev/ || exit 0
 
 echo "Making the docs for master"
 mkdir out/master/
 cp util/gh-pages/index.html out/master
 python3 ./util/export.py out/master/lints.json
+
+# Feeding the beast
+# This will run in parallel to the current lint list version until everything is fully adapted
+echo "Building dev environment"
+mkdir -p out/dev/
+cp util/gh-pages/dev-index.html out/dev/index.html
+cargo collect-metadata
+# Temporary fix until the old headline syntax will be replaced with the markdown ### syntax
+sed -i -e 's/ \*\*/### /g' -e 's/\*\*/\\n/g' util/gh-pages/metadata_collection.json
+cp util/gh-pages/metadata_collection.json out/dev/lints.json
 
 if [[ -n $TAG_NAME ]]; then
   echo "Save the doc for the current tag ($TAG_NAME) and point stable/ to it"
