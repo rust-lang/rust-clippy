@@ -2820,6 +2820,17 @@
     }
   },
   {
+    "id": "needless_bitwise_bool",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for uses of bitwise and/or operators between booleans, where performance may be improved by using\na lazy and.",
+      "Why is this bad": "The bitwise operators do not support short-circuiting, so it may hinder code performance.\nAdditionally, boolean logic \"masked\" as bitwise logic is not caught by lints like `unnecessary_fold`",
+      "Known problems": "This lint evaluates only when the right side is determined to have no side effects. At this time, that\ndetermination is quite conservative.",
+      "Example": "```rust\nlet (x,y) = (true, false);\nif x & !y {} // where both x and y are booleans\n```\nUse instead:\n```rust\nlet (x,y) = (true, false);\nif x && !y {}\n```"
+    }
+  },
+  {
     "id": "needless_bool",
     "group": "complexity",
     "level": "Warn",
