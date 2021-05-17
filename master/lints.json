@@ -4719,6 +4719,17 @@
     }
   },
   {
+    "id": "unused_async",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for functions that are declared `async` but have no `.await`s inside of them.",
+      "Why is this bad": "Async functions with no async code create overhead, both mentally and computationally.\nCallers of async methods either need to be calling from an async function themselves or run it on an executor, both of which\ncauses runtime overhead and hassle for the caller.",
+      "Known problems": "None",
+      "Example": "```rust\n// Bad\nasync fn get_random_number() -> i64 {\n    4 // Chosen by fair dice roll. Guaranteed to be random.\n}\nlet number_future = get_random_number();\n\n// Good\nfn get_random_number_improved() -> i64 {\n    4 // Chosen by fair dice roll. Guaranteed to be random.\n}\nlet number_future = async { get_random_number_improved() };\n```"
+    }
+  },
+  {
     "id": "unused_collect",
     "group": "deprecated",
     "level": "Deprecated",
