@@ -30,7 +30,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     pub SEMICOLON_IF_NOTHING_RETURNED,
-    style,
+    pedantic,
     "add a semicolon if nothing is returned"
 }
 
