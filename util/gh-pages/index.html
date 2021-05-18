@@ -31,6 +31,26 @@
         .panel .panel-title-name .anchor { display: none; }
         .panel:hover .panel-title-name .anchor { display: inline;}
 
+        .label-lint-group {
+            min-width: 8em;
+        }
+        .label-lint-level {
+            min-width: 4em;
+        }
+
+        .lint-level-allow {
+            background-color: #5cb85c;
+        }
+        .lint-level-warn {
+            background-color: #f0ad4e;
+        }
+        .lint-level-deny {
+            background-color: #d9534f;
+        }
+        .lint-level-deprecated {
+            background-color: #777777;
+        }
+
     </style>
     <style>
         /* Expanding the mdBoom theme*/
@@ -217,23 +237,19 @@
                 </div>
             </div>
 
-            <article class="panel panel-default" id="{{lint.id}}"
-                ng-repeat="lint in data | filter:byLevels | filter:byGroups | filter:bySearch | orderBy:'id' track by lint.id">
+            <article class="panel panel-default" id="{{lint.id}}" ng-repeat="lint in data | filter:bySearch | orderBy:'id' track by lint.id">
                 <header class="panel-heading" ng-click="open[lint.id] = !open[lint.id]">
                     <h2 class="panel-title">
                         <div class="panel-title-name">
                             <span>{{lint.id}}</span>
                             <a href="#{{lint.id}}" class="anchor label label-default" ng-click="open[lint.id] = true; $event.stopPropagation()">&para;</a>
                         </div>
-
+                        
                         <div class="panel-title-addons">
-                            <span class="label label-default text-capitalize">{{lint.group}}</span>
-
-                            <span ng-if="lint.level == 'Allow'" class="label label-success">Allow</span>
-                            <span ng-if="lint.level == 'Warn'" class="label label-warning">Warn</span>
-                            <span ng-if="lint.level == 'Deny'" class="label label-danger">Deny</span>
-                            <span ng-if="lint.level == 'Deprecated'" class="label label-default">Deprecated</span>
-
+                            <span class="label label-default label-lint-group">{{lint.group}}</span>
+                            
+                            <span class="label lint-level-{{lint.level}} label-lint-level">{{lint.level}}</span>
+                            
                             <button class="btn btn-default btn-xs">
                                 <span ng-show="open[lint.id]">&minus;</span>
                                 <span ng-hide="open[lint.id]">&plus;</span>
@@ -243,13 +259,7 @@
                 </header>
 
                 <ul class="list-group lint-docs" ng-if="lint.docs" ng-class="{collapse: true, in: open[lint.id]}">
-                    <li class="list-group-item" ng-repeat="(title, text) in lint.docs">
-                        <h4 class="list-group-item-heading">
-                            {{title}}
-                        </h4>
-                        <div class="list-group-item-text" ng-bind-html="text | markdown"></div>
-                        <a ng-if="title == 'Known problems'" href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+is%3Aopen+{{lint.id}}">Search on GitHub</a>
-                    </li>
+                    <div class="list-group-item" ng-bind-html="lint.docs | markdown"></div>
                 </ul>
             </article>
         </div>
