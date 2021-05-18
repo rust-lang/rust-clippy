@@ -51,6 +51,17 @@
             background-color: #777777;
         }
 
+        .lint-doc-md > h3 {
+            border-top: 1px solid var(--theme-popup-border);
+            padding: 10px 15px;
+            margin: 0 -15px;
+            font-size: 18px;
+        }
+        .lint-doc-md > h3:first-child {
+            border-top: none;
+            padding-top: 0px;
+        }
+
     </style>
     <style>
         /* Expanding the mdBoom theme*/
@@ -258,8 +269,8 @@
                     </h2>
                 </header>
 
-                <ul class="list-group lint-docs" ng-if="lint.docs" ng-class="{collapse: true, in: open[lint.id]}">
-                    <div class="list-group-item" ng-bind-html="lint.docs | markdown"></div>
+                <ul class="list-group lint-docs" ng-class="{collapse: true, in: open[lint.id]}">
+                    <div class="list-group-item lint-doc-md" ng-bind-html="lint.docs | markdown"></div>
                 </ul>
             </article>
         </div>
@@ -280,12 +291,16 @@
             linkify: true,
             typographer: true,
             highlight: function (str, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    try {
-                        return '<pre class="hljs"><code>' +
-                            hljs.highlight(lang, str, true).value +
-                            '</code></pre>';
-                    } catch (__) {}
+                if (lang) {
+                    // This removes additional markdown information like `,ignore`.
+                    let onlyLang = lang.split(",")[0];
+                    if (hljs.getLanguage(onlyLang)) {
+                        try {
+                            return '<pre class="hljs"><code>' +
+                                hljs.highlight(onlyLang, str, true).value +
+                                '</code></pre>';
+                        } catch (__) {}
+                    }
                 }
 
                 return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
