@@ -60,7 +60,7 @@ impl LateLintPass<'_> for SemicolonIfNothingReturned {
                     "consider adding a `;` to the last statement for consistent formatting",
                     "add a `;` here",
                     suggestion,
-                    Applicability::MachineApplicable,
+                    Applicability::MaybeIncorrect,
                 );
             }
         }
