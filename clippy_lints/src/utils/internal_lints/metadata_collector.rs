@@ -207,7 +207,7 @@ struct LintMetadata {
     id: String,
     id_span: SerializableSpan,
     group: String,
-    level: &'static str,
+    level: String,
     docs: String,
     /// This field is only used in the output and will only be
     /// mapped shortly before the actual output.
@@ -220,7 +220,7 @@ impl LintMetadata {
             id,
             id_span,
             group,
-            level,
+            level: level.to_string(),
             docs,
             applicability: None,
         }
@@ -485,6 +485,13 @@ fn extract_attr_docs_or_lint(cx: &LateContext<'_>, item: &Item<'_>) -> Option<St
 /// ```
 ///
 /// Would result in `Hello world!\n=^.^=\n`
+///
+/// ---
+///
+/// This function may modify the doc comment to ensure that the string can be displayed using a
+/// markdown viewer in Clippy's lint list. The following modifications could be applied:
+/// * Removal of leading space after a new line. (Important to display tables)
+/// * Ensures that code blocks only contain language information
 fn extract_attr_docs(cx: &LateContext<'_>, item: &Item<'_>) -> Option<String> {
     let attrs = cx.tcx.hir().attrs(item.hir_id());
     let mut lines = attrs.iter().filter_map(ast::Attribute::doc_str);
@@ -509,7 +516,12 @@ fn extract_attr_docs(cx: &LateContext<'_>, item: &Item<'_>) -> Option<String> {
                 continue;
             }
         }
-        docs.push_str(line);
+        // This removes the leading space that the macro translation introduces
+        if let Some(stripped_doc) = line.strip_prefix(' ') {
+            docs.push_str(stripped_doc);
+        } else if !line.is_empty() {
+            docs.push_str(&line);
+        }
     }
     Some(docs)
 }
