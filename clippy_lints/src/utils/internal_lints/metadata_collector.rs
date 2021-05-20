@@ -113,6 +113,8 @@ const DEPRECATED_LINT_TYPE: [&str; 3] = ["clippy_lints", "deprecated_lints", "Cl
 
 /// The index of the applicability name of `paths::APPLICABILITY_VALUES`
 const APPLICABILITY_NAME_INDEX: usize = 2;
+/// This applicability will be set for unresolved applicability values.
+const APPLICABILITY_UNRESOLVED_STR: &str = "Unresolved";
 
 declare_clippy_lint! {
     /// **What it does:** Collects metadata about clippy lints for the website.
@@ -191,7 +193,7 @@ impl Drop for MetadataCollector {
         let mut lints = std::mem::take(&mut self.lints).into_sorted_vec();
         lints
             .iter_mut()
-            .for_each(|x| x.applicability = applicability_info.remove(&x.id));
+            .for_each(|x| x.applicability = Some(applicability_info.remove(&x.id).unwrap_or_default()));
 
         // Outputting
         if Path::new(OUTPUT_FILE).exists() {
@@ -268,14 +270,16 @@ impl Serialize for ApplicabilityInfo {
     where
         S: Serializer,
     {
-        let index = self.applicability.unwrap_or_default();
-
         let mut s = serializer.serialize_struct("ApplicabilityInfo", 2)?;
         s.serialize_field("is_multi_part_suggestion", &self.is_multi_part_suggestion)?;
-        s.serialize_field(
-            "applicability",
-            &paths::APPLICABILITY_VALUES[index][APPLICABILITY_NAME_INDEX],
-        )?;
+        if let Some(index) = self.applicability {
+            s.serialize_field(
+                "applicability",
+                &paths::APPLICABILITY_VALUES[index][APPLICABILITY_NAME_INDEX],
+            )?;
+        } else {
+            s.serialize_field("applicability", APPLICABILITY_UNRESOLVED_STR)?;
+        }
         s.end()
     }
 }
