@@ -29,10 +29,10 @@ Otherwise, have a great day =^.^=
 
         .panel-heading { cursor: pointer; }
 
-        .panel-title { display: flex; }
+        .panel-title { display: flex; flex-wrap: wrap;}
         .panel-title .label { display: inline-block; }
 
-        .panel-title-name { flex: 1; }
+        .panel-title-name { flex: 1; min-width: 400px;}
         .panel-title-name span { vertical-align: bottom; }
 
         .panel .panel-title-name .anchor { display: none; }
@@ -69,14 +69,30 @@ Otherwise, have a great day =^.^=
             padding-top: 0px;
         }
 
+        @media (max-width:749px) {
+            .lint-additional-info-container {
+                display: flex;
+                flex-flow: column;
+            }
+            .lint-additional-info-item + .lint-additional-info-item {
+                border-top: 1px solid var(--theme-popup-border);
+            }
+        }
+        @media (min-width:750px) {
+            .lint-additional-info-container {
+                display: flex;
+                flex-flow: row;
+            }
+            .lint-additional-info-item + .lint-additional-info-item {
+                border-left: 1px solid var(--theme-popup-border);
+            }
+        }
+
         .lint-additional-info-item {
             display: inline-flex;
+            min-width: 200px;
             flex-grow: 1;
-            padding: 9px 5px 5px 5px;
-            border-left: 1px solid var(--theme-popup-border);
-        }
-        .lint-additional-info-item:first-child {
-            border-left: 0;
+            padding: 9px 5px 5px 15px;
         }
 
         .label-applicability {
@@ -292,7 +308,7 @@ Otherwise, have a great day =^.^=
 
                 <ul class="list-group lint-docs" ng-class="{collapse: true, in: open[lint.id]}">
                     <div class="list-group-item lint-doc-md" ng-bind-html="lint.docs | markdown"></div>
-                    <div style="display: flex;">
+                    <div class="lint-additional-info-container">
                         <!-- Applicability -->
                         <div class="lint-additional-info-item">
                             <span> Applicability: </span> 
