@@ -2843,8 +2843,8 @@
   },
   {
     "id": "needless_borrow",
-    "group": "nursery",
-    "level": "Allow",
+    "group": "style",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.",
       "Why is this bad": "Suggests that the receiver of the expression borrows\nthe expression.",
