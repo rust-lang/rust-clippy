@@ -3625,6 +3625,17 @@
     }
   },
   {
+    "id": "ref_binding_to_reference",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `ref` bindings which create a reference to a reference.",
+      "Why is this bad": "The address-of operator at the use site is clearer about the need for a reference.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet x = Some(\"\");\nif let Some(ref x) = x {\n    // use `x` here\n}\n\n// Good\nlet x = Some(\"\");\nif let Some(x) = x {\n    // use `&x` here\n}\n```"
+    }
+  },
+  {
     "id": "ref_in_deref",
     "group": "complexity",
     "level": "Warn",
