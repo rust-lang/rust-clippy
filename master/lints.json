@@ -4148,8 +4148,8 @@
   },
   {
     "id": "suspicious_operation_groupings",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for unlikely usages of binary operators that are almost\ncertainly typos and/or copy/paste errors, given the other usages\nof binary operators nearby.",
       "Why is this bad": "They are probably bugs and if they aren't then they look like bugs\nand you should add a comment explaining why you are doing such an\nodd set of operations.",
