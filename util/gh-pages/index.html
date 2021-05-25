@@ -61,6 +61,11 @@ Otherwise, have a great day =^.^=
         }
         .label-lint-level-none {
             background-color: #777777;
+            opacity: 0.5;
+        }
+
+        .label-group-deprecated {
+            opacity: 0.5;
         }
 
         .label-doc-folding {
@@ -312,9 +317,9 @@ Otherwise, have a great day =^.^=
                             <span>{{lint.id}}</span>
                             <a href="#{{lint.id}}" class="anchor label label-default" ng-click="open[lint.id] = true; $event.stopPropagation()">&para;</a>
                         </div>
-                        
+
                         <div class="panel-title-addons">
-                            <span class="label label-lint-group label-default">{{lint.group}}</span>
+                            <span class="label label-lint-group label-default label-group-{{lint.group}}">{{lint.group}}</span>
                             
                             <span class="label label-lint-level label-lint-level-{{lint.level}}">{{lint.level}}</span>
                             
@@ -442,7 +447,7 @@ Otherwise, have a great day =^.^=
                 cargo: true,
                 complexity: true,
                 correctness: true,
-                deprecated: true,
+                deprecated: false,
                 nursery: true,
                 pedantic: true,
                 perf: true,
@@ -476,7 +481,7 @@ Otherwise, have a great day =^.^=
                     if (docsLowerCase.indexOf(terms[index]) !== -1) {
                         continue;
                     }
-                    
+
                     if (lint.id.indexOf(terms[index]) !== -1) {
                         continue;
                     }
@@ -490,9 +495,18 @@ Otherwise, have a great day =^.^=
             // Get data
             $scope.open = {};
             $scope.loading = true;
-            // This will be used to jump into the source code of the version that this documentation is for.
-            // TODO xFrednet 2021-05-19: how do we want to deal with "beta"?
+            // This will be used to jump into the source code of the version that this
+            // documentation is for. The version will be queried from the path as this
+            // works for all doc versions (master, beta, rust-1.52.0) with the exception
+            // of "stable" asa this is neither a tag or branch in our repo.
+            //
+            // The dirty hack is to link against beta in that case as that is the closes
+            // known branch to the current stable version. (The version would need to be
+            // queried) 
             $scope.docVersion = window.location.pathname.split('/')[2];
+            if ($scope.docVersion === "stable") {
+                $scope.docVersion = "beta";
+            }
 
             if (window.location.hash.length > 1) {
                 $scope.search = window.location.hash.slice(1);
