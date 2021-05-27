@@ -11,7 +11,7 @@ Otherwise, have a great day =^.^=
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <title>Clippy's lint list</title>
+    <title>Clippy Lints</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/github.min.css"/>
@@ -246,7 +246,7 @@ Otherwise, have a great day =^.^=
 
     <div class="container" ng-app="clippy" ng-controller="lintList">
         <div class="page-header">
-            <h1>Clippy's lint list</h1>
+            <h1>Clippy Lints</h1>
         </div>
 
         <noscript>
@@ -495,18 +495,8 @@ Otherwise, have a great day =^.^=
             // Get data
             $scope.open = {};
             $scope.loading = true;
-            // This will be used to jump into the source code of the version that this
-            // documentation is for. The version will be queried from the path as this
-            // works for all doc versions (master, beta, rust-1.52.0) with the exception
-            // of "stable" asa this is neither a tag or branch in our repo.
-            //
-            // The dirty hack is to link against beta in that case as that is the closes
-            // known branch to the current stable version. (The version would need to be
-            // queried) 
+            // This will be used to jump into the source code of the version that this documentation is for.
             $scope.docVersion = window.location.pathname.split('/')[2];
-            if ($scope.docVersion === "stable") {
-                $scope.docVersion = "beta";
-            }
 
             if (window.location.hash.length > 1) {
                 $scope.search = window.location.hash.slice(1);
