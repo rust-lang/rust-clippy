@@ -4157,6 +4157,17 @@
     }
   },
   {
+    "id": "suspicious_splitn",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for calls to [`splitn`]\n(https://doc.rust-lang.org/std/primitive.str.html#method.splitn) and\nrelated functions with either zero or one splits.",
+      "Why is this bad": "These calls don't actually split the value and are\nlikely to be intended as a different number.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet s = \"\";\nfor x in s.splitn(1, \":\") {\n    // use x\n}\n\n// Good\nlet s = \"\";\nfor x in s.splitn(2, \":\") {\n    // use x\n}\n```"
+    }
+  },
+  {
     "id": "suspicious_unary_op_formatting",
     "group": "style",
     "level": "Warn",
