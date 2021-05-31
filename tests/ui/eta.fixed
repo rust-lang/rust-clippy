@@ -91,11 +91,11 @@ fn test_redundant_closures_containing_method_calls() {
     let e = Some(TestStruct { some_ref: &i }).map(TestStruct::foo);
     let e = Some(TestStruct { some_ref: &i }).map(TestTrait::trait_foo);
     let e = Some(TestStruct { some_ref: &i }).map(|a| a.trait_foo_ref());
-    let e = Some(&mut vec![1, 2, 3]).map(std::vec::Vec::clear);
+    let e = Some(&mut vec![1, 2, 3]).map(Vec::clear);
     unsafe {
         let e = Some(TestStruct { some_ref: &i }).map(|a| a.foo_unsafe());
     }
-    let e = Some("str").map(std::string::ToString::to_string);
+    let e = Some("str").map(ToString::to_string);
     let e = Some('a').map(char::to_uppercase);
     let e: std::vec::Vec<usize> = vec!['a', 'b', 'c'].iter().map(|c| c.len_utf8()).collect();
     let e: std::vec::Vec<char> = vec!['a', 'b', 'c'].iter().map(char::to_ascii_uppercase).collect();
@@ -233,7 +233,7 @@ fn late_bound_lifetimes() {
     {
     }
     map_str(|s| take_asref_path(s));
-    map_str_to_path(std::convert::AsRef::as_ref);
+    map_str_to_path(AsRef::as_ref);
 }
 
 mod type_param_bound {

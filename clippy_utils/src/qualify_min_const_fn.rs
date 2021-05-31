@@ -9,6 +9,7 @@ use rustc_middle::mir::{
     Body, CastKind, NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, Terminator,
     TerminatorKind,
 };
+use rustc_middle::ty::print::with_no_trimmed_paths;
 use rustc_middle::ty::subst::GenericArgKind;
 use rustc_middle::ty::{self, adjustment::PointerCast, Ty, TyCtxt};
 use rustc_semver::RustcVersion;
@@ -318,15 +319,14 @@ fn check_terminator(
             let fn_ty = func.ty(body, tcx);
             if let ty::FnDef(fn_def_id, _) = *fn_ty.kind() {
                 if !is_const_fn(tcx, fn_def_id, msrv) {
-                    return Err((
-                        span,
+                    let msg = with_no_trimmed_paths(|| {
                         format!(
                             "can only call other `const fn` within a `const fn`, \
                              but `{:?}` is not stable as `const fn`",
                             func,
                         )
-                        .into(),
-                    ));
+                    });
+                    return Err((span, msg.into()));
                 }
 
                 // HACK: This is to "unstabilize" the `transmute` intrinsic

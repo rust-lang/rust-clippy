@@ -1,13 +1,14 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::in_macro;
 use clippy_utils::source::snippet;
-use hir::def::{DefKind, Res};
 use if_chain::if_chain;
 use rustc_ast::ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
+use rustc_hir::def::{DefKind, Res};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::ty::print::with_no_trimmed_paths;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::{edition::Edition, sym, Span};
 
@@ -118,7 +119,7 @@ impl<'tcx> LateLintPass<'tcx> for MacroUseImports {
                 for kid in cx.tcx.item_children(id).iter() {
                     if let Res::Def(DefKind::Macro(_mac_type), mac_id) = kid.res {
                         let span = mac_attr.span;
-                        let def_path = cx.tcx.def_path_str(mac_id);
+                        let def_path = with_no_trimmed_paths(|| cx.tcx.def_path_str(mac_id));
                         self.imports.push((def_path, span));
                     }
                 }

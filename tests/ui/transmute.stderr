@@ -24,31 +24,31 @@ error: transmute from a reference to a pointer
 LL |     let _: *const U = core::intrinsics::transmute(t);
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `t as *const T as *const U`
 
-error: transmute from a type (`std::vec::Vec<i32>`) to itself
+error: transmute from a type (`Vec<i32>`) to itself
   --> $DIR/transmute.rs:33:27
    |
 LL |         let _: Vec<i32> = core::intrinsics::transmute(my_vec());
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: transmute from a type (`std::vec::Vec<i32>`) to itself
+error: transmute from a type (`Vec<i32>`) to itself
   --> $DIR/transmute.rs:35:27
    |
 LL |         let _: Vec<i32> = core::mem::transmute(my_vec());
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: transmute from a type (`std::vec::Vec<i32>`) to itself
+error: transmute from a type (`Vec<i32>`) to itself
   --> $DIR/transmute.rs:37:27
    |
 LL |         let _: Vec<i32> = std::intrinsics::transmute(my_vec());
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: transmute from a type (`std::vec::Vec<i32>`) to itself
+error: transmute from a type (`Vec<i32>`) to itself
   --> $DIR/transmute.rs:39:27
    |
 LL |         let _: Vec<i32> = std::mem::transmute(my_vec());
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: transmute from a type (`std::vec::Vec<i32>`) to itself
+error: transmute from a type (`Vec<i32>`) to itself
   --> $DIR/transmute.rs:41:27
    |
 LL |         let _: Vec<i32> = my_transmute(my_vec());

@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_clippy_lint;
 use clippy_utils::{meets_msrv, msrvs};
 use if_chain::if_chain;
 use rustc_hir as hir;
@@ -64,13 +64,14 @@ impl LateLintPass<'_> for FromOverInto {
             if cx.tcx.is_diagnostic_item(sym::into_trait, impl_trait_ref.def_id);
 
             then {
-                span_lint_and_help(
+                span_clippy_lint(
                     cx,
                     FROM_OVER_INTO,
                     cx.tcx.sess.source_map().guess_head_span(item.span),
-                    "an implementation of `From` is preferred since it gives you `Into<_>` for free where the reverse isn't true",
-                    None,
-                    &format!("consider to implement `From<{}>` instead", impl_trait_ref.self_ty()),
+                    |diag| {
+                        diag.build("an implementation of `From` is preferred since it gives you `Into<_>` for free where the reverse isn't true")
+                            .help(&format!("consider to implement `From<{}>` instead", impl_trait_ref.self_ty()));
+                    }
                 );
             }
         }

@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
+use clippy_utils::diagnostics::{span_clippy_lint, span_lint_and_help, span_lint_and_sugg};
 use clippy_utils::source::{snippet, snippet_with_macro_callsite};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{is_type_diagnostic_item, same_type_and_consts};
@@ -90,16 +90,16 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                     let a = cx.typeck_results().expr_ty(e);
                     let b = cx.typeck_results().expr_ty(&args[0]);
                     if same_type_and_consts(a, b) {
-                        let sugg = snippet(cx, args[0].span, "<expr>").into_owned();
-                        span_lint_and_sugg(
-                            cx,
-                            USELESS_CONVERSION,
-                            e.span,
-                            &format!("useless conversion to the same type: `{}`", b),
-                            "consider removing `.into_iter()`",
-                            sugg,
-                            Applicability::MachineApplicable, // snippet
-                        );
+                        span_clippy_lint(cx, USELESS_CONVERSION, e.span, |diag| {
+                            let sugg = snippet(cx, args[0].span, "<expr>").into_owned();
+                            diag.build(&format!("useless conversion to the same type: `{}`", b))
+                                .span_suggestion(
+                                    e.span,
+                                    "consider removing `.into_iter()`",
+                                    sugg,
+                                    Applicability::MachineApplicable,
+                                );
+                        });
                     }
                 }
                 if_chain! {

@@ -15,6 +15,7 @@ extern crate rustc_session;
 extern crate rustc_span;
 
 use rustc_interface::interface;
+use rustc_session::config::TrimmedDefPaths;
 use rustc_session::parse::ParseSess;
 use rustc_span::symbol::Symbol;
 use rustc_tools_util::VersionInfo;
@@ -117,6 +118,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
         // MIR passes can be enabled / disabled separately, we should figure out, what passes to
         // use for Clippy.
         config.opts.debugging_opts.mir_opt_level = Some(0);
+        config.opts.trimmed_def_paths = TrimmedDefPaths::GoodPath;
     }
 }
 

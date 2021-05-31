@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{span_clippy_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::higher::VecArgs;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::usage::UsedAfterExprVisitor;
@@ -144,9 +144,9 @@ impl<'tcx> LateLintPass<'tcx> for EtaReduction {
             let call_ty = cx.tcx.type_of(method_def_id).subst(cx.tcx, substs);
             if check_sig(cx, closure_ty, call_ty);
             then {
-                span_lint_and_then(cx, REDUNDANT_CLOSURE_FOR_METHOD_CALLS, expr.span, "redundant closure", |diag| {
+                span_clippy_lint(cx, REDUNDANT_CLOSURE_FOR_METHOD_CALLS, expr.span, |diag| {
                     let name = get_ufcs_type_name(cx, method_def_id);
-                    diag.span_suggestion(
+                    diag.build("redundant closure").span_suggestion(
                         expr.span,
                         "replace the closure with the method itself",
                         format!("{}::{}", name, path.ident.name),

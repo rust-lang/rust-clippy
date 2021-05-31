@@ -11,8 +11,63 @@
 use rustc_errors::{Applicability, DiagnosticBuilder};
 use rustc_hir::HirId;
 use rustc_lint::{LateContext, Lint, LintContext};
+use rustc_middle::lint::LintDiagnosticBuilder;
 use rustc_span::source_map::{MultiSpan, Span};
 use std::env;
+use std::ops::{Deref, DerefMut};
+
+pub struct ClippyLintDiagnosticBuilder<'a> {
+    lint: &'static Lint,
+    diag: LintDiagnosticBuilder<'a>,
+}
+
+pub struct ClippyDiagnosticBuilder<'a> {
+    lint: &'static Lint,
+    diag: DiagnosticBuilder<'a>,
+}
+
+impl<'a> Deref for ClippyDiagnosticBuilder<'a> {
+    type Target = DiagnosticBuilder<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.diag
+    }
+}
+
+impl<'a> DerefMut for ClippyDiagnosticBuilder<'a> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.diag
+    }
+}
+
+impl<'a> ClippyLintDiagnosticBuilder<'a> {
+    pub fn build(self, msg: &str) -> ClippyDiagnosticBuilder<'a> {
+        ClippyDiagnosticBuilder {
+            lint: self.lint,
+            diag: self.diag.build(msg),
+        }
+    }
+}
+
+impl Drop for ClippyDiagnosticBuilder<'_> {
+    fn drop(&mut self) {
+        docs_link(&mut self.diag, self.lint);
+        self.diag.emit();
+    }
+}
+
+/// Same as [`LintContext::struct_span_lint`] but automatically adds additional Clippy lint info to
+/// the diagnostic via [`docs_lint`].
+pub fn span_clippy_lint<C, S, F>(cx: &C, lint: &'static Lint, sp: S, f: F)
+where
+    C: LintContext,
+    S: Into<MultiSpan>,
+    F: FnOnce(ClippyLintDiagnosticBuilder<'_>),
+{
+    cx.struct_span_lint(lint, sp, |diag| {
+        f(ClippyLintDiagnosticBuilder { lint, diag });
+    });
+}
 
 fn docs_link(diag: &mut DiagnosticBuilder<'_>, lint: &'static Lint) {
     if env::var("CLIPPY_DISABLE_DOCS_LINKS").is_err() {

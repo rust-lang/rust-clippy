@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_clippy_lint;
 use clippy_utils::source::snippet;
 use clippy_utils::{contains_return, in_macro, is_lang_ctor, return_ty, visitors::find_all_ret_expressions};
 use if_chain::if_chain;
@@ -142,7 +142,10 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
             }
         });
 
-        if can_sugg && !suggs.is_empty() {
+        if !can_sugg || suggs.is_empty() {
+            return;
+        }
+        span_clippy_lint(cx, UNNECESSARY_WRAPS, span, |diag| {
             let (lint_msg, return_type_sugg_msg, return_type_sugg, body_sugg_msg) = if inner_type.is_unit() {
                 (
                     "this function's return value is unnecessary".to_string(),
@@ -161,16 +164,14 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
                     "...and then change returning expressions",
                 )
             };
-
-            span_lint_and_then(cx, UNNECESSARY_WRAPS, span, lint_msg.as_str(), |diag| {
-                diag.span_suggestion(
+            diag.build(&lint_msg)
+                .span_suggestion(
                     fn_decl.output.span(),
                     return_type_sugg_msg.as_str(),
                     return_type_sugg,
                     Applicability::MaybeIncorrect,
-                );
-                diag.multipart_suggestion(body_sugg_msg, suggs, Applicability::MaybeIncorrect);
-            });
-        }
+                )
+                .multipart_suggestion(body_sugg_msg, suggs, Applicability::MaybeIncorrect);
+        });
     }
 }

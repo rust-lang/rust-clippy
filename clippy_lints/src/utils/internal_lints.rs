@@ -1,5 +1,7 @@
 use clippy_utils::consts::{constant_simple, Constant};
-use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::diagnostics::{
+    span_clippy_lint, span_lint, span_lint_and_help, span_lint_and_sugg, span_lint_and_then,
+};
 use clippy_utils::higher;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::match_type;
@@ -25,6 +27,7 @@ use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintCon
 use rustc_middle::hir::map::Map;
 use rustc_middle::mir::interpret::ConstValue;
 use rustc_middle::ty;
+use rustc_middle::ty::print::with_no_trimmed_paths;
 use rustc_session::{declare_lint_pass, declare_tool_lint, impl_lint_pass};
 use rustc_span::source_map::Spanned;
 use rustc_span::symbol::{Symbol, SymbolStr};
@@ -941,15 +944,21 @@ impl<'tcx> LateLintPass<'tcx> for InterningDefinedSymbol {
             let value = Symbol::intern(&arg).as_u32();
             if let Some(&def_id) = self.symbol_map.get(&value);
             then {
-                span_lint_and_sugg(
+                let span = is_expn_of(expr.span, "sym").unwrap_or(expr.span);
+                span_clippy_lint(
                     cx,
                     INTERNING_DEFINED_SYMBOL,
-                    is_expn_of(expr.span, "sym").unwrap_or(expr.span),
-                    "interning a defined symbol",
-                    "try",
-                    cx.tcx.def_path_str(def_id),
-                    Applicability::MachineApplicable,
-                );
+                    span,
+                    |diag| {
+                        diag.build("interning a defined symbol")
+                            .span_suggestion(
+                                span,
+                                "try",
+                                sym_sugg(cx, def_id),
+                                Applicability::MachineApplicable,
+                            );
+                    }
+                )
             }
         }
         if let ExprKind::Binary(op, left, right) = expr.kind {
@@ -1067,7 +1076,7 @@ impl<'tcx> SymbolStrExpr<'tcx> {
     /// Returns a snippet that evaluates to a `Symbol` and is const if possible
     fn as_symbol_snippet(&self, cx: &LateContext<'_>) -> Cow<'tcx, str> {
         match *self {
-            Self::Const(def_id) => cx.tcx.def_path_str(def_id).into(),
+            Self::Const(def_id) => sym_sugg(cx, def_id).into(),
             Self::Expr { item, is_ident, .. } => {
                 let mut snip = snippet(cx, item.span.source_callsite(), "..");
                 if is_ident {
@@ -1078,6 +1087,11 @@ impl<'tcx> SymbolStrExpr<'tcx> {
             },
         }
     }
+}
+
+fn sym_sugg(cx: &LateContext<'_>, def_id: DefId) -> String {
+    // trimmed path does not include the parent module
+    with_no_trimmed_paths(|| cx.tcx.def_path_str(def_id))
 }
 
 declare_lint_pass!(IfChainStyle => [IF_CHAIN_STYLE]);

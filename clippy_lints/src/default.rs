@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_sugg};
+use clippy_utils::diagnostics::{span_clippy_lint, span_lint_and_note};
 use clippy_utils::source::snippet_with_macro_callsite;
 use clippy_utils::{any_parent_is_automatically_derived, contains_name, in_macro, match_def_path, paths};
 use if_chain::if_chain;
@@ -90,18 +90,16 @@ impl LateLintPass<'_> for Default {
             let expr_ty = cx.typeck_results().expr_ty(expr);
             if let ty::Adt(def, ..) = expr_ty.kind();
             then {
-                // TODO: Work out a way to put "whatever the imported way of referencing
-                // this type in this file" rather than a fully-qualified type.
-                let replacement = format!("{}::default()", cx.tcx.def_path_str(def.did));
-                span_lint_and_sugg(
+                span_clippy_lint(
                     cx,
                     DEFAULT_TRAIT_ACCESS,
                     expr.span,
-                    &format!("calling `{}` is more clear than this expression", replacement),
-                    "try",
-                    replacement,
-                    Applicability::Unspecified, // First resolve the TODO above
-                );
+                    |diag| {
+                        let replacement = format!("{}::default()", cx.tcx.def_path_str(def.did));
+                        diag.build(&format!("calling `{}` is more clear than this expression", replacement))
+                            .span_suggestion(expr.span, "try", replacement, Applicability::MaybeIncorrect);
+                    }
+                )
             }
         }
     }
