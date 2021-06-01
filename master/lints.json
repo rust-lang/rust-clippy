@@ -2202,6 +2202,18 @@
     }
   },
   {
+    "id": "manual_str_repeat",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for manual implementations of `str::repeat`",
+      "Why is this bad": "These are both harder to read, as well as less performant.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet x: String = std::iter::repeat('x').take(10).collect();\n\n// Good\nlet x: String = \"x\".repeat(10);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
+    }
+  },
+  {
     "id": "manual_strip",
     "group": "complexity",
     "level": "Warn",
