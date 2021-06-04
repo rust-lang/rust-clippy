@@ -7,6 +7,7 @@ on:
       - beta
     tags:
       - rust-1.**
+  pull_request:
 
 env:
   TARGET_BRANCH: 'gh-pages'
