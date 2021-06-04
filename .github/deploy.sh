@@ -61,4 +61,4 @@ else
   git commit -m "Automatic deploy to GitHub Pages: ${SHA}"
 fi
 
-git push "$SSH_REPO" "$TARGET_BRANCH"
+# git push "$SSH_REPO" "$TARGET_BRANCH"
