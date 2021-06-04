@@ -42,13 +42,14 @@ jobs:
     - name: Use deploy script from master branch
       run: |
         git fetch --no-tags --prune --depth=1 origin master
-        git checkout origin/master -- .github/deploy.sh
+        git checkout origin/master -- .github/deploy.sh util/versions.py util/gh-pages/versions.html
 
-    - name: cargo update
-      run: cargo update
+    # Generate lockfile for caching to avoid build problems with cached deps
+    - name: cargo generate-lockfile
+      run: cargo generate-lockfile
 
     - name: Cache
-      uses: Swatinem/rust-cache@v1
+      uses: Swatinem/rust-cache@v1.3.0
 
     - name: cargo collect-metadata
       run: cargo collect-metadata
