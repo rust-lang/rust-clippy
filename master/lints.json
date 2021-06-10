@@ -719,6 +719,18 @@
     }
   },
   {
+    "id": "disallowed_type",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Denies the configured types in clippy.toml.",
+      "Why is this bad": "Some types are undesirable in certain contexts.",
+      "Known problems": "The fully qualified path must be used. This lint\ndoesn't support aliases or reexported names; be aware that many types\nin `std` are actually reexports.\n\nFor example, if you want to disallow `BTreeMap`, your clippy.toml\nconfiguration would look like\n`disallowed-methods = [\"alloc::collections::btree::map::BTreeMap\"]` and not\n`disallowed-methods = [\"std::collections::BTreeMap\"]` as you might expect.\n\nN.B. There is no way to ban primitive types.",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::collections::btree::map::BTreeMap\"]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-types: Vec<String>`: The list of disallowed types, written as fully qualified paths. (defaults to `Vec::new(`)."
+    }
+  },
+  {
     "id": "diverging_sub_expression",
     "group": "complexity",
     "level": "Warn",
