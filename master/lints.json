@@ -724,8 +724,8 @@
     "docs": {
       "What it does": "Denies the configured methods and functions in clippy.toml",
       "Why is this bad": "Some methods are undesirable in certain contexts,\nand it's beneficial to lint for them as needed.",
-      "Known problems": "Currently, you must write each function as a\nfully-qualified path. This lint doesn't support aliases or reexported\nnames; be aware that many types in `std` are actually reexports.\n\nFor example, if you want to disallow `Duration::as_secs`, your clippy.toml\nconfiguration would look like\n`disallowed-methods = [\"core::time::Duration::as_secs\"]` and not\n`disallowed-methods = [\"std::time::Duration::as_secs\"]` as you might expect.",
-      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```",
+      "Known problems": "None.",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"std::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of disallowed methods, written as fully qualified paths. (defaults to `Vec::new(`)."
     }
   },
@@ -736,8 +736,8 @@
     "docs": {
       "What it does": "Denies the configured types in clippy.toml.",
       "Why is this bad": "Some types are undesirable in certain contexts.",
-      "Known problems": "The fully qualified path must be used. This lint\ndoesn't support aliases or reexported names; be aware that many types\nin `std` are actually reexports.\n\nFor example, if you want to disallow `BTreeMap`, your clippy.toml\nconfiguration would look like\n`disallowed-methods = [\"alloc::collections::btree::map::BTreeMap\"]` and not\n`disallowed-methods = [\"std::collections::BTreeMap\"]` as you might expect.\n\nN.B. There is no way to ban primitive types.",
-      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::collections::btree::map::BTreeMap\"]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```",
+      "Known problems": "None.\n\nN.B. There is no way to ban primitive types.",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"std::collections::BTreeMap\"]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-types: Vec<String>`: The list of disallowed types, written as fully qualified paths. (defaults to `Vec::new(`)."
     }
   },
