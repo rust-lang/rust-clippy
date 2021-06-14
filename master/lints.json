@@ -22,6 +22,17 @@
     }
   },
   {
+    "id": "append_instead_of_extend",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for occurrences where one vector gets extended instead of append",
+      "Why is this bad": "Using `append` instead of `extend` is more concise and faster",
+      "Known problems": "None.",
+      "Example": "```rust\nlet mut a = vec![1, 2, 3];\nlet mut b = vec![4, 5, 6];\n\n// Bad\na.extend(b.drain(..));\n\n// Good\na.append(&mut b);\n```"
+    }
+  },
+  {
     "id": "approx_constant",
     "group": "correctness",
     "level": "Deny",
