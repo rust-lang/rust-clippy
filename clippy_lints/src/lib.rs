@@ -358,6 +358,7 @@ mod unused_self;
 mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
+mod unwrap_or_else_over_map_or_else;
 mod upper_case_acronyms;
 mod use_self;
 mod useless_conversion;
@@ -958,6 +959,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         unwrap::PANICKING_UNWRAP,
         unwrap::UNNECESSARY_UNWRAP,
         unwrap_in_result::UNWRAP_IN_RESULT,
+        unwrap_or_else_over_map_or_else::UNWRAP_OR_ELSE_OVER_MAP_OR_ELSE,
         upper_case_acronyms::UPPER_CASE_ACRONYMS,
         use_self::USE_SELF,
         useless_conversion::USELESS_CONVERSION,
@@ -1127,6 +1129,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(unnested_or_patterns::UNNESTED_OR_PATTERNS),
         LintId::of(unused_async::UNUSED_ASYNC),
         LintId::of(unused_self::UNUSED_SELF),
+        LintId::of(unwrap_or_else_over_map_or_else::UNWRAP_OR_ELSE_OVER_MAP_OR_ELSE),
         LintId::of(wildcard_imports::ENUM_GLOB_USE),
         LintId::of(wildcard_imports::WILDCARD_IMPORTS),
         LintId::of(zero_sized_map_values::ZERO_SIZED_MAP_VALUES),
