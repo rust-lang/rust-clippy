@@ -715,7 +715,7 @@
       "Why is this bad": "Some methods are undesirable in certain contexts,\nand it's beneficial to lint for them as needed.",
       "Known problems": "Currently, you must write each function as a\nfully-qualified path. This lint doesn't support aliases or reexported\nnames; be aware that many types in `std` are actually reexports.\n\nFor example, if you want to disallow `Duration::as_secs`, your clippy.toml\nconfiguration would look like\n`disallowed-methods = [\"core::time::Duration::as_secs\"]` and not\n`disallowed-methods = [\"std::time::Duration::as_secs\"]` as you might expect.",
       "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of disallowed methods, written as fully qualified paths. (defaults to `Vec::<String>::new(`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of disallowed methods, written as fully qualified paths. (defaults to `Vec::new(`)."
     }
   },
   {
@@ -1467,7 +1467,8 @@
       "What it does": "Checks for if-else that could be written to `bool::then`.",
       "Why is this bad": "Looks a little redundant. Using `bool::then` helps it have less lines of code.",
       "Known problems": "None.",
-      "Example": "```rust\nlet a = if v.is_empty() {\n    println!(\"true!\");\n    Some(42)\n} else {\n    None\n};\n```\n\nCould be written:\n\n```rust\nlet a = v.is_empty().then(|| {\n    println!(\"true!\");\n    42\n});\n```"
+      "Example": "```rust\nlet a = if v.is_empty() {\n    println!(\"true!\");\n    Some(42)\n} else {\n    None\n};\n```\n\nCould be written:\n\n```rust\nlet a = v.is_empty().then(|| {\n    println!(\"true!\");\n    42\n});\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -1549,8 +1550,8 @@
   },
   {
     "id": "inconsistent_struct_constructor",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for struct constructors where all fields are shorthand and\nthe order of the field init shorthand in the constructor is inconsistent\nwith the order in the struct definition.",
       "Why is this bad": "Since the order of fields in a constructor doesn't affect the\nresulted instance as the below example indicates,\n\n```rust\n#[derive(Debug, PartialEq, Eq)]\nstruct Foo {\n    x: i32,\n    y: i32,\n}\nlet x = 1;\nlet y = 2;\n\n// This assertion never fails:\nassert_eq!(Foo { x, y }, Foo { y, x });\n```\n\ninconsistent order can be confusing and decreases readability and consistency.",
@@ -1953,7 +1954,8 @@
     "docs": {
       "What it does": "Checks for functions taking arguments by value, where\nthe argument type is `Copy` and large enough to be worth considering\npassing by reference. Does not trigger if the function is being exported,\nbecause that might induce API breakage, if the parameter is declared as mutable,\nor if the argument is a `self`.",
       "Why is this bad": "Arguments passed by value might result in an unnecessary\nshallow copy, taking up more space in the stack and requiring a call to\n`memcpy`, which can be expensive.",
-      "Example": "```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Bad\nfn foo(v: TooLarge) {}\n```\n```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Good\nfn foo(v: &TooLarge) {}\n```"
+      "Example": "```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Bad\nfn foo(v: TooLarge) {}\n```\n```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\n// Good\nfn foo(v: &TooLarge) {}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `avoid-breaking-exported-api: bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)."
     }
   },
   {
@@ -2197,6 +2199,18 @@
       "What it does": "Checks for `.checked_add/sub(x).unwrap_or(MAX/MIN)`.",
       "Why is this bad": "These can be written simply with `saturating_add/sub` methods.",
       "Example": "```rust\nlet add = x.checked_add(y).unwrap_or(u32::MAX);\nlet sub = x.checked_sub(y).unwrap_or(u32::MIN);\n```\n\ncan be written using dedicated methods for saturating addition/subtraction as:\n\n```rust\nlet add = x.saturating_add(y);\nlet sub = x.saturating_sub(y);\n```"
+    }
+  },
+  {
+    "id": "manual_str_repeat",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for manual implementations of `str::repeat`",
+      "Why is this bad": "These are both harder to read, as well as less performant.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet x: String = std::iter::repeat('x').take(10).collect();\n\n// Good\nlet x: String = \"x\".repeat(10);\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `msrv: Option<String>`: The minimum rust version that the project supports (defaults to `None`)."
     }
   },
   {
@@ -2819,6 +2833,17 @@
     }
   },
   {
+    "id": "needless_bitwise_bool",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for uses of bitwise and/or operators between booleans, where performance may be improved by using\na lazy and.",
+      "Why is this bad": "The bitwise operators do not support short-circuiting, so it may hinder code performance.\nAdditionally, boolean logic \"masked\" as bitwise logic is not caught by lints like `unnecessary_fold`",
+      "Known problems": "This lint evaluates only when the right side is determined to have no side effects. At this time, that\ndetermination is quite conservative.",
+      "Example": "```rust\nlet (x,y) = (true, false);\nif x & !y {} // where both x and y are booleans\n```\nUse instead:\n```rust\nlet (x,y) = (true, false);\nif x && !y {}\n```"
+    }
+  },
+  {
     "id": "needless_bool",
     "group": "complexity",
     "level": "Warn",
@@ -2831,8 +2856,8 @@
   },
   {
     "id": "needless_borrow",
-    "group": "nursery",
-    "level": "Allow",
+    "group": "style",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.",
       "Why is this bad": "Suggests that the receiver of the expression borrows\nthe expression.",
@@ -3405,13 +3430,11 @@
   },
   {
     "id": "pub_enum_variant_names",
-    "group": "pedantic",
-    "level": "Allow",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "Detects public enumeration variants that are\nprefixed or suffixed by the same characters.",
-      "Why is this bad": "Public enumeration variant names should specify their variant,\nnot repeat the enumeration name.",
-      "Known problems": "None.",
-      "Example": "```rust\npub enum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```\nCould be written as:\n```rust\npub enum Cake {\n    BlackForest,\n    Hummingbird,\n    Battenberg,\n}\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "The `avoid_breaking_exported_api` config option was added, which\nenables the `enum_variant_names` lint for public items.\n```"
     }
   },
   {
@@ -3613,6 +3636,17 @@
     }
   },
   {
+    "id": "ref_binding_to_reference",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `ref` bindings which create a reference to a reference.",
+      "Why is this bad": "The address-of operator at the use site is clearer about the need for a reference.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet x = Some(\"\");\nif let Some(ref x) = x {\n    // use `x` here\n}\n\n// Good\nlet x = Some(\"\");\nif let Some(x) = x {\n    // use `&x` here\n}\n```"
+    }
+  },
+  {
     "id": "ref_in_deref",
     "group": "complexity",
     "level": "Warn",
@@ -3763,11 +3797,11 @@
   },
   {
     "id": "semicolon_if_nothing_returned",
-    "group": "restriction",
+    "group": "pedantic",
     "level": "Allow",
     "docs": {
-      "What it does": "Looks for blocks of expressions and fires if the last expression returns `()`\nbut is not followed by a semicolon.",
-      "Why is this bad": "The semicolon might be optional but when\nextending the block with new code, it doesn't require a change in previous last line.",
+      "What it does": "Looks for blocks of expressions and fires if the last expression returns\n`()` but is not followed by a semicolon.",
+      "Why is this bad": "The semicolon might be optional but when extending the block with new\ncode, it doesn't require a change in previous last line.",
       "Known problems": "None.",
       "Example": "```rust\nfn main() {\n    println!(\"Hello world\")\n}\n```\nUse instead:\n```rust\nfn main() {\n    println!(\"Hello world\");\n}\n```"
     }
@@ -4125,13 +4159,24 @@
   },
   {
     "id": "suspicious_operation_groupings",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for unlikely usages of binary operators that are almost\ncertainly typos and/or copy/paste errors, given the other usages\nof binary operators nearby.",
       "Why is this bad": "They are probably bugs and if they aren't then they look like bugs\nand you should add a comment explaining why you are doing such an\nodd set of operations.",
       "Known problems": "There may be some false positives if you are trying to do something\nunusual that happens to look like a typo.",
       "Example": "```rust\nstruct Vec3 {\n    x: f64,\n    y: f64,\n    z: f64,\n}\n\nimpl Eq for Vec3 {}\n\nimpl PartialEq for Vec3 {\n    fn eq(&self, other: &Self) -> bool {\n        // This should trigger the lint because `self.x` is compared to `other.y`\n        self.x == other.y && self.y == other.y && self.z == other.z\n    }\n}\n```\nUse instead:\n```rust\n// same as above except:\nimpl PartialEq for Vec3 {\n    fn eq(&self, other: &Self) -> bool {\n        // Note we now compare other.x to self.x\n        self.x == other.x && self.y == other.y && self.z == other.z\n    }\n}\n```"
+    }
+  },
+  {
+    "id": "suspicious_splitn",
+    "group": "correctness",
+    "level": "Deny",
+    "docs": {
+      "What it does": "Checks for calls to [`splitn`]\n(https://doc.rust-lang.org/std/primitive.str.html#method.splitn) and\nrelated functions with either zero or one splits.",
+      "Why is this bad": "These calls don't actually split the value and are\nlikely to be intended as a different number.",
+      "Known problems": "None.",
+      "Example": "```rust\n// Bad\nlet s = \"\";\nfor x in s.splitn(1, \":\") {\n    // use x\n}\n\n// Good\nlet s = \"\";\nfor x in s.splitn(2, \":\") {\n    // use x\n}\n```"
     }
   },
   {
@@ -4586,7 +4631,8 @@
       "What it does": "Checks for private functions that only return `Ok` or `Some`.",
       "Why is this bad": "It is not meaningful to wrap values when no `None` or `Err` is returned.",
       "Known problems": "There can be false positives if the function signature is designed to\nfit some external requirement.",
-      "Example": "```rust\nfn get_cool_number(a: bool, b: bool) -> Option<i32> {\n    if a && b {\n        return Some(50);\n    }\n    if a {\n        Some(0)\n    } else {\n        Some(10)\n    }\n}\n```\nUse instead:\n```rust\nfn get_cool_number(a: bool, b: bool) -> i32 {\n    if a && b {\n        return 50;\n    }\n    if a {\n        0\n    } else {\n        10\n    }\n}\n```"
+      "Example": "```rust\nfn get_cool_number(a: bool, b: bool) -> Option<i32> {\n    if a && b {\n        return Some(50);\n    }\n    if a {\n        Some(0)\n    } else {\n        Some(10)\n    }\n}\n```\nUse instead:\n```rust\nfn get_cool_number(a: bool, b: bool) -> i32 {\n    if a && b {\n        return 50;\n    }\n    if a {\n        0\n    } else {\n        10\n    }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `avoid-breaking-exported-api: bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)."
     }
   },
   {
@@ -4715,6 +4761,17 @@
     "docs": {
       "What it does": "Nothing. This lint has been deprecated.",
       "Deprecation reason": "This used to check for `Vec::as_slice`, which was unstable with good\nstable alternatives. `Vec::as_slice` has now been stabilized."
+    }
+  },
+  {
+    "id": "unused_async",
+    "group": "pedantic",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for functions that are declared `async` but have no `.await`s inside of them.",
+      "Why is this bad": "Async functions with no async code create overhead, both mentally and computationally.\nCallers of async methods either need to be calling from an async function themselves or run it on an executor, both of which\ncauses runtime overhead and hassle for the caller.",
+      "Known problems": "None",
+      "Example": "```rust\n// Bad\nasync fn get_random_number() -> i64 {\n    4 // Chosen by fair dice roll. Guaranteed to be random.\n}\nlet number_future = get_random_number();\n\n// Good\nfn get_random_number_improved() -> i64 {\n    4 // Chosen by fair dice roll. Guaranteed to be random.\n}\nlet number_future = async { get_random_number_improved() };\n```"
     }
   },
   {
@@ -5097,13 +5154,11 @@
   },
   {
     "id": "wrong_pub_self_convention",
-    "group": "restriction",
-    "level": "Allow",
+    "group": "deprecated",
+    "level": "Deprecated",
     "docs": {
-      "What it does": "This is the same as\n[`wrong_self_convention`](#wrong_self_convention), but for public items.",
-      "Why is this bad": "See [`wrong_self_convention`](#wrong_self_convention).",
-      "Known problems": "Actually *renaming* the function may break clients if\nthe function is part of the public interface. In that case, be mindful of\nthe stability guarantees you've given your users.",
-      "Example": "```rust\nimpl<'a> X {\n    pub fn as_str(self) -> &'a str {\n        \"foo\"\n    }\n}\n```"
+      "What it does": "Nothing. This lint has been deprecated.",
+      "Deprecation reason": "The `avoid_breaking_exported_api` config option was added, which\nenables the `wrong_self_conversion` lint for public items."
     }
   },
   {
@@ -5114,7 +5169,8 @@
       "What it does": "Checks for methods with certain name prefixes and which\ndoesn't match how self is taken. The actual rules are:\n\n|Prefix |Postfix     |`self` taken           | `self` type  |\n|-------|------------|-----------------------|--------------|\n|`as_`  | none       |`&self` or `&mut self` | any          |\n|`from_`| none       | none                  | any          |\n|`into_`| none       |`self`                 | any          |\n|`is_`  | none       |`&self` or none        | any          |\n|`to_`  | `_mut`     |`&mut self`            | any          |\n|`to_`  | not `_mut` |`self`                 | `Copy`       |\n|`to_`  | not `_mut` |`&self`                | not `Copy`   |\n\nNote: Clippy doesn't trigger methods with `to_` prefix in:\n- Traits definition.\nClippy can not tell if a type that implements a trait is `Copy` or not.\n- Traits implementation, when `&self` is taken.\nThe method signature is controlled by the trait and often `&self` is required for all types that implement the trait\n(see e.g. the `std::string::ToString` trait).\n\nPlease find more info here:\nhttps://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv",
       "Why is this bad": "Consistency breeds readability. If you follow the\nconventions, your users won't be surprised that they, e.g., need to supply a\nmutable reference to a `as_..` function.",
       "Known problems": "None.",
-      "Example": "```rust\nimpl X {\n    fn as_str(self) -> &'static str {\n        // ..\n    }\n}\n```"
+      "Example": "```rust\nimpl X {\n    fn as_str(self) -> &'static str {\n        // ..\n    }\n}\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `avoid-breaking-exported-api: bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)."
     }
   },
   {
