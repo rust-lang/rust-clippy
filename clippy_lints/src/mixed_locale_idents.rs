@@ -6,7 +6,7 @@ use rustc_span::{Span, Symbol};
 use unicode_script::{Script, UnicodeScript};
 
 declare_clippy_lint! {
-    /// **What it does:** Checks for usage of mixed locales in the ident name.
+    /// **What it does:** Checks for usage of mixed locales in the identifier names.
     ///
     /// **Why is this bad?** Using symbols that look like ASCII ones can result in
     /// confusing problems when hand-writing the code.
@@ -33,8 +33,8 @@ declare_clippy_lint! {
     /// The following code compiles without any warnings:
     ///
     /// ```rust
-    /// struct Blоck { // It's not a common `o`, but rather Russian `о`?
-    ///     _щука: String, // Usage of 'щ' will suppress `mixed_script_confusables` warning.
+    /// struct Blоck { // Not a common latin `o` used, but rather Russian `о`.
+    ///     _щука: String, // Usage of `щ` will suppress `mixed_script_confusables` warning.
     /// }
     ///
     /// fn main() {
@@ -87,10 +87,10 @@ impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdents {
     fn check_name(&mut self, cx: &LateContext<'tcx>, span: Span, ident: Symbol) {
         let ident_name = ident.to_string();
 
-        // First fast pass without any expensive actions just to check
-        // whether identifier is fully ASCII.
+        // First pass just to check whether identifier is fully ASCII,
+        // without any expensive actions.
         // Most of identifiers are *expected* to be ASCII to it's better
-        // to return early for all of them.
+        // to return early if possible.
         if ident_name.is_ascii() {
             return;
         }
