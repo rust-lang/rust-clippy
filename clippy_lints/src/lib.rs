@@ -1153,6 +1153,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
 
     store.register_group(true, "clippy::all", Some("clippy"), vec![
         LintId::of(absurd_extreme_comparisons::ABSURD_EXTREME_COMPARISONS),
+        LintId::of(unwrap_or_else_over_map_or_else::UNWRAP_OR_ELSE_OVER_MAP_OR_ELSE),
         LintId::of(approx_const::APPROX_CONSTANT),
         LintId::of(assertions_on_constants::ASSERTIONS_ON_CONSTANTS),
         LintId::of(assign_ops::ASSIGN_OP_PATTERN),
@@ -1876,6 +1877,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box size_of_in_element_count::SizeOfInElementCount);
     store.register_late_pass(|| box map_clone::MapClone);
     store.register_late_pass(|| box map_err_ignore::MapErrIgnore);
+    store.register_late_pass(|| box unwrap_or_else_over_map_or_else::UnwrapOrElseOverMapOrElse);
     store.register_late_pass(|| box shadow::Shadow);
     store.register_late_pass(|| box unit_types::UnitTypes);
     store.register_late_pass(|| box loops::Loops);

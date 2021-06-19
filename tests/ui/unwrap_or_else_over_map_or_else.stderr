@@ -1,0 +1,11 @@
+error: Result::unwrap_or_else is shorter and more succinet
+  --> $DIR/unwrap_or_else_over_map_or_else.rs:9:20
+   |
+LL |     func_result(2).map_or_else(|e| println!("{:?}", e), |n| println!("{}", n))
+   |                    ^^^^^^^^^^^
+   |
+   = note: `-D clippy::unwrap-or-else-over-map-or-else` implied by `-D warnings`
+   = help: consider unwrap_or_else(|e| handle_the_error(e)) to unpack result
+
+error: aborting due to previous error
+

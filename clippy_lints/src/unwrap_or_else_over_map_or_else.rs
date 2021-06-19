@@ -48,9 +48,12 @@ impl LateLintPass<'_> for UnwrapOrElseOverMapOrElse {
             //check if the function name is map_or_else
             if method.ident.as_str() == "map_or_else";
             //check if the first arg is a closure
-            if let ExprKind::Closure(_, _, _, _, _) = args[1].kind ;
+            if let ExprKind::Closure(_, _, body_id, _, _) = args[1].kind ;
+            //get closure body parameter
+            let closure_body = cx.tcx.hir().body(body_id);
+            //make sure it has a parameter of one
+            if closure_body.params.len() == 1;
             then{
-                println!("{:?}",  method.ident.as_str());
                 span_lint_and_help(
                     cx,
                     UNWRAP_OR_ELSE_OVER_MAP_OR_ELSE,
