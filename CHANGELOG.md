@@ -2663,6 +2663,7 @@ Released 2018-09-13
 [`missing_safety_doc`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_safety_doc
 [`mistyped_literal_suffixes`]: https://rust-lang.github.io/rust-clippy/master/index.html#mistyped_literal_suffixes
 [`mixed_case_hex_literals`]: https://rust-lang.github.io/rust-clippy/master/index.html#mixed_case_hex_literals
+[`mixed_locale_idents`]: https://rust-lang.github.io/rust-clippy/master/index.html#mixed_locale_idents
 [`module_inception`]: https://rust-lang.github.io/rust-clippy/master/index.html#module_inception
 [`module_name_repetitions`]: https://rust-lang.github.io/rust-clippy/master/index.html#module_name_repetitions
 [`modulo_arithmetic`]: https://rust-lang.github.io/rust-clippy/master/index.html#modulo_arithmetic

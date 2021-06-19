@@ -1343,6 +1343,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(misc_early::REDUNDANT_PATTERN),
         LintId::of(misc_early::UNNEEDED_WILDCARD_PATTERN),
         LintId::of(misc_early::ZERO_PREFIXED_LITERAL),
+        LintId::of(mixed_locale_idents::MIXED_LOCALE_IDENTS),
         LintId::of(mut_key::MUTABLE_KEY_TYPE),
         LintId::of(mut_mutex_lock::MUT_MUTEX_LOCK),
         LintId::of(mut_reference::UNNECESSARY_MUT_PASSED),
