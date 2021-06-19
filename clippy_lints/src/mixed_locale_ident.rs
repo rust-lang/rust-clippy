@@ -1,8 +1,8 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_hir::{Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_span::{Span, Symbol};
 use unicode_script::{Script, UnicodeScript};
 
 declare_clippy_lint! {
@@ -84,37 +84,35 @@ pub struct MixedLocaleIdentName;
 impl_lint_pass!(MixedLocaleIdentName => [MIXED_LOCALE_IDENT]);
 
 impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdentName {
-    fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {
-        if let PatKind::Binding(.., ident, _) = pat.kind {
-            let ident_name = ident.name.to_string();
+    fn check_name(&mut self, cx: &LateContext<'tcx>, span: Span, ident: Symbol) {
+        let ident_name = ident.to_string();
 
-            // First fast pass without any expensive actions just to check
-            // whether identifier is fully ASCII.
-            // Most of identifiers are *expected* to be ASCII to it's better
-            // to return early for all of them.
-            if ident_name.is_ascii() {
-                return;
+        // First fast pass without any expensive actions just to check
+        // whether identifier is fully ASCII.
+        // Most of identifiers are *expected* to be ASCII to it's better
+        // to return early for all of them.
+        if ident_name.is_ascii() {
+            return;
+        }
+
+        let mut used_locales: FxHashSet<Script> = FxHashSet::default();
+        for symbol in ident_name.chars() {
+            let script = symbol.script();
+            if script != Script::Common && script != Script::Unknown {
+                used_locales.insert(script);
             }
+        }
 
-            let mut used_locales: FxHashSet<Script> = FxHashSet::default();
-            for symbol in ident_name.chars() {
-                let script = symbol.script();
-                if script != Script::Common && script != Script::Unknown {
-                    used_locales.insert(script);
-                }
-            }
+        if used_locales.len() > 1 {
+            let locales: Vec<&'static str> = used_locales.iter().map(|loc| loc.full_name()).collect();
 
-            if used_locales.len() > 1 {
-                let locales: Vec<&'static str> = used_locales.iter().map(|loc| loc.full_name()).collect();
+            let message = format!(
+                "Multiple locales used in identifier {}: {}",
+                ident_name,
+                locales.join(", "),
+            );
 
-                let message = format!(
-                    "Multiple locales used in identifier {}: {}",
-                    ident_name,
-                    locales.join(", "),
-                );
-
-                span_lint(cx, MIXED_LOCALE_IDENT, ident.span, &message);
-            }
+            span_lint(cx, MIXED_LOCALE_IDENT, span, &message);
         }
     }
 }
