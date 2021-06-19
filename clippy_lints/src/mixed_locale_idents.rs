@@ -107,7 +107,7 @@ impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdents {
             let locales: Vec<&'static str> = used_locales.iter().map(|loc| loc.full_name()).collect();
 
             let message = format!(
-                "Multiple locales used in identifier {}: {}",
+                "multiple locales used in identifier {}: {}",
                 ident_name,
                 locales.join(", "),
             );
