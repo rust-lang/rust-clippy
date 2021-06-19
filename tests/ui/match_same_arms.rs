@@ -53,4 +53,23 @@ mod issue4244 {
     }
 }
 
+mod issue7331 {
+    #![warn(clippy::pedantic)]
+    #![allow(dead_code, clippy::blacklisted_name)]
+
+    #[derive(Copy, Clone)]
+    enum Foo {
+        A,
+        B,
+    }
+
+    // Lint should not be triggered for panicking branches.
+    fn test(foo: Foo) {
+        match foo {
+            Foo::A => todo!(),
+            Foo::B => todo!(),
+        }
+    }
+}
+
 fn main() {}

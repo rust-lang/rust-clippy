@@ -2229,6 +2229,9 @@ fn lint_match_arms<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) {
                 && SpanlessEq::new(cx)
                     .expr_fallback(eq_fallback)
                     .eq_expr(lhs.body, rhs.body)
+                // we don't need to spawn the lint for always-panicking branches,
+                // e.g. `A => todo!(), B => todo!()`
+                && !cx.typeck_results().expr_ty(lhs.body).is_never()
                 // these checks could be removed to allow unused bindings
                 && bindings_eq(lhs.pat, local_map.keys().copied().collect())
                 && bindings_eq(rhs.pat, local_map.values().copied().collect())
