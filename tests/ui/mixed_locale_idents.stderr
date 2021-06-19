@@ -1,13 +1,13 @@
 error: Multiple locales used in identifier Blоck: Cyrillic, Latin
-  --> $DIR/mixed_locale_ident.rs:5:12
+  --> $DIR/mixed_locale_idents.rs:5:12
    |
 LL | pub struct Blоck;
    |            ^^^^^
    |
-   = note: `-D clippy::mixed-locale-ident` implied by `-D warnings`
+   = note: `-D clippy::mixed-locale-idents` implied by `-D warnings`
 
 error: Multiple locales used in identifier black_чёрный_黒い_काला: Devanagari, Cyrillic, Hiragana, Han, Latin
-  --> $DIR/mixed_locale_ident.rs:8:9
+  --> $DIR/mixed_locale_idents.rs:8:9
    |
 LL |     let black_чёрный_黒い_काला = "good luck hand-writing it";
    |         ^^^^^^^^^^^^^^^^^^^^^^

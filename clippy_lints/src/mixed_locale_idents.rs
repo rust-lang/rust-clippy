@@ -73,17 +73,17 @@ declare_clippy_lint! {
     /// //   help: consider importing one of these items
     /// //
     /// ```
-    pub MIXED_LOCALE_IDENT,
+    pub MIXED_LOCALE_IDENTS,
     style,
     "multiple locales used in a single identifier"
 }
 
 #[derive(Clone, Debug)]
-pub struct MixedLocaleIdentName;
+pub struct MixedLocaleIdents;
 
-impl_lint_pass!(MixedLocaleIdentName => [MIXED_LOCALE_IDENT]);
+impl_lint_pass!(MixedLocaleIdents => [MIXED_LOCALE_IDENTS]);
 
-impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdentName {
+impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdents {
     fn check_name(&mut self, cx: &LateContext<'tcx>, span: Span, ident: Symbol) {
         let ident_name = ident.to_string();
 
@@ -112,7 +112,7 @@ impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdentName {
                 locales.join(", "),
             );
 
-            span_lint(cx, MIXED_LOCALE_IDENT, span, &message);
+            span_lint(cx, MIXED_LOCALE_IDENTS, span, &message);
         }
     }
 }

@@ -268,7 +268,7 @@ mod misc_early;
 mod missing_const_for_fn;
 mod missing_doc;
 mod missing_inline;
-mod mixed_locale_ident;
+mod mixed_locale_idents;
 mod modulo_arithmetic;
 mod multiple_crate_versions;
 mod mut_key;
@@ -814,7 +814,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         missing_const_for_fn::MISSING_CONST_FOR_FN,
         missing_doc::MISSING_DOCS_IN_PRIVATE_ITEMS,
         missing_inline::MISSING_INLINE_IN_PUBLIC_ITEMS,
-        mixed_locale_ident::MIXED_LOCALE_IDENT,
+        mixed_locale_idents::MIXED_LOCALE_IDENTS,
         modulo_arithmetic::MODULO_ARITHMETIC,
         multiple_crate_versions::MULTIPLE_CRATE_VERSIONS,
         mut_key::MUTABLE_KEY_TYPE,
@@ -1018,7 +1018,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(misc_early::UNNEEDED_FIELD_PATTERN),
         LintId::of(missing_doc::MISSING_DOCS_IN_PRIVATE_ITEMS),
         LintId::of(missing_inline::MISSING_INLINE_IN_PUBLIC_ITEMS),
-        LintId::of(mixed_locale_ident::MIXED_LOCALE_IDENT),
         LintId::of(modulo_arithmetic::MODULO_ARITHMETIC),
         LintId::of(panic_in_result_fn::PANIC_IN_RESULT_FN),
         LintId::of(panic_unimplemented::PANIC),
@@ -1531,6 +1530,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(misc_early::DUPLICATE_UNDERSCORE_ARGUMENT),
         LintId::of(misc_early::MIXED_CASE_HEX_LITERALS),
         LintId::of(misc_early::REDUNDANT_PATTERN),
+        LintId::of(mixed_locale_idents::MIXED_LOCALE_IDENTS),
         LintId::of(mut_mutex_lock::MUT_MUTEX_LOCK),
         LintId::of(mut_reference::UNNECESSARY_MUT_PASSED),
         LintId::of(needless_borrow::NEEDLESS_BORROW),
@@ -1927,7 +1927,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box eval_order_dependence::EvalOrderDependence);
     store.register_late_pass(|| box missing_doc::MissingDoc::new());
     store.register_late_pass(|| box missing_inline::MissingInline);
-    store.register_late_pass(|| box mixed_locale_ident::MixedLocaleIdentName);
+    store.register_late_pass(|| box mixed_locale_idents::MixedLocaleIdents);
     store.register_late_pass(move || box exhaustive_items::ExhaustiveItems);
     store.register_late_pass(|| box if_let_some_result::OkIfLet);
     store.register_late_pass(|| box partialeq_ne_impl::PartialEqNeImpl);

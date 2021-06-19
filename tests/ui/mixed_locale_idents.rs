@@ -1,4 +1,4 @@
-#![warn(clippy::mixed_locale_ident)]
+#![warn(clippy::mixed_locale_idents)]
 #[allow(dead_code)]
 
 // Russian `о`.
