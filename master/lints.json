@@ -1353,8 +1353,8 @@
   },
   {
     "id": "from_iter_instead_of_collect",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for `from_iter()` function calls on types that implement the `FromIterator`\ntrait.",
       "Why is this bad": "It is recommended style to use collect. See\n[FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)",
