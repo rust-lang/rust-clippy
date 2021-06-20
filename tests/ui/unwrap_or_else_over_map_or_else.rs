@@ -1,11 +1,7 @@
 #![warn(clippy::unwrap_or_else_over_map_or_else)]
-use std::process;
 
 fn main() {
-    let c = func_result(3).unwrap_or_else(|e| {
-        println!("Error: {:?}", e);
-        process::exit(1);
-    });
+    let c = func_result(3).unwrap_or_else(|e| {e});
     func_result(2).map_or_else(|e| println!("{:?}", e), |n| println!("{}", n))
 }
 

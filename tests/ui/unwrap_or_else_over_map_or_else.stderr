@@ -1,5 +1,5 @@
 error: Result::unwrap_or_else is shorter and more succinet
-  --> $DIR/unwrap_or_else_over_map_or_else.rs:9:20
+  --> $DIR/unwrap_or_else_over_map_or_else.rs:5:20
    |
 LL |     func_result(2).map_or_else(|e| println!("{:?}", e), |n| println!("{}", n))
    |                    ^^^^^^^^^^^
