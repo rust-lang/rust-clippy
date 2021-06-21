@@ -1,13 +1,18 @@
 #![warn(clippy::unwrap_or_else_over_map_or_else)]
 
 fn main() {
-    let c = func_result(3).unwrap_or_else(|e| {e});
-    func_result(2).map_or_else(|e| println!("{:?}", e), |n| println!("{}", n))
-}
+    let number = 21;
 
-fn func_result(in_num: u8) -> Result<&'static str, &'static str> {
-    if in_num % 2 != 0 {
-        return Err("Can't do this because input is odd...");
-    }
-    Ok("An even number :)")
+    let out_put: Result<_, &str> = Ok("foo");
+    //should not lint due to type adjustment
+    let val_1 = out_put.map_or_else(
+        |_| number * 2,
+        |v| {
+            let c = 2 + 2;
+            v.len() + c
+        },
+    );
+    //should lint this
+    let val_2 = out_put.map_or_else(|_| number * 2, |v| v.len());
+    let val_3 = out_put.unwrap_or_else(|d| d);
 }

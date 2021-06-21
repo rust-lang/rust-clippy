@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::is_adjusted;
 use if_chain::if_chain;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -16,18 +17,19 @@ declare_clippy_lint! {
     /// ```rust
     /// // example code where clippy issues a warning
     /// ```
-    /// func_result(in_num: u8) -> Result<&'static str, &'static str> {
-    ///    if in_num % 2 != 0 {
-    ///        return Err("Can't do this because input is odd...");
-    ///    }
-    ///    Ok("An even number :)")
-    /// }
+
+    ///  let out_put: Result<_, &str> = Ok("foo");
     ///
-    /// func_result(2).map_or_else(|e| println!("{:?}", e), |n| println!("{}", n))
+    /// let val_2 = out_put.map_or_else(
+    ///     |_| 0,
+    ///     |v| {
+    ///         v.len()
+    ///     }
+    /// );
     /// Use instead:
     /// ```rust
     /// // example code which does not raise clippy warning
-    ///   let c = func_result(3).unwrap_or_else(|e| {e});
+    ///   let val_3 = out_put.unwrap_or_else(|d| d);
     ///
     /// ```
     pub UNWRAP_OR_ELSE_OVER_MAP_OR_ELSE,
@@ -45,11 +47,14 @@ impl LateLintPass<'_> for UnwrapOrElseOverMapOrElse {
             //check if the function name is map_or_else
             if method.ident.as_str() == "map_or_else";
             //check if the first arg is a closure
-            if let ExprKind::Closure(_, _, body_id, _, _) = args[1].kind ;
-            //get closure body parameter
-            let closure_body = cx.tcx.hir().body(body_id);
-            //make sure it has a parameter of one
-            if closure_body.params.len() == 1;
+            if let ExprKind::Closure(_, decl, eid, _, _) = args[2].kind ;
+            //get closure bosy
+            let body = cx.tcx.hir().body(eid);
+            let ex = &body.value;
+            //get expr block
+            if let ExprKind::Block(block, _) = &ex.kind;
+            //if stmts length is 0, no type adjustments took place
+            if block.stmts.is_empty();
             then{
                 span_lint_and_help(
                     cx,
