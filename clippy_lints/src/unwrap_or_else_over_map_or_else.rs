@@ -47,14 +47,15 @@ impl LateLintPass<'_> for UnwrapOrElseOverMapOrElse {
             //check if the function name is map_or_else
             if method.ident.as_str() == "map_or_else";
             //check if the first arg is a closure
-            if let ExprKind::Closure(_, decl, eid, _, _) = args[2].kind ;
+            if let ExprKind::Closure(_, _, eid, _, _) = args[2].kind ;
             //get closure bosy
             let body = cx.tcx.hir().body(eid);
             let ex = &body.value;
-            //get expr block
-            if let ExprKind::Block(block, _) = &ex.kind;
-            //if stmts length is 0, no type adjustments took place
-            if block.stmts.is_empty();
+            //get the expr lit
+            if let ExprKind::Lit(_) = &ex.kind;
+            //check for type adjustment
+            if !(is_adjusted(cx, ex) || args.iter().any(|arg| is_adjusted(cx, arg)));
+
             then{
                 span_lint_and_help(
                     cx,

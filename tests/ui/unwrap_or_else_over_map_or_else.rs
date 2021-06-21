@@ -13,6 +13,6 @@ fn main() {
         },
     );
     //should lint this
-    let val_2 = out_put.map_or_else(|_| number * 2, |v| v.len());
+    let val_2 = out_put.map_or_else(|_| number * 2, |v| 3);
     let val_3 = out_put.unwrap_or_else(|d| d);
 }
