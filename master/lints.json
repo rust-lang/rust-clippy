@@ -1284,7 +1284,7 @@
       "Why is this bad": "Calls to such functions\nare confusing and error prone, because it's\nhard to remember argument order and you have\nno type system support to back you up. Using\ntwo-variant enums instead of bools often makes\nAPI easier to use.",
       "Known problems": "None.",
       "Example": "Bad:\n```rust\nfn f(is_round: bool, is_hot: bool) { ... }\n```\n\nGood:\n```rust\nenum Shape {\n    Round,\n    Spiky,\n}\n\nenum Temperature {\n    Hot,\n    IceCold,\n}\n\nfn f(shape: Shape, temperature: Temperature) { ... }\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `max-fn-params-bools: u64`: The maximum number of bools function parameters can have (defaults to `3`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-fn-params-bools: u64`: The maximum number of bool parameters a function can have (defaults to `3`)."
     }
   },
   {
@@ -3120,6 +3120,18 @@
     }
   },
   {
+    "id": "nonstandard_macro_braces",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks that common macros are used with consistent bracing.",
+      "Why is this bad": "This is mostly a consistency lint although using () or []\ndoesn't give you a semicolon in item position, which can be unexpected.",
+      "Known problems": "None",
+      "Example": "```rust\nvec!{1, 2, 3};\n```\nUse instead:\n```rust\nvec![1, 2, 3];\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `standard-macro-braces: Vec<crate::nonstandard_macro_braces::MacroMatcher>`: Enforce the named macros always use the braces specified. <br> A `MacroMatcher` can be added like so `{ name = \"macro_name\", brace = \"(\" }`. If the macro is could be used with a full path two `MacroMatcher`s have to be added one with the full path `crate_name::macro_name` and one with just the macro name. (defaults to `Vec::new(`)."
+    }
+  },
+  {
     "id": "not_unsafe_ptr_arg_deref",
     "group": "correctness",
     "level": "Deny",
@@ -4111,7 +4123,7 @@
       "Why is this bad": "Excessive bools in a struct\nis often a sign that it's used as a state machine,\nwhich is much better implemented as an enum.\nIf it's not the case, excessive bools usually benefit\nfrom refactoring into two-variant enums for better\nreadability and API.",
       "Known problems": "None.",
       "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `max-struct-bools: u64`: The maximum number of bools a struct can have (defaults to `3`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-struct-bools: u64`: The maximum number of bool fields a struct can have (defaults to `3`)."
     }
   },
   {
