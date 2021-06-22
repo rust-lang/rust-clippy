@@ -123,6 +123,13 @@ impl ConfusablesState {
 }
 
 fn warning_required(locales: &FxHashMap<Script, ConfusablesState>) -> bool {
+    // If there is a single locale, we don't need a warning (e.g. `око` is a valid Russian
+    // word that consists of the consufables only).
+    if locales.len() <= 1 {
+        return false;
+    }
+
+    // Otherwise, check whether at least one of locales consists of confusables only.
     locales
         .iter()
         .any(|(_loc, state)| matches!(state, ConfusablesState::OnlyConfusables))
@@ -180,7 +187,8 @@ impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdents {
         }
 
         if warning_required(&used_locales) {
-            let ident_part = &ident_name[ident_part_start..=ident_part_end];
+            let ident_len = ident_part_end - ident_part_start + 1;
+            let ident_part: String = ident_name.chars().skip(ident_part_start).take(ident_len).collect();
             let locales: Vec<&'static str> = used_locales
                 .iter()
                 .filter_map(|(loc, state)| match state {
