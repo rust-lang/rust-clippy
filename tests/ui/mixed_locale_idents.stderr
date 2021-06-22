@@ -90,5 +90,11 @@ error: identifier part `Blоck看` contains confusables-only symbols from the fo
 LL |     pub struct Blоck看;
    |                ^^^^^^^
 
-error: aborting due to 15 previous errors
+error: identifier part `Оo` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:73:11
+   |
+LL |     const __ZZZ___Оo__: u8 = 42;
+   |           ^^^^^^^^^^^^
+
+error: aborting due to 16 previous errors
 

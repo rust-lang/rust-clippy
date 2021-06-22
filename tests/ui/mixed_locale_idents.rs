@@ -1,5 +1,5 @@
 #![warn(clippy::mixed_locale_idents)]
-#![allow(dead_code, non_camel_case_types)]
+#![allow(dead_code, non_camel_case_types, confusable_idents, non_upper_case_globals)]
 
 mod should_spawn_warnings {
     // In the examples, cyrillic `о` is used in `Blоck`.
@@ -57,6 +57,20 @@ mod should_not_spawn_warnings {
 
     // One-word non-latin identifiers that contain non-confusables.
     fn блок() {}
+}
+
+// Checks to see that some edge cases do not cause panics.
+mod render_tests {
+    // One-letter Latin identifier. Should not trigger the warning.
+    struct O;
+
+    // One-letter Cyrillic identifier.
+    struct О;
+
+    // Multiple underscores (`O` is cyrillic; `o` is latin).
+    const __ZZZ___О__: u8 = 42;
+
+    const __ZZZ___Оo__: u8 = 42;
 }
 
 fn main() {
