@@ -123,12 +123,9 @@ impl ConfusablesState {
 
     fn is_confusable(c: char) -> bool {
         match c.script() {
-            Script::Common | Script::Unknown => {
-                // Not categories we're interested in.
-                false
-            },
-            Script::Latin => {
-                // Latin is the primary locale, we don't consider it to be confusable.
+            Script::Common | Script::Unknown | Script::Latin => {
+                // `Common` and `Unkown` are not categories we're interested in.
+                // `Latin` is the primary locale, we don't consider it to be confusable.
                 false
             },
             _ => {
@@ -191,11 +188,10 @@ impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdents {
                     // We've found the part that has multiple locales,
                     // no further analysis is required.
                     break;
-                } else {
-                    // Clear everything and start checking the next identifier.
-                    ident_part_start = id;
-                    used_locales.clear();
                 }
+                // Clear everything and start checking the next identifier.
+                ident_part_start = id;
+                used_locales.clear();
             }
 
             let script = symbol.script();
