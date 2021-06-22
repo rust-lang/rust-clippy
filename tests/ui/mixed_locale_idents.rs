@@ -29,6 +29,11 @@ mod should_spawn_warnings {
     // Identifiers that have both latin & non-latin word, and
     // mixed case word.
     pub struct SomeБлокBlоck;
+
+    // Identifier that has 3 locales, one of which is not confusable, and one is.
+    // It must not complain about Chinese (as it's not confusable), but report
+    // Cyrillic instead.
+    pub struct Blоck看;
 }
 
 mod should_not_spawn_warnings {

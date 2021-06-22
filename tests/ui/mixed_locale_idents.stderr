@@ -84,5 +84,11 @@ error: identifier part `Blоck` contains confusables-only symbols from the follo
 LL |     pub struct SomeБлокBlоck;
    |                ^^^^^^^^^^^^^
 
-error: aborting due to 14 previous errors
+error: identifier part `Blоck看` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:36:16
+   |
+LL |     pub struct Blоck看;
+   |                ^^^^^^^
+
+error: aborting due to 15 previous errors
 
