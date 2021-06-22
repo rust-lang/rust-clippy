@@ -26,12 +26,12 @@ declare_clippy_lint! {
     /// struct BlоckБлок;
     ///
     /// fn main() {
-    ///     let _block = Blоck ;
+    ///     let _block = BlоckБлок;
     /// }
     /// ```
     ///
     /// The same example, but with `Block` (english `o`) used instead of `Blоck` (russian `о`).
-    /// It will not compile
+    /// It will not compile.
     ///
     /// ```compile_fail
     /// struct BlоckБлок;

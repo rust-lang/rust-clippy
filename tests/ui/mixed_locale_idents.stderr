@@ -1,16 +1,88 @@
-error: multiple locales used in identifier `Blоck`: Cyrillic, Latin
-  --> $DIR/mixed_locale_idents.rs:5:12
+error: identifier part `Blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:7:16
    |
-LL | pub struct Blоck;
-   |            ^^^^^
+LL |     pub struct Blоck;
+   |                ^^^^^
    |
    = note: `-D clippy::mixed-locale-idents` implied by `-D warnings`
 
-error: multiple locales used in identifier `black_чёрный_黒い_काला`: Devanagari, Cyrillic, Hiragana, Han, Latin
-  --> $DIR/mixed_locale_idents.rs:8:9
+error: identifier part `BLОCK` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:8:15
    |
-LL |     let black_чёрный_黒い_काला = "good luck hand-writing it";
-   |         ^^^^^^^^^^^^^^^^^^^^^^
+LL |     pub const BLОCK: u8 = 42;
+   |               ^^^^^
 
-error: aborting due to 2 previous errors
+error: identifier part `blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:9:12
+   |
+LL |     pub fn blоck() {
+   |            ^^^^^
+
+error: identifier part `blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:10:13
+   |
+LL |         let blоck = 42u8;
+   |             ^^^^^
+
+error: identifier part `Blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:14:16
+   |
+LL |     pub struct SomeBlоckIdentifier;
+   |                ^^^^^^^^^^^^^^^^^^^
+
+error: identifier part `BLОCK` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:15:15
+   |
+LL |     pub const SOME_BLОCK_IDENT: u8 = 42;
+   |               ^^^^^^^^^^^^^^^^
+
+error: identifier part `blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:16:12
+   |
+LL |     pub fn some_blоck_fn() {
+   |            ^^^^^^^^^^^^^
+
+error: identifier part `blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:17:13
+   |
+LL |         let some_blоck_var = 42u8;
+   |             ^^^^^^^^^^^^^^
+
+error: identifier part `Blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:19:16
+   |
+LL |     pub struct Some_BlоckIdent; // Mixed case
+   |                ^^^^^^^^^^^^^^^
+
+error: identifier part `Blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:23:16
+   |
+LL |     pub struct BlоckClоck;
+   |                ^^^^^^^^^^
+
+error: identifier part `BLОCK` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:24:15
+   |
+LL |     pub const BLОCK_CLОCK: u8 = 42;
+   |               ^^^^^^^^^^^
+
+error: identifier part `blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:25:12
+   |
+LL |     pub fn blоck_clоck() {
+   |            ^^^^^^^^^^^
+
+error: identifier part `blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:26:13
+   |
+LL |         let blоck_clоck = 42u8;
+   |             ^^^^^^^^^^^
+
+error: identifier part `Blоck` contains confusables-only symbols from the following locales: Cyrillic
+  --> $DIR/mixed_locale_idents.rs:31:16
+   |
+LL |     pub struct SomeБлокBlоck;
+   |                ^^^^^^^^^^^^^
+
+error: aborting due to 14 previous errors
 
