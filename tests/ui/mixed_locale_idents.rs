@@ -1,5 +1,5 @@
 #![warn(clippy::mixed_locale_idents)]
-#[allow(dead_code)]
+#![allow(dead_code, non_camel_case_types)]
 
 mod should_spawn_warnings {
     // In the examples, cyrillic `о` is used in `Blоck`.
@@ -46,6 +46,12 @@ mod should_not_spawn_warnings {
     fn fnъуъ() {
         let try看 = 42u8;
     }
+
+    // Using only lating confusables (`o` is latin).
+    fn ooo_блок() {}
+
+    // One-word non-latin identifiers that contain non-confusables.
+    fn блок() {}
 }
 
 fn main() {

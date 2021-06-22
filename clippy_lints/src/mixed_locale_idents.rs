@@ -106,7 +106,7 @@ enum ConfusablesState {
 
 impl ConfusablesState {
     fn from_char(c: char) -> Self {
-        if is_potential_mixed_script_confusable_char(c) {
+        if Self::is_confusable(c) {
             Self::OnlyConfusables
         } else {
             Self::NotConfusable
@@ -114,11 +114,28 @@ impl ConfusablesState {
     }
 
     fn update(&mut self, c: char) {
-        let is_confusable = is_potential_mixed_script_confusable_char(c);
+        let is_confusable = Self::is_confusable(c);
         *self = match (*self, is_confusable) {
             (Self::OnlyConfusables, true) => Self::OnlyConfusables,
             _ => Self::NotConfusable,
         };
+    }
+
+    fn is_confusable(c: char) -> bool {
+        match c.script() {
+            Script::Common | Script::Unknown => {
+                // Not categories we're interested in.
+                false
+            },
+            Script::Latin => {
+                // Latin is the primary locale, we don't consider it to be confusable.
+                false
+            },
+            _ => {
+                // Otherwise, actually check the symbol.
+                is_potential_mixed_script_confusable_char(c)
+            },
+        }
     }
 }
 
@@ -156,14 +173,18 @@ impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdents {
         // List of locales used in the *identifier part*
         let mut used_locales: FxHashMap<Script, ConfusablesState> = FxHashMap::default();
         for (id, symbol) in ident_name.chars().enumerate() {
-            ident_part_end = id;
-
             // Check whether we've reached the next identifier part.
             let is_next_identifier = match ident_case {
                 Case::Camel => symbol.is_uppercase(),
                 Case::Snake => symbol == '_',
                 Case::Mixed => symbol.is_uppercase() || symbol == '_',
             };
+
+            // If the new identifier started, we should not include its part
+            // into the report.
+            if !is_next_identifier {
+                ident_part_end = id;
+            }
 
             if is_next_identifier {
                 if warning_required(&used_locales) {
@@ -204,7 +225,7 @@ impl<'tcx> LateLintPass<'tcx> for MixedLocaleIdents {
 
             let message = format!(
                 "identifier part `{}` contains confusables-only symbols from the following locales: {}",
-                ident_part,
+                ident_part.trim_start_matches('_'),
                 locales.join(", "),
             );
 
