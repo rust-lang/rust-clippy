@@ -126,7 +126,7 @@ fn display_help() {
 Checks a package to catch common mistakes and improve your Rust code.
 
 Usage:
-    cargo clippy [options] [--] [<opts>...]
+    clippy-driver [options] [--] [<opts>...]
 
 Common options:
     -h, --help               Print this message
