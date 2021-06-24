@@ -2603,6 +2603,18 @@
     }
   },
   {
+    "id": "missing_enforced_import_renames",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for imports that do not rename the item as specified\nin the `enforce-import-renames` config option.",
+      "Why is this bad": "Consistency is important, if a project has defined import\nrenames they should be followed. More practically, some item names are too\nvague outside of their defining scope this can enforce a more meaningful naming.",
+      "Known problems": "None",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\nenforced-import-renames = [ { path = \"serde_json::Value\", rename = \"JsonValue\" }]\n```\n\n```rust\nuse serde_json::Value;\n```\nUse instead:\n```rust\nuse serde_json::Value as JsonValue;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `enforced-import-renames: Vec<crate::utils::conf::Rename>`: The list of imports to always rename, a fully qualified path followed by the rename. (defaults to `Vec::new(`)."
+    }
+  },
+  {
     "id": "missing_errors_doc",
     "group": "pedantic",
     "level": "Allow",
