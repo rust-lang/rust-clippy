@@ -43,7 +43,7 @@ jobs:
     - name: Use deploy script from master branch
       run: |
         git fetch --no-tags --prune --depth=1 origin master
-        git checkout origin/master -- .github/deploy.sh util/versions.py util/gh-pages/versions.html
+        git checkout origin/master -- util/versions.py util/gh-pages/versions.html
 
     # Generate lockfile for caching to avoid build problems with cached deps
     - name: cargo generate-lockfile
