@@ -524,7 +524,7 @@ fn extract_attr_docs(cx: &LateContext<'_>, item: &Item<'_>) -> Option<String> {
         if let Some(stripped_doc) = line.strip_prefix(' ') {
             docs.push_str(stripped_doc);
         } else if !line.is_empty() {
-            docs.push_str(&line);
+            docs.push_str(line);
         }
     }
     Some(docs)

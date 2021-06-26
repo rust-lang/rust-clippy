@@ -369,16 +369,12 @@ Otherwise, have a great day =^.^=
             linkify: true,
             typographer: true,
             highlight: function (str, lang) {
-                if (lang) {
-                    // This removes additional markdown information like `,ignore`.
-                    let onlyLang = lang.split(",")[0];
-                    if (hljs.getLanguage(onlyLang)) {
-                        try {
-                            return '<pre class="hljs"><code>' +
-                                hljs.highlight(onlyLang, str, true).value +
-                                '</code></pre>';
-                        } catch (__) {}
-                    }
+                if (lang && hljs.getLanguage(docs)) {
+                    try {
+                        return '<pre class="hljs"><code>' +
+                            hljs.highlight(docs, str, true).value +
+                            '</code></pre>';
+                    } catch (__) {}
                 }
 
                 return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
