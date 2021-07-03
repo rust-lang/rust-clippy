@@ -3560,6 +3560,17 @@
     }
   },
   {
+    "id": "rc_mutex",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `Rc<Mutex<T>>`.",
+      "Why is this bad": "`Rc` is used in single thread and `Mutex` is used in multi thread.\nConsider using `Rc<RefCell<T>>` in single thread or `Arc<Mutex<T>>` in multi thread.",
+      "Known problems": "Sometimes combining generic types can lead to the requirement that a\ntype use Rc in conjunction with Mutex. We must consider those cases false positives, but\nalas they are quite hard to rule out. Luckily they are also rare.",
+      "Example": "```rust\nuse std::rc::Rc;\nuse std::sync::Mutex;\nfn foo(interned: Rc<Mutex<i32>>) { ... }\n```\n\nBetter:\n\n```rust\nuse std::rc::Rc;\nuse std::cell::RefCell\nfn foo(interned: Rc<RefCell<i32>>) { ... }\n```"
+    }
+  },
+  {
     "id": "redundant_allocation",
     "group": "perf",
     "level": "Warn",
