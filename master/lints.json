@@ -3144,8 +3144,8 @@
   },
   {
     "id": "nonstandard_macro_braces",
-    "group": "style",
-    "level": "Warn",
+    "group": "nursery",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks that common macros are used with consistent bracing.",
       "Why is this bad": "This is mostly a consistency lint although using () or []\ndoesn't give you a semicolon in item position, which can be unexpected.",
