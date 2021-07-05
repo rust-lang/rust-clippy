@@ -4149,6 +4149,17 @@
     }
   },
   {
+    "id": "strlen_on_c_strings",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `libc::strlen` on a `CString` or `CStr` value,\nand suggest calling `as_bytes().len()` or `to_bytes().len()` respectively instead.",
+      "Why is this bad": "This avoids calling an unsafe `libc` function.\nCurrently, it also avoids calculating the length.",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::ffi::CString;\nlet cstring = CString::new(\"foo\").expect(\"CString::new failed\");\nlet len = unsafe { libc::strlen(cstring.as_ptr()) };\n```\nUse instead:\n```rust\nuse std::ffi::CString;\nlet cstring = CString::new(\"foo\").expect(\"CString::new failed\");\nlet len = cstring.as_bytes().len();\n```"
+    }
+  },
+  {
     "id": "struct_excessive_bools",
     "group": "pedantic",
     "level": "Allow",
