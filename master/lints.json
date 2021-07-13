@@ -4893,7 +4893,7 @@
       "What it does": "Checks for unit (`()`) expressions that can be removed.",
       "Why is this bad": "Such expressions add no value, but can make the code\nless readable. Depending on formatting they can make a `break` or `return`\nstatement look like a function call.",
       "Known problems": "None.",
-      "Example": "```rust\nfn return_unit() -> () {\n    ()\n}\n```"
+      "Example": "```rust\nfn return_unit() -> () {\n    ()\n}\n```\nis equivalent to\n```rust\nfn return_unit() {}\n```"
     }
   },
   {
