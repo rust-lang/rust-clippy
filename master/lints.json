@@ -3865,6 +3865,17 @@
     }
   },
   {
+    "id": "self_named_constructor",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Warns when constructors have the same name as their types.",
+      "Why is this bad": "Repeating the name of the type is redundant.",
+      "Known problems": "None.",
+      "Example": "```rust\nstruct Foo {}\n\nimpl Foo {\n    pub fn foo() -> Foo {\n        Foo {}\n    }\n}\n```\nUse instead:\n```rust\nstruct Foo {}\n\nimpl Foo {\n    pub fn new() -> Foo {\n        Foo {}\n    }\n}\n```"
+    }
+  },
+  {
     "id": "semicolon_if_nothing_returned",
     "group": "pedantic",
     "level": "Allow",
