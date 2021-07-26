@@ -35,7 +35,8 @@ declare_clippy_lint! {
     /// ```
     pub UNIMPLEMENTED,
     restriction,
-    "`unimplemented!` should not be present in production code"
+    "`unimplemented!` should not be present in production code",
+    level = Warn
 }
 
 declare_clippy_lint! {
@@ -51,7 +52,8 @@ declare_clippy_lint! {
     /// ```
     pub TODO,
     restriction,
-    "`todo!` should not be present in production code"
+    "`todo!` should not be present in production code",
+    level = Warn
 }
 
 declare_clippy_lint! {
