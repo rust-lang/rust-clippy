@@ -747,8 +747,8 @@
     "docs": {
       "What it does": "Denies the configured types in clippy.toml.",
       "Why is this bad": "Some types are undesirable in certain contexts.",
-      "Known problems": "None.\n\nN.B. There is no way to ban primitive types.",
-      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"std::collections::BTreeMap\"]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```",
+      "Known problems": "None.",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-types = [\"std::collections::BTreeMap\"]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-types: Vec<String>`: The list of disallowed types, written as fully qualified paths. (defaults to `Vec::new(`)."
     }
   },
