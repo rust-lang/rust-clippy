@@ -1,0 +1,58 @@
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:8:5
+   |
+LL |     unsafe { f(x) };
+   |     ^^^^^^^^^^^^^^^^ help: put the `;` here: `unsafe { f(x); }`
+   |
+   = note: `-D clippy::semicolon-inside-block` implied by `-D warnings`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:14:5
+   |
+LL |     unsafe { f(32) }
+   |     ^^^^^^^^^^^^^^^^ help: put the `;` here: `unsafe { f(32); }`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:18:5
+   |
+LL |     println!("Hello")
+   |     ^^^^^^^^^^^^^^^^^ help: put the `;` here: `println!("Hello");`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:22:5
+   |
+LL |     get_unit()
+   |     ^^^^^^^^^^ help: put the `;` here: `get_unit();`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:27:5
+   |
+LL |     y = x + 1
+   |     ^^^^^^^^^ help: put the `;` here: `y = x + 1;`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:33:9
+   |
+LL |         hello()
+   |         ^^^^^^^ help: put the `;` here: `hello();`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:44:5
+   |
+LL |     assert_eq!(43, 43)
+   |     ^^^^^^^^^^^^^^^^^^ help: put the `;` here: `assert_eq!(43, 43);`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:42:9
+   |
+LL |         basic101(x)
+   |         ^^^^^^^^^^^ help: put the `;` here: `basic101(x);`
+
+error: consider moving the `;` inside the block for consistent formatting
+  --> $DIR/semicolon_inside_block.rs:48:21
+   |
+LL | fn one_line_block() { println!("Foo") }
+   |                     ^^^^^^^^^^^^^^^^^^^ help: put the `;` here: `{ println!("Foo"); }`
+
+error: aborting due to 9 previous errors
+
