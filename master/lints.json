@@ -28,20 +28,6 @@
     }
   },
   {
-    "id": "append_instead_of_extend",
-    "id_span": {
-      "path": "src/methods/mod.rs",
-      "line": 1071
-    },
-    "group": "perf",
-    "level": "warn",
-    "docs": " ### What it does\nChecks for occurrences where one vector gets extended instead of append\n\n### Why is this bad?\nUsing `append` instead of `extend` is more concise and faster\n\n### Example\n```rust\nlet mut a = vec![1, 2, 3];\nlet mut b = vec![4, 5, 6];\n\n// Bad\na.extend(b.drain(..));\n\n// Good\na.append(&mut b);\n```",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
-    }
-  },
-  {
     "id": "approx_constant",
     "id_span": {
       "path": "src/approx_const.rs",
@@ -1411,6 +1397,20 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "extend_with_drain",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 1071
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for occurrences where one vector gets extended instead of append\n\n### Why is this bad?\nUsing `append` instead of `extend` is more concise and faster\n\n### Example\n```rust\nlet mut a = vec![1, 2, 3];\nlet mut b = vec![4, 5, 6];\n\n// Bad\na.extend(b.drain(..));\n\n// Good\na.append(&mut b);\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -4914,9 +4914,9 @@
     }
   },
   {
-    "id": "self_named_constructor",
+    "id": "self_named_constructors",
     "id_span": {
-      "path": "src/self_named_constructor.rs",
+      "path": "src/self_named_constructors.rs",
       "line": 35
     },
     "group": "style",
