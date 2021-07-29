@@ -6037,11 +6037,11 @@
     "id": "unnested_or_patterns",
     "id_span": {
       "path": "src/unnested_or_patterns.rs",
-      "line": 44
+      "line": 42
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for unnested or-patterns, e.g., `Some(0) | Some(2)` and\nsuggests replacing the pattern with a nested one, `Some(0 | 2)`.\n\nAnother way to think of this is that it rewrites patterns in\n*disjunctive normal form (DNF)* into *conjunctive normal form (CNF)*.\n\n### Why is this bad?\nIn the example above, `Some` is repeated, which unncessarily complicates the pattern.\n\n### Example\n```rust\nfn main() {\n    if let Some(0) | Some(2) = Some(0) {}\n}\n```\nUse instead:\n```rust\n#![feature(or_patterns)]\n\nfn main() {\n    if let Some(0 | 2) = Some(0) {}\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* msrv: Option<String>: . The minimum rust version that the project supports (defaults to `None`)\n\n",
+    "docs": " ### What it does\nChecks for unnested or-patterns, e.g., `Some(0) | Some(2)` and\nsuggests replacing the pattern with a nested one, `Some(0 | 2)`.\n\nAnother way to think of this is that it rewrites patterns in\n*disjunctive normal form (DNF)* into *conjunctive normal form (CNF)*.\n\n### Why is this bad?\nIn the example above, `Some` is repeated, which unncessarily complicates the pattern.\n\n### Example\n```rust\nfn main() {\n    if let Some(0) | Some(2) = Some(0) {}\n}\n```\nUse instead:\n```rust\nfn main() {\n    if let Some(0 | 2) = Some(0) {}\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* msrv: Option<String>: . The minimum rust version that the project supports (defaults to `None`)\n\n",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
