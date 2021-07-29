@@ -143,7 +143,7 @@
   },
   {
     "id": "blanket_clippy_restriction_lints",
-    "group": "style",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for `warn`/`deny`/`forbid` attributes targeting the whole clippy::restriction category.",
@@ -237,7 +237,7 @@
     "docs": {
       "What it does": "Checks if the `if` and `else` block contain shared code that can be\nmoved out of the blocks.",
       "Why is this bad": "Duplicate code is less maintainable.",
-      "Known problems": "Hopefully none.",
+      "Known problems": "* The lint doesn't check if the moved expressions modify values that are beeing used in\n  the if condition. The suggestion can in that case modify the behavior of the program.\n  See [rust-clippy#7452](https://github.com/rust-lang/rust-clippy/issues/7452)",
       "Example": "```ignore\nlet foo = if \u2026 {\n    println!(\"Hello World\");\n    13\n} else {\n    println!(\"Hello World\");\n    42\n};\n```\n\nCould be written as:\n```ignore\nprintln!(\"Hello World\");\nlet foo = if \u2026 {\n    13\n} else {\n    42\n};\n```"
     }
   },
@@ -713,9 +713,32 @@
     "docs": {
       "What it does": "Denies the configured methods and functions in clippy.toml",
       "Why is this bad": "Some methods are undesirable in certain contexts,\nand it's beneficial to lint for them as needed.",
-      "Known problems": "Currently, you must write each function as a\nfully-qualified path. This lint doesn't support aliases or reexported\nnames; be aware that many types in `std` are actually reexports.\n\nFor example, if you want to disallow `Duration::as_secs`, your clippy.toml\nconfiguration would look like\n`disallowed-methods = [\"core::time::Duration::as_secs\"]` and not\n`disallowed-methods = [\"std::time::Duration::as_secs\"]` as you might expect.",
-      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"alloc::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```",
+      "Known problems": "None.",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"std::vec::Vec::leak\", \"std::time::Instant::now\"]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```",
       "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-methods: Vec<String>`: The list of disallowed methods, written as fully qualified paths. (defaults to `Vec::new(`)."
+    }
+  },
+  {
+    "id": "disallowed_script_idents",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for usage of unicode scripts other than those explicitly allowed\nby the lint config.\n\nThis lint doesn't take into account non-text scripts such as `Unknown` and `Linear_A`.\nIt also ignores the `Common` script type.\nWhile configuring, be sure to use official script name [aliases] from\n[the list of supported scripts][supported_scripts].\n\nSee also: [`non_ascii_idents`].\n\n[aliases]: http://www.unicode.org/reports/tr24/tr24-31.html#Script_Value_Aliases\n[supported_scripts]: https://www.unicode.org/iso15924/iso15924-codes.html",
+      "Why is this bad": "It may be not desired to have many different scripts for\nidentifiers in the codebase.\n\nNote that if you only want to allow plain English, you might want to use\nbuilt-in [`non_ascii_idents`] lint instead.\n\n[`non_ascii_idents`]: https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#non-ascii-idents",
+      "Known problems": "None.",
+      "Example": "```rust\n// Assuming that `clippy.toml` contains the following line:\n// allowed-locales = [\"Latin\", \"Cyrillic\"]\nlet counter = 10; // OK, latin is allowed.\nlet \u0441\u0447\u0451\u0442\u0447\u0438\u043a = 10; // OK, cyrillic is allowed.\nlet z\u00e4hler = 10; // OK, it's still latin.\nlet \u30ab\u30a6\u30f3\u30bf = 10; // Will spawn the lint.\n```"
+    }
+  },
+  {
+    "id": "disallowed_type",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Denies the configured types in clippy.toml.",
+      "Why is this bad": "Some types are undesirable in certain contexts.",
+      "Known problems": "None.\n\nN.B. There is no way to ban primitive types.",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\"std::collections::BTreeMap\"]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `disallowed-types: Vec<String>`: The list of disallowed types, written as fully qualified paths. (defaults to `Vec::new(`)."
     }
   },
   {
@@ -736,9 +759,9 @@
     "docs": {
       "What it does": "Checks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.",
       "Why is this bad": "*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.",
-      "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therfore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.",
+      "Known problems": "Lots of bad docs won\u2019t be fixed, what the lint checks\nfor is limited, and there are still false positives. HTML elements and their\ncontent are not linted.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therfore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.",
       "Examples": "```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\", \"GraphQL\",\n        \"OCaml\",\n        \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenDNS\",\n        \"WebGL\",\n        \"TensorFlow\",\n        \"TrueType\",\n        \"iOS\", \"macOS\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `doc-valid-idents: Vec<String>`: The list of words this lint should not consider as identifiers needing ticks (defaults to `[\n        \"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\",\n        \"DirectX\",\n        \"ECMAScript\",\n        \"GPLv2\", \"GPLv3\",\n        \"GitHub\", \"GitLab\",\n        \"IPv4\", \"IPv6\",\n        \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\",\n        \"NaN\", \"NaNs\",\n        \"OAuth\", \"GraphQL\",\n        \"OCaml\",\n        \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenDNS\",\n        \"WebGL\",\n        \"TensorFlow\",\n        \"TrueType\",\n        \"iOS\", \"macOS\", \"FreeBSD\",\n        \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\",\n        \"MinGW\",\n        \"CamelCase\",\n    ]`)."
     }
   },
   {
@@ -864,7 +887,7 @@
   },
   {
     "id": "empty_loop",
-    "group": "style",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for empty `loop` expressions.",
@@ -931,7 +954,7 @@
   },
   {
     "id": "eval_order_dependence",
-    "group": "complexity",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.",
@@ -1078,6 +1101,17 @@
     "docs": {
       "What it does": "Nothing. This lint has been deprecated.",
       "Deprecation reason": "This used to check for `Vec::extend`, which was slower than\n`Vec::extend_from_slice`. Thanks to specialization, this is no longer true."
+    }
+  },
+  {
+    "id": "extend_with_drain",
+    "group": "perf",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for occurrences where one vector gets extended instead of append",
+      "Why is this bad": "Using `append` instead of `extend` is more concise and faster",
+      "Known problems": "None.",
+      "Example": "```rust\nlet mut a = vec![1, 2, 3];\nlet mut b = vec![4, 5, 6];\n\n// Bad\na.extend(b.drain(..));\n\n// Good\na.append(&mut b);\n```"
     }
   },
   {
@@ -1232,8 +1266,8 @@
   },
   {
     "id": "float_equality_without_abs",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "suspicious",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for statements of the form `(a - b) < f32::EPSILON` or\n`(a - b) < f64::EPSILON`. Notes the missing `.abs()`.",
       "Why is this bad": "The code without `.abs()` is more likely to have a bug.",
@@ -1261,7 +1295,7 @@
       "Why is this bad": "Calls to such functions\nare confusing and error prone, because it's\nhard to remember argument order and you have\nno type system support to back you up. Using\ntwo-variant enums instead of bools often makes\nAPI easier to use.",
       "Known problems": "None.",
       "Example": "Bad:\n```rust\nfn f(is_round: bool, is_hot: bool) { ... }\n```\n\nGood:\n```rust\nenum Shape {\n    Round,\n    Spiky,\n}\n\nenum Temperature {\n    Hot,\n    IceCold,\n}\n\nfn f(shape: Shape, temperature: Temperature) { ... }\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `max-fn-params-bools: u64`: The maximum number of bools function parameters can have (defaults to `3`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-fn-params-bools: u64`: The maximum number of bool parameters a function can have (defaults to `3`)."
     }
   },
   {
@@ -1297,8 +1331,8 @@
   },
   {
     "id": "for_loops_over_fallibles",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "suspicious",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for `for` loops over `Option` or `Result` values.",
       "Why is this bad": "Readability. This is more clearly expressed as an `if\nlet`.",
@@ -1330,8 +1364,8 @@
   },
   {
     "id": "from_iter_instead_of_collect",
-    "group": "style",
-    "level": "Warn",
+    "group": "pedantic",
+    "level": "Allow",
     "docs": {
       "What it does": "Checks for `from_iter()` function calls on types that implement the `FromIterator`\ntrait.",
       "Why is this bad": "It is recommended style to use collect. See\n[FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)",
@@ -2548,7 +2582,7 @@
   },
   {
     "id": "misrefactored_assign_op",
-    "group": "complexity",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for `a op= a op b` or `a op= b op a` patterns.",
@@ -2577,6 +2611,18 @@
       "What it does": "Warns if there is missing doc for any documentable item\n(public or private).",
       "Why is this bad": "Doc is good. *rustc* has a `MISSING_DOCS`\nallowed-by-default lint for\npublic members, but has no way to enforce documentation of private items.\nThis lint fixes that.",
       "Known problems": "None."
+    }
+  },
+  {
+    "id": "missing_enforced_import_renames",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for imports that do not rename the item as specified\nin the `enforce-import-renames` config option.",
+      "Why is this bad": "Consistency is important, if a project has defined import\nrenames they should be followed. More practically, some item names are too\nvague outside of their defining scope this can enforce a more meaningful naming.",
+      "Known problems": "None",
+      "Example": "An example clippy.toml configuration:\n```toml\n# clippy.toml\nenforced-import-renames = [ { path = \"serde_json::Value\", rename = \"JsonValue\" }]\n```\n\n```rust\nuse serde_json::Value;\n```\nUse instead:\n```rust\nuse serde_json::Value as JsonValue;\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `enforced-import-renames: Vec<crate::utils::conf::Rename>`: The list of imports to always rename, a fully qualified path followed by the rename. (defaults to `Vec::new(`)."
     }
   },
   {
@@ -2768,7 +2814,7 @@
   },
   {
     "id": "mut_range_bound",
-    "group": "complexity",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for loops which have a range bound that is a mutable variable",
@@ -2779,8 +2825,8 @@
   },
   {
     "id": "mutable_key_type",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "suspicious",
+    "level": "Warn",
     "docs": {
       "What it does": "Checks for sets/maps with mutable key types.",
       "Why is this bad": "All of `HashMap`, `HashSet`, `BTreeMap` and\n`BtreeSet` rely on either the hash or the order of keys be unchanging,\nso having types with interior mutability is a bad idea.",
@@ -3094,6 +3140,18 @@
       "Why is this bad": "In the best case, the code will be harder to read than\nnecessary. I don't know the worst case.",
       "Known problems": "None.",
       "Example": "```rust\nuse std::fs::OpenOptions;\n\nOpenOptions::new().read(true).truncate(true);\n```"
+    }
+  },
+  {
+    "id": "nonstandard_macro_braces",
+    "group": "nursery",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks that common macros are used with consistent bracing.",
+      "Why is this bad": "This is mostly a consistency lint although using () or []\ndoesn't give you a semicolon in item position, which can be unexpected.",
+      "Known problems": "None",
+      "Example": "```rust\nvec!{1, 2, 3};\n```\nUse instead:\n```rust\nvec![1, 2, 3];\n```",
+      "Configuration": "This lint has the following configuration variables:\n\n* `standard-macro-braces: Vec<crate::nonstandard_macro_braces::MacroMatcher>`: Enforce the named macros always use the braces specified. <br> A `MacroMatcher` can be added like so `{ name = \"macro_name\", brace = \"(\" }`. If the macro is could be used with a full path two `MacroMatcher`s have to be added one with the full path `crate_name::macro_name` and one with just the macro name. (defaults to `Vec::new(`)."
     }
   },
   {
@@ -3502,12 +3560,23 @@
     }
   },
   {
+    "id": "rc_mutex",
+    "group": "restriction",
+    "level": "Allow",
+    "docs": {
+      "What it does": "Checks for `Rc<Mutex<T>>`.",
+      "Why is this bad": "`Rc` is used in single thread and `Mutex` is used in multi thread.\nConsider using `Rc<RefCell<T>>` in single thread or `Arc<Mutex<T>>` in multi thread.",
+      "Known problems": "Sometimes combining generic types can lead to the requirement that a\ntype use Rc in conjunction with Mutex. We must consider those cases false positives, but\nalas they are quite hard to rule out. Luckily they are also rare.",
+      "Example": "```rust\nuse std::rc::Rc;\nuse std::sync::Mutex;\nfn foo(interned: Rc<Mutex<i32>>) { ... }\n```\n\nBetter:\n\n```rust\nuse std::rc::Rc;\nuse std::cell::RefCell\nfn foo(interned: Rc<RefCell<i32>>) { ... }\n```"
+    }
+  },
+  {
     "id": "redundant_allocation",
     "group": "perf",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for use of redundant allocations anywhere in the code.",
-      "Why is this bad": "Expressions such as `Rc<&T>`, `Rc<Rc<T>>`, `Rc<Box<T>>`, `Box<&T>`\nadd an unnecessary level of indirection.",
+      "Why is this bad": "Expressions such as `Rc<&T>`, `Rc<Rc<T>>`, `Rc<Arc<T>>`, `Rc<Box<T>>`, Arc<&T>`, `Arc<Rc<T>>`,\n`Arc<Arc<T>>`, `Arc<Box<T>>`, `Box<&T>`, `Box<Rc<T>>`, `Box<Arc<T>>`, `Box<Box<T>>`, add an unnecessary level of indirection.",
       "Known problems": "None.",
       "Example": "```rust\nfn foo(bar: Rc<&usize>) {}\n```\n\nBetter:\n\n```rust\nfn foo(bar: &usize) {}\n```"
     }
@@ -3796,6 +3865,17 @@
     }
   },
   {
+    "id": "self_named_constructors",
+    "group": "style",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Warns when constructors have the same name as their types.",
+      "Why is this bad": "Repeating the name of the type is redundant.",
+      "Known problems": "None.",
+      "Example": "```rust\nstruct Foo {}\n\nimpl Foo {\n    pub fn foo() -> Foo {\n        Foo {}\n    }\n}\n```\nUse instead:\n```rust\nstruct Foo {}\n\nimpl Foo {\n    pub fn new() -> Foo {\n        Foo {}\n    }\n}\n```"
+    }
+  },
+  {
     "id": "semicolon_if_nothing_returned",
     "group": "pedantic",
     "level": "Allow",
@@ -4080,6 +4160,17 @@
     }
   },
   {
+    "id": "strlen_on_c_strings",
+    "group": "complexity",
+    "level": "Warn",
+    "docs": {
+      "What it does": "Checks for usage of `libc::strlen` on a `CString` or `CStr` value,\nand suggest calling `as_bytes().len()` or `to_bytes().len()` respectively instead.",
+      "Why is this bad": "This avoids calling an unsafe `libc` function.\nCurrently, it also avoids calculating the length.",
+      "Known problems": "None.",
+      "Example": "```rust\nuse std::ffi::CString;\nlet cstring = CString::new(\"foo\").expect(\"CString::new failed\");\nlet len = unsafe { libc::strlen(cstring.as_ptr()) };\n```\nUse instead:\n```rust\nuse std::ffi::CString;\nlet cstring = CString::new(\"foo\").expect(\"CString::new failed\");\nlet len = cstring.as_bytes().len();\n```"
+    }
+  },
+  {
     "id": "struct_excessive_bools",
     "group": "pedantic",
     "level": "Allow",
@@ -4088,7 +4179,7 @@
       "Why is this bad": "Excessive bools in a struct\nis often a sign that it's used as a state machine,\nwhich is much better implemented as an enum.\nIf it's not the case, excessive bools usually benefit\nfrom refactoring into two-variant enums for better\nreadability and API.",
       "Known problems": "None.",
       "Example": "Bad:\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nGood:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```",
-      "Configuration": "This lint has the following configuration variables:\n\n* `max-struct-bools: u64`: The maximum number of bools a struct can have (defaults to `3`)."
+      "Configuration": "This lint has the following configuration variables:\n\n* `max-struct-bools: u64`: The maximum number of bool fields a struct can have (defaults to `3`)."
     }
   },
   {
@@ -4104,8 +4195,8 @@
   },
   {
     "id": "suspicious_arithmetic_impl",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "suspicious",
+    "level": "Warn",
     "docs": {
       "What it does": "Lints for suspicious operations in impls of arithmetic operators, e.g.\nsubtracting elements in an Add impl.",
       "Why this is bad": "This is probably a typo or copy-and-paste error and not intended.",
@@ -4115,7 +4206,7 @@
   },
   {
     "id": "suspicious_assignment_formatting",
-    "group": "style",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for use of the non-existent `=*`, `=!` and `=-`\noperators.",
@@ -4126,7 +4217,7 @@
   },
   {
     "id": "suspicious_else_formatting",
-    "group": "style",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for formatting of `else`. It lints if the `else`\nis followed immediately by a newline or the `else` seems to be missing.",
@@ -4137,7 +4228,7 @@
   },
   {
     "id": "suspicious_map",
-    "group": "complexity",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks for calls to `map` followed by a `count`.",
@@ -4148,8 +4239,8 @@
   },
   {
     "id": "suspicious_op_assign_impl",
-    "group": "correctness",
-    "level": "Deny",
+    "group": "suspicious",
+    "level": "Warn",
     "docs": {
       "What it does": "Lints for suspicious operations in impls of OpAssign, e.g.\nsubtracting elements in an AddAssign impl.",
       "Why this is bad": "This is probably a typo or copy-and-paste error and not intended.",
@@ -4181,7 +4272,7 @@
   },
   {
     "id": "suspicious_unary_op_formatting",
-    "group": "style",
+    "group": "suspicious",
     "level": "Warn",
     "docs": {
       "What it does": "Checks the formatting of a unary operator on the right hand side\nof a binary operator. It lints if there is no space between the binary and unary operators,\nbut there is a space between the unary and its operand.",
@@ -4813,7 +4904,7 @@
       "What it does": "Checks for unit (`()`) expressions that can be removed.",
       "Why is this bad": "Such expressions add no value, but can make the code\nless readable. Depending on formatting they can make a `break` or `return`\nstatement look like a function call.",
       "Known problems": "None.",
-      "Example": "```rust\nfn return_unit() -> () {\n    ()\n}\n```"
+      "Example": "```rust\nfn return_unit() -> () {\n    ()\n}\n```\nis equivalent to\n```rust\nfn return_unit() {}\n```"
     }
   },
   {
