@@ -3685,11 +3685,11 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/needless_borrow.rs",
-      "line": 36
+      "line": 40
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\n// Bad\nlet x: &i32 = &&&&&&5;\n\n// Good\nlet x: &i32 = &5;\n```",
+    "docs": " ### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\n// Bad\nlet x: &i32 = &&&&&&5;\nfun(&x);\n\n// Good\nlet x: &i32 = &5;\nfun(x);\n```",
     "applicability": {
       "is_multi_part_suggestion": true,
       "applicability": "Unresolved"
@@ -4707,7 +4707,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/needless_borrow.rs",
-      "line": 62
+      "line": 66
     },
     "group": "pedantic",
     "level": "allow",
