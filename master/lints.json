@@ -4543,7 +4543,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": " ### What it does\nChecks for use of redundant allocations anywhere in the code.\n\n### Why is this bad?\nExpressions such as `Rc<&T>`, `Rc<Rc<T>>`, `Rc<Arc<T>>`, `Rc<Box<T>>`, Arc<&T>`, `Arc<Rc<T>>`,\n`Arc<Arc<T>>`, `Arc<Box<T>>`, `Box<&T>`, `Box<Rc<T>>`, `Box<Arc<T>>`, `Box<Box<T>>`, add an unnecessary level of indirection.\n\n### Example\n```rust\n# use std::rc::Rc;\nfn foo(bar: Rc<&usize>) {}\n```\n\nBetter:\n\n```rust\nfn foo(bar: &usize) {}\n```",
+    "docs": " ### What it does\nChecks for use of redundant allocations anywhere in the code.\n\n### Why is this bad?\nExpressions such as `Rc<&T>`, `Rc<Rc<T>>`, `Rc<Arc<T>>`, `Rc<Box<T>>`, `Arc<&T>`, `Arc<Rc<T>>`,\n`Arc<Arc<T>>`, `Arc<Box<T>>`, `Box<&T>`, `Box<Rc<T>>`, `Box<Arc<T>>`, `Box<Box<T>>`, add an unnecessary level of indirection.\n\n### Example\n```rust\n# use std::rc::Rc;\nfn foo(bar: Rc<&usize>) {}\n```\n\nBetter:\n\n```rust\nfn foo(bar: &usize) {}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
