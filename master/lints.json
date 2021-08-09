@@ -17,7 +17,7 @@
     "id": "almost_swapped",
     "id_span": {
       "path": "src/swap.rs",
-      "line": 62
+      "line": 63
     },
     "group": "correctness",
     "level": "deny",
@@ -2873,7 +2873,7 @@
     "id": "manual_swap",
     "id_span": {
       "path": "src/swap.rs",
-      "line": 37
+      "line": 38
     },
     "group": "complexity",
     "level": "warn",
