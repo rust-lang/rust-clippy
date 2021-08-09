@@ -4721,7 +4721,7 @@
     "id": "ref_in_deref",
     "id_span": {
       "path": "src/reference.rs",
-      "line": 127
+      "line": 128
     },
     "group": "complexity",
     "level": "warn",
