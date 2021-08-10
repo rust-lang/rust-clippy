@@ -3993,7 +3993,7 @@
     "id": "nonstandard_macro_braces",
     "id_span": {
       "path": "src/nonstandard_macro_braces.rs",
-      "line": 31
+      "line": 32
     },
     "group": "nursery",
     "level": "allow",
