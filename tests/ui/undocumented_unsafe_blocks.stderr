@@ -1,0 +1,44 @@
+error: this `unsafe` block is missing a SAFETY comment
+  --> $DIR/undocumented_unsafe_blocks.rs:43:5
+   |
+LL |     unsafe {}
+   |     ^^^^^^^^^
+   |
+   = note: `-D clippy::undocumented-unsafe-blocks` implied by `-D warnings`
+
+error: this `unsafe` block is missing a SAFETY comment
+  --> $DIR/undocumented_unsafe_blocks.rs:47:5
+   |
+LL |     unsafe {} // SAFETY
+   |     ^^^^^^^^^
+
+error: this `unsafe` block is missing a SAFETY comment
+  --> $DIR/undocumented_unsafe_blocks.rs:51:5
+   |
+LL | /     unsafe {
+LL | |         //
+LL | |     } // SAFETY
+   | |_____^
+
+error: this `unsafe` block is missing a SAFETY comment
+  --> $DIR/undocumented_unsafe_blocks.rs:58:5
+   |
+LL | /     unsafe {
+LL | |         // SAFETY
+LL | |     }
+   | |_____^
+
+error: this `unsafe` block is missing a SAFETY comment
+  --> $DIR/undocumented_unsafe_blocks.rs:66:16
+   |
+LL |     unsafe {}; unsafe {}
+   |                ^^^^^^^^^
+
+error: this `unsafe` block is missing a SAFETY comment
+  --> $DIR/undocumented_unsafe_blocks.rs:71:5
+   |
+LL |     unsafe { /* SAFETY */ }
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 6 previous errors
+

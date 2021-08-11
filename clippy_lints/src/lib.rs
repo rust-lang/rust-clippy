@@ -351,6 +351,7 @@ mod transmute;
 mod transmuting_null;
 mod try_err;
 mod types;
+mod undocumented_unsafe_blocks;
 mod undropped_manually_drops;
 mod unicode;
 mod unit_return_expecting_ord;
@@ -951,6 +952,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         types::REDUNDANT_ALLOCATION,
         types::TYPE_COMPLEXITY,
         types::VEC_BOX,
+        undocumented_unsafe_blocks::UNDOCUMENTED_UNSAFE_BLOCKS,
         undropped_manually_drops::UNDROPPED_MANUALLY_DROPS,
         unicode::INVISIBLE_CHARACTERS,
         unicode::NON_ASCII_LITERAL,
@@ -1047,6 +1049,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(strings::STR_TO_STRING),
         LintId::of(types::RC_BUFFER),
         LintId::of(types::RC_MUTEX),
+        LintId::of(undocumented_unsafe_blocks::UNDOCUMENTED_UNSAFE_BLOCKS),
         LintId::of(unnecessary_self_imports::UNNECESSARY_SELF_IMPORTS),
         LintId::of(unwrap_in_result::UNWRAP_IN_RESULT),
         LintId::of(verbose_file_reads::VERBOSE_FILE_READS),
@@ -2105,6 +2108,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(move || box disallowed_script_idents::DisallowedScriptIdents::new(&scripts));
     store.register_late_pass(|| box strlen_on_c_strings::StrlenOnCStrings);
     store.register_late_pass(move || box self_named_constructors::SelfNamedConstructors);
+    store.register_early_pass(|| box undocumented_unsafe_blocks::UndocumentedUnsafeBlocks::default());
 }
 
 #[rustfmt::skip]
