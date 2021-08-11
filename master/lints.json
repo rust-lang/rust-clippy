@@ -3888,7 +3888,7 @@
     "docs": " ### What it does\nChecks for loops that will always `break`, `return` or\n`continue` an outer loop.\n\n### Why is this bad?\nThis loop never loops, all it does is obfuscating the\ncode.\n\n### Example\n```rust\nloop {\n    ..;\n    break;\n}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "Unspecified"
     }
   },
   {
