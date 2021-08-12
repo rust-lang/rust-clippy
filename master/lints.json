@@ -157,7 +157,7 @@
     "id": "bind_instead_of_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 431
+      "line": 457
     },
     "group": "complexity",
     "level": "warn",
@@ -325,7 +325,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1644
+      "line": 1670
     },
     "group": "style",
     "level": "warn",
@@ -479,7 +479,7 @@
     "id": "chars_last_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1147
+      "line": 1173
     },
     "group": "style",
     "level": "warn",
@@ -493,7 +493,7 @@
     "id": "chars_next_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 649
+      "line": 675
     },
     "group": "style",
     "level": "warn",
@@ -521,7 +521,7 @@
     "id": "clone_double_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 787
+      "line": 813
     },
     "group": "correctness",
     "level": "deny",
@@ -535,7 +535,7 @@
     "id": "clone_on_copy",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 738
+      "line": 764
     },
     "group": "complexity",
     "level": "warn",
@@ -549,7 +549,7 @@
     "id": "clone_on_ref_ptr",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 765
+      "line": 791
     },
     "group": "restriction",
     "level": "allow",
@@ -563,7 +563,7 @@
     "id": "cloned_instead_of_copied",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 99
+      "line": 100
     },
     "group": "pedantic",
     "level": "allow",
@@ -1277,7 +1277,7 @@
     "id": "expect_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 721
+      "line": 747
     },
     "group": "perf",
     "level": "warn",
@@ -1291,7 +1291,7 @@
     "id": "expect_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 208
+      "line": 209
     },
     "group": "restriction",
     "level": "allow",
@@ -1403,7 +1403,7 @@
     "id": "extend_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1071
+      "line": 1097
     },
     "group": "perf",
     "level": "warn",
@@ -1459,7 +1459,7 @@
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1384
+      "line": 1410
     },
     "group": "restriction",
     "level": "allow",
@@ -1487,7 +1487,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1601
+      "line": 1627
     },
     "group": "complexity",
     "level": "warn",
@@ -1501,7 +1501,7 @@
     "id": "filter_map_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 574
+      "line": 600
     },
     "group": "pedantic",
     "level": "allow",
@@ -1515,7 +1515,7 @@
     "id": "filter_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 454
+      "line": 480
     },
     "group": "complexity",
     "level": "warn",
@@ -1543,7 +1543,7 @@
     "id": "flat_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 596
+      "line": 622
     },
     "group": "complexity",
     "level": "warn",
@@ -1557,7 +1557,7 @@
     "id": "flat_map_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 121
+      "line": 122
     },
     "group": "pedantic",
     "level": "allow",
@@ -1739,7 +1739,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1550
+      "line": 1576
     },
     "group": "pedantic",
     "level": "allow",
@@ -1809,7 +1809,7 @@
     "id": "get_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1048
+      "line": 1074
     },
     "group": "restriction",
     "level": "allow",
@@ -1935,7 +1935,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1669
+      "line": 1695
     },
     "group": "pedantic",
     "level": "allow",
@@ -2061,7 +2061,7 @@
     "id": "inefficient_to_string",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 810
+      "line": 836
     },
     "group": "pedantic",
     "level": "allow",
@@ -2187,7 +2187,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1579
+      "line": 1605
     },
     "group": "complexity",
     "level": "warn",
@@ -2243,7 +2243,7 @@
     "id": "into_iter_on_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1246
+      "line": 1272
     },
     "group": "style",
     "level": "warn",
@@ -2341,7 +2341,7 @@
     "id": "iter_cloned_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1123
+      "line": 1149
     },
     "group": "style",
     "level": "warn",
@@ -2355,7 +2355,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1694
+      "line": 1720
     },
     "group": "complexity",
     "level": "warn",
@@ -2383,7 +2383,7 @@
     "id": "iter_next_slice",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1435
+      "line": 1461
     },
     "group": "style",
     "level": "warn",
@@ -2397,7 +2397,7 @@
     "id": "iter_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 988
+      "line": 1014
     },
     "group": "perf",
     "level": "warn",
@@ -2411,7 +2411,7 @@
     "id": "iter_nth_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 962
+      "line": 988
     },
     "group": "style",
     "level": "warn",
@@ -2425,7 +2425,7 @@
     "id": "iter_skip_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1012
+      "line": 1038
     },
     "group": "style",
     "level": "warn",
@@ -2439,7 +2439,7 @@
     "id": "iterator_step_by_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 914
+      "line": 940
     },
     "group": "correctness",
     "level": "deny",
@@ -2719,7 +2719,7 @@
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 526
+      "line": 552
     },
     "group": "complexity",
     "level": "warn",
@@ -2733,7 +2733,7 @@
     "id": "manual_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 552
+      "line": 578
     },
     "group": "complexity",
     "level": "warn",
@@ -2831,7 +2831,7 @@
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1326
+      "line": 1352
     },
     "group": "style",
     "level": "warn",
@@ -2845,7 +2845,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1743
+      "line": 1769
     },
     "group": "perf",
     "level": "warn",
@@ -2929,7 +2929,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1518
+      "line": 1544
     },
     "group": "style",
     "level": "warn",
@@ -2971,7 +2971,7 @@
     "id": "map_flatten",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 500
+      "line": 526
     },
     "group": "pedantic",
     "level": "allow",
@@ -2985,7 +2985,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1623
+      "line": 1649
     },
     "group": "complexity",
     "level": "warn",
@@ -2999,7 +2999,7 @@
     "id": "map_unwrap_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 348
+      "line": 374
     },
     "group": "pedantic",
     "level": "allow",
@@ -3895,7 +3895,7 @@
     "id": "new_ret_no_self",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 871
+      "line": 897
     },
     "group": "style",
     "level": "warn",
@@ -4021,7 +4021,7 @@
     "id": "ok_expect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 308
+      "line": 309
     },
     "group": "style",
     "level": "warn",
@@ -4049,7 +4049,7 @@
     "id": "option_as_ref_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1409
+      "line": 1435
     },
     "group": "complexity",
     "level": "warn",
@@ -4077,7 +4077,7 @@
     "id": "option_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 935
+      "line": 961
     },
     "group": "complexity",
     "level": "warn",
@@ -4105,7 +4105,7 @@
     "id": "option_map_or_none",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 374
+      "line": 400
     },
     "group": "style",
     "level": "warn",
@@ -4147,7 +4147,7 @@
     "id": "or_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 683
+      "line": 709
     },
     "group": "perf",
     "level": "warn",
@@ -4805,7 +4805,7 @@
     "id": "result_map_or_into_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 399
+      "line": 425
     },
     "group": "style",
     "level": "warn",
@@ -4889,7 +4889,7 @@
     "id": "search_is_some",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 625
+      "line": 651
     },
     "group": "complexity",
     "level": "warn",
@@ -5029,7 +5029,7 @@
     "id": "should_implement_trait",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 237
+      "line": 238
     },
     "group": "style",
     "level": "warn",
@@ -5057,7 +5057,7 @@
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1460
+      "line": 1486
     },
     "group": "style",
     "level": "warn",
@@ -5071,7 +5071,7 @@
     "id": "single_char_pattern",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 895
+      "line": 921
     },
     "group": "perf",
     "level": "warn",
@@ -5155,7 +5155,7 @@
     "id": "skip_while_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 477
+      "line": 503
     },
     "group": "complexity",
     "level": "warn",
@@ -5239,7 +5239,7 @@
     "id": "string_extend_chars",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1100
+      "line": 1126
     },
     "group": "style",
     "level": "warn",
@@ -5379,7 +5379,7 @@
     "id": "suspicious_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1264
+      "line": 1290
     },
     "group": "suspicious",
     "level": "warn",
@@ -5421,7 +5421,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1723
+      "line": 1749
     },
     "group": "correctness",
     "level": "deny",
@@ -5813,7 +5813,7 @@
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1298
+      "line": 1324
     },
     "group": "correctness",
     "level": "deny",
@@ -5883,7 +5883,7 @@
     "id": "unnecessary_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1223
+      "line": 1249
     },
     "group": "complexity",
     "level": "warn",
@@ -5897,7 +5897,7 @@
     "id": "unnecessary_fold",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1194
+      "line": 1220
     },
     "group": "style",
     "level": "warn",
@@ -5911,7 +5911,7 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1498
+      "line": 1524
     },
     "group": "style",
     "level": "warn",
@@ -6272,10 +6272,24 @@
     }
   },
   {
+    "id": "unwrap_or_else_default",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 334
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for usages of `_.unwrap_or_else(Default::default)` on `Option` and\n`Result` values.\n\n### Why is this bad?\nReadability, these can be written as `_.unwrap_or_default`, which is\nsimpler and more concise.\n\n### Examples\n```rust\n# let x = Some(1);\n\n// Bad\nx.unwrap_or_else(Default::default);\nx.unwrap_or_else(u32::default);\n\n// Good\nx.unwrap_or_default();\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "unwrap_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 166
+      "line": 167
     },
     "group": "restriction",
     "level": "allow",
@@ -6345,7 +6359,7 @@
     "id": "useless_asref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1172
+      "line": 1198
     },
     "group": "complexity",
     "level": "warn",
@@ -6681,7 +6695,7 @@
     "id": "wrong_self_convention",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 282
+      "line": 283
     },
     "group": "style",
     "level": "warn",
@@ -6765,7 +6779,7 @@
     "id": "zst_offset",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1343
+      "line": 1369
     },
     "group": "correctness",
     "level": "deny",
