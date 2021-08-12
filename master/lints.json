@@ -955,7 +955,7 @@
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 68
+      "line": 69
     },
     "group": "pedantic",
     "level": "allow",
@@ -2523,7 +2523,7 @@
     "id": "large_types_passed_by_value",
     "id_span": {
       "path": "src/pass_by_ref_or_value.rs",
-      "line": 100
+      "line": 101
     },
     "group": "pedantic",
     "level": "allow",
@@ -3335,7 +3335,7 @@
     "id": "missing_errors_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 130
+      "line": 131
     },
     "group": "pedantic",
     "level": "allow",
@@ -3363,7 +3363,7 @@
     "id": "missing_panics_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 160
+      "line": 161
     },
     "group": "pedantic",
     "level": "allow",
@@ -3377,7 +3377,7 @@
     "id": "missing_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 102
+      "line": 103
     },
     "group": "style",
     "level": "warn",
@@ -3741,7 +3741,7 @@
     "id": "needless_doctest_main",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 188
+      "line": 189
     },
     "group": "style",
     "level": "warn",
@@ -5715,7 +5715,7 @@
     "id": "trivially_copy_pass_by_ref",
     "id_span": {
       "path": "src/pass_by_ref_or_value.rs",
-      "line": 67
+      "line": 68
     },
     "group": "pedantic",
     "level": "allow",
