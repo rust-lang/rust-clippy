@@ -61,3 +61,11 @@ fn my_own_block() {
 fn just_get_unit() {
     get_unit();
 }
+
+fn test_if() {
+    if 1 > 2 {
+        get_unit();
+    } else {
+        println!("everything alright!");
+    }
+}

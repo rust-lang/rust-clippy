@@ -48,13 +48,20 @@ impl LateLintPass<'_> for SemicolonOutsideBlock {
             then {
                 // make sure that the block does not belong to a function
                 for (hir_id, _) in cx.tcx.hir().parent_iter(block.hir_id) {
-                    if_chain! {
-                        if let Some(body_id) = cx.tcx.hir().maybe_body_owned_by(hir_id);
-                        if let BodyOwnerKind::Fn = cx.tcx.hir().body_owner_kind(hir_id);
-                        let item_body = cx.tcx.hir().body(body_id);
-                        if let ExprKind::Block(fn_block, _) = item_body.value.kind;
-                        if fn_block.hir_id == block.hir_id;
-                        then { return }
+                    if let Some(body_id) = cx.tcx.hir().maybe_body_owned_by(hir_id) {
+                        if let BodyOwnerKind::Fn = cx.tcx.hir().body_owner_kind(hir_id) {
+                            let item_body = cx.tcx.hir().body(body_id);
+                            if let ExprKind::Block(fn_block, _) = item_body.value.kind {
+                                if let Some(pot_if) = fn_block.expr {
+                                    if let ExprKind::If(..) = pot_if.kind {
+                                        return;
+                                    }
+                                }
+                                if fn_block.hir_id == block.hir_id {
+                                    return
+                                }
+                            }
+                        }
                     }
                 }
                 // filter out other blocks and the desugared for loop
