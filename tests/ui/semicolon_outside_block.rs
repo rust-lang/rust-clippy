@@ -1,4 +1,5 @@
 #![warn(clippy::semicolon_outside_block)]
+#![allow(clippy::single_match)]
 
 unsafe fn f(arg: u32) {}
 
@@ -68,4 +69,21 @@ fn test_if() {
     } else {
         println!("everything alright!");
     }
+}
+
+fn test_for() {
+    for project in &[
+        "clippy_workspace_tests",
+        "clippy_workspace_tests/src",
+        "clippy_workspace_tests/subcrate",
+        "clippy_workspace_tests/subcrate/src",
+        "clippy_dev",
+        "clippy_lints",
+        "clippy_utils",
+        "rustc_tools_util",
+    ] {
+        get_unit();
+    }
+
+    get_unit();
 }

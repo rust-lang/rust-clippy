@@ -49,23 +49,44 @@ impl LateLintPass<'_> for SemicolonOutsideBlock {
                 // make sure that the block does not belong to a function
                 for (hir_id, _) in cx.tcx.hir().parent_iter(block.hir_id) {
                     if let Some(body_id) = cx.tcx.hir().maybe_body_owned_by(hir_id) {
-                        if let BodyOwnerKind::Fn = cx.tcx.hir().body_owner_kind(hir_id) {
+                        if cx.tcx.hir().body_owner_kind(hir_id).is_fn_or_closure() {
                             let item_body = cx.tcx.hir().body(body_id);
                             if let ExprKind::Block(fn_block, _) = item_body.value.kind {
-                                if let Some(pot_if) = fn_block.expr {
-                                    if let ExprKind::If(..) = pot_if.kind {
+                                for stmt in fn_block.stmts {
+                                    if let StmtKind::Expr(pot_ille_expr) = stmt.kind {
+                                        if let ExprKind::If(..) |
+                                               ExprKind::Loop(..) | 
+                                               ExprKind::DropTemps(..) | 
+                                               ExprKind::Match(..) = pot_ille_expr.kind {
+                                            return
+                                        }
+                                    }
+                                }
+
+                                if let Some(last_expr) = fn_block.expr {
+                                    if let ExprKind::If(..) |
+                                           ExprKind::Loop(..) | 
+                                           ExprKind::DropTemps(..) | 
+                                           ExprKind::Match(..) = last_expr.kind {
                                         return;
                                     }
                                 }
-                                if fn_block.hir_id == block.hir_id {
+
+                                if fn_block.hir_id == block.hir_id && !matches!(cx.tcx.hir().body_owner_kind(hir_id), BodyOwnerKind::Closure) {
                                     return
                                 }
                             }
                         }
                     }
                 }
+
+                
                 // filter out other blocks and the desugared for loop
-                if let ExprKind::Block(..) | ExprKind::DropTemps(..) = expr.kind { return }
+                if let ExprKind::Block(..) | 
+                       ExprKind::DropTemps(..) |
+                       ExprKind::If(..) |
+                       ExprKind::Loop(..) |
+                       ExprKind::Match(..) = expr.kind { return }
 
                 // make sure we're also having the semicolon at the end of the expression...
                 let expr_w_sem = expand_span_to_semicolon(cx, expr.span);

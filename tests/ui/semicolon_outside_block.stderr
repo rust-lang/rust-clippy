@@ -1,5 +1,5 @@
 error: consider moving the `;` outside the block for consistent formatting
-  --> $DIR/semicolon_outside_block.rs:9:5
+  --> $DIR/semicolon_outside_block.rs:10:5
    |
 LL |     unsafe { f(x); }
    |     ^^^^^^^^^^^^^^^^ help: put the `;` outside the block: `unsafe { f(x) };`
@@ -7,7 +7,7 @@ LL |     unsafe { f(x); }
    = note: `-D clippy::semicolon-outside-block` implied by `-D warnings`
 
 error: consider moving the `;` outside the block for consistent formatting
-  --> $DIR/semicolon_outside_block.rs:15:5
+  --> $DIR/semicolon_outside_block.rs:16:5
    |
 LL | /     unsafe {
 LL | |         f(x);
@@ -22,7 +22,7 @@ LL |     };
    |
 
 error: consider moving the `;` outside the block for consistent formatting
-  --> $DIR/semicolon_outside_block.rs:23:5
+  --> $DIR/semicolon_outside_block.rs:24:5
    |
 LL | /     unsafe {
 LL | |         let _this = 1;
@@ -44,7 +44,7 @@ LL |         let _list = 5;
  ...
 
 error: consider moving the `;` outside the block for consistent formatting
-  --> $DIR/semicolon_outside_block.rs:46:17
+  --> $DIR/semicolon_outside_block.rs:47:17
    |
 LL |       let _d = || {
    |  _________________^
@@ -60,7 +60,7 @@ LL |     };
    |
 
 error: consider moving the `;` outside the block for consistent formatting
-  --> $DIR/semicolon_outside_block.rs:53:5
+  --> $DIR/semicolon_outside_block.rs:54:5
    |
 LL | /     {
 LL | |         let y = 42;
