@@ -36,6 +36,18 @@ declare_clippy_lint! {
 
 declare_lint_pass!(SemicolonOutsideBlock => [SEMICOLON_OUTSIDE_BLOCK]);
 
+/// Checks if an ExprKind is of an illegal variant (aka blocks that we don't want)
+/// to lint on as it's illegal or unnecessary to put a semicolon afterwards.
+/// This macro then inserts a `return` statement to return out of the check_block
+/// method.
+macro_rules! check_expr_return {
+    ($l:expr) => {
+        if let ExprKind::If(..) | ExprKind::Loop(..) | ExprKind::DropTemps(..) | ExprKind::Match(..) = $l {
+            return;
+        }
+    };
+}
+
 impl LateLintPass<'_> for SemicolonOutsideBlock {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {
         if_chain! {
@@ -46,33 +58,28 @@ impl LateLintPass<'_> for SemicolonOutsideBlock {
             let t_expr = cx.typeck_results().expr_ty(expr);
             if t_expr.is_unit();
             then {
-                // make sure that the block does not belong to a function
+                // make sure that the block does not belong to a function by iterating over the parents
                 for (hir_id, _) in cx.tcx.hir().parent_iter(block.hir_id) {
                     if let Some(body_id) = cx.tcx.hir().maybe_body_owned_by(hir_id) {
+                        // if we're in a body, check if it's an fn or a closure
                         if cx.tcx.hir().body_owner_kind(hir_id).is_fn_or_closure() {
                             let item_body = cx.tcx.hir().body(body_id);
                             if let ExprKind::Block(fn_block, _) = item_body.value.kind {
+                                // check for an illegal statement in the list of statements...
                                 for stmt in fn_block.stmts {
                                     if let StmtKind::Expr(pot_ille_expr) = stmt.kind {
-                                        if let ExprKind::If(..) |
-                                               ExprKind::Loop(..) | 
-                                               ExprKind::DropTemps(..) | 
-                                               ExprKind::Match(..) = pot_ille_expr.kind {
-                                            return
-                                        }
+                                        check_expr_return!(pot_ille_expr.kind);
                                     }
                                 }
 
+                                //.. the potential last statement ..
                                 if let Some(last_expr) = fn_block.expr {
-                                    if let ExprKind::If(..) |
-                                           ExprKind::Loop(..) | 
-                                           ExprKind::DropTemps(..) | 
-                                           ExprKind::Match(..) = last_expr.kind {
-                                        return;
-                                    }
+                                    check_expr_return!(last_expr.kind);
                                 }
 
-                                if fn_block.hir_id == block.hir_id && !matches!(cx.tcx.hir().body_owner_kind(hir_id), BodyOwnerKind::Closure) {
+                                // .. or if this is the body of an fn
+                                if fn_block.hir_id == block.hir_id &&
+                                    !matches!(cx.tcx.hir().body_owner_kind(hir_id), BodyOwnerKind::Closure) {
                                     return
                                 }
                             }
@@ -80,13 +87,8 @@ impl LateLintPass<'_> for SemicolonOutsideBlock {
                     }
                 }
 
-                
                 // filter out other blocks and the desugared for loop
-                if let ExprKind::Block(..) | 
-                       ExprKind::DropTemps(..) |
-                       ExprKind::If(..) |
-                       ExprKind::Loop(..) |
-                       ExprKind::Match(..) = expr.kind { return }
+                check_expr_return!(expr.kind);
 
                 // make sure we're also having the semicolon at the end of the expression...
                 let expr_w_sem = expand_span_to_semicolon(cx, expr.span);

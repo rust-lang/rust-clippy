@@ -8,15 +8,15 @@ unsafe fn f(_arg: u32) {}
 fn main() {
     let x = 32;
 
-    unsafe { f(x); }
+    unsafe { f(x) };
 }
 
 fn foo() {
     let x = 32;
 
     unsafe {
-        f(x);
-    }
+        f(x)
+    };
 }
 
 fn bar() {
@@ -30,7 +30,7 @@ fn bar() {
         let _list = 5;
         let _of = 6;
         let _variables = 7;
-        f(x);
+        f(x)
     };
 }
 
@@ -39,7 +39,7 @@ fn get_unit() {}
 #[rustfmt::skip]
 fn closure_error() {
     let _d = || {
-        get_unit();
+        get_unit()
     };
 }
 
@@ -48,8 +48,8 @@ fn my_own_block() {
     {
         let y = 42;
         x = y + 1;
-        get_unit();
-    }
+        get_unit()
+    };
     assert_eq!(x, 43)
 }
 
