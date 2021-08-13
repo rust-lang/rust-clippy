@@ -16,9 +16,9 @@ LL | |     }
    |
 help: put the `;` outside the block
    |
-LL |     unsafe {
-LL |         f(x)
-LL |     };
+LL ~     unsafe {
+LL +         f(x)
+LL +     };
    |
 
 error: consider moving the `;` outside the block for consistent formatting
@@ -35,12 +35,12 @@ LL | |     };
    |
 help: put the `;` outside the block
    |
-LL |     unsafe {
-LL |         let _this = 1;
-LL |         let _is = 2;
-LL |         let _a = 3;
-LL |         let _long = 4;
-LL |         let _list = 5;
+LL ~     unsafe {
+LL +         let _this = 1;
+LL +         let _is = 2;
+LL +         let _a = 3;
+LL +         let _long = 4;
+LL +         let _list = 5;
  ...
 
 error: consider moving the `;` outside the block for consistent formatting
@@ -54,9 +54,9 @@ LL | |     };
    |
 help: put the `;` outside the block
    |
-LL |     let _d = || {
-LL |         get_unit()
-LL |     };
+LL ~     let _d = || {
+LL +         get_unit()
+LL +     };
    |
 
 error: consider moving the `;` outside the block for consistent formatting
@@ -71,11 +71,11 @@ LL | |     }
    |
 help: put the `;` outside the block
    |
-LL |     {
-LL |         let y = 42;
-LL |         x = y + 1;
-LL |         get_unit()
-LL |     };
+LL ~     {
+LL +         let y = 42;
+LL +         x = y + 1;
+LL +         get_unit()
+LL +     };
    |
 
 error: aborting due to 5 previous errors
