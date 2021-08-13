@@ -1,0 +1,82 @@
+error: consider moving the `;` outside the block for consistent formatting
+  --> $DIR/semicolon_outside_block.rs:9:5
+   |
+LL |     unsafe { f(x); }
+   |     ^^^^^^^^^^^^^^^^ help: put the `;` outside the block: `unsafe { f(x) };`
+   |
+   = note: `-D clippy::semicolon-outside-block` implied by `-D warnings`
+
+error: consider moving the `;` outside the block for consistent formatting
+  --> $DIR/semicolon_outside_block.rs:15:5
+   |
+LL | /     unsafe {
+LL | |         f(x);
+LL | |     }
+   | |_____^
+   |
+help: put the `;` outside the block
+   |
+LL |     unsafe {
+LL |         f(x)
+LL |     };
+   |
+
+error: consider moving the `;` outside the block for consistent formatting
+  --> $DIR/semicolon_outside_block.rs:23:5
+   |
+LL | /     unsafe {
+LL | |         let _this = 1;
+LL | |         let _is = 2;
+LL | |         let _a = 3;
+...  |
+LL | |         f(x);
+LL | |     };
+   | |______^
+   |
+help: put the `;` outside the block
+   |
+LL |     unsafe {
+LL |         let _this = 1;
+LL |         let _is = 2;
+LL |         let _a = 3;
+LL |         let _long = 4;
+LL |         let _list = 5;
+ ...
+
+error: consider moving the `;` outside the block for consistent formatting
+  --> $DIR/semicolon_outside_block.rs:46:17
+   |
+LL |       let _d = || {
+   |  _________________^
+LL | |         get_unit();
+LL | |     };
+   | |______^
+   |
+help: put the `;` outside the block
+   |
+LL |     let _d = || {
+LL |         get_unit()
+LL |     };
+   |
+
+error: consider moving the `;` outside the block for consistent formatting
+  --> $DIR/semicolon_outside_block.rs:53:5
+   |
+LL | /     {
+LL | |         let y = 42;
+LL | |         x = y + 1;
+LL | |         get_unit();
+LL | |     }
+   | |_____^
+   |
+help: put the `;` outside the block
+   |
+LL |     {
+LL |         let y = 42;
+LL |         x = y + 1;
+LL |         get_unit()
+LL |     };
+   |
+
+error: aborting due to 5 previous errors
+

@@ -332,6 +332,7 @@ mod self_assignment;
 mod self_named_constructors;
 mod semicolon_if_nothing_returned;
 mod semicolon_inside_block;
+mod semicolon_outside_block;
 mod serde_api;
 mod shadow;
 mod single_component_path_imports;
@@ -905,6 +906,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         self_named_constructors::SELF_NAMED_CONSTRUCTORS,
         semicolon_if_nothing_returned::SEMICOLON_IF_NOTHING_RETURNED,
         semicolon_inside_block::SEMICOLON_INSIDE_BLOCK,
+        semicolon_outside_block::SEMICOLON_OUTSIDE_BLOCK,
         serde_api::SERDE_API_MISUSE,
         shadow::SHADOW_REUSE,
         shadow::SHADOW_SAME,
@@ -1136,6 +1138,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(ref_option_ref::REF_OPTION_REF),
         LintId::of(semicolon_if_nothing_returned::SEMICOLON_IF_NOTHING_RETURNED),
         LintId::of(semicolon_inside_block::SEMICOLON_INSIDE_BLOCK),
+        LintId::of(semicolon_outside_block::SEMICOLON_OUTSIDE_BLOCK),
         LintId::of(shadow::SHADOW_UNRELATED),
         LintId::of(strings::STRING_ADD_ASSIGN),
         LintId::of(trait_bounds::TRAIT_DUPLICATION_IN_BOUNDS),
@@ -2092,6 +2095,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box float_equality_without_abs::FloatEqualityWithoutAbs);
     store.register_late_pass(|| box semicolon_if_nothing_returned::SemicolonIfNothingReturned);
     store.register_late_pass(|| box semicolon_inside_block::SemicolonInsideBlock);
+    store.register_late_pass(|| box semicolon_outside_block::SemicolonOutsideBlock);
     store.register_late_pass(|| box async_yields_async::AsyncYieldsAsync);
     let disallowed_methods = conf.disallowed_methods.iter().cloned().collect::<FxHashSet<_>>();
     store.register_late_pass(move || box disallowed_method::DisallowedMethod::new(&disallowed_methods));
