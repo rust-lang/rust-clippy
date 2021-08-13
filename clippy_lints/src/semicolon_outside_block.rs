@@ -5,7 +5,7 @@ use clippy_utils::source::snippet_with_macro_callsite;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::ExprKind;
-use rustc_hir::{Block, StmtKind, ItemKind};
+use rustc_hir::{Block, BodyOwnerKind, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::BytePos;
@@ -45,15 +45,18 @@ impl LateLintPass<'_> for SemicolonOutsideBlock {
             if let StmtKind::Semi(expr) = last.kind;
             let t_expr = cx.typeck_results().expr_ty(expr);
             if t_expr.is_unit();
-
-            // make sure that the block does not belong to a function
-            let parent_item_id = cx.tcx.hir().get_parent_item(block.hir_id);
-            let parent_item = cx.tcx.hir().expect_item(parent_item_id);
-            if let ItemKind::Fn(_, _, body_id) = parent_item.kind;
-            let item_body = cx.tcx.hir().body(body_id);
-            if let ExprKind::Block(fn_block, _) = item_body.value.kind;
-            if fn_block.hir_id != block.hir_id;
             then {
+                // make sure that the block does not belong to a function
+                for (hir_id, _) in cx.tcx.hir().parent_iter(block.hir_id) {
+                    if_chain! {
+                        if let Some(body_id) = cx.tcx.hir().maybe_body_owned_by(hir_id);
+                        if let BodyOwnerKind::Fn = cx.tcx.hir().body_owner_kind(hir_id);
+                        let item_body = cx.tcx.hir().body(body_id);
+                        if let ExprKind::Block(fn_block, _) = item_body.value.kind;
+                        if fn_block.hir_id == block.hir_id;
+                        then { return }
+                    }
+                }
                 // filter out other blocks and the desugared for loop
                 if let ExprKind::Block(..) | ExprKind::DropTemps(..) = expr.kind { return }
 
@@ -95,7 +98,7 @@ impl LateLintPass<'_> for SemicolonOutsideBlock {
     }
 }
 
-/// Takes a span and extzends it until after a semicolon in the last line of the span.
+/// Takes a span and extends it until after a semicolon in the last line of the span.
 fn expand_span_to_semicolon<'tcx>(cx: &LateContext<'tcx>, expr_span: Span) -> Span {
     let expr_span_with_sem = cx.sess().source_map().span_extend_to_next_char(expr_span, ';', false);
     expr_span_with_sem.with_hi(expr_span_with_sem.hi().add(BytePos(1)))
