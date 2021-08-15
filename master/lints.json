@@ -4093,7 +4093,7 @@
       "path": "src/option_if_let_else.rs",
       "line": 59
     },
-    "group": "pedantic",
+    "group": "nursery",
     "level": "allow",
     "docs": " ### What it does\nLints usage of `if let Some(v) = ... { y } else { x }` which is more\nidiomatically done with `Option::map_or` (if the else bit is a pure\nexpression) or `Option::map_or_else` (if the else bit is an impure\nexpression).\n\n### Why is this bad?\nUsing the dedicated functions of the Option type is clearer and\nmore concise than an `if let` expression.\n\n### Known problems\nThis lint uses a deliberately conservative metric for checking\nif the inside of either body contains breaks or continues which will\ncause it to not suggest a fix if either block contains a loop with\ncontinues or breaks contained within the loop.\n\n### Example\n```rust\n# let optional: Option<u32> = Some(0);\n# fn do_complicated_function() -> u32 { 5 };\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    5\n};\nlet _ = if let Some(foo) = optional {\n    foo\n} else {\n    let y = do_complicated_function();\n    y*y\n};\n```\n\nshould be\n\n```rust\n# let optional: Option<u32> = Some(0);\n# fn do_complicated_function() -> u32 { 5 };\nlet _ = optional.map_or(5, |foo| foo);\nlet _ = optional.map_or_else(||{\n    let y = do_complicated_function();\n    y*y\n}, |foo| foo);\n```",
     "applicability": {
