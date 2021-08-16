@@ -2761,7 +2761,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/manual_map.rs",
-      "line": 36
+      "line": 38
     },
     "group": "style",
     "level": "warn",
@@ -2943,7 +2943,7 @@
     "id": "map_entry",
     "id_span": {
       "path": "src/entry.rs",
-      "line": 55
+      "line": 56
     },
     "group": "perf",
     "level": "warn",
