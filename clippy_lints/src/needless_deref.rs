@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_opt;
+use rustc_ast::ast::Mutability;
 use rustc_errors::Applicability;
 use rustc_hir::UnOp;
 use rustc_hir::{Expr, ExprKind};
@@ -67,19 +68,23 @@ fn check_arguments<'tcx>(cx: &LateContext<'tcx>, arguments: &[Expr<'_>], type_de
                 // a: &T
                 // foo(&** a) -> foo(a)
                 if_chain! {
-                    if let ExprKind::AddrOf(_, _, child1) = argument.kind ;
+                    if let ExprKind::AddrOf(_, mutability, child1) = argument.kind ;
                     if let ExprKind::Unary(UnOp::Deref, child2) = child1.kind ;
                     if let ExprKind::Unary(UnOp::Deref, child3) = child2.kind ;
                     if !matches!(child3.kind,ExprKind::Unary(UnOp::Deref, ..) );
                     let ty = cx.typeck_results().expr_ty(child3);
                     if matches!(ty.kind(),ty::Ref(..));
+                    let help=match mutability{
+                        Mutability::Not=> "try remove the `&**` and just keep",
+                        Mutability::Mut=> "try remove the `&mut **` and just keep",
+                    };
                     then{
                         span_lint_and_sugg(
                             cx,
                             NEEDLESS_DEREF,
                             argument.span,
                             "needless explicit deref in function parameter",
-                            "try remove the `&**` and just keep",
+                            help,
                             snippet_opt(cx, child3.span).unwrap(),
                             Applicability::MachineApplicable,
                         );
@@ -89,11 +94,15 @@ fn check_arguments<'tcx>(cx: &LateContext<'tcx>, arguments: &[Expr<'_>], type_de
                 // a: T
                 // foo(&*a) -> foo(&a)
                 if_chain! {
-                    if let ExprKind::AddrOf(_, _, child1) = argument.kind ;
+                    if let ExprKind::AddrOf(_, mutability, child1) = argument.kind ;
                     if let ExprKind::Unary(UnOp::Deref, child2) = child1.kind ;
                     if !matches!(child2.kind,ExprKind::Unary(UnOp::Deref, ..) );
                     let ty = cx.typeck_results().expr_ty(child2);
                     if !matches!(ty.kind(),ty::Ref(..));
+                    let sugg= match mutability{
+                        Mutability::Not=> ("&".to_owned()+&snippet_opt(cx, child2.span).unwrap()).clone(),
+                        Mutability::Mut=> ("&mut ".to_owned()+&snippet_opt(cx, child2.span).unwrap()).clone(),
+                    };
                     then{
                         span_lint_and_sugg(
                             cx,
@@ -101,7 +110,7 @@ fn check_arguments<'tcx>(cx: &LateContext<'tcx>, arguments: &[Expr<'_>], type_de
                             argument.span,
                             "needless explicit deref in function parameter",
                             "you can replace this with",
-                            ("&".to_owned()+&snippet_opt(cx, child2.span).unwrap()).clone(),
+                            sugg,
                             Applicability::MachineApplicable,
                         );
                     }

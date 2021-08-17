@@ -1,28 +1,52 @@
 error: needless explicit deref in function parameter
-  --> $DIR/needless_deref.rs:26:13
+  --> $DIR/needless_deref.rs:25:17
    |
-LL |         foo(&*PathBuf::new()); // should lint
-   |             ^^^^^^^^^^^^^^^^ help: you can replace this with: `&PathBuf::new()`
+LL |             foo(&*PathBuf::new()); // should lint
+   |                 ^^^^^^^^^^^^^^^^ help: you can replace this with: `&PathBuf::new()`
    |
    = note: `-D clippy::needless-deref` implied by `-D warnings`
 
 error: needless explicit deref in function parameter
-  --> $DIR/needless_deref.rs:31:13
+  --> $DIR/needless_deref.rs:30:17
    |
-LL |         foo(&**b); // should lint
-   |             ^^^^ help: try remove the `&**` and just keep: `b`
+LL |             foo(&**b); // should lint
+   |                 ^^^^ help: try remove the `&**` and just keep: `b`
 
 error: needless explicit deref in function parameter
-  --> $DIR/needless_deref.rs:71:15
+  --> $DIR/needless_deref.rs:68:19
    |
-LL |         s.foo(&*PathBuf::new()); // should lint
-   |               ^^^^^^^^^^^^^^^^ help: you can replace this with: `&PathBuf::new()`
+LL |             s.foo(&*PathBuf::new()); // should lint
+   |                   ^^^^^^^^^^^^^^^^ help: you can replace this with: `&PathBuf::new()`
 
 error: needless explicit deref in function parameter
-  --> $DIR/needless_deref.rs:76:15
+  --> $DIR/needless_deref.rs:73:19
    |
-LL |         s.foo(&**b); // should lint
-   |               ^^^^ help: try remove the `&**` and just keep: `b`
+LL |             s.foo(&**b); // should lint
+   |                   ^^^^ help: try remove the `&**` and just keep: `b`
 
-error: aborting due to 4 previous errors
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:100:17
+   |
+LL |             foo(&mut *b); // should lint
+   |                 ^^^^^^^ help: you can replace this with: `&mut b`
+
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:104:17
+   |
+LL |             foo(&mut **b); // should lint
+   |                 ^^^^^^^^ help: try remove the `&mut **` and just keep: `b`
+
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:132:19
+   |
+LL |             s.foo(&mut *b); // should lint
+   |                   ^^^^^^^ help: you can replace this with: `&mut b`
+
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:136:19
+   |
+LL |             s.foo(&mut **b); // should lint
+   |                   ^^^^^^^^ help: try remove the `&mut **` and just keep: `b`
+
+error: aborting due to 8 previous errors
 
