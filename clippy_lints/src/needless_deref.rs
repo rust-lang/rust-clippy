@@ -74,11 +74,11 @@ fn check_arguments<'tcx>(cx: &LateContext<'tcx>, arguments: &[Expr<'_>], type_de
                     if !matches!(child3.kind,ExprKind::Unary(UnOp::Deref, ..) );
                     let ty = cx.typeck_results().expr_ty(child3);
                     if matches!(ty.kind(),ty::Ref(..));
-                    let help=match mutability{
-                        Mutability::Not=> "try remove the `&**` and just keep",
-                        Mutability::Mut=> "try remove the `&mut **` and just keep",
-                    };
                     then{
+                        let help=match mutability{
+                            Mutability::Not=> "try remove the `&**` and just keep",
+                            Mutability::Mut=> "try remove the `&mut **` and just keep",
+                        };
                         span_lint_and_sugg(
                             cx,
                             NEEDLESS_DEREF,
@@ -99,11 +99,11 @@ fn check_arguments<'tcx>(cx: &LateContext<'tcx>, arguments: &[Expr<'_>], type_de
                     if !matches!(child2.kind,ExprKind::Unary(UnOp::Deref, ..) );
                     let ty = cx.typeck_results().expr_ty(child2);
                     if !matches!(ty.kind(),ty::Ref(..));
-                    let sugg= match mutability{
-                        Mutability::Not=> ("&".to_owned()+&snippet_opt(cx, child2.span).unwrap()).clone(),
-                        Mutability::Mut=> ("&mut ".to_owned()+&snippet_opt(cx, child2.span).unwrap()).clone(),
-                    };
                     then{
+                        let sugg= match mutability{
+                            Mutability::Not=> ("&".to_owned()+&snippet_opt(cx, child2.span).unwrap()).clone(),
+                            Mutability::Mut=> ("&mut ".to_owned()+&snippet_opt(cx, child2.span).unwrap()).clone(),
+                        };
                         span_lint_and_sugg(
                             cx,
                             NEEDLESS_DEREF,
