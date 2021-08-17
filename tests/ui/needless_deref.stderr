@@ -1,0 +1,28 @@
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:26:13
+   |
+LL |         foo(&*PathBuf::new()); // should lint
+   |             ^^^^^^^^^^^^^^^^ help: you can replace this with: `&PathBuf::new()`
+   |
+   = note: `-D clippy::needless-deref` implied by `-D warnings`
+
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:31:13
+   |
+LL |         foo(&**b); // should lint
+   |             ^^^^ help: try remove the `&**` and just keep: `b`
+
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:65:15
+   |
+LL |         s.foo(&*PathBuf::new()); // should lint
+   |               ^^^^^^^^^^^^^^^^ help: you can replace this with: `&PathBuf::new()`
+
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:70:15
+   |
+LL |         s.foo(&**b); // should lint
+   |               ^^^^ help: try remove the `&**` and just keep: `b`
+
+error: aborting due to 4 previous errors
+

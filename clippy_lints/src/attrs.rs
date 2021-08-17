@@ -603,7 +603,7 @@ fn check_mismatched_target_os(cx: &EarlyContext<'_>, attr: &Attribute) {
                     MetaItemKind::Word => {
                         if_chain! {
                             if let Some(ident) = meta.ident();
-                            if let Some(os) = find_os(&*ident.name.as_str());
+                            if let Some(os) = find_os(&ident.name.as_str());
                             then {
                                 mismatched.push((os, ident.span));
                             }

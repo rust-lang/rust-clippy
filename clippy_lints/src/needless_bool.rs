@@ -328,7 +328,7 @@ enum Expression {
 
 fn fetch_bool_block(block: &Block<'_>) -> Expression {
     match (&*block.stmts, block.expr.as_ref()) {
-        (&[], Some(e)) => fetch_bool_expr(&**e),
+        (&[], Some(e)) => fetch_bool_expr(e),
         (&[ref e], None) => {
             if let StmtKind::Semi(e) = e.kind {
                 if let ExprKind::Ret(_) = e.kind {
