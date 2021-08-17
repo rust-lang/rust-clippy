@@ -1305,11 +1305,11 @@
     "id": "expl_impl_clone_on_copy",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 120
+      "line": 117
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for explicit `Clone` implementations for `Copy`\ntypes.\n\n### Why is this bad?\nTo avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.\n\n### Known problems\nBounds of generic types are sometimes wrong: https://github.com/rust-lang/rust/issues/26925\n\n### Example\n```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    // ..\n}\n```",
+    "docs": " ### What it does\nChecks for explicit `Clone` implementations for `Copy`\ntypes.\n\n### Why is this bad?\nTo avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.\n\n### Example\n```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    // ..\n}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -6079,7 +6079,7 @@
     "id": "unsafe_derive_deserialize",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 153
+      "line": 150
     },
     "group": "pedantic",
     "level": "allow",
