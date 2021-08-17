@@ -2818,6 +2818,7 @@ Released 2018-09-13
 [`needless_borrowed_reference`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrowed_reference
 [`needless_collect`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_collect
 [`needless_continue`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_continue
+[`needless_deref`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_deref
 [`needless_doctest_main`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_doctest_main
 [`needless_for_each`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_for_each
 [`needless_lifetimes`]: https://rust-lang.github.io/rust-clippy/master/index.html#needless_lifetimes

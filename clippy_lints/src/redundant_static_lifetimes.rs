@@ -86,7 +86,7 @@ impl RedundantStaticLifetimes {
                         _ => {},
                     }
                 }
-                self.visit_type(&*borrow_type.ty, cx, reason);
+                self.visit_type(&borrow_type.ty, cx, reason);
             },
             TyKind::Slice(ref ty) => {
                 self.visit_type(ty, cx, reason);

@@ -288,6 +288,7 @@ mod needless_bool;
 mod needless_borrow;
 mod needless_borrowed_ref;
 mod needless_continue;
+mod needless_deref;
 mod needless_for_each;
 mod needless_pass_by_value;
 mod needless_question_mark;
@@ -842,6 +843,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         needless_borrow::REF_BINDING_TO_REFERENCE,
         needless_borrowed_ref::NEEDLESS_BORROWED_REFERENCE,
         needless_continue::NEEDLESS_CONTINUE,
+        needless_deref::NEEDLESS_DEREF,
         needless_for_each::NEEDLESS_FOR_EACH,
         needless_pass_by_value::NEEDLESS_PASS_BY_VALUE,
         needless_question_mark::NEEDLESS_QUESTION_MARK,
@@ -1122,6 +1124,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(needless_bitwise_bool::NEEDLESS_BITWISE_BOOL),
         LintId::of(needless_borrow::REF_BINDING_TO_REFERENCE),
         LintId::of(needless_continue::NEEDLESS_CONTINUE),
+        LintId::of(needless_deref::NEEDLESS_DEREF),
         LintId::of(needless_for_each::NEEDLESS_FOR_EACH),
         LintId::of(needless_pass_by_value::NEEDLESS_PASS_BY_VALUE),
         LintId::of(non_expressive_names::SIMILAR_NAMES),
@@ -1918,6 +1921,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| box mutex_atomic::Mutex);
     store.register_late_pass(|| box needless_update::NeedlessUpdate);
     store.register_late_pass(|| box needless_borrow::NeedlessBorrow::default());
+    store.register_late_pass(|| box needless_deref::NeedlessDeref);
     store.register_late_pass(|| box needless_borrowed_ref::NeedlessBorrowedRef);
     store.register_late_pass(|| box no_effect::NoEffect);
     store.register_late_pass(|| box temporary_assignment::TemporaryAssignment);
