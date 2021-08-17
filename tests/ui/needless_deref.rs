@@ -45,6 +45,12 @@ fn test_call() {
         bar(&*b); // should not lint
         bar(&**b); // should not lint
     }
+
+    {
+        let b = &PathBuf::new();
+        let z=&**b;
+        foo(z);   // should lint, false negative
+    }
 }
 
 struct S;

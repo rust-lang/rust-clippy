@@ -13,13 +13,13 @@ LL |         foo(&**b); // should lint
    |             ^^^^ help: try remove the `&**` and just keep: `b`
 
 error: needless explicit deref in function parameter
-  --> $DIR/needless_deref.rs:65:15
+  --> $DIR/needless_deref.rs:71:15
    |
 LL |         s.foo(&*PathBuf::new()); // should lint
    |               ^^^^^^^^^^^^^^^^ help: you can replace this with: `&PathBuf::new()`
 
 error: needless explicit deref in function parameter
-  --> $DIR/needless_deref.rs:70:15
+  --> $DIR/needless_deref.rs:76:15
    |
 LL |         s.foo(&**b); // should lint
    |               ^^^^ help: try remove the `&**` and just keep: `b`
