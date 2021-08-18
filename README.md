@@ -1,4 +1,6 @@
-# Clippy
+<h1 align="center">
+	<img width="420" src="doc/logo.svg" alt="Clippy">
+</h1>
 
 [![Clippy Test](https://github.com/rust-lang/rust-clippy/workflows/Clippy%20Test/badge.svg?branch=auto&event=push)](https://github.com/rust-lang/rust-clippy/actions?query=workflow%3A%22Clippy+Test%22+event%3Apush+branch%3Aauto)
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/clippy.svg)](#license)
