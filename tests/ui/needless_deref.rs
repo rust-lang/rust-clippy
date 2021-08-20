@@ -150,3 +150,20 @@ mod mutable {
         }
     }
 }
+
+mod code_bloating {
+    use std::fmt::Display;
+
+    fn main() {
+        let a = &String::new();
+        foo(&**a); // should lint
+        bar(&**a); // should not lint. Otherwise `bar` has to be generialized twice for `bar(&**a)`(T:&String) and `bar(b)`(T:&str)
+        // This is a code bloating problem.
+        let b: &str = "";
+        bar(b);
+    }
+
+    fn foo(_: &str) {}
+
+    fn bar<T: Display>(_: T) {}
+}

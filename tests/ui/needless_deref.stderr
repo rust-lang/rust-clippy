@@ -48,5 +48,11 @@ error: needless explicit deref in function parameter
 LL |             s.foo(&mut **b); // should lint
    |                   ^^^^^^^^ help: try remove the `&mut **` and just keep: `b`
 
-error: aborting due to 8 previous errors
+error: needless explicit deref in function parameter
+  --> $DIR/needless_deref.rs:159:13
+   |
+LL |         foo(&**a); // should lint
+   |             ^^^^ help: try remove the `&**` and just keep: `a`
+
+error: aborting due to 9 previous errors
 
