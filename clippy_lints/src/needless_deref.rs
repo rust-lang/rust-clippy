@@ -10,7 +10,7 @@ use rustc_session::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for manual deref in function parameter.
+    /// Checks for manual deref in function(no generic type) parameters.
     ///
     /// ### Why is this bad?
     /// There is no need to deref manually. Compiler will auto deref.
