@@ -3892,6 +3892,20 @@
     }
   },
   {
+    "id": "negative_feature_names",
+    "id_span": {
+      "path": "src/feature_name.rs",
+      "line": 63
+    },
+    "group": "cargo",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for negative feature names with prefix `no-` or `not-`\n\n### Why is this bad?\nFeatures are supposed to be additive, and negatively-named features violate it.\n\n### Example\n```toml\n# The `Cargo.toml` with negative feature names\n[features]\ndefault = []\nno-abc = []\nnot-def = []\n\n```\nUse instead:\n```toml\n[features]\ndefault = [\"abc\", \"def\"]\nabc = []\ndef = []\n\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
@@ -4628,6 +4642,20 @@
     "group": "pedantic",
     "level": "allow",
     "docs": " ### What it does\nChecks for `else` blocks that can be removed without changing semantics.\n\n### Why is this bad?\nThe `else` block adds unnecessary indentation and verbosity.\n\n### Known problems\nSome may prefer to keep the `else` block for clarity.\n\n### Example\n```rust\nfn my_func(count: u32) {\n    if count == 0 {\n        print!(\"Nothing to do\");\n        return;\n    } else {\n        print!(\"Moving on...\");\n    }\n}\n```\nUse instead:\n```rust\nfn my_func(count: u32) {\n    if count == 0 {\n        print!(\"Nothing to do\");\n        return;\n    }\n    print!(\"Moving on...\");\n}\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "redundant_feature_names",
+    "id_span": {
+      "path": "src/feature_name.rs",
+      "line": 34
+    },
+    "group": "cargo",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for feature names with prefix `use-`, `with-` or suffix `-support`\n\n### Why is this bad?\nThese prefixes and suffixes have no significant meaning.\n\n### Example\n```toml\n# The `Cargo.toml` with feature name redundancy\n[features]\ndefault = [\"use-abc\", \"with-def\", \"ghi-support\"]\nuse-abc = []  // redundant\nwith-def = []   // redundant\nghi-support = []   // redundant\n```\n\nUse instead:\n```toml\n[features]\ndefault = [\"abc\", \"def\", \"ghi\"]\nabc = []\ndef = []\nghi = []\n```\n",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
