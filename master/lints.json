@@ -3430,6 +3430,20 @@
     }
   },
   {
+    "id": "mod_module_files",
+    "id_span": {
+      "path": "src/module_style.rs",
+      "line": 35
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks that module layout uses only self named module files, bans mod.rs files.\n\n### Why is this bad?\nHaving multiple module layout styles in a project can be confusing.\n\n### Example\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n    mod.rs\n  lib.rs\n```\nUse instead:\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n  stuff.rs\n  lib.rs\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "module_inception",
     "id_span": {
       "path": "src/enum_variants.rs",
@@ -4964,6 +4978,20 @@
     "group": "style",
     "level": "warn",
     "docs": " ### What it does\nWarns when constructors have the same name as their types.\n\n### Why is this bad?\nRepeating the name of the type is redundant.\n\n### Example\n```rust\nstruct Foo {}\n\nimpl Foo {\n    pub fn foo() -> Foo {\n        Foo {}\n    }\n}\n```\nUse instead:\n```rust\nstruct Foo {}\n\nimpl Foo {\n    pub fn new() -> Foo {\n        Foo {}\n    }\n}\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "self_named_module_files",
+    "id_span": {
+      "path": "src/module_style.rs",
+      "line": 64
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks that module layout uses only mod.rs files.\n\n### Why is this bad?\nHaving multiple module layout styles in a project can be confusing.\n\n### Example\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n  stuff.rs\n  lib.rs\n```\nUse instead:\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n    mod.rs\n  lib.rs\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
