@@ -3748,7 +3748,7 @@
     "docs": " ### What it does\nChecks for functions collecting an iterator when collect\nis not needed.\n\n### Why is this bad?\n`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.\n\n### Example\n```rust\n# let iterator = vec![1].into_iter();\nlet len = iterator.clone().collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```",
     "applicability": {
       "is_multi_part_suggestion": true,
-      "applicability": "MachineApplicable"
+      "applicability": "MaybeIncorrect"
     }
   },
   {
