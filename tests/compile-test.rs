@@ -16,6 +16,8 @@ mod cargo;
 // whether to run internal tests or not
 const RUN_INTERNAL_TESTS: bool = cfg!(feature = "internal-lints");
 
+const DEFAULT_LINT_CONFIG: &str = "-A unused";
+
 fn host_lib() -> PathBuf {
     option_env!("HOST_LIBS").map_or(cargo::CARGO_TARGET_DIR.join(env!("PROFILE")), PathBuf::from)
 }
@@ -106,10 +108,11 @@ fn default_config() -> compiletest::Config {
     }
 
     config.target_rustcflags = Some(format!(
-        "--emit=metadata -L {0} -L {1} -Dwarnings -Zui-testing {2}",
+        "--emit=metadata -L {0} -L {1} -Dwarnings -Zui-testing {2} {3}",
         host_lib().join("deps").display(),
         cargo::TARGET_LIB.join("deps").display(),
         third_party_crates(),
+        DEFAULT_LINT_CONFIG,
     ));
 
     config.build_base = host_lib().join("test_build_base");

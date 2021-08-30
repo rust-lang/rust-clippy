@@ -99,6 +99,8 @@ currently this test is meaningless though.
 
 While we are working on implementing our lint, we can keep running the UI
 test. That allows us to check if the output is turning into what we want.
+Other lints can be allowed inside the test file to focus on the current
+implementation, most [unused lints] are already ignored by default.
 
 Once we are satisfied with the output, we need to run
 `cargo dev bless` to update the `.stderr` file for our lint.
@@ -112,6 +114,8 @@ empty, they should be removed.
 
 Note that you can run multiple test files by specifying a comma separated list:
 `TESTNAME=foo_functions,test2,test3`.
+
+[unused lints]: https://doc.rust-lang.org/rustc/lints/groups.html#lint-groups
 
 ### Cargo lints
 
