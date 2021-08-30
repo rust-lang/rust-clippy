@@ -4133,7 +4133,7 @@
     "id": "option_if_let_else",
     "id_span": {
       "path": "src/option_if_let_else.rs",
-      "line": 59
+      "line": 63
     },
     "group": "nursery",
     "level": "allow",
