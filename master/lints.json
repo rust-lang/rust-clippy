@@ -213,7 +213,7 @@
     "id": "bool_assert_comparison",
     "id_span": {
       "path": "src/bool_assert_comparison.rs",
-      "line": 24
+      "line": 26
     },
     "group": "style",
     "level": "warn",
