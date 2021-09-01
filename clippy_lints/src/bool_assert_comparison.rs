@@ -1,4 +1,4 @@
-use clippy_utils::{diagnostics::span_lint_and_sugg, higher, is_direct_expn_of, ty::implements_trait};
+use clippy_utils::{diagnostics::span_lint_and_sugg, higher, is_direct_expn_of, source, ty::implements_trait};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Lit};
@@ -30,14 +30,19 @@ declare_clippy_lint! {
 
 declare_lint_pass!(BoolAssertComparison => [BOOL_ASSERT_COMPARISON]);
 
-fn is_bool_lit(e: &Expr<'_>) -> bool {
-    matches!(
-        e.kind,
+fn bool_lit(e: &Expr<'_>) -> Option<bool> {
+    match e.kind {
         ExprKind::Lit(Lit {
-            node: LitKind::Bool(_),
-            ..
-        })
-    ) && !e.span.from_expansion()
+            node: LitKind::Bool(b), ..
+        }) => {
+            if e.span.from_expansion() {
+                None
+            } else {
+                Some(b)
+            }
+        },
+        _ => None,
+    }
 }
 
 fn is_impl_not_trait_with_bool_out(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
@@ -68,19 +73,27 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
         let macros = ["assert_eq", "debug_assert_eq"];
         let inverted_macros = ["assert_ne", "debug_assert_ne"];
 
-        for mac in macros.iter().chain(inverted_macros.iter()) {
+        for (mac, is_eq) in macros
+            .iter()
+            .map(|el| (el, true))
+            .chain(inverted_macros.iter().map(|el| (el, false)))
+        {
             if let Some(span) = is_direct_expn_of(expr.span, mac) {
                 if let Some(args) = higher::extract_assert_macro_args(expr) {
                     if let [a, b, ..] = args[..] {
-                        let nb_bool_args = is_bool_lit(a) as usize + is_bool_lit(b) as usize;
+                        //let nb_bool_args = is_bool_lit(a) as usize + is_bool_lit(b) as usize;
 
-                        if nb_bool_args != 1 {
-                            // If there are two boolean arguments, we definitely don't understand
-                            // what's going on, so better leave things as is...
-                            //
-                            // Or there is simply no boolean and then we can leave things as is!
-                            return;
-                        }
+                        let (lit_value, other_expr) = match (bool_lit(a), bool_lit(b)) {
+                            (Some(lit), None) => (lit, b),
+                            (None, Some(lit)) => (lit, a),
+                            _ => {
+                                // If there are two boolean arguments, we definitely don't understand
+                                // what's going on, so better leave things as is...
+                                //
+                                // Or there is simply no boolean and then we can leave things as is!
+                                return;
+                            },
+                        };
 
                         if !is_impl_not_trait_with_bool_out(cx, a) || !is_impl_not_trait_with_bool_out(cx, b) {
                             // At this point the expression which is not a boolean
@@ -90,13 +103,28 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                         }
 
                         let non_eq_mac = &mac[..mac.len() - 3];
+                        let expr_string = if lit_value ^ is_eq {
+                            format!("!({})", source::snippet(cx, other_expr.span, ""))
+                        } else {
+                            source::snippet(cx, other_expr.span, "").to_string()
+                        };
+
+                        let suggestion = if args.len() <= 2 {
+                            format!("{}!({})", non_eq_mac, expr_string)
+                        } else {
+                            let mut str = format!("{}!({}", non_eq_mac, expr_string);
+                            for el in &args[2..] {
+                                str = format!("{}, {}", str, source::snippet(cx, el.span, ""));
+                            }
+                            format!("{})", str)
+                        };
                         span_lint_and_sugg(
                             cx,
                             BOOL_ASSERT_COMPARISON,
                             span,
                             &format!("used `{}!` with a literal bool", mac),
                             "replace it with",
-                            format!("{}!(..)", non_eq_mac),
+                            suggestion,
                             Applicability::MaybeIncorrect,
                         );
                         return;
