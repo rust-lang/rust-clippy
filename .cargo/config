@@ -6,4 +6,5 @@ collect-metadata = "test --test dogfood --features metadata-collector-lint -- ru
 
 [build]
 # -Zbinary-dep-depinfo allows us to track which rlib files to use for compiling UI tests
-rustflags = ["-Zunstable-options", "-Zbinary-dep-depinfo"]
+rustflags = ["-Zunstable-options"]
+target-dir = "target/" # Tests require that the build files are placed in <repo root>/target
