@@ -59,7 +59,7 @@
     "id": "assertions_on_constants",
     "id_span": {
       "path": "src/assertions_on_constants.rs",
-      "line": 28
+      "line": 29
     },
     "group": "style",
     "level": "warn",
@@ -199,7 +199,7 @@
     "id": "blocks_in_if_conditions",
     "id_span": {
       "path": "src/blocks_in_if_conditions.rs",
-      "line": 43
+      "line": 44
     },
     "group": "style",
     "level": "warn",
@@ -227,7 +227,7 @@
     "id": "bool_comparison",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 67
+      "line": 68
     },
     "group": "complexity",
     "level": "warn",
@@ -661,7 +661,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/collapsible_match.rs",
-      "line": 43
+      "line": 44
     },
     "group": "style",
     "level": "warn",
@@ -1837,7 +1837,7 @@
     "id": "if_let_mutex",
     "id_span": {
       "path": "src/if_let_mutex.rs",
-      "line": 37
+      "line": 38
     },
     "group": "correctness",
     "level": "deny",
@@ -1865,7 +1865,7 @@
     "id": "if_let_some_result",
     "id_span": {
       "path": "src/if_let_some_result.rs",
-      "line": 37
+      "line": 38
     },
     "group": "style",
     "level": "warn",
@@ -1977,7 +1977,7 @@
     "id": "implicit_saturating_sub",
     "id_span": {
       "path": "src/implicit_saturating_sub.rs",
-      "line": 32
+      "line": 33
     },
     "group": "pedantic",
     "level": "allow",
@@ -1991,7 +1991,7 @@
     "id": "imprecise_flops",
     "id_span": {
       "path": "src/floating_point_arithmetic.rs",
-      "line": 45
+      "line": 46
     },
     "group": "nursery",
     "level": "allow",
@@ -2075,7 +2075,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 364
+      "line": 367
     },
     "group": "style",
     "level": "warn",
@@ -2251,20 +2251,6 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
-  },
-  {
-    "id": "invalid_atomic_ordering",
-    "id_span": {
-      "path": "src/atomic_ordering.rs",
-      "line": 48
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": " ### What it does\nChecks for usage of invalid atomic\nordering in atomic loads/stores/exchanges/updates and\nmemory fences.\n\n### Why is this bad?\nUsing an invalid atomic ordering\nwill cause a panic at run-time.\n\n### Example\n```rust\n# use std::sync::atomic::{self, AtomicU8, Ordering};\n\nlet x = AtomicU8::new(0);\n\n// Bad: `Release` and `AcqRel` cannot be used for `load`.\nlet _ = x.load(Ordering::Release);\nlet _ = x.load(Ordering::AcqRel);\n\n// Bad: `Acquire` and `AcqRel` cannot be used for `store`.\nx.store(1, Ordering::Acquire);\nx.store(2, Ordering::AcqRel);\n\n// Bad: `Relaxed` cannot be used as a fence's ordering.\natomic::fence(Ordering::Relaxed);\natomic::compiler_fence(Ordering::Relaxed);\n\n// Bad: `Release` and `AcqRel` are both always invalid\n// for the failure ordering (the last arg).\nlet _ = x.compare_exchange(1, 2, Ordering::SeqCst, Ordering::Release);\nlet _ = x.compare_exchange_weak(2, 3, Ordering::AcqRel, Ordering::AcqRel);\n\n// Bad: The failure ordering is not allowed to be\n// stronger than the success order, and `SeqCst` is\n// stronger than `Relaxed`.\nlet _ = x.fetch_update(Ordering::Relaxed, Ordering::SeqCst, |val| Some(val + val));\n```",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
     }
   },
   {
@@ -2499,7 +2485,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": " ### What it does\nChecks for large size differences between variants on\n`enum`s.\n\n### Why is this bad?\nEnum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.\n\n### Known problems\nThis lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.\n\n### Example\n```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `enum-variant-size-threshold`: `u64`: The maximum size of a enum's variant to avoid box suggestion (defaults to `200`)\n\n",
+    "docs": " ### What it does\nChecks for large size differences between variants on\n`enum`s.\n\n### Why is this bad?\nEnum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.\n\n### Known problems\nThis lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.\n\n### Example\n```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `enum-variant-size-threshold`: `u64`: The maximum size of an enum's variant to avoid box suggestion (defaults to `200`)\n\n",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -2761,7 +2747,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/manual_map.rs",
-      "line": 38
+      "line": 39
     },
     "group": "style",
     "level": "warn",
@@ -2957,7 +2943,7 @@
     "id": "map_entry",
     "id_span": {
       "path": "src/entry.rs",
-      "line": 56
+      "line": 57
     },
     "group": "perf",
     "level": "warn",
@@ -3027,7 +3013,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 236
+      "line": 239
     },
     "group": "complexity",
     "level": "warn",
@@ -3041,7 +3027,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 166
+      "line": 169
     },
     "group": "pedantic",
     "level": "allow",
@@ -3055,7 +3041,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 516
+      "line": 519
     },
     "group": "style",
     "level": "warn",
@@ -3083,7 +3069,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 188
+      "line": 191
     },
     "group": "style",
     "level": "warn",
@@ -3097,7 +3083,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 132
+      "line": 135
     },
     "group": "style",
     "level": "warn",
@@ -3111,7 +3097,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 560
+      "line": 563
     },
     "group": "pedantic",
     "level": "allow",
@@ -3125,7 +3111,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 395
+      "line": 398
     },
     "group": "complexity",
     "level": "warn",
@@ -3139,7 +3125,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 210
+      "line": 213
     },
     "group": "pedantic",
     "level": "allow",
@@ -3153,7 +3139,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 302
+      "line": 305
     },
     "group": "pedantic",
     "level": "allow",
@@ -3699,7 +3685,7 @@
     "id": "needless_bool",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 43
+      "line": 44
     },
     "group": "complexity",
     "level": "warn",
@@ -4133,7 +4119,7 @@
     "id": "option_if_let_else",
     "id_span": {
       "path": "src/option_if_let_else.rs",
-      "line": 63
+      "line": 62
     },
     "group": "nursery",
     "level": "allow",
@@ -4259,7 +4245,7 @@
     "id": "panicking_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 66
+      "line": 67
     },
     "group": "correctness",
     "level": "deny",
@@ -4483,7 +4469,7 @@
     "id": "question_mark",
     "id_span": {
       "path": "src/question_mark.rs",
-      "line": 34
+      "line": 35
     },
     "group": "style",
     "level": "warn",
@@ -4515,7 +4501,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for exclusive ranges where 1 is added to the\nupper bound, e.g., `x..(y+1)`.\n\n### Why is this bad?\nThe code is more readable with an inclusive range\nlike `x..=y`.\n\n### Known problems\nWill add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with a opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.\n\nAlso in many cases, inclusive ranges are still slower to run than\nexclusive ranges, because they essentially add an extra branch that\nLLVM may fail to hoist out of the loop.\n\nThis will cause a warning that cannot be fixed if the consumer of the\nrange only accepts a specific range type, instead of the generic\n`RangeBounds` trait\n([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).\n\n### Example\n```rust\nfor x..(y+1) { .. }\n```\nCould be written as\n```rust\nfor x..=y { .. }\n```",
+    "docs": " ### What it does\nChecks for exclusive ranges where 1 is added to the\nupper bound, e.g., `x..(y+1)`.\n\n### Why is this bad?\nThe code is more readable with an inclusive range\nlike `x..=y`.\n\n### Known problems\nWill add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with an opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.\n\nAlso in many cases, inclusive ranges are still slower to run than\nexclusive ranges, because they essentially add an extra branch that\nLLVM may fail to hoist out of the loop.\n\nThis will cause a warning that cannot be fixed if the consumer of the\nrange only accepts a specific range type, instead of the generic\n`RangeBounds` trait\n([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).\n\n### Example\n```rust\nfor x..(y+1) { .. }\n```\nCould be written as\n```rust\nfor x..=y { .. }\n```",
     "applicability": {
       "is_multi_part_suggestion": true,
       "applicability": "MachineApplicable"
@@ -4707,7 +4693,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 480
+      "line": 483
     },
     "group": "style",
     "level": "warn",
@@ -4847,7 +4833,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 425
+      "line": 428
     },
     "group": "restriction",
     "level": "allow",
@@ -5061,7 +5047,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, either without a initialization or with one that does not even use\nthe original value.\n\n### Why is this bad?\nName shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings or introducing more scopes to contain the bindings.\n\n### Known problems\nThis lint, as the other shadowing related lints,\ncurrently only catches very simple patterns. Note that\n`allow`/`warn`/`deny`/`forbid` attributes only work on the function level\nfor this lint.\n\n### Example\n```rust\n# let y = 1;\n# let z = 2;\nlet x = y;\n\n// Bad\nlet x = z; // shadows the earlier binding\n\n// Good\nlet w = z; // use different variable name\n```",
+    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, either without an initialization or with one that does not even use\nthe original value.\n\n### Why is this bad?\nName shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings or introducing more scopes to contain the bindings.\n\n### Known problems\nThis lint, as the other shadowing related lints,\ncurrently only catches very simple patterns. Note that\n`allow`/`warn`/`deny`/`forbid` attributes only work on the function level\nfor this lint.\n\n### Example\n```rust\n# let y = 1;\n# let z = 2;\nlet x = y;\n\n// Bad\nlet x = z; // shadows the earlier binding\n\n// Good\nlet w = z; // use different variable name\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5183,7 +5169,7 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 60
+      "line": 63
     },
     "group": "style",
     "level": "warn",
@@ -5197,7 +5183,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 101
+      "line": 104
     },
     "group": "pedantic",
     "level": "allow",
@@ -5393,7 +5379,7 @@
     "id": "suboptimal_flops",
     "id_span": {
       "path": "src/floating_point_arithmetic.rs",
-      "line": 101
+      "line": 102
     },
     "group": "nursery",
     "level": "allow",
@@ -6051,7 +6037,7 @@
     "id": "unnecessary_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 40
+      "line": 41
     },
     "group": "complexity",
     "level": "warn",
@@ -6667,7 +6653,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 268
+      "line": 271
     },
     "group": "restriction",
     "level": "allow",
@@ -6695,7 +6681,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 329
+      "line": 332
     },
     "group": "complexity",
     "level": "warn",
