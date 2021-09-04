@@ -4245,7 +4245,7 @@
     "id": "panicking_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 67
+      "line": 68
     },
     "group": "correctness",
     "level": "deny",
@@ -6037,14 +6037,14 @@
     "id": "unnecessary_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 41
+      "line": 42
     },
     "group": "complexity",
     "level": "warn",
     "docs": " ### What it does\nChecks for calls of `unwrap[_err]()` that cannot fail.\n\n### Why is this bad?\nUsing `if let` or `match` is more idiomatic.\n\n### Example\n```rust\n# let option = Some(0);\n# fn do_something_with(_x: usize) {}\nif option.is_some() {\n    do_something_with(option.unwrap())\n}\n```\n\nCould be written:\n\n```rust\n# let option = Some(0);\n# fn do_something_with(_x: usize) {}\nif let Some(value) = option {\n    do_something_with(value)\n}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "Unspecified"
     }
   },
   {
