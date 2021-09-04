@@ -35,6 +35,7 @@ fn clippy_driver_path() -> PathBuf {
 //        as what we manually pass to `cargo` invocation
 fn third_party_crates() -> String {
     use std::collections::HashMap;
+    use std::fmt::Write;
     static CRATES: &[&str] = &[
         "clippy_lints",
         "clippy_utils",
@@ -43,51 +44,68 @@ fn third_party_crates() -> String {
         "quote",
         "regex",
         "serde",
-        "serde_derive",
         "syn",
     ];
-    let dep_dir = cargo::TARGET_LIB.join("deps");
-    let mut crates: HashMap<&str, Vec<PathBuf>> = HashMap::with_capacity(CRATES.len());
-    let mut flags = String::new();
-    for entry in fs::read_dir(dep_dir).unwrap().flatten() {
-        let path = entry.path();
-        if let Some(name) = try {
-            let name = path.file_name()?.to_str()?;
-            let (name, _) = name.strip_suffix(".rlib")?.strip_prefix("lib")?.split_once('-')?;
-            CRATES.iter().copied().find(|&c| c == name)?
-        } {
-            flags += &format!(" --extern {}={}", name, path.display());
-            crates.entry(name).or_default().push(path.clone());
+
+    // Start with the metadata hash for the currently running test.
+    let test_path = PathBuf::from(std::env::args_os().next().unwrap());
+    let (_, test_meta_hash) = test_path
+        .file_stem()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .rsplit_once('-')
+        .unwrap();
+
+    let target_dir = &*cargo::TARGET_LIB;
+
+    // Gather the fingerprint hashes for each direct dependency of the current test as well as a mapping
+    // from the fingerprint hash to metadata hash for each crate we're interested in.
+    // Note there are likely multiple fingerprints for each crate. This will be filtered afterwards.
+    let mut dep_fingerprints = Vec::<u64>::new();
+    let mut fingerprints = HashMap::<u64, String>::new();
+    for entry in fs::read_dir(target_dir.join(".fingerprint")).unwrap() {
+        let path = entry.unwrap().path();
+        let (name, hash) = path.file_name().unwrap().to_str().unwrap().rsplit_once('-').unwrap();
+        if hash == test_meta_hash {
+            let contents = fs::read(path.join("test-integration-test-compile-test.json")).unwrap();
+            let fingerprint = serde_json::from_slice::<cargo::Fingerprint>(&contents).unwrap();
+            dep_fingerprints = fingerprint.deps.iter().map(|d| d.fingerprint).collect();
+        } else if CRATES.contains(&name) {
+            match fs::read(path.join(format!("lib-{}.json", name))) {
+                Ok(contents) => {
+                    let fingerprint = serde_json::from_slice::<cargo::Fingerprint>(&contents).unwrap();
+                    fingerprints.insert(fingerprint.get_hash(), hash.to_owned());
+                },
+                Err(e) if e.kind() == io::ErrorKind::NotFound => (),
+                Err(e) => panic!("{}", e),
+            }
         }
     }
-    crates.retain(|_, paths| paths.len() > 1);
-    if !crates.is_empty() {
-        let crate_names = crates.keys().map(|s| format!("`{}`", s)).collect::<Vec<_>>().join(", ");
-        // add backslashes for an easy copy-paste `rm` command
-        let paths = crates
-            .into_values()
-            .flatten()
-            .map(|p| strip_current_dir(&p).display().to_string())
-            .collect::<Vec<_>>()
-            .join(" \\\n");
-        // Check which action should be done in order to remove compiled deps.
-        // If pre-installed version of compiler is used, `cargo clean` will do.
-        // Otherwise (for bootstrapped compiler), the dependencies directory
-        // must be removed manually.
-        let suggested_action = if std::env::var_os("RUSTC_BOOTSTRAP").is_some() {
-            "removing the stageN-tools directory"
-        } else {
-            "running `cargo clean`"
-        };
 
-        panic!(
-            "\n----------------------------------------------------------------------\n\
-            ERROR: Found multiple rlibs for crates: {}\n\
-            Try {} or remove the following files:\n\n{}\n\n\
-            For details on this error see https://github.com/rust-lang/rust-clippy/issues/7343\n\
-            ----------------------------------------------------------------------\n",
-            crate_names, suggested_action, paths
-        );
+    // Lookup the metadata hash matching the fingerprint hash of each direct dependency. Skip those that
+    // don't exist.
+    #[allow(clippy::needless_collect)] // false-positive
+    let crate_meta_hashes: Vec<_> = dep_fingerprints
+        .iter()
+        .filter_map(|hash| fingerprints.get(hash).map(|x| &**x))
+        .collect();
+
+    // Finally, find the rlib for each metadata hash found earlier.
+    let mut flags = String::new();
+    for entry in fs::read_dir(target_dir.join("deps")).unwrap() {
+        let path = entry.unwrap().path();
+        if let Some(name) = path.file_name().unwrap().to_str().unwrap().strip_suffix(".rlib") {
+            let (name, hash) = name.rsplit_once('-').unwrap();
+            if crate_meta_hashes.contains(&hash) {
+                let _ = write!(
+                    flags,
+                    " --extern {}={}",
+                    name.strip_prefix("lib").unwrap(),
+                    path.display()
+                );
+            }
+        }
     }
     flags
 }
