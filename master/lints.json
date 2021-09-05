@@ -31,11 +31,11 @@
     "id": "approx_constant",
     "id_span": {
       "path": "src/approx_const.rs",
-      "line": 34
+      "line": 36
     },
     "group": "correctness",
     "level": "deny",
-    "docs": " ### What it does\nChecks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.\n\n### Why is this bad?\nUsually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).\n\n### Example\n```rust\nlet x = 3.14;\nlet y = 1_f64 / x;\n```\nUse predefined constants instead:\n```rust\nlet x = std::f32::consts::PI;\nlet y = std::f64::consts::FRAC_1_PI;\n```",
+    "docs": " ### What it does\nChecks for floating point literals that approximate\nconstants which are defined in\n[`std::f32::consts`](https://doc.rust-lang.org/stable/std/f32/consts/#constants)\nor\n[`std::f64::consts`](https://doc.rust-lang.org/stable/std/f64/consts/#constants),\nrespectively, suggesting to use the predefined constant.\n\n### Why is this bad?\nUsually, the definition in the standard library is more\nprecise than what people come up with. If you find that your definition is\nactually more precise, please [file a Rust\nissue](https://github.com/rust-lang/rust/issues).\n\n### Example\n```rust\nlet x = 3.14;\nlet y = 1_f64 / x;\n```\nUse predefined constants instead:\n```rust\nlet x = std::f32::consts::PI;\nlet y = std::f64::consts::FRAC_1_PI;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
