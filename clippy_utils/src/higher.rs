@@ -430,12 +430,42 @@ pub fn extract_assert_macro_args<'tcx>(e: &'tcx Expr<'tcx>) -> Option<Vec<&'tcx 
     /// compared
     fn ast_matchblock(matchblock_expr: &'tcx Expr<'tcx>) -> Option<Vec<&Expr<'_>>> {
         if_chain! {
-            if let ExprKind::Match(headerexpr, _, _) = &matchblock_expr.kind;
+            if let ExprKind::Match(headerexpr, arms, _) = &matchblock_expr.kind;
             if let ExprKind::Tup([lhs, rhs]) = &headerexpr.kind;
             if let ExprKind::AddrOf(BorrowKind::Ref, _, lhs) = lhs.kind;
             if let ExprKind::AddrOf(BorrowKind::Ref, _, rhs) = rhs.kind;
             then {
-                return Some(vec![lhs, rhs]);
+                let mut vec_arg = vec![lhs, rhs];
+                if_chain! {
+                    if !arms.is_empty();
+                    if let ExprKind::Block(Block{expr: Some(if_expr),..},_) = arms[0].body.kind;
+                    if let ExprKind::If(_, if_block, _) = if_expr.kind;
+                    if let ExprKind::Block(Block{stmts: stmts_if_block,..},_) = if_block.kind;
+                    if stmts_if_block.len() >= 2;
+                    if let StmtKind::Expr(call_assert_failed)
+                        | StmtKind::Semi(call_assert_failed) = stmts_if_block[1].kind;
+                    if let ExprKind::Call(_, args_assert_failed) = call_assert_failed.kind;
+                    if args_assert_failed.len() >= 4;
+                    if let ExprKind::Call(_, args) =  args_assert_failed[3].kind;
+                    if !args.is_empty();
+                    if let ExprKind::Call(_, args_fmt) = args[0].kind;
+                    if !args_fmt.is_empty();
+                    then {
+                        vec_arg.push(&args_fmt[0]);
+                        if_chain! {
+                            if args_fmt.len() >= 2;
+                            if let ExprKind::AddrOf(_, _, expr_match) = args_fmt[1].kind;
+                            if let ExprKind::Match(tup_match, _, _) = expr_match.kind;
+                            if let ExprKind::Tup(tup_args_list) = tup_match.kind;
+                            then{
+                                for arg in tup_args_list {
+                                    vec_arg.push(arg);
+                                }
+                            }
+                        }
+                    }
+                }
+                return Some(vec_arg);
             }
         }
         None

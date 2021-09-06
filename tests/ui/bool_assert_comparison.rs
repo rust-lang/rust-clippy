@@ -112,6 +112,7 @@ fn main() {
     assert_eq!("a".is_empty(), false, "tadam {}", true);
     assert_eq!(false, "a".is_empty(), "tadam {}", true);
     assert_eq!(a, true, "tadam {}", false);
+    assert_eq!("a".is_empty(), true, "tadam {} {}", false, 6);
 
     debug_assert_eq!("a".len(), 1, "tadam {}", 1);
     debug_assert_eq!("a".len(), 1, "tadam {}", true);
@@ -119,4 +120,5 @@ fn main() {
     debug_assert_eq!("a".is_empty(), false, "tadam {}", true);
     debug_assert_eq!(false, "a".is_empty(), "tadam {}", true);
     debug_assert_eq!(a, true, "tadam {}", false);
+    debug_assert_eq!("a".is_empty(), true, "tadam {} {}", false, "b");
 }

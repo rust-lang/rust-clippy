@@ -100,37 +100,49 @@ error: used `assert_eq!` with a literal bool
   --> $DIR/bool_assert_comparison.rs:111:5
    |
 LL |     assert_eq!("a".is_empty(), false, "tadam {}", 1);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `assert!(!("a".is_empty()))`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `assert!(!("a".is_empty()), "tadam {}", 1)`
 
 error: used `assert_eq!` with a literal bool
   --> $DIR/bool_assert_comparison.rs:112:5
    |
 LL |     assert_eq!("a".is_empty(), false, "tadam {}", true);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `assert!(!("a".is_empty()))`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `assert!(!("a".is_empty()), "tadam {}", true)`
 
 error: used `assert_eq!` with a literal bool
   --> $DIR/bool_assert_comparison.rs:113:5
    |
 LL |     assert_eq!(false, "a".is_empty(), "tadam {}", true);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `assert!(!("a".is_empty()))`
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `assert!(!("a".is_empty()), "tadam {}", true)`
 
-error: used `debug_assert_eq!` with a literal bool
-  --> $DIR/bool_assert_comparison.rs:118:5
+error: used `assert_eq!` with a literal bool
+  --> $DIR/bool_assert_comparison.rs:115:5
    |
-LL |     debug_assert_eq!("a".is_empty(), false, "tadam {}", 1);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `debug_assert!(!("a".is_empty()))`
+LL |     assert_eq!("a".is_empty(), true, "tadam {} {}", false, 6);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `assert!("a".is_empty(), "tadam {} {}", false, 6)`
 
 error: used `debug_assert_eq!` with a literal bool
   --> $DIR/bool_assert_comparison.rs:119:5
    |
-LL |     debug_assert_eq!("a".is_empty(), false, "tadam {}", true);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `debug_assert!(!("a".is_empty()))`
+LL |     debug_assert_eq!("a".is_empty(), false, "tadam {}", 1);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `debug_assert!(!("a".is_empty()), "tadam {}", 1)`
 
 error: used `debug_assert_eq!` with a literal bool
   --> $DIR/bool_assert_comparison.rs:120:5
    |
-LL |     debug_assert_eq!(false, "a".is_empty(), "tadam {}", true);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `debug_assert!(!("a".is_empty()))`
+LL |     debug_assert_eq!("a".is_empty(), false, "tadam {}", true);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `debug_assert!(!("a".is_empty()), "tadam {}", true)`
 
-error: aborting due to 22 previous errors
+error: used `debug_assert_eq!` with a literal bool
+  --> $DIR/bool_assert_comparison.rs:121:5
+   |
+LL |     debug_assert_eq!(false, "a".is_empty(), "tadam {}", true);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `debug_assert!(!("a".is_empty()), "tadam {}", true)`
+
+error: used `debug_assert_eq!` with a literal bool
+  --> $DIR/bool_assert_comparison.rs:123:5
+   |
+LL |     debug_assert_eq!("a".is_empty(), true, "tadam {} {}", false, "b");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `debug_assert!("a".is_empty(), "tadam {} {}", false, "b")`
+
+error: aborting due to 24 previous errors
 
