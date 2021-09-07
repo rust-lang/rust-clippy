@@ -3,6 +3,7 @@
 #![feature(iter_zip)]
 #![feature(rustc_private)]
 #![feature(control_flow_enum)]
+#![feature(array_methods)]
 #![recursion_limit = "512"]
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
 #![allow(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
@@ -2039,6 +2040,150 @@ pub fn peel_ref_operators<'hir>(cx: &LateContext<'_>, mut expr: &'hir Expr<'hir>
         }
     }
     expr
+}
+
+/// A type which refers to a specific known item.
+pub trait ItemRef: Sized + Copy {
+    #[allow(clippy::wrong_self_convention)]
+    fn is_item(self, cx: &LateContext<'_>, id: DefId) -> bool;
+}
+impl<T: ItemRef> ItemRef for &T {
+    fn is_item(self, cx: &LateContext<'_>, id: DefId) -> bool {
+        (*self).is_item(cx, id)
+    }
+}
+impl ItemRef for LangItem {
+    fn is_item(self, cx: &LateContext<'_>, id: DefId) -> bool {
+        cx.tcx.lang_items().require(self).ok() == Some(id)
+    }
+}
+impl ItemRef for &[&str] {
+    // We should probably move to Symbols in Clippy as well rather than interning every time.
+    fn is_item(self, cx: &LateContext<'_>, id: DefId) -> bool {
+        let path = cx.get_def_path(id);
+        path.iter().map(|x| x.as_str()).eq(self.iter().copied())
+    }
+}
+impl<const N: usize> ItemRef for &[&str; N] {
+    fn is_item(self, cx: &LateContext<'_>, id: DefId) -> bool {
+        self.as_slice().is_item(cx, id)
+    }
+}
+impl ItemRef for Symbol {
+    fn is_item(self, cx: &LateContext<'_>, id: DefId) -> bool {
+        cx.tcx.is_diagnostic_item(self, id)
+    }
+}
+
+pub trait MultiItemRef: Sized {
+    fn is_any_item(self_: &[Self], cx: &LateContext<'_>, id: DefId) -> Option<usize>;
+}
+impl MultiItemRef for LangItem {
+    fn is_any_item(self_: &[Self], cx: &LateContext<'_>, id: DefId) -> Option<usize> {
+        let items = cx.tcx.lang_items();
+        self_.iter().position(|x| items.require(*x).ok() == Some(id))
+    }
+}
+impl MultiItemRef for &[&str] {
+    fn is_any_item(self_: &[Self], cx: &LateContext<'_>, id: DefId) -> Option<usize> {
+        let path = cx.get_def_path(id);
+        self_
+            .iter()
+            .position(|x| path.iter().map(|x| x.as_str()).eq(x.iter().copied()))
+    }
+}
+impl MultiItemRef for Symbol {
+    fn is_any_item(self_: &[Self], cx: &LateContext<'_>, id: DefId) -> Option<usize> {
+        let items = cx.tcx.diagnostic_items(id.krate);
+        self_.iter().position(|x| items.get(x).copied() == Some(id))
+    }
+}
+
+/// A type which can maybe be resolved to a `DefId`
+pub trait MaybeDefId: Sized + Copy {
+    fn to_def_id(self, cx: &LateContext<'_>) -> Option<DefId>;
+}
+impl<T: MaybeDefId> MaybeDefId for Option<T> {
+    fn to_def_id(self, cx: &LateContext<'_>) -> Option<DefId> {
+        self.and_then(|x| x.to_def_id(cx))
+    }
+}
+impl<T: MaybeDefId> MaybeDefId for &T {
+    fn to_def_id(self, cx: &LateContext<'_>) -> Option<DefId> {
+        (*self).to_def_id(cx)
+    }
+}
+impl MaybeDefId for DefId {
+    fn to_def_id(self, _: &LateContext<'_>) -> Option<DefId> {
+        Some(self)
+    }
+}
+impl MaybeDefId for Res {
+    fn to_def_id(self, _: &LateContext<'_>) -> Option<DefId> {
+        self.opt_def_id()
+    }
+}
+impl MaybeDefId for (&QPath<'_>, HirId) {
+    fn to_def_id(self, cx: &LateContext<'_>) -> Option<DefId> {
+        cx.qpath_res(self.0, self.1).opt_def_id()
+    }
+}
+impl MaybeDefId for &Expr<'_> {
+    fn to_def_id(self, cx: &LateContext<'_>) -> Option<DefId> {
+        if let ExprKind::Path(p) = &self.kind {
+            cx.qpath_res(p, self.hir_id).opt_def_id()
+        } else {
+            None
+        }
+    }
+}
+impl MaybeDefId for &Pat<'_> {
+    fn to_def_id(self, cx: &LateContext<'_>) -> Option<DefId> {
+        if let PatKind::Path(p) = &self.kind {
+            cx.qpath_res(p, self.hir_id).opt_def_id()
+        } else {
+            None
+        }
+    }
+}
+impl MaybeDefId for Ty<'_> {
+    fn to_def_id(self, _: &LateContext<'_>) -> Option<DefId> {
+        match *self.kind() {
+            rustc_ty::Adt(def, _) => Some(def.did),
+            rustc_ty::Foreign(id) => Some(id),
+            // Not much use in getting the id for `FnDef`, `Closure`, `Generator` or `Opaque` types. Ignore them for
+            // now.
+            _ => None,
+        }
+    }
+}
+
+/// Checks if the given `DefId` matches the specified item. This is needed to check if the item
+/// represented by the `DefId` is a specific known item from `std` or any external crate.
+///
+/// Currently the `DefId` can come from the following types
+/// * `DefId`
+/// * `Res`
+/// * `(&QPath, HirId)` where the HirId is from the expression containing the path
+/// * `&Expr`
+/// * `&Pat`
+/// * `Ty<'_>` from `rustc_middle`
+/// * Any `Option` or reference to the previous types
+///
+/// And the item to check for can have the following types
+/// * `&[str]` for the absolute path to the item. See `clippy_utils::paths`
+/// * `LangItem`
+/// & `sym` for diagnostic items
+pub fn is_item(cx: &LateContext<'_>, id: impl MaybeDefId, item: impl ItemRef) -> bool {
+    id.to_def_id(cx).map_or(false, |id| item.is_item(cx, id))
+}
+
+/// Checks if the given `DefId` matches any of the specified items. Returns the index of the first
+/// matching item if one exists. Otherwise `None`.
+///
+/// See `is_item` for more details.
+pub fn is_any_item(cx: &LateContext<'_>, id: impl MaybeDefId, items: &[impl MultiItemRef]) -> Option<usize> {
+    id.to_def_id(cx).and_then(|id| MultiItemRef::is_any_item(items, cx, id))
 }
 
 #[macro_export]
