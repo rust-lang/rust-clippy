@@ -2747,7 +2747,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 525
+      "line": 540
     },
     "group": "complexity",
     "level": "warn",
@@ -3601,11 +3601,11 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 408
+      "line": 423
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nChecks for loops which have a range bound that is a mutable variable\n\n### Why is this bad?\nOne might think that modifying the mutable variable changes the loop bounds\n\n### Example\n```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{}\", i); // prints numbers from 0 to 42, not 0 to 21\n}\n```",
+    "docs": " ### What it does\nChecks for loops which have a range bound that is a mutable variable\n\n### Why is this bad?\nOne might think that modifying the mutable variable changes the loop bounds\n\n### Known problems\nFalse positive when mutation is followed by a `break`, but the `break` is not immediately\nafter the mutation:\n\n```rust\nlet mut x = 5;\nfor _ in 0..x {\n    x += 1; // x is a range bound that is mutated\n    ..; // some other expression\n    break; // leaves the loop, so mutation is not an issue\n}\n```\n\nFalse positive on nested loops ([#6072](https://github.com/rust-lang/rust-clippy/issues/6072))\n\n### Example\n```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{}\", i); // prints numbers from 0 to 42, not 0 to 21\n}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4945,7 +4945,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 468
+      "line": 483
     },
     "group": "style",
     "level": "warn",
@@ -5183,7 +5183,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 494
+      "line": 509
     },
     "group": "complexity",
     "level": "warn",
@@ -6625,7 +6625,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 434
+      "line": 449
     },
     "group": "correctness",
     "level": "deny",
