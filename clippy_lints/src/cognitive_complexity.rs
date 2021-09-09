@@ -1,8 +1,8 @@
 //! calculate cognitive complexity and warn about overly complex functions
 
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_opt;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::LimitStack;
 use rustc_ast::ast::Attribute;
 use rustc_hir::intravisit::{walk_expr, FnKind, NestedVisitorMap, Visitor};
@@ -67,7 +67,7 @@ impl CognitiveComplexity {
         helper.visit_expr(expr);
         let CcHelper { cc, returns } = helper;
         let ret_ty = cx.typeck_results().node_type(expr.hir_id);
-        let ret_adjust = if is_type_diagnostic_item(cx, ret_ty, sym::result_type) {
+        let ret_adjust = if is_item(cx, ret_ty, sym::result_type) {
             returns
         } else {
             #[allow(clippy::integer_division)]

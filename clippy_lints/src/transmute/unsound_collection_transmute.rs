@@ -1,7 +1,7 @@
 use super::utils::is_layout_incompatible;
 use super::UNSOUND_COLLECTION_TRANSMUTE;
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::match_any_diagnostic_items;
+use clippy_utils::is_any_item;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
@@ -23,7 +23,7 @@ static COLLECTIONS: &[Symbol] = &[
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, from_ty: Ty<'tcx>, to_ty: Ty<'tcx>) -> bool {
     match (&from_ty.kind(), &to_ty.kind()) {
         (ty::Adt(from_adt, from_substs), ty::Adt(to_adt, to_substs)) => {
-            if from_adt.did != to_adt.did || match_any_diagnostic_items(cx, to_adt.did, COLLECTIONS).is_none() {
+            if from_adt.did != to_adt.did || is_any_item(cx, to_adt.did, COLLECTIONS).is_none() {
                 return false;
             }
             if from_substs

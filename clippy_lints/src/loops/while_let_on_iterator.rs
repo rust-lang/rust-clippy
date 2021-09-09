@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{
-    get_enclosing_loop_or_closure, is_refutable, is_trait_method, match_def_path, paths, visitors::is_res_used,
+    get_enclosing_loop_or_closure, is_item, is_refutable, is_trait_method, paths, visitors::is_res_used,
 };
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -18,7 +18,7 @@ pub(super) fn check(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         // check for `Some(..)` pattern
         if let PatKind::TupleStruct(QPath::Resolved(None, pat_path), some_pat, _) = let_pat.kind;
         if let Res::Def(_, pat_did) = pat_path.res;
-        if match_def_path(cx, pat_did, &paths::OPTION_SOME);
+        if is_item(cx, pat_did, &paths::OPTION_SOME);
         // check for call to `Iterator::next`
         if let ExprKind::MethodCall(method_name, _, [iter_expr], _) = let_expr.kind;
         if method_name.ident.name == sym::next;

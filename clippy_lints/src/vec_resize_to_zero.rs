@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
@@ -32,7 +32,7 @@ impl<'tcx> LateLintPass<'tcx> for VecResizeToZero {
         if_chain! {
             if let hir::ExprKind::MethodCall(path_segment, _, args, _) = expr.kind;
             if let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id);
-            if match_def_path(cx, method_def_id, &paths::VEC_RESIZE) && args.len() == 3;
+            if is_item(cx, method_def_id, &paths::VEC_RESIZE) && args.len() == 3;
             if let ExprKind::Lit(Spanned { node: LitKind::Int(0, _), .. }) = args[1].kind;
             if let ExprKind::Lit(Spanned { node: LitKind::Int(..), .. }) = args[2].kind;
             then {

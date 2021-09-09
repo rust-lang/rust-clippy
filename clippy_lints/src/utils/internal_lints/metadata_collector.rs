@@ -27,8 +27,7 @@ use std::path::Path;
 
 use crate::utils::internal_lints::is_lint_ref_type;
 use clippy_utils::{
-    diagnostics::span_lint, last_path_segment, match_def_path, match_function_call, match_path, paths, ty::match_type,
-    ty::walk_ptrs_ty_depth,
+    diagnostics::span_lint, is_item, last_path_segment, match_function_call, match_path, paths, ty::walk_ptrs_ty_depth,
 };
 
 /// This is the output file of the lint collector.
@@ -598,7 +597,7 @@ fn get_lint_level_from_group(lint_group: &str) -> Option<&'static str> {
 fn is_deprecated_lint(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
     if let hir::TyKind::Path(ref path) = ty.kind {
         if let hir::def::Res::Def(DefKind::Struct, def_id) = cx.qpath_res(path, ty.hir_id) {
-            return match_def_path(cx, def_id, &DEPRECATED_LINT_TYPE);
+            return is_item(cx, def_id, &DEPRECATED_LINT_TYPE);
         }
     }
 
@@ -643,11 +642,11 @@ fn extract_emission_info<'hir>(
     for arg in args {
         let (arg_ty, _) = walk_ptrs_ty_depth(cx.typeck_results().expr_ty(arg));
 
-        if match_type(cx, arg_ty, &paths::LINT) {
+        if is_item(cx, arg_ty, &paths::LINT) {
             // If we found the lint arg, extract the lint name
             let mut resolved_lints = resolve_lints(cx, arg);
             lints.append(&mut resolved_lints);
-        } else if match_type(cx, arg_ty, &paths::APPLICABILITY) {
+        } else if is_item(cx, arg_ty, &paths::APPLICABILITY) {
             applicability = resolve_applicability(cx, arg);
         } else if arg_ty.is_closure() {
             multi_part |= check_is_multi_part(cx, arg);
@@ -717,7 +716,7 @@ impl<'a, 'hir> intravisit::Visitor<'hir> for LintResolver<'a, 'hir> {
             if let QPath::Resolved(_, path) = qpath;
 
             let (expr_ty, _) = walk_ptrs_ty_depth(self.cx.typeck_results().expr_ty(expr));
-            if match_type(self.cx, expr_ty, &paths::LINT);
+            if is_item(self.cx, expr_ty, &paths::LINT);
             then {
                 if let hir::def::Res::Def(DefKind::Static, _) = path.res {
                     let lint_name = last_path_segment(qpath).ident.name;
@@ -778,7 +777,7 @@ impl<'a, 'hir> intravisit::Visitor<'hir> for ApplicabilityResolver<'a, 'hir> {
         let (expr_ty, _) = walk_ptrs_ty_depth(self.cx.typeck_results().expr_ty(expr));
 
         if_chain! {
-            if match_type(self.cx, expr_ty, &paths::APPLICABILITY);
+            if is_item(self.cx, expr_ty, &paths::APPLICABILITY);
             if let Some(local) = get_parent_local(self.cx, expr);
             if let Some(local_init) = local.init;
             then {
@@ -866,7 +865,7 @@ impl<'a, 'hir> intravisit::Visitor<'hir> for IsMultiSpanScanner<'a, 'hir> {
             },
             ExprKind::MethodCall(path, _path_span, arg, _arg_span) => {
                 let (self_ty, _) = walk_ptrs_ty_depth(self.cx.typeck_results().expr_ty(&arg[0]));
-                if match_type(self.cx, self_ty, &paths::DIAGNOSTIC_BUILDER) {
+                if is_item(self.cx, self_ty, &paths::DIAGNOSTIC_BUILDER) {
                     let called_method = path.ident.name.as_str().to_string();
                     for (method_name, is_multi_part) in &SUGGESTION_DIAGNOSTIC_BUILDER_METHODS {
                         if *method_name == called_method {

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note, span_lint_and_then};
 use clippy_utils::paths;
 use clippy_utils::ty::{implements_trait, is_copy};
-use clippy_utils::{get_trait_def_id, is_automatically_derived, is_lint_allowed, match_def_path};
+use clippy_utils::{get_trait_def_id, is_automatically_derived, is_item, is_lint_allowed};
 use if_chain::if_chain;
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{walk_expr, walk_fn, walk_item, FnKind, NestedVisitorMap, Visitor};
@@ -193,7 +193,7 @@ fn check_hash_peq<'tcx>(
     if_chain! {
         if let Some(peq_trait_def_id) = cx.tcx.lang_items().eq_trait();
         if let Some(def_id) = trait_ref.trait_def_id();
-        if match_def_path(cx, def_id, &paths::HASH);
+        if is_item(cx, def_id, &paths::HASH);
         then {
             // Look for the PartialEq implementations for `ty`
             cx.tcx.for_each_relevant_impl(peq_trait_def_id, ty, |impl_id| {
@@ -356,7 +356,7 @@ fn check_unsafe_derive_deserialize<'tcx>(
 
     if_chain! {
         if let Some(trait_def_id) = trait_ref.trait_def_id();
-        if match_def_path(cx, trait_def_id, &paths::SERDE_DESERIALIZE);
+        if is_item(cx, trait_def_id, &paths::SERDE_DESERIALIZE);
         if let ty::Adt(def, _) = ty.kind();
         if let Some(local_def_id) = def.did.as_local();
         let adt_hir_id = cx.tcx.hir().local_def_id_to_hir_id(local_def_id);

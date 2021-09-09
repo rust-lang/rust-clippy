@@ -1,8 +1,8 @@
 use super::FOR_KV_MAP;
 use clippy_utils::diagnostics::{multispan_sugg, span_lint_and_then};
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
 use clippy_utils::sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::is_local_used;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability, Pat, PatKind};
 use rustc_lint::LateContext;
@@ -39,7 +39,7 @@ pub(super) fn check<'tcx>(
                 _ => arg,
             };
 
-            if is_type_diagnostic_item(cx, ty, sym::hashmap_type) || is_type_diagnostic_item(cx, ty, sym::BTreeMap) {
+            if is_item(cx, ty, sym::hashmap_type) || is_item(cx, ty, sym::BTreeMap) {
                 span_lint_and_then(
                     cx,
                     FOR_KV_MAP,

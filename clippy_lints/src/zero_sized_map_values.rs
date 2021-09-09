@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::ty::{is_normalizable, is_type_diagnostic_item};
+use clippy_utils::is_item;
+use clippy_utils::ty::is_normalizable;
 use if_chain::if_chain;
 use rustc_hir::{self as hir, HirId, ItemKind, Node};
 use rustc_lint::{LateContext, LateLintPass};
@@ -49,7 +50,7 @@ impl LateLintPass<'_> for ZeroSizedMapValues {
             if !hir_ty.span.from_expansion();
             if !in_trait_impl(cx, hir_ty.hir_id);
             let ty = ty_from_hir_ty(cx, hir_ty);
-            if is_type_diagnostic_item(cx, ty, sym::hashmap_type) || is_type_diagnostic_item(cx, ty, sym::BTreeMap);
+            if is_item(cx, ty, sym::hashmap_type) || is_item(cx, ty, sym::BTreeMap);
             if let Adt(_, substs) = ty.kind();
             let ty = substs.type_at(1);
             // Fixes https://github.com/rust-lang/rust-clippy/issues/7447 because of

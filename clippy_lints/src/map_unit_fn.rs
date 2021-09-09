@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{iter_input_pats, method_chain_args};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -205,14 +205,13 @@ fn suggestion_msg(function_type: &str, map_type: &str) -> String {
 fn lint_map_unit_fn(cx: &LateContext<'_>, stmt: &hir::Stmt<'_>, expr: &hir::Expr<'_>, map_args: &[hir::Expr<'_>]) {
     let var_arg = &map_args[0];
 
-    let (map_type, variant, lint) =
-        if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(var_arg), sym::option_type) {
-            ("Option", "Some", OPTION_MAP_UNIT_FN)
-        } else if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(var_arg), sym::result_type) {
-            ("Result", "Ok", RESULT_MAP_UNIT_FN)
-        } else {
-            return;
-        };
+    let (map_type, variant, lint) = if is_item(cx, cx.typeck_results().expr_ty(var_arg), sym::option_type) {
+        ("Option", "Some", OPTION_MAP_UNIT_FN)
+    } else if is_item(cx, cx.typeck_results().expr_ty(var_arg), sym::result_type) {
+        ("Result", "Ok", RESULT_MAP_UNIT_FN)
+    } else {
+        return;
+    };
     let fn_arg = &map_args[1];
 
     if is_unit_function(cx, fn_arg) {

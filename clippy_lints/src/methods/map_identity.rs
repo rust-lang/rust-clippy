@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use clippy_utils::{is_expr_identity_function, is_trait_method};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -19,8 +19,8 @@ pub(super) fn check(
 
     if_chain! {
         if is_trait_method(cx, expr, sym::Iterator)
-            || is_type_diagnostic_item(cx, caller_ty, sym::result_type)
-            || is_type_diagnostic_item(cx, caller_ty, sym::option_type);
+            || is_item(cx, caller_ty, sym::result_type)
+            || is_item(cx, caller_ty, sym::option_type);
         if is_expr_identity_function(cx, map_arg);
         if let Some(sugg_span) = expr.span.trim_start(caller.span);
         then {

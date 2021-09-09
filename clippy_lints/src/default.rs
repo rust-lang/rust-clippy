@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_sugg};
 use clippy_utils::source::snippet_with_macro_callsite;
-use clippy_utils::{any_parent_is_automatically_derived, contains_name, in_macro, match_def_path, paths};
+use clippy_utils::{any_parent_is_automatically_derived, contains_name, in_macro, is_item, paths};
 use if_chain::if_chain;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -84,7 +84,7 @@ impl LateLintPass<'_> for Default {
             if !any_parent_is_automatically_derived(cx.tcx, expr.hir_id);
             if let ExprKind::Path(ref qpath) = path.kind;
             if let Some(def_id) = cx.qpath_res(qpath, path.hir_id).opt_def_id();
-            if match_def_path(cx, def_id, &paths::DEFAULT_TRAIT_METHOD);
+            if is_item(cx, def_id, &paths::DEFAULT_TRAIT_METHOD);
             // Detect and ignore <Foo as Default>::default() because these calls do explicitly name the type.
             if let QPath::Resolved(None, _path) = qpath;
             let expr_ty = cx.typeck_results().expr_ty(expr);
@@ -254,7 +254,7 @@ fn is_expr_default<'tcx>(expr: &'tcx Expr<'tcx>, cx: &LateContext<'tcx>) -> bool
         if let Res::Def(_, def_id) = cx.qpath_res(qpath, fn_expr.hir_id);
         then {
             // right hand side of assignment is `Default::default`
-            match_def_path(cx, def_id, &paths::DEFAULT_TRAIT_METHOD)
+            is_item(cx, def_id, &paths::DEFAULT_TRAIT_METHOD)
         } else {
             false
         }

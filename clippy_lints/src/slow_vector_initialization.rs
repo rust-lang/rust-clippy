@@ -1,7 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{get_enclosing_block, is_expr_path_def_path, path_to_local, path_to_local_id, paths, SpanlessEq};
+use clippy_utils::{get_enclosing_block, is_item, path_to_local, path_to_local_id, paths, SpanlessEq};
 use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
@@ -120,7 +119,7 @@ impl SlowVectorInit {
             if let ExprKind::Call(func, [arg]) = expr.kind;
             if let ExprKind::Path(QPath::TypeRelative(ty, name)) = func.kind;
             if name.ident.as_str() == "with_capacity";
-            if is_type_diagnostic_item(cx, cx.typeck_results().node_type(ty.hir_id), sym::vec_type);
+            if is_item(cx, cx.typeck_results().node_type(ty.hir_id), sym::vec_type);
             then {
                 Some(arg)
             } else {
@@ -255,7 +254,7 @@ impl<'a, 'tcx> VectorInitializationVisitor<'a, 'tcx> {
     fn is_repeat_zero(&self, expr: &Expr<'_>) -> bool {
         if_chain! {
             if let ExprKind::Call(fn_expr, [repeat_arg]) = expr.kind;
-            if is_expr_path_def_path(self.cx, fn_expr, &paths::ITER_REPEAT);
+            if is_item(self.cx, fn_expr, &paths::ITER_REPEAT);
             if let ExprKind::Lit(ref lit) = repeat_arg.kind;
             if let LitKind::Int(0, _) = lit.node;
 

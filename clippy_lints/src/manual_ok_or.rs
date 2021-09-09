@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet_opt};
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{is_lang_ctor, path_to_local_id};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -51,7 +51,7 @@ impl LateLintPass<'_> for ManualOkOr {
             if args.len() == 3;
             let method_receiver = &args[0];
             let ty = cx.typeck_results().expr_ty(method_receiver);
-            if is_type_diagnostic_item(cx, ty, sym::option_type);
+            if is_item(cx, ty, sym::option_type);
             let or_expr = &args[1];
             if is_ok_wrapping(cx, &args[2]);
             if let ExprKind::Call(Expr { kind: ExprKind::Path(err_path), .. }, &[ref err_arg]) = or_expr.kind;

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::snippet_opt;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
-use clippy_utils::{eq_expr_value, get_trait_def_id, in_macro, paths};
+use clippy_utils::ty::implements_trait;
+use clippy_utils::{eq_expr_value, get_trait_def_id, in_macro, is_item, paths};
 use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
@@ -260,9 +260,7 @@ fn simplify_not(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<String> {
         },
         ExprKind::MethodCall(path, _, args, _) if args.len() == 1 => {
             let type_of_receiver = cx.typeck_results().expr_ty(&args[0]);
-            if !is_type_diagnostic_item(cx, type_of_receiver, sym::option_type)
-                && !is_type_diagnostic_item(cx, type_of_receiver, sym::result_type)
-            {
+            if !is_item(cx, type_of_receiver, sym::option_type) && !is_item(cx, type_of_receiver, sym::result_type) {
                 return None;
             }
             METHODS_WITH_NEGATION

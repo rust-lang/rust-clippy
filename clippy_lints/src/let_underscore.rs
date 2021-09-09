@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::ty::{is_must_use_ty, match_type};
-use clippy_utils::{is_must_use_func_call, paths};
+use clippy_utils::ty::is_must_use_ty;
+use clippy_utils::{is_item, is_must_use_func_call, paths};
 use if_chain::if_chain;
 use rustc_hir::{Local, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -121,7 +121,7 @@ impl<'tcx> LateLintPass<'tcx> for LetUnderscore {
                 let init_ty = cx.typeck_results().expr_ty(init);
                 let contains_sync_guard = init_ty.walk(cx.tcx).any(|inner| match inner.unpack() {
                     GenericArgKind::Type(inner_ty) => {
-                        SYNC_GUARD_PATHS.iter().any(|path| match_type(cx, inner_ty, path))
+                        SYNC_GUARD_PATHS.iter().any(|path| is_item(cx, inner_ty, path))
                     },
 
                     GenericArgKind::Lifetime(_) | GenericArgKind::Const(_) => false,

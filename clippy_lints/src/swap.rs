@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{can_mut_borrow_both, differing_macro_contexts, eq_expr_value};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -86,8 +86,8 @@ fn generate_swap_warning(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>, spa
 
                     if matches!(ty.kind(), ty::Slice(_))
                         || matches!(ty.kind(), ty::Array(_, _))
-                        || is_type_diagnostic_item(cx, ty, sym::vec_type)
-                        || is_type_diagnostic_item(cx, ty, sym::vecdeque_type)
+                        || is_item(cx, ty, sym::vec_type)
+                        || is_item(cx, ty, sym::vecdeque_type)
                     {
                         let slice = Sugg::hir_with_applicability(cx, lhs1, "<slice>", &mut applicability);
                         span_lint_and_sugg(
@@ -231,7 +231,7 @@ fn check_xor_swap(cx: &LateContext<'_>, block: &Block<'_>) {
     }
 }
 
-/// Returns the lhs and rhs of an xor assignment statement.  
+/// Returns the lhs and rhs of an xor assignment statement.
 fn extract_sides_of_xor_assign<'a, 'hir>(stmt: &'a Stmt<'hir>) -> Option<(&'a Expr<'hir>, &'a Expr<'hir>)> {
     if let StmtKind::Semi(expr) = stmt.kind {
         if let ExprKind::AssignOp(

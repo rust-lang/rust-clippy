@@ -1,9 +1,7 @@
 //! Lint for `some_result_or_option.unwrap_or_else(Default::default)`
 
 use super::UNWRAP_OR_ELSE_DEFAULT;
-use clippy_utils::{
-    diagnostics::span_lint_and_sugg, is_trait_item, source::snippet_with_applicability, ty::is_type_diagnostic_item,
-};
+use clippy_utils::{diagnostics::span_lint_and_sugg, is_item, is_trait_item, source::snippet_with_applicability};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
@@ -19,8 +17,8 @@ pub(super) fn check<'tcx>(
     // ^^^^^^^^^- recv          ^^^^^^^^^^^^^^^^- u_arg
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^- expr
     let recv_ty = cx.typeck_results().expr_ty(recv);
-    let is_option = is_type_diagnostic_item(cx, recv_ty, sym::option_type);
-    let is_result = is_type_diagnostic_item(cx, recv_ty, sym::result_type);
+    let is_option = is_item(cx, recv_ty, sym::option_type);
+    let is_result = is_item(cx, recv_ty, sym::result_type);
 
     if_chain! {
         if is_option || is_result;

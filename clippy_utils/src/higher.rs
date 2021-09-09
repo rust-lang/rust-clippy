@@ -2,7 +2,7 @@
 
 #![deny(clippy::missing_docs_in_private_items)]
 
-use crate::{is_expn_of, match_def_path, paths};
+use crate::{is_expn_of, is_item, paths};
 use if_chain::if_chain;
 use rustc_ast::ast::{self, LitKind};
 use rustc_hir as hir;
@@ -276,11 +276,11 @@ impl<'a> VecArgs<'a> {
             if is_expn_of(fun.span, "vec").is_some();
             if let Some(fun_def_id) = cx.qpath_res(qpath, fun.hir_id).opt_def_id();
             then {
-                return if match_def_path(cx, fun_def_id, &paths::VEC_FROM_ELEM) && args.len() == 2 {
+                return if is_item(cx, fun_def_id, &paths::VEC_FROM_ELEM) && args.len() == 2 {
                     // `vec![elem; size]` case
                     Some(VecArgs::Repeat(&args[0], &args[1]))
                 }
-                else if match_def_path(cx, fun_def_id, &paths::SLICE_INTO_VEC) && args.len() == 1 {
+                else if is_item(cx, fun_def_id, &paths::SLICE_INTO_VEC) && args.len() == 1 {
                     // `vec![a, b, c]` case
                     if_chain! {
                         if let hir::ExprKind::Box(boxed) = args[0].kind;
@@ -292,7 +292,7 @@ impl<'a> VecArgs<'a> {
 
                     None
                 }
-                else if match_def_path(cx, fun_def_id, &paths::VEC_NEW) && args.is_empty() {
+                else if is_item(cx, fun_def_id, &paths::VEC_NEW) && args.is_empty() {
                     Some(VecArgs::Vec(&[]))
                 }
                 else {

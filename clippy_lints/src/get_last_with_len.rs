@@ -1,8 +1,8 @@
 //! lint on using `x.get(x.len() - 1)` instead of `x.last()`
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::SpanlessEq;
 use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
@@ -58,7 +58,7 @@ impl<'tcx> LateLintPass<'tcx> for GetLastWithLen {
             // Argument 0 (the struct we're calling the method on) is a vector
             if let Some(struct_calling_on) = args.get(0);
             let struct_ty = cx.typeck_results().expr_ty(struct_calling_on);
-            if is_type_diagnostic_item(cx, struct_ty, sym::vec_type);
+            if is_item(cx, struct_ty, sym::vec_type);
 
             // Argument to "get" is a subtraction
             if let Some(get_index_arg) = args.get(1);

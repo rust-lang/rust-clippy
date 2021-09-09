@@ -2,7 +2,7 @@
 //! expecting a count of T
 
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_hir::BinOpKind;
 use rustc_hir::{Expr, ExprKind};
@@ -43,8 +43,8 @@ fn get_size_of_ty(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, inverted: bool) 
                 if !inverted;
                 if let ExprKind::Path(ref count_func_qpath) = count_func.kind;
                 if let Some(def_id) = cx.qpath_res(count_func_qpath, count_func.hir_id).opt_def_id();
-                if match_def_path(cx, def_id, &paths::MEM_SIZE_OF)
-                    || match_def_path(cx, def_id, &paths::MEM_SIZE_OF_VAL);
+                if is_item(cx, def_id, &paths::MEM_SIZE_OF)
+                    || is_item(cx, def_id, &paths::MEM_SIZE_OF_VAL);
                 then {
                     cx.typeck_results().node_substs(count_func.hir_id).types().next()
                 } else {
@@ -94,7 +94,7 @@ fn get_pointee_ty_and_count_expr(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -
         if let ExprKind::Call(func, [.., count]) = expr.kind;
         if let ExprKind::Path(ref func_qpath) = func.kind;
         if let Some(def_id) = cx.qpath_res(func_qpath, func.hir_id).opt_def_id();
-        if FUNCTIONS.iter().any(|func_path| match_def_path(cx, def_id, func_path));
+        if FUNCTIONS.iter().any(|func_path| is_item(cx, def_id, *func_path));
 
         // Get the pointee type
         if let Some(pointee_ty) = cx.typeck_results().node_substs(func.hir_id).types().next();

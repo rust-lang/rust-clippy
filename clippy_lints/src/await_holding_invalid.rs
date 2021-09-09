@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_note;
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::{is_item, paths};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{AsyncGeneratorKind, Body, BodyId, GeneratorKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -140,14 +140,14 @@ fn check_interior_types(cx: &LateContext<'_>, ty_causes: &[GeneratorInteriorType
 }
 
 fn is_mutex_guard(cx: &LateContext<'_>, def_id: DefId) -> bool {
-    match_def_path(cx, def_id, &paths::MUTEX_GUARD)
-        || match_def_path(cx, def_id, &paths::RWLOCK_READ_GUARD)
-        || match_def_path(cx, def_id, &paths::RWLOCK_WRITE_GUARD)
-        || match_def_path(cx, def_id, &paths::PARKING_LOT_MUTEX_GUARD)
-        || match_def_path(cx, def_id, &paths::PARKING_LOT_RWLOCK_READ_GUARD)
-        || match_def_path(cx, def_id, &paths::PARKING_LOT_RWLOCK_WRITE_GUARD)
+    is_item(cx, def_id, &paths::MUTEX_GUARD)
+        || is_item(cx, def_id, &paths::RWLOCK_READ_GUARD)
+        || is_item(cx, def_id, &paths::RWLOCK_WRITE_GUARD)
+        || is_item(cx, def_id, &paths::PARKING_LOT_MUTEX_GUARD)
+        || is_item(cx, def_id, &paths::PARKING_LOT_RWLOCK_READ_GUARD)
+        || is_item(cx, def_id, &paths::PARKING_LOT_RWLOCK_WRITE_GUARD)
 }
 
 fn is_refcell_ref(cx: &LateContext<'_>, def_id: DefId) -> bool {
-    match_def_path(cx, def_id, &paths::REFCELL_REF) || match_def_path(cx, def_id, &paths::REFCELL_REFMUT)
+    is_item(cx, def_id, &paths::REFCELL_REF) || is_item(cx, def_id, &paths::REFCELL_REFMUT)
 }

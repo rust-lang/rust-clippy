@@ -3,8 +3,7 @@ use clippy_utils::eager_or_lazy::is_lazyness_candidate;
 use clippy_utils::is_trait_item;
 use clippy_utils::source::{snippet, snippet_with_applicability, snippet_with_macro_callsite};
 use clippy_utils::ty::implements_trait;
-use clippy_utils::ty::{is_type_diagnostic_item, match_type};
-use clippy_utils::{contains_return, last_path_segment, paths};
+use clippy_utils::{contains_return, is_item, last_path_segment, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -105,7 +104,7 @@ pub(super) fn check<'tcx>(
                     _ => (),
                 }
 
-                if is_type_diagnostic_item(cx, ty, sym::vec_type) {
+                if is_item(cx, ty, sym::vec_type) {
                     return;
                 }
             }
@@ -120,7 +119,7 @@ pub(super) fn check<'tcx>(
             let self_ty = cx.typeck_results().expr_ty(self_expr);
 
             if let Some(&(_, fn_has_arguments, poss, suffix)) =
-                KNOW_TYPES.iter().find(|&&i| match_type(cx, self_ty, i.0));
+                KNOW_TYPES.iter().find(|&&i| is_item(cx, self_ty, i.0));
 
             if poss.contains(&name);
 

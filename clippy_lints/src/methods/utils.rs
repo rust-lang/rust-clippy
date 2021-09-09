@@ -1,5 +1,5 @@
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
 use if_chain::if_chain;
 use rustc_ast::ast;
 use rustc_errors::Applicability;
@@ -17,7 +17,7 @@ pub(super) fn derefs_to_slice<'tcx>(
         match ty.kind() {
             ty::Slice(_) => true,
             ty::Adt(def, _) if def.is_box() => may_slice(cx, ty.boxed_ty()),
-            ty::Adt(..) => is_type_diagnostic_item(cx, ty, sym::vec_type),
+            ty::Adt(..) => is_item(cx, ty, sym::vec_type),
             ty::Array(_, size) => size.try_eval_usize(cx.tcx, cx.param_env).is_some(),
             ty::Ref(_, inner, _) => may_slice(cx, inner),
             _ => false,

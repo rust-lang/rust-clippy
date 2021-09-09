@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
+use clippy_utils::is_item;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{
     can_move_expr_to_closure, eager_or_lazy, in_constant, in_macro, is_else_clause, is_lang_ctor, peel_hir_expr_while,
     CaptureKind,
@@ -69,8 +69,7 @@ declare_lint_pass!(OptionIfLetElse => [OPTION_IF_LET_ELSE]);
 /// Returns true iff the given expression is the result of calling `Result::ok`
 fn is_result_ok(cx: &LateContext<'_>, expr: &'_ Expr<'_>) -> bool {
     if let ExprKind::MethodCall(path, _, &[ref receiver], _) = &expr.kind {
-        path.ident.name.as_str() == "ok"
-            && is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(receiver), sym::result_type)
+        path.ident.name.as_str() == "ok" && is_item(cx, cx.typeck_results().expr_ty(receiver), sym::result_type)
     } else {
         false
     }

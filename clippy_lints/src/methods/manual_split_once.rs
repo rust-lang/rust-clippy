@@ -1,7 +1,7 @@
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::{is_diag_item_method, match_def_path, paths};
+use clippy_utils::{is_diag_item_method, is_item, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, HirId, LangItem, Node, QPath};
@@ -127,7 +127,7 @@ fn parse_iter_usage(
                 ("next", []) if cx.tcx.trait_of_item(did) == Some(iter_id) => (IterUsageKind::Next, e.span),
                 ("next_tuple", []) => {
                     if_chain! {
-                        if match_def_path(cx, did, &paths::ITERTOOLS_NEXT_TUPLE);
+                        if is_item(cx, did, &paths::ITERTOOLS_NEXT_TUPLE);
                         if let ty::Adt(adt_def, subs) = cx.typeck_results().expr_ty(e).kind();
                         if cx.tcx.is_diagnostic_item(sym::option_type, adt_def.did);
                         if let ty::Tuple(subs) = subs.type_at(0).kind();

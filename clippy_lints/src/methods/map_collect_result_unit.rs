@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::is_trait_method;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -23,7 +23,7 @@ pub(super) fn check(
         if is_trait_method(cx, collect_recv, sym::Iterator);
         // return of collect `Result<(),_>`
         let collect_ret_ty = cx.typeck_results().expr_ty(expr);
-        if is_type_diagnostic_item(cx, collect_ret_ty, sym::result_type);
+        if is_item(cx, collect_ret_ty, sym::result_type);
         if let ty::Adt(_, substs) = collect_ret_ty.kind();
         if let Some(result_t) = substs.types().next();
         if result_t.is_unit();

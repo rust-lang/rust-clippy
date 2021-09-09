@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Mutability};
@@ -51,7 +51,7 @@ impl<'tcx> LateLintPass<'tcx> for MutMutexLock {
             if path.ident.name == sym!(lock);
             let ty = cx.typeck_results().expr_ty(self_arg);
             if let ty::Ref(_, inner_ty, Mutability::Mut) = ty.kind();
-            if is_type_diagnostic_item(cx, inner_ty, sym!(mutex_type));
+            if is_item(cx, inner_ty, sym!(mutex_type));
             then {
                 span_lint_and_sugg(
                     cx,

@@ -62,6 +62,7 @@ pub use self::hir_utils::{both, count_eq, eq_expr_value, over, SpanlessEq, Spanl
 
 use std::collections::hash_map::Entry;
 use std::hash::BuildHasherDefault;
+use std::option::Option;
 
 use if_chain::if_chain;
 use rustc_ast::ast::{self, Attribute, LitKind};
@@ -318,7 +319,7 @@ pub fn is_ty_param_diagnostic_item(
 pub fn match_trait_method(cx: &LateContext<'_>, expr: &Expr<'_>, path: &[&str]) -> bool {
     let def_id = cx.typeck_results().type_dependent_def_id(expr.hir_id).unwrap();
     let trt_id = cx.tcx.trait_of_item(def_id);
-    trt_id.map_or(false, |trt_id| match_def_path(cx, trt_id, path))
+    trt_id.map_or(false, |trt_id| is_item(cx, trt_id, path))
 }
 
 /// Checks if a method is defined in an impl of a diagnostic item
@@ -403,7 +404,7 @@ pub fn single_segment_path<'tcx>(path: &QPath<'tcx>) -> Option<&'tcx PathSegment
 }
 
 /// THIS METHOD IS DEPRECATED and will eventually be removed since it does not match against the
-/// entire path or resolved `DefId`. Prefer using `match_def_path`. Consider getting a `DefId` from
+/// entire path or resolved `DefId`. Prefer using `is_item`. Consider getting a `DefId` from
 /// `QPath::Resolved.1.res.opt_def_id()`.
 ///
 /// Matches a `QPath` against a slice of segment string literals.
@@ -442,32 +443,8 @@ pub fn expr_path_res(cx: &LateContext<'_>, expr: &Expr<'_>) -> Res {
     }
 }
 
-/// Resolves the path to a `DefId` and checks if it matches the given path.
-pub fn is_qpath_def_path(cx: &LateContext<'_>, path: &QPath<'_>, hir_id: HirId, segments: &[&str]) -> bool {
-    cx.qpath_res(path, hir_id)
-        .opt_def_id()
-        .map_or(false, |id| match_def_path(cx, id, segments))
-}
-
-/// If the expression is a path, resolves it to a `DefId` and checks if it matches the given path.
-///
-/// Please use `is_expr_diagnostic_item` if the target is a diagnostic item.
-pub fn is_expr_path_def_path(cx: &LateContext<'_>, expr: &Expr<'_>, segments: &[&str]) -> bool {
-    expr_path_res(cx, expr)
-        .opt_def_id()
-        .map_or(false, |id| match_def_path(cx, id, segments))
-}
-
-/// If the expression is a path, resolves it to a `DefId` and checks if it matches the given
-/// diagnostic item.
-pub fn is_expr_diagnostic_item(cx: &LateContext<'_>, expr: &Expr<'_>, diag_item: Symbol) -> bool {
-    expr_path_res(cx, expr)
-        .opt_def_id()
-        .map_or(false, |id| cx.tcx.is_diagnostic_item(diag_item, id))
-}
-
 /// THIS METHOD IS DEPRECATED and will eventually be removed since it does not match against the
-/// entire path or resolved `DefId`. Prefer using `match_def_path`. Consider getting a `DefId` from
+/// entire path or resolved `DefId`. Prefer using `is_item`. Consider getting a `DefId` from
 /// `QPath::Resolved.1.res.opt_def_id()`.
 ///
 /// Matches a `Path` against a slice of segment string literals.
@@ -1592,38 +1569,12 @@ pub fn match_function_call<'tcx>(
         if let ExprKind::Call(fun, args) = expr.kind;
         if let ExprKind::Path(ref qpath) = fun.kind;
         if let Some(fun_def_id) = cx.qpath_res(qpath, fun.hir_id).opt_def_id();
-        if match_def_path(cx, fun_def_id, path);
+        if is_item(cx, fun_def_id, path);
         then {
             return Some(args)
         }
     };
     None
-}
-
-/// Checks if the given `DefId` matches any of the paths. Returns the index of matching path, if
-/// any.
-///
-/// Please use `match_any_diagnostic_items` if the targets are all diagnostic items.
-pub fn match_any_def_paths(cx: &LateContext<'_>, did: DefId, paths: &[&[&str]]) -> Option<usize> {
-    let search_path = cx.get_def_path(did);
-    paths
-        .iter()
-        .position(|p| p.iter().map(|x| Symbol::intern(x)).eq(search_path.iter().copied()))
-}
-
-/// Checks if the given `DefId` matches any of provided diagnostic items. Returns the index of
-/// matching path, if any.
-pub fn match_any_diagnostic_items(cx: &LateContext<'_>, def_id: DefId, diag_items: &[Symbol]) -> Option<usize> {
-    diag_items
-        .iter()
-        .position(|item| cx.tcx.is_diagnostic_item(*item, def_id))
-}
-
-/// Checks if the given `DefId` matches the path.
-pub fn match_def_path<'tcx>(cx: &LateContext<'tcx>, did: DefId, syms: &[&str]) -> bool {
-    // We should probably move to Symbols in Clippy as well rather than interning every time.
-    let path = cx.get_def_path(did);
-    syms.iter().map(|x| Symbol::intern(x)).eq(path.iter().copied())
 }
 
 pub fn match_panic_call(cx: &LateContext<'_>, expr: &'tcx Expr<'_>) -> Option<&'tcx Expr<'tcx>> {
@@ -1638,16 +1589,16 @@ pub fn match_panic_call(cx: &LateContext<'_>, expr: &'tcx Expr<'_>) -> Option<&'
 }
 
 pub fn match_panic_def_id(cx: &LateContext<'_>, did: DefId) -> bool {
-    match_any_def_paths(
+    is_any_item(
         cx,
         did,
         &[
-            &paths::BEGIN_PANIC,
-            &paths::BEGIN_PANIC_FMT,
-            &paths::PANIC_ANY,
-            &paths::PANICKING_PANIC,
-            &paths::PANICKING_PANIC_FMT,
-            &paths::PANICKING_PANIC_STR,
+            &paths::BEGIN_PANIC[..],
+            &paths::BEGIN_PANIC_FMT[..],
+            &paths::PANIC_ANY[..],
+            &paths::PANICKING_PANIC[..],
+            &paths::PANICKING_PANIC_FMT[..],
+            &paths::PANICKING_PANIC_STR[..],
         ],
     )
     .is_some()
@@ -1788,7 +1739,7 @@ pub fn is_expr_identity_function(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool 
 
     match expr.kind {
         ExprKind::Closure(_, _, body_id, _, _) => is_body_identity_function(cx, cx.tcx.hir().body(body_id)),
-        ExprKind::Path(ref path) => is_qpath_def_path(cx, path, expr.hir_id, &paths::CONVERT_IDENTITY),
+        ExprKind::Path(ref path) => is_item(cx, (path, expr.hir_id), &paths::CONVERT_IDENTITY),
         _ => false,
     }
 }

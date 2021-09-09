@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::in_macro;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_opt;
-use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -45,7 +45,7 @@ impl<'tcx> LateLintPass<'tcx> for OptionNeedlessDeref {
         let outer_ty = typeck.expr_ty(expr);
 
         if_chain! {
-            if is_type_diagnostic_item(cx,outer_ty,sym::option_type);
+            if is_item(cx,outer_ty,sym::option_type);
             if let ExprKind::MethodCall(path, _, [sub_expr], _) = expr.kind;
             let symbol = path.ident.as_str();
             if symbol=="as_deref" || symbol=="as_deref_mut";

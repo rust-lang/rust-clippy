@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::ty::is_type_lang_item;
 use clippy_utils::{get_parent_expr, in_macro};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -52,7 +52,7 @@ impl LateLintPass<'_> for RedundantSlicing {
             if let ExprKind::AddrOf(BorrowKind::Ref, mutability, addressee) = expr.kind;
             if addressee.span.ctxt() == ctxt;
             if let ExprKind::Index(indexed, range) = addressee.kind;
-            if is_type_lang_item(cx, cx.typeck_results().expr_ty_adjusted(range), LangItem::RangeFull);
+            if is_item(cx, cx.typeck_results().expr_ty_adjusted(range), LangItem::RangeFull);
             if TyS::same_type(cx.typeck_results().expr_ty(expr), cx.typeck_results().expr_ty(indexed));
             then {
                 let mut app = Applicability::MachineApplicable;

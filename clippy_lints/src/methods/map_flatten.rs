@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::is_trait_method;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
@@ -27,7 +27,7 @@ pub(super) fn check<'tcx>(
                     _ => map_closure_ty.fn_sig(cx.tcx),
                 };
                 let map_closure_return_ty = cx.tcx.erase_late_bound_regions(map_closure_sig.output());
-                is_type_diagnostic_item(cx, map_closure_return_ty, sym::option_type)
+                is_item(cx, map_closure_return_ty, sym::option_type)
             },
             _ => false,
         };

@@ -17,7 +17,7 @@ use rustc_span::DUMMY_SP;
 use rustc_trait_selection::infer::InferCtxtExt;
 use rustc_trait_selection::traits::query::normalize::AtExt;
 
-use crate::{match_def_path, must_use_attr};
+use crate::must_use_attr;
 
 pub fn is_copy<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     ty.is_copy_modulo_regions(cx.tcx.at(DUMMY_SP), cx.param_env)
@@ -254,40 +254,9 @@ pub fn is_type_ref_to_diagnostic_item(cx: &LateContext<'_>, ty: Ty<'_>, diag_ite
     }
 }
 
-/// Checks if the type is equal to a diagnostic item
-///
-/// If you change the signature, remember to update the internal lint `MatchTypeOnDiagItem`
-pub fn is_type_diagnostic_item(cx: &LateContext<'_>, ty: Ty<'_>, diag_item: Symbol) -> bool {
-    match ty.kind() {
-        ty::Adt(adt, _) => cx.tcx.is_diagnostic_item(diag_item, adt.did),
-        _ => false,
-    }
-}
-
-/// Checks if the type is equal to a lang item.
-///
-/// Returns `false` if the `LangItem` is not defined.
-pub fn is_type_lang_item(cx: &LateContext<'_>, ty: Ty<'_>, lang_item: hir::LangItem) -> bool {
-    match ty.kind() {
-        ty::Adt(adt, _) => cx.tcx.lang_items().require(lang_item).map_or(false, |li| li == adt.did),
-        _ => false,
-    }
-}
-
 /// Return `true` if the passed `typ` is `isize` or `usize`.
 pub fn is_isize_or_usize(typ: Ty<'_>) -> bool {
     matches!(typ.kind(), ty::Int(IntTy::Isize) | ty::Uint(UintTy::Usize))
-}
-
-/// Checks if type is struct, enum or union type with the given def path.
-///
-/// If the type is a diagnostic item, use `is_type_diagnostic_item` instead.
-/// If you change the signature, remember to update the internal lint `MatchTypeOnDiagItem`
-pub fn match_type(cx: &LateContext<'_>, ty: Ty<'_>, path: &[&str]) -> bool {
-    match ty.kind() {
-        ty::Adt(adt, _) => match_def_path(cx, adt.did, path),
-        _ => false,
-    }
 }
 
 /// Peels off all references on the type. Returns the underlying type and the number of references

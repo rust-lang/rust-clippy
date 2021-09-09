@@ -2,10 +2,8 @@ use clippy_utils::consts::{constant_simple, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::higher;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::match_type;
 use clippy_utils::{
-    is_else_clause, is_expn_of, is_expr_path_def_path, is_lint_allowed, match_def_path, method_calls, path_to_res,
-    paths, SpanlessEq,
+    is_else_clause, is_expn_of, is_item, is_lint_allowed, method_calls, path_to_res, paths, SpanlessEq,
 };
 use if_chain::if_chain;
 use rustc_ast::ast::{Crate as AstCrate, ItemKind, LitKind, ModKind, NodeId};
@@ -228,25 +226,24 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for calls to `utils::match_type()` on a type diagnostic item
-    /// and suggests to use `utils::is_type_diagnostic_item()` instead.
+    /// Checks for calls to `clippy_utils::is_item()` taking a path to a diagnostic item.
     ///
     /// ### Why is this bad?
-    /// `utils::is_type_diagnostic_item()` does not require hardcoded paths.
+    /// Using diagnostic items doesn't require hard-coded paths.
     ///
     /// ### Example
     /// Bad:
     /// ```rust,ignore
-    /// utils::match_type(cx, ty, &paths::VEC)
+    /// clippy_utils::is_item(cx, ty, &paths::VEC)
     /// ```
     ///
     /// Good:
     /// ```rust,ignore
-    /// utils::is_type_diagnostic_item(cx, ty, sym::vec_type)
+    /// clippy_utils::is_item(cx, ty, sym::vec_type)
     /// ```
     pub MATCH_TYPE_ON_DIAGNOSTIC_ITEM,
     internal,
-    "using `utils::match_type()` instead of `utils::is_type_diagnostic_item()`"
+    "using `clippy_utils::is_item()` with a path to a diagnostic item"
 }
 
 declare_clippy_lint! {
@@ -450,7 +447,7 @@ fn is_lint_ref_type<'tcx>(cx: &LateContext<'tcx>, ty: &Ty<'_>) -> bool {
     {
         if let TyKind::Path(ref path) = inner.kind {
             if let Res::Def(DefKind::Struct, def_id) = cx.qpath_res(path, inner.hir_id) {
-                return match_def_path(cx, def_id, &paths::LINT);
+                return is_item(cx, def_id, &paths::LINT);
             }
         }
     }
@@ -508,8 +505,8 @@ impl<'tcx> LateLintPass<'tcx> for CompilerLintFunctions {
             let fn_name = path.ident;
             if let Some(sugg) = self.map.get(&*fn_name.as_str());
             let ty = cx.typeck_results().expr_ty(self_arg).peel_refs();
-            if match_type(cx, ty, &paths::EARLY_CONTEXT)
-                || match_type(cx, ty, &paths::LATE_CONTEXT);
+            if is_item(cx, ty, &paths::EARLY_CONTEXT)
+                || is_item(cx, ty, &paths::LATE_CONTEXT);
             then {
                 span_lint_and_help(
                     cx,
@@ -541,7 +538,7 @@ impl<'tcx> LateLintPass<'tcx> for OuterExpnDataPass {
             if args.len() == 1;
             let self_arg = &args[0];
             let self_ty = cx.typeck_results().expr_ty(self_arg).peel_refs();
-            if match_type(cx, self_ty, &paths::SYNTAX_CONTEXT);
+            if is_item(cx, self_ty, &paths::SYNTAX_CONTEXT);
             then {
                 span_lint_and_sugg(
                     cx,
@@ -584,7 +581,7 @@ impl<'tcx> LateLintPass<'tcx> for CollapsibleCalls {
 
         if_chain! {
             if let ExprKind::Call(func, and_then_args) = expr.kind;
-            if is_expr_path_def_path(cx, func, &["clippy_utils", "diagnostics", "span_lint_and_then"]);
+            if is_item(cx, func, &["clippy_utils", "diagnostics", "span_lint_and_then"]);
             if and_then_args.len() == 5;
             if let ExprKind::Closure(_, _, body_id, _, _) = &and_then_args[4].kind;
             let body = cx.tcx.hir().body(*body_id);
@@ -764,9 +761,9 @@ impl<'tcx> LateLintPass<'tcx> for MatchTypeOnDiagItem {
         }
 
         if_chain! {
-            // Check if this is a call to utils::match_type()
+            // Check if this is a call to utils::is_item()
             if let ExprKind::Call(fn_path, [context, ty, ty_path]) = expr.kind;
-            if is_expr_path_def_path(cx, fn_path, &["clippy_utils", "ty", "match_type"]);
+            if is_item(cx, fn_path, &["clippy_utils", "is_item"]);
             // Extract the path to the matched type
             if let Some(segments) = path_to_matched_type(cx, ty_path);
             let segments: Vec<&str> = segments.iter().map(|sym| &**sym).collect();
@@ -783,9 +780,9 @@ impl<'tcx> LateLintPass<'tcx> for MatchTypeOnDiagItem {
                     cx,
                     MATCH_TYPE_ON_DIAGNOSTIC_ITEM,
                     expr.span,
-                    "usage of `clippy_utils::ty::match_type()` on a type diagnostic item",
+                    "usage of `clippy_utils::is_item()` on a path to a diagnostic item",
                     "try",
-                    format!("clippy_utils::ty::is_type_diagnostic_item({}, {}, sym::{})", cx_snippet, ty_snippet, item_name),
+                    format!("clippy_utils::is_item({}, {}, sym::{})", cx_snippet, ty_snippet, item_name),
                     Applicability::MaybeIncorrect,
                 );
             }
@@ -920,7 +917,7 @@ impl<'tcx> LateLintPass<'tcx> for InterningDefinedSymbol {
                     if_chain! {
                         if let Res::Def(DefKind::Const, item_def_id) = item.res;
                         let ty = cx.tcx.type_of(item_def_id);
-                        if match_type(cx, ty, &paths::SYMBOL);
+                        if is_item(cx, ty, &paths::SYMBOL);
                         if let Ok(ConstValue::Scalar(value)) = cx.tcx.const_eval_poly(item_def_id);
                         if let Ok(value) = value.to_u32();
                         then {
@@ -936,7 +933,7 @@ impl<'tcx> LateLintPass<'tcx> for InterningDefinedSymbol {
         if_chain! {
             if let ExprKind::Call(func, [arg]) = &expr.kind;
             if let ty::FnDef(def_id, _) = cx.typeck_results().expr_ty(func).kind();
-            if match_def_path(cx, *def_id, &paths::SYMBOL_INTERN);
+            if is_item(cx, *def_id, &paths::SYMBOL_INTERN);
             if let Some(Constant::Str(arg)) = constant_simple(cx, cx.typeck_results(), arg);
             let value = Symbol::intern(&arg).as_u32();
             if let Some(&def_id) = self.symbol_map.get(&value);
@@ -1019,16 +1016,16 @@ impl InterningDefinedSymbol {
             if let Some(did) = cx.typeck_results().type_dependent_def_id(call.hir_id);
             let ty = cx.typeck_results().expr_ty(item);
             // ...on either an Ident or a Symbol
-            if let Some(is_ident) = if match_type(cx, ty, &paths::SYMBOL) {
+            if let Some(is_ident) = if is_item(cx, ty, &paths::SYMBOL) {
                 Some(false)
-            } else if match_type(cx, ty, &paths::IDENT) {
+            } else if is_item(cx, ty, &paths::IDENT) {
                 Some(true)
             } else {
                 None
             };
             // ...which converts it to a string
             let paths = if is_ident { IDENT_STR_PATHS } else { SYMBOL_STR_PATHS };
-            if let Some(path) = paths.iter().find(|path| match_def_path(cx, did, path));
+            if let Some(path) = paths.iter().find(|path| is_item(cx, did, path));
             then {
                 let is_to_owned = path.last().unwrap().ends_with("string");
                 return Some(SymbolStrExpr::Expr {

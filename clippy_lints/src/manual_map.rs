@@ -2,9 +2,9 @@ use crate::{map_unit_fn::OPTION_MAP_UNIT_FN, matches::MATCH_AS_REF};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher::IfLetOrMatch;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
-use clippy_utils::ty::{is_type_diagnostic_item, peel_mid_ty_refs_is_mutable};
+use clippy_utils::ty::peel_mid_ty_refs_is_mutable;
 use clippy_utils::{
-    can_move_expr_to_closure, in_constant, is_else_clause, is_lang_ctor, is_lint_allowed, path_to_local_id,
+    can_move_expr_to_closure, in_constant, is_else_clause, is_item, is_lang_ctor, is_lint_allowed, path_to_local_id,
     peel_hir_expr_refs, peel_hir_expr_while, CaptureKind,
 };
 use rustc_ast::util::parser::PREC_POSTFIX;
@@ -61,8 +61,8 @@ impl LateLintPass<'_> for ManualMap {
 
         let (scrutinee_ty, ty_ref_count, ty_mutability) =
             peel_mid_ty_refs_is_mutable(cx.typeck_results().expr_ty(scrutinee));
-        if !(is_type_diagnostic_item(cx, scrutinee_ty, sym::option_type)
-            && is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(expr), sym::option_type))
+        if !(is_item(cx, scrutinee_ty, sym::option_type)
+            && is_item(cx, cx.typeck_results().expr_ty(expr), sym::option_type))
         {
             return;
         }

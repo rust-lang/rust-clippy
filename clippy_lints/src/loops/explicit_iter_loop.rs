@@ -1,8 +1,8 @@
 use super::EXPLICIT_ITER_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::is_trait_method;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, Mutability};
 use rustc_lint::LateContext;
@@ -54,14 +54,14 @@ fn is_ref_iterable_type(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
     // will allow further borrows afterwards
     let ty = cx.typeck_results().expr_ty(e);
     is_iterable_array(ty, cx) ||
-    is_type_diagnostic_item(cx, ty, sym::vec_type) ||
-    is_type_diagnostic_item(cx, ty, sym::LinkedList) ||
-    is_type_diagnostic_item(cx, ty, sym::hashmap_type) ||
-    is_type_diagnostic_item(cx, ty, sym::hashset_type) ||
-    is_type_diagnostic_item(cx, ty, sym::vecdeque_type) ||
-    is_type_diagnostic_item(cx, ty, sym::BinaryHeap) ||
-    is_type_diagnostic_item(cx, ty, sym::BTreeMap) ||
-    is_type_diagnostic_item(cx, ty, sym::BTreeSet)
+    is_item(cx, ty, sym::vec_type) ||
+    is_item(cx, ty, sym::LinkedList) ||
+    is_item(cx, ty, sym::hashmap_type) ||
+    is_item(cx, ty, sym::hashset_type) ||
+    is_item(cx, ty, sym::vecdeque_type) ||
+    is_item(cx, ty, sym::BinaryHeap) ||
+    is_item(cx, ty, sym::BTreeMap) ||
+    is_item(cx, ty, sym::BTreeSet)
 }
 
 fn is_iterable_array<'tcx>(ty: Ty<'tcx>, cx: &LateContext<'tcx>) -> bool {

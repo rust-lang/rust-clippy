@@ -2,7 +2,7 @@ use clippy_utils::higher;
 use clippy_utils::{
     can_move_expr_to_closure_no_visit,
     diagnostics::span_lint_and_sugg,
-    is_expr_final_block_expr, is_expr_used_or_unified, match_def_path, paths, peel_hir_expr_while,
+    is_expr_final_block_expr, is_expr_used_or_unified, is_item, paths, peel_hir_expr_while,
     source::{reindent_multiline, snippet_indent, snippet_with_applicability, snippet_with_context},
     SpanlessEq,
 };
@@ -259,9 +259,9 @@ fn try_parse_contains(cx: &LateContext<'_>, expr: &'tcx Expr<'_>) -> Option<(Map
                 key,
                 call_ctxt: expr.span.ctxt(),
             };
-            if match_def_path(cx, id, &paths::BTREEMAP_CONTAINS_KEY) {
+            if is_item(cx, id, &paths::BTREEMAP_CONTAINS_KEY) {
                 Some((MapType::BTree, expr))
-            } else if match_def_path(cx, id, &paths::HASHMAP_CONTAINS_KEY) {
+            } else if is_item(cx, id, &paths::HASHMAP_CONTAINS_KEY) {
                 Some((MapType::Hash, expr))
             } else {
                 None
@@ -279,7 +279,7 @@ struct InsertExpr<'tcx> {
 fn try_parse_insert(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<InsertExpr<'tcx>> {
     if let ExprKind::MethodCall(_, _, [map, key, value], _) = expr.kind {
         let id = cx.typeck_results().type_dependent_def_id(expr.hir_id)?;
-        if match_def_path(cx, id, &paths::BTREEMAP_INSERT) || match_def_path(cx, id, &paths::HASHMAP_INSERT) {
+        if is_item(cx, id, &paths::BTREEMAP_INSERT) || is_item(cx, id, &paths::HASHMAP_INSERT) {
             Some(InsertExpr { map, key, value })
         } else {
             None

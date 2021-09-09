@@ -1,9 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
+use clippy_utils::is_item;
 use clippy_utils::is_lang_ctor;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{eq_expr_value, path_to_local_id};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -143,7 +143,7 @@ impl QuestionMark {
     fn is_option(cx: &LateContext<'_>, expression: &Expr<'_>) -> bool {
         let expr_ty = cx.typeck_results().expr_ty(expression);
 
-        is_type_diagnostic_item(cx, expr_ty, sym::option_type)
+        is_item(cx, expr_ty, sym::option_type)
     }
 
     fn expression_returns_none(cx: &LateContext<'_>, expression: &Expr<'_>) -> bool {

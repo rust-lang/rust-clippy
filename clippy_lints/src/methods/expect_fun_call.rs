@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher::FormatExpn;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
@@ -28,7 +28,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, method_span: Spa
                         && {
                             let arg_type = cx.typeck_results().expr_ty(&call_args[0]);
                             let base_type = arg_type.peel_refs();
-                            *base_type.kind() == ty::Str || is_type_diagnostic_item(cx, base_type, sym::string_type)
+                            *base_type.kind() == ty::Str || is_item(cx, base_type, sym::string_type)
                         }
                     {
                         &call_args[0]
@@ -46,7 +46,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, method_span: Spa
     // converted to string.
     fn requires_to_string(cx: &LateContext<'_>, arg: &hir::Expr<'_>) -> bool {
         let arg_ty = cx.typeck_results().expr_ty(arg);
-        if is_type_diagnostic_item(cx, arg_ty, sym::string_type) {
+        if is_item(cx, arg_ty, sym::string_type) {
             return false;
         }
         if let ty::Ref(_, ty, ..) = arg_ty.kind() {
@@ -113,9 +113,9 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, method_span: Spa
     }
 
     let receiver_type = cx.typeck_results().expr_ty_adjusted(&args[0]);
-    let closure_args = if is_type_diagnostic_item(cx, receiver_type, sym::option_type) {
+    let closure_args = if is_item(cx, receiver_type, sym::option_type) {
         "||"
-    } else if is_type_diagnostic_item(cx, receiver_type, sym::result_type) {
+    } else if is_item(cx, receiver_type, sym::result_type) {
         "|_|"
     } else {
         return;

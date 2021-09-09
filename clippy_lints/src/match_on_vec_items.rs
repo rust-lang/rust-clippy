@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::{is_type_diagnostic_item, is_type_lang_item};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem, MatchSource};
@@ -93,11 +93,11 @@ fn is_vec_indexing<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Opti
 fn is_vector(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     let ty = cx.typeck_results().expr_ty(expr);
     let ty = ty.peel_refs();
-    is_type_diagnostic_item(cx, ty, sym::vec_type)
+    is_item(cx, ty, sym::vec_type)
 }
 
 fn is_full_range(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     let ty = cx.typeck_results().expr_ty(expr);
     let ty = ty.peel_refs();
-    is_type_lang_item(cx, ty, LangItem::RangeFull)
+    is_item(cx, ty, LangItem::RangeFull)
 }

@@ -1,7 +1,7 @@
 use super::FOR_LOOPS_OVER_FALLIBLES;
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_hir::{Expr, Pat};
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
@@ -9,7 +9,7 @@ use rustc_span::symbol::sym;
 /// Checks for `for` loops over `Option`s and `Result`s.
 pub(super) fn check(cx: &LateContext<'_>, pat: &Pat<'_>, arg: &Expr<'_>) {
     let ty = cx.typeck_results().expr_ty(arg);
-    if is_type_diagnostic_item(cx, ty, sym::option_type) {
+    if is_item(cx, ty, sym::option_type) {
         span_lint_and_help(
             cx,
             FOR_LOOPS_OVER_FALLIBLES,
@@ -26,7 +26,7 @@ pub(super) fn check(cx: &LateContext<'_>, pat: &Pat<'_>, arg: &Expr<'_>) {
                 snippet(cx, arg.span, "_")
             ),
         );
-    } else if is_type_diagnostic_item(cx, ty, sym::result_type) {
+    } else if is_item(cx, ty, sym::result_type) {
         span_lint_and_help(
             cx,
             FOR_LOOPS_OVER_FALLIBLES,

@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use clippy_utils::{is_expn_of, match_panic_def_id, method_chain_args};
 use if_chain::if_chain;
 use rustc_hir as hir;
@@ -94,8 +94,7 @@ fn lint_impl_body<'tcx>(cx: &LateContext<'tcx>, impl_span: Span, impl_items: &[h
             // check for `unwrap`
             if let Some(arglists) = method_chain_args(expr, &["unwrap"]) {
                 let reciever_ty = self.typeck_results.expr_ty(&arglists[0][0]).peel_refs();
-                if is_type_diagnostic_item(self.lcx, reciever_ty, sym::option_type)
-                    || is_type_diagnostic_item(self.lcx, reciever_ty, sym::result_type)
+                if is_item(self.lcx, reciever_ty, sym::option_type) || is_item(self.lcx, reciever_ty, sym::result_type)
                 {
                     self.result.push(expr.span);
                 }

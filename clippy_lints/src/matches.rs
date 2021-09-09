@@ -5,10 +5,10 @@ use clippy_utils::diagnostics::{
 use clippy_utils::higher;
 use clippy_utils::source::{expr_block, indent_of, snippet, snippet_block, snippet_opt, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item, match_type, peel_mid_ty_refs};
+use clippy_utils::ty::{implements_trait, peel_mid_ty_refs};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
-    get_parent_expr, in_macro, is_expn_of, is_lang_ctor, is_lint_allowed, is_refutable, is_unit_expr, is_wild,
+    get_parent_expr, in_macro, is_expn_of, is_item, is_lang_ctor, is_lint_allowed, is_refutable, is_unit_expr, is_wild,
     meets_msrv, msrvs, path_to_local, path_to_local_id, peel_hir_pat_refs, peel_n_hir_expr_refs, recurse_or_patterns,
     remove_blocks, strip_pat_refs,
 };
@@ -857,7 +857,7 @@ fn check_single_match_opt_like(
     };
 
     for &(ty_path, pat_path) in candidates {
-        if path == *pat_path && match_type(cx, ty, ty_path) {
+        if path == *pat_path && is_item(cx, ty, ty_path) {
             report_single_match_single_pattern(cx, ex, arms, expr, els);
         }
     }
@@ -948,7 +948,7 @@ fn check_overlapping_arms<'tcx>(cx: &LateContext<'tcx>, ex: &'tcx Expr<'_>, arms
 
 fn check_wild_err_arm<'tcx>(cx: &LateContext<'tcx>, ex: &Expr<'tcx>, arms: &[Arm<'tcx>]) {
     let ex_ty = cx.typeck_results().expr_ty(ex).peel_refs();
-    if is_type_diagnostic_item(cx, ex_ty, sym::result_type) {
+    if is_item(cx, ex_ty, sym::result_type) {
         for arm in arms {
             if let PatKind::TupleStruct(ref path, inner, _) = arm.pat.kind {
                 let path_str = rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| s.print_qpath(path, false));
@@ -1024,9 +1024,7 @@ fn check_wild_enum_match(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>]) 
     let ty = cx.typeck_results().expr_ty(ex).peel_refs();
     let adt_def = match ty.kind() {
         ty::Adt(adt_def, _)
-            if adt_def.is_enum()
-                && !(is_type_diagnostic_item(cx, ty, sym::option_type)
-                    || is_type_diagnostic_item(cx, ty, sym::result_type)) =>
+            if adt_def.is_enum() && !(is_item(cx, ty, sym::option_type) || is_item(cx, ty, sym::result_type)) =>
         {
             adt_def
         },
@@ -1804,8 +1802,8 @@ mod redundant_pattern_match {
     use clippy_utils::diagnostics::span_lint_and_then;
     use clippy_utils::higher;
     use clippy_utils::source::{snippet, snippet_with_applicability};
-    use clippy_utils::ty::{implements_trait, is_type_diagnostic_item, is_type_lang_item, match_type};
-    use clippy_utils::{is_lang_ctor, is_qpath_def_path, is_trait_method, paths};
+    use clippy_utils::ty::implements_trait;
+    use clippy_utils::{is_item, is_lang_ctor, is_trait_method, paths};
     use if_chain::if_chain;
     use rustc_ast::ast::LitKind;
     use rustc_data_structures::fx::FxHashSet;
@@ -1869,15 +1867,15 @@ mod redundant_pattern_match {
             }
         }
         // Check for std types which implement drop, but only for memory allocation.
-        else if is_type_diagnostic_item(cx, ty, sym::vec_type)
-            || is_type_lang_item(cx, ty, LangItem::OwnedBox)
-            || is_type_diagnostic_item(cx, ty, sym::Rc)
-            || is_type_diagnostic_item(cx, ty, sym::Arc)
-            || is_type_diagnostic_item(cx, ty, sym::cstring_type)
-            || is_type_diagnostic_item(cx, ty, sym::BTreeMap)
-            || is_type_diagnostic_item(cx, ty, sym::LinkedList)
-            || match_type(cx, ty, &paths::WEAK_RC)
-            || match_type(cx, ty, &paths::WEAK_ARC)
+        else if is_item(cx, ty, sym::vec_type)
+            || is_item(cx, ty, LangItem::OwnedBox)
+            || is_item(cx, ty, sym::Rc)
+            || is_item(cx, ty, sym::Arc)
+            || is_item(cx, ty, sym::cstring_type)
+            || is_item(cx, ty, sym::BTreeMap)
+            || is_item(cx, ty, sym::LinkedList)
+            || is_item(cx, ty, &paths::WEAK_RC)
+            || is_item(cx, ty, &paths::WEAK_ARC)
         {
             // Check all of the generic arguments.
             if let ty::Adt(_, subs) = ty.kind() {
@@ -2012,9 +2010,9 @@ mod redundant_pattern_match {
                         ("is_some()", op_ty)
                     } else if is_lang_ctor(cx, path, PollReady) {
                         ("is_ready()", op_ty)
-                    } else if is_qpath_def_path(cx, path, sub_pat.hir_id, &paths::IPADDR_V4) {
+                    } else if is_item(cx, (path, sub_pat.hir_id), &paths::IPADDR_V4) {
                         ("is_ipv4()", op_ty)
-                    } else if is_qpath_def_path(cx, path, sub_pat.hir_id, &paths::IPADDR_V6) {
+                    } else if is_item(cx, (path, sub_pat.hir_id), &paths::IPADDR_V6) {
                         ("is_ipv6()", op_ty)
                     } else {
                         return;
@@ -2209,12 +2207,12 @@ mod redundant_pattern_match {
         should_be_left: &'a str,
         should_be_right: &'a str,
     ) -> Option<&'a str> {
-        let body_node_pair = if is_qpath_def_path(cx, path_left, arms[0].pat.hir_id, expected_left)
-            && is_qpath_def_path(cx, path_right, arms[1].pat.hir_id, expected_right)
+        let body_node_pair = if is_item(cx, (path_left, arms[0].pat.hir_id), expected_left)
+            && is_item(cx, (path_right, arms[1].pat.hir_id), expected_right)
         {
             (&(*arms[0].body).kind, &(*arms[1].body).kind)
-        } else if is_qpath_def_path(cx, path_right, arms[1].pat.hir_id, expected_left)
-            && is_qpath_def_path(cx, path_left, arms[0].pat.hir_id, expected_right)
+        } else if is_item(cx, (path_right, arms[1].pat.hir_id), expected_left)
+            && is_item(cx, (path_left, arms[0].pat.hir_id), expected_right)
         {
             (&(*arms[1].body).kind, &(*arms[0].body).kind)
         } else {

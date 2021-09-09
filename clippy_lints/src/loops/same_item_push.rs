@@ -1,8 +1,8 @@
 use super::SAME_ITEM_PUSH;
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::path_to_local;
 use clippy_utils::source::snippet_with_macro_callsite;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
+use clippy_utils::ty::implements_trait;
+use clippy_utils::{is_item, path_to_local};
 use if_chain::if_chain;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
@@ -192,7 +192,7 @@ fn get_vec_push<'tcx>(cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) -> Option<(&
             if let Some(self_expr) = args.get(0);
             if let Some(pushed_item) = args.get(1);
             // Check that the method being called is push() on a Vec
-            if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(self_expr), sym::vec_type);
+            if is_item(cx, cx.typeck_results().expr_ty(self_expr), sym::vec_type);
             if path.ident.name.as_str() == "push";
             then {
                 return Some((self_expr, pushed_item))

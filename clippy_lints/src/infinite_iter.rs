@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
-use clippy_utils::{get_trait_def_id, higher, is_qpath_def_path, paths};
+use clippy_utils::ty::implements_trait;
+use clippy_utils::{get_trait_def_id, higher, is_item, paths};
 use rustc_hir::{BorrowKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -167,7 +167,7 @@ fn is_infinite(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
         ExprKind::Box(e) | ExprKind::AddrOf(BorrowKind::Ref, _, e) => is_infinite(cx, e),
         ExprKind::Call(path, _) => {
             if let ExprKind::Path(ref qpath) = path.kind {
-                is_qpath_def_path(cx, qpath, path.hir_id, &paths::ITER_REPEAT).into()
+                is_item(cx, (qpath, path.hir_id), &paths::ITER_REPEAT).into()
             } else {
                 Finite
             }
@@ -239,10 +239,7 @@ fn complete_infinite_iter(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
                 }
             } else if method.ident.name == sym!(collect) {
                 let ty = cx.typeck_results().expr_ty(expr);
-                if INFINITE_COLLECTORS
-                    .iter()
-                    .any(|diag_item| is_type_diagnostic_item(cx, ty, *diag_item))
-                {
+                if INFINITE_COLLECTORS.iter().any(|diag_item| is_item(cx, ty, *diag_item)) {
                     return is_infinite(cx, &args[0]);
                 }
             }

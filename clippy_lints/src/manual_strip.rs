@@ -2,7 +2,7 @@ use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::{multispan_sugg, span_lint_and_then};
 use clippy_utils::source::snippet;
 use clippy_utils::usage::mutated_variables;
-use clippy_utils::{eq_expr_value, higher, match_def_path, meets_msrv, msrvs, paths};
+use clippy_utils::{eq_expr_value, higher, is_item, meets_msrv, msrvs, paths};
 use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_hir::def::Res;
@@ -78,9 +78,9 @@ impl<'tcx> LateLintPass<'tcx> for ManualStrip {
             if let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(cond.hir_id);
             if let ExprKind::Path(target_path) = &target_arg.kind;
             then {
-                let strip_kind = if match_def_path(cx, method_def_id, &paths::STR_STARTS_WITH) {
+                let strip_kind = if is_item(cx, method_def_id, &paths::STR_STARTS_WITH) {
                     StripKind::Prefix
-                } else if match_def_path(cx, method_def_id, &paths::STR_ENDS_WITH) {
+                } else if is_item(cx, method_def_id, &paths::STR_ENDS_WITH) {
                     StripKind::Suffix
                 } else {
                     return;
@@ -134,7 +134,7 @@ fn len_arg<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<&'tcx E
     if_chain! {
         if let ExprKind::MethodCall(_, _, [arg], _) = expr.kind;
         if let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id);
-        if match_def_path(cx, method_def_id, &paths::STR_LEN);
+        if is_item(cx, method_def_id, &paths::STR_LEN);
         then {
             Some(arg)
         } else {

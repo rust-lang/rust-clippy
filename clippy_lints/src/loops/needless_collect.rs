@@ -1,8 +1,8 @@
 use super::NEEDLESS_COLLECT;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
+use clippy_utils::is_item;
 use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{is_trait_method, path_to_local_id};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -29,10 +29,10 @@ fn check_needless_collect_direct_usage<'tcx>(expr: &'tcx Expr<'_>, cx: &LateCont
             let mut applicability = Applicability::MaybeIncorrect;
             let is_empty_sugg = "next().is_none()".to_string();
             let method_name = &*method.ident.name.as_str();
-            let sugg = if is_type_diagnostic_item(cx, ty, sym::vec_type) ||
-                        is_type_diagnostic_item(cx, ty, sym::vecdeque_type) ||
-                        is_type_diagnostic_item(cx, ty, sym::LinkedList) ||
-                        is_type_diagnostic_item(cx, ty, sym::BinaryHeap) {
+            let sugg = if is_item(cx, ty, sym::vec_type) ||
+                        is_item(cx, ty, sym::vecdeque_type) ||
+                        is_item(cx, ty, sym::LinkedList) ||
+                        is_item(cx, ty, sym::BinaryHeap) {
                 match method_name {
                     "len" => "count()".to_string(),
                     "is_empty" => is_empty_sugg,
@@ -46,8 +46,8 @@ fn check_needless_collect_direct_usage<'tcx>(expr: &'tcx Expr<'_>, cx: &LateCont
                     _ => return,
                 }
             }
-            else if is_type_diagnostic_item(cx, ty, sym::BTreeMap) ||
-                is_type_diagnostic_item(cx, ty, sym::hashmap_type) {
+            else if is_item(cx, ty, sym::BTreeMap) ||
+                is_item(cx, ty, sym::hashmap_type) {
                 match method_name {
                     "is_empty" => is_empty_sugg,
                     _ => return,
@@ -79,10 +79,10 @@ fn check_needless_collect_indirect_usage<'tcx>(expr: &'tcx Expr<'_>, cx: &LateCo
                 if let ExprKind::MethodCall(method_name, collect_span, &[ref iter_source], ..) = init_expr.kind;
                 if method_name.ident.name == sym!(collect) && is_trait_method(cx, init_expr, sym::Iterator);
                 let ty = cx.typeck_results().expr_ty(init_expr);
-                if is_type_diagnostic_item(cx, ty, sym::vec_type) ||
-                    is_type_diagnostic_item(cx, ty, sym::vecdeque_type) ||
-                    is_type_diagnostic_item(cx, ty, sym::BinaryHeap) ||
-                    is_type_diagnostic_item(cx, ty, sym::LinkedList);
+                if is_item(cx, ty, sym::vec_type) ||
+                    is_item(cx, ty, sym::vecdeque_type) ||
+                    is_item(cx, ty, sym::BinaryHeap) ||
+                    is_item(cx, ty, sym::LinkedList);
                 if let Some(iter_calls) = detect_iter_and_into_iters(block, id);
                 if let [iter_call] = &*iter_calls;
                 then {

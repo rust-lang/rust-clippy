@@ -1,5 +1,5 @@
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::match_type;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
@@ -45,7 +45,7 @@ impl<'tcx> LateLintPass<'tcx> for DurationSubsec {
         if_chain! {
             if let ExprKind::Binary(Spanned { node: BinOpKind::Div, .. }, left, right) = expr.kind;
             if let ExprKind::MethodCall(method_path, _ , args, _) = left.kind;
-            if match_type(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
+            if is_item(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), &paths::DURATION);
             if let Some((Constant::Int(divisor), _)) = constant(cx, cx.typeck_results(), right);
             then {
                 let suggested_fn = match (method_path.ident.as_str().as_ref(), divisor) {

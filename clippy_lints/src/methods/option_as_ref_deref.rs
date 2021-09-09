@@ -1,7 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{match_def_path, meets_msrv, msrvs, path_to_local_id, paths, remove_blocks};
+use clippy_utils::{is_item, meets_msrv, msrvs, path_to_local_id, paths, remove_blocks};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -28,7 +27,7 @@ pub(super) fn check<'tcx>(
     let same_mutability = |m| (is_mut && m == &hir::Mutability::Mut) || (!is_mut && m == &hir::Mutability::Not);
 
     let option_ty = cx.typeck_results().expr_ty(as_ref_recv);
-    if !is_type_diagnostic_item(cx, option_ty, sym::option_type) {
+    if !is_item(cx, option_ty, sym::option_type) {
         return;
     }
 
@@ -49,7 +48,7 @@ pub(super) fn check<'tcx>(
             .qpath_res(expr_qpath, map_arg.hir_id)
             .opt_def_id()
             .map_or(false, |fun_def_id| {
-                deref_aliases.iter().any(|path| match_def_path(cx, fun_def_id, path))
+                deref_aliases.iter().any(|path| is_item(cx, fun_def_id, *path))
             }),
         hir::ExprKind::Closure(_, _, body_id, _, _) => {
             let closure_body = cx.tcx.hir().body(body_id);
@@ -69,7 +68,7 @@ pub(super) fn check<'tcx>(
                         if let [ty::adjustment::Adjust::Deref(None), ty::adjustment::Adjust::Borrow(_)] = *adj;
                         then {
                             let method_did = cx.typeck_results().type_dependent_def_id(closure_expr.hir_id).unwrap();
-                            deref_aliases.iter().any(|path| match_def_path(cx, method_did, path))
+                            deref_aliases.iter().any(|path| is_item(cx, method_did, *path))
                         } else {
                             false
                         }

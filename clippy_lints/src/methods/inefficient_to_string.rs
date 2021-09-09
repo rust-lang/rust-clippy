@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::{is_type_diagnostic_item, walk_ptrs_ty_depth};
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::ty::walk_ptrs_ty_depth;
+use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -16,7 +16,7 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &hir::Expr<'_>, method_name: Sy
     if_chain! {
         if args.len() == 1 && method_name == sym!(to_string);
         if let Some(to_string_meth_did) = cx.typeck_results().type_dependent_def_id(expr.hir_id);
-        if match_def_path(cx, to_string_meth_did, &paths::TO_STRING_METHOD);
+        if is_item(cx, to_string_meth_did, &paths::TO_STRING_METHOD);
         if let Some(substs) = cx.typeck_results().node_substs_opt(expr.hir_id);
         let arg_ty = cx.typeck_results().expr_ty_adjusted(&args[0]);
         let self_ty = substs.type_at(0);
@@ -55,12 +55,12 @@ fn specializes_tostring(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
         return true;
     }
 
-    if is_type_diagnostic_item(cx, ty, sym::string_type) {
+    if is_item(cx, ty, sym::string_type) {
         return true;
     }
 
     if let ty::Adt(adt, substs) = ty.kind() {
-        match_def_path(cx, adt.did, &paths::COW) && substs.type_at(1).is_str()
+        is_item(cx, adt.did, &paths::COW) && substs.type_at(1).is_str()
     } else {
         false
     }

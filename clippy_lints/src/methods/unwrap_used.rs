@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::sym;
@@ -10,9 +10,9 @@ use super::UNWRAP_USED;
 pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>) {
     let obj_ty = cx.typeck_results().expr_ty(recv).peel_refs();
 
-    let mess = if is_type_diagnostic_item(cx, obj_ty, sym::option_type) {
+    let mess = if is_item(cx, obj_ty, sym::option_type) {
         Some((UNWRAP_USED, "an Option", "None"))
-    } else if is_type_diagnostic_item(cx, obj_ty, sym::result_type) {
+    } else if is_item(cx, obj_ty, sym::result_type) {
         Some((UNWRAP_USED, "a Result", "Err"))
     } else {
         None

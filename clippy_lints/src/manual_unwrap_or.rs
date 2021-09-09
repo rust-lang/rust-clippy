@@ -1,7 +1,7 @@
 use clippy_utils::consts::constant_simple;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet_opt};
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::usage::contains_return_break_continue_macro;
 use clippy_utils::{in_constant, is_lang_ctor, path_to_local_id, sugg};
 use if_chain::if_chain;
@@ -82,9 +82,9 @@ fn lint_manual_unwrap_or<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
     if_chain! {
         if let ExprKind::Match(scrutinee, match_arms, _) = expr.kind;
         let ty = cx.typeck_results().expr_ty(scrutinee);
-        if let Some(ty_name) = if is_type_diagnostic_item(cx, ty, sym::option_type) {
+        if let Some(ty_name) = if is_item(cx, ty, sym::option_type) {
             Some("Option")
-        } else if is_type_diagnostic_item(cx, ty, sym::result_type) {
+        } else if is_item(cx, ty, sym::result_type) {
             Some("Result")
         } else {
             None

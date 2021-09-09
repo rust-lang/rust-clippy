@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::{meets_msrv, msrvs};
 use rustc_errors::Applicability;
@@ -22,8 +22,8 @@ pub(super) fn check<'tcx>(
     msrv: Option<&RustcVersion>,
 ) -> bool {
     // lint if the caller of `map()` is an `Option`
-    let is_option = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::option_type);
-    let is_result = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::result_type);
+    let is_option = is_item(cx, cx.typeck_results().expr_ty(recv), sym::option_type);
+    let is_result = is_item(cx, cx.typeck_results().expr_ty(recv), sym::result_type);
 
     if is_result && !meets_msrv(msrv, &msrvs::RESULT_MAP_OR_ELSE) {
         return false;

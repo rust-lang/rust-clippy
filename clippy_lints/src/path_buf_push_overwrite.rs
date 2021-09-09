@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
@@ -48,7 +48,7 @@ impl<'tcx> LateLintPass<'tcx> for PathBufPushOverwrite {
             if let ExprKind::MethodCall(path, _, args, _) = expr.kind;
             if path.ident.name == sym!(push);
             if args.len() == 2;
-            if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), sym::PathBuf);
+            if is_item(cx, cx.typeck_results().expr_ty(&args[0]).peel_refs(), sym::PathBuf);
             if let Some(get_index_arg) = args.get(1);
             if let ExprKind::Lit(ref lit) = get_index_arg.kind;
             if let LitKind::Str(ref path_lit, _) = lit.node;

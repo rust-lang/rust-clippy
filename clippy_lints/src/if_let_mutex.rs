@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::higher;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use clippy_utils::SpanlessEq;
 use if_chain::if_chain;
 use rustc_hir::intravisit::{self as visit, NestedVisitorMap, Visitor};
@@ -141,7 +141,7 @@ fn is_mutex_lock_call<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Opt
         if let ExprKind::MethodCall(path, _span, [self_arg, ..], _) = &expr.kind;
         if path.ident.as_str() == "lock";
         let ty = cx.typeck_results().expr_ty(self_arg);
-        if is_type_diagnostic_item(cx, ty, sym!(mutex_type));
+        if is_item(cx, ty, sym!(mutex_type));
         then {
             Some(self_arg)
         } else {

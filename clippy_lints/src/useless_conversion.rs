@@ -1,8 +1,8 @@
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
 use clippy_utils::source::{snippet, snippet_with_macro_callsite};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{is_type_diagnostic_item, same_type_and_consts};
-use clippy_utils::{get_parent_expr, is_trait_method, match_def_path, paths};
+use clippy_utils::ty::same_type_and_consts;
+use clippy_utils::{get_parent_expr, is_item, is_trait_method, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, HirId, MatchSource};
@@ -106,7 +106,7 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                     if is_trait_method(cx, e, sym::try_into_trait) && name.ident.name == sym::try_into;
                     let a = cx.typeck_results().expr_ty(e);
                     let b = cx.typeck_results().expr_ty(&args[0]);
-                    if is_type_diagnostic_item(cx, a, sym::result_type);
+                    if is_item(cx, a, sym::result_type);
                     if let ty::Adt(_, substs) = a.kind();
                     if let Some(a_type) = substs.types().next();
                     if same_type_and_consts(a_type, b);
@@ -133,8 +133,8 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                         let a = cx.typeck_results().expr_ty(e);
                         let b = cx.typeck_results().expr_ty(&args[0]);
                         if_chain! {
-                            if match_def_path(cx, def_id, &paths::TRY_FROM);
-                            if is_type_diagnostic_item(cx, a, sym::result_type);
+                            if is_item(cx, def_id, &paths::TRY_FROM);
+                            if is_item(cx, a, sym::result_type);
                             if let ty::Adt(_, substs) = a.kind();
                             if let Some(a_type) = substs.types().next();
                             if same_type_and_consts(a_type, b);
@@ -153,7 +153,7 @@ impl<'tcx> LateLintPass<'tcx> for UselessConversion {
                         }
 
                         if_chain! {
-                            if match_def_path(cx, def_id, &paths::FROM_FROM);
+                            if is_item(cx, def_id, &paths::FROM_FROM);
                             if same_type_and_consts(a, b);
 
                             then {

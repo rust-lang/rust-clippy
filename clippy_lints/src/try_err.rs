@@ -1,7 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{snippet, snippet_with_macro_callsite};
-use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{differing_macro_contexts, get_parent_expr, in_macro, is_lang_ctor, match_def_path, paths};
+use clippy_utils::{differing_macro_contexts, get_parent_expr, in_macro, is_item, is_lang_ctor, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::LangItem::ResultErr;
@@ -143,7 +142,7 @@ fn find_return_type<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx ExprKind<'_>) -> O
 fn result_error_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
     if_chain! {
         if let ty::Adt(_, subst) = ty.kind();
-        if is_type_diagnostic_item(cx, ty, sym::result_type);
+        if is_item(cx, ty, sym::result_type);
         then {
             Some(subst.type_at(1))
         } else {
@@ -156,7 +155,7 @@ fn result_error_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'t
 fn poll_result_error_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
     if_chain! {
         if let ty::Adt(def, subst) = ty.kind();
-        if match_def_path(cx, def.did, &paths::POLL);
+        if is_item(cx, def.did, &paths::POLL);
         let ready_ty = subst.type_at(0);
 
         if let ty::Adt(ready_def, ready_subst) = ready_ty.kind();
@@ -173,7 +172,7 @@ fn poll_result_error_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<
 fn poll_option_result_error_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
     if_chain! {
         if let ty::Adt(def, subst) = ty.kind();
-        if match_def_path(cx, def.did, &paths::POLL);
+        if is_item(cx, def.did, &paths::POLL);
         let ready_ty = subst.type_at(0);
 
         if let ty::Adt(ready_def, ready_subst) = ready_ty.kind();

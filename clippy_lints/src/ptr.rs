@@ -3,8 +3,8 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::ptr::get_spans;
 use clippy_utils::source::snippet_opt;
-use clippy_utils::ty::{is_type_diagnostic_item, match_type, walk_ptrs_hir_ty};
-use clippy_utils::{expr_path_res, is_lint_allowed, match_any_diagnostic_items, paths};
+use clippy_utils::ty::walk_ptrs_hir_ty;
+use clippy_utils::{expr_path_res, is_any_item, is_item, is_lint_allowed, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{
@@ -258,7 +258,7 @@ fn check_fn(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_id: HirId, opt_body_id: 
         }
 
         if let ty::Ref(_, ty, Mutability::Not) = ty.kind() {
-            if is_type_diagnostic_item(cx, ty, sym::vec_type) {
+            if is_item(cx, ty, sym::vec_type) {
                 if let Some(spans) = get_spans(cx, opt_body_id, idx, &[("clone", ".to_owned()")]) {
                     span_lint_and_then(
                         cx,
@@ -288,7 +288,7 @@ fn check_fn(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_id: HirId, opt_body_id: 
                         },
                     );
                 }
-            } else if is_type_diagnostic_item(cx, ty, sym::string_type) {
+            } else if is_item(cx, ty, sym::string_type) {
                 if let Some(spans) = get_spans(cx, opt_body_id, idx, &[("clone", ".to_string()"), ("as_str", "")]) {
                     span_lint_and_then(
                         cx,
@@ -310,7 +310,7 @@ fn check_fn(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_id: HirId, opt_body_id: 
                         },
                     );
                 }
-            } else if is_type_diagnostic_item(cx, ty, sym::PathBuf) {
+            } else if is_item(cx, ty, sym::PathBuf) {
                 if let Some(spans) = get_spans(cx, opt_body_id, idx, &[("clone", ".to_path_buf()"), ("as_path", "")]) {
                     span_lint_and_then(
                         cx,
@@ -337,7 +337,7 @@ fn check_fn(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_id: HirId, opt_body_id: 
                         },
                     );
                 }
-            } else if match_type(cx, ty, &paths::COW) {
+            } else if is_item(cx, ty, &paths::COW) {
                 if_chain! {
                     if let TyKind::Rptr(_, MutTy { ty, ..} ) = arg.kind;
                     if let TyKind::Path(QPath::Resolved(None, pp)) = ty.kind;
@@ -425,7 +425,7 @@ fn get_rptr_lm<'tcx>(ty: &'tcx Ty<'tcx>) -> Option<(&'tcx Lifetime, Mutability, 
 fn is_null_path(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     if let ExprKind::Call(pathexp, []) = expr.kind {
         expr_path_res(cx, pathexp).opt_def_id().map_or(false, |id| {
-            match_any_diagnostic_items(cx, id, &[sym::ptr_null, sym::ptr_null_mut]).is_some()
+            is_any_item(cx, id, &[sym::ptr_null, sym::ptr_null_mut]).is_some()
         })
     } else {
         false

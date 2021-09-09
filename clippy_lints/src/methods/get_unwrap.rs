@@ -1,8 +1,8 @@
 use super::utils::derefs_to_slice;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::get_parent_expr;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -27,16 +27,16 @@ pub(super) fn check<'tcx>(
     let caller_type = if derefs_to_slice(cx, recv, expr_ty).is_some() {
         needs_ref = get_args_str.parse::<usize>().is_ok();
         "slice"
-    } else if is_type_diagnostic_item(cx, expr_ty, sym::vec_type) {
+    } else if is_item(cx, expr_ty, sym::vec_type) {
         needs_ref = get_args_str.parse::<usize>().is_ok();
         "Vec"
-    } else if is_type_diagnostic_item(cx, expr_ty, sym::vecdeque_type) {
+    } else if is_item(cx, expr_ty, sym::vecdeque_type) {
         needs_ref = get_args_str.parse::<usize>().is_ok();
         "VecDeque"
-    } else if !is_mut && is_type_diagnostic_item(cx, expr_ty, sym::hashmap_type) {
+    } else if !is_mut && is_item(cx, expr_ty, sym::hashmap_type) {
         needs_ref = true;
         "HashMap"
-    } else if !is_mut && is_type_diagnostic_item(cx, expr_ty, sym::BTreeMap) {
+    } else if !is_mut && is_item(cx, expr_ty, sym::BTreeMap) {
         needs_ref = true;
         "BTreeMap"
     } else {

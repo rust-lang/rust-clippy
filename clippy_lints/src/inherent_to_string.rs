@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
-use clippy_utils::{get_trait_def_id, paths, return_ty, trait_ref_of_method};
+use clippy_utils::ty::implements_trait;
+use clippy_utils::{get_trait_def_id, is_item, paths, return_ty, trait_ref_of_method};
 use if_chain::if_chain;
 use rustc_hir::{ImplItem, ImplItemKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -111,7 +111,7 @@ impl<'tcx> LateLintPass<'tcx> for InherentToString {
             if impl_item.generics.params.is_empty();
 
             // Check if return type is String
-            if is_type_diagnostic_item(cx, return_ty(cx, impl_item.hir_id()), sym::string_type);
+            if is_item(cx, return_ty(cx, impl_item.hir_id()), sym::string_type);
 
             // Filters instances of to_string which are required by a trait
             if trait_ref_of_method(cx, impl_item.hir_id()).is_none();

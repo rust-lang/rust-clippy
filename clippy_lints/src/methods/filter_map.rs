@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::{indent_of, reindent_multiline, snippet};
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{is_trait_method, path_to_local_id, remove_blocks, SpanlessEq};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -61,7 +61,7 @@ fn lint_filter_some_map_unwrap(
     methods_span: Span,
 ) {
     let iterator = is_trait_method(cx, expr, sym::Iterator);
-    let option = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(filter_recv), sym::option_type);
+    let option = is_item(cx, cx.typeck_results().expr_ty(filter_recv), sym::option_type);
     if (iterator || option) && is_option_filter_map(cx, filter_arg, map_arg) {
         let msg = "`filter` for `Some` followed by `unwrap`";
         let help = "consider using `flatten` instead";

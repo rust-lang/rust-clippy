@@ -1,6 +1,6 @@
 use clippy_utils::consts::{constant_context, Constant};
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::is_expr_diagnostic_item;
+use clippy_utils::is_item;
 use if_chain::if_chain;
 use rustc_ast::LitKind;
 use rustc_hir::{Expr, ExprKind};
@@ -42,7 +42,7 @@ impl<'tcx> LateLintPass<'tcx> for TransmutingNull {
 
         if_chain! {
             if let ExprKind::Call(func, [arg]) = expr.kind;
-            if is_expr_diagnostic_item(cx, func, sym::transmute);
+            if is_item(cx, func, sym::transmute);
 
             then {
                 // Catching transmute over constants that resolve to `null`.
@@ -71,7 +71,7 @@ impl<'tcx> LateLintPass<'tcx> for TransmutingNull {
                 // `std::mem::transmute(std::ptr::null::<i32>())`
                 if_chain! {
                     if let ExprKind::Call(func1, []) = arg.kind;
-                    if is_expr_diagnostic_item(cx, func1, sym::ptr_null);
+                    if is_item(cx, func1, sym::ptr_null);
                     then {
                         span_lint(cx, TRANSMUTING_NULL, expr.span, LINT_MSG)
                     }

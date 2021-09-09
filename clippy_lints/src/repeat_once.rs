@@ -1,8 +1,8 @@
 use clippy_utils::consts::{constant_context, Constant};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::in_macro;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
@@ -72,7 +72,7 @@ impl<'tcx> LateLintPass<'tcx> for RepeatOnce {
                         format!("{}.to_vec()", snippet(cx, receiver.span, r#""...""#)),
                         Applicability::MachineApplicable,
                     );
-                } else if is_type_diagnostic_item(cx, ty, sym::string_type) {
+                } else if is_item(cx, ty, sym::string_type) {
                     span_lint_and_sugg(
                         cx,
                         REPEAT_ONCE,

@@ -67,8 +67,10 @@ mod zst_offset;
 use bind_instead_of_map::BindInsteadOfMap;
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
-use clippy_utils::ty::{contains_adt_constructor, contains_ty, implements_trait, is_copy, is_type_diagnostic_item};
-use clippy_utils::{contains_return, get_trait_def_id, in_macro, iter_input_pats, meets_msrv, msrvs, paths, return_ty};
+use clippy_utils::ty::{contains_adt_constructor, contains_ty, implements_trait, is_copy};
+use clippy_utils::{
+    contains_return, get_trait_def_id, in_macro, is_item, iter_input_pats, meets_msrv, msrvs, paths, return_ty,
+};
 use if_chain::if_chain;
 use rustc_hir as hir;
 use rustc_hir::def::Res;
@@ -2382,7 +2384,7 @@ impl SelfKind {
                 true
             } else if ty.is_box() {
                 ty.boxed_ty() == parent_ty
-            } else if is_type_diagnostic_item(cx, ty, sym::Rc) || is_type_diagnostic_item(cx, ty, sym::Arc) {
+            } else if is_item(cx, ty, sym::Rc) || is_item(cx, ty, sym::Arc) {
                 if let ty::Adt(_, substs) = ty.kind() {
                     substs.types().next().map_or(false, |t| t == parent_ty)
                 } else {

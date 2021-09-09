@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
 use clippy_utils::source::snippet_opt;
-use clippy_utils::ty::{has_drop, is_copy, is_type_diagnostic_item, walk_ptrs_ty_depth};
-use clippy_utils::{fn_has_unsatisfiable_preds, match_def_path, paths};
+use clippy_utils::ty::{has_drop, is_copy, walk_ptrs_ty_depth};
+use clippy_utils::{fn_has_unsatisfiable_preds, is_item, paths};
 use if_chain::if_chain;
 use rustc_data_structures::{fx::FxHashMap, transitive_relation::TransitiveRelation};
 use rustc_errors::Applicability;
@@ -120,21 +120,20 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
             let (fn_def_id, arg, arg_ty, clone_ret) =
                 unwrap_or_continue!(is_call_with_ref_arg(cx, mir, &terminator.kind));
 
-            let from_borrow = match_def_path(cx, fn_def_id, &paths::CLONE_TRAIT_METHOD)
-                || match_def_path(cx, fn_def_id, &paths::TO_OWNED_METHOD)
-                || (match_def_path(cx, fn_def_id, &paths::TO_STRING_METHOD)
-                    && is_type_diagnostic_item(cx, arg_ty, sym::string_type));
+            let from_borrow = is_item(cx, fn_def_id, &paths::CLONE_TRAIT_METHOD)
+                || is_item(cx, fn_def_id, &paths::TO_OWNED_METHOD)
+                || (is_item(cx, fn_def_id, &paths::TO_STRING_METHOD) && is_item(cx, arg_ty, sym::string_type));
 
             let from_deref = !from_borrow
-                && (match_def_path(cx, fn_def_id, &paths::PATH_TO_PATH_BUF)
-                    || match_def_path(cx, fn_def_id, &paths::OS_STR_TO_OS_STRING));
+                && (is_item(cx, fn_def_id, &paths::PATH_TO_PATH_BUF)
+                    || is_item(cx, fn_def_id, &paths::OS_STR_TO_OS_STRING));
 
             if !from_borrow && !from_deref {
                 continue;
             }
 
             if let ty::Adt(def, _) = arg_ty.kind() {
-                if match_def_path(cx, def.did, &paths::MEM_MANUALLY_DROP) {
+                if is_item(cx, def.did, &paths::MEM_MANUALLY_DROP) {
                     continue;
                 }
             }
@@ -173,8 +172,8 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
                         is_call_with_ref_arg(cx, mir, &pred_terminator.kind);
                     if res == cloned;
                     if cx.tcx.is_diagnostic_item(sym::deref_method, pred_fn_def_id);
-                    if is_type_diagnostic_item(cx, pred_arg_ty, sym::PathBuf)
-                        || is_type_diagnostic_item(cx, pred_arg_ty, sym::OsString);
+                    if is_item(cx, pred_arg_ty, sym::PathBuf)
+                        || is_item(cx, pred_arg_ty, sym::OsString);
                     then {
                         (pred_arg, res)
                     } else {

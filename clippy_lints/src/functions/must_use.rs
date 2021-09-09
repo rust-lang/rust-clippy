@@ -14,7 +14,7 @@ use clippy_utils::attrs::is_proc_macro;
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_then};
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::is_must_use_ty;
-use clippy_utils::{match_def_path, must_use_attr, return_ty, trait_ref_of_method};
+use clippy_utils::{is_item, must_use_attr, return_ty, trait_ref_of_method};
 
 use super::{DOUBLE_MUST_USE, MUST_USE_CANDIDATE, MUST_USE_UNIT};
 
@@ -191,7 +191,7 @@ fn is_mutable_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, span: Span, tys: &m
         ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) | ty::Str => false,
         ty::Adt(adt, substs) => {
             tys.insert(adt.did) && !ty.is_freeze(cx.tcx.at(span), cx.param_env)
-                || KNOWN_WRAPPER_TYS.iter().any(|path| match_def_path(cx, adt.did, path))
+                || KNOWN_WRAPPER_TYS.iter().any(|path| is_item(cx, adt.did, *path))
                     && substs.types().any(|ty| is_mutable_ty(cx, ty, span, tys))
         },
         ty::Tuple(substs) => substs.types().any(|ty| is_mutable_ty(cx, ty, span, tys)),

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_note};
 use clippy_utils::source::first_line_of_span;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
-use clippy_utils::{is_entrypoint_fn, is_expn_of, match_panic_def_id, method_chain_args, return_ty};
+use clippy_utils::ty::implements_trait;
+use clippy_utils::{is_entrypoint_fn, is_expn_of, is_item, match_panic_def_id, method_chain_args, return_ty};
 use if_chain::if_chain;
 use itertools::Itertools;
 use rustc_ast::ast::{Async, AttrKind, Attribute, FnKind, FnRetTy, ItemKind};
@@ -307,7 +307,7 @@ fn lint_for_missing_headers<'tcx>(
     }
     if !headers.errors {
         let hir_id = cx.tcx.hir().local_def_id_to_hir_id(def_id);
-        if is_type_diagnostic_item(cx, return_ty(cx, hir_id), sym::result_type) {
+        if is_item(cx, return_ty(cx, hir_id), sym::result_type) {
             span_lint(
                 cx,
                 MISSING_ERRORS_DOC,
@@ -325,7 +325,7 @@ fn lint_for_missing_headers<'tcx>(
                 if let ty::Opaque(_, subs) = ret_ty.kind();
                 if let Some(gen) = subs.types().next();
                 if let ty::Generator(_, subs, _) = gen.kind();
-                if is_type_diagnostic_item(cx, subs.as_generator().return_ty(), sym::result_type);
+                if is_item(cx, subs.as_generator().return_ty(), sym::result_type);
                 then {
                     span_lint(
                         cx,
@@ -759,9 +759,7 @@ impl<'a, 'tcx> Visitor<'tcx> for FindPanicUnwrap<'a, 'tcx> {
         // check for `unwrap`
         if let Some(arglists) = method_chain_args(expr, &["unwrap"]) {
             let reciever_ty = self.typeck_results.expr_ty(&arglists[0][0]).peel_refs();
-            if is_type_diagnostic_item(self.cx, reciever_ty, sym::option_type)
-                || is_type_diagnostic_item(self.cx, reciever_ty, sym::result_type)
-            {
+            if is_item(self.cx, reciever_ty, sym::option_type) || is_item(self.cx, reciever_ty, sym::result_type) {
                 self.panic_span = Some(expr.span);
             }
         }

@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use clippy_utils::{find_macro_calls, is_expn_of, return_ty};
 use rustc_hir as hir;
 use rustc_hir::intravisit::FnKind;
@@ -47,7 +47,7 @@ impl<'tcx> LateLintPass<'tcx> for PanicInResultFn {
         span: Span,
         hir_id: hir::HirId,
     ) {
-        if !matches!(fn_kind, FnKind::Closure) && is_type_diagnostic_item(cx, return_ty(cx, hir_id), sym::result_type) {
+        if !matches!(fn_kind, FnKind::Closure) && is_item(cx, return_ty(cx, hir_id), sym::result_type) {
             lint_impl_body(cx, span, body);
         }
     }

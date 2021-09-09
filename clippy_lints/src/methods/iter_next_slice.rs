@@ -1,7 +1,7 @@
 use super::utils::derefs_to_slice;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{get_parent_expr, higher};
 use if_chain::if_chain;
 use rustc_ast::ast;
@@ -64,6 +64,6 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, cal
 }
 
 fn is_vec_or_array<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) -> bool {
-    is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(expr), sym::vec_type)
+    is_item(cx, cx.typeck_results().expr_ty(expr), sym::vec_type)
         || matches!(&cx.typeck_results().expr_ty(expr).peel_refs().kind(), ty::Array(_, _))
 }

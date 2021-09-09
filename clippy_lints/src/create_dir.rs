@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
@@ -36,7 +36,7 @@ impl LateLintPass<'_> for CreateDir {
             if let ExprKind::Call(func, args) = expr.kind;
             if let ExprKind::Path(ref path) = func.kind;
             if let Some(def_id) = cx.qpath_res(path, func.hir_id).opt_def_id();
-            if match_def_path(cx, def_id, &paths::STD_FS_CREATE_DIR);
+            if is_item(cx, def_id, &paths::STD_FS_CREATE_DIR);
             then {
                 span_lint_and_sugg(
                     cx,

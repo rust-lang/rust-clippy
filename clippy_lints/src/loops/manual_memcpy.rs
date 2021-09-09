@@ -1,8 +1,8 @@
 use super::{get_span_of_entire_for_loop, IncrementVisitor, InitializeVisitor, MANUAL_MEMCPY};
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{get_enclosing_block, higher, path_to_local, sugg};
 use if_chain::if_chain;
 use rustc_ast::ast;
@@ -329,7 +329,7 @@ fn is_slice_like<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'_>) -> bool {
         _ => false,
     };
 
-    is_slice || is_type_diagnostic_item(cx, ty, sym::vec_type) || is_type_diagnostic_item(cx, ty, sym::vecdeque_type)
+    is_slice || is_item(cx, ty, sym::vec_type) || is_item(cx, ty, sym::vecdeque_type)
 }
 
 fn fetch_cloned_expr<'tcx>(expr: &'tcx Expr<'tcx>) -> &'tcx Expr<'tcx> {

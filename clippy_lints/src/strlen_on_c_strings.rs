@@ -1,8 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::in_macro;
 use clippy_utils::paths;
 use clippy_utils::source::snippet_with_macro_callsite;
-use clippy_utils::ty::{is_type_diagnostic_item, is_type_ref_to_diagnostic_item};
+use clippy_utils::ty::is_type_ref_to_diagnostic_item;
+use clippy_utils::{in_macro, is_item};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -58,7 +58,7 @@ impl LateLintPass<'tcx> for StrlenOnCStrings {
                 let cstring = &args[0];
                 let ty = cx.typeck_results().expr_ty(cstring);
                 let val_name = snippet_with_macro_callsite(cx, cstring.span, "..");
-                let sugg = if is_type_diagnostic_item(cx, ty, sym::cstring_type){
+                let sugg = if is_item(cx, ty, sym::cstring_type){
                     format!("{}.as_bytes().len()", val_name)
                 } else if is_type_ref_to_diagnostic_item(cx, ty, sym::CStr){
                     format!("{}.to_bytes().len()", val_name)

@@ -1,7 +1,7 @@
 use super::utils::derefs_to_slice;
 use crate::methods::iter_nth_zero;
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::is_item;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::symbol::sym;
@@ -19,9 +19,9 @@ pub(super) fn check<'tcx>(
     let mut_str = if is_mut { "_mut" } else { "" };
     let caller_type = if derefs_to_slice(cx, iter_recv, cx.typeck_results().expr_ty(iter_recv)).is_some() {
         "slice"
-    } else if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(iter_recv), sym::vec_type) {
+    } else if is_item(cx, cx.typeck_results().expr_ty(iter_recv), sym::vec_type) {
         "Vec"
-    } else if is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(iter_recv), sym::vecdeque_type) {
+    } else if is_item(cx, cx.typeck_results().expr_ty(iter_recv), sym::vecdeque_type) {
         "VecDeque"
     } else {
         iter_nth_zero::check(cx, expr, nth_recv, nth_arg);

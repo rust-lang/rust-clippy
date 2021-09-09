@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::is_lang_ctor;
 use clippy_utils::source::snippet;
-use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
@@ -19,8 +19,8 @@ pub(super) fn check<'tcx>(
     def_arg: &'tcx hir::Expr<'_>,
     map_arg: &'tcx hir::Expr<'_>,
 ) {
-    let is_option = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::option_type);
-    let is_result = is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::result_type);
+    let is_option = is_item(cx, cx.typeck_results().expr_ty(recv), sym::option_type);
+    let is_result = is_item(cx, cx.typeck_results().expr_ty(recv), sym::result_type);
 
     // There are two variants of this `map_or` lint:
     // (1) using `map_or` as an adapter from `Result<T,E>` to `Option<T>`

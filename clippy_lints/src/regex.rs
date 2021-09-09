@@ -1,6 +1,6 @@
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_ast::ast::{LitKind, StrStyle};
 use rustc_data_structures::fx::FxHashSet;
@@ -68,15 +68,15 @@ impl<'tcx> LateLintPass<'tcx> for Regex {
             if args.len() == 1;
             if let Some(def_id) = cx.qpath_res(qpath, fun.hir_id).opt_def_id();
             then {
-                if match_def_path(cx, def_id, &paths::REGEX_NEW) ||
-                   match_def_path(cx, def_id, &paths::REGEX_BUILDER_NEW) {
+                if is_item(cx, def_id, &paths::REGEX_NEW) ||
+                   is_item(cx, def_id, &paths::REGEX_BUILDER_NEW) {
                     check_regex(cx, &args[0], true);
-                } else if match_def_path(cx, def_id, &paths::REGEX_BYTES_NEW) ||
-                   match_def_path(cx, def_id, &paths::REGEX_BYTES_BUILDER_NEW) {
+                } else if is_item(cx, def_id, &paths::REGEX_BYTES_NEW) ||
+                   is_item(cx, def_id, &paths::REGEX_BYTES_BUILDER_NEW) {
                     check_regex(cx, &args[0], false);
-                } else if match_def_path(cx, def_id, &paths::REGEX_SET_NEW) {
+                } else if is_item(cx, def_id, &paths::REGEX_SET_NEW) {
                     check_set(cx, &args[0], true);
-                } else if match_def_path(cx, def_id, &paths::REGEX_BYTES_SET_NEW) {
+                } else if is_item(cx, def_id, &paths::REGEX_BYTES_SET_NEW) {
                     check_set(cx, &args[0], false);
                 }
             }

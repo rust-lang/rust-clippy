@@ -18,8 +18,8 @@ use if_chain::if_chain;
 
 use clippy_utils::diagnostics::{multispan_sugg, span_lint_and_then};
 use clippy_utils::differing_macro_contexts;
+use clippy_utils::is_item;
 use clippy_utils::source::{snippet, snippet_opt};
-use clippy_utils::ty::is_type_diagnostic_item;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -225,14 +225,14 @@ impl<'tcx> ImplicitHasherType<'tcx> {
 
             let ty = hir_ty_to_ty(cx.tcx, hir_ty);
 
-            if is_type_diagnostic_item(cx, ty, sym::hashmap_type) && params_len == 2 {
+            if is_item(cx, ty, sym::hashmap_type) && params_len == 2 {
                 Some(ImplicitHasherType::HashMap(
                     hir_ty.span,
                     ty,
                     snippet(cx, params[0].span, "K"),
                     snippet(cx, params[1].span, "V"),
                 ))
-            } else if is_type_diagnostic_item(cx, ty, sym::hashset_type) && params_len == 1 {
+            } else if is_item(cx, ty, sym::hashset_type) && params_len == 1 {
                 Some(ImplicitHasherType::HashSet(
                     hir_ty.span,
                     ty,

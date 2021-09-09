@@ -1,7 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{snippet_opt, snippet_with_applicability};
-use clippy_utils::ty::match_type;
-use clippy_utils::{match_def_path, paths};
+use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
@@ -47,9 +46,9 @@ impl LateLintPass<'_> for NonOctalUnixPermissions {
 
                 if_chain! {
                     if (path.ident.name == sym!(mode)
-                        && (match_type(cx, obj_ty, &paths::OPEN_OPTIONS)
-                            || match_type(cx, obj_ty, &paths::DIR_BUILDER)))
-                        || (path.ident.name == sym!(set_mode) && match_type(cx, obj_ty, &paths::PERMISSIONS));
+                        && (is_item(cx, obj_ty, &paths::OPEN_OPTIONS)
+                            || is_item(cx, obj_ty, &paths::DIR_BUILDER)))
+                        || (path.ident.name == sym!(set_mode) && is_item(cx, obj_ty, &paths::PERMISSIONS));
                     if let ExprKind::Lit(_) = param.kind;
 
                     then {
@@ -68,7 +67,7 @@ impl LateLintPass<'_> for NonOctalUnixPermissions {
                 if_chain! {
                     if let ExprKind::Path(ref path) = func.kind;
                     if let Some(def_id) = cx.qpath_res(path, func.hir_id).opt_def_id();
-                    if match_def_path(cx, def_id, &paths::PERMISSIONS_FROM_MODE);
+                    if is_item(cx, def_id, &paths::PERMISSIONS_FROM_MODE);
                     if let ExprKind::Lit(_) = param.kind;
 
                     then {
