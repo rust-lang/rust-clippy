@@ -2394,6 +2394,20 @@
     }
   },
   {
+    "id": "iter_not_returning_iterator",
+    "id_span": {
+      "path": "src/iter_not_returning_iterator.rs",
+      "line": 35
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": " ### What it does\nDetects methods named `iter` or `iter_mut` that do not have a return type that implements `Iterator`.\n\n### Why is this bad?\nMethods named `iter` or `iter_mut` conventionally return an `Iterator`.\n\n### Example\n```rust\n// `String` does not implement `Iterator`\nstruct Data {}\nimpl Data {\n    fn iter(&self) -> String {\n        todo!()\n    }\n}\n```\nUse instead:\n```rust\nuse std::str::Chars;\nstruct Data {}\nimpl Data {\n   fn iter(&self) -> Chars<'static> {\n       todo!()\n   }\n}\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "iter_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
