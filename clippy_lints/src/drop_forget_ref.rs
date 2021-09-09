@@ -1,11 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_note;
+use clippy_utils::is_item;
 use clippy_utils::ty::is_copy;
-use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -124,10 +125,10 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                 let arg_ty = cx.typeck_results().expr_ty(arg);
 
                 if let ty::Ref(..) = arg_ty.kind() {
-                    if is_item(cx, def_id, &paths::DROP) {
+                    if is_item(cx, def_id, sym::mem_drop) {
                         lint = DROP_REF;
                         msg = DROP_REF_SUMMARY.to_string();
-                    } else if is_item(cx, def_id, &paths::MEM_FORGET) {
+                    } else if is_item(cx, def_id, sym::mem_forget) {
                         lint = FORGET_REF;
                         msg = FORGET_REF_SUMMARY.to_string();
                     } else {
@@ -140,10 +141,10 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                                        Some(arg.span),
                                        &format!("argument has type `{}`", arg_ty));
                 } else if is_copy(cx, arg_ty) {
-                    if is_item(cx, def_id, &paths::DROP) {
+                    if is_item(cx, def_id, sym::mem_drop) {
                         lint = DROP_COPY;
                         msg = DROP_COPY_SUMMARY.to_string();
-                    } else if is_item(cx, def_id, &paths::MEM_FORGET) {
+                    } else if is_item(cx, def_id, sym::mem_forget) {
                         lint = FORGET_COPY;
                         msg = FORGET_COPY_SUMMARY.to_string();
                     } else {

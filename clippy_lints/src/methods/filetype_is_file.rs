@@ -1,17 +1,18 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::get_parent_expr;
 use clippy_utils::is_item;
-use clippy_utils::{get_parent_expr, paths};
 use if_chain::if_chain;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_span::source_map::Span;
+use rustc_span::sym;
 
 use super::FILETYPE_IS_FILE;
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>) {
     let ty = cx.typeck_results().expr_ty(recv);
 
-    if !is_item(cx, ty, &paths::FILE_TYPE) {
+    if !is_item(cx, ty, sym::FileType) {
         return;
     }
 

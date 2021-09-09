@@ -1,14 +1,14 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty, TyS};
-use rustc_span::symbol::sym;
+use rustc_span::sym;
 use std::borrow::Cow;
 
 use super::MANUAL_STR_REPEAT;
@@ -37,7 +37,7 @@ fn parse_repeat_arg(cx: &LateContext<'_>, e: &Expr<'_>) -> Option<RepeatKind> {
         let ty = cx.typeck_results().expr_ty(e);
         if is_item(cx, ty, sym::string_type)
             || (is_item(cx, ty, LangItem::OwnedBox) && get_ty_param(ty).map_or(false, TyS::is_str))
-            || (is_item(cx, ty, &paths::COW) && get_ty_param(ty).map_or(false, TyS::is_str))
+            || (is_item(cx, ty, sym::Cow) && get_ty_param(ty).map_or(false, TyS::is_str))
         {
             Some(RepeatKind::String)
         } else {
@@ -56,7 +56,7 @@ pub(super) fn check(
 ) {
     if_chain! {
         if let ExprKind::Call(repeat_fn, [repeat_arg]) = take_self_arg.kind;
-        if is_item(cx, repeat_fn, &paths::ITER_REPEAT);
+        if is_item(cx, repeat_fn, sym::iter_repeat);
         if is_item(cx, cx.typeck_results().expr_ty(collect_expr), sym::string_type);
         if let Some(collect_id) = cx.typeck_results().type_dependent_def_id(collect_expr.hir_id);
         if let Some(take_id) = cx.typeck_results().type_dependent_def_id(take_expr.hir_id);

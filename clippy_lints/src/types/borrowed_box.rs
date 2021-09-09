@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
-use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{
@@ -8,6 +8,7 @@ use rustc_hir::{
     SyntheticTyParamKind, TyKind,
 };
 use rustc_lint::LateContext;
+use rustc_span::sym;
 
 use super::BORROWED_BOX;
 
@@ -91,7 +92,7 @@ fn is_any_trait(cx: &LateContext<'_>, t: &hir::Ty<'_>) -> bool {
         if let Some(trait_did) = traits[0].trait_ref.trait_def_id();
         // Only Send/Sync can be used as additional traits, so it is enough to
         // check only the first trait.
-        if is_item(cx, trait_did, &paths::ANY_TRAIT);
+        if is_item(cx, trait_did, sym::Any);
         then {
             return true;
         }

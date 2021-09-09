@@ -5,6 +5,7 @@ use if_chain::if_chain;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::sym;
 use std::cmp::Ordering;
 
 declare_clippy_lint! {
@@ -73,9 +74,9 @@ fn min_max<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<(MinMax, Cons
                     .qpath_res(qpath, path.hir_id)
                     .opt_def_id()
                     .and_then(|def_id| {
-                        if is_item(cx, def_id, &paths::CMP_MIN) {
+                        if is_item(cx, def_id, sym::cmp_min) {
                             fetch_const(cx, args, MinMax::Min)
-                        } else if is_item(cx, def_id, &paths::CMP_MAX) {
+                        } else if is_item(cx, def_id, sym::cmp_max) {
                             fetch_const(cx, args, MinMax::Max)
                         } else {
                             None

@@ -4,7 +4,6 @@
 //! Whenever possible, please consider diagnostic items over hardcoded paths.
 //! See <https://github.com/rust-lang/rust-clippy/issues/5393> for more information.
 
-pub const ANY_TRAIT: [&str; 3] = ["core", "any", "Any"];
 #[cfg(feature = "metadata-collector-lint")]
 pub const APPLICABILITY: [&str; 2] = ["rustc_lint_defs", "Applicability"];
 #[cfg(feature = "metadata-collector-lint")]
@@ -27,26 +26,20 @@ pub const BTREEMAP_CONTAINS_KEY: [&str; 6] = ["alloc", "collections", "btree", "
 pub const BTREEMAP_ENTRY: [&str; 6] = ["alloc", "collections", "btree", "map", "entry", "Entry"];
 pub const BTREEMAP_INSERT: [&str; 6] = ["alloc", "collections", "btree", "map", "BTreeMap", "insert"];
 pub const CLONE_TRAIT_METHOD: [&str; 4] = ["core", "clone", "Clone", "clone"];
-pub const CMP_MAX: [&str; 3] = ["core", "cmp", "max"];
-pub const CMP_MIN: [&str; 3] = ["core", "cmp", "min"];
 pub const COW: [&str; 3] = ["alloc", "borrow", "Cow"];
 pub const CSTRING_AS_C_STR: [&str; 5] = ["std", "ffi", "c_str", "CString", "as_c_str"];
 pub const DEFAULT_TRAIT_METHOD: [&str; 4] = ["core", "default", "Default", "default"];
 pub const DEREF_MUT_TRAIT_METHOD: [&str; 5] = ["core", "ops", "deref", "DerefMut", "deref_mut"];
 /// Preferably use the diagnostic item `sym::deref_method` where possible
 pub const DEREF_TRAIT_METHOD: [&str; 5] = ["core", "ops", "deref", "Deref", "deref"];
-pub const DIR_BUILDER: [&str; 3] = ["std", "fs", "DirBuilder"];
 pub const DISPLAY_TRAIT: [&str; 3] = ["core", "fmt", "Display"];
 pub const DOUBLE_ENDED_ITERATOR: [&str; 4] = ["core", "iter", "traits", "DoubleEndedIterator"];
 pub const DROP: [&str; 3] = ["core", "mem", "drop"];
-pub const DURATION: [&str; 3] = ["core", "time", "Duration"];
 #[cfg(feature = "internal-lints")]
 pub const EARLY_CONTEXT: [&str; 2] = ["rustc_lint", "EarlyContext"];
 pub const EXIT: [&str; 3] = ["std", "process", "exit"];
 pub const F32_EPSILON: [&str; 4] = ["core", "f32", "<impl f32>", "EPSILON"];
 pub const F64_EPSILON: [&str; 4] = ["core", "f64", "<impl f64>", "EPSILON"];
-pub const FILE: [&str; 3] = ["std", "fs", "File"];
-pub const FILE_TYPE: [&str; 3] = ["std", "fs", "FileType"];
 pub const FROM_FROM: [&str; 4] = ["core", "convert", "From", "from"];
 pub const FROM_ITERATOR: [&str; 5] = ["core", "iter", "traits", "collect", "FromIterator"];
 pub const FROM_ITERATOR_METHOD: [&str; 6] = ["core", "iter", "traits", "collect", "FromIterator", "from_iter"];
@@ -67,7 +60,6 @@ pub const IO_READ: [&str; 3] = ["std", "io", "Read"];
 pub const IO_WRITE: [&str; 3] = ["std", "io", "Write"];
 pub const IPADDR_V4: [&str; 5] = ["std", "net", "ip", "IpAddr", "V4"];
 pub const IPADDR_V6: [&str; 5] = ["std", "net", "ip", "IpAddr", "V6"];
-pub const ITER_REPEAT: [&str; 5] = ["core", "iter", "sources", "repeat", "repeat"];
 pub const ITERTOOLS_NEXT_TUPLE: [&str; 3] = ["itertools", "Itertools", "next_tuple"];
 #[cfg(feature = "internal-lints")]
 pub const KW_MODULE: [&str; 3] = ["rustc_span", "symbol", "kw"];
@@ -76,14 +68,6 @@ pub const LATE_CONTEXT: [&str; 2] = ["rustc_lint", "LateContext"];
 pub const LIBC_STRLEN: [&str; 2] = ["libc", "strlen"];
 #[cfg(any(feature = "internal-lints", feature = "metadata-collector-lint"))]
 pub const LINT: [&str; 2] = ["rustc_lint_defs", "Lint"];
-pub const MEM_DISCRIMINANT: [&str; 3] = ["core", "mem", "discriminant"];
-pub const MEM_FORGET: [&str; 3] = ["core", "mem", "forget"];
-pub const MEM_MANUALLY_DROP: [&str; 4] = ["core", "mem", "manually_drop", "ManuallyDrop"];
-pub const MEM_MAYBEUNINIT: [&str; 4] = ["core", "mem", "maybe_uninit", "MaybeUninit"];
-pub const MEM_MAYBEUNINIT_UNINIT: [&str; 5] = ["core", "mem", "maybe_uninit", "MaybeUninit", "uninit"];
-pub const MEM_REPLACE: [&str; 3] = ["core", "mem", "replace"];
-pub const MEM_SIZE_OF: [&str; 3] = ["core", "mem", "size_of"];
-pub const MEM_SIZE_OF_VAL: [&str; 3] = ["core", "mem", "size_of_val"];
 pub const MUTEX_GUARD: [&str; 4] = ["std", "sync", "mutex", "MutexGuard"];
 pub const OPEN_OPTIONS: [&str; 3] = ["std", "fs", "OpenOptions"];
 pub const OPS_MODULE: [&str; 2] = ["core", "ops"];

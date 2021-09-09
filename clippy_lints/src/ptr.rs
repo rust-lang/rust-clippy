@@ -337,7 +337,7 @@ fn check_fn(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_id: HirId, opt_body_id: 
                         },
                     );
                 }
-            } else if is_item(cx, ty, &paths::COW) {
+            } else if is_item(cx, ty, sym::Cow) {
                 if_chain! {
                     if let TyKind::Rptr(_, MutTy { ty, ..} ) = arg.kind;
                     if let TyKind::Path(QPath::Resolved(None, pp)) = ty.kind;

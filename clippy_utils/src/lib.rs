@@ -2115,7 +2115,7 @@ impl MaybeDefId for Ty<'_> {
 /// Currently the `DefId` can come from the following types
 /// * `DefId`
 /// * `Res`
-/// * `(&QPath, HirId)` where the HirId is from the expression containing the path
+/// * `(&QPath, HirId)` where the `HirId` is from the expression containing the path
 /// * `&Expr`
 /// * `&Pat`
 /// * `Ty<'_>` from `rustc_middle`
@@ -2124,7 +2124,7 @@ impl MaybeDefId for Ty<'_> {
 /// And the item to check for can have the following types
 /// * `&[str]` for the absolute path to the item. See `clippy_utils::paths`
 /// * `LangItem`
-/// & `sym` for diagnostic items
+/// * `sym` for diagnostic items
 pub fn is_item(cx: &LateContext<'_>, id: impl MaybeDefId, item: impl ItemRef) -> bool {
     id.to_def_id(cx).map_or(false, |id| item.is_item(cx, id))
 }

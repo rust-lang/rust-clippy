@@ -1,12 +1,13 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_item;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::walk_ptrs_ty_depth;
-use clippy_utils::{is_item, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -37,7 +38,7 @@ impl<'tcx> LateLintPass<'tcx> for MemDiscriminant {
             // is `mem::discriminant`
             if let ExprKind::Path(ref func_qpath) = func.kind;
             if let Some(def_id) = cx.qpath_res(func_qpath, func.hir_id).opt_def_id();
-            if is_item(cx, def_id, &paths::MEM_DISCRIMINANT);
+            if is_item(cx, def_id, sym::mem_discriminant);
             // type is non-enum
             let ty_param = cx.typeck_results().node_substs(func.hir_id).type_at(0);
             if !ty_param.is_enum();

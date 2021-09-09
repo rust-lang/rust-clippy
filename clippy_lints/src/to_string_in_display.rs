@@ -1,10 +1,10 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::{is_diag_trait_item, is_item, path_to_local_id, paths};
+use clippy_utils::{is_diag_trait_item, is_item, path_to_local_id};
 use if_chain::if_chain;
 use rustc_hir::{Expr, ExprKind, HirId, Impl, ImplItem, ImplItemKind, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
-use rustc_span::symbol::sym;
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -114,7 +114,7 @@ fn is_display_impl(cx: &LateContext<'_>, item: &Item<'_>) -> bool {
         if let ItemKind::Impl(Impl { of_trait: Some(trait_ref), .. }) = &item.kind;
         if let Some(did) = trait_ref.trait_def_id();
         then {
-            is_item(cx, did, &paths::DISPLAY_TRAIT)
+            is_item(cx, did, sym::display_trait)
         } else {
             false
         }

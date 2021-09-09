@@ -167,7 +167,7 @@ fn is_infinite(cx: &LateContext<'_>, expr: &Expr<'_>) -> Finiteness {
         ExprKind::Box(e) | ExprKind::AddrOf(BorrowKind::Ref, _, e) => is_infinite(cx, e),
         ExprKind::Call(path, _) => {
             if let ExprKind::Path(ref qpath) = path.kind {
-                is_item(cx, (qpath, path.hir_id), &paths::ITER_REPEAT).into()
+                is_item(cx, (qpath, path.hir_id), sym::iter_repeat).into()
             } else {
                 Finite
             }

@@ -519,9 +519,9 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         #[cfg(feature = "internal-lints")]
         utils::internal_lints::INVALID_PATHS,
         #[cfg(feature = "internal-lints")]
-        utils::internal_lints::LINT_WITHOUT_LINT_PASS,
+        utils::internal_lints::IS_ITEM_DEF_PATH_ON_DIAGNOSTIC_OR_LANG_ITEM,
         #[cfg(feature = "internal-lints")]
-        utils::internal_lints::MATCH_TYPE_ON_DIAGNOSTIC_ITEM,
+        utils::internal_lints::LINT_WITHOUT_LINT_PASS,
         #[cfg(feature = "internal-lints")]
         utils::internal_lints::OUTER_EXPN_EXPN_DATA,
         #[cfg(feature = "internal-lints")]
@@ -1170,8 +1170,8 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         LintId::of(utils::internal_lints::IF_CHAIN_STYLE),
         LintId::of(utils::internal_lints::INTERNING_DEFINED_SYMBOL),
         LintId::of(utils::internal_lints::INVALID_PATHS),
+        LintId::of(utils::internal_lints::IS_ITEM_DEF_PATH_ON_DIAGNOSTIC_OR_LANG_ITEM),
         LintId::of(utils::internal_lints::LINT_WITHOUT_LINT_PASS),
-        LintId::of(utils::internal_lints::MATCH_TYPE_ON_DIAGNOSTIC_ITEM),
         LintId::of(utils::internal_lints::OUTER_EXPN_EXPN_DATA),
         LintId::of(utils::internal_lints::PRODUCE_ICE),
         LintId::of(utils::internal_lints::UNNECESSARY_SYMBOL_STR),
@@ -1846,7 +1846,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         store.register_late_pass(|| Box::new(utils::internal_lints::InvalidPaths));
         store.register_late_pass(|| Box::new(utils::internal_lints::InterningDefinedSymbol::default()));
         store.register_late_pass(|| Box::new(utils::internal_lints::LintWithoutLintPass::default()));
-        store.register_late_pass(|| Box::new(utils::internal_lints::MatchTypeOnDiagItem));
+        store.register_late_pass(|| Box::new(utils::internal_lints::IsItemDefPath));
         store.register_late_pass(|| Box::new(utils::internal_lints::OuterExpnDataPass));
     }
 

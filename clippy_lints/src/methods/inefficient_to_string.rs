@@ -7,7 +7,7 @@ use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
-use rustc_span::symbol::{sym, Symbol};
+use rustc_span::{sym, Symbol};
 
 use super::INEFFICIENT_TO_STRING;
 
@@ -60,7 +60,7 @@ fn specializes_tostring(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     }
 
     if let ty::Adt(adt, substs) = ty.kind() {
-        is_item(cx, adt.did, &paths::COW) && substs.type_at(1).is_str()
+        is_item(cx, adt.did, sym::Cow) && substs.type_at(1).is_str()
     } else {
         false
     }

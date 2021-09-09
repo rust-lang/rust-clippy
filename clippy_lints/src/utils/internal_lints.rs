@@ -3,7 +3,8 @@ use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_sug
 use clippy_utils::higher;
 use clippy_utils::source::snippet;
 use clippy_utils::{
-    is_else_clause, is_expn_of, is_item, is_lint_allowed, method_calls, path_to_res, paths, SpanlessEq,
+    is_else_clause, is_expn_of, is_item, is_lint_allowed, method_calls, path_to_res, paths, peel_hir_expr_refs,
+    SpanlessEq,
 };
 use if_chain::if_chain;
 use rustc_ast::ast::{Crate as AstCrate, ItemKind, LitKind, ModKind, NodeId};
@@ -16,13 +17,13 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::CRATE_HIR_ID;
 use rustc_hir::intravisit::{NestedVisitorMap, Visitor};
 use rustc_hir::{
-    BinOpKind, Block, Crate, Expr, ExprKind, HirId, Item, Local, MutTy, Mutability, Node, Path, Stmt, StmtKind, Ty,
-    TyKind, UnOp,
+    BinOpKind, Block, Crate, Expr, ExprKind, HirId, Item, Local, MutTy, Mutability, Node, Path, Stmt, StmtKind, TyKind,
+    UnOp,
 };
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::map::Map;
-use rustc_middle::mir::interpret::ConstValue;
-use rustc_middle::ty;
+use rustc_middle::mir::interpret::{Allocation, ConstValue, GlobalAlloc};
+use rustc_middle::ty::{self, Ty};
 use rustc_session::{declare_lint_pass, declare_tool_lint, impl_lint_pass};
 use rustc_span::source_map::Spanned;
 use rustc_span::symbol::{Symbol, SymbolStr};
@@ -30,6 +31,7 @@ use rustc_span::{BytePos, Span};
 use rustc_typeck::hir_ty_to_ty;
 
 use std::borrow::{Borrow, Cow};
+use std::str;
 
 #[cfg(feature = "metadata-collector-lint")]
 pub mod metadata_collector;
@@ -226,10 +228,10 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for calls to `clippy_utils::is_item()` taking a path to a diagnostic item.
+    /// Checks for calls to `clippy_utils::is_item()` taking a path to a diagnostic or lang item.
     ///
     /// ### Why is this bad?
-    /// Using diagnostic items doesn't require hard-coded paths.
+    /// Diagnostic or lang items don't require hard-coded paths.
     ///
     /// ### Example
     /// Bad:
@@ -241,9 +243,9 @@ declare_clippy_lint! {
     /// ```rust,ignore
     /// clippy_utils::is_item(cx, ty, sym::vec_type)
     /// ```
-    pub MATCH_TYPE_ON_DIAGNOSTIC_ITEM,
+    pub IS_ITEM_DEF_PATH_ON_DIAGNOSTIC_OR_LANG_ITEM,
     internal,
-    "using `clippy_utils::is_item()` with a path to a diagnostic item"
+    "using `clippy_utils::is_item()` with a path to a diagnostic or lang item"
 }
 
 declare_clippy_lint! {
@@ -436,7 +438,7 @@ impl<'tcx> LateLintPass<'tcx> for LintWithoutLintPass {
     }
 }
 
-fn is_lint_ref_type<'tcx>(cx: &LateContext<'tcx>, ty: &Ty<'_>) -> bool {
+fn is_lint_ref_type<'tcx>(cx: &LateContext<'tcx>, ty: &hir::Ty<'_>) -> bool {
     if let TyKind::Rptr(
         _,
         MutTy {
@@ -752,90 +754,146 @@ fn suggest_note(
     );
 }
 
-declare_lint_pass!(MatchTypeOnDiagItem => [MATCH_TYPE_ON_DIAGNOSTIC_ITEM]);
+declare_lint_pass!(IsItemDefPath => [IS_ITEM_DEF_PATH_ON_DIAGNOSTIC_OR_LANG_ITEM]);
 
-impl<'tcx> LateLintPass<'tcx> for MatchTypeOnDiagItem {
+impl<'tcx> LateLintPass<'tcx> for IsItemDefPath {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
-        if is_lint_allowed(cx, MATCH_TYPE_ON_DIAGNOSTIC_ITEM, expr.hir_id) {
+        if is_lint_allowed(cx, IS_ITEM_DEF_PATH_ON_DIAGNOSTIC_OR_LANG_ITEM, expr.hir_id) {
             return;
         }
 
         if_chain! {
-            // Check if this is a call to utils::is_item()
-            if let ExprKind::Call(fn_path, [context, ty, ty_path]) = expr.kind;
-            if is_item(cx, fn_path, &["clippy_utils", "is_item"]);
+            if let ExprKind::Call(func, [_, _, item_arg]) = expr.kind;
+            if is_item(cx, func, &["clippy_utils", "is_item"]);
             // Extract the path to the matched type
-            if let Some(segments) = path_to_matched_type(cx, ty_path);
+            if let Some(segments) = path_to_matched_type(cx, item_arg);
             let segments: Vec<&str> = segments.iter().map(|sym| &**sym).collect();
-            if let Some(ty_did) = path_to_res(cx, &segments[..]).opt_def_id();
-            // Check if the matched type is a diagnostic item
-            let diag_items = cx.tcx.diagnostic_items(ty_did.krate);
-            if let Some(item_name) = diag_items.iter().find_map(|(k, v)| if *v == ty_did { Some(k) } else { None });
+            if let Some(def_id) = path_to_res(cx, &segments[..]).opt_def_id();
             then {
-                // TODO: check paths constants from external crates.
-                let cx_snippet = snippet(cx, context.span, "_");
-                let ty_snippet = snippet(cx, ty.span, "_");
+                // path_to_res will match field names before anything else, but for this we want to match
+                // inherent functions first.
+                let def_id = if cx.tcx.def_kind(def_id) == DefKind::Field {
+                    let method_name = *segments.last().unwrap();
+                    cx.tcx.def_key(def_id).parent
+                        .and_then(|parent_idx|
+                            cx.tcx.inherent_impls(DefId { index: parent_idx, krate: def_id.krate}).iter()
+                                .flat_map(|impl_id| cx.tcx.item_children(*impl_id).iter())
+                                .find(|item| item.ident.name.as_str() == method_name)
+                        )
+                        .and_then(|item| item.res.opt_def_id())
+                        .unwrap_or(def_id)
+                } else {
+                    def_id
+                };
 
-                span_lint_and_sugg(
+                let diag_items = cx.tcx.diagnostic_items(def_id.krate);
+                let (msg, replacement) = if let Some(item_name) = diag_items.iter()
+                    .find_map(|(k, v)| if *v == def_id { Some(k) } else { None })
+                {
+                    (
+                        "usage of `clippy_utils::is_item()` with a path to a diagnostic item",
+                        format!("sym::{}", item_name),
+                    )
+                } else if let Some(lang_item) = cx.tcx.lang_items().items().iter().position(|id| *id == Some(def_id)) {
+                    let lang_items = path_to_res(cx, &["rustc_hir", "lang_items", "LangItem"]).def_id();
+                    let item_name = cx.tcx.adt_def(lang_items).variants.iter().nth(lang_item).unwrap()
+                        .ident.name.as_str();
+                    (
+                        "usage of `clippy_utils::is_item()` with a path to a lang item",
+                        format!("LangItem::{}", item_name),
+                    )
+                } else {
+                    return;
+                };
+                span_lint_and_then(
                     cx,
-                    MATCH_TYPE_ON_DIAGNOSTIC_ITEM,
+                    IS_ITEM_DEF_PATH_ON_DIAGNOSTIC_OR_LANG_ITEM,
                     expr.span,
-                    "usage of `clippy_utils::is_item()` on a path to a diagnostic item",
-                    "try",
-                    format!("clippy_utils::is_item({}, {}, sym::{})", cx_snippet, ty_snippet, item_name),
-                    Applicability::MaybeIncorrect,
+                    msg,
+                    |diag| {
+                        diag.span_suggestion(
+                            item_arg.span,
+                            "try",
+                            replacement,
+                            Applicability::MachineApplicable,
+                        );
+                    }
                 );
             }
         }
     }
 }
 
-fn path_to_matched_type(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<Vec<SymbolStr>> {
-    use rustc_hir::ItemKind;
-
-    match &expr.kind {
-        ExprKind::AddrOf(.., expr) => return path_to_matched_type(cx, expr),
-        ExprKind::Path(qpath) => match cx.qpath_res(qpath, expr.hir_id) {
+fn path_to_matched_type(cx: &LateContext<'_>, expr: &hir::Expr<'_>) -> Option<Vec<String>> {
+    match peel_hir_expr_refs(expr).0.kind {
+        ExprKind::Path(ref qpath) => match cx.qpath_res(qpath, expr.hir_id) {
             Res::Local(hir_id) => {
                 let parent_id = cx.tcx.hir().get_parent_node(hir_id);
-                if let Some(Node::Local(local)) = cx.tcx.hir().find(parent_id) {
-                    if let Some(init) = local.init {
-                        return path_to_matched_type(cx, init);
-                    }
-                }
-            },
-            Res::Def(DefKind::Const | DefKind::Static, def_id) => {
-                if let Some(Node::Item(item)) = cx.tcx.hir().get_if_local(def_id) {
-                    if let ItemKind::Const(.., body_id) | ItemKind::Static(.., body_id) = item.kind {
-                        let body = cx.tcx.hir().body(body_id);
-                        return path_to_matched_type(cx, &body.value);
-                    }
-                }
-            },
-            _ => {},
-        },
-        ExprKind::Array(exprs) => {
-            let segments: Vec<SymbolStr> = exprs
-                .iter()
-                .filter_map(|expr| {
-                    if let ExprKind::Lit(lit) = &expr.kind {
-                        if let LitKind::Str(sym, _) = lit.node {
-                            return Some(sym.as_str());
-                        }
-                    }
-
+                if let Some(Node::Local(Local { init: Some(init), .. })) = cx.tcx.hir().find(parent_id) {
+                    path_to_matched_type(cx, init)
+                } else {
                     None
-                })
-                .collect();
-
-            if segments.len() == exprs.len() {
-                return Some(segments);
-            }
+                }
+            },
+            Res::Def(DefKind::Static, def_id) => {
+                read_mir_alloc_def_path(cx, cx.tcx.eval_static_initializer(def_id).ok()?, cx.tcx.type_of(def_id))
+            },
+            Res::Def(DefKind::Const, def_id) => match cx.tcx.const_eval_poly(def_id).ok()? {
+                ConstValue::ByRef { alloc, offset } if offset.bytes() == 0 => {
+                    read_mir_alloc_def_path(cx, alloc, cx.tcx.type_of(def_id))
+                },
+                _ => None,
+            },
+            _ => None,
         },
-        _ => {},
-    }
+        ExprKind::Array(exprs) => exprs
+            .iter()
+            .map(|expr| {
+                if let ExprKind::Lit(lit) = &expr.kind {
+                    if let LitKind::Str(sym, _) = lit.node {
+                        return Some((*sym.as_str()).to_owned());
+                    }
+                }
 
-    None
+                None
+            })
+            .collect(),
+        _ => None,
+    }
+}
+
+fn read_mir_alloc_def_path(cx: &LateContext<'tcx>, alloc: &'tcx Allocation, ty: Ty<'_>) -> Option<Vec<String>> {
+    let (alloc, ty) = if let ty::Ref(_, ty, Mutability::Not) = *ty.kind() {
+        if let GlobalAlloc::Memory(alloc) = cx.tcx.global_alloc(*alloc.relocations().values().next()?) {
+            (alloc, ty)
+        } else {
+            return None;
+        }
+    } else {
+        (alloc, ty)
+    };
+
+    if_chain! {
+        if let ty::Array(ty, _) | ty::Slice(ty) = *ty.kind();
+        if let ty::Ref(_, ty, Mutability::Not) = *ty.kind();
+        if ty.is_str();
+        then {
+        alloc
+            .relocations()
+            .values()
+            .map(|alloc| {
+                if let GlobalAlloc::Memory(alloc) = cx.tcx.global_alloc(*alloc) {
+                    str::from_utf8(alloc.inspect_with_uninit_and_ptr_outside_interpreter(0..alloc.len()))
+                        .ok().map(ToOwned::to_owned)
+                } else {
+                    None
+                }
+            })
+            .collect()
+        } else {
+            None
+        }
+    }
 }
 
 // This is not a complete resolver for paths. It works on all the paths currently used in the paths

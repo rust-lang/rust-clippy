@@ -2,13 +2,11 @@ use super::WHILE_LET_ON_ITERATOR;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{
-    get_enclosing_loop_or_closure, is_item, is_refutable, is_trait_method, paths, visitors::is_res_used,
-};
+use clippy_utils::{get_enclosing_loop_or_closure, is_lang_ctor, is_refutable, is_trait_method, visitors::is_res_used};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{walk_expr, ErasedMap, NestedVisitorMap, Visitor};
-use rustc_hir::{def::Res, Expr, ExprKind, HirId, Local, Mutability, PatKind, QPath, UnOp};
+use rustc_hir::{def::Res, Expr, ExprKind, HirId, LangItem, Local, Mutability, PatKind, UnOp};
 use rustc_lint::LateContext;
 use rustc_span::{symbol::sym, Span, Symbol};
 
@@ -16,9 +14,8 @@ pub(super) fn check(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
     let (scrutinee_expr, iter_expr, some_pat, loop_expr) = if_chain! {
         if let Some(higher::WhileLet { if_then, let_pat, let_expr }) = higher::WhileLet::hir(expr);
         // check for `Some(..)` pattern
-        if let PatKind::TupleStruct(QPath::Resolved(None, pat_path), some_pat, _) = let_pat.kind;
-        if let Res::Def(_, pat_did) = pat_path.res;
-        if is_item(cx, pat_did, &paths::OPTION_SOME);
+        if let PatKind::TupleStruct(ref pat_path, some_pat, _) = let_pat.kind;
+        if is_lang_ctor(cx, pat_path, LangItem::OptionSome);
         // check for call to `Iterator::next`
         if let ExprKind::MethodCall(method_name, _, [iter_expr], _) = let_expr.kind;
         if method_name.ident.name == sym::next;

@@ -9,6 +9,7 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty, TyS, TypeAndMut};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -43,8 +44,8 @@ fn get_size_of_ty(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, inverted: bool) 
                 if !inverted;
                 if let ExprKind::Path(ref count_func_qpath) = count_func.kind;
                 if let Some(def_id) = cx.qpath_res(count_func_qpath, count_func.hir_id).opt_def_id();
-                if is_item(cx, def_id, &paths::MEM_SIZE_OF)
-                    || is_item(cx, def_id, &paths::MEM_SIZE_OF_VAL);
+                if is_item(cx, def_id, sym::mem_size_of)
+                    || is_item(cx, def_id, sym::mem_size_of_val);
                 then {
                     cx.typeck_results().node_substs(count_func.hir_id).types().next()
                 } else {

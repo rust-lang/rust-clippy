@@ -6,6 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -47,7 +48,7 @@ impl LateLintPass<'_> for NonOctalUnixPermissions {
                 if_chain! {
                     if (path.ident.name == sym!(mode)
                         && (is_item(cx, obj_ty, &paths::OPEN_OPTIONS)
-                            || is_item(cx, obj_ty, &paths::DIR_BUILDER)))
+                            || is_item(cx, obj_ty, sym::DirBuilder)))
                         || (path.ident.name == sym!(set_mode) && is_item(cx, obj_ty, &paths::PERMISSIONS));
                     if let ExprKind::Lit(_) = param.kind;
 

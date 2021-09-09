@@ -6,7 +6,7 @@ use if_chain::if_chain;
 use rustc_data_structures::{fx::FxHashMap, transitive_relation::TransitiveRelation};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
-use rustc_hir::{def_id, Body, FnDecl, HirId};
+use rustc_hir::{def_id, Body, FnDecl, HirId, LangItem};
 use rustc_index::bit_set::{BitSet, HybridBitSet};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::{
@@ -133,7 +133,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
             }
 
             if let ty::Adt(def, _) = arg_ty.kind() {
-                if is_item(cx, def.did, &paths::MEM_MANUALLY_DROP) {
+                if is_item(cx, def.did, LangItem::ManuallyDrop) {
                     continue;
                 }
             }
