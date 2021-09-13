@@ -4665,11 +4665,11 @@
     "id": "redundant_closure_for_method_calls",
     "id_span": {
       "path": "src/eta_reduction.rs",
-      "line": 69
+      "line": 63
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for closures which only invoke a method on the closure\nargument and can be replaced by referencing the method directly.\n\n### Why is this bad?\nIt's unnecessary to create the closure.\n\n### Known problems\n[#3071](https://github.com/rust-lang/rust-clippy/issues/3071),\n[#3942](https://github.com/rust-lang/rust-clippy/issues/3942),\n[#4002](https://github.com/rust-lang/rust-clippy/issues/4002)\n\n\n### Example\n```rust\nSome('a').map(|s| s.to_uppercase());\n```\nmay be rewritten as\n```rust\nSome('a').map(char::to_uppercase);\n```",
+    "docs": " ### What it does\nChecks for closures which only invoke a method on the closure\nargument and can be replaced by referencing the method directly.\n\n### Why is this bad?\nIt's unnecessary to create the closure.\n\n### Example\n```rust\nSome('a').map(|s| s.to_uppercase());\n```\nmay be rewritten as\n```rust\nSome('a').map(char::to_uppercase);\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
