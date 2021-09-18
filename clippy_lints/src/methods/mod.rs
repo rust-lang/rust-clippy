@@ -44,6 +44,7 @@ mod option_as_ref_deref;
 mod option_map_or_none;
 mod option_map_unwrap_or;
 mod or_fun_call;
+mod ref_mut_iter_method_chain;
 mod search_is_some;
 mod single_char_add_str;
 mod single_char_insert_string;
@@ -1861,6 +1862,30 @@ declare_clippy_lint! {
     "replace `.splitn(2, pat)` with `.split_once(pat)`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Check for `&mut iter` followed by a method call.
+    ///
+    /// ### Why is this bad?
+    /// This requires using parenthesis to signify precedence.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let mut iter = ['a', 'b', '.', 'd'].iter();
+    /// let before_dot = (&mut iter).take_while(|&&c| c != '.').collect::<Vec<_>>();
+    /// let after_dot = iter.collect::<Vec<_>>();
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let mut iter = ['a', 'b', '.', 'd'].iter();
+    /// let before_dot = iter.by_ref().take_while(|&&c| c != '.').collect::<Vec<_>>();
+    /// let after_dot = iter.collect::<Vec<_>>();
+    /// ```
+    pub REF_MUT_ITER_METHOD_CHAIN,
+    style,
+    "`&mut iter` used in a method chain"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Option<RustcVersion>,
@@ -1939,7 +1964,8 @@ impl_lint_pass!(Methods => [
     SUSPICIOUS_SPLITN,
     MANUAL_STR_REPEAT,
     EXTEND_WITH_DRAIN,
-    MANUAL_SPLIT_ONCE
+    MANUAL_SPLIT_ONCE,
+    REF_MUT_ITER_METHOD_CHAIN
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -1973,7 +1999,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             hir::ExprKind::Call(func, args) => {
                 from_iter_instead_of_collect::check(cx, expr, args, func);
             },
-            hir::ExprKind::MethodCall(method_call, ref method_span, args, _) => {
+            hir::ExprKind::MethodCall(method_call, ref method_span, args @ [self_arg, ..], _) => {
                 or_fun_call::check(cx, expr, *method_span, &method_call.ident.as_str(), args);
                 expect_fun_call::check(cx, expr, *method_span, &method_call.ident.as_str(), args);
                 clone_on_copy::check(cx, expr, method_call.ident.name, args);
@@ -1982,6 +2008,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 single_char_add_str::check(cx, expr, args);
                 into_iter_on_ref::check(cx, expr, *method_span, method_call.ident.name, args);
                 single_char_pattern::check(cx, expr, method_call.ident.name, args);
+                ref_mut_iter_method_chain::check(cx, self_arg);
             },
             hir::ExprKind::Binary(op, lhs, rhs) if op.node == hir::BinOpKind::Eq || op.node == hir::BinOpKind::Ne => {
                 let mut info = BinaryExprInfo {
