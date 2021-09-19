@@ -8,18 +8,22 @@ fn main() {
     const GOOD32_SM: f32 = 0.000_000_000_1;
     const GOOD32_DOT: f32 = 10_000_000_000.0;
     const GOOD32_EDGE: f32 = 1.000_000_8;
+    // the Kahan Krew wuz here
+    const GOOD32_IEEE754_1: f32 = 0.123_456_789_f32;
+    const GOOD32_IEEE754_2: f32 = 0.123_456_789;
+    const GOOD32_IEEE754_3: f32 = 1.000_000_9;
+
+    const BAD32_1: f32 = 0.100_000_000_000_1;
+    const BAD32_2: f32 = 0.123_456_789_012;
+
     const GOOD64: f64 = 0.123_456_789_012;
     const GOOD64_SM: f32 = 0.000_000_000_000_000_1;
     const GOOD64_DOT: f32 = 10_000_000_000_000_000.0;
+    const GOOD64_IEEE754_1: f64 = 0.123_456_789_012_345_67f64;
+    const GOOD64_IEEE754_2: f64 = 0.123_456_789_012_345_67;
 
-    const BAD32_1: f32 = 0.123_456_789_f32;
-    const BAD32_2: f32 = 0.123_456_789;
-    const BAD32_3: f32 = 0.100_000_000_000_1;
-    const BAD32_EDGE: f32 = 1.000_000_9;
-
-    const BAD64_1: f64 = 0.123_456_789_012_345_67f64;
-    const BAD64_2: f64 = 0.123_456_789_012_345_67;
-    const BAD64_3: f64 = 0.100_000_000_000_000_000_1;
+    const BAD64_1: f64 = 0.100_000_000_000_000_000_1;
+    const BAD64_2: f64 = 0.123_456_789_012_345_678_9;
 
     // Literal as param
     println!("{:?}", 8.888_888_888_888_888_888_888);
@@ -42,11 +46,11 @@ fn main() {
     let bad64_inf = 0.123_456_789_012_345_67;
 
     // Vectors
-    let good_vec32: Vec<f32> = vec![0.123_456];
-    let good_vec64: Vec<f64> = vec![0.123_456_789];
+    let good_vec32: Vec<f32> = vec![0.123_456_789];
+    let bad_vec32: Vec<f32> = vec![0.123_456_789_012];
 
-    let bad_vec32: Vec<f32> = vec![0.123_456_789];
-    let bad_vec64: Vec<f64> = vec![0.123_456_789_123_456_789];
+    let good_vec64: Vec<f64> = vec![0.123_456_789_012_345_67];
+    let bad_vec64: Vec<f64> = vec![0.123_456_789_012_345_678_9];
 
     // Exponential float notation
     let good_e32: f32 = 1e-10;

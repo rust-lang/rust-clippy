@@ -127,11 +127,19 @@ impl<'tcx> LateLintPass<'tcx> for FloatLiteral {
     }
 }
 
+/// The maximum number of significant decimal digits a float can contain.
+/// f32: 23+1 bit significand, storing 6 to 9 decimal digits
+/// f64: 52+1 bit significand, storing 15 to 17 decimal digits
+/// Above the range's lower bound, precision in the decimal string may be lost,
+/// but it is recommended to use the maximum number of digits, not the minimum,
+/// when feeding these to a parser, as it preserves the accuracy in binary.
+/// In addition, suggesting someone truncate an 8 decimal digit string
+/// may change the result of the program if they apply it.
 #[must_use]
 fn max_digits(fty: FloatTy) -> u32 {
     match fty {
-        FloatTy::F32 => f32::DIGITS,
-        FloatTy::F64 => f64::DIGITS,
+        FloatTy::F32 => 9,
+        FloatTy::F64 => 17,
     }
 }
 
