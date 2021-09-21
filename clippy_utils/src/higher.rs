@@ -534,6 +534,8 @@ impl FormatExpn<'tcx> {
 
 /// A parsed `format_args!` expansion
 pub struct FormatArgsExpn<'tcx> {
+    /// The fist argument, the fromat string, as an expr
+    pub format_string: &'tcx Expr<'tcx>,
     /// Span of the first argument, the format string
     pub format_string_span: Span,
     /// Values passed after the format string
@@ -590,6 +592,7 @@ impl FormatArgsExpn<'tcx> {
             if let ExprKind::Array(args) = arm.body.kind;
             then {
                 Some(FormatArgsExpn {
+                    format_string:strs_ref,
                     format_string_span: strs_ref.span,
                     value_args,
                     format_string_parts,
