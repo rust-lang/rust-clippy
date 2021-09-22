@@ -39,7 +39,7 @@ impl<'tcx> LateLintPass<'tcx> for DebugAssertWithMutCall {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         for dmn in &DEBUG_MACRO_NAMES {
             if is_direct_expn_of(e.span, dmn).is_some() {
-                if let Some(macro_args) = AssertExpn::parse(e).map(|v| v.argument_vector()) {
+                if let Some(macro_args) = AssertExpn::parse(e).map(|v| v.assert_arguments()) {
                     for arg in macro_args {
                         let mut visitor = MutArgVisitor::new(cx);
                         visitor.visit_expr(arg);

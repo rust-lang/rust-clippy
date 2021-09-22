@@ -3,15 +3,18 @@
 #![deny(clippy::missing_docs_in_private_items)]
 
 use crate::ty::is_type_diagnostic_item;
-use crate::{is_expn_of, last_path_segment, match_def_path, paths};
+use crate::{is_expn_of, last_path_segment, match_def_path, paths, source::snippet_with_applicability};
 use if_chain::if_chain;
 use rustc_ast::ast::{self, LitKind};
+use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::{
     Arm, Block, BorrowKind, Expr, ExprKind, HirId, LoopSource, MatchSource, Node, Pat, QPath, StmtKind, UnOp,
 };
 use rustc_lint::LateContext;
 use rustc_span::{sym, symbol, ExpnKind, Span, Symbol};
+
+use std::borrow::Cow;
 
 /// The essential nodes of a desugared for loop as well as the entire span:
 /// `for pat in arg { body }` becomes `(pat, arg, body)`. Return `(pat, arg, body, span)`.
@@ -419,8 +422,8 @@ pub fn binop(op: hir::BinOpKind) -> ast::BinOpKind {
 }
 
 /// A parsed
-/// assert!`, `assert_eq!` or `assert_ne!`,
-/// debug_assert!`, `debug_assert_eq!` or `debug_assert_ne!`
+/// `assert!`, `assert_eq!` or `assert_ne!`,
+/// `debug_assert!`, `debug_assert_eq!` or `debug_assert_ne!`
 /// macro.
 pub struct AssertExpn<'tcx> {
     /// the first agrument of the assret e.g. `var` in element `assert!(var, ...)`
@@ -448,14 +451,33 @@ impl<'tcx> AssertExpn<'tcx> {
                 if let StmtKind::Semi(matchexpr) = block.stmts.get(0)?.kind {
                     // macros with unique arg: `{debug_}assert!` (e.g., `debug_assert!(some_condition)`)
                     if_chain! {
-                        if let Some(If { cond, .. }) = If::hir(matchexpr);
+                        if let Some(If { cond, then, .. }) = If::hir(matchexpr);
                         if let ExprKind::Unary(UnOp::Not, condition) = cond.kind;
                         then {
-                            return Some(Self {
-                                first_assert_argument: condition,
-                                second_assert_argument: None,
-                                format_arg: None, // FIXME actually parse the aguments
-                            });
+                            if_chain! {
+                                if let ExprKind::Block(block, _) = then.kind;
+                                if let [statement, ..] = block.stmts;
+                                if let StmtKind::Expr(call_assert_failed)
+                                    | StmtKind::Semi(call_assert_failed) = statement.kind;
+                                if let ExprKind::Call(_, args_assert_failed) = call_assert_failed.kind;
+                                if !args_assert_failed.is_empty();
+                                if let ExprKind::Call(_, [arg, ..]) =  args_assert_failed[0].kind;
+                                if let Some(format_arg_expn) = FormatArgsExpn::parse(arg);
+                                then {
+                                    return Some(Self {
+                                        first_assert_argument: condition,
+                                        second_assert_argument: None,
+                                        format_arg: Some(format_arg_expn), // FIXME actually parse the aguments
+                                    });
+                                }
+                                else{
+                                    return Some(Self {
+                                        first_assert_argument: condition,
+                                        second_assert_argument: None,
+                                        format_arg: None,
+                                    });
+                                }
+                            }
                         }
                     }
 
@@ -496,7 +518,7 @@ impl<'tcx> AssertExpn<'tcx> {
                     if let ExprKind::Call(_, args_assert_failed) = call_assert_failed.kind;
                     if args_assert_failed.len() >= 4;
                     if let ExprKind::Call(_, [arg, ..]) =  args_assert_failed[3].kind;
-                    if let Some(format_arg_expn) = FormatArgsExpn::parse(&arg);
+                    if let Some(format_arg_expn) = FormatArgsExpn::parse(arg);
                     then {
                         return Some(AssertExpn {
                             first_assert_argument: lhs,
@@ -518,19 +540,49 @@ impl<'tcx> AssertExpn<'tcx> {
         None
     }
 
-    /// Gives the argument as a vector
-    pub fn argument_vector(&self) -> Vec<&'tcx Expr<'tcx>> {
+    /// Gives the argument in the comparaison as a vector leaving the format
+    pub fn assert_arguments(&self) -> Vec<&'tcx Expr<'tcx>> {
         let mut expr_vec = vec![self.first_assert_argument];
         if let Some(sec_agr) = self.second_assert_argument {
             expr_vec.push(sec_agr);
         }
-        if let Some(ref format_arg) = self.format_arg {
-            expr_vec.push(format_arg.format_string);
-            for arg in &format_arg.value_args {
-                expr_vec.push(arg)
+        expr_vec
+    }
+
+    /// Gives the argument passed to the macro as a string
+    pub fn all_arguments_string(
+        &self,
+        cx: &LateContext<'_>,
+        applicability: &mut Applicability,
+    ) -> Vec<Cow<'static, str>> {
+        let mut vec_arg = vec![snippet_with_applicability(
+            cx,
+            self.first_assert_argument.span,
+            "..",
+            applicability,
+        )];
+        if let Some(sec_agr) = self.second_assert_argument {
+            vec_arg.push(snippet_with_applicability(cx, sec_agr.span, "..", applicability));
+        }
+        vec_arg.append(&mut self.format_arguments(cx, applicability));
+        vec_arg
+    }
+
+    /// Returns only the format agruments
+    pub fn format_arguments(&self, cx: &LateContext<'_>, applicability: &mut Applicability) -> Vec<Cow<'static, str>> {
+        let mut vec_arg = vec![];
+        if let Some(ref fmt_arg) = self.format_arg {
+            vec_arg.push(snippet_with_applicability(
+                cx,
+                fmt_arg.format_string_span,
+                "..",
+                applicability,
+            ));
+            for arg in &fmt_arg.value_args {
+                vec_arg.push(snippet_with_applicability(cx, arg.span, "..", applicability));
             }
         }
-        expr_vec
+        vec_arg
     }
 }
 
@@ -568,8 +620,6 @@ impl FormatExpn<'tcx> {
 
 /// A parsed `format_args!` expansion
 pub struct FormatArgsExpn<'tcx> {
-    /// The fist argument, the fromat string, as an expr
-    pub format_string: &'tcx Expr<'tcx>,
     /// Span of the first argument, the format string
     pub format_string_span: Span,
     /// Values passed after the format string
@@ -626,7 +676,6 @@ impl FormatArgsExpn<'tcx> {
             if let ExprKind::Array(args) = arm.body.kind;
             then {
                 Some(FormatArgsExpn {
-                    format_string:strs_ref,
                     format_string_span: strs_ref.span,
                     value_args,
                     format_string_parts,

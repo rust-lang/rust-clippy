@@ -79,7 +79,7 @@ impl<'tcx> LateLintPass<'tcx> for EqOp {
                     if_chain! {
                         if is_expn_of(stmt.span, amn).is_some();
                         if let StmtKind::Semi(matchexpr) = stmt.kind;
-                        if let Some(macro_args) = AssertExpn::parse(matchexpr).map(|v| v.argument_vector());
+                        if let Some(macro_args) = AssertExpn::parse(matchexpr).map(|v| v.assert_arguments());
                         if macro_args.len() == 2;
                         let (lhs, rhs) = (macro_args[0], macro_args[1]);
                         if eq_expr_value(cx, lhs, rhs);

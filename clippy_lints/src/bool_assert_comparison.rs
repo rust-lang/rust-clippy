@@ -81,8 +81,8 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
             .chain(inverted_macros.iter().map(|el| (el, false)))
         {
             if let Some(span) = is_direct_expn_of(expr.span, mac) {
-                if let Some(args) = AssertExpn::parse(expr).map(|v| v.argument_vector()) {
-                    if let [a, b, ref fmt_args @ ..] = args[..] {
+                if let Some(parse_assert) = AssertExpn::parse(expr) {
+                    if let [a, b] = parse_assert.assert_arguments()[..] {
                         let (lit_value, other_expr) = match (bool_lit(a), bool_lit(b)) {
                             (Some(lit), None) => (lit, b),
                             (None, Some(lit)) => (lit, a),
@@ -109,23 +109,14 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                         } else {
                             source::snippet(cx, other_expr.span, "").to_string()
                         };
-
-                        let arg_span = match fmt_args {
+                        let fmt_args = parse_assert.format_arguments(cx, &mut applicability);
+                        let arg_span = match &fmt_args[..] {
                             [] => None,
-                            [a] => Some(format!(
-                                "{}",
-                                Sugg::hir_with_applicability(cx, a, "..", &mut applicability)
-                            )),
+                            [a] => Some(a.to_string()),
                             _ => {
-                                let mut args = format!(
-                                    "{}",
-                                    Sugg::hir_with_applicability(cx, fmt_args[0], "..", &mut applicability)
-                                );
+                                let mut args = fmt_args[0].to_string();
                                 for el in &fmt_args[1..] {
-                                    args.push_str(&format!(
-                                        ", {}",
-                                        Sugg::hir_with_applicability(cx, el, "..", &mut applicability)
-                                    ));
+                                    args.push_str(&format!(", {}", el));
                                 }
                                 Some(args)
                             },
