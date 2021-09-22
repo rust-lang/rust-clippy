@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::{higher, is_direct_expn_of};
+use clippy_utils::{higher::AssertExpn, is_direct_expn_of};
 use rustc_hir::intravisit::{walk_expr, NestedVisitorMap, Visitor};
 use rustc_hir::{BorrowKind, Expr, ExprKind, MatchSource, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
@@ -39,7 +39,7 @@ impl<'tcx> LateLintPass<'tcx> for DebugAssertWithMutCall {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         for dmn in &DEBUG_MACRO_NAMES {
             if is_direct_expn_of(e.span, dmn).is_some() {
-                if let Some(macro_args) = higher::extract_assert_macro_args(e) {
+                if let Some(macro_args) = AssertExpn::parse(e).map(|v| v.argument_vector()) {
                     for arg in macro_args {
                         let mut visitor = MutArgVisitor::new(cx);
                         visitor.visit_expr(arg);

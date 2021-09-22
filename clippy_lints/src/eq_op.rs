@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::{multispan_sugg, span_lint, span_lint_and_then};
 use clippy_utils::source::snippet;
 use clippy_utils::ty::{implements_trait, is_copy};
 use clippy_utils::{
-    ast_utils::is_useless_with_eq_exprs, eq_expr_value, higher, in_macro, is_expn_of, is_in_test_function,
+    ast_utils::is_useless_with_eq_exprs, eq_expr_value, higher::AssertExpn, in_macro, is_expn_of, is_in_test_function,
 };
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -79,7 +79,7 @@ impl<'tcx> LateLintPass<'tcx> for EqOp {
                     if_chain! {
                         if is_expn_of(stmt.span, amn).is_some();
                         if let StmtKind::Semi(matchexpr) = stmt.kind;
-                        if let Some(macro_args) = higher::extract_assert_macro_args(matchexpr);
+                        if let Some(macro_args) = AssertExpn::parse(matchexpr).map(|v| v.argument_vector());
                         if macro_args.len() == 2;
                         let (lhs, rhs) = (macro_args[0], macro_args[1]);
                         if eq_expr_value(cx, lhs, rhs);

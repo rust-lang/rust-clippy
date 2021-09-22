@@ -1,4 +1,6 @@
-use clippy_utils::{diagnostics::span_lint_and_sugg, higher, is_direct_expn_of, source, ty::implements_trait};
+use clippy_utils::{
+    diagnostics::span_lint_and_sugg, higher::AssertExpn, is_direct_expn_of, source, sugg::Sugg, ty::implements_trait,
+};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Lit};
@@ -79,10 +81,8 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
             .chain(inverted_macros.iter().map(|el| (el, false)))
         {
             if let Some(span) = is_direct_expn_of(expr.span, mac) {
-                if let Some(args) = higher::extract_assert_macro_args(expr) {
-                    if let [a, b, ..] = args[..] {
-                        //let nb_bool_args = is_bool_lit(a) as usize + is_bool_lit(b) as usize;
-
+                if let Some(args) = AssertExpn::parse(expr).map(|v| v.argument_vector()) {
+                    if let [a, b, ref fmt_args @ ..] = args[..] {
                         let (lit_value, other_expr) = match (bool_lit(a), bool_lit(b)) {
                             (Some(lit), None) => (lit, b),
                             (None, Some(lit)) => (lit, a),
@@ -103,20 +103,37 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                         }
 
                         let non_eq_mac = &mac[..mac.len() - 3];
+                        let mut applicability = Applicability::MachineApplicable;
                         let expr_string = if lit_value ^ is_eq {
                             format!("!({})", source::snippet(cx, other_expr.span, ""))
                         } else {
                             source::snippet(cx, other_expr.span, "").to_string()
                         };
 
-                        let suggestion = if args.len() <= 2 {
-                            format!("{}!({})", non_eq_mac, expr_string)
+                        let arg_span = match fmt_args {
+                            [] => None,
+                            [a] => Some(format!(
+                                "{}",
+                                Sugg::hir_with_applicability(cx, a, "..", &mut applicability)
+                            )),
+                            _ => {
+                                let mut args = format!(
+                                    "{}",
+                                    Sugg::hir_with_applicability(cx, fmt_args[0], "..", &mut applicability)
+                                );
+                                for el in &fmt_args[1..] {
+                                    args.push_str(&format!(
+                                        ", {}",
+                                        Sugg::hir_with_applicability(cx, el, "..", &mut applicability)
+                                    ));
+                                }
+                                Some(args)
+                            },
+                        };
+                        let suggestion = if let Some(spans) = arg_span {
+                            format!("{}!({}, {})", non_eq_mac, expr_string, spans)
                         } else {
-                            let mut str = format!("{}!({}", non_eq_mac, expr_string);
-                            for el in &args[2..] {
-                                str = format!("{}, {}", str, source::snippet(cx, el.span, ""));
-                            }
-                            format!("{})", str)
+                            format!("{}!({})", non_eq_mac, expr_string)
                         };
                         span_lint_and_sugg(
                             cx,
@@ -125,7 +142,7 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                             &format!("used `{}!` with a literal bool", mac),
                             "replace it with",
                             suggestion,
-                            Applicability::MaybeIncorrect,
+                            applicability,
                         );
                         return;
                     }

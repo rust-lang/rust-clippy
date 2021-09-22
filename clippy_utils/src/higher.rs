@@ -418,24 +418,73 @@ pub fn binop(op: hir::BinOpKind) -> ast::BinOpKind {
     }
 }
 
-/// Extract args from an assert-like macro.
-/// Currently working with:
-/// - `assert!`, `assert_eq!` and `assert_ne!`
-/// - `debug_assert!`, `debug_assert_eq!` and `debug_assert_ne!`
-/// For example:
-/// `assert!(expr)` will return `Some([expr])`
-/// `debug_assert_eq!(a, b)` will return `Some([a, b])`
-pub fn extract_assert_macro_args<'tcx>(e: &'tcx Expr<'tcx>) -> Option<Vec<&'tcx Expr<'tcx>>> {
+/// A parsed
+/// assert!`, `assert_eq!` or `assert_ne!`,
+/// debug_assert!`, `debug_assert_eq!` or `debug_assert_ne!`
+/// macro.
+pub struct AssertExpn<'tcx> {
+    /// the first agrument of the assret e.g. `var` in element `assert!(var, ...)`
+    pub first_assert_argument: &'tcx Expr<'tcx>,
+    /// second argument of the asset for case `assert_eq!`,
+    /// `assert_ne!` etc ... Eg var_2 in `debug_assert_eq!(x, var_2,..)`
+    pub second_assert_argument: Option<&'tcx Expr<'tcx>>,
+    /// The format argument passed at the end of the macro
+    pub format_arg: Option<FormatArgsExpn<'tcx>>,
+}
+
+impl<'tcx> AssertExpn<'tcx> {
+    /// Extract args from an assert-like macro.
+    /// Currently working with:
+    /// - `assert!`, `assert_eq!` and `assert_ne!`
+    /// - `debug_assert!`, `debug_assert_eq!` and `debug_assert_ne!`
+    /// For example:
+    /// `assert!(expr)` will return `Some(AssertExpn { first_assert_argument: expr,
+    /// second_assert_argument: None, format_arg:None })` `debug_assert_eq!(a, b)` will return
+    /// `Some(AssertExpn { first_assert_argument: a, second_assert_argument: Some(b),
+    /// format_arg:None })`
+    pub fn parse(e: &'tcx Expr<'tcx>) -> Option<Self> {
+        if let ExprKind::Block(block, _) = e.kind {
+            if block.stmts.len() == 1 {
+                if let StmtKind::Semi(matchexpr) = block.stmts.get(0)?.kind {
+                    // macros with unique arg: `{debug_}assert!` (e.g., `debug_assert!(some_condition)`)
+                    if_chain! {
+                        if let Some(If { cond, .. }) = If::hir(matchexpr);
+                        if let ExprKind::Unary(UnOp::Not, condition) = cond.kind;
+                        then {
+                            return Some(Self {
+                                first_assert_argument: condition,
+                                second_assert_argument: None,
+                                format_arg: None, // FIXME actually parse the aguments
+                            });
+                        }
+                    }
+
+                    // debug macros with two args: `debug_assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
+                    if_chain! {
+                        if let ExprKind::Block(matchblock,_) = matchexpr.kind;
+                        if let Some(matchblock_expr) = matchblock.expr;
+                        then {
+                            return Self::ast_matchblock(matchblock_expr);
+                        }
+                    }
+                }
+            } else if let Some(matchblock_expr) = block.expr {
+                // macros with two args: `assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
+                return Self::ast_matchblock(matchblock_expr);
+            }
+        }
+        None
+    }
+
     /// Try to match the AST for a pattern that contains a match, for example when two args are
     /// compared
-    fn ast_matchblock(matchblock_expr: &'tcx Expr<'tcx>) -> Option<Vec<&Expr<'_>>> {
+    fn ast_matchblock(matchblock_expr: &'tcx Expr<'tcx>) -> Option<Self> {
         if_chain! {
             if let ExprKind::Match(headerexpr, arms, _) = &matchblock_expr.kind;
             if let ExprKind::Tup([lhs, rhs]) = &headerexpr.kind;
             if let ExprKind::AddrOf(BorrowKind::Ref, _, lhs) = lhs.kind;
             if let ExprKind::AddrOf(BorrowKind::Ref, _, rhs) = rhs.kind;
             then {
-                let mut vec_arg = vec![lhs, rhs];
                 if_chain! {
                     if !arms.is_empty();
                     if let ExprKind::Block(Block{expr: Some(if_expr),..},_) = arms[0].body.kind;
@@ -446,58 +495,43 @@ pub fn extract_assert_macro_args<'tcx>(e: &'tcx Expr<'tcx>) -> Option<Vec<&'tcx 
                         | StmtKind::Semi(call_assert_failed) = stmts_if_block[1].kind;
                     if let ExprKind::Call(_, args_assert_failed) = call_assert_failed.kind;
                     if args_assert_failed.len() >= 4;
-                    if let ExprKind::Call(_, args) =  args_assert_failed[3].kind;
-                    if !args.is_empty();
-                    if let ExprKind::Call(_, args_fmt) = args[0].kind;
-                    if !args_fmt.is_empty();
+                    if let ExprKind::Call(_, [arg, ..]) =  args_assert_failed[3].kind;
+                    if let Some(format_arg_expn) = FormatArgsExpn::parse(&arg);
                     then {
-                        vec_arg.push(&args_fmt[0]);
-                        if_chain! {
-                            if args_fmt.len() >= 2;
-                            if let ExprKind::AddrOf(_, _, expr_match) = args_fmt[1].kind;
-                            if let ExprKind::Match(tup_match, _, _) = expr_match.kind;
-                            if let ExprKind::Tup(tup_args_list) = tup_match.kind;
-                            then{
-                                for arg in tup_args_list {
-                                    vec_arg.push(arg);
-                                }
-                            }
-                        }
+                        return Some(AssertExpn {
+                            first_assert_argument: lhs,
+                            second_assert_argument: Some(rhs),
+                            format_arg: Some(format_arg_expn)
+                        });
+                    }
+                    else {
+                        return Some(AssertExpn {
+                            first_assert_argument: lhs,
+                            second_assert_argument:
+                            Some(rhs),
+                            format_arg: None
+                        });
                     }
                 }
-                return Some(vec_arg);
             }
         }
         None
     }
 
-    if let ExprKind::Block(block, _) = e.kind {
-        if block.stmts.len() == 1 {
-            if let StmtKind::Semi(matchexpr) = block.stmts.get(0)?.kind {
-                // macros with unique arg: `{debug_}assert!` (e.g., `debug_assert!(some_condition)`)
-                if_chain! {
-                    if let Some(If { cond, .. }) = If::hir(matchexpr);
-                    if let ExprKind::Unary(UnOp::Not, condition) = cond.kind;
-                    then {
-                        return Some(vec![condition]);
-                    }
-                }
-
-                // debug macros with two args: `debug_assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
-                if_chain! {
-                    if let ExprKind::Block(matchblock,_) = matchexpr.kind;
-                    if let Some(matchblock_expr) = matchblock.expr;
-                    then {
-                        return ast_matchblock(matchblock_expr);
-                    }
-                }
-            }
-        } else if let Some(matchblock_expr) = block.expr {
-            // macros with two args: `assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
-            return ast_matchblock(matchblock_expr);
+    /// Gives the argument as a vector
+    pub fn argument_vector(&self) -> Vec<&'tcx Expr<'tcx>> {
+        let mut expr_vec = vec![self.first_assert_argument];
+        if let Some(sec_agr) = self.second_assert_argument {
+            expr_vec.push(sec_agr);
         }
+        if let Some(ref format_arg) = self.format_arg {
+            expr_vec.push(format_arg.format_string);
+            for arg in &format_arg.value_args {
+                expr_vec.push(arg)
+            }
+        }
+        expr_vec
     }
-    None
 }
 
 /// A parsed `format!` expansion
