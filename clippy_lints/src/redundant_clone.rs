@@ -43,6 +43,9 @@ declare_clippy_lint! {
     /// ### Known problems
     /// False-negatives: analysis performed by this lint is conservative and limited.
     ///
+    /// Sugestion causes errors: If the `Clone` implementation returns a different
+    /// value, removing the `.clone()` call might change the behavior of your code.
+    ///
     /// ### Example
     /// ```rust
     /// # use std::path::Path;
