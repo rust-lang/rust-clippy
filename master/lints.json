@@ -3115,7 +3115,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for overlapping match arms.\n\n### Why is this bad?\nIt is likely to be an error and if not, makes the code\nless obvious.\n\n### Example\n```rust\nlet x = 5;\nmatch x {\n    1...10 => println!(\"1 ... 10\"),\n    5...15 => println!(\"5 ... 15\"),\n    _ => (),\n}\n```",
+    "docs": " ### What it does\nChecks for overlapping match arms.\n\n### Why is this bad?\nIt is likely to be an error and if not, makes the code\nless obvious.\n\n### Example\n```rust\nlet x = 5;\nmatch x {\n    1..=10 => println!(\"1 ... 10\"),\n    5..=15 => println!(\"5 ... 15\"),\n    _ => (),\n}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
