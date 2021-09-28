@@ -339,7 +339,7 @@
     "id": "cargo_common_metadata",
     "id_span": {
       "path": "src/cargo_common_metadata.rs",
-      "line": 47
+      "line": 45
     },
     "group": "cargo",
     "level": "allow",
@@ -2285,7 +2285,7 @@
     "id": "invalid_regex",
     "id_span": {
       "path": "src/regex.rs",
-      "line": 26
+      "line": 25
     },
     "group": "correctness",
     "level": "deny",
@@ -2415,7 +2415,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": " ### What it does\nChecks for use of `.iter().nth()` (and the related\n`.iter_mut().nth()`) on standard library types with O(1) element access.\n\n### Why is this bad?\n`.get()` and `.get_mut()` are more efficient and more\nreadable.\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.get(3);\nlet bad_slice = &some_vec[..].get(3);\n```",
+    "docs": " ### What it does\nChecks for use of `.iter().nth()` (and the related\n`.iter_mut().nth()`) on standard library types with *O*(1) element access.\n\n### Why is this bad?\n`.get()` and `.get_mut()` are more efficient and more\nreadable.\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.get(3);\nlet bad_slice = &some_vec[..].get(3);\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5827,7 +5827,7 @@
     "id": "trivial_regex",
     "id_span": {
       "path": "src/regex.rs",
-      "line": 50
+      "line": 49
     },
     "group": "nursery",
     "level": "allow",
