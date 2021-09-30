@@ -5085,11 +5085,11 @@
     "id": "shadow_reuse",
     "id_span": {
       "path": "src/shadow.rs",
-      "line": 69
+      "line": 58
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, while reusing the original value.\n\n### Why is this bad?\nNot too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.\n\n### Known problems\nThis lint, as the other shadowing related lints,\ncurrently only catches very simple patterns.\n\n### Example\n```rust\nlet x = 2;\nlet x = x + 1;\n```\nuse different variable name:\n```rust\nlet x = 2;\nlet y = x + 1;\n```",
+    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, while reusing the original value.\n\n### Why is this bad?\nNot too much, in fact it's a common pattern in Rust\ncode. Still, some argue that name shadowing like this hurts readability,\nbecause a value may be bound to different things depending on position in\nthe code.\n\n### Example\n```rust\nlet x = 2;\nlet x = x + 1;\n```\nuse different variable name:\n```rust\nlet x = 2;\nlet y = x + 1;\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5099,11 +5099,11 @@
     "id": "shadow_same",
     "id_span": {
       "path": "src/shadow.rs",
-      "line": 39
+      "line": 32
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, while just changing reference level or mutability.\n\n### Why is this bad?\nNot much, in fact it's a very common pattern in Rust\ncode. Still, some may opt to avoid it in their code base, they can set this\nlint to `Warn`.\n\n### Known problems\nThis lint, as the other shadowing related lints,\ncurrently only catches very simple patterns.\n\n### Example\n```rust\n# let x = 1;\n// Bad\nlet x = &x;\n\n// Good\nlet y = &x; // use different variable name\n```",
+    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, while just changing reference level or mutability.\n\n### Why is this bad?\nNot much, in fact it's a very common pattern in Rust\ncode. Still, some may opt to avoid it in their code base, they can set this\nlint to `Warn`.\n\n### Example\n```rust\n# let x = 1;\n// Bad\nlet x = &x;\n\n// Good\nlet y = &x; // use different variable name\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5113,11 +5113,11 @@
     "id": "shadow_unrelated",
     "id_span": {
       "path": "src/shadow.rs",
-      "line": 104
+      "line": 87
     },
-    "group": "pedantic",
+    "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, either without an initialization or with one that does not even use\nthe original value.\n\n### Why is this bad?\nName shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings or introducing more scopes to contain the bindings.\n\n### Known problems\nThis lint, as the other shadowing related lints,\ncurrently only catches very simple patterns. Note that\n`allow`/`warn`/`deny`/`forbid` attributes only work on the function level\nfor this lint.\n\n### Example\n```rust\n# let y = 1;\n# let z = 2;\nlet x = y;\n\n// Bad\nlet x = z; // shadows the earlier binding\n\n// Good\nlet w = z; // use different variable name\n```",
+    "docs": " ### What it does\nChecks for bindings that shadow other bindings already in\nscope, either without an initialization or with one that does not even use\nthe original value.\n\n### Why is this bad?\nName shadowing can hurt readability, especially in\nlarge code bases, because it is easy to lose track of the active binding at\nany place in the code. This can be alleviated by either giving more specific\nnames to bindings or introducing more scopes to contain the bindings.\n\n### Example\n```rust\n# let y = 1;\n# let z = 2;\nlet x = y;\n\n// Bad\nlet x = z; // shadows the earlier binding\n\n// Good\nlet w = z; // use different variable name\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
