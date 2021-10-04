@@ -1204,6 +1204,20 @@
     }
   },
   {
+    "id": "equatable_if_let",
+    "id_span": {
+      "path": "src/equatable_if_let.rs",
+      "line": 35
+    },
+    "group": "nursery",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for pattern matchings that can be expressed using equality.\n\n### Why is this bad?\n\n* It reads better and has less cognitive load because equality won't cause binding.\n* It is a [Yoda condition](https://en.wikipedia.org/wiki/Yoda_conditions). Yoda conditions are widely\ncriticized for increasing the cognitive load of reading the code.\n* Equality is a simple bool expression and can be merged with `&&` and `||` and\nreuse if blocks\n\n### Example\n```rust\nif let Some(2) = x {\n    do_thing();\n}\n```\nShould be written\n```rust\nif x == Some(2) {\n    do_thing();\n}\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "erasing_op",
     "id_span": {
       "path": "src/erasing_op.rs",
@@ -1837,7 +1851,7 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/identity_op.rs",
-      "line": 26
+      "line": 25
     },
     "group": "complexity",
     "level": "warn",
