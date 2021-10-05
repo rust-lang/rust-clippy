@@ -325,7 +325,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1674
+      "line": 1675
     },
     "group": "style",
     "level": "warn",
@@ -1487,7 +1487,7 @@
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1414
+      "line": 1415
     },
     "group": "restriction",
     "level": "allow",
@@ -1515,7 +1515,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1631
+      "line": 1632
     },
     "group": "complexity",
     "level": "warn",
@@ -1767,7 +1767,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1580
+      "line": 1581
     },
     "group": "pedantic",
     "level": "allow",
@@ -1963,7 +1963,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1699
+      "line": 1700
     },
     "group": "pedantic",
     "level": "allow",
@@ -2215,7 +2215,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1609
+      "line": 1610
     },
     "group": "complexity",
     "level": "warn",
@@ -2369,7 +2369,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1724
+      "line": 1725
     },
     "group": "complexity",
     "level": "warn",
@@ -2397,7 +2397,7 @@
     "id": "iter_next_slice",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1465
+      "line": 1466
     },
     "group": "style",
     "level": "warn",
@@ -2859,7 +2859,7 @@
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1356
+      "line": 1357
     },
     "group": "style",
     "level": "warn",
@@ -2873,7 +2873,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1796
+      "line": 1797
     },
     "group": "complexity",
     "level": "warn",
@@ -2887,7 +2887,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1773
+      "line": 1774
     },
     "group": "perf",
     "level": "warn",
@@ -2971,7 +2971,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1548
+      "line": 1549
     },
     "group": "style",
     "level": "warn",
@@ -3027,7 +3027,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1653
+      "line": 1654
     },
     "group": "complexity",
     "level": "warn",
@@ -4161,7 +4161,7 @@
     "id": "option_as_ref_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1439
+      "line": 1440
     },
     "group": "complexity",
     "level": "warn",
@@ -5211,7 +5211,7 @@
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1490
+      "line": 1491
     },
     "group": "style",
     "level": "warn",
@@ -5533,11 +5533,11 @@
     "id": "suspicious_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1294
+      "line": 1295
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nChecks for calls to `map` followed by a `count`.\n\n### Why is this bad?\nIt looks suspicious. Maybe `map` was confused with `filter`.\nIf the `map` call is intentional, this should be rewritten. Or, if you intend to\ndrive the iterator to completion, you can just use `for_each` instead.\n\n### Example\n```rust\nlet _ = (0..3).map(|x| x + 2).count();\n```",
+    "docs": " ### What it does\nChecks for calls to `map` followed by a `count`.\n\n### Why is this bad?\nIt looks suspicious. Maybe `map` was confused with `filter`.\nIf the `map` call is intentional, this should be rewritten\nusing `inspect`. Or, if you intend to drive the iterator to\ncompletion, you can just use `for_each` instead.\n\n### Example\n```rust\nlet _ = (0..3).map(|x| x + 2).count();\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5575,7 +5575,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1753
+      "line": 1754
     },
     "group": "correctness",
     "level": "deny",
@@ -5967,7 +5967,7 @@
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1328
+      "line": 1329
     },
     "group": "correctness",
     "level": "deny",
@@ -6065,7 +6065,7 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1528
+      "line": 1529
     },
     "group": "style",
     "level": "warn",
@@ -6933,7 +6933,7 @@
     "id": "zst_offset",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1373
+      "line": 1374
     },
     "group": "correctness",
     "level": "deny",
