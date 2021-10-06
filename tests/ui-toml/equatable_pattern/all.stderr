@@ -1,0 +1,115 @@
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:76:8
+   |
+LL |     if let Some(2) = c {}
+   |        ^^^^^^^^^^^^^^^ help: try: `c == Some(2)`
+   |
+   = note: `-D clippy::equatable-if-let` implied by `-D warnings`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:77:8
+   |
+LL |     if let Struct { a: 2, b: false } = d {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `d == (Struct { a: 2, b: false })`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:78:8
+   |
+LL |     if let Enum::TupleVariant(32, 64) = e {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `e == Enum::TupleVariant(32, 64)`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:79:8
+   |
+LL |     if let Enum::RecordVariant { a: 64, b: 32 } = e {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `e == (Enum::RecordVariant { a: 64, b: 32 })`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:80:8
+   |
+LL |     if let (Enum::UnitVariant, &Struct { a: 2, b: false }) = (e, &d) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(e, &d) == (Enum::UnitVariant, &Struct { a: 2, b: false })`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:81:8
+   |
+LL |     if let Generic::VA(Enum::UnitVariant) = i {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `i == Generic::VA(Enum::UnitVariant)`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:82:8
+   |
+LL |     if let [7, 5] = j[1..3] {}
+   |        ^^^^^^^^^^^^^^^^^^^^ help: try: `j[1..3] == [7, 5]`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:83:8
+   |
+LL |     if let [1, 2, 3, 4] = j[..] {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `j[..] == [1, 2, 3, 4]`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:84:8
+   |
+LL |     if let Some(true) = k {}
+   |        ^^^^^^^^^^^^^^^^^^ help: try: `k == Some(&true)`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:85:8
+   |
+LL |     if let Some(&false) = k {}
+   |        ^^^^^^^^^^^^^^^^^^^^ help: try: `k == Some(&false)`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:86:8
+   |
+LL |     if let Some(true) = &k {}
+   |        ^^^^^^^^^^^^^^^^^^^ help: try: `&k == &Some(&true)`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:87:8
+   |
+LL |     if let Some(false) = &&k {}
+   |        ^^^^^^^^^^^^^^^^^^^^^ help: try: `&&k == &&Some(&false)`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:88:8
+   |
+LL |       if let Generic2 {
+   |  ________^
+LL | |         a: Generic2 { a: "yyy", b: 3 },
+LL | |         b: Generic2 {
+LL | |             a: Enum::UnitVariant,
+LL | |             b: false,
+LL | |         },
+LL | |     } = l
+   | |_________^ help: try: `l == (Generic2 { a: Generic2 { a: "yyy", b: 3 }, b: Generic2 { a: &Enum::UnitVariant, b: false } })`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:96:8
+   |
+LL |     if let Generic2 { a: 3, b: 5 } = m {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `m == (Generic2 { a: 3, b: 5 })`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:97:8
+   |
+LL |     if let Some("yyy") = n {}
+   |        ^^^^^^^^^^^^^^^^^^^ help: try: `n == Some("yyy")`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:98:13
+   |
+LL |     let _ = matches!(c, Some(2));
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `c == Some(2)`
+   |
+   = note: `-D clippy::equatable-matches` implied by `-D warnings`
+
+error: this pattern matching can be expressed using equality
+  --> $DIR/all.rs:100:11
+   |
+LL |     while let Some(2) = o.next() {}
+   |           ^^^^^^^^^^^^^^^^^^^^^^ help: try: `o.next() == Some(&2)`
+
+error: aborting due to 17 previous errors
+

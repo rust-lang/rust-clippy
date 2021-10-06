@@ -118,6 +118,7 @@ store.register_lints(&[
     eq_op::EQ_OP,
     eq_op::OP_REF,
     equatable_if_let::EQUATABLE_IF_LET,
+    equatable_if_let::EQUATABLE_MATCHES,
     erasing_op::ERASING_OP,
     escape::BOXED_LOCAL,
     eta_reduction::REDUNDANT_CLOSURE,

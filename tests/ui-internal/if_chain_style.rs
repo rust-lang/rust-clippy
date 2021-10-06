@@ -1,5 +1,5 @@
 #![warn(clippy::if_chain_style)]
-#![allow(clippy::no_effect)]
+#![allow(clippy::no_effect, clippy::equatable_if_let)]
 
 extern crate if_chain;
 

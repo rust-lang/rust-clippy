@@ -170,7 +170,7 @@ impl LateLintPass<'_> for ManualMap {
                     }
 
                     // `ref` and `ref mut` annotations were handled earlier.
-                    let annotation = if matches!(annotation, BindingAnnotation::Mutable) {
+                    let annotation = if annotation == BindingAnnotation::Mutable {
                         "mut "
                     } else {
                         ""

@@ -178,7 +178,7 @@ impl<'tcx> LateLintPass<'tcx> for StringAdd {
             },
             ExprKind::Index(target, _idx) => {
                 let e_ty = cx.typeck_results().expr_ty(target).peel_refs();
-                if matches!(e_ty.kind(), ty::Str) || is_type_diagnostic_item(cx, e_ty, sym::String) {
+                if *e_ty.kind() == ty::Str || is_type_diagnostic_item(cx, e_ty, sym::String) {
                     span_lint(
                         cx,
                         STRING_SLICE,

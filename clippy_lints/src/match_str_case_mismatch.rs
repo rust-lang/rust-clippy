@@ -60,7 +60,7 @@ impl LateLintPass<'_> for MatchStrCaseMismatch {
             if !in_external_macro(cx.tcx.sess, expr.span);
             if let ExprKind::Match(match_expr, arms, MatchSource::Normal) = expr.kind;
             if let ty::Ref(_, ty, _) = cx.typeck_results().expr_ty(match_expr).kind();
-            if let ty::Str = ty.kind();
+            if *ty.kind() == ty::Str;
             then {
                 let mut visitor = MatchExprVisitor {
                     cx,

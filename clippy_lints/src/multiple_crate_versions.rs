@@ -84,13 +84,9 @@ impl LateLintPass<'_> for MultipleCrateVersions {
 
 fn is_normal_dep(nodes: &[Node], local_id: &PackageId, dep_id: &PackageId) -> bool {
     fn depends_on(node: &Node, dep_id: &PackageId) -> bool {
-        node.deps.iter().any(|dep| {
-            dep.pkg == *dep_id
-                && dep
-                    .dep_kinds
-                    .iter()
-                    .any(|info| matches!(info.kind, DependencyKind::Normal))
-        })
+        node.deps
+            .iter()
+            .any(|dep| dep.pkg == *dep_id && dep.dep_kinds.iter().any(|info| info.kind == DependencyKind::Normal))
     }
 
     nodes

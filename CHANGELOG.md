@@ -2843,6 +2843,7 @@ Released 2018-09-13
 [`enum_variant_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#enum_variant_names
 [`eq_op`]: https://rust-lang.github.io/rust-clippy/master/index.html#eq_op
 [`equatable_if_let`]: https://rust-lang.github.io/rust-clippy/master/index.html#equatable_if_let
+[`equatable_matches`]: https://rust-lang.github.io/rust-clippy/master/index.html#equatable_matches
 [`erasing_op`]: https://rust-lang.github.io/rust-clippy/master/index.html#erasing_op
 [`eval_order_dependence`]: https://rust-lang.github.io/rust-clippy/master/index.html#eval_order_dependence
 [`excessive_precision`]: https://rust-lang.github.io/rust-clippy/master/index.html#excessive_precision

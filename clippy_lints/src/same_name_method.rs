@@ -83,9 +83,7 @@ impl<'tcx> LateLintPass<'tcx> for SameNameMethod {
                                     cx.tcx
                                         .associated_items(did)
                                         .in_definition_order()
-                                        .filter(|assoc_item| {
-                                            matches!(assoc_item.kind, AssocKind::Fn)
-                                        })
+                                        .filter(|assoc_item| assoc_item.kind == AssocKind::Fn)
                                         .map(|assoc_item| assoc_item.ident.name)
                                         .collect()
                                 }else{

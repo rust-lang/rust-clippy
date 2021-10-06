@@ -65,7 +65,7 @@ fn should_lint(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, cast_to
 
         (true, false) => {
             let from_nbits = utils::int_ty_to_nbits(cast_from, cx.tcx);
-            let to_nbits = if let ty::Float(FloatTy::F32) = cast_to.kind() {
+            let to_nbits = if cast_to.kind() == &ty::Float(FloatTy::F32) {
                 32
             } else {
                 64
@@ -73,9 +73,7 @@ fn should_lint(cx: &LateContext<'_>, expr: &Expr<'_>, cast_from: Ty<'_>, cast_to
             from_nbits < to_nbits
         },
 
-        (_, _) => {
-            matches!(cast_from.kind(), ty::Float(FloatTy::F32)) && matches!(cast_to.kind(), ty::Float(FloatTy::F64))
-        },
+        (_, _) => cast_from.kind() == &ty::Float(FloatTy::F32) && cast_to.kind() == &ty::Float(FloatTy::F64),
     }
 }
 

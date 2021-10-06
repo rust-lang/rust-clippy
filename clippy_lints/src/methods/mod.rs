@@ -2455,7 +2455,7 @@ impl OutType {
 
 fn is_bool(ty: &hir::Ty<'_>) -> bool {
     if let hir::TyKind::Path(QPath::Resolved(_, path)) = ty.kind {
-        matches!(path.res, Res::PrimTy(PrimTy::Bool))
+        path.res == Res::PrimTy(PrimTy::Bool)
     } else {
         false
     }

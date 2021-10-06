@@ -51,7 +51,7 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &hir::Expr<'_>, method_name: Sy
 /// Returns whether `ty` specializes `ToString`.
 /// Currently, these are `str`, `String`, and `Cow<'_, str>`.
 fn specializes_tostring(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
-    if let ty::Str = ty.kind() {
+    if ty.kind() == &ty::Str {
         return true;
     }
 

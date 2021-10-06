@@ -120,7 +120,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrow {
                         },
                     ] = *adj3
                     {
-                        let help_msg_ty = if matches!(mutability, Mutability::Not) {
+                        let help_msg_ty = if mutability == Mutability::Not {
                             format!("&{}", ty)
                         } else {
                             format!("&mut {}", ty)

@@ -48,9 +48,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, cast_expr: &Expr<'_>,
         },
 
         (_, _) => {
-            if matches!(cast_from.kind(), &ty::Float(FloatTy::F64))
-                && matches!(cast_to.kind(), &ty::Float(FloatTy::F32))
-            {
+            if cast_from.kind() == &ty::Float(FloatTy::F64) && cast_to.kind() == &ty::Float(FloatTy::F32) {
                 "casting `f64` to `f32` may truncate the value".to_string()
             } else {
                 return;

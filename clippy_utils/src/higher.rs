@@ -470,6 +470,42 @@ pub fn extract_assert_macro_args<'tcx>(e: &'tcx Expr<'tcx>) -> Option<Vec<&'tcx 
     None
 }
 
+/// A parsed `matches!` expansion
+#[derive(Debug)]
+pub struct MatchesExpn<'tcx> {
+    /// Span of `matches!(..)`
+    pub call_site: Span,
+    /// Second parameter of `matches!`
+    pub arm: &'tcx Arm<'tcx>,
+    /// First parameter of `matches!`
+    pub exp: &'tcx Expr<'tcx>,
+}
+
+impl MatchesExpn<'tcx> {
+    /// Parses an expanded `matches!` invocation
+    pub fn parse(expr: &'tcx Expr<'tcx>) -> Option<Self> {
+        if_chain! {
+            if let ExprKind::Match(exp, [arm_true, arm_false], _) = expr.kind;
+            if let ExprKind::Lit(lit_true) = &arm_true.body.kind;
+            if lit_true.node == LitKind::Bool(true);
+            if let ExprKind::Lit(lit_false) = &arm_false.body.kind;
+            if lit_false.node == LitKind::Bool(false);
+            // there is no sym::matches ?!
+            //if let ExpnKind::Macro(_, sym::matches) = expn_data.kind;
+            then {
+                let expn_data = expr.span.ctxt().outer_expn_data();
+                Some(MatchesExpn {
+                    call_site: expn_data.call_site,
+                    arm: arm_true,
+                    exp,
+                })
+            } else {
+                None
+            }
+        }
+    }
+}
+
 /// A parsed `format!` expansion
 pub struct FormatExpn<'tcx> {
     /// Span of `format!(..)`

@@ -84,7 +84,7 @@ fn lint_message_convention() {
                 .expect("failed to read dir")
                 .map(|direntry| direntry.unwrap().path())
         })
-        .filter(|file| matches!(file.extension().map(OsStr::to_str), Some(Some("stderr"))));
+        .filter(|file| file.extension().map(OsStr::to_str) == Some(Some("stderr")));
 
     // get all files that have any "bad lines" in them
     let bad_tests: Vec<Message> = tests

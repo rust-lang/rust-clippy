@@ -28,6 +28,8 @@ store.register_group(true, "clippy::pedantic", Some("clippy_pedantic"), vec![
     LintId::of(doc::MISSING_PANICS_DOC),
     LintId::of(empty_enum::EMPTY_ENUM),
     LintId::of(enum_variants::MODULE_NAME_REPETITIONS),
+    LintId::of(equatable_if_let::EQUATABLE_IF_LET),
+    LintId::of(equatable_if_let::EQUATABLE_MATCHES),
     LintId::of(eta_reduction::REDUNDANT_CLOSURE_FOR_METHOD_CALLS),
     LintId::of(excessive_bools::FN_PARAMS_EXCESSIVE_BOOLS),
     LintId::of(excessive_bools::STRUCT_EXCESSIVE_BOOLS),

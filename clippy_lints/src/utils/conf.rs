@@ -15,6 +15,13 @@ pub struct Rename {
     pub rename: String,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize)]
+pub enum EquatablePatternLevel {
+    Primitive,
+    Simple,
+    All,
+}
+
 /// A single disallowed method, used by the `DISALLOWED_METHOD` lint.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
@@ -296,6 +303,10 @@ define_Conf! {
     ///
     /// Whether to apply the raw pointer heuristic to determine if a type is `Send`.
     (enable_raw_pointer_heuristic_for_send: bool = true),
+    /// Lint: EQUATABLE_IF_LET, EQUATABLE_MATCHES
+    ///
+    /// Specifies which kind of patterns should be linted. Possible values are "All, "Simple", and "Primitive".
+    (equatable_pattern: crate::utils::conf::EquatablePatternLevel = crate::utils::conf::EquatablePatternLevel::Simple),
 }
 
 /// Search for the configuration file.

@@ -23,7 +23,7 @@ pub(super) fn check<'tcx>(
     if let (ty::Ref(_, ty_from, from_mutbl), ty::Ref(_, ty_to, to_mutbl)) = (&from_ty.kind(), &to_ty.kind()) {
         if_chain! {
             if let (&ty::Slice(slice_ty), &ty::Str) = (&ty_from.kind(), &ty_to.kind());
-            if let ty::Uint(ty::UintTy::U8) = slice_ty.kind();
+            if slice_ty.kind() == &ty::Uint(ty::UintTy::U8);
             if from_mutbl == to_mutbl;
             then {
                 let postfix = if *from_mutbl == Mutability::Mut {

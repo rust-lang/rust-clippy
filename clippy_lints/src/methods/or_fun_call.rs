@@ -51,8 +51,8 @@ pub(super) fn check<'tcx>(
             let path = last_path_segment(qpath).ident.name;
             // needs to target Default::default in particular or be *::new and have a Default impl
             // available
-            if (matches!(path, kw::Default) && is_default_default())
-                || (matches!(path, sym::new) && implements_default(arg, default_trait_id));
+            if (path == kw::Default && is_default_default())
+                || (path == sym::new && implements_default(arg, default_trait_id));
 
             then {
                 let mut applicability = Applicability::MachineApplicable;

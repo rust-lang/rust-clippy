@@ -323,7 +323,7 @@ fn find_stmt_assigns_to<'tcx>(
             Some(base_local_and_movability(cx, mir, *place))
         },
         (false, mir::Rvalue::Ref(_, _, place)) => {
-            if let [mir::ProjectionElem::Deref] = place.as_ref().projection {
+            if place.as_ref().projection == [mir::ProjectionElem::Deref] {
                 Some(base_local_and_movability(cx, mir, *place))
             } else {
                 None
@@ -355,7 +355,7 @@ fn base_local_and_movability<'tcx>(
     let PlaceRef { local, mut projection } = place.as_ref();
     while let [base @ .., elem] = projection {
         projection = base;
-        deref |= matches!(elem, mir::ProjectionElem::Deref);
+        deref |= elem == &mir::ProjectionElem::Deref;
         field |= matches!(elem, mir::ProjectionElem::Field(..))
             && has_drop(cx, mir::Place::ty_from(local, projection, &mir.local_decls, cx.tcx).ty);
         slice |= matches!(elem, mir::ProjectionElem::Index(..))

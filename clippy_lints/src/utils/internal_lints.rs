@@ -536,7 +536,7 @@ impl<'tcx> LateLintPass<'tcx> for OuterExpnDataPass {
         let method_names: Vec<SymbolStr> = method_names.iter().map(|s| s.as_str()).collect();
         let method_names: Vec<&str> = method_names.iter().map(|s| &**s).collect();
         if_chain! {
-            if let ["expn_data", "outer_expn"] = method_names.as_slice();
+            if method_names.as_slice() == ["expn_data", "outer_expn"];
             let args = arg_lists[1];
             if args.len() == 1;
             let self_arg = &args[0];

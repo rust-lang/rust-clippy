@@ -278,7 +278,7 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
         },
         (Trait(box TraitKind(la, lu, lg, lb, li)), Trait(box TraitKind(ra, ru, rg, rb, ri))) => {
             la == ra
-                && matches!(lu, Unsafe::No) == matches!(ru, Unsafe::No)
+                && matches!(lu, Unsafe::Yes(_)) == matches!(ru, Unsafe::Yes(_))
                 && eq_generics(lg, rg)
                 && over(lb, rb, eq_generic_bound)
                 && over(li, ri, |l, r| eq_item(l, r, eq_assoc_item_kind))
@@ -306,10 +306,10 @@ pub fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
                 items: ri,
             }),
         ) => {
-            matches!(lu, Unsafe::No) == matches!(ru, Unsafe::No)
-                && matches!(lp, ImplPolarity::Positive) == matches!(rp, ImplPolarity::Positive)
+            matches!(lu, Unsafe::Yes(_)) == matches!(ru, Unsafe::Yes(_))
+                && matches!(lp, ImplPolarity::Negative(_)) == matches!(rp, ImplPolarity::Negative(_))
                 && eq_defaultness(*ld, *rd)
-                && matches!(lc, ast::Const::No) == matches!(rc, ast::Const::No)
+                && matches!(lc, ast::Const::Yes(_)) == matches!(rc, ast::Const::Yes(_))
                 && eq_generics(lg, rg)
                 && both(lot, rot, |l, r| eq_path(&l.path, &r.path))
                 && eq_ty(lst, rst)
@@ -388,9 +388,9 @@ pub fn eq_fn_sig(l: &FnSig, r: &FnSig) -> bool {
 }
 
 pub fn eq_fn_header(l: &FnHeader, r: &FnHeader) -> bool {
-    matches!(l.unsafety, Unsafe::No) == matches!(r.unsafety, Unsafe::No)
+    matches!(l.unsafety, Unsafe::Yes(_)) == matches!(r.unsafety, Unsafe::Yes(_))
         && l.asyncness.is_async() == r.asyncness.is_async()
-        && matches!(l.constness, Const::No) == matches!(r.constness, Const::No)
+        && matches!(l.constness, Const::Yes(_)) == matches!(r.constness, Const::Yes(_))
         && eq_ext(&l.ext, &r.ext)
 }
 
