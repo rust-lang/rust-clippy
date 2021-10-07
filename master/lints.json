@@ -1865,7 +1865,7 @@
     "id": "if_let_mutex",
     "id_span": {
       "path": "src/if_let_mutex.rs",
-      "line": 38
+      "line": 39
     },
     "group": "correctness",
     "level": "deny",
@@ -3363,7 +3363,7 @@
     "id": "missing_docs_in_private_items",
     "id_span": {
       "path": "src/missing_doc.rs",
-      "line": 29
+      "line": 30
     },
     "group": "restriction",
     "level": "allow",
@@ -3629,7 +3629,7 @@
     "id": "mut_mutex_lock",
     "id_span": {
       "path": "src/mut_mutex_lock.rs",
-      "line": 40
+      "line": 41
     },
     "group": "style",
     "level": "warn",
@@ -3671,7 +3671,7 @@
     "id": "mutex_atomic",
     "id_span": {
       "path": "src/mutex_atomic.rs",
-      "line": 38
+      "line": 39
     },
     "group": "perf",
     "level": "warn",
@@ -3685,7 +3685,7 @@
     "id": "mutex_integer",
     "id_span": {
       "path": "src/mutex_atomic.rs",
-      "line": 66
+      "line": 67
     },
     "group": "nursery",
     "level": "allow",
