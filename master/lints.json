@@ -367,7 +367,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 140
+      "line": 141
     },
     "group": "pedantic",
     "level": "allow",
@@ -381,7 +381,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 85
+      "line": 86
     },
     "group": "pedantic",
     "level": "allow",
@@ -395,7 +395,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 108
+      "line": 109
     },
     "group": "pedantic",
     "level": "allow",
@@ -409,7 +409,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 42
+      "line": 43
     },
     "group": "pedantic",
     "level": "allow",
@@ -423,7 +423,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 192
+      "line": 193
     },
     "group": "pedantic",
     "level": "allow",
@@ -437,7 +437,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 283
+      "line": 320
     },
     "group": "correctness",
     "level": "deny",
@@ -451,7 +451,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 63
+      "line": 64
     },
     "group": "pedantic",
     "level": "allow",
@@ -465,7 +465,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 310
+      "line": 347
     },
     "group": "complexity",
     "level": "warn",
@@ -1683,7 +1683,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 219
+      "line": 220
     },
     "group": "style",
     "level": "warn",
@@ -1694,10 +1694,24 @@
     }
   },
   {
+    "id": "fn_to_numeric_cast_any",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 286
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for casts of a function pointer to any integer type.\n\n### Why is this bad?\nCasting a function pointer to an integer can have surprising results and can occur\naccidentally if parantheses are omitted from a function call. If you aren't doing anything\nlow-level with function pointers then you can opt-out of casting functions to integers in\norder to avoid mistakes. Alternatively, you can use this lint to audit all uses of function\npointer casts in your code.\n\n### Example\n```rust\n// Bad: fn1 is cast as `usize`\nfn fn1() -> u16 {\n    1\n};\nlet _ = fn1 as usize;\n\n// Good: maybe you intended to call the function?\nfn fn2() -> u16 {\n    1\n};\nlet _ = fn2() as usize;\n\n// Good: maybe you intended to cast it to a function type?\nfn fn3() -> u16 {\n    1\n}\nlet _ = fn3 as fn() -> u16;\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 249
+      "line": 250
     },
     "group": "style",
     "level": "warn",
@@ -4497,7 +4511,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 338
+      "line": 375
     },
     "group": "pedantic",
     "level": "allow",
@@ -6023,7 +6037,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 165
+      "line": 166
     },
     "group": "complexity",
     "level": "warn",
