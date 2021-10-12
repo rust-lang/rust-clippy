@@ -941,11 +941,11 @@
     "id": "disallowed_type",
     "id_span": {
       "path": "src/disallowed_type.rs",
-      "line": 35
+      "line": 45
     },
     "group": "nursery",
     "level": "allow",
-    "docs": " ### What it does\nDenies the configured types in clippy.toml.\n\n### Why is this bad?\nSome types are undesirable in certain contexts.\n\n### Example:\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-types = [\"std::collections::BTreeMap\"]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-types`: `Vec<String>`: The list of disallowed types, written as fully qualified paths. (defaults to `[]`)\n\n",
+    "docs": " ### What it does\nDenies the configured types in clippy.toml.\n\n### Why is this bad?\nSome types are undesirable in certain contexts.\n\n### Example:\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-types = [\n    # Can use a string as the path of the disallowed type.\n    \"std::collections::BTreeMap\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::net::TcpListener\" },\n    # When using an inline table, can add a `reason` for why the type\n    # is disallowed.\n    { path = \"std::net::Ipv4Addr\", reason = \"no IPv4 allowed\" },\n]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-types`: `Vec<crate::utils::conf::DisallowedType>`: The list of disallowed types, written as fully qualified paths. (defaults to `[]`)\n\n",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
