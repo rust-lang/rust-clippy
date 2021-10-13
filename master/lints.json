@@ -3157,7 +3157,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for unnecessary `ok()` in `while let`.\n\n### Why is this bad?\nCalling `ok()` in `while let` is unnecessary, instead match\non `Ok(pat)`\n\n### Example\n```rust\nwhile let Some(value) = iter.next().ok() {\n    vec.push(value)\n}\n\nif let Some(valie) = iter.next().ok() {\n    vec.push(value)\n}\n```\nUse instead:\n```rust\nwhile let Ok(value) = iter.next() {\n    vec.push(value)\n}\n\nif let Ok(value) = iter.next() {\n       vec.push_value)\n}\n```",
+    "docs": " ### What it does\nChecks for unnecessary `ok()` in `while let`.\n\n### Why is this bad?\nCalling `ok()` in `while let` is unnecessary, instead match\non `Ok(pat)`\n\n### Example\n```rust\nwhile let Some(value) = iter.next().ok() {\n    vec.push(value)\n}\n\nif let Some(valie) = iter.next().ok() {\n    vec.push(value)\n}\n```\nUse instead:\n```rust\nwhile let Ok(value) = iter.next() {\n    vec.push(value)\n}\n\nif let Ok(value) = iter.next() {\n       vec.push(value)\n}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
