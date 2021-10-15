@@ -452,41 +452,10 @@ impl<'tcx> AssertExpn<'tcx> {
     /// second_assert_argument: None, format_arg:None })` `debug_assert_eq!(a, b)` will return
     /// `Some(AssertExpn { first_assert_argument: a, second_assert_argument: Some(b),
     /// format_arg:None })`
-    /// FIXME assert!
     pub fn parse(e: &'tcx Expr<'tcx>) -> Option<Self> {
         if let ExprKind::Block(block, _) = e.kind {
             if block.stmts.len() == 1 {
                 if let StmtKind::Semi(matchexpr) = block.stmts.get(0)?.kind {
-                    // debug macros with unique arg: `debug_assert!` (e.g., `debug_assert!(some_condition)`)
-                    if_chain! {
-                        if let Some(If { cond, then, .. }) = If::hir(matchexpr);
-                        if let ExprKind::Unary(UnOp::Not, condition) = cond.kind;
-                        then {
-                            if_chain! {
-                                if let ExprKind::Block(block, _) = then.kind;
-                                if let Some(begin_panic_fmt_block) = block.expr;
-                                if let ExprKind::Block(block,_) = begin_panic_fmt_block.kind;
-                                if let Some(expr) = block.expr;
-                                if let ExprKind::Call(_, args_begin_panic_fmt) = expr.kind;
-                                if !args_begin_panic_fmt.is_empty();
-                                if let ExprKind::AddrOf(_, _, arg) = args_begin_panic_fmt[0].kind;
-                                if let Some(format_arg_expn) = FormatArgsExpn::parse(arg);
-                                then {
-                                    return Some(Self {
-                                        kind: AssertExpnKind::Bool(condition),
-                                        format_arg: Some(format_arg_expn),
-                                        is_debug: true,
-                                    });
-                                }
-                            }
-                            return Some(Self {
-                                kind: AssertExpnKind::Bool(condition),
-                                format_arg: None,
-                                is_debug: true,
-                            });
-                        }
-                    }
-
                     // debug macros with two args: `debug_assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
                     if_chain! {
                         if let ExprKind::Block(matchblock,_) = matchexpr.kind;
@@ -495,10 +464,48 @@ impl<'tcx> AssertExpn<'tcx> {
                             return Self::ast_matchblock(matchblock_expr, true);
                         }
                     }
+                    // debug macros with unique arg: `debug_assert!` (e.g., `debug_assert!(some_condition)`)
+                    return Self::ast_ifblock(matchexpr, true);
                 }
             } else if let Some(matchblock_expr) = block.expr {
                 // macros with two args: `assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
                 return Self::ast_matchblock(matchblock_expr, false);
+            }
+        } else {
+            // assert! macro
+            return Self::ast_ifblock(e, false);
+        }
+        None
+    }
+
+    /// Try to parse the pattern for an assert macro with a single argument like `{debug_}assert!`
+    fn ast_ifblock(ifblock_expr: &'tcx Expr<'tcx>, is_debug: bool) -> Option<Self> {
+        if_chain! {
+            if let Some(If { cond, then, .. }) = If::hir(ifblock_expr);
+            if let ExprKind::Unary(UnOp::Not, condition) = cond.kind;
+            then {
+                if_chain! {
+                    if let ExprKind::Block(block, _) = then.kind;
+                    if let Some(begin_panic_fmt_block) = block.expr;
+                    if let ExprKind::Block(block,_) = begin_panic_fmt_block.kind;
+                    if let Some(expr) = block.expr;
+                    if let ExprKind::Call(_, args_begin_panic_fmt) = expr.kind;
+                    if !args_begin_panic_fmt.is_empty();
+                    if let ExprKind::AddrOf(_, _, arg) = args_begin_panic_fmt[0].kind;
+                    if let Some(format_arg_expn) = FormatArgsExpn::parse(arg);
+                    then {
+                        return Some(Self {
+                            kind: AssertExpnKind::Bool(condition),
+                            format_arg: Some(format_arg_expn),
+                            is_debug
+                        });
+                    }
+                }
+                return Some(Self {
+                    kind: AssertExpnKind::Bool(condition),
+                    format_arg: None,
+                    is_debug
+                });
             }
         }
         None
