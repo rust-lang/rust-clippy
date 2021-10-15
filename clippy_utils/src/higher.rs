@@ -421,18 +421,25 @@ pub fn binop(op: hir::BinOpKind) -> ast::BinOpKind {
     }
 }
 
+/// Kind of assert macros
+pub enum AssertExpnKind<'tcx> {
+    /// Boolean macro like `assert!` or `debug_assert!`
+    Bool(&'tcx Expr<'tcx>),
+    /// Comparaison maacro like `assert_eq!`, `assert_ne!`, `debug_assert_eq!` or `debug_assert_ne!`
+    Eq(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>),
+}
+
 /// A parsed
 /// `assert!`, `assert_eq!` or `assert_ne!`,
 /// `debug_assert!`, `debug_assert_eq!` or `debug_assert_ne!`
 /// macro.
 pub struct AssertExpn<'tcx> {
-    /// the first agrument of the assret e.g. `var` in element `assert!(var, ...)`
-    pub first_assert_argument: &'tcx Expr<'tcx>,
-    /// second argument of the asset for case `assert_eq!`,
-    /// `assert_ne!` etc ... Eg var_2 in `debug_assert_eq!(x, var_2,..)`
-    pub second_assert_argument: Option<&'tcx Expr<'tcx>>,
+    /// Kind of assert macro
+    pub kind: AssertExpnKind<'tcx>,
     /// The format argument passed at the end of the macro
     pub format_arg: Option<FormatArgsExpn<'tcx>>,
+    /// is a debug macro
+    pub is_debug: bool,
 }
 
 impl<'tcx> AssertExpn<'tcx> {
@@ -445,39 +452,38 @@ impl<'tcx> AssertExpn<'tcx> {
     /// second_assert_argument: None, format_arg:None })` `debug_assert_eq!(a, b)` will return
     /// `Some(AssertExpn { first_assert_argument: a, second_assert_argument: Some(b),
     /// format_arg:None })`
+    /// FIXME assert!
     pub fn parse(e: &'tcx Expr<'tcx>) -> Option<Self> {
         if let ExprKind::Block(block, _) = e.kind {
             if block.stmts.len() == 1 {
                 if let StmtKind::Semi(matchexpr) = block.stmts.get(0)?.kind {
-                    // macros with unique arg: `{debug_}assert!` (e.g., `debug_assert!(some_condition)`)
+                    // debug macros with unique arg: `debug_assert!` (e.g., `debug_assert!(some_condition)`)
                     if_chain! {
                         if let Some(If { cond, then, .. }) = If::hir(matchexpr);
                         if let ExprKind::Unary(UnOp::Not, condition) = cond.kind;
                         then {
                             if_chain! {
                                 if let ExprKind::Block(block, _) = then.kind;
-                                if let [statement, ..] = block.stmts;
-                                if let StmtKind::Expr(call_assert_failed)
-                                    | StmtKind::Semi(call_assert_failed) = statement.kind;
-                                if let ExprKind::Call(_, args_assert_failed) = call_assert_failed.kind;
-                                if !args_assert_failed.is_empty();
-                                if let ExprKind::Call(_, [arg, ..]) =  args_assert_failed[0].kind;
+                                if let Some(begin_panic_fmt_block) = block.expr;
+                                if let ExprKind::Block(block,_) = begin_panic_fmt_block.kind;
+                                if let Some(expr) = block.expr;
+                                if let ExprKind::Call(_, args_begin_panic_fmt) = expr.kind;
+                                if !args_begin_panic_fmt.is_empty();
+                                if let ExprKind::AddrOf(_, _, arg) = args_begin_panic_fmt[0].kind;
                                 if let Some(format_arg_expn) = FormatArgsExpn::parse(arg);
                                 then {
                                     return Some(Self {
-                                        first_assert_argument: condition,
-                                        second_assert_argument: None,
-                                        format_arg: Some(format_arg_expn), // FIXME actually parse the aguments
-                                    });
-                                }
-                                else{
-                                    return Some(Self {
-                                        first_assert_argument: condition,
-                                        second_assert_argument: None,
-                                        format_arg: None,
+                                        kind: AssertExpnKind::Bool(condition),
+                                        format_arg: Some(format_arg_expn),
+                                        is_debug: true,
                                     });
                                 }
                             }
+                            return Some(Self {
+                                kind: AssertExpnKind::Bool(condition),
+                                format_arg: None,
+                                is_debug: true,
+                            });
                         }
                     }
 
@@ -486,13 +492,13 @@ impl<'tcx> AssertExpn<'tcx> {
                         if let ExprKind::Block(matchblock,_) = matchexpr.kind;
                         if let Some(matchblock_expr) = matchblock.expr;
                         then {
-                            return Self::ast_matchblock(matchblock_expr);
+                            return Self::ast_matchblock(matchblock_expr, true);
                         }
                     }
                 }
             } else if let Some(matchblock_expr) = block.expr {
                 // macros with two args: `assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
-                return Self::ast_matchblock(matchblock_expr);
+                return Self::ast_matchblock(matchblock_expr, false);
             }
         }
         None
@@ -500,7 +506,7 @@ impl<'tcx> AssertExpn<'tcx> {
 
     /// Try to match the AST for a pattern that contains a match, for example when two args are
     /// compared
-    fn ast_matchblock(matchblock_expr: &'tcx Expr<'tcx>) -> Option<Self> {
+    fn ast_matchblock(matchblock_expr: &'tcx Expr<'tcx>, is_debug: bool) -> Option<Self> {
         if_chain! {
             if let ExprKind::Match(headerexpr, arms, _) = &matchblock_expr.kind;
             if let ExprKind::Tup([lhs, rhs]) = &headerexpr.kind;
@@ -521,20 +527,17 @@ impl<'tcx> AssertExpn<'tcx> {
                     if let Some(format_arg_expn) = FormatArgsExpn::parse(arg);
                     then {
                         return Some(AssertExpn {
-                            first_assert_argument: lhs,
-                            second_assert_argument: Some(rhs),
-                            format_arg: Some(format_arg_expn)
-                        });
-                    }
-                    else {
-                        return Some(AssertExpn {
-                            first_assert_argument: lhs,
-                            second_assert_argument:
-                            Some(rhs),
-                            format_arg: None
+                            kind: AssertExpnKind::Eq(lhs,rhs),
+                            format_arg: Some(format_arg_expn),
+                            is_debug,
                         });
                     }
                 }
+                return Some(AssertExpn {
+                    kind: AssertExpnKind::Eq(lhs,rhs),
+                    format_arg: None,
+                    is_debug,
+                });
             }
         }
         None
@@ -542,11 +545,14 @@ impl<'tcx> AssertExpn<'tcx> {
 
     /// Gives the argument in the comparaison as a vector leaving the format
     pub fn assert_arguments(&self) -> Vec<&'tcx Expr<'tcx>> {
-        let mut expr_vec = vec![self.first_assert_argument];
-        if let Some(sec_agr) = self.second_assert_argument {
-            expr_vec.push(sec_agr);
+        match self.kind {
+            AssertExpnKind::Bool(expr) => {
+                vec![expr]
+            },
+            AssertExpnKind::Eq(lhs, rhs) => {
+                vec![lhs, rhs]
+            },
         }
-        expr_vec
     }
 
     /// Gives the argument passed to the macro as a string
@@ -555,14 +561,9 @@ impl<'tcx> AssertExpn<'tcx> {
         cx: &LateContext<'_>,
         applicability: &mut Applicability,
     ) -> Vec<Cow<'static, str>> {
-        let mut vec_arg = vec![snippet_with_applicability(
-            cx,
-            self.first_assert_argument.span,
-            "..",
-            applicability,
-        )];
-        if let Some(sec_agr) = self.second_assert_argument {
-            vec_arg.push(snippet_with_applicability(cx, sec_agr.span, "..", applicability));
+        let mut vec_arg = vec![];
+        for arg in self.assert_arguments() {
+            vec_arg.push(snippet_with_applicability(cx, arg.span, "..", applicability));
         }
         vec_arg.append(&mut self.format_arguments(cx, applicability));
         vec_arg
