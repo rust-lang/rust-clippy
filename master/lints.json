@@ -997,11 +997,11 @@
     "id": "double_must_use",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 133
+      "line": 129
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for a [`#[must_use]`] attribute without\nfurther information on functions and methods that return a type already\nmarked as `#[must_use]`.\n\n[`#[must_use]`]: https://doc.rust-lang.org/reference/attributes/diagnostics.html#the-must_use-attribute\n\n### Why is this bad?\nThe attribute isn't needed. Not using the result\nwill already be reported. Alternatively, one can add some text to the\nattribute to improve the lint message.\n\n### Examples\n```rust\n#[must_use]\nfn double_must_use() -> Result<(), ()> {\n    unimplemented!();\n}\n```",
+    "docs": " ### What it does\nChecks for a `#[must_use]` attribute without\nfurther information on functions and methods that return a type already\nmarked as `#[must_use]`.\n\n### Why is this bad?\nThe attribute isn't needed. Not using the result\nwill already be reported. Alternatively, one can add some text to the\nattribute to improve the lint message.\n\n### Examples\n```rust\n#[must_use]\nfn double_must_use() -> Result<(), ()> {\n    unimplemented!();\n}\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2635,7 +2635,7 @@
     "id": "let_underscore_drop",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 98
+      "line": 97
     },
     "group": "pedantic",
     "level": "allow",
@@ -2649,7 +2649,7 @@
     "id": "let_underscore_lock",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 57
+      "line": 56
     },
     "group": "correctness",
     "level": "deny",
@@ -2663,11 +2663,11 @@
     "id": "let_underscore_must_use",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 30
+      "line": 29
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for `let _ = <expr>`\nwhere expr is #[must_use]\n\n### Why is this bad?\nIt's better to explicitly\nhandle the value of a #[must_use] expr\n\n### Example\n```rust\nfn f() -> Result<u32, u32> {\n    Ok(0)\n}\n\nlet _ = f();\n// is_ok() is marked #[must_use]\nlet _ = f().is_ok();\n```",
+    "docs": " ### What it does\nChecks for `let _ = <expr>` where expr is `#[must_use]`\n\n### Why is this bad?\nIt's better to explicitly handle the value of a `#[must_use]`\nexpr\n\n### Example\n```rust\nfn f() -> Result<u32, u32> {\n    Ok(0)\n}\n\nlet _ = f();\n// is_ok() is marked #[must_use]\nlet _ = f().is_ok();\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3615,11 +3615,11 @@
     "id": "must_use_candidate",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 164
+      "line": 158
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for public functions that have no\n[`#[must_use]`] attribute, but return something not already marked\nmust-use, have no mutable arg and mutate no statics.\n\n[`#[must_use]`]: https://doc.rust-lang.org/reference/attributes/diagnostics.html#the-must_use-attribute\n\n### Why is this bad?\nNot bad at all, this lint just shows places where\nyou could add the attribute.\n\n### Known problems\nThe lint only checks the arguments for mutable\ntypes without looking if they are actually changed. On the other hand,\nit also ignores a broad range of potentially interesting side effects,\nbecause we cannot decide whether the programmer intends the function to\nbe called for the side effect or the result. Expect many false\npositives. At least we don't lint if the result type is unit or already\n`#[must_use]`.\n\n### Examples\n```rust\n// this could be annotated with `#[must_use]`.\nfn id<T>(t: T) -> T { t }\n```",
+    "docs": " ### What it does\nChecks for public functions that have no\n`#[must_use]` attribute, but return something not already marked\nmust-use, have no mutable arg and mutate no statics.\n\n### Why is this bad?\nNot bad at all, this lint just shows places where\nyou could add the attribute.\n\n### Known problems\nThe lint only checks the arguments for mutable\ntypes without looking if they are actually changed. On the other hand,\nit also ignores a broad range of potentially interesting side effects,\nbecause we cannot decide whether the programmer intends the function to\nbe called for the side effect or the result. Expect many false\npositives. At least we don't lint if the result type is unit or already\n`#[must_use]`.\n\n### Examples\n```rust\n// this could be annotated with `#[must_use]`.\nfn id<T>(t: T) -> T { t }\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -3629,11 +3629,11 @@
     "id": "must_use_unit",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 108
+      "line": 106
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for a [`#[must_use]`] attribute on\nunit-returning functions and methods.\n\n[`#[must_use]`]: https://doc.rust-lang.org/reference/attributes/diagnostics.html#the-must_use-attribute\n\n### Why is this bad?\nUnit values are useless. The attribute is likely\na remnant of a refactoring that removed the return type.\n\n### Examples\n```rust\n#[must_use]\nfn useless() { }\n```",
+    "docs": " ### What it does\nChecks for a `#[must_use]` attribute on\nunit-returning functions and methods.\n\n### Why is this bad?\nUnit values are useless. The attribute is likely\na remnant of a refactoring that removed the return type.\n\n### Examples\n```rust\n#[must_use]\nfn useless() { }\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -5001,7 +5001,7 @@
     "id": "result_unit_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 213
+      "line": 207
     },
     "group": "style",
     "level": "warn",
