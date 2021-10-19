@@ -1,95 +1,95 @@
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:14:23
    |
 LL | fn f1<R: io::Read>(r: &mut R)
    |                       ^^^^^^
    |
    = note: `-D clippy::redundant-param-refs` implied by `-D warnings`
-help: Remove this reference
+help: remove this reference
    |
 LL - fn f1<R: io::Read>(r: &mut R)
 LL + fn f1<R: io::Read>(r: R)
    | 
 
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:19:13
    |
 LL | fn f2<R>(r: &mut R)
    |             ^^^^^^
    |
-help: Remove this reference
+help: remove this reference
    |
 LL - fn f2<R>(r: &mut R)
 LL + fn f2<R>(r: R)
    | 
 
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:24:24
    |
 LL | fn f3<RW: io::Read>(r: &mut RW)
    |                        ^^^^^^^
    |
-help: Remove this reference
+help: remove this reference
    |
 LL - fn f3<RW: io::Read>(r: &mut RW)
 LL + fn f3<RW: io::Read>(r: RW)
    | 
 
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:29:28
    |
 LL | fn f4<RW: Read + Write>(r: &mut RW) {}
    |                            ^^^^^^^
    |
-help: Remove this reference
+help: remove this reference
    |
 LL - fn f4<RW: Read + Write>(r: &mut RW) {}
 LL + fn f4<RW: Read + Write>(r: RW) {}
    | 
 
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:30:22
    |
 LL | fn f5<T: Display>(a: &T) {}
    |                      ^^
    |
-help: Remove this reference
+help: remove this reference
    |
 LL - fn f5<T: Display>(a: &T) {}
 LL + fn f5<T: Display>(a: T) {}
    | 
 
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:33:30
    |
 LL |     fn m1<R: Read>(&self, r: &mut R) {}
    |                              ^^^^^^
    |
-help: Remove this reference
+help: remove this reference
    |
 LL -     fn m1<R: Read>(&self, r: &mut R) {}
 LL +     fn m1<R: Read>(&self, r: R) {}
    | 
 
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:37:24
    |
 LL |     fn tm1<R: Read>(r: &mut R) -> usize;
    |                        ^^^^^^
    |
-help: Remove this reference
+help: remove this reference
    |
 LL -     fn tm1<R: Read>(r: &mut R) -> usize;
 LL +     fn tm1<R: Read>(r: R) -> usize;
    | 
 
-error: Redundant reference to type parameter
+error: redundant reference to type parameter
   --> $DIR/redundant_param_refs.rs:38:24
    |
 LL |     fn tm2<R: Read>(r: &mut R) {}
    |                        ^^^^^^
    |
-help: Remove this reference
+help: remove this reference
    |
 LL -     fn tm2<R: Read>(r: &mut R) {}
 LL +     fn tm2<R: Read>(r: R) {}

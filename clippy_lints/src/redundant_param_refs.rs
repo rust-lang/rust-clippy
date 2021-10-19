@@ -4,7 +4,10 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::FnKind;
-use rustc_hir::*;
+use rustc_hir::{
+    Body, FnDecl, GenericBound, GenericParam, HirId, Mutability, Node, QPath, TraitFn, TraitItem, TraitItemKind,
+    TyKind, WherePredicate,
+};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::Span;
@@ -91,10 +94,8 @@ fn applicable_bounds<'tcx>(
     for predicate in cx.generics?.where_clause.predicates {
         if_chain! {
             if let WherePredicate::BoundPredicate(bound_pred) = predicate;
-            if let Some(node) = cx.tcx.hir().find(bound_pred.bounded_ty.hir_id);
-            if let Node::Ty(ty) = node;
-            if let TyKind::Path(q_path) = &ty.kind;
-            if let QPath::Resolved(_, path) = q_path;
+            if let Some(Node::Ty(ty)) = cx.tcx.hir().find(bound_pred.bounded_ty.hir_id);
+            if let TyKind::Path(QPath::Resolved(_, path)) = &ty.kind;
             if path.res.opt_def_id() == Some(target);
             then {
                 bounds.extend(bound_pred.bounds.iter());
@@ -109,11 +110,9 @@ fn check_decl(cx: &LateContext<'_>, decl: &FnDecl<'_>) {
     for input in decl.inputs {
         if_chain! {
             if let TyKind::Rptr(_, ref_mut_ty) = &input.kind;
-            if let TyKind::Path(q_path) = &ref_mut_ty.ty.kind;
-            if let QPath::Resolved(_, path) = q_path;
+            if let TyKind::Path(QPath::Resolved(_, path)) = &ref_mut_ty.ty.kind;
             if let Res::Def(DefKind::TyParam, ty_param_id) = path.res;
-            if let Some(node) =  cx.tcx.hir().get_if_local(ty_param_id);
-            if let Node::GenericParam(generic_param) = node;
+            if let Some(Node::GenericParam(generic_param)) =  cx.tcx.hir().get_if_local(ty_param_id);
 
             if let Some(bounds) = applicable_bounds(cx, generic_param, ty_param_id);
             if check_bounds(cx, &bounds, ref_mut_ty.mutbl);
@@ -122,11 +121,11 @@ fn check_decl(cx: &LateContext<'_>, decl: &FnDecl<'_>) {
                     cx,
                     REDUNDANT_PARAM_REFS,
                     input.span,
-                    "Redundant reference to type parameter",
+                    "redundant reference to type parameter",
                     |diag| {
                         diag.span_suggestion_verbose(
                             input.span.until(ref_mut_ty.ty.span),
-                            "Remove this reference",
+                            "remove this reference",
                             String::new(),
                             Applicability::MaybeIncorrect,
                         );
