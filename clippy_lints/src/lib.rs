@@ -328,6 +328,7 @@ mod redundant_clone;
 mod redundant_closure_call;
 mod redundant_else;
 mod redundant_field_names;
+mod redundant_param_refs;
 mod redundant_pub_crate;
 mod redundant_slicing;
 mod redundant_static_lifetimes;
@@ -777,6 +778,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(move || Box::new(undocumented_unsafe_blocks::UndocumentedUnsafeBlocks::default()));
     store.register_late_pass(|| Box::new(match_str_case_mismatch::MatchStrCaseMismatch));
     store.register_late_pass(move || Box::new(format_args::FormatArgs));
+    store.register_late_pass(|| Box::new(redundant_param_refs::RedundantParamRefs));
 }
 
 #[rustfmt::skip]
