@@ -4063,11 +4063,25 @@
     "id": "no_effect",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 24
+      "line": 25
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for statements which have no effect.\n\n### Why is this bad?\nSimilar to dead code, these statements are actually\nexecuted. However, as they have no effect, all they do is make the code less\nreadable.\n\n### Example\n```rust\n0;\n```",
+    "docs": " ### What it does\nChecks for statements which have no effect.\n\n### Why is this bad?\nUnlike dead code, these statements are actually\nexecuted. However, as they have no effect, all they do is make the code less\nreadable.\n\n### Example\n```rust\n0;\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "no_effect_underscore_binding",
+    "id_span": {
+      "path": "src/no_effect.rs",
+      "line": 47
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for binding to underscore prefixed variable without side-effects.\n\n### Why is this bad?\nUnlike dead code, these bindings are actually\nexecuted. However, as they have no effect and shouldn't be used further on, all they\ndo is make the code less readable.\n\n### Known problems\nFurther usage of this variable is not checked, which can lead to false positives if it is\nused later in the code.\n\n### Example\n```rust\nlet _i_serve_no_purpose = 1;\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -6191,7 +6205,7 @@
     "id": "unnecessary_operation",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 42
+      "line": 65
     },
     "group": "complexity",
     "level": "warn",
