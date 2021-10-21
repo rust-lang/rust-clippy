@@ -1,5 +1,5 @@
 use clippy_utils::{
-    diagnostics::span_lint_and_sugg, higher::AssertExpn, is_direct_expn_of, source, sugg::Sugg, ty::implements_trait,
+    diagnostics::span_lint_and_sugg, higher::AssertExpn, is_direct_expn_of, source, ty::implements_trait,
 };
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
