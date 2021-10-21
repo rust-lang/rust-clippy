@@ -3262,20 +3262,6 @@
     }
   },
   {
-    "id": "mem_discriminant_non_enum",
-    "id_span": {
-      "path": "src/mem_discriminant.rs",
-      "line": 26
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": " ### What it does\nChecks for calls of `mem::discriminant()` on a non-enum type.\n\n### Why is this bad?\nThe value of `mem::discriminant()` on non-enum types\nis unspecified.\n\n### Example\n```rust\nuse std::mem;\n\nmem::discriminant(&\"hello\");\nmem::discriminant(&&Some(2));\n```",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
-    }
-  },
-  {
     "id": "mem_forget",
     "id_span": {
       "path": "src/mem_forget.rs",
@@ -3839,7 +3825,7 @@
     "id": "needless_continue",
     "id_span": {
       "path": "src/needless_continue.rs",
-      "line": 114
+      "line": 113
     },
     "group": "pedantic",
     "level": "allow",
