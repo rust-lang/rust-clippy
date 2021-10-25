@@ -1,3 +1,4 @@
+use clippy_utils::source::snippet;
 use clippy_utils::{diagnostics::span_lint_and_sugg, higher, is_direct_expn_of, ty::implements_trait};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
@@ -30,14 +31,13 @@ declare_clippy_lint! {
 
 declare_lint_pass!(BoolAssertComparison => [BOOL_ASSERT_COMPARISON]);
 
-fn is_bool_lit(e: &Expr<'_>) -> bool {
-    matches!(
-        e.kind,
+fn as_bool_lit(e: &Expr<'_>) -> Option<bool> {
+    match e.kind {
         ExprKind::Lit(Lit {
-            node: LitKind::Bool(_),
-            ..
-        })
-    ) && !e.span.from_expansion()
+            node: LitKind::Bool(f), ..
+        }) if !e.span.from_expansion() => Some(f),
+        _ => None,
+    }
 }
 
 fn is_impl_not_trait_with_bool_out(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
@@ -72,7 +72,9 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
             if let Some(span) = is_direct_expn_of(expr.span, mac) {
                 if let Some(args) = higher::extract_assert_macro_args(expr) {
                     if let [a, b, ..] = args[..] {
-                        let nb_bool_args = is_bool_lit(a) as usize + is_bool_lit(b) as usize;
+                        let a_literal = as_bool_lit(a);
+                        let b_literal = as_bool_lit(b);
+                        let nb_bool_args = a_literal.is_some() as usize + b_literal.is_some() as usize;
 
                         if nb_bool_args != 1 {
                             // If there are two boolean arguments, we definitely don't understand
@@ -89,6 +91,9 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                             return;
                         }
 
+                        let is_false_literal = a_literal == Some(false) || b_literal == Some(false);
+                        let need_negation = inverted_macros.contains(mac) ^ is_false_literal;
+                        let non_literal_expr = if a_literal.is_none() { a } else { b };
                         let non_eq_mac = &mac[..mac.len() - 3];
                         span_lint_and_sugg(
                             cx,
@@ -96,7 +101,12 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                             span,
                             &format!("used `{}!` with a literal bool", mac),
                             "replace it with",
-                            format!("{}!(..)", non_eq_mac),
+                            format!(
+                                "{}!({}{})",
+                                non_eq_mac,
+                                if need_negation { "!" } else { "" },
+                                snippet(cx, non_literal_expr.span, "..")
+                            ),
                             Applicability::MaybeIncorrect,
                         );
                         return;
