@@ -87,7 +87,7 @@
     "id": "assign_ops",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 92
+      "line": 95
     },
     "group": "deprecated",
     "level": "none",
@@ -1417,7 +1417,7 @@
     "id": "extend_from_slice",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 32
+      "line": 35
     },
     "group": "deprecated",
     "level": "none",
@@ -1501,7 +1501,7 @@
     "id": "filter_map",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 169
+      "line": 172
     },
     "group": "deprecated",
     "level": "none",
@@ -1557,7 +1557,7 @@
     "id": "find_map",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 158
+      "line": 161
     },
     "group": "deprecated",
     "level": "none",
@@ -1907,7 +1907,7 @@
     "id": "if_let_redundant_pattern_matching",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 104
+      "line": 107
     },
     "group": "deprecated",
     "level": "none",
@@ -3335,7 +3335,7 @@
     "id": "misaligned_transmute",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 80
+      "line": 83
     },
     "group": "deprecated",
     "level": "none",
@@ -4581,7 +4581,7 @@
     "id": "pub_enum_variant_names",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 181
+      "line": 184
     },
     "group": "deprecated",
     "level": "none",
@@ -4637,7 +4637,7 @@
     "id": "range_step_by_zero",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 45
+      "line": 48
     },
     "group": "deprecated",
     "level": "none",
@@ -4917,7 +4917,7 @@
     "id": "regex_macro",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 147
+      "line": 150
     },
     "group": "deprecated",
     "level": "none",
@@ -4945,7 +4945,7 @@
     "id": "replace_consts",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 137
+      "line": 140
     },
     "group": "deprecated",
     "level": "none",
@@ -5211,7 +5211,7 @@
     "id": "should_assert_eq",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 21
+      "line": 24
     },
     "group": "deprecated",
     "level": "none",
@@ -6401,7 +6401,7 @@
     "id": "unsafe_vector_initialization",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 117
+      "line": 120
     },
     "group": "deprecated",
     "level": "none",
@@ -6443,7 +6443,7 @@
     "id": "unstable_as_mut_slice",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 67
+      "line": 70
     },
     "group": "deprecated",
     "level": "none",
@@ -6457,7 +6457,7 @@
     "id": "unstable_as_slice",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 56
+      "line": 59
     },
     "group": "deprecated",
     "level": "none",
@@ -6485,7 +6485,7 @@
     "id": "unused_collect",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 127
+      "line": 130
     },
     "group": "deprecated",
     "level": "none",
@@ -6975,7 +6975,7 @@
     "id": "wrong_pub_self_convention",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 192
+      "line": 195
     },
     "group": "deprecated",
     "level": "none",
