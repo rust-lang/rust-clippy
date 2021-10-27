@@ -6132,6 +6132,20 @@
     }
   },
   {
+    "id": "unit_hash",
+    "id_span": {
+      "path": "src/unit_hash.rs",
+      "line": 42
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": " ### What it does\nDetects `().hash(_)`.\n\n### Why is this bad?\nHashing a unit value doesn't do anything as the implementation of `Hash` for `()` is a no-op.\n\n### Example\n```rust\nmatch my_enum {\n\tEmpty => ().hash(&mut state),\n\tWithValue(x) => x.hash(&mut state),\n}\n```\nUse instead:\n```rust\nmatch my_enum {\n\tEmpty => 0_u8.hash(&mut state),\n\tWithValue(x) => x.hash(&mut state),\n}\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "unit_return_expecting_ord",
     "id_span": {
       "path": "src/unit_return_expecting_ord.rs",
