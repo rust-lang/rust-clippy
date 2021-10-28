@@ -2341,7 +2341,7 @@
     "id": "invalid_upcast_comparisons",
     "id_span": {
       "path": "src/invalid_upcast_comparisons.rs",
-      "line": 35
+      "line": 33
     },
     "group": "pedantic",
     "level": "allow",
