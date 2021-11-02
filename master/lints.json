@@ -311,7 +311,7 @@
     "id": "builtin_type_shadow",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 189
+      "line": 213
     },
     "group": "style",
     "level": "warn",
@@ -4805,7 +4805,7 @@
     "id": "redundant_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 218
+      "line": 242
     },
     "group": "style",
     "level": "warn",
@@ -5135,6 +5135,20 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
+    }
+  },
+  {
+    "id": "separated_literal_suffix",
+    "id_span": {
+      "path": "src/misc_early/mod.rs",
+      "line": 154
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nWarns if literal suffixes are separated by an underscore.\nTo enforce separated literal suffix style,\nsee the `unseparated_literal_suffix` lint.\n\n### Why is this bad?\nSuffix style should be consistent.\n\n### Example\n```rust\n// Bad\nlet y = 123832_i32;\n\n// Good\nlet y = 123832i32;\n```",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -6317,7 +6331,7 @@
     "id": "unneeded_wildcard_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 252
+      "line": 276
     },
     "group": "complexity",
     "level": "warn",
@@ -6415,11 +6429,11 @@
     "id": "unseparated_literal_suffix",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 130
+      "line": 132
     },
-    "group": "pedantic",
+    "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nWarns if literal suffixes are not separated by an\nunderscore.\n\n### Why is this bad?\nIt is much less readable.\n\n### Example\n```rust\n// Bad\nlet y = 123832i32;\n\n// Good\nlet y = 123832_i32;\n```",
+    "docs": " ### What it does\nWarns if literal suffixes are not separated by an\nunderscore.\nTo enforce unseparated literal suffix style,\nsee the `separated_literal_suffix` lint.\n\n### Why is this bad?\nSuffix style should be consistent.\n\n### Example\n```rust\n// Bad\nlet y = 123832i32;\n\n// Good\nlet y = 123832_i32;\n```",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -7031,7 +7045,7 @@
     "id": "zero_prefixed_literal",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 168
+      "line": 192
     },
     "group": "complexity",
     "level": "warn",
