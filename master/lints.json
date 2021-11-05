@@ -773,7 +773,7 @@
     "id": "decimal_literal_representation",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 134
+      "line": 131
     },
     "group": "restriction",
     "level": "allow",
@@ -857,7 +857,7 @@
     "id": "deref_addrof",
     "id_span": {
       "path": "src/reference.rs",
-      "line": 34
+      "line": 33
     },
     "group": "complexity",
     "level": "warn",
@@ -1193,7 +1193,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/eq_op.rs",
-      "line": 39
+      "line": 37
     },
     "group": "correctness",
     "level": "deny",
@@ -1669,7 +1669,7 @@
     "id": "fn_params_excessive_bools",
     "id_span": {
       "path": "src/excessive_bools.rs",
-      "line": 79
+      "line": 78
     },
     "group": "pedantic",
     "level": "allow",
@@ -2047,7 +2047,7 @@
     "id": "inconsistent_digit_grouping",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 81
+      "line": 78
     },
     "group": "style",
     "level": "warn",
@@ -2061,7 +2061,7 @@
     "id": "inconsistent_struct_constructor",
     "id_span": {
       "path": "src/inconsistent_struct_constructor.rs",
-      "line": 59
+      "line": 58
     },
     "group": "pedantic",
     "level": "allow",
@@ -2117,7 +2117,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 366
+      "line": 365
     },
     "group": "style",
     "level": "warn",
@@ -2523,7 +2523,7 @@
     "id": "large_digit_groups",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 117
+      "line": 114
     },
     "group": "pedantic",
     "level": "allow",
@@ -3083,7 +3083,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 238
+      "line": 237
     },
     "group": "complexity",
     "level": "warn",
@@ -3097,7 +3097,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 168
+      "line": 167
     },
     "group": "pedantic",
     "level": "allow",
@@ -3111,7 +3111,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 518
+      "line": 517
     },
     "group": "style",
     "level": "warn",
@@ -3139,7 +3139,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 190
+      "line": 189
     },
     "group": "style",
     "level": "warn",
@@ -3153,7 +3153,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 134
+      "line": 133
     },
     "group": "style",
     "level": "warn",
@@ -3181,7 +3181,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 562
+      "line": 561
     },
     "group": "pedantic",
     "level": "allow",
@@ -3195,7 +3195,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 397
+      "line": 396
     },
     "group": "complexity",
     "level": "warn",
@@ -3223,7 +3223,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 212
+      "line": 211
     },
     "group": "pedantic",
     "level": "allow",
@@ -3237,7 +3237,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 304
+      "line": 303
     },
     "group": "pedantic",
     "level": "allow",
@@ -3475,7 +3475,7 @@
     "id": "mistyped_literal_suffixes",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 59
+      "line": 56
     },
     "group": "correctness",
     "level": "deny",
@@ -3741,7 +3741,7 @@
     "id": "needless_arbitrary_self_type",
     "id_span": {
       "path": "src/needless_arbitrary_self_type.rs",
-      "line": 56
+      "line": 55
     },
     "group": "complexity",
     "level": "warn",
@@ -3755,7 +3755,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/needless_bitwise_bool.rs",
-      "line": 34
+      "line": 33
     },
     "group": "pedantic",
     "level": "allow",
@@ -3881,7 +3881,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/needless_option_as_deref.rs",
-      "line": 30
+      "line": 29
     },
     "group": "complexity",
     "level": "warn",
@@ -4147,7 +4147,7 @@
     "id": "nonstandard_macro_braces",
     "id_span": {
       "path": "src/nonstandard_macro_braces.rs",
-      "line": 32
+      "line": 34
     },
     "group": "nursery",
     "level": "allow",
@@ -4189,7 +4189,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/eq_op.rs",
-      "line": 64
+      "line": 62
     },
     "group": "style",
     "level": "warn",
@@ -4553,7 +4553,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/ptr_eq.rs",
-      "line": 33
+      "line": 32
     },
     "group": "style",
     "level": "warn",
@@ -4819,7 +4819,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 482
+      "line": 481
     },
     "group": "style",
     "level": "warn",
@@ -4889,7 +4889,7 @@
     "id": "ref_in_deref",
     "id_span": {
       "path": "src/reference.rs",
-      "line": 128
+      "line": 127
     },
     "group": "complexity",
     "level": "warn",
@@ -4931,7 +4931,7 @@
     "id": "repeat_once",
     "id_span": {
       "path": "src/repeat_once.rs",
-      "line": 39
+      "line": 38
     },
     "group": "complexity",
     "level": "warn",
@@ -4959,7 +4959,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 427
+      "line": 426
     },
     "group": "restriction",
     "level": "allow",
@@ -5295,7 +5295,7 @@
     "id": "single_component_path_imports",
     "id_span": {
       "path": "src/single_component_path_imports.rs",
-      "line": 31
+      "line": 30
     },
     "group": "style",
     "level": "warn",
@@ -5323,7 +5323,7 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 62
+      "line": 61
     },
     "group": "style",
     "level": "warn",
@@ -5337,7 +5337,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 103
+      "line": 102
     },
     "group": "pedantic",
     "level": "allow",
@@ -5519,7 +5519,7 @@
     "id": "strlen_on_c_strings",
     "id_span": {
       "path": "src/strlen_on_c_strings.rs",
-      "line": 34
+      "line": 33
     },
     "group": "complexity",
     "level": "warn",
@@ -5533,7 +5533,7 @@
     "id": "struct_excessive_bools",
     "id_span": {
       "path": "src/excessive_bools.rs",
-      "line": 41
+      "line": 40
     },
     "group": "pedantic",
     "level": "allow",
@@ -6373,7 +6373,7 @@
     "id": "unreadable_literal",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 34
+      "line": 31
     },
     "group": "pedantic",
     "level": "allow",
@@ -6555,7 +6555,7 @@
     "id": "unusual_byte_groupings",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 99
+      "line": 96
     },
     "group": "style",
     "level": "warn",
@@ -6905,7 +6905,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 270
+      "line": 269
     },
     "group": "restriction",
     "level": "allow",
@@ -6933,7 +6933,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 331
+      "line": 330
     },
     "group": "complexity",
     "level": "warn",
