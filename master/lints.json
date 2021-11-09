@@ -2117,7 +2117,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 365
+      "line": 364
     },
     "group": "style",
     "level": "warn",
@@ -3083,7 +3083,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 237
+      "line": 236
     },
     "group": "complexity",
     "level": "warn",
@@ -3097,7 +3097,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 167
+      "line": 166
     },
     "group": "pedantic",
     "level": "allow",
@@ -3111,7 +3111,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 517
+      "line": 516
     },
     "group": "style",
     "level": "warn",
@@ -3139,7 +3139,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 189
+      "line": 188
     },
     "group": "style",
     "level": "warn",
@@ -3153,7 +3153,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 133
+      "line": 132
     },
     "group": "style",
     "level": "warn",
@@ -3181,7 +3181,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 561
+      "line": 560
     },
     "group": "pedantic",
     "level": "allow",
@@ -3195,7 +3195,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 396
+      "line": 395
     },
     "group": "complexity",
     "level": "warn",
@@ -3223,7 +3223,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 211
+      "line": 210
     },
     "group": "pedantic",
     "level": "allow",
@@ -3237,7 +3237,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 303
+      "line": 302
     },
     "group": "pedantic",
     "level": "allow",
@@ -4819,7 +4819,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 481
+      "line": 480
     },
     "group": "style",
     "level": "warn",
@@ -4959,7 +4959,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 426
+      "line": 425
     },
     "group": "restriction",
     "level": "allow",
@@ -5323,7 +5323,7 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 61
+      "line": 60
     },
     "group": "style",
     "level": "warn",
@@ -5337,7 +5337,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 102
+      "line": 101
     },
     "group": "pedantic",
     "level": "allow",
@@ -6905,7 +6905,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 269
+      "line": 268
     },
     "group": "restriction",
     "level": "allow",
@@ -6933,7 +6933,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches.rs",
-      "line": 330
+      "line": 329
     },
     "group": "complexity",
     "level": "warn",
