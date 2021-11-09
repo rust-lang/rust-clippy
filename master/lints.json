@@ -185,7 +185,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 180
+      "line": 182
     },
     "group": "suspicious",
     "level": "warn",
@@ -829,11 +829,11 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 211
+      "line": 213
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `#[cfg_attr(rustfmt, rustfmt_skip)]` and suggests to replace it\nwith `#[rustfmt::skip]`.\n\n### Why is this bad?\nSince tool_attributes ([rust-lang/rust#44690](https://github.com/rust-lang/rust/issues/44690))\nare stable now, they should be used instead of the old `cfg_attr(rustfmt)` attributes.\n\n### Known problems\nThis lint doesn't detect crate level inner attributes, because they get\nprocessed before the PreExpansionPass lints get executed. See\n[#3123](https://github.com/rust-lang/rust-clippy/pull/3123#issuecomment-422321765)\n\n### Example\nBad:\n```rust\n#[cfg_attr(rustfmt, rustfmt_skip)]\nfn main() { }\n```\n\nGood:\n```rust\n#[rustfmt::skip]\nfn main() { }\n```",
+    "docs": " ### What it does\nChecks for `#[cfg_attr(rustfmt, rustfmt_skip)]` and suggests to replace it\nwith `#[rustfmt::skip]`.\n\n### Why is this bad?\nSince tool_attributes ([rust-lang/rust#44690](https://github.com/rust-lang/rust/issues/44690))\nare stable now, they should be used instead of the old `cfg_attr(rustfmt)` attributes.\n\n### Known problems\nThis lint doesn't detect crate level inner attributes, because they get\nprocessed before the PreExpansionPass lints get executed. See\n[#3123](https://github.com/rust-lang/rust-clippy/pull/3123#issuecomment-422321765)\n\n### Example\nBad:\n```rust\n#[cfg_attr(rustfmt, rustfmt_skip)]\nfn main() { }\n```\n\nGood:\n```rust\n#[rustfmt::skip]\nfn main() { }\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -843,7 +843,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 120
+      "line": 122
     },
     "group": "correctness",
     "level": "deny",
@@ -1123,7 +1123,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 157
+      "line": 159
     },
     "group": "nursery",
     "level": "allow",
@@ -2173,7 +2173,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 67
+      "line": 69
     },
     "group": "pedantic",
     "level": "allow",
@@ -3349,7 +3349,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 243
+      "line": 245
     },
     "group": "correctness",
     "level": "deny",
@@ -6681,7 +6681,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 101
+      "line": 103
     },
     "group": "correctness",
     "level": "deny",
