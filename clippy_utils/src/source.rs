@@ -307,20 +307,34 @@ pub fn snippet_with_context(
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum TargetPrecedence {
-    Closure,
-    Assignment,
-    Range,
-    Or,
-    And,
-    Eq,
-    BitOr,
-    BitXor,
-    BitAnd,
-    Shift,
-    Add,
-    Mul,
-    As,
+pub enum ExprPosition {
+    // Also includes `return`, `yield`, `break` and closures
+    Paren,
+    AssignmentRhs,
+    AssignmentLhs,
+    RangeLhs,
+    RangeRhs,
+    OrLhs,
+    OrRhs,
+    AndLhs,
+    AndRhs,
+    Let,
+    EqLhs,
+    EqRhs,
+    BitOrLhs,
+    BitOrRhs,
+    BitXorLhs,
+    BitXorRhs,
+    BitAndLhs,
+    BitAndRhs,
+    ShiftLhs,
+    ShiftRhs,
+    AddLhs,
+    AddRhs,
+    MulLhs,
+    MulRhs,
+    // Also includes type ascription
+    Cast,
     Prefix,
     Postfix,
 }
@@ -345,7 +359,7 @@ pub enum TargetPrecedence {
 pub fn snippet_expr(
     cx: &LateContext<'_>,
     expr: &Expr<'_>,
-    target_precedence: TargetPrecedence,
+    target_position: ExprPosition,
     ctxt: SyntaxContext,
     app: &mut Applicability,
 ) -> String {
@@ -355,29 +369,73 @@ pub fn snippet_expr(
         Cow::Borrowed(snip) => snip.to_owned(),
         Cow::Owned(snip) if is_mac_call => snip,
         Cow::Owned(mut snip) => {
-            let needs_paren = match expr.kind {
+            let ctxt = expr.span.ctxt();
+
+            // Attempt to determine if parenthesis are needed base on the target position. The snippet may have
+            // parenthesis already, so attempt to find those.
+            // TODO: Remove parenthesis if they aren't needed at the target position.
+            let needs_paren = match expr.peel_drop_temps().kind {
+                ExprKind::Binary(_, lhs, rhs)
+                    if (ctxt == lhs.span.ctxt() && expr.span.lo() != lhs.span.lo())
+                        || (ctxt == rhs.span.ctxt() && expr.span.hi() != rhs.span.hi()) =>
+                {
+                    false
+                },
                 ExprKind::Binary(op, ..) => match op.node {
-                    BinOpKind::Add | BinOpKind::Sub => target_precedence > TargetPrecedence::Add,
-                    BinOpKind::Mul | BinOpKind::Div | BinOpKind::Rem => target_precedence > TargetPrecedence::Mul,
-                    BinOpKind::And => target_precedence > TargetPrecedence::And,
-                    BinOpKind::Or => target_precedence > TargetPrecedence::Or,
-                    BinOpKind::BitXor => target_precedence > TargetPrecedence::BitXor,
-                    BinOpKind::BitAnd => target_precedence > TargetPrecedence::BitAnd,
-                    BinOpKind::BitOr => target_precedence > TargetPrecedence::BitOr,
-                    BinOpKind::Shl | BinOpKind::Shr => target_precedence > TargetPrecedence::Shift,
+                    BinOpKind::Add | BinOpKind::Sub => target_position > ExprPosition::AddLhs,
+                    BinOpKind::Mul | BinOpKind::Div | BinOpKind::Rem => target_position > ExprPosition::MulLhs,
+                    BinOpKind::And => target_position > ExprPosition::AndLhs,
+                    BinOpKind::Or => target_position > ExprPosition::OrLhs,
+                    BinOpKind::BitXor => target_position > ExprPosition::BitXorLhs,
+                    BinOpKind::BitAnd => target_position > ExprPosition::BitAndLhs,
+                    BinOpKind::BitOr => target_position > ExprPosition::BitOrLhs,
+                    BinOpKind::Shl | BinOpKind::Shr => target_position > ExprPosition::ShiftLhs,
                     BinOpKind::Eq | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Ge => {
-                        target_precedence > TargetPrecedence::Eq
+                        target_position > ExprPosition::EqLhs
                     },
                 },
-                ExprKind::Unary(..) | ExprKind::AddrOf(..) => target_precedence > TargetPrecedence::Prefix,
-                ExprKind::Cast(..) => target_precedence > TargetPrecedence::As,
-                ExprKind::Box(..)
-                | ExprKind::Closure(..)
+                ExprKind::Box(..) | ExprKind::Unary(..) | ExprKind::AddrOf(..) if snip.starts_with('(') => false,
+                ExprKind::Box(..) | ExprKind::Unary(..) | ExprKind::AddrOf(..) => {
+                    target_position > ExprPosition::Prefix
+                },
+                ExprKind::Let(..) if snip.starts_with('(') => false,
+                ExprKind::Let(..) => target_position > ExprPosition::Let,
+                ExprKind::Cast(lhs, rhs)
+                    if (ctxt == lhs.span.ctxt() && expr.span.lo() != lhs.span.lo())
+                        || (ctxt == rhs.span.ctxt() && expr.span.hi() != rhs.span.hi()) =>
+                {
+                    false
+                },
+                ExprKind::Cast(..) | ExprKind::Type(..) => target_position > ExprPosition::Cast,
+
+                ExprKind::Closure(..)
                 | ExprKind::Break(..)
                 | ExprKind::Ret(..)
-                | ExprKind::Yield(..) => target_precedence > TargetPrecedence::Closure,
-                ExprKind::Assign(..) | ExprKind::AssignOp(..) => target_precedence > TargetPrecedence::Assignment,
-                _ => false,
+                | ExprKind::Yield(..)
+                | ExprKind::Assign(..)
+                | ExprKind::AssignOp(..) => target_position > ExprPosition::AssignmentRhs,
+
+                // Postfix operators, or expression with braces of some form
+                ExprKind::Array(_)
+                | ExprKind::Call(..)
+                | ExprKind::ConstBlock(_)
+                | ExprKind::MethodCall(..)
+                | ExprKind::Tup(..)
+                | ExprKind::Lit(..)
+                | ExprKind::DropTemps(_)
+                | ExprKind::If(..)
+                | ExprKind::Loop(..)
+                | ExprKind::Match(..)
+                | ExprKind::Block(..)
+                | ExprKind::Field(..)
+                | ExprKind::Index(..)
+                | ExprKind::Path(_)
+                | ExprKind::Continue(_)
+                | ExprKind::InlineAsm(_)
+                | ExprKind::LlvmInlineAsm(_)
+                | ExprKind::Struct(..)
+                | ExprKind::Repeat(..)
+                | ExprKind::Err => false,
             };
 
             if needs_paren {
