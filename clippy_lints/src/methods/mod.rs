@@ -1867,19 +1867,17 @@ declare_clippy_lint! {
     /// Check for `&mut iter` followed by a method call.
     ///
     /// ### Why is this bad?
-    /// This requires using parenthesis to signify precedence.
+    /// Using `(&mut iter)._` requires using parenthesis to signify precedence.
     ///
     /// ### Example
     /// ```rust
     /// let mut iter = ['a', 'b', '.', 'd'].iter();
     /// let before_dot = (&mut iter).take_while(|&&c| c != '.').collect::<Vec<_>>();
-    /// let after_dot = iter.collect::<Vec<_>>();
     /// ```
     /// Use instead:
     /// ```rust
     /// let mut iter = ['a', 'b', '.', 'd'].iter();
     /// let before_dot = iter.by_ref().take_while(|&&c| c != '.').collect::<Vec<_>>();
-    /// let after_dot = iter.collect::<Vec<_>>();
     /// ```
     pub REF_MUT_ITER_METHOD_CHAIN,
     style,

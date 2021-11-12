@@ -26,7 +26,11 @@ fn main() {
 
     // Don't lint. No method chain.
     for &x in &mut iter {
-        print!("{}", x)
+        print!("{}", x);
+    }
+
+    for &x in (&mut iter).filter(|&&x| x % 2 == 0) {
+        print!("{}", x);
     }
 
     let iter = &mut iter;
