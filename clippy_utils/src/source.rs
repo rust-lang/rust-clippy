@@ -4,7 +4,7 @@
 
 use crate::line_span;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LintContext};
 use rustc_span::hygiene;
 use rustc_span::{BytePos, Pos, Span, SyntaxContext};
@@ -304,6 +304,89 @@ pub fn snippet_with_context(
         snippet_with_applicability(cx, span, default, applicability),
         is_macro_call,
     )
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum TargetPrecedence {
+    Closure,
+    Assignment,
+    Range,
+    Or,
+    And,
+    Eq,
+    BitOr,
+    BitXor,
+    BitAnd,
+    Shift,
+    Add,
+    Mul,
+    As,
+    Prefix,
+    Postfix,
+}
+
+/// Extracts a snippet of the given expression taking into account the `SyntaxContext` the snippet
+/// needs to be taken from. Parenthesis will be added if needed to place the snippet in the target
+/// precedence level. Returns a placeholder (`(..)`) if a snippet can't be extracted (e.g. an
+/// invalid span).
+///
+/// The `SyntaxContext` of the expression will be walked up to the given target context (usually
+/// from the parent expression) before extracting a snippet. This allows getting the call to a macro
+/// rather than the expression from expanding the macro. e.g. In the expression `&vec![]` taking a
+/// snippet of the chile of the borrow expression will get a snippet of what `vec![]` expands in to.
+/// With the target context set to the same as the borrow expression, this will get a snippet of the
+/// call to the macro.
+///
+/// The applicability will be modified in two ways:
+/// * If a snippet can't be extracted it will be changed from `MachineApplicable` or
+///   `MaybeIncorrect` to `HasPlaceholders`.
+/// * If the snippet is taken from a macro expansion then it will be changed from
+///   `MachineApplicable` to `MaybeIncorrect`.
+pub fn snippet_expr(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    target_precedence: TargetPrecedence,
+    ctxt: SyntaxContext,
+    app: &mut Applicability,
+) -> String {
+    let (snip, is_mac_call) = snippet_with_context(cx, expr.span, ctxt, "(..)", app);
+
+    match snip {
+        Cow::Borrowed(snip) => snip.to_owned(),
+        Cow::Owned(snip) if is_mac_call => snip,
+        Cow::Owned(mut snip) => {
+            let needs_paren = match expr.kind {
+                ExprKind::Binary(op, ..) => match op.node {
+                    BinOpKind::Add | BinOpKind::Sub => target_precedence > TargetPrecedence::Add,
+                    BinOpKind::Mul | BinOpKind::Div | BinOpKind::Rem => target_precedence > TargetPrecedence::Mul,
+                    BinOpKind::And => target_precedence > TargetPrecedence::And,
+                    BinOpKind::Or => target_precedence > TargetPrecedence::Or,
+                    BinOpKind::BitXor => target_precedence > TargetPrecedence::BitXor,
+                    BinOpKind::BitAnd => target_precedence > TargetPrecedence::BitAnd,
+                    BinOpKind::BitOr => target_precedence > TargetPrecedence::BitOr,
+                    BinOpKind::Shl | BinOpKind::Shr => target_precedence > TargetPrecedence::Shift,
+                    BinOpKind::Eq | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Ge => {
+                        target_precedence > TargetPrecedence::Eq
+                    },
+                },
+                ExprKind::Unary(..) | ExprKind::AddrOf(..) => target_precedence > TargetPrecedence::Prefix,
+                ExprKind::Cast(..) => target_precedence > TargetPrecedence::As,
+                ExprKind::Box(..)
+                | ExprKind::Closure(..)
+                | ExprKind::Break(..)
+                | ExprKind::Ret(..)
+                | ExprKind::Yield(..) => target_precedence > TargetPrecedence::Closure,
+                ExprKind::Assign(..) | ExprKind::AssignOp(..) => target_precedence > TargetPrecedence::Assignment,
+                _ => false,
+            };
+
+            if needs_paren {
+                snip.insert(0, '(');
+                snip.push(')');
+            }
+            snip
+        },
+    }
 }
 
 /// Walks the span up to the target context, thereby returning the macro call site if the span is

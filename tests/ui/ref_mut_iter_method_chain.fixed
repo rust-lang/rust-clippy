@@ -31,4 +31,7 @@ fn main() {
 
     let iter = &mut iter;
     iter.by_ref().find(|&&x| x == 1);
+    let mut iter = iter;
+    let iter = &mut iter;
+    (*iter).by_ref().find(|&&x| x == 1);
 }

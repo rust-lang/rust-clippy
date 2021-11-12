@@ -18,5 +18,11 @@ error: use of `&mut` on an iterator in a method chain
 LL |     (&mut *iter).find(|&&x| x == 1);
    |     ^^^^^^^^^^^^ help: try: `iter.by_ref()`
 
-error: aborting due to 3 previous errors
+error: use of `&mut` on an iterator in a method chain
+  --> $DIR/ref_mut_iter_method_chain.rs:36:5
+   |
+LL |     (&mut **iter).find(|&&x| x == 1);
+   |     ^^^^^^^^^^^^^ help: try: `(*iter).by_ref()`
+
+error: aborting due to 4 previous errors
 
