@@ -1879,6 +1879,7 @@ declare_clippy_lint! {
     /// let mut iter = ['a', 'b', '.', 'd'].iter();
     /// let before_dot = iter.by_ref().take_while(|&&c| c != '.').collect::<Vec<_>>();
     /// ```
+    #[clippy::version = "1.58.0"]
     pub REF_MUT_ITER_METHOD_CHAIN,
     style,
     "`&mut iter` used in a method chain"
