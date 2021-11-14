@@ -1,11 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::get_parent_expr;
-use clippy_utils::source::snippet_with_context;
+use clippy_utils::source::{position_of_expr, snippet_expr, ExprPosition};
 use clippy_utils::ty::is_type_lang_item;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, LangItem, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::TyS;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 
@@ -57,23 +58,31 @@ impl LateLintPass<'_> for RedundantSlicing {
             if TyS::same_type(cx.typeck_results().expr_ty(expr), cx.typeck_results().expr_ty(indexed));
             then {
                 let mut app = Applicability::MachineApplicable;
-                let snip = snippet_with_context(cx, indexed.span, ctxt, "..", &mut app).0;
+                let position = position_of_expr(cx, expr);
 
-                let (reborrow_str, help_str) = if mutability == Mutability::Mut {
+                let (reborrow_str, help_str, snip_position) = if mutability == Mutability::Mut {
                     // The slice was used to reborrow the mutable reference.
-                    ("&mut *", "reborrow the original value instead")
+                    ("&mut *", "reborrow the original value instead", ExprPosition::Prefix)
                 } else if matches!(
                     get_parent_expr(cx, expr),
                     Some(Expr {
                         kind: ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, _),
                         ..
                     })
+                ) || matches!(
+                    cx.typeck_results().expr_adjustments(expr),
+                    [Adjustment {
+                        kind: Adjust::Borrow(AutoBorrow::Ref(_, AutoBorrowMutability::Mut { .. })),
+                        ..
+                    }]
                 ) {
                     // The slice was used to make a temporary reference.
-                    ("&*", "reborrow the original value instead")
+                    ("&*", "reborrow the original value instead", ExprPosition::Prefix)
                 } else {
-                    ("", "use the original value instead")
+                    ("", "use the original value instead", position)
                 };
+
+                let snip = snippet_expr(cx, indexed, snip_position, ctxt, &mut app);
 
                 span_lint_and_sugg(
                     cx,
@@ -81,10 +90,15 @@ impl LateLintPass<'_> for RedundantSlicing {
                     expr.span,
                     "redundant slicing of the whole range",
                     help_str,
-                    format!("{}{}", reborrow_str, snip),
+                    if !reborrow_str.is_empty() && position > ExprPosition::Prefix {
+                        format!("({}{})", reborrow_str, snip)
+                    } else {
+                        format!("{}{}", reborrow_str, snip)
+                    },
                     app,
                 );
             }
+
         }
     }
 }
