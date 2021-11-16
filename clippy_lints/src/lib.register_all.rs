@@ -165,6 +165,7 @@ store.register_group(true, "clippy::all", Some("clippy_all"), vec![
     LintId::of(methods::OPTION_FILTER_MAP),
     LintId::of(methods::OPTION_MAP_OR_NONE),
     LintId::of(methods::OR_FUN_CALL),
+    LintId::of(methods::REF_MUT_ITER_METHOD_CHAIN),
     LintId::of(methods::RESULT_MAP_OR_INTO_OPTION),
     LintId::of(methods::SEARCH_IS_SOME),
     LintId::of(methods::SHOULD_IMPLEMENT_TRAIT),

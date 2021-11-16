@@ -4,7 +4,7 @@
 
 use crate::line_span;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LintContext};
 use rustc_span::hygiene;
 use rustc_span::{BytePos, Pos, Span, SyntaxContext};
@@ -304,6 +304,147 @@ pub fn snippet_with_context(
         snippet_with_applicability(cx, span, default, applicability),
         is_macro_call,
     )
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ExprPosition {
+    // Also includes `return`, `yield`, `break` and closures
+    Paren,
+    AssignmentRhs,
+    AssignmentLhs,
+    RangeLhs,
+    RangeRhs,
+    OrLhs,
+    OrRhs,
+    AndLhs,
+    AndRhs,
+    Let,
+    EqLhs,
+    EqRhs,
+    BitOrLhs,
+    BitOrRhs,
+    BitXorLhs,
+    BitXorRhs,
+    BitAndLhs,
+    BitAndRhs,
+    ShiftLhs,
+    ShiftRhs,
+    AddLhs,
+    AddRhs,
+    MulLhs,
+    MulRhs,
+    // Also includes type ascription
+    Cast,
+    Prefix,
+    Postfix,
+}
+
+/// Extracts a snippet of the given expression taking into account the `SyntaxContext` the snippet
+/// needs to be taken from. Parenthesis will be added if needed to place the snippet in the target
+/// precedence level. Returns a placeholder (`(..)`) if a snippet can't be extracted (e.g. an
+/// invalid span).
+///
+/// The `SyntaxContext` of the expression will be walked up to the given target context (usually
+/// from the parent expression) before extracting a snippet. This allows getting the call to a macro
+/// rather than the expression from expanding the macro. e.g. In the expression `&vec![]` taking a
+/// snippet of the chile of the borrow expression will get a snippet of what `vec![]` expands in to.
+/// With the target context set to the same as the borrow expression, this will get a snippet of the
+/// call to the macro.
+///
+/// The applicability will be modified in two ways:
+/// * If a snippet can't be extracted it will be changed from `MachineApplicable` or
+///   `MaybeIncorrect` to `HasPlaceholders`.
+/// * If the snippet is taken from a macro expansion then it will be changed from
+///   `MachineApplicable` to `MaybeIncorrect`.
+pub fn snippet_expr(
+    cx: &LateContext<'_>,
+    expr: &Expr<'_>,
+    target_position: ExprPosition,
+    ctxt: SyntaxContext,
+    app: &mut Applicability,
+) -> String {
+    let (snip, is_mac_call) = snippet_with_context(cx, expr.span, ctxt, "(..)", app);
+
+    match snip {
+        Cow::Borrowed(snip) => snip.to_owned(),
+        Cow::Owned(snip) if is_mac_call => snip,
+        Cow::Owned(mut snip) => {
+            let ctxt = expr.span.ctxt();
+
+            // Attempt to determine if parenthesis are needed base on the target position. The snippet may have
+            // parenthesis already, so attempt to find those.
+            // TODO: Remove parenthesis if they aren't needed at the target position.
+            let needs_paren = match expr.peel_drop_temps().kind {
+                ExprKind::Binary(_, lhs, rhs)
+                    if (ctxt == lhs.span.ctxt() && expr.span.lo() != lhs.span.lo())
+                        || (ctxt == rhs.span.ctxt() && expr.span.hi() != rhs.span.hi()) =>
+                {
+                    false
+                },
+                ExprKind::Binary(op, ..) => match op.node {
+                    BinOpKind::Add | BinOpKind::Sub => target_position > ExprPosition::AddLhs,
+                    BinOpKind::Mul | BinOpKind::Div | BinOpKind::Rem => target_position > ExprPosition::MulLhs,
+                    BinOpKind::And => target_position > ExprPosition::AndLhs,
+                    BinOpKind::Or => target_position > ExprPosition::OrLhs,
+                    BinOpKind::BitXor => target_position > ExprPosition::BitXorLhs,
+                    BinOpKind::BitAnd => target_position > ExprPosition::BitAndLhs,
+                    BinOpKind::BitOr => target_position > ExprPosition::BitOrLhs,
+                    BinOpKind::Shl | BinOpKind::Shr => target_position > ExprPosition::ShiftLhs,
+                    BinOpKind::Eq | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Ge => {
+                        target_position > ExprPosition::EqLhs
+                    },
+                },
+                ExprKind::Box(..) | ExprKind::Unary(..) | ExprKind::AddrOf(..) if snip.starts_with('(') => false,
+                ExprKind::Box(..) | ExprKind::Unary(..) | ExprKind::AddrOf(..) => {
+                    target_position > ExprPosition::Prefix
+                },
+                ExprKind::Let(..) if snip.starts_with('(') => false,
+                ExprKind::Let(..) => target_position > ExprPosition::Let,
+                ExprKind::Cast(lhs, rhs)
+                    if (ctxt == lhs.span.ctxt() && expr.span.lo() != lhs.span.lo())
+                        || (ctxt == rhs.span.ctxt() && expr.span.hi() != rhs.span.hi()) =>
+                {
+                    false
+                },
+                ExprKind::Cast(..) | ExprKind::Type(..) => target_position > ExprPosition::Cast,
+
+                ExprKind::Closure(..)
+                | ExprKind::Break(..)
+                | ExprKind::Ret(..)
+                | ExprKind::Yield(..)
+                | ExprKind::Assign(..)
+                | ExprKind::AssignOp(..) => target_position > ExprPosition::AssignmentRhs,
+
+                // Postfix operators, or expression with braces of some form
+                ExprKind::Array(_)
+                | ExprKind::Call(..)
+                | ExprKind::ConstBlock(_)
+                | ExprKind::MethodCall(..)
+                | ExprKind::Tup(..)
+                | ExprKind::Lit(..)
+                | ExprKind::DropTemps(_)
+                | ExprKind::If(..)
+                | ExprKind::Loop(..)
+                | ExprKind::Match(..)
+                | ExprKind::Block(..)
+                | ExprKind::Field(..)
+                | ExprKind::Index(..)
+                | ExprKind::Path(_)
+                | ExprKind::Continue(_)
+                | ExprKind::InlineAsm(_)
+                | ExprKind::LlvmInlineAsm(_)
+                | ExprKind::Struct(..)
+                | ExprKind::Repeat(..)
+                | ExprKind::Err => false,
+            };
+
+            if needs_paren {
+                snip.insert(0, '(');
+                snip.push(')');
+            }
+            snip
+        },
+    }
 }
 
 /// Walks the span up to the target context, thereby returning the macro call site if the span is
