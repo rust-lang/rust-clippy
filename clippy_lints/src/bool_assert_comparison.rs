@@ -26,7 +26,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.53.0"]
     pub BOOL_ASSERT_COMPARISON,
-    style,
+    pedantic,
     "Using a boolean as comparison value in an assert_* macro when there is no need"
 }
 

@@ -57,6 +57,7 @@ store.register_lints(&[
     blacklisted_name::BLACKLISTED_NAME,
     blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS,
     bool_assert_comparison::BOOL_ASSERT_COMPARISON,
+    bool_assert_inverted::BOOL_ASSERT_INVERTED,
     booleans::LOGIC_BUG,
     booleans::NONMINIMAL_BOOL,
     borrow_as_ptr::BORROW_AS_PTR,

@@ -175,6 +175,7 @@ mod bit_mask;
 mod blacklisted_name;
 mod blocks_in_if_conditions;
 mod bool_assert_comparison;
+mod bool_assert_inverted;
 mod booleans;
 mod borrow_as_ptr;
 mod bytecount;
@@ -821,6 +822,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| Box::new(manual_map::ManualMap));
     store.register_late_pass(move || Box::new(if_then_some_else_none::IfThenSomeElseNone::new(msrv)));
     store.register_late_pass(|| Box::new(bool_assert_comparison::BoolAssertComparison));
+    store.register_late_pass(|| Box::new(bool_assert_inverted::BoolAssertInverted));
     store.register_early_pass(move || Box::new(module_style::ModStyle));
     store.register_late_pass(|| Box::new(unused_async::UnusedAsync));
     let disallowed_types = conf.disallowed_types.clone();

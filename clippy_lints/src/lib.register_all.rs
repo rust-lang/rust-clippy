@@ -18,7 +18,6 @@ store.register_group(true, "clippy::all", Some("clippy_all"), vec![
     LintId::of(bit_mask::INEFFECTIVE_BIT_MASK),
     LintId::of(blacklisted_name::BLACKLISTED_NAME),
     LintId::of(blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS),
-    LintId::of(bool_assert_comparison::BOOL_ASSERT_COMPARISON),
     LintId::of(booleans::LOGIC_BUG),
     LintId::of(booleans::NONMINIMAL_BOOL),
     LintId::of(casts::CAST_REF_TO_MUT),
