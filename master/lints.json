@@ -3033,7 +3033,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/manual_map.rs",
-      "line": 40
+      "line": 41
     },
     "group": "style",
     "level": "warn",
