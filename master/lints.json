@@ -1458,7 +1458,7 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 38
+      "line": 44
     },
     "group": "pedantic",
     "level": "allow",
@@ -4067,16 +4067,16 @@
   {
     "id": "needless_borrow",
     "id_span": {
-      "path": "src/needless_borrow.rs",
-      "line": 41
+      "path": "src/dereference.rs",
+      "line": 71
     },
     "group": "style",
     "level": "warn",
     "docs": " ### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\n// Bad\nlet x: &i32 = &&&&&&5;\nfun(&x);\n\n// Good\nlet x: &i32 = &5;\nfun(x);\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
-      "applicability": "Unresolved"
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -5252,8 +5252,8 @@
   {
     "id": "ref_binding_to_reference",
     "id_span": {
-      "path": "src/needless_borrow.rs",
-      "line": 68
+      "path": "src/dereference.rs",
+      "line": 98
     },
     "group": "pedantic",
     "level": "allow",
