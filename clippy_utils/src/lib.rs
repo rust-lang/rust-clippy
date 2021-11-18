@@ -1139,19 +1139,6 @@ pub fn contains_return(expr: &hir::Expr<'_>) -> bool {
     found
 }
 
-/// Finds calls of the specified macros in a function body.
-pub fn find_macro_calls(names: &[&str], body: &Body<'_>) -> Vec<Span> {
-    let mut result = Vec::new();
-    expr_visitor_no_bodies(|expr| {
-        if names.iter().any(|fun| is_expn_of(expr.span, fun).is_some()) {
-            result.push(expr.span);
-        }
-        true
-    })
-    .visit_expr(&body.value);
-    result
-}
-
 /// Extends the span to the beginning of the spans line, incl. whitespaces.
 ///
 /// ```rust
