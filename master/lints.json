@@ -975,9 +975,9 @@
     }
   },
   {
-    "id": "disallowed_method",
+    "id": "disallowed_methods",
     "id_span": {
-      "path": "src/disallowed_method.rs",
+      "path": "src/disallowed_methods.rs",
       "line": 51
     },
     "group": "nursery",
@@ -1005,9 +1005,9 @@
     }
   },
   {
-    "id": "disallowed_type",
+    "id": "disallowed_types",
     "id_span": {
-      "path": "src/disallowed_type.rs",
+      "path": "src/disallowed_types.rs",
       "line": 46
     },
     "group": "nursery",
