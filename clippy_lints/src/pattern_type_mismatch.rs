@@ -1,8 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::last_path_segment;
 use rustc_hir::{
-    intravisit, Body, Expr, ExprKind, FnDecl, HirId, LocalSource, MatchSource, Mutability, Pat, PatField, PatKind,
-    QPath, Stmt, StmtKind,
+    def::Res, intravisit, Body, Expr, ExprKind, FnDecl, HirId, LocalSource, MatchSource, Mutability, Pat, PatField,
+    PatKind, QPath, Stmt, StmtKind,
 };
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
@@ -198,7 +198,7 @@ fn find_first_mismatch<'tcx>(
     }
 
     if let TyKind::Ref(_, _, mutability) = *ty.kind() {
-        if is_non_ref_pattern(&pat.kind) {
+        if is_non_ref_pattern(cx, &pat.kind) {
             return Some((pat.span, mutability, level));
         }
     }
@@ -307,10 +307,20 @@ fn find_first_mismatch_in_struct<'tcx>(
     None
 }
 
-fn is_non_ref_pattern(pat_kind: &PatKind<'_>) -> bool {
+fn is_non_ref_pattern(cx: &LateContext<'tcx>, pat_kind: &PatKind<'_>) -> bool {
     match pat_kind {
-        PatKind::Struct(..) | PatKind::Tuple(..) | PatKind::TupleStruct(..) | PatKind::Path(..) => true,
-        PatKind::Or(sub_pats) => sub_pats.iter().any(|pat| is_non_ref_pattern(&pat.kind)),
+        PatKind::Struct(..) | PatKind::Tuple(..) | PatKind::TupleStruct(..) => true,
+        PatKind::Path(QPath::Resolved(_, p)) => match p.res {
+            Res::Def(_, def_id) => {
+                if let TyKind::Ref(_, _, _) = cx.tcx.type_of(def_id).kind() {
+                    return false;
+                }
+                return true;
+            },
+            _ => return true,
+        },
+
+        PatKind::Or(sub_pats) => sub_pats.iter().any(|pat| is_non_ref_pattern(cx, &pat.kind)),
         _ => false,
     }
 }

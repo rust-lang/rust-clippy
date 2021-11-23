@@ -15,6 +15,15 @@ fn should_lint() {
         Some(_) => (),
         _ => (),
     }
+
+    const FOO: &str = "foo";
+
+    fn foo(s: &str) -> i32 {
+        match s {
+            FOO => 1,
+            _ => 0,
+        }
+    }
 }
 
 fn should_not_lint() {
