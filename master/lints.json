@@ -4773,7 +4773,7 @@
     "id": "pattern_type_mismatch",
     "id_span": {
       "path": "src/pattern_type_mismatch.rs",
-      "line": 81
+      "line": 77
     },
     "group": "restriction",
     "level": "allow",
