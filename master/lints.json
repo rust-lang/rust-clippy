@@ -4155,6 +4155,21 @@
     }
   },
   {
+    "id": "needless_late_init",
+    "id_span": {
+      "path": "src/needless_late_init.rs",
+      "line": 56
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for late initializations that can be replaced by a `let` statement\nwith an initializer.\n\n### Why is this bad?\nAssigning in the `let` statement is less repetitive.\n\n### Example\n```rust\nlet a;\na = 1;\n\nlet b;\nmatch 3 {\n    0 => b = \"zero\",\n    1 => b = \"one\",\n    _ => b = \"many\",\n}\n\nlet c;\nif true {\n    c = 1;\n} else {\n    c = -1;\n}\n```\nUse instead:\n```rust\nlet a = 1;\n\nlet b = match 3 {\n    0 => \"zero\",\n    1 => \"one\",\n    _ => \"many\",\n};\n\nlet c = if true {\n    1\n} else {\n    -1\n};\n```",
+    "version": "1.58.0",
+    "applicability": {
+      "is_multi_part_suggestion": true,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
