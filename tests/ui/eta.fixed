@@ -49,6 +49,8 @@ fn main() {
 
     // issue #7224
     let _: Option<Vec<u32>> = Some(0).map(|_| vec![]);
+    let e = Some(1u8).map(divergent);
+    let e = Some(1u8).unwrap_or_else(divergent_no_params);
 }
 
 trait TestTrait {
@@ -152,6 +154,10 @@ fn below(x: &u8, y: &u8) -> bool {
 unsafe fn unsafe_fn(_: u8) {}
 
 fn divergent(_: u8) -> ! {
+    unimplemented!()
+}
+
+fn divergent_no_params() -> ! {
     unimplemented!()
 }
 

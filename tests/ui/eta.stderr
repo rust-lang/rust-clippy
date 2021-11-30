@@ -45,7 +45,19 @@ LL |     let e = Some(1u8).map(|a| generic(a));
    |                           ^^^^^^^^^^^^^^ help: replace the closure with the function itself: `generic`
 
 error: redundant closure
-  --> $DIR/eta.rs:90:51
+  --> $DIR/eta.rs:52:27
+   |
+LL |     let e = Some(1u8).map(|a| divergent(a));
+   |                           ^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `divergent`
+
+error: redundant closure
+  --> $DIR/eta.rs:53:38
+   |
+LL |     let e = Some(1u8).unwrap_or_else(|| divergent_no_params());
+   |                                      ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `divergent_no_params`
+
+error: redundant closure
+  --> $DIR/eta.rs:92:51
    |
 LL |     let e = Some(TestStruct { some_ref: &i }).map(|a| a.foo());
    |                                                   ^^^^^^^^^^^ help: replace the closure with the method itself: `TestStruct::foo`
@@ -53,82 +65,82 @@ LL |     let e = Some(TestStruct { some_ref: &i }).map(|a| a.foo());
    = note: `-D clippy::redundant-closure-for-method-calls` implied by `-D warnings`
 
 error: redundant closure
-  --> $DIR/eta.rs:91:51
+  --> $DIR/eta.rs:93:51
    |
 LL |     let e = Some(TestStruct { some_ref: &i }).map(|a| a.trait_foo());
    |                                                   ^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `TestTrait::trait_foo`
 
 error: redundant closure
-  --> $DIR/eta.rs:93:42
+  --> $DIR/eta.rs:95:42
    |
 LL |     let e = Some(&mut vec![1, 2, 3]).map(|v| v.clear());
    |                                          ^^^^^^^^^^^^^ help: replace the closure with the method itself: `std::vec::Vec::clear`
 
 error: redundant closure
-  --> $DIR/eta.rs:97:29
+  --> $DIR/eta.rs:99:29
    |
 LL |     let e = Some("str").map(|s| s.to_string());
    |                             ^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `std::string::ToString::to_string`
 
 error: redundant closure
-  --> $DIR/eta.rs:98:27
+  --> $DIR/eta.rs:100:27
    |
 LL |     let e = Some('a').map(|s| s.to_uppercase());
    |                           ^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `char::to_uppercase`
 
 error: redundant closure
-  --> $DIR/eta.rs:100:65
+  --> $DIR/eta.rs:102:65
    |
 LL |     let e: std::vec::Vec<char> = vec!['a', 'b', 'c'].iter().map(|c| c.to_ascii_uppercase()).collect();
    |                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `char::to_ascii_uppercase`
 
 error: redundant closure
-  --> $DIR/eta.rs:163:22
+  --> $DIR/eta.rs:169:22
    |
 LL |     requires_fn_once(|| x());
    |                      ^^^^^^ help: replace the closure with the function itself: `x`
 
 error: redundant closure
-  --> $DIR/eta.rs:170:27
+  --> $DIR/eta.rs:176:27
    |
 LL |     let a = Some(1u8).map(|a| foo_ptr(a));
    |                           ^^^^^^^^^^^^^^ help: replace the closure with the function itself: `foo_ptr`
 
 error: redundant closure
-  --> $DIR/eta.rs:175:27
+  --> $DIR/eta.rs:181:27
    |
 LL |     let a = Some(1u8).map(|a| closure(a));
    |                           ^^^^^^^^^^^^^^ help: replace the closure with the function itself: `closure`
 
 error: redundant closure
-  --> $DIR/eta.rs:207:28
+  --> $DIR/eta.rs:213:28
    |
 LL |     x.into_iter().for_each(|x| add_to_res(x));
    |                            ^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `&mut add_to_res`
 
 error: redundant closure
-  --> $DIR/eta.rs:208:28
+  --> $DIR/eta.rs:214:28
    |
 LL |     y.into_iter().for_each(|x| add_to_res(x));
    |                            ^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `&mut add_to_res`
 
 error: redundant closure
-  --> $DIR/eta.rs:209:28
+  --> $DIR/eta.rs:215:28
    |
 LL |     z.into_iter().for_each(|x| add_to_res(x));
    |                            ^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `add_to_res`
 
 error: redundant closure
-  --> $DIR/eta.rs:216:21
+  --> $DIR/eta.rs:222:21
    |
 LL |         Some(1).map(|n| closure(n));
    |                     ^^^^^^^^^^^^^^ help: replace the closure with the function itself: `&mut closure`
 
 error: redundant closure
-  --> $DIR/eta.rs:235:21
+  --> $DIR/eta.rs:241:21
    |
 LL |     map_str_to_path(|s| s.as_ref());
    |                     ^^^^^^^^^^^^^^ help: replace the closure with the method itself: `std::convert::AsRef::as_ref`
 
-error: aborting due to 21 previous errors
+error: aborting due to 23 previous errors
 
