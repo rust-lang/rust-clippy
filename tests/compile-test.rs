@@ -155,6 +155,7 @@ fn run_ui(cfg: &mut compiletest::Config) {
     compiletest::run_tests(cfg);
 }
 
+#[allow(unused)]
 fn run_ui_test(cfg: &mut compiletest::Config) {
     cfg.mode = TestMode::Ui;
     cfg.src_base = Path::new("tests").join("ui_test");
@@ -168,6 +169,7 @@ fn run_ui_test(cfg: &mut compiletest::Config) {
     }
 }
 
+#[allow(unused)]
 fn run_internal_tests(cfg: &mut compiletest::Config) {
     // only run internal tests with the internal-tests feature
     if !RUN_INTERNAL_TESTS {
@@ -178,6 +180,7 @@ fn run_internal_tests(cfg: &mut compiletest::Config) {
     compiletest::run_tests(cfg);
 }
 
+#[allow(unused)]
 fn run_ui_toml(config: &mut compiletest::Config) {
     fn run_tests(config: &compiletest::Config, mut tests: Vec<tester::TestDescAndFn>) -> Result<bool, io::Error> {
         let mut result = true;
@@ -229,6 +232,7 @@ fn run_ui_toml(config: &mut compiletest::Config) {
     }
 }
 
+#[allow(unused)]
 fn run_ui_cargo(config: &mut compiletest::Config) {
     fn run_tests(
         config: &compiletest::Config,
@@ -331,10 +335,10 @@ fn compile_test() {
     prepare_env();
     let mut config = default_config();
     run_ui(&mut config);
-    run_ui_test(&mut config);
-    run_ui_toml(&mut config);
-    run_ui_cargo(&mut config);
-    run_internal_tests(&mut config);
+    // run_ui_test(&mut config);
+    // run_ui_toml(&mut config);
+    // run_ui_cargo(&mut config);
+    // run_internal_tests(&mut config);
 }
 
 /// Restores an env var on drop
