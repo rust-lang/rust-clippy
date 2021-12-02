@@ -10,8 +10,8 @@ use rustc_span::symbol::sym;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for no-op uses of Option::{as_deref,as_deref_mut},
-    /// for example, `Option<&T>::as_deref()` returns the same type.
+    /// Checks for no-op uses of `Option::as_deref`, for example,
+    /// `Option<&T>::as_deref()` returns the same type.
     ///
     /// ### Why is this bad?
     /// Redundant code and improving readability.
@@ -29,12 +29,10 @@ declare_clippy_lint! {
     #[clippy::version = "1.57.0"]
     pub NEEDLESS_OPTION_AS_DEREF,
     complexity,
-    "no-op use of `deref` or `deref_mut` method to `Option`."
+    "no-op use of `as_deref` method to `Option`."
 }
 
-declare_lint_pass!(OptionNeedlessDeref=> [
-    NEEDLESS_OPTION_AS_DEREF,
-]);
+declare_lint_pass!(OptionNeedlessDeref => [NEEDLESS_OPTION_AS_DEREF]);
 
 impl<'tcx> LateLintPass<'tcx> for OptionNeedlessDeref {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
@@ -45,19 +43,18 @@ impl<'tcx> LateLintPass<'tcx> for OptionNeedlessDeref {
         let outer_ty = typeck.expr_ty(expr);
 
         if_chain! {
-            if is_type_diagnostic_item(cx,outer_ty,sym::Option);
+            if is_type_diagnostic_item(cx, outer_ty, sym::Option);
             if let ExprKind::MethodCall(path, _, [sub_expr], _) = expr.kind;
-            let symbol = path.ident.as_str();
-            if symbol == "as_deref" || symbol == "as_deref_mut";
-            if TyS::same_type( outer_ty, typeck.expr_ty(sub_expr) );
-            then{
+            if path.ident.as_str() == "as_deref";
+            if TyS::same_type(outer_ty, typeck.expr_ty(sub_expr));
+            then {
                 span_lint_and_sugg(
                     cx,
                     NEEDLESS_OPTION_AS_DEREF,
                     expr.span,
                     "derefed type is same as origin",
                     "try this",
-                    snippet_opt(cx,sub_expr.span).unwrap(),
+                    snippet_opt(cx, sub_expr.span).unwrap(),
                     Applicability::MachineApplicable
                 );
             }
