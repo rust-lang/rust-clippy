@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// It lints if a struct has two method with same time:
+    /// It lints if a struct has two method with same name:
     /// one from a trait, another not from trait.
     ///
     /// ### Why is this bad?
