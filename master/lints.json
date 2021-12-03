@@ -5482,7 +5482,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nIt lints if a struct has two method with same time:\none from a trait, another not from trait.\n\n### Why is this bad?\nConfusing.\n\n### Example\n```rust\ntrait T {\n    fn foo(&self) {}\n}\n\nstruct S;\n\nimpl T for S {\n    fn foo(&self) {}\n}\n\nimpl S {\n    fn foo(&self) {}\n}\n```",
+    "docs": " ### What it does\nIt lints if a struct has two methods with the same name:\none from a trait, another not from trait.\n\n### Why is this bad?\nConfusing.\n\n### Example\n```rust\ntrait T {\n    fn foo(&self) {}\n}\n\nstruct S;\n\nimpl T for S {\n    fn foo(&self) {}\n}\n\nimpl S {\n    fn foo(&self) {}\n}\n```",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
