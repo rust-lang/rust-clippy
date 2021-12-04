@@ -4443,7 +4443,7 @@
     "id": "non_send_fields_in_send_ty",
     "id_span": {
       "path": "src/non_send_fields_in_send_ty.rs",
-      "line": 47
+      "line": 48
     },
     "group": "suspicious",
     "level": "warn",
