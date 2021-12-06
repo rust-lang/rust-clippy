@@ -433,6 +433,7 @@ store.register_lints(&[
     shadow::SHADOW_SAME,
     shadow::SHADOW_UNRELATED,
     single_component_path_imports::SINGLE_COMPONENT_PATH_IMPORTS,
+    single_field_pattern::SINGLE_FIELD_PATTERN,
     size_of_in_element_count::SIZE_OF_IN_ELEMENT_COUNT,
     slow_vector_initialization::SLOW_VECTOR_INITIALIZATION,
     stable_sort_primitive::STABLE_SORT_PRIMITIVE,
