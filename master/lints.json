@@ -5430,6 +5430,21 @@
     }
   },
   {
+    "id": "return_self_not_must_use",
+    "id_span": {
+      "path": "src/return_self_not_must_use.rs",
+      "line": 39
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nThis lint warns when a method returning `Self` doesn't have the `#[must_use]` attribute.\n\n### Why is this bad?\nIt prevents to \"forget\" to use the newly created value.\n\n### Limitations\nThis lint is only applied on methods taking a `self` argument. It would be mostly noise\nif it was added on constructors for example.\n\n### Example\n```rust\npub struct Bar;\n\nimpl Bar {\n    // Bad\n    pub fn bar(&self) -> Self {\n        Self\n    }\n\n    // Good\n    #[must_use]\n    pub fn foo(&self) -> Self {\n        Self\n    }\n}\n```",
+    "version": "1.59.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "reversed_empty_ranges",
     "id_span": {
       "path": "src/ranges.rs",
