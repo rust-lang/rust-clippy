@@ -213,6 +213,7 @@ store.register_lints(&[
     loops::MANUAL_MEMCPY,
     loops::MUT_RANGE_BOUND,
     loops::NEEDLESS_COLLECT,
+    loops::NEEDLESS_INDIRECT_COLLECT,
     loops::NEEDLESS_RANGE_LOOP,
     loops::NEVER_LOOP,
     loops::SAME_ITEM_PUSH,

@@ -1,12 +1,12 @@
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:5:39
+  --> $DIR/needless_collect_indirect.rs:6:39
    |
 LL |     let indirect_iter = sample.iter().collect::<Vec<_>>();
    |                                       ^^^^^^^
 LL |     indirect_iter.into_iter().map(|x| (x, x + 1)).collect::<HashMap<_, _>>();
    |     ------------------------- the iterator could be used here instead
    |
-   = note: `-D clippy::needless-collect` implied by `-D warnings`
+   = note: `-D clippy::needless-indirect-collect` implied by `-D warnings`
 help: use the original Iterator instead of collecting it and then producing a new one
    |
 LL ~     
@@ -14,7 +14,7 @@ LL ~     sample.iter().map(|x| (x, x + 1)).collect::<HashMap<_, _>>();
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:7:38
+  --> $DIR/needless_collect_indirect.rs:8:38
    |
 LL |     let indirect_len = sample.iter().collect::<VecDeque<_>>();
    |                                      ^^^^^^^
@@ -28,7 +28,7 @@ LL ~     sample.iter().count();
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:9:40
+  --> $DIR/needless_collect_indirect.rs:10:40
    |
 LL |     let indirect_empty = sample.iter().collect::<VecDeque<_>>();
    |                                        ^^^^^^^
@@ -42,7 +42,7 @@ LL ~     sample.iter().next().is_none();
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:11:43
+  --> $DIR/needless_collect_indirect.rs:12:43
    |
 LL |     let indirect_contains = sample.iter().collect::<VecDeque<_>>();
    |                                           ^^^^^^^
@@ -56,7 +56,7 @@ LL ~     sample.iter().any(|x| x == &5);
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:23:48
+  --> $DIR/needless_collect_indirect.rs:24:48
    |
 LL |     let non_copy_contains = sample.into_iter().collect::<Vec<_>>();
    |                                                ^^^^^^^
@@ -70,7 +70,7 @@ LL ~     sample.into_iter().any(|x| x == a);
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:52:51
+  --> $DIR/needless_collect_indirect.rs:53:51
    |
 LL |         let buffer: Vec<&str> = string.split('/').collect();
    |                                                   ^^^^^^^
@@ -84,7 +84,7 @@ LL ~         string.split('/').count()
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:57:55
+  --> $DIR/needless_collect_indirect.rs:58:55
    |
 LL |         let indirect_len: VecDeque<_> = sample.iter().collect();
    |                                                       ^^^^^^^
@@ -98,7 +98,7 @@ LL ~         sample.iter().count()
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:62:57
+  --> $DIR/needless_collect_indirect.rs:63:57
    |
 LL |         let indirect_len: LinkedList<_> = sample.iter().collect();
    |                                                         ^^^^^^^
@@ -112,7 +112,7 @@ LL ~         sample.iter().count()
    |
 
 error: avoid using `collect()` when not needed
-  --> $DIR/needless_collect_indirect.rs:67:57
+  --> $DIR/needless_collect_indirect.rs:68:57
    |
 LL |         let indirect_len: BinaryHeap<_> = sample.iter().collect();
    |                                                         ^^^^^^^

@@ -269,6 +269,29 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Check the function collecting an iterator if it turns out
+    /// that collecting the iterator is not needed later.
+    ///
+    /// ### Why is this bad?
+    /// `collect` causes the allocation of a new data structure,
+    /// when this allocation may not be needed.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let sample = [1; 5];
+    /// let indirect_len = sample.iter().collect::<Vec<_>>();
+    /// indirect_len.len();
+    /// // should be
+    /// sample.iter().count();
+    /// ```
+    #[clippy::version = "1.30.0"]
+    pub NEEDLESS_INDIRECT_COLLECT,
+    nursery,
+    "collecting an iterator when collect is not needed"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks `for` loops over slices with an explicit counter
     /// and suggests the use of `.enumerate()`.
     ///
@@ -570,6 +593,7 @@ declare_lint_pass!(Loops => [
     FOR_LOOPS_OVER_FALLIBLES,
     WHILE_LET_LOOP,
     NEEDLESS_COLLECT,
+    NEEDLESS_INDIRECT_COLLECT,
     EXPLICIT_COUNTER_LOOP,
     EMPTY_LOOP,
     WHILE_LET_ON_ITERATOR,

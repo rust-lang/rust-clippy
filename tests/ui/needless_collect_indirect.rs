@@ -1,3 +1,4 @@
+#![warn(clippy::needless_indirect_collect)]
 use std::collections::{BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
 
 fn main() {
@@ -108,7 +109,7 @@ mod issue7975 {
 }
 
 fn allow_test() {
-    #[allow(clippy::needless_collect)]
+    #[allow(clippy::needless_indirect_collect)]
     let v = [1].iter().collect::<Vec<_>>();
     v.into_iter().collect::<HashSet<_>>();
 }
