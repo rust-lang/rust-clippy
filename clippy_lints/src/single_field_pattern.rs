@@ -134,10 +134,10 @@ fn walk_until_single_field_leaf<'hir>(
 fn find_single_pattern<'hir>(ty: &ty::TyKind<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) -> Option<Fields> {
     match ty {
         ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.variants.raw.len() == 1 => {
-            walk_until_single_field_leaf(patterns, &|kind| single_struct(kind).or_else(|| single_tuple(kind)))
+            walk_until_single_field_leaf(patterns, &single_struct)
         },
-        ty::TyKind::Array(..) => walk_until_single_field_leaf(patterns, &|kind| single_slice(kind)),
-        ty::TyKind::Tuple(..) => walk_until_single_field_leaf(patterns, &|kind| single_tuple(kind)),
+        ty::TyKind::Array(..) => walk_until_single_field_leaf(patterns, &single_slice),
+        ty::TyKind::Tuple(..) => walk_until_single_field_leaf(patterns, &single_tuple),
         _ => None,
     }
 }
