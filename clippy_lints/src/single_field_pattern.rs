@@ -28,7 +28,7 @@ declare_clippy_lint! {
 }
 declare_lint_pass!(SingleFieldPattern => [SINGLE_FIELD_PATTERN]);
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 enum Fields {
     Id(Ident),
     Index(usize),
@@ -37,7 +37,7 @@ enum Fields {
 
 impl Fields {
     // Todo - auto-fix - I'll need to add span and strings into SingleField
-    fn lint(self, cx: &LateContext<'tcx>, span: impl Into<MultiSpan>) {
+    fn lint(self, cx: &LateContext<'_>, span: impl Into<MultiSpan>) {
         span_lint(
             cx,
             SINGLE_FIELD_PATTERN,
@@ -62,40 +62,48 @@ impl From<usize> for Fields {
 fn get_the_one<ID: Into<Fields>>(pat: impl Iterator<Item = (ID, &'hir Pat<'hir>)>) -> Option<Fields> {
     let mut iter = pat.filter(|&(_, pat)| !matches!(pat.kind, PatKind::Wild)).map(|t| t.0);
     let the_one = iter.next(); // TODO: this also eliminates blank patterns, e.g. Struct { .. } - as silly as it is
-    if let None = iter.next() {
+    if iter.next().is_none() {
         the_one.map(|id| id.into()).or(Some(Fields::Unused))
     } else {
         None
     }
 }
 
-fn single_struct(pat: &PatKind<'hir>) -> Option<Fields> {
-    if let PatKind::Struct(_, inner_pats, _) = pat {
-        if let field @ Some(Fields::Id(_)) = get_the_one(inner_pats.iter().map(|field| (field.ident, field.pat))) {
-            return field;
-        }
+fn single_struct(pat: &PatKind<'_>) -> Option<Fields> {
+    match pat {
+        PatKind::Struct(_, pats, _) => get_the_one(pats.iter().map(|field| (field.ident, field.pat))),
+        PatKind::TupleStruct(_, pats, leap) => single_tuple_inner(pats, leap),
+        _ => None,
     }
-    None
 }
 
-fn single_tuple(pat: &PatKind<'hir>) -> Option<Fields> {
-    if let PatKind::Tuple(inner_pats, leap) | PatKind::TupleStruct(_, inner_pats, leap) = pat {
-        if let field @ Some(Fields::Index(index)) = get_the_one((*inner_pats).iter().enumerate()) {
+fn single_tuple_inner(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
+    match get_the_one((*pats).iter().enumerate()) {
+        field @ Some(Fields::Index(index)) => {
             // Skip (.., x) - the meaning of let (.., x) = t and t.n are different
             if (*leap).map_or(true, |leap_index| leap_index > index) {
-                return field;
+                field
+            } else {
+                None
             }
-        }
+        },
+        field @ Some(Fields::Unused) => field,
+        _ => None,
     }
-    None
 }
 
-fn single_slice(pat: &PatKind<'hir>) -> Option<Fields> {
+fn single_tuple(pat: &PatKind<'_>) -> Option<Fields> {
+    if let PatKind::Tuple(pats, leap) = pat {
+        single_tuple_inner(pats, leap)
+    } else {
+        None
+    }
+}
+
+fn single_slice(pat: &PatKind<'_>) -> Option<Fields> {
     if let PatKind::Slice(before, dots, after) = pat {
-        if let field @ Some(Fields::Index(_)) = get_the_one(before.iter().enumerate()) {
-            if dots.is_none() || get_the_one(after.iter().enumerate()).is_none() {
-                return field;
-            }
+        if dots.is_none() || after.len() == 0 {
+            return get_the_one(before.iter().enumerate());
         }
     }
     None
@@ -114,10 +122,13 @@ fn walk_until_single_field_leaf<'hir>(
         .filter(|field| *field != Some(Fields::Unused));
     if let Some(the_one) = fields.next() {
         if fields.all(|other| other == the_one) {
-            return the_one;
+            the_one
+        } else {
+            None
         }
+    } else {
+        Some(Fields::Unused)
     }
-    None
 }
 
 fn find_single_pattern<'hir>(ty: &ty::TyKind<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) -> Option<Fields> {
