@@ -180,6 +180,7 @@ mod bytecount;
 mod cargo_common_metadata;
 mod case_sensitive_file_extension_comparisons;
 mod casts;
+mod cfg_target_os;
 mod checked_conversions;
 mod cognitive_complexity;
 mod collapsible_if;
@@ -427,6 +428,7 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, sess: &Se
 
     store.register_pre_expansion_pass(|| Box::new(write::Write::default()));
     store.register_pre_expansion_pass(move || Box::new(attrs::EarlyAttributes { msrv }));
+    store.register_pre_expansion_pass(|| Box::new(cfg_target_os::CfgTargetOs));
     store.register_pre_expansion_pass(|| Box::new(dbg_macro::DbgMacro));
 }
 
