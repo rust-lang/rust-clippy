@@ -5,7 +5,7 @@ use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::{symbol::Ident, MultiSpan};
+use rustc_span::{symbol::Ident, MultiSpan, Span};
 use std::iter::once;
 
 declare_clippy_lint! {
@@ -28,11 +28,23 @@ declare_clippy_lint! {
 }
 declare_lint_pass!(SingleFieldPattern => [SINGLE_FIELD_PATTERN]);
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 enum Fields {
-    Id(Ident),
-    Index(usize),
+    Id(Ident, Span),
+    Index(usize, Span),
     Unused,
+}
+use Fields::*;
+
+impl PartialEq for Fields {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Id(id1, ..), Id(id2, ..)) => id1 == id2,
+            (Index(index1, ..), Index(index2, ..)) => index1 == index2,
+            (Unused, Unused) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Fields {
@@ -47,49 +59,57 @@ impl Fields {
     }
 }
 
-impl From<Ident> for Fields {
-    fn from(id: Ident) -> Self {
-        Fields::Id(id)
+fn get_one_index(pats: &[Pat<'a>]) -> Option<Fields> {
+    let mut iter = pats.iter().enumerate();
+    let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
+    match one {
+        Some((index, pat)) => {
+            for (_, other_pat) in iter {
+                if !matches!(other_pat.kind, PatKind::Wild) {
+                    return None;
+                }
+            }
+            Some(Fields::Index(index, pat.span))
+        },
+        None => Some(Fields::Unused),
     }
 }
 
-impl From<usize> for Fields {
-    fn from(id: usize) -> Self {
-        Fields::Index(id)
-    }
-}
-
-fn get_the_one<ID: Into<Fields>>(pat: impl Iterator<Item = (ID, &'hir Pat<'hir>)>) -> Option<Fields> {
-    let mut iter = pat.filter(|&(_, pat)| !matches!(pat.kind, PatKind::Wild)).map(|t| t.0);
-    let the_one = iter.next(); // TODO: this also eliminates blank patterns, e.g. Struct { .. } - as silly as it is
-    if iter.next().is_none() {
-        the_one.map(|id| id.into()).or(Some(Fields::Unused))
-    } else {
-        None
+fn get_one_id(pats: &[PatField<'a>]) -> Option<Fields> {
+    let mut iter = pats.iter();
+    let one = iter.by_ref().find(|field| !matches!(field.pat.kind, PatKind::Wild));
+    match one {
+        Some(field) => {
+            for other in iter {
+                if !matches!(other.pat.kind, PatKind::Wild) {
+                    return None;
+                }
+            }
+            Some(Fields::Id(field.ident, field.pat.span))
+        },
+        None => Some(Fields::Unused),
     }
 }
 
 fn single_struct(pat: &PatKind<'_>) -> Option<Fields> {
     match pat {
-        PatKind::Struct(_, pats, _) => get_the_one(pats.iter().map(|field| (field.ident, field.pat))),
+        PatKind::Struct(_, pats, _) => get_one_id(pats),
         PatKind::TupleStruct(_, pats, leap) => single_tuple_inner(pats, leap),
         _ => None,
     }
 }
 
 fn single_tuple_inner(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
-    match get_the_one((*pats).iter().enumerate()) {
-        field @ Some(Fields::Index(index)) => {
-            // Skip (.., x) - the meaning of let (.., x) = t and t.n are different
-            if (*leap).map_or(true, |leap_index| leap_index > index) {
-                field
-            } else {
-                None
+    get_one_index(*pats).and_then(|field| {
+        if let Fields::Index(index, ..) = field {
+            if let Some(leap_index) = *leap {
+                if leap_index <= index {
+                    return None;
+                }
             }
-        },
-        field @ Some(Fields::Unused) => field,
-        _ => None,
-    }
+        }
+        Some(field)
+    })
 }
 
 fn single_tuple(pat: &PatKind<'_>) -> Option<Fields> {
@@ -103,7 +123,7 @@ fn single_tuple(pat: &PatKind<'_>) -> Option<Fields> {
 fn single_slice(pat: &PatKind<'_>) -> Option<Fields> {
     if let PatKind::Slice(before, dots, after) = pat {
         if dots.is_none() || after.len() == 0 {
-            return get_the_one(before.iter().enumerate());
+            return get_one_index(before);
         }
     }
     None
@@ -114,11 +134,13 @@ fn walk_until_single_field_leaf<'hir>(
     get_leaf: &impl Fn(&PatKind<'hir>) -> Option<Fields>,
 ) -> Option<Fields> {
     let mut fields = patterns
+        // add span of this too
         .map(|pat| match &pat.kind {
             PatKind::Or(pats) => walk_until_single_field_leaf(pats.iter(), get_leaf),
             PatKind::Wild => Some(Fields::Unused),
             p => get_leaf(p),
         })
+        // stop filtering
         .filter(|field| *field != Some(Fields::Unused));
     if let Some(the_one) = fields.next() {
         if fields.all(|other| other == the_one) {
@@ -127,6 +149,7 @@ fn walk_until_single_field_leaf<'hir>(
             None
         }
     } else {
+        // emit warning saying useless match
         Some(Fields::Unused)
     }
 }
