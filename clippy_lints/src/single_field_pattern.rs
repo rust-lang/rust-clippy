@@ -79,12 +79,11 @@ fn get_sf<'a, ID: IntoSingleField>(mut iter: impl Iterator<Item = (ID, &'a Pat<'
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
         Some((index, pat)) => {
-            for (_, other_pat) in iter {
-                if !matches!(other_pat.kind, PatKind::Wild) {
-                    return None;
-                }
+            if iter.all(|(_, other)| matches!(other.kind, PatKind::Wild)) {
+                Some(index.into_sf(pat.span))
+            } else {
+                None
             }
-            Some(index.into_sf(pat.span))
         },
         None => Some(SingleField::Unused),
     }
@@ -172,25 +171,53 @@ fn find_sf_lint<'hir>(
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
     leaf_sf: &impl Fn(&PatKind<'hir>) -> Option<SingleField>,
 ) -> Option<SingleField> {
-    // todo - return an Option<Fields, Vec<(Span, Span)>> - previous for the scrutinee, latter to
-    // replace patterns appropriately - 2 spans to map a pattern span to a struct match span
-    let mut fields = FlatPatterns::new(patterns).map(|p| {
-        if matches!(p.kind, PatKind::Wild) {
-            Some(SingleField::Unused) // todo: add pat span so we can replace it
-        } else {
-            leaf_sf(&p.kind)
-        }
+    let fields = FlatPatterns::new(patterns).map(|p| {
+        (
+            p.span,
+            if matches!(p.kind, PatKind::Wild) {
+                Some(SingleField::Unused)
+            } else {
+                leaf_sf(&p.kind)
+            },
+        )
     });
-    // todo: handle initial unused case - this should be the first one with an actual field
-    if let Some(the_one) = fields.next() {
-        if fields.all(|other| other == the_one || matches!(other, Some(SingleField::Unused))) {
-            the_one
+    // if we can somehow replace this operation and this vec with an iterator, that'd be nice
+    // this is slightly difficult because it's a two-part operation
+    // prior = iter.as_ref().find_partition(...first id...)
+    // latter = iter.
+    let mut spans = Vec::<(Span, Option<Span>)>::new();
+    let mut the_one: Option<SingleField> = None;
+    for (target, sf) in fields {
+        if let Some(sf) = sf {
+            match sf {
+                SingleField::Unused => {
+                    // this doesn't work if all fields are unused
+                    // Maybe out of scope, but not handled by another lint?
+                    spans.push((target, None));
+                },
+                SingleField::Id { pattern, .. } | SingleField::Index { pattern, .. } => {
+                    spans.push((target, Some(pattern)));
+                    if let Some(one) = the_one {
+                        if sf != one {
+                            return None;
+                        }
+                    } else {
+                        the_one = Some(sf);
+                    }
+                },
+            }
+        } else {
+            return None;
+        }
+    }
+    if the_one.is_none() {
+        if spans.len() > 0 {
+            Some(SingleField::Unused)
         } else {
             None
         }
     } else {
-        // This should only happen if patterns is empty
-        None
+        the_one
     }
 }
 
