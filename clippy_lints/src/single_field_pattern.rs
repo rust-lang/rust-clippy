@@ -59,23 +59,23 @@ impl SingleField {
     }
 }
 
-trait IntoFields {
-    fn into_fields(self, span: Span) -> SingleField;
+trait IntoSingleField {
+    fn into_sf(self, span: Span) -> SingleField;
 }
 
-impl IntoFields for Ident {
-    fn into_fields(self, pattern: Span) -> SingleField {
+impl IntoSingleField for Ident {
+    fn into_sf(self, pattern: Span) -> SingleField {
         SingleField::Id { id: self, pattern }
     }
 }
 
-impl IntoFields for usize {
-    fn into_fields(self, pattern: Span) -> SingleField {
+impl IntoSingleField for usize {
+    fn into_sf(self, pattern: Span) -> SingleField {
         SingleField::Index { index: self, pattern }
     }
 }
 
-fn get_sf<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<SingleField> {
+fn get_sf<'a, ID: IntoSingleField>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<SingleField> {
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
         Some((index, pat)) => {
@@ -84,7 +84,7 @@ fn get_sf<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>)
                     return None;
                 }
             }
-            Some(index.into_fields(pat.span))
+            Some(index.into_sf(pat.span))
         },
         None => Some(SingleField::Unused),
     }
