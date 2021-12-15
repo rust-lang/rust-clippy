@@ -30,7 +30,7 @@ declare_lint_pass!(SingleFieldPattern => [SINGLE_FIELD_PATTERN]);
 
 #[derive(Debug, Clone, Copy)]
 enum Fields {
-    Id(Ident, Span),
+    Id(Ident, Span), // these are the pattern span - for possible conversion to string
     Index(usize, Span),
     Unused,
 }
@@ -59,8 +59,23 @@ impl Fields {
     }
 }
 
-fn get_one_index(pats: &[Pat<'a>]) -> Option<Fields> {
-    let mut iter = pats.iter().enumerate();
+trait IntoFields {
+    fn into_fields(self, span: Span) -> Fields;
+}
+
+impl IntoFields for Ident {
+    fn into_fields(self, span: Span) -> Fields {
+        Fields::Id(self, span)
+    }
+}
+
+impl IntoFields for usize {
+    fn into_fields(self, span: Span) -> Fields {
+        Fields::Index(self, span)
+    }
+}
+
+fn get_the_one<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<Fields> {
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
         Some((index, pat)) => {
@@ -69,23 +84,7 @@ fn get_one_index(pats: &[Pat<'a>]) -> Option<Fields> {
                     return None;
                 }
             }
-            Some(Fields::Index(index, pat.span))
-        },
-        None => Some(Fields::Unused),
-    }
-}
-
-fn get_one_id(pats: &[PatField<'a>]) -> Option<Fields> {
-    let mut iter = pats.iter();
-    let one = iter.by_ref().find(|field| !matches!(field.pat.kind, PatKind::Wild));
-    match one {
-        Some(field) => {
-            for other in iter {
-                if !matches!(other.pat.kind, PatKind::Wild) {
-                    return None;
-                }
-            }
-            Some(Fields::Id(field.ident, field.pat.span))
+            Some(index.into_fields(pat.span))
         },
         None => Some(Fields::Unused),
     }
@@ -93,14 +92,14 @@ fn get_one_id(pats: &[PatField<'a>]) -> Option<Fields> {
 
 fn single_struct(pat: &PatKind<'_>) -> Option<Fields> {
     match pat {
-        PatKind::Struct(_, pats, _) => get_one_id(pats),
+        PatKind::Struct(_, pats, _) => get_the_one(pats.iter().map(|field| (field.ident, field.pat))),
         PatKind::TupleStruct(_, pats, leap) => single_tuple_inner(pats, leap),
         _ => None,
     }
 }
 
 fn single_tuple_inner(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
-    get_one_index(*pats).and_then(|field| {
+    get_the_one(pats.iter().enumerate()).and_then(|field| {
         if let Fields::Index(index, ..) = field {
             if let Some(leap_index) = *leap {
                 if leap_index <= index {
@@ -123,34 +122,73 @@ fn single_tuple(pat: &PatKind<'_>) -> Option<Fields> {
 fn single_slice(pat: &PatKind<'_>) -> Option<Fields> {
     if let PatKind::Slice(before, dots, after) = pat {
         if dots.is_none() || after.len() == 0 {
-            return get_one_index(before);
+            return get_the_one(before.iter().enumerate());
         }
     }
     None
+}
+
+/// This handles recursive patterns and flattens them out lazily
+/// That basically just means handling stuff like 1 | (2 | 9) | 3..5
+struct FlatPatterns<'hir, I>
+where
+    I: Iterator<Item = &'hir Pat<'hir>>,
+{
+    patterns: I,
+    stack: Vec<&'hir Pat<'hir>>,
+}
+
+impl<I: Iterator<Item = &'hir Pat<'hir>>> FlatPatterns<'hir, I> {
+    fn new(patterns: I) -> Self {
+        Self {
+            patterns,
+            stack: Vec::new(),
+        }
+    }
+}
+
+impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
+    type Item = &'hir Pat<'hir>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.stack.len() == 0 {
+            if let Some(pat) = self.patterns.next() {
+                self.stack.push(pat);
+            } else {
+                return None;
+            }
+        }
+        while let Some(pat) = self.stack.pop() {
+            match pat.kind {
+                PatKind::Or(pats) => self.stack.extend(pats),
+                _ => return Some(pat),
+            }
+        }
+        None
+    }
 }
 
 fn walk_until_single_field_leaf<'hir>(
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
     get_leaf: &impl Fn(&PatKind<'hir>) -> Option<Fields>,
 ) -> Option<Fields> {
-    let mut fields = patterns
-        // add span of this too
-        .map(|pat| match &pat.kind {
-            PatKind::Or(pats) => walk_until_single_field_leaf(pats.iter(), get_leaf),
-            PatKind::Wild => Some(Fields::Unused),
-            p => get_leaf(p),
-        })
-        // stop filtering
-        .filter(|field| *field != Some(Fields::Unused));
+    let mut fields = FlatPatterns::new(patterns).map(|p| {
+        if matches!(p.kind, PatKind::Wild) {
+            Some(Fields::Unused) // todo: add pat span so we can replace it
+        } else {
+            get_leaf(&p.kind)
+        }
+    });
     if let Some(the_one) = fields.next() {
-        if fields.all(|other| other == the_one) {
+        if fields.all(|other| other == the_one || matches!(other, Some(Fields::Unused))) {
             the_one
         } else {
             None
         }
     } else {
-        // emit warning saying useless match
-        Some(Fields::Unused)
+        // This should only happen if the first one was None
+        // In which case we have one with 2+ and don't have a lint
+        None
     }
 }
 
