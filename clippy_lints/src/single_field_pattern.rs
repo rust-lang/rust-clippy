@@ -90,14 +90,6 @@ fn get_sf<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>)
     }
 }
 
-fn struct_sf(pat: &PatKind<'_>) -> Option<SingleField> {
-    match pat {
-        PatKind::Struct(_, pats, _) => get_sf(pats.iter().map(|field| (field.ident, field.pat))),
-        PatKind::TupleStruct(_, pats, leap) => inner_tuple_sf(pats, leap),
-        _ => None,
-    }
-}
-
 fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<SingleField> {
     get_sf(pats.iter().enumerate()).and_then(|field| {
         if let SingleField::Index { index, .. } = field {
@@ -109,6 +101,14 @@ fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<SingleField
         }
         Some(field)
     })
+}
+
+fn struct_sf(pat: &PatKind<'_>) -> Option<SingleField> {
+    match pat {
+        PatKind::Struct(_, pats, _) => get_sf(pats.iter().map(|field| (field.ident, field.pat))),
+        PatKind::TupleStruct(_, pats, leap) => inner_tuple_sf(pats, leap),
+        _ => None,
+    }
 }
 
 fn tuple_sf(pat: &PatKind<'_>) -> Option<SingleField> {
