@@ -75,7 +75,7 @@ impl IntoFields for usize {
     }
 }
 
-fn get_the_one<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<Fields> {
+fn get_sf<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<Fields> {
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
         Some((index, pat)) => {
@@ -90,16 +90,16 @@ fn get_the_one<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'
     }
 }
 
-fn single_struct(pat: &PatKind<'_>) -> Option<Fields> {
+fn struct_sf(pat: &PatKind<'_>) -> Option<Fields> {
     match pat {
-        PatKind::Struct(_, pats, _) => get_the_one(pats.iter().map(|field| (field.ident, field.pat))),
-        PatKind::TupleStruct(_, pats, leap) => single_tuple_inner(pats, leap),
+        PatKind::Struct(_, pats, _) => get_sf(pats.iter().map(|field| (field.ident, field.pat))),
+        PatKind::TupleStruct(_, pats, leap) => inner_tuple_sf(pats, leap),
         _ => None,
     }
 }
 
-fn single_tuple_inner(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
-    get_the_one(pats.iter().enumerate()).and_then(|field| {
+fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
+    get_sf(pats.iter().enumerate()).and_then(|field| {
         if let Fields::Index(index, ..) = field {
             if let Some(leap_index) = *leap {
                 if leap_index <= index {
@@ -111,18 +111,18 @@ fn single_tuple_inner(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields>
     })
 }
 
-fn single_tuple(pat: &PatKind<'_>) -> Option<Fields> {
+fn tuple_sf(pat: &PatKind<'_>) -> Option<Fields> {
     if let PatKind::Tuple(pats, leap) = pat {
-        single_tuple_inner(pats, leap)
+        inner_tuple_sf(pats, leap)
     } else {
         None
     }
 }
 
-fn single_slice(pat: &PatKind<'_>) -> Option<Fields> {
+fn slice_sf(pat: &PatKind<'_>) -> Option<Fields> {
     if let PatKind::Slice(before, dots, after) = pat {
         if dots.is_none() || after.len() == 0 {
-            return get_the_one(before.iter().enumerate());
+            return get_sf(before.iter().enumerate());
         }
     }
     None
@@ -168,17 +168,20 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
     }
 }
 
-fn walk_until_single_field_leaf<'hir>(
+fn find_sf_lint<'hir>(
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
-    get_leaf: &impl Fn(&PatKind<'hir>) -> Option<Fields>,
+    leaf_sf: &impl Fn(&PatKind<'hir>) -> Option<Fields>,
 ) -> Option<Fields> {
+    // todo - return an Option<Fields, Vec<(Span, Span)>> - previous for the scrutinee, latter to
+    // replace patterns appropriately - 2 spans to map a pattern span to a struct match span
     let mut fields = FlatPatterns::new(patterns).map(|p| {
         if matches!(p.kind, PatKind::Wild) {
             Some(Fields::Unused) // todo: add pat span so we can replace it
         } else {
-            get_leaf(&p.kind)
+            leaf_sf(&p.kind)
         }
     });
+    // todo: handle initial unused case - this should be the first one with an actual field
     if let Some(the_one) = fields.next() {
         if fields.all(|other| other == the_one || matches!(other, Some(Fields::Unused))) {
             the_one
@@ -186,25 +189,24 @@ fn walk_until_single_field_leaf<'hir>(
             None
         }
     } else {
-        // This should only happen if the first one was None
-        // In which case we have one with 2+ and don't have a lint
+        // This should only happen if patterns is empty
         None
     }
 }
 
-fn find_single_pattern<'hir>(ty: &ty::TyKind<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) -> Option<Fields> {
+fn typed_sf_lint<'hir>(ty: &ty::TyKind<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) -> Option<Fields> {
     match ty {
         ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.variants.raw.len() == 1 => {
-            walk_until_single_field_leaf(patterns, &single_struct)
+            find_sf_lint(patterns, &struct_sf)
         },
-        ty::TyKind::Array(..) => walk_until_single_field_leaf(patterns, &single_slice),
-        ty::TyKind::Tuple(..) => walk_until_single_field_leaf(patterns, &single_tuple),
+        ty::TyKind::Array(..) => find_sf_lint(patterns, &slice_sf),
+        ty::TyKind::Tuple(..) => find_sf_lint(patterns, &tuple_sf),
         _ => None,
     }
 }
 
-fn expr_helper<'hir>(cx: &LateContext<'_>, scrutinee: &Expr<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) {
-    find_single_pattern(cx.typeck_results().expr_ty(scrutinee).kind(), patterns)
+fn expr_sf_lint<'hir>(cx: &LateContext<'_>, scrutinee: &Expr<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) {
+    typed_sf_lint(cx.typeck_results().expr_ty(scrutinee).kind(), patterns)
         .map(|pattern| pattern.lint(cx, scrutinee.span));
 }
 
@@ -215,12 +217,12 @@ impl LateLintPass<'_> for SingleFieldPattern {
         }
         match IfLetOrMatch::parse(cx, expr) {
             Some(IfLetOrMatch::Match(scrutinee, arms, MatchSource::Normal)) => {
-                expr_helper(cx, scrutinee, arms.iter().map(|arm| arm.pat))
+                expr_sf_lint(cx, scrutinee, arms.iter().map(|arm| arm.pat))
             },
-            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => expr_helper(cx, scrutinee, once(pat)),
+            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => expr_sf_lint(cx, scrutinee, once(pat)),
             _ => {
                 if let Some(WhileLet { let_pat, let_expr, .. }) = WhileLet::hir(expr) {
-                    expr_helper(cx, let_expr, once(let_pat))
+                    expr_sf_lint(cx, let_expr, once(let_pat))
                 }
             },
         };
@@ -238,7 +240,7 @@ impl LateLintPass<'_> for SingleFieldPattern {
             } else {
                 return;
             };
-            find_single_pattern(scrut_type, once(*pat)).map(|field| field.lint(cx, stmt.span));
+            typed_sf_lint(scrut_type, once(*pat)).map(|field| field.lint(cx, stmt.span));
         }
     }
 }
