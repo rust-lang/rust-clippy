@@ -29,15 +29,15 @@ declare_clippy_lint! {
 declare_lint_pass!(SingleFieldPattern => [SINGLE_FIELD_PATTERN]);
 
 #[derive(Debug, Clone, Copy)]
-enum Fields {
+enum SingleField {
     Id { id: Ident, pattern: Span },
     Index { index: usize, pattern: Span },
     Unused,
 }
-use Fields::*;
 
-impl PartialEq for Fields {
+impl PartialEq for SingleField {
     fn eq(&self, other: &Self) -> bool {
+        use SingleField::*;
         match (self, other) {
             (Id { id: id1, .. }, Id { id: id2, .. }) => id1 == id2,
             (Index { index: index1, .. }, Index { index: index2, .. }) => index1 == index2,
@@ -47,7 +47,7 @@ impl PartialEq for Fields {
     }
 }
 
-impl Fields {
+impl SingleField {
     // Todo - auto-fix - I'll need to add span and strings into SingleField
     fn lint(self, cx: &LateContext<'_>, span: impl Into<MultiSpan>) {
         span_lint(
@@ -60,22 +60,22 @@ impl Fields {
 }
 
 trait IntoFields {
-    fn into_fields(self, span: Span) -> Fields;
+    fn into_fields(self, span: Span) -> SingleField;
 }
 
 impl IntoFields for Ident {
-    fn into_fields(self, pattern: Span) -> Fields {
-        Fields::Id { id: self, pattern }
+    fn into_fields(self, pattern: Span) -> SingleField {
+        SingleField::Id { id: self, pattern }
     }
 }
 
 impl IntoFields for usize {
-    fn into_fields(self, pattern: Span) -> Fields {
-        Fields::Index { index: self, pattern }
+    fn into_fields(self, pattern: Span) -> SingleField {
+        SingleField::Index { index: self, pattern }
     }
 }
 
-fn get_sf<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<Fields> {
+fn get_sf<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<SingleField> {
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
         Some((index, pat)) => {
@@ -86,11 +86,11 @@ fn get_sf<'a, ID: IntoFields>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>)
             }
             Some(index.into_fields(pat.span))
         },
-        None => Some(Fields::Unused),
+        None => Some(SingleField::Unused),
     }
 }
 
-fn struct_sf(pat: &PatKind<'_>) -> Option<Fields> {
+fn struct_sf(pat: &PatKind<'_>) -> Option<SingleField> {
     match pat {
         PatKind::Struct(_, pats, _) => get_sf(pats.iter().map(|field| (field.ident, field.pat))),
         PatKind::TupleStruct(_, pats, leap) => inner_tuple_sf(pats, leap),
@@ -98,9 +98,9 @@ fn struct_sf(pat: &PatKind<'_>) -> Option<Fields> {
     }
 }
 
-fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
+fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<SingleField> {
     get_sf(pats.iter().enumerate()).and_then(|field| {
-        if let Fields::Index { index, .. } = field {
+        if let SingleField::Index { index, .. } = field {
             if let Some(leap_index) = *leap {
                 if leap_index <= index {
                     return None;
@@ -111,7 +111,7 @@ fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
     })
 }
 
-fn tuple_sf(pat: &PatKind<'_>) -> Option<Fields> {
+fn tuple_sf(pat: &PatKind<'_>) -> Option<SingleField> {
     if let PatKind::Tuple(pats, leap) = pat {
         inner_tuple_sf(pats, leap)
     } else {
@@ -119,7 +119,7 @@ fn tuple_sf(pat: &PatKind<'_>) -> Option<Fields> {
     }
 }
 
-fn slice_sf(pat: &PatKind<'_>) -> Option<Fields> {
+fn slice_sf(pat: &PatKind<'_>) -> Option<SingleField> {
     if let PatKind::Slice(before, dots, after) = pat {
         if dots.is_none() || after.len() == 0 {
             return get_sf(before.iter().enumerate());
@@ -170,20 +170,20 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
 
 fn find_sf_lint<'hir>(
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
-    leaf_sf: &impl Fn(&PatKind<'hir>) -> Option<Fields>,
-) -> Option<Fields> {
+    leaf_sf: &impl Fn(&PatKind<'hir>) -> Option<SingleField>,
+) -> Option<SingleField> {
     // todo - return an Option<Fields, Vec<(Span, Span)>> - previous for the scrutinee, latter to
     // replace patterns appropriately - 2 spans to map a pattern span to a struct match span
     let mut fields = FlatPatterns::new(patterns).map(|p| {
         if matches!(p.kind, PatKind::Wild) {
-            Some(Fields::Unused) // todo: add pat span so we can replace it
+            Some(SingleField::Unused) // todo: add pat span so we can replace it
         } else {
             leaf_sf(&p.kind)
         }
     });
     // todo: handle initial unused case - this should be the first one with an actual field
     if let Some(the_one) = fields.next() {
-        if fields.all(|other| other == the_one || matches!(other, Some(Fields::Unused))) {
+        if fields.all(|other| other == the_one || matches!(other, Some(SingleField::Unused))) {
             the_one
         } else {
             None
@@ -194,7 +194,7 @@ fn find_sf_lint<'hir>(
     }
 }
 
-fn typed_sf_lint<'hir>(ty: &ty::TyKind<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) -> Option<Fields> {
+fn typed_sf_lint<'hir>(ty: &ty::TyKind<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) -> Option<SingleField> {
     match ty {
         ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.variants.raw.len() == 1 => {
             find_sf_lint(patterns, &struct_sf)
