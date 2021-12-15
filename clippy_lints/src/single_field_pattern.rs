@@ -30,8 +30,8 @@ declare_lint_pass!(SingleFieldPattern => [SINGLE_FIELD_PATTERN]);
 
 #[derive(Debug, Clone, Copy)]
 enum Fields {
-    Id(Ident, Span), // these are the pattern span - for possible conversion to string
-    Index(usize, Span),
+    Id { id: Ident, pattern: Span },
+    Index { index: usize, pattern: Span },
     Unused,
 }
 use Fields::*;
@@ -39,8 +39,8 @@ use Fields::*;
 impl PartialEq for Fields {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Id(id1, ..), Id(id2, ..)) => id1 == id2,
-            (Index(index1, ..), Index(index2, ..)) => index1 == index2,
+            (Id { id: id1, .. }, Id { id: id2, .. }) => id1 == id2,
+            (Index { index: index1, .. }, Index { index: index2, .. }) => index1 == index2,
             (Unused, Unused) => true,
             _ => false,
         }
@@ -64,14 +64,14 @@ trait IntoFields {
 }
 
 impl IntoFields for Ident {
-    fn into_fields(self, span: Span) -> Fields {
-        Fields::Id(self, span)
+    fn into_fields(self, pattern: Span) -> Fields {
+        Fields::Id { id: self, pattern }
     }
 }
 
 impl IntoFields for usize {
-    fn into_fields(self, span: Span) -> Fields {
-        Fields::Index(self, span)
+    fn into_fields(self, pattern: Span) -> Fields {
+        Fields::Index { index: self, pattern }
     }
 }
 
@@ -100,7 +100,7 @@ fn struct_sf(pat: &PatKind<'_>) -> Option<Fields> {
 
 fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<Fields> {
     get_sf(pats.iter().enumerate()).and_then(|field| {
-        if let Fields::Index(index, ..) = field {
+        if let Fields::Index { index, .. } = field {
             if let Some(leap_index) = *leap {
                 if leap_index <= index {
                     return None;
