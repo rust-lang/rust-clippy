@@ -17,10 +17,9 @@ use std::iter::once;
 declare_clippy_lint! {
     /// ### What it does
     ///  Checks for patterns that only use a single field when they could directly access the field
-    /// (note: it intentionally doesn't match [.., x] because that can be less cumbersome than a[6028])
     ///
     /// ### Why is this bad?
-    ///  It requires more and/or redundant information than directly accessing the field.
+    ///  It requires more information than directly accessing the field.
     ///
     /// ### Example
     /// ```rust
