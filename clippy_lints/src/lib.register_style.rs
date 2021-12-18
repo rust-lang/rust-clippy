@@ -99,7 +99,7 @@ store.register_group(true, "clippy::style", Some("clippy_style"), vec![
     LintId::of(returns::NEEDLESS_RETURN),
     LintId::of(self_named_constructors::SELF_NAMED_CONSTRUCTORS),
     LintId::of(single_component_path_imports::SINGLE_COMPONENT_PATH_IMPORTS),
-    LintId::of(single_field_pattern::SINGLE_FIELD_PATTERN),
+    LintId::of(single_field_patterns::SINGLE_FIELD_PATTERNS),
     LintId::of(tabs_in_doc_comments::TABS_IN_DOC_COMMENTS),
     LintId::of(to_digit_is_some::TO_DIGIT_IS_SOME),
     LintId::of(try_err::TRY_ERR),

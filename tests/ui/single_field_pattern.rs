@@ -1,4 +1,4 @@
-#![warn(clippy::single_field_pattern)]
+#![warn(clippy::single_field_patterns)]
 struct Struct {
     field1: Option<i32>,
     field2: Option<i32>,

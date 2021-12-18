@@ -1,11 +1,17 @@
 #![allow(rustc::usage_of_ty_tykind)]
 
-use clippy_utils::{diagnostics::span_lint, higher::IfLetOrMatch, higher::WhileLet};
+use clippy_utils::{
+    diagnostics::{multispan_sugg_with_applicability, span_lint_and_then},
+    higher::IfLetOrMatch,
+    higher::WhileLet,
+    source::snippet_opt,
+};
+use rustc_errors::Applicability;
 use rustc_hir::*;
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::{symbol::Ident, MultiSpan, Span};
+use rustc_span::{symbol::Ident, Span};
 use std::iter::once;
 
 declare_clippy_lint! {
@@ -22,17 +28,17 @@ declare_clippy_lint! {
     /// // example code which does not raise clippy warning
     /// ```
     #[clippy::version = "1.59.0"]
-    pub SINGLE_FIELD_PATTERN,
+    pub SINGLE_FIELD_PATTERNS,
     style,
     "default lint description"
 }
-declare_lint_pass!(SingleFieldPattern => [SINGLE_FIELD_PATTERN]);
+declare_lint_pass!(SingleFieldPatterns => [SINGLE_FIELD_PATTERNS]);
 
 #[derive(Debug, Clone, Copy)]
 enum SingleField {
     Id { id: Ident, pattern: Span },
     Index { index: usize, pattern: Span },
-    Unused,
+    Unused, // The name "SingleField" is a lie but idk what's better. "AtMostOneField"?
 }
 
 impl PartialEq for SingleField {
@@ -44,18 +50,6 @@ impl PartialEq for SingleField {
             (Unused, Unused) => true,
             _ => false,
         }
-    }
-}
-
-impl SingleField {
-    // Todo - auto-fix - I'll need to add span and strings into SingleField
-    fn lint(self, cx: &LateContext<'_>, span: impl Into<MultiSpan>) {
-        span_lint(
-            cx,
-            SINGLE_FIELD_PATTERN,
-            span,
-            "pattern matching just to get a single field",
-        );
     }
 }
 
@@ -167,10 +161,11 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
     }
 }
 
-fn find_sf_lint<'hir>(
+fn find_sf_lint<'hir, T: LintContext>(
+    cx: &T,
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
     leaf_sf: &impl Fn(&PatKind<'hir>) -> Option<SingleField>,
-) -> Option<SingleField> {
+) -> Option<(SingleField, Vec<(Span, String)>)> {
     let fields = FlatPatterns::new(patterns).map(|p| {
         (
             p.span,
@@ -185,7 +180,7 @@ fn find_sf_lint<'hir>(
     // this is slightly difficult because it's a two-part operation
     // prior = iter.as_ref().find_partition(...first id...)
     // latter = iter.
-    let mut spans = Vec::<(Span, Option<Span>)>::new();
+    let mut spans = Vec::<(Span, String)>::new();
     let mut the_one: Option<SingleField> = None;
     for (target, sf) in fields {
         if let Some(sf) = sf {
@@ -193,10 +188,14 @@ fn find_sf_lint<'hir>(
                 SingleField::Unused => {
                     // this doesn't work if all fields are unused
                     // Maybe out of scope, but not handled by another lint?
-                    spans.push((target, None));
+                    spans.push((target, String::from("_")));
                 },
                 SingleField::Id { pattern, .. } | SingleField::Index { pattern, .. } => {
-                    spans.push((target, Some(pattern)));
+                    if let Some(str) = snippet_opt(cx, pattern) {
+                        spans.push((target, str));
+                    } else {
+                        return None;
+                    }
                     if let Some(one) = the_one {
                         if sf != one {
                             return None;
@@ -210,46 +209,98 @@ fn find_sf_lint<'hir>(
             return None;
         }
     }
-    if the_one.is_none() {
-        if spans.len() > 0 {
-            Some(SingleField::Unused)
-        } else {
-            None
-        }
+    if spans.len() > 0 {
+        Some((the_one.unwrap_or(SingleField::Unused), spans))
     } else {
-        the_one
+        None
     }
 }
 
-fn typed_sf_lint<'hir>(ty: &ty::TyKind<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) -> Option<SingleField> {
+fn apply_lint<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Item = (Span, String)>) {
+    span_lint_and_then(
+        cx,
+        SINGLE_FIELD_PATTERNS,
+        span,
+        "use at most 1 of field in this pattern - consider indexing it",
+        |diag| {
+            multispan_sugg_with_applicability(diag, "try this", Applicability::MachineApplicable, sugg);
+        },
+    );
+}
+
+fn typed_sf_lint<'hir, T: LintContext>(
+    cx: &T,
+    overall_span: Span,
+    scrutinee_span: Span,
+    ty: &ty::TyKind<'_>,
+    patterns: impl Iterator<Item = &'hir Pat<'hir>>,
+) {
+    let scrutinee_name = if let Some(name) = snippet_opt(cx, scrutinee_span) {
+        name
+    } else {
+        return;
+    };
     match ty {
         ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.variants.raw.len() == 1 => {
-            find_sf_lint(patterns, &struct_sf)
+            if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &struct_sf) {
+                if let SingleField::Id { id, .. } = field {
+                    spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, id.as_str())));
+                    apply_lint(cx, overall_span, spans);
+                } else if let SingleField::Index { index, .. } = field {
+                    spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
+                    apply_lint(cx, overall_span, spans);
+                }
+            }
         },
-        ty::TyKind::Array(..) => find_sf_lint(patterns, &slice_sf),
-        ty::TyKind::Tuple(..) => find_sf_lint(patterns, &tuple_sf),
-        _ => None,
-    }
+        ty::TyKind::Array(..) => {
+            if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &slice_sf) {
+                if let SingleField::Index { index, .. } = field {
+                    spans.push((scrutinee_span, format!("{}[{}]", scrutinee_name, index)));
+                    apply_lint(cx, overall_span, spans);
+                }
+            }
+        },
+        ty::TyKind::Tuple(..) => {
+            if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &tuple_sf) {
+                if let SingleField::Index { index, .. } = field {
+                    spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
+                    apply_lint(cx, overall_span, spans);
+                }
+            }
+        },
+        _ => (),
+    };
 }
 
-fn expr_sf_lint<'hir>(cx: &LateContext<'_>, scrutinee: &Expr<'_>, patterns: impl Iterator<Item = &'hir Pat<'hir>>) {
-    typed_sf_lint(cx.typeck_results().expr_ty(scrutinee).kind(), patterns)
-        .map(|pattern| pattern.lint(cx, scrutinee.span));
+fn expr_sf_lint<'hir>(
+    cx: &LateContext<'_>,
+    overall_span: Span,
+    scrutinee: &Expr<'_>,
+    patterns: impl Iterator<Item = &'hir Pat<'hir>>,
+) {
+    typed_sf_lint(
+        cx,
+        overall_span,
+        scrutinee.span,
+        cx.typeck_results().expr_ty(scrutinee).kind(),
+        patterns,
+    );
 }
 
-impl LateLintPass<'_> for SingleFieldPattern {
+impl LateLintPass<'_> for SingleFieldPatterns {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         if expr.span.from_expansion() {
             return;
         }
         match IfLetOrMatch::parse(cx, expr) {
             Some(IfLetOrMatch::Match(scrutinee, arms, MatchSource::Normal)) => {
-                expr_sf_lint(cx, scrutinee, arms.iter().map(|arm| arm.pat))
+                expr_sf_lint(cx, expr.span, scrutinee, arms.iter().map(|arm| arm.pat));
             },
-            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => expr_sf_lint(cx, scrutinee, once(pat)),
+            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => expr_sf_lint(cx, expr.span, scrutinee, once(pat)),
             _ => {
+                // todo for maybe, other missing patterns
                 if let Some(WhileLet { let_pat, let_expr, .. }) = WhileLet::hir(expr) {
-                    expr_sf_lint(cx, let_expr, once(let_pat))
+                    expr_sf_lint(cx, expr.span, let_expr, once(let_pat));
                 }
             },
         };
@@ -259,15 +310,16 @@ impl LateLintPass<'_> for SingleFieldPattern {
         if stmt.span.from_expansion() {
             return;
         }
-        if let StmtKind::Local(Local { pat, ty, init, .. }) = stmt.kind {
-            let scrut_type = if let Some(t) = *ty {
-                cx.typeck_results().node_type(t.hir_id).kind()
-            } else if let Some(e) = init {
-                cx.typeck_results().expr_ty(e).kind()
-            } else {
-                return;
-            };
-            typed_sf_lint(scrut_type, once(*pat)).map(|field| field.lint(cx, stmt.span));
+        if let StmtKind::Local(Local { pat, init, .. }) = stmt.kind {
+            if let Some(scrutinee) = init {
+                typed_sf_lint(
+                    cx,
+                    stmt.span,
+                    scrutinee.span,
+                    cx.typeck_results().expr_ty(scrutinee).kind(),
+                    once(*pat),
+                );
+            }
         }
     }
 }
