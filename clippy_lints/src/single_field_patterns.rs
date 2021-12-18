@@ -40,7 +40,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.59.0"]
     pub SINGLE_FIELD_PATTERNS,
     style,
-    "default lint description"
+    "single-field patterns"
 }
 declare_lint_pass!(SingleFieldPatterns => [SINGLE_FIELD_PATTERNS]);
 
