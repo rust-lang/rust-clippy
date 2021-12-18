@@ -16,7 +16,7 @@ use std::iter::once;
 
 declare_clippy_lint! {
     /// ### What it does
-    ///  Checks for patterns that only use a single field when they could directly access the field
+    ///  Checks for patterns that only use a single field when they could directly access the field.
     ///
     /// ### Why is this bad?
     ///  It requires more information than directly accessing the field.
