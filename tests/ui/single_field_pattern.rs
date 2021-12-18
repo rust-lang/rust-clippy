@@ -5,7 +5,6 @@ struct Struct {
 }
 
 fn lint_struct(struct1: Struct) {
-    let Struct { .. } = struct1;
     let Struct { field1, .. } = struct1;
     let Struct { field1, field2: _ } = struct1;
     match struct1 {
@@ -73,6 +72,7 @@ fn lint_array(array: [i32; 3]) {
 }
 
 fn ok_struct(struct1: Struct) {
+    let _ = struct1;
     let Struct { field1, field2, .. } = struct1;
     let Struct { field1, field2 } = struct1;
     match struct1 {

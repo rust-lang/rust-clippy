@@ -196,8 +196,6 @@ fn find_sf_lint<'hir, T: LintContext>(
         if let Some(sf) = sf {
             match sf {
                 SingleField::Unused => {
-                    // this doesn't work if all fields are unused
-                    // Maybe out of scope, but not handled by another lint?
                     spans.push((target, String::from("_")));
                 },
                 SingleField::Id { pattern, .. } | SingleField::Index { pattern, .. } => {
@@ -219,11 +217,7 @@ fn find_sf_lint<'hir, T: LintContext>(
             return None;
         }
     }
-    if spans.len() > 0 {
-        Some((the_one.unwrap_or(SingleField::Unused), spans))
-    } else {
-        None
-    }
+    the_one.map(|one| (one, spans))
 }
 
 fn apply_lint_sf<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Item = (Span, String)>) {
@@ -235,15 +229,6 @@ fn apply_lint_sf<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Ite
         |diag| {
             multispan_sugg_with_applicability(diag, "try this", Applicability::MachineApplicable, sugg);
         },
-    );
-}
-
-fn apply_lint_zero_fields<T: LintContext>(cx: &T, span: Span) {
-    span_lint(
-        cx,
-        SINGLE_FIELD_PATTERNS,
-        span,
-        "this single-variant pattern matches no fields",
     );
 }
 
@@ -267,41 +252,22 @@ fn typed_sf_lint<'hir, T: LintContext>(
                     match field {
                         SingleField::Id { id, .. } => format!("{}.{}", scrutinee_name, id.as_str()),
                         SingleField::Index { index, .. } => format!("{}.{}", scrutinee_name, index),
-                        SingleField::Unused => {
-                            apply_lint_zero_fields(cx, overall_span);
-                            return;
-                        },
+                        _ => return,
                     },
                 ));
                 apply_lint_sf(cx, overall_span, spans);
             }
         },
         ty::TyKind::Array(..) => {
-            if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &slice_sf) {
-                match field {
-                    SingleField::Index { index, .. } => {
-                        spans.push((scrutinee_span, format!("{}[{}]", scrutinee_name, index)));
-                        apply_lint_sf(cx, overall_span, spans);
-                    },
-                    SingleField::Unused => {
-                        apply_lint_zero_fields(cx, overall_span);
-                    },
-                    _ => { /* shouldn't happen */ },
-                }
+            if let Some((SingleField::Index { index, .. }, mut spans)) = find_sf_lint(cx, patterns, &slice_sf) {
+                spans.push((scrutinee_span, format!("{}[{}]", scrutinee_name, index)));
+                apply_lint_sf(cx, overall_span, spans);
             }
         },
         ty::TyKind::Tuple(..) => {
-            if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &tuple_sf) {
-                match field {
-                    SingleField::Index { index, .. } => {
-                        spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
-                        apply_lint_sf(cx, overall_span, spans);
-                    },
-                    SingleField::Unused => {
-                        apply_lint_zero_fields(cx, overall_span);
-                    },
-                    _ => { /* shouldn't happen */ },
-                }
+            if let Some((SingleField::Index { index, .. }, mut spans)) = find_sf_lint(cx, patterns, &tuple_sf) {
+                spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
+                apply_lint_sf(cx, overall_span, spans);
             }
         },
         _ => (),
@@ -334,7 +300,6 @@ impl LateLintPass<'_> for SingleFieldPatterns {
             },
             Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => expr_sf_lint(cx, expr.span, scrutinee, once(pat)),
             _ => {
-                // todo for maybe, other missing patterns
                 if let Some(WhileLet { let_pat, let_expr, .. }) = WhileLet::hir(expr) {
                     expr_sf_lint(cx, expr.span, let_expr, once(let_pat));
                 }
