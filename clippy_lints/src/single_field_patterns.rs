@@ -16,16 +16,27 @@ use std::iter::once;
 
 declare_clippy_lint! {
     /// ### What it does
+    ///  Checks for patterns that only use a single field when they could directly access the field
+    /// (note: it intentionally doesn't match [.., x] because that can be less cumbersome than a[6028])
     ///
     /// ### Why is this bad?
+    ///  It requires more and/or redundant information than directly accessing the field.
     ///
     /// ### Example
     /// ```rust
-    /// // example code where clippy issues a warning
+    /// match struct1 {
+    ///     Struct { field1: Some(n), .. } if n >= 50 => {},
+    ///     Struct { field1: None, .. } => {},
+    ///     _ => {},
+    /// }
     /// ```
     /// Use instead:
     /// ```rust
-    /// // example code which does not raise clippy warning
+    /// match struct1.field1 {
+    ///     Some(n) if n >= 50 => {},
+    ///     None => {},
+    ///     _ => {},
+    /// }
     /// ```
     #[clippy::version = "1.59.0"]
     pub SINGLE_FIELD_PATTERNS,
