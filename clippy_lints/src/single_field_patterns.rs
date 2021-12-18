@@ -1,7 +1,7 @@
 #![allow(rustc::usage_of_ty_tykind)]
 
 use clippy_utils::{
-    diagnostics::{multispan_sugg_with_applicability, span_lint_and_then},
+    diagnostics::{multispan_sugg_with_applicability, span_lint, span_lint_and_then},
     higher::IfLetOrMatch,
     higher::WhileLet,
     source::snippet_opt,
@@ -216,15 +216,24 @@ fn find_sf_lint<'hir, T: LintContext>(
     }
 }
 
-fn apply_lint<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Item = (Span, String)>) {
+fn apply_lint_sf<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Item = (Span, String)>) {
     span_lint_and_then(
         cx,
         SINGLE_FIELD_PATTERNS,
         span,
-        "use at most 1 of field in this pattern - consider indexing it",
+        "this single-variant pattern only matches one field",
         |diag| {
             multispan_sugg_with_applicability(diag, "try this", Applicability::MachineApplicable, sugg);
         },
+    );
+}
+
+fn apply_lint_zero_fields<T: LintContext>(cx: &T, span: Span) {
+    span_lint(
+        cx,
+        SINGLE_FIELD_PATTERNS,
+        span,
+        "this single-variant pattern matches no fields",
     );
 }
 
@@ -243,28 +252,45 @@ fn typed_sf_lint<'hir, T: LintContext>(
     match ty {
         ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.variants.raw.len() == 1 => {
             if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &struct_sf) {
-                if let SingleField::Id { id, .. } = field {
-                    spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, id.as_str())));
-                    apply_lint(cx, overall_span, spans);
-                } else if let SingleField::Index { index, .. } = field {
-                    spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
-                    apply_lint(cx, overall_span, spans);
-                }
+                spans.push((
+                    scrutinee_span,
+                    match field {
+                        SingleField::Id { id, .. } => format!("{}.{}", scrutinee_name, id.as_str()),
+                        SingleField::Index { index, .. } => format!("{}.{}", scrutinee_name, index),
+                        SingleField::Unused => {
+                            apply_lint_zero_fields(cx, overall_span);
+                            return;
+                        },
+                    },
+                ));
+                apply_lint_sf(cx, overall_span, spans);
             }
         },
         ty::TyKind::Array(..) => {
             if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &slice_sf) {
-                if let SingleField::Index { index, .. } = field {
-                    spans.push((scrutinee_span, format!("{}[{}]", scrutinee_name, index)));
-                    apply_lint(cx, overall_span, spans);
+                match field {
+                    SingleField::Index { index, .. } => {
+                        spans.push((scrutinee_span, format!("{}[{}]", scrutinee_name, index)));
+                        apply_lint_sf(cx, overall_span, spans);
+                    },
+                    SingleField::Unused => {
+                        apply_lint_zero_fields(cx, overall_span);
+                    },
+                    _ => { /* shouldn't happen */ },
                 }
             }
         },
         ty::TyKind::Tuple(..) => {
             if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &tuple_sf) {
-                if let SingleField::Index { index, .. } = field {
-                    spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
-                    apply_lint(cx, overall_span, spans);
+                match field {
+                    SingleField::Index { index, .. } => {
+                        spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
+                        apply_lint_sf(cx, overall_span, spans);
+                    },
+                    SingleField::Unused => {
+                        apply_lint_zero_fields(cx, overall_span);
+                    },
+                    _ => { /* shouldn't happen */ },
                 }
             }
         },

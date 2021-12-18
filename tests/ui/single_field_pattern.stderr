@@ -1,0 +1,258 @@
+error: this single-variant pattern matches no fields
+  --> $DIR/single_field_pattern.rs:8:5
+   |
+LL |     let Struct { .. } = struct1;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::single-field-patterns` implied by `-D warnings`
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:9:5
+   |
+LL |     let Struct { field1, .. } = struct1;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     let field1 = struct1.field1;
+   |         ~~~~~~   ~~~~~~~~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:10:5
+   |
+LL |     let Struct { field1, field2: _ } = struct1;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     let field1 = struct1.field1;
+   |         ~~~~~~   ~~~~~~~~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:11:5
+   |
+LL | /     match struct1 {
+LL | |         Struct { field1: Some(n), .. } if n >= 50 => {},
+LL | |         Struct { field1: None, .. } => {},
+LL | |         _ => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match struct1.field1 {
+LL ~         Some(n) if n >= 50 => {},
+LL ~         None => {},
+LL ~         _ => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:16:5
+   |
+LL | /     match struct1 {
+LL | |         Struct { field1: Some(n), .. } if n >= 50 => {},
+LL | |         Struct { .. } => {},
+LL | |         _ => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match struct1.field1 {
+LL ~         Some(n) if n >= 50 => {},
+LL ~         _ => {},
+LL ~         _ => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:21:5
+   |
+LL | /     match struct1 {
+LL | |         Struct { field1: Some(1), .. } => {},
+LL | |         Struct { field1: Some(2), .. } => {},
+LL | |         Struct { field1: None, .. } => {},
+LL | |         _ => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match struct1.field1 {
+LL ~         Some(1) => {},
+LL ~         Some(2) => {},
+LL ~         None => {},
+LL ~         _ => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:27:5
+   |
+LL | /     match struct1 {
+LL | |         Struct {
+LL | |             field1: Some(_) | None, ..
+LL | |         } => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match struct1.field1 {
+LL ~         Some(_) | None => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:32:5
+   |
+LL |     while let Struct { field1: Some(5), .. } = struct1 {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     while let Some(5) = struct1.field1 {}
+   |               ~~~~~~~   ~~~~~~~~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:38:5
+   |
+LL |     if let Tuple(Some(x), _) = tuple {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     if let Some(x) = tuple.0 {}
+   |            ~~~~~~~   ~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:39:5
+   |
+LL |     if let Tuple(_, Some(y)) = tuple {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     if let Some(y) = tuple.1 {}
+   |            ~~~~~~~   ~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:40:5
+   |
+LL | /     match tuple {
+LL | |         Tuple(Some(1), ..) => {},
+LL | |         Tuple(Some(2), ..) => {},
+LL | |         Tuple(a, ..) => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match tuple.0 {
+LL ~         Some(1) => {},
+LL ~         Some(2) => {},
+LL ~         a => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:45:5
+   |
+LL | /     match tuple {
+LL | |         Tuple(Some(1) | Some(42) | Some(6082), ..) => {},
+LL | |         Tuple(a, ..) => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match tuple.0 {
+LL ~         Some(1) | Some(42) | Some(6082) => {},
+LL ~         a => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:52:5
+   |
+LL |     if let (Some(z), _) = tuple {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     if let Some(z) = tuple.0 {}
+   |            ~~~~~~~   ~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:53:5
+   |
+LL |     if let (_, Some(n)) = tuple {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     if let Some(n) = tuple.1 {}
+   |            ~~~~~~~   ~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:54:5
+   |
+LL | /     match tuple {
+LL | |         (Some(1), ..) => {},
+LL | |         (Some(2), ..) => {},
+LL | |         (a, ..) => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match tuple.0 {
+LL ~         Some(1) => {},
+LL ~         Some(2) => {},
+LL ~         a => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:59:5
+   |
+LL | /     match tuple {
+LL | |         (Some(1) | Some(42) | Some(6082), ..) => {},
+LL | |         (a, ..) => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match tuple.0 {
+LL ~         Some(1) | Some(42) | Some(6082) => {},
+LL ~         a => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:66:5
+   |
+LL | /     match array {
+LL | |         [1 | 2, ..] => {},
+LL | |         [x @ 3, ..] => {},
+LL | |         [r @ 20..=65, ..] => {},
+LL | |         [e, ..] => {},
+LL | |     }
+   | |_____^
+   |
+help: try this
+   |
+LL ~     match array[0] {
+LL ~         1 | 2 => {},
+LL ~         x @ 3 => {},
+LL ~         r @ 20..=65 => {},
+LL ~         e => {},
+   |
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_pattern.rs:72:5
+   |
+LL |     if let [5, ..] = array {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     if let 5 = array[0] {}
+   |            ~   ~~~~~~~~
+
+error: aborting due to 18 previous errors
+
