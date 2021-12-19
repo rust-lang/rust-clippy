@@ -5433,7 +5433,7 @@
     "id": "return_self_not_must_use",
     "id_span": {
       "path": "src/return_self_not_must_use.rs",
-      "line": 39
+      "line": 40
     },
     "group": "suspicious",
     "level": "warn",
