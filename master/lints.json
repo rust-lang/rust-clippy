@@ -6547,7 +6547,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for `unsafe` blocks without a `// Safety: ` comment\nexplaining why the unsafe operations performed inside\nthe block are safe.\n\n### Why is this bad?\nUndocumented unsafe blocks can make it difficult to\nread and maintain code, as well as uncover unsoundness\nand bugs.\n\n### Example\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\nUse instead:\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\n// Safety: references are guaranteed to be non-null.\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```",
+    "docs": " ### What it does\nChecks for `unsafe` blocks without a `// SAFETY: ` comment\nexplaining why the unsafe operations performed inside\nthe block are safe.\n\n### Why is this bad?\nUndocumented unsafe blocks can make it difficult to\nread and maintain code, as well as uncover unsoundness\nand bugs.\n\n### Example\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\nUse instead:\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\n// SAFETY: references are guaranteed to be non-null.\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
