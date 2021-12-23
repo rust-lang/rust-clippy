@@ -7,7 +7,7 @@ use clippy_utils::{
     source::snippet_opt,
 };
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, Local, MatchSource, Pat, PatKind, Stmt, StmtKind};
+use rustc_hir::{Expr, ExprKind, Local, MatchSource, Pat, PatKind, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -230,23 +230,29 @@ fn apply_lint_sf<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Ite
     );
 }
 
-fn typed_sf_lint<'hir, T: LintContext>(
-    cx: &T,
+fn remove_deref<'a>(mut scrutinee: &'a Expr<'a>) -> &'a Expr<'a> {
+    while let ExprKind::Unary(UnOp::Deref, expr) = scrutinee.kind {
+        scrutinee = expr;
+    }
+    scrutinee
+}
+
+fn typed_sf_lint<'hir>(
+    cx: &LateContext<'_>,
     overall_span: Span,
-    scrutinee_span: Span,
-    ty: &ty::TyKind<'_>,
+    scrutinee: &Expr<'_>,
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
 ) {
-    let scrutinee_name = if let Some(name) = snippet_opt(cx, scrutinee_span) {
+    let scrutinee_name = if let Some(name) = snippet_opt(cx, remove_deref(scrutinee).span) {
         name
     } else {
         return;
     };
-    match ty {
+    match cx.typeck_results().expr_ty(scrutinee).kind() {
         ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.variants.raw.len() == 1 => {
             if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &struct_sf) {
                 spans.push((
-                    scrutinee_span,
+                    scrutinee.span,
                     match field {
                         SingleField::Id { id, .. } => format!("{}.{}", scrutinee_name, id.as_str()),
                         SingleField::Index { index, .. } => format!("{}.{}", scrutinee_name, index),
@@ -258,33 +264,18 @@ fn typed_sf_lint<'hir, T: LintContext>(
         },
         ty::TyKind::Array(..) => {
             if let Some((SingleField::Index { index, .. }, mut spans)) = find_sf_lint(cx, patterns, &slice_sf) {
-                spans.push((scrutinee_span, format!("{}[{}]", scrutinee_name, index)));
+                spans.push((scrutinee.span, format!("{}[{}]", scrutinee_name, index)));
                 apply_lint_sf(cx, overall_span, spans);
             }
         },
         ty::TyKind::Tuple(..) => {
             if let Some((SingleField::Index { index, .. }, mut spans)) = find_sf_lint(cx, patterns, &tuple_sf) {
-                spans.push((scrutinee_span, format!("{}.{}", scrutinee_name, index)));
+                spans.push((scrutinee.span, format!("{}.{}", scrutinee_name, index)));
                 apply_lint_sf(cx, overall_span, spans);
             }
         },
         _ => (),
     };
-}
-
-fn expr_sf_lint<'hir>(
-    cx: &LateContext<'_>,
-    overall_span: Span,
-    scrutinee: &Expr<'_>,
-    patterns: impl Iterator<Item = &'hir Pat<'hir>>,
-) {
-    typed_sf_lint(
-        cx,
-        overall_span,
-        scrutinee.span,
-        cx.typeck_results().expr_ty(scrutinee).kind(),
-        patterns,
-    );
 }
 
 impl LateLintPass<'_> for SingleFieldPatterns {
@@ -294,12 +285,12 @@ impl LateLintPass<'_> for SingleFieldPatterns {
         }
         match IfLetOrMatch::parse(cx, expr) {
             Some(IfLetOrMatch::Match(scrutinee, arms, MatchSource::Normal)) => {
-                expr_sf_lint(cx, expr.span, scrutinee, arms.iter().map(|arm| arm.pat));
+                typed_sf_lint(cx, expr.span, scrutinee, arms.iter().map(|arm| arm.pat));
             },
-            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => expr_sf_lint(cx, expr.span, scrutinee, once(pat)),
+            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => typed_sf_lint(cx, expr.span, scrutinee, once(pat)),
             _ => {
                 if let Some(WhileLet { let_pat, let_expr, .. }) = WhileLet::hir(expr) {
-                    expr_sf_lint(cx, expr.span, let_expr, once(let_pat));
+                    typed_sf_lint(cx, expr.span, let_expr, once(let_pat));
                 }
             },
         };
@@ -315,13 +306,7 @@ impl LateLintPass<'_> for SingleFieldPatterns {
             ..
         }) = stmt.kind
         {
-            typed_sf_lint(
-                cx,
-                stmt.span,
-                scrutinee.span,
-                cx.typeck_results().expr_ty(scrutinee).kind(),
-                once(*pat),
-            );
+            typed_sf_lint(cx, stmt.span, scrutinee, once(*pat));
         }
     }
 }

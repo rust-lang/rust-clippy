@@ -105,7 +105,18 @@ LL |     while let Some(5) = struct1.field1 {}
    |               ~~~~~~~   ~~~~~~~~~~~~~~
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:37:5
+  --> $DIR/single_field_patterns.rs:36:5
+   |
+LL |     let Struct { field1, .. } = **struct1;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     let field1 = struct1.field1;
+   |         ~~~~~~   ~~~~~~~~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_patterns.rs:42:5
    |
 LL |     if let Tuple(Some(x), _) = tuple {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -116,7 +127,7 @@ LL |     if let Some(x) = tuple.0 {}
    |            ~~~~~~~   ~~~~~~~
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:38:5
+  --> $DIR/single_field_patterns.rs:43:5
    |
 LL |     if let Tuple(_, Some(y)) = tuple {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -127,7 +138,7 @@ LL |     if let Some(y) = tuple.1 {}
    |            ~~~~~~~   ~~~~~~~
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:39:5
+  --> $DIR/single_field_patterns.rs:44:5
    |
 LL | /     match tuple {
 LL | |         Tuple(Some(1), ..) => {},
@@ -145,7 +156,7 @@ LL ~         a => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:44:5
+  --> $DIR/single_field_patterns.rs:49:5
    |
 LL | /     match tuple {
 LL | |         Tuple(Some(1) | Some(42) | Some(6082), ..) => {},
@@ -161,7 +172,7 @@ LL ~         a => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:51:5
+  --> $DIR/single_field_patterns.rs:56:5
    |
 LL |     if let (Some(z), _) = tuple {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -172,7 +183,7 @@ LL |     if let Some(z) = tuple.0 {}
    |            ~~~~~~~   ~~~~~~~
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:52:5
+  --> $DIR/single_field_patterns.rs:57:5
    |
 LL |     if let (_, Some(n)) = tuple {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,7 +194,7 @@ LL |     if let Some(n) = tuple.1 {}
    |            ~~~~~~~   ~~~~~~~
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:53:5
+  --> $DIR/single_field_patterns.rs:58:5
    |
 LL | /     match tuple {
 LL | |         (Some(1), ..) => {},
@@ -201,7 +212,7 @@ LL ~         a => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:58:5
+  --> $DIR/single_field_patterns.rs:63:5
    |
 LL | /     match tuple {
 LL | |         (Some(1) | Some(42) | Some(6082), ..) => {},
@@ -217,7 +228,7 @@ LL ~         a => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:65:5
+  --> $DIR/single_field_patterns.rs:70:5
    |
 LL | /     match array {
 LL | |         [1 | 2, ..] => {},
@@ -237,7 +248,7 @@ LL ~         e => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:71:5
+  --> $DIR/single_field_patterns.rs:76:5
    |
 LL |     if let [5, ..] = array {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -247,5 +258,5 @@ help: try this
 LL |     if let 5 = array[0] {}
    |            ~   ~~~~~~~~
 
-error: aborting due to 17 previous errors
+error: aborting due to 18 previous errors
 

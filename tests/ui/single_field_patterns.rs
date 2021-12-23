@@ -31,6 +31,11 @@ fn lint_struct(struct1: Struct) {
     while let Struct { field1: Some(5), .. } = struct1 {}
 }
 
+fn lint_ref(struct1: &&Struct) {
+    // this should suggest struct1.field1, NOT **struct1.field1
+    let Struct { field1, .. } = **struct1;
+}
+
 struct Tuple(Option<i32>, Option<i32>);
 
 fn lint_tuple_struct(tuple: Tuple) {
