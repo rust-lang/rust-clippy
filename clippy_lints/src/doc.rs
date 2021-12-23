@@ -547,7 +547,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                     in_heading = true;
                 }
                 ticks_unbalanced = false;
-                let (_, span) = get_current_span(spans, range.start);
+                let span = get_current_span(spans, range.start).1;
                 paragraph_span = first_line_of_span(cx, span);
             },
             End(Heading(_) | Paragraph | Item) => {
