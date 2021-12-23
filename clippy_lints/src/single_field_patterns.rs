@@ -23,19 +23,24 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
+    /// # struct Struct {
+    /// #     field1: Option<i32>,
+    /// #     field2: Option<i32>,
+    /// # }
+    /// # fn foo(struct1: Struct) {
+    /// // bad:
     /// match struct1 {
     ///     Struct { field1: Some(n), .. } if n >= 50 => {},
     ///     Struct { field1: None, .. } => {},
     ///     _ => {},
     /// }
-    /// ```
-    /// Use instead:
-    /// ```rust
+    /// // better:
     /// match struct1.field1 {
     ///     Some(n) if n >= 50 => {},
     ///     None => {},
     ///     _ => {},
     /// }
+    /// # }
     /// ```
     #[clippy::version = "1.59.0"]
     pub SINGLE_FIELD_PATTERNS,
