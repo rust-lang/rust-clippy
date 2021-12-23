@@ -6,7 +6,8 @@
     unreachable_code,
     unused_mut,
     dead_code,
-    clippy::equatable_if_let
+    clippy::equatable_if_let,
+    clippy::single_field_patterns
 )]
 
 fn base() {

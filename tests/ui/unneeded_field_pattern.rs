@@ -1,4 +1,5 @@
 #![warn(clippy::unneeded_field_pattern)]
+#![allow(clippy::single_field_patterns)]
 #[allow(dead_code, unused)]
 
 struct Foo {

@@ -1,4 +1,4 @@
-#[allow(clippy::unnecessary_operation, clippy::single_match)]
+#[allow(clippy::unnecessary_operation, clippy::single_match, clippy::single_field_patterns)]
 fn main() {
     struct Test {
         field: u32,

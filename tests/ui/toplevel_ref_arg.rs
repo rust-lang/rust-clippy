@@ -2,6 +2,7 @@
 // aux-build:macro_rules.rs
 
 #![warn(clippy::toplevel_ref_arg)]
+#![allow(clippy::single_field_patterns)]
 
 #[macro_use]
 extern crate macro_rules;

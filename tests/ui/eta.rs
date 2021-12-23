@@ -5,7 +5,8 @@
     clippy::no_effect,
     clippy::redundant_closure_call,
     clippy::needless_pass_by_value,
-    clippy::option_map_unit_fn
+    clippy::option_map_unit_fn,
+    clippy::single_field_patterns
 )]
 #![warn(
     clippy::redundant_closure,
