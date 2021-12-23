@@ -7,7 +7,7 @@ use clippy_utils::{
     source::snippet_opt,
 };
 use rustc_errors::Applicability;
-use rustc_hir::*;
+use rustc_hir::{Expr, Local, MatchSource, Pat, PatKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -56,11 +56,10 @@ enum SingleField {
 
 impl PartialEq for SingleField {
     fn eq(&self, other: &Self) -> bool {
-        use SingleField::*;
         match (self, other) {
-            (Id { id: id1, .. }, Id { id: id2, .. }) => id1 == id2,
-            (Index { index: index1, .. }, Index { index: index2, .. }) => index1 == index2,
-            (Unused, Unused) => true,
+            (SingleField::Id { id: id1, .. }, SingleField::Id { id: id2, .. }) => id1 == id2,
+            (SingleField::Index { index: index1, .. }, SingleField::Index { index: index2, .. }) => index1 == index2,
+            (SingleField::Unused, SingleField::Unused) => true,
             _ => false,
         }
     }
@@ -127,7 +126,7 @@ fn tuple_sf(pat: &PatKind<'_>) -> Option<SingleField> {
 
 fn slice_sf(pat: &PatKind<'_>) -> Option<SingleField> {
     if let PatKind::Slice(before, dots, after) = pat {
-        if dots.is_none() || after.len() == 0 {
+        if dots.is_none() || after.is_empty() {
             return get_sf(before.iter().enumerate());
         }
     }
@@ -157,7 +156,7 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
     type Item = &'hir Pat<'hir>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.stack.len() == 0 {
+        if self.stack.is_empty() {
             if let Some(pat) = self.patterns.next() {
                 self.stack.push(pat);
             } else {
@@ -255,7 +254,7 @@ fn typed_sf_lint<'hir, T: LintContext>(
                     match field {
                         SingleField::Id { id, .. } => format!("{}.{}", scrutinee_name, id.as_str()),
                         SingleField::Index { index, .. } => format!("{}.{}", scrutinee_name, index),
-                        _ => return,
+                        SingleField::Unused => return,
                     },
                 ));
                 apply_lint_sf(cx, overall_span, spans);
@@ -314,16 +313,19 @@ impl LateLintPass<'_> for SingleFieldPatterns {
         if stmt.span.from_expansion() {
             return;
         }
-        if let StmtKind::Local(Local { pat, init, .. }) = stmt.kind {
-            if let Some(scrutinee) = init {
-                typed_sf_lint(
-                    cx,
-                    stmt.span,
-                    scrutinee.span,
-                    cx.typeck_results().expr_ty(scrutinee).kind(),
-                    once(*pat),
-                );
-            }
+        if let StmtKind::Local(Local {
+            pat,
+            init: Some(scrutinee),
+            ..
+        }) = stmt.kind
+        {
+            typed_sf_lint(
+                cx,
+                stmt.span,
+                scrutinee.span,
+                cx.typeck_results().expr_ty(scrutinee).kind(),
+                once(*pat),
+            );
         }
     }
 }
