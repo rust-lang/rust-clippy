@@ -624,7 +624,7 @@ impl Write {
     }
 
     fn lint_println_empty_string(&self, cx: &EarlyContext<'_>, mac: &MacCall) {
-        if let (Some(fmt_str), _) = self.check_tts(cx, mac.args.inner_tokens(), false) {
+        if let Some(fmt_str) = self.check_tts(cx, mac.args.inner_tokens(), false).0 {
             if fmt_str.symbol == kw::Empty {
                 let name = mac.path.segments[0].ident.name;
                 span_lint_and_sugg(
@@ -641,7 +641,7 @@ impl Write {
     }
 
     fn lint_print_with_newline(&self, cx: &EarlyContext<'_>, mac: &MacCall) {
-        if let (Some(fmt_str), _) = self.check_tts(cx, mac.args.inner_tokens(), false) {
+        if let Some(fmt_str) = self.check_tts(cx, mac.args.inner_tokens(), false).0 {
             if check_newlines(&fmt_str) {
                 let name = mac.path.segments[0].ident.name;
                 let suggested = format!("{}ln", name);

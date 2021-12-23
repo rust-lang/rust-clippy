@@ -67,11 +67,7 @@ fn get_open_options(cx: &LateContext<'_>, argument: &Expr<'_>, options: &mut Vec
         if match_type(cx, obj_ty, &paths::OPEN_OPTIONS) && arguments.len() >= 2 {
             let argument_option = match arguments[1].kind {
                 ExprKind::Lit(ref span) => {
-                    if let Spanned {
-                        node: LitKind::Bool(lit),
-                        ..
-                    } = *span
-                    {
+                    if let LitKind::Bool(lit) = span.node {
                         if lit { Argument::True } else { Argument::False }
                     } else {
                         // The function is called with a literal which is not a boolean literal.

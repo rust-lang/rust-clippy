@@ -508,7 +508,7 @@ fn report(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, state: State, data: Stat
             let mut app = Applicability::MachineApplicable;
             let (expr_str, expr_is_macro_call) = snippet_with_context(cx, expr.span, data.span.ctxt(), "..", &mut app);
             let ty = cx.typeck_results().expr_ty(expr);
-            let (_, ref_count) = peel_mid_ty_refs(ty);
+            let ref_count = peel_mid_ty_refs(ty).1;
             let deref_str = if ty_changed_count >= ref_count && ref_count != 0 {
                 // a deref call changing &T -> &U requires two deref operators the first time
                 // this occurs. One to remove the reference, a second to call the deref impl.
