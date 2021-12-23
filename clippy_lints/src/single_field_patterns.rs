@@ -1,7 +1,7 @@
 #![allow(rustc::usage_of_ty_tykind)]
 
 use clippy_utils::{
-    diagnostics::{multispan_sugg_with_applicability, span_lint, span_lint_and_then},
+    diagnostics::{multispan_sugg_with_applicability, span_lint_and_then},
     higher::IfLetOrMatch,
     higher::WhileLet,
     source::snippet_opt,
@@ -19,18 +19,10 @@ declare_clippy_lint! {
     ///  Checks for patterns that only use a single field when they could directly access the field.
     ///
     /// ### Why is this bad?
-    ///  It requires more information than directly accessing the field.
+    ///  It requires more text and more information than directly accessing the field.
     ///
-    /// ### Known Issue
-    ///  This isn't aware of conditional compilation, e.g.
-    /// ```rust
-    /// match maybe_enum {
-    ///     Enum::Always(a) => {},
-    ///     #[cfg(feature = "razzle")]
-    ///     Enum::Dazzle(a, b, c) => {},
-    /// }
-    /// ```
-    ///  Supporting that would require rustc changes.
+    /// ### Known problems
+    ///  This isn't aware of conditional compilation, because supporting that would require rustc changes.
     ///
     /// ### Example
     /// ```rust
