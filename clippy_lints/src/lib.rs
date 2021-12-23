@@ -3,7 +3,6 @@
 #![feature(box_patterns)]
 #![feature(drain_filter)]
 #![feature(in_band_lifetimes)]
-#![feature(iter_zip)]
 #![feature(once_cell)]
 #![feature(rustc_private)]
 #![feature(stmt_expr_attributes)]
@@ -341,6 +340,7 @@ mod ref_option_ref;
 mod reference;
 mod regex;
 mod repeat_once;
+mod return_self_not_must_use;
 mod returns;
 mod same_name_method;
 mod self_assignment;
@@ -855,6 +855,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| Box::new(octal_escapes::OctalEscapes));
     store.register_late_pass(|| Box::new(needless_late_init::NeedlessLateInit));
     store.register_late_pass(|| Box::new(single_field_patterns::SingleFieldPatterns));
+    store.register_late_pass(|| Box::new(return_self_not_must_use::ReturnSelfNotMustUse));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

@@ -1,6 +1,5 @@
 #![feature(box_patterns)]
 #![feature(in_band_lifetimes)]
-#![feature(iter_zip)]
 #![feature(let_else)]
 #![feature(rustc_private)]
 #![feature(control_flow_enum)]
@@ -73,10 +72,10 @@ use rustc_hir::intravisit::{walk_expr, ErasedMap, FnKind, NestedVisitorMap, Visi
 use rustc_hir::itemlikevisit::ItemLikeVisitor;
 use rustc_hir::LangItem::{OptionNone, ResultErr, ResultOk};
 use rustc_hir::{
-    def, Arm, BindingAnnotation, Block, Body, Constness, Destination, Expr, ExprKind, FnDecl, ForeignItem, GenericArgs,
-    HirId, Impl, ImplItem, ImplItemKind, IsAsync, Item, ItemKind, LangItem, Local, MatchSource, Mutability, Node,
-    Param, Pat, PatKind, Path, PathSegment, PrimTy, QPath, Stmt, StmtKind, TraitItem, TraitItemKind, TraitRef, TyKind,
-    UnOp,
+    def, Arm, BindingAnnotation, Block, BlockCheckMode, Body, Constness, Destination, Expr, ExprKind, FnDecl,
+    ForeignItem, GenericArgs, HirId, Impl, ImplItem, ImplItemKind, IsAsync, Item, ItemKind, LangItem, Local,
+    MatchSource, Mutability, Node, Param, Pat, PatKind, Path, PathSegment, PrimTy, QPath, Stmt, StmtKind, TraitItem,
+    TraitItemKind, TraitRef, TyKind, UnOp,
 };
 use rustc_lint::{LateContext, Level, Lint, LintContext};
 use rustc_middle::hir::exports::Export;
@@ -157,18 +156,18 @@ pub fn differing_macro_contexts(lhs: Span, rhs: Span) -> bool {
 /// instead.
 ///
 /// Examples:
-/// ```ignore
+/// ```
 /// let abc = 1;
 /// //        ^ output
 /// let def = abc;
-/// dbg!(def)
+/// dbg!(def);
 /// //   ^^^ input
 ///
 /// // or...
 /// let abc = 1;
 /// let def = abc + 2;
 /// //        ^^^^^^^ output
-/// dbg!(def)
+/// dbg!(def);
 /// //   ^^^ input
 /// ```
 pub fn expr_or_init<'a, 'b, 'tcx: 'b>(cx: &LateContext<'tcx>, mut expr: &'a Expr<'b>) -> &'a Expr<'b> {
@@ -1137,7 +1136,7 @@ pub fn find_macro_calls(names: &[&str], body: &Body<'_>) -> Vec<Span> {
 
 /// Extends the span to the beginning of the spans line, incl. whitespaces.
 ///
-/// ```rust,ignore
+/// ```rust
 ///        let x = ();
 /// //             ^^
 /// // will be converted to
@@ -1224,6 +1223,70 @@ pub fn get_parent_as_impl(tcx: TyCtxt<'_>, id: HirId) -> Option<&Impl<'_>> {
     }
 }
 
+/// Removes blocks around an expression, only if the block contains just one expression
+/// and no statements. Unsafe blocks are not removed.
+///
+/// Examples:
+///  * `{}`               -> `{}`
+///  * `{ x }`            -> `x`
+///  * `{{ x }}`          -> `x`
+///  * `{ x; }`           -> `{ x; }`
+///  * `{ x; y }`         -> `{ x; y }`
+///  * `{ unsafe { x } }` -> `unsafe { x }`
+pub fn peel_blocks<'a>(mut expr: &'a Expr<'a>) -> &'a Expr<'a> {
+    while let ExprKind::Block(
+        Block {
+            stmts: [],
+            expr: Some(inner),
+            rules: BlockCheckMode::DefaultBlock,
+            ..
+        },
+        _,
+    ) = expr.kind
+    {
+        expr = inner;
+    }
+    expr
+}
+
+/// Removes blocks around an expression, only if the block contains just one expression
+/// or just one expression statement with a semicolon. Unsafe blocks are not removed.
+///
+/// Examples:
+///  * `{}`               -> `{}`
+///  * `{ x }`            -> `x`
+///  * `{ x; }`           -> `x`
+///  * `{{ x; }}`         -> `x`
+///  * `{ x; y }`         -> `{ x; y }`
+///  * `{ unsafe { x } }` -> `unsafe { x }`
+pub fn peel_blocks_with_stmt<'a>(mut expr: &'a Expr<'a>) -> &'a Expr<'a> {
+    while let ExprKind::Block(
+        Block {
+            stmts: [],
+            expr: Some(inner),
+            rules: BlockCheckMode::DefaultBlock,
+            ..
+        }
+        | Block {
+            stmts:
+                [
+                    Stmt {
+                        kind: StmtKind::Expr(inner) | StmtKind::Semi(inner),
+                        ..
+                    },
+                ],
+            expr: None,
+            rules: BlockCheckMode::DefaultBlock,
+            ..
+        },
+        _,
+    ) = expr.kind
+    {
+        expr = inner;
+    }
+    expr
+}
+
 /// Checks if the given expression is the else clause of either an `if` or `if let` expression.
 pub fn is_else_clause(tcx: TyCtxt<'_>, expr: &Expr<'_>) -> bool {
     let mut iter = tcx.hir().parent_iter(expr.hir_id);
@@ -1274,7 +1337,7 @@ pub fn is_adjusted(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
     cx.typeck_results().adjustments().get(e.hir_id).is_some()
 }
 
-/// Returns the pre-expansion span if is this comes from an expansion of the
+/// Returns the pre-expansion span if this comes from an expansion of the
 /// macro `name`.
 /// See also [`is_direct_expn_of`].
 #[must_use]
@@ -1301,7 +1364,8 @@ pub fn is_expn_of(mut span: Span, name: &str) -> Option<Span> {
 /// of the macro `name`.
 /// The difference with [`is_expn_of`] is that in
 /// ```rust
-/// # macro_rules! foo { ($e:tt) => { $e } }; macro_rules! bar { ($e:expr) => { $e } }
+/// # macro_rules! foo { ($name:tt!$args:tt) => { $name!$args } }
+/// # macro_rules! bar { ($e:expr) => { $e } }
 /// foo!(bar!(42));
 /// ```
 /// `42` is considered expanded from `foo!` and `bar!` by `is_expn_of` but only
@@ -1327,6 +1391,13 @@ pub fn return_ty<'tcx>(cx: &LateContext<'tcx>, fn_item: hir::HirId) -> Ty<'tcx> 
     let fn_def_id = cx.tcx.hir().local_def_id(fn_item);
     let ret_ty = cx.tcx.fn_sig(fn_def_id).output();
     cx.tcx.erase_late_bound_regions(ret_ty)
+}
+
+/// Convenience function to get the nth argument type of a function.
+pub fn nth_arg<'tcx>(cx: &LateContext<'tcx>, fn_item: hir::HirId, nth: usize) -> Ty<'tcx> {
+    let fn_def_id = cx.tcx.hir().local_def_id(fn_item);
+    let arg = cx.tcx.fn_sig(fn_def_id).input(nth);
+    cx.tcx.erase_late_bound_regions(arg)
 }
 
 /// Checks if an expression is constructing a tuple-like enum variant or struct
@@ -1403,20 +1474,6 @@ pub fn recurse_or_patterns<'tcx, F: FnMut(&'tcx Pat<'tcx>)>(pat: &'tcx Pat<'tcx>
 /// implementations have.
 pub fn is_automatically_derived(attrs: &[ast::Attribute]) -> bool {
     has_attr(attrs, sym::automatically_derived)
-}
-
-/// Remove blocks around an expression.
-///
-/// Ie. `x`, `{ x }` and `{{{{ x }}}}` all give `x`. `{ x; y }` and `{}` return
-/// themselves.
-pub fn remove_blocks<'tcx>(mut expr: &'tcx Expr<'tcx>) -> &'tcx Expr<'tcx> {
-    while let ExprKind::Block(block, ..) = expr.kind {
-        match (block.stmts.is_empty(), block.expr.as_ref()) {
-            (true, Some(e)) => expr = e,
-            _ => break,
-        }
-    }
-    expr
 }
 
 pub fn is_self(slf: &Param<'_>) -> bool {
@@ -1849,7 +1906,9 @@ pub fn is_no_core_crate(cx: &LateContext<'_>) -> bool {
 
 /// Check if parent of a hir node is a trait implementation block.
 /// For example, `f` in
-/// ```rust,ignore
+/// ```rust
+/// # struct S;
+/// # trait Trait { fn f(); }
 /// impl Trait for S {
 ///     fn f() {}
 /// }
