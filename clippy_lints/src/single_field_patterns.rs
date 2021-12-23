@@ -21,6 +21,17 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     ///  It requires more information than directly accessing the field.
     ///
+    /// ### Known Issue
+    ///  This isn't aware of conditional compilation, e.g.
+    /// ```rust
+    /// match maybe_enum {
+    ///     Enum::Always(a) => {},
+    ///     #[cfg(feature = "razzle")]
+    ///     Enum::Dazzle(a, b, c) => {},
+    /// }
+    /// ```
+    ///  Supporting that would require rustc changes.
+    ///
     /// ### Example
     /// ```rust
     /// match struct1 {
@@ -227,7 +238,7 @@ fn apply_lint_sf<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Ite
         span,
         "this single-variant pattern only matches one field",
         |diag| {
-            multispan_sugg_with_applicability(diag, "try this", Applicability::MachineApplicable, sugg);
+            multispan_sugg_with_applicability(diag, "try this", Applicability::MaybeIncorrect, sugg);
         },
     );
 }
