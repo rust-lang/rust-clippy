@@ -232,6 +232,7 @@ fn apply_lint_sf(cx: &LateContext<'_>, span: Span, sugg: impl IntoIterator<Item 
 }
 
 fn remove_deref<'a>(mut scrutinee: &'a Expr<'a>) -> &'a Expr<'a> {
+    // it would be wrong to convert something like `if let (x, _) = *a` into `if let x = *a.0`
     while let ExprKind::Unary(UnOp::Deref, expr) = scrutinee.kind {
         scrutinee = expr;
     }
