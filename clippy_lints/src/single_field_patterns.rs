@@ -21,9 +21,6 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     ///  It requires more text and more information than directly accessing the field.
     ///
-    /// ### Known problems
-    ///  This isn't aware of conditional compilation, because supporting that would require rustc changes.
-    ///
     /// ### Example
     /// ```rust
     /// match struct1 {
@@ -253,7 +250,7 @@ fn lint_sf<'hir>(
         return;
     };
     match cx.typeck_results().expr_ty(scrutinee).kind() {
-        ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.variants.raw.len() == 1 => {
+        ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if !def.is_enum() => {
             if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &struct_sf) {
                 spans.push((
                     scrutinee.span,
