@@ -8,7 +8,7 @@ use clippy_utils::{
 };
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Local, MatchSource, Pat, PatKind, Stmt, StmtKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::{symbol::Ident, Span};
@@ -177,8 +177,8 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
     }
 }
 
-fn find_sf_lint<'hir, T: LintContext>(
-    cx: &T,
+fn find_sf_lint<'hir>(
+    cx: &LateContext<'_>,
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
     leaf_sf: &impl Fn(&PatKind<'hir>) -> Option<SingleField>,
 ) -> Option<(SingleField, Vec<(Span, String)>)> {
@@ -222,7 +222,7 @@ fn find_sf_lint<'hir, T: LintContext>(
     the_one.map(|one| (one, spans))
 }
 
-fn apply_lint_sf<T: LintContext>(cx: &T, span: Span, sugg: impl IntoIterator<Item = (Span, String)>) {
+fn apply_lint_sf(cx: &LateContext<'_>, span: Span, sugg: impl IntoIterator<Item = (Span, String)>) {
     span_lint_and_then(
         cx,
         SINGLE_FIELD_PATTERNS,
