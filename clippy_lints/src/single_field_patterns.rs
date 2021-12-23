@@ -188,10 +188,6 @@ fn find_sf_lint<'hir, T: LintContext>(
             },
         )
     });
-    // if we can somehow replace this operation and this vec with an iterator, that'd be nice
-    // this is slightly difficult because it's a two-part operation
-    // prior = iter.as_ref().find_partition(...first id...)
-    // latter = iter.
     let mut spans = Vec::<(Span, String)>::new();
     let mut the_one: Option<SingleField> = None;
     for (target, sf) in fields {
