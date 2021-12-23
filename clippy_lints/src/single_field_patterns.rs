@@ -226,7 +226,7 @@ fn apply_lint_sf(cx: &LateContext<'_>, span: Span, sugg: impl IntoIterator<Item 
         span,
         "this single-variant pattern only matches one field",
         |diag| {
-            multispan_sugg_with_applicability(diag, "try this", Applicability::MaybeIncorrect, sugg);
+            multispan_sugg_with_applicability(diag, "try this", Applicability::MachineApplicable, sugg);
         },
     );
 }
