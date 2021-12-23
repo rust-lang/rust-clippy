@@ -47,6 +47,8 @@ declare_clippy_lint! {
 }
 declare_lint_pass!(SingleFieldPatterns => [SINGLE_FIELD_PATTERNS]);
 
+/// This represents 0 or 1 fields being used. Where more may be used, I use Option<SingleField>
+///   where None represents the absence of a lint
 #[derive(Debug, Clone, Copy)]
 enum SingleField {
     Id { id: Ident, pattern: Span },
@@ -95,10 +97,11 @@ fn get_sf<'a, ID: IntoSingleField>(mut iter: impl Iterator<Item = (ID, &'a Pat<'
     }
 }
 
-fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<SingleField> {
+fn inner_tuple_sf(pats: &[Pat<'_>], leap: Option<usize>) -> Option<SingleField> {
     get_sf(pats.iter().enumerate()).and_then(|field| {
         if let SingleField::Index { index, .. } = field {
-            if let Some(leap_index) = *leap {
+            // exclude (.., x) type patterns
+            if let Some(leap_index) = leap {
                 if leap_index <= index {
                     return None;
                 }
@@ -109,7 +112,7 @@ fn inner_tuple_sf(pats: &&[Pat<'_>], leap: &Option<usize>) -> Option<SingleField
 }
 
 fn struct_sf(pat: &PatKind<'_>) -> Option<SingleField> {
-    match pat {
+    match *pat {
         PatKind::Struct(_, pats, _) => get_sf(pats.iter().map(|field| (field.ident, field.pat))),
         PatKind::TupleStruct(_, pats, leap) => inner_tuple_sf(pats, leap),
         _ => None,
@@ -117,7 +120,7 @@ fn struct_sf(pat: &PatKind<'_>) -> Option<SingleField> {
 }
 
 fn tuple_sf(pat: &PatKind<'_>) -> Option<SingleField> {
-    if let PatKind::Tuple(pats, leap) = pat {
+    if let PatKind::Tuple(pats, leap) = *pat {
         inner_tuple_sf(pats, leap)
     } else {
         None
@@ -126,6 +129,7 @@ fn tuple_sf(pat: &PatKind<'_>) -> Option<SingleField> {
 
 fn slice_sf(pat: &PatKind<'_>) -> Option<SingleField> {
     if let PatKind::Slice(before, dots, after) = pat {
+        // exclude [.., x] type patterns
         if dots.is_none() || after.is_empty() {
             return get_sf(before.iter().enumerate());
         }
@@ -134,7 +138,7 @@ fn slice_sf(pat: &PatKind<'_>) -> Option<SingleField> {
 }
 
 /// This handles recursive patterns and flattens them out lazily
-/// That basically just means handling stuff like 1 | (2 | 9) | 3..5
+/// e.g. 1 | (2 | 9) | 3..5
 struct FlatPatterns<'hir, I>
 where
     I: Iterator<Item = &'hir Pat<'hir>>,
@@ -169,7 +173,7 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
                 _ => return Some(pat),
             }
         }
-        None
+        unreachable!("Or always has 2 patterns, so one of the prior returns must return");
     }
 }
 
@@ -237,7 +241,7 @@ fn remove_deref<'a>(mut scrutinee: &'a Expr<'a>) -> &'a Expr<'a> {
     scrutinee
 }
 
-fn typed_sf_lint<'hir>(
+fn lint_sf<'hir>(
     cx: &LateContext<'_>,
     overall_span: Span,
     scrutinee: &Expr<'_>,
@@ -285,12 +289,12 @@ impl LateLintPass<'_> for SingleFieldPatterns {
         }
         match IfLetOrMatch::parse(cx, expr) {
             Some(IfLetOrMatch::Match(scrutinee, arms, MatchSource::Normal)) => {
-                typed_sf_lint(cx, expr.span, scrutinee, arms.iter().map(|arm| arm.pat));
+                lint_sf(cx, expr.span, scrutinee, arms.iter().map(|arm| arm.pat));
             },
-            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => typed_sf_lint(cx, expr.span, scrutinee, once(pat)),
+            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => lint_sf(cx, expr.span, scrutinee, once(pat)),
             _ => {
                 if let Some(WhileLet { let_pat, let_expr, .. }) = WhileLet::hir(expr) {
-                    typed_sf_lint(cx, expr.span, let_expr, once(let_pat));
+                    lint_sf(cx, expr.span, let_expr, once(let_pat));
                 }
             },
         };
@@ -306,7 +310,7 @@ impl LateLintPass<'_> for SingleFieldPatterns {
             ..
         }) = stmt.kind
         {
-            typed_sf_lint(cx, stmt.span, scrutinee, once(*pat));
+            lint_sf(cx, stmt.span, scrutinee, once(*pat));
         }
     }
 }
