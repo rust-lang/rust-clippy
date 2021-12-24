@@ -109,7 +109,7 @@ impl<'tcx> LateLintPass<'tcx> for IndexingSlicing {
 
                     let const_range = to_const_range(cx, range, size);
 
-                    if let Some(start) = const_range.0 {
+                    if let (Some(start), _) = const_range {
                         if start > size {
                             span_lint(
                                 cx,
@@ -121,7 +121,7 @@ impl<'tcx> LateLintPass<'tcx> for IndexingSlicing {
                         }
                     }
 
-                    if let Some(end) = const_range.1 {
+                    if let (_, Some(end)) = const_range {
                         if end > size {
                             span_lint(
                                 cx,

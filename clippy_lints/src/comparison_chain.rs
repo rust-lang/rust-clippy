@@ -73,7 +73,7 @@ impl<'tcx> LateLintPass<'tcx> for ComparisonChain {
         }
 
         // Check that there exists at least one explicit else condition
-        let conds = if_sequence(expr).0;
+        let (conds, _) = if_sequence(expr);
         if conds.len() < 2 {
             return;
         }

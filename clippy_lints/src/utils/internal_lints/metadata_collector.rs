@@ -676,7 +676,7 @@ fn extract_emission_info<'hir>(
     let mut multi_part = false;
 
     for arg in args {
-        let arg_ty = walk_ptrs_ty_depth(cx.typeck_results().expr_ty(arg)).0;
+        let (arg_ty, _) = walk_ptrs_ty_depth(cx.typeck_results().expr_ty(arg));
 
         if match_type(cx, arg_ty, &paths::LINT) {
             // If we found the lint arg, extract the lint name
@@ -809,7 +809,7 @@ impl<'a, 'hir> intravisit::Visitor<'hir> for ApplicabilityResolver<'a, 'hir> {
     }
 
     fn visit_expr(&mut self, expr: &'hir hir::Expr<'hir>) {
-        let expr_ty = walk_ptrs_ty_depth(self.cx.typeck_results().expr_ty(expr)).0;
+        let (expr_ty, _) = walk_ptrs_ty_depth(self.cx.typeck_results().expr_ty(expr));
 
         if_chain! {
             if match_type(self.cx, expr_ty, &paths::APPLICABILITY);
@@ -899,7 +899,7 @@ impl<'a, 'hir> intravisit::Visitor<'hir> for IsMultiSpanScanner<'a, 'hir> {
                 }
             },
             ExprKind::MethodCall(path, _path_span, arg, _arg_span) => {
-                let self_ty = walk_ptrs_ty_depth(self.cx.typeck_results().expr_ty(&arg[0])).0;
+                let (self_ty, _) = walk_ptrs_ty_depth(self.cx.typeck_results().expr_ty(&arg[0]));
                 if match_type(self.cx, self_ty, &paths::DIAGNOSTIC_BUILDER) {
                     let called_method = path.ident.name.as_str().to_string();
                     for (method_name, is_multi_part) in &SUGGESTION_DIAGNOSTIC_BUILDER_METHODS {
