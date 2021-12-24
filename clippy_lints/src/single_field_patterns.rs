@@ -54,7 +54,6 @@ declare_lint_pass!(SingleFieldPatterns => [SINGLE_FIELD_PATTERNS]);
 #[derive(Debug, Clone, Copy)]
 enum SingleField {
     Id { id: Ident, pattern: Span },
-    Index { index: usize, pattern: Span },
     Unused, // The name "SingleField" is a lie but idk what's better. "AtMostOneField"?
 }
 
@@ -62,38 +61,21 @@ impl PartialEq for SingleField {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (SingleField::Id { id: id1, .. }, SingleField::Id { id: id2, .. }) => id1 == id2,
-            (SingleField::Index { index: index1, .. }, SingleField::Index { index: index2, .. }) => index1 == index2,
             (SingleField::Unused, SingleField::Unused) => true,
             _ => false,
         }
     }
 }
 
-trait IntoSingleField {
-    fn into_sf(self, span: Span) -> SingleField;
-}
-
-impl IntoSingleField for Ident {
-    fn into_sf(self, pattern: Span) -> SingleField {
-        SingleField::Id { id: self, pattern }
-    }
-}
-
-impl IntoSingleField for usize {
-    fn into_sf(self, pattern: Span) -> SingleField {
-        SingleField::Index { index: self, pattern }
-    }
-}
-
-fn get_sf<'a, ID: IntoSingleField>(mut iter: impl Iterator<Item = (ID, &'a Pat<'a>)>) -> Option<SingleField> {
+fn get_sf<'a>(mut iter: impl Iterator<Item = (Ident, &'a Pat<'a>)>) -> Option<SingleField> {
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
-        Some((index, pat)) => {
+        Some((id, pat)) => {
             if pat.span.from_expansion() {
                 return None;
             }
             if iter.all(|(_, other)| matches!(other.kind, PatKind::Wild)) {
-                Some(index.into_sf(pat.span))
+                Some(SingleField::Id { id, pattern: pat.span })
             } else {
                 None
             }
@@ -102,44 +84,11 @@ fn get_sf<'a, ID: IntoSingleField>(mut iter: impl Iterator<Item = (ID, &'a Pat<'
     }
 }
 
-fn inner_tuple_sf(pats: &[Pat<'_>], leap: Option<usize>) -> Option<SingleField> {
-    get_sf(pats.iter().enumerate()).and_then(|field| {
-        if let SingleField::Index { index, .. } = field {
-            // exclude (.., x) type patterns
-            if let Some(leap_index) = leap {
-                if leap_index <= index {
-                    return None;
-                }
-            }
-        }
-        Some(field)
-    })
-}
-
 fn struct_sf(pat: &PatKind<'_>) -> Option<SingleField> {
     match *pat {
         PatKind::Struct(_, pats, _) => get_sf(pats.iter().map(|field| (field.ident, field.pat))),
-        PatKind::TupleStruct(_, pats, leap) => inner_tuple_sf(pats, leap),
         _ => None,
     }
-}
-
-fn tuple_sf(pat: &PatKind<'_>) -> Option<SingleField> {
-    if let PatKind::Tuple(pats, leap) = *pat {
-        inner_tuple_sf(pats, leap)
-    } else {
-        None
-    }
-}
-
-fn slice_sf(pat: &PatKind<'_>) -> Option<SingleField> {
-    if let PatKind::Slice(before, dots, after) = pat {
-        // exclude [.., x] type patterns
-        if dots.is_none() || after.is_empty() {
-            return get_sf(before.iter().enumerate());
-        }
-    }
-    None
 }
 
 /// This handles recursive patterns and flattens them out lazily
@@ -208,7 +157,7 @@ fn find_sf_lint<'hir>(
                 SingleField::Unused => {
                     spans.push((target, String::from("_")));
                 },
-                SingleField::Id { pattern, .. } | SingleField::Index { pattern, .. } => {
+                SingleField::Id { pattern, .. } => {
                     if let Some(str) = snippet_opt(cx, pattern) {
                         spans.push((target, str));
                     } else {
@@ -265,28 +214,15 @@ fn lint_sf<'hir>(
         return;
     };
     match cx.typeck_results().expr_ty(scrutinee).kind() {
-        ty::TyKind::Adt(def @ ty::AdtDef { .. }, ..) if def.is_struct() => {
+        ty::TyKind::Adt(def, ..) if def.is_struct() => {
             if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &struct_sf) {
                 spans.push((
                     scrutinee.span,
                     match field {
                         SingleField::Id { id, .. } => format!("{}.{}", scrutinee_name, id.as_str()),
-                        SingleField::Index { index, .. } => format!("{}.{}", scrutinee_name, index),
                         SingleField::Unused => return,
                     },
                 ));
-                apply_lint_sf(cx, overall_span, spans);
-            }
-        },
-        ty::TyKind::Array(..) => {
-            if let Some((SingleField::Index { index, .. }, mut spans)) = find_sf_lint(cx, patterns, &slice_sf) {
-                spans.push((scrutinee.span, format!("{}[{}]", scrutinee_name, index)));
-                apply_lint_sf(cx, overall_span, spans);
-            }
-        },
-        ty::TyKind::Tuple(..) => {
-            if let Some((SingleField::Index { index, .. }, mut spans)) = find_sf_lint(cx, patterns, &tuple_sf) {
-                spans.push((scrutinee.span, format!("{}.{}", scrutinee_name, index)));
                 apply_lint_sf(cx, overall_span, spans);
             }
         },
