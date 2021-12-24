@@ -1,7 +1,6 @@
 // run-rustfix
 #![feature(stmt_expr_attributes)]
 #![deny(clippy::unneeded_wildcard_pattern)]
-#![allow(clippy::single_field_patterns)]
 
 fn main() {
     let t = (0, 1, 2, 3);

@@ -1,7 +1,7 @@
 // run-rustfix
 #![feature(exhaustive_patterns, never_type)]
 #![allow(dead_code, unreachable_code, unused_variables)]
-#![allow(clippy::let_and_return, clippy::single_field_patterns)]
+#![allow(clippy::let_and_return)]
 
 enum SingleVariantEnum {
     Variant(i32),

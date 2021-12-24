@@ -4,8 +4,7 @@
     clippy::single_match,
     clippy::redundant_pattern_matching,
     clippy::option_option,
-    clippy::redundant_clone,
-    clippy::single_field_patterns
+    clippy::redundant_clone
 )]
 
 use std::borrow::Borrow;

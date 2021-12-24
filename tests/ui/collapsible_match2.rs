@@ -3,8 +3,7 @@
     clippy::needless_return,
     clippy::no_effect,
     clippy::single_match,
-    clippy::needless_borrow,
-    clippy::single_field_patterns
+    clippy::needless_borrow
 )]
 
 fn lint_cases(opt_opt: Option<Option<u32>>, res_opt: Result<Option<u32>, String>) {

@@ -1,5 +1,4 @@
 #![warn(clippy::shadow_same, clippy::shadow_reuse, clippy::shadow_unrelated)]
-#![allow(clippy::single_field_patterns)]
 
 fn shadow_same() {
     let x = 1;
