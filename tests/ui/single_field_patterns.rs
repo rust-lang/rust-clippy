@@ -76,6 +76,24 @@ fn lint_array(array: [i32; 3]) {
     if let [5, ..] = array {}
 }
 
+macro_rules! mac {
+    () => {
+        (1, 2, 3)
+    };
+}
+
+macro_rules! pat {
+    ($id:ident) => {
+        (_, $id, _)
+    };
+}
+
+fn ok_macro() {
+    let (_, a, _) = mac!();
+    let pat!(a) = (1, 2, 3);
+    let (pat!(a), _) = (mac!(), mac!());
+}
+
 fn ok_struct(struct1: Struct) {
     let _ = struct1;
     let Struct { field1, field2, .. } = struct1;

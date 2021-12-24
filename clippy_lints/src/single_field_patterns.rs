@@ -89,6 +89,9 @@ fn get_sf<'a, ID: IntoSingleField>(mut iter: impl Iterator<Item = (ID, &'a Pat<'
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
         Some((index, pat)) => {
+            if pat.span.from_expansion() {
+                return None;
+            }
             if iter.all(|(_, other)| matches!(other.kind, PatKind::Wild)) {
                 Some(index.into_sf(pat.span))
             } else {
@@ -197,6 +200,9 @@ fn find_sf_lint<'hir>(
     let mut spans = Vec::<(Span, String)>::new();
     let mut the_one: Option<SingleField> = None;
     for (target, sf) in fields {
+        if target.from_expansion() {
+            return None;
+        }
         if let Some(sf) = sf {
             match sf {
                 SingleField::Unused => {
@@ -250,6 +256,9 @@ fn lint_sf<'hir>(
     scrutinee: &Expr<'_>,
     patterns: impl Iterator<Item = &'hir Pat<'hir>>,
 ) {
+    if scrutinee.span.from_expansion() {
+        return;
+    }
     let scrutinee_name = if let Some(name) = snippet_opt(cx, remove_deref(scrutinee).span) {
         name
     } else {
