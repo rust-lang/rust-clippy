@@ -266,7 +266,7 @@ fn emit_return_lint(cx: &LateContext<'_>, ret_span: Span, inner_span: Option<Spa
                     NEEDLESS_RETURN,
                     ret_span,
                     "unneeded `return` statement",
-                    "replace `return` with a unit type",
+                    "replace `return` with a unit value",
                     "()".to_string(),
                     Applicability::MachineApplicable,
                 );

@@ -70,7 +70,7 @@ error: unneeded `return` statement
   --> $DIR/needless_return.rs:74:14
    |
 LL |         _ => return,
-   |              ^^^^^^ help: replace `return` with a unit type: `()`
+   |              ^^^^^^ help: replace `return` with a unit value: `()`
 
 error: unneeded `return` statement
   --> $DIR/needless_return.rs:83:13
@@ -82,7 +82,7 @@ error: unneeded `return` statement
   --> $DIR/needless_return.rs:85:14
    |
 LL |         _ => return,
-   |              ^^^^^^ help: replace `return` with a unit type: `()`
+   |              ^^^^^^ help: replace `return` with a unit value: `()`
 
 error: unneeded `return` statement
   --> $DIR/needless_return.rs:100:9
@@ -190,7 +190,7 @@ error: unneeded `return` statement
   --> $DIR/needless_return.rs:196:14
    |
 LL |         _ => return,
-   |              ^^^^^^ help: replace `return` with a unit type: `()`
+   |              ^^^^^^ help: replace `return` with a unit value: `()`
 
 error: unneeded `return` statement
   --> $DIR/needless_return.rs:211:9
