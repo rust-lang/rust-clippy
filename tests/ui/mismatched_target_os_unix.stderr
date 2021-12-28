@@ -179,5 +179,225 @@ help: try
 LL | #[cfg(all(not(any(solaris, linux)), target_os = "freebsd"))]
    |                                     ~~~~~~~~~~~~~~~~~~~~~
 
-error: aborting due to 17 previous errors
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:63:8
+   |
+LL |     if cfg!(android) {}
+   |        ^^^^^-------^
+   |             |
+   |             help: try: `target_os = "android"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:64:8
+   |
+LL |     if cfg!(dragonfly) {}
+   |        ^^^^^---------^
+   |             |
+   |             help: try: `target_os = "dragonfly"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:65:8
+   |
+LL |     if cfg!(emscripten) {}
+   |        ^^^^^----------^
+   |             |
+   |             help: try: `target_os = "emscripten"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:66:8
+   |
+LL |     if cfg!(freebsd) {}
+   |        ^^^^^-------^
+   |             |
+   |             help: try: `target_os = "freebsd"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:67:8
+   |
+LL |     if cfg!(fuchsia) {}
+   |        ^^^^^-------^
+   |             |
+   |             help: try: `target_os = "fuchsia"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:68:8
+   |
+LL |     if cfg!(haiku) {}
+   |        ^^^^^-----^
+   |             |
+   |             help: try: `target_os = "haiku"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:69:8
+   |
+LL |     if cfg!(illumos) {}
+   |        ^^^^^-------^
+   |             |
+   |             help: try: `target_os = "illumos"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:70:8
+   |
+LL |     if cfg!(ios) {}
+   |        ^^^^^---^
+   |             |
+   |             help: try: `target_os = "ios"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:71:8
+   |
+LL |     if cfg!(l4re) {}
+   |        ^^^^^----^
+   |             |
+   |             help: try: `target_os = "l4re"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:72:8
+   |
+LL |     if cfg!(linux) {}
+   |        ^^^^^-----^
+   |             |
+   |             help: try: `target_os = "linux"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:73:8
+   |
+LL |     if cfg!(macos) {}
+   |        ^^^^^-----^
+   |             |
+   |             help: try: `target_os = "macos"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:74:8
+   |
+LL |     if cfg!(netbsd) {}
+   |        ^^^^^------^
+   |             |
+   |             help: try: `target_os = "netbsd"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:75:8
+   |
+LL |     if cfg!(openbsd) {}
+   |        ^^^^^-------^
+   |             |
+   |             help: try: `target_os = "openbsd"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:76:8
+   |
+LL |     if cfg!(redox) {}
+   |        ^^^^^-----^
+   |             |
+   |             help: try: `target_os = "redox"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:77:8
+   |
+LL |     if cfg!(solaris) {}
+   |        ^^^^^-------^
+   |             |
+   |             help: try: `target_os = "solaris"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:78:8
+   |
+LL |     if cfg!(vxworks) {}
+   |        ^^^^^-------^
+   |             |
+   |             help: try: `target_os = "vxworks"`
+   |
+   = help: did you mean `unix`?
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:79:8
+   |
+LL |     if cfg!(hermit) {}
+   |        ^^^^^------^
+   |             |
+   |             help: try: `target_os = "hermit"`
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:80:8
+   |
+LL |     if cfg!(none) {}
+   |        ^^^^^----^
+   |             |
+   |             help: try: `target_os = "none"`
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:81:8
+   |
+LL |     if cfg!(wasi) {}
+   |        ^^^^^----^
+   |             |
+   |             help: try: `target_os = "wasi"`
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:82:8
+   |
+LL |     if cfg!(any(linux, macos)) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: did you mean `unix`?
+help: try
+   |
+LL |     if cfg!(any(target_os = "linux", macos)) {}
+   |                 ~~~~~~~~~~~~~~~~~~~
+help: try
+   |
+LL |     if cfg!(any(linux, target_os = "macos")) {}
+   |                        ~~~~~~~~~~~~~~~~~~~
+
+error: operating system used in target family position
+  --> $DIR/mismatched_target_os_unix.rs:83:8
+   |
+LL |     if cfg!(all(not(any(solaris, linux)), freebsd)) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: did you mean `unix`?
+help: try
+   |
+LL |     if cfg!(all(not(any(target_os = "solaris", linux)), freebsd)) {}
+   |                         ~~~~~~~~~~~~~~~~~~~~~
+help: try
+   |
+LL |     if cfg!(all(not(any(solaris, target_os = "linux")), freebsd)) {}
+   |                                  ~~~~~~~~~~~~~~~~~~~
+help: try
+   |
+LL |     if cfg!(all(not(any(solaris, linux)), target_os = "freebsd")) {}
+   |                                           ~~~~~~~~~~~~~~~~~~~~~
+
+error: aborting due to 38 previous errors
 

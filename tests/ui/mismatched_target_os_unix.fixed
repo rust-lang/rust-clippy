@@ -59,4 +59,31 @@ fn list() {}
 #[cfg(target_os = "freebsd")]
 fn correct() {}
 
+fn macro_use() {
+    if cfg!(target_os = "android") {}
+    if cfg!(target_os = "dragonfly") {}
+    if cfg!(target_os = "emscripten") {}
+    if cfg!(target_os = "freebsd") {}
+    if cfg!(target_os = "fuchsia") {}
+    if cfg!(target_os = "haiku") {}
+    if cfg!(target_os = "illumos") {}
+    if cfg!(target_os = "ios") {}
+    if cfg!(target_os = "l4re") {}
+    if cfg!(target_os = "linux") {}
+    if cfg!(target_os = "macos") {}
+    if cfg!(target_os = "netbsd") {}
+    if cfg!(target_os = "openbsd") {}
+    if cfg!(target_os = "redox") {}
+    if cfg!(target_os = "solaris") {}
+    if cfg!(target_os = "vxworks") {}
+    if cfg!(target_os = "hermit") {}
+    if cfg!(target_os = "none") {}
+    if cfg!(target_os = "wasi") {}
+    if cfg!(any(target_os = "linux", target_os = "macos")) {}
+    if cfg!(all(not(any(target_os = "solaris", target_os = "linux")), target_os = "freebsd")) {}
+
+    // correct use
+    if cfg!(target_os = "macos") {}
+}
+
 fn main() {}

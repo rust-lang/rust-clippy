@@ -59,4 +59,31 @@ fn list() {}
 #[cfg(target_os = "freebsd")]
 fn correct() {}
 
+fn macro_use() {
+    if cfg!(android) {}
+    if cfg!(dragonfly) {}
+    if cfg!(emscripten) {}
+    if cfg!(freebsd) {}
+    if cfg!(fuchsia) {}
+    if cfg!(haiku) {}
+    if cfg!(illumos) {}
+    if cfg!(ios) {}
+    if cfg!(l4re) {}
+    if cfg!(linux) {}
+    if cfg!(macos) {}
+    if cfg!(netbsd) {}
+    if cfg!(openbsd) {}
+    if cfg!(redox) {}
+    if cfg!(solaris) {}
+    if cfg!(vxworks) {}
+    if cfg!(hermit) {}
+    if cfg!(none) {}
+    if cfg!(wasi) {}
+    if cfg!(any(linux, macos)) {}
+    if cfg!(all(not(any(solaris, linux)), freebsd)) {}
+
+    // correct use
+    if cfg!(target_os = "macos") {}
+}
+
 fn main() {}
