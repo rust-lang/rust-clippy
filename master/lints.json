@@ -1263,11 +1263,11 @@
     "id": "enum_variant_names",
     "id_span": {
       "path": "src/enum_variants.rs",
-      "line": 38
+      "line": 44
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nDetects enumeration variants that are prefixed or suffixed\nby the same characters.\n\n### Why is this bad?\nEnumeration variant names should specify their variant,\nnot repeat the enumeration name.\n\n### Example\n```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```\nCould be written as:\n```rust\nenum Cake {\n    BlackForest,\n    Hummingbird,\n    Battenberg,\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n* `enum-variant-name-threshold`: `u64`: The minimum number of enum variants for the lints about variant names to trigger (defaults to `3`)\n\n",
+    "docs": " ### What it does\nDetects enumeration variants that are prefixed or suffixed\nby the same characters.\n\n### Why is this bad?\nEnumeration variant names should specify their variant,\nnot repeat the enumeration name.\n\n### Limitations\nCharacters with no casing will be considered when comparing prefixes/suffixes\nThis applies to numbers and non-ascii characters without casing\ne.g. `Foo1` and `Foo2` is considered to have different prefixes\n(the prefixes are `Foo1` and `Foo2` respectively), as also `Bar螃`, `Bar蟹`\n\n### Example\n```rust\nenum Cake {\n    BlackForestCake,\n    HummingbirdCake,\n    BattenbergCake,\n}\n```\nCould be written as:\n```rust\nenum Cake {\n    BlackForest,\n    Hummingbird,\n    Battenberg,\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n* `enum-variant-name-threshold`: `u64`: The minimum number of enum variants for the lints about variant names to trigger (defaults to `3`)\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3798,7 +3798,7 @@
     "id": "module_inception",
     "id_span": {
       "path": "src/enum_variants.rs",
-      "line": 95
+      "line": 101
     },
     "group": "style",
     "level": "warn",
@@ -3813,7 +3813,7 @@
     "id": "module_name_repetitions",
     "id_span": {
       "path": "src/enum_variants.rs",
-      "line": 64
+      "line": 70
     },
     "group": "pedantic",
     "level": "allow",
