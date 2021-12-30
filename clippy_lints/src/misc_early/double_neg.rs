@@ -15,7 +15,7 @@ pub(super) fn check(cx: &EarlyContext<'_>, expr: &Expr) {
                 as in C/C++. Rust does not have unary increment (++) or decrement (--) operators \
                 at the moment",
                 None,
-                "consider using `x -= 1` if you intended to decrease the value of `x`"
+                "consider using `x -= 1` if you intended to decrease the value of `x`",
             );
         }
     }

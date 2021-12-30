@@ -1,10 +1,11 @@
-error: `--x` could be misinterpreted as pre-decrement by C programmers, is usually a no-op
+error: `--x`, which is a double negation of `x` and not a pre-decrement operator as in C/C++. Rust does not have unary increment (++) or decrement (--) operators at the moment
   --> $DIR/double_neg.rs:7:5
    |
 LL |     --x;
    |     ^^^
    |
    = note: `-D clippy::double-neg` implied by `-D warnings`
+   = help: consider using `x -= 1` if you intended to decrease the value of `x`
 
 error: aborting due to previous error
 
