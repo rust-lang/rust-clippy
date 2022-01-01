@@ -5448,11 +5448,11 @@
     "id": "return_self_not_must_use",
     "id_span": {
       "path": "src/return_self_not_must_use.rs",
-      "line": 40
+      "line": 62
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nThis lint warns when a method returning `Self` doesn't have the `#[must_use]` attribute.\n\n### Why is this bad?\nIt prevents to \"forget\" to use the newly created value.\n\n### Limitations\nThis lint is only applied on methods taking a `self` argument. It would be mostly noise\nif it was added on constructors for example.\n\n### Example\n```rust\npub struct Bar;\n\nimpl Bar {\n    // Bad\n    pub fn bar(&self) -> Self {\n        Self\n    }\n\n    // Good\n    #[must_use]\n    pub fn foo(&self) -> Self {\n        Self\n    }\n}\n```",
+    "docs": " ### What it does\nThis lint warns when a method returning `Self` doesn't have the `#[must_use]` attribute.\n\n### Why is this bad?\nMethods returning `Self` often create new values, having the `#[must_use]` attribute\nprevents users from \"forgetting\" to use the newly created value.\n\nThe `#[must_use]` attribute can be added to the type itself to ensure that instances\nare never forgotten. Functions returning a type marked with `#[must_use]` will not be\nlinted, as the usage is already enforced by the type attribute.\n\n### Limitations\nThis lint is only applied on methods taking a `self` argument. It would be mostly noise\nif it was added on constructors for example.\n\n### Example\nMissing attribute\n```rust\npub struct Bar;\nimpl Bar {\n    // Bad\n    pub fn bar(&self) -> Self {\n        Self\n    }\n}\n```\n\nIt's better to have the `#[must_use]` attribute on the method like this:\n```rust\npub struct Bar;\nimpl Bar {\n    #[must_use]\n    pub fn bar(&self) -> Self {\n        Self\n    }\n}\n```\n\nOr on the type definition like this:\n```rust\n#[must_use]\npub struct Bar;\nimpl Bar {\n    pub fn bar(&self) -> Self {\n        Self\n    }\n}\n```",
     "version": "1.59.0",
     "applicability": {
       "is_multi_part_suggestion": false,
