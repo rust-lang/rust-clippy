@@ -1308,7 +1308,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/erasing_op.rs",
-      "line": 25
+      "line": 27
     },
     "group": "correctness",
     "level": "deny",
