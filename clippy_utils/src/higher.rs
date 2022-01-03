@@ -2,15 +2,12 @@
 
 #![deny(clippy::missing_docs_in_private_items)]
 
-use crate::macros::FormatArgsExpn;
 use crate::ty::is_type_diagnostic_item;
 use crate::{is_expn_of, match_def_path, paths};
 use if_chain::if_chain;
 use rustc_ast::ast::{self, LitKind};
 use rustc_hir as hir;
-use rustc_hir::{
-    Arm, Block, BorrowKind, Expr, ExprKind, HirId, LoopSource, MatchSource, Node, Pat, QPath, StmtKind, UnOp,
-};
+use rustc_hir::{Arm, Block, Expr, ExprKind, HirId, LoopSource, MatchSource, Node, Pat, QPath};
 use rustc_lint::LateContext;
 use rustc_span::{sym, symbol, Span};
 
@@ -426,85 +423,6 @@ pub fn binop(op: hir::BinOpKind) -> ast::BinOpKind {
         hir::BinOpKind::Shl => ast::BinOpKind::Shl,
         hir::BinOpKind::Shr => ast::BinOpKind::Shr,
         hir::BinOpKind::Sub => ast::BinOpKind::Sub,
-    }
-}
-
-/// Extract args from an assert-like macro.
-/// Currently working with:
-/// - `assert!`, `assert_eq!` and `assert_ne!`
-/// - `debug_assert!`, `debug_assert_eq!` and `debug_assert_ne!`
-/// For example:
-/// `assert!(expr)` will return `Some([expr])`
-/// `debug_assert_eq!(a, b)` will return `Some([a, b])`
-pub fn extract_assert_macro_args<'tcx>(e: &'tcx Expr<'tcx>) -> Option<Vec<&'tcx Expr<'tcx>>> {
-    /// Try to match the AST for a pattern that contains a match, for example when two args are
-    /// compared
-    fn ast_matchblock(matchblock_expr: &'tcx Expr<'tcx>) -> Option<Vec<&Expr<'_>>> {
-        if_chain! {
-            if let ExprKind::Match(headerexpr, _, _) = &matchblock_expr.kind;
-            if let ExprKind::Tup([lhs, rhs]) = &headerexpr.kind;
-            if let ExprKind::AddrOf(BorrowKind::Ref, _, lhs) = lhs.kind;
-            if let ExprKind::AddrOf(BorrowKind::Ref, _, rhs) = rhs.kind;
-            then {
-                return Some(vec![lhs, rhs]);
-            }
-        }
-        None
-    }
-
-    if let ExprKind::Block(block, _) = e.kind {
-        if block.stmts.len() == 1 {
-            if let StmtKind::Semi(matchexpr) = block.stmts.get(0)?.kind {
-                // macros with unique arg: `{debug_}assert!` (e.g., `debug_assert!(some_condition)`)
-                if_chain! {
-                    if let Some(If { cond, .. }) = If::hir(matchexpr);
-                    if let ExprKind::Unary(UnOp::Not, condition) = cond.kind;
-                    then {
-                        return Some(vec![condition]);
-                    }
-                }
-
-                // debug macros with two args: `debug_assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
-                if_chain! {
-                    if let ExprKind::Block(matchblock,_) = matchexpr.kind;
-                    if let Some(matchblock_expr) = matchblock.expr;
-                    then {
-                        return ast_matchblock(matchblock_expr);
-                    }
-                }
-            }
-        } else if let Some(matchblock_expr) = block.expr {
-            // macros with two args: `assert_{ne, eq}` (e.g., `assert_ne!(a, b)`)
-            return ast_matchblock(matchblock_expr);
-        }
-    }
-    None
-}
-
-/// A parsed `panic!` expansion
-pub struct PanicExpn<'tcx> {
-    /// Span of `panic!(..)`
-    pub call_site: Span,
-    /// Inner `format_args!` expansion
-    pub format_args: FormatArgsExpn<'tcx>,
-}
-
-impl PanicExpn<'tcx> {
-    /// Parses an expanded `panic!` invocation
-    pub fn parse(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<Self> {
-        if_chain! {
-            if let ExprKind::Call(_, [format_args]) = expr.kind;
-            let expn_data = expr.span.ctxt().outer_expn_data();
-            if let Some(format_args) = FormatArgsExpn::parse(cx, format_args);
-            then {
-                Some(PanicExpn {
-                    call_site: expn_data.call_site,
-                    format_args,
-                })
-            } else {
-                None
-            }
-        }
     }
 }
 

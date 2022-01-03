@@ -1667,32 +1667,6 @@ pub fn match_libc_symbol(cx: &LateContext<'_>, did: DefId, name: &str) -> bool {
     path.first().map_or(false, |s| s.as_str() == "libc") && path.last().map_or(false, |s| s.as_str() == name)
 }
 
-pub fn match_panic_call(cx: &LateContext<'_>, expr: &'tcx Expr<'_>) -> Option<&'tcx Expr<'tcx>> {
-    if let ExprKind::Call(func, [arg]) = expr.kind {
-        expr_path_res(cx, func)
-            .opt_def_id()
-            .map_or(false, |id| match_panic_def_id(cx, id))
-            .then(|| arg)
-    } else {
-        None
-    }
-}
-
-pub fn match_panic_def_id(cx: &LateContext<'_>, did: DefId) -> bool {
-    match_any_def_paths(
-        cx,
-        did,
-        &[
-            &paths::BEGIN_PANIC,
-            &paths::PANIC_ANY,
-            &paths::PANICKING_PANIC,
-            &paths::PANICKING_PANIC_FMT,
-            &paths::PANICKING_PANIC_STR,
-        ],
-    )
-    .is_some()
-}
-
 /// Returns the list of condition expressions and the list of blocks in a
 /// sequence of `if/else`.
 /// E.g., this returns `([a, b], [c, d, e])` for the expression
