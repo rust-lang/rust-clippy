@@ -1,5 +1,8 @@
+#![allow(clippy::similar_names)] // `expr` and `expn`
+
 use crate::visitors::expr_visitor_no_bodies;
 
+use arrayvec::ArrayVec;
 use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_hir::intravisit::Visitor;
@@ -8,6 +11,7 @@ use rustc_lint::LateContext;
 use rustc_span::def_id::DefId;
 use rustc_span::hygiene::{MacroKind, SyntaxContext};
 use rustc_span::{sym, ExpnData, ExpnId, ExpnKind, Span, Symbol};
+use std::ops::ControlFlow;
 
 /// A macro call, like `vec![1, 2, 3]`.
 ///
@@ -154,6 +158,151 @@ pub fn first_node_in_macro(cx: &LateContext<'_>, node: &impl HirNode) -> Option<
     }
 
     Some(parent_macro_call.expn)
+}
+
+/* Specific Macro Utils */
+
+/// Is `def_id` of `std::panic`, `core::panic` or any inner implementation macros
+pub fn is_panic(cx: &LateContext<'_>, def_id: DefId) -> bool {
+    let Some(name) = cx.tcx.get_diagnostic_name(def_id) else { return false };
+    matches!(
+        name.as_str(),
+        "core_panic_macro"
+            | "std_panic_macro"
+            | "core_panic_2015_macro"
+            | "std_panic_2015_macro"
+            | "core_panic_2021_macro"
+    )
+}
+
+pub enum PanicExpn<'a> {
+    /// No arguments - `panic!()`
+    Empty,
+    /// A string literal or any `&str` - `panic!("message")` or `panic!(message)`
+    Str(&'a Expr<'a>),
+    /// A single argument that implements `Display` - `panic!("{}", object)`
+    Display(&'a Expr<'a>),
+    /// Anything else - `panic!("error {}: {}", a, b)`
+    Format(FormatArgsExpn<'a>),
+}
+
+impl<'a> PanicExpn<'a> {
+    pub fn parse(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<Self> {
+        if !macro_backtrace(expr.span).any(|macro_call| is_panic(cx, macro_call.def_id)) {
+            return None;
+        }
+        let ExprKind::Call(callee, [arg]) = expr.kind else { return None };
+        let ExprKind::Path(QPath::Resolved(_, path)) = callee.kind else { return None };
+        let result = match path.segments.last().unwrap().ident.as_str() {
+            "panic" if arg.span.ctxt() == expr.span.ctxt() => Self::Empty,
+            "panic" | "panic_str" => Self::Str(arg),
+            "panic_display" => {
+                let ExprKind::AddrOf(_, _, e) = arg.kind else { return None };
+                Self::Display(e)
+            },
+            "panic_fmt" => Self::Format(FormatArgsExpn::parse(cx, arg)?),
+            _ => return None,
+        };
+        Some(result)
+    }
+}
+
+/// Finds the arguments of an `assert!` or `debug_assert!` macro call within the macro expansion
+pub fn find_assert_args<'a>(
+    cx: &LateContext<'_>,
+    expr: &'a Expr<'a>,
+    expn: ExpnId,
+) -> Option<(&'a Expr<'a>, PanicExpn<'a>)> {
+    find_assert_args_inner(cx, expr, expn).map(|([e], p)| (e, p))
+}
+
+/// Finds the arguments of an `assert_eq!` or `debug_assert_eq!` macro call within the macro
+/// expansion
+pub fn find_assert_eq_args<'a>(
+    cx: &LateContext<'_>,
+    expr: &'a Expr<'a>,
+    expn: ExpnId,
+) -> Option<(&'a Expr<'a>, &'a Expr<'a>, PanicExpn<'a>)> {
+    find_assert_args_inner(cx, expr, expn).map(|([a, b], p)| (a, b, p))
+}
+
+fn find_assert_args_inner<'a, const N: usize>(
+    cx: &LateContext<'_>,
+    expr: &'a Expr<'a>,
+    expn: ExpnId,
+) -> Option<([&'a Expr<'a>; N], PanicExpn<'a>)> {
+    let macro_id = expn.expn_data().macro_def_id?;
+    let (expr, expn) = match cx.tcx.item_name(macro_id).as_str().strip_prefix("debug_") {
+        None => (expr, expn),
+        Some(inner_name) => find_assert_within_debug_assert(cx, expr, expn, Symbol::intern(inner_name))?,
+    };
+    let mut args = ArrayVec::new();
+    let mut panic_expn = None;
+    expr_visitor_no_bodies(|e| {
+        if args.is_full() {
+            if panic_expn.is_none() && e.span.ctxt() != expr.span.ctxt() {
+                panic_expn = PanicExpn::parse(cx, e);
+            }
+            panic_expn.is_none()
+        } else if is_assert_arg(cx, e, expn) {
+            args.push(e);
+            false
+        } else {
+            true
+        }
+    })
+    .visit_expr(expr);
+    let args = args.into_inner().ok()?;
+    // if no `panic!(..)` is found, use `PanicExpn::Empty`
+    // to indicate that the default assertion message is used
+    let panic_expn = panic_expn.unwrap_or(PanicExpn::Empty);
+    Some((args, panic_expn))
+}
+
+fn find_assert_within_debug_assert<'a>(
+    cx: &LateContext<'_>,
+    expr: &'a Expr<'a>,
+    expn: ExpnId,
+    assert_name: Symbol,
+) -> Option<(&'a Expr<'a>, ExpnId)> {
+    let mut found = None;
+    expr_visitor_no_bodies(|e| {
+        if found.is_some() || !e.span.from_expansion() {
+            return false;
+        }
+        let e_expn = e.span.ctxt().outer_expn();
+        if e_expn == expn {
+            return true;
+        }
+        if e_expn.expn_data().macro_def_id.map(|id| cx.tcx.item_name(id)) == Some(assert_name) {
+            found = Some((e, e_expn));
+        }
+        false
+    })
+    .visit_expr(expr);
+    found
+}
+
+fn is_assert_arg(cx: &LateContext<'_>, expr: &'a Expr<'a>, assert_expn: ExpnId) -> bool {
+    if !expr.span.from_expansion() {
+        return true;
+    }
+    let result = macro_backtrace(expr.span).try_for_each(|macro_call| {
+        if macro_call.expn == assert_expn {
+            ControlFlow::Break(false)
+        } else {
+            match cx.tcx.item_name(macro_call.def_id) {
+                // `cfg!(debug_assertions)` in `debug_assert!`
+                sym::cfg => ControlFlow::CONTINUE,
+                // assert!(other_macro!(..))
+                _ => ControlFlow::Break(true),
+            }
+        }
+    });
+    match result {
+        ControlFlow::Break(is_assert_arg) => is_assert_arg,
+        ControlFlow::Continue(()) => true,
+    }
 }
 
 /// A parsed `format_args!` expansion
