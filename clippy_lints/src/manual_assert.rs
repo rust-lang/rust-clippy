@@ -35,7 +35,7 @@ declare_clippy_lint! {
 declare_lint_pass!(ManualAssert => [MANUAL_ASSERT]);
 
 impl LateLintPass<'_> for ManualAssert {
-    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         if_chain! {
             if let Expr {
                 kind: ExprKind:: If(cond, Expr {
@@ -64,7 +64,7 @@ impl LateLintPass<'_> for ManualAssert {
                         semi
                     }
                 };
-                let span = if let Some(panic_expn) = PanicExpn::parse(call) {
+                let span = if let Some(panic_expn) = PanicExpn::parse(cx, call) {
                     match *panic_expn.format_args.value_args {
                         [] => panic_expn.format_args.format_string_span,
                         [.., last] => panic_expn.format_args.format_string_span.to(last.span),

@@ -1,8 +1,13 @@
-use rustc_hir::def_id::DefId;
-use rustc_hir::{self as hir, HirId, Node};
+use crate::visitors::expr_visitor_no_bodies;
+
+use if_chain::if_chain;
+use rustc_ast::ast::LitKind;
+use rustc_hir::intravisit::Visitor;
+use rustc_hir::{self as hir, Expr, ExprKind, HirId, Node, QPath};
 use rustc_lint::LateContext;
+use rustc_span::def_id::DefId;
 use rustc_span::hygiene::{MacroKind, SyntaxContext};
-use rustc_span::{ExpnData, ExpnId, ExpnKind, Span};
+use rustc_span::{sym, ExpnData, ExpnId, ExpnKind, Span, Symbol};
 
 /// A macro call, like `vec![1, 2, 3]`.
 ///
@@ -151,6 +156,209 @@ pub fn first_node_in_macro(cx: &LateContext<'_>, node: &impl HirNode) -> Option<
     Some(parent_macro_call.expn)
 }
 
+/// A parsed `format_args!` expansion
+pub struct FormatArgsExpn<'tcx> {
+    /// Span of the first argument, the format string
+    pub format_string_span: Span,
+    /// The format string split by formatted args like `{..}`
+    pub format_string_parts: Vec<Symbol>,
+    /// Values passed after the format string
+    pub value_args: Vec<&'tcx Expr<'tcx>>,
+    /// Each element is a `value_args` index and a formatting trait (e.g. `sym::Debug`)
+    pub formatters: Vec<(usize, Symbol)>,
+    /// List of `fmt::v1::Argument { .. }` expressions. If this is empty,
+    /// then `formatters` represents the format args (`{..}`).
+    /// If this is non-empty, it represents the format args, and the `position`
+    /// parameters within the struct expressions are indexes of `formatters`.
+    pub specs: Vec<&'tcx Expr<'tcx>>,
+}
+
+impl FormatArgsExpn<'tcx> {
+    /// Parses an expanded `format_args!` or `format_args_nl!` invocation
+    pub fn parse(cx: &LateContext<'_>, expr: &'tcx Expr<'tcx>) -> Option<Self> {
+        macro_backtrace(expr.span).find(|macro_call| {
+            matches!(
+                cx.tcx.item_name(macro_call.def_id),
+                sym::const_format_args | sym::format_args | sym::format_args_nl
+            )
+        })?;
+        let mut format_string_span: Option<Span> = None;
+        let mut format_string_parts: Vec<Symbol> = Vec::new();
+        let mut value_args: Vec<&Expr<'_>> = Vec::new();
+        let mut formatters: Vec<(usize, Symbol)> = Vec::new();
+        let mut specs: Vec<&Expr<'_>> = Vec::new();
+        expr_visitor_no_bodies(|e| {
+            // if we're still inside of the macro definition...
+            if e.span.ctxt() == expr.span.ctxt() {
+                // ArgumnetV1::new(<value>, <format_trait>::fmt)
+                if_chain! {
+                    if let ExprKind::Call(callee, [val, fmt_path]) = e.kind;
+                    if let ExprKind::Path(QPath::TypeRelative(ty, seg)) = callee.kind;
+                    if seg.ident.name == sym::new;
+                    if let hir::TyKind::Path(QPath::Resolved(_, path)) = ty.kind;
+                    if path.segments.last().unwrap().ident.name == sym::ArgumentV1;
+                    if let ExprKind::Path(QPath::Resolved(_, path)) = fmt_path.kind;
+                    if let [.., fmt_trait, _fmt] = path.segments;
+                    then {
+                        let val_idx = if_chain! {
+                            if val.span.ctxt() == expr.span.ctxt();
+                            if let ExprKind::Field(_, field) = val.kind;
+                            if let Ok(idx) = field.name.as_str().parse();
+                            then {
+                                // tuple index
+                                idx
+                            } else {
+                                // assume the value expression is passed directly
+                                formatters.len()
+                            }
+                        };
+                        formatters.push((val_idx, fmt_trait.ident.name));
+                    }
+                }
+                if let ExprKind::Struct(QPath::Resolved(_, path), ..) = e.kind {
+                    if path.segments.last().unwrap().ident.name == sym::Argument {
+                        specs.push(e);
+                    }
+                }
+                // walk through the macro expansion
+                return true;
+            }
+            // assume that the first expr with a differing context represents
+            // (and has the span of) the format string
+            if format_string_span.is_none() {
+                format_string_span = Some(e.span);
+                let span = e.span;
+                // walk the expr and collect string literals which are format string parts
+                expr_visitor_no_bodies(|e| {
+                    if e.span.ctxt() != span.ctxt() {
+                        // defensive check, probably doesn't happen
+                        return false;
+                    }
+                    if let ExprKind::Lit(lit) = &e.kind {
+                        if let LitKind::Str(symbol, _s) = lit.node {
+                            format_string_parts.push(symbol);
+                        }
+                    }
+                    true
+                })
+                .visit_expr(e);
+            } else {
+                // assume that any further exprs with a differing context are value args
+                value_args.push(e);
+            }
+            // don't walk anything not from the macro expansion (e.a. inputs)
+            false
+        })
+        .visit_expr(expr);
+        Some(FormatArgsExpn {
+            format_string_span: format_string_span?,
+            format_string_parts,
+            value_args,
+            formatters,
+            specs,
+        })
+    }
+
+    /// Finds a nested call to `format_args!` within a `format!`-like macro call
+    pub fn find_nested(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, expn_id: ExpnId) -> Option<Self> {
+        let mut format_args = None;
+        expr_visitor_no_bodies(|e| {
+            if format_args.is_some() {
+                return false;
+            }
+            let e_ctxt = e.span.ctxt();
+            if e_ctxt == expr.span.ctxt() {
+                return true;
+            }
+            if e_ctxt.outer_expn().is_descendant_of(expn_id) {
+                format_args = FormatArgsExpn::parse(cx, e);
+            }
+            false
+        })
+        .visit_expr(expr);
+        format_args
+    }
+
+    /// Returns a vector of `FormatArgsArg`.
+    pub fn args(&self) -> Option<Vec<FormatArgsArg<'tcx>>> {
+        if self.specs.is_empty() {
+            let args = std::iter::zip(&self.value_args, &self.formatters)
+                .map(|(value, &(_, format_trait))| FormatArgsArg {
+                    value,
+                    format_trait,
+                    spec: None,
+                })
+                .collect();
+            return Some(args);
+        }
+        self.specs
+            .iter()
+            .map(|spec| {
+                if_chain! {
+                    // struct `core::fmt::rt::v1::Argument`
+                    if let ExprKind::Struct(_, fields, _) = spec.kind;
+                    if let Some(position_field) = fields.iter().find(|f| f.ident.name == sym::position);
+                    if let ExprKind::Lit(lit) = &position_field.expr.kind;
+                    if let LitKind::Int(position, _) = lit.node;
+                    if let Ok(i) = usize::try_from(position);
+                    if let Some(&(j, format_trait)) = self.formatters.get(i);
+                    then {
+                        Some(FormatArgsArg { value: self.value_args[j], format_trait, spec: Some(spec) })
+                    } else {
+                        None
+                    }
+                }
+            })
+            .collect()
+    }
+
+    /// Span of all inputs
+    pub fn inputs_span(&self) -> Span {
+        match *self.value_args {
+            [] => self.format_string_span,
+            [.., last] => self.format_string_span.to(last.span),
+        }
+    }
+}
+
+/// Type representing a `FormatArgsExpn`'s format arguments
+pub struct FormatArgsArg<'tcx> {
+    /// An element of `value_args` according to `position`
+    pub value: &'tcx Expr<'tcx>,
+    /// An element of `args` according to `position`
+    pub format_trait: Symbol,
+    /// An element of `specs`
+    pub spec: Option<&'tcx Expr<'tcx>>,
+}
+
+impl<'tcx> FormatArgsArg<'tcx> {
+    /// Returns true if any formatting parameters are used that would have an effect on strings,
+    /// like `{:+2}` instead of just `{}`.
+    pub fn has_string_formatting(&self) -> bool {
+        self.spec.map_or(false, |spec| {
+            // `!` because these conditions check that `self` is unformatted.
+            !if_chain! {
+                // struct `core::fmt::rt::v1::Argument`
+                if let ExprKind::Struct(_, fields, _) = spec.kind;
+                if let Some(format_field) = fields.iter().find(|f| f.ident.name == sym::format);
+                // struct `core::fmt::rt::v1::FormatSpec`
+                if let ExprKind::Struct(_, subfields, _) = format_field.expr.kind;
+                if subfields.iter().all(|field| match field.ident.name {
+                    sym::precision | sym::width => match field.expr.kind {
+                        ExprKind::Path(QPath::Resolved(_, path)) => {
+                            path.segments.last().unwrap().ident.name == sym::Implied
+                        }
+                        _ => false,
+                    }
+                    _ => true,
+                });
+                then { true } else { false }
+            }
+        })
+    }
+}
+
+/// A node with a `HirId` and a `Span`
 pub trait HirNode {
     fn hir_id(&self) -> HirId;
     fn span(&self) -> Span;

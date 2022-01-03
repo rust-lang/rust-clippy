@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::higher::{FormatArgsArg, FormatArgsExpn};
+use clippy_utils::macros::{FormatArgsArg, FormatArgsExpn};
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_diag_trait_item, match_def_path, paths};
@@ -83,7 +83,7 @@ const FORMAT_MACRO_DIAG_ITEMS: &[Symbol] = &[sym::format_macro, sym::std_panic_m
 impl<'tcx> LateLintPass<'tcx> for FormatArgs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if_chain! {
-            if let Some(format_args) = FormatArgsExpn::parse(expr);
+            if let Some(format_args) = FormatArgsExpn::parse(cx, expr);
             let expr_expn_data = expr.span.ctxt().outer_expn_data();
             let outermost_expn_data = outermost_expn_data(expr_expn_data);
             if let Some(macro_def_id) = outermost_expn_data.macro_def_id;
@@ -97,7 +97,7 @@ impl<'tcx> LateLintPass<'tcx> for FormatArgs {
             if let Some(args) = format_args.args();
             then {
                 for (i, arg) in args.iter().enumerate() {
-                    if !arg.is_display() {
+                    if arg.format_trait != sym::Display {
                         continue;
                     }
                     if arg.has_string_formatting() {
