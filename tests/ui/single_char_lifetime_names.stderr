@@ -1,0 +1,35 @@
+error: single-character lifetime names are likely uninformative
+  --> $DIR/single_char_lifetime_names.rs:3:22
+   |
+LL | struct DiagnosticCtx<'a, 'b>
+   |                      ^^
+   |
+   = note: `-D clippy::single-char-lifetime-names` implied by `-D warnings`
+   = help: use a more informative name
+
+error: single-character lifetime names are likely uninformative
+  --> $DIR/single_char_lifetime_names.rs:3:26
+   |
+LL | struct DiagnosticCtx<'a, 'b>
+   |                          ^^
+   |
+   = help: use a more informative name
+
+error: single-character lifetime names are likely uninformative
+  --> $DIR/single_char_lifetime_names.rs:11:6
+   |
+LL | impl<'a, 'b> DiagnosticCtx<'a, 'b> {
+   |      ^^
+   |
+   = help: use a more informative name
+
+error: single-character lifetime names are likely uninformative
+  --> $DIR/single_char_lifetime_names.rs:11:10
+   |
+LL | impl<'a, 'b> DiagnosticCtx<'a, 'b> {
+   |          ^^
+   |
+   = help: use a more informative name
+
+error: aborting due to 4 previous errors
+
