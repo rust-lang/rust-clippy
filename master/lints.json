@@ -6828,11 +6828,11 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1911
+      "line": 1916
     },
     "group": "perf",
     "level": "warn",
-    "docs": " ### What it does\nChecks for unnecessary calls to [`ToOwned::to_owned`](https://doc.rust-lang.org/std/borrow/trait.ToOwned.html#tymethod.to_owned)\nand other `to_owned`-like functions.\n\n### Why is this bad?\nThe unnecessary calls result in useless allocations.\n\n### Example\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy().to_string());\nfn foo(s: &str) {}\n```\nUse instead:\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy());\nfn foo(s: &str) {}\n```",
+    "docs": " ### What it does\nChecks for unnecessary calls to [`ToOwned::to_owned`](https://doc.rust-lang.org/std/borrow/trait.ToOwned.html#tymethod.to_owned)\nand other `to_owned`-like functions.\n\n### Why is this bad?\nThe unnecessary calls result in useless allocations.\n\n### Known problems\n`unnecessary_to_owned` can falsely trigger if `IntoIterator::into_iter` is applied to an\nowned copy of a resource and the resource is later used mutably. See\n[#8148](https://github.com/rust-lang/rust-clippy/issues/8148).\n\n### Example\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy().to_string());\nfn foo(s: &str) {}\n```\nUse instead:\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy());\nfn foo(s: &str) {}\n```",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
