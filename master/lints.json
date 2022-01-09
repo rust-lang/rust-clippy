@@ -5745,6 +5745,21 @@
     }
   },
   {
+    "id": "single_char_lifetime_names",
+    "id_span": {
+      "path": "src/single_char_lifetime_names.rs",
+      "line": 37
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for lifetimes with names which are one character\nlong.\n\n### Why is this bad?\nA single character is likely not enough to express the\npurpose of a lifetime. Using a longer name can make code\neasier to understand, especially for those who are new to\nRust.\n\n### Known problems\nRust programmers and learning resources tend to use single\ncharacter lifetimes, so this lint is at odds with the\necosystem at large. In addition, the lifetime's purpose may\nbe obvious or, rarely, expressible in one character.\n\n### Example\n```rust\nstruct DiagnosticCtx<'a> {\n    source: &'a str,\n}\n```\nUse instead:\n```rust\nstruct DiagnosticCtx<'src> {\n    source: &'src str,\n}\n```",
+    "version": "1.59.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "single_char_pattern",
     "id_span": {
       "path": "src/methods/mod.rs",
