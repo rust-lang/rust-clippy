@@ -6333,7 +6333,7 @@
     "id": "trait_duplication_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 63
+      "line": 67
     },
     "group": "pedantic",
     "level": "allow",
@@ -6558,7 +6558,7 @@
     "id": "type_repetition_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 33
+      "line": 37
     },
     "group": "pedantic",
     "level": "allow",
