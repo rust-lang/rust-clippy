@@ -23,6 +23,7 @@ store.register_group(true, "clippy::nursery", Some("clippy_nursery"), vec![
     LintId::of(option_if_let_else::OPTION_IF_LET_ELSE),
     LintId::of(path_buf_push_overwrite::PATH_BUF_PUSH_OVERWRITE),
     LintId::of(redundant_pub_crate::REDUNDANT_PUB_CRATE),
+    LintId::of(reference::DEREF_ADDROF),
     LintId::of(regex::TRIVIAL_REGEX),
     LintId::of(strings::STRING_LIT_AS_BYTES),
     LintId::of(suspicious_operation_groupings::SUSPICIOUS_OPERATION_GROUPINGS),

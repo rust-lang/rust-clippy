@@ -17,8 +17,11 @@ declare_clippy_lint! {
     /// makes the code less clear.
     ///
     /// ### Known problems
-    /// Multiple dereference/addrof pairs are not handled so
+    /// * Multiple dereference/addrof pairs are not handled so
     /// the suggested fix for `x = **&&y` is `x = *&y`, which is still incorrect.
+    ///
+    /// * [False positive for code that uses `ptr::addr_of` or
+    /// `ptr::addr_of_mut`.](https://github.com/rust-lang/rust-clippy/issues/8247)
     ///
     /// ### Example
     /// ```rust,ignore
@@ -32,7 +35,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub DEREF_ADDROF,
-    complexity,
+    nursery,
     "use of `*&` or `*&mut` in an expression"
 }
 
