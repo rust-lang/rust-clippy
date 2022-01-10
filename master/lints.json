@@ -2628,7 +2628,7 @@
     "id": "iter_not_returning_iterator",
     "id_span": {
       "path": "src/iter_not_returning_iterator.rs",
-      "line": 36
+      "line": 35
     },
     "group": "pedantic",
     "level": "allow",
