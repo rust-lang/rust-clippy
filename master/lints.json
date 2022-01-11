@@ -255,6 +255,21 @@
     }
   },
   {
+    "id": "borrow_as_ptr",
+    "id_span": {
+      "path": "src/borrow_as_ptr.rs",
+      "line": 40
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for the usage of `&expr as *const T` or\n`&mut expr as *mut T`, and suggest using `ptr::addr_of` or\n`ptr::addr_of_mut` instead.\n\n### Why is this bad?\nThis would improve readability and avoid creating a reference\nthat points to an uninitialized value or unaligned place.\nRead the `ptr::addr_of` docs for more information.\n\n### Example\n```rust\nlet val = 1;\nlet p = &val as *const i32;\n\nlet mut val_mut = 1;\nlet p_mut = &mut val_mut as *mut i32;\n```\nUse instead:\n```rust\nlet val = 1;\nlet p = std::ptr::addr_of!(val);\n\nlet mut val_mut = 1;\nlet p_mut = std::ptr::addr_of_mut!(val_mut);\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "borrow_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
