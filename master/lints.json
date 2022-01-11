@@ -288,11 +288,11 @@
     "id": "borrowed_box",
     "id_span": {
       "path": "src/types/mod.rs",
-      "line": 184
+      "line": 185
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for use of `&Box<T>` anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nAny `&Box<T>` can also be a `&T`, which is more\ngeneral.\n\n### Example\n```rust\nfn foo(bar: &Box<T>) { ... }\n```\n\nBetter:\n\n```rust\nfn foo(bar: &T) { ... }\n```",
+    "docs": " ### What it does\nChecks for use of `&Box<T>` anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nA `&Box<T>` parameter requires the function caller to box `T` first before passing it to a function.\nUsing `&T` defines a concrete type for the parameter and generalizes the function, this would also\nauto-deref to `&T` at the function call site if passed a `&Box<T>`.\n\n### Example\n```rust\nfn foo(bar: &Box<T>) { ... }\n```\n\nBetter:\n\n```rust\nfn foo(bar: &T) { ... }\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5088,7 +5088,7 @@
     "id": "rc_buffer",
     "id_span": {
       "path": "src/types/mod.rs",
-      "line": 244
+      "line": 245
     },
     "group": "restriction",
     "level": "allow",
@@ -5103,7 +5103,7 @@
     "id": "rc_mutex",
     "id_span": {
       "path": "src/types/mod.rs",
-      "line": 299
+      "line": 300
     },
     "group": "restriction",
     "level": "allow",
@@ -5118,7 +5118,7 @@
     "id": "redundant_allocation",
     "id_span": {
       "path": "src/types/mod.rs",
-      "line": 209
+      "line": 210
     },
     "group": "perf",
     "level": "warn",
@@ -6558,7 +6558,7 @@
     "id": "type_complexity",
     "id_span": {
       "path": "src/types/mod.rs",
-      "line": 266
+      "line": 267
     },
     "group": "complexity",
     "level": "warn",
