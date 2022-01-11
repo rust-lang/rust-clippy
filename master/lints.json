@@ -3995,8 +3995,8 @@
       "path": "src/mutex_atomic.rs",
       "line": 40
     },
-    "group": "perf",
-    "level": "warn",
+    "group": "nursery",
+    "level": "allow",
     "docs": " ### What it does\nChecks for usages of `Mutex<X>` where an atomic will do.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\n\n// Bad\nlet x = Mutex::new(&y);\n\n// Good\nlet x = AtomicBool::new(y);\n```",
     "version": "pre 1.29.0",
     "applicability": {
