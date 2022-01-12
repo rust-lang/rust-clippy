@@ -3015,6 +3015,21 @@
     }
   },
   {
+    "id": "manual_bits",
+    "id_span": {
+      "path": "src/manual_bits.rs",
+      "line": 29
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for uses of `std::mem::size_of::<T>() * 8` when\n`T::BITS` is available.\n\n### Why is this bad?\nCan be written as the shorter `T::BITS`.\n\n### Example\n```rust\nstd::mem::size_of::<usize>() * 8;\n```\nUse instead:\n```rust\nusize::BITS;\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
