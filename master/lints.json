@@ -273,7 +273,7 @@
     "id": "borrow_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 118
+      "line": 117
     },
     "group": "style",
     "level": "warn",
@@ -858,7 +858,7 @@
     "id": "declare_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 73
+      "line": 72
     },
     "group": "style",
     "level": "warn",
@@ -2958,7 +2958,7 @@
     "id": "macro_use_imports",
     "id_span": {
       "path": "src/macro_use.rs",
-      "line": 28
+      "line": 27
     },
     "group": "pedantic",
     "level": "allow",
@@ -7263,7 +7263,7 @@
     "id": "use_self",
     "id_span": {
       "path": "src/use_self.rs",
-      "line": 55
+      "line": 54
     },
     "group": "nursery",
     "level": "allow",
