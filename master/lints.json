@@ -1293,7 +1293,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/eq_op.rs",
-      "line": 39
+      "line": 43
     },
     "group": "correctness",
     "level": "deny",
@@ -4608,7 +4608,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/eq_op.rs",
-      "line": 65
+      "line": 69
     },
     "group": "style",
     "level": "warn",
