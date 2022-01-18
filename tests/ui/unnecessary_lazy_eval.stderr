@@ -192,5 +192,13 @@ error: unnecessary closure used to substitute value for `Result::Err`
 LL |     let _: Result<usize, usize> = res.or_else(|_| Ok(ext_str.some_field));
    |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `or` instead: `res.or(Ok(ext_str.some_field))`
 
-error: aborting due to 32 previous errors
+error: unnecessary closure used to substitute value for `Option::None`
+  --> $DIR/unnecessary_lazy_eval.rs:138:15
+   |
+LL |               })
+   |  _______________^
+LL | |             .unwrap_or_else(|| 0);
+   | |_________________________________^ help: try this: `.unwrap_or(0)`
+
+error: aborting due to 33 previous errors
 

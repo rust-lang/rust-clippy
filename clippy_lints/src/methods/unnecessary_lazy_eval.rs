@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{eager_or_lazy, usage};
+use rustc_errors::emitter::MAX_SUGGESTION_HIGHLIGHT_LINES;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
@@ -48,18 +49,28 @@ pub(super) fn check<'tcx>(
                     Applicability::MaybeIncorrect
                 };
 
+                let mut sugg_span = expr.span;
+                let mut sugg: String = format!(
+                    "{}.{}({})",
+                    snippet(cx, recv.span, ".."),
+                    simplify_using,
+                    snippet(cx, body_expr.span, ".."),
+                );
+                let mut help = format!("use `{}` instead", simplify_using);
+
+                if sugg.lines().count() > MAX_SUGGESTION_HIGHLIGHT_LINES {
+                    sugg_span = expr.span.with_lo(recv.span.hi());
+                    sugg = format!(".{}({})", simplify_using, snippet(cx, body_expr.span, ".."));
+                    help = "try this".to_string();
+                }
+
                 span_lint_and_sugg(
                     cx,
                     UNNECESSARY_LAZY_EVALUATIONS,
-                    expr.span,
+                    sugg_span,
                     msg,
-                    &format!("use `{}` instead", simplify_using),
-                    format!(
-                        "{0}.{1}({2})",
-                        snippet(cx, recv.span, ".."),
-                        simplify_using,
-                        snippet(cx, body_expr.span, ".."),
-                    ),
+                    &help,
+                    sugg,
                     applicability,
                 );
             }

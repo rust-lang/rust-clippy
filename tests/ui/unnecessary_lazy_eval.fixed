@@ -120,3 +120,21 @@ fn main() {
     let _: Result<usize, usize> = res.and_then(|x| Err(x));
     let _: Result<usize, usize> = res.or_else(|err| Ok(err));
 }
+
+pub struct Stub {}
+
+impl Stub {
+    fn idx_change(&self, pos: usize) -> Result<usize, ()> {
+        pos.checked_sub(2).ok_or(())
+    }
+
+    pub fn idx_map(&self, pos: usize) {
+        let _: usize = self
+            .idx_change(pos)
+            .ok()
+            .and_then(|idx| {
+                let offset = Some(1);
+                offset.map(|off| idx.saturating_sub(off))
+            }).unwrap_or(0);
+    }
+}
