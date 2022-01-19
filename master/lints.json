@@ -262,7 +262,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for the usage of `&expr as *const T` or\n`&mut expr as *mut T`, and suggest using `ptr::addr_of` or\n`ptr::addr_of_mut` instead.\n\n### Why is this bad?\nThis would improve readability and avoid creating a reference\nthat points to an uninitialized value or unaligned place.\nRead the `ptr::addr_of` docs for more information.\n\n### Example\n```rust\nlet val = 1;\nlet p = &val as *const i32;\n\nlet mut val_mut = 1;\nlet p_mut = &mut val_mut as *mut i32;\n```\nUse instead:\n```rust\nlet val = 1;\nlet p = std::ptr::addr_of!(val);\n\nlet mut val_mut = 1;\nlet p_mut = std::ptr::addr_of_mut!(val_mut);\n```",
+    "docs": " ### What it does\nChecks for the usage of `&expr as *const T` or\n`&mut expr as *mut T`, and suggest using `ptr::addr_of` or\n`ptr::addr_of_mut` instead.\n\n### Why is this bad?\nThis would improve readability and avoid creating a reference\nthat points to an uninitialized value or unaligned place.\nRead the `ptr::addr_of` docs for more information.\n\n### Example\n```rust\nlet val = 1;\nlet p = &val as *const i32;\n\nlet mut val_mut = 1;\nlet p_mut = &mut val_mut as *mut i32;\n```\nUse instead:\n```rust\nlet val = 1;\nlet p = std::ptr::addr_of!(val);\n\nlet mut val_mut = 1;\nlet p_mut = std::ptr::addr_of_mut!(val_mut);\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3037,7 +3037,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for uses of `std::mem::size_of::<T>() * 8` when\n`T::BITS` is available.\n\n### Why is this bad?\nCan be written as the shorter `T::BITS`.\n\n### Example\n```rust\nstd::mem::size_of::<usize>() * 8;\n```\nUse instead:\n```rust\nusize::BITS;\n```",
+    "docs": " ### What it does\nChecks for uses of `std::mem::size_of::<T>() * 8` when\n`T::BITS` is available.\n\n### Why is this bad?\nCan be written as the shorter `T::BITS`.\n\n### Example\n```rust\nstd::mem::size_of::<usize>() * 8;\n```\nUse instead:\n```rust\nusize::BITS;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3273,11 +3273,11 @@
     "id": "map_clone",
     "id_span": {
       "path": "src/map_clone.rs",
-      "line": 40
+      "line": 41
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for usage of `map(|x| x.clone())` or\ndereferencing closures for `Copy` types, on `Iterator` or `Option`,\nand suggests `cloned()` or `copied()` instead\n\n### Why is this bad?\nReadability, this can be written more concisely\n\n### Example\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```",
+    "docs": " ### What it does\nChecks for usage of `map(|x| x.clone())` or\ndereferencing closures for `Copy` types, on `Iterator` or `Option`,\nand suggests `cloned()` or `copied()` instead\n\n### Why is this bad?\nReadability, this can be written more concisely\n\n### Example\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.map(|i| *i);\n```\n\nThe correct use would be:\n\n```rust\nlet x = vec![42, 43];\nlet y = x.iter();\nlet z = y.cloned();\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
