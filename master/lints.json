@@ -648,7 +648,7 @@
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 101
+      "line": 86
     },
     "group": "style",
     "level": "warn",
@@ -2508,7 +2508,7 @@
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 150
+      "line": 135
     },
     "group": "correctness",
     "level": "deny",
@@ -3963,7 +3963,7 @@
     "id": "mut_from_ref",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 127
+      "line": 112
     },
     "group": "correctness",
     "level": "deny",
@@ -4968,11 +4968,11 @@
     "id": "ptr_arg",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 74
+      "line": 59
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nThis lint checks for function arguments of type `&String`\nor `&Vec` unless the references are mutable. It will also suggest you\nreplace `.clone()` calls with the appropriate `.to_owned()`/`to_string()`\ncalls.\n\n### Why is this bad?\nRequiring the argument to be of the specific size\nmakes the function less useful for no benefit; slices in the form of `&[T]`\nor `&str` usually suffice and can be obtained from other types, too.\n\n### Known problems\nThe lint does not follow data. So if you have an\nargument `x` and write `let y = x; y.clone()` the lint will not suggest\nchanging that `.clone()` to `.to_owned()`.\n\nOther functions called from this function taking a `&String` or `&Vec`\nargument may also fail to compile if you change the argument. Applying\nthis lint on them will fix the problem, but they may be in other crates.\n\nOne notable example of a function that may cause issues, and which cannot\neasily be changed due to being in the standard library is `Vec::contains`.\nwhen called on a `Vec<Vec<T>>`. If a `&Vec` is passed to that method then\nit will compile, but if a `&[T]` is passed then it will not compile.\n\n```rust\nfn cannot_take_a_slice(v: &Vec<u8>) -> bool {\n    let vec_of_vecs: Vec<Vec<u8>> = some_other_fn();\n\n    vec_of_vecs.contains(v)\n}\n```\n\nAlso there may be `fn(&Vec)`-typed references pointing to your function.\nIf you have them, you will get a compiler error after applying this lint's\nsuggestions. You then have the choice to undo your changes or change the\ntype of the reference.\n\nNote that if the function is part of your public interface, there may be\nother crates referencing it, of which you may not be aware. Carefully\ndeprecate the function before applying the lint suggestions in this case.\n\n### Example\n```rust\n// Bad\nfn foo(&Vec<u32>) { .. }\n\n// Good\nfn foo(&[u32]) { .. }\n```",
+    "docs": " ### What it does\nThis lint checks for function arguments of type `&String`, `&Vec`,\n`&PathBuf`, and `Cow<_>`. It will also suggest you replace `.clone()` calls\nwith the appropriate `.to_owned()`/`to_string()` calls.\n\n### Why is this bad?\nRequiring the argument to be of the specific size\nmakes the function less useful for no benefit; slices in the form of `&[T]`\nor `&str` usually suffice and can be obtained from other types, too.\n\n### Known problems\nThere may be `fn(&Vec)`-typed references pointing to your function.\nIf you have them, you will get a compiler error after applying this lint's\nsuggestions. You then have the choice to undo your changes or change the\ntype of the reference.\n\nNote that if the function is part of your public interface, there may be\nother crates referencing it, of which you may not be aware. Carefully\ndeprecate the function before applying the lint suggestions in this case.\n\n### Example\n```rust\n// Bad\nfn foo(&Vec<u32>) { .. }\n\n// Good\nfn foo(&[u32]) { .. }\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
