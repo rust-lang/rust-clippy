@@ -1,5 +1,5 @@
 error: it looks like you're manually copying within a slice
-  --> $DIR/manual_memmove.rs:8:5
+  --> $DIR/manual_memmove.rs:9:5
    |
 LL | /     for i in 0..(arr.len() - 4) {
 LL | |         // left shift by 4
@@ -10,7 +10,7 @@ LL | |     }
    = note: `-D clippy::manual-memcpy` implied by `-D warnings`
 
 error: it looks like you're manually copying within a slice
-  --> $DIR/manual_memmove.rs:13:5
+  --> $DIR/manual_memmove.rs:14:5
    |
 LL | /     for i in 0..(arr.len() - 4) {
 LL | |         // left shift by 4 with more type inference
@@ -19,7 +19,7 @@ LL | |     }
    | |_____^ help: try replacing the loop by: `arr.copy_within(OFFSET..((arr.len() - 4) + OFFSET), 0);`
 
 error: it looks like you're manually copying within a slice
-  --> $DIR/manual_memmove.rs:49:5
+  --> $DIR/manual_memmove.rs:60:5
    |
 LL | /     for i in 0..(arr.len() - 4) {
 LL | |         // make sure vectors are supported

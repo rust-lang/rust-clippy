@@ -3,6 +3,7 @@
 use std::ops::{Index, IndexMut};
 
 const OFFSET: usize = 4;
+const NEGATIVE_OFFSET: isize = 4;
 
 pub fn manual_memmove(arr: &mut [u8]) {
     for i in 0..(arr.len() - 4) {
@@ -18,6 +19,16 @@ pub fn manual_memmove(arr: &mut [u8]) {
     for i in (0..(arr.len() - 4)).rev() {
         // right shift by 4, currently not supported
         arr[i] = arr[i - 4];
+    }
+
+    for i in 0..(arr.len() - 4) {
+        // right shift by 4 with more type inference, currently not supported
+        arr[i] = arr[i - OFFSET];
+    }
+
+    for i in 0..(arr.len() - 4) {
+        // right shift by 4 with more type inference (alt version), currently not supported
+        arr[i] = arr[i + NEGATIVE_OFFSET as usize];
     }
 
     for i in 0..arr.len() {
