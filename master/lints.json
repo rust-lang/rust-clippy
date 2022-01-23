@@ -933,7 +933,7 @@
     "id": "deref_addrof",
     "id_span": {
       "path": "src/reference.rs",
-      "line": 34
+      "line": 33
     },
     "group": "complexity",
     "level": "warn",
@@ -5352,21 +5352,6 @@
     "applicability": {
       "is_multi_part_suggestion": true,
       "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "ref_in_deref",
-    "id_span": {
-      "path": "src/reference.rs",
-      "line": 130
-    },
-    "group": "complexity",
-    "level": "warn",
-    "docs": " ### What it does\nChecks for references in expressions that use\nauto dereference.\n\n### Why is this bad?\nThe reference is a no-op and is automatically\ndereferenced by the compiler and makes the code less clear.\n\n### Example\n```rust\nstruct Point(u32, u32);\nlet point = Point(30, 20);\nlet x = (&point).0;\n```\nUse instead:\n```rust\nlet x = point.0;\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
     }
   },
   {
