@@ -208,8 +208,8 @@ fn build_manual_memcpy_suggestion<'tcx>(
 /// and also, it avoids subtracting a variable from the same one by replacing it with `0`.
 /// it exists for the convenience of the overloaded operators while normal functions can do the
 /// same.
-#[derive(Clone)]
-struct MinifyingSugg<'a>(Sugg<'a>);
+#[derive(Clone, PartialEq)]
+pub(super) struct MinifyingSugg<'a>(Sugg<'a>);
 
 impl<'a> Display for MinifyingSugg<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -218,7 +218,7 @@ impl<'a> Display for MinifyingSugg<'a> {
 }
 
 impl<'a> MinifyingSugg<'a> {
-    fn into_sugg(self) -> Sugg<'a> {
+    pub fn into_sugg(self) -> Sugg<'a> {
         self.0
     }
 }
@@ -277,13 +277,14 @@ impl std::ops::Sub<&MinifyingSugg<'static>> for MinifyingSugg<'static> {
 
 /// a wrapper around `MinifyingSugg`, which carries an operator like currying
 /// so that the suggested code become more efficient (e.g. `foo + -bar` `foo - bar`).
-struct Offset {
-    value: MinifyingSugg<'static>,
-    sign: OffsetSign,
+#[derive(PartialEq)]
+pub(super) struct Offset {
+    pub value: MinifyingSugg<'static>,
+    pub sign: OffsetSign,
 }
 
-#[derive(Clone, Copy)]
-enum OffsetSign {
+#[derive(Clone, Copy, PartialEq)]
+pub(super) enum OffsetSign {
     Positive,
     Negative,
 }
@@ -308,7 +309,7 @@ impl Offset {
     }
 }
 
-fn apply_offset(lhs: &MinifyingSugg<'static>, rhs: &Offset) -> MinifyingSugg<'static> {
+pub(super) fn apply_offset(lhs: &MinifyingSugg<'static>, rhs: &Offset) -> MinifyingSugg<'static> {
     match rhs.sign {
         OffsetSign::Positive => lhs + &rhs.value,
         OffsetSign::Negative => lhs - &rhs.value,
@@ -316,23 +317,23 @@ fn apply_offset(lhs: &MinifyingSugg<'static>, rhs: &Offset) -> MinifyingSugg<'st
 }
 
 #[derive(Debug, Clone, Copy)]
-enum StartKind<'hir> {
+pub(super) enum StartKind<'hir> {
     Range,
     Counter { initializer: &'hir Expr<'hir> },
 }
 
-struct IndexExpr<'hir> {
-    base: &'hir Expr<'hir>,
-    idx: StartKind<'hir>,
-    idx_offset: Offset,
+pub(super) struct IndexExpr<'hir> {
+    pub base: &'hir Expr<'hir>,
+    pub idx: StartKind<'hir>,
+    pub idx_offset: Offset,
 }
 
-struct Start<'hir> {
-    id: HirId,
-    kind: StartKind<'hir>,
+pub(super) struct Start<'hir> {
+    pub id: HirId,
+    pub kind: StartKind<'hir>,
 }
 
-fn get_slice_like_element_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
+pub(super) fn get_slice_like_element_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
     match ty.kind() {
         ty::Adt(adt, subs) if cx.tcx.is_diagnostic_item(sym::Vec, adt.did) => Some(subs.type_at(0)),
         ty::Ref(_, subty, _) => get_slice_like_element_ty(cx, subty),
@@ -351,7 +352,7 @@ fn fetch_cloned_expr<'tcx>(expr: &'tcx Expr<'tcx>) -> &'tcx Expr<'tcx> {
     }
 }
 
-fn get_details_from_idx<'tcx>(
+pub(super) fn get_details_from_idx<'tcx>(
     cx: &LateContext<'tcx>,
     idx: &Expr<'_>,
     starts: &[Start<'tcx>],
@@ -391,7 +392,7 @@ fn get_details_from_idx<'tcx>(
     }
 }
 
-fn get_assignment<'tcx>(e: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+pub(super) fn get_assignment<'tcx>(e: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
     if let ExprKind::Assign(lhs, rhs, _) = e.kind {
         Some((lhs, rhs))
     } else {
@@ -403,7 +404,7 @@ fn get_assignment<'tcx>(e: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, &'tcx 
 /// The returned iterator yields `None` if no assignment expressions are there,
 /// filtering out the increments of the given whitelisted loop counters;
 /// because its job is to make sure there's nothing other than assignments and the increments.
-fn get_assignments<'a, 'tcx>(
+pub(super) fn get_assignments<'a, 'tcx>(
     Block { stmts, expr, .. }: &'tcx Block<'tcx>,
     loop_counters: &'a [Start<'tcx>],
 ) -> impl Iterator<Item = Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)>> + 'a {
@@ -433,7 +434,7 @@ fn get_assignments<'a, 'tcx>(
         .map(get_assignment)
 }
 
-fn get_loop_counters<'a, 'tcx>(
+pub(super) fn get_loop_counters<'a, 'tcx>(
     cx: &'a LateContext<'tcx>,
     body: &'tcx Block<'tcx>,
     expr: &'tcx Expr<'_>,

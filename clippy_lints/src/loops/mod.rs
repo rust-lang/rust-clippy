@@ -7,6 +7,7 @@ mod for_loops_over_fallibles;
 mod iter_next_loop;
 mod manual_flatten;
 mod manual_memcpy;
+mod manual_memmove;
 mod mut_range_bound;
 mod needless_collect;
 mod needless_range_loop;
@@ -51,6 +52,34 @@ declare_clippy_lint! {
     pub MANUAL_MEMCPY,
     perf,
     "manually copying items between slices"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for for-loops that manually copy items within a slice that could be optimized by having a memmove.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// It is not as fast as a memmove.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let mut arr: [u8; 4] = [1, 2, 3, 4];
+    ///
+    /// for i in 0..2 {
+    ///     arr[i] = arr[i + 2];
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let mut arr: [u8; 4] = [1, 2, 3, 4];
+    /// arr.copy_within(2..4, 0);
+    /// ```
+    #[clippy::version = "1.60.0"]
+    pub MANUAL_MEMMOVE,
+    perf,
+    "manually copying items within a slice"
 }
 
 declare_clippy_lint! {
@@ -562,6 +591,7 @@ declare_clippy_lint! {
 
 declare_lint_pass!(Loops => [
     MANUAL_MEMCPY,
+    MANUAL_MEMMOVE,
     MANUAL_FLATTEN,
     NEEDLESS_RANGE_LOOP,
     EXPLICIT_ITER_LOOP,
@@ -643,7 +673,8 @@ fn check_for_loop<'tcx>(
     span: Span,
 ) {
     let is_manual_memcpy_triggered = manual_memcpy::check(cx, pat, arg, body, expr);
-    if !is_manual_memcpy_triggered {
+    let is_manual_memmove_triggered = manual_memmove::check(cx, pat, arg, body, expr);
+    if !is_manual_memcpy_triggered && !is_manual_memmove_triggered {
         needless_range_loop::check(cx, pat, arg, body, expr);
         explicit_counter_loop::check(cx, pat, arg, body, expr);
     }
