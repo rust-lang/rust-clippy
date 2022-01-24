@@ -2,6 +2,8 @@
 #![warn(clippy::option_if_let_else)]
 #![allow(clippy::redundant_closure, clippy::ref_option_ref, clippy::equatable_if_let)]
 
+use std::collections::HashMap;
+
 fn bad1(string: Option<&str>) -> (bool, &str) {
     string.map_or((false, "hello"), |x| (true, x))
 }
@@ -173,4 +175,12 @@ fn main() {
 
     let _ = pattern_to_vec("hello world");
     let _ = complex_subpat();
+
+    let mut feature_ids = HashMap::new();
+    let fid = 1;
+    if let Some(v) = feature_ids.get_mut(&fid) {
+        *v += 1.0;
+    } else {
+        feature_ids.insert(fid, 1.0);
+    }
 }
