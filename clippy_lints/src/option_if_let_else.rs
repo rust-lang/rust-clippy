@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{
-    can_move_expr_to_closure, eager_or_lazy, higher, in_constant, is_else_clause, is_lang_ctor, peel_blocks,
+    can_move_expr_to_closure, eager_or_lazy, fn_def_id, higher, in_constant, is_else_clause, is_lang_ctor, peel_blocks,
     peel_hir_expr_while, CaptureKind,
 };
 use if_chain::if_chain;
@@ -129,6 +129,18 @@ fn detect_option_if_let_else<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) ->
             let (as_ref, as_mut) = match &let_expr.kind {
                 ExprKind::AddrOf(_, Mutability::Not, _) => (true, false),
                 ExprKind::AddrOf(_, Mutability::Mut, _) => (false, true),
+                ExprKind::MethodCall(..) => {
+                    if let Some(fn_did) = fn_def_id(cx, let_expr) {
+                        let fn_sig = cx.tcx.fn_sig(fn_did).input(0);
+                        if let Some(Mutability::Mut) = cx.tcx.erase_late_bound_regions(fn_sig).ref_mutability() {
+                            (false, true)
+                        } else {
+                            (false, false)
+                        }
+                    } else {
+                        (false, false)
+                    }
+                }
                 _ => (bind_annotation == &BindingAnnotation::Ref, bind_annotation == &BindingAnnotation::RefMut),
             };
             let cond_expr = match let_expr.kind {
@@ -141,7 +153,9 @@ fn detect_option_if_let_else<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) ->
             // with the borrow checker. Currently only `<local>[.<field>]*` is checked for.
             if as_ref || as_mut {
                 let e = peel_hir_expr_while(cond_expr, |e| match e.kind {
-                    ExprKind::Field(e, _) | ExprKind::AddrOf(_, _, e) => Some(e),
+                    ExprKind::Field(e, _)
+                    | ExprKind::AddrOf(_, _, e)
+                    | ExprKind::MethodCall(_, _, [e, ..], _) => Some(e),
                     _ => None,
                 });
                 if let ExprKind::Path(QPath::Resolved(None, Path { res: Res::Local(local_id), .. })) = e.kind {
