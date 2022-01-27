@@ -78,7 +78,7 @@
     "id": "assign_op_pattern",
     "id_span": {
       "path": "src/assign_ops.rs",
-      "line": 38
+      "line": 37
     },
     "group": "style",
     "level": "warn",
@@ -213,7 +213,7 @@
     "id": "blocks_in_if_conditions",
     "id_span": {
       "path": "src/blocks_in_if_conditions.rs",
-      "line": 45
+      "line": 44
     },
     "group": "style",
     "level": "warn",
@@ -678,7 +678,7 @@
     "id": "cognitive_complexity",
     "id_span": {
       "path": "src/cognitive_complexity.rs",
-      "line": 31
+      "line": 30
     },
     "group": "nursery",
     "level": "allow",
@@ -873,7 +873,7 @@
     "id": "default_numeric_fallback",
     "id_span": {
       "path": "src/default_numeric_fallback.rs",
-      "line": 50
+      "line": 49
     },
     "group": "restriction",
     "level": "allow",
@@ -1038,7 +1038,7 @@
     "id": "diverging_sub_expression",
     "id_span": {
       "path": "src/eval_order_dependence.rs",
-      "line": 72
+      "line": 71
     },
     "group": "complexity",
     "level": "warn",
@@ -1338,7 +1338,7 @@
     "id": "eval_order_dependence",
     "id_span": {
       "path": "src/eval_order_dependence.rs",
-      "line": 44
+      "line": 43
     },
     "group": "suspicious",
     "level": "warn",
@@ -1563,7 +1563,7 @@
     "id": "extra_unused_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 78
+      "line": 76
     },
     "group": "complexity",
     "level": "warn",
@@ -1578,7 +1578,7 @@
     "id": "fallible_impl_from",
     "id_span": {
       "path": "src/fallible_impl_from.rs",
-      "line": 49
+      "line": 48
     },
     "group": "nursery",
     "level": "allow",
@@ -2043,7 +2043,7 @@
     "id": "if_let_mutex",
     "id_span": {
       "path": "src/if_let_mutex.rs",
-      "line": 40
+      "line": 39
     },
     "group": "correctness",
     "level": "deny",
@@ -2853,7 +2853,7 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 41
+      "line": 40
     },
     "group": "style",
     "level": "warn",
@@ -2943,7 +2943,7 @@
     "id": "logic_bug",
     "id_span": {
       "path": "src/booleans.rs",
-      "line": 57
+      "line": 56
     },
     "group": "correctness",
     "level": "deny",
@@ -3213,7 +3213,7 @@
     "id": "manual_strip",
     "id_span": {
       "path": "src/manual_strip.rs",
-      "line": 46
+      "line": 45
     },
     "group": "complexity",
     "level": "warn",
@@ -3513,7 +3513,7 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/match_str_case_mismatch.rs",
-      "line": 43
+      "line": 42
     },
     "group": "correctness",
     "level": "deny",
@@ -3678,7 +3678,7 @@
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/assign_ops.rs",
-      "line": 65
+      "line": 64
     },
     "group": "suspicious",
     "level": "warn",
@@ -3978,7 +3978,7 @@
     "id": "mut_mut",
     "id_span": {
       "path": "src/mut_mut.rs",
-      "line": 26
+      "line": 25
     },
     "group": "pedantic",
     "level": "allow",
@@ -4203,7 +4203,7 @@
     "id": "needless_for_each",
     "id_span": {
       "path": "src/needless_for_each.rs",
-      "line": 44
+      "line": 43
     },
     "group": "pedantic",
     "level": "allow",
@@ -4233,7 +4233,7 @@
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 49
+      "line": 47
     },
     "group": "complexity",
     "level": "warn",
@@ -4308,7 +4308,7 @@
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 67
+      "line": 66
     },
     "group": "style",
     "level": "warn",
@@ -4518,7 +4518,7 @@
     "id": "nonminimal_bool",
     "id_span": {
       "path": "src/booleans.rs",
-      "line": 35
+      "line": 34
     },
     "group": "complexity",
     "level": "warn",
@@ -5898,7 +5898,7 @@
     "id": "slow_vector_initialization",
     "id_span": {
       "path": "src/slow_vector_initialization.rs",
-      "line": 40
+      "line": 39
     },
     "group": "perf",
     "level": "warn",
@@ -6093,7 +6093,7 @@
     "id": "suspicious_arithmetic_impl",
     "id_span": {
       "path": "src/suspicious_trait_impl.rs",
-      "line": 29
+      "line": 28
     },
     "group": "suspicious",
     "level": "warn",
@@ -6153,7 +6153,7 @@
     "id": "suspicious_op_assign_impl",
     "id_span": {
       "path": "src/suspicious_trait_impl.rs",
-      "line": 51
+      "line": 50
     },
     "group": "suspicious",
     "level": "warn",
@@ -6603,7 +6603,7 @@
     "id": "undocumented_unsafe_blocks",
     "id_span": {
       "path": "src/undocumented_unsafe_blocks.rs",
-      "line": 43
+      "line": 42
     },
     "group": "restriction",
     "level": "allow",
@@ -7188,7 +7188,7 @@
     "id": "unwrap_in_result",
     "id_span": {
       "path": "src/unwrap_in_result.rs",
-      "line": 55
+      "line": 54
     },
     "group": "restriction",
     "level": "allow",
@@ -7263,7 +7263,7 @@
     "id": "use_self",
     "id_span": {
       "path": "src/use_self.rs",
-      "line": 54
+      "line": 53
     },
     "group": "nursery",
     "level": "allow",
