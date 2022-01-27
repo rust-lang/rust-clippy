@@ -52,20 +52,16 @@ impl<'tcx> LateLintPass<'tcx> for BlacklistedName {
     }
 
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {
-        // Check whether we are under the `test` attribute.
-        if self.in_test_module() {
-            return;
-        }
-
-        if let PatKind::Binding(.., ident, _) = pat.kind {
-            if self.blacklist.contains(&ident.name.to_string()) {
-                span_lint(
-                    cx,
-                    BLACKLISTED_NAME,
-                    ident.span,
-                    &format!("use of a blacklisted/placeholder name `{}`", ident.name),
-                );
-            }
+        if !self.in_test_module()
+            && let PatKind::Binding(.., ident, _) = pat.kind
+            && self.blacklist.contains(&ident.name.to_string())
+        {
+            span_lint(
+                cx,
+                BLACKLISTED_NAME,
+                ident.span,
+                &format!("use of a blacklisted/placeholder name `{}`", ident.name),
+            );
         }
     }
 

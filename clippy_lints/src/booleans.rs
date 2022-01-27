@@ -2,7 +2,6 @@ use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
 use clippy_utils::{eq_expr_value, get_trait_def_id, paths};
-use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{walk_expr, FnKind, Visitor};
@@ -90,11 +89,9 @@ struct Hir2Qmm<'a, 'tcx, 'v> {
 impl<'a, 'tcx, 'v> Hir2Qmm<'a, 'tcx, 'v> {
     fn extract(&mut self, op: BinOpKind, a: &[&'v Expr<'_>], mut v: Vec<Bool>) -> Result<Vec<Bool>, String> {
         for a in a {
-            if let ExprKind::Binary(binop, lhs, rhs) = &a.kind {
-                if binop.node == op {
-                    v = self.extract(op, &[lhs, rhs], v)?;
-                    continue;
-                }
+            if let ExprKind::Binary(binop, lhs, rhs) = &a.kind && binop.node == op {
+                v = self.extract(op, &[lhs, rhs], v)?;
+                continue;
             }
             v.push(self.run(a)?);
         }
@@ -141,17 +138,15 @@ impl<'a, 'tcx, 'v> Hir2Qmm<'a, 'tcx, 'v> {
                 return Ok(Bool::Term(n as u8));
             }
 
-            if_chain! {
-                if let ExprKind::Binary(e_binop, e_lhs, e_rhs) = &e.kind;
-                if implements_ord(self.cx, e_lhs);
-                if let ExprKind::Binary(expr_binop, expr_lhs, expr_rhs) = &expr.kind;
-                if negate(e_binop.node) == Some(expr_binop.node);
-                if eq_expr_value(self.cx, e_lhs, expr_lhs);
-                if eq_expr_value(self.cx, e_rhs, expr_rhs);
-                then {
-                    #[allow(clippy::cast_possible_truncation)]
-                    return Ok(Bool::Not(Box::new(Bool::Term(n as u8))));
-                }
+            if let ExprKind::Binary(e_binop, e_lhs, e_rhs) = &e.kind
+                && implements_ord(self.cx, e_lhs)
+                && let ExprKind::Binary(expr_binop, expr_lhs, expr_rhs) = &expr.kind
+                && negate(e_binop.node) == Some(expr_binop.node)
+                && eq_expr_value(self.cx, e_lhs, expr_lhs)
+                && eq_expr_value(self.cx, e_rhs, expr_rhs)
+            {
+                #[allow(clippy::cast_possible_truncation)]
+                return Ok(Bool::Not(Box::new(Bool::Term(n as u8))));
             }
         }
         let n = self.terminals.len();

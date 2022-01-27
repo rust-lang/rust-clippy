@@ -15,7 +15,6 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::{snippet_block, snippet_block_with_applicability};
 use clippy_utils::sugg::Sugg;
-use if_chain::if_chain;
 use rustc_ast::ast;
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass};
@@ -120,53 +119,49 @@ fn block_starts_with_comment(cx: &EarlyContext<'_>, expr: &ast::Block) -> bool {
 }
 
 fn check_collapsible_maybe_if_let(cx: &EarlyContext<'_>, else_: &ast::Expr) {
-    if_chain! {
-        if let ast::ExprKind::Block(ref block, _) = else_.kind;
-        if !block_starts_with_comment(cx, block);
-        if let Some(else_) = expr_block(block);
-        if else_.attrs.is_empty();
-        if !else_.span.from_expansion();
-        if let ast::ExprKind::If(..) = else_.kind;
-        then {
-            let mut applicability = Applicability::MachineApplicable;
-            span_lint_and_sugg(
-                cx,
-                COLLAPSIBLE_ELSE_IF,
-                block.span,
-                "this `else { if .. }` block can be collapsed",
-                "collapse nested if block",
-                snippet_block_with_applicability(cx, else_.span, "..", Some(block.span), &mut applicability).into_owned(),
-                applicability,
-            );
-        }
+    if let ast::ExprKind::Block(ref block, _) = else_.kind
+        && !block_starts_with_comment(cx, block)
+        && let Some(else_) = expr_block(block)
+        && else_.attrs.is_empty()
+        && !else_.span.from_expansion()
+        && let ast::ExprKind::If(..) = else_.kind
+    {
+        let mut applicability = Applicability::MachineApplicable;
+        span_lint_and_sugg(
+            cx,
+            COLLAPSIBLE_ELSE_IF,
+            block.span,
+            "this `else { if .. }` block can be collapsed",
+            "collapse nested if block",
+            snippet_block_with_applicability(cx, else_.span, "..", Some(block.span), &mut applicability).into_owned(),
+            applicability,
+        );
     }
 }
 
 fn check_collapsible_no_if_let(cx: &EarlyContext<'_>, expr: &ast::Expr, check: &ast::Expr, then: &ast::Block) {
-    if_chain! {
-        if !block_starts_with_comment(cx, then);
-        if let Some(inner) = expr_block(then);
-        if inner.attrs.is_empty();
-        if let ast::ExprKind::If(ref check_inner, ref content, None) = inner.kind;
+    if !block_starts_with_comment(cx, then)
+        && let Some(inner) = expr_block(then)
+        && inner.attrs.is_empty()
+        && let ast::ExprKind::If(ref check_inner, ref content, None) = inner.kind
         // Prevent triggering on `if c { if let a = b { .. } }`.
-        if !matches!(check_inner.kind, ast::ExprKind::Let(..));
-        if expr.span.ctxt() == inner.span.ctxt();
-        then {
-            span_lint_and_then(cx, COLLAPSIBLE_IF, expr.span, "this `if` statement can be collapsed", |diag| {
-                let lhs = Sugg::ast(cx, check, "..");
-                let rhs = Sugg::ast(cx, check_inner, "..");
-                diag.span_suggestion(
-                    expr.span,
-                    "collapse nested if block",
-                    format!(
-                        "if {} {}",
-                        lhs.and(&rhs),
-                        snippet_block(cx, content.span, "..", Some(expr.span)),
-                    ),
-                    Applicability::MachineApplicable, // snippet
-                );
-            });
-        }
+        && !matches!(check_inner.kind, ast::ExprKind::Let(..))
+        && expr.span.ctxt() == inner.span.ctxt()
+    {
+        span_lint_and_then(cx, COLLAPSIBLE_IF, expr.span, "this `if` statement can be collapsed", |diag| {
+            let lhs = Sugg::ast(cx, check, "..");
+            let rhs = Sugg::ast(cx, check_inner, "..");
+            diag.span_suggestion(
+                expr.span,
+                "collapse nested if block",
+                format!(
+                    "if {} {}",
+                    lhs.and(&rhs),
+                    snippet_block(cx, content.span, "..", Some(expr.span)),
+                ),
+                Applicability::MachineApplicable, // snippet
+            );
+        });
     }
 }
 

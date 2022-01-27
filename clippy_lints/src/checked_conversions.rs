@@ -3,7 +3,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{meets_msrv, msrvs, SpanlessEq};
-use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOp, BinOpKind, Expr, ExprKind, QPath, TyKind};
@@ -61,35 +60,30 @@ impl<'tcx> LateLintPass<'tcx> for CheckedConversions {
             return;
         }
 
-        let result = if_chain! {
-            if !in_external_macro(cx.sess(), item.span);
-            if let ExprKind::Binary(op, left, right) = &item.kind;
-
-            then {
-                match op.node {
-                    BinOpKind::Ge | BinOpKind::Le => single_check(item),
-                    BinOpKind::And => double_check(cx, left, right),
-                    _ => None,
-                }
-            } else {
-                None
+        let result = if !in_external_macro(cx.sess(), item.span)
+            && let ExprKind::Binary(op, left, right) = &item.kind
+        {
+            match op.node {
+                BinOpKind::Ge | BinOpKind::Le => single_check(item),
+                BinOpKind::And => double_check(cx, left, right),
+                _ => None,
             }
+        } else {
+            None
         };
 
-        if let Some(cv) = result {
-            if let Some(to_type) = cv.to_type {
-                let mut applicability = Applicability::MachineApplicable;
-                let snippet = snippet_with_applicability(cx, cv.expr_to_cast.span, "_", &mut applicability);
-                span_lint_and_sugg(
-                    cx,
-                    CHECKED_CONVERSIONS,
-                    item.span,
-                    "checked cast can be simplified",
-                    "try",
-                    format!("{}::try_from({}).is_ok()", to_type, snippet),
-                    applicability,
-                );
-            }
+        if let Some(cv) = result && let Some(to_type) = cv.to_type {
+            let mut applicability = Applicability::MachineApplicable;
+            let snippet = snippet_with_applicability(cx, cv.expr_to_cast.span, "_", &mut applicability);
+            span_lint_and_sugg(
+                cx,
+                CHECKED_CONVERSIONS,
+                item.span,
+                "checked cast can be simplified",
+                "try",
+                format!("{}::try_from({}).is_ok()", to_type, snippet),
+                applicability,
+            );
         }
     }
 
@@ -198,16 +192,13 @@ impl ConversionType {
 
 /// Check for `expr <= (to_type::MAX as from_type)`
 fn check_upper_bound<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<Conversion<'tcx>> {
-    if_chain! {
-         if let ExprKind::Binary(ref op, left, right) = &expr.kind;
-         if let Some((candidate, check)) = normalize_le_ge(op, left, right);
-         if let Some((from, to)) = get_types_from_cast(check, INTS, "max_value", "MAX");
-
-         then {
-             Conversion::try_new(candidate, from, to)
-         } else {
-            None
-        }
+    if let ExprKind::Binary(ref op, left, right) = &expr.kind
+        && let Some((candidate, check)) = normalize_le_ge(op, left, right)
+        && let Some((from, to)) = get_types_from_cast(check, INTS, "max_value", "MAX")
+    {
+        Conversion::try_new(candidate, from, to)
+    } else {
+        None
     }
 }
 
@@ -227,15 +218,10 @@ fn check_lower_bound<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<Conversion<'tcx>> {
 
 /// Check for `expr >= 0`
 fn check_lower_bound_zero<'a>(candidate: &'a Expr<'_>, check: &'a Expr<'_>) -> Option<Conversion<'a>> {
-    if_chain! {
-        if let ExprKind::Lit(ref lit) = &check.kind;
-        if let LitKind::Int(0, _) = &lit.node;
-
-        then {
-            Some(Conversion::new_any(candidate))
-        } else {
-            None
-        }
+    if let ExprKind::Lit(ref lit) = &check.kind && let LitKind::Int(0, _) = &lit.node {
+        Some(Conversion::new_any(candidate))
+    } else {
+        None
     }
 }
 
@@ -257,36 +243,31 @@ fn get_types_from_cast<'a>(
 ) -> Option<(&'a str, &'a str)> {
     // `to_type::max_value() as from_type`
     // or `to_type::MAX as from_type`
-    let call_from_cast: Option<(&Expr<'_>, &str)> = if_chain! {
+    let call_from_cast: Option<(&Expr<'_>, &str)> =
         // to_type::max_value(), from_type
-        if let ExprKind::Cast(limit, from_type) = &expr.kind;
-        if let TyKind::Path(ref from_type_path) = &from_type.kind;
-        if let Some(from_sym) = int_ty_to_sym(from_type_path);
-
-        then {
+        if let ExprKind::Cast(limit, from_type) = &expr.kind
+            && let TyKind::Path(ref from_type_path) = &from_type.kind
+            && let Some(from_sym) = int_ty_to_sym(from_type_path)
+        {
             Some((limit, from_sym))
         } else {
             None
-        }
-    };
+        };
 
     // `from_type::from(to_type::max_value())`
     let limit_from: Option<(&Expr<'_>, &str)> = call_from_cast.or_else(|| {
-        if_chain! {
-            // `from_type::from, to_type::max_value()`
-            if let ExprKind::Call(from_func, args) = &expr.kind;
+        // `from_type::from, to_type::max_value()`
+        if let ExprKind::Call(from_func, args) = &expr.kind
             // `to_type::max_value()`
-            if args.len() == 1;
-            if let limit = &args[0];
+            && args.len() == 1
+            && let limit = &args[0]
             // `from_type::from`
-            if let ExprKind::Path(ref path) = &from_func.kind;
-            if let Some(from_sym) = get_implementing_type(path, INTS, "from");
-
-            then {
-                Some((limit, from_sym))
-            } else {
-                None
-            }
+            && let ExprKind::Path(ref path) = &from_func.kind
+            && let Some(from_sym) = get_implementing_type(path, INTS, "from")
+        {
+            Some((limit, from_sym))
+        } else {
+            None
         }
     });
 
@@ -294,11 +275,10 @@ fn get_types_from_cast<'a>(
         match limit.kind {
             // `from_type::from(_)`
             ExprKind::Call(path, _) => {
-                if let ExprKind::Path(ref path) = path.kind {
-                    // `to_type`
-                    if let Some(to_type) = get_implementing_type(path, types, func) {
-                        return Some((from_type, to_type));
-                    }
+                if let ExprKind::Path(ref path) = path.kind
+                    && let Some(to_type) = get_implementing_type(path, types, func)
+                {
+                    return Some((from_type, to_type));
                 }
             },
             // `to_type::MAX`
@@ -309,37 +289,31 @@ fn get_types_from_cast<'a>(
             },
             _ => {},
         }
-    };
+    }
     None
 }
 
 /// Gets the type which implements the called function
 fn get_implementing_type<'a>(path: &QPath<'_>, candidates: &'a [&str], function: &str) -> Option<&'a str> {
-    if_chain! {
-        if let QPath::TypeRelative(ty, path) = &path;
-        if path.ident.name.as_str() == function;
-        if let TyKind::Path(QPath::Resolved(None, tp)) = &ty.kind;
-        if let [int] = &*tp.segments;
-        then {
-            let name = int.ident.name.as_str();
-            candidates.iter().find(|c| &name == *c).copied()
-        } else {
-            None
-        }
+    if let QPath::TypeRelative(ty, path) = &path
+        && path.ident.name.as_str() == function
+        && let TyKind::Path(QPath::Resolved(None, tp)) = &ty.kind
+        && let [int] = &*tp.segments
+    {
+        let name = int.ident.name.as_str();
+        candidates.iter().find(|c| &name == *c).copied()
+    } else {
+        None
     }
 }
 
 /// Gets the type as a string, if it is a supported integer
 fn int_ty_to_sym<'tcx>(path: &QPath<'_>) -> Option<&'tcx str> {
-    if_chain! {
-        if let QPath::Resolved(_, path) = *path;
-        if let [ty] = &*path.segments;
-        then {
-            let name = ty.ident.name.as_str();
-            INTS.iter().find(|c| &name == *c).copied()
-        } else {
-            None
-        }
+    if let QPath::Resolved(_, path) = *path && let [ty] = &*path.segments {
+        let name = ty.ident.name.as_str();
+        INTS.iter().find(|c| &name == *c).copied()
+    } else {
+        None
     }
 }
 

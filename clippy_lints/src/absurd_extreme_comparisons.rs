@@ -46,36 +46,35 @@ declare_lint_pass!(AbsurdExtremeComparisons => [ABSURD_EXTREME_COMPARISONS]);
 
 impl<'tcx> LateLintPass<'tcx> for AbsurdExtremeComparisons {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if let ExprKind::Binary(ref cmp, lhs, rhs) = expr.kind {
-            if let Some((culprit, result)) = detect_absurd_comparison(cx, cmp.node, lhs, rhs) {
-                if !expr.span.from_expansion() {
-                    let msg = "this comparison involving the minimum or maximum element for this \
-                               type contains a case that is always true or always false";
+        if let ExprKind::Binary(ref cmp, lhs, rhs) = expr.kind
+            && let Some((culprit, result)) = detect_absurd_comparison(cx, cmp.node, lhs, rhs)
+            && !expr.span.from_expansion()
+        {
+            let msg = "this comparison involving the minimum or maximum element for this \
+                        type contains a case that is always true or always false";
 
-                    let conclusion = match result {
-                        AbsurdComparisonResult::AlwaysFalse => "this comparison is always false".to_owned(),
-                        AbsurdComparisonResult::AlwaysTrue => "this comparison is always true".to_owned(),
-                        AbsurdComparisonResult::InequalityImpossible => format!(
-                            "the case where the two sides are not equal never occurs, consider using `{} == {}` \
-                             instead",
-                            snippet(cx, lhs.span, "lhs"),
-                            snippet(cx, rhs.span, "rhs")
-                        ),
-                    };
+            let conclusion = match result {
+                AbsurdComparisonResult::AlwaysFalse => "this comparison is always false".to_owned(),
+                AbsurdComparisonResult::AlwaysTrue => "this comparison is always true".to_owned(),
+                AbsurdComparisonResult::InequalityImpossible => format!(
+                    "the case where the two sides are not equal never occurs, consider using `{} == {}` \
+                        instead",
+                    snippet(cx, lhs.span, "lhs"),
+                    snippet(cx, rhs.span, "rhs")
+                ),
+            };
 
-                    let help = format!(
-                        "because `{}` is the {} value for this type, {}",
-                        snippet(cx, culprit.expr.span, "x"),
-                        match culprit.which {
-                            ExtremeType::Minimum => "minimum",
-                            ExtremeType::Maximum => "maximum",
-                        },
-                        conclusion
-                    );
+            let help = format!(
+                "because `{}` is the {} value for this type, {}",
+                snippet(cx, culprit.expr.span, "x"),
+                match culprit.which {
+                    ExtremeType::Minimum => "minimum",
+                    ExtremeType::Maximum => "maximum",
+                },
+                conclusion
+            );
 
-                    span_lint_and_help(cx, ABSURD_EXTREME_COMPARISONS, expr.span, msg, None, &help);
-                }
-            }
+            span_lint_and_help(cx, ABSURD_EXTREME_COMPARISONS, expr.span, msg, None, &help);
         }
     }
 }

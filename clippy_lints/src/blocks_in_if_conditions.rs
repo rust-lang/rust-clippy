@@ -3,7 +3,6 @@ use clippy_utils::higher;
 use clippy_utils::source::snippet_block_with_applicability;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{differing_macro_contexts, get_parent_expr};
-use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{walk_expr, Visitor};
 use rustc_hir::{BlockCheckMode, Expr, ExprKind};
@@ -57,24 +56,23 @@ impl<'a, 'tcx> Visitor<'tcx> for ExVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
         if let ExprKind::Closure(_, _, eid, _, _) = expr.kind {
             // do not lint if the closure is called using an iterator (see #1141)
-            if_chain! {
-                if let Some(parent) = get_parent_expr(self.cx, expr);
-                if let ExprKind::MethodCall(_, [self_arg, ..], _) = &parent.kind;
-                let caller = self.cx.typeck_results().expr_ty(self_arg);
-                if let Some(iter_id) = self.cx.tcx.get_diagnostic_item(sym::Iterator);
-                if implements_trait(self.cx, caller, iter_id, &[]);
-                then {
-                    return;
-                }
+            if let Some(parent) = get_parent_expr(self.cx, expr)
+                && let ExprKind::MethodCall(_, [self_arg, ..], _) = &parent.kind
+                &&let caller = self.cx.typeck_results().expr_ty(self_arg)
+                && let Some(iter_id) = self.cx.tcx.get_diagnostic_item(sym::Iterator)
+                && implements_trait(self.cx, caller, iter_id, &[])
+            {
+                return;
             }
 
             let body = self.cx.tcx.hir().body(eid);
             let ex = &body.value;
-            if let ExprKind::Block(block, _) = ex.kind {
-                if !body.value.span.from_expansion() && !block.stmts.is_empty() {
-                    self.found_block = Some(ex);
-                    return;
-                }
+            if let ExprKind::Block(block, _) = ex.kind
+                && !body.value.span.from_expansion()
+                && !block.stmts.is_empty()
+            {
+                self.found_block = Some(ex);
+                return;
             }
         }
         walk_expr(self, expr);

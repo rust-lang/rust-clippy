@@ -47,39 +47,39 @@ impl<'tcx> LateLintPass<'tcx> for AsyncYieldsAsync {
         use AsyncGeneratorKind::{Block, Closure};
         // For functions, with explicitly defined types, don't warn.
         // XXXkhuey maybe we should?
-        if let Some(GeneratorKind::Async(Block | Closure)) = body.generator_kind {
-            if let Some(future_trait_def_id) = cx.tcx.lang_items().future_trait() {
-                let body_id = BodyId {
-                    hir_id: body.value.hir_id,
-                };
-                let typeck_results = cx.tcx.typeck_body(body_id);
-                let expr_ty = typeck_results.expr_ty(&body.value);
+        if let Some(GeneratorKind::Async(Block | Closure)) = body.generator_kind
+            && let Some(future_trait_def_id) = cx.tcx.lang_items().future_trait()
+        {
+            let body_id = BodyId {
+                hir_id: body.value.hir_id,
+            };
+            let typeck_results = cx.tcx.typeck_body(body_id);
+            let expr_ty = typeck_results.expr_ty(&body.value);
 
-                if implements_trait(cx, expr_ty, future_trait_def_id, &[]) {
-                    let return_expr_span = match &body.value.kind {
-                        // XXXkhuey there has to be a better way.
-                        ExprKind::Block(block, _) => block.expr.map(|e| e.span),
-                        ExprKind::Path(QPath::Resolved(_, path)) => Some(path.span),
-                        _ => None,
-                    };
-                    if let Some(return_expr_span) = return_expr_span {
-                        span_lint_and_then(
-                            cx,
-                            ASYNC_YIELDS_ASYNC,
-                            return_expr_span,
-                            "an async construct yields a type which is itself awaitable",
-                            |db| {
-                                db.span_label(body.value.span, "outer async construct");
-                                db.span_label(return_expr_span, "awaitable value not awaited");
-                                db.span_suggestion(
-                                    return_expr_span,
-                                    "consider awaiting this value",
-                                    format!("{}.await", snippet(cx, return_expr_span, "..")),
-                                    Applicability::MaybeIncorrect,
-                                );
-                            },
-                        );
-                    }
+            if implements_trait(cx, expr_ty, future_trait_def_id, &[]) {
+                let return_expr_span = match &body.value.kind {
+                    // XXXkhuey there has to be a better way.
+                    ExprKind::Block(block, _) => block.expr.map(|e| e.span),
+                    ExprKind::Path(QPath::Resolved(_, path)) => Some(path.span),
+                    _ => None,
+                };
+                if let Some(return_expr_span) = return_expr_span {
+                    span_lint_and_then(
+                        cx,
+                        ASYNC_YIELDS_ASYNC,
+                        return_expr_span,
+                        "an async construct yields a type which is itself awaitable",
+                        |db| {
+                            db.span_label(body.value.span, "outer async construct");
+                            db.span_label(return_expr_span, "awaitable value not awaited");
+                            db.span_suggestion(
+                                return_expr_span,
+                                "consider awaiting this value",
+                                format!("{}.await", snippet(cx, return_expr_span, "..")),
+                                Applicability::MaybeIncorrect,
+                            );
+                        },
+                    );
                 }
             }
         }

@@ -2,7 +2,6 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::is_no_std_crate;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::{meets_msrv, msrvs};
-use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -65,33 +64,30 @@ impl<'tcx> LateLintPass<'tcx> for BorrowAsPtr {
             return;
         }
 
-        if_chain! {
-            if let ExprKind::Cast(left_expr, ty) = &expr.kind;
-            if let TyKind::Ptr(_) = ty.kind;
-            if let ExprKind::AddrOf(BorrowKind::Ref, mutability, e) = &left_expr.kind;
+        if let ExprKind::Cast(left_expr, ty) = &expr.kind
+            && let TyKind::Ptr(_) = ty.kind
+            && let ExprKind::AddrOf(BorrowKind::Ref, mutability, e) = &left_expr.kind
+        {
+            let core_or_std = if is_no_std_crate(cx) { "core" } else { "std" };
+            let macro_name = match mutability {
+                Mutability::Not => "addr_of",
+                Mutability::Mut => "addr_of_mut",
+            };
 
-            then {
-                let core_or_std = if is_no_std_crate(cx) { "core" } else { "std" };
-                let macro_name = match mutability {
-                    Mutability::Not => "addr_of",
-                    Mutability::Mut => "addr_of_mut",
-                };
-
-                span_lint_and_sugg(
-                    cx,
-                    BORROW_AS_PTR,
-                    expr.span,
-                    "borrow as raw pointer",
-                    "try",
-                    format!(
-                        "{}::ptr::{}!({})",
-                        core_or_std,
-                        macro_name,
-                        snippet_opt(cx, e.span).unwrap()
-                    ),
-                    Applicability::MachineApplicable,
-                );
-            }
+            span_lint_and_sugg(
+                cx,
+                BORROW_AS_PTR,
+                expr.span,
+                "borrow as raw pointer",
+                "try",
+                format!(
+                    "{}::ptr::{}!({})",
+                    core_or_std,
+                    macro_name,
+                    snippet_opt(cx, e.span).unwrap()
+                ),
+                Applicability::MachineApplicable,
+            );
         }
     }
 

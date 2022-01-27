@@ -1,5 +1,4 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_hir::{Expr, ExprKind, PathSegment};
 use rustc_lint::{LateContext, LateLintPass};
@@ -36,32 +35,30 @@ declare_clippy_lint! {
 declare_lint_pass!(CaseSensitiveFileExtensionComparisons => [CASE_SENSITIVE_FILE_EXTENSION_COMPARISONS]);
 
 fn check_case_sensitive_file_extension_comparison(ctx: &LateContext<'_>, expr: &Expr<'_>) -> Option<Span> {
-    if_chain! {
-        if let ExprKind::MethodCall(PathSegment { ident, .. }, [obj, extension, ..], span) = expr.kind;
-        if ident.as_str() == "ends_with";
-        if let ExprKind::Lit(Spanned { node: LitKind::Str(ext_literal, ..), ..}) = extension.kind;
-        if (2..=6).contains(&ext_literal.as_str().len());
-        if ext_literal.as_str().starts_with('.');
-        if ext_literal.as_str().chars().skip(1).all(|c| c.is_uppercase() || c.is_digit(10))
-            || ext_literal.as_str().chars().skip(1).all(|c| c.is_lowercase() || c.is_digit(10));
-        then {
-            let mut ty = ctx.typeck_results().expr_ty(obj);
-            ty = match ty.kind() {
-                ty::Ref(_, ty, ..) => ty,
-                _ => ty
-            };
+    if let ExprKind::MethodCall(PathSegment { ident, .. }, [obj, extension, ..], span) = expr.kind
+        && ident.as_str() == "ends_with"
+        && let ExprKind::Lit(Spanned { node: LitKind::Str(ext_literal, ..), ..}) = extension.kind
+        && (2..=6).contains(&ext_literal.as_str().len())
+        && ext_literal.as_str().starts_with('.')
+        && (ext_literal.as_str().chars().skip(1).all(|c| c.is_uppercase() || c.is_digit(10))
+            || ext_literal.as_str().chars().skip(1).all(|c| c.is_lowercase() || c.is_digit(10)))
+    {
+        let mut ty = ctx.typeck_results().expr_ty(obj);
+        ty = match ty.kind() {
+            ty::Ref(_, ty, ..) => ty,
+            _ => ty
+        };
 
-            match ty.kind() {
-                ty::Str => {
+        match ty.kind() {
+            ty::Str => {
+                return Some(span);
+            },
+            ty::Adt(&ty::AdtDef { did, .. }, _) => {
+                if ctx.tcx.is_diagnostic_item(sym::String, did) {
                     return Some(span);
-                },
-                ty::Adt(&ty::AdtDef { did, .. }, _) => {
-                    if ctx.tcx.is_diagnostic_item(sym::String, did) {
-                        return Some(span);
-                    }
-                },
-                _ => { return None; }
-            }
+                }
+            },
+            _ => { return None; }
         }
     }
     None
