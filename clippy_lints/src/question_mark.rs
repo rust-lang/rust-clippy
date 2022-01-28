@@ -6,11 +6,11 @@ use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{eq_expr_value, is_lang_ctor, path_to_local, path_to_local_id, peel_blocks, peel_blocks_with_stmt};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
-use rustc_hir::LangItem::{OptionNone, OptionSome, ResultOk};
-use rustc_hir::{BindingAnnotation, Expr, ExprKind, PatKind};
+use rustc_hir::LangItem::{OptionNone, OptionSome, ResultErr, ResultOk};
+use rustc_hir::{BindingAnnotation, Expr, ExprKind, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::sym;
+use rustc_span::{sym, symbol::Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -61,21 +61,21 @@ impl QuestionMark {
             if let ExprKind::MethodCall(segment, args, _) = &cond.kind;
             if let Some(subject) = args.get(0);
             if (Self::option_check_and_early_return(cx, subject, then) && segment.ident.name == sym!(is_none)) ||
-                (Self::result_check_and_early_return(cx, subject, then) && segment.ident.name == sym!(is_err));
+                (Self::result_check_and_early_return(cx, subject, then, None) && segment.ident.name == sym!(is_err));
             then {
                 let mut applicability = Applicability::MachineApplicable;
-                let receiver_str = &Sugg::hir_with_applicability(cx, subject, "..", &mut applicability);
+                let suggestion = &Sugg::hir_with_applicability(cx, subject, "..", &mut applicability);
                 let mut replacement: Option<String> = None;
                 if let Some(else_inner) = r#else {
                     if eq_expr_value(cx, subject, peel_blocks(else_inner)) {
-                        replacement = Some(format!("Some({}?)", receiver_str));
+                        replacement = Some(format!("Some({}?)", suggestion));
                     }
                 } else if Self::moves_by_default(cx, subject)
                     && !matches!(subject.kind, ExprKind::Call(..) | ExprKind::MethodCall(..))
                 {
-                    replacement = Some(format!("{}.as_ref()?;", receiver_str));
+                    replacement = Some(format!("{}.as_ref()?;", suggestion));
                 } else {
-                    replacement = Some(format!("{}?;", receiver_str));
+                    replacement = Some(format!("{}?;", suggestion));
                 }
 
                 if let Some(replacement_str) = replacement {
@@ -95,19 +95,25 @@ impl QuestionMark {
 
     fn check_if_let_some_or_err_and_early_return(cx: &LateContext<'_>, expr: &Expr<'_>) {
         if_chain! {
-            if let Some(higher::IfLet { let_pat, let_expr, if_then, if_else: Some(if_else) })
+            if let Some(higher::IfLet { let_pat, let_expr, if_then, if_else })
                 = higher::IfLet::hir(cx, expr);
             if let PatKind::TupleStruct(ref path1, fields, None) = let_pat.kind;
-            if (Self::option_check_and_early_return(cx, let_expr, if_else) && is_lang_ctor(cx, path1, OptionSome)) ||
-                (Self::result_check_and_early_return(cx, let_expr, if_else) && is_lang_ctor(cx, path1, ResultOk));
-
-            if let PatKind::Binding(annot, bind_id, _, _) = fields[0].kind;
+            let nested_expr = if_else.unwrap_or(if_then);
+            if let PatKind::Binding(annot, bind_id, ident, _) = fields[0].kind;
+            if (Self::result_check_and_early_return(cx, let_expr, nested_expr, Some(ident.name)) &&
+                (is_lang_ctor(cx, path1, ResultOk) || is_lang_ctor(cx, path1, ResultErr))) ||
+                (Self::option_check_and_early_return(cx, let_expr, nested_expr) &&
+                is_lang_ctor(cx, path1, OptionSome));
             let by_ref = matches!(annot, BindingAnnotation::Ref | BindingAnnotation::RefMut);
-            if path_to_local_id(peel_blocks(if_then), bind_id);
             then {
                 let mut applicability = Applicability::MachineApplicable;
                 let receiver_str = snippet_with_applicability(cx, let_expr.span, "..", &mut applicability);
-                let replacement = format!("{}{}?", receiver_str, if by_ref { ".as_ref()" } else { "" },);
+                let replacement = format!(
+                    "{}{}?{}",
+                    receiver_str,
+                    if by_ref { ".as_ref()" } else { "" },
+                    if path_to_local_id(peel_blocks(if_then), bind_id) { "" } else { ";" }
+                );
 
                 span_lint_and_sugg(
                     cx,
@@ -122,8 +128,13 @@ impl QuestionMark {
         }
     }
 
-    fn result_check_and_early_return(cx: &LateContext<'_>, expr: &Expr<'_>, nested_expr: &Expr<'_>) -> bool {
-        Self::is_result(cx, expr) && Self::expression_returns_unmodified_err(cx, nested_expr, expr)
+    fn result_check_and_early_return(
+        cx: &LateContext<'_>,
+        expr: &Expr<'_>,
+        nested_expr: &Expr<'_>,
+        pat_symbol: Option<Symbol>,
+    ) -> bool {
+        Self::is_result(cx, expr) && Self::expression_returns_unmodified_err(cx, nested_expr, expr, pat_symbol)
     }
 
     fn option_check_and_early_return(cx: &LateContext<'_>, expr: &Expr<'_>, nested_expr: &Expr<'_>) -> bool {
@@ -156,10 +167,28 @@ impl QuestionMark {
         }
     }
 
-    fn expression_returns_unmodified_err(cx: &LateContext<'_>, expr: &Expr<'_>, cond_expr: &Expr<'_>) -> bool {
-        match peel_blocks_with_stmt(expr).kind {
-            ExprKind::Ret(Some(ret_expr)) => Self::expression_returns_unmodified_err(cx, ret_expr, cond_expr),
+    fn expression_returns_unmodified_err(
+        cx: &LateContext<'_>,
+        expr: &Expr<'_>,
+        cond_expr: &Expr<'_>,
+        pat_symbol: Option<Symbol>,
+    ) -> bool {
+        match &peel_blocks_with_stmt(expr).kind {
+            ExprKind::Ret(Some(ret_expr)) => {
+                Self::expression_returns_unmodified_err(cx, ret_expr, cond_expr, pat_symbol)
+            },
             ExprKind::Path(_) => path_to_local(expr).is_some() && path_to_local(expr) == path_to_local(cond_expr),
+            ExprKind::Call(call_expr, args_expr) => {
+                if let ExprKind::Path(qpath) = &call_expr.kind
+                    && let QPath::Resolved(_, path) = qpath
+                    && let Some(pat_sym) = pat_symbol
+                    && let Some(arg) = args_expr.first()
+                {
+                    return path.segments[0].ident.name.as_str() == "Err" && clippy_utils::contains_name(pat_sym, arg)
+                }
+
+                false
+            },
             _ => false,
         }
     }

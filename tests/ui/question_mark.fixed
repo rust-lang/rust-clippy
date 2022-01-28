@@ -154,6 +154,43 @@ fn f() -> NotOption {
     NotOption::First
 }
 
+#[allow(dead_code)]
+mod issue8288 {
+    fn do_something() {}
+
+    fn foo() -> Result<(), i32> {
+        Ok(())
+    }
+
+    fn bar() -> Result<(), i32> {
+        foo()?;
+        Ok(())
+    }
+
+    fn baz() -> Result<(), i32> {
+        foo()?;
+        do_something();
+        Ok(())
+    }
+
+    // No warning
+    fn qux() -> Result<(), i32> {
+        if let Err(err) = foo() {
+            do_something();
+            return Err(err);
+        }
+        Ok(())
+    }
+
+    // No warning
+    fn quux() -> Option<i32> {
+        if let Err(err) = foo() {
+            return Some(err);
+        }
+        None
+    }
+}
+
 fn main() {
     some_func(Some(42));
     some_func(None);

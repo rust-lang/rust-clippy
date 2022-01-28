@@ -114,5 +114,21 @@ LL | |         return x;
 LL | |     }
    | |_____^ help: replace it with: `x?;`
 
-error: aborting due to 13 previous errors
+error: this if-let-else may be rewritten with the `?` operator
+  --> $DIR/question_mark.rs:198:9
+   |
+LL | /         if let Err(err) = foo() {
+LL | |             return Err(err);
+LL | |         }
+   | |_________^ help: replace it with: `foo()?;`
+
+error: this if-let-else may be rewritten with the `?` operator
+  --> $DIR/question_mark.rs:205:9
+   |
+LL | /         if let Err(err) = foo() {
+LL | |             return Err(err);
+LL | |         }
+   | |_________^ help: replace it with: `foo()?;`
+
+error: aborting due to 15 previous errors
 
