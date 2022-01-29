@@ -69,21 +69,21 @@ impl PartialEq for SingleField {
 
 impl SingleField {
     fn new<'a>(mut iter: impl Iterator<Item = (Ident, &'a Pat<'a>)>) -> Option<SingleField> {
-    let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
-    match one {
-        Some((id, pat)) => {
-            if pat.span.from_expansion() {
-                return None;
-            }
-            if iter.all(|(_, other)| matches!(other.kind, PatKind::Wild)) {
-                Some(SingleField::Id { id, pattern: pat.span })
-            } else {
-                None
-            }
-        },
-        None => Some(SingleField::Unused),
+        let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
+        match one {
+            Some((id, pat)) => {
+                if pat.span.from_expansion() {
+                    return None;
+                }
+                if iter.all(|(_, other)| matches!(other.kind, PatKind::Wild)) {
+                    Some(SingleField::Id { id, pattern: pat.span })
+                } else {
+                    None
+                }
+            },
+            None => Some(SingleField::Unused),
+        }
     }
-}
 }
 
 /// This handles recursive patterns and flattens them out lazily
@@ -128,14 +128,17 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
 
 fn find_sf_lint<'hir>(
     cx: &LateContext<'_>,
-    patterns: impl Iterator<Item = &'hir Pat<'hir>>
+    patterns: impl Iterator<Item = &'hir Pat<'hir>>,
 ) -> Option<(SingleField, Vec<(Span, String)>)> {
-    let fields = FlatPatterns::new(patterns).filter_map(|p| {
-        match p.kind {
-            PatKind::Wild => Some(SingleField::Unused),
-            PatKind::Struct(_, pats, _) => SingleField::new(pats.iter().map(|field| (field.ident, field.pat))),
-            _ => None
-        }.map(|sf| (p.span, sf))
+    let fields = FlatPatterns::new(patterns).map(|p| {
+        (
+            p.span,
+            match p.kind {
+                PatKind::Wild => Some(SingleField::Unused),
+                PatKind::Struct(_, pats, _) => SingleField::new(pats.iter().map(|field| (field.ident, field.pat))),
+                _ => None,
+            },
+        )
     });
     let mut spans = Vec::<(Span, String)>::new();
     let mut the_one: Option<SingleField> = None;
@@ -143,6 +146,7 @@ fn find_sf_lint<'hir>(
         if target.from_expansion() {
             return None;
         }
+        if let Some(sf) = sf {
             match sf {
                 SingleField::Unused => {
                     spans.push((target, String::from("_")));
@@ -161,6 +165,9 @@ fn find_sf_lint<'hir>(
                         the_one = Some(sf);
                     }
                 },
+            }
+        } else {
+            return None;
         }
     }
     the_one.map(|one| (one, spans))
