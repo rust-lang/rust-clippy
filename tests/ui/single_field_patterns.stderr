@@ -5,7 +5,7 @@ LL |     let Struct { field1, .. } = struct1;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: `-D clippy::single-field-patterns` implied by `-D warnings`
-help: try this
+help: try accessing this field directly
    |
 LL |     let field1 = struct1.field1;
    |         ~~~~~~   ~~~~~~~~~~~~~~
@@ -16,7 +16,7 @@ error: this single-variant pattern only matches one field
 LL |     let Struct { field1, field2: _ } = struct1;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: try this
+help: try accessing this field directly
    |
 LL |     let field1 = struct1.field1;
    |         ~~~~~~   ~~~~~~~~~~~~~~
@@ -27,7 +27,7 @@ error: this single-variant pattern only matches one field
 LL |     if let Struct { field1: None, .. } | Struct { field1: Some(1), .. } = struct1 {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: try this
+help: try accessing this field directly
    |
 LL |     if let None | Some(1) = struct1.field1 {}
    |            ~~~~   ~~~~~~~   ~~~~~~~~~~~~~~
@@ -42,7 +42,7 @@ LL | |         _ => {},
 LL | |     }
    | |_____^
    |
-help: try this
+help: try accessing this field directly
    |
 LL ~     match struct1.field1 {
 LL ~         Some(n) if n >= 50 => {},
@@ -60,7 +60,7 @@ LL | |         _ => {},
 LL | |     }
    | |_____^
    |
-help: try this
+help: try accessing this field directly
    |
 LL ~     match struct1.field1 {
 LL ~         Some(n) if n >= 50 => {},
@@ -79,7 +79,7 @@ LL | |         _ => {},
 LL | |     }
    | |_____^
    |
-help: try this
+help: try accessing this field directly
    |
 LL ~     match struct1.field1 {
 LL ~         Some(1) => {},
@@ -98,7 +98,7 @@ LL | |         } => {},
 LL | |     }
    | |_____^
    |
-help: try this
+help: try accessing this field directly
    |
 LL ~     match struct1.field1 {
 LL ~         Some(_) | None => {},
@@ -110,7 +110,7 @@ error: this single-variant pattern only matches one field
 LL |     while let Struct { field1: Some(5), .. } = struct1 {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: try this
+help: try accessing this field directly
    |
 LL |     while let Some(5) = struct1.field1 {}
    |               ~~~~~~~   ~~~~~~~~~~~~~~
@@ -121,7 +121,7 @@ error: this single-variant pattern only matches one field
 LL |     let Struct { field1, .. } = **struct1;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: try this
+help: try accessing this field directly
    |
 LL |     let field1 = struct1.field1;
    |         ~~~~~~   ~~~~~~~~~~~~~~
@@ -132,7 +132,7 @@ error: this single-variant pattern only matches one field
 LL |     let Struct { ref field1, .. } = **struct1;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: try this
+help: try accessing this field directly
    |
 LL |     let ref field1 = struct1.field1;
    |         ~~~~~~~~~~   ~~~~~~~~~~~~~~
@@ -143,7 +143,7 @@ error: this single-variant pattern only matches one field
 LL |     let Struct { ref mut field1, .. } = **struct1;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: try this
+help: try accessing this field directly
    |
 LL |     let ref mut field1 = struct1.field1;
    |         ~~~~~~~~~~~~~~   ~~~~~~~~~~~~~~
