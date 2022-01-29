@@ -900,6 +900,21 @@
     }
   },
   {
+    "id": "default_union_representation",
+    "id_span": {
+      "path": "src/default_union_representation.rs",
+      "line": 47
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nDisplays a warning when a union is declared with the default representation (without a `#[repr(C)]` attribute).\n\n### Why is this bad?\nUnions in Rust have unspecified layout by default, despite many people thinking that they\nlay out each field at the start of the union (like C does). That is, there are no guarantees\nabout the offset of the fields for unions with multiple non-ZST fields without an explicitly\nspecified layout. These cases may lead to undefined behavior in unsafe blocks.\n\n### Example\n```rust\nunion Foo {\n    a: i32,\n    b: u32,\n}\n\nfn main() {\n    let _x: u32 = unsafe {\n        Foo { a: 0_i32 }.b // Undefined behaviour: `b` is allowed to be padding\n    };\n}\n```\nUse instead:\n```rust\n#[repr(C)]\nunion Foo {\n    a: i32,\n    b: u32,\n}\n\nfn main() {\n    let _x: u32 = unsafe {\n        Foo { a: 0_i32 }.b // Now defined behaviour, this is just an i32 -> u32 transmute\n    };\n}\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
