@@ -24,6 +24,17 @@ LL |     let field1 = struct1.field1;
 error: this single-variant pattern only matches one field
   --> $DIR/single_field_patterns.rs:10:5
    |
+LL |     if let Struct { field1: None, .. } | Struct { field1: Some(1), .. } = struct1 {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     if let None | Some(1) = struct1.field1 {}
+   |            ~~~~   ~~~~~~~   ~~~~~~~~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_patterns.rs:11:5
+   |
 LL | /     match struct1 {
 LL | |         Struct { field1: Some(n), .. } if n >= 50 => {},
 LL | |         Struct { field1: None, .. } => {},
@@ -40,11 +51,11 @@ LL ~         _ => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:15:5
+  --> $DIR/single_field_patterns.rs:16:5
    |
 LL | /     match struct1 {
 LL | |         Struct { field1: Some(n), .. } if n >= 50 => {},
-LL | |         Struct { .. } => {},
+LL | |         Struct { .. } | Struct { field1: None, .. } => {},
 LL | |         _ => {},
 LL | |     }
    | |_____^
@@ -53,12 +64,12 @@ help: try this
    |
 LL ~     match struct1.field1 {
 LL ~         Some(n) if n >= 50 => {},
-LL ~         _ => {},
+LL ~         _ | None => {},
 LL ~         _ => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:20:5
+  --> $DIR/single_field_patterns.rs:21:5
    |
 LL | /     match struct1 {
 LL | |         Struct { field1: Some(1), .. } => {},
@@ -78,7 +89,7 @@ LL ~         _ => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:26:5
+  --> $DIR/single_field_patterns.rs:27:5
    |
 LL | /     match struct1 {
 LL | |         Struct {
@@ -94,7 +105,7 @@ LL ~         Some(_) | None => {},
    |
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:31:5
+  --> $DIR/single_field_patterns.rs:32:5
    |
 LL |     while let Struct { field1: Some(5), .. } = struct1 {}
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -105,7 +116,7 @@ LL |     while let Some(5) = struct1.field1 {}
    |               ~~~~~~~   ~~~~~~~~~~~~~~
 
 error: this single-variant pattern only matches one field
-  --> $DIR/single_field_patterns.rs:36:5
+  --> $DIR/single_field_patterns.rs:37:5
    |
 LL |     let Struct { field1, .. } = **struct1;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -115,5 +126,27 @@ help: try this
 LL |     let field1 = struct1.field1;
    |         ~~~~~~   ~~~~~~~~~~~~~~
 
-error: aborting due to 8 previous errors
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_patterns.rs:38:5
+   |
+LL |     let Struct { ref field1, .. } = **struct1;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     let ref field1 = struct1.field1;
+   |         ~~~~~~~~~~   ~~~~~~~~~~~~~~
+
+error: this single-variant pattern only matches one field
+  --> $DIR/single_field_patterns.rs:39:5
+   |
+LL |     let Struct { ref mut field1, .. } = **struct1;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: try this
+   |
+LL |     let ref mut field1 = struct1.field1;
+   |         ~~~~~~~~~~~~~~   ~~~~~~~~~~~~~~
+
+error: aborting due to 11 previous errors
 

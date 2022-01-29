@@ -12,11 +12,11 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::{symbol::Ident, Span};
-use std::iter::once;
+use std::iter;
 
 declare_clippy_lint! {
     /// ### What it does
-    ///  Checks for patterns that only use a single field when they could directly access the field.
+    ///  Checks for patterns that only match a single field of a struct when they could directly access the field.
     ///
     /// ### Why is this bad?
     ///  It requires more text and more information than directly accessing the field.
@@ -49,8 +49,8 @@ declare_clippy_lint! {
 }
 declare_lint_pass!(SingleFieldPatterns => [SINGLE_FIELD_PATTERNS]);
 
-/// This represents 0 or 1 fields being used. Where more may be used, I use Option<SingleField>
-///   where None represents the absence of a lint
+/// This represents 0 or 1 fields being used. Where more may be used, `Option<SingleField>` is used
+///   where `None` represents the absence of a lint
 #[derive(Debug, Clone, Copy)]
 enum SingleField {
     Id { id: Ident, pattern: Span },
@@ -67,7 +67,8 @@ impl PartialEq for SingleField {
     }
 }
 
-fn get_sf<'a>(mut iter: impl Iterator<Item = (Ident, &'a Pat<'a>)>) -> Option<SingleField> {
+impl SingleField {
+    fn new<'a>(mut iter: impl Iterator<Item = (Ident, &'a Pat<'a>)>) -> Option<SingleField> {
     let one = iter.by_ref().find(|(_, pat)| !matches!(pat.kind, PatKind::Wild));
     match one {
         Some((id, pat)) => {
@@ -83,12 +84,6 @@ fn get_sf<'a>(mut iter: impl Iterator<Item = (Ident, &'a Pat<'a>)>) -> Option<Si
         None => Some(SingleField::Unused),
     }
 }
-
-fn struct_sf(pat: &PatKind<'_>) -> Option<SingleField> {
-    match *pat {
-        PatKind::Struct(_, pats, _) => get_sf(pats.iter().map(|field| (field.ident, field.pat))),
-        _ => None,
-    }
 }
 
 /// This handles recursive patterns and flattens them out lazily
@@ -133,18 +128,14 @@ impl<I: Iterator<Item = &'hir Pat<'hir>>> Iterator for FlatPatterns<'hir, I> {
 
 fn find_sf_lint<'hir>(
     cx: &LateContext<'_>,
-    patterns: impl Iterator<Item = &'hir Pat<'hir>>,
-    leaf_sf: &impl Fn(&PatKind<'hir>) -> Option<SingleField>,
+    patterns: impl Iterator<Item = &'hir Pat<'hir>>
 ) -> Option<(SingleField, Vec<(Span, String)>)> {
-    let fields = FlatPatterns::new(patterns).map(|p| {
-        (
-            p.span,
-            if matches!(p.kind, PatKind::Wild) {
-                Some(SingleField::Unused)
-            } else {
-                leaf_sf(&p.kind)
-            },
-        )
+    let fields = FlatPatterns::new(patterns).filter_map(|p| {
+        match p.kind {
+            PatKind::Wild => Some(SingleField::Unused),
+            PatKind::Struct(_, pats, _) => SingleField::new(pats.iter().map(|field| (field.ident, field.pat))),
+            _ => None
+        }.map(|sf| (p.span, sf))
     });
     let mut spans = Vec::<(Span, String)>::new();
     let mut the_one: Option<SingleField> = None;
@@ -152,7 +143,6 @@ fn find_sf_lint<'hir>(
         if target.from_expansion() {
             return None;
         }
-        if let Some(sf) = sf {
             match sf {
                 SingleField::Unused => {
                     spans.push((target, String::from("_")));
@@ -171,9 +161,6 @@ fn find_sf_lint<'hir>(
                         the_one = Some(sf);
                     }
                 },
-            }
-        } else {
-            return None;
         }
     }
     the_one.map(|one| (one, spans))
@@ -214,8 +201,8 @@ fn lint_sf<'hir>(
         return;
     };
     match cx.typeck_results().expr_ty(scrutinee).kind() {
-        ty::TyKind::Adt(def, ..) if def.is_struct() => {
-            if let Some((field, mut spans)) = find_sf_lint(cx, patterns, &struct_sf) {
+        ty::Adt(def, ..) if def.is_struct() => {
+            if let Some((field, mut spans)) = find_sf_lint(cx, patterns) {
                 spans.push((
                     scrutinee.span,
                     match field {
@@ -239,10 +226,10 @@ impl LateLintPass<'_> for SingleFieldPatterns {
             Some(IfLetOrMatch::Match(scrutinee, arms, MatchSource::Normal)) => {
                 lint_sf(cx, expr.span, scrutinee, arms.iter().map(|arm| arm.pat));
             },
-            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => lint_sf(cx, expr.span, scrutinee, once(pat)),
+            Some(IfLetOrMatch::IfLet(scrutinee, pat, ..)) => lint_sf(cx, expr.span, scrutinee, iter::once(pat)),
             _ => {
                 if let Some(WhileLet { let_pat, let_expr, .. }) = WhileLet::hir(expr) {
-                    lint_sf(cx, expr.span, let_expr, once(let_pat));
+                    lint_sf(cx, expr.span, let_expr, iter::once(let_pat));
                 }
             },
         };
@@ -258,7 +245,7 @@ impl LateLintPass<'_> for SingleFieldPatterns {
             ..
         }) = stmt.kind
         {
-            lint_sf(cx, stmt.span, scrutinee, once(*pat));
+            lint_sf(cx, stmt.span, scrutinee, iter::once(*pat));
         }
     }
 }
