@@ -36,26 +36,19 @@ impl<'tcx> LateLintPass<'tcx> for BytesCountToLen {
             if let hir::ExprKind::MethodCall(count_path, count_args, _) = &expr.kind;
             if count_path.ident.name.as_str() == "count";
             if let [bytes_expr] = &**count_args;
+            //check for method call called "bytes" that was linked to "count"
+            if let hir::ExprKind::MethodCall(bytes_path, _, _) = &bytes_expr.kind;
+            if bytes_path.ident.name.as_str() == "bytes";
             then {
-                match &bytes_expr.kind {
-                    hir::ExprKind::MethodCall(bytes_path, _, _) => {
-                        if_chain! {
-                            if bytes_path.ident.name.as_str() == "bytes";
-                            then {
-                                span_lint_and_note(
-                                    cx,
-                                    BYTES_COUNT_TO_LEN,
-                                    expr.span,
-                                    "using long and hard to read `.bytes().count()`",
-                                    None,
-                                    "`.len()` achieves same functionality"
-                                );
-                            }
-                        }
-                    }
-                    _ => ()
-                };
+                span_lint_and_note(
+                    cx,
+                    BYTES_COUNT_TO_LEN,
+                    expr.span,
+                    "using long and hard to read `.bytes().count()`",
+                    None,
+                    "`.len()` achieves same functionality"
+                );
             }
-        }
+        };
     }
 }
