@@ -175,6 +175,7 @@ mod bool_assert_comparison;
 mod booleans;
 mod borrow_as_ptr;
 mod bytecount;
+mod bytes_count_to_len;
 mod cargo_common_metadata;
 mod case_sensitive_file_extension_comparisons;
 mod casts;
@@ -861,6 +862,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(move || Box::new(borrow_as_ptr::BorrowAsPtr::new(msrv)));
     store.register_late_pass(move || Box::new(manual_bits::ManualBits::new(msrv)));
     store.register_late_pass(|| Box::new(default_union_representation::DefaultUnionRepresentation));
+    store.register_late_pass(|| Box::new(bytes_count_to_len::BytesCountToLen));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
