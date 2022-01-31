@@ -2,7 +2,7 @@
 
 fn main() {
     let s1 = String::from("world");
-    
+
     //test warning against a string literal
     "hello".bytes().count();
 
