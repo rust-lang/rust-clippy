@@ -6,13 +6,13 @@ use rustc_session::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// It checks for `str::bytes().count()` and suggests replacing it with 
+    /// It checks for `str::bytes().count()` and suggests replacing it with
     /// `str::len()`.
-    /// 
+    ///
     /// ### Why is this bad?
     /// `str::bytes().count()` is longer and may not be as performant as using
     /// `str::len()`.
-    /// 
+    ///
     /// ### Example
     /// ```rust
     /// "hello".bytes().count();
