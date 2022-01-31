@@ -34,7 +34,7 @@ impl<'tcx> LateLintPass<'tcx> for BytesCountToLen {
         if_chain! {
             //check for method call called "count"
             if let hir::ExprKind::MethodCall(count_path, count_args, _) = &expr.kind;
-            if count_path.ident.name.as_str() == "count";
+            if count_path.ident.name == rustc_span::sym::count;
             if let [bytes_expr] = &**count_args;
             //check for method call called "bytes" that was linked to "count"
             if let hir::ExprKind::MethodCall(bytes_path, _, _) = &bytes_expr.kind;
