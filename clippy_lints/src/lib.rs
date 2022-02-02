@@ -274,6 +274,7 @@ mod manual_strip;
 mod manual_unwrap_or;
 mod map_clone;
 mod map_err_ignore;
+mod map_then_identity_transformer;
 mod map_unit_fn;
 mod match_on_vec_items;
 mod match_result_ok;
@@ -857,6 +858,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(move || Box::new(borrow_as_ptr::BorrowAsPtr::new(msrv)));
     store.register_late_pass(move || Box::new(manual_bits::ManualBits::new(msrv)));
     store.register_late_pass(|| Box::new(default_union_representation::DefaultUnionRepresentation));
+    store.register_late_pass(|| Box::new(map_then_identity_transformer::MapThenIdentityTransformer));
     store.register_late_pass(|| Box::new(dbg_macro::DbgMacro));
     let cargo_ignore_publish = conf.cargo_ignore_publish;
     store.register_late_pass(move || {

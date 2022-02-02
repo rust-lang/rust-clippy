@@ -244,6 +244,7 @@ store.register_lints(&[
     manual_unwrap_or::MANUAL_UNWRAP_OR,
     map_clone::MAP_CLONE,
     map_err_ignore::MAP_ERR_IGNORE,
+    map_then_identity_transformer::MAP_THEN_IDENTITY_TRANSFORMER,
     map_unit_fn::OPTION_MAP_UNIT_FN,
     map_unit_fn::RESULT_MAP_UNIT_FN,
     match_on_vec_items::MATCH_ON_VEC_ITEMS,

@@ -3270,6 +3270,7 @@ Released 2018-09-13
 [`map_err_ignore`]: https://rust-lang.github.io/rust-clippy/master/index.html#map_err_ignore
 [`map_flatten`]: https://rust-lang.github.io/rust-clippy/master/index.html#map_flatten
 [`map_identity`]: https://rust-lang.github.io/rust-clippy/master/index.html#map_identity
+[`map_then_identity_transformer`]: https://rust-lang.github.io/rust-clippy/master/index.html#map_then_identity_transformer
 [`map_unwrap_or`]: https://rust-lang.github.io/rust-clippy/master/index.html#map_unwrap_or
 [`match_as_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#match_as_ref
 [`match_bool`]: https://rust-lang.github.io/rust-clippy/master/index.html#match_bool

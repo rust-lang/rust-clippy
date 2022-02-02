@@ -50,6 +50,7 @@ store.register_group(true, "clippy::pedantic", Some("clippy_pedantic"), vec![
     LintId::of(macro_use::MACRO_USE_IMPORTS),
     LintId::of(manual_assert::MANUAL_ASSERT),
     LintId::of(manual_ok_or::MANUAL_OK_OR),
+    LintId::of(map_then_identity_transformer::MAP_THEN_IDENTITY_TRANSFORMER),
     LintId::of(match_on_vec_items::MATCH_ON_VEC_ITEMS),
     LintId::of(matches::MATCH_BOOL),
     LintId::of(matches::MATCH_SAME_ARMS),
