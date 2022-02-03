@@ -39,6 +39,7 @@ mod manual_str_repeat;
 mod map_collect_result_unit;
 mod map_flatten;
 mod map_identity;
+mod map_then_identity_transformer;
 mod map_unwrap_or;
 mod ok_expect;
 mod option_as_ref_deref;
@@ -2012,6 +2013,25 @@ declare_clippy_lint! {
     "unnecessary calls to `to_owned`-like functions"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// ### Why is this bad?
+    ///
+    /// ### Example
+    /// ```rust
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.60.0"]
+    pub MAP_THEN_IDENTITY_TRANSFORMER,
+    pedantic,
+    "default lint description"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Option<RustcVersion>,
@@ -2320,6 +2340,14 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
         match (name, args) {
             ("add" | "offset" | "sub" | "wrapping_offset" | "wrapping_add" | "wrapping_sub", [_arg]) => {
                 zst_offset::check(cx, expr, recv);
+            },
+            (name @ "all", [all_recv, all_arg]) => {
+                match method_call(all_recv) {
+                    Some((name @ "map", [map_recv, map_arg], _)) => {
+                        map_then_identity_transformer::check(cx, expr);
+                    }
+                    _ => {},
+                }
             },
             ("and_then", [arg]) => {
                 let biom_option_linted = bind_instead_of_map::OptionAndThenSome::check(cx, expr, recv, arg);

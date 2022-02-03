@@ -274,7 +274,6 @@ mod manual_strip;
 mod manual_unwrap_or;
 mod map_clone;
 mod map_err_ignore;
-mod map_then_identity_transformer;
 mod map_unit_fn;
 mod match_on_vec_items;
 mod match_result_ok;
