@@ -2341,10 +2341,10 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("add" | "offset" | "sub" | "wrapping_offset" | "wrapping_add" | "wrapping_sub", [_arg]) => {
                 zst_offset::check(cx, expr, recv);
             },
-            (name @ "all", [all_recv, all_arg]) => {
-                match method_call(all_recv) {
-                    Some((name @ "map", [map_recv, map_arg], _)) => {
-                        map_then_identity_transformer::check(cx, expr);
+            (all_name @ "all", [all_arg, ..]) => {
+                match method_call(recv) {
+                    Some((map_name @ "map", [map_recv, map_arg], _)) => {
+                        map_then_identity_transformer::check(cx, expr, map_name, map_arg, all_name, all_arg);
                     }
                     _ => {},
                 }

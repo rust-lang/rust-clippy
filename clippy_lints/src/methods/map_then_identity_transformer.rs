@@ -4,7 +4,14 @@ use rustc_lint::LateContext;
 
 use super::MAP_THEN_IDENTITY_TRANSFORMER;
 
-pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>) {
+pub(super) fn check<'tcx>(
+    cx: &LateContext<'_>,
+    expr: &'tcx Expr<'_>,
+    map_name: &str,
+    map_arg: &'tcx Expr<'_>,
+    all_name: &str,
+    all_arg: &'tcx Expr<'_>,
+) {
     span_lint_and_help(
         cx,
         MAP_THEN_IDENTITY_TRANSFORMER,
