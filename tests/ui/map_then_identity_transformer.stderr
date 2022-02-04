@@ -1,0 +1,81 @@
+[clippy_lints/src/methods/map_then_identity_transformer.rs:15] &map_arg = Expr {
+    hir_id: HirId {
+        owner: DefId(0:3 ~ map_then_identity_transformer[6523]::main),
+        local_id: 22,
+    },
+    kind: Closure(
+        Ref,
+        FnDecl {
+            inputs: [
+                Ty {
+                    hir_id: HirId {
+                        owner: DefId(0:3 ~ map_then_identity_transformer[6523]::main),
+                        local_id: 21,
+                    },
+                    kind: Infer,
+                    span: $DIR/map_then_identity_transformer.rs:6:20: 6:21 (#0),
+                },
+            ],
+            output: DefaultReturn(
+                $DIR/map_then_identity_transformer.rs:6:23: 6:23 (#0),
+            ),
+            c_variadic: false,
+            implicit_self: None,
+        },
+        BodyId {
+            hir_id: HirId {
+                owner: DefId(0:3 ~ map_then_identity_transformer[6523]::main),
+                local_id: 20,
+            },
+        },
+        $DIR/map_then_identity_transformer.rs:6:19: 6:22 (#0),
+        None,
+    ),
+    span: $DIR/map_then_identity_transformer.rs:6:19: 6:28 (#0),
+}
+[clippy_lints/src/methods/map_then_identity_transformer.rs:16] &all_arg = Expr {
+    hir_id: HirId {
+        owner: DefId(0:3 ~ map_then_identity_transformer[6523]::main),
+        local_id: 29,
+    },
+    kind: Closure(
+        Ref,
+        FnDecl {
+            inputs: [
+                Ty {
+                    hir_id: HirId {
+                        owner: DefId(0:3 ~ map_then_identity_transformer[6523]::main),
+                        local_id: 28,
+                    },
+                    kind: Infer,
+                    span: $DIR/map_then_identity_transformer.rs:6:35: 6:36 (#0),
+                },
+            ],
+            output: DefaultReturn(
+                $DIR/map_then_identity_transformer.rs:6:38: 6:38 (#0),
+            ),
+            c_variadic: false,
+            implicit_self: None,
+        },
+        BodyId {
+            hir_id: HirId {
+                owner: DefId(0:3 ~ map_then_identity_transformer[6523]::main),
+                local_id: 27,
+            },
+        },
+        $DIR/map_then_identity_transformer.rs:6:34: 6:37 (#0),
+        None,
+    ),
+    span: $DIR/map_then_identity_transformer.rs:6:34: 6:39 (#0),
+}
+error: map_all
+  --> $DIR/map_then_identity_transformer.rs:6:13
+   |
+LL |     let _ = a.map(|x| x > 0).all(|x| x);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::map-then-identity-transformer` implied by `-D warnings`
+   = help: map_all
+
+error: aborting due to previous error
+
