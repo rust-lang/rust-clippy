@@ -1533,7 +1533,7 @@
     "id": "explicit_write",
     "id_span": {
       "path": "src/explicit_write.rs",
-      "line": 27
+      "line": 28
     },
     "group": "complexity",
     "level": "warn",
@@ -1541,7 +1541,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
