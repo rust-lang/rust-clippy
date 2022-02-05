@@ -2015,7 +2015,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Finds _.f(_).g(_) where the method calls may be collapsed together and where f and g are transformers: map, all, any, find, etc. 
+    /// Finds _.f(_).g(_) where the method calls may be collapsed together and where f and g are transformers: map, all, any, find, etc.
     ///
     /// ### Why is this bad?
     /// It is unnecessarily verbose and complex.
@@ -2345,9 +2345,12 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("add" | "offset" | "sub" | "wrapping_offset" | "wrapping_add" | "wrapping_sub", [_arg]) => {
                 zst_offset::check(cx, expr, recv);
             },
-            (all_name @ "all", [all_arg, ..]) => match method_call(recv) {
-                Some((map_name @ "map", [_, map_arg], map_span)) => {
-                    map_then_identity_transformer::check(cx, map_span, map_name, map_arg, all_name, all_arg);
+            (
+                meth2_name @ ("all" | "any" | "flat_map" | "filter_map" | "find" | "find_map" | "fold" | "map" | "position"),
+                [.., meth2_clos],
+            ) => match method_call(recv) {
+                Some((meth1_name @ ("flat_map" | "filter_map" | "map"), [_, meth1_clos], meth1_span)) => {
+                    map_then_identity_transformer::check(cx, meth1_span, meth1_name, meth1_clos, meth2_name, meth2_clos);
                 },
                 _ => {},
             },
