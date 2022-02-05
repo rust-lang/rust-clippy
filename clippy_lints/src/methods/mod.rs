@@ -2015,7 +2015,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Finds _.f(_).g(_) where the method calls may be collapsed together and where f and g are transformers: map, all, any, find, etc.
+    /// Finds `_.map(_).f(_)` where the method calls may be collapsed together and where f is a transformer: `map`, `all`, `any`, `find`, etc.
     ///
     /// ### Why is this bad?
     /// It is unnecessarily verbose and complex.
@@ -2023,12 +2023,12 @@ declare_clippy_lint! {
     /// ### Example
     /// ```rust
     /// let iter = vec![1, 2, 3].into_iter();
-    /// let _ = iter.map(|x| foo(x)).flat_map(|x| bar(x));
+    /// let _ = iter.map(|x| x * 2).map(|x| x + 1);
     /// ```
     /// Use instead:
     /// ```rust
     /// let iter = vec![1, 2, 3].into_iter();
-    /// let _ = iter.flat_map(|x| bar(foo(x)));
+    /// let _ = iter.map(|x| x * 2 + 1);
     /// ```
     #[clippy::version = "1.60.0"]
     pub MAP_THEN_IDENTITY_TRANSFORMER,
@@ -2120,6 +2120,7 @@ impl_lint_pass!(Methods => [
     MANUAL_SPLIT_ONCE,
     NEEDLESS_SPLITN,
     UNNECESSARY_TO_OWNED,
+    MAP_THEN_IDENTITY_TRANSFORMER,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -2448,7 +2449,7 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
                         },
                         ("find", [f_arg]) => filter_map::check(cx, expr, recv2, f_arg, span2, recv, m_arg, span, true),
                         (name2 @ "map", [arg2]) => {
-                            map_then_identity_transformer::check(cx, span2, name2, arg2, name, m_arg)
+                            map_then_identity_transformer::check(cx, span2, name2, arg2, name, m_arg);
                         },
                         _ => {},
                     }

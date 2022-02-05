@@ -19,8 +19,8 @@ pub(super) fn check<'tcx>(
     if_chain!(
         if let ExprKind::Closure(_, _, meth1_clos_body_id, _, _) = &meth1_clos.kind;
         if let ExprKind::Closure(_, _, meth2_clos_body_id, _, _) = &meth2_clos.kind;
-        if let Some(_) = refd_param_span(cx, meth1_clos_body_id);
-        if let Some(refd_param_span) = refd_param_span(cx, meth2_clos_body_id);
+        if let Some(_) = refd_param_span(cx, *meth1_clos_body_id);
+        if let Some(refd_param_span) = refd_param_span(cx, *meth2_clos_body_id);
         then {
             let meth1_clos_val = &cx.tcx.hir().body(*meth1_clos_body_id).value;
 
@@ -37,18 +37,18 @@ pub(super) fn check<'tcx>(
                 },
             );
         }
-    )
+    );
 }
 
 // On a given closure `|.., x| y`, checks if `x` is referenced just exactly once in `y` and returns
 // the span of `x`
-fn refd_param_span<'tcx>(cx: &LateContext<'tcx>, clos_body_id: &BodyId) -> Option<Span> {
+fn refd_param_span<'tcx>(cx: &LateContext<'tcx>, clos_body_id: BodyId) -> Option<Span> {
+    let clos_body = cx.tcx.hir().body(clos_body_id);
     if_chain! {
-        let clos_body = cx.tcx.hir().body(*clos_body_id);
         if let [.., clos_param] = clos_body.params;
         if let PatKind::Binding(_, clos_param_id, _, _) = clos_param.pat.kind;
-        let clos_val = &clos_body.value;
         then {
+            let clos_val = &clos_body.value;
             let mut count = 0;
             let mut span = None;
             expr_visitor(cx, |expr| {
