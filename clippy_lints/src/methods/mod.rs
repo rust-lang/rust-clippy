@@ -2341,13 +2341,11 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("add" | "offset" | "sub" | "wrapping_offset" | "wrapping_add" | "wrapping_sub", [_arg]) => {
                 zst_offset::check(cx, expr, recv);
             },
-            (all_name @ "all", [all_arg, ..]) => {
-                match method_call(recv) {
-                    Some((map_name @ "map", [map_recv, map_arg], _)) => {
-                        map_then_identity_transformer::check(cx, expr, map_name, map_arg, all_name, all_arg);
-                    }
-                    _ => {},
-                }
+            (all_name @ "all", [all_arg, ..]) => match method_call(recv) {
+                Some((map_name @ "map", [map_recv, map_arg], _)) => {
+                    map_then_identity_transformer::check(cx, expr, map_name, map_arg, all_name, all_arg);
+                },
+                _ => {},
             },
             ("and_then", [arg]) => {
                 let biom_option_linted = bind_instead_of_map::OptionAndThenSome::check(cx, expr, recv, arg);
