@@ -33,7 +33,7 @@ pub(super) fn check<'tcx>(
                     let mut help_span = MultiSpan::from_spans(vec![map_clos_val.span, refd_param_span]);
                     help_span.push_span_label(refd_param_span, "replace this variable".into());
                     help_span.push_span_label(map_clos_val.span, "with this expression".into());
-                    diag.span_help(help_span, &format!("these `{map_name}` and `{all_name}` can be simplified into a single `{all_name}`"));
+                    diag.span_help(help_span, &format!("these `{map_name}` and `{all_name}` can be merged into a single `{all_name}`"));
                 },
             );
         }

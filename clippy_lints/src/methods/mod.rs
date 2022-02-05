@@ -2015,21 +2015,25 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Finds _.f(_).g(_) where the method calls may be collapsed together and where f and g are transformers: map, all, any, find, etc. 
     ///
     /// ### Why is this bad?
+    /// It is unnecessarily verbose and complex.
     ///
     /// ### Example
     /// ```rust
-    /// // example code where clippy issues a warning
+    /// let iter = vec![1, 2, 3].into_iter();
+    /// let _ = iter.map(|x| foo(x)).flat_map(|x| bar(x));
     /// ```
     /// Use instead:
     /// ```rust
-    /// // example code which does not raise clippy warning
+    /// let iter = vec![1, 2, 3].into_iter();
+    /// let _ = iter.flat_map(|x| bar(foo(x)));
     /// ```
     #[clippy::version = "1.60.0"]
     pub MAP_THEN_IDENTITY_TRANSFORMER,
     pedantic,
-    "default lint description"
+    "using transformers which can be collapsed together."
 }
 
 pub struct Methods {

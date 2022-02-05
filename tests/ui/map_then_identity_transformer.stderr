@@ -5,7 +5,7 @@ LL |     let _ = a.into_iter().map(|x| x > 0).all(|x| x);
    |                           ^^^
    |
    = note: `-D clippy::map-then-identity-transformer` implied by `-D warnings`
-help: these `map` and `all` can be simplified into a single `all`
+help: these `map` and `all` can be merged into a single `all`
   --> $DIR/map_then_identity_transformer.rs:7:35
    |
 LL |     let _ = a.into_iter().map(|x| x > 0).all(|x| x);
