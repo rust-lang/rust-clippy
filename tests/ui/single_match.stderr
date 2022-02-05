@@ -146,5 +146,23 @@ LL | |         (..) => {},
 LL | |     }
    | |_____^ help: try this: `if let (.., Some(E::V), _) = (Some(42), Some(E::V), Some(42)) {}`
 
-error: aborting due to 15 previous errors
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/single_match.rs:205:5
+   |
+LL | /     match s {
+LL | |         S(42, _a) => {},
+LL | |         S(_, _) => {},
+LL | |     }
+   | |_____^ help: try this: `if let S(42, _a) = s {}`
+
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/single_match.rs:211:5
+   |
+LL | /     match s {
+LL | |         S(42, _a) => {},
+LL | |         S(..) => {},
+LL | |     }
+   | |_____^ help: try this: `if let S(42, _a) = s {}`
+
+error: aborting due to 17 previous errors
 

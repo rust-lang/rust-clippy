@@ -197,30 +197,21 @@ fn ranges() {
     }
 }
 
-fn skip_type_aliases() {
-    enum OptionEx {
-        Some(i32),
-        None,
+fn tuple_structs() {
+    struct S(i32, i32);
+    let s = S(1, 2);
+
+    // lint: S(_, _) forms an exhaustive match, so it could be removed
+    match s {
+        S(42, _a) => {},
+        S(_, _) => {},
     }
-    enum ResultEx {
-        Err(i32),
-        Ok(i32),
+
+    // lint: S(..) forms an exhaustive match, so it could be removed
+    match s {
+        S(42, _a) => {},
+        S(..) => {},
     }
-
-    use OptionEx::{None, Some};
-    use ResultEx::{Err, Ok};
-
-    // don't lint
-    match Err(42) {
-        Ok(_) => dummy(),
-        Err(_) => (),
-    };
-
-    // don't lint
-    match Some(1i32) {
-        Some(_) => dummy(),
-        None => (),
-    };
 }
 
 macro_rules! single_match {

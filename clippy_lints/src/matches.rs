@@ -5,7 +5,7 @@ use clippy_utils::diagnostics::{
 use clippy_utils::macros::{is_panic, root_macro_call};
 use clippy_utils::source::{expr_block, indent_of, snippet, snippet_block, snippet_opt, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item, match_type, peel_mid_ty_refs};
+use clippy_utils::ty::{implements_trait, is_type_diagnostic_item, peel_mid_ty_refs};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
     get_parent_expr, is_lang_ctor, is_lint_allowed, is_refutable, is_unit_expr, is_wild, meets_msrv, msrvs,
@@ -13,7 +13,7 @@ use clippy_utils::{
     strip_pat_refs,
 };
 use clippy_utils::{higher, peel_blocks_with_stmt};
-use clippy_utils::{paths, search_same, SpanlessEq, SpanlessHash};
+use clippy_utils::{search_same, SpanlessEq, SpanlessHash};
 use core::iter::{once, ExactSizeIterator};
 use if_chain::if_chain;
 use rustc_ast::ast::{Attribute, LitKind};
@@ -838,8 +838,27 @@ fn check_single_match_opt_like<'a>(
     ty: Ty<'a>,
     els: Option<&Expr<'_>>,
 ) {
-    // list of candidate `Enum`s we know will never get any more members
-    let candidates = &[
+    if check_exhaustive(cx, arms[0].pat, arms[1].pat, ty) {
+        report_single_match_single_pattern(cx, ex, arms, expr, els);
+    }
+}
+
+fn qpath_to_string(qpath: &QPath<'_>) -> String {
+    rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| {
+        s.print_qpath(qpath, false);
+    })
+}
+
+mod known_enums {
+    use super::{contains_only_wilds, contains_single_binding, qpath_to_string};
+    use clippy_utils::paths;
+    use clippy_utils::ty::match_type;
+    use rustc_hir::{Pat, PatKind};
+    use rustc_lint::LateContext;
+    use rustc_middle::ty::Ty;
+
+    /// List of candidate `Enum`s we know will never get any more members.
+    const CANDIDATES: &[(&[&str; 3], &str)] = &[
         (&paths::COW, "Borrowed"),
         (&paths::COW, "Cow::Borrowed"),
         (&paths::COW, "Cow::Owned"),
@@ -849,63 +868,119 @@ fn check_single_match_opt_like<'a>(
         (&paths::RESULT, "Ok"),
     ];
 
-    // We want to suggest to exclude an arm that contains only wildcards or forms the exhaustive
-    // match with the second branch, without enum variants in matches.
-    if !contains_only_wilds(arms[1].pat) && !form_exhaustive_matches(arms[0].pat, arms[1].pat) {
-        return;
-    }
-
-    let mut paths_and_types = Vec::new();
-    if !collect_pat_paths(&mut paths_and_types, cx, arms[1].pat, ty) {
-        return;
-    }
-
-    let in_candidate_enum = |path_info: &(String, &TyS<'_>)| -> bool {
-        let (path, ty) = path_info;
-        for &(ty_path, pat_path) in candidates {
+    pub fn contains(cx: &LateContext<'_>, path: &str, ty: Ty<'_>) -> bool {
+        for &(ty_path, pat_path) in CANDIDATES {
             if path == pat_path && match_type(cx, ty, ty_path) {
                 return true;
             }
         }
         false
-    };
-    if paths_and_types.iter().all(in_candidate_enum) {
-        report_single_match_single_pattern(cx, ex, arms, expr, els);
+    }
+
+    /// Returns true if the given pattern contains only one of `CANDIDATES` enums that could be
+    /// simplified by the `matches` lint.
+    pub fn is_known_enum(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
+        match pat.kind {
+            PatKind::Path(ref path) => contains(cx, &qpath_to_string(path), cx.typeck_results().pat_ty(pat)),
+            PatKind::TupleStruct(ref path, ..) => {
+                let ty = cx.typeck_results().pat_ty(pat);
+                let path = &qpath_to_string(path);
+                (contains_only_wilds(pat) || contains_single_binding(pat)) && contains(cx, path, ty)
+            },
+            _ => false,
+        }
     }
 }
 
-/// Collects paths and their types from the given patterns. Returns true if the given pattern could
-/// be simplified, false otherwise.
-fn collect_pat_paths<'a>(acc: &mut Vec<(String, Ty<'a>)>, cx: &LateContext<'a>, pat: &Pat<'_>, ty: Ty<'a>) -> bool {
-    match pat.kind {
-        PatKind::Wild => true,
-        PatKind::Tuple(inner, _) => inner.iter().all(|p| {
-            let p_ty = cx.typeck_results().pat_ty(p);
-            collect_pat_paths(acc, cx, p, p_ty)
-        }),
-        PatKind::TupleStruct(ref path, ..) => {
-            let path = rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| {
-                s.print_qpath(path, false);
-            });
-            acc.push((path, ty));
-            true
+/// Returns true if the given arms of the pattern forms exhaustive match that can be simplified to
+/// `if let` construction.
+fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, ty: Ty<'a>) -> bool {
+    match (&left.kind, &right.kind) {
+        (PatKind::Wild, _) | (_, PatKind::Wild) => true,
+        (PatKind::Tuple(left_in, left_pos), PatKind::Tuple(right_in, right_pos)) => {
+            check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos)
         },
-        PatKind::Binding(BindingAnnotation::Unannotated, .., ident, None) => {
-            acc.push((ident.to_string(), ty));
-            true
+        (
+            PatKind::TupleStruct(left_qpath, left_in, left_pos),
+            PatKind::TupleStruct(right_qpath, right_in, right_pos),
+        ) => {
+            let are_structs_with_the_same_name =
+                || -> bool { cx.qpath_res(left_qpath, left.hir_id) == cx.qpath_res(right_qpath, right.hir_id) };
+            let are_known_enums =
+                || -> bool { known_enums::is_known_enum(cx, left) && known_enums::is_known_enum(cx, right) };
+            if are_structs_with_the_same_name() || are_known_enums() {
+                return check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos);
+            }
+            false
         },
-        PatKind::Path(ref path) => {
-            let path = rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| {
-                s.print_qpath(path, false);
-            });
-            acc.push((path, ty));
-            true
+        (PatKind::Binding(BindingAnnotation::Unannotated, .., ident, None), _) if contains_only_wilds(right) => {
+            known_enums::contains(cx, &ident.to_string(), ty)
+        },
+        (PatKind::Path(ref path), _) if contains_only_wilds(right) => {
+            known_enums::contains(cx, &qpath_to_string(path), ty)
         },
         _ => false,
     }
 }
 
-/// Returns true if the given arm of pattern matching contains wildcard patterns.
+/// Returns true if two tuples that contain patterns `left_in` and `right_in` and `..` operators at
+/// positions `left_pos` and `right_pos` form exhaustive match. This means, that two elements of
+/// these tuples located at the same positions must have at least one wildcard (`_`) pattern.
+fn check_exhaustive_tuples<'a>(
+    cx: &LateContext<'_>,
+    left_in: &'a [Pat<'a>],
+    left_pos: &Option<usize>,
+    right_in: &'a [Pat<'a>],
+    right_pos: &Option<usize>,
+) -> bool {
+    // We don't actually know the position and the presence of the `..` (dotdot) operator
+    // in the arms, so we need to evaluate the correct offsets here in order to iterate in
+    // both arms at the same time.
+    let len = max(
+        left_in.len() + {
+            if left_pos.is_some() { 1 } else { 0 }
+        },
+        right_in.len() + {
+            if right_pos.is_some() { 1 } else { 0 }
+        },
+    );
+    let mut left_pos = left_pos.unwrap_or(usize::MAX);
+    let mut right_pos = right_pos.unwrap_or(usize::MAX);
+    let mut left_dot_space = 0;
+    let mut right_dot_space = 0;
+    for i in 0..len {
+        let mut found_dotdot = false;
+        if i == left_pos {
+            left_dot_space += 1;
+            if left_dot_space < len - left_in.len() {
+                left_pos += 1;
+            }
+            found_dotdot = true;
+        }
+        if i == right_pos {
+            right_dot_space += 1;
+            if right_dot_space < len - right_in.len() {
+                right_pos += 1;
+            }
+            found_dotdot = true;
+        }
+        if found_dotdot {
+            continue;
+        }
+
+        let left_pat = &left_in[i - left_dot_space];
+        let right_pat = &right_in[i - right_dot_space];
+        if !(contains_only_wilds(left_pat)
+            || contains_only_wilds(right_pat)
+            || known_enums::is_known_enum(cx, left_pat) && known_enums::is_known_enum(cx, right_pat))
+        {
+            return false;
+        }
+    }
+    true
+}
+
+/// Returns true if the given arm of pattern matching contains only wildcard patterns.
 fn contains_only_wilds(pat: &Pat<'_>) -> bool {
     match pat.kind {
         PatKind::Wild => true,
@@ -914,54 +989,10 @@ fn contains_only_wilds(pat: &Pat<'_>) -> bool {
     }
 }
 
-/// Returns true if the given patterns forms only exhaustive matches that don't contain enum
-/// patterns without a wildcard.
-fn form_exhaustive_matches(left: &Pat<'_>, right: &Pat<'_>) -> bool {
-    match (&left.kind, &right.kind) {
-        (PatKind::Wild, _) | (_, PatKind::Wild) => true,
-        (PatKind::Tuple(left_in, left_pos), PatKind::Tuple(right_in, right_pos)) => {
-            // We don't actually know the position and the presence of the `..` (dotdot) operator
-            // in the arms, so we need to evaluate the correct offsets here in order to iterate in
-            // both arms at the same time.
-            let len = max(
-                left_in.len() + {
-                    if left_pos.is_some() { 1 } else { 0 }
-                },
-                right_in.len() + {
-                    if right_pos.is_some() { 1 } else { 0 }
-                },
-            );
-            let mut left_pos = left_pos.unwrap_or(usize::MAX);
-            let mut right_pos = right_pos.unwrap_or(usize::MAX);
-            let mut left_dot_space = 0;
-            let mut right_dot_space = 0;
-            for i in 0..len {
-                let mut found_dotdot = false;
-                if i == left_pos {
-                    left_dot_space += 1;
-                    if left_dot_space < len - left_in.len() {
-                        left_pos += 1;
-                    }
-                    found_dotdot = true;
-                }
-                if i == right_pos {
-                    right_dot_space += 1;
-                    if right_dot_space < len - right_in.len() {
-                        right_pos += 1;
-                    }
-                    found_dotdot = true;
-                }
-                if found_dotdot {
-                    continue;
-                }
-                if !contains_only_wilds(&left_in[i - left_dot_space])
-                    && !contains_only_wilds(&right_in[i - right_dot_space])
-                {
-                    return false;
-                }
-            }
-            true
-        },
+fn contains_single_binding(pat: &Pat<'_>) -> bool {
+    match pat.kind {
+        PatKind::Binding(BindingAnnotation::Unannotated, .., None) => true,
+        PatKind::TupleStruct(_, inner, ..) => inner.iter().all(contains_single_binding),
         _ => false,
     }
 }
