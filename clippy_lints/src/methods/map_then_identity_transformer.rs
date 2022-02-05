@@ -10,15 +10,15 @@ use super::MAP_THEN_IDENTITY_TRANSFORMER;
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'_>,
-    all_recv: &'tcx Expr<'_>,
+    map_span: Span,
     map_name: &str,
     map_arg: &'tcx Expr<'_>,
     all_name: &str,
     all_arg: &'tcx Expr<'_>,
 ) {
     if_chain!(
-        if let ExprKind::Closure(_, _, map_clos_body_id, map_span, _) = &map_arg.kind;
-        if let ExprKind::Closure(_, _, all_clos_body_id, all_span, _) = &all_arg.kind;
+        if let ExprKind::Closure(_, _, map_clos_body_id, _, _) = &map_arg.kind;
+        if let ExprKind::Closure(_, _, all_clos_body_id, _, _) = &all_arg.kind;
         if let Some(_) = refd_param_span(cx, map_clos_body_id);
         if let Some(refd_param_span) = refd_param_span(cx, all_clos_body_id);
         then {
@@ -27,7 +27,7 @@ pub(super) fn check<'tcx>(
             span_lint_and_then(
                 cx,
                 MAP_THEN_IDENTITY_TRANSFORMER,
-                all_recv.span,
+                MultiSpan::from_span(map_span),
                 &format!("this `{map_name}` can be collapsed into the `{all_name}`"),
                 |diag| {
                     let mut help_span = MultiSpan::from_spans(vec![map_clos_val.span, refd_param_span]);
