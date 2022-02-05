@@ -93,5 +93,19 @@ LL |     let _ = a.into_iter().map(|x| foo(x)).map(|y| bar(y));
    |                                   |
    |                                   with this expression
 
-error: aborting due to 7 previous errors
+error: this `map` can be collapsed into the `position`
+  --> $DIR/map_then_identity_transformer.rs:18:27
+   |
+LL |     let _ = a.into_iter().map(|x| foo(x)).position(|y| bar(y));
+   |                           ^^^
+   |
+help: these `map` and `position` can be merged into a single `position`
+  --> $DIR/map_then_identity_transformer.rs:18:35
+   |
+LL |     let _ = a.into_iter().map(|x| foo(x)).position(|y| bar(y));
+   |                                   ^^^^^^                   ^ replace this variable
+   |                                   |
+   |                                   with this expression
+
+error: aborting due to 8 previous errors
 
