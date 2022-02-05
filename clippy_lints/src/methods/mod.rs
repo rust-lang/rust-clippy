@@ -2345,14 +2345,10 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("add" | "offset" | "sub" | "wrapping_offset" | "wrapping_add" | "wrapping_sub", [_arg]) => {
                 zst_offset::check(cx, expr, recv);
             },
-            (
-                meth2_name @ ("all" | "any" | "flat_map" | "filter_map" | "find" | "find_map" | "fold" | "map" | "position"),
-                [.., meth2_clos],
-            ) => match method_call(recv) {
-                Some((meth1_name @ ("flat_map" | "filter_map" | "map"), [_, meth1_clos], meth1_span)) => {
-                    map_then_identity_transformer::check(cx, meth1_span, meth1_name, meth1_clos, meth2_name, meth2_clos);
-                },
-                _ => {},
+            (name @ ("all" | "any" | "find" | "find_map" | "position"), [arg]) => {
+                if let Some((name2 @ ("flat_map" | "filter_map" | "map"), [_, arg2], span2)) = method_call(recv) {
+                    map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                }
             },
             ("and_then", [arg]) => {
                 let biom_option_linted = bind_instead_of_map::OptionAndThenSome::check(cx, expr, recv, arg);
@@ -2398,14 +2394,20 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
                 string_extend_chars::check(cx, expr, recv, arg);
                 extend_with_drain::check(cx, expr, recv, arg);
             },
-            ("filter_map", [arg]) => {
+            (name @ "filter_map", [arg]) => {
+                if let Some((name2 @ ("flat_map" | "filter_map" | "map"), [_, arg2], span2)) = method_call(recv) {
+                    map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                }
                 unnecessary_filter_map::check(cx, expr, arg, name);
                 filter_map_identity::check(cx, expr, arg, span);
             },
             ("find_map", [arg]) => {
                 unnecessary_filter_map::check(cx, expr, arg, name);
             },
-            ("flat_map", [arg]) => {
+            (name @ "flat_map", [arg]) => {
+                if let Some((name2 @ ("flat_map" | "filter_map" | "map"), [_, arg2], span2)) = method_call(recv) {
+                    map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                }
                 flat_map_identity::check(cx, expr, arg, span);
                 flat_map_option::check(cx, expr, arg, span);
             },
@@ -2414,7 +2416,12 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
                 Some(("cloned", [recv2], _)) => iter_overeager_cloned::check(cx, expr, recv2, name, args),
                 _ => {},
             },
-            ("fold", [init, acc]) => unnecessary_fold::check(cx, expr, init, acc, span),
+            (name @ "fold", [init, acc]) => {
+                if let Some((name2 @ ("flat_map" | "filter_map" | "map"), [_, arg2], span2)) = method_call(recv) {
+                    map_then_identity_transformer::check(cx, span2, name2, arg2, name, acc);
+                }
+                unnecessary_fold::check(cx, expr, init, acc, span);
+            },
             ("for_each", [_]) => {
                 if let Some(("inspect", [_, _], span2)) = method_call(recv) {
                     inspect_for_each::check(cx, expr, span2);
@@ -2431,15 +2438,18 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
                     }
                 }
             },
-            ("map", [m_arg]) => {
-                if let Some((name, [recv2, args @ ..], span2)) = method_call(recv) {
-                    match (name, args) {
+            (name @ "map", [m_arg]) => {
+                if let Some((name2, [recv2, args @ ..], span2)) = method_call(recv) {
+                    match (name2, args) {
                         ("as_mut", []) => option_as_ref_deref::check(cx, expr, recv2, m_arg, true, msrv),
                         ("as_ref", []) => option_as_ref_deref::check(cx, expr, recv2, m_arg, false, msrv),
                         ("filter", [f_arg]) => {
                             filter_map::check(cx, expr, recv2, f_arg, span2, recv, m_arg, span, false);
                         },
                         ("find", [f_arg]) => filter_map::check(cx, expr, recv2, f_arg, span2, recv, m_arg, span, true),
+                        (name2 @ ("flat_map" | "filter_map" | "map"), [_, arg2]) => {
+                            map_then_identity_transformer::check(cx, span2, name2, arg2, name, m_arg)
+                        },
                         _ => {},
                     }
                 }

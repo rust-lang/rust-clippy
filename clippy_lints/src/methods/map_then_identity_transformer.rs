@@ -40,7 +40,6 @@ pub(super) fn check<'tcx>(
     )
 }
 
-
 // In a given closure `|.., x| y`, examine if `x` is referenced just exactly once in `y`.
 fn refd_param_span<'tcx>(cx: &LateContext<'tcx>, clos_body_id: &BodyId) -> Option<Span> {
     if_chain! {
