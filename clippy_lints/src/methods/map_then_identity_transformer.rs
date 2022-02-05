@@ -42,7 +42,7 @@ pub(super) fn check<'tcx>(
 
 // On a given closure `|.., x| y`, checks if `x` is referenced just exactly once in `y` and returns
 // the span of `x`
-fn refd_param_span<'tcx>(cx: &LateContext<'tcx>, clos_body_id: BodyId) -> Option<Span> {
+fn refd_param_span(cx: &LateContext<'_>, clos_body_id: BodyId) -> Option<Span> {
     let clos_body = cx.tcx.hir().body(clos_body_id);
     if_chain! {
         if let [.., clos_param] = clos_body.params;
