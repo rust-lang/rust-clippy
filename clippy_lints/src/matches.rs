@@ -862,8 +862,7 @@ fn contains_only_known_enums(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
     }
 }
 
-/// Returns true if the given arms of the pattern forms exhaustive match that can be simplified to
-/// `if let` construction.
+/// Returns true if the patterns exhaustively match an enum.
 fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, ty: Ty<'a>) -> bool {
     match (&left.kind, &right.kind) {
         (PatKind::Wild, _) | (_, PatKind::Wild) => true,
