@@ -862,8 +862,17 @@ fn contains_only_known_enums(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
     }
 }
 
+fn peel_subpatterns<'a>(pat: &'a Pat<'a>) -> &'a Pat<'a> {
+    if let PatKind::Binding(.., Some(sub)) = pat.kind {
+        return peel_subpatterns(sub);
+    }
+    pat
+}
+
 /// Returns true if the patterns exhaustively match an enum.
 fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, ty: Ty<'a>) -> bool {
+    let left = peel_subpatterns(left);
+    let right = peel_subpatterns(right);
     match (&left.kind, &right.kind) {
         (PatKind::Wild, _) | (_, PatKind::Wild) => true,
         (PatKind::Tuple(left_in, left_pos), PatKind::Tuple(right_in, right_pos)) => {
@@ -876,17 +885,13 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
             let are_structs_with_the_same_name =
                 || -> bool { cx.qpath_res(left_qpath, left.hir_id) == cx.qpath_res(right_qpath, right.hir_id) };
             let are_known_enums =
-                || -> bool { contains_only_known_enums(cx, left) && contains_only_known_enums(cx, right) };
+                || -> bool { contains_only_known_enums(cx, &left) && contains_only_known_enums(cx, &right) };
             if are_structs_with_the_same_name() || are_known_enums() {
                 return check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos);
             }
             false
         },
-        (PatKind::Binding(.., None) | PatKind::Path(_), _)
-            if contains_only_wilds(right) =>
-        {
-            is_known_enum(cx, ty)
-        },
+        (PatKind::Binding(.., None) | PatKind::Path(_), _) if contains_only_wilds(&right) => is_known_enum(cx, ty),
         _ => false,
     }
 }
@@ -959,7 +964,7 @@ fn contains_only_wilds(pat: &Pat<'_>) -> bool {
 
 fn contains_single_binding(pat: &Pat<'_>) -> bool {
     match pat.kind {
-        PatKind::Binding(BindingAnnotation::Unannotated, .., None) => true,
+        PatKind::Binding(.., None) => true,
         PatKind::TupleStruct(_, inner, ..) => inner.iter().all(contains_single_binding),
         _ => false,
     }

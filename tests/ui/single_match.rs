@@ -203,22 +203,31 @@ fn annotated_bindings() {
 
     match Some(S(1i32)) {
         Some(a) => {},
-        _ => ()
+        _ => (),
     }
 
     match x {
         Some(ref a) => {},
-        _ => ()
+        _ => (),
     }
 
     match x {
         Some(mut a) => {},
-        _ => ()
+        _ => (),
     }
 
     match Some(S(1i32)) {
         Some(ref mut a) => {},
-        _ => ()
+        _ => (),
+    }
+}
+
+fn binding_subpatterns() {
+    struct S(i32);
+    let x = S(1);
+    match x {
+        S(aa @ 42) => {},
+        S(_) => {},
     }
 }
 

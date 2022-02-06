@@ -18,5 +18,16 @@ error: the `x @ _` pattern can be written as just `x`
 LL |         ref x @ _ => println!("vec: {:?}", x),
    |         ^^^^^^^^^ help: try: `ref x`
 
-error: aborting due to 3 previous errors
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/patterns.rs:8:5
+   |
+LL | /     match v {
+LL | |         Some(x) => (),
+LL | |         y @ _ => (),
+LL | |     }
+   | |_____^ help: try this: `if let Some(x) = v { () }`
+   |
+   = note: `-D clippy::single-match` implied by `-D warnings`
+
+error: aborting due to 4 previous errors
 

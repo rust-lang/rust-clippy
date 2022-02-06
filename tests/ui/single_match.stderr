@@ -151,7 +151,7 @@ error: you seem to be trying to use `match` for destructuring a single pattern. 
    |
 LL | /     match Some(S(1i32)) {
 LL | |         Some(a) => {},
-LL | |         _ => ()
+LL | |         _ => (),
 LL | |     }
    | |_____^ help: try this: `if let Some(a) = Some(S(1i32)) {}`
 
@@ -160,7 +160,7 @@ error: you seem to be trying to use `match` for destructuring a single pattern. 
    |
 LL | /     match x {
 LL | |         Some(ref a) => {},
-LL | |         _ => ()
+LL | |         _ => (),
 LL | |     }
    | |_____^ help: try this: `if let Some(ref a) = x {}`
 
@@ -169,7 +169,7 @@ error: you seem to be trying to use `match` for destructuring a single pattern. 
    |
 LL | /     match x {
 LL | |         Some(mut a) => {},
-LL | |         _ => ()
+LL | |         _ => (),
 LL | |     }
    | |_____^ help: try this: `if let Some(mut a) = x {}`
 
@@ -178,12 +178,21 @@ error: you seem to be trying to use `match` for destructuring a single pattern. 
    |
 LL | /     match Some(S(1i32)) {
 LL | |         Some(ref mut a) => {},
-LL | |         _ => ()
+LL | |         _ => (),
 LL | |     }
    | |_____^ help: try this: `if let Some(ref mut a) = Some(S(1i32)) {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:230:5
+  --> $DIR/single_match.rs:228:5
+   |
+LL | /     match x {
+LL | |         S(aa @ 42) => {},
+LL | |         S(_) => {},
+LL | |     }
+   | |_____^ help: try this: `if let S(aa @ 42) = x {}`
+
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/single_match.rs:239:5
    |
 LL | /     match s {
 LL | |         S(42, _a) => {},
@@ -192,7 +201,7 @@ LL | |     }
    | |_____^ help: try this: `if let S(42, _a) = s {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:236:5
+  --> $DIR/single_match.rs:245:5
    |
 LL | /     match s {
 LL | |         S(42, _a) => {},
@@ -200,5 +209,5 @@ LL | |         S(..) => {},
 LL | |     }
    | |_____^ help: try this: `if let S(42, _a) = s {}`
 
-error: aborting due to 21 previous errors
+error: aborting due to 22 previous errors
 
