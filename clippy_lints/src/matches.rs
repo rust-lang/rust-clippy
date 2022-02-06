@@ -882,7 +882,7 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
             }
             false
         },
-        (PatKind::Binding(BindingAnnotation::Unannotated, .., None) | PatKind::Path(_), _)
+        (PatKind::Binding(.., None) | PatKind::Path(_), _)
             if contains_only_wilds(right) =>
         {
             is_known_enum(cx, ty)

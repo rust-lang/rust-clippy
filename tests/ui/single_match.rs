@@ -197,6 +197,31 @@ fn ranges() {
     }
 }
 
+fn annotated_bindings() {
+    struct S(i32);
+    let x = Some(S(1i32));
+
+    match Some(S(1i32)) {
+        Some(a) => {},
+        _ => ()
+    }
+
+    match x {
+        Some(ref a) => {},
+        _ => ()
+    }
+
+    match x {
+        Some(mut a) => {},
+        _ => ()
+    }
+
+    match Some(S(1i32)) {
+        Some(ref mut a) => {},
+        _ => ()
+    }
+}
+
 fn tuple_structs() {
     struct S(i32, i32);
     let s = S(1, 2);
