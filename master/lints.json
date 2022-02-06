@@ -798,7 +798,7 @@
     "id": "crosspointer_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 105
+      "line": 106
     },
     "group": "complexity",
     "level": "warn",
@@ -6393,7 +6393,7 @@
     "id": "transmute_bytes_to_str",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 201
+      "line": 202
     },
     "group": "complexity",
     "level": "warn",
@@ -6408,7 +6408,7 @@
     "id": "transmute_float_to_int",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 270
+      "line": 271
     },
     "group": "complexity",
     "level": "warn",
@@ -6423,7 +6423,7 @@
     "id": "transmute_int_to_bool",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 224
+      "line": 225
     },
     "group": "complexity",
     "level": "warn",
@@ -6438,7 +6438,7 @@
     "id": "transmute_int_to_char",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 167
+      "line": 168
     },
     "group": "complexity",
     "level": "warn",
@@ -6453,7 +6453,7 @@
     "id": "transmute_int_to_float",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 247
+      "line": 248
     },
     "group": "complexity",
     "level": "warn",
@@ -6468,7 +6468,7 @@
     "id": "transmute_num_to_bytes",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 293
+      "line": 294
     },
     "group": "complexity",
     "level": "warn",
@@ -6483,7 +6483,7 @@
     "id": "transmute_ptr_to_ptr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 321
+      "line": 322
     },
     "group": "pedantic",
     "level": "allow",
@@ -6498,7 +6498,7 @@
     "id": "transmute_ptr_to_ref",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 133
+      "line": 134
     },
     "group": "complexity",
     "level": "warn",
@@ -6510,10 +6510,25 @@
     }
   },
   {
+    "id": "transmute_undefined_repr",
+    "id_span": {
+      "path": "src/transmute/mod.rs",
+      "line": 378
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": " ### What it does\nChecks for transmutes either to or from a type which does not have a defined representation.\n\n### Why is this bad?\nThe results of such a transmute are not defined.\n\n### Example\n```rust\nstruct Foo<T>(u32, T);\nlet _ = unsafe { core::mem::transmute::<Foo<u32>, Foo<i32>>(Foo(0u32, 0u32)) };\n```\nUse instead:\n```rust\n#[repr(C)]\nstruct Foo<T>(u32, T);\nlet _ = unsafe { core::mem::transmute::<Foo<u32>, Foo<i32>>(Foo(0u32, 0u32)) };\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "transmutes_expressible_as_ptr_casts",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 86
+      "line": 87
     },
     "group": "complexity",
     "level": "warn",
@@ -7068,7 +7083,7 @@
     "id": "unsound_collection_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 353
+      "line": 354
     },
     "group": "correctness",
     "level": "deny",
@@ -7383,7 +7398,7 @@
     "id": "useless_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 60
+      "line": 61
     },
     "group": "nursery",
     "level": "allow",
@@ -7683,7 +7698,7 @@
     "id": "wrong_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 40
+      "line": 41
     },
     "group": "correctness",
     "level": "deny",
