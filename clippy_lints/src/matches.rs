@@ -3,9 +3,10 @@ use clippy_utils::diagnostics::{
     multispan_sugg, span_lint_and_help, span_lint_and_note, span_lint_and_sugg, span_lint_and_then,
 };
 use clippy_utils::macros::{is_panic, root_macro_call};
+use clippy_utils::paths;
 use clippy_utils::source::{expr_block, indent_of, snippet, snippet_block, snippet_opt, snippet_with_applicability};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item, peel_mid_ty_refs};
+use clippy_utils::ty::{implements_trait, is_type_diagnostic_item, match_type, peel_mid_ty_refs};
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
     get_parent_expr, is_lang_ctor, is_lint_allowed, is_refutable, is_unit_expr, is_wild, meets_msrv, msrvs,
@@ -843,52 +844,21 @@ fn check_single_match_opt_like<'a>(
     }
 }
 
-fn qpath_to_string(qpath: &QPath<'_>) -> String {
-    rustc_hir_pretty::to_string(rustc_hir_pretty::NO_ANN, |s| {
-        s.print_qpath(qpath, false);
-    })
+/// Resturns true if the given type is one of the standard `Enum`s we know will never get any more
+/// members.
+fn is_known_enum(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
+    const CANDIDATES: &[&[&str; 3]] = &[&paths::COW, &paths::OPTION, &paths::RESULT];
+    CANDIDATES.iter().any(|&ty_path| match_type(cx, ty, ty_path))
 }
 
-mod known_enums {
-    use super::{contains_only_wilds, contains_single_binding, qpath_to_string};
-    use clippy_utils::paths;
-    use clippy_utils::ty::match_type;
-    use rustc_hir::{Pat, PatKind};
-    use rustc_lint::LateContext;
-    use rustc_middle::ty::Ty;
-
-    /// List of candidate `Enum`s we know will never get any more members.
-    const CANDIDATES: &[(&[&str; 3], &str)] = &[
-        (&paths::COW, "Borrowed"),
-        (&paths::COW, "Cow::Borrowed"),
-        (&paths::COW, "Cow::Owned"),
-        (&paths::COW, "Owned"),
-        (&paths::OPTION, "None"),
-        (&paths::RESULT, "Err"),
-        (&paths::RESULT, "Ok"),
-    ];
-
-    pub fn contains(cx: &LateContext<'_>, path: &str, ty: Ty<'_>) -> bool {
-        for &(ty_path, pat_path) in CANDIDATES {
-            if path == pat_path && match_type(cx, ty, ty_path) {
-                return true;
-            }
-        }
-        false
-    }
-
-    /// Returns true if the given pattern contains only one of `CANDIDATES` enums that could be
-    /// simplified by the `matches` lint.
-    pub fn is_known_enum(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
-        match pat.kind {
-            PatKind::Path(ref path) => contains(cx, &qpath_to_string(path), cx.typeck_results().pat_ty(pat)),
-            PatKind::TupleStruct(ref path, ..) => {
-                let ty = cx.typeck_results().pat_ty(pat);
-                let path = &qpath_to_string(path);
-                (contains_only_wilds(pat) || contains_single_binding(pat)) && contains(cx, path, ty)
-            },
-            _ => false,
-        }
+fn contains_only_known_enums(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
+    match pat.kind {
+        PatKind::Path(..) => is_known_enum(cx, cx.typeck_results().pat_ty(pat)),
+        PatKind::TupleStruct(..) => {
+            let ty = cx.typeck_results().pat_ty(pat);
+            (contains_only_wilds(pat) || contains_single_binding(pat)) && is_known_enum(cx, ty)
+        },
+        _ => false,
     }
 }
 
@@ -907,17 +877,16 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
             let are_structs_with_the_same_name =
                 || -> bool { cx.qpath_res(left_qpath, left.hir_id) == cx.qpath_res(right_qpath, right.hir_id) };
             let are_known_enums =
-                || -> bool { known_enums::is_known_enum(cx, left) && known_enums::is_known_enum(cx, right) };
+                || -> bool { contains_only_known_enums(cx, left) && contains_only_known_enums(cx, right) };
             if are_structs_with_the_same_name() || are_known_enums() {
                 return check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos);
             }
             false
         },
-        (PatKind::Binding(BindingAnnotation::Unannotated, .., ident, None), _) if contains_only_wilds(right) => {
-            known_enums::contains(cx, &ident.to_string(), ty)
-        },
-        (PatKind::Path(ref path), _) if contains_only_wilds(right) => {
-            known_enums::contains(cx, &qpath_to_string(path), ty)
+        (PatKind::Binding(BindingAnnotation::Unannotated, .., None), _) | (PatKind::Path(_), _)
+            if contains_only_wilds(right) =>
+        {
+            is_known_enum(cx, ty)
         },
         _ => false,
     }
@@ -972,7 +941,7 @@ fn check_exhaustive_tuples<'a>(
         let right_pat = &right_in[i - right_dot_space];
         if !(contains_only_wilds(left_pat)
             || contains_only_wilds(right_pat)
-            || known_enums::is_known_enum(cx, left_pat) && known_enums::is_known_enum(cx, right_pat))
+            || contains_only_known_enums(cx, left_pat) && contains_only_known_enums(cx, right_pat))
         {
             return false;
         }
