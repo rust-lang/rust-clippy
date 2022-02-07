@@ -648,7 +648,7 @@
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 86
+      "line": 84
     },
     "group": "style",
     "level": "warn",
@@ -2163,7 +2163,7 @@
     "id": "implicit_hasher",
     "id_span": {
       "path": "src/implicit_hasher.rs",
-      "line": 58
+      "line": 57
     },
     "group": "pedantic",
     "level": "allow",
@@ -2523,7 +2523,7 @@
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 135
+      "line": 133
     },
     "group": "correctness",
     "level": "deny",
@@ -3168,7 +3168,7 @@
     "id": "manual_range_contains",
     "id_span": {
       "path": "src/ranges.rs",
-      "line": 166
+      "line": 165
     },
     "group": "style",
     "level": "warn",
@@ -3978,7 +3978,7 @@
     "id": "mut_from_ref",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 112
+      "line": 110
     },
     "group": "correctness",
     "level": "deny",
@@ -4878,7 +4878,7 @@
     "id": "possible_missing_comma",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 106
+      "line": 105
     },
     "group": "correctness",
     "level": "deny",
@@ -4983,7 +4983,7 @@
     "id": "ptr_arg",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 59
+      "line": 57
     },
     "group": "style",
     "level": "warn",
@@ -5073,7 +5073,7 @@
     "id": "range_minus_one",
     "id_span": {
       "path": "src/ranges.rs",
-      "line": 106
+      "line": 105
     },
     "group": "pedantic",
     "level": "allow",
@@ -5088,7 +5088,7 @@
     "id": "range_plus_one",
     "id_span": {
       "path": "src/ranges.rs",
-      "line": 77
+      "line": 76
     },
     "group": "pedantic",
     "level": "allow",
@@ -5118,7 +5118,7 @@
     "id": "range_zip_with_len",
     "id_span": {
       "path": "src/ranges.rs",
-      "line": 39
+      "line": 38
     },
     "group": "complexity",
     "level": "warn",
@@ -5508,7 +5508,7 @@
     "id": "reversed_empty_ranges",
     "id_span": {
       "path": "src/ranges.rs",
-      "line": 139
+      "line": 138
     },
     "group": "correctness",
     "level": "deny",
@@ -6123,7 +6123,7 @@
     "id": "suspicious_assignment_formatting",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 25
+      "line": 24
     },
     "group": "suspicious",
     "level": "warn",
@@ -6138,7 +6138,7 @@
     "id": "suspicious_else_formatting",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 85
+      "line": 84
     },
     "group": "suspicious",
     "level": "warn",
@@ -6213,7 +6213,7 @@
     "id": "suspicious_unary_op_formatting",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 48
+      "line": 47
     },
     "group": "suspicious",
     "level": "warn",
