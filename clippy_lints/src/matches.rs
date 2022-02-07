@@ -869,7 +869,7 @@ fn peel_subpatterns<'a>(pat: &'a Pat<'a>) -> &'a Pat<'a> {
     pat
 }
 
-/// Returns true if the patterns exhaustively match an enum.
+/// Returns false if the patterns exhaustively match an enum.
 fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, ty: Ty<'a>) -> bool {
     let left = peel_subpatterns(left);
     let right = peel_subpatterns(right);
