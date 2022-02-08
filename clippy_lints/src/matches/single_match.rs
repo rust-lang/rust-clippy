@@ -200,10 +200,10 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
     }
 }
 
-fn could_be_simplified(cx: &LateContext<'_>, lpat: &Pat<'_>, rpat: &Pat<'_>) -> bool {
-    contains_only_wilds(lpat)
-        || contains_only_wilds(rpat)
-        || contains_only_known_enums(cx, lpat) && contains_only_known_enums(cx, rpat)
+fn could_be_simplified(cx: &LateContext<'_>, left_pat: &Pat<'_>, right_pat: &Pat<'_>) -> bool {
+    contains_only_wilds(left_pat)
+        || contains_only_wilds(right_pat)
+        || contains_only_known_enums(cx, left_pat) && contains_only_known_enums(cx, right_pat)
 }
 
 /// Returns true if two tuples that contain patterns `left_in` and `right_in` and `..` operators at
@@ -264,9 +264,9 @@ fn check_exhaustive_structs<'a>(
     right_fields: &'a [PatField<'a>],
 ) -> bool {
     for i in 0..min(left_fields.len(), right_fields.len()) {
-        let lpat = left_fields.get(i).unwrap().pat;
-        let rpat = right_fields.get(i).unwrap().pat;
-        if !could_be_simplified(cx, &lpat, &rpat) {
+        let left_pat = left_fields.get(i).unwrap().pat;
+        let right_pat = right_fields.get(i).unwrap().pat;
+        if !could_be_simplified(cx, &left_pat, &right_pat) {
             return false;
         }
     }
