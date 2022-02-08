@@ -4,7 +4,7 @@ use clippy_utils::ty::{implements_trait, match_type, peel_mid_ty_refs};
 use clippy_utils::{
     is_lint_allowed, is_unit_expr, is_wild, paths, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs,
 };
-use core::cmp::max;
+use core::cmp::{max, min};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, Block, Expr, ExprKind, Pat, PatField, PatKind};
 use rustc_lint::LateContext;
@@ -263,19 +263,11 @@ fn check_exhaustive_structs<'a>(
     left_fields: &'a [PatField<'a>],
     right_fields: &'a [PatField<'a>],
 ) -> bool {
-    // TODO: use `min`
-    for i in 0..max(left_fields.len(), right_fields.len()) {
-        let get_pat = |fields: &'a [PatField<'a>]| {
-            if fields.len() > i {
-                Some(fields.get(i).unwrap().pat)
-            } else {
-                None
-            }
-        };
-        if let (Some(lpat), Some(rpat)) = (get_pat(left_fields), get_pat(right_fields)) {
-            if !could_be_simplified(cx, &lpat, &rpat) {
-                return false;
-            }
+    for i in 0..min(left_fields.len(), right_fields.len()) {
+        let lpat = left_fields.get(i).unwrap().pat;
+        let rpat = right_fields.get(i).unwrap().pat;
+        if !could_be_simplified(cx, &lpat, &rpat) {
+            return false;
         }
     }
     true
