@@ -276,6 +276,20 @@ fn structs() {
     }
 }
 
+fn lint_only_structs_with_the_same_name() {
+    enum E {
+        S1(i32, i32),
+        S2(i32, i32),
+    }
+    let s = E::S1(1, 2);
+
+    // don't lint
+    match s {
+        E::S1(..) => {},
+        E::S2(..) => {},
+    }
+}
+
 macro_rules! single_match {
     ($num:literal) => {
         match $num {
