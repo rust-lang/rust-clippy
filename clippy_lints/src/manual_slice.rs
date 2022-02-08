@@ -35,7 +35,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.60.0"]
     pub MANUAL_SLICE,
     restriction,
-    "default lint description"
+    "Suggest use of array and Vec .as_slice() and .as_mut_slice() methods"
 }
 
 #[derive(Clone)]
