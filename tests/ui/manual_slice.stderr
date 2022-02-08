@@ -1,0 +1,28 @@
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:6:21
+   |
+LL |     let arr_slice = &arr[..];
+   |                     ^^^^^^^^ help: use: `arr.to_slice()`
+   |
+   = note: `-D clippy::manual-slice` implied by `-D warnings`
+
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:7:29
+   |
+LL |     let mutable_arr_slice = &mut arr[..];
+   |                             ^^^^^^^^^^^^ help: use: `arr.to_mut_slice()`
+
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:11:21
+   |
+LL |     let vec_slice = &vec[..];
+   |                     ^^^^^^^^ help: use: `vec.to_slice()`
+
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:12:29
+   |
+LL |     let mutable_vec_slice = &mut vec[..];
+   |                             ^^^^^^^^^^^^ help: use: `vec.to_mut_slice()`
+
+error: aborting due to 4 previous errors
+

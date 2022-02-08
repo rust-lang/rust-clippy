@@ -1,8 +1,9 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::{meets_msrv, msrvs};
-use rustc_ast::ast::*;
+use clippy_utils::{
+    diagnostics::span_lint_and_sugg, meets_msrv, msrvs, source::snippet_with_context, ty::is_type_lang_item,
+};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_hir::*;
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_semver::RustcVersion;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 
@@ -43,19 +44,20 @@ impl ManualSlice {
 
 impl_lint_pass!(ManualSlice => [MANUAL_SLICE]);
 
-impl EarlyLintPass for ManualSlice {
-    fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
+impl<'tcx> LateLintPass<'tcx> for ManualSlice {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         if !meets_msrv(self.msrv.as_ref(), &msrvs::NON_EXHAUSTIVE) {
             return;
         }
-
+        let ctxt = expr.span.ctxt();
         if_chain! {
             if let ExprKind::AddrOf(BorrowKind::Ref, mutability, inner) = &expr.kind;
-            if let ExprKind::Index(object, index) = &inner.kind;
-            if let ExprKind::Path(_, ref ident) = object.kind;
-            if let ExprKind::Range(None, None, _) = index.kind;
+            if let ExprKind::Index(object, range) = &inner.kind;
+            if is_type_lang_item(cx, cx.typeck_results().expr_ty_adjusted(range), lang_items::LangItem::RangeFull);
             then {
-                let suggestion = match mutability {
+                let mut app = Applicability::MachineApplicable;
+                let snip = snippet_with_context(cx, object.span, ctxt, "..", &mut app).0;
+                let suggested_method = match mutability {
                     Mutability::Not => "to_slice()",
                     Mutability::Mut => "to_mut_slice()",
                 };
@@ -65,12 +67,12 @@ impl EarlyLintPass for ManualSlice {
                     expr.span,
                     "converting to a slice of the same length",
                     "use",
-                    format!("{:?}.{}", ident, suggestion),
-                    Applicability::MachineApplicable
+                    format!("{}.{}", snip, suggested_method),
+                    app
                 );
             }
         }
     }
 
-    extract_msrv_attr!(EarlyContext);
+    extract_msrv_attr!(LateContext);
 }
