@@ -26,6 +26,7 @@ store.register_group(true, "clippy::restriction", Some("clippy_restriction"), ve
     LintId::of(integer_division::INTEGER_DIVISION),
     LintId::of(let_underscore::LET_UNDERSCORE_MUST_USE),
     LintId::of(literal_representation::DECIMAL_LITERAL_REPRESENTATION),
+    LintId::of(manual_slice::MANUAL_SLICE),
     LintId::of(map_err_ignore::MAP_ERR_IGNORE),
     LintId::of(matches::REST_PAT_IN_FULLY_BOUND_STRUCTS),
     LintId::of(matches::WILDCARD_ENUM_MATCH_ARM),

@@ -267,6 +267,7 @@ mod manual_bits;
 mod manual_map;
 mod manual_non_exhaustive;
 mod manual_ok_or;
+mod manual_slice;
 mod manual_strip;
 mod manual_unwrap_or;
 mod map_clone;
@@ -862,6 +863,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(move || Box::new(borrow_as_ptr::BorrowAsPtr::new(msrv)));
     store.register_late_pass(move || Box::new(manual_bits::ManualBits::new(msrv)));
     store.register_late_pass(|| Box::new(default_union_representation::DefaultUnionRepresentation));
+    store.register_early_pass(move || Box::new(manual_slice::ManualSlice::new(msrv)));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

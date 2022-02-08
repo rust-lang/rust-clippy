@@ -231,6 +231,7 @@ store.register_lints(&[
     manual_map::MANUAL_MAP,
     manual_non_exhaustive::MANUAL_NON_EXHAUSTIVE,
     manual_ok_or::MANUAL_OK_OR,
+    manual_slice::MANUAL_SLICE,
     manual_strip::MANUAL_STRIP,
     manual_unwrap_or::MANUAL_UNWRAP_OR,
     map_clone::MAP_CLONE,

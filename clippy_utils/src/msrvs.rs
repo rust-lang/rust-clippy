@@ -12,6 +12,7 @@ macro_rules! msrv_aliases {
 
 // names may refer to stabilized feature flags or library items
 msrv_aliases! {
+    1,58,0 { MANUAL_SLICE }
     1,53,0 { OR_PATTERNS, MANUAL_BITS }
     1,52,0 { STR_SPLIT_ONCE }
     1,51,0 { BORROW_AS_PTR }
