@@ -4,7 +4,7 @@ use clippy_utils::ty::{implements_trait, match_type, peel_mid_ty_refs};
 use clippy_utils::{
     is_lint_allowed, is_unit_expr, is_wild, paths, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs,
 };
-use core::cmp::{max, min};
+use core::cmp::max;
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, Block, Expr, ExprKind, Pat, PatField, PatKind};
 use rustc_lint::LateContext;
@@ -263,14 +263,10 @@ fn check_exhaustive_structs<'a>(
     left_fields: &'a [PatField<'a>],
     right_fields: &'a [PatField<'a>],
 ) -> bool {
-    for i in 0..min(left_fields.len(), right_fields.len()) {
-        let left_pat = left_fields.get(i).unwrap().pat;
-        let right_pat = right_fields.get(i).unwrap().pat;
-        if !could_be_simplified(cx, &left_pat, &right_pat) {
-            return false;
-        }
-    }
-    true
+    left_fields
+        .iter()
+        .zip(right_fields.iter())
+        .all(|(left_field, right_field)| could_be_simplified(cx, left_field.pat, right_field.pat))
 }
 
 /// Returns true if the given arm of pattern matching contains only wildcard patterns.
