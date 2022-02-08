@@ -23,7 +23,7 @@ use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::LangItem::{OptionNone, OptionSome};
 use rustc_hir::{
     self as hir, Arm, BindingAnnotation, Block, BorrowKind, Expr, ExprKind, Guard, HirId, Local, MatchSource,
-    Mutability, Node, Pat, PatKind, PathSegment, QPath, RangeEnd, TyKind,
+    Mutability, Node, Pat, PatField, PatKind, PathSegment, QPath, RangeEnd, TyKind,
 };
 use rustc_hir::{HirIdMap, HirIdSet};
 use rustc_lint::{LateContext, LateLintPass};
@@ -875,6 +875,9 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
     let right = peel_subpatterns(right);
     match (&left.kind, &right.kind) {
         (PatKind::Wild, _) | (_, PatKind::Wild) => true,
+        (PatKind::Struct(_, left_fields, _), PatKind::Struct(_, right_fields, _)) => {
+            check_exhaustive_structs(cx, left_fields, right_fields)
+        },
         (PatKind::Tuple(left_in, left_pos), PatKind::Tuple(right_in, right_pos)) => {
             check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos)
         },
@@ -894,6 +897,12 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
         (PatKind::Binding(.., None) | PatKind::Path(_), _) if contains_only_wilds(&right) => is_known_enum(cx, ty),
         _ => false,
     }
+}
+
+fn could_be_simplified(cx: &LateContext<'_>, lpat: &Pat<'_>, rpat: &Pat<'_>) -> bool {
+    contains_only_wilds(lpat)
+        || contains_only_wilds(rpat)
+        || contains_only_known_enums(cx, lpat) && contains_only_known_enums(cx, rpat)
 }
 
 /// Returns true if two tuples that contain patterns `left_in` and `right_in` and `..` operators at
@@ -941,13 +950,31 @@ fn check_exhaustive_tuples<'a>(
             continue;
         }
 
-        let left_pat = &left_in[i - left_dot_space];
-        let right_pat = &right_in[i - right_dot_space];
-        if !(contains_only_wilds(left_pat)
-            || contains_only_wilds(right_pat)
-            || contains_only_known_enums(cx, left_pat) && contains_only_known_enums(cx, right_pat))
-        {
+        if !could_be_simplified(cx, &left_in[i - left_dot_space], &right_in[i - right_dot_space]) {
             return false;
+        }
+    }
+    true
+}
+
+fn check_exhaustive_structs<'a>(
+    cx: &LateContext<'_>,
+    left_fields: &'a [PatField<'a>],
+    right_fields: &'a [PatField<'a>],
+) -> bool {
+    // TODO: use `min`
+    for i in 0..max(left_fields.len(), right_fields.len()) {
+        let get_pat = |fields: &'a [PatField<'a>]| {
+            if fields.len() > i {
+                Some(fields.get(i).unwrap().pat)
+            } else {
+                None
+            }
+        };
+        if let (Some(lpat), Some(rpat)) = (get_pat(left_fields), get_pat(right_fields)) {
+            if !could_be_simplified(cx, &lpat, &rpat) {
+                return false;
+            }
         }
     }
     true

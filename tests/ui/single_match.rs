@@ -248,6 +248,34 @@ fn tuple_structs() {
     }
 }
 
+fn structs() {
+    struct S {
+        x: i32,
+        y: i32,
+    }
+    let s = S { x: 1, y: 2 };
+
+    // lint
+    match s {
+        S { x: 42, .. } => {},
+        S { .. } => {},
+    }
+
+    // lint
+    match s {
+        S { x: _x, y: 42 } => {},
+        S { .. } => {},
+    }
+
+    // don't lint
+    match s {
+        S { x: i32::MIN, y: _y } => {},
+        S {
+            x: i32::MIN..=i32::MAX, ..
+        } => {},
+    }
+}
+
 macro_rules! single_match {
     ($num:literal) => {
         match $num {
