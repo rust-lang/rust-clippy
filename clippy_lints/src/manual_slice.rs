@@ -2,7 +2,7 @@ use clippy_utils::{
     diagnostics::span_lint_and_sugg, meets_msrv, msrvs, source::snippet_with_context, ty::is_type_lang_item,
 };
 use rustc_errors::Applicability;
-use rustc_hir::*;
+use rustc_hir::{lang_items, BorrowKind, Expr, ExprKind, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_semver::RustcVersion;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
@@ -14,15 +14,23 @@ declare_clippy_lint! {
     /// The methods `as_slice()` or `as_mut_slice()` could be used instead.
     /// ### Example
     /// ```rust
-    /// let mut arr: [u32; 1] = [1];
-    /// let slice = &arr[..];
-    /// let mutable_slice = &mut arr[..];
+    /// let mut arr: [u32; 3] = [1, 2, 3];
+    /// let arr_slice = &arr[..];
+    /// let mutable_arr_slice = &mut arr[..];
+    ///
+    /// let mut vec = vec![1, 2, 3];
+    /// let vec_slice = &vec[..];
+    /// let mutable_vec_slice = &mut vec[..];
     /// ```
     /// Use instead:
     /// ```rust
-    /// let mut arr: [u32; 1] = [1];
-    /// let slice = arr.as_slice();
-    /// let mutable_slice = arr.as_mut_slice();
+    /// let mut arr: [u32; 3] = [1, 2, 3];
+    /// let arr_slice = arr.as_slice();
+    /// let mutable_arr_slice = arr.as_mut_slice();
+    ///
+    /// let mut vec = vec![1, 2, 3];
+    /// let vec_slice = vec.as_slice();
+    /// let mutable_vec_slice = vec.as_mut_slice();
     /// ```
     #[clippy::version = "1.60.0"]
     pub MANUAL_SLICE,
