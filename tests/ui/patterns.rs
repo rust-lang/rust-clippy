@@ -2,12 +2,16 @@
 #![allow(unused)]
 #![warn(clippy::all)]
 
+fn dummy() {
+    dbg!("test");
+}
+
 fn main() {
     let v = Some(true);
     let s = [0, 1, 2, 3, 4];
     match v {
-        Some(x) => (),
-        y @ _ => (),
+        Some(x) => dummy(),
+        y @ _ => dummy(),
     }
     match v {
         Some(x) => (),
