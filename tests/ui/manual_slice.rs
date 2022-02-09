@@ -2,14 +2,18 @@
 
 fn main() {
     let mut arr: [u32; 3] = [1, 2, 3];
-
     let arr_slice = &arr[..];
     let mutable_arr_slice = &mut arr[..];
 
     let mut vec = vec![1, 2, 3];
-
     let vec_slice = &vec[..];
     let mutable_vec_slice = &mut vec[..];
+
+    let vec_slice = &vec![1, 2, 3][..];
+    let mutable_vec_slice = &mut vec![1, 2, 3][..];
+
+    let vec_slice: &[i32] = &Vec::new()[..];
+    let mutable_vec_slice: &mut [i32] = &mut Vec::new()[..];
 
     // Will not fire on any of these
 

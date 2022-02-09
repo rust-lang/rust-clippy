@@ -1,5 +1,5 @@
 error: converting to a slice of the same length
-  --> $DIR/manual_slice.rs:6:21
+  --> $DIR/manual_slice.rs:5:21
    |
 LL |     let arr_slice = &arr[..];
    |                     ^^^^^^^^ help: use: `arr.to_slice()`
@@ -7,22 +7,46 @@ LL |     let arr_slice = &arr[..];
    = note: `-D clippy::manual-slice` implied by `-D warnings`
 
 error: converting to a slice of the same length
-  --> $DIR/manual_slice.rs:7:29
+  --> $DIR/manual_slice.rs:6:29
    |
 LL |     let mutable_arr_slice = &mut arr[..];
    |                             ^^^^^^^^^^^^ help: use: `arr.to_mut_slice()`
 
 error: converting to a slice of the same length
-  --> $DIR/manual_slice.rs:11:21
+  --> $DIR/manual_slice.rs:9:21
    |
 LL |     let vec_slice = &vec[..];
    |                     ^^^^^^^^ help: use: `vec.to_slice()`
 
 error: converting to a slice of the same length
-  --> $DIR/manual_slice.rs:12:29
+  --> $DIR/manual_slice.rs:10:29
    |
 LL |     let mutable_vec_slice = &mut vec[..];
    |                             ^^^^^^^^^^^^ help: use: `vec.to_mut_slice()`
 
-error: aborting due to 4 previous errors
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:12:21
+   |
+LL |     let vec_slice = &vec![1, 2, 3][..];
+   |                     ^^^^^^^^^^^^^^^^^^ help: use: `vec![1, 2, 3].to_slice()`
+
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:13:29
+   |
+LL |     let mutable_vec_slice = &mut vec![1, 2, 3][..];
+   |                             ^^^^^^^^^^^^^^^^^^^^^^ help: use: `vec![1, 2, 3].to_mut_slice()`
+
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:15:29
+   |
+LL |     let vec_slice: &[i32] = &Vec::new()[..];
+   |                             ^^^^^^^^^^^^^^^ help: use: `Vec::new().to_slice()`
+
+error: converting to a slice of the same length
+  --> $DIR/manual_slice.rs:16:41
+   |
+LL |     let mutable_vec_slice: &mut [i32] = &mut Vec::new()[..];
+   |                                         ^^^^^^^^^^^^^^^^^^^ help: use: `Vec::new().to_mut_slice()`
+
+error: aborting due to 8 previous errors
 
