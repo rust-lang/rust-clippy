@@ -3,7 +3,7 @@ use clippy_utils::path_to_local_id;
 use clippy_utils::visitors::expr_visitor;
 use rustc_hir::intravisit::Visitor;
 use rustc_hir::{BodyId, Expr, ExprKind, PatKind};
-use rustc_lint::LateContext;
+use rustc_lint::{LateContext, LintContext};
 use rustc_span::{MultiSpan, Span};
 
 use super::MAP_THEN_IDENTITY_TRANSFORMER;
@@ -17,13 +17,16 @@ pub(super) fn check<'tcx>(
     meth2_clos: &'tcx Expr<'_>,
 ) {
     if_chain!(
+        // takes a closure of the map
         if let ExprKind::Closure(_, _, meth1_clos_body_id, _, _) = &meth1_clos.kind;
+        // takes a closure of the transformer
         if let ExprKind::Closure(_, _, meth2_clos_body_id, _, _) = &meth2_clos.kind;
-        if let Some(_) = refd_param_span(cx, *meth1_clos_body_id);
+        // checks if the closure of the map is an one-line expression
+        let meth1_clos_val = &cx.tcx.hir().body(*meth1_clos_body_id).value;
+        if one_line(cx, meth1_clos_val.span);
+        // checks if the parameter of the closure of the transformer appears once in its body
         if let Some(refd_param_span) = refd_param_span(cx, *meth2_clos_body_id);
         then {
-            let meth1_clos_val = &cx.tcx.hir().body(*meth1_clos_body_id).value;
-
             span_lint_and_then(
                 cx,
                 MAP_THEN_IDENTITY_TRANSFORMER,
@@ -41,7 +44,7 @@ pub(super) fn check<'tcx>(
 }
 
 // On a given closure `|.., x| y`, checks if `x` is referenced just exactly once in `y` and returns
-// the span of `x`
+// the span of `x` in `y`
 fn refd_param_span(cx: &LateContext<'_>, clos_body_id: BodyId) -> Option<Span> {
     let clos_body = cx.tcx.hir().body(clos_body_id);
     if_chain! {
@@ -69,4 +72,14 @@ fn refd_param_span(cx: &LateContext<'_>, clos_body_id: BodyId) -> Option<Span> {
             None
         }
     }
+}
+
+fn one_line(cx: &LateContext<'_>, span: Span) -> bool {
+    let src = cx.sess().source_map();
+    if let Ok(lo) = src.lookup_line(span.lo()) {
+        if let Ok(hi) = src.lookup_line(span.hi()) {
+            return hi.line == lo.line;
+        }
+    }
+    false
 }

@@ -1,5 +1,3 @@
-#![allow(clippy::map_then_identity_transformer)]
-
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note, span_lint_and_then};
 use clippy_utils::paths;
 use clippy_utils::ty::{implements_trait, is_copy};

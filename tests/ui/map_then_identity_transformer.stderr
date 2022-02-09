@@ -1,10 +1,24 @@
 error: this `map` can be collapsed into the `all`
+  --> $DIR/map_then_identity_transformer.rs:9:27
+   |
+LL |     let _ = a.into_iter().map(|x| bar(foo(x))).all(|y| !y);
+   |                           ^^^
+   |
+   = note: `-D clippy::map-then-identity-transformer` implied by `-D warnings`
+help: these `map` and `all` can be merged into a single `all`
+  --> $DIR/map_then_identity_transformer.rs:9:35
+   |
+LL |     let _ = a.into_iter().map(|x| bar(foo(x))).all(|y| !y);
+   |                                   ^^^^^^^^^^^           ^ replace this variable
+   |                                   |
+   |                                   with this expression
+
+error: this `map` can be collapsed into the `all`
   --> $DIR/map_then_identity_transformer.rs:10:27
    |
 LL |     let _ = a.into_iter().map(|x| x > 1).all(|y| y);
    |                           ^^^
    |
-   = note: `-D clippy::map-then-identity-transformer` implied by `-D warnings`
 help: these `map` and `all` can be merged into a single `all`
   --> $DIR/map_then_identity_transformer.rs:10:35
    |
@@ -70,14 +84,14 @@ LL |     let _ = a.into_iter().map(|x| foo(x)).filter_map(|y| Some(!y));
 error: this `map` can be collapsed into the `fold`
   --> $DIR/map_then_identity_transformer.rs:16:27
    |
-LL |     let _ = a.into_iter().map(|x| x + 30).fold(1, |pd, x| pd * x + 1);
+LL |     let _ = a.into_iter().map(|x| 30).fold(1, |pd, x| pd * x + 1);
    |                           ^^^
    |
 help: these `map` and `fold` can be merged into a single `fold`
   --> $DIR/map_then_identity_transformer.rs:16:35
    |
-LL |     let _ = a.into_iter().map(|x| x + 30).fold(1, |pd, x| pd * x + 1);
-   |                                   ^^^^^^ with this expression  ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| 30).fold(1, |pd, x| pd * x + 1);
+   |                                   ^^ with this expression  ^ replace this variable
 
 error: this `map` can be collapsed into the `map`
   --> $DIR/map_then_identity_transformer.rs:17:27
@@ -107,5 +121,5 @@ LL |     let _ = a.into_iter().map(|x| foo(x)).position(|y| bar(y));
    |                                   |
    |                                   with this expression
 
-error: aborting due to 8 previous errors
+error: aborting due to 9 previous errors
 

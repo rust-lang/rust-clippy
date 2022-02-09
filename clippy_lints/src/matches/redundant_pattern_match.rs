@@ -39,6 +39,7 @@ fn type_needs_ordered_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     type_needs_ordered_drop_inner(cx, ty, &mut FxHashSet::default())
 }
 
+#[allow(clippy::map_then_identity_transformer)]
 fn type_needs_ordered_drop_inner<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, seen: &mut FxHashSet<Ty<'tcx>>) -> bool {
     if !seen.insert(ty) {
         return false;

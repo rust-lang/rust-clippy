@@ -1,5 +1,3 @@
-#![allow(clippy::map_then_identity_transformer)]
-
 use super::{IncrementVisitor, InitializeVisitor, MANUAL_MEMCPY};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;
