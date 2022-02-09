@@ -210,7 +210,16 @@ LL | |     }
    | |_____^ help: try this: `if let S(42, _a) = s {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:259:5
+  --> $DIR/single_match.rs:257:5
+   |
+LL | /     match s {
+LL | |         E::S1(..) => {},
+LL | |         E::S2(..) => {},
+LL | |     }
+   | |_____^ help: try this: `if let E::S1(..) = s {}`
+
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/single_match.rs:271:5
    |
 LL | /     match s {
 LL | |         S { x: 42, .. } => {},
@@ -219,7 +228,7 @@ LL | |     }
    | |_____^ help: try this: `if let S { x: 42, .. } = s {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:265:5
+  --> $DIR/single_match.rs:277:5
    |
 LL | /     match s {
 LL | |         S { x: _x, y: 42 } => {},
@@ -227,5 +236,5 @@ LL | |         S { .. } => {},
 LL | |     }
    | |_____^ help: try this: `if let S { x: _x, y: 42 } = s {}`
 
-error: aborting due to 24 previous errors
+error: aborting due to 25 previous errors
 

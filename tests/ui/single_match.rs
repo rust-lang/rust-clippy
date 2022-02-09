@@ -246,6 +246,18 @@ fn tuple_structs() {
         S(42, _a) => {},
         S(..) => {},
     }
+
+    enum E {
+        S1(i32, i32),
+        S2(i32, i32),
+    }
+    let s = E::S1(1, 2);
+
+    // lint
+    match s {
+        E::S1(..) => {},
+        E::S2(..) => {},
+    }
 }
 
 fn structs() {
@@ -274,19 +286,12 @@ fn structs() {
             x: i32::MIN..=i32::MAX, ..
         } => {},
     }
-}
 
-fn lint_only_structs_with_the_same_name() {
-    enum E {
-        S1(i32, i32),
-        S2(i32, i32),
-    }
-    let s = E::S1(1, 2);
-
-    // don't lint
+    // Don't lint, because we have an annotated binding in the second arm. So we cannot replace it
+    // with `else` branch, keeping this binding.
     match s {
-        E::S1(..) => {},
-        E::S2(..) => {},
+        S { x: _x, y: _y } => dummy(),
+        S { x: _x, .. } => dummy(),
     }
 }
 

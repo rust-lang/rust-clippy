@@ -182,20 +182,15 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
         (PatKind::Tuple(left_in, left_pos), PatKind::Tuple(right_in, right_pos)) => {
             check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos)
         },
-        (
-            PatKind::TupleStruct(left_qpath, left_in, left_pos),
-            PatKind::TupleStruct(right_qpath, right_in, right_pos),
-        ) => {
-            let are_structs_with_the_same_name =
-                || -> bool { cx.qpath_res(left_qpath, left.hir_id) == cx.qpath_res(right_qpath, right.hir_id) };
-            let are_known_enums =
-                || -> bool { contains_only_known_enums(cx, &left) && contains_only_known_enums(cx, &right) };
-            if are_structs_with_the_same_name() || are_known_enums() {
-                return check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos);
+        (PatKind::TupleStruct(_, left_in, left_pos), PatKind::TupleStruct(_, right_in, right_pos))
+            if contains_only_wilds(right) =>
+        {
+            if cx.typeck_results().pat_ty(left) != cx.typeck_results().pat_ty(right) {
+                return false;
             }
-            false
+            check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos)
         },
-        (PatKind::Binding(.., None) | PatKind::Path(_), _) if contains_only_wilds(&right) => is_known_enum(cx, ty),
+        (PatKind::Binding(.., None) | PatKind::Path(_), _) if contains_only_wilds(right) => is_known_enum(cx, ty),
         _ => false,
     }
 }
