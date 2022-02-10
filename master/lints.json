@@ -4263,7 +4263,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/needless_option_as_deref.rs",
-      "line": 30
+      "line": 29
     },
     "group": "complexity",
     "level": "warn",
@@ -4293,7 +4293,7 @@
     "id": "needless_question_mark",
     "id_span": {
       "path": "src/needless_question_mark.rs",
-      "line": 57
+      "line": 56
     },
     "group": "complexity",
     "level": "warn",
@@ -4443,7 +4443,7 @@
     "id": "new_without_default",
     "id_span": {
       "path": "src/new_without_default.rs",
-      "line": 49
+      "line": 48
     },
     "group": "style",
     "level": "warn",
@@ -5328,7 +5328,7 @@
     "id": "redundant_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 38
+      "line": 37
     },
     "group": "complexity",
     "level": "warn",
