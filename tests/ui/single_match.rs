@@ -159,41 +159,42 @@ fn ranges() {
         (Some(E::V), _) => {},
         (None, _) => {},
     }
-
-    // lint
-    match x {
-        (Some(_), _) => {},
-        (None, _) => {},
-    }
-
-    // lint
-    match x {
-        (Some(E::V), _) => todo!(),
-        (_, _) => {},
-    }
-
-    // lint
-    match (Some(42), Some(E::V), Some(42)) {
-        (.., Some(E::V), _) => {},
-        (..) => {},
-    }
-
-    // Don't lint, see above.
     match (Some(E::V), Some(E::V), Some(E::V)) {
         (.., Some(E::V), _) => {},
         (.., None, _) => {},
     }
-
-    // Don't lint, see above.
     match (Some(E::V), Some(E::V), Some(E::V)) {
         (Some(E::V), ..) => {},
         (None, ..) => {},
     }
-
-    // Don't lint, see above.
     match (Some(E::V), Some(E::V), Some(E::V)) {
         (_, Some(E::V), ..) => {},
         (_, None, ..) => {},
+    }
+
+    // Don't lint, because the second arm contains bindings. So, we cannot keep them in the `else`
+    // branch.
+    match (1, 2) {
+        (1, _b) => (),
+        (_a, ..) => (),
+    }
+    match (1, 2) {
+        (1, _b) => {},
+        (_a, _) => {},
+    }
+
+    // Lint cases.
+    match x {
+        (Some(_), _) => {},
+        (None, _) => {},
+    }
+    match x {
+        (Some(E::V), _) => todo!(),
+        (_, _) => {},
+    }
+    match (Some(42), Some(E::V), Some(42)) {
+        (.., Some(E::V), _) => {},
+        (..) => {},
     }
 }
 
@@ -222,14 +223,22 @@ fn annotated_bindings() {
     }
 }
 
+#[allow(clippy::redundant_pattern)]
 fn binding_subpatterns() {
-    struct S(i32);
-    let x = S(1);
+    // Lint.
+    match 1 {
+        _a @ 42 => {},
+        _ => {},
+    }
+    match 1 {
+        _a @ 42 => {},
+        _a @ _ => {},
+    }
 
-    // don't lint
-    match x {
-        S(aa @ 42) => {},
-        S(_) => {},
+    // Don't lint.
+    match 1 {
+        _a @ 42 => {},
+        _b => {},
     }
 }
 

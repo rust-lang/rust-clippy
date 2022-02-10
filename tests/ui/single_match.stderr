@@ -120,7 +120,7 @@ LL | |     };
    | |_____^ help: try this: `if let None = x { println!() }`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:164:5
+  --> $DIR/single_match.rs:187:5
    |
 LL | /     match x {
 LL | |         (Some(_), _) => {},
@@ -129,7 +129,7 @@ LL | |     }
    | |_____^ help: try this: `if let (Some(_), _) = x {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:170:5
+  --> $DIR/single_match.rs:191:5
    |
 LL | /     match x {
 LL | |         (Some(E::V), _) => todo!(),
@@ -138,7 +138,7 @@ LL | |     }
    | |_____^ help: try this: `if let (Some(E::V), _) = x { todo!() }`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:176:5
+  --> $DIR/single_match.rs:195:5
    |
 LL | /     match (Some(42), Some(E::V), Some(42)) {
 LL | |         (.., Some(E::V), _) => {},
@@ -147,7 +147,7 @@ LL | |     }
    | |_____^ help: try this: `if let (.., Some(E::V), _) = (Some(42), Some(E::V), Some(42)) {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:204:5
+  --> $DIR/single_match.rs:205:5
    |
 LL | /     match Some(S(1i32)) {
 LL | |         Some(a) => {},
@@ -156,7 +156,7 @@ LL | |     }
    | |_____^ help: try this: `if let Some(a) = Some(S(1i32)) {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:209:5
+  --> $DIR/single_match.rs:210:5
    |
 LL | /     match x {
 LL | |         Some(ref a) => {},
@@ -165,7 +165,7 @@ LL | |     }
    | |_____^ help: try this: `if let Some(ref a) = x {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:214:5
+  --> $DIR/single_match.rs:215:5
    |
 LL | /     match x {
 LL | |         Some(mut a) => {},
@@ -174,7 +174,7 @@ LL | |     }
    | |_____^ help: try this: `if let Some(mut a) = x {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:219:5
+  --> $DIR/single_match.rs:220:5
    |
 LL | /     match Some(S(1i32)) {
 LL | |         Some(ref mut a) => {},
@@ -183,7 +183,25 @@ LL | |     }
    | |_____^ help: try this: `if let Some(ref mut a) = Some(S(1i32)) {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:273:5
+  --> $DIR/single_match.rs:229:5
+   |
+LL | /     match 1 {
+LL | |         _a @ 42 => {},
+LL | |         _ => {},
+LL | |     }
+   | |_____^ help: try this: `if let _a @ 42 = 1 {}`
+
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/single_match.rs:233:5
+   |
+LL | /     match 1 {
+LL | |         _a @ 42 => {},
+LL | |         _a @ _ => {},
+LL | |     }
+   | |_____^ help: try this: `if let _a @ 42 = 1 {}`
+
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/single_match.rs:282:5
    |
 LL | /     match s {
 LL | |         S { x: 42, .. } => {},
@@ -192,7 +210,7 @@ LL | |     }
    | |_____^ help: try this: `if let S { x: 42, .. } = s {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:279:5
+  --> $DIR/single_match.rs:288:5
    |
 LL | /     match s {
 LL | |         S { x: _x, y: 42 } => {},
@@ -200,5 +218,5 @@ LL | |         S { .. } => {},
 LL | |     }
    | |_____^ help: try this: `if let S { x: _x, y: 42 } = s {}`
 
-error: aborting due to 21 previous errors
+error: aborting due to 23 previous errors
 
