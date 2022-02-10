@@ -183,43 +183,7 @@ LL | |     }
    | |_____^ help: try this: `if let Some(ref mut a) = Some(S(1i32)) {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:228:5
-   |
-LL | /     match x {
-LL | |         S(aa @ 42) => {},
-LL | |         S(_) => {},
-LL | |     }
-   | |_____^ help: try this: `if let S(aa @ 42) = x {}`
-
-error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:239:5
-   |
-LL | /     match s {
-LL | |         S(42, _a) => {},
-LL | |         S(_, _) => {},
-LL | |     }
-   | |_____^ help: try this: `if let S(42, _a) = s {}`
-
-error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:245:5
-   |
-LL | /     match s {
-LL | |         S(42, _a) => {},
-LL | |         S(..) => {},
-LL | |     }
-   | |_____^ help: try this: `if let S(42, _a) = s {}`
-
-error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:257:5
-   |
-LL | /     match s {
-LL | |         E::S1(..) => {},
-LL | |         E::S2(..) => {},
-LL | |     }
-   | |_____^ help: try this: `if let E::S1(..) = s {}`
-
-error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:271:5
+  --> $DIR/single_match.rs:273:5
    |
 LL | /     match s {
 LL | |         S { x: 42, .. } => {},
@@ -228,7 +192,7 @@ LL | |     }
    | |_____^ help: try this: `if let S { x: 42, .. } = s {}`
 
 error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
-  --> $DIR/single_match.rs:277:5
+  --> $DIR/single_match.rs:279:5
    |
 LL | /     match s {
 LL | |         S { x: _x, y: 42 } => {},
@@ -236,5 +200,5 @@ LL | |         S { .. } => {},
 LL | |     }
    | |_____^ help: try this: `if let S { x: _x, y: 42 } = s {}`
 
-error: aborting due to 25 previous errors
+error: aborting due to 21 previous errors
 

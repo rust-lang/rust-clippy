@@ -225,6 +225,8 @@ fn annotated_bindings() {
 fn binding_subpatterns() {
     struct S(i32);
     let x = S(1);
+
+    // don't lint
     match x {
         S(aa @ 42) => {},
         S(_) => {},
@@ -235,13 +237,13 @@ fn tuple_structs() {
     struct S(i32, i32);
     let s = S(1, 2);
 
-    // lint: S(_, _) forms an exhaustive match, so it could be removed
+    // dont' lint
     match s {
         S(42, _a) => {},
         S(_, _) => {},
     }
 
-    // lint: S(..) forms an exhaustive match, so it could be removed
+    // don't lint
     match s {
         S(42, _a) => {},
         S(..) => {},
@@ -253,7 +255,7 @@ fn tuple_structs() {
     }
     let s = E::S1(1, 2);
 
-    // lint
+    // don't lint
     match s {
         E::S1(..) => {},
         E::S2(..) => {},

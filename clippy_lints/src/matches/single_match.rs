@@ -183,11 +183,8 @@ fn check_exhaustive<'a>(cx: &LateContext<'a>, left: &Pat<'_>, right: &Pat<'_>, t
             check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos)
         },
         (PatKind::TupleStruct(_, left_in, left_pos), PatKind::TupleStruct(_, right_in, right_pos))
-            if contains_only_wilds(right) =>
+            if contains_only_wilds(right) && contains_only_known_enums(cx, left) =>
         {
-            if cx.typeck_results().pat_ty(left) != cx.typeck_results().pat_ty(right) {
-                return false;
-            }
             check_exhaustive_tuples(cx, left_in, left_pos, right_in, right_pos)
         },
         (PatKind::Binding(.., None) | PatKind::Path(_), _) if contains_only_wilds(right) => is_known_enum(cx, ty),
