@@ -813,15 +813,15 @@
     "id": "dbg_macro",
     "id_span": {
       "path": "src/dbg_macro.rs",
-      "line": 35
+      "line": 27
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for usage of dbg!() macro.\n\n### Why is this bad?\n`dbg!` macro is intended as a debugging tool. It\nshould not be in version control.\n\n### Known problems\n* The lint level is unaffected by crate attributes. The level can still\n  be set for functions, modules and other items. To change the level for\n  the entire crate, please use command line flags. More information and a\n  configuration example can be found in [clippy#6610].\n\n[clippy#6610]: https://github.com/rust-lang/rust-clippy/issues/6610#issuecomment-977120558\n\n### Example\n```rust\n// Bad\ndbg!(true)\n\n// Good\ntrue\n```",
+    "docs": " ### What it does\nChecks for usage of dbg!() macro.\n\n### Why is this bad?\n`dbg!` macro is intended as a debugging tool. It\nshould not be in version control.\n\n### Example\n```rust\n// Bad\ndbg!(true)\n\n// Good\ntrue\n```",
     "version": "1.34.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
