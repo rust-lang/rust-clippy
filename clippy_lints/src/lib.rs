@@ -462,6 +462,7 @@ pub fn read_conf(sess: &Session) -> Conf {
 /// Used in `./src/driver.rs`.
 #[allow(clippy::too_many_lines)]
 pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf: &Conf) {
+    clippy_utils::nightly::eval_is_nightly_run(sess);
     register_removed_non_tool_lints(store);
 
     include!("lib.deprecated.rs");

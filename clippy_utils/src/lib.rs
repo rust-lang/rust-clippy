@@ -45,6 +45,7 @@ pub mod higher;
 mod hir_utils;
 pub mod macros;
 pub mod msrvs;
+pub mod nightly;
 pub mod numeric_literal;
 pub mod paths;
 pub mod ptr;
