@@ -467,6 +467,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     register_removed_non_tool_lints(store);
 
     include!("lib.deprecated.rs");
+    include!("lib.nightly_lints.rs");
 
     include!("lib.register_lints.rs");
     include!("lib.register_restriction.rs");
