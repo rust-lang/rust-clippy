@@ -6513,11 +6513,11 @@
     "id": "transmute_undefined_repr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 378
+      "line": 379
     },
-    "group": "nursery",
-    "level": "allow",
-    "docs": " ### What it does\nChecks for transmutes either to or from a type which does not have a defined representation.\n\n### Why is this bad?\nThe results of such a transmute are not defined.\n\n### Example\n```rust\nstruct Foo<T>(u32, T);\nlet _ = unsafe { core::mem::transmute::<Foo<u32>, Foo<i32>>(Foo(0u32, 0u32)) };\n```\nUse instead:\n```rust\n#[repr(C)]\nstruct Foo<T>(u32, T);\nlet _ = unsafe { core::mem::transmute::<Foo<u32>, Foo<i32>>(Foo(0u32, 0u32)) };\n```",
+    "group": "correctness",
+    "level": "deny",
+    "docs": " ### What it does\nChecks for transmutes between types which do not have a representation defined relative to\neach other.\n\n### Why is this bad?\nThe results of such a transmute are not defined.\n\n### Example\n```rust\nstruct Foo<T>(u32, T);\nlet _ = unsafe { core::mem::transmute::<Foo<u32>, Foo<i32>>(Foo(0u32, 0u32)) };\n```\nUse instead:\n```rust\n#[repr(C)]\nstruct Foo<T>(u32, T);\nlet _ = unsafe { core::mem::transmute::<Foo<u32>, Foo<i32>>(Foo(0u32, 0u32)) };\n```",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
