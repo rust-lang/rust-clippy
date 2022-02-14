@@ -338,6 +338,21 @@ declare_clippy_lint! {
     "found clippy lint without `clippy::version` attribute"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Not an actual lint. This lint is only meant for testing lints with the
+    /// version set to `nightly`
+    ///
+    /// ### Why is this bad?
+    /// This lint will never be seen by the end user. This text is therefore just
+    /// waisted storage space ^^
+    ///
+    #[clippy::version = "nightly"]
+    pub FOREVER_NIGHTLY_LINT,
+    internal_warn,
+    "achivement: you found a nightly lint (+1xp)"
+}
+
 declare_lint_pass!(ClippyLintsInternal => [CLIPPY_LINTS_INTERNAL]);
 
 impl EarlyLintPass for ClippyLintsInternal {
@@ -649,6 +664,24 @@ fn is_trigger_fn(fn_kind: FnKind<'_>) -> bool {
     match fn_kind {
         FnKind::Fn(_, ident, ..) => ident.name.as_str() == "it_looks_like_you_are_trying_to_kill_clippy",
         FnKind::Closure(..) => false,
+    }
+}
+
+declare_lint_pass!(ForeverNightlyLint => [FOREVER_NIGHTLY_LINT]);
+
+impl EarlyLintPass for ForeverNightlyLint {
+    fn check_fn(&mut self, cx: &EarlyContext<'_>, fn_kind: FnKind<'_>, _: Span, _: NodeId) {
+        match fn_kind {
+            FnKind::Fn(_, ident, ..) if ident.name.as_str() == "trigger_forever_nightly_lint" => {
+                span_lint(
+                    cx,
+                    FOREVER_NIGHTLY_LINT,
+                    ident.span,
+                    "this triggered a lint that should only be available on nightly",
+                );
+            },
+            _ => {},
+        }
     }
 }
 
