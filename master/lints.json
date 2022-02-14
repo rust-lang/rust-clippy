@@ -4447,7 +4447,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for types with a `fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).\n\n### Why is this bad?\nThe user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.\n\n### Example\n```rust\nstruct Foo(Bar);\n\nimpl Foo {\n    fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, add a `Default` implementation that delegates to `new`:\n\n```rust\nstruct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```",
+    "docs": " ### What it does\nChecks for public types with a `pub fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).\n\n### Why is this bad?\nThe user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.\n\n### Example\n```rust\npub struct Foo(Bar);\n\nimpl Foo {\n    pub fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, add a `Default` implementation that delegates to `new`:\n\n```rust\npub struct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
