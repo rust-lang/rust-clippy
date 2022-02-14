@@ -43,7 +43,7 @@ declare_clippy_lint! {
     ///     };
     /// }
     /// ```
-    #[clippy::version = "1.60.0"]
+    #[clippy::version = "nightly"]
     pub DEFAULT_UNION_REPRESENTATION,
     restriction,
     "unions without a `#[repr(C)]` attribute"

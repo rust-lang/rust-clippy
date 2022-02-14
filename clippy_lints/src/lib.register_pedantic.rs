@@ -7,7 +7,7 @@ store.register_group(true, "clippy::pedantic", Some("clippy_pedantic"), [
     Some(LintId::of(await_holding_invalid::AWAIT_HOLDING_LOCK)),
     Some(LintId::of(await_holding_invalid::AWAIT_HOLDING_REFCELL_REF)),
     Some(LintId::of(bit_mask::VERBOSE_BIT_MASK)),
-    Some(LintId::of(borrow_as_ptr::BORROW_AS_PTR)),
+    clippy_utils::nightly::is_nightly_run().then_some(LintId::of(borrow_as_ptr::BORROW_AS_PTR)),
     Some(LintId::of(bytecount::NAIVE_BYTECOUNT)),
     Some(LintId::of(case_sensitive_file_extension_comparisons::CASE_SENSITIVE_FILE_EXTENSION_COMPARISONS)),
     Some(LintId::of(casts::CAST_LOSSLESS)),

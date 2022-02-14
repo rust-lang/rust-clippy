@@ -43,7 +43,7 @@ store.register_group(true, "clippy::style", Some("clippy_style"), [
     Some(LintId::of(loops::WHILE_LET_ON_ITERATOR)),
     Some(LintId::of(main_recursion::MAIN_RECURSION)),
     Some(LintId::of(manual_async_fn::MANUAL_ASYNC_FN)),
-    Some(LintId::of(manual_bits::MANUAL_BITS)),
+    clippy_utils::nightly::is_nightly_run().then_some(LintId::of(manual_bits::MANUAL_BITS)),
     Some(LintId::of(manual_map::MANUAL_MAP)),
     Some(LintId::of(manual_non_exhaustive::MANUAL_NON_EXHAUSTIVE)),
     Some(LintId::of(map_clone::MAP_CLONE)),

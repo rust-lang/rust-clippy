@@ -12,7 +12,7 @@ store.register_group(true, "clippy::restriction", Some("clippy_restriction"), [
     Some(LintId::of(create_dir::CREATE_DIR)),
     Some(LintId::of(dbg_macro::DBG_MACRO)),
     Some(LintId::of(default_numeric_fallback::DEFAULT_NUMERIC_FALLBACK)),
-    Some(LintId::of(default_union_representation::DEFAULT_UNION_REPRESENTATION)),
+    clippy_utils::nightly::is_nightly_run().then_some(LintId::of(default_union_representation::DEFAULT_UNION_REPRESENTATION)),
     Some(LintId::of(disallowed_script_idents::DISALLOWED_SCRIPT_IDENTS)),
     Some(LintId::of(else_if_without_else::ELSE_IF_WITHOUT_ELSE)),
     Some(LintId::of(exhaustive_items::EXHAUSTIVE_ENUMS)),

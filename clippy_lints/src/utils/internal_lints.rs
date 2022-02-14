@@ -322,6 +322,7 @@ declare_clippy_lint! {
     ///
     /// Valid values are:
     /// * "pre 1.29.0"
+    /// * "nightly"
     /// * any valid semantic version
     pub INVALID_CLIPPY_VERSION_ATTRIBUTE,
     internal,
@@ -491,7 +492,7 @@ fn check_invalid_clippy_version_attribute(cx: &LateContext<'_>, item: &'_ Item<'
     if let Some(value) = extract_clippy_version_value(cx, item) {
         // The `sym!` macro doesn't work as it only expects a single token.
         // It's better to keep it this way and have a direct `Symbol::intern` call here.
-        if value == Symbol::intern("pre 1.29.0") {
+        if value == Symbol::intern("pre 1.29.0") || value == Symbol::intern("nightly") {
             return;
         }
 
@@ -502,7 +503,7 @@ fn check_invalid_clippy_version_attribute(cx: &LateContext<'_>, item: &'_ Item<'
                 item.span,
                 "this item has an invalid `clippy::version` attribute",
                 None,
-                "please use a valid sematic version, see `doc/adding_lints.md`",
+                "please use a valid sematic version or `nightly`, see `doc/adding_lints.md`",
             );
         }
     } else {

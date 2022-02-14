@@ -25,7 +25,7 @@ declare_clippy_lint! {
     /// ```rust
     /// usize::BITS;
     /// ```
-    #[clippy::version = "1.60.0"]
+    #[clippy::version = "nightly"]
     pub MANUAL_BITS,
     style,
     "manual implementation of `size_of::<T>() * 8` can be simplified with `T::BITS`"

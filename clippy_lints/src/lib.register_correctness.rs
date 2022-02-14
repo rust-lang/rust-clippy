@@ -58,7 +58,7 @@ store.register_group(true, "clippy::correctness", Some("clippy_correctness"), [
     Some(LintId::of(size_of_in_element_count::SIZE_OF_IN_ELEMENT_COUNT)),
     Some(LintId::of(swap::ALMOST_SWAPPED)),
     Some(LintId::of(to_string_in_display::TO_STRING_IN_DISPLAY)),
-    Some(LintId::of(transmute::TRANSMUTE_UNDEFINED_REPR)),
+    clippy_utils::nightly::is_nightly_run().then_some(LintId::of(transmute::TRANSMUTE_UNDEFINED_REPR)),
     Some(LintId::of(transmute::UNSOUND_COLLECTION_TRANSMUTE)),
     Some(LintId::of(transmute::WRONG_TRANSMUTE)),
     Some(LintId::of(transmuting_null::TRANSMUTING_NULL)),

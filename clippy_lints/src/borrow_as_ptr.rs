@@ -36,7 +36,7 @@ declare_clippy_lint! {
     /// let mut val_mut = 1;
     /// let p_mut = std::ptr::addr_of_mut!(val_mut);
     /// ```
-    #[clippy::version = "1.60.0"]
+    #[clippy::version = "nightly"]
     pub BORROW_AS_PTR,
     pedantic,
     "borrowing just to cast to a raw pointer"

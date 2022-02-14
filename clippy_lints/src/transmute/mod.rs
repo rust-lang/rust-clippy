@@ -375,7 +375,7 @@ declare_clippy_lint! {
     /// struct Foo<T>(u32, T);
     /// let _ = unsafe { core::mem::transmute::<Foo<u32>, Foo<i32>>(Foo(0u32, 0u32)) };
     /// ```
-    #[clippy::version = "1.60.0"]
+    #[clippy::version = "nightly"]
     pub TRANSMUTE_UNDEFINED_REPR,
     correctness,
     "transmute to or from a type with an undefined representation"
