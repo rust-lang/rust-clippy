@@ -1,0 +1,45 @@
+error: this Span guard is held across an 'await' point. Consider using the `.instrument()` combinator or the `.in_scope()` method instead
+  --> $DIR/await_holding_tracing_span_guard.rs:22:9
+   |
+LL |     let _guard = span.enter();
+   |         ^^^^^^
+   |
+   = note: `-D clippy::await-holding-span-guard` implied by `-D warnings`
+note: these are all the await points this ref is held through
+  --> $DIR/await_holding_tracing_span_guard.rs:22:5
+   |
+LL | /     let _guard = span.enter();
+LL | |     bar().await;
+LL | | }
+   | |_^
+
+error: this Span guard is held across an 'await' point. Consider using the `.instrument()` combinator or the `.in_scope()` method instead
+  --> $DIR/await_holding_tracing_span_guard.rs:29:9
+   |
+LL |     let _guard = span.entered();
+   |         ^^^^^^
+   |
+note: these are all the await points this ref is held through
+  --> $DIR/await_holding_tracing_span_guard.rs:29:5
+   |
+LL | /     let _guard = span.entered();
+LL | |     bar().await;
+LL | | }
+   | |_^
+
+error: this Span guard is held across an 'await' point. Consider using the `.instrument()` combinator or the `.in_scope()` method instead
+  --> $DIR/await_holding_tracing_span_guard.rs:37:13
+   |
+LL |         let _guard = span.enter();
+   |             ^^^^^^
+   |
+note: these are all the await points this ref is held through
+  --> $DIR/await_holding_tracing_span_guard.rs:37:9
+   |
+LL | /         let _guard = span.enter();
+LL | |         bar().await
+LL | |     }
+   | |_____^
+
+error: aborting due to 3 previous errors
+

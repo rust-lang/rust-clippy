@@ -198,6 +198,10 @@ pub const TO_STRING_METHOD: [&str; 4] = ["alloc", "string", "ToString", "to_stri
 pub const TOKIO_IO_ASYNCREADEXT: [&str; 5] = ["tokio", "io", "util", "async_read_ext", "AsyncReadExt"];
 #[allow(clippy::invalid_paths)] // internal lints do not know about all external crates
 pub const TOKIO_IO_ASYNCWRITEEXT: [&str; 5] = ["tokio", "io", "util", "async_write_ext", "AsyncWriteExt"];
+#[allow(clippy::invalid_paths)] // internal lints do not know about all external crates
+pub const TRACING_SPAN_ENTER_GUARD: [&str; 3] = ["tracing", "span", "Entered"];
+#[allow(clippy::invalid_paths)] // internal lints do not know about all external crates
+pub const TRACING_SPAN_ENTERED_GUARD: [&str; 3] = ["tracing", "span", "EnteredSpan"];
 pub const TRY_FROM: [&str; 4] = ["core", "convert", "TryFrom", "try_from"];
 pub const VEC_AS_MUT_SLICE: [&str; 4] = ["alloc", "vec", "Vec", "as_mut_slice"];
 pub const VEC_AS_SLICE: [&str; 4] = ["alloc", "vec", "Vec", "as_slice"];

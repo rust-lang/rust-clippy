@@ -33,6 +33,7 @@ static TEST_DEPENDENCIES: &[&str] = &[
     "serde_derive",
     "syn",
     "tokio",
+    "tracing",
     "parking_lot",
 ];
 
@@ -56,6 +57,8 @@ extern crate quote;
 extern crate syn;
 #[allow(unused_extern_crates)]
 extern crate tokio;
+#[allow(unused_extern_crates)]
+extern crate tracing;
 
 /// Produces a string with an `--extern` flag for all UI test crate
 /// dependencies.

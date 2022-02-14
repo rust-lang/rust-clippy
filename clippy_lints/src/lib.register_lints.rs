@@ -51,6 +51,7 @@ store.register_lints(&[
     attrs::USELESS_ATTRIBUTE,
     await_holding_invalid::AWAIT_HOLDING_LOCK,
     await_holding_invalid::AWAIT_HOLDING_REFCELL_REF,
+    await_holding_invalid::AWAIT_HOLDING_SPAN_GUARD,
     bit_mask::BAD_BIT_MASK,
     bit_mask::INEFFECTIVE_BIT_MASK,
     bit_mask::VERBOSE_BIT_MASK,
