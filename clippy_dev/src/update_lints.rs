@@ -18,7 +18,7 @@ static DEC_CLIPPY_LINT_RE: SyncLazy<Regex> = SyncLazy::new(|| {
         r#"(?x)
     declare_clippy_lint!\s*[\{(]
     (?:\s+///.*)*
-    (?:\s*\#\[clippy::version\s*=\s*"[^"]*"\])?
+    (?:\s*\#\[clippy::version\s*=\s*"(?P<version>[^"]*)"\])?
     \s+pub\s+(?P<name>[A-Z_][A-Z_0-9]*)\s*,\s*
     (?P<cat>[a-z_]+)\s*,\s*
     "(?P<desc>(?:[^"\\]+|\\(?s).(?-s))*)"\s*[})]
@@ -32,7 +32,7 @@ static DEC_DEPRECATED_LINT_RE: SyncLazy<Regex> = SyncLazy::new(|| {
         r#"(?x)
     declare_deprecated_lint!\s*[{(]\s*
     (?:\s+///.*)*
-    (?:\s*\#\[clippy::version\s*=\s*"[^"]*"\])?
+    (?:\s*\#\[clippy::version\s*=\s*"(?P<version>[^"]*)"\])?
     \s+pub\s+(?P<name>[A-Z_][A-Z_0-9]*)\s*,\s*
     "(?P<desc>(?:[^"\\]+|\\(?s).(?-s))*)"\s*[})]
 "#,
@@ -200,17 +200,26 @@ struct Lint {
     desc: String,
     deprecation: Option<String>,
     module: String,
+    version: Option<String>,
 }
 
 impl Lint {
     #[must_use]
-    fn new(name: &str, group: &str, desc: &str, deprecation: Option<&str>, module: &str) -> Self {
+    fn new(
+        name: &str,
+        group: &str,
+        desc: &str,
+        deprecation: Option<&str>,
+        module: &str,
+        version: Option<&str>,
+    ) -> Self {
         Self {
             name: name.to_lowercase(),
             group: group.to_string(),
             desc: NL_ESCAPE_RE.replace(&desc.replace("\\\"", "\""), "").to_string(),
             deprecation: deprecation.map(ToString::to_string),
             module: module.to_string(),
+            version: version.map(str::to_string),
         }
     }
 
@@ -245,19 +254,26 @@ impl Lint {
 
 /// Generates the code for registering a group
 fn gen_lint_group_list<'a>(group_name: &str, lints: impl Iterator<Item = &'a Lint>) -> String {
-    let mut details: Vec<_> = lints.map(|l| (&l.module, l.name.to_uppercase())).collect();
+    let mut details: Vec<_> = lints.map(|l| (&l.module, l.name.to_uppercase(), &l.version)).collect();
     details.sort_unstable();
 
     let mut output = GENERATED_FILE_COMMENT.to_string();
 
     output.push_str(&format!(
-        "store.register_group(true, \"clippy::{0}\", Some(\"clippy_{0}\"), vec![\n",
+        "store.register_group(true, \"clippy::{0}\", Some(\"clippy_{0}\"), [\n",
         group_name
     ));
-    for (module, name) in details {
-        output.push_str(&format!("    LintId::of({}::{}),\n", module, name));
+    for (module, name, version) in details {
+        if version.as_ref().map_or(false, |v| v == "nightly") {
+            output.push_str(&format!(
+                "    clippy_utils::nightly::is_nightly_run().then_some(LintId::of({}::{})),\n",
+                module, name
+            ));
+        } else {
+            output.push_str(&format!("    Some(LintId::of({}::{})),\n", module, name));
+        }
     }
-    output.push_str("])\n");
+    output.push_str("].iter().copied().flatten().collect::<Vec<_>>())\n");
 
     output
 }
@@ -359,12 +375,26 @@ fn gather_from_file(dir_entry: &walkdir::DirEntry) -> impl Iterator<Item = Lint>
 }
 
 fn parse_contents(content: &str, module: &str) -> impl Iterator<Item = Lint> {
-    let lints = DEC_CLIPPY_LINT_RE
-        .captures_iter(content)
-        .map(|m| Lint::new(&m["name"], &m["cat"], &m["desc"], None, module));
-    let deprecated = DEC_DEPRECATED_LINT_RE
-        .captures_iter(content)
-        .map(|m| Lint::new(&m["name"], "Deprecated", &m["desc"], Some(&m["desc"]), module));
+    let lints = DEC_CLIPPY_LINT_RE.captures_iter(content).map(|m| {
+        Lint::new(
+            &m["name"],
+            &m["cat"],
+            &m["desc"],
+            None,
+            module,
+            m.name("version").map(|v| v.as_str()),
+        )
+    });
+    let deprecated = DEC_DEPRECATED_LINT_RE.captures_iter(content).map(|m| {
+        Lint::new(
+            &m["name"],
+            "Deprecated",
+            &m["desc"],
+            Some(&m["desc"]),
+            module,
+            m.name("version").map(|v| v.as_str()),
+        )
+    });
     // Removing the `.collect::<Vec<Lint>>().into_iter()` causes some lifetime issues due to the map
     lints.chain(deprecated).collect::<Vec<Lint>>().into_iter()
 }
@@ -505,7 +535,6 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint!{
-    #[clippy::version = "Test version"]
     pub DOC_MARKDOWN,
     pedantic,
     "single line"
@@ -523,14 +552,22 @@ declare_deprecated_lint! {
     .collect();
 
     let expected = vec![
-        Lint::new("ptr_arg", "style", "really long text", None, "module_name"),
-        Lint::new("doc_markdown", "pedantic", "single line", None, "module_name"),
+        Lint::new(
+            "ptr_arg",
+            "style",
+            "really long text",
+            None,
+            "module_name",
+            Some("Hello Clippy!"),
+        ),
+        Lint::new("doc_markdown", "pedantic", "single line", None, "module_name", None),
         Lint::new(
             "should_assert_eq",
             "Deprecated",
             "`assert!()` will be more flexible with RFC 2011",
             Some("`assert!()` will be more flexible with RFC 2011"),
             "module_name",
+            Some("I'm a version"),
         ),
     ];
     assert_eq!(expected, result);
@@ -580,10 +617,17 @@ mod tests {
     #[test]
     fn test_usable_lints() {
         let lints = vec![
-            Lint::new("should_assert_eq", "Deprecated", "abc", Some("Reason"), "module_name"),
-            Lint::new("should_assert_eq2", "Not Deprecated", "abc", None, "module_name"),
-            Lint::new("should_assert_eq2", "internal", "abc", None, "module_name"),
-            Lint::new("should_assert_eq2", "internal_style", "abc", None, "module_name"),
+            Lint::new(
+                "should_assert_eq",
+                "Deprecated",
+                "abc",
+                Some("Reason"),
+                "module_name",
+                None,
+            ),
+            Lint::new("should_assert_eq2", "Not Deprecated", "abc", None, "module_name", None),
+            Lint::new("should_assert_eq2", "internal", "abc", None, "module_name", None),
+            Lint::new("should_assert_eq2", "internal_style", "abc", None, "module_name", None),
         ];
         let expected = vec![Lint::new(
             "should_assert_eq2",
@@ -591,6 +635,7 @@ mod tests {
             "abc",
             None,
             "module_name",
+            None,
         )];
         assert_eq!(expected, Lint::usable_lints(&lints));
     }
@@ -598,21 +643,28 @@ mod tests {
     #[test]
     fn test_by_lint_group() {
         let lints = vec![
-            Lint::new("should_assert_eq", "group1", "abc", None, "module_name"),
-            Lint::new("should_assert_eq2", "group2", "abc", None, "module_name"),
-            Lint::new("incorrect_match", "group1", "abc", None, "module_name"),
+            Lint::new("should_assert_eq", "group1", "abc", None, "module_name", None),
+            Lint::new("should_assert_eq2", "group2", "abc", None, "module_name", None),
+            Lint::new("incorrect_match", "group1", "abc", None, "module_name", None),
         ];
         let mut expected: HashMap<String, Vec<Lint>> = HashMap::new();
         expected.insert(
             "group1".to_string(),
             vec![
-                Lint::new("should_assert_eq", "group1", "abc", None, "module_name"),
-                Lint::new("incorrect_match", "group1", "abc", None, "module_name"),
+                Lint::new("should_assert_eq", "group1", "abc", None, "module_name", None),
+                Lint::new("incorrect_match", "group1", "abc", None, "module_name", None),
             ],
         );
         expected.insert(
             "group2".to_string(),
-            vec![Lint::new("should_assert_eq2", "group2", "abc", None, "module_name")],
+            vec![Lint::new(
+                "should_assert_eq2",
+                "group2",
+                "abc",
+                None,
+                "module_name",
+                None,
+            )],
         );
         assert_eq!(expected, Lint::by_lint_group(lints.into_iter()));
     }
@@ -620,8 +672,8 @@ mod tests {
     #[test]
     fn test_gen_changelog_lint_list() {
         let lints = vec![
-            Lint::new("should_assert_eq", "group1", "abc", None, "module_name"),
-            Lint::new("should_assert_eq2", "group2", "abc", None, "module_name"),
+            Lint::new("should_assert_eq", "group1", "abc", None, "module_name", None),
+            Lint::new("should_assert_eq2", "group2", "abc", None, "module_name", None),
         ];
         let expected = vec![
             format!("[`should_assert_eq`]: {}#should_assert_eq", DOCS_LINK),
@@ -639,6 +691,7 @@ mod tests {
                 "abc",
                 Some("has been superseded by should_assert_eq2"),
                 "module_name",
+                None,
             ),
             Lint::new(
                 "another_deprecated",
@@ -646,6 +699,7 @@ mod tests {
                 "abc",
                 Some("will be removed"),
                 "module_name",
+                None,
             ),
         ];
 
@@ -671,15 +725,22 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_gen_deprecated_fail() {
-        let lints = vec![Lint::new("should_assert_eq2", "group2", "abc", None, "module_name")];
+        let lints = vec![Lint::new(
+            "should_assert_eq2",
+            "group2",
+            "abc",
+            None,
+            "module_name",
+            None,
+        )];
         let _deprecated_lints = gen_deprecated(lints.iter());
     }
 
     #[test]
     fn test_gen_modules_list() {
         let lints = vec![
-            Lint::new("should_assert_eq", "group1", "abc", None, "module_name"),
-            Lint::new("incorrect_stuff", "group3", "abc", None, "another_module"),
+            Lint::new("should_assert_eq", "group1", "abc", None, "module_name", None),
+            Lint::new("incorrect_stuff", "group3", "abc", None, "another_module", None),
         ];
         let expected = vec!["mod another_module;".to_string(), "mod module_name;".to_string()];
         assert_eq!(expected, gen_modules_list(lints.iter()));
@@ -688,17 +749,19 @@ mod tests {
     #[test]
     fn test_gen_lint_group_list() {
         let lints = vec![
-            Lint::new("abc", "group1", "abc", None, "module_name"),
-            Lint::new("should_assert_eq", "group1", "abc", None, "module_name"),
-            Lint::new("internal", "internal_style", "abc", None, "module_name"),
+            Lint::new("abc", "group1", "abc", None, "module_name", Some("1.0.1")),
+            Lint::new("should_assert_eq", "group1", "abc", None, "module_name", Some("1.60.0")),
+            Lint::new("internal", "internal_style", "abc", None, "module_name", None),
+            Lint::new("nightly_lint", "nightly", "abc", None, "module_name", Some("nightly")),
         ];
         let expected = GENERATED_FILE_COMMENT.to_string()
             + &[
-                "store.register_group(true, \"clippy::group1\", Some(\"clippy_group1\"), vec![",
-                "    LintId::of(module_name::ABC),",
-                "    LintId::of(module_name::INTERNAL),",
-                "    LintId::of(module_name::SHOULD_ASSERT_EQ),",
-                "])",
+                "store.register_group(true, \"clippy::group1\", Some(\"clippy_group1\"), [",
+                "    Some(LintId::of(module_name::ABC)),",
+                "    Some(LintId::of(module_name::INTERNAL)),",
+                "    clippy_utils::nightly::is_nightly_run().then_some(LintId::of(module_name::NIGHTLY_LINT)),",
+                "    Some(LintId::of(module_name::SHOULD_ASSERT_EQ)),",
+                "].iter().copied().flatten().collect::<Vec<_>>())",
             ]
             .join("\n")
             + "\n";

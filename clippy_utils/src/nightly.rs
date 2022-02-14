@@ -26,8 +26,9 @@ pub fn eval_is_nightly_run(sess: &Session) {
 
 /// This function checks if the current run is a nightly run with Clippy's nightly lints. This is
 /// destinct from rustc's as a nightly build can disable Clippy's nightly features.
-/// 
-/// See [`Session::is_nightly_build(&self)`] if you want to check if the current build is a nightly build.
+///
+/// See [`Session::is_nightly_build(&self)`] if you want to check if the current build is a nightly
+/// build.
 #[inline]
 pub fn is_nightly_run() -> bool {
     *IS_NIGHTLY_RUN.get().unwrap_or(&false)

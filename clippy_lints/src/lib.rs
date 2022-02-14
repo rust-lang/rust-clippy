@@ -1,6 +1,7 @@
 // error-pattern:cargo-clippy
 
 #![feature(binary_heap_into_iter_sorted)]
+#![feature(bool_to_option)]
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
 #![feature(drain_filter)]
