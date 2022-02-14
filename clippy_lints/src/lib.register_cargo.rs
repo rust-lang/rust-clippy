@@ -2,10 +2,10 @@
 // Use that command to update this file and do not edit by hand.
 // Manual edits will be overwritten.
 
-store.register_group(true, "clippy::cargo", Some("clippy_cargo"), vec![
-    LintId::of(cargo::CARGO_COMMON_METADATA),
-    LintId::of(cargo::MULTIPLE_CRATE_VERSIONS),
-    LintId::of(cargo::NEGATIVE_FEATURE_NAMES),
-    LintId::of(cargo::REDUNDANT_FEATURE_NAMES),
-    LintId::of(cargo::WILDCARD_DEPENDENCIES),
-])
+store.register_group(true, "clippy::cargo", Some("clippy_cargo"), [
+    Some(LintId::of(cargo::CARGO_COMMON_METADATA)),
+    Some(LintId::of(cargo::MULTIPLE_CRATE_VERSIONS)),
+    Some(LintId::of(cargo::NEGATIVE_FEATURE_NAMES)),
+    Some(LintId::of(cargo::REDUNDANT_FEATURE_NAMES)),
+    Some(LintId::of(cargo::WILDCARD_DEPENDENCIES)),
+].iter().copied().flatten().collect::<Vec<_>>())

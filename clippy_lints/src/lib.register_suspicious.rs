@@ -2,20 +2,20 @@
 // Use that command to update this file and do not edit by hand.
 // Manual edits will be overwritten.
 
-store.register_group(true, "clippy::suspicious", Some("clippy_suspicious"), vec![
-    LintId::of(assign_ops::MISREFACTORED_ASSIGN_OP),
-    LintId::of(attrs::BLANKET_CLIPPY_RESTRICTION_LINTS),
-    LintId::of(eval_order_dependence::EVAL_ORDER_DEPENDENCE),
-    LintId::of(float_equality_without_abs::FLOAT_EQUALITY_WITHOUT_ABS),
-    LintId::of(formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING),
-    LintId::of(formatting::SUSPICIOUS_ELSE_FORMATTING),
-    LintId::of(formatting::SUSPICIOUS_UNARY_OP_FORMATTING),
-    LintId::of(loops::EMPTY_LOOP),
-    LintId::of(loops::FOR_LOOPS_OVER_FALLIBLES),
-    LintId::of(loops::MUT_RANGE_BOUND),
-    LintId::of(methods::SUSPICIOUS_MAP),
-    LintId::of(mut_key::MUTABLE_KEY_TYPE),
-    LintId::of(octal_escapes::OCTAL_ESCAPES),
-    LintId::of(suspicious_trait_impl::SUSPICIOUS_ARITHMETIC_IMPL),
-    LintId::of(suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL),
-])
+store.register_group(true, "clippy::suspicious", Some("clippy_suspicious"), [
+    Some(LintId::of(assign_ops::MISREFACTORED_ASSIGN_OP)),
+    Some(LintId::of(attrs::BLANKET_CLIPPY_RESTRICTION_LINTS)),
+    Some(LintId::of(eval_order_dependence::EVAL_ORDER_DEPENDENCE)),
+    Some(LintId::of(float_equality_without_abs::FLOAT_EQUALITY_WITHOUT_ABS)),
+    Some(LintId::of(formatting::SUSPICIOUS_ASSIGNMENT_FORMATTING)),
+    Some(LintId::of(formatting::SUSPICIOUS_ELSE_FORMATTING)),
+    Some(LintId::of(formatting::SUSPICIOUS_UNARY_OP_FORMATTING)),
+    Some(LintId::of(loops::EMPTY_LOOP)),
+    Some(LintId::of(loops::FOR_LOOPS_OVER_FALLIBLES)),
+    Some(LintId::of(loops::MUT_RANGE_BOUND)),
+    Some(LintId::of(methods::SUSPICIOUS_MAP)),
+    Some(LintId::of(mut_key::MUTABLE_KEY_TYPE)),
+    Some(LintId::of(octal_escapes::OCTAL_ESCAPES)),
+    Some(LintId::of(suspicious_trait_impl::SUSPICIOUS_ARITHMETIC_IMPL)),
+    Some(LintId::of(suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL)),
+].iter().copied().flatten().collect::<Vec<_>>())
