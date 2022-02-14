@@ -377,8 +377,8 @@
   {
     "id": "cargo_common_metadata",
     "id_span": {
-      "path": "src/cargo_common_metadata.rs",
-      "line": 46
+      "path": "src/cargo/mod.rs",
+      "line": 51
     },
     "group": "cargo",
     "level": "allow",
@@ -3917,8 +3917,8 @@
   {
     "id": "multiple_crate_versions",
     "id_span": {
-      "path": "src/multiple_crate_versions.rs",
-      "line": 37
+      "path": "src/cargo/mod.rs",
+      "line": 140
     },
     "group": "cargo",
     "level": "allow",
@@ -4397,8 +4397,8 @@
   {
     "id": "negative_feature_names",
     "id_span": {
-      "path": "src/feature_name.rs",
-      "line": 65
+      "path": "src/cargo/mod.rs",
+      "line": 113
     },
     "group": "cargo",
     "level": "allow",
@@ -5252,8 +5252,8 @@
   {
     "id": "redundant_feature_names",
     "id_span": {
-      "path": "src/feature_name.rs",
-      "line": 35
+      "path": "src/cargo/mod.rs",
+      "line": 83
     },
     "group": "cargo",
     "level": "allow",
@@ -7562,8 +7562,8 @@
   {
     "id": "wildcard_dependencies",
     "id_span": {
-      "path": "src/wildcard_dependencies.rs",
-      "line": 24
+      "path": "src/cargo/mod.rs",
+      "line": 160
     },
     "group": "cargo",
     "level": "allow",
