@@ -57,11 +57,17 @@ declare_clippy_lint! {
     correctness,
     "boolean expressions that contain terminals which can be eliminated"
 }
+declare_clippy_lint! {
+    #[clippy::version = ""]
+    pub NOT_OP_IN_INT_CMP,
+    pedantic,
+    "uses of `!` operator in integer comparision might be unexpected"
+}
 
 // For each pairs, both orders are considered.
 const METHODS_WITH_NEGATION: [(&str, &str); 2] = [("is_some", "is_none"), ("is_err", "is_ok")];
 
-declare_lint_pass!(NonminimalBool => [NONMINIMAL_BOOL, LOGIC_BUG]);
+declare_lint_pass!(NonminimalBool => [NONMINIMAL_BOOL, LOGIC_BUG, NOT_OP_IN_INT_CMP]);
 
 impl<'tcx> LateLintPass<'tcx> for NonminimalBool {
     fn check_fn(
