@@ -5,8 +5,8 @@
 clippy_utils::nightly::set_nightly_lints([
     #[cfg(feature = "internal")]
     LintId::of(utils::internal_lints::FOREVER_NIGHTLY_LINT),
-    LintId::of(transmute::TRANSMUTE_UNDEFINED_REPR),
     LintId::of(borrow_as_ptr::BORROW_AS_PTR),
-    LintId::of(manual_bits::MANUAL_BITS),
     LintId::of(default_union_representation::DEFAULT_UNION_REPRESENTATION),
+    LintId::of(manual_bits::MANUAL_BITS),
+    LintId::of(transmute::TRANSMUTE_UNDEFINED_REPR),
 ])

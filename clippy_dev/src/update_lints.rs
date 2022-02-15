@@ -329,12 +329,13 @@ fn gen_nightly_lint_list<'a>(
     internal_lints: impl Iterator<Item = &'a Lint>,
     usable_lints: impl Iterator<Item = &'a Lint>,
 ) -> String {
-    let details: Vec<_> = internal_lints
+    let mut details: Vec<_> = internal_lints
         .map(|l| (false, l))
         .chain(usable_lints.map(|l| (true, l)))
         .filter(|(_, l)| l.version.as_ref().map_or(false, |v| v == "nightly"))
         .map(|(p, l)| (p, &l.module, l.name.to_uppercase()))
         .collect();
+    details.sort_unstable();
 
     let mut output = GENERATED_FILE_COMMENT.to_string();
     output.push_str("clippy_utils::nightly::set_nightly_lints([\n");

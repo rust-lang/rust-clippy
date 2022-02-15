@@ -69,6 +69,7 @@ pub fn is_nightly_lint(lint: &'static Lint) -> bool {
 
 /// This function checks if the given lint is a nightly lint and should be suppressed in the current
 /// context.
+#[inline]
 pub fn suppress_lint<T: LintLevelProvider>(cx: &T, lint: &'static Lint) -> bool {
     if !is_nightly_run() && is_nightly_lint(lint) {
         let (_, level_src) = cx.get_lint_level(lint);
