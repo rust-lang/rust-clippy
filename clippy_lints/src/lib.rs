@@ -97,63 +97,39 @@ use rustc_session::Session;
 /// }
 /// ```
 /// [lint_naming]: https://rust-lang.github.io/rfcs/0344-conventions-galore.html#lints
-#[macro_export]
-macro_rules! declare_clippy_lint {
-    { $(#[$attr:meta])* pub $name:tt, style, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
+macro_rules! declare_clippy_lint_macro {
+    ({ $($category:tt: $level:tt,)* }, $d:tt) => {
+        macro_rules! declare_clippy_lint {
+            $(
+                ($d(#[$d meta:meta])* pub $d name:tt, $category, $d description:tt) => {
+                    declare_tool_lint! {
+                        $d(#[$d meta])*
+                        pub clippy::$d name,
+                        $level,
+                        $d description,
+                        report_in_external_macro: true
+                    }
+                };
+            )*
         }
     };
-    { $(#[$attr:meta])* pub $name:tt, correctness, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Deny, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, suspicious, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, complexity, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, perf, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, pedantic, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, restriction, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, cargo, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, nursery, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, internal, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, internal_warn, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
+}
+
+declare_clippy_lint_macro! {
+    {
+        correctness:   Deny,
+        complexity:    Warn,
+        internal_warn: Warn,
+        perf:          Warn,
+        suspicious:    Warn,
+        style:         Warn,
+        cargo:         Allow,
+        internal:      Allow,
+        nursery:       Allow,
+        pedantic:      Allow,
+        restriction:   Allow,
+    },
+    $
 }
 
 #[cfg(feature = "internal")]
