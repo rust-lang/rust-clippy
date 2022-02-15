@@ -320,6 +320,37 @@ fn gen_deprecated<'a>(lints: impl Iterator<Item = &'a Lint>) -> String {
     output
 }
 
+fn gen_nightly_lint_list<'a>(
+    internal_lints: impl Iterator<Item = &'a Lint>,
+    usable_lints: impl Iterator<Item = &'a Lint>,
+) -> String {
+    let mut details: Vec<_> = internal_lints
+        .map(|l| (false, l))
+        .chain(usable_lints.map(|l| (true, l)))
+        .filter(|(_, l)| l.version.as_ref().map_or(false, |v| v == "nightly"))
+        .map(|(p, l)| (p, &l.module, l.name.to_uppercase()))
+        .collect();
+    details.sort_unstable();
+
+    let mut output = GENERATED_FILE_COMMENT.to_string();
+    output.push_str("clippy_utils::nightly::set_nightly_lints([\n");
+    // The test lint "FOREVER_NIGHTLY_LINT" is in the `internal_warn` group which is
+    // not processed by `update_lints`. For testing purposes we still need the lint to be
+    // registered in the `nightly_lints` list. This manually adds this one lint.
+    output.push_str("    #[cfg(feature = \"internal\")]\n");
+    output.push_str("    LintId::of(utils::internal_lints::FOREVER_NIGHTLY_LINT),\n");
+
+    for (is_public, module_name, lint_name) in details {
+        if !is_public {
+            output.push_str("    #[cfg(feature = \"internal\")]\n");
+        }
+        output.push_str(&format!("    LintId::of({}::{}),\n", module_name, lint_name));
+    }
+    output.push_str("])\n");
+
+    output
+}
+
 /// Generates the code for registering lints
 #[must_use]
 fn gen_register_lint_list<'a>(
