@@ -5160,6 +5160,21 @@
     }
   },
   {
+    "id": "recursive_format_impl",
+    "id_span": {
+      "path": "src/recursive_format_impl.rs",
+      "line": 59
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": " ### What it does\nChecks for format trait implementations (e.g. `Display`) with a recursive call to itself\nwhich uses `self` as a parameter.\nThis is typically done indirectly with the `write!` macro or with `to_string()`.\n\n### Why is this bad?\nThis will lead to infinite recursion and a stack overflow.\n\n### Example\n\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.to_string())\n    }\n}\n\n```\nUse instead:\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.0)\n    }\n}\n```",
+    "version": "1.48.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "redundant_allocation",
     "id_span": {
       "path": "src/types/mod.rs",
@@ -6267,21 +6282,6 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
-  },
-  {
-    "id": "to_string_in_display",
-    "id_span": {
-      "path": "src/to_string_in_display.rs",
-      "line": 43
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": " ### What it does\nChecks for uses of `to_string()` in `Display` traits.\n\n### Why is this bad?\nUsually `to_string` is implemented indirectly\nvia `Display`. Hence using it while implementing `Display` would\nlead to infinite recursion.\n\n### Example\n\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.to_string())\n    }\n}\n\n```\nUse instead:\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.0)\n    }\n}\n```",
-    "version": "1.48.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
     }
   },
   {
