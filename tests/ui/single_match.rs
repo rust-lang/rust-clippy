@@ -304,6 +304,16 @@ fn structs() {
         S { x: _x, y: _y } => dummy(),
         S { x: _x, .. } => dummy(),
     }
+
+    // Lint, because it contains only known enums.
+    struct S1 {
+        a: Option<i32>,
+    };
+    let s = S1 { a: Some(33) };
+    match s {
+        S1 { a: Some(..) } => (),
+        S1 { a: None } => (),
+    }
 }
 
 macro_rules! single_match {

@@ -218,5 +218,14 @@ LL | |         S { .. } => {},
 LL | |     }
    | |_____^ help: try this: `if let S { x: _x, y: 42 } = s {}`
 
-error: aborting due to 23 previous errors
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+  --> $DIR/single_match.rs:313:5
+   |
+LL | /     match s {
+LL | |         S1 { a: Some(..) } => (),
+LL | |         S1 { a: None } => (),
+LL | |     }
+   | |_____^ help: try this: `if let S1 { a: Some(..) } = s { () }`
+
+error: aborting due to 24 previous errors
 

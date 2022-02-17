@@ -155,7 +155,7 @@ fn is_known_enum(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
 fn contains_only_known_enums(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
     match pat.kind {
         PatKind::Path(..) => is_known_enum(cx, cx.typeck_results().pat_ty(pat)),
-        PatKind::TupleStruct(..) => {
+        PatKind::TupleStruct(..) | PatKind::Struct(..) => {
             let ty = cx.typeck_results().pat_ty(pat);
             (contains_only_wilds(pat) || contains_single_binding(pat)) && is_known_enum(cx, ty)
         },
