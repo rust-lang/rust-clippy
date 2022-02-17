@@ -960,6 +960,21 @@
     }
   },
   {
+    "id": "deref_by_slicing",
+    "id_span": {
+      "path": "src/redundant_slicing.rs",
+      "line": 64
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for slicing expressions which are equivalent to dereferencing the\nvalue.\n\n### Why is this bad?\nSome people may prefer to dereference rather than slice.\n\n### Example\n```rust\nlet vec = vec![1, 2, 3];\nlet slice = &vec[..];\n```\nUse instead:\n```rust\nlet vec = vec![1, 2, 3];\nlet slice = &*vec;\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "derivable_impls",
     "id_span": {
       "path": "src/derivable_impls.rs",
@@ -5343,7 +5358,7 @@
     "id": "redundant_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 37
+      "line": 40
     },
     "group": "complexity",
     "level": "warn",
@@ -5351,7 +5366,7 @@
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
