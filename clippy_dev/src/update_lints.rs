@@ -320,6 +320,8 @@ fn gen_deprecated<'a>(lints: impl Iterator<Item = &'a Lint>) -> String {
     output
 }
 
+/// This will be used to create a lint that warns when a nightly lint is
+#[allow(dead_code)]
 fn gen_nightly_lint_list<'a>(
     internal_lints: impl Iterator<Item = &'a Lint>,
     usable_lints: impl Iterator<Item = &'a Lint>,

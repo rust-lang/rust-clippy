@@ -53,6 +53,27 @@ use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::LintId;
 use rustc_session::Session;
 
+#[macro_export]
+macro_rules! clippy_init_lint {
+    (
+        $(#[$meta:meta])* $NAME:ident, $Level:expr, $desc:expr,
+    ) => (
+        $(#[$meta])*
+        #[allow(dead_code)]
+        pub static $NAME: &rustc_lint::Lint = &rustc_lint::Lint {
+            name: &concat!("clippy::", stringify!($NAME)),
+            default_level: $Level,
+            desc: $desc,
+            edition_lint_opts: None,
+            report_in_external_macro: true,
+            future_incompatible: None,
+            is_plugin: true,
+            feature_gate: None,
+            crate_level_only: false,
+        };
+    );
+}
+
 /// Macro used to declare a Clippy lint.
 ///
 /// Every lint declaration consists of 4 parts:
@@ -100,13 +121,34 @@ macro_rules! declare_clippy_lint_macro {
     ({ $($category:tt: $level:tt,)* }, $d:tt) => {
         macro_rules! declare_clippy_lint {
             $(
-                ($d(#[$d meta:meta])* pub $d name:tt, $category, $d description:tt) => {
-                    rustc_session::declare_tool_lint! {
-                        $d(#[$d meta])*
-                        pub clippy::$d name,
-                        $level,
+                (
+                    $d(#[doc = $d doc:literal])*
+                    $d(#[clippy::version = "nightly"])+
+                    pub $d name:ident, $category, $d description:tt
+                ) => {
+                    crate::clippy_init_lint! {
+                        $d(#[doc = $d doc])*
+                        #[clippy::version = "nightly"]
+                        $d name,
+                        if clippy_utils::nightly::is_nightly_run() {
+                            rustc_lint::Level::$level
+                        } else {
+                            rustc_lint::Level::Allow
+                        },
                         $d description,
-                        report_in_external_macro: true
+                    }
+                };
+                (
+                    $d(#[doc = $d doc:literal])*
+                    $d(#[clippy::version = $d version:literal])?
+                    pub $d name:ident, $category, $d description:tt
+                ) => {
+                    crate::clippy_init_lint! {
+                        $d(#[doc = $d doc])*
+                        $d(#[clippy::version = $d version])?
+                        $d name,
+                        rustc_lint::Level::$level,
+                        $d description,
                     }
                 };
             )*
