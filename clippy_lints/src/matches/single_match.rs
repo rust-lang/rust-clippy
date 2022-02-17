@@ -1,14 +1,13 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{expr_block, snippet};
-use clippy_utils::ty::{implements_trait, match_type, peel_mid_ty_refs};
-use clippy_utils::{
-    is_lint_allowed, is_unit_expr, is_wild, paths, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs,
-};
+use clippy_utils::ty::{implements_trait, peel_mid_ty_refs};
+use clippy_utils::{is_lint_allowed, is_unit_expr, is_wild, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs};
 use core::cmp::max;
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, Block, Expr, ExprKind, Pat, PatField, PatKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
+use rustc_span::sym;
 
 use super::{MATCH_BOOL, SINGLE_MATCH, SINGLE_MATCH_ELSE};
 
@@ -148,8 +147,13 @@ fn check_opt_like<'a>(
 /// Resturns true if the given type is one of the standard `Enum`s we know will never get any more
 /// members.
 fn is_known_enum(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
-    const CANDIDATES: &[&[&str; 3]] = &[&paths::COW, &paths::OPTION, &paths::RESULT];
-    CANDIDATES.iter().any(|&ty_path| match_type(cx, ty, ty_path))
+    if let Some(adt) = ty.ty_adt_def() {
+        return matches!(
+            cx.tcx.get_diagnostic_name(adt.did),
+            Some(sym::Cow | sym::Option | sym::Result)
+        );
+    }
+    false
 }
 
 fn contains_only_known_enums(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
