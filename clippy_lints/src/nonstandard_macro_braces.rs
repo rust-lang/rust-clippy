@@ -10,7 +10,7 @@ use rustc_ast::ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_hir::def_id::DefId;
 use rustc_lint::{EarlyContext, EarlyLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::hygiene::{ExpnKind, MacroKind};
 use rustc_span::{Span, Symbol};
 use serde::{de, Deserialize};

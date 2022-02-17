@@ -6,7 +6,7 @@ use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::subst::Subst;
 use rustc_middle::ty::{Opaque, PredicateKind::Trait};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{sym, Span};
 use rustc_trait_selection::traits::error_reporting::suggestions::InferCtxtExt;
 use rustc_trait_selection::traits::{self, FulfillmentError, TraitEngine};

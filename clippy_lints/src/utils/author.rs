@@ -8,7 +8,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_hir as hir;
 use rustc_hir::{ArrayLen, ExprKind, FnRetTy, HirId, Lit, PatKind, QPath, StmtKind, TyKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::{Ident, Symbol};
 use std::fmt::{Display, Formatter, Write as _};
 

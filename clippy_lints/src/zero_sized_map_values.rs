@@ -5,7 +5,7 @@ use rustc_hir::{self as hir, HirId, ItemKind, Node};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_middle::ty::{Adt, Ty, TypeFoldable};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use rustc_typeck::hir_ty_to_ty;
 

@@ -6,7 +6,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::interpret::ConstValue;
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_middle::ty::{self, ConstKind};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::{BytePos, Pos, Span};
 use rustc_typeck::hir_ty_to_ty;
 

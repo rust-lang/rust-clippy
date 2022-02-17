@@ -16,7 +16,7 @@ use rustc_middle::mir::{
 };
 use rustc_middle::ty::{self, fold::TypeVisitor, Ty};
 use rustc_mir_dataflow::{Analysis, AnalysisDomain, CallReturnPlaces, GenKill, GenKillAnalysis, ResultsCursor};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::source_map::{BytePos, Span};
 use rustc_span::sym;
 use std::convert::TryFrom;

@@ -4,7 +4,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::{def::Res, def_id::DefId, Item, ItemKind, UseKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::Symbol;
 
 use crate::utils::conf::Rename;

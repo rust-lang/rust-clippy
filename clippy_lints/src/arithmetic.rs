@@ -2,7 +2,7 @@ use clippy_utils::consts::constant_simple;
 use clippy_utils::diagnostics::span_lint;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::source_map::Span;
 
 declare_clippy_lint! {

@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{self as hir, HirId, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use rustc_typeck::hir_ty_to_ty;
 

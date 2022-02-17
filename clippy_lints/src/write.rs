@@ -11,7 +11,7 @@ use rustc_errors::Applicability;
 use rustc_lexer::unescape::{self, EscapeError};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_parse::parser;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::symbol::{kw, Symbol};
 use rustc_span::{sym, BytePos, Span, DUMMY_SP};
 

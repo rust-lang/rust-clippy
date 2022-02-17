@@ -2,7 +2,7 @@ use clippy_utils::source::snippet;
 use rustc_hir::{BinOp, BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::source_map::Span;
 
 use clippy_utils::consts::{constant_simple, Constant};

@@ -8,7 +8,7 @@ use rustc_lexer::TokenKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::TyCtxt;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::{BytePos, Span};
 use std::borrow::Cow;
 

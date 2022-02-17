@@ -9,7 +9,7 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment};
 use rustc_middle::ty::Ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{sym, ExpnData, ExpnKind, Span, Symbol};
 
 declare_clippy_lint! {

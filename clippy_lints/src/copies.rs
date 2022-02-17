@@ -11,7 +11,7 @@ use rustc_hir::intravisit::{self, Visitor};
 use rustc_hir::{Block, Expr, ExprKind, HirId};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::nested_filter;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{source_map::Span, symbol::Symbol, BytePos};
 use std::borrow::Cow;
 

@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
 use rustc_ast::{ptr::P, Crate, Item, ItemKind, MacroDef, ModKind, UseTreeKind, VisibilityKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{edition::Edition, symbol::kw, Span, Symbol};
 
 declare_clippy_lint! {

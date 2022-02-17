@@ -7,7 +7,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_middle::ty::{self, TraitRef, Ty};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::source_map::Span;
 use rustc_span::symbol::kw;
 use rustc_target::spec::abi::Abi;

@@ -5,7 +5,7 @@ use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{GenericArg, Mutability, Ty, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::sym;
 
 declare_clippy_lint! {

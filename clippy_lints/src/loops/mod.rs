@@ -21,7 +21,7 @@ mod while_let_on_iterator;
 use clippy_utils::higher;
 use rustc_hir::{Expr, ExprKind, LoopSource, Pat};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::source_map::Span;
 use utils::{make_iterator_snippet, IncrementVisitor, InitializeVisitor};
 

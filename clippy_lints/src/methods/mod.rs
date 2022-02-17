@@ -80,7 +80,7 @@ use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::{self, TraitRef, Ty};
 use rustc_semver::RustcVersion;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::{sym, Span};
 use rustc_typeck::hir_ty_to_ty;
 

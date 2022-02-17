@@ -11,7 +11,7 @@ use rustc_hir::intravisit::Visitor as HirVisitor;
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does

@@ -5,7 +5,7 @@ use rustc_ast::ast;
 use rustc_ast::visit::FnKind;
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::source_map::Span;
 use rustc_span::BytePos;
 

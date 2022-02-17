@@ -5,7 +5,7 @@ use clippy_utils::source::is_present_in_source;
 use clippy_utils::str_utils::{camel_case_split, count_match_end, count_match_start};
 use rustc_hir::{EnumDef, Item, ItemKind, Variant};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::source_map::Span;
 use rustc_span::symbol::Symbol;
 

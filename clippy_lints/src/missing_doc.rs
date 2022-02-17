@@ -12,7 +12,7 @@ use rustc_ast::ast::{self, MetaItem, MetaItemKind};
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::def_id::CRATE_DEF_ID;
 use rustc_span::source_map::Span;
 use rustc_span::sym;

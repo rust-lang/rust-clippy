@@ -2,7 +2,7 @@ use clippy_utils::{diagnostics::span_lint, is_test_module_or_function};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{Item, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does

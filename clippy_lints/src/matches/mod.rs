@@ -2,7 +2,7 @@ use clippy_utils::{meets_msrv, msrvs};
 use rustc_hir::{Expr, ExprKind, Local, MatchSource, Pat};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_semver::RustcVersion;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 
 mod infalliable_detructuring_match;
 mod match_as_ref;

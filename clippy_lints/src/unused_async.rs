@@ -3,7 +3,7 @@ use rustc_hir::intravisit::{walk_expr, walk_fn, FnKind, Visitor};
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnHeader, HirId, IsAsync, YieldSource};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
 declare_clippy_lint! {

@@ -20,7 +20,7 @@ use rustc_hir::{
 };
 use rustc_lint::{CheckLintNameResult, LateContext, LateLintPass, LintContext, LintId};
 use rustc_middle::hir::nested_filter;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::symbol::Ident;
 use rustc_span::{sym, Loc, Span, Symbol};
 use serde::{ser::SerializeStruct, Serialize, Serializer};

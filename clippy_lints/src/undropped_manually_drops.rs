@@ -3,7 +3,7 @@ use clippy_utils::ty::is_type_lang_item;
 use clippy_utils::{match_function_call, paths};
 use rustc_hir::{lang_items, Expr};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does

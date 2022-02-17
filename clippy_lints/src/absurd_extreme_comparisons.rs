@@ -1,7 +1,7 @@
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 use clippy_utils::comparisons::{normalize_comparison, Rel};
 use clippy_utils::consts::{constant, Constant};

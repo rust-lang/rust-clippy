@@ -6,7 +6,7 @@ use if_chain::if_chain;
 use rustc_hir::LangItem::OptionNone;
 use rustc_hir::{Arm, Expr, Guard, HirId, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{MultiSpan, Span};
 
 declare_clippy_lint! {

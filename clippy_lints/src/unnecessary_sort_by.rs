@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Mutability, Param, Pat, PatKind, Path, PathSegment, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, subst::GenericArgKind};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use rustc_span::symbol::Ident;
 use std::iter;

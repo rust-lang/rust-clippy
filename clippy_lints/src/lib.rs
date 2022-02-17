@@ -73,7 +73,6 @@ use rustc_session::Session;
 /// ```
 /// #![feature(rustc_private)]
 /// extern crate rustc_session;
-/// use rustc_session::declare_tool_lint;
 /// use clippy_lints::declare_clippy_lint;
 ///
 /// declare_clippy_lint! {
@@ -102,7 +101,7 @@ macro_rules! declare_clippy_lint_macro {
         macro_rules! declare_clippy_lint {
             $(
                 ($d(#[$d meta:meta])* pub $d name:tt, $category, $d description:tt) => {
-                    declare_tool_lint! {
+                    rustc_session::declare_tool_lint! {
                         $d(#[$d meta])*
                         pub clippy::$d name,
                         $level,

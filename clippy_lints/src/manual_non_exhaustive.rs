@@ -7,7 +7,7 @@ use rustc_ast::ast::{FieldDef, Item, ItemKind, Variant, VariantData, VisibilityK
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_semver::RustcVersion;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::{sym, Span};
 
 declare_clippy_lint! {
