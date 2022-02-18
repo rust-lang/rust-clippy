@@ -17,7 +17,7 @@ pub(super) fn check(
     init: &hir::Expr<'_>,
     acc: &hir::Expr<'_>,
     fold_span: Span,
-) {
+) -> bool {
     fn check_fold_with_op(
         cx: &LateContext<'_>,
         expr: &hir::Expr<'_>,
@@ -26,7 +26,7 @@ pub(super) fn check(
         op: hir::BinOpKind,
         replacement_method_name: &str,
         replacement_has_args: bool,
-    ) {
+    ) -> bool {
         if_chain! {
             // Extract the body of the closure passed to fold
             if let hir::ExprKind::Closure(_, _, body_id, _, _) = acc.kind;
@@ -71,13 +71,17 @@ pub(super) fn check(
                     sugg,
                     applicability,
                 );
+                // Returns a boolean indicating whether this lint has been triggered or not
+                true
+            } else {
+                false
             }
         }
     }
 
     // Check that this is a call to Iterator::fold rather than just some function called fold
     if !is_trait_method(cx, expr, sym::Iterator) {
-        return;
+        return false;
     }
 
     // Check if the first argument to .fold is a suitable literal
@@ -87,9 +91,11 @@ pub(super) fn check(
             ast::LitKind::Bool(true) => check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::And, "all", true),
             ast::LitKind::Int(0, _) => check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::Add, "sum", false),
             ast::LitKind::Int(1, _) => {
-                check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::Mul, "product", false);
+                check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::Mul, "product", false)
             },
-            _ => (),
+            _ => false,
         }
+    } else {
+        false
     }
 }

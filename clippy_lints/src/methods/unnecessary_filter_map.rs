@@ -13,9 +13,9 @@ use rustc_span::sym;
 use super::UNNECESSARY_FILTER_MAP;
 use super::UNNECESSARY_FIND_MAP;
 
-pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, arg: &hir::Expr<'_>, name: &str) {
+pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, arg: &hir::Expr<'_>, name: &str) -> bool {
     if !is_trait_method(cx, expr, sym::Iterator) {
-        return;
+        return false;
     }
 
     if let hir::ExprKind::Closure(_, _, body_id, ..) = arg.kind {
@@ -43,10 +43,12 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, arg: &hir::Expr<
                     {
                         if name == "filter_map" { "filter" } else { "find" }
                     },
-                    _ => return,
+                    _ => {
+                        return false
+                    },
                 }
             } else {
-                return;
+                return false;
             };
         span_lint(
             cx,
@@ -58,6 +60,10 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, arg: &hir::Expr<
             expr.span,
             &format!("this `.{}` can be written more simply using `.{}`", name, sugg),
         );
+        // Returns a boolean indicating whether this lint has been triggered or not
+        true
+    } else {
+        false
     }
 }
 

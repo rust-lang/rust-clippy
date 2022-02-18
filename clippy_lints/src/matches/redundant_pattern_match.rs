@@ -39,7 +39,6 @@ fn type_needs_ordered_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     type_needs_ordered_drop_inner(cx, ty, &mut FxHashSet::default())
 }
 
-#[allow(clippy::map_then_identity_transformer)]
 fn type_needs_ordered_drop_inner<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, seen: &mut FxHashSet<Ty<'tcx>>) -> bool {
     if !seen.insert(ty) {
         return false;
@@ -59,8 +58,7 @@ fn type_needs_ordered_drop_inner<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, see
             ty::Array(ty, _) => type_needs_ordered_drop_inner(cx, *ty, seen),
             ty::Adt(adt, subs) => adt
                 .all_fields()
-                .map(|f| f.ty(cx.tcx, subs))
-                .any(|ty| type_needs_ordered_drop_inner(cx, ty, seen)),
+                .any(|f| type_needs_ordered_drop_inner(cx, f.ty(cx.tcx, subs), seen)),
             _ => true,
         }
     }

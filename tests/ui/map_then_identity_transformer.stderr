@@ -1,123 +1,125 @@
 error: this `map` can be collapsed into the `all`
-  --> $DIR/map_then_identity_transformer.rs:9:27
+  --> $DIR/map_then_identity_transformer.rs:8:27
    |
-LL |     let _ = a.into_iter().map(|x| bar(foo(x))).all(|y| !y);
+LL |     let _ = a.into_iter().map(|x| func1(x)).all(|y| y > 0);
    |                           ^^^
    |
    = note: `-D clippy::map-then-identity-transformer` implied by `-D warnings`
 help: these `map` and `all` can be merged into a single `all`
-  --> $DIR/map_then_identity_transformer.rs:9:35
+  --> $DIR/map_then_identity_transformer.rs:8:35
    |
-LL |     let _ = a.into_iter().map(|x| bar(foo(x))).all(|y| !y);
-   |                                   ^^^^^^^^^^^           ^ replace this variable
-   |                                   |
-   |                                   with this expression
-
-error: this `map` can be collapsed into the `all`
-  --> $DIR/map_then_identity_transformer.rs:10:27
-   |
-LL |     let _ = a.into_iter().map(|x| x > 1).all(|y| y);
-   |                           ^^^
-   |
-help: these `map` and `all` can be merged into a single `all`
-  --> $DIR/map_then_identity_transformer.rs:10:35
-   |
-LL |     let _ = a.into_iter().map(|x| x > 1).all(|y| y);
-   |                                   ^^^^^          ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).all(|y| y > 0);
+   |                                   ^^^^^^^^          ^ replace this variable
    |                                   |
    |                                   with this expression
 
 error: this `map` can be collapsed into the `any`
-  --> $DIR/map_then_identity_transformer.rs:11:27
+  --> $DIR/map_then_identity_transformer.rs:9:27
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).any(|y| y);
+LL |     let _ = a.into_iter().map(|x| func1(x)).any(|y| y > 0);
    |                           ^^^
    |
 help: these `map` and `any` can be merged into a single `any`
-  --> $DIR/map_then_identity_transformer.rs:11:35
+  --> $DIR/map_then_identity_transformer.rs:9:35
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).any(|y| y);
-   |                                   ^^^^^^          ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).any(|y| y > 0);
+   |                                   ^^^^^^^^          ^ replace this variable
    |                                   |
    |                                   with this expression
 
 error: this `map` can be collapsed into the `find_map`
-  --> $DIR/map_then_identity_transformer.rs:13:27
+  --> $DIR/map_then_identity_transformer.rs:11:27
    |
-LL |     let _ = a.into_iter().map(|x| x + 10).find_map(|y| Some(y));
+LL |     let _ = a.into_iter().map(|x| func1(x)).find_map(|y| y.checked_add(1));
    |                           ^^^
    |
 help: these `map` and `find_map` can be merged into a single `find_map`
-  --> $DIR/map_then_identity_transformer.rs:13:35
+  --> $DIR/map_then_identity_transformer.rs:11:35
    |
-LL |     let _ = a.into_iter().map(|x| x + 10).find_map(|y| Some(y));
-   |                                   ^^^^^^                    ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).find_map(|y| y.checked_add(1));
+   |                                   ^^^^^^^^               ^ replace this variable
    |                                   |
    |                                   with this expression
 
 error: this `map` can be collapsed into the `flat_map`
-  --> $DIR/map_then_identity_transformer.rs:14:27
+  --> $DIR/map_then_identity_transformer.rs:12:27
    |
-LL |     let _ = b.into_iter().map(|x| x).flat_map(|y| y.chars());
+LL |     let _ = a.into_iter().map(|x| func1(x)).flat_map(|y| func2(y));
    |                           ^^^
    |
 help: these `map` and `flat_map` can be merged into a single `flat_map`
-  --> $DIR/map_then_identity_transformer.rs:14:35
+  --> $DIR/map_then_identity_transformer.rs:12:35
    |
-LL |     let _ = b.into_iter().map(|x| x).flat_map(|y| y.chars());
-   |                                   ^               ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).flat_map(|y| func2(y));
+   |                                   ^^^^^^^^                     ^ replace this variable
    |                                   |
    |                                   with this expression
 
 error: this `map` can be collapsed into the `filter_map`
-  --> $DIR/map_then_identity_transformer.rs:15:27
+  --> $DIR/map_then_identity_transformer.rs:13:27
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).filter_map(|y| Some(!y));
+LL |     let _ = a.into_iter().map(|x| func1(x)).filter_map(|y| y.checked_add(1));
    |                           ^^^
    |
 help: these `map` and `filter_map` can be merged into a single `filter_map`
-  --> $DIR/map_then_identity_transformer.rs:15:35
+  --> $DIR/map_then_identity_transformer.rs:13:35
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).filter_map(|y| Some(!y));
-   |                                   ^^^^^^ with this expression  ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).filter_map(|y| y.checked_add(1));
+   |                                   ^^^^^^^^                 ^ replace this variable
+   |                                   |
+   |                                   with this expression
 
 error: this `map` can be collapsed into the `fold`
-  --> $DIR/map_then_identity_transformer.rs:16:27
+  --> $DIR/map_then_identity_transformer.rs:14:27
    |
-LL |     let _ = a.into_iter().map(|x| 30).fold(1, |pd, x| pd * x + 1);
+LL |     let _ = a.into_iter().map(|x| func1(x)).fold(1, |pd, x| pd * x + 1);
    |                           ^^^
    |
 help: these `map` and `fold` can be merged into a single `fold`
-  --> $DIR/map_then_identity_transformer.rs:16:35
+  --> $DIR/map_then_identity_transformer.rs:14:35
    |
-LL |     let _ = a.into_iter().map(|x| 30).fold(1, |pd, x| pd * x + 1);
-   |                                   ^^ with this expression  ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).fold(1, |pd, x| pd * x + 1);
+   |                                   ^^^^^^^^ with this expression  ^ replace this variable
 
 error: this `map` can be collapsed into the `map`
-  --> $DIR/map_then_identity_transformer.rs:17:27
+  --> $DIR/map_then_identity_transformer.rs:15:27
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).map(|y| bar(y));
+LL |     let _ = a.into_iter().map(|x| func1(x)).map(|y| func1(y));
    |                           ^^^
    |
 help: these `map` and `map` can be merged into a single `map`
-  --> $DIR/map_then_identity_transformer.rs:17:35
+  --> $DIR/map_then_identity_transformer.rs:15:35
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).map(|y| bar(y));
-   |                                   ^^^^^^              ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).map(|y| func1(y));
+   |                                   ^^^^^^^^                ^ replace this variable
    |                                   |
    |                                   with this expression
 
 error: this `map` can be collapsed into the `position`
-  --> $DIR/map_then_identity_transformer.rs:18:27
+  --> $DIR/map_then_identity_transformer.rs:16:27
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).position(|y| bar(y));
+LL |     let _ = a.into_iter().map(|x| func1(x)).position(|y| y > 0);
    |                           ^^^
    |
 help: these `map` and `position` can be merged into a single `position`
-  --> $DIR/map_then_identity_transformer.rs:18:35
+  --> $DIR/map_then_identity_transformer.rs:16:35
    |
-LL |     let _ = a.into_iter().map(|x| foo(x)).position(|y| bar(y));
-   |                                   ^^^^^^                   ^ replace this variable
+LL |     let _ = a.into_iter().map(|x| func1(x)).position(|y| y > 0);
+   |                                   ^^^^^^^^               ^ replace this variable
+   |                                   |
+   |                                   with this expression
+
+error: this `map` can be collapsed into the `all`
+  --> $DIR/map_then_identity_transformer.rs:19:27
+   |
+LL |     let _ = a.into_iter().map(|x| func1(x) * func1(x)).all(|y| y > 0);
+   |                           ^^^
+   |
+help: these `map` and `all` can be merged into a single `all`
+  --> $DIR/map_then_identity_transformer.rs:19:35
+   |
+LL |     let _ = a.into_iter().map(|x| func1(x) * func1(x)).all(|y| y > 0);
+   |                                   ^^^^^^^^^^^^^^^^^^^          ^ replace this variable
    |                                   |
    |                                   with this expression
 

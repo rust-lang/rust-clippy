@@ -9,18 +9,23 @@ use rustc_span::{source_map::Span, sym};
 use super::FLAT_MAP_OPTION;
 use clippy_utils::ty::is_type_diagnostic_item;
 
-pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, arg: &'tcx hir::Expr<'_>, span: Span) {
+pub(super) fn check<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx hir::Expr<'_>,
+    arg: &'tcx hir::Expr<'_>,
+    span: Span,
+) -> bool {
     if !is_trait_method(cx, expr, sym::Iterator) {
-        return;
+        return false;
     }
     let arg_ty = cx.typeck_results().expr_ty_adjusted(arg);
     let sig = match arg_ty.kind() {
         ty::Closure(_, substs) => substs.as_closure().sig(),
         _ if arg_ty.is_fn() => arg_ty.fn_sig(cx.tcx),
-        _ => return,
+        _ => return false,
     };
     if !is_type_diagnostic_item(cx, sig.output().skip_binder(), sym::Option) {
-        return;
+        return false;
     }
     span_lint_and_sugg(
         cx,
@@ -31,4 +36,6 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>, arg
         "filter_map".into(),
         Applicability::MachineApplicable,
     );
+    // Returns a boolean indicating whether this lint has been triggered or not
+    true
 }

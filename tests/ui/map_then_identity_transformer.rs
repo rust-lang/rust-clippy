@@ -1,48 +1,42 @@
 #![warn(clippy::map_then_identity_transformer)]
-#![allow(clippy::map_identity, clippy::redundant_closure, clippy::unnecessary_filter_map)]
+#![allow(clippy::redundant_closure)]
 
 fn main() {
     let a = [1, 2, 3];
-    let b = ["ABC", "DEF", "GHI"];
 
     // should lint
-    let _ = a.into_iter().map(|x| bar(foo(x))).all(|y| !y);
-    let _ = a.into_iter().map(|x| x > 1).all(|y| y);
-    let _ = a.into_iter().map(|x| foo(x)).any(|y| y);
-    let _ = a.into_iter().map(|x| x + 10).find(|&y| y == 10);
-    let _ = a.into_iter().map(|x| x + 10).find_map(|y| Some(y));
-    let _ = b.into_iter().map(|x| x).flat_map(|y| y.chars());
-    let _ = a.into_iter().map(|x| foo(x)).filter_map(|y| Some(!y));
-    let _ = a.into_iter().map(|x| 30).fold(1, |pd, x| pd * x + 1);
-    let _ = a.into_iter().map(|x| foo(x)).map(|y| bar(y));
-    let _ = a.into_iter().map(|x| foo(x)).position(|y| bar(y));
+    let _ = a.into_iter().map(|x| func1(x)).all(|y| y > 0);
+    let _ = a.into_iter().map(|x| func1(x)).any(|y| y > 0);
+    let _ = a.into_iter().map(|x| func1(x)).find(|&y| y > 0);
+    let _ = a.into_iter().map(|x| func1(x)).find_map(|y| y.checked_add(1));
+    let _ = a.into_iter().map(|x| func1(x)).flat_map(|y| func2(y));
+    let _ = a.into_iter().map(|x| func1(x)).filter_map(|y| y.checked_add(1));
+    let _ = a.into_iter().map(|x| func1(x)).fold(1, |pd, x| pd * x + 1);
+    let _ = a.into_iter().map(|x| func1(x)).map(|y| func1(y));
+    let _ = a.into_iter().map(|x| func1(x)).position(|y| y > 0);
+
+    // should lint
+    let _ = a.into_iter().map(|x| func1(x) * func1(x)).all(|y| y > 0);
 
     // should not lint
-    let _ = a.into_iter().map(|x| x > 1).all(|y| foo(0));
-    let _ = a.into_iter().map(|x| foo(x)).any(|y| true);
-    let _ = a.into_iter().find(|&y| y == 10);
-    let _ = a.into_iter().map(|x| x).find_map(|y| Some(y + y));
-    let _ = b.into_iter().flat_map(|y| y.chars());
-    let _ = a.into_iter().map(|x| foo(x)).filter_map(|y| Some(true));
-    let _ = a.into_iter().map(|x| x + 30).fold(1, |pd, x| pd * x * x);
-    let _ = a.into_iter().map(|x| foo(x)).map(|y| bar(y) && y);
-    let _ = a.into_iter().map(|x| foo(x)).map(|y| true);
+    let _ = a.into_iter().map(|x| func1(x)).all(|y| func1(y) * func1(y) > 0);
+    let _ = a.into_iter().map(|x| func1(x)).any(|y| func1(y) * func1(y) > 0);
+    let _ = a.into_iter().map(|x| func1(x)).fold(1, |pd, x| pd * x * x);
 
     // should not lint
-    let _ = b.into_iter().all(|y| y.len() > 3);
     let _ = a
         .into_iter()
         .map(|x| {
-            // multi-line expression
-            x
+            // This comment has no special meaning:)
+            x * x
         })
-        .any(|y| foo(y));
+        .any(|y| y > 10);
 }
 
-fn foo(a: i32) -> bool {
+fn func1(a: i32) -> i32 {
     unimplemented!();
 }
 
-fn bar(a: bool) -> bool {
+fn func2(a: i32) -> Vec<i32> {
     unimplemented!();
 }

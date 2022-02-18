@@ -2396,21 +2396,25 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
                 extend_with_drain::check(cx, expr, recv, arg);
             },
             (name @ "filter_map", [arg]) => {
-                if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
-                    map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                let triggered = unnecessary_filter_map::check(cx, expr, arg, name);
+                let triggered2 = filter_map_identity::check(cx, expr, arg, span);
+                if !triggered && !triggered2 {
+                    if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
+                        map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                    }
                 }
-                unnecessary_filter_map::check(cx, expr, arg, name);
-                filter_map_identity::check(cx, expr, arg, span);
             },
             ("find_map", [arg]) => {
                 unnecessary_filter_map::check(cx, expr, arg, name);
             },
             (name @ "flat_map", [arg]) => {
-                if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
-                    map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                let triggered = flat_map_identity::check(cx, expr, arg, span);
+                let triggered2 = flat_map_option::check(cx, expr, arg, span);
+                if !triggered && !triggered2 {
+                    if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
+                        map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                    }
                 }
-                flat_map_identity::check(cx, expr, arg, span);
-                flat_map_option::check(cx, expr, arg, span);
             },
             (name @ "flatten", args @ []) => match method_call(recv) {
                 Some(("map", [recv, map_arg], _)) => map_flatten::check(cx, expr, recv, map_arg),
@@ -2418,10 +2422,12 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
                 _ => {},
             },
             (name @ "fold", [init, acc]) => {
-                if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
-                    map_then_identity_transformer::check(cx, span2, name2, arg2, name, acc);
+                let triggered = unnecessary_fold::check(cx, expr, init, acc, span);
+                if !triggered {
+                    if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
+                        map_then_identity_transformer::check(cx, span2, name2, arg2, name, acc);
+                    }
                 }
-                unnecessary_fold::check(cx, expr, init, acc, span);
             },
             ("for_each", [_]) => {
                 if let Some(("inspect", [_, _], span2)) = method_call(recv) {

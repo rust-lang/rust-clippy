@@ -362,8 +362,10 @@ fn check_unsafe_derive_deserialize<'tcx>(
         if !is_lint_allowed(cx, UNSAFE_DERIVE_DESERIALIZE, adt_hir_id);
         if cx.tcx.inherent_impls(def.did)
             .iter()
-            .map(|imp_did| cx.tcx.hir().expect_item(imp_did.expect_local()))
-            .any(|imp| has_unsafe(cx, imp));
+            .any(|imp_did| {
+                let imp = cx.tcx.hir().expect_item(imp_did.expect_local());
+                has_unsafe(cx, imp)
+            });
         then {
             span_lint_and_help(
                 cx,

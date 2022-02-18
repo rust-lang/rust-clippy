@@ -10,40 +10,41 @@ use super::MAP_THEN_IDENTITY_TRANSFORMER;
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'_>,
-    meth1_span: Span,
-    meth1_name: &str,
-    meth1_clos: &'tcx Expr<'_>,
-    meth2_name: &str,
-    meth2_clos: &'tcx Expr<'_>,
+    map_span: Span,
+    map_name: &str,
+    map_clos: &'tcx Expr<'_>,
+    transformer_name: &str,
+    transformer_clos: &'tcx Expr<'_>,
 ) {
     if_chain!(
-        // takes a closure of the map
-        if let ExprKind::Closure(_, _, meth1_clos_body_id, _, _) = &meth1_clos.kind;
+        // takes a closure of the `map`
+        if let ExprKind::Closure(_, _, map_clos_body_id, _, _) = &map_clos.kind;
+        // checks if the body of the closure of the `map` is an one-line expression
+        let map_clos_val = &cx.tcx.hir().body(*map_clos_body_id).value;
+        if is_one_line(cx, map_clos_val.span);
+
         // takes a closure of the transformer
-        if let ExprKind::Closure(_, _, meth2_clos_body_id, _, _) = &meth2_clos.kind;
-        // checks if the closure of the map is an one-line expression
-        let meth1_clos_val = &cx.tcx.hir().body(*meth1_clos_body_id).value;
-        if one_line(cx, meth1_clos_val.span);
+        if let ExprKind::Closure(_, _, transformer_clos_body_id, _, _) = &transformer_clos.kind;
         // checks if the parameter of the closure of the transformer appears once in its body
-        if let Some(refd_param_span) = refd_param_span(cx, *meth2_clos_body_id);
+        if let Some(refd_param_span) = refd_param_span(cx, *transformer_clos_body_id);
         then {
             span_lint_and_then(
                 cx,
                 MAP_THEN_IDENTITY_TRANSFORMER,
-                MultiSpan::from_span(meth1_span),
-                &format!("this `{meth1_name}` can be collapsed into the `{meth2_name}`"),
+                MultiSpan::from_span(map_span),
+                &format!("this `{map_name}` can be collapsed into the `{transformer_name}`"),
                 |diag| {
-                    let mut help_span = MultiSpan::from_spans(vec![meth1_clos_val.span, refd_param_span]);
+                    let mut help_span = MultiSpan::from_spans(vec![map_clos_val.span, refd_param_span]);
                     help_span.push_span_label(refd_param_span, "replace this variable".into());
-                    help_span.push_span_label(meth1_clos_val.span, "with this expression".into());
-                    diag.span_help(help_span, &format!("these `{meth1_name}` and `{meth2_name}` can be merged into a single `{meth2_name}`"));
+                    help_span.push_span_label(map_clos_val.span, "with this expression".into());
+                    diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
                 },
             );
         }
     );
 }
 
-// On a given closure `|.., x| y`, checks if `x` is referenced just exactly once in `y` and returns
+// Given a closure `|.., x| y`, checks if `x` is referenced just exactly once in `y` and returns
 // the span of `x` in `y`
 fn refd_param_span(cx: &LateContext<'_>, clos_body_id: BodyId) -> Option<Span> {
     let clos_body = cx.tcx.hir().body(clos_body_id);
@@ -74,7 +75,7 @@ fn refd_param_span(cx: &LateContext<'_>, clos_body_id: BodyId) -> Option<Span> {
     }
 }
 
-fn one_line(cx: &LateContext<'_>, span: Span) -> bool {
+fn is_one_line(cx: &LateContext<'_>, span: Span) -> bool {
     let src = cx.sess().source_map();
     if let Ok(lo) = src.lookup_line(span.lo()) {
         if let Ok(hi) = src.lookup_line(span.hi()) {

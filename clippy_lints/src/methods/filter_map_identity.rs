@@ -7,7 +7,12 @@ use rustc_span::{source_map::Span, sym};
 
 use super::FILTER_MAP_IDENTITY;
 
-pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, filter_map_arg: &hir::Expr<'_>, filter_map_span: Span) {
+pub(super) fn check(
+    cx: &LateContext<'_>,
+    expr: &hir::Expr<'_>,
+    filter_map_arg: &hir::Expr<'_>,
+    filter_map_span: Span,
+) -> bool {
     if is_trait_method(cx, expr, sym::Iterator) && is_expr_identity_function(cx, filter_map_arg) {
         span_lint_and_sugg(
             cx,
@@ -18,5 +23,9 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, filter_map_arg: 
             "flatten()".to_string(),
             Applicability::MachineApplicable,
         );
+        // Returns a boolean indicating whether this lint has been triggered or not
+        true
+    } else {
+        false
     }
 }
