@@ -123,11 +123,11 @@
     "id": "await_holding_lock",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 51
+      "line": 67
     },
-    "group": "pedantic",
-    "level": "allow",
-    "docs": " ### What it does\nChecks for calls to await while holding a\nnon-async-aware MutexGuard.\n\n### Why is this bad?\nThe Mutex types found in std::sync and parking_lot\nare not designed to operate in an async context across await points.\n\nThere are two potential solutions. One is to use an async-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.\n\n### Known problems\nWill report false positive for explicitly dropped guards ([#6446](https://github.com/rust-lang/rust-clippy/issues/6446)).\n\n### Example\n```rust\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  let guard = x.lock().unwrap();\n  *guard += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust\nuse std::sync::Mutex;\n\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  bar.await;\n}\n```",
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for calls to await while holding a non-async-aware MutexGuard.\n\n### Why is this bad?\nThe Mutex types found in std::sync and parking_lot\nare not designed to operate in an async context across await points.\n\nThere are two potential solutions. One is to use an async-aware Mutex\ntype. Many asynchronous foundation crates provide such a Mutex type. The\nother solution is to ensure the mutex is unlocked before calling await,\neither by introducing a scope or an explicit call to Drop::drop.\n\n### Known problems\nWill report false positive for explicitly dropped guards\n([#6446](https://github.com/rust-lang/rust-clippy/issues/6446)). A workaround for this is\nto wrap the `.lock()` call in a block instead of explicitly dropping the guard.\n\n### Example\n```rust\nasync fn foo(x: &Mutex<u32>) {\n  let mut guard = x.lock().unwrap();\n  *guard += 1;\n  baz().await;\n}\n\nasync fn bar(x: &Mutex<u32>) {\n  let mut guard = x.lock().unwrap();\n  *guard += 1;\n  drop(guard); // explicit drop\n  baz().await;\n}\n```\n\nUse instead:\n```rust\nasync fn foo(x: &Mutex<u32>) {\n  {\n    let mut guard = x.lock().unwrap();\n    *guard += 1;\n  }\n  baz().await;\n}\n\nasync fn bar(x: &Mutex<u32>) {\n  {\n    let mut guard = x.lock().unwrap();\n    *guard += 1;\n  } // guard dropped here at end of scope\n  baz().await;\n}\n```",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -138,11 +138,11 @@
     "id": "await_holding_refcell_ref",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 93
+      "line": 125
     },
-    "group": "pedantic",
-    "level": "allow",
-    "docs": " ### What it does\nChecks for calls to await while holding a\n`RefCell` `Ref` or `RefMut`.\n\n### Why is this bad?\n`RefCell` refs only check for exclusive mutable access\nat runtime. Holding onto a `RefCell` ref across an `await` suspension point\nrisks panics from a mutable ref shared while other refs are outstanding.\n\n### Known problems\nWill report false positive for explicitly dropped refs ([#6353](https://github.com/rust-lang/rust-clippy/issues/6353)).\n\n### Example\n```rust\nuse std::cell::RefCell;\n\nasync fn foo(x: &RefCell<u32>) {\n  let mut y = x.borrow_mut();\n  *y += 1;\n  bar.await;\n}\n```\n\nUse instead:\n```rust\nuse std::cell::RefCell;\n\nasync fn foo(x: &RefCell<u32>) {\n  {\n     let mut y = x.borrow_mut();\n     *y += 1;\n  }\n  bar.await;\n}\n```",
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for calls to await while holding a `RefCell` `Ref` or `RefMut`.\n\n### Why is this bad?\n`RefCell` refs only check for exclusive mutable access\nat runtime. Holding onto a `RefCell` ref across an `await` suspension point\nrisks panics from a mutable ref shared while other refs are outstanding.\n\n### Known problems\nWill report false positive for explicitly dropped refs\n([#6353](https://github.com/rust-lang/rust-clippy/issues/6353)). A workaround for this is\nto wrap the `.borrow[_mut]()` call in a block instead of explicitly dropping the ref.\n\n### Example\n```rust\nasync fn foo(x: &RefCell<u32>) {\n  let mut y = x.borrow_mut();\n  *y += 1;\n  baz().await;\n}\n\nasync fn bar(x: &RefCell<u32>) {\n  let mut y = x.borrow_mut();\n  *y += 1;\n  drop(y); // explicit drop\n  baz().await;\n}\n```\n\nUse instead:\n```rust\nasync fn foo(x: &RefCell<u32>) {\n  {\n     let mut y = x.borrow_mut();\n     *y += 1;\n  }\n  baz().await;\n}\n\nasync fn bar(x: &RefCell<u32>) {\n  {\n    let mut y = x.borrow_mut();\n    *y += 1;\n  } // y dropped here at end of scope\n  baz().await;\n}\n```",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
