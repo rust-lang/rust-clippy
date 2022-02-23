@@ -86,6 +86,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::collection_is_never_read::COLLECTION_IS_NEVER_READ_INFO,
     crate::comparison_chain::COMPARISON_CHAIN_INFO,
     crate::copy_iterator::COPY_ITERATOR_INFO,
+    crate::could_be_unsized::COULD_BE_UNSIZED_INFO,
     crate::crate_in_macro_def::CRATE_IN_MACRO_DEF_INFO,
     crate::create_dir::CREATE_DIR_INFO,
     crate::dbg_macro::DBG_MACRO_INFO,
