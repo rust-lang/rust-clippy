@@ -3078,7 +3078,7 @@
     "id": "manual_bits",
     "id_span": {
       "path": "src/manual_bits.rs",
-      "line": 29
+      "line": 30
     },
     "group": "style",
     "level": "warn",
@@ -5928,7 +5928,7 @@
     "id": "size_of_in_element_count",
     "id_span": {
       "path": "src/size_of_in_element_count.rs",
-      "line": 33
+      "line": 34
     },
     "group": "correctness",
     "level": "deny",
@@ -6678,7 +6678,7 @@
     "id": "undropped_manually_drops",
     "id_span": {
       "path": "src/undropped_manually_drops.rs",
-      "line": 32
+      "line": 33
     },
     "group": "correctness",
     "level": "deny",
