@@ -322,6 +322,7 @@ Otherwise, have a great day =^.^=
                         <div class="panel-title-name">
                             <span>{{lint.id}}</span>
                             <a href="#{{lint.id}}" class="anchor label label-default" ng-click="open[lint.id] = true; $event.stopPropagation()">&para;</a>
+                            <a href="" class="anchor label label-default" title="Copy to clipboard" ng-click="copyToClipboard(lint); $event.stopPropagation()">&#128203;</a>
                         </div>
 
                         <div class="panel-title-addons">
@@ -497,6 +498,11 @@ Otherwise, have a great day =^.^=
                 }
 
                 return true;
+            }
+
+            $scope.copyToClipboard = function (lint) {
+                navigator.clipboard.writeText(lint.id);
+                alert('Copied `' + lint.id + '` to clipboard!');
             }
 
             // Get data
