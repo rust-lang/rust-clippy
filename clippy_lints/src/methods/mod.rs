@@ -78,7 +78,7 @@ use rustc_hir::def::Res;
 use rustc_hir::{Expr, ExprKind, PrimTy, QPath, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_middle::ty::{self, TraitRef, Ty, TyS};
+use rustc_middle::ty::{self, TraitRef, Ty};
 use rustc_semver::RustcVersion;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::{sym, Span};
@@ -2106,7 +2106,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             let method_sig = cx.tcx.fn_sig(impl_item.def_id);
             let method_sig = cx.tcx.erase_late_bound_regions(method_sig);
 
-            let first_arg_ty = &method_sig.inputs().iter().next();
+            let first_arg_ty = method_sig.inputs().iter().next();
 
             // check conventions w.r.t. conversion method names and predicates
             if let Some(first_arg_ty) = first_arg_ty;
@@ -2119,7 +2119,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                         if name == method_config.method_name &&
                             sig.decl.inputs.len() == method_config.param_count &&
                             method_config.output_type.matches(&sig.decl.output) &&
-                            method_config.self_kind.matches(cx, self_ty, first_arg_ty) &&
+                            method_config.self_kind.matches(cx, self_ty, *first_arg_ty) &&
                             fn_header_equals(method_config.fn_header, sig.header) &&
                             method_config.lifetime_param_cond(impl_item)
                         {
@@ -2151,7 +2151,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                         cx,
                         name,
                         self_ty,
-                        first_arg_ty,
+                        *first_arg_ty,
                         first_arg.pat.span,
                         implements_trait,
                         false
@@ -2198,7 +2198,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 }
             }
 
-            if name == "new" && !TyS::same_type(ret_ty, self_ty) {
+            if name == "new" && ret_ty != self_ty {
                 span_lint(
                     cx,
                     NEW_RET_NO_SELF,

@@ -1,6 +1,7 @@
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
 #![feature(let_else)]
+#![feature(let_chains)]
 #![feature(once_cell)]
 #![feature(rustc_private)]
 #![recursion_limit = "512"]
@@ -1460,7 +1461,7 @@ pub fn is_self(slf: &Param<'_>) -> bool {
 
 pub fn is_self_ty(slf: &hir::Ty<'_>) -> bool {
     if let TyKind::Path(QPath::Resolved(None, path)) = slf.kind {
-        if let Res::SelfTy(..) = path.res {
+        if let Res::SelfTy { .. } = path.res {
             return true;
         }
     }
@@ -1911,10 +1912,10 @@ pub fn is_slice_of_primitives(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<S
     let expr_type = cx.typeck_results().expr_ty_adjusted(expr);
     let expr_kind = expr_type.kind();
     let is_primitive = match expr_kind {
-        rustc_ty::Slice(element_type) => is_recursively_primitive_type(element_type),
+        rustc_ty::Slice(element_type) => is_recursively_primitive_type(*element_type),
         rustc_ty::Ref(_, inner_ty, _) if matches!(inner_ty.kind(), &rustc_ty::Slice(_)) => {
             if let rustc_ty::Slice(element_type) = inner_ty.kind() {
-                is_recursively_primitive_type(element_type)
+                is_recursively_primitive_type(*element_type)
             } else {
                 unreachable!()
             }
@@ -2042,24 +2043,6 @@ pub fn peel_ref_operators<'hir>(cx: &LateContext<'_>, mut expr: &'hir Expr<'hir>
     expr
 }
 
-#[macro_export]
-macro_rules! unwrap_cargo_metadata {
-    ($cx: ident, $lint: ident, $deps: expr) => {{
-        let mut command = cargo_metadata::MetadataCommand::new();
-        if !$deps {
-            command.no_deps();
-        }
-
-        match command.exec() {
-            Ok(metadata) => metadata,
-            Err(err) => {
-                span_lint($cx, $lint, DUMMY_SP, &format!("could not read cargo metadata: {}", err));
-                return;
-            },
-        }
-    }};
-}
-
 pub fn is_hir_ty_cfg_dependant(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
     if let TyKind::Path(QPath::Resolved(_, path)) = ty.kind {
         if let Res::Def(_, def_id) = path.res {
@@ -2116,7 +2099,7 @@ fn with_test_item_names<'tcx>(tcx: TyCtxt<'tcx>, module: LocalDefId, f: impl Fn(
 
 /// Checks if the function containing the given `HirId` is a `#[test]` function
 ///
-/// Note: If you use this function, please add a `#[test]` case in `tests/ui_test`.
+/// Note: Add `// compile-flags: --test` to UI tests with a `#[test]` function
 pub fn is_in_test_function(tcx: TyCtxt<'_>, id: hir::HirId) -> bool {
     with_test_item_names(tcx, tcx.parent_module(id), |names| {
         tcx.hir()
@@ -2139,7 +2122,7 @@ pub fn is_in_test_function(tcx: TyCtxt<'_>, id: hir::HirId) -> bool {
 /// Checks whether item either has `test` attribute applied, or
 /// is a module with `test` in its name.
 ///
-/// Note: If you use this function, please add a `#[test]` case in `tests/ui_test`.
+/// Note: Add `// compile-flags: --test` to UI tests with a `#[test]` function
 pub fn is_test_module_or_function(tcx: TyCtxt<'_>, item: &Item<'_>) -> bool {
     is_in_test_function(tcx, item.hir_id())
         || matches!(item.kind, ItemKind::Mod(..))

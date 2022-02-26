@@ -10,7 +10,7 @@ use rustc_hir::{
     ItemKind, Mutability, Node, TraitItemRef, TyKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{self, AssocKind, FnSig, Ty, TyS};
+use rustc_middle::ty::{self, AssocKind, FnSig, Ty};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::{
     source_map::{Span, Spanned, Symbol},
@@ -265,7 +265,7 @@ impl LenOutput<'_> {
             (_, &ty::Bool) => true,
             (Self::Option(id), &ty::Adt(adt, subs)) if id == adt.did => subs.type_at(0).is_bool(),
             (Self::Result(id, err_ty), &ty::Adt(adt, subs)) if id == adt.did => {
-                subs.type_at(0).is_bool() && TyS::same_type(subs.type_at(1), err_ty)
+                subs.type_at(0).is_bool() && subs.type_at(1) == err_ty
             },
             _ => false,
         }
@@ -294,7 +294,7 @@ impl LenOutput<'_> {
 /// Checks if the given signature matches the expectations for `is_empty`
 fn check_is_empty_sig(sig: FnSig<'_>, self_kind: ImplicitSelfKind, len_output: LenOutput<'_>) -> bool {
     match &**sig.inputs_and_output {
-        [arg, res] if len_output.matches_is_empty_output(res) => {
+        [arg, res] if len_output.matches_is_empty_output(*res) => {
             matches!(
                 (arg.kind(), self_kind),
                 (ty::Ref(_, _, Mutability::Not), ImplicitSelfKind::ImmRef)
