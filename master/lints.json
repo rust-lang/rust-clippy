@@ -363,7 +363,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1773
+      "line": 1803
     },
     "group": "style",
     "level": "warn",
@@ -1653,7 +1653,7 @@
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1503
+      "line": 1533
     },
     "group": "restriction",
     "level": "allow",
@@ -1683,7 +1683,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1728
+      "line": 1758
     },
     "group": "complexity",
     "level": "warn",
@@ -1983,7 +1983,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1675
+      "line": 1705
     },
     "group": "pedantic",
     "level": "allow",
@@ -2178,7 +2178,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1799
+      "line": 1829
     },
     "group": "pedantic",
     "level": "allow",
@@ -2478,7 +2478,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1705
+      "line": 1735
     },
     "group": "complexity",
     "level": "warn",
@@ -2538,7 +2538,7 @@
     "id": "into_iter_on_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1359
+      "line": 1389
     },
     "group": "style",
     "level": "warn",
@@ -2643,7 +2643,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1825
+      "line": 1855
     },
     "group": "complexity",
     "level": "warn",
@@ -2673,7 +2673,7 @@
     "id": "iter_next_slice",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1556
+      "line": 1586
     },
     "group": "style",
     "level": "warn",
@@ -3213,7 +3213,7 @@
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1443
+      "line": 1473
     },
     "group": "style",
     "level": "warn",
@@ -3228,7 +3228,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1899
+      "line": 1929
     },
     "group": "complexity",
     "level": "warn",
@@ -3243,7 +3243,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1876
+      "line": 1906
     },
     "group": "perf",
     "level": "warn",
@@ -3333,7 +3333,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1642
+      "line": 1672
     },
     "group": "style",
     "level": "warn",
@@ -3393,7 +3393,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1751
+      "line": 1781
     },
     "group": "complexity",
     "level": "warn",
@@ -4383,7 +4383,7 @@
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1923
+      "line": 1953
     },
     "group": "complexity",
     "level": "warn",
@@ -4683,7 +4683,7 @@
     "id": "option_as_ref_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1529
+      "line": 1559
     },
     "group": "complexity",
     "level": "warn",
@@ -5853,7 +5853,7 @@
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1582
+      "line": 1612
     },
     "group": "style",
     "level": "warn",
@@ -6228,7 +6228,7 @@
     "id": "suspicious_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1379
+      "line": 1409
     },
     "group": "suspicious",
     "level": "warn",
@@ -6273,7 +6273,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1855
+      "line": 1885
     },
     "group": "correctness",
     "level": "deny",
@@ -6753,7 +6753,7 @@
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1414
+      "line": 1444
     },
     "group": "correctness",
     "level": "deny",
@@ -6862,8 +6862,23 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `filter_map` calls which could be replaced by `filter` or `map`.\nMore specifically it checks if the closure provided is only performing one of the\nfilter or map operations and suggests the appropriate option.\n\n### Why is this bad?\nComplexity. The intent is also clearer if only a single\noperation is being performed.\n\n### Example\n```rust\nlet _ = (0..3).filter_map(|x| if x > 2 { Some(x) } else { None });\n\n// As there is no transformation of the argument this could be written as:\nlet _ = (0..3).filter(|&x| x > 2);\n```\n\n```rust\nlet _ = (0..4).filter_map(|x| Some(x + 1));\n\n// As there is no conditional check on the argument this could be written as:\nlet _ = (0..4).map(|x| x + 1);\n```",
+    "docs": " ### What it does\nChecks for `filter_map` calls that could be replaced by `filter` or `map`.\nMore specifically it checks if the closure provided is only performing one of the\nfilter or map operations and suggests the appropriate option.\n\n### Why is this bad?\nComplexity. The intent is also clearer if only a single\noperation is being performed.\n\n### Example\n```rust\nlet _ = (0..3).filter_map(|x| if x > 2 { Some(x) } else { None });\n\n// As there is no transformation of the argument this could be written as:\nlet _ = (0..3).filter(|&x| x > 2);\n```\n\n```rust\nlet _ = (0..4).filter_map(|x| Some(x + 1));\n\n// As there is no conditional check on the argument this could be written as:\nlet _ = (0..4).map(|x| x + 1);\n```",
     "version": "1.31.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "unnecessary_find_map",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 1365
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for `find_map` calls that could be replaced by `find` or `map`. More\nspecifically it checks if the closure provided is only performing one of the\nfind or map operations and suggests the appropriate option.\n\n### Why is this bad?\nComplexity. The intent is also clearer if only a single\noperation is being performed.\n\n### Example\n```rust\nlet _ = (0..3).find_map(|x| if x > 2 { Some(x) } else { None });\n\n// As there is no transformation of the argument this could be written as:\nlet _ = (0..3).find(|&x| x > 2);\n```\n\n```rust\nlet _ = (0..4).find_map(|x| Some(x + 1));\n\n// As there is no conditional check on the argument this could be written as:\nlet _ = (0..4).map(|x| x + 1).next();\n```",
+    "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -6888,7 +6903,7 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1621
+      "line": 1651
     },
     "group": "style",
     "level": "warn",
@@ -6963,7 +6978,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1954
+      "line": 1984
     },
     "group": "perf",
     "level": "warn",
@@ -7833,7 +7848,7 @@
     "id": "zst_offset",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1461
+      "line": 1491
     },
     "group": "correctness",
     "level": "deny",
