@@ -7353,7 +7353,7 @@
     "id": "use_self",
     "id_span": {
       "path": "src/use_self.rs",
-      "line": 53
+      "line": 54
     },
     "group": "nursery",
     "level": "allow",
