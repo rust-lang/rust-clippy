@@ -1278,7 +1278,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 330
+      "line": 331
     },
     "group": "suspicious",
     "level": "warn",
@@ -1503,7 +1503,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 296
+      "line": 297
     },
     "group": "complexity",
     "level": "warn",
@@ -1533,7 +1533,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 142
+      "line": 143
     },
     "group": "pedantic",
     "level": "allow",
@@ -1548,7 +1548,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 113
+      "line": 114
     },
     "group": "pedantic",
     "level": "allow",
@@ -1908,7 +1908,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 379
+      "line": 380
     },
     "group": "style",
     "level": "warn",
@@ -1923,7 +1923,7 @@
     "id": "for_loops_over_fallibles",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 210
+      "line": 211
     },
     "group": "suspicious",
     "level": "warn",
@@ -2658,7 +2658,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 166
+      "line": 167
     },
     "group": "correctness",
     "level": "deny",
@@ -3123,7 +3123,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 558
+      "line": 559
     },
     "group": "complexity",
     "level": "warn",
@@ -3153,7 +3153,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 51
+      "line": 52
     },
     "group": "perf",
     "level": "warn",
@@ -3840,6 +3840,21 @@
     }
   },
   {
+    "id": "missing_spin_loop",
+    "id_span": {
+      "path": "src/loops/mod.rs",
+      "line": 595
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": " ### What it does\nCheck for empty spin loops\n\n### Why is this bad?\nThe loop body should have something like `thread::park()` or at least\n`std::hint::spin_loop()` to avoid needlessly burning cycles and conserve\nenergy. Perhaps even better use an actual lock, if possible.\n\n### Known problems\nThis lint doesn't currently trigger on `while let` or\n`loop { match .. { .. } }` loops, which would be considered idiomatic in\ncombination with e.g. `AtomicBool::compare_exchange_weak`.\n\n### Example\n\n```rust\nuse core::sync::atomic::{AtomicBool, Ordering};\nlet b = AtomicBool::new(true);\n// give a ref to `b` to another thread,wait for it to become false\nwhile b.load(Ordering::Acquire) {};\n```\nUse instead:\n```rust\nwhile b.load(Ordering::Acquire) {\n    std::hint::spin_loop()\n}\n```",
+    "version": "1.59.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "mistyped_literal_suffixes",
     "id_span": {
       "path": "src/literal_representation.rs",
@@ -4053,7 +4068,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 437
+      "line": 438
     },
     "group": "suspicious",
     "level": "warn",
@@ -4203,7 +4218,7 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 265
+      "line": 266
     },
     "group": "perf",
     "level": "warn",
@@ -4338,7 +4353,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 80
+      "line": 81
     },
     "group": "style",
     "level": "warn",
@@ -4443,7 +4458,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 401
+      "line": 402
     },
     "group": "correctness",
     "level": "deny",
@@ -5598,7 +5613,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 499
+      "line": 500
     },
     "group": "style",
     "level": "warn",
@@ -5898,7 +5913,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 526
+      "line": 527
     },
     "group": "complexity",
     "level": "warn",
@@ -7563,7 +7578,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 464
+      "line": 465
     },
     "group": "correctness",
     "level": "deny",
@@ -7578,7 +7593,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 243
+      "line": 244
     },
     "group": "complexity",
     "level": "warn",
@@ -7593,7 +7608,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 350
+      "line": 351
     },
     "group": "style",
     "level": "warn",
