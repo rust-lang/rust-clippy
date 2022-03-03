@@ -828,7 +828,7 @@
     "id": "dbg_macro",
     "id_span": {
       "path": "src/dbg_macro.rs",
-      "line": 27
+      "line": 28
     },
     "group": "restriction",
     "level": "allow",
