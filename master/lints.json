@@ -15,6 +15,21 @@
     }
   },
   {
+    "id": "allow_attributes_without_reason",
+    "id_span": {
+      "path": "src/attrs.rs",
+      "line": 283
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for attributes that allow lints without a reason.\n\n(This requires the `lint_reasons` feature)\n\n### Why is this bad?\nAllowing a lint should always have a reason. This reason should be documented to\nensure that others understand the reasoning\n\n### Example\nBad:\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint)]\n```\n\nGood:\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint, reason = \"False positive rust-lang/rust-clippy#1002020\")]\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "almost_swapped",
     "id_span": {
       "path": "src/swap.rs",
