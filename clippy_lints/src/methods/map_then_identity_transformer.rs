@@ -12,36 +12,91 @@ pub(super) fn check<'tcx>(
     cx: &LateContext<'_>,
     map_span: Span,
     map_name: &str,
-    map_clos: &'tcx Expr<'_>,
+    map_param: &'tcx Expr<'_>,
     transformer_name: &str,
-    transformer_clos: &'tcx Expr<'_>,
+    // Use the last parameter of the transformer because the transfomer may be `fold(_, _)`
+    transformer_last_param: &'tcx Expr<'_>,
 ) {
-    if_chain!(
-        // takes a closure of the `map`
-        if let ExprKind::Closure(_, _, map_clos_body_id, _, _) = &map_clos.kind;
-        // checks if the body of the closure of the `map` is an one-line expression
-        let map_clos_val = &cx.tcx.hir().body(*map_clos_body_id).value;
-        if is_one_line(cx, map_clos_val.span);
+    match &transformer_last_param.kind {
+        ExprKind::Closure(_, _, transformer_clos_body_id, _, _) => {
+            match &map_param.kind {
+                // map(Closure).<transformer>(Closure)
+                ExprKind::Closure(_, _, map_clos_body_id, _, _) => {
+                    let map_clos_val = &cx.tcx.hir().body(*map_clos_body_id).value;
+                    if_chain!(
+                        // checks if the body of the closure of the `map` is an one-line expression
+                        if is_one_line(cx, map_clos_val.span);
+                        // checks if the parameter of the closure of the transformer appears once in its body
+                        if let Some(refd_param_span) = refd_param_span(cx, *transformer_clos_body_id);
+                        then {
+                            span_lint_and_then(
+                                cx,
+                                MAP_THEN_IDENTITY_TRANSFORMER,
+                                MultiSpan::from_span(map_span),
+                                &format!("this `{map_name}` can be collapsed into the `{transformer_name}`"),
+                                |diag| {
+                                    let mut help_span = MultiSpan::from_spans(vec![map_clos_val.span, refd_param_span]);
+                                    help_span.push_span_label(refd_param_span, "replace this variable".into());
+                                    help_span.push_span_label(map_clos_val.span, "with this expression".into());
+                                    diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
+                                },
+                            );
+                        }
 
-        // takes a closure of the transformer
-        if let ExprKind::Closure(_, _, transformer_clos_body_id, _, _) = &transformer_clos.kind;
-        // checks if the parameter of the closure of the transformer appears once in its body
-        if let Some(refd_param_span) = refd_param_span(cx, *transformer_clos_body_id);
-        then {
-            span_lint_and_then(
-                cx,
-                MAP_THEN_IDENTITY_TRANSFORMER,
-                MultiSpan::from_span(map_span),
-                &format!("this `{map_name}` can be collapsed into the `{transformer_name}`"),
-                |diag| {
-                    let mut help_span = MultiSpan::from_spans(vec![map_clos_val.span, refd_param_span]);
-                    help_span.push_span_label(refd_param_span, "replace this variable".into());
-                    help_span.push_span_label(map_clos_val.span, "with this expression".into());
-                    diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
+                    );
                 },
+                // map(Path).<transformer>(Closure)
+                ExprKind::Path(_) => {
+                    if_chain!(
+                        // checks if the parameter of the `map` fits within one line
+                        if is_one_line(cx, map_param.span);
+                        // checks if the parameter of the closure of the transformer appears once in its body
+                        if let Some(refd_param_span) = refd_param_span(cx, *transformer_clos_body_id);
+                        then {
+                            span_lint_and_then(
+                                cx,
+                                MAP_THEN_IDENTITY_TRANSFORMER,
+                                MultiSpan::from_span(map_span),
+                                &format!("this `{map_name}` can be collapsed into the `{transformer_name}`"),
+                                |diag| {
+                                    let mut help_span = MultiSpan::from_spans(vec![map_param.span, refd_param_span]);
+                                    help_span.push_span_label(map_param.span, "apply this".into());
+                                    help_span.push_span_label(refd_param_span, "to this variable".into());
+                                    diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
+                                },
+                            );
+                        }
+
+                    );
+                },
+                _ => (),
+            }
+        },
+        // map(Path).<transformer>(Path) or map(Closure).<transformer>(Path)
+        ExprKind::Path(_) => {
+            if_chain!(
+                // checks if the parameter of the `map` fits within one line
+                if is_one_line(cx, map_param.span);
+                then {
+                    span_lint_and_then(
+                        cx,
+                        MAP_THEN_IDENTITY_TRANSFORMER,
+                        MultiSpan::from_span(map_span),
+                        &format!("this `{map_name}` can be collapsed into the `{transformer_name}`"),
+                        |diag| {
+                            let mut help_span = MultiSpan::from_spans(
+                                vec![map_param.span, transformer_last_param.span]
+                            );
+                            help_span.push_span_label(map_param.span, format!("and use this in the `{transformer_name}`"));
+                            help_span.push_span_label(transformer_last_param.span, "change this to a closure".into());
+                            diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
+                        },
+                    );
+                }
             );
-        }
-    );
+        },
+        _ => (),
+    }
 }
 
 // Given a closure `|.., x| y`, checks if `x` is referenced just exactly once in `y` and returns
