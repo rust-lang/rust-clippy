@@ -69,12 +69,10 @@ fn lint_message_convention() {
     // * don't have puncuation at the end of the last sentence
 
     // these directories have interesting tests
-    let test_dirs = ["ui", "ui-cargo", "ui-internal", "ui-toml"]
-        .iter()
-        .map(|p| {
-            let base = PathBuf::from("tests");
-            base.join(PathBuf::from(p))
-        });
+    let test_dirs = ["ui", "ui-cargo", "ui-internal", "ui-toml"].iter().map(|p| {
+        let base = PathBuf::from("tests");
+        base.join(PathBuf::from(p))
+    });
 
     // gather all .stderr files
     let tests = test_dirs
