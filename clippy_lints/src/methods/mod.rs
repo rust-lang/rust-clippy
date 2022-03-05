@@ -2346,7 +2346,7 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("add" | "offset" | "sub" | "wrapping_offset" | "wrapping_add" | "wrapping_sub", [_arg]) => {
                 zst_offset::check(cx, expr, recv);
             },
-            (name @ ("all" | "any" | "find_map" | "position"), [arg]) => {
+            (name @ ("all" | "any" | "position"), [arg]) => {
                 if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
                     map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
                 }
@@ -2404,8 +2404,13 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
                     }
                 }
             },
-            ("find_map", [arg]) => {
-                unnecessary_filter_map::check(cx, expr, arg, name);
+            (name @ "find_map", [arg]) => {
+                let triggered = unnecessary_filter_map::check(cx, expr, arg, name);
+                if !triggered {
+                    if let Some((name2 @ "map", [_, arg2], span2)) = method_call(recv) {
+                        map_then_identity_transformer::check(cx, span2, name2, arg2, name, arg);
+                    }
+                }
             },
             (name @ "flat_map", [arg]) => {
                 let triggered = flat_map_identity::check(cx, expr, arg, span);

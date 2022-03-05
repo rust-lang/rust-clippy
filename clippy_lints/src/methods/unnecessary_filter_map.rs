@@ -43,9 +43,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, arg: &hir::Expr<
                     {
                         if name == "filter_map" { "filter" } else { "find" }
                     },
-                    _ => {
-                        return false
-                    },
+                    _ => return false,
                 }
             } else {
                 return false;
