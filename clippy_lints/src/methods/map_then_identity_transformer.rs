@@ -74,10 +74,8 @@ pub(super) fn check<'tcx>(
         },
         // map(Path).<transformer>(Path) or map(Closure).<transformer>(Path)
         ExprKind::Path(_) => {
-            if_chain!(
-                // checks if the parameter of the `map` fits within one line
-                if is_one_line(cx, map_param.span);
-                then {
+            // checks if the parameter of the `map` fits within one line
+            if is_one_line(cx, map_param.span) {
                     span_lint_and_then(
                         cx,
                         MAP_THEN_IDENTITY_TRANSFORMER,
@@ -92,8 +90,8 @@ pub(super) fn check<'tcx>(
                             diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
                         },
                     );
-                }
-            );
+            }
+            
         },
         _ => (),
     }

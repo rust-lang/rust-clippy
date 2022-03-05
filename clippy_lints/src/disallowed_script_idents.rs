@@ -53,8 +53,7 @@ impl DisallowedScriptIdents {
     pub fn new(whitelist: &[String]) -> Self {
         let whitelist = whitelist
             .iter()
-            .map(String::as_str)
-            .filter_map(Script::from_full_name)
+            .filter_map(|s| Script::from_full_name(String::as_str(s)))
             .collect();
         Self { whitelist }
     }

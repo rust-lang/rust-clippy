@@ -97,8 +97,8 @@ fn never_loop_block(block: &Block<'_>, main_loop_id: HirId) -> NeverLoopResult {
 }
 
 fn never_loop_expr_seq<'a, T: Iterator<Item = &'a Expr<'a>>>(es: &mut T, main_loop_id: HirId) -> NeverLoopResult {
-    es.map(|e| never_loop_expr(e, main_loop_id))
-        .fold(NeverLoopResult::Otherwise, combine_seq)
+    es.
+        .fold(NeverLoopResult::Otherwise, |seq ,e| combine_seq(seq , never_loop_expr(e, main_loop_id)))
 }
 
 fn stmt_to_expr<'tcx>(stmt: &Stmt<'tcx>) -> Option<&'tcx Expr<'tcx>> {
@@ -189,13 +189,13 @@ fn never_loop_expr(expr: &Expr<'_>, main_loop_id: HirId) -> NeverLoopResult {
 }
 
 fn never_loop_expr_all<'a, T: Iterator<Item = &'a Expr<'a>>>(es: &mut T, main_loop_id: HirId) -> NeverLoopResult {
-    es.map(|e| never_loop_expr(e, main_loop_id))
-        .fold(NeverLoopResult::Otherwise, combine_both)
+    es
+        .fold(NeverLoopResult::Otherwise, |seq, e| combine_both(seq, never_loop_expr(e, main_loop_id)))
 }
 
 fn never_loop_expr_branch<'a, T: Iterator<Item = &'a Expr<'a>>>(e: &mut T, main_loop_id: HirId) -> NeverLoopResult {
-    e.map(|e| never_loop_expr(e, main_loop_id))
-        .fold(NeverLoopResult::AlwaysBreak, combine_branches)
+    e
+        .fold(NeverLoopResult::AlwaysBreak, |br, e| combine_branches(br, never_loop_expr(e, main_loop_id)))
 }
 
 fn for_to_if_let_sugg(cx: &LateContext<'_>, iterator: &Expr<'_>, pat: &Pat<'_>) -> String {
