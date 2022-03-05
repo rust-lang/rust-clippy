@@ -76,22 +76,19 @@ pub(super) fn check<'tcx>(
         ExprKind::Path(_) => {
             // checks if the parameter of the `map` fits within one line
             if is_one_line(cx, map_param.span) {
-                    span_lint_and_then(
-                        cx,
-                        MAP_THEN_IDENTITY_TRANSFORMER,
-                        MultiSpan::from_span(map_span),
-                        &format!("this `{map_name}` can be collapsed into the `{transformer_name}`"),
-                        |diag| {
-                            let mut help_span = MultiSpan::from_spans(
-                                vec![map_param.span, transformer_last_param.span]
-                            );
-                            help_span.push_span_label(map_param.span, format!("and use this in the `{transformer_name}`"));
-                            help_span.push_span_label(transformer_last_param.span, "change this to a closure".into());
-                            diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
-                        },
-                    );
+                span_lint_and_then(
+                    cx,
+                    MAP_THEN_IDENTITY_TRANSFORMER,
+                    MultiSpan::from_span(map_span),
+                    &format!("this `{map_name}` can be collapsed into the `{transformer_name}`"),
+                    |diag| {
+                        let mut help_span = MultiSpan::from_spans(vec![map_param.span, transformer_last_param.span]);
+                        help_span.push_span_label(map_param.span, format!("and use this in the `{transformer_name}`"));
+                        help_span.push_span_label(transformer_last_param.span, "change this to a closure".into());
+                        diag.span_help(help_span, &format!("these `{map_name}` and `{transformer_name}` can be merged into a single `{transformer_name}`"));
+                    },
+                );
             }
-            
         },
         _ => (),
     }
