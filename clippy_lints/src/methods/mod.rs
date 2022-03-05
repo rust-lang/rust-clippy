@@ -2015,7 +2015,9 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Finds `_.map(_).f(_)` where the method calls may be collapsed together and where f is a transformer: `map`, `all`, `any`, `find`, etc.
+    /// Finds `_.map(_).<transformer>(_)` where the method calls may be collapsed
+    /// together and `transformer` is any of `all`, `any`, `find_map`, `flat_map`,
+    /// `filter_map`, `fold`, `map`, and `position`.
     ///
     /// ### Why is this bad?
     /// It is unnecessarily verbose and complex.
