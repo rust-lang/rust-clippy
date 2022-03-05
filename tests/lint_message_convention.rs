@@ -71,10 +71,9 @@ fn lint_message_convention() {
     // these directories have interesting tests
     let test_dirs = ["ui", "ui-cargo", "ui-internal", "ui-toml"]
         .iter()
-        .map(PathBuf::from)
         .map(|p| {
             let base = PathBuf::from("tests");
-            base.join(p)
+            base.join(PathBuf::from(p))
         });
 
     // gather all .stderr files
