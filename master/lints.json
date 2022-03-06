@@ -423,7 +423,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 407
+      "line": 408
     },
     "group": "suspicious",
     "level": "warn",
@@ -438,7 +438,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 146
+      "line": 147
     },
     "group": "pedantic",
     "level": "allow",
@@ -453,7 +453,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 89
+      "line": 90
     },
     "group": "pedantic",
     "level": "allow",
@@ -468,7 +468,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 113
+      "line": 114
     },
     "group": "pedantic",
     "level": "allow",
@@ -483,7 +483,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 44
+      "line": 45
     },
     "group": "pedantic",
     "level": "allow",
@@ -498,7 +498,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 200
+      "line": 201
     },
     "group": "pedantic",
     "level": "allow",
@@ -513,7 +513,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 331
+      "line": 332
     },
     "group": "correctness",
     "level": "deny",
@@ -528,7 +528,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 66
+      "line": 67
     },
     "group": "pedantic",
     "level": "allow",
@@ -540,10 +540,25 @@
     }
   },
   {
+    "id": "cast_slice_different_sizes",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 452
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": " Checks for `as` casts between raw pointers to slices with differently sized elements.\n\n### Why is this bad?\nThe produced raw pointer to a slice does not update its length metadata. The produced\npointer will point to a different number of bytes than the original pointer because the\nlength metadata of a raw slice pointer is in elements rather than bytes.\nProducing a slice reference from the raw pointer will either create a slice with\nless data (which can be surprising) or create a slice with more data and cause Undefined Behavior.\n\n### Example\n// Missing data\n```rust\nlet a = [1_i32, 2, 3, 4];\nlet p = &a as *const [i32] as *const [u8];\nunsafe {\n    println!(\"{:?}\", &*p);\n}\n```\n// Undefined Behavior (note: also potential alignment issues)\n```rust\nlet a = [1_u8, 2, 3, 4];\nlet p = &a as *const [u8] as *const [u32];\nunsafe {\n    println!(\"{:?}\", &*p);\n}\n```\nInstead use `ptr::slice_from_raw_parts` to construct a slice from a data pointer and the correct length\n```rust\nlet a = [1_i32, 2, 3, 4];\nlet old_ptr = &a as *const [i32];\n// The data pointer is cast to a pointer to the target `u8` not `[u8]`\n// The length comes from the known length of 4 i32s times the 4 bytes per i32\nlet new_ptr = core::ptr::slice_from_raw_parts(old_ptr as *const u8, 16);\nunsafe {\n    println!(\"{:?}\", &*new_ptr);\n}\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 359
+      "line": 360
     },
     "group": "complexity",
     "level": "warn",
@@ -1878,7 +1893,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 228
+      "line": 229
     },
     "group": "style",
     "level": "warn",
@@ -1893,7 +1908,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 296
+      "line": 297
     },
     "group": "restriction",
     "level": "allow",
@@ -1908,7 +1923,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 259
+      "line": 260
     },
     "group": "style",
     "level": "warn",
@@ -5088,7 +5103,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 388
+      "line": 389
     },
     "group": "pedantic",
     "level": "allow",
@@ -6873,7 +6888,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 172
+      "line": 173
     },
     "group": "complexity",
     "level": "warn",
