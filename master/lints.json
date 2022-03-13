@@ -2373,7 +2373,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 363
+      "line": 364
     },
     "group": "style",
     "level": "warn",
@@ -3468,7 +3468,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 231
+      "line": 232
     },
     "group": "complexity",
     "level": "warn",
@@ -3483,7 +3483,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 158
+      "line": 159
     },
     "group": "pedantic",
     "level": "allow",
@@ -3498,7 +3498,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 519
+      "line": 520
     },
     "group": "style",
     "level": "warn",
@@ -3528,7 +3528,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 181
+      "line": 182
     },
     "group": "style",
     "level": "warn",
@@ -3543,7 +3543,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 123
+      "line": 124
     },
     "group": "style",
     "level": "warn",
@@ -3573,7 +3573,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 564
+      "line": 565
     },
     "group": "pedantic",
     "level": "allow",
@@ -3588,7 +3588,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 395
+      "line": 396
     },
     "group": "complexity",
     "level": "warn",
@@ -3618,7 +3618,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 204
+      "line": 205
     },
     "group": "pedantic",
     "level": "allow",
@@ -3633,7 +3633,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 299
+      "line": 300
     },
     "group": "pedantic",
     "level": "allow",
@@ -4347,6 +4347,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "needless_match",
+    "id_span": {
+      "path": "src/matches/mod.rs",
+      "line": 608
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for unnecessary `match` or match-like `if let` returns for `Option` and `Result`\nwhen function signatures are the same.\n\n### Why is this bad?\nThis `match` block does nothing and might not be what the coder intended.\n\n### Example\n```rust\nfn foo() -> Result<(), i32> {\n    match result {\n        Ok(val) => Ok(val),\n        Err(err) => Err(err),\n    }\n}\n\nfn bar() -> Option<i32> {\n    if let Some(val) = option {\n        Some(val)\n    } else {\n        None\n    }\n}\n```\n\nCould be replaced as\n\n```rust\nfn foo() -> Result<(), i32> {\n    result\n}\n\nfn bar() -> Option<i32> {\n    option\n}\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -5418,7 +5433,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 482
+      "line": 483
     },
     "group": "style",
     "level": "warn",
@@ -5553,7 +5568,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 426
+      "line": 427
     },
     "group": "restriction",
     "level": "allow",
@@ -5973,7 +5988,7 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 49
+      "line": 50
     },
     "group": "style",
     "level": "warn",
@@ -5988,7 +6003,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 91
+      "line": 92
     },
     "group": "pedantic",
     "level": "allow",
@@ -7698,7 +7713,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 264
+      "line": 265
     },
     "group": "restriction",
     "level": "allow",
@@ -7728,7 +7743,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 327
+      "line": 328
     },
     "group": "complexity",
     "level": "warn",
