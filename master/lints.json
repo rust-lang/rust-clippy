@@ -355,7 +355,7 @@
     "docs": " ### What it does\nChecks if the `if` and `else` block contain shared code that can be\nmoved out of the blocks.\n\n### Why is this bad?\nDuplicate code is less maintainable.\n\n### Known problems\n* The lint doesn't check if the moved expressions modify values that are beeing used in\n  the if condition. The suggestion can in that case modify the behavior of the program.\n  See [rust-clippy#7452](https://github.com/rust-lang/rust-clippy/issues/7452)\n\n### Example\n```rust\nlet foo = if … {\n    println!(\"Hello World\");\n    13\n} else {\n    println!(\"Hello World\");\n    42\n};\n```\n\nCould be written as:\n```rust\nprintln!(\"Hello World\");\nlet foo = if … {\n    13\n} else {\n    42\n};\n```",
     "version": "1.53.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
     }
   },
@@ -408,7 +408,7 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/case_sensitive_file_extension_comparisons.rs",
-      "line": 31
+      "line": 32
     },
     "group": "pedantic",
     "level": "allow",
@@ -625,7 +625,7 @@
     "docs": " ### What it does\nChecks for usage of `.clone()` on an `&&T`.\n\n### Why is this bad?\nCloning an `&&T` copies the inner `&T`, instead of\ncloning the underlying `T`.\n\n### Example\n```rust\nfn main() {\n    let x = vec![1];\n    let y = &&x;\n    let z = y.clone();\n    println!(\"{:p} {:p}\", *y, z); // prints out the same pointer\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
@@ -2320,7 +2320,7 @@
     "docs": " ### What it does\nThe lint checks for slice bindings in patterns that are only used to\naccess individual slice values.\n\n### Why is this bad?\nAccessing slice values using indices can lead to panics. Using refutable\npatterns can avoid these. Binding to individual values also improves the\nreadability as they can be named.\n\n### Limitations\nThis lint currently only checks for immutable access inside `if let`\npatterns.\n\n### Example\n```rust\nlet slice: Option<&[u32]> = Some(&[1, 2, 3]);\n\nif let Some(slice) = slice {\n    println!(\"{}\", slice[0]);\n}\n```\nUse instead:\n```rust\nlet slice: Option<&[u32]> = Some(&[1, 2, 3]);\n\nif let Some(&[first, ..]) = slice {\n    println!(\"{}\", first);\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n* `max-suggested-slice-pattern-length`: `u64`: When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in\n    the slice pattern that is suggested. If more elements would be necessary, the lint is suppressed.\n    For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements. (defaults to `3`)\n\n",
     "version": "1.58.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
@@ -2875,7 +2875,7 @@
     "docs": " ### What it does\nChecks for large size differences between variants on\n`enum`s.\n\n### Why is this bad?\nEnum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.\n\n### Known problems\nThis lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.\n\n### Example\n```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `enum-variant-size-threshold`: `u64`: The maximum size of an enum's variant to avoid box suggestion (defaults to `200`)\n\n",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
@@ -2950,7 +2950,7 @@
     "docs": " ### What it does\nChecks for `let`-bindings, which are subsequently\nreturned.\n\n### Why is this bad?\nIt is just extraneous code. Remove it to make your code\nmore rusty.\n\n### Example\n```rust\nfn foo() -> String {\n    let x = String::new();\n    x\n}\n```\ninstead, use\n```rust\nfn foo() -> String {\n    String::new()\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -3115,7 +3115,7 @@
     "docs": " ### What it does\nIt checks for manual implementations of `async` functions.\n\n### Why is this bad?\nIt's more idiomatic to use the dedicated syntax.\n\n### Example\n```rust\nuse std::future::Future;\n\nfn foo() -> impl Future<Output = i32> { async { 42 } }\n```\nUse instead:\n```rust\nasync fn foo() -> i32 { 42 }\n```",
     "version": "1.45.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -3460,7 +3460,7 @@
     "docs": " ### What it does\nChecks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.\n\n### Why is this bad?\nReadability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.\n\n### Known problems\nThe order of the arguments is not in execution order\n\n### Examples\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or(0);\n\n// Good\nx.map_or(0, |a| a + 1);\n```\n\n// or\n\n```rust\n\n// Bad\nx.map(|a| a + 1).unwrap_or_else(some_function);\n\n// Good\nx.map_or_else(some_function, |a| a + 1);\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
     "version": "1.45.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -3775,7 +3775,7 @@
     "docs": " ### What it does\nChecks for `a op= a op b` or `a op= b op a` patterns.\n\n### Why is this bad?\nMost likely these are bugs where one meant to write `a\nop= b`.\n\n### Known problems\nClippy cannot know for sure if `a op= a op b` should have\nbeen `a = a op a op b` or `a = a op b`/`a op= b`. Therefore, it suggests both.\nIf `a op= a op b` is really the correct behaviour it should be\nwritten as `a = a op a op b` as it's less confusing.\n\n### Example\n```rust\nlet mut a = 5;\nlet b = 2;\n// ...\na += a + b;\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
@@ -3783,7 +3783,7 @@
     "id": "missing_const_for_fn",
     "id_span": {
       "path": "src/missing_const_for_fn.rs",
-      "line": 67
+      "line": 68
     },
     "group": "nursery",
     "level": "allow",
@@ -4270,7 +4270,7 @@
     "docs": " ### What it does\nChecks for functions collecting an iterator when collect\nis not needed.\n\n### Why is this bad?\n`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.\n\n### Example\n```rust\nlet len = iterator.clone().collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```",
     "version": "1.30.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
@@ -4315,7 +4315,7 @@
     "docs": " ### What it does\nChecks for usage of `for_each` that would be more simply written as a\n`for` loop.\n\n### Why is this bad?\n`for_each` may be used after applying iterator transformers like\n`filter` for better readability and performance. It may also be used to fit a simple\noperation on one line.\nBut when none of these apply, a simple `for` loop is more idiomatic.\n\n### Example\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| {\n    println!(\"{}\", elem);\n})\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\nfor elem in v.iter() {\n    println!(\"{}\", elem);\n}\n```",
     "version": "1.53.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -4330,7 +4330,7 @@
     "docs": " ### What it does\nChecks for late initializations that can be replaced by a `let` statement\nwith an initializer.\n\n### Why is this bad?\nAssigning in the `let` statement is less repetitive.\n\n### Example\n```rust\nlet a;\na = 1;\n\nlet b;\nmatch 3 {\n    0 => b = \"zero\",\n    1 => b = \"one\",\n    _ => b = \"many\",\n}\n\nlet c;\nif true {\n    c = 1;\n} else {\n    c = -1;\n}\n```\nUse instead:\n```rust\nlet a = 1;\n\nlet b = match 3 {\n    0 => \"zero\",\n    1 => \"one\",\n    _ => \"many\",\n};\n\nlet c = if true {\n    1\n} else {\n    -1\n};\n```",
     "version": "1.58.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
     }
   },
@@ -4390,7 +4390,7 @@
     "docs": " ### What it does\nChecks for functions taking arguments by value, but not\nconsuming them in its\nbody.\n\n### Why is this bad?\nTaking arguments by reference is more flexible and can\nsometimes avoid\nunnecessary allocations.\n\n### Known problems\n* This lint suggests taking an argument by reference,\nhowever sometimes it is better to let users decide the argument type\n(by using `Borrow` trait, for example), depending on how the function is used.\n\n### Example\n```rust\nfn foo(v: Vec<i32>) {\n    assert_eq!(v.len(), 42);\n}\n```\nshould be\n```rust\nfn foo(v: &[i32]) {\n    assert_eq!(v.len(), 42);\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
     }
   },
@@ -4705,7 +4705,7 @@
     "docs": " ### What it does\nChecks for `\\0` escapes in string and byte literals that look like octal\ncharacter escapes in C.\n\n### Why is this bad?\n\nC and other languages support octal character escapes in strings, where\na backslash is followed by up to three octal digits. For example, `\\033`\nstands for the ASCII character 27 (ESC). Rust does not support this\nnotation, but has the escape code `\\0` which stands for a null\nbyte/character, and any following digits do not form part of the escape\nsequence. Therefore, `\\033` is not a compiler error but the result may\nbe surprising.\n\n### Known problems\nThe actual meaning can be the intended one. `\\x00` can be used in these\ncases to be unambigious.\n\nThe lint does not trigger for format strings in `print!()`, `write!()`\nand friends since the string is already preprocessed when Clippy lints\ncan see it.\n\n# Example\n```rust\n// Bad\nlet one = \"\\033[1m Bold? \\033[0m\";  // \\033 intended as escape\nlet two = \"\\033\\0\";                 // \\033 intended as null-3-3\n\n// Good\nlet one = \"\\x1b[1mWill this be bold?\\x1b[0m\";\nlet two = \"\\x0033\\x00\";\n```",
     "version": "1.58.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
@@ -4840,7 +4840,7 @@
     "docs": " ### What it does\nChecks for usage of `option.map(f)` where f is a function\nor closure that returns the unit type `()`.\n\n### Why is this bad?\nReadability, this can be written more clearly with\nan if let statement\n\n### Example\n```rust\nlet x: Option<String> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\nlet x: Option<String> = do_stuff();\nif let Some(msg) = x {\n    log_err_msg(msg);\n}\n\nif let Some(msg) = x {\n    log_err_msg(format_msg(msg));\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -5050,7 +5050,7 @@
     "docs": " ### What it does\nThis lint warns about the use of literals as `print!`/`println!` args.\n\n### Why is this bad?\nUsing literals as `println!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)\n\n### Known problems\nWill also warn with macro calls as arguments that expand to literals\n-- e.g., `println!(\"{}\", env!(\"FOO\"))`.\n\n### Example\n```rust\nprintln!(\"{}\", \"foo\");\n```\nuse the literal without formatting:\n```rust\nprintln!(\"foo\");\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -5095,7 +5095,7 @@
     "docs": " ### What it does\nThis lint warns when you use `print!()` with a format\nstring that ends in a newline.\n\n### Why is this bad?\nYou should use `println!()` instead, which appends the\nnewline.\n\n### Example\n```rust\nprint!(\"Hello {}!\\n\", name);\n```\nuse println!() instead\n```rust\nprintln!(\"Hello {}!\", name);\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -5230,7 +5230,7 @@
     "docs": " ### What it does\nChecks for exclusive ranges where 1 is added to the\nupper bound, e.g., `x..(y+1)`.\n\n### Why is this bad?\nThe code is more readable with an inclusive range\nlike `x..=y`.\n\n### Known problems\nWill add unnecessary pair of parentheses when the\nexpression is not wrapped in a pair but starts with an opening parenthesis\nand ends with a closing one.\nI.e., `let _ = (f()+1)..(f()+1)` results in `let _ = ((f()+1)..=f())`.\n\nAlso in many cases, inclusive ranges are still slower to run than\nexclusive ranges, because they essentially add an extra branch that\nLLVM may fail to hoist out of the loop.\n\nThis will cause a warning that cannot be fixed if the consumer of the\nrange only accepts a specific range type, instead of the generic\n`RangeBounds` trait\n([#3307](https://github.com/rust-lang/rust-clippy/issues/3307)).\n\n### Example\n```rust\nfor x..(y+1) { .. }\n```\nCould be written as\n```rust\nfor x..=y { .. }\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -5515,7 +5515,7 @@
     "docs": " ### What it does\nChecks for `ref` bindings which create a reference to a reference.\n\n### Why is this bad?\nThe address-of operator at the use site is clearer about the need for a reference.\n\n### Example\n```rust\n// Bad\nlet x = Some(\"\");\nif let Some(ref x) = x {\n    // use `x` here\n}\n\n// Good\nlet x = Some(\"\");\nif let Some(x) = x {\n    // use `&x` here\n}\n```",
     "version": "1.54.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
     }
   },
@@ -5620,7 +5620,7 @@
     "docs": " ### What it does\nChecks for usage of `result.map(f)` where f is a function\nor closure that returns the unit type `()`.\n\n### Why is this bad?\nReadability, this can be written more clearly with\nan if let statement\n\n### Example\n```rust\nlet x: Result<String, String> = do_stuff();\nx.map(log_err_msg);\nx.map(|msg| log_err_msg(format_msg(msg)));\n```\n\nThe correct use would be:\n\n```rust\nlet x: Result<String, String> = do_stuff();\nif let Ok(msg) = x {\n    log_err_msg(msg);\n};\nif let Ok(msg) = x {\n    log_err_msg(format_msg(msg));\n};\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -6865,7 +6865,7 @@
     "docs": " ### What it does\nChecks for passing a unit value as an argument to a function without using a\nunit literal (`()`).\n\n### Why is this bad?\nThis is likely the result of an accidental semicolon.\n\n### Example\n```rust\nfoo({\n    let a = bar();\n    baz(a);\n})\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -7090,7 +7090,7 @@
     "docs": " ### What it does\nChecks for private functions that only return `Ok` or `Some`.\n\n### Why is this bad?\nIt is not meaningful to wrap values when no `None` or `Err` is returned.\n\n### Known problems\nThere can be false positives if the function signature is designed to\nfit some external requirement.\n\n### Example\n```rust\nfn get_cool_number(a: bool, b: bool) -> Option<i32> {\n    if a && b {\n        return Some(50);\n    }\n    if a {\n        Some(0)\n    } else {\n        Some(10)\n    }\n}\n```\nUse instead:\n```rust\nfn get_cool_number(a: bool, b: bool) -> i32 {\n    if a && b {\n        return 50;\n    }\n    if a {\n        0\n    } else {\n        10\n    }\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n\n",
     "version": "1.50.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
@@ -7780,7 +7780,7 @@
     "docs": " ### What it does\nThis lint warns about the use of literals as `write!`/`writeln!` args.\n\n### Why is this bad?\nUsing literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)\n\n### Known problems\nWill also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`.\n\n### Example\n```rust\n// Bad\nwriteln!(buf, \"{}\", \"foo\");\n\n// Good\nwriteln!(buf, \"foo\");\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -7795,7 +7795,7 @@
     "docs": " ### What it does\nThis lint warns when you use `write!()` with a format\nstring that\nends in a newline.\n\n### Why is this bad?\nYou should use `writeln!()` instead, which appends the\nnewline.\n\n### Example\n```rust\n// Bad\nwrite!(buf, \"Hello {}!\\n\", name);\n\n// Good\nwriteln!(buf, \"Hello {}!\", name);\n```",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
     }
   },
@@ -7885,7 +7885,7 @@
     "docs": " ### What it does\nWarns if an integral constant literal starts with `0`.\n\n### Why is this bad?\nIn some languages (including the infamous C language\nand most of its\nfamily), this marks an octal constant. In Rust however, this is a decimal\nconstant. This could\nbe confusing for both the writer and a reader of the constant.\n\n### Example\n\nIn Rust:\n```rust\nfn main() {\n    let a = 0123;\n    println!(\"{}\", a);\n}\n```\n\nprints `123`, while in C:\n\n```c\n#include <stdio.h>\n\nint main() {\n    int a = 0123;\n    printf(\"%d\\n\", a);\n}\n```\n\nprints `83` (as `83 == 0o123` while `123 == 0o173`).",
     "version": "pre 1.29.0",
     "applicability": {
-      "is_multi_part_suggestion": true,
+      "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
     }
   },
