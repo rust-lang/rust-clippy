@@ -742,7 +742,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for collapsible `else { if ... }` expressions\nthat can be collapsed to `else if ...`.\n\n### Why is this bad?\nEach `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.\n\n### Example\n```rust\n\nif x {\n    …\n} else {\n    if y {\n        …\n    }\n}\n```\n\nShould be written:\n\n```rust.ignore\nif x {\n    …\n} else if y {\n    …\n}\n```",
+    "docs": " ### What it does\nChecks for collapsible `else { if ... }` expressions\nthat can be collapsed to `else if ...`.\n\n### Why is this bad?\nEach `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.\n\n### Example\n```rust\n\nif x {\n    …\n} else {\n    if y {\n        …\n    }\n}\n```\n\nShould be written:\n\n```rust\nif x {\n    …\n} else if y {\n    …\n}\n```",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -757,7 +757,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions.\n\n### Why is this bad?\nEach `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.\n\n### Example\n```rust\nif x {\n    if y {\n        …\n    }\n}\n\n```\n\nShould be written:\n\n```rust.ignore\nif x && y {\n    …\n}\n```",
+    "docs": " ### What it does\nChecks for nested `if` statements which can be collapsed\nby `&&`-combining their conditions.\n\n### Why is this bad?\nEach `if`-statement adds one level of nesting, which\nmakes code look more complex than it really is.\n\n### Example\n```rust\nif x {\n    if y {\n        …\n    }\n}\n\n```\n\nShould be written:\n\n```rust\nif x && y {\n    …\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
