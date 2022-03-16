@@ -6725,8 +6725,8 @@
       "path": "src/try_err.rs",
       "line": 45
     },
-    "group": "style",
-    "level": "warn",
+    "group": "restriction",
+    "level": "allow",
     "docs": " ### What it does\nChecks for usages of `Err(x)?`.\n\n### Why is this bad?\nThe `?` operator is designed to allow calls that\ncan fail to be easily chained. For example, `foo()?.bar()` or\n`foo(bar()?)`. Because `Err(x)?` can't be used that way (it will\nalways return), it is more clear to write `return Err(x)`.\n\n### Example\n```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      Err(\"failed\")?;\n    }\n    Ok(0)\n}\n```\nCould be written:\n\n```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      return Err(\"failed\".into());\n    }\n    Ok(0)\n}\n```",
     "version": "1.38.0",
     "applicability": {
