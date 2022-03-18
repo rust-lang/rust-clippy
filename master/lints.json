@@ -420,10 +420,25 @@
     }
   },
   {
+    "id": "cast_enum_constructor",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 471
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for casts from an enum tuple constructor to an integer.\n\n### Why is this bad?\nThe cast is easily confused with casting a c-like enum value to an integer.\n\n### Example\n```rust\nenum E { X(i32) };\nlet _ = E::X as usize;\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 408
+      "line": 409
     },
     "group": "suspicious",
     "level": "warn",
@@ -438,7 +453,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 147
+      "line": 148
     },
     "group": "pedantic",
     "level": "allow",
@@ -453,7 +468,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 90
+      "line": 91
     },
     "group": "pedantic",
     "level": "allow",
@@ -468,7 +483,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 114
+      "line": 115
     },
     "group": "pedantic",
     "level": "allow",
@@ -483,7 +498,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 45
+      "line": 46
     },
     "group": "pedantic",
     "level": "allow",
@@ -498,7 +513,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 201
+      "line": 202
     },
     "group": "pedantic",
     "level": "allow",
@@ -513,7 +528,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 332
+      "line": 333
     },
     "group": "correctness",
     "level": "deny",
@@ -528,7 +543,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 67
+      "line": 68
     },
     "group": "pedantic",
     "level": "allow",
@@ -543,7 +558,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 452
+      "line": 453
     },
     "group": "correctness",
     "level": "deny",
@@ -558,7 +573,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 360
+      "line": 361
     },
     "group": "complexity",
     "level": "warn",
@@ -1893,7 +1908,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 229
+      "line": 230
     },
     "group": "style",
     "level": "warn",
@@ -1908,7 +1923,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 297
+      "line": 298
     },
     "group": "restriction",
     "level": "allow",
@@ -1923,7 +1938,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 260
+      "line": 261
     },
     "group": "style",
     "level": "warn",
@@ -5133,7 +5148,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 389
+      "line": 390
     },
     "group": "pedantic",
     "level": "allow",
@@ -6918,7 +6933,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 173
+      "line": 174
     },
     "group": "complexity",
     "level": "warn",
