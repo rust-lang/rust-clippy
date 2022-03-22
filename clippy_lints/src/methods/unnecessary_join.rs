@@ -18,13 +18,10 @@ pub(super) fn check<'tcx>(
     recv2: &'tcx hir::Expr<'tcx>,
 ) {
     let applicability = Applicability::MachineApplicable;
-
+    let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
+    let collect_output_adjusted_type = &context.typeck_results().expr_ty_adjusted(join_self_arg);
     if_chain! {
-        // the current join method is being called on a vector
-        // e.g .join("")
-        let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
         // the turbofish for collect is ::<Vec<String>>
-        let collect_output_adjusted_type = &context.typeck_results().expr_ty_adjusted(join_self_arg);
         if let ty::Ref(_, ref_type, _) = collect_output_adjusted_type.kind();
         if let ty::Slice(slice) = ref_type.kind();
         if is_type_diagnostic_item(context, *slice, sym::String);
@@ -32,7 +29,6 @@ pub(super) fn check<'tcx>(
         if let ExprKind::Lit(spanned) = &join_arg.kind;
         if let LitKind::Str(symbol, _) = spanned.node;
         if symbol.is_empty();
-
         then {
             span_lint_and_sugg(
                 context,
