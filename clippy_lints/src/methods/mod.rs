@@ -2456,9 +2456,9 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("is_file", []) => filetype_is_file::check(cx, expr, recv),
             ("is_none", []) => check_is_some_is_none(cx, expr, recv, false),
             ("is_some", []) => check_is_some_is_none(cx, expr, recv, true),
-            ("join", [_arg]) => {
+            ("join", [_]) => {
                 if let Some(("collect", ..)) = method_call(recv) {
-                    unnecessary_join::check(cx, recv);
+                    unnecessary_join::check(cx, expr);
                 }
             },
             ("last", args @ []) | ("skip", args @ [_]) => {

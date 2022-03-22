@@ -1,63 +1,45 @@
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::ty::is_type_diagnostic_item;
-use clippy_utils::{get_parent_expr, get_parent_node};
 use hir::ExprKind;
+use rustc_ast::ast::LitKind;
+use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
+use rustc_middle::ty;
 use rustc_span::sym;
 
-// use super::UNNECESSARY_JOIN;
+use super::UNNECESSARY_JOIN;
 
-pub(super) fn check<'tcx>(context: &LateContext<'tcx>, expression: &'tcx hir::Expr<'tcx>) {
-    // this section should not pass the dogfood test
-    // TODO: remove and use a proper test
-    let vector = vec!["hello", "world"];
-    let output = vector
-        .iter()
-        .map(|item| item.to_uppercase())
-        .collect::<Vec<String>>()
-        .join("");
-    println!("{}", output);
-
-    // let mut applicability = Applicability::MachineApplicable;
-
-    let parent = get_parent_node(context.tcx, expression.hir_id);
-
-    if parent.is_none() {
-        return;
-    }
+pub(super) fn check<'tcx>(context: &LateContext<'tcx>, join: &'tcx hir::Expr<'tcx>) {
+    let applicability = Applicability::MachineApplicable;
 
     if_chain! {
-        let current_method_target_type = context.typeck_results().expr_ty(expression);
+        if let ExprKind::MethodCall(_path, [join_self_arg, join_arg], _span) = &join.kind;
+        let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
         // the current join method is being called on a vector
         // e.g .join("")
-        if is_type_diagnostic_item(context, current_method_target_type, sym::Vec);
-        if let Some(parent_expression) = get_parent_expr(context, expression);
-        if let ExprKind::MethodCall(_, [self_argument, ..], _) = &parent_expression.kind;
-        // the parent collect method is being called on an iterator
-        // e.g. .collect<Vec<String>>()
-        let previous_method_target_type = context.typeck_results().expr_ty(self_argument);
-        if is_type_diagnostic_item(context, previous_method_target_type, sym::Vec);
-
-        // check that the argument for join is an empty string
-        // check that the turbofish for collect is <Vec<String>> or <Vec<_>> if the iterator has String items
+        if is_type_diagnostic_item(context, collect_output_type, sym::Vec);
+        // the argument for join is ""
+        if let ExprKind::Lit(spanned) = &join_arg.kind;
+        if let LitKind::Str(symbol, _) = spanned.node;
+        if symbol.is_empty();
+        // the turbofish for collect is ::<Vec<String>>
+        let collect_output_adjusted_type = &context.typeck_results().expr_ty_adjusted(join_self_arg);
+        if let ty::Ref(_, ref_type, _) = collect_output_adjusted_type.kind();
+        if let ty::Slice(slice) = ref_type.kind();
+        if is_type_diagnostic_item(context, *slice, sym::String);
         then {
-            // span_lint_and_sugg(
-            //     cx,
-            //     UNNECESSARY_JOIN,
-            //     span,
-            //     &format!(
-            //         "called `.collect<Vec<String>>().join("")` on a {1}. Using `.collect::<String>()` is
-            // more clear and more concise",          caller_type
-            //     ),
-            //     "try this",
-            //     format!(
-            //         "{}.collect::<String>()",
-            //         snippet_with_applicability(cx, recv.span, "..", &mut applicability),
-            //     ),
-            //     applicability,
-            // );
-            dbg!("{:#?} {:#?}", expression, parent);
-            panic!(".collect().join() called on an iterator");
+            span_lint_and_sugg(
+                context,
+                UNNECESSARY_JOIN,
+                join.span,
+                &format!(
+                    "called `.collect<Vec<String>>().join(\"\")` on a {}. Using `.collect::<String>()` is clearer and more concise", collect_output_type,
+                ),
+                "try using",
+                ".collect::<String>()".to_owned(),
+                applicability,
+            );
         }
     }
 }
