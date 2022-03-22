@@ -14,10 +14,10 @@ pub(super) fn check<'tcx>(context: &LateContext<'tcx>, join: &'tcx hir::Expr<'tc
     let applicability = Applicability::MachineApplicable;
 
     if_chain! {
-        if let ExprKind::MethodCall(_path, [join_self_arg, join_arg], _span) = &join.kind;
-        let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
         // the current join method is being called on a vector
         // e.g .join("")
+        if let ExprKind::MethodCall(_path, [join_self_arg, join_arg], _span) = &join.kind;
+        let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
         if is_type_diagnostic_item(context, collect_output_type, sym::Vec);
         // the argument for join is ""
         if let ExprKind::Lit(spanned) = &join_arg.kind;
