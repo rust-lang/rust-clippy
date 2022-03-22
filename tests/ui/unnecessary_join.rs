@@ -1,3 +1,5 @@
+// run-rustfix
+
 #![warn(clippy::unnecessary_join)]
 
 fn main() {
