@@ -2069,7 +2069,7 @@ declare_clippy_lint! {
     /// let output = vector.iter().map(|item| item.to_uppercase()).collect::<String>();
     /// println!("{}", output);
     /// ```
-    #[clippy::version = "pre 1.29.0"]
+    #[clippy::version = "pre 1.61.0"]
     pub UNNECESSARY_JOIN,
     perf,
     "using `.collect::<Vec<String>>().join(\"\")` on an iterator"
