@@ -7,16 +7,22 @@ use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::sym;
+use rustc_span::Span;
 
 use super::UNNECESSARY_JOIN;
 
-pub(super) fn check<'tcx>(context: &LateContext<'tcx>, join: &'tcx hir::Expr<'tcx>) {
+pub(super) fn check<'tcx>(
+    context: &LateContext<'tcx>,
+    join_self_arg: &'tcx hir::Expr<'tcx>,
+    join_arg: &'tcx hir::Expr<'tcx>,
+    collect_span: Span,
+    expression: &'tcx hir::Expr<'tcx>,
+) {
     let applicability = Applicability::MachineApplicable;
 
     if_chain! {
         // the current join method is being called on a vector
         // e.g .join("")
-        if let ExprKind::MethodCall(_path, [join_self_arg, join_arg], _span) = &join.kind;
         let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
         // the turbofish for collect is ::<Vec<String>>
         let collect_output_adjusted_type = &context.typeck_results().expr_ty_adjusted(join_self_arg);
@@ -32,7 +38,7 @@ pub(super) fn check<'tcx>(context: &LateContext<'tcx>, join: &'tcx hir::Expr<'tc
             span_lint_and_sugg(
                 context,
                 UNNECESSARY_JOIN,
-                join.span,
+                collect_span.with_hi(expression.span.hi()),
                 &format!(
                     "called `.collect<Vec<String>>().join(\"\")` on a {}", collect_output_type,
                 ),
