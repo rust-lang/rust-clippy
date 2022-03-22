@@ -2055,7 +2055,7 @@ declare_clippy_lint! {
     /// Checks for use of `.collect::<Vec<String>>().join("")` on iterators.
     ///
     /// ### Why is this bad?
-    /// `.collect::<String>()` is more performant and cleaner
+    /// `.collect::<String>()` is more performant and more concise
     ///
     /// ### Example
     /// ```rust
