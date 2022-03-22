@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::{sym, Span};
+use rustc_span::sym;
 
 use super::UNNECESSARY_JOIN;
 

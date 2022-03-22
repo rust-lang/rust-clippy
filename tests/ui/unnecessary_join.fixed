@@ -7,16 +7,14 @@ fn main() {
     let vector = vec!["hello", "world"];
     let output = vector
         .iter()
-        .map(|item| item.to_uppercase())
-        .collect::<String>();
+        .map(|item| item.to_uppercase()).collect::<String>();
     println!("{}", output);
 
     // should be linted
     let vector = vec!["hello", "world"];
     let output = vector
         .iter()
-        .map(|item| item.to_uppercase())
-        .collect::<String>();
+        .map(|item| item.to_uppercase()).collect::<String>();
     println!("{}", output);
 
     // should not be linted
