@@ -27,16 +27,16 @@ pub(super) fn check<'tcx>(context: &LateContext<'tcx>, expression: &'tcx hir::Ex
     }
 
     if_chain! {
-        let current_ty = context.typeck_results().expr_ty(expression);
+        let current_method_target_type = context.typeck_results().expr_ty(expression);
         // the current join method is being called on a vector
         // e.g .join("")
-        if is_type_diagnostic_item(context, current_ty, sym::Vec);
-        if let Some(parent) = get_parent_expr(context, expression);
-        if let ExprKind::MethodCall(_, [self_arg, ..], _) = &parent.kind;
+        if is_type_diagnostic_item(context, current_method_target_type, sym::Vec);
+        if let Some(parent_expression) = get_parent_expr(context, expression);
+        if let ExprKind::MethodCall(_, [self_argument, ..], _) = &parent_expression.kind;
         // the parent collect method is being called on an iterator
         // e.g. .collect<Vec<String>>()
-        let caller_ty = context.typeck_results().expr_ty(self_arg);
-        if is_type_diagnostic_item(context, caller_ty, sym::Vec);
+        let previous_method_target_type = context.typeck_results().expr_ty(self_argument);
+        if is_type_diagnostic_item(context, previous_method_target_type, sym::Vec);
 
         // check that the argument for join is an empty string
         // check that the turbofish for collect is <Vec<String>> or <Vec<_>> if the iterator has String items
