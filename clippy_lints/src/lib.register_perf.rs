@@ -19,6 +19,7 @@ store.register_group(true, "clippy::perf", Some("clippy_perf"), vec![
     LintId::of(methods::MANUAL_STR_REPEAT),
     LintId::of(methods::OR_FUN_CALL),
     LintId::of(methods::SINGLE_CHAR_PATTERN),
+    LintId::of(methods::UNNECESSARY_JOIN),
     LintId::of(methods::UNNECESSARY_TO_OWNED),
     LintId::of(misc::CMP_OWNED),
     LintId::of(redundant_clone::REDUNDANT_CLONE),
