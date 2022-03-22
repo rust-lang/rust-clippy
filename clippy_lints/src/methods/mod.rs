@@ -2052,10 +2052,10 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for use of `.collect::<Vec<String>>.join(\"\")` on iterators.
+    /// Checks for use of `.collect::<Vec<String>>().join(\"\")` on iterators.
     ///
     /// ### Why is this bad?
-    /// `.collect::<String>` is more performant and cleaner
+    /// `.collect::<String>()` is more performant and cleaner
     ///
     /// ### Example
     /// ```rust
