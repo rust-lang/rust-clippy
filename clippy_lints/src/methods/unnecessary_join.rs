@@ -15,7 +15,9 @@ pub(super) fn check<'tcx>(
     join_self_arg: &'tcx hir::Expr<'tcx>,
     join_arg: &'tcx hir::Expr<'tcx>,
     collect_span: Span,
-    expression: &'tcx hir::Expr<'tcx>,
+    recv_span: Span,
+    expr: &'tcx hir::Expr<'tcx>,
+    recv2: &'tcx hir::Expr<'tcx>,
 ) {
     let applicability = Applicability::MachineApplicable;
 
@@ -37,7 +39,7 @@ pub(super) fn check<'tcx>(
             span_lint_and_sugg(
                 context,
                 UNNECESSARY_JOIN,
-                collect_span.with_hi(expression.span.hi()),
+                recv2.span.with_lo(expr.span.hi()),
                 &format!(
                     "called `.collect<Vec<String>>().join(\"\")` on a {}", collect_output_type,
                 ),
