@@ -34,7 +34,7 @@ pub(super) fn check<'tcx>(context: &LateContext<'tcx>, join: &'tcx hir::Expr<'tc
                 UNNECESSARY_JOIN,
                 join.span,
                 &format!(
-                    "called `.collect<Vec<String>>().join(\"\")` on a {}. Using `.collect::<String>()` is more performant and more concise", collect_output_type,
+                    "called `.collect<Vec<String>>().join(\"\")` on a {}", collect_output_type,
                 ),
                 "try using",
                 ".collect::<String>()".to_owned(),
