@@ -14,8 +14,6 @@ pub(super) fn check<'tcx>(
     context: &LateContext<'tcx>,
     join_self_arg: &'tcx hir::Expr<'tcx>,
     join_arg: &'tcx hir::Expr<'tcx>,
-    collect_span: Span,
-    recv_span: Span,
     expr: &'tcx hir::Expr<'tcx>,
     recv2: &'tcx hir::Expr<'tcx>,
 ) {
