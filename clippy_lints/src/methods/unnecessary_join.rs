@@ -18,16 +18,16 @@ pub(super) fn check<'tcx>(context: &LateContext<'tcx>, join: &'tcx hir::Expr<'tc
         // e.g .join("")
         if let ExprKind::MethodCall(_path, [join_self_arg, join_arg], _span) = &join.kind;
         let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
-        if is_type_diagnostic_item(context, collect_output_type, sym::Vec);
-        // the argument for join is ""
-        if let ExprKind::Lit(spanned) = &join_arg.kind;
-        if let LitKind::Str(symbol, _) = spanned.node;
-        if symbol.is_empty();
         // the turbofish for collect is ::<Vec<String>>
         let collect_output_adjusted_type = &context.typeck_results().expr_ty_adjusted(join_self_arg);
         if let ty::Ref(_, ref_type, _) = collect_output_adjusted_type.kind();
         if let ty::Slice(slice) = ref_type.kind();
         if is_type_diagnostic_item(context, *slice, sym::String);
+        // the argument for join is ""
+        if let ExprKind::Lit(spanned) = &join_arg.kind;
+        if let LitKind::Str(symbol, _) = spanned.node;
+        if symbol.is_empty();
+
         then {
             span_lint_and_sugg(
                 context,
