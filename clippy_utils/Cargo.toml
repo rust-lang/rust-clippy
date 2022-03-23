@@ -4,6 +4,23 @@ version = "0.1.61"
 edition = "2021"
 publish = false
 
+[target.'cfg(NOT_A_PLATFORM)'.dependencies]
+rustc_ast = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_ast" }
+rustc_ast_pretty = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_ast_pretty" }
+rustc_attr = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_attr" }
+rustc_data_structures = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_data_structures" }
+rustc_errors = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_errors" }
+rustc_hir = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_hir" }
+rustc_infer = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_infer" }
+rustc_lexer = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_lexer" }
+rustc_lint = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_lint" }
+rustc_middle = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_middle" }
+rustc_session = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_session" }
+rustc_span = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_span" }
+rustc_target = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_target" }
+rustc_trait_selection = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_trait_selection" }
+rustc_typeck = { path = "/Users/yoavlavi/dev/rust/compiler/rustc_typeck" }
+
 [dependencies]
 arrayvec = { version = "0.7", default-features = false }
 if_chain = "1.0"

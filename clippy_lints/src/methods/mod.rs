@@ -2055,7 +2055,7 @@ declare_clippy_lint! {
     /// Checks for use of `.collect::<Vec<String>>().join("")` on iterators.
     ///
     /// ### Why is this bad?
-    /// `.collect::<String>()` is more performant and more concise
+    /// `.collect::<String>()` is more concise and usually more performant
     ///
     /// ### Example
     /// ```rust
@@ -2457,8 +2457,8 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("is_none", []) => check_is_some_is_none(cx, expr, recv, false),
             ("is_some", []) => check_is_some_is_none(cx, expr, recv, true),
             ("join", [join_arg]) => {
-                if let Some(("collect", [recv2], ..)) = method_call(recv) {
-                    unnecessary_join::check(cx, recv, join_arg, expr, recv2);
+                if let Some(("collect", _, span)) = method_call(recv) {
+                    unnecessary_join::check(cx, recv, join_arg, expr, span);
                 }
             },
             ("last", args @ []) | ("skip", args @ [_]) => {

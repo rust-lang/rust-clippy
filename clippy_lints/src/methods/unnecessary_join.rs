@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::sym;
+use rustc_span::{Span, sym};
 
 use super::UNNECESSARY_JOIN;
 
@@ -15,7 +15,7 @@ pub(super) fn check<'tcx>(
     join_self_arg: &'tcx hir::Expr<'tcx>,
     join_arg: &'tcx hir::Expr<'tcx>,
     expr: &'tcx hir::Expr<'tcx>,
-    recv2: &'tcx hir::Expr<'tcx>,
+    span: Span,
 ) {
     let applicability = Applicability::MachineApplicable;
     let collect_output_type = context.typeck_results().expr_ty(join_self_arg);
@@ -33,12 +33,12 @@ pub(super) fn check<'tcx>(
             span_lint_and_sugg(
                 context,
                 UNNECESSARY_JOIN,
-                recv2.span.with_lo(expr.span.hi()),
+                span.with_hi(expr.span.hi()),
                 &format!(
                     "called `.collect<Vec<String>>().join(\"\")` on a {}", collect_output_type,
                 ),
                 "try using",
-                ".collect::<String>()".to_owned(),
+                "collect::<String>()".to_owned(),
                 applicability,
             );
         }
