@@ -17,7 +17,7 @@ pub(super) fn check<'tcx>(
     span: Span,
 ) {
     let applicability = Applicability::MachineApplicable;
-    let collect_output_adjusted_type = &context.typeck_results().expr_ty_adjusted(join_self_arg);
+    let collect_output_adjusted_type = context.typeck_results().expr_ty_adjusted(join_self_arg);
     if_chain! {
         // the turbofish for collect is ::<Vec<String>>
         if let Ref(_, ref_type, _) = collect_output_adjusted_type.kind();
