@@ -1,7 +1,5 @@
 // run-rustfix
 
-#![warn(clippy::unnecessary_join)]
-
 fn main() {
     // should be linted
     let vector = vec!["hello", "world"];
