@@ -11,9 +11,9 @@ use super::UNNECESSARY_JOIN;
 
 pub(super) fn check<'tcx>(
     context: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
     join_self_arg: &'tcx Expr<'tcx>,
     join_arg: &'tcx Expr<'tcx>,
-    expr: &'tcx Expr<'tcx>,
     span: Span,
 ) {
     let applicability = Applicability::MachineApplicable;

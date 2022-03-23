@@ -2458,7 +2458,7 @@ fn check_methods<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, msrv: Optio
             ("is_some", []) => check_is_some_is_none(cx, expr, recv, true),
             ("join", [join_arg]) => {
                 if let Some(("collect", _, span)) = method_call(recv) {
-                    unnecessary_join::check(cx, recv, join_arg, expr, span);
+                    unnecessary_join::check(cx, expr, recv, join_arg, span);
                 }
             },
             ("last", args @ []) | ("skip", args @ [_]) => {
