@@ -352,7 +352,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": " ### What it does\nChecks if the `if` and `else` block contain shared code that can be\nmoved out of the blocks.\n\n### Why is this bad?\nDuplicate code is less maintainable.\n\n### Known problems\n* The lint doesn't check if the moved expressions modify values that are beeing used in\n  the if condition. The suggestion can in that case modify the behavior of the program.\n  See [rust-clippy#7452](https://github.com/rust-lang/rust-clippy/issues/7452)\n\n### Example\n```rust\nlet foo = if … {\n    println!(\"Hello World\");\n    13\n} else {\n    println!(\"Hello World\");\n    42\n};\n```\n\nCould be written as:\n```rust\nprintln!(\"Hello World\");\nlet foo = if … {\n    13\n} else {\n    42\n};\n```",
+    "docs": " ### What it does\nChecks if the `if` and `else` block contain shared code that can be\nmoved out of the blocks.\n\n### Why is this bad?\nDuplicate code is less maintainable.\n\n### Known problems\n* The lint doesn't check if the moved expressions modify values that are being used in\n  the if condition. The suggestion can in that case modify the behavior of the program.\n  See [rust-clippy#7452](https://github.com/rust-lang/rust-clippy/issues/7452)\n\n### Example\n```rust\nlet foo = if … {\n    println!(\"Hello World\");\n    13\n} else {\n    println!(\"Hello World\");\n    42\n};\n```\n\nCould be written as:\n```rust\nprintln!(\"Hello World\");\nlet foo = if … {\n    13\n} else {\n    42\n};\n```",
     "version": "1.53.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1867,7 +1867,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nChecks for statements of the form `(a - b) < f32::EPSILON` or\n`(a - b) < f64::EPSILON`. Notes the missing `.abs()`.\n\n### Why is this bad?\nThe code without `.abs()` is more likely to have a bug.\n\n### Known problems\nIf the user can ensure that b is larger than a, the `.abs()` is\ntechnically unneccessary. However, it will make the code more robust and doesn't have any\nlarge performance implications. If the abs call was deliberately left out for performance\nreasons, it is probably better to state this explicitly in the code, which then can be done\nwith an allow.\n\n### Example\n```rust\npub fn is_roughly_equal(a: f32, b: f32) -> bool {\n    (a - b) < f32::EPSILON\n}\n```\nUse instead:\n```rust\npub fn is_roughly_equal(a: f32, b: f32) -> bool {\n    (a - b).abs() < f32::EPSILON\n}\n```",
+    "docs": " ### What it does\nChecks for statements of the form `(a - b) < f32::EPSILON` or\n`(a - b) < f64::EPSILON`. Notes the missing `.abs()`.\n\n### Why is this bad?\nThe code without `.abs()` is more likely to have a bug.\n\n### Known problems\nIf the user can ensure that b is larger than a, the `.abs()` is\ntechnically unnecessary. However, it will make the code more robust and doesn't have any\nlarge performance implications. If the abs call was deliberately left out for performance\nreasons, it is probably better to state this explicitly in the code, which then can be done\nwith an allow.\n\n### Example\n```rust\npub fn is_roughly_equal(a: f32, b: f32) -> bool {\n    (a - b) < f32::EPSILON\n}\n```\nUse instead:\n```rust\npub fn is_roughly_equal(a: f32, b: f32) -> bool {\n    (a - b).abs() < f32::EPSILON\n}\n```",
     "version": "1.48.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6532,7 +6532,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": " ### What it does\nDisplays a warning when a struct with a trailing zero-sized array is declared without a `repr` attribute.\n\n### Why is this bad?\nZero-sized arrays aren't very useful in Rust itself, so such a struct is likely being created to pass to C code or in some other situation where control over memory layout matters (for example, in conjuction with manual allocation to make it easy to compute the offset of the array). Either way, `#[repr(C)]` (or another `repr` attribute) is needed.\n\n### Example\n```rust\nstruct RarelyUseful {\n    some_field: u32,\n    last: [u32; 0],\n}\n```\n\nUse instead:\n```rust\n#[repr(C)]\nstruct MoreOftenUseful {\n    some_field: usize,\n    last: [u32; 0],\n}\n```",
+    "docs": " ### What it does\nDisplays a warning when a struct with a trailing zero-sized array is declared without a `repr` attribute.\n\n### Why is this bad?\nZero-sized arrays aren't very useful in Rust itself, so such a struct is likely being created to pass to C code or in some other situation where control over memory layout matters (for example, in conjunction with manual allocation to make it easy to compute the offset of the array). Either way, `#[repr(C)]` (or another `repr` attribute) is needed.\n\n### Example\n```rust\nstruct RarelyUseful {\n    some_field: u32,\n    last: [u32; 0],\n}\n```\n\nUse instead:\n```rust\n#[repr(C)]\nstruct MoreOftenUseful {\n    some_field: usize,\n    last: [u32; 0],\n}\n```",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6547,7 +6547,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for cases where generics are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.\n\n### Why is this bad?\nDuplicate bounds makes the code\nless readable than specifing them only once.\n\n### Example\n```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nCould be written as:\n\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n```\nor\n\n```rust\nfn func<T>(arg: T) where T: Clone + Default {}\n```",
+    "docs": " ### What it does\nChecks for cases where generics are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.\n\n### Why is this bad?\nDuplicate bounds makes the code\nless readable than specifying them only once.\n\n### Example\n```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nCould be written as:\n\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n```\nor\n\n```rust\nfn func<T>(arg: T) where T: Clone + Default {}\n```",
     "version": "1.47.0",
     "applicability": {
       "is_multi_part_suggestion": false,
