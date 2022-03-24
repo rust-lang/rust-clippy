@@ -2076,7 +2076,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.61.0"]
     pub UNNECESSARY_JOIN,
     pedantic,
-    r#"using `.collect::<Vec<String>>().join("")` on an iterator"#
+    "using `.collect::<Vec<String>>().join(\"\")` on an iterator"
 }
 
 pub struct Methods {
