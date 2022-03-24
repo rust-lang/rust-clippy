@@ -2069,9 +2069,13 @@ declare_clippy_lint! {
     /// let output = vector.iter().map(|item| item.to_uppercase()).collect::<String>();
     /// println!("{}", output);
     /// ```
+    /// ### Known problems
+    /// While `.collect::<String>()` is more performant in most cases, there are cases where
+    /// using `.collect::<String>()` over `.collect::<Vec<String>>().join("")`
+    /// will prevent loop unrolling and will result in a negative performance impact.
     #[clippy::version = "1.61.0"]
     pub UNNECESSARY_JOIN,
-    perf,
+    pedantic,
     r#"using `.collect::<Vec<String>>().join("")` on an iterator"#
 }
 
