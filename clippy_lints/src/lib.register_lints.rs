@@ -515,6 +515,7 @@ store.register_lints(&[
     single_component_path_imports::SINGLE_COMPONENT_PATH_IMPORTS,
     size_of_in_element_count::SIZE_OF_IN_ELEMENT_COUNT,
     slow_vector_initialization::SLOW_VECTOR_INITIALIZATION,
+    static_items_large_align::STATIC_ITEMS_LARGE_ALIGN,
     std_instead_of_core::ALLOC_INSTEAD_OF_CORE,
     std_instead_of_core::STD_INSTEAD_OF_ALLOC,
     std_instead_of_core::STD_INSTEAD_OF_CORE,

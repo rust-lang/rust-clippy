@@ -87,6 +87,7 @@ store.register_group(true, "clippy::pedantic", Some("clippy_pedantic"), vec![
     LintId::of(ref_option_ref::REF_OPTION_REF),
     LintId::of(return_self_not_must_use::RETURN_SELF_NOT_MUST_USE),
     LintId::of(semicolon_if_nothing_returned::SEMICOLON_IF_NOTHING_RETURNED),
+    LintId::of(static_items_large_align::STATIC_ITEMS_LARGE_ALIGN),
     LintId::of(strings::STRING_ADD_ASSIGN),
     LintId::of(transmute::TRANSMUTE_PTR_TO_PTR),
     LintId::of(types::LINKEDLIST),

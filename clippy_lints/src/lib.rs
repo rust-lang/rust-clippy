@@ -356,6 +356,7 @@ mod single_char_lifetime_names;
 mod single_component_path_imports;
 mod size_of_in_element_count;
 mod slow_vector_initialization;
+mod static_items_large_align;
 mod std_instead_of_core;
 mod strings;
 mod strlen_on_c_strings;
@@ -902,6 +903,8 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| Box::new(unused_peekable::UnusedPeekable));
     store.register_early_pass(|| Box::new(multi_assignments::MultiAssignments));
     store.register_late_pass(|| Box::new(bool_to_int_with_if::BoolToIntWithIf));
+    let page_size = conf.page_size;
+    store.register_late_pass(move || Box::new(static_items_large_align::StaticItemsLargeAlign { page_size }));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

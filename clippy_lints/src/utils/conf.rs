@@ -383,6 +383,11 @@ define_Conf! {
     ///
     /// The maximum size of the `Err`-variant in a `Result` returned from a function
     (large_error_threshold: u64 = 128),
+    /// Lint: STATIC_ITEMS_LARGE_ALIGN.
+    ///
+    /// The page size of the target platform. It is useful when we know the exact page size and know that
+    /// it could be fulfilled (e.g., when we are targeting embedded platforms).
+    (page_size: u64 = 4096),
 }
 
 /// Search for the configuration file.
