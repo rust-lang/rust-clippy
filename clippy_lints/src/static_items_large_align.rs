@@ -47,7 +47,6 @@ impl LateLintPass<'_> for StaticItemsLargeAlign {
             if let ItemKind::Static(hir_ty, _, _) = item.kind;
             let ty = hir_ty_to_ty(cx.tcx, hir_ty);
             if let Some(adt_ref) = self.check_ty_alignment(cx.tcx, ty);
-            let def_span = cx.tcx.def_span(adt_ref.did());
             then {
                 span_lint_and_note(
                     cx,
@@ -55,7 +54,7 @@ impl LateLintPass<'_> for StaticItemsLargeAlign {
                     item.span,
                     "this static item (itself or its subfield) has large type alignment, which may not be fulfilled,\n\
                     for more information, see <https://github.com/rust-lang/rust/issues/70022>",
-                    Some(def_span),
+                    Some(cx.tcx.def_span(adt_ref.did())),
                     format!("this type has an alignment larger than page size ({}KB)", self.page_size/1024).as_str()
                 );
             }
