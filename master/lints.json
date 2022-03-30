@@ -840,6 +840,21 @@
     }
   },
   {
+    "id": "crate_in_macro_def",
+    "id_span": {
+      "path": "src/crate_in_macro_def.rs",
+      "line": 47
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for use of `crate` as opposed to `$crate` in a macro definition.\n\n### Why is this bad?\n`crate` refers to the macro call's crate, whereas `$crate` refers to the macro definition's\ncrate. Rarely is the former intended. See:\nhttps://doc.rust-lang.org/reference/macros-by-example.html#hygiene\n\n### Example\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\nUse instead:\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", $crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\n\nNote that if the use of `crate` is intentional, an `allow` attribute can be applied to the\nmacro definition, e.g.:\n```rust\n#[allow(clippy::crate_in_macro_def)]\nmacro_rules! ok { ... crate::foo ... }\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "create_dir",
     "id_span": {
       "path": "src/create_dir.rs",
