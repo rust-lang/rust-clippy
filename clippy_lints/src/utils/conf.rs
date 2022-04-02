@@ -387,7 +387,7 @@ define_Conf! {
     ///
     /// The page size of the target platform. It is useful when we know the exact page size and know that
     /// it could be fulfilled (e.g., when we are targeting embedded platforms).
-    (page_size: u64 = 4096),
+    (page_size: u64 = 0x1000),
 }
 
 /// Search for the configuration file.

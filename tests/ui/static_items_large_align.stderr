@@ -1,94 +1,235 @@
-error: this static item (itself or its subfield) has large type alignment, which may not be fulfilled,
-       for more information, see <https://github.com/rust-lang/rust/issues/70022>
-  --> $DIR/static_items_large_align.rs:20:1
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:24:1
    |
 LL | static X: Aligned = Aligned(0);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: `-D clippy::static-items-large-align` implied by `-D warnings`
-note: this type has an alignment larger than page size (4KB)
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
    | ^^^^^^^^^^^^^^^^^^^
 
-error: this static item (itself or its subfield) has large type alignment, which may not be fulfilled,
-       for more information, see <https://github.com/rust-lang/rust/issues/70022>
-  --> $DIR/static_items_large_align.rs:22:1
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:26:1
    |
 LL | static X_REF: &Aligned = &Aligned(0);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: this type has an alignment larger than page size (4KB)
+note: this reference contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:26:15
+   |
+LL | static X_REF: &Aligned = &Aligned(0);
+   |               ^^^^^^^^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
    | ^^^^^^^^^^^^^^^^^^^
 
-error: this static item (itself or its subfield) has large type alignment, which may not be fulfilled,
-       for more information, see <https://github.com/rust-lang/rust/issues/70022>
-  --> $DIR/static_items_large_align.rs:24:1
-   |
-LL | static ARRAY: [Aligned; 10] = [Aligned(0); 10];
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-note: this type has an alignment larger than page size (4KB)
-  --> $DIR/static_items_large_align.rs:7:1
-   |
-LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
-
-error: this static item (itself or its subfield) has large type alignment, which may not be fulfilled,
-       for more information, see <https://github.com/rust-lang/rust/issues/70022>
-  --> $DIR/static_items_large_align.rs:26:1
-   |
-LL | static TUPLE: (u8, Aligned) = (0, Aligned(0));
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-note: this type has an alignment larger than page size (4KB)
-  --> $DIR/static_items_large_align.rs:7:1
-   |
-LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
-
-error: this static item (itself or its subfield) has large type alignment, which may not be fulfilled,
-       for more information, see <https://github.com/rust-lang/rust/issues/70022>
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
   --> $DIR/static_items_large_align.rs:28:1
+   |
+LL | static X_PTR: AlignedPtr = AlignedPtr(&Aligned(0) as *const _);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: struct `AlignedPtr` contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:18:1
+   |
+LL | struct AlignedPtr(*const Aligned);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
+  --> $DIR/static_items_large_align.rs:7:1
+   |
+LL | struct Aligned(u8);
+   | ^^^^^^^^^^^^^^^^^^^
+
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:30:1
    |
 LL | static XW: AlignedWrapper = AlignedWrapper { f: 0, g: Aligned(0) };
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: this type has an alignment larger than page size (4KB)
+note: struct `AlignedWrapper` contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:9:1
+   |
+LL | / struct AlignedWrapper {
+LL | |     f: u8,
+LL | |     g: Aligned,
+LL | | }
+   | |_^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
    | ^^^^^^^^^^^^^^^^^^^
 
-error: this static item (itself or its subfield) has large type alignment, which may not be fulfilled,
-       for more information, see <https://github.com/rust-lang/rust/issues/70022>
-  --> $DIR/static_items_large_align.rs:30:1
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:32:1
+   |
+LL | static ARRAY: [Aligned; 10] = [Aligned(0); 10];
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: this array contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:32:15
+   |
+LL | static ARRAY: [Aligned; 10] = [Aligned(0); 10];
+   |               ^^^^^^^^^^^^^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
+  --> $DIR/static_items_large_align.rs:7:1
+   |
+LL | struct Aligned(u8);
+   | ^^^^^^^^^^^^^^^^^^^
+
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:34:1
+   |
+LL | static TUPLE: (u8, (Aligned, u8)) = (0, (Aligned(0), 0));
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: this tuple contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:34:15
+   |
+LL | static TUPLE: (u8, (Aligned, u8)) = (0, (Aligned(0), 0));
+   |               ^^^^^^^^^^^^^^^^^^^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
+  --> $DIR/static_items_large_align.rs:7:1
+   |
+LL | struct Aligned(u8);
+   | ^^^^^^^^^^^^^^^^^^^
+
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:36:1
    |
 LL | static XE: AlignedEnum = AlignedEnum::A(Aligned(0));
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: this type has an alignment larger than page size (4KB)
+note: enum `AlignedEnum` contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:14:1
+   |
+LL | / enum AlignedEnum {
+LL | |     A(Aligned),
+LL | | }
+   | |_^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
    | ^^^^^^^^^^^^^^^^^^^
 
-error: this static item (itself or its subfield) has large type alignment, which may not be fulfilled,
-       for more information, see <https://github.com/rust-lang/rust/issues/70022>
-  --> $DIR/static_items_large_align.rs:32:1
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:38:1
    |
 LL | static XG: AlignedGeneric<Aligned> = AlignedGeneric(Aligned(0));
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: this type has an alignment larger than page size (4KB)
+note: struct `AlignedGeneric` with substitutions [
+          Aligned,
+      ],
+      contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:22:1
+   |
+LL | struct AlignedGeneric<T>(T);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
    | ^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 7 previous errors
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:40:1
+   |
+LL | static XGW: AlignedGeneric<AlignedWrapper> = AlignedGeneric(AlignedWrapper { f: 0, g: Aligned(0) });
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: struct `AlignedGeneric` with substitutions [
+          AlignedWrapper,
+      ],
+      contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:22:1
+   |
+LL | struct AlignedGeneric<T>(T);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: struct `AlignedWrapper` contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:9:1
+   |
+LL | / struct AlignedWrapper {
+LL | |     f: u8,
+LL | |     g: Aligned,
+LL | | }
+   | |_^
+note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
+  --> $DIR/static_items_large_align.rs:7:1
+   |
+LL | struct Aligned(u8);
+   | ^^^^^^^^^^^^^^^^^^^
+
+error: this static item (itself or its subfield) has a type alignment,
+       which is larger than page size and may not be fulfilled,
+       for more information, see <https://github.com/rust-lang/rust/issues/70022>.
+  --> $DIR/static_items_large_align.rs:68:1
+   |
+LL | / static XG_ARGS: AGWithArgs<AlignedA, AlignedB> = AGWithArgs {
+LL | |     not_aligned: FnPtr(box_aligned),
+LL | |     aligned: AG(AlignedB(0)),
+LL | | };
+   | |__^
+   |
+note: struct `AGWithArgs` with substitutions [
+          AlignedA,
+          AlignedB,
+      ],
+      contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:63:1
+   |
+LL | / struct AGWithArgs<A, B> {
+LL | |     not_aligned: FnPtr<A>,
+LL | |     aligned: AGAlias<B>,
+LL | | }
+   | |_^
+note: struct `AG` with substitutions [
+          AlignedB,
+      ],
+      contains an inner type with large alignment
+  --> $DIR/static_items_large_align.rs:59:1
+   |
+LL | struct AG<T>(T);
+   | ^^^^^^^^^^^^^^^^
+note: struct `AlignedB` has alignment 0x100000, which is larger than 0x1000,
+      if you know what you are doing, config the default page size clippy uses in clippy.toml
+  --> $DIR/static_items_large_align.rs:55:1
+   |
+LL | struct AlignedB(u8);
+   | ^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 10 previous errors
 
