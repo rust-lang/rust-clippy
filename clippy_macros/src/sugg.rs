@@ -111,10 +111,10 @@ op_precedence! {
     Suffix => Call,
 }
 impl ExprPrec {
-    fn merge_with(&self, other: Self) -> Self {
-        match (*self, other) {
+    fn merge_with(self, other: Self) -> Self {
+        match (self, other) {
             (Self::Suffix | Self::Field, Self::Suffix | Self::Field) => other,
-            _ => core::cmp::min(*self, other),
+            _ => core::cmp::min(self, other),
         }
     }
 }
@@ -178,7 +178,11 @@ macro_rules! bin_op {
         impl SuggBuilder {
             fn parse_bin_op(&mut self, input: ParseStream<'_>, var: Option<ExprVar>) -> Option<BinOp> {
                 use ExprPos::*;
-                $(if self.consume_op_token_space_prefixed::<Token![$($op_tt)*]>(input, var, concat_idents!($prec, Lhs)) {
+                $(if self.consume_op_token_space_prefixed::<Token![$($op_tt)*]>(
+                    input,
+                    var,
+                    concat_idents!($prec, Lhs)
+                ) {
                     self.next_string.push(' ');
                     Some(BinOp {
                         prec: ExprPrec::$prec,
@@ -335,7 +339,9 @@ impl SuggBuilder {
     }
 
     fn require_token<T: Token>(&mut self, input: ParseStream<'_>, msg: &str) -> Result<()> {
-        self.consume_token::<T>(input).then(|| ()).ok_or_else(|| input.error(msg))
+        self.consume_token::<T>(input)
+            .then(|| ())
+            .ok_or_else(|| input.error(msg))
     }
 
     fn consume_token<T: Token>(&mut self, input: ParseStream<'_>) -> bool {
@@ -430,6 +436,7 @@ impl SuggBuilder {
         self.require(input, Self::parse_ty, "expected a type").map(Some)
     }
 
+    #[allow(clippy::blocks_in_if_conditions)]
     fn parse_ty_body(&mut self, input: ParseStream) -> Result<Option<()>> {
         if let Some(ends_with_ident) = self.parse_path_root(input)? {
             if ends_with_ident && self.consume_token::<Token![<]>(input) {
@@ -440,19 +447,17 @@ impl SuggBuilder {
             input,
             |_| (),
             |self_, input| {
-                self_.require(&input, Self::parse_ty, "expected a type")?;
-                if self_.consume_token::<Token![;]>(&input) {
+                self_.require(input, Self::parse_ty, "expected a type")?;
+                if self_.consume_token::<Token![;]>(input) {
                     self_.next_string.push(' ');
-                    self_.require(&input, Self::parse_expr, "expected an expression")?;
+                    self_.require(input, Self::parse_expr, "expected an expression")?;
                 }
                 Ok(())
             },
-        )? {
-            // Nothing to do
-        } else if self.consume_group::<token::Paren>(
+        )? || self.consume_group::<token::Paren>(
             input,
             |_| (),
-            |self_, input| self_.parse_list(&input, Self::parse_ty),
+            |self_, input| self_.parse_list(input, Self::parse_ty),
         )? {
             // Nothing to do
         } else if let Some(var) = parse_var(input) {
@@ -549,15 +554,14 @@ impl SuggBuilder {
     }
 
     fn parse_expr_body(&mut self, input: ParseStream<'_>, pos: ExprPos, prec: ExprPrec) -> Result<Option<ExprPrec>> {
-        if self.consume_token::<Literal>(input) {
-            // Nothing to do
-        } else if self.consume_group::<token::Paren>(
-            input,
-            |_| (),
-            |self_, input| self_.parse_list(&input, Self::parse_expr).map(|_| ()),
-        )? {
-            // Nothing to do
-        } else if self.parse_path_root(input)?.is_some() {
+        if self.consume_token::<Literal>(input)
+            || self.consume_group::<token::Paren>(
+                input,
+                |_| (),
+                |self_, input| self_.parse_list(input, Self::parse_expr).map(|_| ()),
+            )?
+            || self.parse_path_root(input)?.is_some()
+        {
             // Nothing to do
         } else if let Some(var) = parse_var(input) {
             return if matches!(var.kind, VarKind::Expr | VarKind::Default) {
@@ -585,19 +589,22 @@ impl SuggBuilder {
             self.next_string.push(' ');
             self.require(input, Self::parse_ty, "expected a type")?;
             prec.merge_with(ExprPrec::Cast)
-        } else if self.consume_op_token::<Token![?]>(input, var, ExprPos::Suffix) {
-            prec.merge_with(ExprPrec::Suffix)
-        } else if self.consume_group::<token::Bracket>(
-            input,
-            |self_| self_.push_expr_var(var, ExprPos::Suffix),
-            |self_, input| self_.require(&input, Self::parse_expr, "expected an expression").map(|_| ()),
-        )? {
-            prec.merge_with(ExprPrec::Suffix)
-        } else if self.consume_group::<token::Paren>(
-            input,
-            |self_| self_.push_expr_var(var, ExprPos::Callee),
-            |self_, input| self_.parse_list(&input, Self::parse_expr).map(|_| ()),
-        )? {
+        } else if self.consume_op_token::<Token![?]>(input, var, ExprPos::Suffix)
+            || self.consume_group::<token::Bracket>(
+                input,
+                |self_| self_.push_expr_var(var, ExprPos::Suffix),
+                |self_, input| {
+                    self_
+                        .require(input, Self::parse_expr, "expected an expression")
+                        .map(|_| ())
+                },
+            )?
+            || self.consume_group::<token::Paren>(
+                input,
+                |self_| self_.push_expr_var(var, ExprPos::Callee),
+                |self_, input| self_.parse_list(input, Self::parse_expr).map(|_| ()),
+            )?
+        {
             prec.merge_with(ExprPrec::Suffix)
         } else if self.consume_op_token::<Token![.]>(input, var, ExprPos::Suffix) {
             if self.consume_token::<Ident>(input) {
@@ -700,7 +707,9 @@ impl SuggBuilder {
             let s = &self.next_string;
             body.extend(iter::once(quote!(sugg.push_str(#s);)));
         }
-        if prec != ExprPrec::Suffix {
+        if prec == ExprPrec::Suffix {
+            body.extend(iter::once(quote!(sugg)));
+        } else {
             body.extend(iter::once(quote!(
                 if clippy_utils::_internal::needs_parens(#prec, clippy_utils::_internal::expr_position(cx, e)) {
                     format!("({})", sugg)
@@ -708,14 +717,14 @@ impl SuggBuilder {
                     sugg
                 }
             )));
-        } else {
-            body.extend(iter::once(quote!(sugg)));
         }
-        Ok(quote!(|cx: &rustc_lint::LateContext<'_>, e: &rustc_hir::Expr<'_>, app: &mut rustc_errors::Applicability| {
-            let ctxt = e.span.ctxt();
-            let mut sugg = String::new();
-            #body
-        }))
+        Ok(
+            quote!(|cx: &rustc_lint::LateContext<'_>, e: &rustc_hir::Expr<'_>, app: &mut rustc_errors::Applicability| {
+                let ctxt = e.span.ctxt();
+                let mut sugg = String::new();
+                #body
+            }),
+        )
     }
 }
 
@@ -742,6 +751,7 @@ fn split_args(input: ParseStream) -> Result<Vec<TokenStream>> {
     }
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub struct ExprSugg(pub TokenStream);
 impl Parse for ExprSugg {
     fn parse(input: ParseStream<'_>) -> Result<Self> {
