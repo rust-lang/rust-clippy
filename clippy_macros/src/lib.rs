@@ -1,6 +1,5 @@
 #![feature(concat_idents)]
 #![feature(exact_size_is_empty)]
-#![feature(explicit_generic_args_with_impl_trait)]
 #![feature(let_else)]
 
 mod sugg;

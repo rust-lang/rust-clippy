@@ -1,5 +1,5 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::sugg::Sugg;
+use clippy_macros::expr_sugg;
+use clippy_utils::_internal::lint_expr_and_sugg;
 use clippy_utils::ty::is_type_diagnostic_item;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
@@ -44,7 +44,7 @@ declare_clippy_lint! {
 declare_lint_pass!(FromStrRadix10 => [FROM_STR_RADIX_10]);
 
 impl<'tcx> LateLintPass<'tcx> for FromStrRadix10 {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, exp: &Expr<'tcx>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, exp: &'tcx Expr<'_>) {
         if_chain! {
             if let ExprKind::Call(maybe_path, arguments) = &exp.kind;
             if let ExprKind::Path(QPath::TypeRelative(ty, pathseg)) = &maybe_path.kind;
@@ -76,21 +76,14 @@ impl<'tcx> LateLintPass<'tcx> for FromStrRadix10 {
                     &arguments[0]
                 };
 
-                let sugg = Sugg::hir_with_applicability(
-                    cx,
-                    expr,
-                    "<string>",
-                    &mut Applicability::MachineApplicable
-                ).maybe_par();
-
-                span_lint_and_sugg(
+                lint_expr_and_sugg(
                     cx,
                     FROM_STR_RADIX_10,
-                    exp.span,
                     "this call to `from_str_radix` can be replaced with a call to `str::parse`",
+                    exp,
                     "try",
-                    format!("{}.parse::<{}>()", sugg, prim_ty.name_str()),
-                    Applicability::MaybeIncorrect
+                    expr_sugg!({}.parse::<{}>(), expr, prim_ty.name_str()),
+                    Applicability::MaybeIncorrect,
                 );
             }
         }

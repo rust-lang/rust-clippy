@@ -10,10 +10,10 @@ use super::ITER_NTH;
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
-    expr: &hir::Expr<'_>,
-    iter_recv: &'tcx hir::Expr<'tcx>,
-    nth_recv: &hir::Expr<'_>,
-    nth_arg: &hir::Expr<'_>,
+    expr: &'tcx hir::Expr<'_>,
+    iter_recv: &'tcx hir::Expr<'_>,
+    nth_recv: &'tcx hir::Expr<'_>,
+    nth_arg: &'tcx hir::Expr<'_>,
     is_mut: bool,
 ) {
     let mut_str = if is_mut { "_mut" } else { "" };

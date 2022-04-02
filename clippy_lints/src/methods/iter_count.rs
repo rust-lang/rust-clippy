@@ -1,6 +1,6 @@
 use super::utils::derefs_to_slice;
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::snippet_with_applicability;
+use clippy_macros::expr_sugg;
+use clippy_utils::_internal::lint_expr_and_sugg;
 use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
 use rustc_hir::Expr;
@@ -9,7 +9,7 @@ use rustc_span::sym;
 
 use super::ITER_COUNT;
 
-pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, recv: &'tcx Expr<'tcx>, iter_method: &str) {
+pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>, iter_method: &str) {
     let ty = cx.typeck_results().expr_ty(recv);
     let caller_type = if derefs_to_slice(cx, recv, ty).is_some() {
         "slice"
@@ -32,17 +32,13 @@ pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, recv: &'tcx E
     } else {
         return;
     };
-    let mut applicability = Applicability::MachineApplicable;
-    span_lint_and_sugg(
+    lint_expr_and_sugg(
         cx,
         ITER_COUNT,
-        expr.span,
         &format!("called `.{}().count()` on a `{}`", iter_method, caller_type),
+        expr,
         "try",
-        format!(
-            "{}.len()",
-            snippet_with_applicability(cx, recv.span, "..", &mut applicability),
-        ),
-        applicability,
+        expr_sugg!({}.len(), recv),
+        Applicability::MachineApplicable,
     );
 }

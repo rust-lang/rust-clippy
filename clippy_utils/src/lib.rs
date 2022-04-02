@@ -178,9 +178,11 @@ pub mod _internal {
 
     pub fn needs_parens(expr: ExprPrecedence, position: ExprPosition) -> bool {
         match expr {
-            ExprPrecedence::Closure | ExprPrecedence::Ret | ExprPrecedence::Break | ExprPrecedence::Yield => {
-                position > ExprPosition::Closure
-            },
+            ExprPrecedence::Closure
+            | ExprPrecedence::Ret
+            | ExprPrecedence::Break
+            | ExprPrecedence::Yield
+            | ExprPrecedence::Yeet => position > ExprPosition::Closure,
             ExprPrecedence::Assign | ExprPrecedence::AssignOp => position > ExprPosition::AssignRhs,
             ExprPrecedence::Range => position >= ExprPosition::RangeLhs,
             ExprPrecedence::Binary(BinOpKind::Or) => position > ExprPosition::OrLhs,
