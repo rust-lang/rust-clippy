@@ -1,0 +1,20 @@
+[package]
+name = "clippy_macros"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+proc-macro = true
+
+[dev-dependencies]
+clippy_utils = { path = "../clippy_utils" }
+
+[dependencies]
+proc-macro2 = "1.0.32"
+quote = "1.0.10"
+
+[dependencies.syn]
+version = "1"
+features = ["parsing", "proc-macro"]
+default-features = false

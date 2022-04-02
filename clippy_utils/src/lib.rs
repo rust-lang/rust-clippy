@@ -57,6 +57,265 @@ pub mod ty;
 pub mod usage;
 pub mod visitors;
 
+pub mod _internal {
+    use crate::diagnostics::span_lint_and_then;
+    use crate::get_parent_expr;
+    use crate::source::snippet_with_context;
+    use rustc_ast::{util::parser::ExprPrecedence, BinOpKind};
+    use rustc_errors::Applicability;
+    use rustc_hir::{Expr, ExprKind};
+    use rustc_lint::{LateContext, Lint};
+    use rustc_span::SyntaxContext;
+    use std::borrow::Cow;
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+    pub enum ExprPosition {
+        Closure,
+        AssignRhs,
+        AssignLhs,
+        RangeLhs,
+        RangeRhs,
+        OrLhs,
+        OrRhs,
+        AndLhs,
+        AndRhs,
+        Let,
+        EqLhs,
+        EqRhs,
+        BitOrLhs,
+        BitOrRhs,
+        BitXorLhs,
+        BitXorRhs,
+        BitAndLhs,
+        BitAndRhs,
+        ShiftLhs,
+        ShiftRhs,
+        AddLhs,
+        AddRhs,
+        MulLhs,
+        MulRhs,
+        Cast,
+        Prefix,
+        Suffix,
+        Callee,
+    }
+
+    pub trait ExprSugg {
+        fn into_sugg<'tcx>(self, cx: &LateContext<'tcx>, replace: &'tcx Expr<'tcx>, app: &mut Applicability) -> String;
+    }
+    impl<T: for<'tcx> FnOnce(&LateContext<'tcx>, &'tcx Expr<'tcx>, &mut Applicability) -> String> ExprSugg for T {
+        fn into_sugg<'tcx>(self, cx: &LateContext<'tcx>, replace: &'tcx Expr<'tcx>, app: &mut Applicability) -> String {
+            self(cx, replace, app)
+        }
+    }
+    impl ExprSugg for String {
+        fn into_sugg(self, _: &LateContext<'_>, _: &Expr<'_>, _: &mut Applicability) -> String {
+            self
+        }
+    }
+
+    pub fn lint_expr_and_sugg<'tcx>(
+        cx: &LateContext<'tcx>,
+        lint: &'static Lint,
+        msg: &str,
+        expr: &'tcx Expr<'tcx>,
+        help_msg: &str,
+        sugg: impl ExprSugg,
+        mut app: Applicability,
+    ) {
+        span_lint_and_then(cx, lint, expr.span, msg, |diag| {
+            let sugg = sugg.into_sugg(cx, expr, &mut app);
+            diag.span_suggestion(expr.span, help_msg, sugg, app);
+        });
+    }
+
+    pub struct Sugg {
+        pub sugg: String,
+        pub precedence: ExprPrecedence,
+    }
+    impl Sugg {
+        pub fn for_position(self, position: ExprPosition) -> String {
+            if needs_parens(self.precedence, position) {
+                format!("({})", self.sugg)
+            } else {
+                self.sugg
+            }
+        }
+
+        pub fn for_expr_position(self, cx: &LateContext<'_>, e: &Expr<'_>) -> String {
+            self.for_position(expr_position(cx, e))
+        }
+
+        pub fn into_string(self) -> String {
+            self.sugg
+        }
+    }
+    impl From<Sugg> for String {
+        fn from(from: Sugg) -> Self {
+            from.sugg
+        }
+    }
+
+    pub fn snip(
+        cx: &LateContext<'_>,
+        expr: &Expr<'_>,
+        position: ExprPosition,
+        ctxt: SyntaxContext,
+        app: &mut Applicability,
+    ) -> String {
+        let snip = match snippet_with_context(cx, expr.span, ctxt, "(..)", app) {
+            (Cow::Owned(s), true) => return s,
+            (Cow::Owned(s), false) if has_enclosing_paren(&s) => return s,
+            (Cow::Owned(s), false) => s,
+            (Cow::Borrowed(s), _) => return s.into(),
+        };
+        if needs_parens(expr.precedence(), position) {
+            format!("({})", snip)
+        } else {
+            snip
+        }
+    }
+
+    pub fn needs_parens(expr: ExprPrecedence, position: ExprPosition) -> bool {
+        match expr {
+            ExprPrecedence::Closure | ExprPrecedence::Ret | ExprPrecedence::Break | ExprPrecedence::Yield => {
+                position > ExprPosition::Closure
+            },
+            ExprPrecedence::Assign | ExprPrecedence::AssignOp => position > ExprPosition::AssignRhs,
+            ExprPrecedence::Range => position >= ExprPosition::RangeLhs,
+            ExprPrecedence::Binary(BinOpKind::Or) => position > ExprPosition::OrLhs,
+            ExprPrecedence::Binary(BinOpKind::And) => position > ExprPosition::AndLhs,
+            ExprPrecedence::Let => position > ExprPosition::Let,
+            ExprPrecedence::Binary(
+                BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Gt | BinOpKind::Lt | BinOpKind::Ge | BinOpKind::Le,
+            ) => position > ExprPosition::EqLhs,
+            ExprPrecedence::Binary(BinOpKind::BitAnd) => position > ExprPosition::BitAndLhs,
+            ExprPrecedence::Binary(BinOpKind::BitXor) => position > ExprPosition::BitXorLhs,
+            ExprPrecedence::Binary(BinOpKind::BitOr) => position > ExprPosition::BitOrLhs,
+            ExprPrecedence::Binary(BinOpKind::Shl | BinOpKind::Shr) => position > ExprPosition::ShiftLhs,
+            ExprPrecedence::Binary(BinOpKind::Add | BinOpKind::Sub) => position > ExprPosition::AddLhs,
+            ExprPrecedence::Binary(BinOpKind::Mul | BinOpKind::Div | BinOpKind::Rem) => position > ExprPosition::MulLhs,
+            ExprPrecedence::Cast | ExprPrecedence::Type => position > ExprPosition::Cast,
+            ExprPrecedence::Unary | ExprPrecedence::AddrOf | ExprPrecedence::Box => position > ExprPosition::Prefix,
+            ExprPrecedence::Field => position == ExprPosition::Callee,
+            ExprPrecedence::Continue
+            | ExprPrecedence::Call
+            | ExprPrecedence::MethodCall
+            | ExprPrecedence::Index
+            | ExprPrecedence::Try
+            | ExprPrecedence::InlineAsm
+            | ExprPrecedence::Mac
+            | ExprPrecedence::Array
+            | ExprPrecedence::Repeat
+            | ExprPrecedence::Tup
+            | ExprPrecedence::Lit
+            | ExprPrecedence::Path
+            | ExprPrecedence::Paren
+            | ExprPrecedence::If
+            | ExprPrecedence::While
+            | ExprPrecedence::ForLoop
+            | ExprPrecedence::Loop
+            | ExprPrecedence::Match
+            | ExprPrecedence::ConstBlock
+            | ExprPrecedence::Block
+            | ExprPrecedence::TryBlock
+            | ExprPrecedence::Struct
+            | ExprPrecedence::Async
+            | ExprPrecedence::Await
+            | ExprPrecedence::Err => false,
+        }
+    }
+
+    pub fn expr_position(cx: &LateContext<'_>, e: &Expr<'_>) -> ExprPosition {
+        #[allow(clippy::enum_glob_use)]
+        use rustc_hir::BinOpKind::*;
+        match get_parent_expr(cx, e) {
+            Some(parent) => match parent.kind {
+                ExprKind::Call(child, _) if child.hir_id == e.hir_id => ExprPosition::Callee,
+                ExprKind::Field(..) => ExprPosition::Suffix,
+                ExprKind::MethodCall(_, [child, ..], _) | ExprKind::Index(child, _) if child.hir_id == e.hir_id => {
+                    ExprPosition::Suffix
+                },
+                ExprKind::Box(_) | ExprKind::AddrOf(..) | ExprKind::Unary(..) => ExprPosition::Prefix,
+                ExprKind::Cast(..) | ExprKind::Type(..) => ExprPosition::Cast,
+                ExprKind::Binary(op, child, _) if child.hir_id == e.hir_id => match op.node {
+                    Mul | Div | Rem => ExprPosition::MulLhs,
+                    Add | Sub => ExprPosition::AddLhs,
+                    Shl | Shr => ExprPosition::ShiftLhs,
+                    BitAnd => ExprPosition::BitAndLhs,
+                    BitXor => ExprPosition::BitXorLhs,
+                    BitOr => ExprPosition::BitOrLhs,
+                    Eq | Ne | Gt | Lt | Ge | Le => ExprPosition::EqLhs,
+                    And => ExprPosition::AndLhs,
+                    Or => ExprPosition::OrLhs,
+                },
+                ExprKind::Binary(op, ..) => match op.node {
+                    Mul | Div | Rem => ExprPosition::MulRhs,
+                    Add | Sub => ExprPosition::AddRhs,
+                    Shl | Shr => ExprPosition::ShiftRhs,
+                    BitAnd => ExprPosition::BitAndRhs,
+                    BitXor => ExprPosition::BitXorRhs,
+                    BitOr => ExprPosition::BitOrRhs,
+                    Eq | Ne | Gt | Lt | Ge | Le => ExprPosition::EqRhs,
+                    And => ExprPosition::AndRhs,
+                    Or => ExprPosition::OrRhs,
+                },
+                ExprKind::Let(..) => ExprPosition::Let,
+                ExprKind::Assign(child, ..) | ExprKind::AssignOp(_, child, _) => {
+                    if child.hir_id == e.hir_id {
+                        ExprPosition::AssignLhs
+                    } else {
+                        ExprPosition::AssignRhs
+                    }
+                },
+                ExprKind::Array(_)
+                | ExprKind::Block(..)
+                | ExprKind::Call(..)
+                | ExprKind::MethodCall(..)
+                | ExprKind::Closure(..)
+                | ExprKind::Break(..)
+                | ExprKind::ConstBlock(..)
+                | ExprKind::Continue(_)
+                | ExprKind::DropTemps(_)
+                | ExprKind::Err
+                | ExprKind::If(..)
+                | ExprKind::InlineAsm(_)
+                | ExprKind::Lit(_)
+                | ExprKind::Loop(..)
+                | ExprKind::Match(..)
+                | ExprKind::Path(_)
+                | ExprKind::Repeat(..)
+                | ExprKind::Ret(_)
+                | ExprKind::Struct(..)
+                | ExprKind::Tup(_)
+                | ExprKind::Index(..)
+                | ExprKind::Yield(..) => ExprPosition::Closure,
+            },
+            None => ExprPosition::Closure,
+        }
+    }
+
+    fn has_enclosing_paren(expr: &str) -> bool {
+        let mut chars = expr.chars();
+        if chars.next() == Some('(') {
+            let mut depth = 1;
+            for c in &mut chars {
+                if c == '(' {
+                    depth += 1;
+                } else if c == ')' {
+                    depth -= 1;
+                }
+                if depth == 0 {
+                    break;
+                }
+            }
+            chars.next().is_none()
+        } else {
+            false
+        }
+    }
+}
+
 pub use self::attrs::*;
 pub use self::hir_utils::{
     both, count_eq, eq_expr_value, hash_expr, hash_stmt, over, HirEqInterExpr, SpanlessEq, SpanlessHash,
