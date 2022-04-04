@@ -3982,7 +3982,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks that module layout uses only self named module files, bans mod.rs files.\n\n### Why is this bad?\nHaving multiple module layout styles in a project can be confusing.\n\n### Example\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n    mod.rs\n  lib.rs\n```\nUse instead:\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n  stuff.rs\n  lib.rs\n```",
+    "docs": " ### What it does\nChecks that module layout uses only self named module files, bans `mod.rs` files.\n\n### Why is this bad?\nHaving multiple module layout styles in a project can be confusing.\n\n### Example\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n    mod.rs\n  lib.rs\n```\nUse instead:\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n  stuff.rs\n  lib.rs\n```",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5827,7 +5827,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks that module layout uses only mod.rs files.\n\n### Why is this bad?\nHaving multiple module layout styles in a project can be confusing.\n\n### Example\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n  stuff.rs\n  lib.rs\n```\nUse instead:\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n    mod.rs\n  lib.rs\n```",
+    "docs": " ### What it does\nChecks that module layout uses only `mod.rs` files.\n\n### Why is this bad?\nHaving multiple module layout styles in a project can be confusing.\n\n### Example\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n  stuff.rs\n  lib.rs\n```\nUse instead:\n```text\nsrc/\n  stuff/\n    stuff_files.rs\n    mod.rs\n  lib.rs\n```",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
