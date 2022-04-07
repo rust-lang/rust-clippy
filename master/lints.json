@@ -183,7 +183,7 @@
     "id": "bind_instead_of_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 513
+      "line": 538
     },
     "group": "complexity",
     "level": "warn",
@@ -378,7 +378,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1867
+      "line": 1892
     },
     "group": "style",
     "level": "warn",
@@ -420,10 +420,25 @@
     }
   },
   {
+    "id": "cast_abs_to_unsigned",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 494
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for uses of the `abs()` method that cast the result to unsigned.\n\n### Why is this bad?\nThe `unsigned_abs()` method avoids panic when called on the MIN value.\n\n### Example\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.abs() as u32;\n```\nUse instead:\nlet x: i32 = -42;\nlet y: u32 = x.unsigned_abs();\n```rust\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 471
+      "line": 472
     },
     "group": "suspicious",
     "level": "warn",
@@ -438,7 +453,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 409
+      "line": 410
     },
     "group": "suspicious",
     "level": "warn",
@@ -453,7 +468,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 148
+      "line": 149
     },
     "group": "pedantic",
     "level": "allow",
@@ -468,7 +483,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 91
+      "line": 92
     },
     "group": "pedantic",
     "level": "allow",
@@ -483,7 +498,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 115
+      "line": 116
     },
     "group": "pedantic",
     "level": "allow",
@@ -498,7 +513,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 46
+      "line": 47
     },
     "group": "pedantic",
     "level": "allow",
@@ -513,7 +528,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 202
+      "line": 203
     },
     "group": "pedantic",
     "level": "allow",
@@ -528,7 +543,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 333
+      "line": 334
     },
     "group": "correctness",
     "level": "deny",
@@ -543,7 +558,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 68
+      "line": 69
     },
     "group": "pedantic",
     "level": "allow",
@@ -558,7 +573,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 453
+      "line": 454
     },
     "group": "correctness",
     "level": "deny",
@@ -573,7 +588,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 361
+      "line": 362
     },
     "group": "complexity",
     "level": "warn",
@@ -588,7 +603,7 @@
     "id": "chars_last_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1320
+      "line": 1345
     },
     "group": "style",
     "level": "warn",
@@ -603,7 +618,7 @@
     "id": "chars_next_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 743
+      "line": 768
     },
     "group": "style",
     "level": "warn",
@@ -633,7 +648,7 @@
     "id": "clone_double_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 922
+      "line": 947
     },
     "group": "correctness",
     "level": "deny",
@@ -648,7 +663,7 @@
     "id": "clone_on_copy",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 871
+      "line": 896
     },
     "group": "complexity",
     "level": "warn",
@@ -663,7 +678,7 @@
     "id": "clone_on_ref_ptr",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 899
+      "line": 924
     },
     "group": "restriction",
     "level": "allow",
@@ -678,7 +693,7 @@
     "id": "cloned_instead_of_copied",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 108
+      "line": 110
     },
     "group": "pedantic",
     "level": "allow",
@@ -783,7 +798,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/collapsible_match.rs",
-      "line": 45
+      "line": 46
     },
     "group": "style",
     "level": "warn",
@@ -1233,7 +1248,7 @@
     "id": "drop_copy",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 73
+      "line": 72
     },
     "group": "correctness",
     "level": "deny",
@@ -1245,10 +1260,25 @@
     }
   },
   {
+    "id": "drop_non_drop",
+    "id_span": {
+      "path": "src/drop_forget_ref.rs",
+      "line": 120
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for calls to `std::mem::drop` with a value that does not implement `Drop`.\n\n### Why is this bad?\nCalling `std::mem::drop` is no different than dropping such a type. A different value may\nhave been intended.\n\n### Example\n```rust\nstruct Foo;\nlet x = Foo;\nstd::mem::drop(x);\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "drop_ref",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 29
+      "line": 28
     },
     "group": "correctness",
     "level": "deny",
@@ -1455,6 +1485,21 @@
     }
   },
   {
+    "id": "err_expect",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 385
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for `.err().expect()` calls on the `Result` type.\n\n### Why is this bad?\n`.expect_err()` can be called directly to avoid the extra type conversion from `err()`.\n\n### Example\n```rust\nlet x: Result<u32, &str> = Ok(10);\nx.err().expect(\"Testing err().expect()\");\n```\nUse instead:\n```rust\nlet x: Result<u32, &str> = Ok(10);\nx.expect_err(\"Testing expect_err\");\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "eval_order_dependence",
     "id_span": {
       "path": "src/eval_order_dependence.rs",
@@ -1533,7 +1578,7 @@
     "id": "expect_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 853
+      "line": 878
     },
     "group": "perf",
     "level": "warn",
@@ -1548,7 +1593,7 @@
     "id": "expect_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 255
+      "line": 257
     },
     "group": "restriction",
     "level": "allow",
@@ -1668,7 +1713,7 @@
     "id": "extend_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1241
+      "line": 1266
     },
     "group": "perf",
     "level": "warn",
@@ -1728,7 +1773,7 @@
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1597
+      "line": 1622
     },
     "group": "restriction",
     "level": "allow",
@@ -1758,7 +1803,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1822
+      "line": 1847
     },
     "group": "complexity",
     "level": "warn",
@@ -1773,7 +1818,7 @@
     "id": "filter_map_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 665
+      "line": 690
     },
     "group": "pedantic",
     "level": "allow",
@@ -1788,7 +1833,7 @@
     "id": "filter_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 537
+      "line": 562
     },
     "group": "complexity",
     "level": "warn",
@@ -1818,7 +1863,7 @@
     "id": "flat_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 688
+      "line": 713
     },
     "group": "complexity",
     "level": "warn",
@@ -1833,7 +1878,7 @@
     "id": "flat_map_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 166
+      "line": 168
     },
     "group": "pedantic",
     "level": "allow",
@@ -1938,7 +1983,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 230
+      "line": 231
     },
     "group": "style",
     "level": "warn",
@@ -1953,7 +1998,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 298
+      "line": 299
     },
     "group": "restriction",
     "level": "allow",
@@ -1968,7 +2013,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 261
+      "line": 262
     },
     "group": "style",
     "level": "warn",
@@ -2013,7 +2058,7 @@
     "id": "forget_copy",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 101
+      "line": 100
     },
     "group": "correctness",
     "level": "deny",
@@ -2025,10 +2070,25 @@
     }
   },
   {
+    "id": "forget_non_drop",
+    "id_span": {
+      "path": "src/drop_forget_ref.rs",
+      "line": 140
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for calls to `std::mem::forget` with a value that does not implement `Drop`.\n\n### Why is this bad?\nCalling `std::mem::forget` is no different than dropping such a type. A different value may\nhave been intended.\n\n### Example\n```rust\nstruct Foo;\nlet x = Foo;\nstd::mem::forget(x);\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "forget_ref",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 51
+      "line": 50
     },
     "group": "correctness",
     "level": "deny",
@@ -2058,7 +2118,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1769
+      "line": 1794
     },
     "group": "pedantic",
     "level": "allow",
@@ -2133,7 +2193,7 @@
     "id": "get_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1217
+      "line": 1242
     },
     "group": "restriction",
     "level": "allow",
@@ -2253,7 +2313,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1893
+      "line": 1918
     },
     "group": "pedantic",
     "level": "allow",
@@ -2403,7 +2463,7 @@
     "id": "inefficient_to_string",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 946
+      "line": 971
     },
     "group": "pedantic",
     "level": "allow",
@@ -2553,7 +2613,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1799
+      "line": 1824
     },
     "group": "complexity",
     "level": "warn",
@@ -2613,7 +2673,7 @@
     "id": "into_iter_on_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1453
+      "line": 1478
     },
     "group": "style",
     "level": "warn",
@@ -2703,7 +2763,7 @@
     "id": "iter_cloned_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1295
+      "line": 1320
     },
     "group": "style",
     "level": "warn",
@@ -2718,7 +2778,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1919
+      "line": 1944
     },
     "group": "complexity",
     "level": "warn",
@@ -2748,7 +2808,7 @@
     "id": "iter_next_slice",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1650
+      "line": 1675
     },
     "group": "style",
     "level": "warn",
@@ -2778,7 +2838,7 @@
     "id": "iter_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1130
+      "line": 1155
     },
     "group": "perf",
     "level": "warn",
@@ -2793,7 +2853,7 @@
     "id": "iter_nth_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1103
+      "line": 1128
     },
     "group": "style",
     "level": "warn",
@@ -2808,7 +2868,7 @@
     "id": "iter_overeager_cloned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 143
+      "line": 145
     },
     "group": "perf",
     "level": "warn",
@@ -2823,7 +2883,7 @@
     "id": "iter_skip_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1155
+      "line": 1180
     },
     "group": "style",
     "level": "warn",
@@ -2838,7 +2898,7 @@
     "id": "iter_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1180
+      "line": 1205
     },
     "group": "nursery",
     "level": "allow",
@@ -2853,7 +2913,7 @@
     "id": "iterator_step_by_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1053
+      "line": 1078
     },
     "group": "correctness",
     "level": "deny",
@@ -3183,7 +3243,7 @@
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 615
+      "line": 640
     },
     "group": "complexity",
     "level": "warn",
@@ -3198,7 +3258,7 @@
     "id": "manual_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 642
+      "line": 667
     },
     "group": "complexity",
     "level": "warn",
@@ -3303,7 +3363,7 @@
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1537
+      "line": 1562
     },
     "group": "style",
     "level": "warn",
@@ -3318,7 +3378,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1993
+      "line": 2018
     },
     "group": "complexity",
     "level": "warn",
@@ -3333,7 +3393,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1970
+      "line": 1995
     },
     "group": "perf",
     "level": "warn",
@@ -3423,7 +3483,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1736
+      "line": 1761
     },
     "group": "style",
     "level": "warn",
@@ -3468,7 +3528,7 @@
     "id": "map_flatten",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 588
+      "line": 613
     },
     "group": "complexity",
     "level": "warn",
@@ -3483,7 +3543,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1845
+      "line": 1870
     },
     "group": "complexity",
     "level": "warn",
@@ -3498,7 +3558,7 @@
     "id": "map_unwrap_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 427
+      "line": 452
     },
     "group": "pedantic",
     "level": "allow",
@@ -4412,12 +4472,12 @@
   {
     "id": "needless_option_as_deref",
     "id_span": {
-      "path": "src/needless_option_as_deref.rs",
-      "line": 29
+      "path": "src/methods/mod.rs",
+      "line": 2129
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for no-op uses of Option::{as_deref,as_deref_mut},\nfor example, `Option<&T>::as_deref()` returns the same type.\n\n### Why is this bad?\nRedundant code and improving readability.\n\n### Example\n```rust\nlet a = Some(&1);\nlet b = a.as_deref(); // goes from Option<&i32> to Option<&i32>\n```\nCould be written as:\n```rust\nlet a = Some(&1);\nlet b = a;\n```",
+    "docs": " ### What it does\nChecks for no-op uses of `Option::{as_deref, as_deref_mut}`,\nfor example, `Option<&T>::as_deref()` returns the same type.\n\n### Why is this bad?\nRedundant code and improving readability.\n\n### Example\n```rust\nlet a = Some(&1);\nlet b = a.as_deref(); // goes from Option<&i32> to Option<&i32>\n```\nCould be written as:\n```rust\nlet a = Some(&1);\nlet b = a;\n```",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4488,7 +4548,7 @@
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2017
+      "line": 2042
     },
     "group": "complexity",
     "level": "warn",
@@ -4578,7 +4638,7 @@
     "id": "new_ret_no_self",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1008
+      "line": 1033
     },
     "group": "style",
     "level": "warn",
@@ -4758,7 +4818,7 @@
     "id": "ok_expect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 360
+      "line": 362
     },
     "group": "style",
     "level": "warn",
@@ -4803,7 +4863,7 @@
     "id": "option_as_ref_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1623
+      "line": 1648
     },
     "group": "complexity",
     "level": "warn",
@@ -4833,7 +4893,7 @@
     "id": "option_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1075
+      "line": 1100
     },
     "group": "complexity",
     "level": "warn",
@@ -4863,7 +4923,7 @@
     "id": "option_map_or_none",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 454
+      "line": 479
     },
     "group": "style",
     "level": "warn",
@@ -4908,7 +4968,7 @@
     "id": "or_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 778
+      "line": 803
     },
     "group": "perf",
     "level": "warn",
@@ -4923,7 +4983,7 @@
     "id": "or_then_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 814
+      "line": 839
     },
     "group": "complexity",
     "level": "warn",
@@ -5193,7 +5253,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 390
+      "line": 391
     },
     "group": "pedantic",
     "level": "allow",
@@ -5658,7 +5718,7 @@
     "id": "result_map_or_into_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 480
+      "line": 505
     },
     "group": "style",
     "level": "warn",
@@ -5778,7 +5838,7 @@
     "id": "search_is_some",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 718
+      "line": 743
     },
     "group": "complexity",
     "level": "warn",
@@ -5958,7 +6018,7 @@
     "id": "should_implement_trait",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 285
+      "line": 287
     },
     "group": "style",
     "level": "warn",
@@ -5988,7 +6048,7 @@
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1676
+      "line": 1701
     },
     "group": "style",
     "level": "warn",
@@ -6018,7 +6078,7 @@
     "id": "single_char_pattern",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1033
+      "line": 1058
     },
     "group": "perf",
     "level": "warn",
@@ -6108,7 +6168,7 @@
     "id": "skip_while_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 561
+      "line": 586
     },
     "group": "complexity",
     "level": "warn",
@@ -6198,7 +6258,7 @@
     "id": "string_extend_chars",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1271
+      "line": 1296
     },
     "group": "style",
     "level": "warn",
@@ -6363,7 +6423,7 @@
     "id": "suspicious_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1473
+      "line": 1498
     },
     "group": "suspicious",
     "level": "warn",
@@ -6408,7 +6468,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1949
+      "line": 1974
     },
     "group": "correctness",
     "level": "deny",
@@ -6842,8 +6902,8 @@
   {
     "id": "undropped_manually_drops",
     "id_span": {
-      "path": "src/undropped_manually_drops.rs",
-      "line": 33
+      "path": "src/drop_forget_ref.rs",
+      "line": 169
     },
     "group": "correctness",
     "level": "deny",
@@ -6888,7 +6948,7 @@
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1508
+      "line": 1533
     },
     "group": "correctness",
     "level": "deny",
@@ -6978,7 +7038,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 174
+      "line": 175
     },
     "group": "complexity",
     "level": "warn",
@@ -6993,7 +7053,7 @@
     "id": "unnecessary_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1399
+      "line": 1424
     },
     "group": "complexity",
     "level": "warn",
@@ -7008,7 +7068,7 @@
     "id": "unnecessary_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1429
+      "line": 1454
     },
     "group": "complexity",
     "level": "warn",
@@ -7023,7 +7083,7 @@
     "id": "unnecessary_fold",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1369
+      "line": 1394
     },
     "group": "style",
     "level": "warn",
@@ -7038,7 +7098,7 @@
     "id": "unnecessary_join",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2080
+      "line": 2105
     },
     "group": "pedantic",
     "level": "allow",
@@ -7053,7 +7113,7 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1715
+      "line": 1740
     },
     "group": "style",
     "level": "warn",
@@ -7128,7 +7188,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2048
+      "line": 2073
     },
     "group": "perf",
     "level": "warn",
@@ -7458,7 +7518,7 @@
     "id": "unwrap_or_else_default",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 386
+      "line": 411
     },
     "group": "style",
     "level": "warn",
@@ -7473,7 +7533,7 @@
     "id": "unwrap_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 212
+      "line": 214
     },
     "group": "restriction",
     "level": "allow",
@@ -7548,7 +7608,7 @@
     "id": "useless_asref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1346
+      "line": 1371
     },
     "group": "complexity",
     "level": "warn",
@@ -7908,7 +7968,7 @@
     "id": "wrong_self_convention",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 333
+      "line": 335
     },
     "group": "style",
     "level": "warn",
@@ -7998,7 +8058,7 @@
     "id": "zst_offset",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1555
+      "line": 1580
     },
     "group": "correctness",
     "level": "deny",
