@@ -164,11 +164,11 @@ struct Lint {
 
 impl Lint {
     #[must_use]
-    fn new(name: &str, group: &str, desc: &str, module: &str) -> Self {
+    fn new(name: &str, group: &str, desc: String, module: &str) -> Self {
         Self {
             name: name.to_lowercase(),
             group: group.into(),
-            desc: remove_line_splices(desc),
+            desc,
             module: module.into(),
         }
     }
@@ -202,10 +202,10 @@ struct DeprecatedLint {
     reason: String,
 }
 impl DeprecatedLint {
-    fn new(name: &str, reason: &str) -> Self {
+    fn new(name: &str, reason: String) -> Self {
         Self {
             name: name.to_lowercase(),
-            reason: remove_line_splices(reason),
+            reason,
         }
     }
 }
@@ -328,6 +328,28 @@ macro_rules! match_tokens {
     }
 }
 
+fn parse_str<'a>(mut iter: impl Iterator<Item = (TokenKind, &'a str)>) -> Option<String> {
+    let (token, s) = iter.next()?;
+    let TokenKind::Literal { kind, .. } = token else { return None };
+    let (mode, s) = match kind {
+        LiteralKind::Str { .. } => (unescape::Mode::Str, s),
+        LiteralKind::RawStr { .. } => (
+            unescape::Mode::RawStr,
+            s.strip_prefix('r')
+                .unwrap_or_else(|| panic!("expected raw string, found `{s}`"))
+                .trim_matches('#'),
+        ),
+        _ => return None,
+    };
+    let s = s
+        .strip_prefix('"')
+        .and_then(|s| s.strip_suffix('"'))
+        .unwrap_or_else(|| panic!("expected quoted string, found `{s}`"));
+    let mut res = String::with_capacity(s.len());
+    unescape::unescape_literal(s, mode, &mut |range, _| res.push_str(&s[range]));
+    Some(res)
+}
+
 /// Parse a source file looking for `declare_clippy_lint` macro invocations.
 fn parse_contents(contents: &str, module: &str, lints: &mut Vec<Lint>) {
     let mut offset = 0usize;
@@ -352,15 +374,18 @@ fn parse_contents(contents: &str, module: &str, lints: &mut Vec<Lint>) {
             Some((TokenKind::Ident, _)) => (),
             _ => continue,
         }
-        let (name, group, desc) = match_tokens!(
+        let (name, group) = match_tokens!(
             iter,
-            // LINT_NAME
+            // LINT_NAME,
             Ident(name) Comma
             // group,
             Ident(group) Comma
-            // "description" }
-            Literal{kind: LiteralKind::Str{..}, ..}(desc) CloseBrace
         );
+        // "description" / r"raw description"
+        let Some(desc) = parse_str(&mut iter) else { continue };
+        // }
+        match_tokens!(iter, CloseBrace);
+
         lints.push(Lint::new(name, group, desc, module));
     }
 }
@@ -377,7 +402,7 @@ fn parse_deprecated_contents(contents: &str, lints: &mut Vec<DeprecatedLint>) {
         let mut iter = iter
             .by_ref()
             .filter(|&(kind, _)| !matches!(kind, TokenKind::Whitespace | TokenKind::LineComment { .. }));
-        let (name, reason) = match_tokens!(
+        let (name,) = match_tokens!(
             iter,
             // !{
             Bang OpenBrace
@@ -385,24 +410,14 @@ fn parse_deprecated_contents(contents: &str, lints: &mut Vec<DeprecatedLint>) {
             Pound OpenBracket Ident Colon Colon Ident Eq Literal{..} CloseBracket
             // pub LINT_NAME,
             Ident Ident(name) Comma
-            // "description"
-            Literal{kind: LiteralKind::Str{..},..}(reason)
-            // }
-            CloseBrace
         );
+        // "reason" / r"raw reason"
+        let Some(reason) = parse_str(&mut iter) else { continue };
+        // }
+        match_tokens!(iter, CloseBrace);
+
         lints.push(DeprecatedLint::new(name, reason));
     }
-}
-
-/// Removes the line splices and surrounding quotes from a string literal
-fn remove_line_splices(s: &str) -> String {
-    let s = s
-        .strip_prefix('"')
-        .and_then(|s| s.strip_suffix('"'))
-        .unwrap_or_else(|| panic!("expected quoted string, found `{}`", s));
-    let mut res = String::with_capacity(s.len());
-    unescape::unescape_literal(s, unescape::Mode::Str, &mut |range, _| res.push_str(&s[range]));
-    res
 }
 
 /// Replaces a region in a file delimited by two lines matching regexes.
@@ -465,7 +480,7 @@ mod tests {
 
     #[test]
     fn test_parse_contents() {
-        static CONTENTS: &str = r#"
+        static CONTENTS: &str = r##"
             declare_clippy_lint! {
                 #[clippy::version = "Hello Clippy!"]
                 pub PTR_ARG,
@@ -480,13 +495,21 @@ mod tests {
                 pedantic,
                 "single line"
             }
-        "#;
+
+            declare_clippy_lint! {
+                #[clippy::version = "1.61.0"]
+                pub ERR_EXPECT,
+                style,
+                r#"raw "" string"#
+            }
+        "##;
         let mut result = Vec::new();
         parse_contents(CONTENTS, "module_name", &mut result);
 
         let expected = vec![
-            Lint::new("ptr_arg", "style", "\"really long text\"", "module_name"),
-            Lint::new("doc_markdown", "pedantic", "\"single line\"", "module_name"),
+            Lint::new("ptr_arg", "style", "really long text".into(), "module_name"),
+            Lint::new("doc_markdown", "pedantic", "single line".into(), "module_name"),
+            Lint::new("err_expect", "style", "raw \"\" string".into(), "module_name"),
         ];
         assert_eq!(expected, result);
     }
@@ -507,7 +530,7 @@ mod tests {
 
         let expected = vec![DeprecatedLint::new(
             "should_assert_eq",
-            "\"`assert!()` will be more flexible with RFC 2011\"",
+            "`assert!()` will be more flexible with RFC 2011".into(),
         )];
         assert_eq!(expected, result);
     }
@@ -515,14 +538,14 @@ mod tests {
     #[test]
     fn test_usable_lints() {
         let lints = vec![
-            Lint::new("should_assert_eq2", "Not Deprecated", "\"abc\"", "module_name"),
-            Lint::new("should_assert_eq2", "internal", "\"abc\"", "module_name"),
-            Lint::new("should_assert_eq2", "internal_style", "\"abc\"", "module_name"),
+            Lint::new("should_assert_eq2", "Not Deprecated", "abc".into(), "module_name"),
+            Lint::new("should_assert_eq2", "internal", "abc".into(), "module_name"),
+            Lint::new("should_assert_eq2", "internal_style", "abc".into(), "module_name"),
         ];
         let expected = vec![Lint::new(
             "should_assert_eq2",
             "Not Deprecated",
-            "\"abc\"",
+            "abc".into(),
             "module_name",
         )];
         assert_eq!(expected, Lint::usable_lints(&lints));
@@ -531,21 +554,21 @@ mod tests {
     #[test]
     fn test_by_lint_group() {
         let lints = vec![
-            Lint::new("should_assert_eq", "group1", "\"abc\"", "module_name"),
-            Lint::new("should_assert_eq2", "group2", "\"abc\"", "module_name"),
-            Lint::new("incorrect_match", "group1", "\"abc\"", "module_name"),
+            Lint::new("should_assert_eq", "group1", "abc".into(), "module_name"),
+            Lint::new("should_assert_eq2", "group2", "abc".into(), "module_name"),
+            Lint::new("incorrect_match", "group1", "abc".into(), "module_name"),
         ];
         let mut expected: HashMap<String, Vec<Lint>> = HashMap::new();
         expected.insert(
             "group1".to_string(),
             vec![
-                Lint::new("should_assert_eq", "group1", "\"abc\"", "module_name"),
-                Lint::new("incorrect_match", "group1", "\"abc\"", "module_name"),
+                Lint::new("should_assert_eq", "group1", "abc".into(), "module_name"),
+                Lint::new("incorrect_match", "group1", "abc".into(), "module_name"),
             ],
         );
         expected.insert(
             "group2".to_string(),
-            vec![Lint::new("should_assert_eq2", "group2", "\"abc\"", "module_name")],
+            vec![Lint::new("should_assert_eq2", "group2", "abc".into(), "module_name")],
         );
         assert_eq!(expected, Lint::by_lint_group(lints.into_iter()));
     }
@@ -553,8 +576,8 @@ mod tests {
     #[test]
     fn test_gen_deprecated() {
         let lints = vec![
-            DeprecatedLint::new("should_assert_eq", "\"has been superseded by should_assert_eq2\""),
-            DeprecatedLint::new("another_deprecated", "\"will be removed\""),
+            DeprecatedLint::new("should_assert_eq", "has been superseded by should_assert_eq2".into()),
+            DeprecatedLint::new("another_deprecated", "will be removed".into()),
         ];
 
         let expected = GENERATED_FILE_COMMENT.to_string()
@@ -579,9 +602,9 @@ mod tests {
     #[test]
     fn test_gen_lint_group_list() {
         let lints = vec![
-            Lint::new("abc", "group1", "\"abc\"", "module_name"),
-            Lint::new("should_assert_eq", "group1", "\"abc\"", "module_name"),
-            Lint::new("internal", "internal_style", "\"abc\"", "module_name"),
+            Lint::new("abc", "group1", "abc".into(), "module_name"),
+            Lint::new("should_assert_eq", "group1", "abc".into(), "module_name"),
+            Lint::new("internal", "internal_style", "abc".into(), "module_name"),
         ];
         let expected = GENERATED_FILE_COMMENT.to_string()
             + &[
