@@ -1,4 +1,6 @@
 // run-rustfix
+
+#![feature(custom_inner_attributes)]
 #![warn(clippy::map_clone)]
 #![allow(
     clippy::clone_on_copy,
@@ -60,4 +62,15 @@ fn main() {
 
         let _ = Some(RefCell::new(String::new()).borrow()).map(|s| s.clone());
     }
+}
+
+fn _msrv_1_35() {
+    #![clippy::msrv = "1.35"]
+    // `copied` was stabilized in 1.36, so clippy should use `cloned`.
+    let _: Vec<i8> = vec![5_i8; 6].iter().map(|x| *x).collect();
+}
+
+fn _msrv_1_36() {
+    #![clippy::msrv = "1.36"]
+    let _: Vec<i8> = vec![5_i8; 6].iter().map(|x| *x).collect();
 }
