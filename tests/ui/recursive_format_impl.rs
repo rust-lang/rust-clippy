@@ -310,6 +310,43 @@ impl std::fmt::Debug for Tree {
     }
 }
 
+// Should also catch use of self.fmt within the Format trait
+
+enum Foo {
+    Foo(usize),
+    Bar(usize),
+}
+
+impl std::fmt::Display for Foo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Foo(_) => self.fmt(f),
+            Self::Bar(x) => x.fmt(f),
+        }
+    }
+}
+
+// Doesn't trigger on nested enum matching
+enum Tree2 {
+    Leaf,
+    Node(Vec<Tree>),
+}
+
+impl std::fmt::Display for Tree2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Tree2::Leaf => write!(f, "*"),
+            Tree2::Node(children) => {
+                write!(f, "(")?;
+                for child in children.iter() {
+                    child.fmt(f)?;
+                }
+                write!(f, ")")
+            },
+        }
+    }
+}
+
 fn main() {
     let a = A;
     a.to_string();

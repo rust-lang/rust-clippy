@@ -131,8 +131,35 @@ impl<'tcx> LateLintPass<'tcx> for FormatImpl {
             check_to_string_in_display(cx, expr);
         }
 
+        check_self_fmt_in_fmt(cx, expr, format_trait_impl);
         check_self_in_format_args(cx, expr, format_trait_impl);
         check_print_in_format_impl(cx, expr, format_trait_impl);
+    }
+}
+
+fn check_self_fmt_in_fmt(cx: &LateContext<'_>, expr: &Expr<'_>, format_trait: FormatTrait) {
+    if_chain! {
+        // Get the hir_id of the object we are calling the method on
+        if let ExprKind::MethodCall(path, [ref self_arg, ..], _) = expr.kind;
+        // Is the method to_string() ?
+        if path.ident.name == rustc_span::sym::fmt;
+        // Is the method a part of the ToString trait? (i.e. not to_string() implemented
+        // separately)
+        if let FormatTrait { name, .. } = format_trait;
+        if let Some(expr_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id);
+        if is_diag_trait_item(cx, expr_def_id, name);
+        // Is the method is called on self
+        if let ExprKind::Path(QPath::Resolved(_, path)) = self_arg.kind;
+        if let [segment] = path.segments;
+        if segment.ident.name == kw::SelfLower;
+        then {
+            span_lint(
+                cx,
+                RECURSIVE_FORMAT_IMPL,
+                expr.span,
+                &format!("using `self.fmt` as `{name}` in `impl {name}` will cause infinite recursion"),
+            );
+        }
     }
 }
 

@@ -87,5 +87,11 @@ LL |         write!(f, "{}", &&**&&*self)
    |
    = note: this error originates in the macro `write` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: aborting due to 11 previous errors
+error: using `self.fmt` as `Display` in `impl Display` will cause infinite recursion
+  --> $DIR/recursive_format_impl.rs:323:29
+   |
+LL |             Self::Foo(_) => self.fmt(f),
+   |                             ^^^^^^^^^^^
+
+error: aborting due to 12 previous errors
 
