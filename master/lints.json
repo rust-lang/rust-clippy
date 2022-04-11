@@ -7155,6 +7155,21 @@
     }
   },
   {
+    "id": "unnecessary_owned_empty_strings",
+    "id_span": {
+      "path": "src/unnecessary_owned_empty_strings.rs",
+      "line": 30
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\n\nDetects cases of owned empty strings being passed as an argument to a function expecting `&str`\n\n### Why is this bad?\n\nThis results in longer and less readable code\n\n### Example\n```rust\nvec![\"1\", \"2\", \"3\"].join(&String::new());\n```\nUse instead:\n```rust\nvec![\"1\", \"2\", \"3\"].join(\"\");\n```",
+    "version": "1.62.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "unnecessary_self_imports",
     "id_span": {
       "path": "src/unnecessary_self_imports.rs",
