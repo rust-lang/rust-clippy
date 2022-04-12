@@ -3333,7 +3333,7 @@
     "id": "manual_non_exhaustive",
     "id_span": {
       "path": "src/manual_non_exhaustive.rs",
-      "line": 56
+      "line": 60
     },
     "group": "style",
     "level": "warn",
