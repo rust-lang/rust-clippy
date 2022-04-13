@@ -5325,6 +5325,21 @@
     }
   },
   {
+    "id": "pub_use",
+    "id_span": {
+      "path": "src/pub_use.rs",
+      "line": 36
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\n\nRestricts the usage of `pub use ...`\n\n### Why is this bad?\n\n`pub use` is usually fine, but a project may wish to limit `pub use` instances to prevent\nunintentional exports or to encourage placing exported items directly in public modules\n\n### Example\n```rust\npub mod outer {\n    mod inner {\n        pub struct Test {}\n    }\n    pub use inner::Test;\n}\n\nuse outer::Test;\n```\nUse instead:\n```rust\npub mod outer {\n    pub struct Test {}\n}\n\nuse outer::Test;\n```",
+    "version": "1.62.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "question_mark",
     "id_span": {
       "path": "src/question_mark.rs",
