@@ -2115,6 +2115,21 @@
     }
   },
   {
+    "id": "format_push_string",
+    "id_span": {
+      "path": "src/format_push_string.rs",
+      "line": 31
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": " ### What it does\nDetects cases where the result of a `format!` call is\nappended to an existing `String`.\n\n### Why is this bad?\nIntroduces an extra, avoidable heap allocation.\n\n### Example\n```rust\nlet mut s = String::new();\ns += &format!(\"0x{:X}\", 1024);\ns.push_str(&format!(\"0x{:X}\", 1024));\n```\nUse instead:\n```rust\nuse std::fmt::Write as _; // import without risk of name clashing\n\nlet mut s = String::new();\nlet _ = write!(s, \"0x{:X}\", 1024);\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
@@ -2403,7 +2418,7 @@
     "id": "inconsistent_struct_constructor",
     "id_span": {
       "path": "src/inconsistent_struct_constructor.rs",
-      "line": 59
+      "line": 60
     },
     "group": "pedantic",
     "level": "allow",
@@ -6663,7 +6678,7 @@
     "id": "trait_duplication_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 67
+      "line": 68
     },
     "group": "pedantic",
     "level": "allow",
@@ -6903,7 +6918,7 @@
     "id": "type_repetition_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 37
+      "line": 38
     },
     "group": "pedantic",
     "level": "allow",
