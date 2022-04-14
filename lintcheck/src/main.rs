@@ -5,26 +5,20 @@
 // When a new lint is introduced, we can search the results for new warnings and check for false
 // positives.
 
+#![feature(let_else, absolute_path)]
 #![allow(clippy::collapsible_else_if)]
 
-use std::ffi::OsStr;
-use std::fmt::Write as _;
-use std::process::Command;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::{collections::HashMap, io::ErrorKind};
-use std::{
-    env,
-    fs::write,
-    path::{Path, PathBuf},
-    thread,
-    time::Duration,
-};
+use std::collections::{BTreeMap, HashMap};
+use std::fmt::Write;
+use std::io::{self, ErrorKind};
+use std::path::{absolute, Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::{cmp, env, fs};
 
 use clap::{App, Arg, ArgMatches};
-use rayon::prelude::*;
+use regex::{Regex, RegexSet};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use walkdir::{DirEntry, WalkDir};
 
 #[cfg(not(windows))]
 const CLIPPY_DRIVER_PATH: &str = "target/debug/clippy-driver";
@@ -36,64 +30,12 @@ const CLIPPY_DRIVER_PATH: &str = "target/debug/clippy-driver.exe";
 #[cfg(windows)]
 const CARGO_CLIPPY_PATH: &str = "target/debug/cargo-clippy.exe";
 
-const LINTCHECK_DOWNLOADS: &str = "target/lintcheck/downloads";
-const LINTCHECK_SOURCES: &str = "target/lintcheck/sources";
+const VENDOR: &str = "target/lintcheck/vendor";
+const PATCHES: &str = "target/lintcheck/patches.toml";
 
-/// List of sources to check, loaded from a .toml file
-#[derive(Debug, Serialize, Deserialize)]
-struct SourceList {
-    crates: HashMap<String, TomlCrate>,
-}
-
-/// A crate source stored inside the .toml
-/// will be translated into on one of the `CrateSource` variants
-#[derive(Debug, Serialize, Deserialize)]
-struct TomlCrate {
-    name: String,
-    versions: Option<Vec<String>>,
-    git_url: Option<String>,
-    git_hash: Option<String>,
-    path: Option<String>,
-    options: Option<Vec<String>>,
-}
-
-/// Represents an archive we download from crates.io, or a git repo, or a local repo/folder
-/// Once processed (downloaded/extracted/cloned/copied...), this will be translated into a `Crate`
-#[derive(Debug, Serialize, Deserialize, Eq, Hash, PartialEq, Ord, PartialOrd)]
-enum CrateSource {
-    CratesIo {
-        name: String,
-        version: String,
-        options: Option<Vec<String>>,
-    },
-    Git {
-        name: String,
-        url: String,
-        commit: String,
-        options: Option<Vec<String>>,
-    },
-    Path {
-        name: String,
-        path: PathBuf,
-        options: Option<Vec<String>>,
-    },
-}
-
-/// Represents the actual source code of a crate that we ran "cargo clippy" on
-#[derive(Debug)]
-struct Crate {
-    version: String,
-    name: String,
-    // path to the extracted sources that clippy can check
-    path: PathBuf,
-    options: Option<Vec<String>>,
-}
-
-/// A single warning that clippy issued while checking a `Crate`
 #[derive(Debug)]
 struct ClippyWarning {
     crate_name: String,
-    crate_version: String,
     file: String,
     line: String,
     column: String,
@@ -105,345 +47,60 @@ struct ClippyWarning {
 #[allow(unused)]
 impl ClippyWarning {
     fn to_output(&self, markdown: bool) -> String {
-        let file = format!("{}-{}/{}", &self.crate_name, &self.crate_version, &self.file);
-        let file_with_pos = format!("{}:{}:{}", &file, &self.line, &self.column);
+        let file_with_pos = format!("{}:{}:{}", self.file, self.line, self.column);
         if markdown {
             let lint = format!("`{}`", self.linttype);
 
             let mut output = String::from("| ");
-            let _ = write!(
-                output,
-                "[`{}`](../target/lintcheck/sources/{}#L{})",
-                file_with_pos, file, self.line
-            );
-            let _ = write!(output, r#" | {:<50} | "{}" |"#, lint, self.message);
-            output.push('\n');
+            write!(output, "[`{}`]({}#L{})", file_with_pos, self.file, self.line).unwrap();
+            write!(output, r#" | {:<50} | "{}" |"#, lint, self.message).unwrap();
             output
         } else {
-            format!(
-                "target/lintcheck/sources/{} {} \"{}\"\n",
-                file_with_pos, self.linttype, self.message
-            )
+            format!("{} {} \"{}\"", file_with_pos, self.linttype, self.message)
         }
     }
 }
 
-fn get(path: &str) -> Result<ureq::Response, ureq::Error> {
-    const MAX_RETRIES: u8 = 4;
-    let mut retries = 0;
-    loop {
-        match ureq::get(path).call() {
-            Ok(res) => return Ok(res),
-            Err(e) if retries >= MAX_RETRIES => return Err(e),
-            Err(ureq::Error::Transport(e)) => eprintln!("Error: {}", e),
-            Err(e) => return Err(e),
-        }
-        eprintln!("retrying in {} seconds...", retries);
-        thread::sleep(Duration::from_secs(retries as u64));
-        retries += 1;
-    }
-}
-
-impl CrateSource {
-    /// Makes the sources available on the disk for clippy to check.
-    /// Clones a git repo and checks out the specified commit or downloads a crate from crates.io or
-    /// copies a local folder
-    fn download_and_extract(&self) -> Crate {
-        match self {
-            CrateSource::CratesIo { name, version, options } => {
-                let extract_dir = PathBuf::from(LINTCHECK_SOURCES);
-                let krate_download_dir = PathBuf::from(LINTCHECK_DOWNLOADS);
-
-                // url to download the crate from crates.io
-                let url = format!("https://crates.io/api/v1/crates/{}/{}/download", name, version);
-                println!("Downloading and extracting {} {} from {}", name, version, url);
-                create_dirs(&krate_download_dir, &extract_dir);
-
-                let krate_file_path = krate_download_dir.join(format!("{}-{}.crate.tar.gz", name, version));
-                // don't download/extract if we already have done so
-                if !krate_file_path.is_file() {
-                    // create a file path to download and write the crate data into
-                    let mut krate_dest = std::fs::File::create(&krate_file_path).unwrap();
-                    let mut krate_req = get(&url).unwrap().into_reader();
-                    // copy the crate into the file
-                    std::io::copy(&mut krate_req, &mut krate_dest).unwrap();
-
-                    // unzip the tarball
-                    let ungz_tar = flate2::read::GzDecoder::new(std::fs::File::open(&krate_file_path).unwrap());
-                    // extract the tar archive
-                    let mut archive = tar::Archive::new(ungz_tar);
-                    archive.unpack(&extract_dir).expect("Failed to extract!");
-                }
-                // crate is extracted, return a new Krate object which contains the path to the extracted
-                // sources that clippy can check
-                Crate {
-                    version: version.clone(),
-                    name: name.clone(),
-                    path: extract_dir.join(format!("{}-{}/", name, version)),
-                    options: options.clone(),
-                }
-            },
-            CrateSource::Git {
-                name,
-                url,
-                commit,
-                options,
-            } => {
-                let repo_path = {
-                    let mut repo_path = PathBuf::from(LINTCHECK_SOURCES);
-                    // add a -git suffix in case we have the same crate from crates.io and a git repo
-                    repo_path.push(format!("{}-git", name));
-                    repo_path
-                };
-                // clone the repo if we have not done so
-                if !repo_path.is_dir() {
-                    println!("Cloning {} and checking out {}", url, commit);
-                    if !Command::new("git")
-                        .arg("clone")
-                        .arg(url)
-                        .arg(&repo_path)
-                        .status()
-                        .expect("Failed to clone git repo!")
-                        .success()
-                    {
-                        eprintln!("Failed to clone {} into {}", url, repo_path.display())
-                    }
-                }
-                // check out the commit/branch/whatever
-                if !Command::new("git")
-                    .arg("checkout")
-                    .arg(commit)
-                    .current_dir(&repo_path)
-                    .status()
-                    .expect("Failed to check out commit")
-                    .success()
-                {
-                    eprintln!("Failed to checkout {} of repo at {}", commit, repo_path.display())
-                }
-
-                Crate {
-                    version: commit.clone(),
-                    name: name.clone(),
-                    path: repo_path,
-                    options: options.clone(),
-                }
-            },
-            CrateSource::Path { name, path, options } => {
-                // copy path into the dest_crate_root but skip directories that contain a CACHEDIR.TAG file.
-                // The target/ directory contains a CACHEDIR.TAG file so it is the most commonly skipped directory
-                // as a result of this filter.
-                let dest_crate_root = PathBuf::from(LINTCHECK_SOURCES).join(name);
-                if dest_crate_root.exists() {
-                    println!("Deleting existing directory at {:?}", dest_crate_root);
-                    std::fs::remove_dir_all(&dest_crate_root).unwrap();
-                }
-
-                println!("Copying {:?} to {:?}", path, dest_crate_root);
-
-                fn is_cache_dir(entry: &DirEntry) -> bool {
-                    std::fs::read(entry.path().join("CACHEDIR.TAG"))
-                        .map(|x| x.starts_with(b"Signature: 8a477f597d28d172789f06886806bc55"))
-                        .unwrap_or(false)
-                }
-
-                for entry in WalkDir::new(path).into_iter().filter_entry(|e| !is_cache_dir(e)) {
-                    let entry = entry.unwrap();
-                    let entry_path = entry.path();
-                    let relative_entry_path = entry_path.strip_prefix(path).unwrap();
-                    let dest_path = dest_crate_root.join(relative_entry_path);
-                    let metadata = entry_path.symlink_metadata().unwrap();
-
-                    if metadata.is_dir() {
-                        std::fs::create_dir(dest_path).unwrap();
-                    } else if metadata.is_file() {
-                        std::fs::copy(entry_path, dest_path).unwrap();
-                    }
-                }
-
-                Crate {
-                    version: String::from("local"),
-                    name: name.clone(),
-                    path: dest_crate_root,
-                    options: options.clone(),
-                }
-            },
-        }
-    }
-}
-
-impl Crate {
-    /// Run `cargo clippy` on the `Crate` and collect and return all the lint warnings that clippy
-    /// issued
-    fn run_clippy_lints(
-        &self,
-        cargo_clippy_path: &Path,
-        target_dir_index: &AtomicUsize,
-        thread_limit: usize,
-        total_crates_to_lint: usize,
-        fix: bool,
-        lint_filter: &Vec<String>,
-    ) -> Vec<ClippyWarning> {
-        // advance the atomic index by one
-        let index = target_dir_index.fetch_add(1, Ordering::SeqCst);
-        // "loop" the index within 0..thread_limit
-        let thread_index = index % thread_limit;
-        let perc = (index * 100) / total_crates_to_lint;
-
-        if thread_limit == 1 {
-            println!(
-                "{}/{} {}% Linting {} {}",
-                index, total_crates_to_lint, perc, &self.name, &self.version
-            );
-        } else {
-            println!(
-                "{}/{} {}% Linting {} {} in target dir {:?}",
-                index, total_crates_to_lint, perc, &self.name, &self.version, thread_index
-            );
-        }
-
-        let cargo_clippy_path = std::fs::canonicalize(cargo_clippy_path).unwrap();
-
-        let shared_target_dir = clippy_project_root().join("target/lintcheck/shared_target_dir");
-
-        let mut args = if fix {
-            vec!["--fix", "--"]
-        } else {
-            vec!["--", "--message-format=json", "--"]
-        };
-
-        if let Some(options) = &self.options {
-            for opt in options {
-                args.push(opt);
-            }
-        } else {
-            args.extend(&["-Wclippy::pedantic", "-Wclippy::cargo"])
-        }
-
-        if lint_filter.is_empty() {
-            args.push("--cap-lints=warn");
-        } else {
-            args.push("--cap-lints=allow");
-            args.extend(lint_filter.iter().map(|filter| filter.as_str()))
-        }
-
-        let all_output = std::process::Command::new(&cargo_clippy_path)
-            // use the looping index to create individual target dirs
-            .env(
-                "CARGO_TARGET_DIR",
-                shared_target_dir.join(format!("_{:?}", thread_index)),
-            )
-            // lint warnings will look like this:
-            // src/cargo/ops/cargo_compile.rs:127:35: warning: usage of `FromIterator::from_iter`
-            .args(&args)
-            .current_dir(&self.path)
-            .output()
-            .unwrap_or_else(|error| {
-                panic!(
-                    "Encountered error:\n{:?}\ncargo_clippy_path: {}\ncrate path:{}\n",
-                    error,
-                    &cargo_clippy_path.display(),
-                    &self.path.display()
-                );
-            });
-        let stdout = String::from_utf8_lossy(&all_output.stdout);
-        let stderr = String::from_utf8_lossy(&all_output.stderr);
-        let status = &all_output.status;
-
-        if !status.success() {
-            eprintln!(
-                "\nWARNING: bad exit status after checking {} {} \n",
-                self.name, self.version
-            );
-        }
-
-        if fix {
-            if let Some(stderr) = stderr
-                .lines()
-                .find(|line| line.contains("failed to automatically apply fixes suggested by rustc to crate"))
-            {
-                let subcrate = &stderr[63..];
-                println!(
-                    "ERROR: failed to apply some suggetion to {} / to (sub)crate {}",
-                    self.name, subcrate
-                );
-            }
-            // fast path, we don't need the warnings anyway
-            return Vec::new();
-        }
-
-        let output_lines = stdout.lines();
-        let warnings: Vec<ClippyWarning> = output_lines
-            .into_iter()
-            // get all clippy warnings and ICEs
-            .filter(|line| filter_clippy_warnings(&line))
-            .map(|json_msg| parse_json_message(json_msg, &self))
-            .collect();
-
-        warnings
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 struct LintcheckConfig {
-    /// max number of jobs to spawn (default 1)
-    max_jobs: usize,
     /// we read the sources to check from here
     sources_toml_path: PathBuf,
     /// we save the clippy lint results here
     lintcheck_results_path: PathBuf,
-    /// whether to just run --fix and not collect all the warnings
-    fix: bool,
     /// A list of lints that this lintcheck run should focus on
     lint_filter: Vec<String>,
+    /// The list of packages to lint
+    package_filter: Vec<String>,
     /// Indicate if the output should support markdown syntax
     markdown: bool,
+    /// Enable cargo --timings
+    timings: bool,
 }
 
 impl LintcheckConfig {
     fn from_clap(clap_config: &ArgMatches) -> Self {
         // first, check if we got anything passed via the LINTCHECK_TOML env var,
         // if not, ask clap if we got any value for --crates-toml  <foo>
-        // if not, use the default "lintcheck/lintcheck_crates.toml"
+        // if not, use the default "lintcheck/lintcheck_crates/Cargo.toml"
         let sources_toml = env::var("LINTCHECK_TOML").unwrap_or_else(|_| {
             clap_config
                 .value_of("crates-toml")
                 .clone()
-                .unwrap_or("lintcheck/lintcheck_crates.toml")
+                .unwrap_or("lintcheck/lintcheck_crates/Cargo.toml")
                 .to_string()
         });
 
         let markdown = clap_config.is_present("markdown");
-        let sources_toml_path = PathBuf::from(sources_toml);
+        let sources_toml_path = absolute(sources_toml).unwrap();
 
-        // for the path where we save the lint results, get the filename without extension (so for
-        // wasd.toml, use "wasd"...)
-        let filename: PathBuf = sources_toml_path.file_stem().unwrap().into();
+        // for the path where we save the lint results, use the directory of the sources Cargo.toml
+        let filename = sources_toml_path.parent().unwrap().file_name().unwrap();
         let lintcheck_results_path = PathBuf::from(format!(
             "lintcheck-logs/{}_logs.{}",
-            filename.display(),
+            filename.to_str().unwrap(),
             if markdown { "md" } else { "txt" }
         ));
 
-        // look at the --threads arg, if 0 is passed, ask rayon rayon how many threads it would spawn and
-        // use half of that for the physical core count
-        // by default use a single thread
-        let max_jobs = match clap_config.value_of("threads") {
-            Some(threads) => {
-                let threads: usize = threads
-                    .parse()
-                    .unwrap_or_else(|_| panic!("Failed to parse '{}' to a digit", threads));
-                if threads == 0 {
-                    // automatic choice
-                    // Rayon seems to return thread count so half that for core count
-                    (rayon::current_num_threads() / 2) as usize
-                } else {
-                    threads
-                }
-            },
-            // no -j passed, use a single thread
-            None => 1,
-        };
-        let fix: bool = clap_config.is_present("fix");
         let lint_filter: Vec<String> = clap_config
             .values_of("filter")
             .map(|iter| {
@@ -458,13 +115,18 @@ impl LintcheckConfig {
             })
             .unwrap_or_default();
 
+        let package_filter = clap_config
+            .values_of("package")
+            .map(|iter| iter.map(|s| s.to_string()).collect())
+            .unwrap_or_default();
+
         LintcheckConfig {
-            max_jobs,
             sources_toml_path,
             lintcheck_results_path,
-            fix,
             lint_filter,
+            package_filter,
             markdown,
+            timings: clap_config.is_present("timings"),
         }
     }
 }
@@ -504,99 +166,26 @@ fn build_clippy() {
     }
 }
 
-/// Read a `toml` file and return a list of `CrateSources` that we want to check with clippy
-fn read_crates(toml_path: &Path) -> Vec<CrateSource> {
-    let toml_content: String =
-        std::fs::read_to_string(&toml_path).unwrap_or_else(|_| panic!("Failed to read {}", toml_path.display()));
-    let crate_list: SourceList =
-        toml::from_str(&toml_content).unwrap_or_else(|e| panic!("Failed to parse {}: \n{}", toml_path.display(), e));
-    // parse the hashmap of the toml file into a list of crates
-    let tomlcrates: Vec<TomlCrate> = crate_list
-        .crates
-        .into_iter()
-        .map(|(_cratename, tomlcrate)| tomlcrate)
-        .collect();
-
-    // flatten TomlCrates into CrateSources (one TomlCrates may represent several versions of a crate =>
-    // multiple Cratesources)
-    let mut crate_sources = Vec::new();
-    tomlcrates.into_iter().for_each(|tk| {
-        if let Some(ref path) = tk.path {
-            crate_sources.push(CrateSource::Path {
-                name: tk.name.clone(),
-                path: PathBuf::from(path),
-                options: tk.options.clone(),
-            });
-        }
-
-        // if we have multiple versions, save each one
-        if let Some(ref versions) = tk.versions {
-            versions.iter().for_each(|ver| {
-                crate_sources.push(CrateSource::CratesIo {
-                    name: tk.name.clone(),
-                    version: ver.to_string(),
-                    options: tk.options.clone(),
-                });
-            })
-        }
-        // otherwise, we should have a git source
-        if tk.git_url.is_some() && tk.git_hash.is_some() {
-            crate_sources.push(CrateSource::Git {
-                name: tk.name.clone(),
-                url: tk.git_url.clone().unwrap(),
-                commit: tk.git_hash.clone().unwrap(),
-                options: tk.options.clone(),
-            });
-        }
-        // if we have a version as well as a git data OR only one git data, something is funky
-        if tk.versions.is_some() && (tk.git_url.is_some() || tk.git_hash.is_some())
-            || tk.git_hash.is_some() != tk.git_url.is_some()
-        {
-            eprintln!("tomlkrate: {:?}", tk);
-            if tk.git_hash.is_some() != tk.git_url.is_some() {
-                panic!("Error: Encountered TomlCrate with only one of git_hash and git_url!");
-            }
-            if tk.path.is_some() && (tk.git_hash.is_some() || tk.versions.is_some()) {
-                panic!("Error: TomlCrate can only have one of 'git_.*', 'version' or 'path' fields");
-            }
-            unreachable!("Failed to translate TomlCrate into CrateSource!");
-        }
-    });
-    // sort the crates
-    crate_sources.sort();
-
-    crate_sources
-}
-
 /// Parse the json output of clippy and return a `ClippyWarning`
-fn parse_json_message(json_message: &str, krate: &Crate) -> ClippyWarning {
+fn parse_json_message(json_message: &str) -> ClippyWarning {
     let jmsg: Value = serde_json::from_str(&json_message).unwrap_or_else(|e| panic!("Failed to parse json:\n{:?}", e));
 
-    let file: String = jmsg["message"]["spans"][0]["file_name"]
-        .to_string()
-        .trim_matches('"')
-        .into();
-
-    let file = if file.contains(".cargo") {
-        // if we deal with macros, a filename may show the origin of a macro which can be inside a dep from
-        // the registry.
-        // don't show the full path in that case.
-
-        // /home/matthias/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.63/src/custom_keyword.rs
-        let path = PathBuf::from(file);
-        let mut piter = path.iter();
-        // consume all elements until we find ".cargo", so that "/home/matthias" is skipped
-        let _: Option<&OsStr> = piter.find(|x| x == &std::ffi::OsString::from(".cargo"));
-        // collect the remaining segments
-        let file = piter.collect::<PathBuf>();
-        format!("{}", file.display())
-    } else {
-        file
+    let file = jmsg["message"]["spans"][0]["file_name"].as_str().unwrap();
+    let file = match Path::new(file).strip_prefix(env::current_dir().unwrap()) {
+        Ok(stripped) => stripped.display().to_string(),
+        Err(_) => file.to_string(),
     };
 
+    let crate_name = jmsg["package_id"]
+        .as_str()
+        .unwrap()
+        .split(' ')
+        .next()
+        .unwrap()
+        .to_string();
+
     ClippyWarning {
-        crate_name: krate.name.to_string(),
-        crate_version: krate.version.to_string(),
+        crate_name,
         file,
         line: jmsg["message"]["spans"][0]["line_start"]
             .to_string()
@@ -622,9 +211,7 @@ fn gather_stats(clippy_warnings: &[ClippyWarning]) -> (String, HashMap<&String, 
 
     // collect into a tupled list for sorting
     let mut stats: Vec<(&&String, &usize)> = counter.iter().map(|(lint, count)| (lint, count)).collect();
-    // sort by "000{count} {clippy::lintname}"
-    // to not have a lint with 200 and 2 warnings take the same spot
-    stats.sort_by_key(|(lint, count)| format!("{:0>4}, {}", count, lint));
+    stats.sort_by_key(|(&lint, &count)| (cmp::Reverse(count), lint));
 
     let mut header = String::from("| lint                                               | count |\n");
     header.push_str("| -------------------------------------------------- | ----- |\n");
@@ -639,39 +226,176 @@ fn gather_stats(clippy_warnings: &[ClippyWarning]) -> (String, HashMap<&String, 
     (stats_string, counter)
 }
 
-/// check if the latest modification of the logfile is older than the modification date of the
-/// clippy binary, if this is true, we should clean the lintchec shared target directory and recheck
-fn lintcheck_needs_rerun(lintcheck_logs_path: &Path) -> bool {
-    if !lintcheck_logs_path.exists() {
-        return true;
-    }
-
-    let clippy_modified: std::time::SystemTime = {
-        let mut times = [CLIPPY_DRIVER_PATH, CARGO_CLIPPY_PATH].iter().map(|p| {
-            std::fs::metadata(p)
-                .expect("failed to get metadata of file")
-                .modified()
-                .expect("failed to get modification date")
-        });
-        // the oldest modification of either of the binaries
-        std::cmp::max(times.next().unwrap(), times.next().unwrap())
+/// returns true if `path` is newer than `compare_to`, or either of the paths do not exist
+fn newer_than(path: impl AsRef<Path>, compare_to: impl AsRef<Path>) -> bool {
+    let mtime = match path.as_ref().metadata() {
+        Ok(metadata) => metadata.modified().expect("failed to get metadata of file"),
+        Err(e) => {
+            assert_eq!(e.kind(), ErrorKind::NotFound, "failed to get modification date");
+            return true;
+        },
     };
 
-    let logs_modified: std::time::SystemTime = std::fs::metadata(lintcheck_logs_path)
-        .expect("failed to get metadata of file")
-        .modified()
-        .expect("failed to get modification date");
+    let compare_mtime = match compare_to.as_ref().metadata() {
+        Ok(metadata) => metadata.modified().expect("failed to get metadata of file"),
+        Err(e) => {
+            assert_eq!(e.kind(), ErrorKind::NotFound, "failed to get modification date");
+            return true;
+        },
+    };
 
-    // time is represented in seconds since X
-    // logs_modified 2 and clippy_modified 5 means clippy binary is older and we need to recheck
-    logs_modified < clippy_modified
+    mtime > compare_mtime
+}
+
+/// check if the latest modification of the logfile is older than the modification date of the
+/// clippy binary, if this is true, we should clean the lintcheck shared target directory and
+/// recheck
+fn lintcheck_needs_rerun(lintcheck_logs_path: &Path) -> bool {
+    newer_than(CLIPPY_DRIVER_PATH, lintcheck_logs_path) || newer_than(CARGO_CLIPPY_PATH, lintcheck_logs_path)
+}
+
+/// check if the sources Cargo.toml has been modified since the last vendor run
+fn vendor_needs_rerun(new_config: &LintcheckConfig) -> bool {
+    let Ok(conf_bytes) = fs::read(PATCHES) else { return true };
+
+    let conf: toml::Value = toml::from_slice(&conf_bytes).unwrap();
+    let old_config = conf
+        .get("lintcheck")
+        .and_then(|v| v.get("config"))
+        .map(|v| v.clone().try_into::<LintcheckConfig>());
+
+    if let Some(Ok(old_config)) = old_config {
+        old_config.sources_toml_path != new_config.sources_toml_path
+            || newer_than(&new_config.sources_toml_path, VENDOR)
+    } else {
+        true
+    }
+}
+
+fn read_ignores(config: &LintcheckConfig) -> Option<RegexSet> {
+    let crates_toml = fs::read(&config.sources_toml_path).unwrap();
+    let crates_toml = toml::from_slice::<toml::Value>(&crates_toml).unwrap();
+    let ignore = crates_toml
+        .get("package")?
+        .get("metadata")?
+        .get("lintcheck")?
+        .get("ignore")?
+        .as_array()
+        .expect("expected ignore to be an array");
+
+    let globs = ignore.iter().map(|v| {
+        v.as_str()
+            .expect("expected ignore entry to be a string")
+            .replace('*', ".*")
+    });
+    Some(RegexSet::new(globs).unwrap())
+}
+
+fn create_patches(config: &LintcheckConfig) -> io::Result<()> {
+    #[derive(Serialize, PartialOrd, PartialEq, Debug)]
+    struct Patch {
+        path: PathBuf,
+        package: String,
+    }
+
+    let version_split = Regex::new(r"-\d+\.").unwrap();
+    let ignore = read_ignores(config).unwrap_or_else(RegexSet::empty);
+    let mut patches = BTreeMap::new();
+
+    let vendor_absolute = absolute(VENDOR)?;
+    for entry in fs::read_dir(VENDOR)? {
+        let entry = entry?;
+        if !entry.file_type()?.is_dir() {
+            continue;
+        }
+
+        let name = entry.file_name().into_string().unwrap();
+        let Some(package) = version_split.split(&name).next() else { continue };
+
+        if ignore.is_match(package) {
+            continue;
+        }
+
+        let patch = Patch {
+            path: vendor_absolute.join(&name),
+            package: package.to_string(),
+        };
+
+        patches.insert(name, patch);
+    }
+
+    let conf = toml::toml! {
+        [source.crates-io]
+        replace-with = "vendored"
+
+        [source.vendored]
+        directory = (toml::Value::try_from(vendor_absolute).unwrap())
+
+        [patch]
+        crates-io = (toml::Value::try_from(patches).unwrap())
+
+        [lintcheck]
+        config = (toml::Value::try_from(config).unwrap())
+    };
+
+    fs::write(PATCHES, conf.to_string())
+}
+
+fn clippy(config: &LintcheckConfig) -> Vec<u8> {
+    let features = if config.package_filter.is_empty() {
+        "--all-features".to_string()
+    } else {
+        format!("--features={}", config.package_filter.join(","))
+    };
+
+    let mut rustflags = vec!["--cap-lints=warn"];
+
+    let lint_filter: Vec<String> = config.lint_filter.iter().map(|lint| format!("-W{lint}")).collect();
+    if config.lint_filter.is_empty() {
+        rustflags.extend(["-Wclippy::pedantic", "-Wclippy::cargo"]);
+    } else {
+        rustflags.extend(lint_filter.iter().map(|filter| filter.as_str()))
+    }
+
+    // We don't use `cargo clippy` as it uses RUSTC_WORKSPACE_WRAPPER=clippy-driver which doesn't
+    // apply to patched packages. Instead we set RUSTC_WRAPPER=clippy-driver which applies to all
+    // packages, but clippy-driver falls back to rustc when cargo passes `--cap-lints=allow` for
+    // each unpatched package
+    let output = Command::new("cargo")
+        .args([
+            "check",
+            "-Zunstable-options",
+            "-Zconfig-include",
+            &features,
+            "--message-format=json",
+            "--target-dir=target/lintcheck/shared_target_dir",
+            // cargo refreshes the progress bar when writing to stdout, which can cause flickering/slowness
+            "--config=term.progress.when = \"never\"",
+        ])
+        .args(config.timings.then(|| "--timings"))
+        .args(["--config", PATCHES])
+        .args(["--manifest-path".as_ref(), config.sources_toml_path.as_os_str()])
+        .env("RUSTFLAGS", rustflags.join(" "))
+        .env("RUSTC_WRAPPER", absolute(CLIPPY_DRIVER_PATH).unwrap())
+        .stderr(Stdio::inherit())
+        .output()
+        .unwrap();
+
+    if !output.status.success() {
+        let filename = config.sources_toml_path.parent().unwrap().file_name().unwrap();
+        let out = format!("lintcheck-logs/{}.stdout", filename.to_str().unwrap());
+
+        fs::write(&out, output.stdout).unwrap();
+        panic!("clippy returned {:?}, saved stdout to {}", output.status, out);
+    }
+
+    output.stdout
 }
 
 /// lintchecks `main()` function
 ///
 /// # Panics
 ///
-/// This function panics if the clippy binaries don't exist
 /// or if lintcheck is executed from the wrong directory (aka none-repo-root)
 pub fn main() {
     // assert that we launch lintcheck from the repo root (via cargo lintcheck)
@@ -702,16 +426,23 @@ pub fn main() {
         }
     }
 
-    let cargo_clippy_path: PathBuf = PathBuf::from(CARGO_CLIPPY_PATH)
-        .canonicalize()
-        .expect("failed to canonicalize path to clippy binary");
+    if vendor_needs_rerun(&config) {
+        println!("Vendoring...");
+        let status = Command::new("cargo")
+            .args(["vendor", "--versioned-dirs"])
+            .args(["--manifest-path".as_ref(), config.sources_toml_path.as_os_str()])
+            .arg(VENDOR)
+            // hide `[sources.crates-io] ...` output
+            .stdout(Stdio::null())
+            .status()
+            .unwrap();
+        assert!(status.success());
+        println!("Vendored.")
+    }
 
-    // assert that clippy is found
-    assert!(
-        cargo_clippy_path.is_file(),
-        "target/debug/cargo-clippy binary not found! {}",
-        cargo_clippy_path.display()
-    );
+    create_patches(&config).unwrap();
+
+    let stdout = clippy(&config);
 
     let clippy_ver = std::process::Command::new(CARGO_CLIPPY_PATH)
         .arg("--version")
@@ -719,98 +450,14 @@ pub fn main() {
         .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
         .expect("could not get clippy version!");
 
-    // download and extract the crates, then run clippy on them and collect clippys warnings
-    // flatten into one big list of warnings
-
-    let crates = read_crates(&config.sources_toml_path);
     let old_stats = read_stats_from_file(&config.lintcheck_results_path);
 
-    let counter = AtomicUsize::new(1);
-    let lint_filter: Vec<String> = config
-        .lint_filter
-        .iter()
-        .map(|filter| {
-            let mut filter = filter.clone();
-            filter.insert_str(0, "--force-warn=");
-            filter
-        })
+    let clippy_warnings: Vec<ClippyWarning> = String::from_utf8_lossy(&stdout)
+        .lines()
+        // get all clippy warnings and ICEs
+        .filter(|line| filter_clippy_warnings(&line))
+        .map(|json_msg| parse_json_message(json_msg))
         .collect();
-
-    let clippy_warnings: Vec<ClippyWarning> = if let Some(only_one_crate) = clap_config.value_of("only") {
-        // if we don't have the specified crate in the .toml, throw an error
-        if !crates.iter().any(|krate| {
-            let name = match krate {
-                CrateSource::CratesIo { name, .. } | CrateSource::Git { name, .. } | CrateSource::Path { name, .. } => {
-                    name
-                },
-            };
-            name == only_one_crate
-        }) {
-            eprintln!(
-                "ERROR: could not find crate '{}' in lintcheck/lintcheck_crates.toml",
-                only_one_crate
-            );
-            std::process::exit(1);
-        }
-
-        // only check a single crate that was passed via cmdline
-        crates
-            .into_iter()
-            .map(|krate| krate.download_and_extract())
-            .filter(|krate| krate.name == only_one_crate)
-            .flat_map(|krate| {
-                krate.run_clippy_lints(&cargo_clippy_path, &AtomicUsize::new(0), 1, 1, config.fix, &lint_filter)
-            })
-            .collect()
-    } else {
-        if config.max_jobs > 1 {
-            // run parallel with rayon
-
-            // Ask rayon for thread count. Assume that half of that is the number of physical cores
-            // Use one target dir for each core so that we can run N clippys in parallel.
-            // We need to use different target dirs because cargo would lock them for a single build otherwise,
-            // killing the parallelism. However this also means that deps will only be reused half/a
-            // quarter of the time which might result in a longer wall clock runtime
-
-            // This helps when we check many small crates with dep-trees that don't have a lot of branches in
-            // order to achieve some kind of parallelism
-
-            // by default, use a single thread
-            let num_cpus = config.max_jobs;
-            let num_crates = crates.len();
-
-            // check all crates (default)
-            crates
-                .into_par_iter()
-                .map(|krate| krate.download_and_extract())
-                .flat_map(|krate| {
-                    krate.run_clippy_lints(
-                        &cargo_clippy_path,
-                        &counter,
-                        num_cpus,
-                        num_crates,
-                        config.fix,
-                        &lint_filter,
-                    )
-                })
-                .collect()
-        } else {
-            // run sequential
-            let num_crates = crates.len();
-            crates
-                .into_iter()
-                .map(|krate| krate.download_and_extract())
-                .flat_map(|krate| {
-                    krate.run_clippy_lints(&cargo_clippy_path, &counter, 1, num_crates, config.fix, &lint_filter)
-                })
-                .collect()
-        }
-    };
-
-    // if we are in --fix mode, don't change the log files, terminate here
-    if config.fix {
-        return;
-    }
 
     // generate some stats
     let (stats_formatted, new_stats) = gather_stats(&clippy_warnings);
@@ -827,32 +474,32 @@ pub fn main() {
         .map(|warn| warn.to_output(config.markdown))
         .collect();
     all_msgs.sort();
-    all_msgs.push("\n\n### Stats:\n\n".into());
-    all_msgs.push(stats_formatted);
 
     // save the text into lintcheck-logs/logs.txt
     let mut text = clippy_ver; // clippy version number on top
+    text.push_str("\n\n### Stats:\n\n");
+    text.push_str(&stats_formatted);
     text.push_str("\n### Reports\n\n");
     if config.markdown {
         text.push_str("| file | lint | message |\n");
         text.push_str("| --- | --- | --- |\n");
     }
-    write!(text, "{}", all_msgs.join(""));
+    write!(text, "{}", all_msgs.join("\n")).unwrap();
     text.push_str("\n\n### ICEs:\n");
     for (cratename, msg) in ices.iter() {
-        let _ = write!(text, "{}: '{}'", cratename, msg);
+        write!(text, "{}: '{}'", cratename, msg).unwrap();
     }
 
     println!("Writing logs to {}", config.lintcheck_results_path.display());
-    std::fs::create_dir_all(config.lintcheck_results_path.parent().unwrap()).unwrap();
-    write(&config.lintcheck_results_path, text).unwrap();
+    fs::create_dir_all(config.lintcheck_results_path.parent().unwrap()).unwrap();
+    fs::write(&config.lintcheck_results_path, text).unwrap();
 
     print_stats(old_stats, new_stats, &config.lint_filter);
 }
 
 /// read the previous stats from the lintcheck-log file
 fn read_stats_from_file(file_path: &Path) -> HashMap<String, usize> {
-    let file_content: String = match std::fs::read_to_string(file_path).ok() {
+    let file_content: String = match fs::read_to_string(file_path).ok() {
         Some(content) => content,
         None => {
             return HashMap::new();
@@ -926,58 +573,24 @@ fn print_stats(old_stats: HashMap<String, usize>, new_stats: HashMap<&String, us
         });
 }
 
-/// Create necessary directories to run the lintcheck tool.
-///
-/// # Panics
-///
-/// This function panics if creating one of the dirs fails.
-fn create_dirs(krate_download_dir: &Path, extract_dir: &Path) {
-    std::fs::create_dir("target/lintcheck/").unwrap_or_else(|err| {
-        if err.kind() != ErrorKind::AlreadyExists {
-            panic!("cannot create lintcheck target dir");
-        }
-    });
-    std::fs::create_dir(&krate_download_dir).unwrap_or_else(|err| {
-        if err.kind() != ErrorKind::AlreadyExists {
-            panic!("cannot create crate download dir");
-        }
-    });
-    std::fs::create_dir(&extract_dir).unwrap_or_else(|err| {
-        if err.kind() != ErrorKind::AlreadyExists {
-            panic!("cannot create crate extraction dir");
-        }
-    });
-}
-
 fn get_clap_config<'a>() -> ArgMatches<'a> {
     App::new("lintcheck")
         .about("run clippy on a set of crates and check output")
         .arg(
-            Arg::with_name("only")
+            Arg::with_name("package")
                 .takes_value(true)
-                .value_name("CRATE")
-                .long("only")
-                .help("only process a single crate of the list"),
+                .value_name("PACKAGE")
+                .multiple(true)
+                .short("p")
+                .long("package")
+                .help("only lint specific top level package(s)"),
         )
         .arg(
             Arg::with_name("crates-toml")
                 .takes_value(true)
                 .value_name("CRATES-SOURCES-TOML-PATH")
                 .long("crates-toml")
-                .help("set the path for a crates.toml where lintcheck should read the sources from"),
-        )
-        .arg(
-            Arg::with_name("threads")
-                .takes_value(true)
-                .value_name("N")
-                .short("j")
-                .long("jobs")
-                .help("number of threads to use, 0 automatic choice"),
-        )
-        .arg(
-            Arg::with_name("fix")
-                .long("--fix")
-                .help("runs cargo clippy --fix and checks if all suggestions apply"),
+                .help("set the path for a Cargo.toml where lintcheck should read the sources from"),
         )
         .arg(
             Arg::with_name("filter")
@@ -985,58 +598,13 @@ fn get_clap_config<'a>() -> ArgMatches<'a> {
                 .takes_value(true)
                 .multiple(true)
                 .value_name("clippy_lint_name")
-                .help("apply a filter to only collect specified lints, this also overrides `allow` attributes"),
+                .help("apply a filter to only collect specified lints"),
         )
         .arg(
             Arg::with_name("markdown")
                 .long("--markdown")
                 .help("change the reports table to use markdown links"),
         )
+        .arg(Arg::with_name("timings").long("--timings").help("enable cargo timings"))
         .get_matches()
-}
-
-/// Returns the path to the Clippy project directory
-///
-/// # Panics
-///
-/// Panics if the current directory could not be retrieved, there was an error reading any of the
-/// Cargo.toml files or ancestor directory is the clippy root directory
-#[must_use]
-pub fn clippy_project_root() -> PathBuf {
-    let current_dir = std::env::current_dir().unwrap();
-    for path in current_dir.ancestors() {
-        let result = std::fs::read_to_string(path.join("Cargo.toml"));
-        if let Err(err) = &result {
-            if err.kind() == std::io::ErrorKind::NotFound {
-                continue;
-            }
-        }
-
-        let content = result.unwrap();
-        if content.contains("[package]\nname = \"clippy\"") {
-            return path.to_path_buf();
-        }
-    }
-    panic!("error: Can't determine root of project. Please run inside a Clippy working dir.");
-}
-
-#[test]
-fn lintcheck_test() {
-    let args = [
-        "run",
-        "--target-dir",
-        "lintcheck/target",
-        "--manifest-path",
-        "./lintcheck/Cargo.toml",
-        "--",
-        "--crates-toml",
-        "lintcheck/test_sources.toml",
-    ];
-    let status = std::process::Command::new("cargo")
-        .args(&args)
-        .current_dir("..") // repo root
-        .status();
-    //.output();
-
-    assert!(status.unwrap().success());
 }

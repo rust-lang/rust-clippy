@@ -11,3 +11,4 @@ target-dir = "target"
 
 [unstable]
 binary-dep-depinfo = true
+bindeps = true
