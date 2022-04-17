@@ -33,8 +33,7 @@ All contributors are expected to follow the [Rust Code of Conduct].
 If you're new to Clippy and don't know where to start the [Clippy book] includes
 a developer guide and is a good place to start your journey.
 
-<!-- FIXME: Link to the deployed book, once it is deployed through CI -->
-[Clippy book]: book/src
+[Clippy book]: https://rust-lang.github.io/rust-clippy/book/index.html
 
 ## High level approach
 

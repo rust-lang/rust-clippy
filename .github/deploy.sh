@@ -3,7 +3,7 @@
 set -ex
 
 echo "Removing the current docs for master"
-rm -rf out/master/ || exit 0
+rm -rf out/master/ out/book/ || exit 0
 
 echo "Making the docs for master"
 mkdir out/master/
@@ -28,6 +28,9 @@ cp util/gh-pages/versions.html out/index.html
 
 echo "Making the versions.json file"
 python3 ./util/versions.py out
+
+# Copying the book
+mv book/book out
 
 # Now let's go have some fun with the cloned repo
 cd out

@@ -31,7 +31,7 @@ def main():
 
     outdir = sys.argv[1]
     versions = [
-        dir for dir in os.listdir(outdir) if not dir.startswith(".") and os.path.isdir(os.path.join(outdir, dir))
+        dir for dir in os.listdir(outdir) if not dir.startswith(".") and dir != "book" and os.path.isdir(os.path.join(outdir, dir))
     ]
     versions.sort(key=key)
 
