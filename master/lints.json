@@ -390,6 +390,21 @@
     }
   },
   {
+    "id": "bytes_count_to_len",
+    "id_span": {
+      "path": "src/bytes_count_to_len.rs",
+      "line": 33
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": " ### What it does\nIt checks for `str::bytes().count()` and suggests replacing it with\n`str::len()`.\n\n### Why is this bad?\n`str::bytes().count()` is longer and may not be as performant as using\n`str::len()`.\n\n### Example\n```rust\n\"hello\".bytes().count();\nString::from(\"hello\").bytes().count();\n```\nUse instead:\n```rust\n\"hello\".len();\nString::from(\"hello\").len();\n```",
+    "version": "1.62.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
