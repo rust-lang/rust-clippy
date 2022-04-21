@@ -798,7 +798,7 @@
     "id": "collapsible_else_if",
     "id_span": {
       "path": "src/collapsible_if.rs",
-      "line": 87
+      "line": 88
     },
     "group": "style",
     "level": "warn",
@@ -813,7 +813,7 @@
     "id": "collapsible_if",
     "id_span": {
       "path": "src/collapsible_if.rs",
-      "line": 51
+      "line": 52
     },
     "group": "style",
     "level": "warn",
