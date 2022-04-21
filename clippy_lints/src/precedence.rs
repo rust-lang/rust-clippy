@@ -33,6 +33,7 @@ declare_clippy_lint! {
     /// * a "negative" numeric literal (which is really a unary `-` followed by a
     /// numeric literal)
     ///   followed by a method call
+    /// * bit masking (`&`) before a shifing operator without parentheses
     ///
     /// ### Why is this bad?
     /// Not everyone knows the precedence of those operators by
@@ -42,6 +43,7 @@ declare_clippy_lint! {
     /// ### Example
     /// * `1 << 2 + 3` equals 32, while `(1 << 2) + 3` equals 7
     /// * `-1i32.abs()` equals -1, while `(-1i32).abs()` equals 1
+    /// * `0x2345 & 0xF000 >> 12` equals 5, while `(0x2345 & 0xF000) >> 12` equals 2
     #[clippy::version = "pre 1.29.0"]
     pub PRECEDENCE,
     complexity,
@@ -56,86 +58,118 @@ impl EarlyLintPass for Precedence {
             return;
         }
 
-        if let ExprKind::Binary(Spanned { node: op, .. }, ref left, ref right) = expr.kind {
-            let span_sugg = |expr: &Expr, sugg, appl| {
+        check_expr_binary(cx, expr);
+        check_expr_unary(cx, expr);
+    }
+}
+
+fn check_expr_binary(cx: &EarlyContext<'_>, expr: &Expr) {
+    if let ExprKind::Binary(Spanned { node: op, .. }, ref left, ref right) = expr.kind {
+        let span_sugg = |expr: &Expr, sugg, appl| {
+            span_lint_and_sugg(
+                cx,
+                PRECEDENCE,
+                expr.span,
+                "operator precedence can trip the unwary",
+                "consider parenthesizing your expression",
+                sugg,
+                appl,
+            );
+        };
+
+        if !is_bit_op(op) {
+            return;
+        }
+        let mut applicability = Applicability::MachineApplicable;
+        match (is_arith_expr(left), is_arith_expr(right)) {
+            (true, true) => {
+                let sugg = format!(
+                    "({}) {} ({})",
+                    snippet_with_applicability(cx, left.span, "..", &mut applicability),
+                    op.to_string(),
+                    snippet_with_applicability(cx, right.span, "..", &mut applicability)
+                );
+                span_sugg(expr, sugg, applicability);
+            },
+            (true, false) => {
+                let sugg = format!(
+                    "({}) {} {}",
+                    snippet_with_applicability(cx, left.span, "..", &mut applicability),
+                    op.to_string(),
+                    snippet_with_applicability(cx, right.span, "..", &mut applicability)
+                );
+                span_sugg(expr, sugg, applicability);
+            },
+            (false, true) => {
+                let sugg = format!(
+                    "{} {} ({})",
+                    snippet_with_applicability(cx, left.span, "..", &mut applicability),
+                    op.to_string(),
+                    snippet_with_applicability(cx, right.span, "..", &mut applicability)
+                );
+                span_sugg(expr, sugg, applicability);
+            },
+            (false, false) => (),
+        }
+
+        if_chain! {
+            if matches!(op, BinOpKind::BitAnd);
+            if let ExprKind::Binary(Spanned { node: op_inner, .. }, left_inner, right_inner) = &right.kind;
+            if matches!(op_inner, BinOpKind::Shl | BinOpKind::Shr);
+            then {
+                let mut applicability = Applicability::MachineApplicable;
                 span_lint_and_sugg(
                     cx,
                     PRECEDENCE,
                     expr.span,
                     "operator precedence can trip the unwary",
                     "consider parenthesizing your expression",
-                    sugg,
-                    appl,
+                    format!(
+                        "({} {} {}) {} {}",
+                        snippet_with_applicability(cx, left.span, "..", &mut applicability),
+                        op.to_string(),
+                        snippet_with_applicability(cx, left_inner.span, "..", &mut applicability),
+                        op_inner.to_string(),
+                        snippet_with_applicability(cx, right_inner.span, "..", &mut applicability)
+                    ),
+                    applicability,
                 );
-            };
-
-            if !is_bit_op(op) {
-                return;
-            }
-            let mut applicability = Applicability::MachineApplicable;
-            match (is_arith_expr(left), is_arith_expr(right)) {
-                (true, true) => {
-                    let sugg = format!(
-                        "({}) {} ({})",
-                        snippet_with_applicability(cx, left.span, "..", &mut applicability),
-                        op.to_string(),
-                        snippet_with_applicability(cx, right.span, "..", &mut applicability)
-                    );
-                    span_sugg(expr, sugg, applicability);
-                },
-                (true, false) => {
-                    let sugg = format!(
-                        "({}) {} {}",
-                        snippet_with_applicability(cx, left.span, "..", &mut applicability),
-                        op.to_string(),
-                        snippet_with_applicability(cx, right.span, "..", &mut applicability)
-                    );
-                    span_sugg(expr, sugg, applicability);
-                },
-                (false, true) => {
-                    let sugg = format!(
-                        "{} {} ({})",
-                        snippet_with_applicability(cx, left.span, "..", &mut applicability),
-                        op.to_string(),
-                        snippet_with_applicability(cx, right.span, "..", &mut applicability)
-                    );
-                    span_sugg(expr, sugg, applicability);
-                },
-                (false, false) => (),
             }
         }
+    }
+}
 
-        if let ExprKind::Unary(UnOp::Neg, operand) = &expr.kind {
-            let mut arg = operand;
+fn check_expr_unary(cx: &EarlyContext<'_>, expr: &Expr) {
+    if let ExprKind::Unary(UnOp::Neg, operand) = &expr.kind {
+        let mut arg = operand;
 
-            let mut all_odd = true;
-            while let ExprKind::MethodCall(path_segment, args, _) = &arg.kind {
-                let path_segment_str = path_segment.ident.name.as_str();
-                all_odd &= ALLOWED_ODD_FUNCTIONS
-                    .iter()
-                    .any(|odd_function| **odd_function == *path_segment_str);
-                arg = args.first().expect("A method always has a receiver.");
-            }
+        let mut all_odd = true;
+        while let ExprKind::MethodCall(path_segment, args, _) = &arg.kind {
+            let path_segment_str = path_segment.ident.name.as_str();
+            all_odd &= ALLOWED_ODD_FUNCTIONS
+                .iter()
+                .any(|odd_function| **odd_function == *path_segment_str);
+            arg = args.first().expect("A method always has a receiver.");
+        }
 
-            if_chain! {
-                if !all_odd;
-                if let ExprKind::Lit(lit) = &arg.kind;
-                if let LitKind::Int(..) | LitKind::Float(..) = &lit.kind;
-                then {
-                    let mut applicability = Applicability::MachineApplicable;
-                    span_lint_and_sugg(
-                        cx,
-                        PRECEDENCE,
-                        expr.span,
-                        "unary minus has lower precedence than method call",
-                        "consider adding parentheses to clarify your intent",
-                        format!(
-                            "-({})",
-                            snippet_with_applicability(cx, operand.span, "..", &mut applicability)
-                        ),
-                        applicability,
-                    );
-                }
+        if_chain! {
+            if !all_odd;
+            if let ExprKind::Lit(lit) = &arg.kind;
+            if let LitKind::Int(..) | LitKind::Float(..) = &lit.kind;
+            then {
+                let mut applicability = Applicability::MachineApplicable;
+                span_lint_and_sugg(
+                    cx,
+                    PRECEDENCE,
+                    expr.span,
+                    "unary minus has lower precedence than method call",
+                    "consider adding parentheses to clarify your intent",
+                    format!(
+                        "-({})",
+                        snippet_with_applicability(cx, operand.span, "..", &mut applicability)
+                    ),
+                    applicability,
+                );
             }
         }
     }
