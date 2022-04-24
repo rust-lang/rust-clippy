@@ -963,7 +963,7 @@
     "id": "decimal_literal_representation",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 137
+      "line": 132
     },
     "group": "restriction",
     "level": "allow",
@@ -2448,7 +2448,7 @@
     "id": "inconsistent_digit_grouping",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 81
+      "line": 76
     },
     "group": "style",
     "level": "warn",
@@ -3033,7 +3033,7 @@
     "id": "large_digit_groups",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 119
+      "line": 114
     },
     "group": "pedantic",
     "level": "allow",
@@ -4083,11 +4083,11 @@
     "id": "mistyped_literal_suffixes",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 58
+      "line": 53
     },
     "group": "correctness",
     "level": "deny",
-    "docs": " ### What it does\nWarns for mistyped suffix in literals\n\n### Why is this bad?\nThis is most probably a typo\n\n### Known problems\n- Recommends a signed suffix, even though the number might be too big and an unsigned\n  suffix is required\n- Does not match on `_127` since that is a valid grouping for decimal and octal numbers\n\n### Example\n```rust\n// Probably mistyped\n2_32;\n\n// Good\n2_i32;\n```",
+    "docs": " ### What it does\nWarns for mistyped suffix in literals\n\n### Why is this bad?\nThis is most probably a typo\n\n### Known problems\n- Does not match on integers too large to fit in the corresponding unsigned type\n- Does not match on `_127` since that is a valid grouping for decimal and octal numbers\n\n### Example\n`2_32` => `2_i32`\n`250_8 => `250_u8`\n```rust",
     "version": "1.30.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7608,7 +7608,7 @@
     "id": "unusual_byte_groupings",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 100
+      "line": 95
     },
     "group": "style",
     "level": "warn",
