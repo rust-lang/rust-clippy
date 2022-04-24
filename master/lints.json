@@ -5688,7 +5688,7 @@
     "id": "redundant_pub_crate",
     "id_span": {
       "path": "src/redundant_pub_crate.rs",
-      "line": 30
+      "line": 32
     },
     "group": "nursery",
     "level": "allow",
