@@ -3060,6 +3060,21 @@
     }
   },
   {
+    "id": "large_include_file",
+    "id_span": {
+      "path": "src/large_include_file.rs",
+      "line": 33
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for the inclusion of large files via `include_bytes!()`\nand `include_str!()`\n\n### Why is this bad?\nIncluding large files can increase the size of the binary\n\n### Example\n```rust\nlet included_str = include_str!(\"very_large_file.txt\");\nlet included_bytes = include_bytes!(\"very_large_file.txt);\n```\n\nInstead, you can load the file at runtime:\n```rust\nuse std::fs;\n\nlet string = fs::read_to_string(\"very_large_file.txt\")?;\nlet bytes = fs::read(\"very_large_file.txt\")?;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `max-include-file-size`: `u64`: The maximum size of a file included via `include_bytes!()` or `include_str!()`, in bytes (defaults to `1000000`)\n\n",
+    "version": "1.62.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "large_stack_arrays",
     "id_span": {
       "path": "src/large_stack_arrays.rs",
