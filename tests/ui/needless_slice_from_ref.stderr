@@ -1,0 +1,16 @@
+error: needless slice::from_ref
+  --> $DIR/needless_slice_from_ref.rs:7:14
+   |
+LL |     let _s = core::slice::from_ref(&x);
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `&[x]`
+   |
+   = note: `-D clippy::needless-slice-from-ref` implied by `-D warnings`
+
+error: needless slice::from_ref
+  --> $DIR/needless_slice_from_ref.rs:8:14
+   |
+LL |     let _s = std::slice::from_ref(&x);
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `&[x]`
+
+error: aborting due to 2 previous errors
+

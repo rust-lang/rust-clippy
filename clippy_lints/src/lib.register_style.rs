@@ -89,6 +89,7 @@ store.register_group(true, "clippy::style", Some("clippy_style"), vec![
     LintId::of(mut_mutex_lock::MUT_MUTEX_LOCK),
     LintId::of(mut_reference::UNNECESSARY_MUT_PASSED),
     LintId::of(needless_late_init::NEEDLESS_LATE_INIT),
+    LintId::of(needless_slice_from_ref::NEEDLESS_SLICE_FROM_REF),
     LintId::of(neg_multiply::NEG_MULTIPLY),
     LintId::of(new_without_default::NEW_WITHOUT_DEFAULT),
     LintId::of(non_copy_const::BORROW_INTERIOR_MUTABLE_CONST),

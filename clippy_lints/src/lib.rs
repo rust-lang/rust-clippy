@@ -314,6 +314,7 @@ mod needless_for_each;
 mod needless_late_init;
 mod needless_pass_by_value;
 mod needless_question_mark;
+mod needless_slice_from_ref;
 mod needless_update;
 mod neg_cmp_op_on_partial_ord;
 mod neg_multiply;
@@ -887,6 +888,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| Box::new(bytes_count_to_len::BytesCountToLen));
     let max_include_file_size = conf.max_include_file_size;
     store.register_late_pass(move || Box::new(large_include_file::LargeIncludeFile::new(max_include_file_size)));
+    store.register_late_pass(|| Box::new(needless_slice_from_ref::NeedlessSliceFromRef));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

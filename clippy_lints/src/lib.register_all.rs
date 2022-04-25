@@ -237,6 +237,7 @@ store.register_group(true, "clippy::all", Some("clippy_all"), vec![
     LintId::of(needless_borrowed_ref::NEEDLESS_BORROWED_REFERENCE),
     LintId::of(needless_late_init::NEEDLESS_LATE_INIT),
     LintId::of(needless_question_mark::NEEDLESS_QUESTION_MARK),
+    LintId::of(needless_slice_from_ref::NEEDLESS_SLICE_FROM_REF),
     LintId::of(needless_update::NEEDLESS_UPDATE),
     LintId::of(neg_cmp_op_on_partial_ord::NEG_CMP_OP_ON_PARTIAL_ORD),
     LintId::of(neg_multiply::NEG_MULTIPLY),

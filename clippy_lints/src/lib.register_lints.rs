@@ -401,6 +401,7 @@ store.register_lints(&[
     needless_late_init::NEEDLESS_LATE_INIT,
     needless_pass_by_value::NEEDLESS_PASS_BY_VALUE,
     needless_question_mark::NEEDLESS_QUESTION_MARK,
+    needless_slice_from_ref::NEEDLESS_SLICE_FROM_REF,
     needless_update::NEEDLESS_UPDATE,
     neg_cmp_op_on_partial_ord::NEG_CMP_OP_ON_PARTIAL_ORD,
     neg_multiply::NEG_MULTIPLY,
