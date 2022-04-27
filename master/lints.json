@@ -4518,7 +4518,7 @@
     "id": "needless_late_init",
     "id_span": {
       "path": "src/needless_late_init.rs",
-      "line": 56
+      "line": 60
     },
     "group": "style",
     "level": "warn",
