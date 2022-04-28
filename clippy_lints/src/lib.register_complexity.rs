@@ -5,6 +5,7 @@
 store.register_group(true, "clippy::complexity", Some("clippy_complexity"), vec![
     LintId::of(attrs::DEPRECATED_CFG_ATTR),
     LintId::of(booleans::NONMINIMAL_BOOL),
+    LintId::of(bytes_count_to_len::BYTES_COUNT_TO_LEN),
     LintId::of(casts::CHAR_LIT_AS_U8),
     LintId::of(casts::UNNECESSARY_CAST),
     LintId::of(derivable_impls::DERIVABLE_IMPLS),
@@ -45,6 +46,7 @@ store.register_group(true, "clippy::complexity", Some("clippy_complexity"), vec!
     LintId::of(methods::MAP_FLATTEN),
     LintId::of(methods::MAP_IDENTITY),
     LintId::of(methods::NEEDLESS_OPTION_AS_DEREF),
+    LintId::of(methods::NEEDLESS_OPTION_TAKE),
     LintId::of(methods::NEEDLESS_SPLITN),
     LintId::of(methods::OPTION_AS_REF_DEREF),
     LintId::of(methods::OPTION_FILTER_MAP),
