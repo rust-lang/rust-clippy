@@ -2268,11 +2268,11 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/identity_op.rs",
-      "line": 26
+      "line": 32
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for identity operations, e.g., `x + 0`.\n\n### Why is this bad?\nThis code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.\n\n### Example\n```rust\nx / 1 + 0 * 1 - 0 | 0;\n```",
+    "docs": " ### What it does\nChecks for identity operations, e.g., `x + 0`.\n\n### Why is this bad?\nThis code can be removed without changing the\nmeaning. So it just obscures what's going on. Delete it mercilessly.\n\n### Example\n```rust\nx / 1 + 0 * 1 - 0 | 0;\n```\n\n### Known problems\nFalse negatives: `f(0 + if b { 1 } else { 2 } + 3);` is reducible to\n`f(if b { 1 } else { 2 } + 3);`. But the lint doesn't trigger for the code.\nSee [#8724](https://github.com/rust-lang/rust-clippy/issues/8724)",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
