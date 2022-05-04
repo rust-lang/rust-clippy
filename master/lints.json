@@ -6333,7 +6333,7 @@
     "id": "str_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 377
+      "line": 378
     },
     "group": "restriction",
     "level": "allow",
@@ -6348,7 +6348,7 @@
     "id": "string_add",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 63
+      "line": 64
     },
     "group": "restriction",
     "level": "allow",
@@ -6363,7 +6363,7 @@
     "id": "string_add_assign",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 35
+      "line": 36
     },
     "group": "pedantic",
     "level": "allow",
@@ -6393,7 +6393,7 @@
     "id": "string_from_utf8_as_bytes",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 232
+      "line": 233
     },
     "group": "complexity",
     "level": "warn",
@@ -6408,7 +6408,7 @@
     "id": "string_lit_as_bytes",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 108
+      "line": 109
     },
     "group": "nursery",
     "level": "allow",
@@ -6423,7 +6423,7 @@
     "id": "string_slice",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 132
+      "line": 133
     },
     "group": "restriction",
     "level": "allow",
@@ -6438,7 +6438,7 @@
     "id": "string_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 427
+      "line": 428
     },
     "group": "restriction",
     "level": "allow",
@@ -6927,6 +6927,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "trim_split_whitespace",
+    "id_span": {
+      "path": "src/strings.rs",
+      "line": 472
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\nWarns about calling `str::trim` (or variants) before `str::split_whitespace`.\n\n### Why is this bad?\n`split_whitespace` already ignores leading and trailing whitespace.\n\n### Example\n```rust\n\" A B C \".trim().split_whitespace();\n```\nUse instead:\n```rust\n\" A B C \".split_whitespace();\n```",
+    "version": "1.62.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
