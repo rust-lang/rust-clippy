@@ -1,5 +1,7 @@
 #![warn(clippy::integer_division)]
 
+const _: usize = 64 / 3;
+
 fn main() {
     let two = 2;
     let n = 1 / 2;
