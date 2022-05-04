@@ -2598,7 +2598,7 @@
     "id": "init_numbered_fields",
     "id_span": {
       "path": "src/init_numbered_fields.rs",
-      "line": 37
+      "line": 38
     },
     "group": "style",
     "level": "warn",
