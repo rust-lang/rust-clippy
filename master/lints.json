@@ -438,7 +438,7 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/case_sensitive_file_extension_comparisons.rs",
-      "line": 32
+      "line": 31
     },
     "group": "pedantic",
     "level": "allow",
@@ -1458,7 +1458,7 @@
     "id": "enum_glob_use",
     "id_span": {
       "path": "src/wildcard_imports.rs",
-      "line": 38
+      "line": 39
     },
     "group": "pedantic",
     "level": "allow",
@@ -5703,7 +5703,7 @@
     "id": "redundant_pub_crate",
     "id_span": {
       "path": "src/redundant_pub_crate.rs",
-      "line": 32
+      "line": 34
     },
     "group": "nursery",
     "level": "allow",
@@ -6753,9 +6753,9 @@
     "id": "trait_duplication_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 68
+      "line": 67
     },
-    "group": "pedantic",
+    "group": "nursery",
     "level": "allow",
     "docs": " ### What it does\nChecks for cases where generics are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.\n\n### Why is this bad?\nDuplicate bounds makes the code\nless readable than specifying them only once.\n\n### Example\n```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nCould be written as:\n\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n```\nor\n\n```rust\nfn func<T>(arg: T) where T: Clone + Default {}\n```",
     "version": "1.47.0",
@@ -7008,9 +7008,9 @@
     "id": "type_repetition_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 38
+      "line": 37
     },
-    "group": "pedantic",
+    "group": "nursery",
     "level": "allow",
     "docs": " ### What it does\nThis lint warns about unnecessary type repetitions in trait bounds\n\n### Why is this bad?\nRepeating the type for every bound makes the code\nless readable than combining the bounds\n\n### Example\n```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nCould be written as:\n\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `max-trait-bounds`: `u64`: The maximum number of bounds a trait can have to be linted (defaults to `3`)\n\n",
     "version": "1.38.0",
@@ -8028,7 +8028,7 @@
     "id": "wildcard_imports",
     "id_span": {
       "path": "src/wildcard_imports.rs",
-      "line": 91
+      "line": 92
     },
     "group": "pedantic",
     "level": "allow",
