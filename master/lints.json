@@ -183,7 +183,7 @@
     "id": "bad_bit_mask",
     "id_span": {
       "path": "src/bit_mask.rs",
-      "line": 45
+      "line": 44
     },
     "group": "correctness",
     "level": "deny",
@@ -2508,7 +2508,7 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/bit_mask.rs",
-      "line": 78
+      "line": 77
     },
     "group": "correctness",
     "level": "deny",
@@ -7908,7 +7908,7 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/bit_mask.rs",
-      "line": 101
+      "line": 100
     },
     "group": "pedantic",
     "level": "allow",
