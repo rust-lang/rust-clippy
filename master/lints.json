@@ -1113,7 +1113,7 @@
     "id": "derive_hash_xor_eq",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 42
+      "line": 43
     },
     "group": "correctness",
     "level": "deny",
@@ -1128,7 +1128,7 @@
     "id": "derive_ord_xor_partial_ord",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 93
+      "line": 94
     },
     "group": "correctness",
     "level": "deny",
@@ -1137,6 +1137,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "derive_partial_eq_without_eq",
+    "id_span": {
+      "path": "src/derive.rs",
+      "line": 187
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for types that derive `PartialEq` and could implement `Eq`.\n\n### Why is this bad?\nIf a type `T` derives `PartialEq` and all of its members implement `Eq`,\nthen `T` can always implement `Eq`. Implementing `Eq` allows `T` to be used\nin APIs that require `Eq` types. It also allows structs containing `T` to derive\n`Eq` themselves.\n\n### Example\n```rust\n#[derive(PartialEq)]\nstruct Foo {\n    i_am_eq: i32,\n    i_am_eq_too: Vec<String>,\n}\n```\nUse instead:\n```rust\n#[derive(PartialEq, Eq)]\nstruct Foo {\n    i_am_eq: i32,\n    i_am_eq_too: Vec<String>,\n}\n```",
+    "version": "1.62.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -1653,7 +1668,7 @@
     "id": "expl_impl_clone_on_copy",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 120
+      "line": 121
     },
     "group": "pedantic",
     "level": "allow",
@@ -7473,7 +7488,7 @@
     "id": "unsafe_derive_deserialize",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 154
+      "line": 155
     },
     "group": "pedantic",
     "level": "allow",
