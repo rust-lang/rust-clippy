@@ -408,7 +408,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1894
+      "line": 1892
     },
     "group": "style",
     "level": "warn",
@@ -663,7 +663,7 @@
     "id": "checked_conversions",
     "id_span": {
       "path": "src/checked_conversions.rs",
-      "line": 40
+      "line": 39
     },
     "group": "pedantic",
     "level": "allow",
@@ -1458,7 +1458,7 @@
     "id": "enum_clike_unportable_variant",
     "id_span": {
       "path": "src/enum_clike.rs",
-      "line": 32
+      "line": 31
     },
     "group": "correctness",
     "level": "deny",
@@ -1803,11 +1803,11 @@
     "id": "fallible_impl_from",
     "id_span": {
       "path": "src/fallible_impl_from.rs",
-      "line": 48
+      "line": 47
     },
     "group": "nursery",
     "level": "allow",
-    "docs": " ### What it does\nChecks for impls of `From<..>` that contain `panic!()` or `unwrap()`\n\n### Why is this bad?\n`TryFrom` should be used if there's a possibility of failure.\n\n### Example\n```rust\nstruct Foo(i32);\n\n// Bad\nimpl From<String> for Foo {\n    fn from(s: String) -> Self {\n        Foo(s.parse().unwrap())\n    }\n}\n```\n\n```rust\n// Good\nstruct Foo(i32);\n\nuse std::convert::TryFrom;\nimpl TryFrom<String> for Foo {\n    type Error = ();\n    fn try_from(s: String) -> Result<Self, Self::Error> {\n        if let Ok(parsed) = s.parse() {\n            Ok(Foo(parsed))\n        } else {\n            Err(())\n        }\n    }\n}\n```",
+    "docs": " ### What it does\nChecks for impls of `From<..>` that contain `panic!()` or `unwrap()`\n\n### Why is this bad?\n`TryFrom` should be used if there's a possibility of failure.\n\n### Example\n```rust\nstruct Foo(i32);\n\n// Bad\nimpl From<String> for Foo {\n    fn from(s: String) -> Self {\n        Foo(s.parse().unwrap())\n    }\n}\n```\n\n```rust\n// Good\nstruct Foo(i32);\n\nimpl TryFrom<String> for Foo {\n    type Error = ();\n    fn try_from(s: String) -> Result<Self, Self::Error> {\n        if let Ok(parsed) = s.parse() {\n            Ok(Foo(parsed))\n        } else {\n            Err(())\n        }\n    }\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1863,7 +1863,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1849
+      "line": 1847
     },
     "group": "complexity",
     "level": "warn",
@@ -2028,7 +2028,7 @@
     "id": "fn_params_excessive_bools",
     "id_span": {
       "path": "src/excessive_bools.rs",
-      "line": 80
+      "line": 78
     },
     "group": "pedantic",
     "level": "allow",
@@ -2193,11 +2193,11 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1796
+      "line": 1794
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for `from_iter()` function calls on types that implement the `FromIterator`\ntrait.\n\n### Why is this bad?\nIt is recommended style to use collect. See\n[FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)\n\n### Example\n```rust\nuse std::iter::FromIterator;\n\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v = Vec::from_iter(five_fives);\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```\nUse instead:\n```rust\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v: Vec<i32> = five_fives.collect();\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```",
+    "docs": " ### What it does\nChecks for `from_iter()` function calls on types that implement the `FromIterator`\ntrait.\n\n### Why is this bad?\nIt is recommended style to use collect. See\n[FromIterator documentation](https://doc.rust-lang.org/std/iter/trait.FromIterator.html)\n\n### Example\n```rust\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v = Vec::from_iter(five_fives);\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```\nUse instead:\n```rust\nlet five_fives = std::iter::repeat(5).take(5);\n\nlet v: Vec<i32> = five_fives.collect();\n\nassert_eq!(v, vec![5, 5, 5, 5, 5]);\n```",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2388,7 +2388,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1920
+      "line": 1918
     },
     "group": "pedantic",
     "level": "allow",
@@ -2493,7 +2493,7 @@
     "id": "index_refutable_slice",
     "id_span": {
       "path": "src/index_refutable_slice.rs",
-      "line": 50
+      "line": 49
     },
     "group": "nursery",
     "level": "allow",
@@ -2688,7 +2688,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1826
+      "line": 1824
     },
     "group": "complexity",
     "level": "warn",
@@ -2778,7 +2778,7 @@
     "id": "invalid_regex",
     "id_span": {
       "path": "src/regex.rs",
-      "line": 26
+      "line": 25
     },
     "group": "correctness",
     "level": "deny",
@@ -2823,7 +2823,7 @@
     "id": "is_digit_ascii_radix",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2175
+      "line": 2173
     },
     "group": "style",
     "level": "warn",
@@ -2868,7 +2868,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1946
+      "line": 1944
     },
     "group": "complexity",
     "level": "warn",
@@ -3483,7 +3483,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2034
+      "line": 2032
     },
     "group": "complexity",
     "level": "warn",
@@ -3498,7 +3498,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1997
+      "line": 1995
     },
     "group": "perf",
     "level": "warn",
@@ -3648,7 +3648,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1872
+      "line": 1870
     },
     "group": "complexity",
     "level": "warn",
@@ -4578,7 +4578,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2145
+      "line": 2143
     },
     "group": "complexity",
     "level": "warn",
@@ -4593,7 +4593,7 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2195
+      "line": 2193
     },
     "group": "complexity",
     "level": "warn",
@@ -4668,7 +4668,7 @@
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2058
+      "line": 2056
     },
     "group": "complexity",
     "level": "warn",
@@ -5598,7 +5598,7 @@
     "id": "redundant_clone",
     "id_span": {
       "path": "src/redundant_clone.rs",
-      "line": 66
+      "line": 65
     },
     "group": "perf",
     "level": "warn",
@@ -6498,7 +6498,7 @@
     "id": "struct_excessive_bools",
     "id_span": {
       "path": "src/excessive_bools.rs",
-      "line": 41
+      "line": 39
     },
     "group": "pedantic",
     "level": "allow",
@@ -6618,7 +6618,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1976
+      "line": 1974
     },
     "group": "correctness",
     "level": "deny",
@@ -6648,7 +6648,7 @@
     "id": "tabs_in_doc_comments",
     "id_span": {
       "path": "src/tabs_in_doc_comments.rs",
-      "line": 55
+      "line": 54
     },
     "group": "style",
     "level": "warn",
@@ -6978,7 +6978,7 @@
     "id": "trivial_regex",
     "id_span": {
       "path": "src/regex.rs",
-      "line": 51
+      "line": 50
     },
     "group": "nursery",
     "level": "allow",
@@ -7263,7 +7263,7 @@
     "id": "unnecessary_join",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2121
+      "line": 2119
     },
     "group": "pedantic",
     "level": "allow",
@@ -7368,7 +7368,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2089
+      "line": 2087
     },
     "group": "perf",
     "level": "warn",
