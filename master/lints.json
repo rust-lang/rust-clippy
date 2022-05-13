@@ -577,7 +577,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": " ### What it does\nChecks for casts of `&T` to `&mut T` anywhere in the code.\n\n### Why is this bad?\nIt’s basically guaranteed to be undefined behaviour.\n`UnsafeCell` is the only way to obtain aliasable data that is considered\nmutable.\n\n### Example\n```rust\nfn x(r: &i32) {\n    unsafe {\n        *(r as *const _ as *mut _) += 1;\n    }\n}\n```\n\nInstead consider using interior mutability types.\n\n```rust\nuse std::cell::UnsafeCell;\n\nfn x(r: &UnsafeCell<i32>) {\n    unsafe {\n        *r.get() += 1;\n    }\n}\n```",
+    "docs": " ### What it does\nChecks for casts of `&T` to `&mut T` anywhere in the code.\n\n### Why is this bad?\nIt’s basically guaranteed to be undefined behavior.\n`UnsafeCell` is the only way to obtain aliasable data that is considered\nmutable.\n\n### Example\n```rust\nfn x(r: &i32) {\n    unsafe {\n        *(r as *const _ as *mut _) += 1;\n    }\n}\n```\n\nInstead consider using interior mutability types.\n\n```rust\nuse std::cell::UnsafeCell;\n\nfn x(r: &UnsafeCell<i32>) {\n    unsafe {\n        *r.get() += 1;\n    }\n}\n```",
     "version": "1.33.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -952,7 +952,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": " ### What it does\nChecks for function/method calls with a mutable\nparameter in `debug_assert!`, `debug_assert_eq!` and `debug_assert_ne!` macros.\n\n### Why is this bad?\nIn release builds `debug_assert!` macros are optimized out by the\ncompiler.\nTherefore mutating something in a `debug_assert!` macro results in different behaviour\nbetween a release and debug build.\n\n### Example\n```rust\ndebug_assert_eq!(vec![3].pop(), Some(3));\n// or\nfn take_a_mut_parameter(_: &mut u32) -> bool { unimplemented!() }\ndebug_assert!(take_a_mut_parameter(&mut 5));\n```",
+    "docs": " ### What it does\nChecks for function/method calls with a mutable\nparameter in `debug_assert!`, `debug_assert_eq!` and `debug_assert_ne!` macros.\n\n### Why is this bad?\nIn release builds `debug_assert!` macros are optimized out by the\ncompiler.\nTherefore mutating something in a `debug_assert!` macro results in different behavior\nbetween a release and debug build.\n\n### Example\n```rust\ndebug_assert_eq!(vec![3].pop(), Some(3));\n// or\nfn take_a_mut_parameter(_: &mut u32) -> bool { unimplemented!() }\ndebug_assert!(take_a_mut_parameter(&mut 5));\n```",
     "version": "1.40.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1027,7 +1027,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nDisplays a warning when a union is declared with the default representation (without a `#[repr(C)]` attribute).\n\n### Why is this bad?\nUnions in Rust have unspecified layout by default, despite many people thinking that they\nlay out each field at the start of the union (like C does). That is, there are no guarantees\nabout the offset of the fields for unions with multiple non-ZST fields without an explicitly\nspecified layout. These cases may lead to undefined behavior in unsafe blocks.\n\n### Example\n```rust\nunion Foo {\n    a: i32,\n    b: u32,\n}\n\nfn main() {\n    let _x: u32 = unsafe {\n        Foo { a: 0_i32 }.b // Undefined behaviour: `b` is allowed to be padding\n    };\n}\n```\nUse instead:\n```rust\n#[repr(C)]\nunion Foo {\n    a: i32,\n    b: u32,\n}\n\nfn main() {\n    let _x: u32 = unsafe {\n        Foo { a: 0_i32 }.b // Now defined behaviour, this is just an i32 -> u32 transmute\n    };\n}\n```",
+    "docs": " ### What it does\nDisplays a warning when a union is declared with the default representation (without a `#[repr(C)]` attribute).\n\n### Why is this bad?\nUnions in Rust have unspecified layout by default, despite many people thinking that they\nlay out each field at the start of the union (like C does). That is, there are no guarantees\nabout the offset of the fields for unions with multiple non-ZST fields without an explicitly\nspecified layout. These cases may lead to undefined behavior in unsafe blocks.\n\n### Example\n```rust\nunion Foo {\n    a: i32,\n    b: u32,\n}\n\nfn main() {\n    let _x: u32 = unsafe {\n        Foo { a: 0_i32 }.b // Undefined behavior: `b` is allowed to be padding\n    };\n}\n```\nUse instead:\n```rust\n#[repr(C)]\nunion Foo {\n    a: i32,\n    b: u32,\n}\n\nfn main() {\n    let _x: u32 = unsafe {\n        Foo { a: 0_i32 }.b // Now defined behavior, this is just an i32 -> u32 transmute\n    };\n}\n```",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1672,7 +1672,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for explicit `Clone` implementations for `Copy`\ntypes.\n\n### Why is this bad?\nTo avoid surprising behaviour, these traits should\nagree and the behaviour of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.\n\n### Example\n```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    // ..\n}\n```",
+    "docs": " ### What it does\nChecks for explicit `Clone` implementations for `Copy`\ntypes.\n\n### Why is this bad?\nTo avoid surprising behavior, these traits should\nagree and the behavior of `Copy` cannot be overridden. In almost all\nsituations a `Copy` type should have a `Clone` implementation that does\nnothing more than copy the object, which is what `#[derive(Copy, Clone)]`\ngets you.\n\n### Example\n```rust\n#[derive(Copy)]\nstruct Foo;\n\nimpl Clone for Foo {\n    // ..\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3292,7 +3292,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for recursion using the entrypoint.\n\n### Why is this bad?\nApart from special setups (which we could detect following attributes like #![no_std]),\nrecursing into main() seems like an unintuitive antipattern we should be able to detect.\n\n### Example\n```rust\nfn main() {\n    main();\n}\n```",
+    "docs": " ### What it does\nChecks for recursion using the entrypoint.\n\n### Why is this bad?\nApart from special setups (which we could detect following attributes like #![no_std]),\nrecursing into main() seems like an unintuitive anti-pattern we should be able to detect.\n\n### Example\n```rust\nfn main() {\n    main();\n}\n```",
     "version": "1.38.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3982,7 +3982,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `a op= a op b` or `a op= b op a` patterns.\n\n### Why is this bad?\nMost likely these are bugs where one meant to write `a\nop= b`.\n\n### Known problems\nClippy cannot know for sure if `a op= a op b` should have\nbeen `a = a op a op b` or `a = a op b`/`a op= b`. Therefore, it suggests both.\nIf `a op= a op b` is really the correct behaviour it should be\nwritten as `a = a op a op b` as it's less confusing.\n\n### Example\n```rust\nlet mut a = 5;\nlet b = 2;\n// ...\na += a + b;\n```",
+    "docs": " ### What it does\nChecks for `a op= a op b` or `a op= b op a` patterns.\n\n### Why is this bad?\nMost likely these are bugs where one meant to write `a\nop= b`.\n\n### Known problems\nClippy cannot know for sure if `a op= a op b` should have\nbeen `a = a op a op b` or `a = a op b`/`a op= b`. Therefore, it suggests both.\nIf `a op= a op b` is really the correct behavior it should be\nwritten as `a = a op a op b` as it's less confusing.\n\n### Example\n```rust\nlet mut a = 5;\nlet b = 2;\n// ...\na += a + b;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6997,7 +6997,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for functions taking arguments by reference, where\nthe argument type is `Copy` and small enough to be more efficient to always\npass by value.\n\n### Why is this bad?\nIn many calling conventions instances of structs will\nbe passed through registers if they fit into two or less general purpose\nregisters.\n\n### Known problems\nThis lint is target register size dependent, it is\nlimited to 32-bit to try and reduce portability problems between 32 and\n64-bit, but if you are compiling for 8 or 16-bit targets then the limit\nwill be different.\n\nThe configuration option `trivial_copy_size_limit` can be set to override\nthis limit for a project.\n\nThis lint attempts to allow passing arguments by reference if a reference\nto that argument is returned. This is implemented by comparing the lifetime\nof the argument and return value for equality. However, this can cause\nfalse positives in cases involving multiple lifetimes that are bounded by\neach other.\n\nAlso, it does not take account of other similar cases where getting memory addresses\nmatters; namely, returning the pointer to the argument in question,\nand passing the argument, as both references and pointers,\nto a function that needs the memory address. For further details, refer to\n[this issue](https://github.com/rust-lang/rust-clippy/issues/5953)\nthat explains a real case in which this false positive\nled to an **undefined behaviour** introduced with unsafe code.\n\n### Example\n\n```rust\n// Bad\nfn foo(v: &u32) {}\n```\n\n```rust\n// Better\nfn foo(v: u32) {}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n* `trivial-copy-size-limit`: `Option<u64>`: The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference. (defaults to `None`)\n\n",
+    "docs": " ### What it does\nChecks for functions taking arguments by reference, where\nthe argument type is `Copy` and small enough to be more efficient to always\npass by value.\n\n### Why is this bad?\nIn many calling conventions instances of structs will\nbe passed through registers if they fit into two or less general purpose\nregisters.\n\n### Known problems\nThis lint is target register size dependent, it is\nlimited to 32-bit to try and reduce portability problems between 32 and\n64-bit, but if you are compiling for 8 or 16-bit targets then the limit\nwill be different.\n\nThe configuration option `trivial_copy_size_limit` can be set to override\nthis limit for a project.\n\nThis lint attempts to allow passing arguments by reference if a reference\nto that argument is returned. This is implemented by comparing the lifetime\nof the argument and return value for equality. However, this can cause\nfalse positives in cases involving multiple lifetimes that are bounded by\neach other.\n\nAlso, it does not take account of other similar cases where getting memory addresses\nmatters; namely, returning the pointer to the argument in question,\nand passing the argument, as both references and pointers,\nto a function that needs the memory address. For further details, refer to\n[this issue](https://github.com/rust-lang/rust-clippy/issues/5953)\nthat explains a real case in which this false positive\nled to an **undefined behavior** introduced with unsafe code.\n\n### Example\n\n```rust\n// Bad\nfn foo(v: &u32) {}\n```\n\n```rust\n// Better\nfn foo(v: u32) {}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n* `trivial-copy-size-limit`: `Option<u64>`: The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference. (defaults to `None`)\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8167,7 +8167,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": " ### What it does\nChecks for transmutes that can't ever be correct on any\narchitecture.\n\n### Why is this bad?\nIt's basically guaranteed to be undefined behaviour.\n\n### Known problems\nWhen accessing C, users might want to store pointer\nsized objects in `extradata` arguments to save an allocation.\n\n### Example\n```rust\nlet ptr: *const T = core::intrinsics::transmute('x')\n```",
+    "docs": " ### What it does\nChecks for transmutes that can't ever be correct on any\narchitecture.\n\n### Why is this bad?\nIt's basically guaranteed to be undefined behavior.\n\n### Known problems\nWhen accessing C, users might want to store pointer\nsized objects in `extradata` arguments to save an allocation.\n\n### Example\n```rust\nlet ptr: *const T = core::intrinsics::transmute('x')\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
