@@ -211,6 +211,7 @@ mod doc;
 mod double_comparison;
 mod double_parens;
 mod drop_forget_ref;
+mod duplicate_mod;
 mod duration_subsec;
 mod else_if_without_else;
 mod empty_drop;
@@ -904,6 +905,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| Box::new(strings::TrimSplitWhitespace));
     store.register_early_pass(|| Box::new(unused_rounding::UnusedRounding));
     store.register_late_pass(|| Box::new(rc_clone_in_vec_init::RcCloneInVecInit));
+    store.register_early_pass(|| Box::new(duplicate_mod::DuplicateMod::default()));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
