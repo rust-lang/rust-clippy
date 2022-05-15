@@ -1202,7 +1202,7 @@
   {
     "id": "diverging_sub_expression",
     "id_span": {
-      "path": "src/eval_order_dependence.rs",
+      "path": "src/mixed_read_write_in_expression.rs",
       "line": 71
     },
     "group": "complexity",
@@ -1572,21 +1572,6 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
-  },
-  {
-    "id": "eval_order_dependence",
-    "id_span": {
-      "path": "src/eval_order_dependence.rs",
-      "line": 43
-    },
-    "group": "suspicious",
-    "level": "warn",
-    "docs": " ### What it does\nChecks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.\n\n### Why is this bad?\nIt is often confusing to read. As described [here](https://doc.rust-lang.org/reference/expressions.html?highlight=subexpression#evaluation-order-of-operands),\nthe operands of these expressions are evaluated before applying the effects of the expression.\n\n### Known problems\nCode which intentionally depends on the evaluation\norder, or which is correct for any evaluation order.\n\n### Example\n```rust\nlet mut x = 0;\n\n// Bad\nlet a = {\n    x = 1;\n    1\n} + x;\n// Unclear whether a is 1 or 2.\n\n// Good\nlet tmp = {\n    x = 1;\n    1\n};\nlet a = tmp + x;\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
     }
   },
   {
@@ -4148,6 +4133,21 @@
     "group": "style",
     "level": "warn",
     "docs": " ### What it does\nWarns on hexadecimal literals with mixed-case letter\ndigits.\n\n### Why is this bad?\nIt looks confusing.\n\n### Example\n```rust\n// Bad\nlet y = 0x1a9BAcD;\n\n// Good\nlet y = 0x1A9BACD;\n```",
+    "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "mixed_read_write_in_expression",
+    "id_span": {
+      "path": "src/mixed_read_write_in_expression.rs",
+      "line": 43
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": " ### What it does\nChecks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.\n\n### Why is this bad?\nIt is often confusing to read. As described [here](https://doc.rust-lang.org/reference/expressions.html?highlight=subexpression#evaluation-order-of-operands),\nthe operands of these expressions are evaluated before applying the effects of the expression.\n\n### Known problems\nCode which intentionally depends on the evaluation\norder, or which is correct for any evaluation order.\n\n### Example\n```rust\nlet mut x = 0;\n\n// Bad\nlet a = {\n    x = 1;\n    1\n} + x;\n// Unclear whether a is 1 or 2.\n\n// Good\nlet tmp = {\n    x = 1;\n    1\n};\nlet a = tmp + x;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
