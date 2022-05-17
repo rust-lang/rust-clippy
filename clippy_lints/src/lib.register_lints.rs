@@ -537,7 +537,6 @@ store.register_lints(&[
     unnamed_address::FN_ADDRESS_COMPARISONS,
     unnamed_address::VTABLE_ADDRESS_COMPARISONS,
     unnecessary_owned_empty_strings::UNNECESSARY_OWNED_EMPTY_STRINGS,
-    unnecessary_rounding::UNNECESSARY_ROUNDING,
     unnecessary_self_imports::UNNECESSARY_SELF_IMPORTS,
     unnecessary_sort_by::UNNECESSARY_SORT_BY,
     unnecessary_wraps::UNNECESSARY_WRAPS,
