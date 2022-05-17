@@ -23,11 +23,11 @@ declare_clippy_lint! {
     /// let x = 1f32;
     /// ```
     #[clippy::version = "1.62.0"]
-    pub UNNECESSARY_ROUNDING,
+    pub UNUSED_ROUNDING,
     nursery,
     "Rounding a whole number literal, which is useless"
 }
-declare_lint_pass!(UnnecessaryRounding => [UNNECESSARY_ROUNDING]);
+declare_lint_pass!(UnnecessaryRounding => [UNUSED_ROUNDING]);
 
 // TODO also round and float
 fn is_useless_ceil(expr: &Expr) -> Option<(String, String)> {
@@ -53,12 +53,12 @@ fn is_useless_ceil(expr: &Expr) -> Option<(String, String)> {
         }
 }
 
-impl EarlyLintPass for UnnecessaryRounding {
+impl EarlyLintPass for UnusedRounding {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
         if let Some((method_name, float)) = is_useless_ceil(expr) {
             span_lint_and_sugg(
                 cx,
-                UNNECESSARY_ROUNDING,
+                UNUSED_ROUNDING,
                 expr.span,
                 &format!("used the `{}` method with a whole number float", method_name),
                 &format!("remove the `{}` method call", method_name),
