@@ -395,6 +395,7 @@ mod unit_return_expecting_ord;
 mod unit_types;
 mod unnamed_address;
 mod unnecessary_owned_empty_strings;
+mod unnecessary_rounding;
 mod unnecessary_self_imports;
 mod unnecessary_sort_by;
 mod unnecessary_wraps;
@@ -908,6 +909,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| Box::new(unused_rounding::UnusedRounding));
     store.register_late_pass(|| Box::new(rc_clone_in_vec_init::RcCloneInVecInit));
     store.register_early_pass(|| Box::new(duplicate_mod::DuplicateMod::default()));
+    store.register_early_pass(|| Box::new(unnecessary_rounding::UnnecessaryRounding));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
