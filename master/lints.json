@@ -5553,7 +5553,7 @@
     "id": "rc_clone_in_vec_init",
     "id_span": {
       "path": "src/rc_clone_in_vec_init.rs",
-      "line": 41
+      "line": 43
     },
     "group": "suspicious",
     "level": "warn",
@@ -5561,7 +5561,7 @@
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "Unspecified"
     }
   },
   {
