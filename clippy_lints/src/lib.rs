@@ -908,7 +908,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| Box::new(unused_rounding::UnusedRounding));
     store.register_late_pass(|| Box::new(rc_clone_in_vec_init::RcCloneInVecInit));
     store.register_early_pass(|| Box::new(duplicate_mod::DuplicateMod::default()));
-    store.register_early_pass(|| Box::new(unnecessary_rounding::UnnecessaryRounding));
+    store.register_early_pass(|| Box::new(unused_rounding::UnusedRounding));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
