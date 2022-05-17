@@ -27,12 +27,11 @@ declare_clippy_lint! {
     nursery,
     "Rounding a whole number literal, which is useless"
 }
-declare_lint_pass!(UnnecessaryRounding => [UNUSED_ROUNDING]);
+declare_lint_pass!(UnusedRounding => [UNUSED_ROUNDING]);
 
-// TODO also round and float
-fn is_useless_ceil(expr: &Expr) -> Option<(String, String)> {
+fn is_useless_rounding(expr: &Expr) -> Option<(&str, String)> {
     if let ExprKind::MethodCall(name_ident, args, _) = &expr.kind
-        && let method_name = name_ident.ident.name.to_ident_string()
+        && let method_name = name_ident.ident.name.as_str()
         && (method_name == "ceil" || method_name == "round" || method_name == "floor")
         && !args.is_empty()
         && let ExprKind::Lit(spanned) = &args[0].kind
@@ -55,7 +54,7 @@ fn is_useless_ceil(expr: &Expr) -> Option<(String, String)> {
 
 impl EarlyLintPass for UnusedRounding {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
-        if let Some((method_name, float)) = is_useless_ceil(expr) {
+        if let Some((method_name, float)) = is_useless_rounding(expr) {
             span_lint_and_sugg(
                 cx,
                 UNUSED_ROUNDING,

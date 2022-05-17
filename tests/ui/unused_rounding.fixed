@@ -1,5 +1,5 @@
 // run-rustfix
-#![warn(clippy::unnecessary_rounding)]
+#![warn(clippy::unused_rounding)]
 
 fn main() {
     let _ = 1f32;
