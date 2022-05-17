@@ -391,6 +391,7 @@ mod unit_return_expecting_ord;
 mod unit_types;
 mod unnamed_address;
 mod unnecessary_owned_empty_strings;
+mod unnecessary_rounding;
 mod unnecessary_self_imports;
 mod unnecessary_sort_by;
 mod unnecessary_wraps;
@@ -890,6 +891,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     let max_include_file_size = conf.max_include_file_size;
     store.register_late_pass(move || Box::new(large_include_file::LargeIncludeFile::new(max_include_file_size)));
     store.register_late_pass(|| Box::new(strings::TrimSplitWhitespace));
+    store.register_early_pass(|| Box::new(unnecessary_rounding::UnnecessaryRounding));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
