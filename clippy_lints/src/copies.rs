@@ -12,7 +12,7 @@ use rustc_hir::{Block, Expr, ExprKind, HirId};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::nested_filter;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::{source_map::Span, symbol::Symbol, BytePos};
+use rustc_span::{source_map::Span, sym, symbol::Symbol, BytePos};
 use std::borrow::Cow;
 
 declare_clippy_lint! {
@@ -315,6 +315,21 @@ struct BlockEqual {
     expr_eq: bool,
 }
 
+fn block_contains_todo_macro(cx: &LateContext<'_>, block: &Block<'_>) -> bool {
+    dbg!(block);
+    if let Some(macro_def_id) = block.span.ctxt().outer_expn_data().macro_def_id {
+        dbg!(macro_def_id);
+        if let Some(diagnostic_name) = cx.tcx.get_diagnostic_name(macro_def_id) {
+            dbg!(diagnostic_name);
+            diagnostic_name == sym::todo_macro
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
 /// This function can also trigger the `IF_SAME_THEN_ELSE` in which case it'll return `None` to
 /// abort any further processing and avoid duplicate lint triggers.
 fn scan_block_for_eq(cx: &LateContext<'_>, conds: &[&Expr<'_>], blocks: &[&Block<'_>]) -> Option<BlockEqual> {
@@ -352,6 +367,8 @@ fn scan_block_for_eq(cx: &LateContext<'_>, conds: &[&Expr<'_>], blocks: &[&Block
             // Any `i` from `blocks.windows(2)` will exist in `conds`, but `i+1` may not exist on the last iteration.
             if !matches!(conds[i].kind, ExprKind::Let(..));
             if !matches!(conds.get(i + 1).map(|e| &e.kind), Some(ExprKind::Let(..)));
+            if !block_contains_todo_macro(cx, block0);
+            if !block_contains_todo_macro(cx, block1);
             if !is_lint_allowed(cx, IF_SAME_THEN_ELSE, block0.hir_id);
             if !is_lint_allowed(cx, IF_SAME_THEN_ELSE, block1.hir_id);
             then {
