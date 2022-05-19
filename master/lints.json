@@ -5433,11 +5433,11 @@
     "id": "pub_enum_variant_names",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 199
+      "line": 198
     },
     "group": "deprecated",
     "level": "none",
-    "docs": " ### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThe `avoid_breaking_exported_api` config option was added, which\nenables the `enum_variant_names` lint for public items.\n```rust",
+    "docs": " ### What it does\nNothing. This lint has been deprecated.\n\n### Deprecation reason\nThe `avoid_breaking_exported_api` config option was added, which\nenables the `enum_variant_names` lint for public items.",
     "version": "1.54.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8148,7 +8148,7 @@
     "id": "wrong_pub_self_convention",
     "id_span": {
       "path": "src/deprecated_lints.rs",
-      "line": 211
+      "line": 210
     },
     "group": "deprecated",
     "level": "none",
