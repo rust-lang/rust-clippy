@@ -3423,7 +3423,7 @@
     "id": "manual_non_exhaustive",
     "id_span": {
       "path": "src/manual_non_exhaustive.rs",
-      "line": 60
+      "line": 59
     },
     "group": "style",
     "level": "warn",
@@ -5208,7 +5208,7 @@
     "id": "partialeq_ne_impl",
     "id_span": {
       "path": "src/partialeq_ne_impl.rs",
-      "line": 29
+      "line": 28
     },
     "group": "complexity",
     "level": "warn",
@@ -6195,6 +6195,21 @@
     }
   },
   {
+    "id": "significant_drop_in_scrutinee",
+    "id_span": {
+      "path": "src/significant_drop_in_scrutinee.rs",
+      "line": 85
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nCheck for temporaries returned from function calls in a match scrutinee that have the\n`clippy::has_significant_drop` attribute.\n\n### Why is this bad?\nThe `clippy::has_significant_drop` attribute can be added to types whose Drop impls have\nan important side-effect, such as unlocking a mutex, making it important for users to be\nable to accurately understand their lifetimes. When a temporary is returned in a function\ncall in a match scrutinee, its lifetime lasts until the end of the match block, which may\nbe surprising.\n\nFor `Mutex`es this can lead to a deadlock. This happens when the match scrutinee uses a\nfunction call that returns a `MutexGuard` and then tries to lock again in one of the match\narms. In that case the `MutexGuard` in the scrutinee will not be dropped until the end of\nthe match block and thus will not unlock.\n\n### Example\n```rust.ignore\n# use std::sync::Mutex;\n\n# struct State {}\n\n# impl State {\n#     fn foo(&self) -> bool {\n#         true\n#     }\n\n#     fn bar(&self) {}\n# }\n\n\nlet mutex = Mutex::new(State {});\n\nmatch mutex.lock().unwrap().foo() {\n    true => {\n        mutex.lock().unwrap().bar(); // Deadlock!\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n\n```\nUse instead:\n```rust\n\n\n\n\nlet mutex = Mutex::new(State {});\n\nlet is_foo = mutex.lock().unwrap().foo();\nmatch is_foo {\n    true => {\n        mutex.lock().unwrap().bar();\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "similar_names",
     "id_span": {
       "path": "src/non_expressive_names.rs",
@@ -6798,7 +6813,7 @@
     "id": "trait_duplication_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 67
+      "line": 68
     },
     "group": "nursery",
     "level": "allow",
@@ -7053,7 +7068,7 @@
     "id": "type_repetition_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 37
+      "line": 38
     },
     "group": "nursery",
     "level": "allow",
