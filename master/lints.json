@@ -3828,11 +3828,11 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/match_str_case_mismatch.rs",
-      "line": 42
+      "line": 40
     },
     "group": "correctness",
     "level": "deny",
-    "docs": " ### What it does\nChecks for `match` expressions modifying the case of a string with non-compliant arms\n\n### Why is this bad?\nThe arm is unreachable, which is likely a mistake\n\n### Example\n```rust\n\nmatch &*text.to_ascii_lowercase() {\n    \"foo\" => {},\n    \"Bar\" => {},\n    _ => {},\n}\n```\nUse instead:\n```rust\n\nmatch &*text.to_ascii_lowercase() {\n    \"foo\" => {},\n    \"bar\" => {},\n    _ => {},\n}\n```",
+    "docs": " ### What it does\nChecks for `match` expressions modifying the case of a string with non-compliant arms\n\n### Why is this bad?\nThe arm is unreachable, which is likely a mistake\n\n### Example\n```rust\nmatch &*text.to_ascii_lowercase() {\n    \"foo\" => {},\n    \"Bar\" => {},\n    _ => {},\n}\n```\nUse instead:\n```rust\nmatch &*text.to_ascii_lowercase() {\n    \"foo\" => {},\n    \"bar\" => {},\n    _ => {},\n}\n```",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
