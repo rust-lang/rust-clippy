@@ -5583,15 +5583,15 @@
     "id": "rc_clone_in_vec_init",
     "id_span": {
       "path": "src/rc_clone_in_vec_init.rs",
-      "line": 43
+      "line": 45
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `Arc::new` or `Rc::new` in `vec![elem; len]`\n\n### Why is this bad?\nThis will create `elem` once and clone it `len` times - doing so with `Arc` or `Rc`\nis a bit misleading, as it will create references to the same pointer, rather\nthan different instances.\n\n### Example\n```rust\nlet v = vec![std::sync::Arc::new(\"some data\".to_string()); 100];\n// or\nlet v = vec![std::rc::Rc::new(\"some data\".to_string()); 100];\n```\nUse instead:\n```rust\n\n// Initialize each value separately:\nlet mut data = Vec::with_capacity(100);\nfor _ in 0..100 {\n    data.push(std::rc::Rc::new(\"some data\".to_string()));\n}\n\n// Or if you want clones of the same reference,\n// Create the reference beforehand to clarify that\n// it should be cloned for each value\nlet data = std::rc::Rc::new(\"some data\".to_string());\nlet v = vec![data; 100];\n```",
+    "docs": " ### What it does\nChecks for reference-counted pointers (`Arc`, `Rc`, `rc::Weak`, and `sync::Weak`)\nin `vec![elem; len]`\n\n### Why is this bad?\nThis will create `elem` once and clone it `len` times - doing so with `Arc`/`Rc`/`Weak`\nis a bit misleading, as it will create references to the same pointer, rather\nthan different instances.\n\n### Example\n```rust\nlet v = vec![std::sync::Arc::new(\"some data\".to_string()); 100];\n// or\nlet v = vec![std::rc::Rc::new(\"some data\".to_string()); 100];\n```\nUse instead:\n```rust\n// Initialize each value separately:\nlet mut data = Vec::with_capacity(100);\nfor _ in 0..100 {\n    data.push(std::rc::Rc::new(\"some data\".to_string()));\n}\n\n// Or if you want clones of the same reference,\n// Create the reference beforehand to clarify that\n// it should be cloned for each value\nlet data = std::rc::Rc::new(\"some data\".to_string());\nlet v = vec![data; 100];\n```",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unspecified"
+      "applicability": "HasPlaceholders"
     }
   },
   {
