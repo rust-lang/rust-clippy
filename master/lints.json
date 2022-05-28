@@ -1215,6 +1215,21 @@
     }
   },
   {
+    "id": "doc_link_with_quotes",
+    "id_span": {
+      "path": "src/doc_link_with_quotes.rs",
+      "line": 25
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": " ### What it does\nDetects the syntax `['foo']` in documentation comments (notice quotes instead of backticks)\noutside of code blocks\n### Why is this bad?\nIt is likely a typo when defining an intra-doc link\n\n### Example\n```rust\n/// See also: ['foo']\nfn bar() {}\n```\nUse instead:\n```rust\n/// See also: [`foo`]\nfn bar() {}\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc.rs",
