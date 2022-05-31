@@ -7970,8 +7970,8 @@
       "path": "src/transmute/mod.rs",
       "line": 61
     },
-    "group": "nursery",
-    "level": "allow",
+    "group": "complexity",
+    "level": "warn",
     "docs": " ### What it does\nChecks for transmutes to the original type of the object\nand transmutes that could be a cast.\n\n### Why is this bad?\nReadability. The code tricks people into thinking that\nsomething complex is going on.\n\n### Example\n```rust\ncore::intrinsics::transmute(t); // where the result type is the same as `t`'s\n```",
     "version": "pre 1.29.0",
     "applicability": {
