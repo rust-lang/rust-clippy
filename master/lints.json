@@ -30,6 +30,21 @@
     }
   },
   {
+    "id": "almost_complete_letter_range",
+    "id_span": {
+      "path": "src/almost_complete_letter_range.rs",
+      "line": 28
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for ranges which almost include the entire range of letters from 'a' to 'z', but\ndon't because they're a half open range.\n\n### Why is this bad?\nThis (`'a'..'z'`) is almost certainly a typo meant to include all letters.\n\n### Example\n```rust\nlet _ = 'a'..'z';\n```\nUse instead:\n```rust\nlet _ = 'a'..='z';\n```",
+    "version": "1.63.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "almost_swapped",
     "id_span": {
       "path": "src/swap.rs",
