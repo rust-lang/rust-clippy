@@ -6735,6 +6735,21 @@
     }
   },
   {
+    "id": "swap_ptr_to_ref",
+    "id_span": {
+      "path": "src/swap_ptr_to_ref.rs",
+      "line": 35
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for calls to `core::mem::swap` where either parameter is derived from a pointer\n\n### Why is this bad?\nWhen at least one parameter to `swap` is derived from a pointer it may overlap with the\nother. This would then lead to undefined behavior.\n\n### Example\n```rust\nunsafe fn swap(x: &[*mut u32], y: &[*mut u32]) {\n    for (&x, &y) in x.iter().zip(y) {\n        core::mem::swap(&mut *x, &mut *y);\n    }\n}\n```\nUse instead:\n```rust\nunsafe fn swap(x: &[*mut u32], y: &[*mut u32]) {\n    for (&x, &y) in x.iter().zip(y) {\n        core::ptr::swap(x, y);\n    }\n}\n```",
+    "version": "1.63.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "tabs_in_doc_comments",
     "id_span": {
       "path": "src/tabs_in_doc_comments.rs",
