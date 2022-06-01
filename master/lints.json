@@ -315,6 +315,21 @@
     }
   },
   {
+    "id": "borrow_deref_ref",
+    "id_span": {
+      "path": "src/borrow_deref_ref.rs",
+      "line": 45
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": " ### What it does\nChecks for `&*(&T)`.\n\n### Why is this bad?\nDereferencing and then borrowing a reference value has no effect in most cases.\n\n### Known problems\nfalse negative on such code:\n```rust\nlet x = &12;\nlet addr_x = &x as *const _ as usize;\nlet addr_y = &&*x as *const _ as usize; // assert ok now, and lint triggerd.\n                                        // But if we fix it, assert will fail.\nassert_ne!(addr_x, addr_y);\n```\n\n### Example\n```rust\nlet s = &String::new();\n\n// Bad\nlet a: &String = &* s;\nfoo(&*s);\n\n// Good\nlet a: &String = s;\nfoo(&**s);\n\nfn foo(_: &str){ }\n```",
+    "version": "1.59.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "borrow_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
