@@ -1143,7 +1143,7 @@
     "id": "derive_hash_xor_eq",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 43
+      "line": 44
     },
     "group": "correctness",
     "level": "deny",
@@ -1158,7 +1158,7 @@
     "id": "derive_ord_xor_partial_ord",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 94
+      "line": 95
     },
     "group": "correctness",
     "level": "deny",
@@ -1173,7 +1173,7 @@
     "id": "derive_partial_eq_without_eq",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 187
+      "line": 188
     },
     "group": "style",
     "level": "warn",
@@ -1713,7 +1713,7 @@
     "id": "expl_impl_clone_on_copy",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 121
+      "line": 122
     },
     "group": "pedantic",
     "level": "allow",
@@ -7608,7 +7608,7 @@
     "id": "unsafe_derive_deserialize",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 155
+      "line": 156
     },
     "group": "pedantic",
     "level": "allow",
