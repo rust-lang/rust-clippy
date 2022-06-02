@@ -1997,7 +1997,7 @@
   {
     "id": "float_arithmetic",
     "id_span": {
-      "path": "src/arithmetic.rs",
+      "path": "src/numeric_arithmetic.rs",
       "line": 48
     },
     "group": "restriction",
@@ -2777,7 +2777,7 @@
   {
     "id": "integer_arithmetic",
     "id_span": {
-      "path": "src/arithmetic.rs",
+      "path": "src/numeric_arithmetic.rs",
       "line": 29
     },
     "group": "restriction",
