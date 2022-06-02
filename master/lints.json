@@ -3123,11 +3123,11 @@
     "id": "large_enum_variant",
     "id_span": {
       "path": "src/large_enum_variant.rs",
-      "line": 44
+      "line": 54
     },
     "group": "perf",
     "level": "warn",
-    "docs": " ### What it does\nChecks for large size differences between variants on\n`enum`s.\n\n### Why is this bad?\nEnum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.\n\n### Known problems\nThis lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.\n\n### Example\n```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `enum-variant-size-threshold`: `u64`: The maximum size of an enum's variant to avoid box suggestion (defaults to `200`)\n\n",
+    "docs": " ### What it does\nChecks for large size differences between variants on\n`enum`s.\n\n### Why is this bad?\nEnum size is bounded by the largest variant. Having a\nlarge variant can penalize the memory layout of that enum.\n\n### Known problems\nThis lint obviously cannot take the distribution of\nvariants in your running program into account. It is possible that the\nsmaller variants make up less than 1% of all instances, in which case\nthe overhead is negligible and the boxing is counter-productive. Always\nmeasure the change this lint suggests.\n\nFor types that implement `Copy`, the suggestion to `Box` a variant's\ndata would require removing the trait impl. The types can of course\nstill be `Clone`, but that is worse ergonomically. Depending on the\nuse case it may be possible to store the large data in an auxillary\nstructure (e.g. Arena or ECS).\n\nThe lint will ignore generic types if the layout depends on the\ngenerics, even if the size difference will be large anyway.\n\n### Example\n```rust\n// Bad\nenum Test {\n    A(i32),\n    B([i32; 8000]),\n}\n\n// Possibly better\nenum Test2 {\n    A(i32),\n    B(Box<[i32; 8000]>),\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `enum-variant-size-threshold`: `u64`: The maximum size of an enum's variant to avoid box suggestion (defaults to `200`)\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
