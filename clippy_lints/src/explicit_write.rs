@@ -22,8 +22,16 @@ declare_clippy_lint! {
     /// ```rust
     /// # use std::io::Write;
     /// # let bar = "furchtbar";
-    /// // this would be clearer as `eprintln!("foo: {:?}", bar);`
     /// writeln!(&mut std::io::stderr(), "foo: {:?}", bar).unwrap();
+    /// writeln!(&mut std::io::stdout(), "foo: {:?}", bar).unwrap();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust
+    /// # use std::io::Write;
+    /// # let bar = "furchtbar";
+    /// eprintln!("foo: {:?}", bar);
+    /// println!("foo: {:?}", bar);
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub EXPLICIT_WRITE,
@@ -106,14 +114,12 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitWrite {
 /// returns $expr. Otherwise returns `kind`.
 fn look_in_block<'tcx, 'hir>(cx: &LateContext<'tcx>, kind: &'tcx ExprKind<'hir>) -> &'tcx ExprKind<'hir> {
     if_chain! {
-        if let ExprKind::Block(block, _label @ None) = kind;
-        if let Block {
+        if let ExprKind::Block(Block {
             stmts: [Stmt { kind: StmtKind::Local(local), .. }],
             expr: Some(expr_end_of_block),
             rules: BlockCheckMode::DefaultBlock,
             ..
-        } = block;
-
+        }, _label @ None) = kind;
         // Find id of the local that expr_end_of_block resolves to
         if let ExprKind::Path(QPath::Resolved(None, expr_path)) = expr_end_of_block.kind;
         if let Res::Local(expr_res) = expr_path.res;

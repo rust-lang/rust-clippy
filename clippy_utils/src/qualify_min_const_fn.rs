@@ -125,6 +125,9 @@ fn check_rvalue<'tcx>(
         Rvalue::Len(place) | Rvalue::Discriminant(place) | Rvalue::Ref(_, _, place) | Rvalue::AddressOf(_, place) => {
             check_place(tcx, *place, span, body)
         },
+        Rvalue::Cast(CastKind::PointerExposeAddress, _, _) => {
+            Err((span, "casting pointers to ints is unstable in const fn".into()))
+        },
         Rvalue::Cast(CastKind::Misc, operand, cast_ty) => {
             use rustc_middle::ty::cast::CastTy;
             let cast_in = CastTy::from_ty(operand.ty(body, tcx)).expect("bad input type for cast");
