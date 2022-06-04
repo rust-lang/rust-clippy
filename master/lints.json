@@ -232,7 +232,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for usage of `_.and_then(|x| Some(y))`, `_.and_then(|x| Ok(y))` or\n`_.or_else(|x| Err(y))`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.map(|x| y)` or `_.map_err(|x| y)`.\n\n### Example\n```rust\nlet _ = opt().and_then(|s| Some(s.len()));\nlet _ = res().and_then(|s| if s.len() == 42 { Ok(10) } else { Ok(20) });\nlet _ = res().or_else(|s| if s.len() == 42 { Err(10) } else { Err(20) });\n```\n\nThe correct use would be:\n\n```rust\nlet _ = opt().map(|s| s.len());\nlet _ = res().map(|s| if s.len() == 42 { 10 } else { 20 });\nlet _ = res().map_err(|s| if s.len() == 42 { 10 } else { 20 });\n```",
+    "docs": " ### What it does\nChecks for usage of `_.and_then(|x| Some(y))`, `_.and_then(|x| Ok(y))` or\n`_.or_else(|x| Err(y))`.\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.map(|x| y)` or `_.map_err(|x| y)`.\n\n### Example\n```rust\nlet _ = opt().and_then(|s| Some(s.len()));\nlet _ = res().and_then(|s| if s.len() == 42 { Ok(10) } else { Ok(20) });\nlet _ = res().or_else(|s| if s.len() == 42 { Err(10) } else { Err(20) });\n```\n\nThe correct use would be:\n\n```rust\nlet _ = opt().map(|s| s.len());\nlet _ = res().map(|s| if s.len() == 42 { 10 } else { 20 });\nlet _ = res().map_err(|s| if s.len() == 42 { 10 } else { 20 });\n```\n### Past names\n\n* `option_and_then_some`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -277,7 +277,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `if` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.\n\n### Why is this bad?\nStyle, using blocks in the condition makes it hard to read.\n\n### Examples\n```rust\nif { true } { /* ... */ }\n\nif { let x = somefunc(); x } { /* ... */ }\n```\n\nUse instead:\n```rust\nif true { /* ... */ }\n\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```",
+    "docs": " ### What it does\nChecks for `if` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.\n\n### Why is this bad?\nStyle, using blocks in the condition makes it hard to read.\n\n### Examples\n```rust\nif { true } { /* ... */ }\n\nif { let x = somefunc(); x } { /* ... */ }\n```\n\nUse instead:\n```rust\nif true { /* ... */ }\n\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```\n### Past names\n\n* `block_in_if_condition_expr`\n* `block_in_if_condition_stmt`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -382,7 +382,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": " ### What it does\nChecks for use of `Box<T>` where T is a collection such as Vec anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nCollections already keeps their contents in a separate area on\nthe heap. So if you `Box` them, you just add another level of indirection\nwithout any benefit whatsoever.\n\n### Example\n```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n\n",
+    "docs": " ### What it does\nChecks for use of `Box<T>` where T is a collection such as Vec anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nCollections already keeps their contents in a separate area on\nthe heap. So if you `Box` them, you just add another level of indirection\nwithout any benefit whatsoever.\n\n### Example\n```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n\n\n### Past names\n\n* `box_vec`\n\n",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -832,7 +832,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": " ### What it does\nChecks for methods with high cognitive complexity.\n\n### Why is this bad?\nMethods of high cognitive complexity tend to be hard to\nboth read and maintain. Also LLVM will tend to optimize small methods better.\n\n### Known problems\nSometimes it's hard to find a way to reduce the\ncomplexity.\n\n### Example\nYou'll see it when you get the warning.\n### Configuration\nThis lint has the following configuration variables:\n\n* `cognitive-complexity-threshold`: `u64`: The maximum cognitive complexity a function can have (defaults to `25`)\n\n",
+    "docs": " ### What it does\nChecks for methods with high cognitive complexity.\n\n### Why is this bad?\nMethods of high cognitive complexity tend to be hard to\nboth read and maintain. Also LLVM will tend to optimize small methods better.\n\n### Known problems\nSometimes it's hard to find a way to reduce the\ncomplexity.\n\n### Example\nYou'll see it when you get the warning.\n### Configuration\nThis lint has the following configuration variables:\n\n* `cognitive-complexity-threshold`: `u64`: The maximum cognitive complexity a function can have (defaults to `25`)\n\n\n### Past names\n\n* `cyclomatic_complexity`\n\n",
     "version": "1.35.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1207,7 +1207,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nDenies the configured methods and functions in clippy.toml\n\nNote: Even though this lint is warn-by-default, it will only trigger if\nmethods are defined in the clippy.toml file.\n\n### Why is this bad?\nSome methods are undesirable in certain contexts, and it's beneficial to\nlint for them as needed.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\n    # Can use a string as the path of the disallowed method.\n    \"std::boxed::Box::new\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::time::Instant::now\" },\n    # When using an inline table, can add a `reason` for why the method\n    # is disallowed.\n    { path = \"std::vec::Vec::leak\", reason = \"no leaking memory\" },\n]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n// The diagnostic contains the message \"no leaking memory\".\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n\nlet _box = Box::new(3); // Box::new is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-methods`: `Vec<crate::utils::conf::DisallowedMethod>`: The list of disallowed methods, written as fully qualified paths. (defaults to `[]`)\n\n",
+    "docs": " ### What it does\nDenies the configured methods and functions in clippy.toml\n\nNote: Even though this lint is warn-by-default, it will only trigger if\nmethods are defined in the clippy.toml file.\n\n### Why is this bad?\nSome methods are undesirable in certain contexts, and it's beneficial to\nlint for them as needed.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\n    # Can use a string as the path of the disallowed method.\n    \"std::boxed::Box::new\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::time::Instant::now\" },\n    # When using an inline table, can add a `reason` for why the method\n    # is disallowed.\n    { path = \"std::vec::Vec::leak\", reason = \"no leaking memory\" },\n]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n// The diagnostic contains the message \"no leaking memory\".\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n\nlet _box = Box::new(3); // Box::new is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-methods`: `Vec<crate::utils::conf::DisallowedMethod>`: The list of disallowed methods, written as fully qualified paths. (defaults to `[]`)\n\n\n### Past names\n\n* `disallowed_method`\n\n",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1237,7 +1237,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nDenies the configured types in clippy.toml.\n\nNote: Even though this lint is warn-by-default, it will only trigger if\ntypes are defined in the clippy.toml file.\n\n### Why is this bad?\nSome types are undesirable in certain contexts.\n\n### Example:\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-types = [\n    # Can use a string as the path of the disallowed type.\n    \"std::collections::BTreeMap\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::net::TcpListener\" },\n    # When using an inline table, can add a `reason` for why the type\n    # is disallowed.\n    { path = \"std::net::Ipv4Addr\", reason = \"no IPv4 allowed\" },\n]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-types`: `Vec<crate::utils::conf::DisallowedType>`: The list of disallowed types, written as fully qualified paths. (defaults to `[]`)\n\n",
+    "docs": " ### What it does\nDenies the configured types in clippy.toml.\n\nNote: Even though this lint is warn-by-default, it will only trigger if\ntypes are defined in the clippy.toml file.\n\n### Why is this bad?\nSome types are undesirable in certain contexts.\n\n### Example:\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-types = [\n    # Can use a string as the path of the disallowed type.\n    \"std::collections::BTreeMap\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::net::TcpListener\" },\n    # When using an inline table, can add a `reason` for why the type\n    # is disallowed.\n    { path = \"std::net::Ipv4Addr\", reason = \"no IPv4 allowed\" },\n]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-types`: `Vec<crate::utils::conf::DisallowedType>`: The list of disallowed types, written as fully qualified paths. (defaults to `[]`)\n\n\n### Past names\n\n* `disallowed_type`\n\n",
     "version": "1.55.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1717,7 +1717,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for `.expect()` calls on `Option`s and `Result`s.\n\n### Why is this bad?\nUsually it is better to handle the `None` or `Err` case.\nStill, for a lot of quick-and-dirty code, `expect` is a good choice, which is why\nthis lint is `Allow` by default.\n\n`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\n### Examples\n```rust\noption.expect(\"one\");\nresult.expect(\"one\");\n```\n\nUse instead:\n```rust\noption?;\n\n// or\n\nresult?;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `allow-expect-in-tests`: `bool`: Whether `expect` should be allowed in test functions (defaults to `false`)\n\n",
+    "docs": " ### What it does\nChecks for `.expect()` calls on `Option`s and `Result`s.\n\n### Why is this bad?\nUsually it is better to handle the `None` or `Err` case.\nStill, for a lot of quick-and-dirty code, `expect` is a good choice, which is why\nthis lint is `Allow` by default.\n\n`result.expect()` will let the thread panic on `Err`\nvalues. Normally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\n### Examples\n```rust\noption.expect(\"one\");\nresult.expect(\"one\");\n```\n\nUse instead:\n```rust\noption?;\n\n// or\n\nresult?;\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `allow-expect-in-tests`: `bool`: Whether `expect` should be allowed in test functions (defaults to `false`)\n\n\n### Past names\n\n* `option_expect_used`\n* `result_expect_used`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2167,7 +2167,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `for` loops over `Option` or `Result` values.\n\n### Why is this bad?\nReadability. This is more clearly expressed as an `if\nlet`.\n\n### Example\n```rust\nfor x in opt {\n    // ..\n}\n\nfor x in &res {\n    // ..\n}\n```\n\nUse instead:\n```rust\nif let Some(x) = opt {\n    // ..\n}\n\nif let Ok(x) = res {\n    // ..\n}\n```",
+    "docs": " ### What it does\nChecks for `for` loops over `Option` or `Result` values.\n\n### Why is this bad?\nReadability. This is more clearly expressed as an `if\nlet`.\n\n### Example\n```rust\nfor x in opt {\n    // ..\n}\n\nfor x in &res {\n    // ..\n}\n```\n\nUse instead:\n```rust\nif let Some(x) = opt {\n    // ..\n}\n\nif let Ok(x) = res {\n    // ..\n}\n```\n### Past names\n\n* `for_loop_over_option`\n* `for_loop_over_result`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2887,7 +2887,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": " ### What it does\nChecks for invisible Unicode characters in the code.\n\n### Why is this bad?\nHaving an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.\n\n### Example\nYou don't see it, but there may be a zero-width space or soft hyphen\nsome­where in this text.",
+    "docs": " ### What it does\nChecks for invisible Unicode characters in the code.\n\n### Why is this bad?\nHaving an invisible character in the code makes for all\nsorts of April fools, but otherwise is very much frowned upon.\n\n### Example\nYou don't see it, but there may be a zero-width space or soft hyphen\nsome­where in this text.\n### Past names\n\n* `zero_width_space`\n\n",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3742,7 +3742,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nChecks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.\n\n### Why is this bad?\nReadability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.\n\n### Known problems\nThe order of the arguments is not in execution order\n\n### Examples\n```rust\noption.map(|a| a + 1).unwrap_or(0);\nresult.map(|a| a + 1).unwrap_or_else(some_function);\n```\n\nUse instead:\n```rust\noption.map_or(0, |a| a + 1);\nresult.map_or_else(some_function, |a| a + 1);\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
+    "docs": " ### What it does\nChecks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.\n\n### Why is this bad?\nReadability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.\n\n### Known problems\nThe order of the arguments is not in execution order\n\n### Examples\n```rust\noption.map(|a| a + 1).unwrap_or(0);\nresult.map(|a| a + 1).unwrap_or_else(some_function);\n```\n\nUse instead:\n```rust\noption.map_or(0, |a| a + 1);\nresult.map_or_else(some_function, |a| a + 1);\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n\n### Past names\n\n* `option_map_unwrap_or`\n* `option_map_unwrap_or_else`\n* `result_map_unwrap_or_else`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3847,7 +3847,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for unnecessary `ok()` in `while let`.\n\n### Why is this bad?\nCalling `ok()` in `while let` is unnecessary, instead match\non `Ok(pat)`\n\n### Example\n```rust\nwhile let Some(value) = iter.next().ok() {\n    vec.push(value)\n}\n\nif let Some(value) = iter.next().ok() {\n    vec.push(value)\n}\n```\nUse instead:\n```rust\nwhile let Ok(value) = iter.next() {\n    vec.push(value)\n}\n\nif let Ok(value) = iter.next() {\n       vec.push(value)\n}\n```",
+    "docs": " ### What it does\nChecks for unnecessary `ok()` in `while let`.\n\n### Why is this bad?\nCalling `ok()` in `while let` is unnecessary, instead match\non `Ok(pat)`\n\n### Example\n```rust\nwhile let Some(value) = iter.next().ok() {\n    vec.push(value)\n}\n\nif let Some(value) = iter.next().ok() {\n    vec.push(value)\n}\n```\nUse instead:\n```rust\nwhile let Ok(value) = iter.next() {\n    vec.push(value)\n}\n\nif let Ok(value) = iter.next() {\n       vec.push(value)\n}\n```\n### Past names\n\n* `if_let_some_result`\n\n",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4237,7 +4237,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.\n\n### Why is this bad?\nIt is often confusing to read. As described [here](https://doc.rust-lang.org/reference/expressions.html?highlight=subexpression#evaluation-order-of-operands),\nthe operands of these expressions are evaluated before applying the effects of the expression.\n\n### Known problems\nCode which intentionally depends on the evaluation\norder, or which is correct for any evaluation order.\n\n### Example\n```rust\nlet mut x = 0;\n\n// Bad\nlet a = {\n    x = 1;\n    1\n} + x;\n// Unclear whether a is 1 or 2.\n\n// Good\nlet tmp = {\n    x = 1;\n    1\n};\nlet a = tmp + x;\n```",
+    "docs": " ### What it does\nChecks for a read and a write to the same variable where\nwhether the read occurs before or after the write depends on the evaluation\norder of sub-expressions.\n\n### Why is this bad?\nIt is often confusing to read. As described [here](https://doc.rust-lang.org/reference/expressions.html?highlight=subexpression#evaluation-order-of-operands),\nthe operands of these expressions are evaluated before applying the effects of the expression.\n\n### Known problems\nCode which intentionally depends on the evaluation\norder, or which is correct for any evaluation order.\n\n### Example\n```rust\nlet mut x = 0;\n\n// Bad\nlet a = {\n    x = 1;\n    1\n} + x;\n// Unclear whether a is 1 or 2.\n\n// Good\nlet tmp = {\n    x = 1;\n    1\n};\nlet a = tmp + x;\n```\n### Past names\n\n* `eval_order_dependence`\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4282,7 +4282,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": " ### What it does\nDetects type names that are prefixed or suffixed by the\ncontaining module's name.\n\n### Why is this bad?\nIt requires the user to type the module name twice.\n\n### Example\n```rust\nmod cake {\n    struct BlackForestCake;\n}\n```\nCould be written as:\n```rust\nmod cake {\n    struct BlackForest;\n}\n```",
+    "docs": " ### What it does\nDetects type names that are prefixed or suffixed by the\ncontaining module's name.\n\n### Why is this bad?\nIt requires the user to type the module name twice.\n\n### Example\n```rust\nmod cake {\n    struct BlackForestCake;\n}\n```\nCould be written as:\n```rust\nmod cake {\n    struct BlackForest;\n}\n```\n### Past names\n\n* `stutter`\n\n",
     "version": "1.33.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4552,7 +4552,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\n// Bad\nlet x: &i32 = &&&&&&5;\nfun(&x);\n\n// Good\nlet x: &i32 = &5;\nfun(x);\n```",
+    "docs": " ### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\n// Bad\nlet x: &i32 = &&&&&&5;\nfun(&x);\n\n// Good\nlet x: &i32 = &5;\nfun(x);\n```\n### Past names\n\n* `ref_in_deref`\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4882,7 +4882,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for public types with a `pub fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).\n\n### Why is this bad?\nThe user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.\n\n### Example\n```rust\npub struct Foo(Bar);\n\nimpl Foo {\n    pub fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, add a `Default` implementation that delegates to `new`:\n\n```rust\npub struct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```",
+    "docs": " ### What it does\nChecks for public types with a `pub fn new() -> Self` method and no\nimplementation of\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html).\n\n### Why is this bad?\nThe user might expect to be able to use\n[`Default`](https://doc.rust-lang.org/std/default/trait.Default.html) as the\ntype can be constructed without arguments.\n\n### Example\n```rust\npub struct Foo(Bar);\n\nimpl Foo {\n    pub fn new() -> Self {\n        Foo(Bar::new())\n    }\n}\n```\n\nTo fix the lint, add a `Default` implementation that delegates to `new`:\n\n```rust\npub struct Foo(Bar);\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Foo::new()\n    }\n}\n```\n### Past names\n\n* `new_without_default_derive`\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5692,7 +5692,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": " ### What it does\nChecks for format trait implementations (e.g. `Display`) with a recursive call to itself\nwhich uses `self` as a parameter.\nThis is typically done indirectly with the `write!` macro or with `to_string()`.\n\n### Why is this bad?\nThis will lead to infinite recursion and a stack overflow.\n\n### Example\n\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.to_string())\n    }\n}\n\n```\nUse instead:\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.0)\n    }\n}\n```",
+    "docs": " ### What it does\nChecks for format trait implementations (e.g. `Display`) with a recursive call to itself\nwhich uses `self` as a parameter.\nThis is typically done indirectly with the `write!` macro or with `to_string()`.\n\n### Why is this bad?\nThis will lead to infinite recursion and a stack overflow.\n\n### Example\n\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.to_string())\n    }\n}\n\n```\nUse instead:\n```rust\nuse std::fmt;\n\nstruct Structure(i32);\nimpl fmt::Display for Structure {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"{}\", self.0)\n    }\n}\n```\n### Past names\n\n* `to_string_in_display`\n\n",
     "version": "1.48.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5887,7 +5887,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nChecks for constants and statics with an explicit `'static` lifetime.\n\n### Why is this bad?\nAdding `'static` to every reference can create very\ncomplicated types.\n\n### Example\n```rust\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\nstatic FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```rust\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n static FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n",
+    "docs": " ### What it does\nChecks for constants and statics with an explicit `'static` lifetime.\n\n### Why is this bad?\nAdding `'static` to every reference can create very\ncomplicated types.\n\n### Example\n```rust\nconst FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\nstatic FOO: &'static [(&'static str, &'static str, fn(&Bar) -> bool)] =\n&[...]\n```\nThis code can be rewritten as\n```rust\n const FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n static FOO: &[(&str, &str, fn(&Bar) -> bool)] = &[...]\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n\n\n### Past names\n\n* `const_static_lifetime`\n\n",
     "version": "1.37.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6337,7 +6337,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": " ### What it does\nWarns when using `push_str`/`insert_str` with a single-character string literal\nwhere `push`/`insert` with a `char` would work fine.\n\n### Why is this bad?\nIt's less clear that we are pushing a single character.\n\n### Example\n```rust\nlet mut string = String::new();\nstring.insert_str(0, \"R\");\nstring.push_str(\"R\");\n```\nCould be written as\n```rust\nlet mut string = String::new();\nstring.insert(0, 'R');\nstring.push('R');\n```",
+    "docs": " ### What it does\nWarns when using `push_str`/`insert_str` with a single-character string literal\nwhere `push`/`insert` with a `char` would work fine.\n\n### Why is this bad?\nIt's less clear that we are pushing a single character.\n\n### Example\n```rust\nlet mut string = String::new();\nstring.insert_str(0, \"R\");\nstring.push_str(\"R\");\n```\nCould be written as\n```rust\nlet mut string = String::new();\nstring.insert(0, 'R');\nstring.push('R');\n```\n### Past names\n\n* `single_char_push_str`\n\n",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7882,7 +7882,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": " ### What it does\nChecks for `.unwrap()` calls on `Option`s and on `Result`s.\n\n### Why is this bad?\nIt is better to handle the `None` or `Err` case,\nor at least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.\n\n`result.unwrap()` will let the thread panic on `Err` values.\nNormally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.\n\n### Examples\n```rust\noption.unwrap();\nresult.unwrap();\n```\n\nUse instead:\n```rust\noption.expect(\"more helpful message\");\nresult.expect(\"more helpful message\");\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `allow-unwrap-in-tests`: `bool`: Whether `unwrap` should be allowed in test functions (defaults to `false`)\n\n",
+    "docs": " ### What it does\nChecks for `.unwrap()` calls on `Option`s and on `Result`s.\n\n### Why is this bad?\nIt is better to handle the `None` or `Err` case,\nor at least call `.expect(_)` with a more helpful message. Still, for a lot of\nquick-and-dirty code, `unwrap` is a good choice, which is why this lint is\n`Allow` by default.\n\n`result.unwrap()` will let the thread panic on `Err` values.\nNormally, you want to implement more sophisticated error handling,\nand propagate errors upwards with `?` operator.\n\nEven if you want to panic on errors, not all `Error`s implement good\nmessages on display. Therefore, it may be beneficial to look at the places\nwhere they may get displayed. Activate this lint to do just that.\n\n### Examples\n```rust\noption.unwrap();\nresult.unwrap();\n```\n\nUse instead:\n```rust\noption.expect(\"more helpful message\");\nresult.expect(\"more helpful message\");\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `allow-unwrap-in-tests`: `bool`: Whether `unwrap` should be allowed in test functions (defaults to `false`)\n\n\n### Past names\n\n* `option_unwrap_used`\n* `result_unwrap_used`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7987,7 +7987,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `Into`, `TryInto`, `From`, `TryFrom`, or `IntoIter` calls\nwhich uselessly convert to the same type.\n\n### Why is this bad?\nRedundant code.\n\n### Example\n```rust\n// Bad\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n\n// Good\nlet s: String = format!(\"hello\");\n```",
+    "docs": " ### What it does\nChecks for `Into`, `TryInto`, `From`, `TryFrom`, or `IntoIter` calls\nwhich uselessly convert to the same type.\n\n### Why is this bad?\nRedundant code.\n\n### Example\n```rust\n// Bad\n// format!() returns a `String`\nlet s: String = format!(\"hello\").into();\n\n// Good\nlet s: String = format!(\"hello\");\n```\n### Past names\n\n* `identity_conversion`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
