@@ -1503,7 +1503,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 326
+      "line": 330
     },
     "group": "suspicious",
     "level": "warn",
@@ -1743,7 +1743,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 292
+      "line": 296
     },
     "group": "complexity",
     "level": "warn",
@@ -2148,7 +2148,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 375
+      "line": 379
     },
     "group": "style",
     "level": "warn",
@@ -2163,11 +2163,11 @@
     "id": "for_loops_over_fallibles",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 206
+      "line": 210
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": " ### What it does\nChecks for `for` loops over `Option` or `Result` values.\n\n### Why is this bad?\nReadability. This is more clearly expressed as an `if\nlet`.\n\n### Example\n```rust\nfor x in opt {\n    // ..\n}\n\nfor x in &res {\n    // ..\n}\n```\n\nUse instead:\n```rust\nif let Some(x) = opt {\n    // ..\n}\n\nif let Ok(x) = res {\n    // ..\n}\n```\n### Past names\n\n* `for_loop_over_option`\n* `for_loop_over_result`\n\n",
+    "docs": " ### What it does\nChecks for `for` loops over `Option` or `Result` values.\n\n### Why is this bad?\nReadability. This is more clearly expressed as an `if\nlet`.\n\n### Example\n```rust\nfor x in opt {\n    // ..\n}\n\nfor x in &res {\n    // ..\n}\n\nfor x in res.iter() {\n    // ..\n}\n```\n\nUse instead:\n```rust\nif let Some(x) = opt {\n    // ..\n}\n\nif let Ok(x) = res {\n    // ..\n}\n```\n### Past names\n\n* `for_loop_over_option`\n* `for_loop_over_result`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3453,7 +3453,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 554
+      "line": 558
     },
     "group": "complexity",
     "level": "warn",
@@ -4188,7 +4188,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 590
+      "line": 594
     },
     "group": "perf",
     "level": "warn",
@@ -4428,7 +4428,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 433
+      "line": 437
     },
     "group": "suspicious",
     "level": "warn",
@@ -4578,7 +4578,7 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 261
+      "line": 265
     },
     "group": "perf",
     "level": "warn",
@@ -4848,7 +4848,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 397
+      "line": 401
     },
     "group": "correctness",
     "level": "deny",
@@ -6078,7 +6078,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 495
+      "line": 499
     },
     "group": "style",
     "level": "warn",
@@ -6393,7 +6393,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 522
+      "line": 526
     },
     "group": "complexity",
     "level": "warn",
@@ -8148,7 +8148,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 460
+      "line": 464
     },
     "group": "correctness",
     "level": "deny",
@@ -8163,7 +8163,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 239
+      "line": 243
     },
     "group": "complexity",
     "level": "warn",
@@ -8178,7 +8178,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 346
+      "line": 350
     },
     "group": "style",
     "level": "warn",
