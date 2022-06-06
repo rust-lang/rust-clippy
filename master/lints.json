@@ -4710,6 +4710,21 @@
     }
   },
   {
+    "id": "needless_parens_on_range_literals",
+    "id_span": {
+      "path": "src/needless_parens_on_range_literals.rs",
+      "line": 39
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": " ### What it does\nThe lint checks for parenthesis on literals in range statements that are\nsuperfluous.\n\n### Why is this bad?\nHaving superfluous parenthesis makes the code less readable\noverhead when reading.\n\n### Example\n\n```rust\nfor i in (0)..10 {\n  println!(\"{i}\");\n}\n```\n\nUse instead:\n\n```rust\nfor i in 0..10 {\n  println!(\"{i}\");\n}\n```",
+    "version": "1.63.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "needless_pass_by_value",
     "id_span": {
       "path": "src/needless_pass_by_value.rs",
