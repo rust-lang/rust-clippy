@@ -533,7 +533,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": " ### What it does\nChecks for casts from an enum type to an integral type which will definitely truncate the\nvalue.\n\n### Why is this bad?\nThe resulting integral value will not match the value of the variant it came from.\n\n### Example\n```rust\nenum E { X = 256 };\nlet _ = E::X as u8;\n```",
-    "version": "1.60.0",
+    "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -653,7 +653,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": " ### What it does\nChecks for `as` casts between raw pointers to slices with differently sized elements.\n\n### Why is this bad?\nThe produced raw pointer to a slice does not update its length metadata. The produced\npointer will point to a different number of bytes than the original pointer because the\nlength metadata of a raw slice pointer is in elements rather than bytes.\nProducing a slice reference from the raw pointer will either create a slice with\nless data (which can be surprising) or create a slice with more data and cause Undefined Behavior.\n\n### Example\n// Missing data\n```rust\nlet a = [1_i32, 2, 3, 4];\nlet p = &a as *const [i32] as *const [u8];\nunsafe {\n    println!(\"{:?}\", &*p);\n}\n```\n// Undefined Behavior (note: also potential alignment issues)\n```rust\nlet a = [1_u8, 2, 3, 4];\nlet p = &a as *const [u8] as *const [u32];\nunsafe {\n    println!(\"{:?}\", &*p);\n}\n```\nInstead use `ptr::slice_from_raw_parts` to construct a slice from a data pointer and the correct length\n```rust\nlet a = [1_i32, 2, 3, 4];\nlet old_ptr = &a as *const [i32];\n// The data pointer is cast to a pointer to the target `u8` not `[u8]`\n// The length comes from the known length of 4 i32s times the 4 bytes per i32\nlet new_ptr = core::ptr::slice_from_raw_parts(old_ptr as *const u8, 16);\nunsafe {\n    println!(\"{:?}\", &*new_ptr);\n}\n```",
-    "version": "1.60.0",
+    "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -1133,7 +1133,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": " ### What it does\nChecks for slicing expressions which are equivalent to dereferencing the\nvalue.\n\n### Why is this bad?\nSome people may prefer to dereference rather than slice.\n\n### Example\n```rust\nlet vec = vec![1, 2, 3];\nlet slice = &vec[..];\n```\nUse instead:\n```rust\nlet vec = vec![1, 2, 3];\nlet slice = &*vec;\n```",
-    "version": "1.60.0",
+    "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2573,7 +2573,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": " ### What it does\nThe lint checks for slice bindings in patterns that are only used to\naccess individual slice values.\n\n### Why is this bad?\nAccessing slice values using indices can lead to panics. Using refutable\npatterns can avoid these. Binding to individual values also improves the\nreadability as they can be named.\n\n### Limitations\nThis lint currently only checks for immutable access inside `if let`\npatterns.\n\n### Example\n```rust\nlet slice: Option<&[u32]> = Some(&[1, 2, 3]);\n\nif let Some(slice) = slice {\n    println!(\"{}\", slice[0]);\n}\n```\nUse instead:\n```rust\nlet slice: Option<&[u32]> = Some(&[1, 2, 3]);\n\nif let Some(&[first, ..]) = slice {\n    println!(\"{}\", first);\n}\n```\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n* `max-suggested-slice-pattern-length`: `u64`: When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in\n    the slice pattern that is suggested. If more elements would be necessary, the lint is suppressed.\n    For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements. (defaults to `3`)\n\n",
-    "version": "1.58.0",
+    "version": "1.59.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -3038,7 +3038,7 @@
     "group": "perf",
     "level": "warn",
     "docs": " ### What it does\nChecks for usage of `_.cloned().<func>()` where call to `.cloned()` can be postponed.\n\n### Why is this bad?\nIt's often inefficient to clone all elements of an iterator, when eventually, only some\nof them will be consumed.\n\n### Known Problems\nThis `lint` removes the side of effect of cloning items in the iterator.\nA code that relies on that side-effect could fail.\n\n### Examples\n```rust\nvec.iter().cloned().take(10);\nvec.iter().cloned().last();\n```\n\nUse instead:\n```rust\nvec.iter().take(10).cloned();\nvec.iter().last().cloned();\n```",
-    "version": "1.59.0",
+    "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -3728,7 +3728,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": " ### What it does\nChecks for instances of `map(f)` where `f` is the identity function.\n\n### Why is this bad?\nIt can be written more concisely without the call to `map`.\n\n### Example\n```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| x).map(|x| 2*x).collect();\n```\nUse instead:\n```rust\nlet x = [1, 2, 3];\nlet y: Vec<_> = x.iter().map(|x| 2*x).collect();\n```",
-    "version": "1.52.0",
+    "version": "1.47.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -4163,7 +4163,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": " ### What it does\nChecks the doc comments of publicly visible functions that\nmay panic and warns if there is no `# Panics` section.\n\n### Why is this bad?\nDocumenting the scenarios in which panicking occurs\ncan help callers who do not want to panic to avoid those situations.\n\n### Examples\nSince the following function may panic it has a `# Panics` section in\nits doc comment:\n\n```rust\n/// # Panics\n///\n/// Will panic if y is 0\npub fn divide_by(x: i32, y: i32) -> i32 {\n    if y == 0 {\n        panic!(\"Cannot divide by 0\")\n    } else {\n        x / y\n    }\n}\n```",
-    "version": "1.52.0",
+    "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4193,7 +4193,7 @@
     "group": "perf",
     "level": "warn",
     "docs": " ### What it does\nCheck for empty spin loops\n\n### Why is this bad?\nThe loop body should have something like `thread::park()` or at least\n`std::hint::spin_loop()` to avoid needlessly burning cycles and conserve\nenergy. Perhaps even better use an actual lock, if possible.\n\n### Known problems\nThis lint doesn't currently trigger on `while let` or\n`loop { match .. { .. } }` loops, which would be considered idiomatic in\ncombination with e.g. `AtomicBool::compare_exchange_weak`.\n\n### Example\n\n```rust\nuse core::sync::atomic::{AtomicBool, Ordering};\nlet b = AtomicBool::new(true);\n// give a ref to `b` to another thread,wait for it to become false\nwhile b.load(Ordering::Acquire) {};\n```\nUse instead:\n```rust\nwhile b.load(Ordering::Acquire) {\n    std::hint::spin_loop()\n}\n```",
-    "version": "1.59.0",
+    "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -4643,7 +4643,7 @@
     "group": "style",
     "level": "warn",
     "docs": " ### What it does\nChecks for late initializations that can be replaced by a `let` statement\nwith an initializer.\n\n### Why is this bad?\nAssigning in the `let` statement is less repetitive.\n\n### Example\n```rust\nlet a;\na = 1;\n\nlet b;\nmatch 3 {\n    0 => b = \"zero\",\n    1 => b = \"one\",\n    _ => b = \"many\",\n}\n\nlet c;\nif true {\n    c = 1;\n} else {\n    c = -1;\n}\n```\nUse instead:\n```rust\nlet a = 1;\n\nlet b = match 3 {\n    0 => \"zero\",\n    1 => \"one\",\n    _ => \"many\",\n};\n\nlet c = if true {\n    1\n} else {\n    -1\n};\n```",
-    "version": "1.58.0",
+    "version": "1.59.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4793,7 +4793,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": " ### What it does\nChecks for usages of `str::splitn` (or `str::rsplitn`) where using `str::split` would be the same.\n### Why is this bad?\nThe function `split` is simpler and there is no performance difference in these cases, considering\nthat both functions return a lazy iterator.\n### Example\n```rust\nlet str = \"key=value=add\";\nlet _ = str.splitn(3, '=').next().unwrap();\n```\n\nUse instead:\n```rust\nlet str = \"key=value=add\";\nlet _ = str.split('=').next().unwrap();\n```",
-    "version": "1.58.0",
+    "version": "1.59.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -5063,7 +5063,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": " ### What it does\nChecks for `\\0` escapes in string and byte literals that look like octal\ncharacter escapes in C.\n\n### Why is this bad?\n\nC and other languages support octal character escapes in strings, where\na backslash is followed by up to three octal digits. For example, `\\033`\nstands for the ASCII character 27 (ESC). Rust does not support this\nnotation, but has the escape code `\\0` which stands for a null\nbyte/character, and any following digits do not form part of the escape\nsequence. Therefore, `\\033` is not a compiler error but the result may\nbe surprising.\n\n### Known problems\nThe actual meaning can be the intended one. `\\x00` can be used in these\ncases to be unambiguous.\n\nThe lint does not trigger for format strings in `print!()`, `write!()`\nand friends since the string is already preprocessed when Clippy lints\ncan see it.\n\n# Example\n```rust\nlet one = \"\\033[1m Bold? \\033[0m\";  // \\033 intended as escape\nlet two = \"\\033\\0\";                 // \\033 intended as null-3-3\n```\n\nUse instead:\n```rust\nlet one = \"\\x1b[1mWill this be bold?\\x1b[0m\";\nlet two = \"\\x0033\\x00\";\n```",
-    "version": "1.58.0",
+    "version": "1.59.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -5093,7 +5093,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": " ### What it does\nChecks for arguments that are only used in recursion with no side-effects.\n\n### Why is this bad?\nIt could contain a useless calculation and can make function simpler.\n\nThe arguments can be involved in calculations and assignments but as long as\nthe calculations have no side-effects (function calls or mutating dereference)\nand the assigned variables are also only in recursion, it is useless.\n\n### Known problems\nToo many code paths in the linting code are currently untested and prone to produce false\npositives or are prone to have performance implications.\n\nIn some cases, this would not catch all useless arguments.\n\n```rust\nfn foo(a: usize, b: usize) -> usize {\n    let f = |x| x + 1;\n\n    if a == 0 {\n        1\n    } else {\n        foo(a - 1, f(b))\n    }\n}\n```\n\nFor example, the argument `b` is only used in recursion, but the lint would not catch it.\n\nList of some examples that can not be caught:\n- binary operation of non-primitive types\n- closure usage\n- some `break` relative operations\n- struct pattern binding\n\nAlso, when you recurse the function name with path segments, it is not possible to detect.\n\n### Example\n```rust\nfn f(a: usize, b: usize) -> usize {\n    if a == 0 {\n        1\n    } else {\n        f(a - 1, b + 1)\n    }\n}\n```\nUse instead:\n```rust\nfn f(a: usize) -> usize {\n    if a == 0 {\n        1\n    } else {\n        f(a - 1)\n    }\n}\n```",
-    "version": "1.60.0",
+    "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -6368,7 +6368,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": " ### What it does\nChecks for lifetimes with names which are one character\nlong.\n\n### Why is this bad?\nA single character is likely not enough to express the\npurpose of a lifetime. Using a longer name can make code\neasier to understand, especially for those who are new to\nRust.\n\n### Known problems\nRust programmers and learning resources tend to use single\ncharacter lifetimes, so this lint is at odds with the\necosystem at large. In addition, the lifetime's purpose may\nbe obvious or, rarely, expressible in one character.\n\n### Example\n```rust\nstruct DiagnosticCtx<'a> {\n    source: &'a str,\n}\n```\nUse instead:\n```rust\nstruct DiagnosticCtx<'src> {\n    source: &'src str,\n}\n```",
-    "version": "1.59.0",
+    "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7538,7 +7538,7 @@
     "group": "perf",
     "level": "warn",
     "docs": " ### What it does\nChecks for unnecessary calls to [`ToOwned::to_owned`](https://doc.rust-lang.org/std/borrow/trait.ToOwned.html#tymethod.to_owned)\nand other `to_owned`-like functions.\n\n### Why is this bad?\nThe unnecessary calls result in useless allocations.\n\n### Known problems\n`unnecessary_to_owned` can falsely trigger if `IntoIterator::into_iter` is applied to an\nowned copy of a resource and the resource is later used mutably. See\n[#8148](https://github.com/rust-lang/rust-clippy/issues/8148).\n\n### Example\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy().to_string());\nfn foo(s: &str) {}\n```\nUse instead:\n```rust\nlet path = std::path::Path::new(\"x\");\nfoo(&path.to_string_lossy());\nfn foo(s: &str) {}\n```",
-    "version": "1.58.0",
+    "version": "1.59.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
