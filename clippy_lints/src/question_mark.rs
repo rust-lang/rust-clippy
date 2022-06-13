@@ -82,7 +82,7 @@ enum IfBlockType<'hir> {
 /// ```
 ///
 /// If it matches, it will suggest to use the question mark operator instead
-fn check_is_none_or_err_and_early_return(cx: &LateContext<'_>, expr: &Expr<'_>) {
+fn check_is_none_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
     if_chain! {
         if let Some(higher::If { cond, then, r#else }) = higher::If::hir(expr);
         if !is_else_clause(cx.tcx, expr);
@@ -109,7 +109,7 @@ fn check_is_none_or_err_and_early_return(cx: &LateContext<'_>, expr: &Expr<'_>) 
     }
 }
 
-fn check_if_let_some_or_err_and_early_return(cx: &LateContext<'_>, expr: &Expr<'_>) {
+fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
     if_chain! {
         if let Some(higher::IfLet { let_pat, let_expr, if_then, if_else }) = higher::IfLet::hir(cx, expr);
         if !is_else_clause(cx.tcx, expr);
@@ -120,6 +120,11 @@ fn check_if_let_some_or_err_and_early_return(cx: &LateContext<'_>, expr: &Expr<'
         if (is_early_return(sym::Option, cx, &if_block) && path_to_local_id(peel_blocks(if_then), bind_id))
             || is_early_return(sym::Result, cx, &if_block);
         then {
+            if let Some(else_expr) = if_else {
+                if eq_expr_value(cx, let_expr, peel_blocks(else_expr)) {
+                    return;
+                }
+            }
             let mut applicability = Applicability::MachineApplicable;
             let receiver_str = snippet_with_applicability(cx, let_expr.span, "..", &mut applicability);
             let by_ref = matches!(annot, BindingAnnotation::Ref | BindingAnnotation::RefMut);
