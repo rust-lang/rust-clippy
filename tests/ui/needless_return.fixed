@@ -89,7 +89,7 @@ fn test_nested_match(x: u32) {
 fn read_line() -> String {
     use std::io::BufRead;
     let stdin = ::std::io::stdin();
-    return stdin.lock().lines().next().unwrap().unwrap();
+    stdin.lock().lines().next().unwrap().unwrap()
 }
 
 fn borrows_but_not_last(value: bool) -> String {
@@ -200,7 +200,7 @@ async fn async_test_void_match(x: u32) {
 async fn async_read_line() -> String {
     use std::io::BufRead;
     let stdin = ::std::io::stdin();
-    return stdin.lock().lines().next().unwrap().unwrap();
+    stdin.lock().lines().next().unwrap().unwrap()
 }
 
 async fn async_borrows_but_not_last(value: bool) -> String {

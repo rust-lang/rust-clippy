@@ -181,15 +181,12 @@ fn check_final_expr<'tcx>(
             // allow `#[cfg(a)] return a; #[cfg(b)] return b;`
             let attrs = cx.tcx.hir().attrs(expr.hir_id);
             if !attrs.iter().any(attr_is_cfg) {
-                let borrows = inner.map_or(false, |inner| last_statement_borrows(cx, inner));
-                if !borrows {
-                    emit_return_lint(
-                        cx,
-                        span.expect("`else return` is not possible"),
-                        inner.as_ref().map(|i| i.span),
-                        replacement,
-                    );
-                }
+                emit_return_lint(
+                    cx,
+                    span.expect("`else return` is not possible"),
+                    inner.as_ref().map(|i| i.span),
+                    replacement,
+                );
             }
         },
         // a whole block? check it!
