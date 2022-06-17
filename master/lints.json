@@ -1035,6 +1035,21 @@
     }
   },
   {
+    "id": "default_instead_of_iter_empty",
+    "id_span": {
+      "path": "src/default_instead_of_iter_empty.rs",
+      "line": 27
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nIt checks for `std::iter::Empty::default()` and suggests replacing it with\n`std::iter::empty()`.\n### Why is this bad?\n`std::iter::empty()` is the more idiomatic way.\n### Example\n```rust\nlet _ = std::iter::Empty::<usize>::default();\nlet iter: std::iter::Empty<usize> = std::iter::Empty::default();\n```\nUse instead:\n```rust\nlet _ = std::iter::empty::<usize>();\nlet iter: std::iter::Empty<usize> = std::iter::empty();\n```",
+    "version": "1.63.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "default_numeric_fallback",
     "id_span": {
       "path": "src/default_numeric_fallback.rs",
