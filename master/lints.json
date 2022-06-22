@@ -4848,7 +4848,7 @@
     "id": "neg_multiply",
     "id_span": {
       "path": "src/neg_multiply.rs",
-      "line": 31
+      "line": 33
     },
     "group": "style",
     "level": "warn",
