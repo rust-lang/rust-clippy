@@ -2163,7 +2163,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 383
+      "line": 390
     },
     "group": "style",
     "level": "warn",
@@ -3468,7 +3468,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 564
+      "line": 571
     },
     "group": "complexity",
     "level": "warn",
@@ -4203,7 +4203,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 600
+      "line": 607
     },
     "group": "perf",
     "level": "warn",
@@ -4443,7 +4443,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 441
+      "line": 448
     },
     "group": "suspicious",
     "level": "warn",
@@ -4878,7 +4878,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 405
+      "line": 412
     },
     "group": "correctness",
     "level": "deny",
@@ -6123,7 +6123,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 504
+      "line": 511
     },
     "group": "style",
     "level": "warn",
@@ -6438,7 +6438,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 532
+      "line": 539
     },
     "group": "complexity",
     "level": "warn",
@@ -8193,7 +8193,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 468
+      "line": 475
     },
     "group": "correctness",
     "level": "deny",
@@ -8223,11 +8223,11 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 354
+      "line": 361
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for `while let` expressions on iterators.\n\n### Why is this bad?\nReadability. A simple `for` loop is shorter and conveys\nthe intent better.\n\n### Example\n```rust\nwhile let Some(val) = iter() {\n    ..\n}\n```",
+    "docs": "\n### What it does\nChecks for `while let` expressions on iterators.\n\n### Why is this bad?\nReadability. A simple `for` loop is shorter and conveys\nthe intent better.\n\n### Example\n```rust\nwhile let Some(val) = iter.next() {\n    ..\n}\n```\n\nUse instead:\n```rust\nfor val in &mut iter {\n    ..\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
