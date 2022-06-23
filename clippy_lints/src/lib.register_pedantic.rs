@@ -91,6 +91,7 @@ store.register_group(true, "clippy::pedantic", Some("clippy_pedantic"), vec![
     LintId::of(types::LINKEDLIST),
     LintId::of(types::OPTION_OPTION),
     LintId::of(unicode::UNICODE_NOT_NFC),
+    LintId::of(unnecessary_reserve::UNNECESSARY_RESERVE),
     LintId::of(unnecessary_wraps::UNNECESSARY_WRAPS),
     LintId::of(unnested_or_patterns::UNNESTED_OR_PATTERNS),
     LintId::of(unused_async::UNUSED_ASYNC),

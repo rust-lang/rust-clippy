@@ -70,6 +70,7 @@ pub const IPADDR_V4: [&str; 5] = ["std", "net", "ip", "IpAddr", "V4"];
 pub const IPADDR_V6: [&str; 5] = ["std", "net", "ip", "IpAddr", "V6"];
 pub const ITER_COUNT: [&str; 6] = ["core", "iter", "traits", "iterator", "Iterator", "count"];
 pub const ITER_EMPTY: [&str; 5] = ["core", "iter", "sources", "empty", "Empty"];
+pub const ITER_EXTEND: [&str; 6] = ["core", "iter", "traits", "collect", "Extend", "extend"];
 pub const ITER_REPEAT: [&str; 5] = ["core", "iter", "sources", "repeat", "repeat"];
 #[expect(clippy::invalid_paths)] // internal lints do not know about all external crates
 pub const ITERTOOLS_NEXT_TUPLE: [&str; 3] = ["itertools", "Itertools", "next_tuple"];
@@ -191,6 +192,8 @@ pub const VEC_DEQUE_ITER: [&str; 5] = ["alloc", "collections", "vec_deque", "Vec
 pub const VEC_FROM_ELEM: [&str; 3] = ["alloc", "vec", "from_elem"];
 pub const VEC_NEW: [&str; 4] = ["alloc", "vec", "Vec", "new"];
 pub const VEC_RESIZE: [&str; 4] = ["alloc", "vec", "Vec", "resize"];
+pub const VEC_RESERVE: [&str; 4] = ["alloc", "vec", "Vec", "reserve"];
+pub const VEC_DEQUE_RESERVE: [&str; 5] = ["alloc", "collections", "vec_deque", "VecDeque", "reserve"];
 pub const WEAK_ARC: [&str; 3] = ["alloc", "sync", "Weak"];
 pub const WEAK_RC: [&str; 3] = ["alloc", "rc", "Weak"];
 pub const PTR_NON_NULL: [&str; 4] = ["core", "ptr", "non_null", "NonNull"];
