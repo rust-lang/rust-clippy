@@ -8133,11 +8133,11 @@
     "id": "vec_resize_to_zero",
     "id_span": {
       "path": "src/vec_resize_to_zero.rs",
-      "line": 24
+      "line": 29
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nFinds occurrences of `Vec::resize(0, an_int)`\n\n### Why is this bad?\nThis is probably an argument inversion mistake.\n\n### Example\n```rust\nvec!(1, 2, 3, 4, 5).resize(0, 5)\n```",
+    "docs": "\n### What it does\nFinds occurrences of `Vec::resize(0, an_int)`\n\n### Why is this bad?\nThis is probably an argument inversion mistake.\n\n### Example\n```rust\nvec!(1, 2, 3, 4, 5).resize(0, 5)\n```\n\nUse instead:\n```rust\nvec!(1, 2, 3, 4, 5).clear()\n```",
     "version": "1.46.0",
     "applicability": {
       "is_multi_part_suggestion": false,
