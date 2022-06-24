@@ -3555,6 +3555,21 @@
     }
   },
   {
+    "id": "manual_rem_euclid",
+    "id_span": {
+      "path": "src/manual_rem_euclid.rs",
+      "line": 31
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for an expression like `((x % 4) + 4) % 4` which is a common manual reimplementation\nof `x.rem_euclid(4)`.\n\n### Why is this bad?\nIt's simpler and more readable.\n\n### Example\n```rust\nlet x: i32 = 24;\nlet rem = ((x % 4) + 4) % 4;\n```\nUse instead:\n```rust\nlet x: i32 = 24;\nlet rem = x.rem_euclid(4);\n```",
+    "version": "1.63.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
