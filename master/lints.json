@@ -6558,7 +6558,7 @@
     "id": "str_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 380
+      "line": 386
     },
     "group": "restriction",
     "level": "allow",
@@ -6573,11 +6573,11 @@
     "id": "string_add",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 64
+      "line": 70
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for all instances of `x + _` where `x` is of type\n`String`, but only if [`string_add_assign`](#string_add_assign) does *not*\nmatch.\n\n### Why is this bad?\nIt's not bad in and of itself. However, this particular\n`Add` implementation is asymmetric (the other operand need not be `String`,\nbut `x` does), while addition as mathematically defined is symmetric, also\nthe `String::push_str(_)` function is a perfectly good replacement.\nTherefore, some dislike it and wish not to have it in their code.\n\nThat said, other people think that string addition, having a long tradition\nin other languages is actually fine, which is why we decided to make this\nparticular lint `allow` by default.\n\n### Example\n```rust\nlet x = \"Hello\".to_owned();\nx + \", World\";\n```",
+    "docs": "\n### What it does\nChecks for all instances of `x + _` where `x` is of type\n`String`, but only if [`string_add_assign`](#string_add_assign) does *not*\nmatch.\n\n### Why is this bad?\nIt's not bad in and of itself. However, this particular\n`Add` implementation is asymmetric (the other operand need not be `String`,\nbut `x` does), while addition as mathematically defined is symmetric, also\nthe `String::push_str(_)` function is a perfectly good replacement.\nTherefore, some dislike it and wish not to have it in their code.\n\nThat said, other people think that string addition, having a long tradition\nin other languages is actually fine, which is why we decided to make this\nparticular lint `allow` by default.\n\n### Example\n```rust\nlet x = \"Hello\".to_owned();\nx + \", World\";\n```\n\nUse instead:\n```rust\nlet mut x = \"Hello\".to_owned();\nx.push_str(\", World\");\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6618,7 +6618,7 @@
     "id": "string_from_utf8_as_bytes",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 235
+      "line": 241
     },
     "group": "complexity",
     "level": "warn",
@@ -6633,7 +6633,7 @@
     "id": "string_lit_as_bytes",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 110
+      "line": 116
     },
     "group": "nursery",
     "level": "allow",
@@ -6648,7 +6648,7 @@
     "id": "string_slice",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 134
+      "line": 140
     },
     "group": "restriction",
     "level": "allow",
@@ -6663,7 +6663,7 @@
     "id": "string_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 430
+      "line": 436
     },
     "group": "restriction",
     "level": "allow",
@@ -7173,7 +7173,7 @@
     "id": "trim_split_whitespace",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 474
+      "line": 480
     },
     "group": "style",
     "level": "warn",
