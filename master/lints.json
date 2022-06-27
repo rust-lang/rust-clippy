@@ -6213,11 +6213,11 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/self_assignment.rs",
-      "line": 34
+      "line": 42
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for explicit self-assignments.\n\n### Why is this bad?\nSelf-assignments are redundant and unlikely to be\nintentional.\n\n### Known problems\nIf expression contains any deref coercions or\nindexing operations they are assumed not to have any side effects.\n\n### Example\n```rust\nstruct Event {\n    id: usize,\n    x: i32,\n    y: i32,\n}\n\nfn copy_position(a: &mut Event, b: &Event) {\n    a.x = b.x;\n    a.y = a.y;\n}\n```",
+    "docs": "\n### What it does\nChecks for explicit self-assignments.\n\n### Why is this bad?\nSelf-assignments are redundant and unlikely to be\nintentional.\n\n### Known problems\nIf expression contains any deref coercions or\nindexing operations they are assumed not to have any side effects.\n\n### Example\n```rust\nstruct Event {\n    x: i32,\n}\n\nfn copy_position(a: &mut Event, b: &Event) {\n    a.x = a.x;\n}\n```\n\nShould be:\n```rust\nstruct Event {\n    x: i32,\n}\n\nfn copy_position(a: &mut Event, b: &Event) {\n    a.x = b.x;\n}\n```",
     "version": "1.48.0",
     "applicability": {
       "is_multi_part_suggestion": false,
