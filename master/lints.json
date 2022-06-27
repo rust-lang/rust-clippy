@@ -3570,6 +3570,21 @@
     }
   },
   {
+    "id": "manual_retain",
+    "id_span": {
+      "path": "src/manual_retain.rs",
+      "line": 47
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for code to be replaced by `.retain()`.\n### Why is this bad?\n`.retain()` is simpler and avoids needless allocation.\n### Example\n```rust\nlet mut vec = vec![0, 1, 2];\nvec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();\nvec = vec.into_iter().filter(|x| x % 2 == 0).collect();\n```\nUse instead:\n```rust\nlet mut vec = vec![0, 1, 2];\nvec.retain(|x| x % 2 == 0);\n```",
+    "version": "1.63.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
