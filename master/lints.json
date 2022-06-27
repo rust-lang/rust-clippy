@@ -1518,7 +1518,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 334
+      "line": 335
     },
     "group": "suspicious",
     "level": "warn",
@@ -1758,7 +1758,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 300
+      "line": 301
     },
     "group": "complexity",
     "level": "warn",
@@ -1788,7 +1788,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 146
+      "line": 147
     },
     "group": "pedantic",
     "level": "allow",
@@ -1803,7 +1803,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 117
+      "line": 118
     },
     "group": "pedantic",
     "level": "allow",
@@ -2163,7 +2163,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 390
+      "line": 391
     },
     "group": "style",
     "level": "warn",
@@ -2178,7 +2178,7 @@
     "id": "for_loops_over_fallibles",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 213
+      "line": 214
     },
     "group": "suspicious",
     "level": "warn",
@@ -2973,7 +2973,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 170
+      "line": 171
     },
     "group": "correctness",
     "level": "deny",
@@ -3450,6 +3450,21 @@
     }
   },
   {
+    "id": "manual_find",
+    "id_span": {
+      "path": "src/loops/mod.rs",
+      "line": 639
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nCheck for manual implementations of Iterator::find\n\n### Why is this bad?\nIt doesn't affect performance, but using `find` is shorter and easier to read.\n\n### Example\n\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    for el in arr {\n        if el == 1 {\n            return Some(el);\n        }\n    }\n    None\n}\n```\nUse instead:\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    arr.into_iter().find(|&el| el == 1)\n}\n```",
+    "version": "1.61.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
@@ -3468,7 +3483,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 571
+      "line": 572
     },
     "group": "complexity",
     "level": "warn",
@@ -3498,7 +3513,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 53
+      "line": 54
     },
     "group": "perf",
     "level": "warn",
@@ -4233,7 +4248,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 607
+      "line": 608
     },
     "group": "perf",
     "level": "warn",
@@ -4473,7 +4488,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 448
+      "line": 449
     },
     "group": "suspicious",
     "level": "warn",
@@ -4623,7 +4638,7 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 268
+      "line": 269
     },
     "group": "perf",
     "level": "warn",
@@ -4803,7 +4818,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 83
+      "line": 84
     },
     "group": "style",
     "level": "warn",
@@ -4908,7 +4923,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 412
+      "line": 413
     },
     "group": "correctness",
     "level": "deny",
@@ -6153,7 +6168,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 511
+      "line": 512
     },
     "group": "style",
     "level": "warn",
@@ -6468,7 +6483,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 539
+      "line": 540
     },
     "group": "complexity",
     "level": "warn",
@@ -8223,7 +8238,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 475
+      "line": 476
     },
     "group": "correctness",
     "level": "deny",
@@ -8238,7 +8253,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 246
+      "line": 247
     },
     "group": "complexity",
     "level": "warn",
@@ -8253,7 +8268,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 361
+      "line": 362
     },
     "group": "style",
     "level": "warn",
