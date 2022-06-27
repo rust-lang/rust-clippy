@@ -963,7 +963,7 @@
     "id": "crosspointer_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 106
+      "line": 107
     },
     "group": "complexity",
     "level": "warn",
@@ -7008,7 +7008,7 @@
     "id": "transmute_bytes_to_str",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 202
+      "line": 203
     },
     "group": "complexity",
     "level": "warn",
@@ -7023,7 +7023,7 @@
     "id": "transmute_float_to_int",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 271
+      "line": 272
     },
     "group": "complexity",
     "level": "warn",
@@ -7038,7 +7038,7 @@
     "id": "transmute_int_to_bool",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 225
+      "line": 226
     },
     "group": "complexity",
     "level": "warn",
@@ -7053,7 +7053,7 @@
     "id": "transmute_int_to_char",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 168
+      "line": 169
     },
     "group": "complexity",
     "level": "warn",
@@ -7068,7 +7068,7 @@
     "id": "transmute_int_to_float",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 248
+      "line": 249
     },
     "group": "complexity",
     "level": "warn",
@@ -7083,7 +7083,7 @@
     "id": "transmute_num_to_bytes",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 294
+      "line": 295
     },
     "group": "complexity",
     "level": "warn",
@@ -7098,7 +7098,7 @@
     "id": "transmute_ptr_to_ptr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 322
+      "line": 323
     },
     "group": "pedantic",
     "level": "allow",
@@ -7113,7 +7113,7 @@
     "id": "transmute_ptr_to_ref",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 134
+      "line": 135
     },
     "group": "complexity",
     "level": "warn",
@@ -7121,14 +7121,14 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unspecified"
+      "applicability": "MachineApplicable"
     }
   },
   {
     "id": "transmute_undefined_repr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 383
+      "line": 384
     },
     "group": "nursery",
     "level": "allow",
@@ -7143,7 +7143,7 @@
     "id": "transmutes_expressible_as_ptr_casts",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 87
+      "line": 88
     },
     "group": "complexity",
     "level": "warn",
@@ -7758,7 +7758,7 @@
     "id": "unsound_collection_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 354
+      "line": 355
     },
     "group": "correctness",
     "level": "deny",
@@ -8088,7 +8088,7 @@
     "id": "useless_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 61
+      "line": 62
     },
     "group": "complexity",
     "level": "warn",
@@ -8388,7 +8388,7 @@
     "id": "wrong_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 41
+      "line": 42
     },
     "group": "correctness",
     "level": "deny",
