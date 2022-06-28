@@ -1755,6 +1755,21 @@
     }
   },
   {
+    "id": "explicit_auto_deref",
+    "id_span": {
+      "path": "src/dereference.rs",
+      "line": 129
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for dereferencing expressions which would be covered by auto-deref.\n\n### Why is this bad?\nThis unnecessarily complicates the code.\n\n### Example\n```rust\nlet x = String::new();\nlet y: &str = &*x;\n```\nUse instead:\n```rust\nlet x = String::new();\nlet y: &str = &x;\n```",
+    "version": "1.60.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
@@ -1773,7 +1788,7 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 45
+      "line": 49
     },
     "group": "pedantic",
     "level": "allow",
@@ -4608,7 +4623,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 74
+      "line": 78
     },
     "group": "style",
     "level": "warn",
@@ -5988,7 +6003,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 102
+      "line": 106
     },
     "group": "pedantic",
     "level": "allow",
