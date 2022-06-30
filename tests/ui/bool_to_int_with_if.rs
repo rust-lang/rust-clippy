@@ -8,6 +8,9 @@ fn main() {
 
     let x = if cond ^ true { 1 } else { 0 };
 
+    // it should be type aware
+    let x: u8 = if cond { 1 } else { 0 };
+
     // shouldn't
 
     let x = if cond { Some(1) } else { None };
