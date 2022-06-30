@@ -2928,11 +2928,11 @@
     "id": "is_digit_ascii_radix",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2222
+      "line": 2219
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nFinds usages of [`char::is_digit`]\n(https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_digit) that\ncan be replaced with [`is_ascii_digit`]\n(https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_digit) or\n[`is_ascii_hexdigit`]\n(https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_hexdigit).\n\n### Why is this bad?\n`is_digit(..)` is slower and requires specifying the radix.\n\n### Example\n```rust\nlet c: char = '6';\nc.is_digit(10);\nc.is_digit(16);\n```\nUse instead:\n```rust\nlet c: char = '6';\nc.is_ascii_digit();\nc.is_ascii_hexdigit();\n```",
+    "docs": "\n### What it does\nFinds usages of [`char::is_digit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_digit) that\ncan be replaced with [`is_ascii_digit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_digit) or\n[`is_ascii_hexdigit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_hexdigit).\n\n### Why is this bad?\n`is_digit(..)` is slower and requires specifying the radix.\n\n### Example\n```rust\nlet c: char = '6';\nc.is_digit(10);\nc.is_digit(16);\n```\nUse instead:\n```rust\nlet c: char = '6';\nc.is_ascii_digit();\nc.is_ascii_hexdigit();\n```",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4773,7 +4773,7 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2242
+      "line": 2239
     },
     "group": "complexity",
     "level": "warn",
@@ -4998,7 +4998,7 @@
     "id": "no_effect_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2260
+      "line": 2257
     },
     "group": "suspicious",
     "level": "warn",
