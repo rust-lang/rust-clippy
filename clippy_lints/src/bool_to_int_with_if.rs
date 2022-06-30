@@ -71,7 +71,7 @@ fn int_literal<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>) -> Option<&'tcx rustc_hi
         } = block;
         if let ExprKind::Lit(lit) = &expr.kind;
 
-        if let LitKind::Int(val, _) = lit.node;
+        if let LitKind::Int(_, _) = lit.node;
 
         then {
             return Some(expr)
