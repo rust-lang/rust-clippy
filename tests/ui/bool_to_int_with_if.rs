@@ -10,6 +10,7 @@ fn main() {
 
     // it should be type aware
     let x: u8 = if cond { 1 } else { 0 };
+    let x = if cond { 1i16 } else { 0i16 };
 
     // shouldn't
 
