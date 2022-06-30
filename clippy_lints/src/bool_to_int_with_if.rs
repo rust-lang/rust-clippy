@@ -69,16 +69,16 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
                     Applicability::MachineApplicable,
                 );
 
-                diag.span_suggestion(
-                    expr.span,
-                    "replace with coercion",
-                    format!(
-                        "({}) as {}",
-                        snippet_block(ctx, check.span, "..", None),
-                        lit_type,
-                    ),
-                    Applicability::MachineApplicable,
-                );
+                // diag.span_suggestion(
+                //     expr.span,
+                //     "replace with coercion",
+                //     format!(
+                //         "({}) as {}",
+                //         snippet_block(ctx, check.span, "..", None),
+                //         lit_type,
+                //     ),
+                //     Applicability::MaybeIncorrect,
+                // );
             });
         }
     );
