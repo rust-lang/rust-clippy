@@ -3,11 +3,14 @@ use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 
+use clippy_utils::{diagnostics::span_lint_and_then, source::snippet_block};
+use rustc_errors::Applicability;
+
 declare_clippy_lint! {
     /// ### What it does
     /// Instead of using an if statement to convert a bool to an int, this lint suggests using a `as` coercion or a `from()` function.
     /// ### Why is this bad?
-    /// Coersion or `from()` is idiomatic way to convert bool to a number.
+    /// Coercion or `from()` is idiomatic way to convert bool to a number.
     /// Both methods are guaranteed to return 1 for true, and 0 for false. See https://doc.rust-lang.org/std/primitive.bool.html#impl-From%3Cbool%3E
     ///
     /// ### Example
@@ -52,7 +55,31 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
         if check_int_literal_equals_val(else_lit, 0);
 
         then {
-            dbg!(expr.span);
+            let lit_type = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
+
+            span_lint_and_then(ctx, BOOL_TO_INT_WITH_IF, expr.span, "boolean to int conversion using if", |diag| {
+                diag.span_suggestion(
+                    expr.span,
+                    "replace with from",
+                    format!(
+                        "{}::from({})",
+                        lit_type,
+                        snippet_block(ctx, check.span, "..", None),
+                    ),
+                    Applicability::MachineApplicable,
+                );
+
+                diag.span_suggestion(
+                    expr.span,
+                    "replace with coercion",
+                    format!(
+                        "({}) as {}",
+                        snippet_block(ctx, check.span, "..", None),
+                        lit_type,
+                    ),
+                    Applicability::MachineApplicable,
+                );
+            });
         }
     );
 }
