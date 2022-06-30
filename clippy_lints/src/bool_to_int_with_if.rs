@@ -1,5 +1,5 @@
 use rustc_ast::LitKind;
-use rustc_hir::*;
+use rustc_hir::{Block, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 
@@ -119,5 +119,5 @@ fn check_int_literal_equals_val<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>, expecte
         }
     );
 
-    return false;
+    false
 }
