@@ -1,0 +1,35 @@
+// run-rustfix
+
+#![warn(clippy::bool_to_int_with_if)]
+
+fn main() {
+    let cond = true;
+
+    // should warn
+    let x = i32::from(cond);
+
+    let x = i32::from(cond ^ true);
+
+    // it should be type aware
+    let x: u8 = u8::from(cond);
+    let x = i16::from(cond);
+
+    // shouldn't
+
+    let x = if cond { Some(1) } else { None };
+
+    let x = if cond {
+        side_effect();
+        1
+    } else {
+        0
+    };
+
+    let x = if cond { 2 } else { 0 };
+
+    // questionable
+    // maybe `!cond as usize` is reasonable
+    let x = if cond { 0 } else { 1 };
+}
+
+fn side_effect() {}
