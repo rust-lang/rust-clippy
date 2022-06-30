@@ -180,6 +180,7 @@ mod await_holding_invalid;
 mod blacklisted_name;
 mod blocks_in_if_conditions;
 mod bool_assert_comparison;
+mod bool_to_int_with_if;
 mod booleans;
 mod borrow_as_ptr;
 mod borrow_deref_ref;
@@ -913,6 +914,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(move || Box::new(manual_retain::ManualRetain::new(msrv)));
     let verbose_bit_mask_threshold = conf.verbose_bit_mask_threshold;
     store.register_late_pass(move || Box::new(operators::Operators::new(verbose_bit_mask_threshold)));
+    store.register_late_pass(|| Box::new(bool_to_int_with_if::BoolToIntWithIf));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
