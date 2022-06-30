@@ -46,7 +46,7 @@ impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
 
 fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
     if_chain!(
-        if let ExprKind::If(check, then, Some(else_)) = &expr.kind;
+        if let ExprKind::If(check, then, Some(else_)) = expr.kind;
 
         if let Some(then_lit) = int_literal(then);
         if let Some(else_lit) = int_literal(else_);
