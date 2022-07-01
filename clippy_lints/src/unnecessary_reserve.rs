@@ -11,7 +11,7 @@ declare_clippy_lint! {
     /// ### What it does
     /// This lint checks for a call to `reserve` before `extend` on a `Vec` or `VecDeque`.
     /// ### Why is this bad?
-    /// vec::reserve method before vec::extend is no longer makes sense in rustc version >= 1.62
+    /// Since Rust 1.62, `extend` implicitly calls `reserve`
     /// ### Example
     /// ```rust
     /// let mut vec: Vec<usize> = vec![];
