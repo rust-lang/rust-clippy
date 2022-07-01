@@ -9,7 +9,7 @@ use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// This lint checks for `reserve` before calling the `extend` method.
+    /// This lint checks for a call to `reserve` before `extend` on a `Vec` or `VecDeque`.
     /// ### Why is this bad?
     /// vec::reserve method before vec::extend is no longer makes sense in rustc version >= 1.62
     /// ### Example
