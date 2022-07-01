@@ -3,11 +3,20 @@ if_chain! {
     if match_qpath(qpath, &["Test"]);
     if fields.len() == 1;
     if fields[0].ident.as_str() == "field";
-    if let ExprKind::Cast(expr1, cast_ty) = fields[0].expr.kind;
-    if let TyKind::Path(ref qpath1) = cast_ty.kind;
-    if match_qpath(qpath1, &["u32"]);
+    if let ExprKind::If(cond, then, Some(else_expr)) = fields[0].expr.kind;
+    if let ExprKind::DropTemps(expr1) = cond.kind;
     if let ExprKind::Lit(ref lit) = expr1.kind;
     if let LitKind::Bool(true) = lit.node;
+    if let ExprKind::Block(block, None) = then.kind;
+    if block.stmts.is_empty();
+    if let Some(trailing_expr) = block.expr;
+    if let ExprKind::Lit(ref lit1) = trailing_expr.kind;
+    if let LitKind::Int(1, LitIntType::Unsuffixed) = lit1.node;
+    if let ExprKind::Block(block1, None) = else_expr.kind;
+    if block1.stmts.is_empty();
+    if let Some(trailing_expr1) = block1.expr;
+    if let ExprKind::Lit(ref lit2) = trailing_expr1.kind;
+    if let LitKind::Int(0, LitIntType::Unsuffixed) = lit2.node;
     then {
         // report your lint here
     }
