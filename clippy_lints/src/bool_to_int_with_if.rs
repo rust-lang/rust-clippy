@@ -32,7 +32,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.64.0"]
     pub BOOL_TO_INT_WITH_IF,
     style,
-    "default lint description"
+    "using if to convert bool to int"
 }
 declare_lint_pass!(BoolToIntWithIf => [BOOL_TO_INT_WITH_IF]);
 
