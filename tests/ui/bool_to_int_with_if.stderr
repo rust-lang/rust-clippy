@@ -9,6 +9,7 @@ LL | |     };
    | |_____^ help: replace with from: `a as i32`
    |
    = note: `-D clippy::bool-to-int-with-if` implied by `-D warnings`
+   = note: `i32::from(a)` or `a.into()` can also be valid options
 
 error: boolean to int conversion using if
   --> $DIR/bool_to_int_with_if.rs:20:5
@@ -19,6 +20,8 @@ LL | |     } else {
 LL | |         0
 LL | |     };
    | |_____^ help: replace with from: `!a as i32`
+   |
+   = note: `i32::from(!a)` or `!a.into()` can also be valid options
 
 error: boolean to int conversion using if
   --> $DIR/bool_to_int_with_if.rs:25:5
@@ -29,6 +32,8 @@ LL | |     } else {
 LL | |         0
 LL | |     };
    | |_____^ help: replace with from: `(a || b) as i32`
+   |
+   = note: `i32::from((a || b))` or `(a || b).into()` can also be valid options
 
 error: boolean to int conversion using if
   --> $DIR/bool_to_int_with_if.rs:30:5
@@ -39,6 +44,8 @@ LL | |     } else {
 LL | |         0
 LL | |     };
    | |_____^ help: replace with from: `cond(a, b) as i32`
+   |
+   = note: `i32::from(cond(a, b))` or `cond(a, b).into()` can also be valid options
 
 error: boolean to int conversion using if
   --> $DIR/bool_to_int_with_if.rs:35:5
@@ -49,12 +56,16 @@ LL | |     } else {
 LL | |         0
 LL | |     };
    | |_____^ help: replace with from: `(x + y < 4) as i32`
+   |
+   = note: `i32::from((x + y < 4))` or `(x + y < 4).into()` can also be valid options
 
 error: boolean to int conversion using if
   --> $DIR/bool_to_int_with_if.rs:57:5
    |
 LL |     if a { 1 } else { 0 }
    |     ^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `a as u8`
+   |
+   = note: `u8::from(a)` or `a.into()` can also be valid options
 
 error: aborting due to 6 previous errors
 
