@@ -28,7 +28,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.64.0"]
     pub UNNECESSARY_RESERVE,
     pedantic,
-    "`reserve` method before `extend` is no longer makes sense in rustc version >= 1.62"
+    "`reserve` before `extend` no longer makes sense in rustc version >= 1.62"
 }
 
 pub struct UnnecessaryReserve {
