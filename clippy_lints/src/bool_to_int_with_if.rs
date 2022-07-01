@@ -1,4 +1,4 @@
-use rustc_ast::LitKind;
+use rustc_ast::{ExprPrecedence, LitKind};
 use rustc_hir::{Block, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -57,28 +57,21 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
         then {
             let lit_type = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
 
+            let need_parens = should_have_parentheses(check);
+
             span_lint_and_then(ctx, BOOL_TO_INT_WITH_IF, expr.span, "boolean to int conversion using if", |diag| {
                 diag.span_suggestion(
                     expr.span,
                     "replace with from",
                     format!(
-                        "{}::from({})",
-                        lit_type,
-                        snippet_block(ctx, check.span, "..", None),
+                        "{lbrace}{snippet}{rbrace} as {ty}",
+                        lbrace=if need_parens {"("} else {""},
+                        rbrace=if need_parens {")"} else {""},
+                        ty=lit_type,
+                        snippet=snippet_block(ctx, check.span, "..", None),
                     ),
                     Applicability::MachineApplicable,
                 );
-
-                // diag.span_suggestion(
-                //     expr.span,
-                //     "replace with coercion",
-                //     format!(
-                //         "({}) as {}",
-                //         snippet_block(ctx, check.span, "..", None),
-                //         lit_type,
-                //     ),
-                //     Applicability::MaybeIncorrect,
-                // );
             });
         }
     );
@@ -120,4 +113,8 @@ fn check_int_literal_equals_val<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>, expecte
     );
 
     false
+}
+
+fn should_have_parentheses<'tcx>(check: &'tcx rustc_hir::Expr<'tcx>) -> bool {
+    check.precedence().order() < ExprPrecedence::Cast.order()
 }

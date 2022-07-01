@@ -1,28 +1,60 @@
 error: boolean to int conversion using if
-  --> $DIR/bool_to_int_with_if.rs:9:14
+  --> $DIR/bool_to_int_with_if.rs:15:5
    |
-LL |     let _x = if cond { 1 } else { 0 };
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `i32::from(cond)`
+LL | /     if a {
+LL | |         1
+LL | |     } else {
+LL | |         0
+LL | |     };
+   | |_____^ help: replace with from: `a as i32`
    |
    = note: `-D clippy::bool-to-int-with-if` implied by `-D warnings`
 
 error: boolean to int conversion using if
-  --> $DIR/bool_to_int_with_if.rs:11:14
+  --> $DIR/bool_to_int_with_if.rs:20:5
    |
-LL |     let _x = if cond ^ true { 1 } else { 0 };
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `i32::from(cond ^ true)`
+LL | /     if !a {
+LL | |         1
+LL | |     } else {
+LL | |         0
+LL | |     };
+   | |_____^ help: replace with from: `!a as i32`
 
 error: boolean to int conversion using if
-  --> $DIR/bool_to_int_with_if.rs:14:18
+  --> $DIR/bool_to_int_with_if.rs:25:5
    |
-LL |     let _x: u8 = if cond { 1 } else { 0 };
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `u8::from(cond)`
+LL | /     if a || b {
+LL | |         1
+LL | |     } else {
+LL | |         0
+LL | |     };
+   | |_____^ help: replace with from: `(a || b) as i32`
 
 error: boolean to int conversion using if
-  --> $DIR/bool_to_int_with_if.rs:16:14
+  --> $DIR/bool_to_int_with_if.rs:30:5
    |
-LL |     let _x = if cond { 1i16 } else { 0i16 };
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `i16::from(cond)`
+LL | /     if cond(a, b) {
+LL | |         1
+LL | |     } else {
+LL | |         0
+LL | |     };
+   | |_____^ help: replace with from: `cond(a, b) as i32`
 
-error: aborting due to 4 previous errors
+error: boolean to int conversion using if
+  --> $DIR/bool_to_int_with_if.rs:35:5
+   |
+LL | /     if x + y < 4 {
+LL | |         1
+LL | |     } else {
+LL | |         0
+LL | |     };
+   | |_____^ help: replace with from: `(x + y < 4) as i32`
+
+error: boolean to int conversion using if
+  --> $DIR/bool_to_int_with_if.rs:57:5
+   |
+LL |     if a { 1 } else { 0 }
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `a as u8`
+
+error: aborting due to 6 previous errors
 
