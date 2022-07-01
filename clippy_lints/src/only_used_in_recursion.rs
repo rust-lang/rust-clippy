@@ -134,7 +134,7 @@ impl<'tcx> LateLintPass<'tcx> for OnlyUsedInRecursion {
                     });
                     v
                 })
-                .skip(if has_self { 1 } else { 0 })
+                .skip(usize::from(has_self))
                 .filter(|(_, _, ident)| !ident.name.as_str().starts_with('_'))
                 .collect_vec();
 
