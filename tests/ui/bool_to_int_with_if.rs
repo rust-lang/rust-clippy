@@ -1,7 +1,7 @@
 // run-rustfix
 
 #![warn(clippy::bool_to_int_with_if)]
-#[allow(unused)]
+#![allow(unused, dead_code, clippy::unnecessary_operation, clippy::no_effect)]
 
 fn main() {
     let a = true;
@@ -10,7 +10,7 @@ fn main() {
     let x = 1;
     let y = 2;
 
-    /// Should lint
+    // Should lint
     // precedence
     if a {
         1
@@ -38,7 +38,7 @@ fn main() {
         0
     };
 
-    /// Shouldn't lint
+    // Shouldn't lint
     if a {
         3
     } else {
@@ -50,6 +50,8 @@ fn main() {
     } else {
         0
     };
+
+    some_fn(a);
 }
 
 // Lint returns and type inference

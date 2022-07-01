@@ -60,7 +60,7 @@ LL | |     };
    = note: `i32::from((x + y < 4))` or `(x + y < 4).into()` can also be valid options
 
 error: boolean to int conversion using if
-  --> $DIR/bool_to_int_with_if.rs:57:5
+  --> $DIR/bool_to_int_with_if.rs:59:5
    |
 LL |     if a { 1 } else { 0 }
    |     ^^^^^^^^^^^^^^^^^^^^^ help: replace with from: `a as u8`

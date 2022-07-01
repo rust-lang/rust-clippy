@@ -1,13 +1,11 @@
-#[allow(clippy::unnecessary_operation, clippy::single_match)]
+#![allow(clippy::unnecessary_operation, clippy::single_match, clippy::no_effect)]
 fn main() {
     struct Test {
         field: u32,
     }
 
     #[clippy::author]
-    Test {
-        field: if true { 1 } else { 0 },
-    };
+    Test { field: true as u32 };
 
     let test = Test { field: 1 };
 
