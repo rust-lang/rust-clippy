@@ -55,23 +55,22 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
         if check_int_literal_equals_val(else_lit, 0);
 
         then {
-            let lit_type = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
+            let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
 
             let need_parens = should_have_parentheses(check);
+            let snippet = format!("{lbrace}{snippet}{rbrace}", snippet=snippet_block(ctx, check.span, "..", None), lbrace=if need_parens {"("} else {""}, rbrace=if need_parens {")"} else {""});
 
             span_lint_and_then(ctx, BOOL_TO_INT_WITH_IF, expr.span, "boolean to int conversion using if", |diag| {
                 diag.span_suggestion(
                     expr.span,
                     "replace with from",
                     format!(
-                        "{lbrace}{snippet}{rbrace} as {ty}",
-                        lbrace=if need_parens {"("} else {""},
-                        rbrace=if need_parens {")"} else {""},
-                        ty=lit_type,
-                        snippet=snippet_block(ctx, check.span, "..", None),
+                        "{snippet} as {ty}",
                     ),
                     Applicability::MachineApplicable,
                 );
+
+                diag.note(format!("`{ty}::from({snippet})` or `{snippet}.into()` can also be valid options"));
             });
         }
     );
