@@ -12,11 +12,11 @@ fn main() {
 
     // Should lint
     // precedence
-    a as i32;
-    !a as i32;
-    (a || b) as i32;
-    cond(a, b) as i32;
-    (x + y < 4) as i32;
+    i32::from(a);
+    i32::from(!a);
+    i32::from(a || b);
+    i32::from(cond(a, b));
+    i32::from(x + y < 4);
 
     // Shouldn't lint
     if a {
@@ -36,7 +36,7 @@ fn main() {
 
 // Lint returns and type inference
 fn some_fn(a: bool) -> u8 {
-    a as u8
+    u8::from(a)
 }
 
 fn side_effect() {}
