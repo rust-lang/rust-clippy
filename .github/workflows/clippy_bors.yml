@@ -261,6 +261,8 @@ jobs:
   # ALL THE PREVIOUS JOBS NEED TO BE ADDED TO THE `needs` SECTION OF THIS JOB!
 
   end-success:
+    permissions:
+      contents: none
     name: bors test finished
     if: github.event.pusher.name == 'bors' && success()
     runs-on: ubuntu-latest
@@ -271,6 +273,8 @@ jobs:
         run: exit 0
 
   end-failure:
+    permissions:
+      contents: none
     name: bors test finished
     if: github.event.pusher.name == 'bors' && (failure() || cancelled())
     runs-on: ubuntu-latest

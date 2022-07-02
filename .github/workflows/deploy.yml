@@ -13,6 +13,9 @@ env:
   SHA: '${{ github.sha }}'
   SSH_REPO: 'git@github.com:${{ github.repository }}.git'
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
