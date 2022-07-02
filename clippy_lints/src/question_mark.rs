@@ -96,15 +96,25 @@ fn check_is_none_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr: &Ex
             let receiver_str = snippet_with_applicability(cx, caller.span, "..", &mut applicability);
             let by_ref = !caller_ty.is_copy_modulo_regions(cx.tcx.at(caller.span), cx.param_env) &&
                 !matches!(caller.kind, ExprKind::Call(..) | ExprKind::MethodCall(..));
-            let mut suggestion = String::new();
-            if let Some(else_inner) = r#else {
+            let sugg = if let Some(else_inner) = r#else {
                 if eq_expr_value(cx, caller, peel_blocks(else_inner)) {
-                    suggestion = format!("Some({}?)", receiver_str);
+                    format!("Some({}?)", receiver_str)
+                } else {
+                    return;
                 }
             } else {
-                suggestion = format!("{}{}?;", receiver_str, if by_ref { ".as_ref()" } else { "" });
-            }
-            offer_suggestion(cx, expr, suggestion, applicability);
+                format!("{}{}?;", receiver_str, if by_ref { ".as_ref()" } else { "" })
+            };
+
+            span_lint_and_sugg(
+                cx,
+                QUESTION_MARK,
+                expr.span,
+                "this block may be rewritten with the `?` operator",
+                "replace it with",
+                sugg,
+                applicability,
+            );
         }
     }
 }
@@ -119,23 +129,27 @@ fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr:
         let if_block = IfBlockType::IfLet(path1, caller_ty, ident.name, let_expr, if_then, if_else);
         if (is_early_return(sym::Option, cx, &if_block) && path_to_local_id(peel_blocks(if_then), bind_id))
             || is_early_return(sym::Result, cx, &if_block);
+        if if_else.map(|e| eq_expr_value(cx, let_expr, peel_blocks(e))).filter(|e| *e).is_none();
         then {
-            if let Some(else_expr) = if_else {
-                if eq_expr_value(cx, let_expr, peel_blocks(else_expr)) {
-                    return;
-                }
-            }
             let mut applicability = Applicability::MachineApplicable;
             let receiver_str = snippet_with_applicability(cx, let_expr.span, "..", &mut applicability);
             let by_ref = matches!(annot, BindingAnnotation::Ref | BindingAnnotation::RefMut);
             let requires_semi = matches!(get_parent_node(cx.tcx, expr.hir_id), Some(Node::Stmt(_)));
-            let replacement = format!(
+            let sugg = format!(
                 "{}{}?{}",
                 receiver_str,
                 if by_ref { ".as_ref()" } else { "" },
                 if requires_semi { ";" } else { "" }
             );
-            offer_suggestion(cx, expr, replacement, applicability);
+            span_lint_and_sugg(
+                cx,
+                QUESTION_MARK,
+                expr.span,
+                "this block may be rewritten with the `?` operator",
+                "replace it with",
+                sugg,
+                applicability,
+            );
         }
     }
 }
@@ -206,20 +220,6 @@ fn expr_return_none_or_err(
             false
         },
         _ => false,
-    }
-}
-
-fn offer_suggestion(cx: &LateContext<'_>, expr: &Expr<'_>, suggestion: String, applicability: Applicability) {
-    if !suggestion.is_empty() {
-        span_lint_and_sugg(
-            cx,
-            QUESTION_MARK,
-            expr.span,
-            "this block may be rewritten with the `?` operator",
-            "replace it with",
-            suggestion,
-            applicability,
-        );
     }
 }
 
