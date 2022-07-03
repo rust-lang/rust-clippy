@@ -2910,6 +2910,21 @@
     }
   },
   {
+    "id": "invalid_utf8_in_unchecked",
+    "id_span": {
+      "path": "src/invalid_utf8_in_unchecked.rs",
+      "line": 25
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for `std::str::from_utf8_unchecked` with an invalid UTF-8 literal\n\n### Why is this bad?\nCreating such a `str` would result in undefined behavior\n\n### Example\n```rust\nunsafe {\n    std::str::from_utf8_unchecked(b\"cl\\x82ippy\");\n}\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "invisible_characters",
     "id_span": {
       "path": "src/unicode.rs",
