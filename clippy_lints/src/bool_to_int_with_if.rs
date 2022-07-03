@@ -87,10 +87,7 @@ fn int_literal<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>) -> Option<&'tcx rustc_hi
         if let Block {
             stmts: [],       // Shouldn't lint if statements with side effects
             expr: Some(expr),
-            hir_id: _,
-            rules: _,
-            span: _,
-            targeted_by_break: _,
+            ..
         } = block;
         if let ExprKind::Lit(lit) = &expr.kind;
 
