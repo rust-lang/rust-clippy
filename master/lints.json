@@ -173,7 +173,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nAllows users to configure types which should not be held across `await`\nsuspension points.\n\n### Why is this bad?\nThere are some types which are perfectly \"safe\" to be used concurrently\nfrom a memory access perspective but will cause bugs at runtime if they\nare held in such a way.\n\n### Example\n\n```toml\nawait-holding-invalid-types = [\n  # You can specify a type name\n  \"CustomLockType\",\n  # You can (optionally) specify a reason\n  { path = \"OtherCustomLockType\", reason = \"Relies on a thread local\" }\n]\n```\n\n```rust\nstruct CustomLockType;\nstruct OtherCustomLockType;\nasync fn foo() {\n  let _x = CustomLockType;\n  let _y = OtherCustomLockType;\n  baz().await; // Lint violation\n}\n```",
-    "version": "1.49.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -503,7 +503,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for uses of the `abs()` method that cast the result to unsigned.\n\n### Why is this bad?\nThe `unsigned_abs()` method avoids panic when called on the MIN value.\n\n### Example\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.abs() as u32;\n```\nUse instead:\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.unsigned_abs();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -938,7 +938,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for use of `crate` as opposed to `$crate` in a macro definition.\n\n### Why is this bad?\n`crate` refers to the macro call's crate, whereas `$crate` refers to the macro definition's\ncrate. Rarely is the former intended. See:\nhttps://doc.rust-lang.org/reference/macros-by-example.html#hygiene\n\n### Example\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\nUse instead:\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", $crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\n\nNote that if the use of `crate` is intentional, an `allow` attribute can be applied to the\nmacro definition, e.g.:\n```rust\n#[allow(clippy::crate_in_macro_def)]\nmacro_rules! ok { ... crate::foo ... }\n```",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -1388,7 +1388,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for calls to `std::mem::drop` with a value that does not implement `Drop`.\n\n### Why is this bad?\nCalling `std::mem::drop` is no different than dropping such a type. A different value may\nhave been intended.\n\n### Example\n```rust\nstruct Foo;\nlet x = Foo;\nstd::mem::drop(x);\n```",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -1478,7 +1478,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for empty `Drop` implementations.\n\n### Why is this bad?\nEmpty `Drop` implementations have no effect when dropping an instance of the type. They are\nmost likely useless. However, an empty `Drop` implementation prevents a type from being\ndestructured, which might be the intention behind adding the implementation as a marker.\n\n### Example\n```rust\nstruct S;\n\nimpl Drop for S {\n    fn drop(&mut self) {}\n}\n```\nUse instead:\n```rust\nstruct S;\n```",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -1643,7 +1643,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `.err().expect()` calls on the `Result` type.\n\n### Why is this bad?\n`.expect_err()` can be called directly to avoid the extra type conversion from `err()`.\n\n### Example\n```rust\nlet x: Result<u32, &str> = Ok(10);\nx.err().expect(\"Testing err().expect()\");\n```\nUse instead:\n```rust\nlet x: Result<u32, &str> = Ok(10);\nx.expect_err(\"Testing expect_err\");\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -2228,7 +2228,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for calls to `std::mem::forget` with a value that does not implement `Drop`.\n\n### Why is this bad?\nCalling `std::mem::forget` is no different than dropping such a type. A different value may\nhave been intended.\n\n### Example\n```rust\nstruct Foo;\nlet x = Foo;\nstd::mem::forget(x);\n```",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2933,7 +2933,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nFinds usages of [`char::is_digit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_digit) that\ncan be replaced with [`is_ascii_digit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_digit) or\n[`is_ascii_hexdigit`](https://doc.rust-lang.org/stable/std/primitive.char.html#method.is_ascii_hexdigit).\n\n### Why is this bad?\n`is_digit(..)` is slower and requires specifying the radix.\n\n### Example\n```rust\nlet c: char = '6';\nc.is_digit(10);\nc.is_digit(16);\n```\nUse instead:\n```rust\nlet c: char = '6';\nc.is_ascii_digit();\nc.is_ascii_hexdigit();\n```",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -4778,7 +4778,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n\n### Why is this bad?\n\n### Example\n```rust\nlet x = Some(3);\nx.as_ref().take();\n```\nUse instead:\n```rust\nlet x = Some(3);\nx.as_ref();\n```",
-    "version": "1.61.0",
+    "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
