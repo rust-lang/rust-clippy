@@ -1,5 +1,6 @@
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{match_def_path, meets_msrv, msrvs, paths, visitors::expr_visitor_no_bodies};
+use rustc_errors::Applicability;
 use rustc_hir::{intravisit::Visitor, Block, ExprKind, QPath, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
@@ -60,11 +61,19 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
                 && let Some(next_stmt_span) = check_extend_method(cx, block, idx, struct_calling_on)
                 && !next_stmt_span.from_expansion()
             {
-                span_lint(
+                span_lint_and_then(
                     cx,
                     UNNECESSARY_RESERVE,
                     next_stmt_span,
                     "this `reserve` no longer makes sense in rustc version >= 1.62",
+                    |diag| {
+                        diag.span_suggestion(
+                            semi_expr.span,
+                            "remove this line",
+                            String::new(),
+                            Applicability::MaybeIncorrect,
+                        );
+                    }
                 );
             }
         }
