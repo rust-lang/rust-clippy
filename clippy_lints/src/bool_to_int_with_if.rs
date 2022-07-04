@@ -48,7 +48,7 @@ impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
 }
 
 fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
-    if_chain!(
+    if_chain! {
         if let ExprKind::If(check, then, Some(else_)) = expr.kind;
 
         if let Some(then_lit) = int_literal(then);
@@ -77,12 +77,12 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
                 diag.note(format!("`{snippet_with_braces} as {ty}` or `{snippet_with_braces}.into()` can also be valid options"));
             });
         }
-    );
+    };
 }
 
 // If block contains only a int literal expression, return literal expression
 fn int_literal<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>) -> Option<&'tcx rustc_hir::Expr<'tcx>> {
-    if_chain!(
+    if_chain! {
         if let ExprKind::Block(block, _) = expr.kind;
         if let Block {
             stmts: [],       // Shouldn't lint if statements with side effects
@@ -99,13 +99,13 @@ fn int_literal<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>) -> Option<&'tcx rustc_hi
         then {
             return Some(expr)
         }
-    );
+    };
 
     None
 }
 
 fn check_int_literal_equals_val<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>, expected_value: u128) -> bool {
-    if_chain!(
+    if_chain! {
         if let ExprKind::Lit(lit) = &expr.kind;
         if let LitKind::Int(val, _) = lit.node;
         if val == expected_value;
@@ -113,7 +113,7 @@ fn check_int_literal_equals_val<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>, expecte
         then {
             return true;
         }
-    );
+    };
 
     false
 }
