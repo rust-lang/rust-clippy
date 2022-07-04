@@ -1,6 +1,8 @@
 error: this `reserve` no longer makes sense in rustc version >= 1.62
   --> $DIR/unnecessary_reserve.rs:20:5
    |
+LL |     vec.reserve(1);
+   |     -------------- help: remove this line
 LL |     vec.extend([1]);
    |     ^^^^^^^^^^^^^^^^
    |
@@ -9,30 +11,40 @@ LL |     vec.extend([1]);
 error: this `reserve` no longer makes sense in rustc version >= 1.62
   --> $DIR/unnecessary_reserve.rs:24:5
    |
+LL |     vec.reserve(array.len());
+   |     ------------------------ help: remove this line
 LL |     vec.extend(array);
    |     ^^^^^^^^^^^^^^^^^^
 
 error: this `reserve` no longer makes sense in rustc version >= 1.62
   --> $DIR/unnecessary_reserve.rs:29:9
    |
+LL |         vec.reserve(1);
+   |         -------------- help: remove this line
 LL |         vec.extend([1])
    |         ^^^^^^^^^^^^^^^
 
 error: this `reserve` no longer makes sense in rustc version >= 1.62
   --> $DIR/unnecessary_reserve.rs:49:5
    |
+LL |     vec_deque.reserve(1);
+   |     -------------------- help: remove this line
 LL |     vec_deque.extend([1]);
    |     ^^^^^^^^^^^^^^^^^^^^^^
 
 error: this `reserve` no longer makes sense in rustc version >= 1.62
   --> $DIR/unnecessary_reserve.rs:53:5
    |
+LL |     vec_deque.reserve(array.len());
+   |     ------------------------------ help: remove this line
 LL |     vec_deque.extend(array);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: this `reserve` no longer makes sense in rustc version >= 1.62
   --> $DIR/unnecessary_reserve.rs:58:9
    |
+LL |         vec_deque.reserve(1);
+   |         -------------------- help: remove this line
 LL |         vec_deque.extend([1])
    |         ^^^^^^^^^^^^^^^^^^^^^
 
