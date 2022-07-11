@@ -1208,7 +1208,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for types that derive `PartialEq` and could implement `Eq`.\n\n### Why is this bad?\nIf a type `T` derives `PartialEq` and all of its members implement `Eq`,\nthen `T` can always implement `Eq`. Implementing `Eq` allows `T` to be used\nin APIs that require `Eq` types. It also allows structs containing `T` to derive\n`Eq` themselves.\n\n### Example\n```rust\n#[derive(PartialEq)]\nstruct Foo {\n    i_am_eq: i32,\n    i_am_eq_too: Vec<String>,\n}\n```\nUse instead:\n```rust\n#[derive(PartialEq, Eq)]\nstruct Foo {\n    i_am_eq: i32,\n    i_am_eq_too: Vec<String>,\n}\n```",
-    "version": "1.62.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
