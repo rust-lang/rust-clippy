@@ -408,7 +408,7 @@
     "id": "branches_sharing_code",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 154
+      "line": 157
     },
     "group": "nursery",
     "level": "allow",
@@ -2448,7 +2448,7 @@
     "id": "if_same_then_else",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 115
+      "line": 118
     },
     "group": "correctness",
     "level": "deny",
@@ -2478,7 +2478,7 @@
     "id": "ifs_same_cond",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 45
+      "line": 48
     },
     "group": "correctness",
     "level": "deny",
@@ -6183,7 +6183,7 @@
     "id": "same_functions_in_if_condition",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 93
+      "line": 96
     },
     "group": "pedantic",
     "level": "allow",
