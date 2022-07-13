@@ -180,7 +180,7 @@ declare_clippy_lint! {
     /// ### Known problems
     /// Of course, this lint assumes that `Result` is used
     /// for a fallible operation (which is after all the intended use). However
-    /// code may opt to (miss)use it as a basic two-variant-enum. In that case,
+    /// code may opt to (mis)use it as a basic two-variant-enum. In that case,
     /// the suggestion is misguided, and the code should use a custom enum
     /// instead.
     ///
