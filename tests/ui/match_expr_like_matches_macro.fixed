@@ -47,6 +47,10 @@ fn main() {
     }
     {
         // lint
+        let _ans = matches!(x, E::A(_) | E::B(_));
+    }
+    {
+        // lint
         let _ans = !matches!(x, E::B(_) | E::C);
     }
     {

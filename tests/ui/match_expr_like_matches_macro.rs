@@ -64,6 +64,16 @@ fn main() {
     {
         // lint
         let _ans = match x {
+            E::A(_) => {
+                true
+            }
+            E::B(_) => true,
+            _ => false,
+        };
+    }
+    {
+        // lint
+        let _ans = match x {
             E::B(_) => false,
             E::C => false,
             _ => true,
