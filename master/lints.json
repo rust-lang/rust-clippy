@@ -15,6 +15,21 @@
     }
   },
   {
+    "id": "alloc_instead_of_core",
+    "id_span": {
+      "path": "src/std_instead_of_core.rs",
+      "line": 79
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\n\nFinds items imported through `alloc` when available through `core`.\n\n### Why is this bad?\n\nCrates which have `no_std` compatibility and may optionally require alloc may wish to ensure types are\nimported from alloc to ensure disabling `alloc` does not cause the crate to fail to compile. This lint\nis also useful for crates migrating to become `no_std` compatible.\n\n### Example\n```rust\nuse alloc::slice::from_ref;\n```\nUse instead:\n```rust\nuse core::slice::from_ref;\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
@@ -6612,6 +6627,36 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "std_instead_of_alloc",
+    "id_span": {
+      "path": "src/std_instead_of_core.rs",
+      "line": 53
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\n\nFinds items imported through `std` when available through `alloc`.\n\n### Why is this bad?\n\nCrates which have `no_std` compatibility and require alloc may wish to ensure types are imported from\nalloc to ensure disabling `std` does not cause the crate to fail to compile. This lint is also useful\nfor crates migrating to become `no_std` compatible.\n\n### Example\n```rust\nuse std::vec::Vec;\n```\nUse instead:\n```rust\nuse alloc::vec::Vec;\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "std_instead_of_core",
+    "id_span": {
+      "path": "src/std_instead_of_core.rs",
+      "line": 27
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\n\nFinds items imported through `std` when available through `core`.\n\n### Why is this bad?\n\nCrates which have `no_std` compatibility may wish to ensure types are imported from core to ensure\ndisabling `std` does not cause the crate to fail to compile. This lint is also useful for crates\nmigrating to become `no_std` compatible.\n\n### Example\n```rust\nuse std::hash::Hasher;\n```\nUse instead:\n```rust\nuse core::hash::Hasher;\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
     }
   },
   {
