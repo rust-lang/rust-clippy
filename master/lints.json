@@ -3288,7 +3288,7 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 40
+      "line": 39
     },
     "group": "style",
     "level": "warn",
@@ -4878,7 +4878,7 @@
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 66
+      "line": 65
     },
     "group": "style",
     "level": "warn",
