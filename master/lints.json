@@ -4803,11 +4803,11 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2239
+      "line": 2243
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n\n### Why is this bad?\n\n### Example\n```rust\nlet x = Some(3);\nx.as_ref().take();\n```\nUse instead:\n```rust\nlet x = Some(3);\nx.as_ref();\n```",
+    "docs": "\n### What it does\nChecks for calling `take` function after `as_ref`.\n\n### Why is this bad?\nRedundant code. `take` writes `None` to its argument.\nIn this case the modification is useless as it's a temporary that cannot be read from afterwards.\n\n### Example\n```rust\nlet x = Some(3);\nx.as_ref().take();\n```\nUse instead:\n```rust\nlet x = Some(3);\nx.as_ref();\n```",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5028,7 +5028,7 @@
     "id": "no_effect_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2257
+      "line": 2261
     },
     "group": "suspicious",
     "level": "warn",
