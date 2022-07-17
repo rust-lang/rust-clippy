@@ -2902,7 +2902,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks [regex](https://crates.io/crates/regex) creation\n(with `Regex::new`, `RegexBuilder::new`, or `RegexSet::new`) for correct\nregex syntax.\n\n### Why is this bad?\nThis will lead to a runtime panic.\n\n### Example\n```rust\nRegex::new(\"|\")\n```",
+    "docs": "\n### What it does\nChecks [regex](https://crates.io/crates/regex) creation\n(with `Regex::new`, `RegexBuilder::new`, or `RegexSet::new`) for correct\nregex syntax.\n\n### Why is this bad?\nThis will lead to a runtime panic.\n\n### Example\n```rust\nRegex::new(\"(\")\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
