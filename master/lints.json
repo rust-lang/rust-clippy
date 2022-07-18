@@ -4158,11 +4158,11 @@
     "id": "mismatching_type_param_order",
     "id_span": {
       "path": "src/mismatching_type_param_order.rs",
-      "line": 39
+      "line": 44
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for type parameters which are positioned inconsistently between\na type definition and impl block. Specifically, a parameter in an impl\nblock which has the same name as a parameter in the type def, but is in\na different place.\n\n### Why is this bad?\nType parameters are determined by their position rather than name.\nNaming type parameters inconsistently may cause you to refer to the\nwrong type parameter.\n\n### Example\n```rust\nstruct Foo<A, B> {\n    x: A,\n    y: B,\n}\n// inside the impl, B refers to Foo::A\nimpl<B, A> Foo<B, A> {}\n```\nUse instead:\n```rust\nstruct Foo<A, B> {\n    x: A,\n    y: B,\n}\nimpl<A, B> Foo<A, B> {}\n```",
+    "docs": "\n### What it does\nChecks for type parameters which are positioned inconsistently between\na type definition and impl block. Specifically, a parameter in an impl\nblock which has the same name as a parameter in the type def, but is in\na different place.\n\n### Why is this bad?\nType parameters are determined by their position rather than name.\nNaming type parameters inconsistently may cause you to refer to the\nwrong type parameter.\n\n### Limitations\nThis lint only applies to impl blocks with simple generic params, e.g.\n`A`. If there is anything more complicated, such as a tuple, it will be\nignored.\n\n### Example\n```rust\nstruct Foo<A, B> {\n    x: A,\n    y: B,\n}\n// inside the impl, B refers to Foo::A\nimpl<B, A> Foo<B, A> {}\n```\nUse instead:\n```rust\nstruct Foo<A, B> {\n    x: A,\n    y: B,\n}\nimpl<A, B> Foo<A, B> {}\n```",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
