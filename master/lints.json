@@ -7972,7 +7972,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks methods that contain a `self` argument but don't use it\n\n### Why is this bad?\nIt may be clearer to define the method as an associated function instead\nof an instance method if it doesn't require `self`.\n\n### Example\n```rust\nstruct A;\nimpl A {\n    fn method(&self) {}\n}\n```\n\nCould be written:\n\n```rust\nstruct A;\nimpl A {\n    fn method() {}\n}\n```",
+    "docs": "\n### What it does\nChecks methods that contain a `self` argument but don't use it\n\n### Why is this bad?\nIt may be clearer to define the method as an associated function instead\nof an instance method if it doesn't require `self`.\n\n### Example\n```rust\nstruct A;\nimpl A {\n    fn method(&self) {}\n}\n```\n\nCould be written:\n\n```rust\nstruct A;\nimpl A {\n    fn method() {}\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`: Suppress lints whenever the suggested change would cause breakage for other crates. (defaults to `true`)\n",
     "version": "1.40.0",
     "applicability": {
       "is_multi_part_suggestion": false,
