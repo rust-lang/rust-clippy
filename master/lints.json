@@ -22,7 +22,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\n\nFinds items imported through `alloc` when available through `core`.\n\n### Why is this bad?\n\nCrates which have `no_std` compatibility and may optionally require alloc may wish to ensure types are\nimported from alloc to ensure disabling `alloc` does not cause the crate to fail to compile. This lint\nis also useful for crates migrating to become `no_std` compatible.\n\n### Example\n```rust\nuse alloc::slice::from_ref;\n```\nUse instead:\n```rust\nuse core::slice::from_ref;\n```",
+    "docs": "\n### What it does\n\nFinds items imported through `alloc` when available through `core`.\n\n### Why is this bad?\n\nCrates which have `no_std` compatibility and may optionally require alloc may wish to ensure types are\nimported from core to ensure disabling `alloc` does not cause the crate to fail to compile. This lint\nis also useful for crates migrating to become `no_std` compatible.\n\n### Example\n```rust\nuse alloc::slice::from_ref;\n```\nUse instead:\n```rust\nuse core::slice::from_ref;\n```",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
