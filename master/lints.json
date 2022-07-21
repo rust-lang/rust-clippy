@@ -3543,7 +3543,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 906
+      "line": 896
     },
     "group": "style",
     "level": "warn",
@@ -6453,11 +6453,11 @@
     "id": "significant_drop_in_scrutinee",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 847
+      "line": 837
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for temporaries returned from function calls in a match scrutinee that have the\n`clippy::has_significant_drop` attribute.\n\n### Why is this bad?\nThe `clippy::has_significant_drop` attribute can be added to types whose Drop impls have\nan important side-effect, such as unlocking a mutex, making it important for users to be\nable to accurately understand their lifetimes. When a temporary is returned in a function\ncall in a match scrutinee, its lifetime lasts until the end of the match block, which may\nbe surprising.\n\nFor `Mutex`es this can lead to a deadlock. This happens when the match scrutinee uses a\nfunction call that returns a `MutexGuard` and then tries to lock again in one of the match\narms. In that case the `MutexGuard` in the scrutinee will not be dropped until the end of\nthe match block and thus will not unlock.\n\n### Example\n```rust\n\n\n\n\n\nlet mutex = Mutex::new(State {});\n\nmatch mutex.lock().unwrap().foo() {\n    true => {\n        mutex.lock().unwrap().bar(); // Deadlock!\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n\n```\nUse instead:\n```rust\n\n\n\n\nlet mutex = Mutex::new(State {});\n\nlet is_foo = mutex.lock().unwrap().foo();\nmatch is_foo {\n    true => {\n        mutex.lock().unwrap().bar();\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```",
+    "docs": "\n### What it does\nCheck for temporaries returned from function calls in a match scrutinee that have the\n`clippy::has_significant_drop` attribute.\n\n### Why is this bad?\nThe `clippy::has_significant_drop` attribute can be added to types whose Drop impls have\nan important side-effect, such as unlocking a mutex, making it important for users to be\nable to accurately understand their lifetimes. When a temporary is returned in a function\ncall in a match scrutinee, its lifetime lasts until the end of the match block, which may\nbe surprising.\n\nFor `Mutex`es this can lead to a deadlock. This happens when the match scrutinee uses a\nfunction call that returns a `MutexGuard` and then tries to lock again in one of the match\narms. In that case the `MutexGuard` in the scrutinee will not be dropped until the end of\nthe match block and thus will not unlock.\n\n### Example\n```rust\nlet mutex = Mutex::new(State {});\n\nmatch mutex.lock().unwrap().foo() {\n    true => {\n        mutex.lock().unwrap().bar(); // Deadlock!\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```\nUse instead:\n```rust\nlet mutex = Mutex::new(State {});\n\nlet is_foo = mutex.lock().unwrap().foo();\nmatch is_foo {\n    true => {\n        mutex.lock().unwrap().bar();\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7338,7 +7338,7 @@
     "id": "try_err",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 882
+      "line": 872
     },
     "group": "restriction",
     "level": "allow",
