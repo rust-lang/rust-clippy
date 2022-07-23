@@ -498,11 +498,11 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/case_sensitive_file_extension_comparisons.rs",
-      "line": 31
+      "line": 34
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for calls to `ends_with` with possible file extensions\nand suggests to use a case-insensitive approach instead.\n\n### Why is this bad?\n`ends_with` is case-sensitive and may not detect files with a valid extension.\n\n### Example\n```rust\nfn is_rust_file(filename: &str) -> bool {\n    filename.ends_with(\".rs\")\n}\n```\nUse instead:\n```rust\nfn is_rust_file(filename: &str) -> bool {\n    filename.rsplit('.').next().map(|ext| ext.eq_ignore_ascii_case(\"rs\")) == Some(true)\n}\n```",
+    "docs": "\n### What it does\nChecks for calls to `ends_with` with possible file extensions\nand suggests to use a case-insensitive approach instead.\n\n### Why is this bad?\n`ends_with` is case-sensitive and may not detect files with a valid extension.\n\n### Example\n```rust\nfn is_rust_file(filename: &str) -> bool {\n    filename.ends_with(\".rs\")\n}\n```\nUse instead:\n```rust\nfn is_rust_file(filename: &str) -> bool {\n    let filename = std::path::Path::new(filename);\n    filename.extension()\n        .map(|ext| ext.eq_ignore_ascii_case(\"rs\"))\n        .unwrap_or(false)\n}\n```",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
