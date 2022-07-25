@@ -8,10 +8,13 @@ use rustc_errors::Applicability;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Instead of using an if statement to convert a bool to an int, this lint suggests using a `as` coercion or a `from()` function.
+    /// Instead of using an if statement to convert a bool to an int,
+    /// this lint suggests using a `from()` function or an `as` coercion.
     /// ### Why is this bad?
     /// Coercion or `from()` is idiomatic way to convert bool to a number.
-    /// Both methods are guaranteed to return 1 for true, and 0 for false. See https://doc.rust-lang.org/std/primitive.bool.html#impl-From%3Cbool%3E
+    /// Both methods are guaranteed to return 1 for true, and 0 for false.
+    ///
+    /// See https://doc.rust-lang.org/std/primitive.bool.html#impl-From%3Cbool%3E
     ///
     /// ### Example
     /// ```rust
