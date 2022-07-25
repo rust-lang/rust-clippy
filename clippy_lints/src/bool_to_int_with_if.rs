@@ -15,7 +15,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
-    /// let condition = false;
+    /// # let condition = false;
     /// if condition {
     ///     1_i64
     /// } else {
@@ -24,12 +24,12 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```rust
-    /// let condition = false;
+    /// # let condition = false;
     /// i64::from(condition);
     /// ```
     /// or
     /// ```rust
-    /// let condition = false;
+    /// # let condition = false;
     /// condition as i64;
     /// ```
     #[clippy::version = "1.64.0"]
