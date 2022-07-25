@@ -3,7 +3,7 @@ use rustc_hir::{Block, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 
-use clippy_utils::{diagnostics::span_lint_and_then, source::snippet_block};
+use clippy_utils::{diagnostics::span_lint_and_then, source::snippet_block_with_applicability};
 use rustc_errors::Applicability;
 
 declare_clippy_lint! {
@@ -53,18 +53,21 @@ impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
 fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
     if 	let ExprKind::If(check, then, Some(else_)) = expr.kind &&
     	let Some(then_lit) = int_literal(then) &&
-let Some(else_lit) = int_literal(else_) &&
+		let Some(else_lit) = int_literal(else_) &&
     	check_int_literal_equals_val(then_lit, 1) &&
     	check_int_literal_equals_val(else_lit, 0)
     {
-        let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
-        let need_parens = should_have_parentheses(check);
-        let snippet = snippet_block(ctx, check.span, "..", None);
+		let mut applicability = Applicability::MachineApplicable;
+        let snippet = snippet_block_with_applicability(ctx, check.span, "..", None, &mut applicability);
         let snippet_with_braces = {
+			let need_parens = should_have_parentheses(check);
 			let lparen = if need_parens {"("} else {""};
 			let rparen = if need_parens {")"} else {""};
 			format!("{lparen}{snippet}{rparen}")
 		};
+
+		let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
+
         span_lint_and_then(ctx,
             BOOL_TO_INT_WITH_IF,
             expr.span,
@@ -76,7 +79,7 @@ let Some(else_lit) = int_literal(else_) &&
                 format!(
                     "{ty}::from({snippet})"
                 ),
-                Applicability::MachineApplicable,
+                applicability,
             );
             diag.note(format!("`{snippet_with_braces} as {ty}` or `{snippet_with_braces}.into()` can also be valid options"));
         });
