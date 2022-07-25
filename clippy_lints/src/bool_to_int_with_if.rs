@@ -48,71 +48,65 @@ impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
 }
 
 fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
-    if_chain! {
-        if let ExprKind::If(check, then, Some(else_)) = expr.kind;
-
-        if let Some(then_lit) = int_literal(then);
-        if let Some(else_lit) = int_literal(else_);
-
-        if check_int_literal_equals_val(then_lit, 1);
-        if check_int_literal_equals_val(else_lit, 0);
-
-        then {
-            let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
-
-            let need_parens = should_have_parentheses(check);
-            let snippet = snippet_block(ctx, check.span, "..", None);
-            let snippet_with_braces = format!("{lbrace}{snippet}{rbrace}", lbrace=if need_parens {"("} else {""}, rbrace=if need_parens {")"} else {""});
-
-            span_lint_and_then(ctx, BOOL_TO_INT_WITH_IF, expr.span, "boolean to int conversion using if", |diag| {
-                diag.span_suggestion(
-                    expr.span,
-                    "replace with from",
-                    format!(
-                        "{ty}::from({snippet})"
-                    ),
-                    Applicability::MachineApplicable,
-                );
-
-                diag.note(format!("`{snippet_with_braces} as {ty}` or `{snippet_with_braces}.into()` can also be valid options"));
-            });
-        }
+    if 	let ExprKind::If(check, then, Some(else_)) = expr.kind &&
+    	let Some(then_lit) = int_literal(then) &&
+let Some(else_lit) = int_literal(else_) &&
+    	check_int_literal_equals_val(then_lit, 1) &&
+    	check_int_literal_equals_val(else_lit, 0)
+    {
+        let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
+        let need_parens = should_have_parentheses(check);
+        let snippet = snippet_block(ctx, check.span, "..", None);
+        let snippet_with_braces = {
+			let lparen = if need_parens {"("} else {""};
+			let rparen = if need_parens {")"} else {""};
+			format!("{lparen}{snippet}{rparen}")
+		};
+        span_lint_and_then(ctx,
+            BOOL_TO_INT_WITH_IF,
+            expr.span,
+            "boolean to int conversion using if",
+            |diag| {
+            diag.span_suggestion(
+                expr.span,
+                "replace with from",
+                format!(
+                    "{ty}::from({snippet})"
+                ),
+                Applicability::MachineApplicable,
+            );
+            diag.note(format!("`{snippet_with_braces} as {ty}` or `{snippet_with_braces}.into()` can also be valid options"));
+        });
     };
 }
 
 // If block contains only a int literal expression, return literal expression
 fn int_literal<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>) -> Option<&'tcx rustc_hir::Expr<'tcx>> {
-    if_chain! {
-        if let ExprKind::Block(block, _) = expr.kind;
-        if let Block {
+    if  let ExprKind::Block(block, _) = expr.kind &&
+        let Block {
             stmts: [],       // Shouldn't lint if statements with side effects
             expr: Some(expr),
             ..
-        } = block;
-        if let ExprKind::Lit(lit) = &expr.kind;
+        } = block &&
+        let ExprKind::Lit(lit) = &expr.kind &&
 
-        if let LitKind::Int(_, _) = lit.node;
-
-        then {
-            return Some(expr)
-        }
-    };
-
-    None
+        let LitKind::Int(_, _) = lit.node
+    {
+        Some(expr)
+    } else {
+        None
+    }
 }
 
 fn check_int_literal_equals_val<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>, expected_value: u128) -> bool {
-    if_chain! {
-        if let ExprKind::Lit(lit) = &expr.kind;
-        if let LitKind::Int(val, _) = lit.node;
-        if val == expected_value;
-
-        then {
-            return true;
-        }
-    };
-
-    false
+    if  let ExprKind::Lit(lit) = &expr.kind &&
+        let LitKind::Int(val, _) = lit.node &&
+        val == expected_value
+    {
+        true
+    } else {
+        false
+    }
 }
 
 fn should_have_parentheses<'tcx>(check: &'tcx rustc_hir::Expr<'tcx>) -> bool {
