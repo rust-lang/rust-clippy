@@ -18,7 +18,29 @@ fn main() {
     i32::from(cond(a, b));
     i32::from(x + y < 4);
 
+    // if else if
+    if a {
+        123
+    } else {i32::from(b)};
+
     // Shouldn't lint
+
+    if a {
+        1
+    } else if b {
+        0
+    } else {
+        3
+    };
+
+    if a {
+        3
+    } else if b {
+        1
+    } else {
+        -2
+    };
+
     if a {
         3
     } else {
@@ -29,6 +51,23 @@ fn main() {
         1
     } else {
         0
+    };
+    if a {
+        1
+    } else {
+        side_effect();
+        0
+    };
+
+    // multiple else ifs
+    if a {
+        123
+    } else if b {
+        1
+    } else if a | b {
+        0
+    } else {
+        123
     };
 
     some_fn(a);

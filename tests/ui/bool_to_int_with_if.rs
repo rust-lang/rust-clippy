@@ -47,6 +47,8 @@ fn main() {
         0
     };
 
+    // Shouldn't lint
+
     if a {
         1
     } else if b {
@@ -56,14 +58,13 @@ fn main() {
     };
 
     if a {
-        1
+        3
     } else if b {
         1
     } else {
         -2
     };
 
-    // Shouldn't lint
     if a {
         3
     } else {
@@ -80,6 +81,17 @@ fn main() {
     } else {
         side_effect();
         0
+    };
+
+    // multiple else ifs
+    if a {
+        123
+    } else if b {
+        1
+    } else if a | b {
+        0
+    } else {
+        123
     };
 
     some_fn(a);
