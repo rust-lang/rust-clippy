@@ -3,7 +3,7 @@ use rustc_hir::{Block, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 
-use clippy_utils::{diagnostics::span_lint_and_then, source::snippet_block_with_applicability};
+use clippy_utils::{diagnostics::span_lint_and_then, is_else_clause, source::snippet_block_with_applicability};
 use rustc_errors::Applicability;
 
 declare_clippy_lint! {
@@ -61,12 +61,19 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
         let snippet = snippet_block_with_applicability(ctx, check.span, "..", None, &mut applicability);
         let snippet_with_braces = {
 			let need_parens = should_have_parentheses(check);
-			let lparen = if need_parens {"("} else {""};
-			let rparen = if need_parens {")"} else {""};
-			format!("{lparen}{snippet}{rparen}")
+			let (left_paren, right_paren) = if need_parens {("(", ")")} else {("", "")};
+			format!("{left_paren}{snippet}{right_paren}")
 		};
 
 		let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
+
+		let suggestion = {
+			let wrap_in_curly = is_else_clause(ctx.tcx, expr);
+			let (left_curly, right_curly) = if wrap_in_curly {("{", "}")} else {("", "")};
+			format!(
+				"{left_curly}{ty}::from({snippet}){right_curly}"
+			)
+		}; // when used in else clause if statement should be wrapped in curly braces
 
         span_lint_and_then(ctx,
             BOOL_TO_INT_WITH_IF,
@@ -76,9 +83,7 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
             diag.span_suggestion(
                 expr.span,
                 "replace with from",
-                format!(
-                    "{ty}::from({snippet})"
-                ),
+                suggestion,
                 applicability,
             );
             diag.note(format!("`{snippet_with_braces} as {ty}` or `{snippet_with_braces}.into()` can also be valid options"));
