@@ -153,11 +153,11 @@
     "id": "assertions_on_result_states",
     "id_span": {
       "path": "src/assertions_on_result_states.rs",
-      "line": 30
+      "line": 33
     },
-    "group": "style",
-    "level": "warn",
-    "docs": "\n### What it does\nChecks for `assert!(r.is_ok())` or `assert!(r.is_err())` calls.\n\n### Why is this bad?\nAn assertion failure cannot output an useful message of the error.\n\n### Example\n```rust\nassert!(r.is_ok());\nassert!(r.is_err());\n```",
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for `assert!(r.is_ok())` or `assert!(r.is_err())` calls.\n\n### Why is this bad?\nAn assertion failure cannot output an useful message of the error.\n\n### Known problems\nThe suggested replacement decreases the readability of code and log output.\n\n### Example\n```rust\nassert!(r.is_ok());\nassert!(r.is_err());\n```",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
