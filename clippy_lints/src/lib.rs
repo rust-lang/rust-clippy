@@ -240,6 +240,7 @@ mod functions;
 mod future_not_send;
 mod get_first;
 mod if_let_mutex;
+mod if_none_blocks;
 mod if_not_else;
 mod if_then_some_else_none;
 mod implicit_hasher;
@@ -931,6 +932,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| Box::new(invalid_utf8_in_unchecked::InvalidUtf8InUnchecked));
     store.register_late_pass(|| Box::new(std_instead_of_core::StdReexports::default()));
     store.register_late_pass(|| Box::new(manual_instant_elapsed::ManualInstantElapsed));
+    store.register_late_pass(|| Box::new(if_none_blocks::IfNoneBlocks));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

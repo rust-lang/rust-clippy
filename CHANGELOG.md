@@ -3610,6 +3610,7 @@ Released 2018-09-13
 [`if_let_mutex`]: https://rust-lang.github.io/rust-clippy/master/index.html#if_let_mutex
 [`if_let_redundant_pattern_matching`]: https://rust-lang.github.io/rust-clippy/master/index.html#if_let_redundant_pattern_matching
 [`if_let_some_result`]: https://rust-lang.github.io/rust-clippy/master/index.html#if_let_some_result
+[`if_none_blocks`]: https://rust-lang.github.io/rust-clippy/master/index.html#if_none_blocks
 [`if_not_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#if_not_else
 [`if_same_then_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#if_same_then_else
 [`if_then_some_else_none`]: https://rust-lang.github.io/rust-clippy/master/index.html#if_then_some_else_none

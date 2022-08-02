@@ -179,6 +179,7 @@ store.register_lints(&[
     future_not_send::FUTURE_NOT_SEND,
     get_first::GET_FIRST,
     if_let_mutex::IF_LET_MUTEX,
+    if_none_blocks::IF_NONE_BLOCKS,
     if_not_else::IF_NOT_ELSE,
     if_then_some_else_none::IF_THEN_SOME_ELSE_NONE,
     implicit_hasher::IMPLICIT_HASHER,

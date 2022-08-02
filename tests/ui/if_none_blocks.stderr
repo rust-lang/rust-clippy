@@ -1,0 +1,77 @@
+error: if expression simply returns `None` in one of its branches
+  --> $DIR/if_none_blocks.rs:15:13
+   |
+LL |     let _ = if a { Some(8) } else { None };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::if-none-blocks` implied by `-D warnings`
+   = help: consider using `bool::then_some`
+
+error: if expression simply returns `None` in one of its branches
+  --> $DIR/if_none_blocks.rs:18:13
+   |
+LL |       let _ = if a {
+   |  _____________^
+LL | |         {
+LL | |             {
+LL | |                 let x = 8;
+...  |
+LL | |         }
+LL | |     };
+   | |_____^
+   |
+   = help: consider using `bool::then`
+
+error: if expression simply returns `None` in one of its branches
+  --> $DIR/if_none_blocks.rs:35:12
+   |
+LL |       } else if d {
+   |  ____________^
+LL | |         Some(10)
+LL | |     } else {
+LL | |         None
+LL | |     };
+   | |_____^
+   |
+   = help: consider using `bool::then_some`
+
+error: if expression simply returns `None` in one of its branches
+  --> $DIR/if_none_blocks.rs:42:13
+   |
+LL |     let _ = if a { None } else { Some(8) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider first negating the condition, then using `bool::then_some`
+
+error: if expression simply returns `None` in one of its branches
+  --> $DIR/if_none_blocks.rs:45:13
+   |
+LL |     let _ = if a { Some(side_effects()) } else { None };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `bool::then`
+
+error: if expression simply returns `None` in one of its branches
+  --> $DIR/if_none_blocks.rs:47:13
+   |
+LL |       let _ = if a {
+   |  _____________^
+LL | |         side_effects();
+LL | |         Some(8)
+LL | |     } else {
+LL | |         None
+LL | |     };
+   | |_____^
+   |
+   = help: consider using `bool::then`
+
+error: if expression simply returns `None` in one of its branches
+  --> $DIR/if_none_blocks.rs:55:13
+   |
+LL |     let _ = if a { None } else { Some(side_effects()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider first negating the condition, then using `bool::then`
+
+error: aborting due to 7 previous errors
+
