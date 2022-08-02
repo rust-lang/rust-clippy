@@ -3570,6 +3570,21 @@
     }
   },
   {
+    "id": "manual_instant_elapsed",
+    "id_span": {
+      "path": "src/manual_instant_elapsed.rs",
+      "line": 31
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nLints subtraction between `Instant::now()` and another `Instant`.\n\n### Why is this bad?\nIt is easy to accidentally write `prev_instant - Instant::now()`, which will always be 0ns\nas `Instant` subtraction saturates.\n\n`prev_instant.elapsed()` also more clearly signals intention.\n\n### Example\n```rust\nuse std::time::Instant;\nlet prev_instant = Instant::now();\nlet duration = Instant::now() - prev_instant;\n```\nUse instead:\n```rust\nuse std::time::Instant;\nlet prev_instant = Instant::now();\nlet duration = prev_instant.elapsed();\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
