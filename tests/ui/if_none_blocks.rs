@@ -17,10 +17,7 @@ fn main() {
     #[allow(unused_braces)]
     let _ = if a {
         {
-            {
-                let x = 8;
-                Some(x)
-            }
+            { Some(8) }
         }
     } else {
         {
