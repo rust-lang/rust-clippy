@@ -36,7 +36,7 @@ declare_clippy_lint! {
     /// # let condition = false;
     /// condition as i64;
     /// ```
-    #[clippy::version = "1.64.0"]
+    #[clippy::version = "1.65.0"]
     pub BOOL_TO_INT_WITH_IF,
     style,
     "using if to convert bool to int"
