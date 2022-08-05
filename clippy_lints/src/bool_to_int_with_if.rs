@@ -51,29 +51,29 @@ impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
 }
 
 fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
-    if 	let ExprKind::If(check, then, Some(else_)) = expr.kind &&
-    	let Some(then_lit) = int_literal(then) &&
-		let Some(else_lit) = int_literal(else_) &&
-    	check_int_literal_equals_val(then_lit, 1) &&
-    	check_int_literal_equals_val(else_lit, 0)
+    if let ExprKind::If(check, then, Some(else_)) = expr.kind
+        && let Some(then_lit) = int_literal(then)
+        && let Some(else_lit) = int_literal(else_)
+        && check_int_literal_equals_val(then_lit, 1)
+        && check_int_literal_equals_val(else_lit, 0)
     {
-		let mut applicability = Applicability::MachineApplicable;
+        let mut applicability = Applicability::MachineApplicable;
         let snippet = snippet_block_with_applicability(ctx, check.span, "..", None, &mut applicability);
         let snippet_with_braces = {
-			let need_parens = should_have_parentheses(check);
-			let (left_paren, right_paren) = if need_parens {("(", ")")} else {("", "")};
-			format!("{left_paren}{snippet}{right_paren}")
-		};
+            let need_parens = should_have_parentheses(check);
+            let (left_paren, right_paren) = if need_parens {("(", ")")} else {("", "")};
+            format!("{left_paren}{snippet}{right_paren}")
+        };
 
-		let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
+        let ty = ctx.typeck_results().expr_ty(then_lit); // then and else must be of same type
 
-		let suggestion = {
-			let wrap_in_curly = is_else_clause(ctx.tcx, expr);
-			let (left_curly, right_curly) = if wrap_in_curly {("{", "}")} else {("", "")};
-			format!(
-				"{left_curly}{ty}::from({snippet}){right_curly}"
-			)
-		}; // when used in else clause if statement should be wrapped in curly braces
+        let suggestion = {
+            let wrap_in_curly = is_else_clause(ctx.tcx, expr);
+            let (left_curly, right_curly) = if wrap_in_curly {("{", "}")} else {("", "")};
+            format!(
+                "{left_curly}{ty}::from({snippet}){right_curly}"
+            )
+        }; // when used in else clause if statement should be wrapped in curly braces
 
         span_lint_and_then(ctx,
             BOOL_TO_INT_WITH_IF,
@@ -93,15 +93,14 @@ fn check_if_else<'tcx>(ctx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx
 
 // If block contains only a int literal expression, return literal expression
 fn int_literal<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>) -> Option<&'tcx rustc_hir::Expr<'tcx>> {
-    if  let ExprKind::Block(block, _) = expr.kind &&
-        let Block {
+    if let ExprKind::Block(block, _) = expr.kind
+        && let Block {
             stmts: [],       // Shouldn't lint if statements with side effects
             expr: Some(expr),
             ..
-        } = block &&
-        let ExprKind::Lit(lit) = &expr.kind &&
-
-        let LitKind::Int(_, _) = lit.node
+        } = block
+        && let ExprKind::Lit(lit) = &expr.kind
+        && let LitKind::Int(_, _) = lit.node
     {
         Some(expr)
     } else {
@@ -110,9 +109,9 @@ fn int_literal<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>) -> Option<&'tcx rustc_hi
 }
 
 fn check_int_literal_equals_val<'tcx>(expr: &'tcx rustc_hir::Expr<'tcx>, expected_value: u128) -> bool {
-    if  let ExprKind::Lit(lit) = &expr.kind &&
-        let LitKind::Int(val, _) = lit.node &&
-        val == expected_value
+    if let ExprKind::Lit(lit) = &expr.kind
+        && let LitKind::Int(val, _) = lit.node
+        && val == expected_value
     {
         true
     } else {
