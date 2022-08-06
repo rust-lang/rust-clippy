@@ -297,6 +297,7 @@ store.register_group(true, "clippy::all", Some("clippy_all"), vec![
     LintId::of(strings::STRING_FROM_UTF8_AS_BYTES),
     LintId::of(strings::TRIM_SPLIT_WHITESPACE),
     LintId::of(strlen_on_c_strings::STRLEN_ON_C_STRINGS),
+    LintId::of(suspicious_arguments::SUSPICIOUS_ARGUMENTS),
     LintId::of(suspicious_trait_impl::SUSPICIOUS_ARITHMETIC_IMPL),
     LintId::of(suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL),
     LintId::of(swap::ALMOST_SWAPPED),

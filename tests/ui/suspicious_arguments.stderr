@@ -1,0 +1,27 @@
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:17:12
+   |
+LL |     resize(height, width);
+   |            ^^^^^^  ^^^^^
+   |
+   = note: `-D clippy::suspicious-arguments` implied by `-D warnings`
+note: the arguments are defined here
+  --> $DIR/suspicious_arguments.rs:3:11
+   |
+LL | fn resize(width: usize, height: usize) {}
+   |           ^^^^^         ^^^^^^
+
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:18:17
+   |
+LL |     Bitmap::new(height, width);
+   |                 ^^^^^^  ^^^^^
+   |
+note: the arguments are defined here
+  --> $DIR/suspicious_arguments.rs:8:12
+   |
+LL |     fn new(width: usize, height: usize) -> Self {
+   |            ^^^^^         ^^^^^^
+
+error: aborting due to 2 previous errors
+

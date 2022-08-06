@@ -215,6 +215,7 @@ fn check_lower_bound<'tcx>(expr: &'tcx Expr<'tcx>) -> Option<Conversion<'tcx>> {
 
     // First of we need a binary containing the expression & the cast
     if let ExprKind::Binary(ref op, left, right) = &expr.kind {
+        #[expect(clippy::suspicious_arguments, reason = "these are intentionally reversed")]
         normalize_le_ge(op, right, left).and_then(|(l, r)| check_function(l, r))
     } else {
         None

@@ -370,6 +370,7 @@ mod stable_sort_primitive;
 mod std_instead_of_core;
 mod strings;
 mod strlen_on_c_strings;
+mod suspicious_arguments;
 mod suspicious_operation_groupings;
 mod suspicious_trait_impl;
 mod swap;
@@ -933,6 +934,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| Box::new(std_instead_of_core::StdReexports::default()));
     store.register_late_pass(|| Box::new(manual_instant_elapsed::ManualInstantElapsed));
     store.register_late_pass(|| Box::new(partialeq_to_none::PartialeqToNone));
+    store.register_late_pass(|| Box::new(suspicious_arguments::SuspiciousArguments));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

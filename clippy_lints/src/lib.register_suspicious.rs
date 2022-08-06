@@ -29,6 +29,7 @@ store.register_group(true, "clippy::suspicious", Some("clippy_suspicious"), vec!
     LintId::of(operators::FLOAT_EQUALITY_WITHOUT_ABS),
     LintId::of(operators::MISREFACTORED_ASSIGN_OP),
     LintId::of(rc_clone_in_vec_init::RC_CLONE_IN_VEC_INIT),
+    LintId::of(suspicious_arguments::SUSPICIOUS_ARGUMENTS),
     LintId::of(suspicious_trait_impl::SUSPICIOUS_ARITHMETIC_IMPL),
     LintId::of(suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL),
     LintId::of(swap_ptr_to_ref::SWAP_PTR_TO_REF),
