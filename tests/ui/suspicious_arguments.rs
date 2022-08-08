@@ -117,6 +117,16 @@ fn varargs() {
     }
 }
 
+fn tri_rotate() {
+    fn large_resize(width: usize, height: usize, depth: usize) {}
+
+    let width = 0;
+    let height = 0;
+    let depth = 0;
+
+    large_resize(height, depth, width);
+}
+
 
 fn main() {
     function_names();
