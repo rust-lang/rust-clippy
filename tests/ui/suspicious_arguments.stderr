@@ -1,8 +1,8 @@
 error: these arguments are possibly swapped
-  --> $DIR/suspicious_arguments.rs:31:12
+  --> $DIR/suspicious_arguments.rs:44:12
    |
-LL |     resize(height, width);
-   |            ^^^^^^  ^^^^^
+LL |     resize(height(), width());
+   |            ^^^^^^    ^^^^^
    |
    = note: `-D clippy::suspicious-arguments` implied by `-D warnings`
 note: the arguments are defined here
@@ -12,7 +12,31 @@ LL | fn resize(width: usize, height: usize) {}
    |           ^^^^^         ^^^^^^
 
 error: these arguments are possibly swapped
-  --> $DIR/suspicious_arguments.rs:32:17
+  --> $DIR/suspicious_arguments.rs:53:17
+   |
+LL |     resize(uwu::height(), uwu::width());
+   |                 ^^^^^^         ^^^^^
+   |
+note: the arguments are defined here
+  --> $DIR/suspicious_arguments.rs:17:11
+   |
+LL | fn resize(width: usize, height: usize) {}
+   |           ^^^^^         ^^^^^^
+
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:60:12
+   |
+LL |     resize(height, width);
+   |            ^^^^^^  ^^^^^
+   |
+note: the arguments are defined here
+  --> $DIR/suspicious_arguments.rs:17:11
+   |
+LL | fn resize(width: usize, height: usize) {}
+   |           ^^^^^         ^^^^^^
+
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:61:17
    |
 LL |     Bitmap::new(height, width);
    |                 ^^^^^^  ^^^^^
@@ -24,7 +48,34 @@ LL |     fn new(width: usize, height: usize) -> Self {
    |            ^^^^^         ^^^^^^
 
 error: these arguments are possibly swapped
-  --> $DIR/suspicious_arguments.rs:42:20
+  --> $DIR/suspicious_arguments.rs:67:17
+   |
+LL |     resize(dims.height, dims.width);
+   |                 ^^^^^^       ^^^^^
+   |
+note: the arguments are defined here
+  --> $DIR/suspicious_arguments.rs:17:11
+   |
+LL | fn resize(width: usize, height: usize) {}
+   |           ^^^^^         ^^^^^^
+
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:71:10
+   |
+LL |         .height,
+   |          ^^^^^^
+...
+LL |         .width);
+   |          ^^^^^
+   |
+note: the arguments are defined here
+  --> $DIR/suspicious_arguments.rs:17:11
+   |
+LL | fn resize(width: usize, height: usize) {}
+   |           ^^^^^         ^^^^^^
+
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:93:20
    |
 LL |     itertools::all(f, iterable);
    |                    ^  ^^^^^^^^
@@ -36,7 +87,7 @@ LL | pub fn all<I, F>(iterable: I, f: F) -> bool
    |                  ^^^^^^^^     ^
 
 error: these arguments are possibly swapped
-  --> $DIR/suspicious_arguments.rs:49:20
+  --> $DIR/suspicious_arguments.rs:102:20
    |
 LL |     std::mem::swap(y, x);
    |                    ^  ^
@@ -47,5 +98,5 @@ note: the arguments are defined here
 LL | pub const fn swap<T>(x: &mut T, y: &mut T) {
    |                      ^          ^
 
-error: aborting due to 4 previous errors
+error: aborting due to 8 previous errors
 

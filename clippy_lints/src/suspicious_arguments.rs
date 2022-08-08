@@ -39,8 +39,6 @@ declare_clippy_lint! {
 declare_lint_pass!(SuspiciousArguments => [SUSPICIOUS_ARGUMENTS]);
 
 fn arguments_are_sus(cx: &LateContext<'_>, definition: &[(String, Span)], call: &[Option<(String, Span)>]) {
-    assert_eq!(definition.len(), call.len());
-
     let idxs: FxHashMap<&String, usize> = definition
         .iter()
         .enumerate()
@@ -74,6 +72,27 @@ fn arguments_are_sus(cx: &LateContext<'_>, definition: &[(String, Span)], call: 
     }
 }
 
+fn guess_ident(expr: &Expr<'_>) -> Option<(String, Span)> {
+    // Try and guess an ident for this. If they give something like `my_struct.height`
+    // or `height()`, use that.
+    match &expr.kind {
+        ExprKind::Path(qp) => {
+            if let QPath::Resolved(_, p) = qp && let Some(segment) = p.segments.last() {
+                return Some((segment.ident.to_string(), segment.ident.span));
+            }
+        }
+        ExprKind::Field(_, ident) => {
+            return Some((ident.to_string(), ident.span));
+        }
+        ExprKind::Call(func, _) => {
+            return guess_ident(func);
+        }
+        _ => {},
+    }
+
+    None
+}
+
 impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if expr.span.from_expansion() {
@@ -83,6 +102,14 @@ impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
         if let ExprKind::Call(f, args) = expr.kind
             && let Some(def_id) = path_res(cx, f).opt_def_id() {
 
+            // fn_arg_names will ICE on a tuple struct being constructed.
+            //
+            // We can't usefully lint on this anyways, tuple struct constructors have no parameter
+            // names.
+            if cx.tcx.is_constructor(def_id) {
+                return;
+            }
+
             let mut def_args = Vec::new();
             for ident in cx.tcx.fn_arg_names(def_id) {
                 def_args.push((ident.to_string(), ident.span));
@@ -90,14 +117,18 @@ impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
 
             let mut call_args = Vec::new();
 
-            for call_arg in args {
-                if let ExprKind::Path(qp) = &call_arg.kind
-                && let QPath::Resolved(_, p) = qp
-                && let &[segment] = &p.segments {
-                    call_args.push(Some((segment.ident.to_string(), call_arg.span)));
-                } else {
-                    call_args.push(None);
-                }
+            // For variadic functions, we might have a call with more arguments than the signature.
+            // We won't have names for the extra values, but we might as well try to look for
+            // mismatches in the arguments we do have names for.
+            for call_arg in args.iter().take(def_args.len()) {
+                call_args.push(guess_ident(call_arg));
+            }
+
+            // This will only happen if we called a function with *less* arguments than its
+            // signature asked for. This presumably cannot happen, so emit a bug.
+            if def_args.len() != call_args.len() {
+                let def_args_query = cx.tcx.fn_arg_names(def_id);
+                rustc_middle::span_bug!(expr.span, "{def_args_query:?}\n{args:#?}");
             }
 
             arguments_are_sus(cx, &def_args, &call_args);
