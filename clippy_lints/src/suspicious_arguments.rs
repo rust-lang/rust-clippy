@@ -83,7 +83,6 @@ impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
         if let ExprKind::Call(f, args) = expr.kind
             && let Some(def_id) = path_res(cx, f).opt_def_id() {
 
-                       
             let mut def_args = Vec::new();
             for ident in cx.tcx.fn_arg_names(def_id) {
                 def_args.push((ident.to_string(), ident.span));
