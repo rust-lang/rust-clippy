@@ -1098,7 +1098,7 @@
     "id": "default_trait_access",
     "id_span": {
       "path": "src/default.rs",
-      "line": 34
+      "line": 36
     },
     "group": "pedantic",
     "level": "allow",
@@ -1953,7 +1953,7 @@
     "id": "field_reassign_with_default",
     "id_span": {
       "path": "src/default.rs",
-      "line": 68
+      "line": 70
     },
     "group": "style",
     "level": "warn",
@@ -4248,7 +4248,7 @@
     "id": "missing_docs_in_private_items",
     "id_span": {
       "path": "src/missing_doc.rs",
-      "line": 31
+      "line": 32
     },
     "group": "restriction",
     "level": "allow",
@@ -5538,7 +5538,7 @@
     "id": "possible_missing_comma",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 111
+      "line": 112
     },
     "group": "correctness",
     "level": "deny",
@@ -6903,7 +6903,7 @@
     "id": "suspicious_assignment_formatting",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 24
+      "line": 25
     },
     "group": "suspicious",
     "level": "warn",
@@ -6918,7 +6918,7 @@
     "id": "suspicious_else_formatting",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 90
+      "line": 91
     },
     "group": "suspicious",
     "level": "warn",
@@ -6993,7 +6993,7 @@
     "id": "suspicious_unary_op_formatting",
     "id_span": {
       "path": "src/formatting.rs",
-      "line": 53
+      "line": 54
     },
     "group": "suspicious",
     "level": "warn",
