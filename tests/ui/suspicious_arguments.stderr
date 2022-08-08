@@ -1,27 +1,51 @@
 error: these arguments are possibly swapped
-  --> $DIR/suspicious_arguments.rs:17:12
+  --> $DIR/suspicious_arguments.rs:31:12
    |
 LL |     resize(height, width);
    |            ^^^^^^  ^^^^^
    |
    = note: `-D clippy::suspicious-arguments` implied by `-D warnings`
 note: the arguments are defined here
-  --> $DIR/suspicious_arguments.rs:3:11
+  --> $DIR/suspicious_arguments.rs:17:11
    |
 LL | fn resize(width: usize, height: usize) {}
    |           ^^^^^         ^^^^^^
 
 error: these arguments are possibly swapped
-  --> $DIR/suspicious_arguments.rs:18:17
+  --> $DIR/suspicious_arguments.rs:32:17
    |
 LL |     Bitmap::new(height, width);
    |                 ^^^^^^  ^^^^^
    |
 note: the arguments are defined here
-  --> $DIR/suspicious_arguments.rs:8:12
+  --> $DIR/suspicious_arguments.rs:22:12
    |
 LL |     fn new(width: usize, height: usize) -> Self {
    |            ^^^^^         ^^^^^^
 
-error: aborting due to 2 previous errors
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:42:20
+   |
+LL |     itertools::all(f, iterable);
+   |                    ^  ^^^^^^^^
+   |
+note: the arguments are defined here
+  --> /home/jess/.cargo/registry/src/github.com-1ecc6299db9ec823/itertools-0.10.1/src/free.rs:151:18
+   |
+LL | pub fn all<I, F>(iterable: I, f: F) -> bool
+   |                  ^^^^^^^^     ^
+
+error: these arguments are possibly swapped
+  --> $DIR/suspicious_arguments.rs:49:20
+   |
+LL |     std::mem::swap(y, x);
+   |                    ^  ^
+   |
+note: the arguments are defined here
+  --> /home/jess/.rustup/toolchains/nightly-2022-07-28-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/mem/mod.rs:711:22
+   |
+LL | pub const fn swap<T>(x: &mut T, y: &mut T) {
+   |                      ^          ^
+
+error: aborting due to 4 previous errors
 

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::path_res;
-use rustc_data_structure::fs::FxHashMap;
-use rustc_hir::{Expr, ExprKind, PatKind, QPath};
+use rustc_data_structures::fx::FxHashMap;
+use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::Span;
@@ -39,6 +39,8 @@ declare_clippy_lint! {
 declare_lint_pass!(SuspiciousArguments => [SUSPICIOUS_ARGUMENTS]);
 
 fn arguments_are_sus(cx: &LateContext<'_>, definition: &[(String, Span)], call: &[Option<(String, Span)>]) {
+    assert_eq!(definition.len(), call.len());
+
     let idxs: FxHashMap<&String, usize> = definition
         .iter()
         .enumerate()
@@ -79,15 +81,11 @@ impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
         }
 
         if let ExprKind::Call(f, args) = expr.kind
-            && let Some(def_id) = path_res(cx, f).opt_def_id()
-            && let Some(node) = cx.tcx.hir().get_if_local(def_id)
-            && let Some(body_id) = node.body_id() {
+            && let Some(def_id) = path_res(cx, f).opt_def_id() {
 
-            let body = cx.tcx.hir().body(body_id);
-
+                       
             let mut def_args = Vec::new();
-            for param in body.params {
-                let PatKind::Binding(_, _, ident, _) = &param.pat.kind else { return };
+            for ident in cx.tcx.fn_arg_names(def_id) {
                 def_args.push((ident.to_string(), ident.span));
             }
 
