@@ -102,6 +102,21 @@ fn cross_std() {
     std::mem::swap(y, x);
 }
 
+fn varargs() {
+    extern "C" {
+        fn test_var_args(width: usize, height: usize, ...);
+    }
+    
+    if false {
+        unsafe {
+            let width = 0;
+            let height = 0;
+            let not_foo = 0;
+            test_var_args(height, width, not_foo, width, height);
+        }
+    }
+}
+
 
 fn main() {
     function_names();

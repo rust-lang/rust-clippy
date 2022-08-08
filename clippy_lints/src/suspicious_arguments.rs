@@ -72,9 +72,9 @@ fn arguments_are_sus(cx: &LateContext<'_>, definition: &[(String, Span)], call: 
     }
 }
 
+/// Try and guess an ident for `expr`. If they give something like `my_struct.height`
+/// or `height()`, use that.
 fn guess_ident(expr: &Expr<'_>) -> Option<(String, Span)> {
-    // Try and guess an ident for this. If they give something like `my_struct.height`
-    // or `height()`, use that.
     match &expr.kind {
         ExprKind::Path(qp) => {
             if let QPath::Resolved(_, p) = qp && let Some(segment) = p.segments.last() {
@@ -110,6 +110,14 @@ impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
                 return;
             }
 
+            // fn_arg_names will ICE on a variadic function.
+            //
+            // We *could* usefully lint on this (and it seems to work for *foreign* items, just not
+            // local ones?)
+            if cx.tcx.fn_sig(def_id).c_variadic() {
+                return;
+            }
+
             let mut def_args = Vec::new();
             for ident in cx.tcx.fn_arg_names(def_id) {
                 def_args.push((ident.to_string(), ident.span));
@@ -117,15 +125,10 @@ impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
 
             let mut call_args = Vec::new();
 
-            // For variadic functions, we might have a call with more arguments than the signature.
-            // We won't have names for the extra values, but we might as well try to look for
-            // mismatches in the arguments we do have names for.
-            for call_arg in args.iter().take(def_args.len()) {
+            for call_arg in args {
                 call_args.push(guess_ident(call_arg));
             }
 
-            // This will only happen if we called a function with *less* arguments than its
-            // signature asked for. This presumably cannot happen, so emit a bug.
             if def_args.len() != call_args.len() {
                 let def_args_query = cx.tcx.fn_arg_names(def_id);
                 rustc_middle::span_bug!(expr.span, "{def_args_query:?}\n{args:#?}");
