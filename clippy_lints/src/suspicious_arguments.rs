@@ -1,10 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::path_res;
+use rustc_data_structure::fs::FxHashMap;
 use rustc_hir::{Expr, ExprKind, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::Span;
-use std::collections::HashMap;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -39,7 +39,7 @@ declare_clippy_lint! {
 declare_lint_pass!(SuspiciousArguments => [SUSPICIOUS_ARGUMENTS]);
 
 fn arguments_are_sus(cx: &LateContext<'_>, definition: &[(String, Span)], call: &[Option<(String, Span)>]) {
-    let idxs: HashMap<&String, usize> = definition
+    let idxs: FxHashMap<&String, usize> = definition
         .iter()
         .enumerate()
         .map(|(idx, (item, _))| (item, idx))
