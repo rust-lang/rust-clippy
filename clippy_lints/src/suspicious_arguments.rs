@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use rustc_hir::{def, def_id, Expr, ExprKind, PatKind, QPath};
+use clippy_utils::path_res;
+use rustc_hir::{Expr, ExprKind, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::Span;
@@ -36,7 +37,6 @@ declare_clippy_lint! {
     "function call with probably swapped arguments"
 }
 declare_lint_pass!(SuspiciousArguments => [SUSPICIOUS_ARGUMENTS]);
-
 
 fn arguments_are_sus(cx: &LateContext<'_>, definition: &[(String, Span)], call: &[Option<(String, Span)>]) {
     let idxs: HashMap<&String, usize> = definition
@@ -78,64 +78,32 @@ impl<'tcx> LateLintPass<'tcx> for SuspiciousArguments {
             return;
         }
 
-        if let ExprKind::Call(f, args) = &expr.kind
-            && let ExprKind::Path(qp) = &f.kind {
-                let hirid = match qp {
-                    QPath::Resolved(_, p) => {
-                        let last_segment = p.segments.last().unwrap().res.unwrap();
+        if let ExprKind::Call(f, args) = expr.kind
+            && let Some(def_id) = path_res(cx, f).opt_def_id()
+            && let Some(node) = cx.tcx.hir().get_if_local(def_id)
+            && let Some(body_id) = node.body_id() {
 
-                        match last_segment {
-                            def::Res::Def(_, defid) => {
-                                if defid.krate != def_id::LOCAL_CRATE {
-                                    return;
-                                }
-                                let local = def_id::LocalDefId {
-                                    local_def_index: defid.index,
-                                };
-                                let hirid = cx.tcx.hir().local_def_id_to_hir_id(local);
-                                hirid
-                            }
-                            _ => return,
-                        }
-                    }
-                    QPath::TypeRelative(_, _) => {
-                        let res = cx.typeck_results().qpath_res(qp, f.hir_id);
-                        let Some(defid) = res.opt_def_id() else { return };
-                        if defid.krate != def_id::LOCAL_CRATE {
-                            return;
-                        }
-                        let local = def_id::LocalDefId {
-                            local_def_index: defid.index,
-                        };
-                        let hirid = cx.tcx.hir().local_def_id_to_hir_id(local);
-                        hirid
-                    }
-                    QPath::LangItem(_, _, _) => { return; }
-                };
+            let body = cx.tcx.hir().body(body_id);
 
+            let mut def_args = Vec::new();
+            for param in body.params {
+                let PatKind::Binding(_, _, ident, _) = &param.pat.kind else { return };
+                def_args.push((ident.to_string(), ident.span));
+            }
 
-                let Some(bodyid) = cx.tcx.hir().maybe_body_owned_by(hirid) else { return; };
-                let body = cx.tcx.hir().body(bodyid);
+            let mut call_args = Vec::new();
 
-                let mut def_args = Vec::new();
-                for param in body.params {
-                    let PatKind::Binding(_, _, ident, _) = &param.pat.kind else { return };
-                    def_args.push((ident.to_string(), ident.span));
+            for call_arg in args {
+                if let ExprKind::Path(qp) = &call_arg.kind
+                && let QPath::Resolved(_, p) = qp
+                && let &[segment] = &p.segments {
+                    call_args.push(Some((segment.ident.to_string(), call_arg.span)));
+                } else {
+                    call_args.push(None);
                 }
+            }
 
-                let mut call_args = Vec::new();
-
-                for call_arg in *args {
-                    if let ExprKind::Path(qp) = &call_arg.kind
-                    && let QPath::Resolved(_, p) = qp
-                    && let &[segment] = &p.segments {
-                        call_args.push(Some((segment.ident.to_string(), call_arg.span)));
-                    } else {
-                        call_args.push(None);
-                    }
-                }
-
-                arguments_are_sus(cx, &def_args, &call_args);
+            arguments_are_sus(cx, &def_args, &call_args);
         }
     }
 }
