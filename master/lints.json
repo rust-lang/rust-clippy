@@ -5505,6 +5505,21 @@
     }
   },
   {
+    "id": "partialeq_to_none",
+    "id_span": {
+      "path": "src/partialeq_to_none.rs",
+      "line": 37
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\n\nChecks for binary comparisons to a literal `Option::None`.\n\n### Why is this bad?\n\nA programmer checking if some `foo` is `None` via a comparison `foo == None`\nis usually inspired from other programming languages (e.g. `foo is None`\nin Python).\nChecking if a value of type `Option<T>` is (not) equal to `None` in that\nway relies on `T: PartialEq` to do the comparison, which is unneeded.\n\n### Example\n```rust\nfn foo(f: Option<u32>) -> &'static str {\n    if f != None { \"yay\" } else { \"nay\" }\n}\n```\nUse instead:\n```rust\nfn foo(f: Option<u32>) -> &'static str {\n    if f.is_some() { \"yay\" } else { \"nay\" }\n}\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "path_buf_push_overwrite",
     "id_span": {
       "path": "src/path_buf_push_overwrite.rs",
