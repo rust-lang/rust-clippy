@@ -1,6 +1,6 @@
 // edition:2015
 #![warn(clippy::suspicious_arguments)]
-#![allow(anonymous_parameters, clippy::no_effect)]
+#![allow(anonymous_parameters, clippy::no_effect, dead_code)]
 
 trait AnonymousArgs {
     fn scale(&self, usize, usize) {}
@@ -127,12 +127,19 @@ fn tri_rotate() {
     large_resize(height, depth, width);
 }
 
+fn patterns() {
+    fn array([width, height]: [usize; 2]) {
 
-fn main() {
-    function_names();
-    variable_names();
-    struct_names();
-    should_not_lint();
-    cross_crate();
-    cross_std();
+    }
+
+    fn tuple((width, height): (usize, usize)) {
+    }
+
+    let width = 0;
+    let height = 0;
+
+    array([height, width]);
+    tuple((height, width));
 }
+
+fn main() {}
