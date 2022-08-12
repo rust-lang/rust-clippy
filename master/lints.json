@@ -2508,11 +2508,11 @@
     "id": "if_then_some_else_none",
     "id_span": {
       "path": "src/if_then_some_else_none.rs",
-      "line": 40
+      "line": 42
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for if-else that could be written to `bool::then`.\n\n### Why is this bad?\nLooks a little redundant. Using `bool::then` helps it have less lines of code.\n\n### Example\n```rust\nlet a = if v.is_empty() {\n    println!(\"true!\");\n    Some(42)\n} else {\n    None\n};\n```\n\nCould be written:\n\n```rust\nlet a = v.is_empty().then(|| {\n    println!(\"true!\");\n    42\n});\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
+    "docs": "\n### What it does\nChecks for if-else that could be written using either `bool::then` or `bool::then_some`.\n\n### Why is this bad?\nLooks a little redundant. Using `bool::then` is more concise and incurs no loss of clarity.\nFor simple calculations and known values, use `bool::then_some`, which is eagerly evaluated\nin comparison to `bool::then`.\n\n### Example\n```rust\nlet a = if v.is_empty() {\n    println!(\"true!\");\n    Some(42)\n} else {\n    None\n};\n```\n\nCould be written:\n\n```rust\nlet a = v.is_empty().then(|| {\n    println!(\"true!\");\n    42\n});\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
     "version": "1.53.0",
     "applicability": {
       "is_multi_part_suggestion": false,
