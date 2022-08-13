@@ -368,7 +368,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `&*(&T)`.\n\n### Why is this bad?\nDereferencing and then borrowing a reference value has no effect in most cases.\n\n### Known problems\nFalse negative on such code:\n```rust\nlet x = &12;\nlet addr_x = &x as *const _ as usize;\nlet addr_y = &&*x as *const _ as usize; // assert ok now, and lint triggered.\n                                        // But if we fix it, assert will fail.\nassert_ne!(addr_x, addr_y);\n```\n\n### Example\n```rust\nfn foo(_x: &str) {}\n\nlet s = &String::new();\n\nlet a: &String = &* s;\nfoo(&*s);\n```\n\nUse instead:\n```rust\nlet a: &String = s;\nfoo(&**s);\n```",
-    "version": "1.59.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -1328,7 +1328,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nDetects the syntax `['foo']` in documentation comments (notice quotes instead of backticks)\noutside of code blocks\n### Why is this bad?\nIt is likely a typo when defining an intra-doc link\n\n### Example\n```rust\n/// See also: ['foo']\nfn bar() {}\n```\nUse instead:\n```rust\n/// See also: [`foo`]\nfn bar() {}\n```",
-    "version": "1.60.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -1463,7 +1463,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for files that are included as modules multiple times.\n\n### Why is this bad?\nLoading a file as a module more than once causes it to be compiled\nmultiple times, taking longer and putting duplicate content into the\nmodule tree.\n\n### Example\n```rust\n// lib.rs\nmod a;\nmod b;\n```\n```rust\n// a.rs\n#[path = \"./b.rs\"]\nmod b;\n```\n\nUse instead:\n\n```rust\n// lib.rs\nmod a;\nmod b;\n```\n```rust\n// a.rs\nuse crate::b;\n```",
-    "version": "1.62.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4193,7 +4193,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for type parameters which are positioned inconsistently between\na type definition and impl block. Specifically, a parameter in an impl\nblock which has the same name as a parameter in the type def, but is in\na different place.\n\n### Why is this bad?\nType parameters are determined by their position rather than name.\nNaming type parameters inconsistently may cause you to refer to the\nwrong type parameter.\n\n### Limitations\nThis lint only applies to impl blocks with simple generic params, e.g.\n`A`. If there is anything more complicated, such as a tuple, it will be\nignored.\n\n### Example\n```rust\nstruct Foo<A, B> {\n    x: A,\n    y: B,\n}\n// inside the impl, B refers to Foo::A\nimpl<B, A> Foo<B, A> {}\n```\nUse instead:\n```rust\nstruct Foo<A, B> {\n    x: A,\n    y: B,\n}\nimpl<A, B> Foo<A, B> {}\n```",
-    "version": "1.62.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5063,7 +5063,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `replace` statements which have no effect.\n\n### Why is this bad?\nIt's either a mistake or confusing.\n\n### Example\n```rust\n\"1234\".replace(\"12\", \"12\");\n\"1234\".replacen(\"12\", \"12\", 1);\n```",
-    "version": "1.62.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5858,7 +5858,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for reference-counted pointers (`Arc`, `Rc`, `rc::Weak`, and `sync::Weak`)\nin `vec![elem; len]`\n\n### Why is this bad?\nThis will create `elem` once and clone it `len` times - doing so with `Arc`/`Rc`/`Weak`\nis a bit misleading, as it will create references to the same pointer, rather\nthan different instances.\n\n### Example\n```rust\nlet v = vec![std::sync::Arc::new(\"some data\".to_string()); 100];\n// or\nlet v = vec![std::rc::Rc::new(\"some data\".to_string()); 100];\n```\nUse instead:\n```rust\n// Initialize each value separately:\nlet mut data = Vec::with_capacity(100);\nfor _ in 0..100 {\n    data.push(std::rc::Rc::new(\"some data\".to_string()));\n}\n\n// Or if you want clones of the same reference,\n// Create the reference beforehand to clarify that\n// it should be cloned for each value\nlet data = std::rc::Rc::new(\"some data\".to_string());\nlet v = vec![data; 100];\n```",
-    "version": "1.62.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "HasPlaceholders"
@@ -8033,7 +8033,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\n\nDetects cases where a whole-number literal float is being rounded, using\nthe `floor`, `ceil`, or `round` methods.\n\n### Why is this bad?\n\nThis is unnecessary and confusing to the reader. Doing this is probably a mistake.\n\n### Example\n```rust\nlet x = 1f32.ceil();\n```\nUse instead:\n```rust\nlet x = 1f32;\n```",
-    "version": "1.62.0",
+    "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
