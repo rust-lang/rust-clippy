@@ -1,5 +1,5 @@
 error: `extract_msrv_attr!` macro missing from `LateLintPass` implementation
-  --> $DIR/invalid_msrv_attr_impl.rs:30:1
+  --> $DIR/invalid_msrv_attr_impl.rs:29:1
    |
 LL | impl LateLintPass<'_> for Pass {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -17,7 +17,7 @@ LL +     extract_msrv_attr!(LateContext);
    |
 
 error: `extract_msrv_attr!` macro missing from `EarlyLintPass` implementation
-  --> $DIR/invalid_msrv_attr_impl.rs:34:1
+  --> $DIR/invalid_msrv_attr_impl.rs:33:1
    |
 LL | impl EarlyLintPass for Pass {
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

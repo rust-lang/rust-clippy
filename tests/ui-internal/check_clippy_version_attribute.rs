@@ -71,7 +71,6 @@ declare_tool_lint! {
     report_in_external_macro: true
 }
 
-#[allow(clippy::missing_clippy_version_attribute)]
 mod internal_clippy_lints {
     declare_tool_lint! {
         pub clippy::ALLOW_MISSING_ATTRIBUTE_ONE,

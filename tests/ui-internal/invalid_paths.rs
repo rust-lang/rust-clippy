@@ -1,5 +1,4 @@
 #![warn(clippy::internal)]
-#![allow(clippy::missing_clippy_version_attribute)]
 
 mod paths {
     // Good path

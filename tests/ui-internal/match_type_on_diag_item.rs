@@ -1,5 +1,4 @@
 #![deny(clippy::internal)]
-#![allow(clippy::missing_clippy_version_attribute)]
 #![feature(rustc_private)]
 
 extern crate clippy_utils;

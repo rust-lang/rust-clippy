@@ -55,6 +55,61 @@ use rustc_lint::LintId;
 use rustc_semver::RustcVersion;
 use rustc_session::Session;
 
+#[macro_export]
+macro_rules! declare_clippy_lint_helper2 {
+    (style $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Warn, $desc, report_in_external_macro: true);
+    };
+    (correctness $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Deny, $desc, report_in_external_macro: true);
+    };
+    (suspicious $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Warn, $desc, report_in_external_macro: true);
+    };
+    (complexity $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Warn, $desc, report_in_external_macro: true);
+    };
+    (perf $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Warn, $desc, report_in_external_macro: true);
+    };
+    (pedantic $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
+    };
+    (restriction $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
+    };
+    (cargo $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
+    };
+    (nursery $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
+    };
+    (internal $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
+    };
+    (internal_warn $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
+    };
+}
+
+#[cfg(nightly)]
+#[macro_export]
+macro_rules! declare_clippy_lint_helper {
+    ($(#[$version:meta])? $cat:ident $desc:literal $($tokens:tt)*) => {
+        $crate::declare_clippy_lint_helper2!($cat $desc $(#[$version])? $($tokens)*);
+    };
+}
+#[cfg(not(nightly))]
+#[macro_export]
+macro_rules! declare_clippy_lint_helper {
+    (#[$version:meta] $cat:ident $desc:literal $($tokens:tt)*) => {
+        $crate::declare_clippy_lint_helper2!($cat $desc #[$version] $($tokens)*);
+    };
+    ($_cat:ident $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Allow, $desc);
+    };
+}
+
 /// Macro used to declare a Clippy lint.
 ///
 /// Every lint declaration consists of 4 parts:
@@ -75,8 +130,8 @@ use rustc_session::Session;
 /// ```
 /// #![feature(rustc_private)]
 /// extern crate rustc_session;
-/// use rustc_session::declare_tool_lint;
 /// use clippy_lints::declare_clippy_lint;
+/// use rustc_session::declare_tool_lint;
 ///
 /// declare_clippy_lint! {
 ///     /// ### What it does
@@ -102,66 +157,19 @@ use rustc_session::Session;
 /// [lint_naming]: https://rust-lang.github.io/rfcs/0344-conventions-galore.html#lints
 #[macro_export]
 macro_rules! declare_clippy_lint {
-    { $(#[$attr:meta])* pub $name:tt, style, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, correctness, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Deny, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, suspicious, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, complexity, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, perf, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, pedantic, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, restriction, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, cargo, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, nursery, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, internal, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Allow, $description, report_in_external_macro: true
-        }
-    };
-    { $(#[$attr:meta])* pub $name:tt, internal_warn, $description:tt } => {
-        declare_tool_lint! {
-            $(#[$attr])* pub clippy::$name, Warn, $description, report_in_external_macro: true
+    (
+        $(#[doc=$doc:literal])*
+        $(#[clippy::version = $version:literal])?
+        pub $name:ident, $cat:ident, $desc:literal
+    ) => {
+        $crate::declare_clippy_lint_helper! {
+            $(#[clippy::version = $version])? $cat $desc $(#[doc=$doc])* pub clippy::$name
         }
     };
 }
 
 #[cfg(feature = "internal")]
 pub mod deprecated_lints;
-#[cfg_attr(feature = "internal", allow(clippy::missing_clippy_version_attribute))]
 mod utils;
 
 mod renamed_lints;

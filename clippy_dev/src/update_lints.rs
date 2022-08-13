@@ -491,7 +491,6 @@ fn declare_deprecated(name: &str, path: &Path, reason: &str) -> io::Result<()> {
 
     file.seek(SeekFrom::End(0))?;
 
-    let version = crate::new_lint::get_stabilization_version();
     let deprecation_reason = if reason == DEFAULT_DEPRECATION_REASON {
         "TODO"
     } else {
@@ -508,14 +507,13 @@ fn declare_deprecated(name: &str, path: &Path, reason: &str) -> io::Result<()> {
             ///
             /// ### Deprecation reason
             /// {}
-            #[clippy::version = \"{}\"]
+            #[clippy::version = \"nightly\"]
             pub {},
             \"{}\"
         }}
 
         ",
         deprecation_reason,
-        version,
         name,
         reason,
     )
@@ -588,17 +586,26 @@ struct Lint {
     group: String,
     desc: String,
     module: String,
+    has_version: bool,
     declaration_range: Range<usize>,
 }
 
 impl Lint {
     #[must_use]
-    fn new(name: &str, group: &str, desc: &str, module: &str, declaration_range: Range<usize>) -> Self {
+    fn new(
+        name: &str,
+        group: &str,
+        desc: &str,
+        module: &str,
+        has_version: bool,
+        declaration_range: Range<usize>,
+    ) -> Self {
         Self {
             name: name.to_lowercase(),
             group: group.into(),
             desc: remove_line_splices(desc),
             module: module.into(),
+            has_version,
             declaration_range,
         }
     }
@@ -657,7 +664,9 @@ impl RenamedLint {
 
 /// Generates the code for registering a group
 fn gen_lint_group_list<'a>(group_name: &str, lints: impl Iterator<Item = &'a Lint>) -> String {
-    let mut details: Vec<_> = lints.map(|l| (&l.module, l.name.to_uppercase())).collect();
+    let mut details: Vec<_> = lints
+        .map(|l| (&l.module, l.name.to_uppercase(), l.has_version))
+        .collect();
     details.sort_unstable();
 
     let mut output = GENERATED_FILE_COMMENT.to_string();
@@ -667,8 +676,14 @@ fn gen_lint_group_list<'a>(group_name: &str, lints: impl Iterator<Item = &'a Lin
         "store.register_group(true, \"clippy::{0}\", Some(\"clippy_{0}\"), vec![",
         group_name
     );
-    for (module, name) in details {
-        let _ = writeln!(output, "    LintId::of({}::{}),", module, name);
+    for (module, name, has_version) in details {
+        let _ = writeln!(
+            output,
+            "    {}LintId::of({}::{}),",
+            if has_version { "" } else { "#[cfg(nightly)] " },
+            module,
+            name,
+        );
     }
     output.push_str("])\n");
 
@@ -858,21 +873,22 @@ fn parse_contents(contents: &str, module: &str, lints: &mut Vec<Lint>) {
             .filter(|t| !matches!(t.token_kind, TokenKind::Whitespace | TokenKind::LineComment { .. }));
         // matches `!{`
         match_tokens!(iter, Bang OpenBrace);
-        match iter.next() {
+        let has_version = match iter.next() {
             // #[clippy::version = "version"] pub
             Some(LintDeclSearchResult {
                 token_kind: TokenKind::Pound,
                 ..
             }) => {
                 match_tokens!(iter, OpenBracket Ident Colon Colon Ident Eq Literal{..} CloseBracket Ident);
+                true
             },
             // pub
             Some(LintDeclSearchResult {
                 token_kind: TokenKind::Ident,
                 ..
-            }) => (),
+            }) => false,
             _ => continue,
-        }
+        };
 
         let (name, group, desc) = match_tokens!(
             iter,
@@ -890,7 +906,7 @@ fn parse_contents(contents: &str, module: &str, lints: &mut Vec<Lint>) {
             ..
         }) = iter.next()
         {
-            lints.push(Lint::new(name, group, desc, module, start..range.end));
+            lints.push(Lint::new(name, group, desc, module, has_version, start..range.end));
         }
     }
 }
@@ -1115,6 +1131,7 @@ mod tests {
                 "style",
                 "\"really long text\"",
                 "module_name",
+                true,
                 Range::default(),
             ),
             Lint::new(
@@ -1122,6 +1139,7 @@ mod tests {
                 "pedantic",
                 "\"single line\"",
                 "module_name",
+                true,
                 Range::default(),
             ),
         ];
@@ -1161,6 +1179,7 @@ mod tests {
                 "Not Deprecated",
                 "\"abc\"",
                 "module_name",
+                true,
                 Range::default(),
             ),
             Lint::new(
@@ -1168,6 +1187,7 @@ mod tests {
                 "internal",
                 "\"abc\"",
                 "module_name",
+                true,
                 Range::default(),
             ),
             Lint::new(
@@ -1175,6 +1195,7 @@ mod tests {
                 "internal_style",
                 "\"abc\"",
                 "module_name",
+                true,
                 Range::default(),
             ),
         ];
@@ -1183,6 +1204,7 @@ mod tests {
             "Not Deprecated",
             "\"abc\"",
             "module_name",
+            true,
             Range::default(),
         )];
         assert_eq!(expected, Lint::usable_lints(&lints));
@@ -1191,22 +1213,51 @@ mod tests {
     #[test]
     fn test_by_lint_group() {
         let lints = vec![
-            Lint::new("should_assert_eq", "group1", "\"abc\"", "module_name", Range::default()),
+            Lint::new(
+                "should_assert_eq",
+                "group1",
+                "\"abc\"",
+                "module_name",
+                true,
+                Range::default(),
+            ),
             Lint::new(
                 "should_assert_eq2",
                 "group2",
                 "\"abc\"",
                 "module_name",
+                true,
                 Range::default(),
             ),
-            Lint::new("incorrect_match", "group1", "\"abc\"", "module_name", Range::default()),
+            Lint::new(
+                "incorrect_match",
+                "group1",
+                "\"abc\"",
+                "module_name",
+                true,
+                Range::default(),
+            ),
         ];
         let mut expected: HashMap<String, Vec<Lint>> = HashMap::new();
         expected.insert(
             "group1".to_string(),
             vec![
-                Lint::new("should_assert_eq", "group1", "\"abc\"", "module_name", Range::default()),
-                Lint::new("incorrect_match", "group1", "\"abc\"", "module_name", Range::default()),
+                Lint::new(
+                    "should_assert_eq",
+                    "group1",
+                    "\"abc\"",
+                    "module_name",
+                    true,
+                    Range::default(),
+                ),
+                Lint::new(
+                    "incorrect_match",
+                    "group1",
+                    "\"abc\"",
+                    "module_name",
+                    true,
+                    Range::default(),
+                ),
             ],
         );
         expected.insert(
@@ -1216,6 +1267,7 @@ mod tests {
                 "group2",
                 "\"abc\"",
                 "module_name",
+                true,
                 Range::default(),
             )],
         );
@@ -1255,9 +1307,23 @@ mod tests {
     #[test]
     fn test_gen_lint_group_list() {
         let lints = vec![
-            Lint::new("abc", "group1", "\"abc\"", "module_name", Range::default()),
-            Lint::new("should_assert_eq", "group1", "\"abc\"", "module_name", Range::default()),
-            Lint::new("internal", "internal_style", "\"abc\"", "module_name", Range::default()),
+            Lint::new("abc", "group1", "\"abc\"", "module_name", true, Range::default()),
+            Lint::new(
+                "should_assert_eq",
+                "group1",
+                "\"abc\"",
+                "module_name",
+                true,
+                Range::default(),
+            ),
+            Lint::new(
+                "internal",
+                "internal_style",
+                "\"abc\"",
+                "module_name",
+                true,
+                Range::default(),
+            ),
         ];
         let expected = GENERATED_FILE_COMMENT.to_string()
             + &[
