@@ -140,7 +140,8 @@ fn check_extend_method(
 fn equal_ident(left: &rustc_hir::Expr<'_>, right: &rustc_hir::Expr<'_>) -> bool {
     fn ident_name(expr: &rustc_hir::Expr<'_>) -> Option<rustc_span::Symbol> {
         if let ExprKind::Path(QPath::Resolved(None, inner_path)) = expr.kind
-            && let [inner_seg] = inner_path.segments {
+            && let [inner_seg] = inner_path.segments
+        {
             return Some(inner_seg.ident.name);
         }
         None
