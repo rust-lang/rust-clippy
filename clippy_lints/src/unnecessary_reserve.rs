@@ -65,7 +65,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
                     cx,
                     UNNECESSARY_RESERVE,
                     next_stmt_span,
-                    "this `reserve` no longer makes sense in rustc version >= 1.62",
+                    "unnecessary call to `reserve`",
                     |diag| {
                         diag.span_suggestion(
                             semi_expr.span,
