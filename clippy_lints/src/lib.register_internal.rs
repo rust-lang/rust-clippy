@@ -2,20 +2,28 @@
 // Use that command to update this file and do not edit by hand.
 // Manual edits will be overwritten.
 
-store.register_group(true, "clippy::internal", Some("clippy_internal"), vec![
-    #[cfg(nightly)] LintId::of(utils::internal_lints::CLIPPY_LINTS_INTERNAL),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::COLLAPSIBLE_SPAN_LINT_CALLS),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::COMPILER_LINT_FUNCTIONS),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::DEFAULT_DEPRECATION_REASON),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::DEFAULT_LINT),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::IF_CHAIN_STYLE),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::INTERNING_DEFINED_SYMBOL),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::INVALID_CLIPPY_VERSION_ATTRIBUTE),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::INVALID_PATHS),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::LINT_WITHOUT_LINT_PASS),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::MATCH_TYPE_ON_DIAGNOSTIC_ITEM),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::MISSING_MSRV_ATTR_IMPL),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::OUTER_EXPN_EXPN_DATA),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::PRODUCE_ICE),
-    #[cfg(nightly)] LintId::of(utils::internal_lints::UNNECESSARY_SYMBOL_STR),
-])
+{
+    let lints: [LintId; 15] = [
+        LintId::of(utils::internal_lints::CLIPPY_LINTS_INTERNAL),
+        LintId::of(utils::internal_lints::COLLAPSIBLE_SPAN_LINT_CALLS),
+        LintId::of(utils::internal_lints::COMPILER_LINT_FUNCTIONS),
+        LintId::of(utils::internal_lints::DEFAULT_DEPRECATION_REASON),
+        LintId::of(utils::internal_lints::DEFAULT_LINT),
+        LintId::of(utils::internal_lints::IF_CHAIN_STYLE),
+        LintId::of(utils::internal_lints::INTERNING_DEFINED_SYMBOL),
+        LintId::of(utils::internal_lints::INVALID_CLIPPY_VERSION_ATTRIBUTE),
+        LintId::of(utils::internal_lints::INVALID_PATHS),
+        LintId::of(utils::internal_lints::LINT_WITHOUT_LINT_PASS),
+        LintId::of(utils::internal_lints::MATCH_TYPE_ON_DIAGNOSTIC_ITEM),
+        LintId::of(utils::internal_lints::MISSING_MSRV_ATTR_IMPL),
+        LintId::of(utils::internal_lints::OUTER_EXPN_EXPN_DATA),
+        LintId::of(utils::internal_lints::PRODUCE_ICE),
+        LintId::of(utils::internal_lints::UNNECESSARY_SYMBOL_STR),
+    ];
+    let lints = if enable_unstable_lints {
+        lints.as_slice()
+    } else {
+        &lints[..0]
+    };
+    store.register_group(true, "clippy::internal", Some("clippy_internal"), lints.into());
+}

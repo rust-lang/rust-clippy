@@ -2,10 +2,14 @@
 // Use that command to update this file and do not edit by hand.
 // Manual edits will be overwritten.
 
-store.register_group(true, "clippy::cargo", Some("clippy_cargo"), vec![
-    LintId::of(cargo::CARGO_COMMON_METADATA),
-    LintId::of(cargo::MULTIPLE_CRATE_VERSIONS),
-    LintId::of(cargo::NEGATIVE_FEATURE_NAMES),
-    LintId::of(cargo::REDUNDANT_FEATURE_NAMES),
-    LintId::of(cargo::WILDCARD_DEPENDENCIES),
-])
+{
+    let lints: [LintId; 5] = [
+        LintId::of(cargo::CARGO_COMMON_METADATA),
+        LintId::of(cargo::MULTIPLE_CRATE_VERSIONS),
+        LintId::of(cargo::NEGATIVE_FEATURE_NAMES),
+        LintId::of(cargo::REDUNDANT_FEATURE_NAMES),
+        LintId::of(cargo::WILDCARD_DEPENDENCIES),
+    ];
+    let lints = lints.as_slice();
+    store.register_group(true, "clippy::cargo", Some("clippy_cargo"), lints.into());
+}

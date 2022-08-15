@@ -88,25 +88,20 @@ macro_rules! declare_clippy_lint_helper2 {
         declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
     };
     (internal_warn $desc:literal $($tokens:tt)*) => {
-        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
+        declare_tool_lint!($($tokens)*, Warn, $desc, report_in_external_macro: true);
     };
 }
 
-#[cfg(nightly)]
-#[macro_export]
-macro_rules! declare_clippy_lint_helper {
-    ($(#[$version:meta])? $cat:ident $desc:literal $($tokens:tt)*) => {
-        $crate::declare_clippy_lint_helper2!($cat $desc $(#[$version])? $($tokens)*);
-    };
-}
-#[cfg(not(nightly))]
 #[macro_export]
 macro_rules! declare_clippy_lint_helper {
     (#[$version:meta] $cat:ident $desc:literal $($tokens:tt)*) => {
         $crate::declare_clippy_lint_helper2!($cat $desc #[$version] $($tokens)*);
     };
+    (internal_warn $desc:literal $($tokens:tt)*) => {
+        declare_tool_lint!($($tokens)*, Warn, $desc, report_in_external_macro: true);
+    };
     ($_cat:ident $desc:literal $($tokens:tt)*) => {
-        declare_tool_lint!($($tokens)*, Allow, $desc);
+        declare_tool_lint!($($tokens)*, Allow, $desc, report_in_external_macro: true);
     };
 }
 
@@ -522,7 +517,12 @@ pub fn read_conf(sess: &Session) -> Conf {
 ///
 /// Used in `./src/driver.rs`.
 #[expect(clippy::too_many_lines)]
-pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf: &Conf) {
+pub fn register_plugins(
+    store: &mut rustc_lint::LintStore,
+    sess: &Session,
+    conf: &Conf,
+    #[allow(unused_variables)] enable_unstable_lints: bool,
+) {
     register_removed_non_tool_lints(store);
 
     include!("lib.deprecated.rs");

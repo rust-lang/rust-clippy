@@ -15,6 +15,7 @@ extern crate rustc_session;
 extern crate rustc_span;
 
 use rustc_interface::interface;
+use rustc_session::config::nightly_options::is_nightly_build;
 use rustc_session::parse::ParseSess;
 use rustc_span::symbol::Symbol;
 use rustc_tools_util::VersionInfo;
@@ -91,6 +92,7 @@ impl rustc_driver::Callbacks for RustcCallbacks {
 
 struct ClippyCallbacks {
     clippy_args_var: Option<String>,
+    enable_unstable_lints: bool,
 }
 
 impl rustc_driver::Callbacks for ClippyCallbacks {
@@ -102,6 +104,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
         config.parse_sess_created = Some(Box::new(move |parse_sess| {
             track_clippy_args(parse_sess, &clippy_args_var);
         }));
+        let enable_unstable_lints = self.enable_unstable_lints;
         config.register_lints = Some(Box::new(move |sess, lint_store| {
             // technically we're ~guaranteed that this is none but might as well call anything that
             // is there already. Certainly it can't hurt.
@@ -110,7 +113,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             }
 
             let conf = clippy_lints::read_conf(sess);
-            clippy_lints::register_plugins(lint_store, sess, &conf);
+            clippy_lints::register_plugins(lint_store, sess, &conf, enable_unstable_lints);
             clippy_lints::register_pre_expansion_lints(lint_store, sess, &conf);
             clippy_lints::register_renamed(lint_store);
         }));
@@ -317,6 +320,7 @@ pub fn main() {
         };
 
         let mut no_deps = false;
+        let mut no_unstable_lints = false;
         let clippy_args_var = env::var("CLIPPY_ARGS").ok();
         let clippy_args = clippy_args_var
             .as_deref()
@@ -326,6 +330,10 @@ pub fn main() {
                 "" => None,
                 "--no-deps" => {
                     no_deps = true;
+                    None
+                },
+                "--no-unstable-lints" => {
+                    no_unstable_lints = true;
                     None
                 },
                 _ => Some(s.to_string()),
@@ -344,8 +352,21 @@ pub fn main() {
 
         let clippy_enabled = !cap_lints_allow && (!no_deps || in_primary_package);
         if clippy_enabled {
+            let enable_unstable_lints = !no_unstable_lints && is_nightly_build(None);
+            if enable_unstable_lints {
+                static ARGS: &[&str] = &include!("driver.warn_nightly_args.rs");
+                args.extend(ARGS.iter().map(|&x| x.into()));
+            }
+
             args.extend(clippy_args);
-            rustc_driver::RunCompiler::new(&args, &mut ClippyCallbacks { clippy_args_var }).run()
+            rustc_driver::RunCompiler::new(
+                &args,
+                &mut ClippyCallbacks {
+                    clippy_args_var,
+                    enable_unstable_lints,
+                },
+            )
+            .run()
         } else {
             rustc_driver::RunCompiler::new(&args, &mut RustcCallbacks { clippy_args_var }).run()
         }

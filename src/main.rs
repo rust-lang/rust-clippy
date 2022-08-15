@@ -84,6 +84,10 @@ impl ClippyCmd {
                     clippy_args.push("--no-deps".into());
                     continue;
                 },
+                "--no-unstable-lints" => {
+                    clippy_args.push("--no-unstable-lints".into());
+                    continue;
+                },
                 "--" => break,
                 _ => {},
             }

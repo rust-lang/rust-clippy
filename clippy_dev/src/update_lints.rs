@@ -114,6 +114,11 @@ fn generate_lint_files(
         update_mode,
         &gen_deprecated(deprecated_lints),
     );
+    process_file(
+        "src/driver.warn_nightly_args.rs",
+        update_mode,
+        &gen_warn_nightly_lints(lints),
+    );
 
     let all_group_lints = usable_lints.iter().filter(|l| {
         matches!(
@@ -664,28 +669,39 @@ impl RenamedLint {
 
 /// Generates the code for registering a group
 fn gen_lint_group_list<'a>(group_name: &str, lints: impl Iterator<Item = &'a Lint>) -> String {
-    let mut details: Vec<_> = lints
-        .map(|l| (&l.module, l.name.to_uppercase(), l.has_version))
+    let mut stable_count = 0usize;
+    let mut lints: Vec<_> = lints
+        .inspect(|l| {
+            if l.has_version {
+                stable_count += 1;
+            }
+        })
+        .map(|l| (!l.has_version, &l.module, l.name.to_uppercase()))
         .collect();
-    details.sort_unstable();
+    // Sort stable lints first
+    lints.sort_unstable();
 
     let mut output = GENERATED_FILE_COMMENT.to_string();
 
+    let _ = write!(output, "{{\n    let lints: [LintId; {}] = [\n", lints.len());
+    for (_, module, name) in &lints {
+        let _ = writeln!(output, "        LintId::of({}::{}),", module, name);
+    }
+    output.push_str("    ];\n");
+    if stable_count == lints.len() {
+        output.push_str("    let lints = lints.as_slice();\n");
+    } else {
+        output.push_str("    let lints = if enable_unstable_lints {\n");
+        output.push_str("        lints.as_slice()\n");
+        output.push_str("    } else {\n");
+        let _ = write!(output, "        &lints[..{}]\n    }};\n", stable_count);
+    }
     let _ = writeln!(
         output,
-        "store.register_group(true, \"clippy::{0}\", Some(\"clippy_{0}\"), vec![",
-        group_name
+        "    store.register_group(true, \"clippy::{0}\", Some(\"clippy_{0}\"), lints.into());",
+        group_name,
     );
-    for (module, name, has_version) in details {
-        let _ = writeln!(
-            output,
-            "    {}LintId::of({}::{}),",
-            if has_version { "" } else { "#[cfg(nightly)] " },
-            module,
-            name,
-        );
-    }
-    output.push_str("])\n");
+    output.push_str("}\n");
 
     output
 }
@@ -777,6 +793,21 @@ fn gen_renamed_lints_list(lints: &[RenamedLint]) -> String {
         writeln!(res, "    (\"{}\", \"{}\"),", lint.old_name, lint.new_name).unwrap();
     }
     res.push_str("];\n");
+    res
+}
+
+fn gen_warn_nightly_lints(lints: &[Lint]) -> String {
+    let mut res: String = GENERATED_FILE_COMMENT.into();
+    res.push_str("[\n");
+    for lint in lints.iter().filter(|l| !l.has_version) {
+        let level = match &*lint.group {
+            "correctness" => "D",
+            "suspicious" | "style" | "perf" | "complexity" => "W",
+            _ => continue,
+        };
+        let _ = write!(res, "    \"-{}\",\n    \"clippy::{}\",\n", level, lint.name);
+    }
+    res.push_str("]\n");
     res
 }
 
@@ -1327,11 +1358,15 @@ mod tests {
         ];
         let expected = GENERATED_FILE_COMMENT.to_string()
             + &[
-                "store.register_group(true, \"clippy::group1\", Some(\"clippy_group1\"), vec![",
-                "    LintId::of(module_name::ABC),",
-                "    LintId::of(module_name::INTERNAL),",
-                "    LintId::of(module_name::SHOULD_ASSERT_EQ),",
-                "])",
+                "{",
+                "    let lints: [LintId; 3] = [",
+                "        LintId::of(module_name::ABC),",
+                "        LintId::of(module_name::INTERNAL),",
+                "        LintId::of(module_name::SHOULD_ASSERT_EQ),",
+                "    ];",
+                "    let lints = lints.as_slice();",
+                "    store.register_group(true, \"clippy::group1\", Some(\"clippy_group1\"), lints.into());",
+                "}",
             ]
             .join("\n")
             + "\n";
