@@ -423,11 +423,11 @@
     "id": "boxed_local",
     "id_span": {
       "path": "src/escape.rs",
-      "line": 47
+      "line": 41
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `Box<T>` where an unboxed `T` would\nwork fine.\n\n### Why is this bad?\nThis is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.\n\n### Example\n```rust\nlet x = Box::new(1);\nfoo(*x);\nprintln!(\"{}\", *x);\n```\n\nUse instead:\n```rust\nlet x = 1;\nfoo(x);\nprintln!(\"{}\", x);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `too-large-for-stack`: `u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)\n",
+    "docs": "\n### What it does\nChecks for usage of `Box<T>` where an unboxed `T` would\nwork fine.\n\n### Why is this bad?\nThis is an unnecessary allocation, and bad for\nperformance. It is only necessary to allocate if you wish to move the box\ninto something.\n\n### Example\n```rust\nfn foo(x: Box<u32>) {}\n```\n\nUse instead:\n```rust\nfn foo(x: u32) {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `too-large-for-stack`: `u64`: The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap (defaults to `200`)\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
