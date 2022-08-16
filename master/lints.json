@@ -5580,6 +5580,21 @@
     }
   },
   {
+    "id": "positional_named_format_parameters",
+    "id_span": {
+      "path": "src/write.rs",
+      "line": 277
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nThis lint warns when a named parameter in a format string is used as a positional one.\n\n### Why is this bad?\nIt may be confused for an assignment and obfuscates which parameter is being used.\n\n### Example\n```rust\nprintln!(\"{}\", x = 10);\n```\n\nUse instead:\n```rust\nprintln!(\"{x}\", x = 10);\n```",
+    "version": "1.63.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "possible_missing_comma",
     "id_span": {
       "path": "src/formatting.rs",
@@ -5628,7 +5643,7 @@
     "id": "print_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 164
+      "line": 165
     },
     "group": "style",
     "level": "warn",
@@ -5643,7 +5658,7 @@
     "id": "print_stderr",
     "id_span": {
       "path": "src/write.rs",
-      "line": 117
+      "line": 118
     },
     "group": "restriction",
     "level": "allow",
@@ -5658,7 +5673,7 @@
     "id": "print_stdout",
     "id_span": {
       "path": "src/write.rs",
-      "line": 89
+      "line": 90
     },
     "group": "restriction",
     "level": "allow",
@@ -5673,7 +5688,7 @@
     "id": "print_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 61
+      "line": 62
     },
     "group": "style",
     "level": "warn",
@@ -5688,7 +5703,7 @@
     "id": "println_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 36
+      "line": 37
     },
     "group": "style",
     "level": "warn",
@@ -8178,7 +8193,7 @@
     "id": "use_debug",
     "id_span": {
       "path": "src/write.rs",
-      "line": 137
+      "line": 138
     },
     "group": "restriction",
     "level": "allow",
@@ -8523,7 +8538,7 @@
     "id": "write_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 254
+      "line": 255
     },
     "group": "style",
     "level": "warn",
@@ -8538,7 +8553,7 @@
     "id": "write_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 222
+      "line": 223
     },
     "group": "style",
     "level": "warn",
@@ -8553,7 +8568,7 @@
     "id": "writeln_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 191
+      "line": 192
     },
     "group": "style",
     "level": "warn",
