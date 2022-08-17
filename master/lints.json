@@ -127,7 +127,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nCheck for the usage of `as _` conversion using inferred type.\n\n### Why is this bad?\nThe conversion might include lossy conversion and dangerous cast that might go\nundetected du to the type being inferred.\n\nThe lint is allowed by default as using `_` is less wordy than always specifying the type.\n\n### Example\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as _);\n```\nUse instead:\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as usize);\n```",
+    "docs": "\n### What it does\nCheck for the usage of `as _` conversion using inferred type.\n\n### Why is this bad?\nThe conversion might include lossy conversion and dangerous cast that might go\nundetected due to the type being inferred.\n\nThe lint is allowed by default as using `_` is less wordy than always specifying the type.\n\n### Example\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as _);\n```\nUse instead:\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as usize);\n```",
     "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
