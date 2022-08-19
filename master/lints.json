@@ -3525,6 +3525,21 @@
     }
   },
   {
+    "id": "manual_empty_string_creations",
+    "id_span": {
+      "path": "src/manual_empty_string_creations.rs",
+      "line": 32
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\n\nChecks for usage of `\"\"` to create a `String`, such as `\"\".to_string()`, `\"\".to_owned()`,\n`String::from(\"\")` and others.\n\n### Why is this bad?\n\nDifferent ways of creating an empty string makes your code less standardized, which can\nbe confusing.\n\n### Example\n```rust\nlet a = \"\".to_string();\nlet b: String = \"\".into();\n```\nUse instead:\n```rust\nlet a = String::new();\nlet b = String::new();\n```",
+    "version": "1.65.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
