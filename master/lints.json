@@ -2298,7 +2298,7 @@
     "id": "format_in_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 35
+      "line": 36
     },
     "group": "perf",
     "level": "warn",
@@ -7143,7 +7143,7 @@
     "id": "to_string_in_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 61
+      "line": 62
     },
     "group": "perf",
     "level": "warn",
