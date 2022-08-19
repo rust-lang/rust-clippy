@@ -5283,10 +5283,10 @@
     "id": "only_used_in_recursion",
     "id_span": {
       "path": "src/only_used_in_recursion.rs",
-      "line": 91
+      "line": 82
     },
-    "group": "nursery",
-    "level": "allow",
+    "group": "complexity",
+    "level": "warn",
     "docs": "\n### What it does\nChecks for arguments that are only used in recursion with no side-effects.\n\n### Why is this bad?\nIt could contain a useless calculation and can make function simpler.\n\nThe arguments can be involved in calculations and assignments but as long as\nthe calculations have no side-effects (function calls or mutating dereference)\nand the assigned variables are also only in recursion, it is useless.\n\n### Known problems\nToo many code paths in the linting code are currently untested and prone to produce false\npositives or are prone to have performance implications.\n\nIn some cases, this would not catch all useless arguments.\n\n```rust\nfn foo(a: usize, b: usize) -> usize {\n    let f = |x| x + 1;\n\n    if a == 0 {\n        1\n    } else {\n        foo(a - 1, f(b))\n    }\n}\n```\n\nFor example, the argument `b` is only used in recursion, but the lint would not catch it.\n\nList of some examples that can not be caught:\n- binary operation of non-primitive types\n- closure usage\n- some `break` relative operations\n- struct pattern binding\n\nAlso, when you recurse the function name with path segments, it is not possible to detect.\n\n### Example\n```rust\nfn f(a: usize, b: usize) -> usize {\n    if a == 0 {\n        1\n    } else {\n        f(a - 1, b + 1)\n    }\n}\n```\nUse instead:\n```rust\nfn f(a: usize) -> usize {\n    if a == 0 {\n        1\n    } else {\n        f(a - 1)\n    }\n}\n```",
     "version": "1.61.0",
     "applicability": {
