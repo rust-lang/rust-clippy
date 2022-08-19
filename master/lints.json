@@ -8085,6 +8085,21 @@
     }
   },
   {
+    "id": "unused_peekable",
+    "id_span": {
+      "path": "src/unused_peekable.rs",
+      "line": 40
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for the creation of a `peekable` iterator that is never `.peek()`ed\n\n### Why is this bad?\nCreating a peekable iterator without using any of its methods is likely a mistake,\nor just a leftover after a refactor.\n\n### Example\n```rust\nlet collection = vec![1, 2, 3];\nlet iter = collection.iter().peekable();\n\nfor item in iter {\n    // ...\n}\n```\n\nUse instead:\n```rust\nlet collection = vec![1, 2, 3];\nlet iter = collection.iter();\n\nfor item in iter {\n    // ...\n}\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "unused_rounding",
     "id_span": {
       "path": "src/unused_rounding.rs",
