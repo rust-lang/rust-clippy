@@ -423,7 +423,7 @@
     "id": "boxed_local",
     "id_span": {
       "path": "src/escape.rs",
-      "line": 41
+      "line": 40
     },
     "group": "perf",
     "level": "warn",
