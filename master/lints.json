@@ -4515,6 +4515,21 @@
     }
   },
   {
+    "id": "multi_assignments",
+    "id_span": {
+      "path": "src/multi_assignments.rs",
+      "line": 27
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for nested assignments.\n\n### Why is this bad?\nWhile this is in most cases already a type mismatch,\nthe result of an assignment being `()` can throw off people coming from languages like python or C,\nwhere such assignments return a copy of the assigned value.\n\n### Example\n```rust\na = b = 42;\n```\nUse instead:\n```rust\nb = 42;\na = b;\n```",
+    "version": "1.65.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "multiple_crate_versions",
     "id_span": {
       "path": "src/cargo/mod.rs",
