@@ -123,7 +123,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 534
+      "line": 535
     },
     "group": "restriction",
     "level": "allow",
@@ -348,7 +348,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 567
+      "line": 568
     },
     "group": "pedantic",
     "level": "allow",
@@ -528,7 +528,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 506
+      "line": 507
     },
     "group": "suspicious",
     "level": "warn",
@@ -543,7 +543,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 483
+      "line": 484
     },
     "group": "suspicious",
     "level": "warn",
@@ -558,7 +558,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 420
+      "line": 421
     },
     "group": "suspicious",
     "level": "warn",
@@ -573,7 +573,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 151
+      "line": 152
     },
     "group": "pedantic",
     "level": "allow",
@@ -588,7 +588,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 94
+      "line": 95
     },
     "group": "pedantic",
     "level": "allow",
@@ -603,7 +603,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 118
+      "line": 119
     },
     "group": "pedantic",
     "level": "allow",
@@ -618,7 +618,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 49
+      "line": 50
     },
     "group": "pedantic",
     "level": "allow",
@@ -633,7 +633,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 205
+      "line": 206
     },
     "group": "pedantic",
     "level": "allow",
@@ -648,7 +648,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 344
+      "line": 345
     },
     "group": "correctness",
     "level": "deny",
@@ -663,7 +663,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 71
+      "line": 72
     },
     "group": "pedantic",
     "level": "allow",
@@ -678,7 +678,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 465
+      "line": 466
     },
     "group": "correctness",
     "level": "deny",
@@ -690,10 +690,25 @@
     }
   },
   {
+    "id": "cast_slice_from_raw_parts",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 594
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for a raw slice being cast to a slice pointer\n\n### Why is this bad?\nThis can result in multiple `&mut` references to the same location when only a pointer is\nrequired.\n`ptr::slice_from_raw_parts` is a safe alternative that doesn't require\nthe same [safety requirements] to be upheld.\n\n### Example\n```rust\nlet _: *const [u8] = std::slice::from_raw_parts(ptr, len) as *const _;\nlet _: *mut [u8] = std::slice::from_raw_parts_mut(ptr, len) as *mut _;\n```\nUse instead:\n```rust\nlet _: *const [u8] = std::ptr::slice_from_raw_parts(ptr, len);\nlet _: *mut [u8] = std::ptr::slice_from_raw_parts_mut(ptr, len);\n```\n[safety requirements]: https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html#safety",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 372
+      "line": 373
     },
     "group": "complexity",
     "level": "warn",
@@ -2193,7 +2208,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 234
+      "line": 235
     },
     "group": "style",
     "level": "warn",
@@ -2208,7 +2223,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 309
+      "line": 310
     },
     "group": "restriction",
     "level": "allow",
@@ -2223,7 +2238,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 267
+      "line": 268
     },
     "group": "style",
     "level": "warn",
@@ -5778,7 +5793,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 401
+      "line": 402
     },
     "group": "pedantic",
     "level": "allow",
@@ -7698,7 +7713,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 177
+      "line": 178
     },
     "group": "complexity",
     "level": "warn",
