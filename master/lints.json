@@ -1818,7 +1818,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 136
+      "line": 139
     },
     "group": "complexity",
     "level": "warn",
@@ -1848,7 +1848,7 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 56
+      "line": 59
     },
     "group": "pedantic",
     "level": "allow",
@@ -4758,7 +4758,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 85
+      "line": 88
     },
     "group": "style",
     "level": "warn",
@@ -6198,7 +6198,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 113
+      "line": 116
     },
     "group": "pedantic",
     "level": "allow",
