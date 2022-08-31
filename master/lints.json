@@ -7308,7 +7308,7 @@
     "id": "trait_duplication_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 83
+      "line": 84
     },
     "group": "nursery",
     "level": "allow",
@@ -7563,7 +7563,7 @@
     "id": "type_repetition_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 37
+      "line": 38
     },
     "group": "nursery",
     "level": "allow",
