@@ -345,6 +345,21 @@
     }
   },
   {
+    "id": "bool_to_int_with_if",
+    "id_span": {
+      "path": "src/bool_to_int_with_if.rs",
+      "line": 40
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nInstead of using an if statement to convert a bool to an int,\nthis lint suggests using a `from()` function or an `as` coercion.\n\n### Why is this bad?\nCoercion or `from()` is idiomatic way to convert bool to a number.\nBoth methods are guaranteed to return 1 for true, and 0 for false.\n\nSee https://doc.rust-lang.org/std/primitive.bool.html#impl-From%3Cbool%3E\n\n### Example\n```rust\nif condition {\n    1_i64\n} else {\n    0\n};\n```\nUse instead:\n```rust\ni64::from(condition);\n```\nor\n```rust\ncondition as i64;\n```",
+    "version": "1.65.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
