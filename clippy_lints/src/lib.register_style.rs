@@ -71,6 +71,7 @@ store.register_group(true, "clippy::style", Some("clippy_style"), vec![
     LintId::of(methods::MAP_CLONE),
     LintId::of(methods::MAP_COLLECT_RESULT_UNIT),
     LintId::of(methods::MUT_MUTEX_LOCK),
+    LintId::of(methods::MUT_REFCELL_BORROW),
     LintId::of(methods::NEW_RET_NO_SELF),
     LintId::of(methods::OBFUSCATED_IF_ELSE),
     LintId::of(methods::OK_EXPECT),

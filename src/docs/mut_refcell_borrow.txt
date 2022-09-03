@@ -1,0 +1,40 @@
+### What it does
+Checks for `&mut std::cell::RefCell` method calls which perform
+runtime-checks that the compiler can statically guarantee
+
+### Why is this bad?
+Methods on `RefCell` explicitly or implicitly perform a runtime-check
+to guarantee the borrowing rules. If called on a `&mut RefCell` we
+can statically guarantee that the borrowing rules are upheld.
+
+### Example
+```
+use std::cell::RefCell;
+
+fn foo(x: &mut RefCell<i32>) -> i32 {
+    // This implicitly panics if the value is already borrowed. But it
+    // can't be borrowed because we have an exclusive reference to it
+    x.replace(42)
+}
+
+fn bar(x: &mut RefCell<i32>) {
+    // This check can never fail
+    if let Ok(mut value) = x.try_borrow_mut() {
+        *value = 42;
+    }
+}
+```
+Use instead:
+```
+use std::cell::RefCell;
+
+fn foo(x: &mut RefCell<i32>) -> i32 {
+    // No need for an implicit check
+    std::mem::replace(x.get_mut(), 42)
+}
+
+fn bar(x: &mut RefCell<i32>) {
+    // No need for an error path
+    *x.get_mut() = 42;
+}
+```

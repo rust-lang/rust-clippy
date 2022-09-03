@@ -1,0 +1,55 @@
+error: calling `&mut RefCell::replace()` unnecessarily performs a runtime-check that can never fail
+  --> $DIR/mut_refcell_borrow.rs:7:7
+   |
+LL |     x.replace(0);
+   |       ^^^^^^^
+   |
+   = note: `-D clippy::mut-refcell-borrow` implied by `-D warnings`
+   = help: use `.get_mut()` to get a mutable reference to the value, and replace the value using `std::mem::replace()` or direct assignment
+
+error: calling `&mut RefCell::replace_with()` unnecessarily performs a runtime-check that can never fail
+  --> $DIR/mut_refcell_borrow.rs:11:7
+   |
+LL |     x.replace_with(|&mut old| old + 1);
+   |       ^^^^^^^^^^^^
+   |
+   = help: use `.get_mut()` to get a mutable reference to the value, and replace the value using `std::mem::replace()` or direct assignment
+
+error: calling `&mut RefCell::borrow()` unnecessarily performs a runtime-check that can never fail
+  --> $DIR/mut_refcell_borrow.rs:15:21
+   |
+LL |     let _: i32 = *x.borrow();
+   |                     ^^^^^^ help: change this to: `get_mut`
+
+error: calling `&mut RefCell::try_borrow()` unnecessarily performs a runtime-check that can never fail
+  --> $DIR/mut_refcell_borrow.rs:19:21
+   |
+LL |     let _: i32 = *x.try_borrow().unwrap();
+   |                     ^^^^^^^^^^
+   |
+   = help: use `.get_mut()` instead of `.try_borrow()` to get a reference to the value; remove the error-handling
+
+error: calling `&mut RefCell::borrow_mut()` unnecessarily performs a runtime-check that can never fail
+  --> $DIR/mut_refcell_borrow.rs:23:8
+   |
+LL |     *x.borrow_mut() += 1;
+   |        ^^^^^^^^^^ help: change this to: `get_mut`
+
+error: calling `&mut RefCell::try_borrow_mut()` unnecessarily performs a runtime-check that can never fail
+  --> $DIR/mut_refcell_borrow.rs:27:8
+   |
+LL |     *x.try_borrow_mut().unwrap() += 1;
+   |        ^^^^^^^^^^^^^^
+   |
+   = help: use `.get_mut()` instead of `.try_borrow_mut()` to get a mutable reference to the value; remove the error-handling
+
+error: calling `&mut RefCell::take()` unnecessarily performs a runtime-check that can never fail
+  --> $DIR/mut_refcell_borrow.rs:31:20
+   |
+LL |     let _: i32 = x.take();
+   |                    ^^^^
+   |
+   = help: use `.get_mut()` to get a mutable reference to the value, and `std::mem::take()` to get ownership via that reference
+
+error: aborting due to 7 previous errors
+

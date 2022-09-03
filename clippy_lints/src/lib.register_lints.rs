@@ -334,6 +334,7 @@ store.register_lints(&[
     methods::MAP_IDENTITY,
     methods::MAP_UNWRAP_OR,
     methods::MUT_MUTEX_LOCK,
+    methods::MUT_REFCELL_BORROW,
     methods::NAIVE_BYTECOUNT,
     methods::NEEDLESS_OPTION_AS_DEREF,
     methods::NEEDLESS_OPTION_TAKE,

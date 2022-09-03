@@ -122,6 +122,7 @@ pub const PTR_WRITE_VOLATILE: [&str; 3] = ["core", "ptr", "write_volatile"];
 pub const PUSH_STR: [&str; 4] = ["alloc", "string", "String", "push_str"];
 pub const RANGE_ARGUMENT_TRAIT: [&str; 3] = ["core", "ops", "RangeBounds"];
 pub const RC_PTR_EQ: [&str; 4] = ["alloc", "rc", "Rc", "ptr_eq"];
+pub const REFCELL: [&str; 3] = ["core", "cell", "RefCell"];
 pub const REFCELL_REF: [&str; 3] = ["core", "cell", "Ref"];
 pub const REFCELL_REFMUT: [&str; 3] = ["core", "cell", "RefMut"];
 #[expect(clippy::invalid_paths)] // internal lints do not know about all external crates

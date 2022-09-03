@@ -53,6 +53,7 @@ mod map_flatten;
 mod map_identity;
 mod map_unwrap_or;
 mod mut_mutex_lock;
+mod mut_refcell_borrow;
 mod needless_option_as_deref;
 mod needless_option_take;
 mod no_effect_replace;
@@ -2767,6 +2768,53 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `&mut std::cell::RefCell` method calls which perform
+    /// runtime-checks that the compiler can statically guarantee
+    ///
+    /// ### Why is this bad?
+    /// Methods on `RefCell` explicitly or implicitly perform a runtime-check
+    /// to guarantee the borrowing rules. If called on a `&mut RefCell` we
+    /// can statically guarantee that the borrowing rules are upheld.
+    ///
+    /// ### Example
+    /// ```
+    /// use std::cell::RefCell;
+    ///
+    /// fn foo(x: &mut RefCell<i32>) -> i32 {
+    ///     // This implicitly panics if the value is already borrowed. But it
+    ///     // can't be borrowed because we have an exclusive reference to it
+    ///     x.replace(42)
+    /// }
+    ///
+    /// fn bar(x: &mut RefCell<i32>) {
+    ///     // This check can never fail
+    ///     if let Ok(mut value) = x.try_borrow_mut() {
+    ///         *value = 42;
+    ///     }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```
+    /// use std::cell::RefCell;
+    ///
+    /// fn foo(x: &mut RefCell<i32>) -> i32 {
+    ///     // No need for an implicit check
+    ///     std::mem::replace(x.get_mut(), 42)
+    /// }
+    ///
+    /// fn bar(x: &mut RefCell<i32>) {
+    ///     // No need for an error path
+    ///     *x.get_mut() = 42;
+    /// }
+    /// ```
+    #[clippy::version = "1.64.0"]
+    pub MUT_REFCELL_BORROW,
+    style,
+    "method call to `&mut RefCell` performs unnecessary runtime-check"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for duplicate open options as well as combinations
     /// that make no sense.
     ///
@@ -3149,6 +3197,7 @@ impl_lint_pass!(Methods => [
     MAP_CLONE,
     MAP_ERR_IGNORE,
     MUT_MUTEX_LOCK,
+    MUT_REFCELL_BORROW,
     NONSENSICAL_OPEN_OPTIONS,
     PATH_BUF_PUSH_OVERWRITE,
     RANGE_ZIP_WITH_LEN,
@@ -3492,6 +3541,8 @@ impl Methods {
                 ("lock", []) => {
                     mut_mutex_lock::check(cx, expr, recv, span);
                 },
+                (name @ ("replace" | "replace_with"), [arg]) => mut_refcell_borrow::check(cx, expr, recv, span, name, Some(arg)),
+                (name @ ("borrow" | "try_borrow" | "borrow_mut" | "try_borrow_mut"), []) => mut_refcell_borrow::check(cx, expr, recv, span, name, None),
                 (name @ ("map" | "map_err"), [m_arg]) => {
                     if name == "map" {
                         map_clone::check(cx, expr, recv, m_arg, self.msrv);
@@ -3597,7 +3648,10 @@ impl Methods {
                         }
                     }
                 },
-                ("take", []) => needless_option_take::check(cx, expr, recv),
+                ("take", []) => {
+                    needless_option_take::check(cx, expr, recv);
+                    mut_refcell_borrow::check(cx, expr, recv, span, "take", None);
+                },
                 ("then", [arg]) => {
                     if !meets_msrv(self.msrv, msrvs::BOOL_THEN_SOME) {
                         return;

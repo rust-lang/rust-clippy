@@ -326,6 +326,7 @@ docs! {
     "mut_mut",
     "mut_mutex_lock",
     "mut_range_bound",
+    "mut_refcell_borrow",
     "mutable_key_type",
     "mutex_atomic",
     "mutex_integer",
