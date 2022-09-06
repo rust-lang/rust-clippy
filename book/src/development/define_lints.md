@@ -7,7 +7,7 @@ lint involves some boilerplate code.
 
 ## Name the Lint
 
-A wise software engineer once said:
+A wise software engineer Phil Karlton once said:
 > There are only two hard things in Computer Science: cache invalidation and naming things.
 
 Naming a lint is no exception.
