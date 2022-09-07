@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_lazy_eval;
 use clippy_utils::source::{snippet, snippet_with_macro_callsite};
 use clippy_utils::ty::{implements_trait, match_type};
-use clippy_utils::{contains_return, is_trait_item, last_path_segment, paths};
+use clippy_utils::{consts, contains_return, is_trait_item, last_path_segment, paths};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -146,6 +146,36 @@ pub(super) fn check<'tcx>(
                     Applicability::HasPlaceholders,
                 );
             }
+        }
+    }
+
+    if name == "unwrap_or" && args.len() > 1 {
+        let arg_const = consts::constant_simple(cx, cx.typeck_results(), &args[1]);
+        let arg_ty = cx.typeck_results().expr_ty(expr).to_string();
+        let default_for_ty = {
+            if arg_ty.starts_with('i') | arg_ty.starts_with('u') {
+                Some(consts::Constant::Int(0))
+            } else if arg_ty == "f32" {
+                Some(consts::Constant::F32(0_f32))
+            } else if arg_ty == "f64" {
+                Some(consts::Constant::F64(0_f64))
+            } else if arg_ty == "bool" {
+                Some(consts::Constant::Bool(false))
+            } else {
+                None
+            }
+        };
+
+        if arg_const.is_some() && default_for_ty == arg_const {
+            span_lint_and_sugg(
+                cx,
+                OR_FUN_CALL,
+                expr.span.with_lo(method_span.lo()),
+                "use of `unwrap_or(..)` to construct default value",
+                "try this",
+                "unwrap_or_default()".to_string(),
+                Applicability::MachineApplicable,
+            );
         }
     }
 

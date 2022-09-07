@@ -36,7 +36,7 @@ fn option_methods() {
         .map(|x| Some(x + 1))
         .unwrap_or(None);
     // macro case
-    let _ = opt_map!(opt, |x| x + 1).unwrap_or(0); // should not lint
+    let _ = opt_map!(opt, |x| x + 1).unwrap_or(0);
 
     // Should not lint if not copyable
     let id: String = "identifier".to_string();

@@ -1,3 +1,11 @@
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/min_rust_version_attr.rs:127:10
+   |
+LL |         .unwrap_or(0);
+   |          ^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+   |
+   = note: `-D clippy::or-fun-call` implied by `-D warnings`
+
 error: stripping a prefix manually
   --> $DIR/min_rust_version_attr.rs:204:24
    |
@@ -33,5 +41,5 @@ LL ~         if let Some(<stripped>) = s.strip_prefix("hello, ") {
 LL ~             assert_eq!(<stripped>.to_uppercase(), "WORLD!");
    |
 
-error: aborting due to 2 previous errors
+error: aborting due to 3 previous errors
 

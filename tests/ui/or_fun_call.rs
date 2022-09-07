@@ -105,6 +105,18 @@ fn or_fun_call() {
     // don't lint index vec
     let vec = vec![1];
     let _ = Some(1).unwrap_or(vec[1]);
+
+    let should_default = None::<bool>;
+    should_default.unwrap_or(false);
+
+    let should_default = None::<usize>;
+    should_default.unwrap_or(0);
+
+    let should_default = None::<isize>;
+    should_default.unwrap_or(0);
+
+    let should_default = None::<f32>;
+    should_default.unwrap_or(0_f32);
 }
 
 struct Foo(u8);

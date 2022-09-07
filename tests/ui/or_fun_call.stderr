@@ -108,38 +108,56 @@ error: use of `unwrap_or` followed by a function call
 LL |     let _ = Some(1).unwrap_or(map[&1]);
    |                     ^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_else(|| map[&1])`
 
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/or_fun_call.rs:110:20
+   |
+LL |     should_default.unwrap_or(false);
+   |                    ^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/or_fun_call.rs:113:20
+   |
+LL |     should_default.unwrap_or(0);
+   |                    ^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/or_fun_call.rs:116:20
+   |
+LL |     should_default.unwrap_or(0);
+   |                    ^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/or_fun_call.rs:119:20
+   |
+LL |     should_default.unwrap_or(0_f32);
+   |                    ^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+
 error: use of `or` followed by a function call
-  --> $DIR/or_fun_call.rs:128:35
+  --> $DIR/or_fun_call.rs:140:35
    |
 LL |     let _ = Some("a".to_string()).or(Some("b".to_string()));
    |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `or_else(|| Some("b".to_string()))`
 
 error: use of `unwrap_or` followed by a function call
-  --> $DIR/or_fun_call.rs:167:14
+  --> $DIR/or_fun_call.rs:179:14
    |
 LL |         None.unwrap_or(ptr_to_ref(s));
    |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_else(|| ptr_to_ref(s))`
 
 error: use of `unwrap_or` followed by a function call
-  --> $DIR/or_fun_call.rs:173:14
+  --> $DIR/or_fun_call.rs:185:14
    |
 LL |         None.unwrap_or(unsafe { ptr_to_ref(s) });
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_else(|| unsafe { ptr_to_ref(s) })`
 
 error: use of `unwrap_or` followed by a function call
-  --> $DIR/or_fun_call.rs:175:14
+  --> $DIR/or_fun_call.rs:187:14
    |
 LL |         None.unwrap_or( unsafe { ptr_to_ref(s) }    );
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_else(|| unsafe { ptr_to_ref(s) })`
 
 error: use of `unwrap_or` followed by a call to `new`
-  --> $DIR/or_fun_call.rs:189:14
-   |
-LL |             .unwrap_or(String::new());
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
-
-error: use of `unwrap_or` followed by a call to `new`
-  --> $DIR/or_fun_call.rs:202:14
+  --> $DIR/or_fun_call.rs:201:14
    |
 LL |             .unwrap_or(String::new());
    |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
@@ -151,10 +169,16 @@ LL |             .unwrap_or(String::new());
    |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
 
 error: use of `unwrap_or` followed by a call to `new`
-  --> $DIR/or_fun_call.rs:225:10
+  --> $DIR/or_fun_call.rs:226:14
+   |
+LL |             .unwrap_or(String::new());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+
+error: use of `unwrap_or` followed by a call to `new`
+  --> $DIR/or_fun_call.rs:237:10
    |
 LL |         .unwrap_or(String::new());
    |          ^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
 
-error: aborting due to 26 previous errors
+error: aborting due to 30 previous errors
 

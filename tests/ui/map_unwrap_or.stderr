@@ -14,6 +14,14 @@ LL -     let _ = opt.map(|x| x + 1)
 LL +     let _ = opt.map_or(0, |x| x + 1);
    |
 
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/map_unwrap_or.rs:18:10
+   |
+LL |         .unwrap_or(0);
+   |          ^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+   |
+   = note: `-D clippy::or-fun-call` implied by `-D warnings`
+
 error: called `map(<f>).unwrap_or(<a>)` on an `Option` value. This can be done more directly by calling `map_or(<a>, <f>)` instead
   --> $DIR/map_unwrap_or.rs:20:13
    |
@@ -32,6 +40,12 @@ LL |     }
 LL ~     );
    |
 
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/map_unwrap_or.rs:23:7
+   |
+LL |     ).unwrap_or(0);
+   |       ^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
+
 error: called `map(<f>).unwrap_or(<a>)` on an `Option` value. This can be done more directly by calling `map_or(<a>, <f>)` instead
   --> $DIR/map_unwrap_or.rs:24:13
    |
@@ -48,6 +62,15 @@ LL ~     let _ = opt.map_or({
 LL +             0
 LL ~         }, |x| x + 1);
    |
+
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/map_unwrap_or.rs:25:10
+   |
+LL |           .unwrap_or({
+   |  __________^
+LL | |             0
+LL | |         });
+   | |__________^ help: try this: `unwrap_or_default()`
 
 error: called `map(<f>).unwrap_or(None)` on an `Option` value. This can be done more directly by calling `and_then(<f>)` instead
   --> $DIR/map_unwrap_or.rs:29:13
@@ -93,6 +116,12 @@ help: use `and_then(<f>)` instead
 LL -         .map(|x| Some(x + 1))
 LL +         .and_then(|x| Some(x + 1));
    |
+
+error: use of `unwrap_or(..)` to construct default value
+  --> $DIR/map_unwrap_or.rs:39:38
+   |
+LL |     let _ = opt_map!(opt, |x| x + 1).unwrap_or(0);
+   |                                      ^^^^^^^^^^^^ help: try this: `unwrap_or_default()`
 
 error: called `map(<f>).unwrap_or(<a>)` on an `Option` value. This can be done more directly by calling `map_or(<a>, <f>)` instead
   --> $DIR/map_unwrap_or.rs:46:13
@@ -146,5 +175,5 @@ LL | |             0
 LL | |         });
    | |__________^
 
-error: aborting due to 11 previous errors
+error: aborting due to 15 previous errors
 
