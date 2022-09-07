@@ -1,0 +1,21 @@
+### What it does
+
+Checks for float operations not required to be reproducible operations (Clause 5) by
+the IEEE 754-2008 standard.
+
+### Why is this bad?
+
+`std` implementations of math functions are system-dependent, and may also change between
+versions. This may lead to slightly different results when the same calculation is
+carried out on different machines.
+
+For some applications like game networking, it can be desirable to avoid accidentally
+performing non-reproducible operations, when the developer has opted into using a specific
+implementation such as the [`libm`][libm] crate instead.
+
+### Example
+```
+1.0_f32.sin();
+```
+
+[libm]: https://crates.io/crates/libm

@@ -340,6 +340,7 @@ store.register_lints(&[
     methods::NEEDLESS_SPLITN,
     methods::NEW_RET_NO_SELF,
     methods::NONSENSICAL_OPEN_OPTIONS,
+    methods::NON_REPRODUCIBLE_FLOPS,
     methods::NO_EFFECT_REPLACE,
     methods::OBFUSCATED_IF_ELSE,
     methods::OK_EXPECT,

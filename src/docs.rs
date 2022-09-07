@@ -362,6 +362,7 @@ docs! {
     "no_effect_underscore_binding",
     "non_ascii_literal",
     "non_octal_unix_permissions",
+    "non_reproducible_flops",
     "non_send_fields_in_send_ty",
     "nonminimal_bool",
     "nonsensical_open_options",

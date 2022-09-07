@@ -56,6 +56,7 @@ mod mut_mutex_lock;
 mod needless_option_as_deref;
 mod needless_option_take;
 mod no_effect_replace;
+mod non_reproducible_flops;
 mod obfuscated_if_else;
 mod ok_expect;
 mod open_options;
@@ -3036,6 +3037,34 @@ declare_clippy_lint! {
     "use of `File::read_to_end` or `File::read_to_string`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for float operations not required to be reproducible operations (Clause 5) by
+    /// the IEEE 754-2008 standard.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// `std` implementations of math functions are system-dependent, and may also change between
+    /// versions. This may lead to slightly different results when the same calculation is
+    /// carried out on different machines.
+    ///
+    /// For some applications like game networking, it can be desirable to avoid accidentally
+    /// performing non-reproducible operations, when the developer has opted into using a specific
+    /// implementation such as the [`libm`][libm] crate instead.
+    ///
+    /// ### Example
+    /// ```
+    /// 1.0_f32.sin();
+    /// ```
+    ///
+    /// [libm]: https://crates.io/crates/libm
+    #[clippy::version = "1.65.0"]
+    pub NON_REPRODUCIBLE_FLOPS,
+    restriction,
+    "use of non-reproducible float operations"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Option<RustcVersion>,
@@ -3159,6 +3188,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_SORT_BY,
     VEC_RESIZE_TO_ZERO,
     VERBOSE_FILE_READS,
+    NON_REPRODUCIBLE_FLOPS,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -3179,6 +3209,8 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
         }
 
         self.check_methods(cx, expr);
+
+        non_reproducible_flops::check(cx, expr);
 
         match expr.kind {
             hir::ExprKind::Call(func, args) => {

@@ -1,0 +1,28 @@
+error: non-reproducible float operation detected
+  --> $DIR/non_reproducible_flops.rs:8:13
+   |
+LL |     1.0_f32.sin();
+   |             ^^^
+   |
+   = note: `-D clippy::non-reproducible-flops` implied by `-D warnings`
+
+error: non-reproducible float operation detected
+  --> $DIR/non_reproducible_flops.rs:9:5
+   |
+LL |     f32::sin(1.0);
+   |     ^^^^^^^^
+
+error: non-reproducible float operation detected
+  --> $DIR/non_reproducible_flops.rs:13:29
+   |
+LL |     f32::clamp(1.0, 2.0_f32.hypot(3.0), f32::default());
+   |                             ^^^^^
+
+error: non-reproducible float operation detected
+  --> $DIR/non_reproducible_flops.rs:17:45
+   |
+LL |     1.0_f64.abs().mul_add(2.0, 4.0).floor().ln();
+   |                                             ^^
+
+error: aborting due to 4 previous errors
+

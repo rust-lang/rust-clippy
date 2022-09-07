@@ -39,6 +39,7 @@ store.register_group(true, "clippy::restriction", Some("clippy_restriction"), ve
     LintId::of(methods::FILETYPE_IS_FILE),
     LintId::of(methods::GET_UNWRAP),
     LintId::of(methods::MAP_ERR_IGNORE),
+    LintId::of(methods::NON_REPRODUCIBLE_FLOPS),
     LintId::of(methods::UNWRAP_USED),
     LintId::of(methods::VERBOSE_FILE_READS),
     LintId::of(misc_early::SEPARATED_LITERAL_SUFFIX),
