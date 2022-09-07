@@ -78,7 +78,7 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
                         "let {} = {};\n{}let {} = {};",
                         snippet_with_applicability(cx, bind_names, "..", &mut applicability),
                         snippet_with_applicability(cx, matched_vars, "..", &mut applicability),
-                        " ".repeat(indent_of(cx, expr.span).unwrap_or(0)),
+                        " ".repeat(indent_of(cx, expr.span).unwrap_or_default()),
                         snippet_with_applicability(cx, pat_span, "..", &mut applicability),
                         snippet_body
                     ),
@@ -108,7 +108,7 @@ pub(crate) fn check<'a>(cx: &LateContext<'a>, ex: &Expr<'a>, arms: &[Arm<'_>], e
         },
         PatKind::Wild => {
             if ex.can_have_side_effects() {
-                let indent = " ".repeat(indent_of(cx, expr.span).unwrap_or(0));
+                let indent = " ".repeat(indent_of(cx, expr.span).unwrap_or_default());
                 let sugg = format!(
                     "{};\n{}{}",
                     snippet_with_applicability(cx, ex.span, "..", &mut applicability),
@@ -173,14 +173,14 @@ fn sugg_with_curlies<'a>(
     applicability: &mut Applicability,
     assignment: Option<Span>,
 ) -> String {
-    let mut indent = " ".repeat(indent_of(cx, ex.span).unwrap_or(0));
+    let mut indent = " ".repeat(indent_of(cx, ex.span).unwrap_or_default());
 
     let (mut cbrace_start, mut cbrace_end) = (String::new(), String::new());
     if let Some(parent_expr) = get_parent_expr(cx, match_expr) {
         if let ExprKind::Closure { .. } = parent_expr.kind {
             cbrace_end = format!("\n{}}}", indent);
             // Fix body indent due to the closure
-            indent = " ".repeat(indent_of(cx, bind_names).unwrap_or(0));
+            indent = " ".repeat(indent_of(cx, bind_names).unwrap_or_default());
             cbrace_start = format!("{{\n{}", indent);
         }
     }
@@ -192,7 +192,7 @@ fn sugg_with_curlies<'a>(
         if let ExprKind::Match(..) = arm.body.kind {
             cbrace_end = format!("\n{}}}", indent);
             // Fix body indent due to the match
-            indent = " ".repeat(indent_of(cx, bind_names).unwrap_or(0));
+            indent = " ".repeat(indent_of(cx, bind_names).unwrap_or_default());
             cbrace_start = format!("{{\n{}", indent);
         }
     }

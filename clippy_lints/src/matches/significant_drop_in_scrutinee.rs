@@ -47,7 +47,7 @@ fn set_diagnostic<'tcx>(diag: &mut Diagnostic, cx: &LateContext<'tcx>, expr: &'t
     }
 
     let original = snippet(cx, found.found_span, "..");
-    let trailing_indent = " ".repeat(indent_of(cx, found.found_span).unwrap_or(0));
+    let trailing_indent = " ".repeat(indent_of(cx, found.found_span).unwrap_or_default());
 
     let replacement = if found.lint_suggestion == LintSuggestion::MoveAndDerefToCopy {
         format!("let value = *{};\n{}", original, trailing_indent)

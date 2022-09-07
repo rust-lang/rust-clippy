@@ -77,7 +77,7 @@ pub(super) fn check<'tcx>(
             let mut block_str = snippet_with_applicability(cx, block.span, "..", &mut applicability).into_owned();
             block_str.remove(0);
             block_str.pop();
-            let indent = " ".repeat(indent_of(cx, block.stmts[0].span).unwrap_or(0));
+            let indent = " ".repeat(indent_of(cx, block.stmts[0].span).unwrap_or_default());
 
             // Reference iterator from `&(mut) []` or `[].iter(_mut)()`.
             if !prefix.is_empty() && (

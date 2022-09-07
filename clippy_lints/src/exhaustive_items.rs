@@ -90,7 +90,7 @@ impl LateLintPass<'_> for ExhaustiveItems {
                     (EXHAUSTIVE_ENUMS, "exported enums should not be exhaustive")
                 };
                 let suggestion_span = item.span.shrink_to_lo();
-                let indent = " ".repeat(indent_of(cx, item.span).unwrap_or(0));
+                let indent = " ".repeat(indent_of(cx, item.span).unwrap_or_default());
                 span_lint_and_then(
                     cx,
                     lint,

@@ -579,7 +579,10 @@ fn check_ptr_arg_usage<'tcx>(cx: &LateContext<'tcx>, body: &'tcx Body<'_>, args:
                 },
                 Some((Node::Expr(e), child_id)) => match e.kind {
                     ExprKind::Call(f, expr_args) => {
-                        let i = expr_args.iter().position(|arg| arg.hir_id == child_id).unwrap_or(0);
+                        let i = expr_args
+                            .iter()
+                            .position(|arg| arg.hir_id == child_id)
+                            .unwrap_or_default();
                         if expr_sig(self.cx, f).and_then(|sig| sig.input(i)).map_or(true, |ty| {
                             match *ty.skip_binder().peel_refs().kind() {
                                 ty::Param(_) => true,
@@ -592,7 +595,10 @@ fn check_ptr_arg_usage<'tcx>(cx: &LateContext<'tcx>, body: &'tcx Body<'_>, args:
                         }
                     },
                     ExprKind::MethodCall(name, expr_args @ [self_arg, ..], _) => {
-                        let i = expr_args.iter().position(|arg| arg.hir_id == child_id).unwrap_or(0);
+                        let i = expr_args
+                            .iter()
+                            .position(|arg| arg.hir_id == child_id)
+                            .unwrap_or_default();
                         if i == 0 {
                             // Check if the method can be renamed.
                             let name = name.ident.as_str();

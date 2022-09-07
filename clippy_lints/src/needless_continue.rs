@@ -320,7 +320,7 @@ fn suggestion_snippet_for_continue_inside_if<'a>(cx: &EarlyContext<'_>, data: &'
 
     let else_code = snippet_block(cx, data.else_expr.span, "..", Some(data.if_expr.span));
 
-    let indent_if = indent_of(cx, data.if_expr.span).unwrap_or(0);
+    let indent_if = indent_of(cx, data.if_expr.span).unwrap_or_default();
     format!(
         "{indent}if {} {}\n{indent}{}",
         cond_code,
@@ -342,7 +342,7 @@ fn suggestion_snippet_for_continue_inside_else<'a>(cx: &EarlyContext<'_>, data: 
     // `then` block of the `if` statement.
     let indent = span_of_first_expr_in_block(data.if_block)
         .and_then(|span| indent_of(cx, span))
-        .unwrap_or(0);
+        .unwrap_or_default();
     let to_annex = data.loop_block.stmts[data.stmt_idx + 1..]
         .iter()
         .map(|stmt| {
@@ -356,7 +356,7 @@ fn suggestion_snippet_for_continue_inside_else<'a>(cx: &EarlyContext<'_>, data: 
         .collect::<Vec<_>>()
         .join("\n");
 
-    let indent_if = indent_of(cx, data.if_expr.span).unwrap_or(0);
+    let indent_if = indent_of(cx, data.if_expr.span).unwrap_or_default();
     format!(
         "{indent_if}if {} {}\n{indent}// merged code follows:\n{}\n{indent_if}}}",
         cond_code,

@@ -175,7 +175,7 @@ fn fmt_stmts_and_call(
     args_snippets: &[impl AsRef<str>],
     non_empty_block_args_snippets: &[impl AsRef<str>],
 ) -> String {
-    let call_expr_indent = indent_of(cx, call_expr.span).unwrap_or(0);
+    let call_expr_indent = indent_of(cx, call_expr.span).unwrap_or_default();
     let call_snippet_with_replacements = args_snippets
         .iter()
         .fold(call_snippet.to_owned(), |acc, arg| acc.replacen(arg.as_ref(), "()", 1));

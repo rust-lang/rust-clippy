@@ -88,7 +88,7 @@ fn emit_lint(cx: &LateContext<'_>, symbol: Symbol, lint_span: Span, elem: &Expr<
         |diag| {
             let len_snippet = snippet(cx, len.span, "..");
             let elem_snippet = format!("{}(..)", snippet(cx, elem.span.with_hi(func_span.hi()), ".."));
-            let indentation = " ".repeat(indent_of(cx, lint_span).unwrap_or(0));
+            let indentation = " ".repeat(indent_of(cx, lint_span).unwrap_or_default());
             let loop_init_suggestion = loop_init_suggestion(&elem_snippet, len_snippet.as_ref(), &indentation);
             let extract_suggestion = extract_suggestion(&elem_snippet, len_snippet.as_ref(), &indentation);
 

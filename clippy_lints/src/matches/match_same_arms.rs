@@ -57,7 +57,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'_>]) {
                 .find_map(|((j, other), forward_block)| {
                     (forward_block == i || pat.has_overlapping_values(other)).then_some(j)
                 })
-                .unwrap_or(0)
+                .unwrap_or_default()
         })
         .collect();
 
