@@ -93,11 +93,11 @@
     "id": "arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 93
+      "line": 97
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for any kind of arithmetic operation of any type.\n\nOperators like `+`, `-`, `*` or `<<` are usually capable of overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor can panic (`/`, `%`). Known safe built-in types like `Wrapping` or `Saturing` are filtered\naway.\n\n### Why is this bad?\nInteger overflow will trigger a panic in debug builds or will wrap in\nrelease mode. Division by zero will cause a panic in either mode. In some applications one\nwants explicitly checked, wrapping or saturating arithmetic.\n\n#### Example\n```rust\na + 1;\n```\n\nThird-party types also tend to overflow.\n\n#### Example\n```rust\nuse rust_decimal::Decimal;\nlet _n = Decimal::MAX + Decimal::MAX;\n```\n\n### Allowed types\nCustom allowed types can be specified through the \"arithmetic-allowed\" filter.\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `arithmetic-allowed`: `rustc_data_structures::fx::FxHashSet<String>`: Suppress checking of the passed type names. (defaults to `{}`)\n",
+    "docs": "\n### What it does\nChecks any kind of arithmetic operation of any type.\n\nOperators like `+`, `-`, `*` or `<<` are usually capable of overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor can panic (`/`, `%`).\n\nKnown safe built-in types like `Wrapping` or `Saturing`, floats, operations in constant\nenvironments, allowed types and non-constant operations that won't overflow are ignored.\n\n### Why is this bad?\nFor integers, overflow will trigger a panic in debug builds or wrap the result in\nrelease mode; division by zero will cause a panic in either mode. As a result, it is\ndesirable to explicitly call checked, wrapping or saturating arithmetic methods.\n\n#### Example\n```rust\n// `n` can be any number, including `i32::MAX`.\nfn foo(n: i32) -> i32 {\n  n + 1\n}\n```\n\nThird-party types can also overflow or present unwanted side-effects.\n\n#### Example\n```rust\nuse rust_decimal::Decimal;\nlet _n = Decimal::MAX + Decimal::MAX;\n```\n\n### Allowed types\nCustom allowed types can be specified through the \"arithmetic-allowed\" filter.\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `arithmetic-allowed`: `rustc_data_structures::fx::FxHashSet<String>`: Suppress checking of the passed type names. (defaults to `{}`)\n",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -168,7 +168,7 @@
     "id": "assign_op_pattern",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 173
+      "line": 177
     },
     "group": "style",
     "level": "warn",
@@ -258,7 +258,7 @@
     "id": "bad_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 238
+      "line": 242
     },
     "group": "correctness",
     "level": "deny",
@@ -843,7 +843,7 @@
     "id": "cmp_nan",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 533
+      "line": 537
     },
     "group": "correctness",
     "level": "deny",
@@ -873,7 +873,7 @@
     "id": "cmp_owned",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 562
+      "line": 566
     },
     "group": "perf",
     "level": "warn",
@@ -1398,7 +1398,7 @@
     "id": "double_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 322
+      "line": 326
     },
     "group": "complexity",
     "level": "warn",
@@ -1533,7 +1533,7 @@
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 352
+      "line": 356
     },
     "group": "complexity",
     "level": "warn",
@@ -1683,7 +1683,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 384
+      "line": 388
     },
     "group": "correctness",
     "level": "deny",
@@ -1713,7 +1713,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 430
+      "line": 434
     },
     "group": "correctness",
     "level": "deny",
@@ -2133,7 +2133,7 @@
     "id": "float_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 138
+      "line": 142
     },
     "group": "restriction",
     "level": "allow",
@@ -2148,7 +2148,7 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 599
+      "line": 603
     },
     "group": "pedantic",
     "level": "allow",
@@ -2163,7 +2163,7 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 634
+      "line": 638
     },
     "group": "restriction",
     "level": "allow",
@@ -2178,7 +2178,7 @@
     "id": "float_equality_without_abs",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 463
+      "line": 467
     },
     "group": "suspicious",
     "level": "warn",
@@ -2478,7 +2478,7 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 482
+      "line": 486
     },
     "group": "complexity",
     "level": "warn",
@@ -2718,7 +2718,7 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 271
+      "line": 275
     },
     "group": "correctness",
     "level": "deny",
@@ -2913,7 +2913,7 @@
     "id": "integer_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 119
+      "line": 123
     },
     "group": "restriction",
     "level": "allow",
@@ -2928,7 +2928,7 @@
     "id": "integer_division",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 508
+      "line": 512
     },
     "group": "restriction",
     "level": "allow",
@@ -4293,7 +4293,7 @@
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 200
+      "line": 204
     },
     "group": "suspicious",
     "level": "warn",
@@ -4518,7 +4518,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 680
+      "line": 684
     },
     "group": "restriction",
     "level": "allow",
@@ -4533,7 +4533,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 658
+      "line": 662
     },
     "group": "correctness",
     "level": "deny",
@@ -4758,7 +4758,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 709
+      "line": 713
     },
     "group": "pedantic",
     "level": "allow",
@@ -5358,7 +5358,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 408
+      "line": 412
     },
     "group": "style",
     "level": "warn",
@@ -5823,7 +5823,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 738
+      "line": 742
     },
     "group": "style",
     "level": "warn",
@@ -6468,7 +6468,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 777
+      "line": 781
     },
     "group": "correctness",
     "level": "deny",
@@ -8508,7 +8508,7 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 294
+      "line": 298
     },
     "group": "pedantic",
     "level": "allow",
