@@ -4233,7 +4233,7 @@
     "id": "min_max",
     "id_span": {
       "path": "src/minmax.rs",
-      "line": 31
+      "line": 30
     },
     "group": "correctness",
     "level": "deny",
@@ -4968,7 +4968,7 @@
     "id": "needless_pass_by_value",
     "id_span": {
       "path": "src/needless_pass_by_value.rs",
-      "line": 55
+      "line": 57
     },
     "group": "pedantic",
     "level": "allow",
@@ -5343,7 +5343,7 @@
     "id": "only_used_in_recursion",
     "id_span": {
       "path": "src/only_used_in_recursion.rs",
-      "line": 82
+      "line": 83
     },
     "group": "complexity",
     "level": "warn",
