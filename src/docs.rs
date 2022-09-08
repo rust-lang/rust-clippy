@@ -465,6 +465,7 @@ docs! {
     "skip_while_next",
     "slow_vector_initialization",
     "stable_sort_primitive",
+    "static_items_large_align",
     "std_instead_of_alloc",
     "std_instead_of_core",
     "str_to_string",

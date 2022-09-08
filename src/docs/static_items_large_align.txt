@@ -1,0 +1,24 @@
+### What it does
+Check for usage of static items which have type alignment larger than page size.
+
+### Why is this bad?
+Due to some known unsound issues, the type alignment may not be fulfilled.
+For more information, see:
+<https://github.com/rust-lang/rust/issues/70022> and
+<https://github.com/rust-lang/rust/issues/70143>.
+
+### Example
+```
+#[repr(align(0x100000))]
+struct Aligned(u8);
+
+static X: Aligned = Aligned(0);         // Bad
+
+fn main() {
+    let x = Aligned(0);                 // Good
+    println!("{:#x}", &x as *const _ as usize);
+    println!("{:#x}", &X as *const _ as usize);
+    let b = Box::new(Aligned(0));       // Good
+    println!("{:#x}", Box::into_raw(b) as usize);
+}
+```

@@ -12,7 +12,7 @@ note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -32,7 +32,7 @@ note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -46,13 +46,13 @@ note: struct `AlignedPtr` contains an inner type with large alignment
   --> $DIR/static_items_large_align.rs:18:1
    |
 LL | struct AlignedPtr(*const Aligned);
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^
 note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
       if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -65,17 +65,14 @@ LL | static XW: AlignedWrapper = AlignedWrapper { f: 0, g: Aligned(0) };
 note: struct `AlignedWrapper` contains an inner type with large alignment
   --> $DIR/static_items_large_align.rs:9:1
    |
-LL | / struct AlignedWrapper {
-LL | |     f: u8,
-LL | |     g: Aligned,
-LL | | }
-   | |_^
+LL | struct AlignedWrapper {
+   | ^^^^^^^^^^^^^^^^^^^^^
 note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
       if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -95,7 +92,7 @@ note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -115,7 +112,7 @@ note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -128,16 +125,14 @@ LL | static XE: AlignedEnum = AlignedEnum::A(Aligned(0));
 note: enum `AlignedEnum` contains an inner type with large alignment
   --> $DIR/static_items_large_align.rs:14:1
    |
-LL | / enum AlignedEnum {
-LL | |     A(Aligned),
-LL | | }
-   | |_^
+LL | enum AlignedEnum {
+   | ^^^^^^^^^^^^^^^^
 note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
       if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -154,13 +149,13 @@ note: struct `AlignedGeneric` with substitutions [
   --> $DIR/static_items_large_align.rs:22:1
    |
 LL | struct AlignedGeneric<T>(T);
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
 note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
       if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -177,21 +172,18 @@ note: struct `AlignedGeneric` with substitutions [
   --> $DIR/static_items_large_align.rs:22:1
    |
 LL | struct AlignedGeneric<T>(T);
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
 note: struct `AlignedWrapper` contains an inner type with large alignment
   --> $DIR/static_items_large_align.rs:9:1
    |
-LL | / struct AlignedWrapper {
-LL | |     f: u8,
-LL | |     g: Aligned,
-LL | | }
-   | |_^
+LL | struct AlignedWrapper {
+   | ^^^^^^^^^^^^^^^^^^^^^
 note: struct `Aligned` has alignment 0x100000, which is larger than 0x1000,
       if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:7:1
    |
 LL | struct Aligned(u8);
-   | ^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^
 
 error: this static item (itself or its subfield) has a type alignment,
        which is larger than page size and may not be fulfilled,
@@ -211,11 +203,8 @@ note: struct `AGWithArgs` with substitutions [
       contains an inner type with large alignment
   --> $DIR/static_items_large_align.rs:63:1
    |
-LL | / struct AGWithArgs<A, B> {
-LL | |     not_aligned: FnPtr<A>,
-LL | |     aligned: AGAlias<B>,
-LL | | }
-   | |_^
+LL | struct AGWithArgs<A, B> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^
 note: struct `AG` with substitutions [
           AlignedB,
       ],
@@ -223,13 +212,13 @@ note: struct `AG` with substitutions [
   --> $DIR/static_items_large_align.rs:59:1
    |
 LL | struct AG<T>(T);
-   | ^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^
 note: struct `AlignedB` has alignment 0x100000, which is larger than 0x1000,
       if you know what you are doing, config the default page size clippy uses in clippy.toml
   --> $DIR/static_items_large_align.rs:55:1
    |
 LL | struct AlignedB(u8);
-   | ^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^
 
 error: aborting due to 10 previous errors
 

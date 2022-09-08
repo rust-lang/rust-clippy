@@ -35,6 +35,7 @@ declare_clippy_lint! {
     ///     let b = Box::new(Aligned(0));       // Good
     ///     println!("{:#x}", Box::into_raw(b) as usize);
     /// }
+    /// ```
     #[clippy::version = "1.61.0"]
     pub STATIC_ITEMS_LARGE_ALIGN,
     pedantic,
