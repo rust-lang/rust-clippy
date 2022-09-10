@@ -47,8 +47,8 @@ $ cargo dev new_lint --name=foo_functions --pass=late --category=pedantic
 There are two things to note here:
 
 1. We set `--pass=late` in this command to do a late lint pass. The alternative
-is an `early` lint pass. We will discuss this difference in a later chapter.
-2. If not provided, the `category` of this new lint will default to `nursery`.
+is an `early` lint pass. We will discuss this difference in [Lint Passes](lint_passes.md).
+1. If not provided, the `category` of this new lint will default to `nursery`.
 See Clippy's [lint groups](../lints.md) for more information on categories.
 
 The `cargo dev new_lint` command will create a new file: `clippy_lints/src/foo_functions.rs`
