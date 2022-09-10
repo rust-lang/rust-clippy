@@ -28,6 +28,7 @@ use std::time::Duration;
 
 use cargo_metadata::diagnostic::{Diagnostic, DiagnosticLevel};
 use cargo_metadata::Message;
+use log::{debug, error, trace, warn};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use walkdir::{DirEntry, WalkDir};
@@ -163,10 +164,10 @@ fn get(path: &str) -> Result<ureq::Response, ureq::Error> {
         match ureq::get(path).call() {
             Ok(res) => return Ok(res),
             Err(e) if retries >= MAX_RETRIES => return Err(e),
-            Err(ureq::Error::Transport(e)) => eprintln!("Error: {e}"),
+            Err(ureq::Error::Transport(e)) => error!("{}", e),
             Err(e) => return Err(e),
         }
-        eprintln!("retrying in {retries} seconds...");
+        warn!("retrying in {retries} seconds...");
         thread::sleep(Duration::from_secs(u64::from(retries)));
         retries += 1;
     }
@@ -234,7 +235,7 @@ impl CrateSource {
                         .expect("Failed to clone git repo!")
                         .success()
                     {
-                        eprintln!("Failed to clone {url} into {}", repo_path.display());
+                        warn!("Failed to clone {url} into {}", repo_path.display());
                     }
                 }
                 // check out the commit/branch/whatever
@@ -247,7 +248,7 @@ impl CrateSource {
                     .expect("Failed to check out commit")
                     .success()
                 {
-                    eprintln!("Failed to checkout {commit} of repo at {}", repo_path.display());
+                    warn!("Failed to checkout {commit} of repo at {}", repo_path.display());
                 }
 
                 Crate {
@@ -390,6 +391,8 @@ impl Crate {
 
         cargo_clippy_args.extend(clippy_args);
 
+        debug!("Arguments passed to cargo clippy driver: {:?}", cargo_clippy_args);
+
         let all_output = Command::new(&cargo_clippy_path)
             // use the looping index to create individual target dirs
             .env("CARGO_TARGET_DIR", shared_target_dir.join(format!("_{thread_index:?}")))
@@ -409,21 +412,19 @@ impl Crate {
         let status = &all_output.status;
 
         if !status.success() {
-            eprintln!(
-                "\nWARNING: bad exit status after checking {} {} \n",
-                self.name, self.version
-            );
+            warn!("bad exit status after checking {} {} \n", self.name, self.version);
         }
 
         if config.fix {
+            trace!("{}", stderr);
             if let Some(stderr) = stderr
                 .lines()
                 .find(|line| line.contains("failed to automatically apply fixes suggested by rustc to crate"))
             {
                 let subcrate = &stderr[63..];
-                println!(
-                    "ERROR: failed to apply some suggetion to {} / to (sub)crate {subcrate}",
-                    self.name
+                error!(
+                    "failed to apply some suggetion to {} / to (sub)crate {}",
+                    self.name, subcrate
                 );
             }
             // fast path, we don't need the warnings anyway
@@ -449,7 +450,7 @@ fn build_clippy() {
         .status()
         .expect("Failed to build clippy!");
     if !status.success() {
-        eprintln!("Error: Failed to compile Clippy!");
+        error!("Failed to compile Clippy!");
         std::process::exit(1);
     }
 }
@@ -553,7 +554,7 @@ fn main() {
 
     // assert that we launch lintcheck from the repo root (via cargo lintcheck)
     if std::fs::metadata("lintcheck/Cargo.toml").is_err() {
-        eprintln!("lintcheck needs to be run from clippy's repo root!\nUse `cargo lintcheck` alternatively.");
+        error!("lintcheck needs to be run from clippy's repo root!\nUse `cargo lintcheck` alternatively.");
         std::process::exit(3);
     }
 
@@ -615,8 +616,8 @@ fn main() {
         .collect();
 
     if crates.is_empty() {
-        eprintln!(
-            "ERROR: could not find crate '{}' in lintcheck/lintcheck_crates.toml",
+        error!(
+            "could not find crate '{}' in lintcheck/lintcheck_crates.toml",
             config.only.unwrap(),
         );
         std::process::exit(1);
@@ -693,8 +694,7 @@ fn main() {
         let _ = write!(text, "{cratename}: '{msg}'");
     }
 
-    println!("Writing logs to {}", config.lintcheck_results_path.display());
-    fs::create_dir_all(config.lintcheck_results_path.parent().unwrap()).unwrap();
+    println!("Writing results to {}", config.lintcheck_results_path.display());
     fs::write(&config.lintcheck_results_path, text).unwrap();
 
     print_stats(old_stats, new_stats, &config.lint_filter);
