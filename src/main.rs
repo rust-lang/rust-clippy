@@ -47,7 +47,7 @@ pub fn main() {
     // if we run "cargo clippy" (as cargo subcommand), we have to strip "cargo clippy" (first 2 args)
     // but if we are run via "..../target/debug/cargo-clippy", only ommit the first arg, the second one
     // might be a normal cmdline arg already (which we don't want to ommit)
-    let args = if let Some(first_arg) = env::args().next() && first_arg.ends_with("cargo-clippy") {
+    let args = if let Some(first_arg) = env::args().next() && (first_arg.ends_with("cargo-clippy") || first_arg.ends_with("cargo-clippy.exe")) {
         env::args().skip(1)
     } else {
         env::args().skip(2)
