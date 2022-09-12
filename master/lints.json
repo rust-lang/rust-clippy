@@ -3333,7 +3333,7 @@
     "id": "large_stack_arrays",
     "id_span": {
       "path": "src/large_stack_arrays.rs",
-      "line": 22
+      "line": 21
     },
     "group": "pedantic",
     "level": "allow",
