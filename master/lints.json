@@ -1233,7 +1233,7 @@
     "id": "derivable_impls",
     "id_span": {
       "path": "src/derivable_impls.rs",
-      "line": 48
+      "line": 49
     },
     "group": "complexity",
     "level": "warn",
@@ -1241,7 +1241,7 @@
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
