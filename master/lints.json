@@ -5655,21 +5655,6 @@
     }
   },
   {
-    "id": "positional_named_format_parameters",
-    "id_span": {
-      "path": "src/write.rs",
-      "line": 277
-    },
-    "group": "suspicious",
-    "level": "warn",
-    "docs": "\n### What it does\nThis lint warns when a named parameter in a format string is used as a positional one.\n\n### Why is this bad?\nIt may be confused for an assignment and obfuscates which parameter is being used.\n\n### Example\n```rust\nprintln!(\"{}\", x = 10);\n```\n\nUse instead:\n```rust\nprintln!(\"{x}\", x = 10);\n```",
-    "version": "1.63.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
-    }
-  },
-  {
     "id": "possible_missing_comma",
     "id_span": {
       "path": "src/formatting.rs",
@@ -5718,11 +5703,11 @@
     "id": "print_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 165
+      "line": 141
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nThis lint warns about the use of literals as `print!`/`println!` args.\n\n### Why is this bad?\nUsing literals as `println!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)\n\n### Known problems\nWill also warn with macro calls as arguments that expand to literals\n-- e.g., `println!(\"{}\", env!(\"FOO\"))`.\n\n### Example\n```rust\nprintln!(\"{}\", \"foo\");\n```\nuse the literal without formatting:\n```rust\nprintln!(\"foo\");\n```",
+    "docs": "\n### What it does\nThis lint warns about the use of literals as `print!`/`println!` args.\n\n### Why is this bad?\nUsing literals as `println!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)\n\n### Example\n```rust\nprintln!(\"{}\", \"foo\");\n```\nuse the literal without formatting:\n```rust\nprintln!(\"foo\");\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5733,11 +5718,11 @@
     "id": "print_stderr",
     "id_span": {
       "path": "src/write.rs",
-      "line": 118
+      "line": 98
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for printing on *stderr*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stderr* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\n* Only catches `eprint!` and `eprintln!` calls.\n* The lint level is unaffected by crate attributes. The level can still\n  be set for functions, modules and other items. To change the level for\n  the entire crate, please use command line flags. More information and a\n  configuration example can be found in [clippy#6610].\n\n[clippy#6610]: https://github.com/rust-lang/rust-clippy/issues/6610#issuecomment-977120558\n\n### Example\n```rust\neprintln!(\"Hello world!\");\n```",
+    "docs": "\n### What it does\nChecks for printing on *stderr*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stderr* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\nOnly catches `eprint!` and `eprintln!` calls.\n\n### Example\n```rust\neprintln!(\"Hello world!\");\n```",
     "version": "1.50.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5748,11 +5733,11 @@
     "id": "print_stdout",
     "id_span": {
       "path": "src/write.rs",
-      "line": 90
+      "line": 76
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for printing on *stdout*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stdout* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\n* Only catches `print!` and `println!` calls.\n* The lint level is unaffected by crate attributes. The level can still\n  be set for functions, modules and other items. To change the level for\n  the entire crate, please use command line flags. More information and a\n  configuration example can be found in [clippy#6610].\n\n[clippy#6610]: https://github.com/rust-lang/rust-clippy/issues/6610#issuecomment-977120558\n\n### Example\n```rust\nprintln!(\"Hello world!\");\n```",
+    "docs": "\n### What it does\nChecks for printing on *stdout*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stdout* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\nOnly catches `print!` and `println!` calls.\n\n### Example\n```rust\nprintln!(\"Hello world!\");\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5763,7 +5748,7 @@
     "id": "print_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 62
+      "line": 54
     },
     "group": "style",
     "level": "warn",
@@ -5778,7 +5763,7 @@
     "id": "println_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 37
+      "line": 29
     },
     "group": "style",
     "level": "warn",
@@ -8313,7 +8298,7 @@
     "id": "use_debug",
     "id_span": {
       "path": "src/write.rs",
-      "line": 138
+      "line": 118
     },
     "group": "restriction",
     "level": "allow",
@@ -8658,11 +8643,11 @@
     "id": "write_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 255
+      "line": 227
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nThis lint warns about the use of literals as `write!`/`writeln!` args.\n\n### Why is this bad?\nUsing literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)\n\n### Known problems\nWill also warn with macro calls as arguments that expand to literals\n-- e.g., `writeln!(buf, \"{}\", env!(\"FOO\"))`.\n\n### Example\n```rust\nwriteln!(buf, \"{}\", \"foo\");\n```\n\nUse instead:\n```rust\nwriteln!(buf, \"foo\");\n```",
+    "docs": "\n### What it does\nThis lint warns about the use of literals as `write!`/`writeln!` args.\n\n### Why is this bad?\nUsing literals as `writeln!` args is inefficient\n(c.f., https://github.com/matthiaskrgr/rust-str-bench) and unnecessary\n(i.e., just put the literal in the format string)\n\n### Example\n```rust\nwriteln!(buf, \"{}\", \"foo\");\n```\n\nUse instead:\n```rust\nwriteln!(buf, \"foo\");\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8673,7 +8658,7 @@
     "id": "write_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 223
+      "line": 199
     },
     "group": "style",
     "level": "warn",
@@ -8688,7 +8673,7 @@
     "id": "writeln_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 192
+      "line": 168
     },
     "group": "style",
     "level": "warn",
