@@ -8178,7 +8178,7 @@
     "id": "unused_peekable",
     "id_span": {
       "path": "src/unused_peekable.rs",
-      "line": 40
+      "line": 41
     },
     "group": "suspicious",
     "level": "warn",
