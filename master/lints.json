@@ -48,7 +48,7 @@
     "id": "almost_complete_letter_range",
     "id_span": {
       "path": "src/almost_complete_letter_range.rs",
-      "line": 28
+      "line": 29
     },
     "group": "suspicious",
     "level": "warn",
