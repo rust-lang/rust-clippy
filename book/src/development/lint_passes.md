@@ -35,7 +35,7 @@ using `EarlyLintPass`:
 $ cargo dev new_lint --name=<your_new_lint> --pass=early --category=<your_category_choice>
 ```
 
-### Example
+### Example for `EarlyLintPass`
 
 Take a look at the following code:
 
@@ -72,7 +72,7 @@ deal with type-checking which do not exist in `EarlyContext`, such as:
 - [`maybe_typeck_results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/context/struct.LateContext.html#method.maybe_typeck_results)
 - [`typeck_results`](https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/context/struct.LateContext.html#method.typeck_results)
 
-### Example
+### Example for `LateLintPass`
 
 Let us take a look with the following example:
 
