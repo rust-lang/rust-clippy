@@ -5283,7 +5283,7 @@
     "id": "nonstandard_macro_braces",
     "id_span": {
       "path": "src/nonstandard_macro_braces.rs",
-      "line": 35
+      "line": 36
     },
     "group": "nursery",
     "level": "allow",
@@ -5291,7 +5291,7 @@
     "version": "1.55.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
