@@ -1118,7 +1118,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nIt checks for `std::iter::Empty::default()` and suggests replacing it with\n`std::iter::empty()`.\n### Why is this bad?\n`std::iter::empty()` is the more idiomatic way.\n### Example\n```rust\nlet _ = std::iter::Empty::<usize>::default();\nlet iter: std::iter::Empty<usize> = std::iter::Empty::default();\n```\nUse instead:\n```rust\nlet _ = std::iter::empty::<usize>();\nlet iter: std::iter::Empty<usize> = std::iter::empty();\n```",
-    "version": "1.63.0",
+    "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -1853,7 +1853,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for dereferencing expressions which would be covered by auto-deref.\n\n### Why is this bad?\nThis unnecessarily complicates the code.\n\n### Example\n```rust\nlet x = String::new();\nlet y: &str = &*x;\n```\nUse instead:\n```rust\nlet x = String::new();\nlet y: &str = &x;\n```",
-    "version": "1.60.0",
+    "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -3608,7 +3608,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nCheck for manual implementations of Iterator::find\n\n### Why is this bad?\nIt doesn't affect performance, but using `find` is shorter and easier to read.\n\n### Example\n\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    for el in arr {\n        if el == 1 {\n            return Some(el);\n        }\n    }\n    None\n}\n```\nUse instead:\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    arr.into_iter().find(|&el| el == 1)\n}\n```",
-    "version": "1.61.0",
+    "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -3743,7 +3743,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for an expression like `((x % 4) + 4) % 4` which is a common manual reimplementation\nof `x.rem_euclid(4)`.\n\n### Why is this bad?\nIt's simpler and more readable.\n\n### Example\n```rust\nlet x: i32 = 24;\nlet rem = ((x % 4) + 4) % 4;\n```\nUse instead:\n```rust\nlet x: i32 = 24;\nlet rem = x.rem_euclid(4);\n```",
-    "version": "1.63.0",
+    "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -3758,7 +3758,7 @@
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nChecks for code to be replaced by `.retain()`.\n### Why is this bad?\n`.retain()` is simpler and avoids needless allocation.\n### Example\n```rust\nlet mut vec = vec![0, 1, 2];\nvec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();\nvec = vec.into_iter().filter(|x| x % 2 == 0).collect();\n```\nUse instead:\n```rust\nlet mut vec = vec![0, 1, 2];\nvec.retain(|x| x % 2 == 0);\n```",
-    "version": "1.63.0",
+    "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
