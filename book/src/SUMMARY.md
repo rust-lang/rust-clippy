@@ -16,6 +16,7 @@
     - [Writing Tests](development/write_tests.md)
     - [Lint Passes](development/lint_passes.md)
     - [Emitting Lints](development/emit_lints.md)
+    - [Type Checking](development/type_checks.md)
     - [Common Tools](development/common_tools_writing_lints.md)
     - [Infrastructure](development/infrastructure/README.md)
         - [Syncing changes between Clippy and rust-lang/rust](development/infrastructure/sync.md)
