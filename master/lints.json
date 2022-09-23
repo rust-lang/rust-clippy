@@ -7668,7 +7668,7 @@
     "id": "uninit_vec",
     "id_span": {
       "path": "src/uninit_vec.rs",
-      "line": 56
+      "line": 57
     },
     "group": "correctness",
     "level": "deny",
