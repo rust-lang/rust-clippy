@@ -18,6 +18,7 @@
     - [Emitting Lints](development/emit_lints.md)
     - [Type Checking](development/type_checks.md)
     - [Trait Checking](development/trait_checks.md)
+    - [Method Checking](development/method_checks.md)
     - [Common Tools](development/common_tools_writing_lints.md)
     - [Infrastructure](development/infrastructure/README.md)
         - [Syncing changes between Clippy and rust-lang/rust](development/infrastructure/sync.md)
