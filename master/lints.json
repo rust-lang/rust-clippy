@@ -1473,7 +1473,7 @@
     "id": "drop_copy",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 72
+      "line": 73
     },
     "group": "correctness",
     "level": "deny",
@@ -1488,7 +1488,7 @@
     "id": "drop_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 120
+      "line": 121
     },
     "group": "suspicious",
     "level": "warn",
@@ -1503,7 +1503,7 @@
     "id": "drop_ref",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 28
+      "line": 29
     },
     "group": "correctness",
     "level": "deny",
@@ -2313,7 +2313,7 @@
     "id": "forget_copy",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 100
+      "line": 101
     },
     "group": "correctness",
     "level": "deny",
@@ -2328,7 +2328,7 @@
     "id": "forget_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 140
+      "line": 141
     },
     "group": "suspicious",
     "level": "warn",
@@ -2343,7 +2343,7 @@
     "id": "forget_ref",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 50
+      "line": 51
     },
     "group": "correctness",
     "level": "deny",
@@ -7623,7 +7623,7 @@
     "id": "undropped_manually_drops",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 169
+      "line": 170
     },
     "group": "correctness",
     "level": "deny",
