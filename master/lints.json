@@ -435,6 +435,21 @@
     }
   },
   {
+    "id": "box_default",
+    "id_span": {
+      "path": "src/box_default.rs",
+      "line": 33
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": "\n### What it does\nchecks for `Box::new(T::default())`, which is better written as\n`Box::<T>::default()`.\n\n### Why is this bad?\nFirst, it's more complex, involving two calls instead of one.\nSecond, `Box::default()` can be faster\n[in certain cases](https://nnethercote.github.io/perf-book/standard-library-types.html#box).\n\n### Known problems\nThe lint may miss some cases (e.g. Box::new(String::from(\"\"))).\nOn the other hand, it will trigger on cases where the `default`\ncode comes from a macro that does something different based on\ne.g. target operating system.\n\n### Example\n```rust\nlet x: Box<String> = Box::new(Default::default());\n```\nUse instead:\n```rust\nlet x: Box<String> = Box::default();\n```",
+    "version": "1.65.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "boxed_local",
     "id_span": {
       "path": "src/escape.rs",
