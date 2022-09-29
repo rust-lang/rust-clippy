@@ -1353,7 +1353,7 @@
     "id": "disallowed_types",
     "id_span": {
       "path": "src/disallowed_types.rs",
-      "line": 49
+      "line": 47
     },
     "group": "style",
     "level": "warn",
@@ -2433,7 +2433,7 @@
     "id": "future_not_send",
     "id_span": {
       "path": "src/future_not_send.rs",
-      "line": 45
+      "line": 44
     },
     "group": "nursery",
     "level": "allow",
@@ -3288,7 +3288,7 @@
     "id": "just_underscores_and_digits",
     "id_span": {
       "path": "src/non_expressive_names.rs",
-      "line": 68
+      "line": 72
     },
     "group": "style",
     "level": "warn",
@@ -3888,7 +3888,7 @@
     "id": "many_single_char_names",
     "id_span": {
       "path": "src/non_expressive_names.rs",
-      "line": 47
+      "line": 51
     },
     "group": "pedantic",
     "level": "allow",
@@ -6078,7 +6078,7 @@
     "id": "redundant_closure",
     "id_span": {
       "path": "src/eta_reduction.rs",
-      "line": 46
+      "line": 45
     },
     "group": "style",
     "level": "warn",
@@ -6108,7 +6108,7 @@
     "id": "redundant_closure_for_method_calls",
     "id_span": {
       "path": "src/eta_reduction.rs",
-      "line": 68
+      "line": 67
     },
     "group": "pedantic",
     "level": "allow",
@@ -6678,11 +6678,11 @@
     "id": "similar_names",
     "id_span": {
       "path": "src/non_expressive_names.rs",
-      "line": 28
+      "line": 32
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for names that are very similar and thus confusing.\n\n### Why is this bad?\nIt's hard to distinguish between names that differ only\nby a single character.\n\n### Example\n```rust\nlet checked_exp = something;\nlet checked_expr = something_else;\n```",
+    "docs": "\n### What it does\nChecks for names that are very similar and thus confusing.\n\nNote: this lint looks for similar names throughout each\nscope. To allow it, you need to allow it on the scope\nlevel, not on the name that is reported.\n\n### Why is this bad?\nIt's hard to distinguish between names that differ only\nby a single character.\n\n### Example\n```rust\nlet checked_exp = something;\nlet checked_expr = something_else;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7863,7 +7863,7 @@
     "id": "unnecessary_mut_passed",
     "id_span": {
       "path": "src/mut_reference.rs",
-      "line": 32
+      "line": 31
     },
     "group": "style",
     "level": "warn",
@@ -8210,8 +8210,8 @@
       "path": "src/unused_peekable.rs",
       "line": 41
     },
-    "group": "suspicious",
-    "level": "warn",
+    "group": "nursery",
+    "level": "allow",
     "docs": "\n### What it does\nChecks for the creation of a `peekable` iterator that is never `.peek()`ed\n\n### Why is this bad?\nCreating a peekable iterator without using any of its methods is likely a mistake,\nor just a leftover after a refactor.\n\n### Example\n```rust\nlet collection = vec![1, 2, 3];\nlet iter = collection.iter().peekable();\n\nfor item in iter {\n    // ...\n}\n```\n\nUse instead:\n```rust\nlet collection = vec![1, 2, 3];\nlet iter = collection.iter();\n\nfor item in iter {\n    // ...\n}\n```",
     "version": "1.64.0",
     "applicability": {
