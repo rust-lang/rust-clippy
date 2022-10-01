@@ -1382,8 +1382,8 @@
   {
     "id": "doc_link_with_quotes",
     "id_span": {
-      "path": "src/doc_link_with_quotes.rs",
-      "line": 25
+      "path": "src/doc.rs",
+      "line": 219
     },
     "group": "pedantic",
     "level": "allow",
