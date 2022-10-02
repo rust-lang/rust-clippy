@@ -4848,11 +4848,11 @@
     "id": "needless_borrowed_reference",
     "id_span": {
       "path": "src/needless_borrowed_ref.rs",
-      "line": 43
+      "line": 31
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for bindings that destructure a reference and borrow the inner\nvalue with `&ref`.\n\n### Why is this bad?\nThis pattern has no effect in almost all cases.\n\n### Known problems\nIn some cases, `&ref` is needed to avoid a lifetime mismatch error.\nExample:\n```rust\nfn foo(a: &Option<String>, b: &Option<String>) {\n    match (a, b) {\n        (None, &ref c) | (&ref c, None) => (),\n        (&Some(ref c), _) => (),\n    };\n}\n```\n\n### Example\n```rust\nlet mut v = Vec::<String>::new();\nv.iter_mut().filter(|&ref a| a.is_empty());\n```\n\nUse instead:\n```rust\nlet mut v = Vec::<String>::new();\nv.iter_mut().filter(|a| a.is_empty());\n```",
+    "docs": "\n### What it does\nChecks for bindings that needlessly destructure a reference and borrow the inner\nvalue with `&ref`.\n\n### Why is this bad?\nThis pattern has no effect in almost all cases.\n\n### Example\n```rust\nlet mut v = Vec::<String>::new();\nv.iter_mut().filter(|&ref a| a.is_empty());\n\nif let &[ref first, ref second] = v.as_slice() {}\n```\n\nUse instead:\n```rust\nlet mut v = Vec::<String>::new();\nv.iter_mut().filter(|a| a.is_empty());\n\nif let [first, second] = v.as_slice() {}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
