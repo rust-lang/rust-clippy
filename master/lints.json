@@ -783,7 +783,7 @@
     "id": "checked_conversions",
     "id_span": {
       "path": "src/checked_conversions.rs",
-      "line": 35
+      "line": 34
     },
     "group": "pedantic",
     "level": "allow",
@@ -2418,7 +2418,7 @@
     "id": "from_str_radix_10",
     "id_span": {
       "path": "src/from_str_radix_10.rs",
-      "line": 39
+      "line": 40
     },
     "group": "style",
     "level": "warn",
@@ -6633,7 +6633,7 @@
     "id": "short_circuit_statement",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 96
+      "line": 95
     },
     "group": "complexity",
     "level": "warn",
@@ -6843,7 +6843,7 @@
     "id": "slow_vector_initialization",
     "id_span": {
       "path": "src/slow_vector_initialization.rs",
-      "line": 43
+      "line": 44
     },
     "group": "perf",
     "level": "warn",
@@ -7323,7 +7323,7 @@
     "id": "toplevel_ref_arg",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 50
+      "line": 49
     },
     "group": "style",
     "level": "warn",
@@ -7698,7 +7698,7 @@
     "id": "uninit_vec",
     "id_span": {
       "path": "src/uninit_vec.rs",
-      "line": 57
+      "line": 56
     },
     "group": "correctness",
     "level": "deny",
@@ -8388,7 +8388,7 @@
     "id": "used_underscore_binding",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 75
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
@@ -8823,7 +8823,7 @@
     "id": "zero_ptr",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 119
+      "line": 118
     },
     "group": "style",
     "level": "warn",
