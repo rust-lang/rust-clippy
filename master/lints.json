@@ -3558,7 +3558,7 @@
     "id": "manual_assert",
     "id_span": {
       "path": "src/manual_assert.rs",
-      "line": 31
+      "line": 32
     },
     "group": "pedantic",
     "level": "allow",
