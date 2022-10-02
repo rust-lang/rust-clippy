@@ -2568,7 +2568,7 @@
     "id": "if_then_some_else_none",
     "id_span": {
       "path": "src/if_then_some_else_none.rs",
-      "line": 42
+      "line": 44
     },
     "group": "restriction",
     "level": "allow",
@@ -5028,7 +5028,7 @@
     "id": "needless_question_mark",
     "id_span": {
       "path": "src/needless_question_mark.rs",
-      "line": 56
+      "line": 57
     },
     "group": "complexity",
     "level": "warn",
@@ -5253,7 +5253,7 @@
     "id": "non_octal_unix_permissions",
     "id_span": {
       "path": "src/non_octal_unix_permissions.rs",
-      "line": 36
+      "line": 37
     },
     "group": "correctness",
     "level": "deny",
@@ -5913,7 +5913,7 @@
     "id": "question_mark",
     "id_span": {
       "path": "src/question_mark.rs",
-      "line": 38
+      "line": 39
     },
     "group": "style",
     "level": "warn",
@@ -8208,7 +8208,7 @@
     "id": "unused_io_amount",
     "id_span": {
       "path": "src/unused_io_amount.rs",
-      "line": 40
+      "line": 41
     },
     "group": "correctness",
     "level": "deny",
