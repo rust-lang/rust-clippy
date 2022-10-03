@@ -303,7 +303,7 @@
     "id": "blocks_in_if_conditions",
     "id_span": {
       "path": "src/blocks_in_if_conditions.rs",
-      "line": 40
+      "line": 41
     },
     "group": "style",
     "level": "warn",
@@ -903,7 +903,7 @@
     "id": "cognitive_complexity",
     "id_span": {
       "path": "src/cognitive_complexity.rs",
-      "line": 30
+      "line": 32
     },
     "group": "nursery",
     "level": "allow",
@@ -2628,7 +2628,7 @@
     "id": "implicit_return",
     "id_span": {
       "path": "src/implicit_return.rs",
-      "line": 39
+      "line": 40
     },
     "group": "restriction",
     "level": "allow",
@@ -3423,7 +3423,7 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 37
+      "line": 39
     },
     "group": "style",
     "level": "warn",
@@ -5058,7 +5058,7 @@
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 63
+      "line": 65
     },
     "group": "style",
     "level": "warn",
@@ -5613,7 +5613,7 @@
     "id": "panic_in_result_fn",
     "id_span": {
       "path": "src/panic_in_result_fn.rs",
-      "line": 36
+      "line": 37
     },
     "group": "restriction",
     "level": "allow",
@@ -6033,7 +6033,7 @@
     "id": "read_zero_byte_vec",
     "id_span": {
       "path": "src/read_zero_byte_vec.rs",
-      "line": 45
+      "line": 46
     },
     "group": "correctness",
     "level": "deny",
@@ -7068,7 +7068,7 @@
     "id": "suspicious_arithmetic_impl",
     "id_span": {
       "path": "src/suspicious_trait_impl.rs",
-      "line": 28
+      "line": 29
     },
     "group": "suspicious",
     "level": "warn",
@@ -7128,7 +7128,7 @@
     "id": "suspicious_op_assign_impl",
     "id_span": {
       "path": "src/suspicious_trait_impl.rs",
-      "line": 50
+      "line": 51
     },
     "group": "suspicious",
     "level": "warn",
