@@ -20,6 +20,7 @@
     - [Trait Checking](development/trait_checks.md)
     - [Method Checking](development/method_checks.md)
     - [Macro Expansions](development/macro_expansions.md)
+    - [Using HirId](development/hir_ids.md)
     - [Common Tools](development/common_tools_writing_lints.md)
     - [Infrastructure](development/infrastructure/README.md)
         - [Syncing changes between Clippy and rust-lang/rust](development/infrastructure/sync.md)
