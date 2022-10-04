@@ -1,16 +1,30 @@
 // aux-build:proc_macro_with_span.rs
 // run-rustfix
+// aux-build:proc_macro_indoc.rs
+
 #![feature(custom_inner_attributes)]
 #![warn(clippy::uninlined_format_args)]
 #![allow(named_arguments_used_positionally, unused_imports, unused_macros, unused_variables)]
-#![allow(clippy::eq_op, clippy::format_in_format_args, clippy::print_literal)]
+#![allow(
+    clippy::double_parens,
+    clippy::eq_op,
+    clippy::format_in_format_args,
+    clippy::print_literal
+)]
 
+extern crate proc_macro_indoc;
 extern crate proc_macro_with_span;
 use proc_macro_with_span::with_span;
 
 macro_rules! no_param_str {
     () => {
         "{}"
+    };
+}
+
+macro_rules! pass_through {
+    ($expr:expr) => {
+        $expr
     };
 }
 
@@ -123,6 +137,10 @@ fn tester(fn_arg: i32) {
     println!("{}", format!("{local_i32}"));
     my_println!("{}", local_i32);
     my_println_args!("{}", local_i32);
+    println!("{local_i32}");
+    #[rustfmt::skip]
+    println!("{local_i32}");
+    println!("{local_i32:width$.prec$}");
 
     // these should NOT be modified by the lint
     println!(concat!("nope ", "{}"), local_i32);
@@ -145,6 +163,11 @@ fn tester(fn_arg: i32) {
 
     println!(with_span!("{0} {1}" "{1} {0}"), local_i32, local_f64);
     println!("{}", with_span!(span val));
+
+    println!(pass_through!("foo={}"), local_i32);
+    println!(pass_through!("foo={a}"), a = local_i32);
+    println!(proc_macro_indoc::simple_indoc!("foo={}"), local_i32);
+    println!(proc_macro_indoc::simple_indoc!("foo={a}"), a = local_i32);
 }
 
 fn main() {
