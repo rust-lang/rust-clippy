@@ -213,7 +213,7 @@
     "id": "await_holding_invalid_type",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 165
+      "line": 166
     },
     "group": "suspicious",
     "level": "warn",
@@ -228,7 +228,7 @@
     "id": "await_holding_lock",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 70
+      "line": 71
     },
     "group": "suspicious",
     "level": "warn",
@@ -243,7 +243,7 @@
     "id": "await_holding_refcell_ref",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 128
+      "line": 129
     },
     "group": "suspicious",
     "level": "warn",
@@ -1305,14 +1305,29 @@
     }
   },
   {
-    "id": "disallowed_methods",
+    "id": "disallowed_macros",
     "id_span": {
-      "path": "src/disallowed_methods.rs",
-      "line": 54
+      "path": "src/disallowed_macros.rs",
+      "line": 52
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nDenies the configured methods and functions in clippy.toml\n\nNote: Even though this lint is warn-by-default, it will only trigger if\nmethods are defined in the clippy.toml file.\n\n### Why is this bad?\nSome methods are undesirable in certain contexts, and it's beneficial to\nlint for them as needed.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\n    # Can use a string as the path of the disallowed method.\n    \"std::boxed::Box::new\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::time::Instant::now\" },\n    # When using an inline table, can add a `reason` for why the method\n    # is disallowed.\n    { path = \"std::vec::Vec::leak\", reason = \"no leaking memory\" },\n]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n// The diagnostic contains the message \"no leaking memory\".\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n\nlet _box = Box::new(3); // Box::new is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-methods`: `Vec<crate::utils::conf::DisallowedMethod>`: The list of disallowed methods, written as fully qualified paths. (defaults to `[]`)\n\n### Past names\n\n* `disallowed_method`\n\n",
+    "docs": "\n### What it does\nDenies the configured macros in clippy.toml\n\nNote: Even though this lint is warn-by-default, it will only trigger if\nmacros are defined in the clippy.toml file.\n\n### Why is this bad?\nSome macros are undesirable in certain contexts, and it's beneficial to\nlint for them as needed.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-macros = [\n    # Can use a string as the path of the disallowed macro.\n    \"std::print\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::println\" },\n    # When using an inline table, can add a `reason` for why the macro\n    # is disallowed.\n    { path = \"serde::Serialize\", reason = \"no serializing\" },\n]\n```\n```rust\nuse serde::Serialize;\n\n// Example code where clippy issues a warning\nprintln!(\"warns\");\n\n// The diagnostic will contain the message \"no serializing\"\n#[derive(Serialize)]\nstruct Data {\n    name: String,\n    value: usize,\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-macros`: `Vec<crate::utils::conf::DisallowedPath>`: The list of disallowed macros, written as fully qualified paths. (defaults to `[]`)\n",
+    "version": "1.65.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "disallowed_methods",
+    "id_span": {
+      "path": "src/disallowed_methods.rs",
+      "line": 56
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nDenies the configured methods and functions in clippy.toml\n\nNote: Even though this lint is warn-by-default, it will only trigger if\nmethods are defined in the clippy.toml file.\n\n### Why is this bad?\nSome methods are undesirable in certain contexts, and it's beneficial to\nlint for them as needed.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-methods = [\n    # Can use a string as the path of the disallowed method.\n    \"std::boxed::Box::new\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::time::Instant::now\" },\n    # When using an inline table, can add a `reason` for why the method\n    # is disallowed.\n    { path = \"std::vec::Vec::leak\", reason = \"no leaking memory\" },\n]\n```\n\n```rust\n// Example code where clippy issues a warning\nlet xs = vec![1, 2, 3, 4];\nxs.leak(); // Vec::leak is disallowed in the config.\n// The diagnostic contains the message \"no leaking memory\".\n\nlet _now = Instant::now(); // Instant::now is disallowed in the config.\n\nlet _box = Box::new(3); // Box::new is disallowed in the config.\n```\n\nUse instead:\n```rust\n// Example code which does not raise clippy warning\nlet mut xs = Vec::new(); // Vec::new is _not_ disallowed in the config.\nxs.push(123); // Vec::push is _not_ disallowed in the config.\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-methods`: `Vec<crate::utils::conf::DisallowedPath>`: The list of disallowed methods, written as fully qualified paths. (defaults to `[]`)\n\n### Past names\n\n* `disallowed_method`\n\n",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1353,11 +1368,11 @@
     "id": "disallowed_types",
     "id_span": {
       "path": "src/disallowed_types.rs",
-      "line": 47
+      "line": 49
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nDenies the configured types in clippy.toml.\n\nNote: Even though this lint is warn-by-default, it will only trigger if\ntypes are defined in the clippy.toml file.\n\n### Why is this bad?\nSome types are undesirable in certain contexts.\n\n### Example:\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-types = [\n    # Can use a string as the path of the disallowed type.\n    \"std::collections::BTreeMap\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::net::TcpListener\" },\n    # When using an inline table, can add a `reason` for why the type\n    # is disallowed.\n    { path = \"std::net::Ipv4Addr\", reason = \"no IPv4 allowed\" },\n]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-types`: `Vec<crate::utils::conf::DisallowedType>`: The list of disallowed types, written as fully qualified paths. (defaults to `[]`)\n\n### Past names\n\n* `disallowed_type`\n\n",
+    "docs": "\n### What it does\nDenies the configured types in clippy.toml.\n\nNote: Even though this lint is warn-by-default, it will only trigger if\ntypes are defined in the clippy.toml file.\n\n### Why is this bad?\nSome types are undesirable in certain contexts.\n\n### Example:\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-types = [\n    # Can use a string as the path of the disallowed type.\n    \"std::collections::BTreeMap\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::net::TcpListener\" },\n    # When using an inline table, can add a `reason` for why the type\n    # is disallowed.\n    { path = \"std::net::Ipv4Addr\", reason = \"no IPv4 allowed\" },\n]\n```\n\n```rust\nuse std::collections::BTreeMap;\n// or its use\nlet x = std::collections::BTreeMap::new();\n```\nUse instead:\n```rust\n// A similar type that is allowed by the config\nuse std::collections::HashMap;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-types`: `Vec<crate::utils::conf::DisallowedPath>`: The list of disallowed types, written as fully qualified paths. (defaults to `[]`)\n\n### Past names\n\n* `disallowed_type`\n\n",
     "version": "1.55.0",
     "applicability": {
       "is_multi_part_suggestion": false,
