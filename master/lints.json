@@ -1878,7 +1878,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 139
+      "line": 143
     },
     "group": "complexity",
     "level": "warn",
@@ -1908,7 +1908,7 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 59
+      "line": 63
     },
     "group": "pedantic",
     "level": "allow",
@@ -4878,7 +4878,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 88
+      "line": 92
     },
     "group": "style",
     "level": "warn",
@@ -6123,7 +6123,7 @@
     "id": "redundant_clone",
     "id_span": {
       "path": "src/redundant_clone.rs",
-      "line": 65
+      "line": 58
     },
     "group": "perf",
     "level": "warn",
@@ -6303,7 +6303,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 116
+      "line": 120
     },
     "group": "pedantic",
     "level": "allow",
