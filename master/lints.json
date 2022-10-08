@@ -948,7 +948,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 677
+      "line": 679
     },
     "group": "style",
     "level": "warn",
@@ -2793,7 +2793,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 388
+      "line": 390
     },
     "group": "style",
     "level": "warn",
@@ -3645,6 +3645,21 @@
     }
   },
   {
+    "id": "manual_filter",
+    "id_span": {
+      "path": "src/matches/mod.rs",
+      "line": 926
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for usages of `match` which could be implemented using `filter`\n\n### Why is this bad?\nUsing the `filter` method is clearer and more concise.\n\n### Example\n```rust\nmatch Some(0) {\n    Some(x) => if x % 2 == 0 {\n                    Some(x)\n               } else {\n                    None\n                },\n    None => None,\n};\n```\nUse instead:\n```rust\nSome(0).filter(|&x| x % 2 == 0);\n```",
+    "version": "1.66.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
@@ -3723,7 +3738,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 896
+      "line": 898
     },
     "group": "style",
     "level": "warn",
@@ -3731,7 +3746,7 @@
     "version": "1.52.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
@@ -3918,7 +3933,7 @@
     "id": "manual_unwrap_or",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 704
+      "line": 706
     },
     "group": "complexity",
     "level": "warn",
@@ -4053,7 +4068,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 247
+      "line": 249
     },
     "group": "complexity",
     "level": "warn",
@@ -4068,7 +4083,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 171
+      "line": 173
     },
     "group": "pedantic",
     "level": "allow",
@@ -4083,7 +4098,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 551
+      "line": 553
     },
     "group": "style",
     "level": "warn",
@@ -4098,7 +4113,7 @@
     "id": "match_on_vec_items",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 740
+      "line": 742
     },
     "group": "pedantic",
     "level": "allow",
@@ -4113,7 +4128,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 194
+      "line": 196
     },
     "group": "style",
     "level": "warn",
@@ -4128,7 +4143,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 136
+      "line": 138
     },
     "group": "style",
     "level": "warn",
@@ -4158,7 +4173,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 596
+      "line": 598
     },
     "group": "pedantic",
     "level": "allow",
@@ -4173,7 +4188,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 422
+      "line": 424
     },
     "group": "complexity",
     "level": "warn",
@@ -4188,7 +4203,7 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 771
+      "line": 773
     },
     "group": "correctness",
     "level": "deny",
@@ -4203,7 +4218,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 217
+      "line": 219
     },
     "group": "pedantic",
     "level": "allow",
@@ -4218,7 +4233,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 321
+      "line": 323
     },
     "group": "pedantic",
     "level": "allow",
@@ -4983,7 +4998,7 @@
     "id": "needless_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 639
+      "line": 641
     },
     "group": "complexity",
     "level": "warn",
@@ -6228,7 +6243,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 512
+      "line": 514
     },
     "group": "style",
     "level": "warn",
@@ -6363,7 +6378,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 456
+      "line": 458
     },
     "group": "restriction",
     "level": "allow",
@@ -6708,7 +6723,7 @@
     "id": "significant_drop_in_scrutinee",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 837
+      "line": 839
     },
     "group": "nursery",
     "level": "allow",
@@ -6813,7 +6828,7 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 61
+      "line": 63
     },
     "group": "style",
     "level": "warn",
@@ -6828,7 +6843,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 103
+      "line": 105
     },
     "group": "pedantic",
     "level": "allow",
@@ -7608,7 +7623,7 @@
     "id": "try_err",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 872
+      "line": 874
     },
     "group": "restriction",
     "level": "allow",
@@ -8688,7 +8703,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 283
+      "line": 285
     },
     "group": "restriction",
     "level": "allow",
@@ -8718,7 +8733,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 352
+      "line": 354
     },
     "group": "complexity",
     "level": "warn",
