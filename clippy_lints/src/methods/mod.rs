@@ -78,6 +78,7 @@ mod single_char_push_string;
 mod skip_while_next;
 mod stable_sort_primitive;
 mod str_splitn;
+mod string_as_str;
 mod string_extend_chars;
 mod suspicious_map;
 mod suspicious_splitn;
@@ -3069,6 +3070,37 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    ///
+    /// Checks for `_.as_str()` calls on `String`s, that can be replaced with just `&_`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// `as_str` is an unnecessary method call, that makes the code harder to read.
+    ///
+    /// ### Example
+    /// ```rust
+    /// fn fn_with_str(my_string: &str) {
+    ///     println!("hey {my_string}");
+    /// }
+    ///
+    /// let my_string = String::from("hey");
+    /// fn_with_str(my_string.as_str());
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// # fn fn_with_str(my_string: &str) {
+    /// #     println!("hey {my_string}");
+    /// # }
+    /// # let my_string = String::from("hey");
+    /// fn_with_str(&my_string);
+    /// ```
+    #[clippy::version = "1.67.0"]
+    pub STRING_AS_STR,
+    pedantic,
+    "finds `as_str()` calls used for `String` when `&` is enough"
+}
+
+declare_clippy_lint! {
     /// ### What it does
     ///
     /// Checks an argument of `seek` method of `Seek` trait
@@ -3480,6 +3512,7 @@ impl Methods {
                 },
                 ("as_mut", []) => useless_asref::check(cx, expr, "as_mut", recv),
                 ("as_ref", []) => useless_asref::check(cx, expr, "as_ref", recv),
+                ("as_str", []) => string_as_str::check(cx, expr, recv),
                 ("assume_init", []) => uninit_assumed_init::check(cx, expr, recv),
                 ("cloned", []) => cloned_instead_of_copied::check(cx, expr, recv, span, self.msrv),
                 ("collect", []) => match method_call(recv) {

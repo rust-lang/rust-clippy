@@ -35,7 +35,7 @@ pub(super) fn check(
             if should_strip_parens(cast_op, snip) {
                 &snip[1..snip.len() - 1]
             } else {
-                snip.as_str()
+                snip
             }
         },
     );

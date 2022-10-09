@@ -147,7 +147,7 @@ fn build_manual_memcpy_suggestion<'tcx>(
             print_offset(apply_offset(&start_str, &idx_expr.idx_offset)).into_sugg(),
             print_limit(
                 end,
-                end_str.to_string().as_str(),
+                &end_str.to_string(),
                 idx_expr.base,
                 apply_offset(&end_str, &idx_expr.idx_offset),
             )
@@ -159,7 +159,7 @@ fn build_manual_memcpy_suggestion<'tcx>(
                 print_offset(apply_offset(&counter_start, &idx_expr.idx_offset)).into_sugg(),
                 print_limit(
                     end,
-                    end_str.to_string().as_str(),
+                    &end_str.to_string(),
                     idx_expr.base,
                     apply_offset(&end_str, &idx_expr.idx_offset) + &counter_start - &start_str,
                 )

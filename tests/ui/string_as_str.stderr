@@ -1,0 +1,22 @@
+error: used `as_str()` for reference
+  --> $DIR/string_as_str.rs:8:13
+   |
+LL |     let s = my_string.as_str();
+   |             ^^^^^^^^^^^^^^^^^^ help: replace it with: `&my_string`
+   |
+   = note: `-D clippy::string-as-str` implied by `-D warnings`
+
+error: used `as_str()` for reference
+  --> $DIR/string_as_str.rs:9:17
+   |
+LL |     fn_with_str(my_string.as_str());
+   |                 ^^^^^^^^^^^^^^^^^^ help: replace it with: `&my_string`
+
+error: used `as_str()` for reference
+  --> $DIR/string_as_str.rs:37:22
+   |
+LL |         None => Some(snip.as_str()),
+   |                      ^^^^^^^^^^^^^ help: replace it with: `&snip`
+
+error: aborting due to 3 previous errors
+
