@@ -2,6 +2,7 @@
 
 #![allow(unused_parens)]
 #![allow(clippy::iter_with_drain)]
+#![allow(clippy::unnecessary_vec_drain)]
 fn f() -> usize {
     42
 }

@@ -1,0 +1,16 @@
+error: unnecessary iterator `Drain` is created and dropped immedietly
+  --> $DIR/unnecessary_vec_drain.rs:7:5
+   |
+LL |     vec.drain(..);
+   |     ^^^^^^^^^^^^^ help: consider calling `clear()`: `vec.clear()`
+   |
+   = note: `-D clippy::unnecessary-vec-drain` implied by `-D warnings`
+
+error: unnecessary iterator `Drain` is created and dropped immediately
+  --> $DIR/unnecessary_vec_drain.rs:8:9
+   |
+LL |     vec.drain(0..vec.len());
+   |         ^^^^^^^^^^^^^^^^^^^ help: consider calling `clear()`: `vec.clear()`
+
+error: aborting due to 2 previous errors
+

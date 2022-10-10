@@ -379,6 +379,7 @@ mod unit_types;
 mod unnamed_address;
 mod unnecessary_owned_empty_strings;
 mod unnecessary_self_imports;
+mod unnecessary_vec_drain;
 mod unnecessary_wraps;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
@@ -906,6 +907,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(bool_to_int_with_if::BoolToIntWithIf));
     store.register_late_pass(|_| Box::new(box_default::BoxDefault));
     store.register_late_pass(|_| Box::new(implicit_saturating_add::ImplicitSaturatingAdd));
+    store.register_late_pass(|_| Box::new(unnecessary_vec_drain::UnnecessaryVecDrain));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

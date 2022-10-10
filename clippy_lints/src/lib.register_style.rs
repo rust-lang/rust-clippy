@@ -117,6 +117,7 @@ store.register_group(true, "clippy::style", Some("clippy_style"), vec![
     LintId::of(to_digit_is_some::TO_DIGIT_IS_SOME),
     LintId::of(unit_types::LET_UNIT_VALUE),
     LintId::of(unnecessary_owned_empty_strings::UNNECESSARY_OWNED_EMPTY_STRINGS),
+    LintId::of(unnecessary_vec_drain::UNNECESSARY_VEC_DRAIN),
     LintId::of(unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME),
     LintId::of(unused_unit::UNUSED_UNIT),
     LintId::of(upper_case_acronyms::UPPER_CASE_ACRONYMS),

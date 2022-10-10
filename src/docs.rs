@@ -542,6 +542,7 @@ docs! {
     "unnecessary_sort_by",
     "unnecessary_to_owned",
     "unnecessary_unwrap",
+    "unnecessary_vec_drain",
     "unnecessary_wraps",
     "unneeded_field_pattern",
     "unneeded_wildcard_pattern",
