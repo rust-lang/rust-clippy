@@ -21,12 +21,12 @@ declare_clippy_lint! {
     /// ### Example
     /// ```rust
     /// let mut vec: Vec<i32> = Vec::new();
-    //  vec.drain(..);
+    ///  vec.drain(..);
     /// ```
     /// Use instead:
     /// ```rust
     /// let mut vec: Vec<i32> = Vec::new();
-    //  vec.clear();
+    /// vec.clear();
     /// ```
     #[clippy::version = "1.66.0"]
     pub UNNECESSARY_VEC_DRAIN,
