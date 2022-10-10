@@ -21,6 +21,7 @@
     - [Method Checking](development/method_checks.md)
     - [Macro Expansions](development/macro_expansions.md)
     - [Using HirId](development/hir_ids.md)
+    - [Example: Early Lint](development/example_early.md)
     - [Adding Documentation](development/add_documentation.md)
     - [Common Tools](development/common_tools_writing_lints.md)
     - [Infrastructure](development/infrastructure/README.md)
