@@ -64,9 +64,9 @@ impl LateLintPass<'_> for UnnecessaryVecDrain {
                     {
                         if_chain! {
                             if let hir::ExprKind::Lit(lit) = &expr_fields[0].expr.kind;
-                            if let hir::ExprKind::MethodCall(path_seg, expr, _, _) = expr_fields[1].expr.kind;
+                            if let hir::ExprKind::MethodCall(path_seg, vec_expr, _, _) = expr_fields[1].expr.kind;
 
-                            if let hir::hir_id::HirId{owner: owner_expr,..} = &expr.hir_id;
+                            if let hir::hir_id::HirId{owner: owner_expr,..} = &vec_expr.hir_id;
                             if let hir::hir_id::HirId{owner: owner_rcvr,..} = &rcvr.hir_id;
 
                             then {
@@ -85,7 +85,6 @@ impl LateLintPass<'_> for UnnecessaryVecDrain {
                                         format!("{}.clear()", snippet_with_applicability(cx, rcvr.span, "", &mut applicability)),
                                         applicability
                                     );
-
                                 }
                            }
                         }
