@@ -38,7 +38,6 @@ extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
 extern crate rustc_middle;
-extern crate rustc_mir_dataflow;
 extern crate rustc_parse;
 extern crate rustc_session;
 extern crate rustc_span;
@@ -199,6 +198,7 @@ mod default_union_representation;
 mod dereference;
 mod derivable_impls;
 mod derive;
+mod disallowed_macros;
 mod disallowed_methods;
 mod disallowed_names;
 mod disallowed_script_idents;
@@ -418,7 +418,7 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, sess: &Se
 
     let msrv = conf.msrv.as_ref().and_then(|s| {
         parse_msrv(s, None, None).or_else(|| {
-            sess.err(&format!(
+            sess.err(format!(
                 "error reading Clippy's configuration file. `{s}` is not a valid Rust version"
             ));
             None
@@ -434,7 +434,7 @@ fn read_msrv(conf: &Conf, sess: &Session) -> Option<RustcVersion> {
         .and_then(|v| parse_msrv(&v, None, None));
     let clippy_msrv = conf.msrv.as_ref().and_then(|s| {
         parse_msrv(s, None, None).or_else(|| {
-            sess.err(&format!(
+            sess.err(format!(
                 "error reading Clippy's configuration file. `{s}` is not a valid Rust version"
             ));
             None
@@ -445,7 +445,7 @@ fn read_msrv(conf: &Conf, sess: &Session) -> Option<RustcVersion> {
         if let Some(clippy_msrv) = clippy_msrv {
             // if both files have an msrv, let's compare them and emit a warning if they differ
             if clippy_msrv != cargo_msrv {
-                sess.warn(&format!(
+                sess.warn(format!(
                     "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
                 ));
             }
@@ -474,7 +474,7 @@ pub fn read_conf(sess: &Session) -> Conf {
     let TryConf { conf, errors, warnings } = utils::conf::read(&file_name);
     // all conf errors are non-fatal, we just use the default conf in case of error
     for error in errors {
-        sess.err(&format!(
+        sess.err(format!(
             "error reading Clippy's configuration file `{}`: {}",
             file_name.display(),
             format_error(error)
@@ -821,6 +821,8 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(unwrap_in_result::UnwrapInResult));
     store.register_late_pass(|_| Box::new(semicolon_if_nothing_returned::SemicolonIfNothingReturned));
     store.register_late_pass(|_| Box::new(async_yields_async::AsyncYieldsAsync));
+    let disallowed_macros = conf.disallowed_macros.clone();
+    store.register_late_pass(move |_| Box::new(disallowed_macros::DisallowedMacros::new(disallowed_macros.clone())));
     let disallowed_methods = conf.disallowed_methods.clone();
     store.register_late_pass(move |_| Box::new(disallowed_methods::DisallowedMethods::new(disallowed_methods.clone())));
     store.register_early_pass(|| Box::new(asm_syntax::InlineAsmX86AttSyntax));

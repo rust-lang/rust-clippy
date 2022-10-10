@@ -1,18 +1,16 @@
+// aux-build:proc_macro_with_span.rs
 // run-rustfix
 #![feature(custom_inner_attributes)]
 #![warn(clippy::uninlined_format_args)]
 #![allow(named_arguments_used_positionally, unused_imports, unused_macros, unused_variables)]
 #![allow(clippy::eq_op, clippy::format_in_format_args, clippy::print_literal)]
 
+extern crate proc_macro_with_span;
+use proc_macro_with_span::with_span;
+
 macro_rules! no_param_str {
     () => {
         "{}"
-    };
-}
-
-macro_rules! pass_through {
-    ($expr:expr) => {
-        $expr
     };
 }
 
@@ -46,7 +44,9 @@ fn tester(fn_arg: i32) {
     println!("val='{local_i32}'"); // space+tab
     println!("val='{local_i32}'"); // tab+space
     println!(
-        "val='{local_i32}'"
+        "val='{
+    }'",
+        local_i32
     );
     println!("{local_i32}");
     println!("{fn_arg}");
@@ -110,7 +110,8 @@ fn tester(fn_arg: i32) {
     println!("{local_f64:width$.prec$}");
     println!("{local_f64:width$.prec$} {local_f64} {width} {prec}");
     println!(
-        "{local_i32:width$.prec$} {local_i32:prec$.width$} {width:local_i32$.prec$} {width:prec$.local_i32$} {prec:local_i32$.width$} {prec:width$.local_i32$}",
+        "{0:1$.2$} {0:2$.1$} {1:0$.2$} {1:2$.0$} {2:0$.1$} {2:1$.0$}",
+        local_i32, width, prec,
     );
     println!(
         "{0:1$.2$} {0:2$.1$} {1:0$.2$} {1:2$.0$} {2:0$.1$} {2:1$.0$} {3}",
@@ -140,11 +141,15 @@ fn tester(fn_arg: i32) {
     );
     println!(no_param_str!(), local_i32);
 
-    // FIXME: bugs!
-    // println!(pass_through!("foo={local_i32}"), local_i32 = local_i32);
-    // println!(pass_through!("foo={}"), local_i32);
-    // println!(indoc!("foo={}"), local_i32);
-    // printdoc!("foo={}", local_i32);
+    println!(
+        "{}",
+        // comment with a comma , in it
+        val,
+    );
+    println!("{val}");
+
+    println!(with_span!("{0} {1}" "{1} {0}"), local_i32, local_f64);
+    println!("{}", with_span!(span val));
 }
 
 fn main() {
