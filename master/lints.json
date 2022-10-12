@@ -123,7 +123,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 621
+      "line": 623
     },
     "group": "nursery",
     "level": "allow",
@@ -138,7 +138,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 536
+      "line": 537
     },
     "group": "restriction",
     "level": "allow",
@@ -378,7 +378,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 569
+      "line": 570
     },
     "group": "pedantic",
     "level": "allow",
@@ -573,7 +573,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 508
+      "line": 509
     },
     "group": "suspicious",
     "level": "warn",
@@ -588,7 +588,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 485
+      "line": 486
     },
     "group": "suspicious",
     "level": "warn",
@@ -603,7 +603,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 422
+      "line": 423
     },
     "group": "suspicious",
     "level": "warn",
@@ -618,7 +618,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 153
+      "line": 154
     },
     "group": "pedantic",
     "level": "allow",
@@ -630,10 +630,25 @@
     }
   },
   {
+    "id": "cast_nan_to_int",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 645
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for a known NaN float being cast to an integer\n\n### Why is this bad?\nNaNs are cast into zero, so one could simply use this and make the\ncode more readable. The lint could also hint at a programmer error.\n\n### Example\n```rust\nlet _: (0.0_f32 / 0.0) as u64;\n```\nUse instead:\n```rust\nlet _: = 0_u64;\n```",
+    "version": "1.64.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 96
+      "line": 97
     },
     "group": "pedantic",
     "level": "allow",
@@ -648,7 +663,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 120
+      "line": 121
     },
     "group": "pedantic",
     "level": "allow",
@@ -663,7 +678,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 51
+      "line": 52
     },
     "group": "pedantic",
     "level": "allow",
@@ -678,7 +693,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 207
+      "line": 208
     },
     "group": "pedantic",
     "level": "allow",
@@ -693,7 +708,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 346
+      "line": 347
     },
     "group": "correctness",
     "level": "deny",
@@ -708,7 +723,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 73
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
@@ -723,7 +738,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 467
+      "line": 468
     },
     "group": "correctness",
     "level": "deny",
@@ -738,7 +753,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 595
+      "line": 597
     },
     "group": "suspicious",
     "level": "warn",
@@ -753,7 +768,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 374
+      "line": 375
     },
     "group": "complexity",
     "level": "warn",
@@ -2268,7 +2283,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 236
+      "line": 237
     },
     "group": "style",
     "level": "warn",
@@ -2283,7 +2298,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 311
+      "line": 312
     },
     "group": "restriction",
     "level": "allow",
@@ -2298,7 +2313,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 269
+      "line": 270
     },
     "group": "style",
     "level": "warn",
@@ -5898,7 +5913,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 403
+      "line": 404
     },
     "group": "pedantic",
     "level": "allow",
@@ -7848,7 +7863,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 179
+      "line": 180
     },
     "group": "complexity",
     "level": "warn",
