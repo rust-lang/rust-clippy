@@ -492,3 +492,14 @@ mod issue_9782_method_variant {
         S.foo::<&[u8; 100]>(&a);
     }
 }
+
+extern crate rustc_lint;
+extern crate rustc_span;
+
+#[allow(dead_code)]
+mod span_lint {
+    use rustc_lint::{LateContext, Lint, LintContext};
+    fn foo(cx: &LateContext<'_>, lint: &'static Lint) {
+        cx.struct_span_lint(lint, rustc_span::Span::default(), "", |diag| diag.note(&String::new()));
+    }
+}
