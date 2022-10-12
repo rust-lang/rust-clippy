@@ -6056,7 +6056,7 @@
     "version": "1.48.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unspecified"
     }
   },
   {
