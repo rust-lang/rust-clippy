@@ -2705,8 +2705,8 @@
       "path": "src/implicit_saturating_sub.rs",
       "line": 37
     },
-    "group": "pedantic",
-    "level": "allow",
+    "group": "style",
+    "level": "warn",
     "docs": "\n### What it does\nChecks for implicit saturating subtraction.\n\n### Why is this bad?\nSimplicity and readability. Instead we can easily use an builtin function.\n\n### Example\n```rust\nlet mut i: u32 = end - start;\n\nif i != 0 {\n    i -= 1;\n}\n```\n\nUse instead:\n```rust\nlet mut i: u32 = end - start;\n\ni = i.saturating_sub(1);\n```",
     "version": "1.44.0",
     "applicability": {
