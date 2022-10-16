@@ -5715,6 +5715,21 @@
     }
   },
   {
+    "id": "partial_pub_fields",
+    "id_span": {
+      "path": "src/partial_pub_fields.rs",
+      "line": 35
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks whether partial fields of a struct are public.\n\nEither make all fields of a type public, or make none of them public\n\n### Why is this bad?\nMost types should either be:\n* Abstract data types: complex objects with opaque implementation which guard\ninterior invariants and expose intentionally limited API to the outside world.\n* Data: relatively simple objects which group a bunch of related attributes together.\n\n### Example\n```rust\npub struct Color {\n    pub r: u8,\n    pub g: u8,\n    b: u8,\n}\n```\nUse instead:\n```rust\npub struct Color {\n    pub r: u8,\n    pub g: u8,\n    pub b: u8,\n}\n```",
+    "version": "1.66.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "partialeq_ne_impl",
     "id_span": {
       "path": "src/partialeq_ne_impl.rs",
