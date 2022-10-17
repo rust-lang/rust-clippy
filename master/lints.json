@@ -2403,7 +2403,7 @@
     "id": "format_in_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 40
+      "line": 42
     },
     "group": "perf",
     "level": "warn",
@@ -7353,7 +7353,7 @@
     "id": "to_string_in_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 66
+      "line": 68
     },
     "group": "perf",
     "level": "warn",
@@ -7803,7 +7803,7 @@
     "id": "uninlined_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 115
+      "line": 117
     },
     "group": "style",
     "level": "warn",
@@ -8292,6 +8292,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "unused_format_specs",
+    "id_span": {
+      "path": "src/format_args.rs",
+      "line": 148
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nDetects [formatting parameters] that have no effect on the output of\n`format!()`, `println!()` or similar macros.\n\n### Why is this bad?\nShorter format specifiers are easier to read, it may also indicate that\nan expected formatting operation such as adding padding isn't happening.\n\n### Example\n```rust\nprintln!(\"{:.}\", 1.0);\n\nprintln!(\"not padded: {:5}\", format_args!(\"...\"));\n```\nUse instead:\n```rust\nprintln!(\"{}\", 1.0);\n\nprintln!(\"not padded: {}\", format_args!(\"...\"));\n// OR\nprintln!(\"padded: {:5}\", format!(\"...\"));\n```\n\n[formatting parameters]: https://doc.rust-lang.org/std/fmt/index.html#formatting-parameters",
+    "version": "1.66.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
     }
   },
   {
