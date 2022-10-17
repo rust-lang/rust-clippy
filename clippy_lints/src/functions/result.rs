@@ -6,8 +6,8 @@ use rustc_middle::ty::{self, Ty};
 use rustc_span::{sym, Span};
 
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_then};
-use clippy_utils::trait_ref_of_method;
 use clippy_utils::ty::{approx_ty_size, is_type_diagnostic_item};
+use clippy_utils::{is_no_std_crate, trait_ref_of_method};
 
 use super::{RESULT_LARGE_ERR, RESULT_UNIT_ERR};
 
@@ -71,7 +71,7 @@ pub(super) fn check_trait_item<'tcx>(cx: &LateContext<'tcx>, item: &hir::TraitIt
 }
 
 fn check_result_unit_err(cx: &LateContext<'_>, err_ty: Ty<'_>, fn_header_span: Span) {
-    if err_ty.is_unit() {
+    if err_ty.is_unit() && !is_no_std_crate(cx) {
         span_lint_and_help(
             cx,
             RESULT_UNIT_ERR,
