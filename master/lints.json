@@ -1668,7 +1668,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 335
+      "line": 291
     },
     "group": "suspicious",
     "level": "warn",
@@ -1923,7 +1923,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 301
+      "line": 257
     },
     "group": "complexity",
     "level": "warn",
@@ -1953,7 +1953,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 147
+      "line": 146
     },
     "group": "pedantic",
     "level": "allow",
@@ -1968,7 +1968,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 118
+      "line": 117
     },
     "group": "pedantic",
     "level": "allow",
@@ -2328,27 +2328,12 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 391
+      "line": 347
     },
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for iterating a map (`HashMap` or `BTreeMap`) and\nignoring either the keys or values.\n\n### Why is this bad?\nReadability. There are `keys` and `values` methods that\ncan be used to express that don't need the values or keys.\n\n### Example\n```rust\nfor (k, _) in &map {\n    ..\n}\n```\n\ncould be replaced by\n\n```rust\nfor k in map.keys() {\n    ..\n}\n```",
     "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "for_loops_over_fallibles",
-    "id_span": {
-      "path": "src/loops/mod.rs",
-      "line": 214
-    },
-    "group": "suspicious",
-    "level": "warn",
-    "docs": "\n### What it does\nChecks for `for` loops over `Option` or `Result` values.\n\n### Why is this bad?\nReadability. This is more clearly expressed as an `if\nlet`.\n\n### Example\n```rust\nfor x in opt {\n    // ..\n}\n\nfor x in &res {\n    // ..\n}\n\nfor x in res.iter() {\n    // ..\n}\n```\n\nUse instead:\n```rust\nif let Some(x) = opt {\n    // ..\n}\n\nif let Ok(x) = res {\n    // ..\n}\n```\n### Past names\n\n* `for_loop_over_option`\n* `for_loop_over_result`\n\n",
-    "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2778,7 +2763,7 @@
     "id": "indexing_slicing",
     "id_span": {
       "path": "src/indexing_slicing.rs",
-      "line": 81
+      "line": 80
     },
     "group": "restriction",
     "level": "allow",
@@ -3183,7 +3168,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 171
+      "line": 170
     },
     "group": "correctness",
     "level": "deny",
@@ -3708,7 +3693,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 639
+      "line": 595
     },
     "group": "complexity",
     "level": "warn",
@@ -3738,7 +3723,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 572
+      "line": 528
     },
     "group": "complexity",
     "level": "warn",
@@ -3783,7 +3768,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 54
+      "line": 53
     },
     "group": "perf",
     "level": "warn",
@@ -4533,7 +4518,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 608
+      "line": 564
     },
     "group": "perf",
     "level": "warn",
@@ -4788,7 +4773,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 449
+      "line": 405
     },
     "group": "suspicious",
     "level": "warn",
@@ -4938,7 +4923,7 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 269
+      "line": 225
     },
     "group": "perf",
     "level": "warn",
@@ -5118,7 +5103,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 84
+      "line": 83
     },
     "group": "style",
     "level": "warn",
@@ -5223,7 +5208,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 413
+      "line": 369
     },
     "group": "correctness",
     "level": "deny",
@@ -5628,7 +5613,7 @@
     "id": "out_of_bounds_indexing",
     "id_span": {
       "path": "src/indexing_slicing.rs",
-      "line": 38
+      "line": 37
     },
     "group": "correctness",
     "level": "deny",
@@ -6543,7 +6528,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 512
+      "line": 468
     },
     "group": "style",
     "level": "warn",
@@ -6858,7 +6843,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 540
+      "line": 496
     },
     "group": "complexity",
     "level": "warn",
@@ -8703,7 +8688,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 476
+      "line": 432
     },
     "group": "correctness",
     "level": "deny",
@@ -8718,7 +8703,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 247
+      "line": 203
     },
     "group": "complexity",
     "level": "warn",
@@ -8733,7 +8718,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 362
+      "line": 318
     },
     "group": "style",
     "level": "warn",
