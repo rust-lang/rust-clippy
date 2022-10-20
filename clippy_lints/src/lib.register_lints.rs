@@ -554,6 +554,7 @@ store.register_lints(&[
     transmute::UNSOUND_COLLECTION_TRANSMUTE,
     transmute::USELESS_TRANSMUTE,
     transmute::WRONG_TRANSMUTE,
+    trim_split_whitespaces::TRIM_SPLIT_WHITESPACES,
     types::BORROWED_BOX,
     types::BOX_COLLECTION,
     types::LINKEDLIST,

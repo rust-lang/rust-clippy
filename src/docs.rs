@@ -510,6 +510,7 @@ docs! {
     "transmutes_expressible_as_ptr_casts",
     "transmuting_null",
     "trim_split_whitespace",
+    "trim_split_whitespaces",
     "trivial_regex",
     "trivially_copy_pass_by_ref",
     "try_err",

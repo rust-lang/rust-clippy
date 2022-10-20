@@ -1,0 +1,12 @@
+### What it does
+
+### Why is this bad?
+
+### Example
+```
+// example code where clippy issues a warning
+```
+Use instead:
+```
+// example code which does not raise clippy warning
+```

@@ -115,6 +115,7 @@ store.register_group(true, "clippy::style", Some("clippy_style"), vec![
     LintId::of(strings::TRIM_SPLIT_WHITESPACE),
     LintId::of(tabs_in_doc_comments::TABS_IN_DOC_COMMENTS),
     LintId::of(to_digit_is_some::TO_DIGIT_IS_SOME),
+    LintId::of(trim_split_whitespaces::TRIM_SPLIT_WHITESPACES),
     LintId::of(unit_types::LET_UNIT_VALUE),
     LintId::of(unnecessary_owned_empty_strings::UNNECESSARY_OWNED_EMPTY_STRINGS),
     LintId::of(unsafe_removed_from_name::UNSAFE_REMOVED_FROM_NAME),

@@ -369,6 +369,7 @@ mod to_digit_is_some;
 mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
+mod trim_split_whitespaces;
 mod types;
 mod undocumented_unsafe_blocks;
 mod unicode;
@@ -902,6 +903,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|| Box::new(unused_peekable::UnusedPeekable));
     store.register_early_pass(|| Box::new(multi_assignments::MultiAssignments));
     store.register_late_pass(|| Box::new(bool_to_int_with_if::BoolToIntWithIf));
+    store.register_late_pass(|| Box::new(trim_split_whitespaces::TrimSplitWhitespaces));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
