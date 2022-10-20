@@ -4530,6 +4530,21 @@
     }
   },
   {
+    "id": "missing_trait_methods",
+    "id_span": {
+      "path": "src/missing_trait_methods.rs",
+      "line": 54
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks if a provided method is used implicitly by a trait\nimplementation. A usage example would be a wrapper where every method\nshould perform some operation before delegating to the inner type's\nimplemenation.\n\nThis lint should typically be enabled on a specific trait `impl` item\nrather than globally.\n\n### Why is this bad?\nIndicates that a method is missing.\n\n### Example\n```rust\ntrait Trait {\n    fn required();\n\n    fn provided() {}\n}\n\n#[warn(clippy::missing_trait_methods)]\nimpl Trait for Type {\n    fn required() { /* ... */ }\n}\n```\nUse instead:\n```rust\ntrait Trait {\n    fn required();\n\n    fn provided() {}\n}\n\n#[warn(clippy::missing_trait_methods)]\nimpl Trait for Type {\n    fn required() { /* ... */ }\n\n    fn provided() { /* ... */ }\n}\n```",
+    "version": "1.66.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "mistyped_literal_suffixes",
     "id_span": {
       "path": "src/literal_representation.rs",
