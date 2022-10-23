@@ -3480,29 +3480,14 @@
     }
   },
   {
-    "id": "let_underscore_drop",
-    "id_span": {
-      "path": "src/let_underscore.rs",
-      "line": 96
-    },
-    "group": "pedantic",
-    "level": "allow",
-    "docs": "\n### What it does\nChecks for `let _ = <expr>`\nwhere expr has a type that implements `Drop`\n\n### Why is this bad?\nThis statement immediately drops the initializer\nexpression instead of extending its lifetime to the end of the scope, which\nis often not intended. To extend the expression's lifetime to the end of the\nscope, use an underscore-prefixed name instead (i.e. _var). If you want to\nexplicitly drop the expression, `std::mem::drop` conveys your intention\nbetter and is less error-prone.\n\n### Example\n```rust\n{\n    let _ = DroppableItem;\n    //                   ^ dropped here\n    /* more code */\n}\n```\n\nUse instead:\n```rust\n{\n    let _droppable = DroppableItem;\n    /* more code */\n    // dropped at end of scope\n}\n```",
-    "version": "1.50.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "let_underscore_lock",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 58
+      "line": 57
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for `let _ = sync_lock`.\nThis supports `mutex` and `rwlock` in `std::sync` and `parking_lot`.\n\n### Why is this bad?\nThis statement immediately drops the lock instead of\nextending its lifetime to the end of the scope, which is often not intended.\nTo extend lock lifetime to the end of the scope, use an underscore-prefixed\nname instead (i.e. _lock). If you want to explicitly drop the lock,\n`std::mem::drop` conveys your intention better and is less error-prone.\n\n### Example\n```rust\nlet _ = mutex.lock();\n```\n\nUse instead:\n```rust\nlet _lock = mutex.lock();\n```",
+    "docs": "\n### What it does\nChecks for `let _ = sync_lock`. This supports `mutex` and `rwlock` in\n`parking_lot`. For `std` locks see the `rustc` lint\n[`let_underscore_lock`](https://doc.rust-lang.org/nightly/rustc/lints/listing/deny-by-default.html#let-underscore-lock)\n\n### Why is this bad?\nThis statement immediately drops the lock instead of\nextending its lifetime to the end of the scope, which is often not intended.\nTo extend lock lifetime to the end of the scope, use an underscore-prefixed\nname instead (i.e. _lock). If you want to explicitly drop the lock,\n`std::mem::drop` conveys your intention better and is less error-prone.\n\n### Example\n```rust\nlet _ = mutex.lock();\n```\n\nUse instead:\n```rust\nlet _lock = mutex.lock();\n```",
     "version": "1.43.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3513,7 +3498,7 @@
     "id": "let_underscore_must_use",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 31
+      "line": 29
     },
     "group": "restriction",
     "level": "allow",
