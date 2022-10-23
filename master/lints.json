@@ -1758,7 +1758,7 @@
     "id": "equatable_if_let",
     "id_span": {
       "path": "src/equatable_if_let.rs",
-      "line": 37
+      "line": 36
     },
     "group": "nursery",
     "level": "allow",
