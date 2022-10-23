@@ -62,8 +62,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for `let _ = <expr>`
-    /// where expr has a type that implements `Drop`
+    /// Checks for `let _ = <expr>` where expr has a type that implements `Drop`
     ///
     /// ### Why is this bad?
     /// This statement immediately drops the initializer
@@ -94,7 +93,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.50.0"]
     pub LET_UNDERSCORE_DROP,
-    pedantic,
+    restriction,
     "non-binding let on a type that implements `Drop`"
 }
 

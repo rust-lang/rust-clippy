@@ -28,6 +28,7 @@ store.register_group(true, "clippy::restriction", Some("clippy_restriction"), ve
     LintId::of(indexing_slicing::INDEXING_SLICING),
     LintId::of(inherent_impl::MULTIPLE_INHERENT_IMPL),
     LintId::of(large_include_file::LARGE_INCLUDE_FILE),
+    LintId::of(let_underscore::LET_UNDERSCORE_DROP),
     LintId::of(let_underscore::LET_UNDERSCORE_MUST_USE),
     LintId::of(literal_representation::DECIMAL_LITERAL_REPRESENTATION),
     LintId::of(matches::REST_PAT_IN_FULLY_BOUND_STRUCTS),

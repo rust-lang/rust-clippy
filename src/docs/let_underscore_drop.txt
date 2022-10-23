@@ -1,6 +1,5 @@
 ### What it does
-Checks for `let _ = <expr>`
-where expr has a type that implements `Drop`
+Checks for `let _ = <expr>` where expr has a type that implements `Drop`
 
 ### Why is this bad?
 This statement immediately drops the initializer
