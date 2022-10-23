@@ -2445,6 +2445,21 @@
     }
   },
   {
+    "id": "from_raw_with_void_ptr",
+    "id_span": {
+      "path": "src/from_raw_with_void_ptr.rs",
+      "line": 38
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks if we're passing a `c_void` raw pointer to `Box::from_raw(_)`\n\n### Why is this bad?\nHowever, it is easy to run into the pitfall of calling from_raw with the c_void pointer.\nNote that the definition of, say, Box::from_raw is:\n\n`pub unsafe fn from_raw(raw: *mut T) -> Box<T>`\n\nmeaning that if you pass a *mut c_void you will get a Box<c_void>.\nPer the safety requirements in the documentation, for this to be safe,\nc_void would need to have the same memory layout as the original type, which is often not the case.\n\n### Example\n```rust\nlet ptr = Box::into_raw(Box::new(42usize)) as *mut c_void;\nlet _ = unsafe { Box::from_raw(ptr) };\n```\nUse instead:\n```rust\nlet _ = unsafe { Box::from_raw(ptr as *mut usize) };\n```\n",
+    "version": "1.66.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "from_str_radix_10",
     "id_span": {
       "path": "src/from_str_radix_10.rs",
