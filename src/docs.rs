@@ -320,6 +320,7 @@ docs! {
     "mistyped_literal_suffixes",
     "mixed_case_hex_literals",
     "mixed_read_write_in_expression",
+    "mod_lib",
     "mod_module_files",
     "module_inception",
     "module_name_repetitions",

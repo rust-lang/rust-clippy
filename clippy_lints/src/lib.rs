@@ -292,6 +292,7 @@ mod missing_enforced_import_rename;
 mod missing_inline;
 mod missing_trait_methods;
 mod mixed_read_write_in_expression;
+mod mod_lib;
 mod module_style;
 mod multi_assignments;
 mod mut_key;
@@ -920,6 +921,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| Box::new(partial_pub_fields::PartialPubFields));
     store.register_late_pass(|_| Box::new(missing_trait_methods::MissingTraitMethods));
     store.register_late_pass(|_| Box::new(from_raw_with_void_ptr::FromRawWithVoidPtr));
+    store.register_early_pass(|| Box::new(mod_lib::ModLib));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

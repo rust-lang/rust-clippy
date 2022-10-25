@@ -1,0 +1,21 @@
+error: found module declaration for lib.rs
+  --> $DIR/main.rs:4:1
+   |
+LL | mod lib;
+   | ^^^^^^^^
+   |
+   = note: lib.rs is the root of this crate's library target
+   = help: to refer to it from other targets, use the library's name as the path
+   = note: `-D special-module-name` implied by `-D warnings`
+
+error: uncommon use of mod::lib
+  --> $DIR/main.rs:4:1
+   |
+LL | mod lib;
+   | ^^^^^^^^
+   |
+   = help: you probably meant use::package instead
+   = note: `-D clippy::mod-lib` implied by `-D warnings`
+
+error: aborting due to 2 previous errors
+

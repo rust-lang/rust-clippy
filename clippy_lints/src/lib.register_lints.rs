@@ -410,6 +410,7 @@ store.register_lints(&[
     missing_trait_methods::MISSING_TRAIT_METHODS,
     mixed_read_write_in_expression::DIVERGING_SUB_EXPRESSION,
     mixed_read_write_in_expression::MIXED_READ_WRITE_IN_EXPRESSION,
+    mod_lib::MOD_LIB,
     module_style::MOD_MODULE_FILES,
     module_style::SELF_NAMED_MODULE_FILES,
     multi_assignments::MULTI_ASSIGNMENTS,
