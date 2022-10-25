@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use rustc_ast::{ptr::P, Crate, Item, ItemKind, ModKind};
-use rustc_lint::{EarlyContext, EarlyLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_hir::{Item, ItemKind};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -22,21 +22,16 @@ declare_clippy_lint! {
     pedantic,
     "default lint description"
 }
-declare_lint_pass!(ModLib => [MOD_LIB]);
 
-impl EarlyLintPass for ModLib {
-    fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &Crate) {
-        // println!("MOO Checking crate {:#?}", krate);
-        check_mod(cx, &krate.items);
-    }
-}
+#[derive(Default)]
+pub struct ModLib;
 
-fn check_mod(cx: &EarlyContext<'_>, items: &[P<Item>]) {
-    for item in items {
-        if let ItemKind::Mod(_, ModKind::Loaded(..)) = item.kind {
-            // println!("MOO Got a Mod: {:#?}", items);
-            // println!("MOO Got a Mod: {:#?}", item.ident.name);
+impl_lint_pass!(ModLib => [MOD_LIB]);
 
+impl<'tcx> LateLintPass<'tcx> for ModLib {
+    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        if let ItemKind::Mod(_) = item.kind {
+            // println!("MOO Found a Mod: {:#?}", item.ident);
             if item.ident.name == sym::lib {
                 span_lint_and_help(
                     cx,
