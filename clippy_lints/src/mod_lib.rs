@@ -31,7 +31,6 @@ impl_lint_pass!(ModLib => [MOD_LIB]);
 impl<'tcx> LateLintPass<'tcx> for ModLib {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         if let ItemKind::Mod(_) = item.kind {
-            // println!("MOO Found a Mod: {:#?}", item.ident);
             if item.ident.name == sym::lib {
                 span_lint_and_help(
                     cx,
