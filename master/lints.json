@@ -8523,11 +8523,11 @@
     "id": "use_self",
     "id_span": {
       "path": "src/use_self.rs",
-      "line": 54
+      "line": 53
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.\n\n### Why is this bad?\nUnnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.\n\n### Known problems\n- Unaddressed false negative in fn bodies of trait implementations\n- False positive with associated types in traits (#4140)\n\n### Example\n```rust\nstruct Foo;\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo;\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
+    "docs": "\n### What it does\nChecks for unnecessary repetition of structure name when a\nreplacement with `Self` is applicable.\n\n### Why is this bad?\nUnnecessary repetition. Mixed use of `Self` and struct\nname\nfeels inconsistent.\n\n### Known problems\n- Unaddressed false negative in fn bodies of trait implementations\n\n### Example\n```rust\nstruct Foo;\nimpl Foo {\n    fn new() -> Foo {\n        Foo {}\n    }\n}\n```\ncould be\n```rust\nstruct Foo;\nimpl Foo {\n    fn new() -> Self {\n        Self {}\n    }\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
