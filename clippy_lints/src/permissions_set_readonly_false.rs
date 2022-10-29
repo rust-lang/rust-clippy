@@ -15,6 +15,7 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
+    /// use std::fs::File;
     /// let f = File::create("foo.txt").unwrap();
     /// let metadata = f.metadata().unwrap();
     /// let mut permissions = metadata.permissions();
