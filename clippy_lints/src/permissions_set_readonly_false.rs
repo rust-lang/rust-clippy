@@ -29,26 +29,20 @@ declare_lint_pass!(PermissionsSetReadonlyFalse => [PERMISSIONS_SET_READONLY_FALS
 
 impl<'tcx> LateLintPass<'tcx> for PermissionsSetReadonlyFalse {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        if let ExprKind::MethodCall(path, receiver, args, _) = &expr.kind {
-            if_chain! {
-                if match_type(cx, cx.typeck_results().expr_ty(receiver), &paths::PERMISSIONS);
-                if path.ident.name == sym!(set_readonly);
-                if args.len() == 1;
-                then {
-                    if let ExprKind::Lit(lit) = &args[0].kind {
-                        if LitKind::Bool(false) == lit.node {
-                            span_lint_and_note(
-                                cx,
-                                PERMISSIONS_SET_READONLY_FALSE,
-                                expr.span,
-                                "call to `set_readonly` with argument `false`",
-                                None,
-                                "on Unix platforms this results in the file being world writable",
-                            );
-                        }
-                    }
-                }
-            }
+        if let ExprKind::MethodCall(path, receiver, [arg], _) = &expr.kind
+            && match_type(cx, cx.typeck_results().expr_ty(receiver), &paths::PERMISSIONS)
+                && path.ident.name == sym!(set_readonly)
+                && [arg].len() == 1
+                && let ExprKind::Lit(lit) = &[arg][0].kind
+                && LitKind::Bool(false) == lit.node {
+                    span_lint_and_note(
+                        cx,
+                        PERMISSIONS_SET_READONLY_FALSE,
+                        expr.span,
+                        "call to `set_readonly` with argument `false`",
+                        None,
+                        "on Unix platforms this results in the file being world writable",
+                    );
         }
     }
 }
