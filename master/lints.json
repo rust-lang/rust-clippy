@@ -363,7 +363,7 @@
     "id": "bool_to_int_with_if",
     "id_span": {
       "path": "src/bool_to_int_with_if.rs",
-      "line": 40
+      "line": 41
     },
     "group": "style",
     "level": "warn",
