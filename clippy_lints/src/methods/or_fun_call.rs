@@ -171,7 +171,7 @@ pub(super) fn check<'tcx>(
             _,
         ) = arg.kind
         {
-            expr
+            *expr
         } else {
             arg
         }
