@@ -7335,6 +7335,21 @@
     }
   },
   {
+    "id": "suspicious_xor_used_as_pow",
+    "id_span": {
+      "path": "src/suspicious_xor_used_as_pow.rs",
+      "line": 22
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nWarns for a Bitwise XOR (`^`) operator being probably confused as a powering. It will not trigger if any of the numbers are not in decimal.\n### Why is this bad?\n\tIt's most probably a typo and may lead to unexpected behaviours.\n### Example\n```rust\nlet x = 3_i32 ^ 4_i32;\n```\nUse instead:\n```rust\nlet x = 3_i32.pow(4);\n```",
+    "version": "1.66.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "swap_ptr_to_ref",
     "id_span": {
       "path": "src/swap_ptr_to_ref.rs",
