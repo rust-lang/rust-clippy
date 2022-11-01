@@ -6,12 +6,14 @@
 // positives.
 
 #![allow(clippy::collapsible_else_if)]
+#![feature(unix_sigpipe)]
 
 mod config;
 mod driver;
+mod json;
 mod recursive;
 
-use crate::config::LintcheckConfig;
+use crate::config::{LintcheckConfig, OutputFormat};
 use crate::recursive::LintcheckServer;
 
 use std::collections::{HashMap, HashSet};
@@ -19,6 +21,7 @@ use std::env;
 use std::env::consts::EXE_SUFFIX;
 use std::fmt::Write as _;
 use std::fs;
+use std::hash::Hash;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -26,7 +29,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 use std::time::Duration;
 
-use cargo_metadata::diagnostic::{Diagnostic, DiagnosticLevel};
+use cargo_metadata::diagnostic::{Diagnostic, DiagnosticLevel, DiagnosticSpan};
 use cargo_metadata::Message;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -93,64 +96,58 @@ struct Crate {
 }
 
 /// A single warning that clippy issued while checking a `Crate`
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 struct ClippyWarning {
     crate_name: String,
-    file: String,
-    line: usize,
-    column: usize,
+    crate_version: String,
     lint_type: String,
-    message: String,
-    is_ice: bool,
+    diag: Diagnostic,
 }
 
 #[allow(unused)]
 impl ClippyWarning {
-    fn new(diag: Diagnostic, crate_name: &str, crate_version: &str) -> Option<Self> {
-        let lint_type = diag.code?.code;
+    fn new(mut diag: Diagnostic, crate_name: &str, crate_version: &str) -> Option<Self> {
+        let lint_type = diag.code.clone()?.code;
         if !(lint_type.contains("clippy") || diag.message.contains("clippy"))
             || diag.message.contains("could not read cargo metadata")
         {
             return None;
         }
 
-        let span = diag.spans.into_iter().find(|span| span.is_primary)?;
-
-        let file = if let Ok(stripped) = Path::new(&span.file_name).strip_prefix(env!("CARGO_HOME")) {
-            format!("$CARGO_HOME/{}", stripped.display())
-        } else {
-            format!(
-                "target/lintcheck/sources/{crate_name}-{crate_version}/{}",
-                span.file_name
-            )
-        };
+        // --recursive bypasses cargo so we have to strip the rendered output ourselves
+        let rendered = diag.rendered.as_mut().unwrap();
+        *rendered = String::from_utf8(strip_ansi_escapes::strip(&rendered).unwrap()).unwrap();
 
         Some(Self {
             crate_name: crate_name.to_owned(),
-            file,
-            line: span.line_start,
-            column: span.column_start,
+            crate_version: crate_version.to_owned(),
             lint_type,
-            message: diag.message,
-            is_ice: diag.level == DiagnosticLevel::Ice,
+            diag,
         })
     }
 
-    fn to_output(&self, markdown: bool) -> String {
-        let file_with_pos = format!("{}:{}:{}", &self.file, &self.line, &self.column);
-        if markdown {
-            let mut file = self.file.clone();
-            if !file.starts_with('$') {
-                file.insert_str(0, "../");
-            }
+    fn span(&self) -> &DiagnosticSpan {
+        self.diag.spans.iter().find(|span| span.is_primary).unwrap()
+    }
 
-            let mut output = String::from("| ");
-            let _ = write!(output, "[`{file_with_pos}`]({file}#L{})", self.line);
-            let _ = write!(output, r#" | `{:<50}` | "{}" |"#, self.lint_type, self.message);
-            output.push('\n');
-            output
-        } else {
-            format!("{file_with_pos} {} \"{}\"\n", self.lint_type, self.message)
+    fn to_output(&self, format: OutputFormat) -> String {
+        let span = self.span();
+        let mut file = span.file_name.clone();
+        let file_with_pos = format!("{file}:{}:{}", span.line_start, span.line_end);
+        match format {
+            OutputFormat::Text => format!("{file_with_pos} {} \"{}\"\n", self.lint_type, self.diag.message),
+            OutputFormat::Markdown => {
+                if file.starts_with("target") {
+                    file.insert_str(0, "../");
+                }
+
+                let mut output = String::from("| ");
+                write!(output, "[`{file_with_pos}`]({file}#L{})", span.line_start).unwrap();
+                write!(output, r#" | `{:<50}` | "{}" |"#, self.lint_type, self.diag.message).unwrap();
+                output.push('\n');
+                output
+            },
+            OutputFormat::Json => unreachable!("JSON output is handled via serde"),
         }
     }
 }
@@ -303,7 +300,7 @@ impl CrateSource {
 impl Crate {
     /// Run `cargo clippy` on the `Crate` and collect and return all the lint warnings that clippy
     /// issued
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
     fn run_clippy_lints(
         &self,
         cargo_clippy_path: &Path,
@@ -342,7 +339,25 @@ impl Crate {
             vec!["--", "--message-format=json", "--"]
         };
 
-        let mut clippy_args = Vec::<&str>::new();
+        let cargo_home = env!("CARGO_HOME");
+
+        // `src/lib.rs` -> `target/lintcheck/sources/crate-1.2.3/src/lib.rs`
+        let remap_relative = format!("={}", self.path.display());
+        // Fallback for other sources, `~/.cargo/...` -> `$CARGO_HOME/...`
+        let remap_cargo_home = format!("{cargo_home}=$CARGO_HOME");
+        // `~/.cargo/registry/src/github.com-1ecc6299db9ec823/crate-2.3.4/src/lib.rs`
+        //     -> `crate-2.3.4/src/lib.rs`
+        let remap_crates_io = format!("{cargo_home}/registry/src/github.com-1ecc6299db9ec823/=");
+
+        let mut clippy_args = vec![
+            "--remap-path-prefix",
+            &remap_relative,
+            "--remap-path-prefix",
+            &remap_cargo_home,
+            "--remap-path-prefix",
+            &remap_crates_io,
+        ];
+
         if let Some(options) = &self.options {
             for opt in options {
                 clippy_args.push(opt);
@@ -544,6 +559,7 @@ fn gather_stats(clippy_warnings: &[ClippyWarning]) -> (String, HashMap<&String, 
 }
 
 #[allow(clippy::too_many_lines)]
+#[unix_sigpipe = "sig_dfl"]
 fn main() {
     // We're being executed as a `RUSTC_WRAPPER` as part of `--recursive`
     if let Ok(addr) = env::var("LINTCHECK_SERVER") {
@@ -557,6 +573,11 @@ fn main() {
     }
 
     let config = LintcheckConfig::new();
+
+    if let Some((old, new)) = config.diff {
+        json::diff(&old, &new);
+        return;
+    }
 
     println!("Compiling clippy...");
     build_clippy();
@@ -582,7 +603,6 @@ fn main() {
     // flatten into one big list of warnings
 
     let (crates, recursive_options) = read_crates(&config.sources_toml_path);
-    let old_stats = read_stats_from_file(&config.lintcheck_results_path);
 
     let counter = AtomicUsize::new(1);
     let lint_filter: Vec<String> = config
@@ -661,42 +681,52 @@ fn main() {
         return;
     }
 
+    let text = match config.format {
+        OutputFormat::Text | OutputFormat::Markdown => output(&clippy_warnings, clippy_ver, &config),
+        OutputFormat::Json => json::output(&clippy_warnings),
+    };
+
+    println!("Writing logs to {}", config.lintcheck_results_path.display());
+    fs::create_dir_all(config.lintcheck_results_path.parent().unwrap()).unwrap();
+    fs::write(&config.lintcheck_results_path, text).unwrap();
+}
+
+/// Creates the log file output for [`OutputFormat::Text`] and [`OutputFormat::Markdown`]
+fn output(clippy_warnings: &[ClippyWarning], clippy_ver: String, config: &LintcheckConfig) -> String {
     // generate some stats
-    let (stats_formatted, new_stats) = gather_stats(&clippy_warnings);
+    let (stats_formatted, new_stats) = gather_stats(clippy_warnings);
+    let old_stats = read_stats_from_file(&config.lintcheck_results_path);
 
     // grab crashes/ICEs, save the crate name and the ice message
     let ices: Vec<(&String, &String)> = clippy_warnings
         .iter()
-        .filter(|warning| warning.is_ice)
-        .map(|w| (&w.crate_name, &w.message))
+        .filter(|warning| warning.diag.level == DiagnosticLevel::Ice)
+        .map(|w| (&w.crate_name, &w.diag.message))
         .collect();
 
     let mut all_msgs: Vec<String> = clippy_warnings
         .iter()
-        .map(|warn| warn.to_output(config.markdown))
+        .map(|warn| warn.to_output(config.format))
         .collect();
     all_msgs.sort();
     all_msgs.push("\n\n### Stats:\n\n".into());
     all_msgs.push(stats_formatted);
 
-    // save the text into lintcheck-logs/logs.txt
     let mut text = clippy_ver; // clippy version number on top
     text.push_str("\n### Reports\n\n");
-    if config.markdown {
+    if config.format == OutputFormat::Markdown {
         text.push_str("| file | lint | message |\n");
         text.push_str("| --- | --- | --- |\n");
     }
     write!(text, "{}", all_msgs.join("")).unwrap();
     text.push_str("\n\n### ICEs:\n");
     for (cratename, msg) in &ices {
-        let _ = write!(text, "{cratename}: '{msg}'");
+        write!(text, "{cratename}: '{msg}'").unwrap();
     }
 
-    println!("Writing logs to {}", config.lintcheck_results_path.display());
-    fs::create_dir_all(config.lintcheck_results_path.parent().unwrap()).unwrap();
-    fs::write(&config.lintcheck_results_path, text).unwrap();
-
     print_stats(old_stats, new_stats, &config.lint_filter);
+
+    text
 }
 
 /// read the previous stats from the lintcheck-log file
