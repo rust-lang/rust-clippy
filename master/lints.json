@@ -758,7 +758,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for a raw slice being cast to a slice pointer\n\n### Why is this bad?\nThis can result in multiple `&mut` references to the same location when only a pointer is\nrequired.\n`ptr::slice_from_raw_parts` is a safe alternative that doesn't require\nthe same [safety requirements] to be upheld.\n\n### Example\n```rust\nlet _: *const [u8] = std::slice::from_raw_parts(ptr, len) as *const _;\nlet _: *mut [u8] = std::slice::from_raw_parts_mut(ptr, len) as *mut _;\n```\nUse instead:\n```rust\nlet _: *const [u8] = std::ptr::slice_from_raw_parts(ptr, len);\nlet _: *mut [u8] = std::ptr::slice_from_raw_parts_mut(ptr, len);\n```\n[safety requirements]: https://doc.rust-lang.org/std/slice/fn.from_raw_parts.html#safety",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -998,7 +998,7 @@
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nChecks for consecutive calls to `str::replace` (2 or more)\nthat can be collapsed into a single call.\n\n### Why is this bad?\nConsecutive `str::replace` calls scan the string multiple times\nwith repetitive code.\n\n### Example\n```rust\nlet hello = \"hesuo worpd\"\n    .replace('s', \"l\")\n    .replace(\"u\", \"l\")\n    .replace('p', \"l\");\n```\nUse instead:\n```rust\nlet hello = \"hesuo worpd\".replace(&['s', 'u', 'p'], \"l\");\n```",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -3263,7 +3263,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\n\nChecks for calls to `iter`, `iter_mut` or `into_iter` on empty collections\n\n### Why is this bad?\n\nIt is simpler to use the empty function from the standard library:\n\n### Example\n\n```rust\nuse std::{slice, option};\nlet a: slice::Iter<i32> = [].iter();\nlet f: option::IntoIter<i32> = None.into_iter();\n```\nUse instead:\n```rust\nuse std::iter;\nlet a: iter::Empty<i32> = iter::empty();\nlet b: iter::Empty<i32> = iter::empty();\n```\n\n### Known problems\n\nThe type of the resulting iterator might become incompatible with its usage",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -3278,7 +3278,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\n\nChecks for calls to `iter`, `iter_mut` or `into_iter` on collections containing a single item\n\n### Why is this bad?\n\nIt is simpler to use the once function from the standard library:\n\n### Example\n\n```rust\nlet a = [123].iter();\nlet b = Some(123).into_iter();\n```\nUse instead:\n```rust\nuse std::iter;\nlet a = iter::once(&123);\nlet b = iter::once(123);\n```\n\n### Known problems\n\nThe type of the resulting iterator might become incompatible with its usage",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -3743,7 +3743,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nLints subtraction between `Instant::now()` and another `Instant`.\n\n### Why is this bad?\nIt is easy to accidentally write `prev_instant - Instant::now()`, which will always be 0ns\nas `Instant` subtraction saturates.\n\n`prev_instant.elapsed()` also more clearly signals intention.\n\n### Example\n```rust\nuse std::time::Instant;\nlet prev_instant = Instant::now();\nlet duration = Instant::now() - prev_instant;\n```\nUse instead:\n```rust\nuse std::time::Instant;\nlet prev_instant = Instant::now();\nlet duration = prev_instant.elapsed();\n```",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -5768,7 +5768,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\n\nChecks for binary comparisons to a literal `Option::None`.\n\n### Why is this bad?\n\nA programmer checking if some `foo` is `None` via a comparison `foo == None`\nis usually inspired from other programming languages (e.g. `foo is None`\nin Python).\nChecking if a value of type `Option<T>` is (not) equal to `None` in that\nway relies on `T: PartialEq` to do the comparison, which is unneeded.\n\n### Example\n```rust\nfn foo(f: Option<u32>) -> &'static str {\n    if f != None { \"yay\" } else { \"nay\" }\n}\n```\nUse instead:\n```rust\nfn foo(f: Option<u32>) -> &'static str {\n    if f.is_some() { \"yay\" } else { \"nay\" }\n}\n```",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -6458,7 +6458,7 @@
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nChecks for functions that return `Result` with an unusually large\n`Err`-variant.\n\n### Why is this bad?\nA `Result` is at least as large as the `Err`-variant. While we\nexpect that variant to be seldomly used, the compiler needs to reserve\nand move that much memory every single time.\n\n### Known problems\nThe size determined by Clippy is platform-dependent.\n\n### Examples\n```rust\npub enum ParseError {\n    UnparsedBytes([u8; 512]),\n    UnexpectedEof,\n}\n\n// The `Result` has at least 512 bytes, even in the `Ok`-case\npub fn parse() -> Result<(), ParseError> {\n    Ok(())\n}\n```\nshould be\n```rust\npub enum ParseError {\n    UnparsedBytes(Box<[u8; 512]>),\n    UnexpectedEof,\n}\n\n// The `Result` is slightly larger than a pointer\npub fn parse() -> Result<(), ParseError> {\n    Ok(())\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `large-error-threshold`: `u64`: The maximum size of the `Err`-variant in a `Result` returned from a function (defaults to `128`)\n",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -8393,7 +8393,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nChecks for the creation of a `peekable` iterator that is never `.peek()`ed\n\n### Why is this bad?\nCreating a peekable iterator without using any of its methods is likely a mistake,\nor just a leftover after a refactor.\n\n### Example\n```rust\nlet collection = vec![1, 2, 3];\nlet iter = collection.iter().peekable();\n\nfor item in iter {\n    // ...\n}\n```\n\nUse instead:\n```rust\nlet collection = vec![1, 2, 3];\nlet iter = collection.iter();\n\nfor item in iter {\n    // ...\n}\n```",
-    "version": "1.64.0",
+    "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
