@@ -3495,6 +3495,21 @@
     }
   },
   {
+    "id": "let_underscore_future",
+    "id_span": {
+      "path": "src/let_underscore.rs",
+      "line": 88
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `let _ = <expr>` where the resulting type of expr implements `Future`\n\n### Why is this bad?\nFutures must be polled for work to be done. The original intention was most likely to await the future\nand ignore the resulting value.\n\n### Example\n```rust\nasync fn foo() -> Result<(), ()> {\n    Ok(())\n}\nlet _ = foo();\n```\n\nUse instead:\n```rust\nasync fn foo() -> Result<(), ()> {\n    Ok(())\n}\nlet _ = foo().await;\n```",
+    "version": "1.66",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "let_underscore_lock",
     "id_span": {
       "path": "src/let_underscore.rs",
