@@ -402,7 +402,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.51.0"]
     pub PTR_AS_PTR,
-    pedantic,
+    style,
     "casting using `as` from and to raw pointers that doesn't change its mutability, where `pointer::cast` could take the place of `as`"
 }
 
