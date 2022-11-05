@@ -513,7 +513,7 @@
     "id": "bytes_count_to_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2520
+      "line": 2519
     },
     "group": "complexity",
     "level": "warn",
@@ -558,7 +558,7 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2548
+      "line": 2547
     },
     "group": "pedantic",
     "level": "allow",
@@ -2493,7 +2493,7 @@
     "id": "get_first",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2574
+      "line": 2573
     },
     "group": "style",
     "level": "warn",
@@ -3108,7 +3108,7 @@
     "id": "is_digit_ascii_radix",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2330
+      "line": 2329
     },
     "group": "style",
     "level": "warn",
@@ -3168,7 +3168,7 @@
     "id": "iter_kv_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3066
+      "line": 3065
     },
     "group": "complexity",
     "level": "warn",
@@ -3258,7 +3258,7 @@
     "id": "iter_on_empty_collections",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2464
+      "line": 2463
     },
     "group": "nursery",
     "level": "allow",
@@ -3273,7 +3273,7 @@
     "id": "iter_on_single_items",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2432
+      "line": 2431
     },
     "group": "nursery",
     "level": "allow",
@@ -3813,7 +3813,7 @@
     "id": "manual_ok_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2600
+      "line": 2599
     },
     "group": "pedantic",
     "level": "allow",
@@ -3888,7 +3888,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2192
+      "line": 2191
     },
     "group": "complexity",
     "level": "warn",
@@ -3903,7 +3903,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2156
+      "line": 2155
     },
     "group": "perf",
     "level": "warn",
@@ -3993,7 +3993,7 @@
     "id": "map_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2629
+      "line": 2628
     },
     "group": "style",
     "level": "warn",
@@ -4038,7 +4038,7 @@
     "id": "map_err_ignore",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2729
+      "line": 2728
     },
     "group": "restriction",
     "level": "allow",
@@ -4788,7 +4788,7 @@
     "id": "mut_mutex_lock",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2765
+      "line": 2764
     },
     "group": "style",
     "level": "warn",
@@ -4863,7 +4863,7 @@
     "id": "naive_bytecount",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2495
+      "line": 2494
     },
     "group": "pedantic",
     "level": "allow",
@@ -5058,7 +5058,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2303
+      "line": 2302
     },
     "group": "complexity",
     "level": "warn",
@@ -5073,7 +5073,7 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2354
+      "line": 2353
     },
     "group": "complexity",
     "level": "warn",
@@ -5163,7 +5163,7 @@
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2215
+      "line": 2214
     },
     "group": "complexity",
     "level": "warn",
@@ -5298,7 +5298,7 @@
     "id": "no_effect_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2372
+      "line": 2371
     },
     "group": "suspicious",
     "level": "warn",
@@ -5388,7 +5388,7 @@
     "id": "nonsensical_open_options",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2786
+      "line": 2785
     },
     "group": "correctness",
     "level": "deny",
@@ -5433,7 +5433,7 @@
     "id": "obfuscated_if_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2400
+      "line": 2399
     },
     "group": "style",
     "level": "warn",
@@ -5778,7 +5778,7 @@
     "id": "path_buf_push_overwrite",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2818
+      "line": 2817
     },
     "group": "nursery",
     "level": "allow",
@@ -6078,7 +6078,7 @@
     "id": "range_zip_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2843
+      "line": 2842
     },
     "group": "complexity",
     "level": "warn",
@@ -6408,7 +6408,7 @@
     "id": "repeat_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2875
+      "line": 2874
     },
     "group": "complexity",
     "level": "warn",
@@ -6603,7 +6603,7 @@
     "id": "seek_from_current",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3109
+      "line": 3108
     },
     "group": "complexity",
     "level": "warn",
@@ -6618,7 +6618,7 @@
     "id": "seek_to_start_instead_of_rewind",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3140
+      "line": 3139
     },
     "group": "complexity",
     "level": "warn",
@@ -6993,7 +6993,7 @@
     "id": "stable_sort_primitive",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2913
+      "line": 2912
     },
     "group": "pedantic",
     "level": "allow",
@@ -7293,7 +7293,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2134
+      "line": 2133
     },
     "group": "correctness",
     "level": "deny",
@@ -7308,11 +7308,11 @@
     "id": "suspicious_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2103
+      "line": 2102
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for the usage of `_.to_owned()`, on a `Cow<'_, _>`.\n\n### Why is this bad?\nCalling `to_owned()` on a `Cow` creates a clone of the `Cow`\nitself, without taking ownership of the `Cow` contents (i.e.\nit's equivalent to calling `Cow::clone`).\nThe similarly named `into_owned` method, on the other hand,\nclones the `Cow` contents, effectively turning any `Cow::Borrowed`\ninto a `Cow::Owned`.\n\nGiven the potential ambiguity, consider replacing `to_owned`\nwith `clone` for better readability or, if getting a `Cow::Owned`\nwas the original intent, using `into_owned` instead.\n\n### Example\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet data = cow.to_owned();\nassert!(matches!(data, Cow::Borrowed(_)))\n```\nUse instead:\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet data = cow.clone();\nassert!(matches!(data, Cow::Borrowed(_)))\n```\nor\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet data = cow.into_owned();\nassert!(matches!(data, String))\n```",
+    "docs": "\n### What it does\nChecks for the usage of `_.to_owned()`, on a `Cow<'_, _>`.\n\n### Why is this bad?\nCalling `to_owned()` on a `Cow` creates a clone of the `Cow`\nitself, without taking ownership of the `Cow` contents (i.e.\nit's equivalent to calling `Cow::clone`).\nThe similarly named `into_owned` method, on the other hand,\nclones the `Cow` contents, effectively turning any `Cow::Borrowed`\ninto a `Cow::Owned`.\n\nGiven the potential ambiguity, consider replacing `to_owned`\nwith `clone` for better readability or, if getting a `Cow::Owned`\nwas the original intent, using `into_owned` instead.\n\n### Example\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet data = cow.to_owned();\nassert!(matches!(data, Cow::Borrowed(_)))\n```\nUse instead:\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet data = cow.clone();\nassert!(matches!(data, Cow::Borrowed(_)))\n```\nor\n```rust\nlet s = \"Hello world!\";\nlet cow = Cow::Borrowed(s);\n\nlet _data: String = cow.into_owned();\n```",
     "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7908,7 +7908,7 @@
     "id": "unit_hash",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2952
+      "line": 2951
     },
     "group": "correctness",
     "level": "deny",
@@ -7998,7 +7998,7 @@
     "id": "unnecessary_join",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2278
+      "line": 2277
     },
     "group": "pedantic",
     "level": "allow",
@@ -8088,7 +8088,7 @@
     "id": "unnecessary_sort_by",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2986
+      "line": 2985
     },
     "group": "complexity",
     "level": "warn",
@@ -8103,7 +8103,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2246
+      "line": 2245
     },
     "group": "perf",
     "level": "warn",
@@ -8703,7 +8703,7 @@
     "id": "vec_resize_to_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3008
+      "line": 3007
     },
     "group": "correctness",
     "level": "deny",
@@ -8733,7 +8733,7 @@
     "id": "verbose_file_reads",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3035
+      "line": 3034
     },
     "group": "restriction",
     "level": "allow",
