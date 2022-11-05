@@ -152,7 +152,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub CAST_LOSSLESS,
-    pedantic,
+    style,
     "casts using `as` that are known to be lossless, e.g., `x as u64` where `x: u8`"
 }
 
