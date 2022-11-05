@@ -5853,7 +5853,7 @@
     "id": "print_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 141
+      "line": 142
     },
     "group": "style",
     "level": "warn",
@@ -5868,11 +5868,11 @@
     "id": "print_stderr",
     "id_span": {
       "path": "src/write.rs",
-      "line": 98
+      "line": 99
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for printing on *stderr*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stderr* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\nOnly catches `eprint!` and `eprintln!` calls.\n\n### Example\n```rust\neprintln!(\"Hello world!\");\n```",
+    "docs": "\n### What it does\nChecks for printing on *stderr*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stderr* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\nOnly catches `eprint!` and `eprintln!` calls.\n\n### Example\n```rust\neprintln!(\"Hello world!\");\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `allow-print-in-tests`: `bool`: Whether print macros (ex. `println!`) should be allowed in test functions (defaults to `false`)\n",
     "version": "1.50.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5883,11 +5883,11 @@
     "id": "print_stdout",
     "id_span": {
       "path": "src/write.rs",
-      "line": 76
+      "line": 77
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for printing on *stdout*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stdout* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\nOnly catches `print!` and `println!` calls.\n\n### Example\n```rust\nprintln!(\"Hello world!\");\n```",
+    "docs": "\n### What it does\nChecks for printing on *stdout*. The purpose of this lint\nis to catch debugging remnants.\n\n### Why is this bad?\nPeople often print on *stdout* while debugging an\napplication and might forget to remove those prints afterward.\n\n### Known problems\nOnly catches `print!` and `println!` calls.\n\n### Example\n```rust\nprintln!(\"Hello world!\");\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `allow-print-in-tests`: `bool`: Whether print macros (ex. `println!`) should be allowed in test functions (defaults to `false`)\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5898,7 +5898,7 @@
     "id": "print_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 54
+      "line": 55
     },
     "group": "style",
     "level": "warn",
@@ -5913,7 +5913,7 @@
     "id": "println_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 29
+      "line": 30
     },
     "group": "style",
     "level": "warn",
@@ -8523,7 +8523,7 @@
     "id": "use_debug",
     "id_span": {
       "path": "src/write.rs",
-      "line": 118
+      "line": 119
     },
     "group": "restriction",
     "level": "allow",
@@ -8868,7 +8868,7 @@
     "id": "write_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 227
+      "line": 228
     },
     "group": "style",
     "level": "warn",
@@ -8883,7 +8883,7 @@
     "id": "write_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 199
+      "line": 200
     },
     "group": "style",
     "level": "warn",
@@ -8898,7 +8898,7 @@
     "id": "writeln_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 168
+      "line": 169
     },
     "group": "style",
     "level": "warn",
