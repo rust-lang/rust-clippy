@@ -2,7 +2,7 @@
 
 #![feature(custom_inner_attributes)]
 #![warn(clippy::transmute_ptr_to_ref)]
-#![allow(clippy::match_single_binding)]
+#![allow(clippy::match_single_binding, clippy::ptr_as_ptr)]
 
 unsafe fn _ptr_to_ref<T, U>(p: *const T, m: *mut T, o: *const U, om: *mut U) {
     let _: &T = std::mem::transmute(p);

@@ -1,5 +1,6 @@
 // run-rustfix
 #![warn(clippy::ptr_eq)]
+#![allow(clippy::ptr_as_ptr)]
 
 macro_rules! mac {
     ($a:expr, $b:expr) => {

@@ -1,4 +1,4 @@
-#![allow(clippy::single_match)]
+#![allow(clippy::single_match, clippy::ptr_as_ptr)]
 
 use std::ptr;
 

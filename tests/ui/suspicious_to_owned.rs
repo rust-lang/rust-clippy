@@ -7,7 +7,7 @@ use std::ffi::{c_char, CStr};
 fn main() {
     let moo = "Moooo";
     let c_moo = b"Moooo\0";
-    let c_moo_ptr = c_moo.as_ptr() as *const c_char;
+    let c_moo_ptr = c_moo.as_ptr().cast::<c_char>();
     let moos = ['M', 'o', 'o'];
     let moos_vec = moos.to_vec();
 

@@ -1,5 +1,5 @@
 #![warn(clippy::cast_ref_to_mut)]
-#![allow(clippy::no_effect, clippy::borrow_as_ptr)]
+#![allow(clippy::no_effect, clippy::borrow_as_ptr, clippy::ptr_as_ptr)]
 
 extern "C" {
     // N.B., mutability can be easily incorrect in FFI calls -- as

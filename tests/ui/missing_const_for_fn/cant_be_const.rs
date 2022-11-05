@@ -104,6 +104,7 @@ fn const_generic_params<T, const N: usize>(t: &[T; N]) -> &[T; N] {
     t
 }
 
+#[allow(clippy::ptr_as_ptr)]
 fn const_generic_return<T, const N: usize>(t: &[T]) -> &[T; N] {
     let p = t.as_ptr() as *const [T; N];
 

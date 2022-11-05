@@ -1,4 +1,4 @@
-#![allow(dead_code, unused_variables)]
+#![allow(dead_code, unused_variables, clippy::ptr_as_ptr)]
 
 /// Should not trigger an ICE in `SpanlessEq` / `consts::constant`
 ///
