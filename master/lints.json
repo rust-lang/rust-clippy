@@ -5542,7 +5542,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `_.as_ref().map(Deref::deref)` or it's aliases (such as String::as_str).\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.as_deref()`.\n\n### Example\n```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
+    "docs": "\n### What it does\nChecks for usage of `_.as_ref().map(Deref::deref)` or its aliases (such as String::as_str).\n\n### Why is this bad?\nReadability, this can be written more concisely as\n`_.as_deref()`.\n\n### Example\n```rust\nopt.as_ref().map(String::as_str)\n```\nCan be written as\n```rust\nopt.as_deref()\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n",
     "version": "1.42.0",
     "applicability": {
       "is_multi_part_suggestion": false,
