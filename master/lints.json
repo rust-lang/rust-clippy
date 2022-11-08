@@ -997,7 +997,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for consecutive calls to `str::replace` (2 or more)\nthat can be collapsed into a single call.\n\n### Why is this bad?\nConsecutive `str::replace` calls scan the string multiple times\nwith repetitive code.\n\n### Example\n```rust\nlet hello = \"hesuo worpd\"\n    .replace('s', \"l\")\n    .replace(\"u\", \"l\")\n    .replace('p', \"l\");\n```\nUse instead:\n```rust\nlet hello = \"hesuo worpd\".replace(&['s', 'u', 'p'], \"l\");\n```",
+    "docs": "\n### What it does\nChecks for consecutive calls to `str::replace` (2 or more)\nthat can be collapsed into a single call.\n\n### Why is this bad?\nConsecutive `str::replace` calls scan the string multiple times\nwith repetitive code.\n\n### Example\n```rust\nlet hello = \"hesuo worpd\"\n    .replace('s', \"l\")\n    .replace(\"u\", \"l\")\n    .replace('p', \"l\");\n```\nUse instead:\n```rust\nlet hello = \"hesuo worpd\".replace(['s', 'u', 'p'], \"l\");\n```",
     "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
