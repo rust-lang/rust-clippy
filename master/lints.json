@@ -3393,7 +3393,7 @@
     "id": "large_enum_variant",
     "id_span": {
       "path": "src/large_enum_variant.rs",
-      "line": 56
+      "line": 59
     },
     "group": "perf",
     "level": "warn",
