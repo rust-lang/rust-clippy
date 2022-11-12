@@ -3776,7 +3776,7 @@
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MaybeIncorrect"
+      "applicability": "MachineApplicable"
     }
   },
   {
