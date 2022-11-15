@@ -8493,7 +8493,7 @@
     "id": "unused_unit",
     "id_span": {
       "path": "src/unused_unit.rs",
-      "line": 32
+      "line": 31
     },
     "group": "style",
     "level": "warn",
