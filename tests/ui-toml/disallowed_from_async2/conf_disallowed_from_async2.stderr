@@ -1,0 +1,37 @@
+error: async function calls a function which is forbidden from being called in an async context
+  --> $DIR/conf_disallowed_from_async2.rs:33:41
+   |
+LL |             handle2.block_on(async move { handle3.block_on(async move { println!("naughty block_on") }) })
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::disallowed-from-async` implied by `-D warnings`
+   = note: calls disallowed function `tokio::runtime::Handle::block_on @ /home/michael/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/handle.rs:287:5: 287:62 (#0)`
+   = note: called via: uninsulated_nested_block_on_direct::{closure#0}::{closure#0}::{closure#0} @ $DIR/conf_disallowed_from_async2.rs:33:41: 33:106 (#0)
+           tokio::runtime::Handle::block_on @ /home/michael/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/handle.rs:287:5: 287:62 (#0)
+
+error: async function calls a function which is forbidden from being called in an async context
+  --> $DIR/conf_disallowed_from_async2.rs:45:28
+   |
+LL |     let task1 = async move { handle3.block_on(task2) };
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls disallowed function `tokio::runtime::Handle::block_on @ /home/michael/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/handle.rs:287:5: 287:62 (#0)`
+   = note: called via: uninsulated_nested_block_on_indirect_closures::{closure#0}::{closure#1} @ $DIR/conf_disallowed_from_async2.rs:45:28: 45:55 (#0)
+           tokio::runtime::Handle::block_on @ /home/michael/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/handle.rs:287:5: 287:62 (#0)
+
+error: async function calls a function which is forbidden from being called in an async context
+  --> $DIR/conf_disallowed_from_async2.rs:56:22
+   |
+LL |       async fn task1() {
+   |  ______________________^
+LL | |         let handle = Handle::current();
+LL | |         handle.block_on(task2());
+LL | |     }
+   | |_____^
+   |
+   = note: calls disallowed function `tokio::runtime::Handle::block_on @ /home/michael/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/handle.rs:287:5: 287:62 (#0)`
+   = note: called via: uninsulated_nested_block_on_indirect_functions::{closure#0}::task1::{closure#0} @ $DIR/conf_disallowed_from_async2.rs:56:22: 59:6 (#0)
+           tokio::runtime::Handle::block_on @ /home/michael/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.18.2/src/runtime/handle.rs:287:5: 287:62 (#0)
+
+error: aborting due to 3 previous errors
+

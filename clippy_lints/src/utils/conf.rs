@@ -63,6 +63,37 @@ impl DisallowedPath {
     }
 }
 
+/// A single method that is not allowed to be called (transitively) from any async function.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum DisallowedFromAsyncMethod {
+    Simple(String),
+    WithReason { path: String, reason: Option<String> },
+}
+
+impl DisallowedFromAsyncMethod {
+    pub fn path(&self) -> &str {
+        let (Self::Simple(path) | Self::WithReason { path, .. }) = self;
+        path
+    }
+}
+
+/// A method that allows an otherwise disallowed async method to be called from an async function.
+///
+/// These methods should usually be ones like `spawn_blocking` which run a closure in a blocking
+/// environment.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(transparent)]
+pub struct AsyncWrapperMethod {
+    path: String,
+}
+
+impl AsyncWrapperMethod {
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+}
+
 /// Conf with parse errors
 #[derive(Default)]
 pub struct TryConf {
@@ -327,6 +358,10 @@ define_Conf! {
     ///
     /// The list of disallowed types, written as fully qualified paths.
     (disallowed_types: Vec<crate::utils::conf::DisallowedPath> = Vec::new()),
+    /// Lint: DISALLOWED_FROM_ASYNC.
+    (disallowed_from_async_methods: Vec<crate::utils::conf::DisallowedFromAsyncMethod> = Vec::new()),
+    /// Lint: DISALLOWED_FROM_ASYNC.
+    (async_wrapper_methods: Vec<crate::utils::conf::AsyncWrapperMethod> = Vec::new()),
     /// Lint: UNREADABLE_LITERAL.
     ///
     /// Should the fraction of a decimal be linted to include separators.

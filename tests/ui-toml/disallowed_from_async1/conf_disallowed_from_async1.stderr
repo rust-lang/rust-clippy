@@ -1,0 +1,38 @@
+error: async function calls a function which is forbidden from being called in an async context
+  --> $DIR/conf_disallowed_from_async1.rs:3:44
+   |
+LL |   pub async fn call_from_async() -> Vec<u64> {
+   |  ____________________________________________^
+LL | |     let mut v = Vec::new();
+LL | |     while v.len() < 3 {
+LL | |         v.push(2);
+LL | |     }
+LL | |     v
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::disallowed-from-async` implied by `-D warnings`
+   = note: calls disallowed function `std::vec::Vec::<T>::new @ /home/michael/.rustup/toolchains/nightly-2022-05-19-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:424:5: 424:31 (#0)`
+   = note: called via: call_from_async::{closure#0} @ $DIR/conf_disallowed_from_async1.rs:3:44: 9:2 (#0)
+           std::vec::Vec::<T>::new @ /home/michael/.rustup/toolchains/nightly-2022-05-19-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:424:5: 424:31 (#0)
+
+error: async function calls a function which is forbidden from being called in an async context
+  --> $DIR/conf_disallowed_from_async1.rs:11:64
+   |
+LL |   pub async fn call_from_closure_in_async_indirect() -> Vec<u64> {
+   |  ________________________________________________________________^
+LL | |     let f = |()| {
+LL | |         let mut v = Vec::<u64>::new();
+LL | |         while v.len() < 3 {
+...  |
+LL | |     std::iter::repeat(()).take(5).flat_map(f).collect()
+LL | | }
+   | |_^
+   |
+   = note: calls disallowed function `std::vec::Vec::<T>::new @ /home/michael/.rustup/toolchains/nightly-2022-05-19-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:424:5: 424:31 (#0)`
+   = note: called via: call_from_closure_in_async_indirect::{closure#0} @ $DIR/conf_disallowed_from_async1.rs:11:64: 20:2 (#0)
+           call_from_closure_in_async_indirect::{closure#0}::{closure#0} @ $DIR/conf_disallowed_from_async1.rs:12:13: 18:6 (#0)
+           std::vec::Vec::<T>::new @ /home/michael/.rustup/toolchains/nightly-2022-05-19-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:424:5: 424:31 (#0)
+
+error: aborting due to 2 previous errors
+

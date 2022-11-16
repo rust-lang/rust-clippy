@@ -1,0 +1,4 @@
+disallowed-from-async-methods = [
+    # just a string is shorthand for path only
+    "std::vec::Vec::new",
+]

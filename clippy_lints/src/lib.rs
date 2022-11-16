@@ -37,8 +37,10 @@ extern crate rustc_index;
 extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
+extern crate rustc_macros;
 extern crate rustc_middle;
 extern crate rustc_parse;
+extern crate rustc_serialize;
 extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_target;
@@ -100,6 +102,7 @@ mod default_union_representation;
 mod dereference;
 mod derivable_impls;
 mod derive;
+mod disallowed_from_async;
 mod disallowed_macros;
 mod disallowed_methods;
 mod disallowed_names;
@@ -921,6 +924,14 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(from_raw_with_void_ptr::FromRawWithVoidPtr));
     store.register_late_pass(|_| Box::new(suspicious_xor_used_as_pow::ConfusingXorAndPow));
     store.register_late_pass(move |_| Box::new(manual_is_ascii_check::ManualIsAsciiCheck::new(msrv)));
+    let disallowed_from_async_methods = conf.disallowed_from_async_methods.clone();
+    let async_wrapper_methods = conf.async_wrapper_methods.clone();
+    store.register_late_pass(move |_| {
+        Box::new(disallowed_from_async::DisallowedFromAsync::new(
+            disallowed_from_async_methods.clone(),
+            async_wrapper_methods.clone(),
+        ))
+    });
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

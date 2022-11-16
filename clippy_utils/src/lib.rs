@@ -525,6 +525,25 @@ pub fn path_def_id<'tcx>(cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>
     path_res(cx, maybe_path).opt_def_id()
 }
 
+pub fn path_def_id_including_closures<'tcx>(cx: &LateContext<'_>, maybe_path: &impl MaybePath<'tcx>) -> Option<DefId> {
+    match path_res(cx, maybe_path) {
+        Res::Local(hir_id) => {
+            let hir = cx.tcx.hir();
+            let node = hir.find_parent_node(hir_id).and_then(|id| hir.find(id));
+            if let Some(Node::Local(local)) = node
+                && let Some(init) = local.init
+                && let ExprKind::Closure(closure) = init.kind
+            {
+                let closure_def_id = hir.body_owner_def_id(closure.body).to_def_id();
+                Some(closure_def_id)
+            } else {
+                None
+            }
+        },
+        res => res.opt_def_id(),
+    }
+}
+
 fn find_primitive<'tcx>(tcx: TyCtxt<'tcx>, name: &str) -> impl Iterator<Item = DefId> + 'tcx {
     let single = |ty| tcx.incoherent_impls(ty).iter().copied();
     let empty = || [].iter().copied();
@@ -684,6 +703,14 @@ fn def_path_res_local(cx: &LateContext<'_>, mut path: &[&str]) -> Res {
         }
     }
     Res::Err
+}
+
+pub fn def_path_to_local_def_id(cx: &LateContext<'_>, path: &[&str]) -> Option<LocalDefId> {
+    // FIXME(sproul): this is really slow but I can't work out how else to do it
+    let symbol_path = path.iter().map(|s| Symbol::intern(*s)).collect::<Vec<_>>();
+    cx.tcx
+        .iter_local_def_id()
+        .find(|local_def_id| cx.match_def_path(local_def_id.to_def_id(), &symbol_path))
 }
 
 /// Convenience function to get the `DefId` of a trait by path.
@@ -2144,10 +2171,43 @@ pub fn fn_def_id(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<DefId> {
         ) => {
             // Only return Fn-like DefIds, not the DefIds of statics/consts/etc that contain or
             // deref to fn pointers, dyn Fn, impl Fn - #8850
-            if let Res::Def(DefKind::Fn | DefKind::Ctor(..) | DefKind::AssocFn, id) =
-                cx.typeck_results().qpath_res(qpath, *path_hir_id)
-            {
-                Some(id)
+            // FIXME(sproul): split this out into a separate function
+            let qpath_res = cx.typeck_results().qpath_res(qpath, *path_hir_id);
+            let result = match qpath_res {
+                Res::Def(DefKind::Fn | DefKind::Ctor(..) | DefKind::AssocFn | DefKind::Closure, id) => Some(id),
+                Res::Local(hir_id) => {
+                    let hir = cx.tcx.hir();
+                    let node = hir.find_parent_node(hir_id).and_then(|id| hir.find(id));
+                    // println!("node is {:?}", node);
+                    if let Some(Node::Local(local)) = node
+                        && let Some(init) = local.init
+                        && let ExprKind::Closure(closure) = init.kind {
+                        let closure_def_id = hir.body_owner_def_id(closure.body).to_def_id();
+                        Some(closure_def_id)
+                    } else {
+                        None
+                    }
+                },
+                _ => None,
+            };
+            /*
+            println!(
+                "qpath_res for call to {:?} with hir_id {:?} is {:?}, def_id {:?}",
+                qpath, path_hir_id, qpath_res, result,
+            );
+            */
+            result
+        },
+        _ => None,
+    }
+}
+
+pub fn immediate_closure_def_id(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<DefId> {
+    match &expr.kind {
+        ExprKind::Closure(closure) => {
+            let parent = get_parent_expr(cx, expr)?;
+            if let ExprKind::Call(..) | ExprKind::MethodCall(..) = parent.kind {
+                Some(cx.tcx.hir().body_owner_def_id(closure.body).to_def_id())
             } else {
                 None
             }

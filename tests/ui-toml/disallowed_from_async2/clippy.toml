@@ -1,0 +1,6 @@
+disallowed-from-async-methods = [
+    "tokio::runtime::Handle::block_on"
+]
+async-wrapper-methods = [
+    "tokio::runtime::Handle::spawn_blocking"
+]
