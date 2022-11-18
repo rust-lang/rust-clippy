@@ -63,7 +63,7 @@
     "id": "almost_swapped",
     "id_span": {
       "path": "src/swap.rs",
-      "line": 65
+      "line": 67
     },
     "group": "correctness",
     "level": "deny",
@@ -3978,11 +3978,11 @@
     "id": "manual_swap",
     "id_span": {
       "path": "src/swap.rs",
-      "line": 39
+      "line": 41
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for manual swapping.\n\n### Why is this bad?\nThe `std::mem::swap` function exposes the intent better\nwithout deinitializing or copying either variable.\n\n### Example\n```rust\nlet mut a = 42;\nlet mut b = 1337;\n\nlet t = b;\nb = a;\na = t;\n```\nUse std::mem::swap():\n```rust\nlet mut a = 1;\nlet mut b = 2;\nstd::mem::swap(&mut a, &mut b);\n```",
+    "docs": "\n### What it does\nChecks for manual swapping.\n\nNote that the lint will not be emitted in const blocks, as the suggestion would not be applicable.\n\n### Why is this bad?\nThe `std::mem::swap` function exposes the intent better\nwithout deinitializing or copying either variable.\n\n### Example\n```rust\nlet mut a = 42;\nlet mut b = 1337;\n\nlet t = b;\nb = a;\na = t;\n```\nUse std::mem::swap():\n```rust\nlet mut a = 1;\nlet mut b = 2;\nstd::mem::swap(&mut a, &mut b);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
