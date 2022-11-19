@@ -228,7 +228,7 @@
     "id": "await_holding_invalid_type",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 166
+      "line": 165
     },
     "group": "suspicious",
     "level": "warn",
@@ -243,7 +243,7 @@
     "id": "await_holding_lock",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 71
+      "line": 70
     },
     "group": "suspicious",
     "level": "warn",
@@ -258,7 +258,7 @@
     "id": "await_holding_refcell_ref",
     "id_span": {
       "path": "src/await_holding_invalid.rs",
-      "line": 129
+      "line": 128
     },
     "group": "suspicious",
     "level": "warn",
@@ -1338,7 +1338,7 @@
     "id": "disallowed_macros",
     "id_span": {
       "path": "src/disallowed_macros.rs",
-      "line": 52
+      "line": 51
     },
     "group": "style",
     "level": "warn",
@@ -1353,7 +1353,7 @@
     "id": "disallowed_methods",
     "id_span": {
       "path": "src/disallowed_methods.rs",
-      "line": 56
+      "line": 55
     },
     "group": "style",
     "level": "warn",
@@ -4848,7 +4848,7 @@
     "id": "mutable_key_type",
     "id_span": {
       "path": "src/mut_key.rs",
-      "line": 78
+      "line": 77
     },
     "group": "suspicious",
     "level": "warn",
