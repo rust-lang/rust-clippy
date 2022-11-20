@@ -6918,7 +6918,7 @@
     "id": "single_component_path_imports",
     "id_span": {
       "path": "src/single_component_path_imports.rs",
-      "line": 31
+      "line": 32
     },
     "group": "style",
     "level": "warn",
