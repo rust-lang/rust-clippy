@@ -498,7 +498,7 @@
     "id": "builtin_type_shadow",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 245
+      "line": 246
     },
     "group": "style",
     "level": "warn",
@@ -1128,7 +1128,7 @@
     "id": "decimal_literal_representation",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 145
+      "line": 147
     },
     "group": "restriction",
     "level": "allow",
@@ -1488,7 +1488,7 @@
     "id": "double_neg",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 100
+      "line": 101
     },
     "group": "style",
     "level": "warn",
@@ -1578,7 +1578,7 @@
     "id": "duplicate_underscore_argument",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 81
+      "line": 82
     },
     "group": "style",
     "level": "warn",
@@ -2028,7 +2028,7 @@
     "id": "extra_unused_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 85
+      "line": 86
     },
     "group": "complexity",
     "level": "warn",
@@ -2733,7 +2733,7 @@
     "id": "inconsistent_digit_grouping",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 87
+      "line": 89
     },
     "group": "style",
     "level": "warn",
@@ -2973,7 +2973,7 @@
     "id": "int_plus_one",
     "id_span": {
       "path": "src/int_plus_one.rs",
-      "line": 31
+      "line": 32
     },
     "group": "complexity",
     "level": "warn",
@@ -3378,7 +3378,7 @@
     "id": "large_digit_groups",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 125
+      "line": 127
     },
     "group": "pedantic",
     "level": "allow",
@@ -4593,7 +4593,7 @@
     "id": "mistyped_literal_suffixes",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 59
+      "line": 61
     },
     "group": "correctness",
     "level": "deny",
@@ -4608,7 +4608,7 @@
     "id": "mixed_case_hex_literals",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 127
+      "line": 128
     },
     "group": "style",
     "level": "warn",
@@ -5058,7 +5058,7 @@
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 54
+      "line": 55
     },
     "group": "complexity",
     "level": "warn",
@@ -5853,7 +5853,7 @@
     "id": "precedence",
     "id_span": {
       "path": "src/precedence.rs",
-      "line": 46
+      "line": 47
     },
     "group": "complexity",
     "level": "warn",
@@ -6318,7 +6318,7 @@
     "id": "redundant_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 276
+      "line": 277
     },
     "group": "style",
     "level": "warn",
@@ -6723,7 +6723,7 @@
     "id": "separated_literal_suffix",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 184
+      "line": 185
     },
     "group": "restriction",
     "level": "allow",
@@ -8103,7 +8103,7 @@
     "id": "unnecessary_owned_empty_strings",
     "id_span": {
       "path": "src/unnecessary_owned_empty_strings.rs",
-      "line": 30
+      "line": 29
     },
     "group": "style",
     "level": "warn",
@@ -8208,7 +8208,7 @@
     "id": "unneeded_field_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 58
+      "line": 59
     },
     "group": "restriction",
     "level": "allow",
@@ -8223,7 +8223,7 @@
     "id": "unneeded_wildcard_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 315
+      "line": 316
     },
     "group": "complexity",
     "level": "warn",
@@ -8268,7 +8268,7 @@
     "id": "unreadable_literal",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 37
+      "line": 39
     },
     "group": "pedantic",
     "level": "allow",
@@ -8328,7 +8328,7 @@
     "id": "unseparated_literal_suffix",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 156
+      "line": 157
     },
     "group": "restriction",
     "level": "allow",
@@ -8448,7 +8448,7 @@
     "id": "unused_peekable",
     "id_span": {
       "path": "src/unused_peekable.rs",
-      "line": 41
+      "line": 40
     },
     "group": "nursery",
     "level": "allow",
@@ -8508,7 +8508,7 @@
     "id": "unusual_byte_groupings",
     "id_span": {
       "path": "src/literal_representation.rs",
-      "line": 106
+      "line": 108
     },
     "group": "style",
     "level": "warn",
@@ -9033,7 +9033,7 @@
     "id": "zero_prefixed_literal",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 223
+      "line": 224
     },
     "group": "complexity",
     "level": "warn",
