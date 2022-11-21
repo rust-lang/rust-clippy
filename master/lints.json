@@ -1473,7 +1473,7 @@
     "id": "double_must_use",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 135
+      "line": 136
     },
     "group": "style",
     "level": "warn",
@@ -4440,6 +4440,21 @@
     }
   },
   {
+    "id": "misnamed_getters",
+    "id_span": {
+      "path": "src/functions/mod.rs",
+      "line": 301
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for getter methods that return a field that doesn't correspond\nto the name of the method, when there is a field's whose name matches that of the method.\n\n### Why is this bad?\nIt is most likely that such a  method is a bug caused by a typo or by copy-pasting.\n\n### Example\n```rust\nstruct A {\n    a: String,\n    b: String,\n}\n\nimpl A {\n    fn a(&self) -> &str{\n        &self.b\n    }\n}\n```\nUse instead:\n```rust\nstruct A {\n    a: String,\n    b: String,\n}\n\nimpl A {\n    fn a(&self) -> &str{\n        &self.a\n    }\n}\n```",
+    "version": "1.67.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/operators/mod.rs",
@@ -4758,7 +4773,7 @@
     "id": "must_use_candidate",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 165
+      "line": 166
     },
     "group": "pedantic",
     "level": "allow",
@@ -4773,7 +4788,7 @@
     "id": "must_use_unit",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 111
+      "line": 112
     },
     "group": "style",
     "level": "warn",
@@ -5448,7 +5463,7 @@
     "id": "not_unsafe_ptr_arg_deref",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 91
+      "line": 92
     },
     "group": "correctness",
     "level": "deny",
@@ -6483,7 +6498,7 @@
     "id": "result_large_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 258
+      "line": 259
     },
     "group": "perf",
     "level": "warn",
@@ -6528,7 +6543,7 @@
     "id": "result_unit_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 215
+      "line": 216
     },
     "group": "style",
     "level": "warn",
@@ -7473,7 +7488,7 @@
     "id": "too_many_arguments",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 30
+      "line": 31
     },
     "group": "complexity",
     "level": "warn",
@@ -7488,7 +7503,7 @@
     "id": "too_many_lines",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 54
+      "line": 55
     },
     "group": "pedantic",
     "level": "allow",
