@@ -1,0 +1,17 @@
+error: This is poorly readable
+  --> $DIR/direct_method_call.rs:20:13
+   |
+LL |     let _ = Xa::hi(4.5f32);
+   |             ^^^^^^^^^^^^^^ help: did you mean: `(4.5f32).hi()`
+   |
+   = note: `-D clippy::direct-method-call` implied by `-D warnings`
+
+error: This is poorly readable
+  --> $DIR/direct_method_call.rs:22:13
+   |
+LL |     let _ = Xa::hoi(4.5f32, 4);
+   |             ^^^^^^^^^^^^^^^^^^ help: did you mean: `(4.5f32).hoi(4)`
+
+[clippy_lints/src/direct_method_call.rs:38] "TODO: IMPLEMENT FUNCTION THAT AREN'T LOCAL" = "TODO: IMPLEMENT FUNCTION THAT AREN'T LOCAL"
+error: aborting due to 2 previous errors
+
