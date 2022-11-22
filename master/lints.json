@@ -33,7 +33,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 292
+      "line": 290
     },
     "group": "restriction",
     "level": "allow",
@@ -48,7 +48,7 @@
     "id": "almost_complete_letter_range",
     "id_span": {
       "path": "src/almost_complete_letter_range.rs",
-      "line": 29
+      "line": 28
     },
     "group": "suspicious",
     "level": "warn",
@@ -303,7 +303,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 199
+      "line": 197
     },
     "group": "suspicious",
     "level": "warn",
@@ -1218,7 +1218,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 230
+      "line": 228
     },
     "group": "complexity",
     "level": "warn",
@@ -1233,7 +1233,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 134
+      "line": 132
     },
     "group": "correctness",
     "level": "deny",
@@ -1653,7 +1653,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 176
+      "line": 174
     },
     "group": "nursery",
     "level": "allow",
@@ -2613,7 +2613,7 @@
     "id": "if_then_some_else_none",
     "id_span": {
       "path": "src/if_then_some_else_none.rs",
-      "line": 44
+      "line": 42
     },
     "group": "restriction",
     "level": "allow",
@@ -2898,7 +2898,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 71
+      "line": 69
     },
     "group": "pedantic",
     "level": "allow",
@@ -3663,7 +3663,7 @@
     "id": "manual_clamp",
     "id_span": {
       "path": "src/manual_clamp.rs",
-      "line": 83
+      "line": 80
     },
     "group": "complexity",
     "level": "warn",
@@ -3753,7 +3753,7 @@
     "id": "manual_instant_elapsed",
     "id_span": {
       "path": "src/instant_subtraction.rs",
-      "line": 37
+      "line": 35
     },
     "group": "pedantic",
     "level": "allow",
@@ -3768,7 +3768,7 @@
     "id": "manual_is_ascii_check",
     "id_span": {
       "path": "src/manual_is_ascii_check.rs",
-      "line": 41
+      "line": 38
     },
     "group": "style",
     "level": "warn",
@@ -4413,7 +4413,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 263
+      "line": 261
     },
     "group": "correctness",
     "level": "deny",
@@ -4473,7 +4473,7 @@
     "id": "missing_const_for_fn",
     "id_span": {
       "path": "src/missing_const_for_fn.rs",
-      "line": 70
+      "line": 68
     },
     "group": "nursery",
     "level": "allow",
@@ -6318,7 +6318,7 @@
     "id": "redundant_field_names",
     "id_span": {
       "path": "src/redundant_field_names.rs",
-      "line": 34
+      "line": 33
     },
     "group": "style",
     "level": "warn",
@@ -6393,7 +6393,7 @@
     "id": "redundant_static_lifetimes",
     "id_span": {
       "path": "src/redundant_static_lifetimes.rs",
-      "line": 31
+      "line": 30
     },
     "group": "style",
     "level": "warn",
@@ -7818,7 +7818,7 @@
     "id": "unchecked_duration_subtraction",
     "id_span": {
       "path": "src/instant_subtraction.rs",
-      "line": 65
+      "line": 63
     },
     "group": "suspicious",
     "level": "warn",
@@ -8658,7 +8658,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 114
+      "line": 112
     },
     "group": "correctness",
     "level": "deny",
