@@ -24,7 +24,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.66.0"]
     pub DIRECT_METHOD_CALL,
     complexity,
-    "Needlessly using explicit traits"
+    "Needlessly using explicit trait"
 }
 
 declare_lint_pass!(DirectMethodCall => [DIRECT_METHOD_CALL]);
@@ -34,16 +34,8 @@ declare_lint_pass!(DirectMethodCall => [DIRECT_METHOD_CALL]);
 impl LateLintPass<'_> for DirectMethodCall {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
         if let Some(fnid) = fn_def_id(cx, expr) {
-            match fnid.as_local() {
-                None => {
-                    // TODO: IMPLEMENT FUNCTION THAT AREN'T LOCAL
-                    return;
-                },
-                Some(_) => {},
-            }
-            let hir = cx.tcx.hir();
-            if let Some(fndecl) = hir.fn_decl_by_hir_id(hir.local_def_id_to_hir_id(fnid.as_local().unwrap())) {
-                if fndecl.implicit_self.has_implicit_self() &&
+            if let Some(fnsig) = cx.tcx.opt_associated_item(fnid) {
+                if fnsig.fn_has_self_parameter &&
             // Discard if it's already a method x.y()
             !cx.typeck_results().is_method_call(expr)
                 {
