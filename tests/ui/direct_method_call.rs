@@ -20,7 +20,7 @@ fn main() {
     let _ = MyTrait::function(4.5f32);
     let _ = MyTrait::function_with_args(4.5f32, 4);
     let _ = f32::floor(4.5f32);
-    
+
     // Should not warn
     let _ = (4.5f32).function();
     let _ = (4.5f32).function_with_args(4);
