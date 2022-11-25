@@ -7833,7 +7833,7 @@
     "id": "undocumented_unsafe_blocks",
     "id_span": {
       "path": "src/undocumented_unsafe_blocks.rs",
-      "line": 58
+      "line": 62
     },
     "group": "restriction",
     "level": "allow",
@@ -8127,6 +8127,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "unnecessary_safety_comment",
+    "id_span": {
+      "path": "src/undocumented_unsafe_blocks.rs",
+      "line": 90
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for `// SAFETY: ` comments on safe code.\n\n### Why is this bad?\nSafe code has no safety requirements, so there is no need to\ndescribe safety invariants.\n\n### Example\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\n// SAFETY: references are guaranteed to be non-null.\nlet ptr = NonNull::new(a).unwrap();\n```\nUse instead:\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\nlet ptr = NonNull::new(a).unwrap();\n```",
+    "version": "1.67.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
     }
   },
   {
