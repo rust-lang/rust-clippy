@@ -2388,7 +2388,7 @@
     "id": "format_in_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 42
+      "line": 45
     },
     "group": "perf",
     "level": "warn",
@@ -7458,7 +7458,7 @@
     "id": "to_string_in_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 68
+      "line": 71
     },
     "group": "perf",
     "level": "warn",
@@ -7923,7 +7923,7 @@
     "id": "uninlined_format_args",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 117
+      "line": 120
     },
     "group": "pedantic",
     "level": "allow",
@@ -8448,7 +8448,7 @@
     "id": "unused_format_specs",
     "id_span": {
       "path": "src/format_args.rs",
-      "line": 148
+      "line": 151
     },
     "group": "complexity",
     "level": "warn",
