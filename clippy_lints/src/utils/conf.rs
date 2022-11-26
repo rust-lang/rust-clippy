@@ -402,6 +402,10 @@ define_Conf! {
     /// A list of paths to types that should be treated like `Arc`, i.e. ignored but
     /// for the generic parameters for determining interior mutability
     (ignore_interior_mutability: Vec<String> = Vec::from(["bytes::Bytes".into()])),
+    /// Lint: DIRECT_METHOD_CALL
+    ///
+    /// A list of modules that are allowed to be explicitly used (e.g. std::fs)
+    (allowed_explicit_modules: Vec<String> = vec!["Arc".into(), "Rc".into(), "Box".into()]),
 }
 
 /// Search for the configuration file.

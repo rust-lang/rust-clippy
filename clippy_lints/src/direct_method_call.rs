@@ -8,7 +8,7 @@ use rustc_hir::Expr;
 use rustc_lint::LintContext;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::{declare_tool_lint, impl_lint_pass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -29,7 +29,20 @@ declare_clippy_lint! {
     "Needlessly using explicit trait"
 }
 
-declare_lint_pass!(DirectMethodCall => [DIRECT_METHOD_CALL]);
+impl_lint_pass!(DirectMethodCall => [DIRECT_METHOD_CALL]);
+
+pub struct DirectMethodCall {
+    allowed_explicit_modules: Vec<String>,
+}
+
+impl DirectMethodCall {
+    #[must_use]
+    pub fn new(allowed_explicit_modules: Vec<String>) -> Self {
+        Self {
+            allowed_explicit_modules,
+        }
+    }
+}
 
 // 'X::Y(Z) -> Z.Y()' When Z implements X
 
@@ -50,7 +63,7 @@ impl LateLintPass<'_> for DirectMethodCall {
                             &mut Applicability::MaybeIncorrect,
                         )
                         .0;
-                        let snippet_formatted = format_snippet(&snippet_raw);
+                        let snippet_formatted = format_snippet(&snippet_raw, &self.allowed_explicit_modules);
                         if let Some(snip) = snippet_formatted {
                             span_lint_and_sugg(
                                 cx,
@@ -70,9 +83,14 @@ impl LateLintPass<'_> for DirectMethodCall {
 }
 
 // This is an expensive function.
-fn format_snippet(snippet_raw: &str) -> Option<String> {
+fn format_snippet(snippet_raw: &str, allowed_explicit_modules: &Vec<String>) -> Option<String> {
     // W::X::Y(Z, ...N) = Y.Z(...N)
     let segments = snippet_raw.split("(").collect::<Vec<&str>>();
+    if segments.len() <= 1 {
+        return None;
+    }
+    let binding = segments[1].split(')').collect::<Vec<&str>>();
+    let suffixes = binding[binding.len() - 1];
     let mut args: Vec<String> = Vec::new();
     {
         let mut args_len;
@@ -87,8 +105,16 @@ fn format_snippet(snippet_raw: &str) -> Option<String> {
         }
     }
 
+    // Ignore if module name is in conf.allowed_explicit_modules
+
     let mut ident = segments[0];
     let mut deconstructed_ident = ident.split("::").collect::<Vec<&str>>();
+    for &ident in &deconstructed_ident {
+        if allowed_explicit_modules.contains(&ident.to_owned()) {
+            return None;
+        }
+    }
+
     if deconstructed_ident.len() >= 2 {
         // W::X::Y(Z, ...N)
         // 1  2  ---- 3 ----
@@ -101,6 +127,6 @@ fn format_snippet(snippet_raw: &str) -> Option<String> {
     let binding = deconstructed_ident.join("::");
     ident = &binding;
     // Remove whitespace
-    let to_return = format!("({}).{ident}({})", args[0], args[1..].join(","));
+    let to_return = format!("({}).{ident}({}){suffixes}", args[0], args[1..].join(","));
     Some(to_return)
 }
