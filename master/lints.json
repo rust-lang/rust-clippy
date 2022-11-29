@@ -2765,7 +2765,7 @@
       "path": "src/index_refutable_slice.rs",
       "line": 49
     },
-    "group": "nursery",
+    "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nThe lint checks for slice bindings in patterns that are only used to\naccess individual slice values.\n\n### Why is this bad?\nAccessing slice values using indices can lead to panics. Using refutable\npatterns can avoid these. Binding to individual values also improves the\nreadability as they can be named.\n\n### Limitations\nThis lint currently only checks for immutable access inside `if let`\npatterns.\n\n### Example\n```rust\nlet slice: Option<&[u32]> = Some(&[1, 2, 3]);\n\nif let Some(slice) = slice {\n    println!(\"{}\", slice[0]);\n}\n```\nUse instead:\n```rust\nlet slice: Option<&[u32]> = Some(&[1, 2, 3]);\n\nif let Some(&[first, ..]) = slice {\n    println!(\"{}\", first);\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n* `max-suggested-slice-pattern-length`: `u64`: When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in\n   the slice pattern that is suggested. If more elements would be necessary, the lint is suppressed.\n   For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements. (defaults to `3`)\n",
     "version": "1.59.0",
