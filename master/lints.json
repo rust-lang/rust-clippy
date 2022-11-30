@@ -8493,7 +8493,7 @@
     "id": "unused_rounding",
     "id_span": {
       "path": "src/unused_rounding.rs",
-      "line": 26
+      "line": 27
     },
     "group": "nursery",
     "level": "allow",
