@@ -7083,7 +7083,7 @@
     "id": "str_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 386
+      "line": 396
     },
     "group": "restriction",
     "level": "allow",
@@ -7188,7 +7188,7 @@
     "id": "string_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 436
+      "line": 446
     },
     "group": "restriction",
     "level": "allow",
@@ -7728,7 +7728,7 @@
     "id": "trim_split_whitespace",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 480
+      "line": 490
     },
     "group": "style",
     "level": "warn",
