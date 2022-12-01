@@ -5148,7 +5148,7 @@
     "id": "needless_pass_by_value",
     "id_span": {
       "path": "src/needless_pass_by_value.rs",
-      "line": 57
+      "line": 59
     },
     "group": "pedantic",
     "level": "allow",
