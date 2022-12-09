@@ -93,11 +93,11 @@
     "id": "arithmetic_side_effects",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 97
+      "line": 94
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks any kind of arithmetic operation of any type.\n\nOperators like `+`, `-`, `*` or `<<` are usually capable of overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor can panic (`/`, `%`).\n\nKnown safe built-in types like `Wrapping` or `Saturating`, floats, operations in constant\nenvironments, allowed types and non-constant operations that won't overflow are ignored.\n\n### Why is this bad?\nFor integers, overflow will trigger a panic in debug builds or wrap the result in\nrelease mode; division by zero will cause a panic in either mode. As a result, it is\ndesirable to explicitly call checked, wrapping or saturating arithmetic methods.\n\n#### Example\n```rust\n// `n` can be any number, including `i32::MAX`.\nfn foo(n: i32) -> i32 {\n  n + 1\n}\n```\n\nThird-party types can also overflow or present unwanted side-effects.\n\n#### Example\n```rust\nuse rust_decimal::Decimal;\nlet _n = Decimal::MAX + Decimal::MAX;\n```\n\n### Allowed types\nCustom allowed types can be specified through the \"arithmetic-side-effects-allowed\" filter.",
+    "docs": "\n### What it does\nChecks any kind of arithmetic operation of any type.\n\nOperators like `+`, `-`, `*` or `<<` are usually capable of overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor can panic (`/`, `%`).\n\nKnown safe built-in types like `Wrapping` or `Saturating`, floats, operations in constant\nenvironments, allowed types and non-constant operations that won't overflow are ignored.\n\n### Why is this bad?\nFor integers, overflow will trigger a panic in debug builds or wrap the result in\nrelease mode; division by zero will cause a panic in either mode. As a result, it is\ndesirable to explicitly call checked, wrapping or saturating arithmetic methods.\n\n#### Example\n```rust\n// `n` can be any number, including `i32::MAX`.\nfn foo(n: i32) -> i32 {\n  n + 1\n}\n```\n\nThird-party types can also overflow or present unwanted side-effects.\n\n#### Example\n```rust\nuse rust_decimal::Decimal;\nlet _n = Decimal::MAX + Decimal::MAX;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `arithmetic-side-effects-allowed`: `rustc_data_structures::fx::FxHashSet<String>`: Suppress checking of the passed type names in all types of operations.\n\n   If a specific operation is desired, consider using `arithmetic_side_effects_allowed_binary` or `arithmetic_side_effects_allowed_unary` instead.\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed = [\"SomeType\", \"AnotherType\"]\n   ```\n\n   #### Noteworthy\n\n   A type, say `SomeType`, listed in this configuration has the same behavior of `[\"SomeType\" , \"*\"], [\"*\", \"SomeType\"]` in `arithmetic_side_effects_allowed_binary`. (defaults to `{}`)\n* `arithmetic-side-effects-allowed-binary`: `Vec<[String; 2]>`: Suppress checking of the passed type pair names in binary operations like addition or\n   multiplication.\n\n   Supports the \"*\" wildcard to indicate that a certain type won't trigger the lint regardless\n   of the involved counterpart. For example, `[\"SomeType\", \"*\"]` or `[\"*\", \"AnotherType\"]`.\n\n   Pairs are asymmetric, which means that `[\"SomeType\", \"AnotherType\"]` is not the same as\n   `[\"AnotherType\", \"SomeType\"]`.\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed-binary = [[\"SomeType\" , \"f32\"], [\"AnotherType\", \"*\"]]\n   ``` (defaults to `[]`)\n* `arithmetic-side-effects-allowed-unary`: `rustc_data_structures::fx::FxHashSet<String>`: Suppress checking of the passed type names in unary operations like \"negation\" (`-`).\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed-unary = [\"SomeType\", \"AnotherType\"]\n   ``` (defaults to `{}`)\n",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -183,7 +183,7 @@
     "id": "assign_op_pattern",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 177
+      "line": 174
     },
     "group": "style",
     "level": "warn",
@@ -273,7 +273,7 @@
     "id": "bad_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 242
+      "line": 239
     },
     "group": "correctness",
     "level": "deny",
@@ -888,7 +888,7 @@
     "id": "cmp_nan",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 537
+      "line": 534
     },
     "group": "correctness",
     "level": "deny",
@@ -918,7 +918,7 @@
     "id": "cmp_owned",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 566
+      "line": 563
     },
     "group": "perf",
     "level": "warn",
@@ -1458,7 +1458,7 @@
     "id": "double_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 326
+      "line": 323
     },
     "group": "complexity",
     "level": "warn",
@@ -1593,7 +1593,7 @@
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 356
+      "line": 353
     },
     "group": "complexity",
     "level": "warn",
@@ -1743,7 +1743,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 388
+      "line": 385
     },
     "group": "correctness",
     "level": "deny",
@@ -1773,7 +1773,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 434
+      "line": 431
     },
     "group": "correctness",
     "level": "deny",
@@ -2193,7 +2193,7 @@
     "id": "float_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 142
+      "line": 139
     },
     "group": "restriction",
     "level": "allow",
@@ -2208,7 +2208,7 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 603
+      "line": 600
     },
     "group": "pedantic",
     "level": "allow",
@@ -2223,7 +2223,7 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 638
+      "line": 635
     },
     "group": "restriction",
     "level": "allow",
@@ -2238,7 +2238,7 @@
     "id": "float_equality_without_abs",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 467
+      "line": 464
     },
     "group": "suspicious",
     "level": "warn",
@@ -2538,7 +2538,7 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 486
+      "line": 483
     },
     "group": "complexity",
     "level": "warn",
@@ -2793,7 +2793,7 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 275
+      "line": 272
     },
     "group": "correctness",
     "level": "deny",
@@ -2988,7 +2988,7 @@
     "id": "integer_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 123
+      "line": 120
     },
     "group": "restriction",
     "level": "allow",
@@ -3003,7 +3003,7 @@
     "id": "integer_division",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 512
+      "line": 509
     },
     "group": "restriction",
     "level": "allow",
@@ -4458,7 +4458,7 @@
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 204
+      "line": 201
     },
     "group": "suspicious",
     "level": "warn",
@@ -4698,7 +4698,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 684
+      "line": 681
     },
     "group": "restriction",
     "level": "allow",
@@ -4713,7 +4713,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 662
+      "line": 659
     },
     "group": "correctness",
     "level": "deny",
@@ -4938,7 +4938,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 713
+      "line": 710
     },
     "group": "pedantic",
     "level": "allow",
@@ -5538,7 +5538,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 412
+      "line": 409
     },
     "group": "style",
     "level": "warn",
@@ -6003,7 +6003,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 742
+      "line": 739
     },
     "group": "style",
     "level": "warn",
@@ -6678,7 +6678,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 781
+      "line": 778
     },
     "group": "correctness",
     "level": "deny",
@@ -8808,7 +8808,7 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 298
+      "line": 295
     },
     "group": "pedantic",
     "level": "allow",
