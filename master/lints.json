@@ -45,14 +45,14 @@
     }
   },
   {
-    "id": "almost_complete_letter_range",
+    "id": "almost_complete_range",
     "id_span": {
-      "path": "src/almost_complete_letter_range.rs",
+      "path": "src/almost_complete_range.rs",
       "line": 28
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for ranges which almost include the entire range of letters from 'a' to 'z', but\ndon't because they're a half open range.\n\n### Why is this bad?\nThis (`'a'..'z'`) is almost certainly a typo meant to include all letters.\n\n### Example\n```rust\nlet _ = 'a'..'z';\n```\nUse instead:\n```rust\nlet _ = 'a'..='z';\n```",
+    "docs": "\n### What it does\nChecks for ranges which almost include the entire range of letters from 'a' to 'z'\nor digits from '0' to '9', but don't because they're a half open range.\n\n### Why is this bad?\nThis (`'a'..'z'`) is almost certainly a typo meant to include all letters.\n\n### Example\n```rust\nlet _ = 'a'..'z';\n```\nUse instead:\n```rust\nlet _ = 'a'..='z';\n```\n### Past names\n\n* `almost_complete_letter_range`\n\n",
     "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
