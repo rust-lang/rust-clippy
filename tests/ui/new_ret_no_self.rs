@@ -350,3 +350,13 @@ impl RetOtherSelf<T> {
         RetOtherSelf(RetOtherSelfWrapper(t))
     }
 }
+
+mod issue10041 {
+    struct Bomb;
+
+    impl Bomb {
+        pub fn explode(&self) -> impl PartialOrd {
+            0i32
+        }
+    }
+}
