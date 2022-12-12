@@ -90,6 +90,7 @@ pub fn contains_ty_adt_constructor_opaque<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'
                                 .substs
                                 .types()
                                 .skip(1) // Skip the implicit `Self` generic parameter
+                                .filter(|inner_ty| *inner_ty != ty) // Skip any other `Self` generic parameters
                                 .any(|ty| contains_ty_adt_constructor_opaque(cx, ty, needle))
                             {
                                 return true;
