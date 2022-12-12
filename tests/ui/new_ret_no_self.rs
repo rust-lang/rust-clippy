@@ -400,3 +400,14 @@ mod issue7344 {
         }
     }
 }
+
+mod issue10041 {
+    struct Bomb;
+
+    impl Bomb {
+        // Hidden <Rhs = Self> default generic paramter.
+        pub fn explode(&self) -> impl PartialOrd {
+            0i32
+        }
+    }
+}
