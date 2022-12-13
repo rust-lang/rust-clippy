@@ -12,7 +12,6 @@ use rustc_mir_dataflow::{
     CallReturnPlaces, ResultsCursor,
 };
 use std::borrow::Cow;
-use std::collections::VecDeque;
 use std::ops::ControlFlow;
 
 /// Collects the possible borrowers of each local.
@@ -217,6 +216,8 @@ pub struct PossibleBorrowerMap<'b, 'tcx> {
     body: &'b mir::Body<'tcx>,
     possible_borrower: ResultsCursor<'b, 'tcx, PossibleBorrowerAnalysis<'b, 'tcx>>,
     maybe_live: ResultsCursor<'b, 'tcx, MaybeStorageLive<'b>>,
+    pushed: BitSet<Local>,
+    stack: Vec<Local>,
 }
 
 impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
@@ -240,6 +241,8 @@ impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
             body: mir,
             possible_borrower,
             maybe_live,
+            pushed: BitSet::new_empty(mir.local_decls.len()),
+            stack: Vec::with_capacity(mir.local_decls.len()),
         }
     }
 
@@ -270,13 +273,13 @@ impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
         let possible_borrower = &self.possible_borrower.get().map;
         let maybe_live = &self.maybe_live;
 
-        let mut queued = BitSet::new_empty(self.body.local_decls.len());
-        let mut deque = VecDeque::with_capacity(self.body.local_decls.len());
+        self.pushed.clear();
+        self.stack.clear();
 
         if let Some(borrowers) = possible_borrower.get(&borrowed) {
             for b in borrowers.iter() {
-                if queued.insert(b) {
-                    deque.push_back(b);
+                if self.pushed.insert(b) {
+                    self.stack.push(b);
                 }
             }
         } else {
@@ -284,15 +287,15 @@ impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
             return true;
         }
 
-        while let Some(borrower) = deque.pop_front() {
+        while let Some(borrower) = self.stack.pop() {
             if maybe_live.contains(borrower) && !borrowers.contains(&borrower) {
                 return false;
             }
 
             if let Some(borrowers) = possible_borrower.get(&borrower) {
                 for b in borrowers.iter() {
-                    if queued.insert(b) {
-                        deque.push_back(b);
+                    if self.pushed.insert(b) {
+                        self.stack.push(b);
                     }
                 }
             }
