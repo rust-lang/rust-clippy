@@ -3768,11 +3768,11 @@
     "id": "manual_is_ascii_check",
     "id_span": {
       "path": "src/manual_is_ascii_check.rs",
-      "line": 38
+      "line": 47
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nSuggests to use dedicated built-in methods,\n`is_ascii_(lowercase|uppercase|digit)` for checking on corresponding ascii range\n\n### Why is this bad?\nUsing the built-in functions is more readable and makes it\nclear that it's not a specific subset of characters, but all\nASCII (lowercase|uppercase|digit) characters.\n### Example\n```rust\nfn main() {\n    assert!(matches!('x', 'a'..='z'));\n    assert!(matches!(b'X', b'A'..=b'Z'));\n    assert!(matches!('2', '0'..='9'));\n    assert!(matches!('x', 'A'..='Z' | 'a'..='z'));\n}\n```\nUse instead:\n```rust\nfn main() {\n    assert!('x'.is_ascii_lowercase());\n    assert!(b'X'.is_ascii_uppercase());\n    assert!('2'.is_ascii_digit());\n    assert!('x'.is_ascii_alphabetic());\n}\n```",
+    "docs": "\n### What it does\nSuggests to use dedicated built-in methods,\n`is_ascii_(lowercase|uppercase|digit)` for checking on corresponding ascii range\n\n### Why is this bad?\nUsing the built-in functions is more readable and makes it\nclear that it's not a specific subset of characters, but all\nASCII (lowercase|uppercase|digit) characters.\n### Example\n```rust\nfn main() {\n    assert!(matches!('x', 'a'..='z'));\n    assert!(matches!(b'X', b'A'..=b'Z'));\n    assert!(matches!('2', '0'..='9'));\n    assert!(matches!('x', 'A'..='Z' | 'a'..='z'));\n\n    ('0'..='9').contains(&'0');\n    ('a'..='z').contains(&'a');\n    ('A'..='Z').contains(&'A');\n}\n```\nUse instead:\n```rust\nfn main() {\n    assert!('x'.is_ascii_lowercase());\n    assert!(b'X'.is_ascii_uppercase());\n    assert!('2'.is_ascii_digit());\n    assert!('x'.is_ascii_alphabetic());\n\n    '0'.is_ascii_digit();\n    'a'.is_ascii_lowercase();\n    'A'.is_ascii_uppercase();\n}\n```",
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
