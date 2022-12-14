@@ -98,8 +98,15 @@ impl ArithmeticSideEffects {
     }
 
     /// If `expr` is not a literal integer like `1`, returns `None`.
+    ///
+    /// It is worth nothing that the returned number can or can not be negative.
     fn literal_integer(expr: &hir::Expr<'_>) -> Option<u128> {
-        if let hir::ExprKind::Lit(ref lit) = expr.kind && let ast::LitKind::Int(n, _) = lit.node {
+        let actual = if let hir::ExprKind::Unary(hir::UnOp::Neg, elem) = expr.kind {
+            elem
+        } else {
+            expr
+        };
+        if let hir::ExprKind::Lit(ref lit) = actual.kind && let ast::LitKind::Int(n, _) = lit.node {
             Some(n)
         }
         else {
@@ -123,12 +130,12 @@ impl ArithmeticSideEffects {
         if !matches!(
             op.node,
             hir::BinOpKind::Add
-                | hir::BinOpKind::Sub
-                | hir::BinOpKind::Mul
                 | hir::BinOpKind::Div
+                | hir::BinOpKind::Mul
                 | hir::BinOpKind::Rem
                 | hir::BinOpKind::Shl
                 | hir::BinOpKind::Shr
+                | hir::BinOpKind::Sub
         ) {
             return;
         };
