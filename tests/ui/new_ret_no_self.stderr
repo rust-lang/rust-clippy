@@ -92,3 +92,13 @@ LL | |             unimplemented!()
 LL | |         }
    | |_________^
 
+error: methods called `new` usually return `Self`
+  --> $DIR/new_ret_no_self.rs:422:9
+   |
+LL | /         fn new() -> X {
+LL | |             1
+LL | |         }
+   | |_________^
+
+error: aborting due to 13 previous errors
+

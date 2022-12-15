@@ -413,14 +413,14 @@ mod issue10041 {
     }
 }
 
-mod issue10041_TAIT {
+mod issue10041_tait {
     type X = impl std::ops::Add<Output = X>;
 
     struct Foo;
 
     impl Foo {
         fn new() -> X {
-            return 1;
+            1
         }
     }
 }
