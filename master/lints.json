@@ -458,7 +458,7 @@
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nchecks for `Box::new(T::default())`, which is better written as\n`Box::<T>::default()`.\n\n### Why is this bad?\nFirst, it's more complex, involving two calls instead of one.\nSecond, `Box::default()` can be faster\n[in certain cases](https://nnethercote.github.io/perf-book/standard-library-types.html#box).\n\n### Example\n```rust\nlet x: Box<String> = Box::new(Default::default());\n```\nUse instead:\n```rust\nlet x: Box<String> = Box::default();\n```",
-    "version": "1.65.0",
+    "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -638,7 +638,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for a known NaN float being cast to an integer\n\n### Why is this bad?\nNaNs are cast into zero, so one could simply use this and make the\ncode more readable. The lint could also hint at a programmer error.\n\n### Example\n```rust\nlet _: (0.0_f32 / 0.0) as u64;\n```\nUse instead:\n```rust\nlet _: = 0_u64;\n```",
-    "version": "1.64.0",
+    "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -1343,7 +1343,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nDenies the configured macros in clippy.toml\n\nNote: Even though this lint is warn-by-default, it will only trigger if\nmacros are defined in the clippy.toml file.\n\n### Why is this bad?\nSome macros are undesirable in certain contexts, and it's beneficial to\nlint for them as needed.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\ndisallowed-macros = [\n    # Can use a string as the path of the disallowed macro.\n    \"std::print\",\n    # Can also use an inline table with a `path` key.\n    { path = \"std::println\" },\n    # When using an inline table, can add a `reason` for why the macro\n    # is disallowed.\n    { path = \"serde::Serialize\", reason = \"no serializing\" },\n]\n```\n```rust\nuse serde::Serialize;\n\n// Example code where clippy issues a warning\nprintln!(\"warns\");\n\n// The diagnostic will contain the message \"no serializing\"\n#[derive(Serialize)]\nstruct Data {\n    name: String,\n    value: usize,\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `disallowed-macros`: `Vec<crate::utils::conf::DisallowedPath>`: The list of disallowed macros, written as fully qualified paths. (defaults to `[]`)\n",
-    "version": "1.65.0",
+    "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2693,7 +2693,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for implicit saturating addition.\n\n### Why is this bad?\nThe built-in function is more readable and may be faster.\n\n### Example\n```rust\nlet mut u:u32 = 7000;\n\nif u != u32::MAX {\n    u += 1;\n}\n```\nUse instead:\n```rust\nlet mut u:u32 = 7000;\n\nu = u.saturating_add(1);\n```",
-    "version": "1.65.0",
+    "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -3173,7 +3173,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\n\nChecks for iterating a map (`HashMap` or `BTreeMap`) and\nignoring either the keys or values.\n\n### Why is this bad?\n\nReadability. There are `keys` and `values` methods that\ncan be used to express that we only need the keys or the values.\n\n### Example\n\n```rust\nlet map: HashMap<u32, u32> = HashMap::new();\nlet values = map.iter().map(|(_, value)| value).collect::<Vec<_>>();\n```\n\nUse instead:\n```rust\nlet map: HashMap<u32, u32> = HashMap::new();\nlet values = map.values().collect::<Vec<_>>();\n```",
-    "version": "1.65.0",
+    "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7958,7 +7958,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nDetect when a variable is not inlined in a format string,\nand suggests to inline it.\n\n### Why is this bad?\nNon-inlined code is slightly more difficult to read and understand,\nas it requires arguments to be matched against the format string.\nThe inlined syntax, where allowed, is simpler.\n\n### Example\n```rust\nformat!(\"{}\", var);\nformat!(\"{v:?}\", v = var);\nformat!(\"{0} {0}\", var);\nformat!(\"{0:1$}\", var, width);\nformat!(\"{:.*}\", prec, var);\n```\nUse instead:\n```rust\nformat!(\"{var}\");\nformat!(\"{var:?}\");\nformat!(\"{var} {var}\");\nformat!(\"{var:width$}\");\nformat!(\"{var:.prec$}\");\n```\n\nIf allow-mixed-uninlined-format-args is set to false in clippy.toml,\nthe following code will also trigger the lint:\n```rust\nformat!(\"{} {}\", var, 1+2);\n```\nUse instead:\n```rust\nformat!(\"{var} {}\", 1+2);\n```\n\n### Known Problems\n\nIf a format string contains a numbered argument that cannot be inlined\nnothing will be suggested, e.g. `println!(\"{0}={1}\", var, 1+2)`.\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`: The minimum rust version that the project supports (defaults to `None`)\n* `allow-mixed-uninlined-format-args`: `bool`: Whether to allow mixed uninlined format args, e.g. `format!(\"{} {}\", a, foo.bar)` (defaults to `true`)\n",
-    "version": "1.65.0",
+    "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
