@@ -91,7 +91,7 @@ pub fn contains_ty_adt_constructor_opaque<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'
                                 .types()
                                 .skip(1) // Skip the implicit `Self` generic parameter
                                 .filter(|inner_ty| *inner_ty != ty) // Skip any other `Self` generic parameters
-                                .any(|ty| contains_ty_adt_constructor_opaque(cx, ty, needle))
+                                .any(|ty| ty == needle || ty.ty_adt_def() == needle.ty_adt_def())
                             {
                                 return true;
                             }
@@ -100,7 +100,7 @@ pub fn contains_ty_adt_constructor_opaque<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'
                         // so we check the term for `U`.
                         ty::PredicateKind::Clause(ty::Clause::Projection(projection_predicate)) => {
                             if let ty::TermKind::Ty(ty) = projection_predicate.term.unpack() {
-                                if contains_ty_adt_constructor_opaque(cx, ty, needle) {
+                                if ty == needle || ty.ty_adt_def() == needle.ty_adt_def() {
                                     return true;
                                 }
                             };
