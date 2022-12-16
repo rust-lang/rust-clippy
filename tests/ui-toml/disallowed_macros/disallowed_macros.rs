@@ -1,4 +1,4 @@
-// aux-build:macros.rs
+// --crate-name disallowed_macros aux-build:macros.rs
 
 #![allow(unused)]
 

@@ -1,10 +1,12 @@
+error: Could not resolve disallowed macro: `disallowed_macros::does_not_exist`
+   |
+   = note: `-D clippy::disallowed-macros` implied by `-D warnings`
+
 error: use of a disallowed macro `std::println`
   --> $DIR/disallowed_macros.rs:10:5
    |
 LL |     println!("one");
    |     ^^^^^^^^^^^^^^^
-   |
-   = note: `-D clippy::disallowed-macros` implied by `-D warnings`
 
 error: use of a disallowed macro `std::println`
   --> $DIR/disallowed_macros.rs:11:5
@@ -80,5 +82,5 @@ error: use of a disallowed macro `macros::item`
 LL |     macros::item!();
    |     ^^^^^^^^^^^^^^^
 
-error: aborting due to 13 previous errors
+error: aborting due to 14 previous errors
 

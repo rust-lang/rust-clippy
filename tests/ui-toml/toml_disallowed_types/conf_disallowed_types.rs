@@ -1,3 +1,5 @@
+// compile-flags: --crate-name conf_disallowed_types
+
 #![warn(clippy::disallowed_types)]
 
 extern crate quote;

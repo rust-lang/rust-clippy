@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::Res;
@@ -6,6 +6,7 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::{Item, ItemKind, PolyTraitRef, PrimTy, Ty, TyKind, UseKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_span::source_map::DUMMY_SP;
 use rustc_span::Span;
 
 use crate::utils::conf;
@@ -89,16 +90,27 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedTypes {
     fn check_crate(&mut self, cx: &LateContext<'_>) {
         for (index, conf) in self.conf_disallowed.iter().enumerate() {
             let segs: Vec<_> = conf.path().split("::").collect();
+            let reses = clippy_utils::def_path_res(cx, &segs);
 
-            for res in clippy_utils::def_path_res(cx, &segs) {
-                match res {
-                    Res::Def(_, id) => {
-                        self.def_ids.insert(id, index);
-                    },
-                    Res::PrimTy(ty) => {
-                        self.prim_tys.insert(ty, index);
-                    },
-                    _ => {},
+            if reses.is_empty() {
+                // The path couldn't be resolved to anything
+                span_lint(
+                    cx,
+                    DISALLOWED_TYPES,
+                    DUMMY_SP,
+                    &format!("Could not resolve disallowed type: `{}`", conf.path()),
+                );
+            } else {
+                for res in reses {
+                    match res {
+                        Res::Def(_, id) => {
+                            self.def_ids.insert(id, index);
+                        },
+                        Res::PrimTy(ty) => {
+                            self.prim_tys.insert(ty, index);
+                        },
+                        _ => {},
+                    }
                 }
             }
         }

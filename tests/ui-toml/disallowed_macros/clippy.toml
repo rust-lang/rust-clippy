@@ -8,4 +8,6 @@ disallowed-macros = [
     "macros::ty",
     "macros::pat",
     "macros::item",
+    # Macros which don't exist will lint
+    "disallowed_macros::does_not_exist",
 ]

@@ -1,10 +1,11 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::macros::macro_backtrace;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Expr, ForeignItem, HirId, ImplItem, Item, Pat, Path, Stmt, TraitItem, Ty};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_span::source_map::DUMMY_SP;
 use rustc_span::{ExpnId, Span};
 
 use crate::utils::conf;
@@ -103,8 +104,20 @@ impl LateLintPass<'_> for DisallowedMacros {
     fn check_crate(&mut self, cx: &LateContext<'_>) {
         for (index, conf) in self.conf_disallowed.iter().enumerate() {
             let segs: Vec<_> = conf.path().split("::").collect();
-            for id in clippy_utils::def_path_def_ids(cx, &segs) {
-                self.disallowed.insert(id, index);
+            let ids = clippy_utils::def_path_def_ids(cx, &segs).collect::<Vec<_>>();
+
+            if ids.is_empty() {
+                // The path couldn't be resolved to anything
+                span_lint(
+                    cx,
+                    DISALLOWED_MACROS,
+                    DUMMY_SP,
+                    &format!("Could not resolve disallowed macro: `{}`", conf.path()),
+                );
+            } else {
+                for id in ids {
+                    self.disallowed.insert(id, index);
+                }
             }
         }
     }
