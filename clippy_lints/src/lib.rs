@@ -226,6 +226,7 @@ mod only_used_in_recursion;
 mod operators;
 mod option_env_unwrap;
 mod option_if_let_else;
+mod option_is_some_and;
 mod overflow_check_conditional;
 mod panic_in_result_fn;
 mod panic_unimplemented;
@@ -902,6 +903,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(suspicious_xor_used_as_pow::ConfusingXorAndPow));
     store.register_late_pass(move |_| Box::new(manual_is_ascii_check::ManualIsAsciiCheck::new(msrv())));
     store.register_late_pass(|_| Box::new(semicolon_block::SemicolonBlock));
+    store.register_late_pass(|_| Box::new(option_is_some_and::OptionIsSomeAnd));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
