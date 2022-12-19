@@ -3,6 +3,7 @@
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
 #![feature(drain_filter)]
+#![feature(is_some_and)]
 #![feature(iter_intersperse)]
 #![feature(let_chains)]
 #![feature(lint_reasons)]
