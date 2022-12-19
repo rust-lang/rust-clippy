@@ -1,12 +1,12 @@
-use clippy_utils::diagnostics::{span_lint_and_then, span_lint_and_sugg};
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::is_copy;
 use clippy_utils::ty::is_type_diagnostic_item;
+use rustc_ast as ast;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{walk_path, Visitor};
-use rustc_hir::{self, HirId, Path, ExprKind};
-use rustc_ast as ast;
+use rustc_hir::{self, ExprKind, HirId, Path};
 use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
 use rustc_span::source_map::Span;
@@ -52,11 +52,10 @@ pub(super) fn check<'tcx>(
             return;
         }
 
-
-
         let mut use_is_some_and_suggestion = false;
 
-        // argument to unwrap_or is boolean literal with value false, so is_some_and function is most appropriate
+        // argument to unwrap_or is boolean literal with value false, so is_some_and function is most
+        // appropriate
         if let ExprKind::Lit(unwrap_lit) = &unwrap_arg.kind {
             if let ast::LitKind::Bool(false) = &unwrap_lit.node {
                 use_is_some_and_suggestion = true;
@@ -69,7 +68,13 @@ pub(super) fn check<'tcx>(
         // lint message
         // comparing the snippet from source to raw text ("None") below is safe
         // because we already have checked the type.
-        let arg = if unwrap_snippet == "None" { "None" } else if use_is_some_and_suggestion { "false" } else { "<a>" };
+        let arg = if unwrap_snippet == "None" {
+            "None"
+        } else if use_is_some_and_suggestion {
+            "false"
+        } else {
+            "<a>"
+        };
         let unwrap_snippet_none = unwrap_snippet == "None";
         let suggest = if unwrap_snippet_none {
             "and_then(<f>)"
@@ -89,7 +94,13 @@ pub(super) fn check<'tcx>(
             let mut suggestion = vec![
                 (
                     map_span,
-                    String::from(if unwrap_snippet_none { "and_then" } else if use_is_some_and_suggestion { "is_some_and" } else { "map_or" }),
+                    String::from(if unwrap_snippet_none {
+                        "and_then"
+                    } else if use_is_some_and_suggestion {
+                        "is_some_and"
+                    } else {
+                        "map_or"
+                    }),
                 ),
                 (expr.span.with_lo(unwrap_recv.span.hi()), String::new()),
             ];
