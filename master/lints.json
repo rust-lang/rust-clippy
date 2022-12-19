@@ -1083,7 +1083,7 @@
     "id": "crosspointer_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 108
+      "line": 109
     },
     "group": "complexity",
     "level": "warn",
@@ -2259,6 +2259,21 @@
     "level": "deny",
     "docs": "\n### What it does\nChecks for comparisons with an address of a function item.\n\n### Why is this bad?\nFunction item address is not guaranteed to be unique and could vary\nbetween different code generation units. Furthermore different function items could have\nthe same address after being merged together.\n\n### Example\n```rust\ntype F = fn();\nfn a() {}\nlet f: F = a;\nif f == a {\n    // ...\n}\n```",
     "version": "1.44.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "fn_null_check",
+    "id_span": {
+      "path": "src/fn_null_check.rs",
+      "line": 29
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for comparing a function pointer to null.\n\n### Why is this bad?\nFunction pointers are assumed to not be null.\n\n### Example\n```rust\nlet fn_ptr: fn() = /* somehow obtained nullable function pointer */\n\nif (fn_ptr as *const ()).is_null() { ... }\n```\nUse instead:\n```rust\nlet fn_ptr: Option<fn()> = /* somehow obtained nullable function pointer */\n\nif fn_ptr.is_none() { ... }\n```",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7593,7 +7608,7 @@
     "id": "transmute_bytes_to_str",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 204
+      "line": 205
     },
     "group": "complexity",
     "level": "warn",
@@ -7608,7 +7623,7 @@
     "id": "transmute_float_to_int",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 273
+      "line": 274
     },
     "group": "complexity",
     "level": "warn",
@@ -7623,7 +7638,7 @@
     "id": "transmute_int_to_bool",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 227
+      "line": 228
     },
     "group": "complexity",
     "level": "warn",
@@ -7638,7 +7653,7 @@
     "id": "transmute_int_to_char",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 170
+      "line": 171
     },
     "group": "complexity",
     "level": "warn",
@@ -7653,7 +7668,7 @@
     "id": "transmute_int_to_float",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 250
+      "line": 251
     },
     "group": "complexity",
     "level": "warn",
@@ -7665,10 +7680,25 @@
     }
   },
   {
+    "id": "transmute_null_to_fn",
+    "id_span": {
+      "path": "src/transmute/mod.rs",
+      "line": 436
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for null function pointer creation through transmute.\n\n### Why is this bad?\nCreating a null function pointer is undefined behavior.\n\nMore info: https://doc.rust-lang.org/nomicon/ffi.html#the-nullable-pointer-optimization\n\n### Known problems\nNot all cases can be detected at the moment of this writing.\nFor example, variables which hold a null pointer and are then fed to a `transmute`\ncall, aren't detectable yet.\n\n### Example\n```rust\nlet null_fn: fn() = unsafe { std::mem::transmute( std::ptr::null::<()>() ) };\n```\nUse instead:\n```rust\nlet null_fn: Option<fn()> = None;\n```",
+    "version": "1.67.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "transmute_num_to_bytes",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 296
+      "line": 297
     },
     "group": "complexity",
     "level": "warn",
@@ -7683,7 +7713,7 @@
     "id": "transmute_ptr_to_ptr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 324
+      "line": 325
     },
     "group": "pedantic",
     "level": "allow",
@@ -7698,7 +7728,7 @@
     "id": "transmute_ptr_to_ref",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 136
+      "line": 137
     },
     "group": "complexity",
     "level": "warn",
@@ -7713,7 +7743,7 @@
     "id": "transmute_undefined_repr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 385
+      "line": 386
     },
     "group": "nursery",
     "level": "allow",
@@ -7728,7 +7758,7 @@
     "id": "transmutes_expressible_as_ptr_casts",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 89
+      "line": 90
     },
     "group": "complexity",
     "level": "warn",
@@ -7743,7 +7773,7 @@
     "id": "transmuting_null",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 407
+      "line": 408
     },
     "group": "correctness",
     "level": "deny",
@@ -8403,7 +8433,7 @@
     "id": "unsound_collection_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 356
+      "line": 357
     },
     "group": "correctness",
     "level": "deny",
@@ -8763,7 +8793,7 @@
     "id": "useless_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 63
+      "line": 64
     },
     "group": "complexity",
     "level": "warn",
@@ -9063,7 +9093,7 @@
     "id": "wrong_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 43
+      "line": 44
     },
     "group": "correctness",
     "level": "deny",
