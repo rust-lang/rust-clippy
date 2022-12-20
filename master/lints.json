@@ -5865,6 +5865,21 @@
     }
   },
   {
+    "id": "permissions_set_readonly_false",
+    "id_span": {
+      "path": "src/permissions_set_readonly_false.rs",
+      "line": 25
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for calls to `std::fs::Permissions.set_readonly` with argument `false`.\n\n### Why is this bad?\nOn Unix platforms this results in the file being world writable,\nequivalent to `chmod a+w <file>`.\n### Example\n```rust\nuse std::fs::File;\nlet f = File::create(\"foo.txt\").unwrap();\nlet metadata = f.metadata().unwrap();\nlet mut permissions = metadata.permissions();\npermissions.set_readonly(false);\n```",
+    "version": "1.66.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "possible_missing_comma",
     "id_span": {
       "path": "src/formatting.rs",
