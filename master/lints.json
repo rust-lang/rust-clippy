@@ -7065,6 +7065,21 @@
     }
   },
   {
+    "id": "size_of_ref",
+    "id_span": {
+      "path": "src/size_of_ref.rs",
+      "line": 49
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\n\nChecks for calls to `std::mem::size_of_val()` where the argument is\na reference to a reference.\n\n### Why is this bad?\n\nCalling `size_of_val()` with a reference to a reference as the argument\nyields the size of the reference-type, not the size of the value behind\nthe reference.\n\n### Example\n```rust\nstruct Foo {\n    buffer: [u8],\n}\n\nimpl Foo {\n    fn size(&self) -> usize {\n        // Note that `&self` as an argument is a `&&Foo`: Because `self`\n        // is already a reference, `&self` is a double-reference.\n        // The return value of `size_of_val()` therefor is the\n        // size of the reference-type, not the size of `self`.\n        std::mem::size_of_val(&self)\n    }\n}\n```\nUse instead:\n```rust\nstruct Foo {\n    buffer: [u8],\n}\n\nimpl Foo {\n    fn size(&self) -> usize {\n        // Correct\n        std::mem::size_of_val(self)\n    }\n}\n```",
+    "version": "1.67.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "skip_while_next",
     "id_span": {
       "path": "src/methods/mod.rs",
