@@ -1473,7 +1473,7 @@
     "id": "double_must_use",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 136
+      "line": 159
     },
     "group": "style",
     "level": "warn",
@@ -4458,7 +4458,7 @@
     "id": "misnamed_getters",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 301
+      "line": 324
     },
     "group": "suspicious",
     "level": "warn",
@@ -4788,7 +4788,7 @@
     "id": "must_use_candidate",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 166
+      "line": 189
     },
     "group": "pedantic",
     "level": "allow",
@@ -4803,7 +4803,7 @@
     "id": "must_use_unit",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 112
+      "line": 135
     },
     "group": "style",
     "level": "warn",
@@ -5478,11 +5478,11 @@
     "id": "not_unsafe_ptr_arg_deref",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 92
+      "line": 115
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for public functions that dereference raw pointer\narguments but are not marked `unsafe`.\n\n### Why is this bad?\nThe function should probably be marked `unsafe`, since\nfor an arbitrary raw pointer, there is no way of telling for sure if it is\nvalid.\n\n### Known problems\n* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't\ntrigger.\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`).\n\n### Example\n```rust\npub fn foo(x: *const u8) {\n    println!(\"{}\", unsafe { *x });\n}\n```\n\nUse instead:\n```rust\npub unsafe fn foo(x: *const u8) {\n    println!(\"{}\", unsafe { *x });\n}\n```",
+    "docs": "\n### What it does\nChecks for public functions that dereference raw pointer\narguments but are not marked `unsafe`.\n\n### Why is this bad?\nThe function should almost definitely be marked `unsafe`, since for an\narbitrary raw pointer, there is no way of telling for sure if it is valid.\n\nIn general, this lint should **never be disabled** unless it is definitely a\nfalse positive (please submit an issue if so) since it breaks Rust's\nsoundness guarantees, directly exposing API users to potentially dangerous\nprogram behavior. This is also true for internal APIs, as it is easy to leak\nunsoundness.\n\n### Context\nIn Rust, an `unsafe {...}` block is used to indicate that the code in that\nsection has been verified in some way that the compiler can not. For a\nfunction that accepts a raw pointer then accesses the pointer's data, this is\ngenerally impossible as the incoming pointer could point anywhere, valid or\nnot. So, the signature should be marked `unsafe fn`: this indicates that the\nfunction's caller must provide some verification that the arguments it sends\nare valid (and then call the function within an `unsafe` block).\n\n### Known problems\n* It does not check functions recursively so if the pointer is passed to a\nprivate non-`unsafe` function which does the dereferencing, the lint won't\ntrigger (false negative).\n* It only checks for arguments whose type are raw pointers, not raw pointers\ngot from an argument in some other way (`fn foo(bar: &[*const u8])` or\n`some_argument.get_raw_ptr()`) (false negative).\n\n### Example\n```rust\npub fn foo(x: *const u8) {\n    println!(\"{}\", unsafe { *x });\n}\n\n// this call \"looks\" safe but will segfault or worse!\n// foo(invalid_ptr);\n```\n\nUse instead:\n```rust\npub unsafe fn foo(x: *const u8) {\n    println!(\"{}\", unsafe { *x });\n}\n\n// this would cause a compiler error for calling without `unsafe`\n// foo(invalid_ptr);\n\n// sound call if the caller knows the pointer is valid\nunsafe { foo(valid_ptr); }\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6528,7 +6528,7 @@
     "id": "result_large_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 259
+      "line": 282
     },
     "group": "perf",
     "level": "warn",
@@ -6573,7 +6573,7 @@
     "id": "result_unit_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 216
+      "line": 239
     },
     "group": "style",
     "level": "warn",
