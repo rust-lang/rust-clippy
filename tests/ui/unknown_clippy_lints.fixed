@@ -14,5 +14,5 @@
 // Shouldn't suggest removed/deprecated clippy lint name(`unused_collect`)
 #[warn(clippy::unused_self)]
 // Shouldn't suggest renamed clippy lint name(`const_static_lifetime`)
-#[warn(clippy::redundant_static_lifetimes)]
+#[warn(clippy::hidden_static_lifetime)]
 fn main() {}

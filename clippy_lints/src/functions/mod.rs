@@ -1,3 +1,4 @@
+mod hidden_static_lifetime;
 mod misnamed_getters;
 mod must_use;
 mod not_unsafe_ptr_arg_deref;
@@ -326,6 +327,25 @@ declare_clippy_lint! {
     "getter method returning the wrong field"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects lifetimes that are secretly `'static`.
+    /// ### Why is this bad?
+    /// One could think that the lifetime is dropped eventually, but it isn't, as it is really a `'static`
+    /// ### Example
+    /// ```rust
+    /// fn foo<'a>() -> &'a str { "bar" }
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// fn foo() -> &'static str { "bar" }
+    /// ```
+    #[clippy::version = "1.68.0"]
+    pub HIDDEN_STATIC_LIFETIME,
+    pedantic,
+    "`'a` lifetime isn't clear to be `'static`"
+}
+
 #[derive(Copy, Clone)]
 pub struct Functions {
     too_many_arguments_threshold: u64,
@@ -353,6 +373,7 @@ impl_lint_pass!(Functions => [
     RESULT_UNIT_ERR,
     RESULT_LARGE_ERR,
     MISNAMED_GETTERS,
+    HIDDEN_STATIC_LIFETIME,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Functions {
@@ -369,6 +390,7 @@ impl<'tcx> LateLintPass<'tcx> for Functions {
         too_many_lines::check_fn(cx, kind, span, body, self.too_many_lines_threshold);
         not_unsafe_ptr_arg_deref::check_fn(cx, kind, decl, body, hir_id);
         misnamed_getters::check_fn(cx, kind, decl, body, span, hir_id);
+        hidden_static_lifetime::check_fn(cx, kind, decl);
     }
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {
