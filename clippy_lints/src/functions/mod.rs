@@ -329,9 +329,9 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Detects lifetimes that are secretly `'static`.
+    /// Detects generic lifetimes that the compiler will always resolve to be `'static`.
     /// ### Why is this bad?
-    /// One could think that the lifetime is dropped eventually, but it isn't, as it is really a `'static`
+    /// The introduction of a lifetime parameter that can only resolve to `'static` adds unnecesary complexity.
     /// ### Example
     /// ```rust
     /// fn foo<'a>() -> &'a str { "bar" }

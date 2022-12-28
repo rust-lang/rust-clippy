@@ -2,15 +2,18 @@ error: this lifetime can be changed to `'static`
   --> $DIR/hidden_static_lifetime.rs:17:6
    |
 LL | fn a<'a>() -> &'a str {
-   |      ^^ help: try: `changing the lifetime `'a` to 'static`
+   |      ^^
    |
+   = help: try removing the lifetime parameter `'a` and changing references to `'static`
    = note: `-D clippy::hidden-static-lifetime` implied by `-D warnings`
 
 error: this lifetime can be changed to `'static`
   --> $DIR/hidden_static_lifetime.rs:20:6
    |
 LL | fn h<'h>() -> S<'h> {
-   |      ^^ help: try: `changing the lifetime `'h` to 'static`
+   |      ^^
+   |
+   = help: try removing the lifetime parameter `'h` and changing references to `'static`
 
 error: aborting due to 2 previous errors
 

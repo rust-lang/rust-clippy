@@ -228,7 +228,6 @@ fn never_loop_expr(expr: &Expr<'_>, ignore_ids: &mut Vec<HirId>, main_loop_id: H
     }
 }
 
-#[clippy::dump]
 fn never_loop_expr_all<'a, T: Iterator<Item = &'a Expr<'a>>>(
     es: &mut T,
     ignore_ids: &mut Vec<HirId>,

@@ -1,9 +1,8 @@
 use crate::rustc_lint::LintContext;
-use clippy_utils::diagnostics::span_lint_and_sugg;
-use rustc_errors::Applicability;
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{
     intravisit::FnKind, FnDecl, FnRetTy, GenericArg, GenericBound, GenericParamKind, LifetimeParamKind, ParamName,
-    /* PredicateOrigin */ QPath, Ty, TyKind, TypeBindingKind, WherePredicate,
+    QPath, Ty, TyKind, TypeBindingKind, WherePredicate,
 };
 use rustc_lint::LateContext;
 use rustc_middle::lint::in_external_macro;
@@ -58,13 +57,12 @@ pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'t
 												}
 											}
 										} else {
-											span_lint_and_sugg(cx,
+											span_lint_and_help(cx,
 												HIDDEN_STATIC_LIFETIME,
 												bound.span(),
 												"this lifetime can be changed to `'static`",
-												"try",
-												format!("changing the lifetime `{}` to 'static", generic.name.ident().as_str()),
-												Applicability::MaybeIncorrect
+												None,
+								&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()),
 											);
 										}
 									}
@@ -75,13 +73,12 @@ pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'t
 									if region_predicate.lifetime.hir_id.owner == generic.hir_id.owner {
 										lifetime_is_used = true;
 									} else {
-										span_lint_and_sugg(cx,
+										span_lint_and_help(cx,
 											HIDDEN_STATIC_LIFETIME,
 											region_predicate.span,
 											"this lifetime can be changed to `'static`",
-											"try",
-											format!("changing the lifetime `{}` to 'static", generic.name.ident().as_str()),
-											Applicability::MaybeIncorrect
+											None,
+								&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()),
 										);
 									}
 								}
@@ -90,13 +87,12 @@ pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'t
 
 						// Check again.
 						if !lifetime_is_used {
-							span_lint_and_sugg(cx,
+							span_lint_and_help(cx,
 								HIDDEN_STATIC_LIFETIME,
 								generic.span,
 								"this lifetime can be changed to `'static`",
-								"try",
-								format!("changing the lifetime `{}` to 'static", generic.name.ident().as_str()),
-								Applicability::MaybeIncorrect
+								None,
+								&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()),
 							);
 						}
 					}
