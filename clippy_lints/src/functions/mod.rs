@@ -390,7 +390,7 @@ impl<'tcx> LateLintPass<'tcx> for Functions {
         too_many_lines::check_fn(cx, kind, span, body, self.too_many_lines_threshold);
         not_unsafe_ptr_arg_deref::check_fn(cx, kind, decl, body, hir_id);
         misnamed_getters::check_fn(cx, kind, decl, body, span, hir_id);
-        hidden_static_lifetime::check_fn(cx, kind, decl);
+        hidden_static_lifetime::check_fn(cx, kind, decl, span);
     }
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {

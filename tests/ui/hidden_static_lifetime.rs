@@ -6,6 +6,12 @@ struct S<'s> {
     s: &'s u32,
 }
 
+mod module {
+    pub struct S<'s> {
+        s: &'s u32,
+    }
+}
+
 // Should warn
 
 fn a<'a>() -> &'a str {
@@ -35,6 +41,10 @@ fn g<'g>(_: S<'g>) -> S<'g> {
 
 fn i() -> S<'static> {
     S { s: &1 }
+}
+
+fn j<'a>(s: &module::S<'a>) -> S<'a> {
+    todo!()
 }
 
 fn main() {}
