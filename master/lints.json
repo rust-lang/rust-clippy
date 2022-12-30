@@ -4893,11 +4893,11 @@
     "id": "mutex_atomic",
     "id_span": {
       "path": "src/mutex_atomic.rs",
-      "line": 41
+      "line": 45
     },
-    "group": "nursery",
+    "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usages of `Mutex<X>` where an atomic will do.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(&y);\n```\n\nUse instead:\n```rust\nlet x = AtomicBool::new(y);\n```",
+    "docs": "\n### What it does\nChecks for usages of `Mutex<X>` where an atomic will do.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.\n\nOn the other hand, `Mutex`es are, in general, easier to\nverify correctness. An atomic does not behave the same as\nan equivalent mutex. See [this issue](https://github.com/rust-lang/rust-clippy/issues/4295)'s commentary for more details.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(&y);\n```\n\nUse instead:\n```rust\nlet x = AtomicBool::new(y);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4908,7 +4908,7 @@
     "id": "mutex_integer",
     "id_span": {
       "path": "src/mutex_atomic.rs",
-      "line": 72
+      "line": 76
     },
     "group": "nursery",
     "level": "allow",
