@@ -24,11 +24,45 @@ struct PossibleBorrowerAnalysis<'b, 'tcx> {
     possible_origin: FxHashMap<mir::Local, HybridBitSet<mir::Local>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 struct PossibleBorrowerState {
-    map: FxIndexMap<Local, BitSet<Local>>,
+    map: FxIndexMap<Local, HybridBitSet<Local>>,
     domain_size: usize,
 }
+
+// `PossibleBorrowerState`'s `PartialEq` implementation doesn't seem to be used currently.
+impl PartialEq for PossibleBorrowerState {
+    fn eq(&self, other: &Self) -> bool {
+        if self.domain_size != other.domain_size {
+            return false;
+        }
+        for (borrowed, our_borrowers) in self.map.iter() {
+            if !other
+                .map
+                .get(borrowed)
+                .map_or(our_borrowers.is_empty(), |their_borrowers| {
+                    our_borrowers.iter().eq(their_borrowers.iter())
+                })
+            {
+                return false;
+            }
+        }
+        for (borrowed, their_borrowers) in other.map.iter() {
+            if !self
+                .map
+                .get(borrowed)
+                .map_or(their_borrowers.is_empty(), |our_borrowers| {
+                    their_borrowers.iter().eq(our_borrowers.iter())
+                })
+            {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl Eq for PossibleBorrowerState {}
 
 impl PossibleBorrowerState {
     fn new(domain_size: usize) -> Self {
@@ -42,7 +76,7 @@ impl PossibleBorrowerState {
     fn add(&mut self, borrowed: Local, borrower: Local) {
         self.map
             .entry(borrowed)
-            .or_insert(BitSet::new_empty(self.domain_size))
+            .or_insert_with(|| HybridBitSet::new_empty(self.domain_size))
             .insert(borrower);
     }
 }
@@ -64,7 +98,7 @@ impl JoinSemiLattice for PossibleBorrowerState {
                 changed |= self
                     .map
                     .entry(borrowed)
-                    .or_insert(BitSet::new_empty(self.domain_size))
+                    .or_insert_with(|| HybridBitSet::new_empty(self.domain_size))
                     .union(borrowers);
             }
         }
