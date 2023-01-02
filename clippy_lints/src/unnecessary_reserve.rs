@@ -1,18 +1,21 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::{match_def_path, meets_msrv, msrvs, paths, visitors::expr_visitor_no_bodies};
+use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::{match_def_path, paths, visitors::for_each_expr, SpanlessEq};
+use core::ops::ControlFlow;
 use rustc_errors::Applicability;
-use rustc_hir::{intravisit::Visitor, Block, ExprKind, QPath, StmtKind};
+use rustc_hir::{Block, ExprKind, PathSegment, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_semver::RustcVersion;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
+    ///
     /// This lint checks for a call to `reserve` before `extend` on a `Vec` or `VecDeque`.
     /// ### Why is this bad?
     /// Since Rust 1.62, `extend` implicitly calls `reserve`
+    ///
     /// ### Example
     /// ```rust
     /// let mut vec: Vec<usize> = vec![];
@@ -32,31 +35,27 @@ declare_clippy_lint! {
     "calling `reserve` before `extend` on a `Vec` or `VecDeque`, when it will be called implicitly"
 }
 
-pub struct UnnecessaryReserve {
-    msrv: Option<RustcVersion>,
-}
+impl_lint_pass!(UnnecessaryReserve => [UNNECESSARY_RESERVE]);
 
+pub struct UnnecessaryReserve {
+    msrv: Msrv,
+}
 impl UnnecessaryReserve {
-    #[must_use]
-    pub fn new(msrv: Option<RustcVersion>) -> Self {
+    pub fn new(msrv: Msrv) -> Self {
         Self { msrv }
     }
 }
 
-impl_lint_pass!(UnnecessaryReserve => [UNNECESSARY_RESERVE]);
-
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &Block<'tcx>) {
-        if !meets_msrv(self.msrv, msrvs::UNNECESSARY_RESERVE) {
+        if !self.msrv.meets(msrvs::CHECK_UNNECESSARY_RESERVE) {
             return;
         }
 
         for (idx, stmt) in block.stmts.iter().enumerate() {
             if let StmtKind::Semi(semi_expr) = stmt.kind
-                && let ExprKind::MethodCall(_, [struct_calling_on, _], _) = semi_expr.kind
-                && let Some(expr_def_id) = cx.typeck_results().type_dependent_def_id(semi_expr.hir_id)
-                && (match_def_path(cx, expr_def_id, &paths::VEC_RESERVE) ||
-                    match_def_path(cx, expr_def_id, &paths::VEC_DEQUE_RESERVE))
+                && let ExprKind::MethodCall(PathSegment { ident: method, .. }, struct_calling_on, _, _) = semi_expr.kind
+                && method.name.as_str() == "reserve"
                 && acceptable_type(cx, struct_calling_on)
                 && let Some(next_stmt_span) = check_extend_method(cx, block, idx, struct_calling_on)
                 && !next_stmt_span.from_expansion()
@@ -102,50 +101,36 @@ fn check_extend_method(
 ) -> Option<rustc_span::Span> {
     let mut read_found = false;
     let next_stmt_span;
+    let mut spanless_eq = SpanlessEq::new(cx);
 
-    let mut visitor = expr_visitor_no_bodies(|expr| {
-        if let ExprKind::MethodCall(_, [struct_calling_on, _], _) = expr.kind
+    let _: Option<!> = for_each_expr(block, |expr| {
+        if let ExprKind::MethodCall(_, struct_calling_on, _,_) = expr.kind
             && let Some(expr_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
             && match_def_path(cx, expr_def_id, &paths::ITER_EXTEND)
             && acceptable_type(cx, struct_calling_on)
-            && equal_ident(struct_calling_on, struct_expr)
+            // Check that both expr are equal
+            && spanless_eq.eq_expr(struct_calling_on, struct_expr)
         {
             read_found = true;
         }
-        !read_found
+        let _ = !read_found;
+        ControlFlow::Continue(())
     });
 
     if idx == block.stmts.len() - 1 {
         if let Some(e) = block.expr {
-            visitor.visit_expr(e);
             next_stmt_span = e.span;
         } else {
             return None;
         }
     } else {
         let next_stmt = &block.stmts[idx + 1];
-        visitor.visit_stmt(next_stmt);
         next_stmt_span = next_stmt.span;
     }
-    drop(visitor);
 
     if read_found {
         return Some(next_stmt_span);
     }
 
     None
-}
-
-#[must_use]
-fn equal_ident(left: &rustc_hir::Expr<'_>, right: &rustc_hir::Expr<'_>) -> bool {
-    fn ident_name(expr: &rustc_hir::Expr<'_>) -> Option<rustc_span::Symbol> {
-        if let ExprKind::Path(QPath::Resolved(None, inner_path)) = expr.kind
-            && let [inner_seg] = inner_path.segments
-        {
-            return Some(inner_seg.ident.name);
-        }
-        None
-    }
-
-    ident_name(left) == ident_name(right)
 }

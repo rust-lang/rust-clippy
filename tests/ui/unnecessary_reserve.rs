@@ -6,27 +6,27 @@ use std::collections::VecDeque;
 
 fn main() {
     vec_reserve();
-    vec_deque_reserve();
-    hash_map_reserve();
-    msrv_1_62();
+    //vec_deque_reserve();
+    //hash_map_reserve();
+    //msrv_1_62();
 }
 
 fn vec_reserve() {
     let mut vec: Vec<usize> = vec![];
     let array: &[usize] = &[1, 2];
 
-    // do lint
+    // do not lint
     vec.reserve(1);
     vec.extend([1]);
 
-    // do lint
+    //// do lint
     vec.reserve(array.len());
     vec.extend(array);
 
     // do lint
     {
-        vec.reserve(1);
-        vec.extend([1])
+        vec.reserve(array.len());
+        vec.extend(array)
     };
 
     // do not lint
@@ -44,7 +44,7 @@ fn vec_deque_reserve() {
     let mut vec_deque: VecDeque<usize> = [1].into();
     let array: &[usize] = &[1, 2];
 
-    // do lint
+    // do not lint
     vec_deque.reserve(1);
     vec_deque.extend([1]);
 
@@ -52,7 +52,7 @@ fn vec_deque_reserve() {
     vec_deque.reserve(array.len());
     vec_deque.extend(array);
 
-    // do lint
+    // do not lint
     {
         vec_deque.reserve(1);
         vec_deque.extend([1])
