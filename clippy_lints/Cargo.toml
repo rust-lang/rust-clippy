@@ -8,6 +8,28 @@ license = "MIT OR Apache-2.0"
 keywords = ["clippy", "lint", "plugin"]
 edition = "2021"
 
+[target.'cfg(NOT_A_PLATFORM)'.dependencies]
+rustc_arena = { path = "/Users/cgorski/repos/rust/compiler/rustc_arena" }
+rustc_ast = { path = "/Users/cgorski/repos/rust/compiler/rustc_ast" }
+rustc_ast_pretty = { path = "/Users/cgorski/repos/rust/compiler/rustc_ast_pretty" }
+rustc_data_structures = { path = "/Users/cgorski/repos/rust/compiler/rustc_data_structures" }
+rustc_driver = { path = "/Users/cgorski/repos/rust/compiler/rustc_driver" }
+rustc_errors = { path = "/Users/cgorski/repos/rust/compiler/rustc_errors" }
+rustc_hir = { path = "/Users/cgorski/repos/rust/compiler/rustc_hir" }
+rustc_hir_analysis = { path = "/Users/cgorski/repos/rust/compiler/rustc_hir_analysis" }
+rustc_hir_pretty = { path = "/Users/cgorski/repos/rust/compiler/rustc_hir_pretty" }
+rustc_hir_typeck = { path = "/Users/cgorski/repos/rust/compiler/rustc_hir_typeck" }
+rustc_index = { path = "/Users/cgorski/repos/rust/compiler/rustc_index" }
+rustc_infer = { path = "/Users/cgorski/repos/rust/compiler/rustc_infer" }
+rustc_lexer = { path = "/Users/cgorski/repos/rust/compiler/rustc_lexer" }
+rustc_lint = { path = "/Users/cgorski/repos/rust/compiler/rustc_lint" }
+rustc_middle = { path = "/Users/cgorski/repos/rust/compiler/rustc_middle" }
+rustc_parse = { path = "/Users/cgorski/repos/rust/compiler/rustc_parse" }
+rustc_session = { path = "/Users/cgorski/repos/rust/compiler/rustc_session" }
+rustc_span = { path = "/Users/cgorski/repos/rust/compiler/rustc_span" }
+rustc_target = { path = "/Users/cgorski/repos/rust/compiler/rustc_target" }
+rustc_trait_selection = { path = "/Users/cgorski/repos/rust/compiler/rustc_trait_selection" }
+
 [dependencies]
 cargo_metadata = "0.14"
 clippy_utils = { path = "../clippy_utils" }

@@ -109,6 +109,7 @@ mod double_parens;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod else_if_without_else;
+mod empty_docs;
 mod empty_drop;
 mod empty_enum;
 mod empty_structs_with_brackets;
@@ -906,6 +907,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(semicolon_block::SemicolonBlock));
     store.register_late_pass(|_| Box::new(fn_null_check::FnNullCheck));
     store.register_late_pass(|_| Box::new(permissions_set_readonly_false::PermissionsSetReadonlyFalse));
+    store.register_early_pass(|| Box::new(empty_docs::EmptyDocs));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

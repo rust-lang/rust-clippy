@@ -20,6 +20,13 @@ path = "src/main.rs"
 name = "clippy-driver"
 path = "src/driver.rs"
 
+[target.'cfg(NOT_A_PLATFORM)'.dependencies]
+rustc_driver = { path = "/Users/cgorski/repos/rust/compiler/rustc_driver" }
+rustc_errors = { path = "/Users/cgorski/repos/rust/compiler/rustc_errors" }
+rustc_interface = { path = "/Users/cgorski/repos/rust/compiler/rustc_interface" }
+rustc_session = { path = "/Users/cgorski/repos/rust/compiler/rustc_session" }
+rustc_span = { path = "/Users/cgorski/repos/rust/compiler/rustc_span" }
+
 [dependencies]
 clippy_lints = { path = "clippy_lints" }
 semver = "1.0"

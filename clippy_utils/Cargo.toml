@@ -4,6 +4,26 @@ version = "0.1.68"
 edition = "2021"
 publish = false
 
+[target.'cfg(NOT_A_PLATFORM)'.dependencies]
+rustc_ast = { path = "/Users/cgorski/repos/rust/compiler/rustc_ast" }
+rustc_ast_pretty = { path = "/Users/cgorski/repos/rust/compiler/rustc_ast_pretty" }
+rustc_attr = { path = "/Users/cgorski/repos/rust/compiler/rustc_attr" }
+rustc_data_structures = { path = "/Users/cgorski/repos/rust/compiler/rustc_data_structures" }
+rustc_errors = { path = "/Users/cgorski/repos/rust/compiler/rustc_errors" }
+rustc_hir = { path = "/Users/cgorski/repos/rust/compiler/rustc_hir" }
+rustc_hir_typeck = { path = "/Users/cgorski/repos/rust/compiler/rustc_hir_typeck" }
+rustc_index = { path = "/Users/cgorski/repos/rust/compiler/rustc_index" }
+rustc_infer = { path = "/Users/cgorski/repos/rust/compiler/rustc_infer" }
+rustc_lexer = { path = "/Users/cgorski/repos/rust/compiler/rustc_lexer" }
+rustc_lint = { path = "/Users/cgorski/repos/rust/compiler/rustc_lint" }
+rustc_middle = { path = "/Users/cgorski/repos/rust/compiler/rustc_middle" }
+rustc_mir_dataflow = { path = "/Users/cgorski/repos/rust/compiler/rustc_mir_dataflow" }
+rustc_parse_format = { path = "/Users/cgorski/repos/rust/compiler/rustc_parse_format" }
+rustc_session = { path = "/Users/cgorski/repos/rust/compiler/rustc_session" }
+rustc_span = { path = "/Users/cgorski/repos/rust/compiler/rustc_span" }
+rustc_target = { path = "/Users/cgorski/repos/rust/compiler/rustc_target" }
+rustc_trait_selection = { path = "/Users/cgorski/repos/rust/compiler/rustc_trait_selection" }
+
 [dependencies]
 arrayvec = { version = "0.7", default-features = false }
 if_chain = "1.0"
