@@ -2,7 +2,6 @@
 #![warn(clippy::empty_docs)]
 
 
-
 #[doc("this is a doc")]
 fn attr_doc() {
 

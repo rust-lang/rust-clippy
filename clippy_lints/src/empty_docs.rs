@@ -1,9 +1,9 @@
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note, span_lint_and_sugg};
+use clippy_utils::diagnostics::span_lint_and_help;
 use itertools::Itertools;
 use rustc_ast::ast;
-use rustc_ast::tokenstream;
+use rustc_ast::ast::{Attribute, Block, Item};
 use rustc_ast::token;
-use rustc_ast::ast::{AttrKind, Attribute, Block, Item};
+use rustc_ast::tokenstream;
 use rustc_ast::AttrKind::{DocComment, Normal};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -41,7 +41,6 @@ const MAX_CONTEXT_LEN: BytePos = BytePos(50);
 
 impl EarlyLintPass for EmptyDocs {
     fn check_item(&mut self, ex: &EarlyContext<'_>, item: &Item) {
-        //dbg!(&item);
         if item.span.from_expansion() {
             return;
         }
@@ -49,7 +48,6 @@ impl EarlyLintPass for EmptyDocs {
         self.process_into_item(ex, &item);
     }
 }
-
 
 impl EmptyDocs {
     fn process_into_item(self, ex: &EarlyContext<'_>, item: &Item) {
@@ -90,8 +88,6 @@ impl EmptyDocs {
         }
     }
 
-
-
     fn process_attributes(self, ex: &EarlyContext<'_>, parent_span: Span, attributes: &Vec<Attribute>) {
         for (is_doc_comment, doc_string_group) in &attributes.iter().group_by(|a| match &a.kind {
             DocComment(..) => true,
@@ -104,10 +100,7 @@ impl EmptyDocs {
                     .iter()
                     .filter(|a| match &a.kind {
                         DocComment(_, comment_text) => comment_text.as_str().trim().is_empty(),
-                        Normal(normal_attr) => {
-                            is_normal_attr_doc_empty(&normal_attr)
-                        }
-
+                        Normal(normal_attr) => is_normal_attr_doc_empty(&normal_attr),
                     })
                     .collect::<Vec<_>>();
                 if empty_attributes.len() == doc_string_group.len() {
@@ -140,17 +133,9 @@ impl EmptyDocs {
     }
 }
 
-
 fn is_normal_attr_a_doc(normal_attr: &ast::NormalAttr) -> bool {
-    dbg!(&normal_attr);
-
     if let Some(segment) = normal_attr.item.path.segments.get(0) {
-        dbg!(&segment.ident.as_str());
-        if segment.ident.as_str() == "doc" {
-            true
-        } else {
-            false
-        }
+        if segment.ident.as_str() == "doc" { true } else { false }
     } else {
         false
     }
@@ -159,10 +144,8 @@ fn is_normal_attr_a_doc(normal_attr: &ast::NormalAttr) -> bool {
 fn is_normal_attr_doc_empty(normal_attr: &ast::NormalAttr) -> bool {
     let ast::AttrArgs::Delimited(delim_args) = &normal_attr.item.args else {return false;};
     let Some(tree) = delim_args.tokens.trees().nth(0) else {return false;};
-
     let tokenstream::TokenTree::Token(token, _) = tree else {return false;};
     let token::TokenKind::Literal(lit) = token.kind else {return false;};
-
 
     lit.symbol.as_str().is_empty()
 }
