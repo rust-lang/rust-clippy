@@ -1,8 +1,10 @@
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note, span_lint_and_sugg};
 use itertools::Itertools;
 use rustc_ast::ast;
+use rustc_ast::tokenstream;
+use rustc_ast::token;
 use rustc_ast::ast::{AttrKind, Attribute, Block, Item};
-use rustc_ast::AttrKind::DocComment;
+use rustc_ast::AttrKind::{DocComment, Normal};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::BytePos;
@@ -48,6 +50,7 @@ impl EarlyLintPass for EmptyDocs {
     }
 }
 
+
 impl EmptyDocs {
     fn process_into_item(self, ex: &EarlyContext<'_>, item: &Item) {
         match &item.kind {
@@ -87,20 +90,24 @@ impl EmptyDocs {
         }
     }
 
+
+
     fn process_attributes(self, ex: &EarlyContext<'_>, parent_span: Span, attributes: &Vec<Attribute>) {
-        for (is_doc_comment, doc_string_group) in &attributes.iter().group_by(|a| match a.kind {
+        for (is_doc_comment, doc_string_group) in &attributes.iter().group_by(|a| match &a.kind {
             DocComment(..) => true,
+            Normal(normal_attr) if is_normal_attr_a_doc(&normal_attr) => true,
             _ => false,
         }) {
             let doc_string_group = doc_string_group.collect::<Vec<_>>();
             if is_doc_comment {
                 let empty_attributes = &doc_string_group
                     .iter()
-                    .filter(|a| match a.kind {
+                    .filter(|a| match &a.kind {
                         DocComment(_, comment_text) => comment_text.as_str().trim().is_empty(),
-                        _ => {
-                            panic!("should always be able to unwrap DocComment")
-                        },
+                        Normal(normal_attr) => {
+                            is_normal_attr_doc_empty(&normal_attr)
+                        }
+
                     })
                     .collect::<Vec<_>>();
                 if empty_attributes.len() == doc_string_group.len() {
@@ -131,4 +138,31 @@ impl EmptyDocs {
             }
         }
     }
+}
+
+
+fn is_normal_attr_a_doc(normal_attr: &ast::NormalAttr) -> bool {
+    dbg!(&normal_attr);
+
+    if let Some(segment) = normal_attr.item.path.segments.get(0) {
+        dbg!(&segment.ident.as_str());
+        if segment.ident.as_str() == "doc" {
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+fn is_normal_attr_doc_empty(normal_attr: &ast::NormalAttr) -> bool {
+    let ast::AttrArgs::Delimited(delim_args) = &normal_attr.item.args else {return false;};
+    let Some(tree) = delim_args.tokens.trees().nth(0) else {return false;};
+
+    let tokenstream::TokenTree::Token(token, _) = tree else {return false;};
+    let token::TokenKind::Literal(lit) = token.kind else {return false;};
+
+
+    lit.symbol.as_str().is_empty()
 }

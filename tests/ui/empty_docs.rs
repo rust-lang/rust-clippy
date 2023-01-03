@@ -1,6 +1,18 @@
 #![allow(unused)]
 #![warn(clippy::empty_docs)]
 
+
+
+#[doc("this is a doc")]
+fn attr_doc() {
+
+}
+
+#[doc("")]
+fn blank_attr_doc() {
+
+}
+
 ///
 fn main() {
 
