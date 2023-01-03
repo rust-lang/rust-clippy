@@ -266,6 +266,7 @@ mod shadow;
 mod single_char_lifetime_names;
 mod single_component_path_imports;
 mod size_of_in_element_count;
+mod size_of_ref;
 mod slow_vector_initialization;
 mod std_instead_of_core;
 mod strings;
@@ -907,6 +908,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(semicolon_block::SemicolonBlock));
     store.register_late_pass(|_| Box::new(fn_null_check::FnNullCheck));
     store.register_late_pass(|_| Box::new(permissions_set_readonly_false::PermissionsSetReadonlyFalse));
+    store.register_late_pass(|_| Box::new(size_of_ref::SizeOfRef));
     store.register_early_pass(|| Box::new(empty_docs::EmptyDocs));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

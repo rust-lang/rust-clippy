@@ -48,8 +48,8 @@ Current stable, released 2022-12-15
   [#8518](https://github.com/rust-lang/rust-clippy/pull/8518)
 * Moved [`implicit_saturating_sub`] to `style` (Now warn-by-default)
   [#9584](https://github.com/rust-lang/rust-clippy/pull/9584)
-* Moved [`derive_partial_eq_without_eq`] to `nursery` (now allow-by-default)
-  [#9535](https://github.com/rust-lang/rust-clippy/pull/9535)
+* Moved `derive_partial_eq_without_eq` to `nursery` (now allow-by-default)
+  [#9536](https://github.com/rust-lang/rust-clippy/pull/9536)
 
 ### Enhancements
 
@@ -4548,6 +4548,7 @@ Released 2018-09-13
 [`single_match`]: https://rust-lang.github.io/rust-clippy/master/index.html#single_match
 [`single_match_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#single_match_else
 [`size_of_in_element_count`]: https://rust-lang.github.io/rust-clippy/master/index.html#size_of_in_element_count
+[`size_of_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#size_of_ref
 [`skip_while_next`]: https://rust-lang.github.io/rust-clippy/master/index.html#skip_while_next
 [`slow_vector_initialization`]: https://rust-lang.github.io/rust-clippy/master/index.html#slow_vector_initialization
 [`stable_sort_primitive`]: https://rust-lang.github.io/rust-clippy/master/index.html#stable_sort_primitive
