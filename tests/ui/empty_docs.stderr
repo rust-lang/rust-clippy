@@ -1,0 +1,168 @@
+error: documentation is empty
+  --> $DIR/empty_docs.rs:10:1
+   |
+LL | / #[doc("")]
+LL | | fn blank_attr_doc() {
+LL | |
+LL | | }
+   | |_^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:10:1
+   |
+LL | #[doc("")]
+   | ^^^^^^^^^^
+   = note: `-D clippy::empty-docs` implied by `-D warnings`
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:15:1
+   |
+LL | / ///
+LL | | fn main() {
+LL | |
+LL | | }
+   | |_^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:15:1
+   |
+LL | ///
+   | ^^^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:20:1
+   |
+LL | / ///
+LL | | ///
+LL | | fn double_empty_line_should_fire_1() {
+LL | |
+LL | | }
+   | |_^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:20:1
+   |
+LL | / ///
+LL | | ///
+   | |___^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:33:5
+   |
+LL | /     ///
+LL | |     let no_docs = 1;
+   | |____________________^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:33:5
+   |
+LL |     ///
+   |     ^^^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:49:1
+   |
+LL | / ///
+LL | | struct StructNoDocs;
+   | |____________________^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:49:1
+   |
+LL | ///
+   | ^^^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:55:5
+   |
+LL | /     ///
+LL | |     no_doc_field: u32,
+   | |_____________________^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:55:5
+   |
+LL |     ///
+   |     ^^^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:57:5
+   |
+LL | /     ///
+LL | |
+LL | |     ///
+LL | |     more_no_docs:u32,
+   | |____________________^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:57:5
+   |
+LL | /     ///
+LL | |
+LL | |     ///
+   | |_______^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:66:5
+   |
+LL | /     ///
+LL | |     no_doc_union_field: u32,
+   | |___________________________^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:66:5
+   |
+LL |     ///
+   |     ^^^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:68:5
+   |
+LL | /     ///
+LL | |
+LL | |     ///
+LL | |     more_no_union_docs:u32,
+   | |__________________________^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:68:5
+   |
+LL | /     ///
+LL | |
+LL | |     ///
+   | |_______^
+
+error: documentation is empty
+  --> $DIR/empty_docs.rs:77:5
+   |
+LL | /     ///
+LL | |     ThisDoesNot
+   | |_______________^
+   |
+help: consider adding documentation or removing the docstring(s)
+  --> $DIR/empty_docs.rs:77:5
+   |
+LL |     ///
+   |     ^^^
+
+error: invalid `doc` attribute
+  --> $DIR/empty_docs.rs:5:7
+   |
+LL | #[doc("this is a doc")]
+   |       ^^^^^^^^^^^^^^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #82730 <https://github.com/rust-lang/rust/issues/82730>
+   = note: `-D invalid-doc-attributes` implied by `-D warnings`
+
+error: invalid `doc` attribute
+  --> $DIR/empty_docs.rs:10:7
+   |
+LL | #[doc("")]
+   |       ^^
+   |
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #82730 <https://github.com/rust-lang/rust/issues/82730>
+
+error: aborting due to 12 previous errors
+
