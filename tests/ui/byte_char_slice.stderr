@@ -1,0 +1,10 @@
+error: can be more succinctly written as a byte str
+  --> $DIR/byte_char_slice.rs:6:15
+   |
+LL |     let bad = &[b'a', b'b', b'c'];
+   |               ^^^^^^^^^^^^^^^^^^^ help: try: `b"abc"`
+   |
+   = note: `-D clippy::byte-char-slice` implied by `-D warnings`
+
+error: aborting due to previous error
+

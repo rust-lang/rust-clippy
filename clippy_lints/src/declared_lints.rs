@@ -61,6 +61,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::booleans::OVERLY_COMPLEX_BOOL_EXPR_INFO,
     crate::borrow_deref_ref::BORROW_DEREF_REF_INFO,
     crate::box_default::BOX_DEFAULT_INFO,
+    crate::byte_char_slice::BYTE_CHAR_SLICE_INFO,
     crate::cargo::CARGO_COMMON_METADATA_INFO,
     crate::cargo::MULTIPLE_CRATE_VERSIONS_INFO,
     crate::cargo::NEGATIVE_FEATURE_NAMES_INFO,

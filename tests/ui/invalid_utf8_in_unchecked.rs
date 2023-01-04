@@ -1,4 +1,5 @@
 #![warn(clippy::invalid_utf8_in_unchecked)]
+#![allow(clippy::byte_char_slice)]
 
 fn main() {
     // Valid

@@ -81,6 +81,7 @@ mod bool_to_int_with_if;
 mod booleans;
 mod borrow_deref_ref;
 mod box_default;
+mod byte_char_slice;
 mod cargo;
 mod casts;
 mod checked_conversions;
@@ -908,6 +909,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(fn_null_check::FnNullCheck));
     store.register_late_pass(|_| Box::new(permissions_set_readonly_false::PermissionsSetReadonlyFalse));
     store.register_late_pass(|_| Box::new(size_of_ref::SizeOfRef));
+    store.register_early_pass(|| Box::new(byte_char_slice::ByteCharSlice));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
