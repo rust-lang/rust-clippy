@@ -6,9 +6,9 @@ use std::collections::VecDeque;
 
 fn main() {
     vec_reserve();
-    //vec_deque_reserve();
-    //hash_map_reserve();
-    //msrv_1_62();
+    vec_deque_reserve();
+    hash_map_reserve();
+    msrv_1_62();
 }
 
 fn vec_reserve() {

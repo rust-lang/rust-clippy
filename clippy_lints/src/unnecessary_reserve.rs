@@ -100,7 +100,6 @@ fn check_extend_method(
     struct_expr: &rustc_hir::Expr<'_>,
 ) -> Option<rustc_span::Span> {
     let mut read_found = false;
-    let next_stmt_span;
     let mut spanless_eq = SpanlessEq::new(cx);
 
     let _: Option<!> = for_each_expr(block, |expr| {
@@ -117,16 +116,16 @@ fn check_extend_method(
         ControlFlow::Continue(())
     });
 
-    if idx == block.stmts.len() - 1 {
+    let next_stmt_span: rustc_span::Span = if idx == block.stmts.len() - 1 {
         if let Some(e) = block.expr {
-            next_stmt_span = e.span;
+            e.span
         } else {
             return None;
         }
     } else {
         let next_stmt = &block.stmts[idx + 1];
-        next_stmt_span = next_stmt.span;
-    }
+        return Some(next_stmt.span);
+    };
 
     if read_found {
         return Some(next_stmt_span);
