@@ -63,6 +63,11 @@ fn is_byte_char_slice(expr: &Expr) -> Option<String> {
                         }) => Some(symbol.as_str()),
                         _ => None,
                     })
+                    .map(|maybe_quote| match maybe_quote {
+                        Some("\"") => Some("\\\""),
+                        Some("\\'") => Some("'"),
+                        other => other,
+                    })
                     .collect::<Option<String>>()
             },
             _ => None,
