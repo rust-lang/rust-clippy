@@ -49,34 +49,21 @@ fn is_byte_char_slice(expr: &Expr) -> Option<String> {
     if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, expr) = &expr.kind {
         match &expr.kind {
             ExprKind::Array(members) => {
-                let all_member_bytes = members.iter().all(|member| {
-                    matches!(
-                        &member.kind,
-                        ExprKind::Lit(Lit {
-                            kind: LitKind::Byte,
-                            ..
-                        })
-                    )
-                });
-
-                if !all_member_bytes || members.is_empty() {
+                if members.is_empty() {
                     return None;
                 }
 
-                Some(
-                    members
-                        .iter()
-                        .map(|member| match &member.kind {
-                            ExprKind::Lit(Lit {
-                                kind: LitKind::Byte,
-                                symbol,
-                                ..
-                            }) => symbol.as_str(),
-                            _ => unreachable!(),
-                        })
-                        .collect::<Vec<_>>()
-                        .join(""),
-                )
+                members
+                    .iter()
+                    .map(|member| match &member.kind {
+                        ExprKind::Lit(Lit {
+                            kind: LitKind::Byte,
+                            symbol,
+                            ..
+                        }) => Some(symbol.as_str()),
+                        _ => None,
+                    })
+                    .collect::<Option<String>>()
             },
             _ => None,
         }
