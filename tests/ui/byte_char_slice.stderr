@@ -6,5 +6,23 @@ LL |     let bad = &[b'a', b'b', b'c'];
    |
    = note: `-D clippy::byte-char-slice` implied by `-D warnings`
 
-error: aborting due to previous error
+error: can be more succinctly written as a byte str
+  --> $DIR/byte_char_slice.rs:7:18
+   |
+LL |     let quotes = &[b'"', b'H', b'i'];
+   |                  ^^^^^^^^^^^^^^^^^^^ help: try: `b"/"Hi"`
+
+error: can be more succinctly written as a byte str
+  --> $DIR/byte_char_slice.rs:8:18
+   |
+LL |     let quotes = &[b'/'', b'S', b'u', b'p'];
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `b"'Sup"`
+
+error: can be more succinctly written as a byte str
+  --> $DIR/byte_char_slice.rs:9:19
+   |
+LL |     let escapes = &[b'/x42', b'E', b's', b'c'];
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `b"/x42Esc"`
+
+error: aborting due to 4 previous errors
 
