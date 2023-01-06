@@ -1188,7 +1188,7 @@
     "id": "default_trait_access",
     "id_span": {
       "path": "src/default.rs",
-      "line": 36
+      "line": 37
     },
     "group": "pedantic",
     "level": "allow",
@@ -2058,7 +2058,7 @@
     "id": "field_reassign_with_default",
     "id_span": {
       "path": "src/default.rs",
-      "line": 70
+      "line": 71
     },
     "group": "style",
     "level": "warn",
