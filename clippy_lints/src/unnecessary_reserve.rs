@@ -105,7 +105,7 @@ fn check_extend_method(
         if let ExprKind::MethodCall(_, struct_calling_on, _,_) = expr.kind
             && let Some(expr_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
             && let ExprKind::MethodCall(PathSegment { ident: method_call_a, .. },..) = args_a_kind
-            && method_call_a.name.as_str() == "len"
+            && method_call_a.name == rustc_span::sym::len
             && match_def_path(cx, expr_def_id, &paths::ITER_EXTEND)
             && acceptable_type(cx, struct_calling_on)
             // Check that both expr are equal
