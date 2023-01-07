@@ -1,68 +1,120 @@
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:20:5
+  --> $DIR/unnecessary_reserve.rs:14:18
    |
-LL |     vec.reserve(1);
-   |     -------------- help: remove this line
-LL |     vec.extend([1]);
-   |     ^^^^^^^^^^^^^^^^
+LL |   fn vec_reserve() {
+   |  __________________^
+LL | |     let mut vec: Vec<usize> = vec![];
+LL | |     let array: &[usize] = &[1, 2];
+LL | |
+LL | |     // do not lint
+LL | |     vec.reserve(1);
+   | |     -------------- help: remove this line
+...  |
+LL | |     vec.extend([1])
+LL | | }
+   | |_^
    |
    = note: `-D clippy::unnecessary-reserve` implied by `-D warnings`
 
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:24:5
+  --> $DIR/unnecessary_reserve.rs:14:18
    |
-LL |     vec.reserve(array.len());
-   |     ------------------------ help: remove this line
-LL |     vec.extend(array);
-   |     ^^^^^^^^^^^^^^^^^^
+LL |   fn vec_reserve() {
+   |  __________________^
+LL | |     let mut vec: Vec<usize> = vec![];
+LL | |     let array: &[usize] = &[1, 2];
+LL | |
+...  |
+LL | |     vec.reserve(array.len());
+   | |     ------------------------ help: remove this line
+...  |
+LL | |     vec.extend([1])
+LL | | }
+   | |_^
 
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:34:5
+  --> $DIR/unnecessary_reserve.rs:27:5
    |
-LL |     vec.reserve(array.len());
-   |     ------------------------ help: remove this line
-LL |     vec.push(1);
-   |     ^^^^^^^^^^^^
+LL | /     {
+LL | |         vec.reserve(array.len());
+   | |         ------------------------ help: remove this line
+LL | |         vec.extend(array)
+LL | |     };
+   | |_____^
 
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:29:9
+  --> $DIR/unnecessary_reserve.rs:14:18
    |
-LL |         vec.reserve(array.len());
-   |         ------------------------ help: remove this line
-LL |         vec.extend(array)
-   |         ^^^^^^^^^^^^^^^^^
+LL |   fn vec_reserve() {
+   |  __________________^
+LL | |     let mut vec: Vec<usize> = vec![];
+LL | |     let array: &[usize] = &[1, 2];
+LL | |
+...  |
+LL | |     vec.reserve(array.len());
+   | |     ------------------------ help: remove this line
+...  |
+LL | |     vec.extend([1])
+LL | | }
+   | |_^
 
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:49:5
+  --> $DIR/unnecessary_reserve.rs:43:24
    |
-LL |     vec_deque.reserve(1);
-   |     -------------------- help: remove this line
-LL |     vec_deque.extend([1]);
-   |     ^^^^^^^^^^^^^^^^^^^^^^
+LL |   fn vec_deque_reserve() {
+   |  ________________________^
+LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
+LL | |     let array: &[usize] = &[1, 2];
+LL | |
+LL | |     // do not lint
+LL | |     vec_deque.reserve(1);
+   | |     -------------------- help: remove this line
+...  |
+LL | |     vec_deque.extend([1])
+LL | | }
+   | |_^
 
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:53:5
+  --> $DIR/unnecessary_reserve.rs:43:24
    |
-LL |     vec_deque.reserve(array.len());
-   |     ------------------------------ help: remove this line
-LL |     vec_deque.extend(array);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+LL |   fn vec_deque_reserve() {
+   |  ________________________^
+LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
+LL | |     let array: &[usize] = &[1, 2];
+LL | |
+...  |
+LL | |     vec_deque.reserve(array.len());
+   | |     ------------------------------ help: remove this line
+...  |
+LL | |     vec_deque.extend([1])
+LL | | }
+   | |_^
 
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:63:5
+  --> $DIR/unnecessary_reserve.rs:56:5
    |
-LL |     vec_deque.reserve(array.len() + 1);
-   |     ---------------------------------- help: remove this line
-LL |     vec_deque.push_back(1);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^
+LL | /     {
+LL | |         vec_deque.reserve(1);
+   | |         -------------------- help: remove this line
+LL | |         vec_deque.extend([1])
+LL | |     };
+   | |_____^
 
 error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:58:9
+  --> $DIR/unnecessary_reserve.rs:43:24
    |
-LL |         vec_deque.reserve(1);
-   |         -------------------- help: remove this line
-LL |         vec_deque.extend([1])
-   |         ^^^^^^^^^^^^^^^^^^^^^
+LL |   fn vec_deque_reserve() {
+   |  ________________________^
+LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
+LL | |     let array: &[usize] = &[1, 2];
+LL | |
+...  |
+LL | |     vec_deque.reserve(array.len() + 1);
+   | |     ---------------------------------- help: remove this line
+...  |
+LL | |     vec_deque.extend([1])
+LL | | }
+   | |_^
 
 error: aborting due to 8 previous errors
 

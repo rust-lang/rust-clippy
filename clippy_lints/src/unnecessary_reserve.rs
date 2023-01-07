@@ -1,9 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::{match_def_path, paths, visitors::for_each_expr, SpanlessEq};
+use clippy_utils::{get_enclosing_block, match_def_path, paths, visitors::for_each_expr, SpanlessEq};
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
-use rustc_hir::{Block, ExprKind, PathSegment, StmtKind};
+use rustc_hir::{Block, Expr, ExprKind, PathSegment};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
@@ -47,17 +47,16 @@ impl UnnecessaryReserve {
 }
 
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
-    fn check_block(&mut self, cx: &LateContext<'tcx>, block: &Block<'tcx>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         if !self.msrv.meets(msrvs::CHECK_UNNECESSARY_RESERVE) {
             return;
         }
 
-        for (idx, stmt) in block.stmts.iter().enumerate() {
-            if let StmtKind::Semi(semi_expr) = stmt.kind
-                && let ExprKind::MethodCall(PathSegment { ident: method, .. }, struct_calling_on, _, _) = semi_expr.kind
+        if let ExprKind::MethodCall(PathSegment { ident: method, .. }, struct_calling_on, _, _) = expr.kind
                 && method.name.as_str() == "reserve"
                 && acceptable_type(cx, struct_calling_on)
-                && let Some(next_stmt_span) = check_extend_method(cx, block, idx, struct_calling_on)
+                && let Some(block) = get_enclosing_block(cx, expr.hir_id)
+                && let Some(next_stmt_span) = check_extend_method(cx, block, struct_calling_on)
                 && !next_stmt_span.from_expansion()
             {
                 span_lint_and_then(
@@ -67,7 +66,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
                     "unnecessary call to `reserve`",
                     |diag| {
                         diag.span_suggestion(
-                            semi_expr.span,
+                            expr.span,
                             "remove this line",
                             String::new(),
                             Applicability::MaybeIncorrect,
@@ -75,7 +74,6 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
                     }
                 );
             }
-        }
     }
 
     extract_msrv_attr!(LateContext);
@@ -96,7 +94,6 @@ fn acceptable_type(cx: &LateContext<'_>, struct_calling_on: &rustc_hir::Expr<'_>
 fn check_extend_method(
     cx: &LateContext<'_>,
     block: &Block<'_>,
-    idx: usize,
     struct_expr: &rustc_hir::Expr<'_>,
 ) -> Option<rustc_span::Span> {
     let mut read_found = false;
@@ -116,20 +113,5 @@ fn check_extend_method(
         ControlFlow::Continue(())
     });
 
-    let next_stmt_span: rustc_span::Span = if idx == block.stmts.len() - 1 {
-        if let Some(e) = block.expr {
-            e.span
-        } else {
-            return None;
-        }
-    } else {
-        let next_stmt = &block.stmts[idx + 1];
-        return Some(next_stmt.span);
-    };
-
-    if read_found {
-        return Some(next_stmt_span);
-    }
-
-    None
+    if read_found { Some(block.span) } else { None }
 }
