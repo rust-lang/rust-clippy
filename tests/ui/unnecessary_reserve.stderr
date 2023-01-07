@@ -6,24 +6,6 @@ LL |   fn vec_reserve() {
 LL | |     let mut vec: Vec<usize> = vec![];
 LL | |     let array: &[usize] = &[1, 2];
 LL | |
-LL | |     // do not lint
-LL | |     vec.reserve(1);
-   | |     -------------- help: remove this line
-...  |
-LL | |     vec.extend([1])
-LL | | }
-   | |_^
-   |
-   = note: `-D clippy::unnecessary-reserve` implied by `-D warnings`
-
-error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:14:18
-   |
-LL |   fn vec_reserve() {
-   |  __________________^
-LL | |     let mut vec: Vec<usize> = vec![];
-LL | |     let array: &[usize] = &[1, 2];
-LL | |
 ...  |
 LL | |     vec.reserve(array.len());
    | |     ------------------------ help: remove this line
@@ -31,6 +13,8 @@ LL | |     vec.reserve(array.len());
 LL | |     vec.extend([1])
 LL | | }
    | |_^
+   |
+   = note: `-D clippy::unnecessary-reserve` implied by `-D warnings`
 
 error: unnecessary call to `reserve`
   --> $DIR/unnecessary_reserve.rs:27:5
@@ -66,22 +50,6 @@ LL |   fn vec_deque_reserve() {
 LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
 LL | |     let array: &[usize] = &[1, 2];
 LL | |
-LL | |     // do not lint
-LL | |     vec_deque.reserve(1);
-   | |     -------------------- help: remove this line
-...  |
-LL | |     vec_deque.extend([1])
-LL | | }
-   | |_^
-
-error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:43:24
-   |
-LL |   fn vec_deque_reserve() {
-   |  ________________________^
-LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
-LL | |     let array: &[usize] = &[1, 2];
-LL | |
 ...  |
 LL | |     vec_deque.reserve(array.len());
    | |     ------------------------------ help: remove this line
@@ -90,31 +58,5 @@ LL | |     vec_deque.extend([1])
 LL | | }
    | |_^
 
-error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:56:5
-   |
-LL | /     {
-LL | |         vec_deque.reserve(1);
-   | |         -------------------- help: remove this line
-LL | |         vec_deque.extend([1])
-LL | |     };
-   | |_____^
-
-error: unnecessary call to `reserve`
-  --> $DIR/unnecessary_reserve.rs:43:24
-   |
-LL |   fn vec_deque_reserve() {
-   |  ________________________^
-LL | |     let mut vec_deque: VecDeque<usize> = [1].into();
-LL | |     let array: &[usize] = &[1, 2];
-LL | |
-...  |
-LL | |     vec_deque.reserve(array.len() + 1);
-   | |     ---------------------------------- help: remove this line
-...  |
-LL | |     vec_deque.extend([1])
-LL | | }
-   | |_^
-
-error: aborting due to 8 previous errors
+error: aborting due to 4 previous errors
 

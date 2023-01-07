@@ -52,11 +52,11 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
             return;
         }
 
-        if let ExprKind::MethodCall(PathSegment { ident: method, .. }, struct_calling_on, _, _) = expr.kind
+        if let ExprKind::MethodCall(PathSegment { ident: method, .. }, struct_calling_on, args_a, _) = expr.kind
                 && method.name.as_str() == "reserve"
                 && acceptable_type(cx, struct_calling_on)
                 && let Some(block) = get_enclosing_block(cx, expr.hir_id)
-                && let Some(next_stmt_span) = check_extend_method(cx, block, struct_calling_on)
+                && let Some(next_stmt_span) = check_extend_method(cx, block, struct_calling_on, &args_a[0])
                 && !next_stmt_span.from_expansion()
             {
                 span_lint_and_then(
@@ -95,13 +95,17 @@ fn check_extend_method(
     cx: &LateContext<'_>,
     block: &Block<'_>,
     struct_expr: &rustc_hir::Expr<'_>,
+    args_a: &rustc_hir::Expr<'_>,
 ) -> Option<rustc_span::Span> {
+    let args_a_kind = &args_a.kind;
     let mut read_found = false;
     let mut spanless_eq = SpanlessEq::new(cx);
 
     let _: Option<!> = for_each_expr(block, |expr| {
         if let ExprKind::MethodCall(_, struct_calling_on, _,_) = expr.kind
             && let Some(expr_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+            && let ExprKind::MethodCall(PathSegment { ident: method_call_a, .. },..) = args_a_kind
+            && method_call_a.name.as_str() == "len"
             && match_def_path(cx, expr_def_id, &paths::ITER_EXTEND)
             && acceptable_type(cx, struct_calling_on)
             // Check that both expr are equal
