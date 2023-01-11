@@ -8598,7 +8598,7 @@
     "id": "unused_self",
     "id_span": {
       "path": "src/unused_self.rs",
-      "line": 33
+      "line": 35
     },
     "group": "pedantic",
     "level": "allow",
