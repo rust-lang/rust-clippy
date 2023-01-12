@@ -1290,21 +1290,6 @@
     }
   },
   {
-    "id": "derive_hash_xor_eq",
-    "id_span": {
-      "path": "src/derive.rs",
-      "line": 49
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for deriving `Hash` but implementing `PartialEq`\nexplicitly or vice versa.\n\n### Why is this bad?\nThe implementation of these traits must agree (for\nexample for use with `HashMap`) so it’s probably a bad idea to use a\ndefault-generated `Hash` implementation with an explicitly defined\n`PartialEq`. In particular, the following must hold for any type:\n\n```text\nk1 == k2 ⇒ hash(k1) == hash(k2)\n```\n\n### Example\n```rust\n#[derive(Hash)]\nstruct Foo;\n\nimpl PartialEq for Foo {\n    ...\n}\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "derive_ord_xor_partial_ord",
     "id_span": {
       "path": "src/derive.rs",
@@ -1332,6 +1317,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "derived_hash_with_manual_eq",
+    "id_span": {
+      "path": "src/derive.rs",
+      "line": 49
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for deriving `Hash` but implementing `PartialEq`\nexplicitly or vice versa.\n\n### Why is this bad?\nThe implementation of these traits must agree (for\nexample for use with `HashMap`) so it’s probably a bad idea to use a\ndefault-generated `Hash` implementation with an explicitly defined\n`PartialEq`. In particular, the following must hold for any type:\n\n```text\nk1 == k2 ⇒ hash(k1) == hash(k2)\n```\n\n### Example\n```rust\n#[derive(Hash)]\nstruct Foo;\n\nimpl PartialEq for Foo {\n    ...\n}\n```\n### Past names\n\n* `derive_hash_xor_eq`\n\n",
+    "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
     }
   },
   {
