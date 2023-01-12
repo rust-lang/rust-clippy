@@ -12,7 +12,7 @@ mod module {
     }
 }
 
-// Should warn
+// ============= Should warn =============
 
 fn a<'a>() -> &'a str {
     ""
@@ -21,7 +21,20 @@ fn h<'h>() -> S<'h> {
     S { s: &1 }
 }
 
-// Should not warn
+// Valid
+fn o<'o, T>() -> &'o mut T
+where
+    T: 'static,
+{
+    unsafe { std::ptr::null::<&mut T>().read() }
+}
+
+// Only 'm1
+fn n<'m1, 'm2, T>() -> &'m1 fn(&'m2 T) {
+    unsafe { std::ptr::null::<&'m1 fn(&'m2 T)>().read() }
+}
+
+// ============= Should not warn =============
 fn b<'b>(_: &'b str) -> &'b str {
     ""
 }
@@ -43,8 +56,26 @@ fn i() -> S<'static> {
     S { s: &1 }
 }
 
-fn j<'a>(s: &module::S<'a>) -> S<'a> {
-    todo!()
+fn j<'j>(s: &module::S<'j>) -> S<'j> {
+    S { s: &1 }
+}
+
+// Invalid
+fn k<'k1, 'k2, T>() -> &'k1 mut &'k2 T {
+    unsafe { std::ptr::null::<&mut &T>().read() }
+}
+
+// Invalid
+fn m<'m, T>() -> fn(&'m T) {
+    unsafe { std::ptr::null::<fn(&'m T)>().read() }
+}
+
+// Valid
+fn l<'l, T>() -> &'l mut T
+where
+    T: 'static,
+{
+    unsafe { std::ptr::null::<&mut T>().read() }
 }
 
 fn main() {}
