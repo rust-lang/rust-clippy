@@ -23,7 +23,7 @@ pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'t
 						break;
 					}
 					// If input is reference
-					if let TyKind::Rptr(lifetime, mut_ty) = &input.kind {
+					if let TyKind::Ref(lifetime, mut_ty) = &input.kind {
 						if !lifetime.is_anonymous() && lifetime.ident == generic.name.ident() {
 								lifetime_is_used = true;
 						} else {
@@ -135,7 +135,7 @@ fn check_validness(ret_ty: &Ty<'_>, generic: &GenericParam<'_>, generics: &Gener
     // without problems.
     if let TyKind::BareFn(barefn) = ret_ty.peel_refs().kind {
         for input in barefn.decl.inputs {
-            if let TyKind::Rptr(lifetime, _) = input.kind {
+            if let TyKind::Ref(lifetime, _) = input.kind {
                 if lifetime.ident.name == generic.name.ident().name {
                     return false;
                 }
@@ -143,13 +143,13 @@ fn check_validness(ret_ty: &Ty<'_>, generic: &GenericParam<'_>, generics: &Gener
         }
     }
 
-    if let TyKind::Rptr(_, mut_ty) = &ret_ty.kind {
+    if let TyKind::Ref(_, mut_ty) = &ret_ty.kind {
         // Check for &'a mut &'b T
         if mut_ty.mutbl.is_mut() {
             // This path diverges:
             // * &'a mut &'b T : Not valid
             // * &'a mut T : Only if T: 'static (Checked before)
-            if let TyKind::Rptr(_, _) = &mut_ty.ty.kind {
+            if let TyKind::Ref(_, _) = &mut_ty.ty.kind {
                 return false;
             };
 
