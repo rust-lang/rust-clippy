@@ -123,7 +123,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 623
+      "line": 639
     },
     "group": "nursery",
     "level": "allow",
@@ -138,7 +138,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 537
+      "line": 553
     },
     "group": "restriction",
     "level": "allow",
@@ -378,7 +378,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 570
+      "line": 586
     },
     "group": "pedantic",
     "level": "allow",
@@ -573,7 +573,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 509
+      "line": 525
     },
     "group": "suspicious",
     "level": "warn",
@@ -588,7 +588,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 486
+      "line": 502
     },
     "group": "suspicious",
     "level": "warn",
@@ -603,7 +603,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 423
+      "line": 439
     },
     "group": "suspicious",
     "level": "warn",
@@ -618,7 +618,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 154
+      "line": 170
     },
     "group": "pedantic",
     "level": "allow",
@@ -633,7 +633,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 645
+      "line": 661
     },
     "group": "suspicious",
     "level": "warn",
@@ -648,22 +648,22 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 97
+      "line": 113
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts between numerical types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault.\n\n### Why is this bad?\nIn some problem domains, it is good practice to avoid\ntruncation. This lint can be activated to help assess where additional\nchecks could be beneficial.\n\n### Example\n```rust\nfn as_u8(x: u64) -> u8 {\n    x as u8\n}\n```",
+    "docs": "\n### What it does\nChecks for casts between numerical types that may\ntruncate large values. This is expected behavior, so the cast is `Allow` by\ndefault. It suggests user either explicitly ignore the lint,\nor use `try_from()` and handle the truncation, default, or panic explicitly.\n\n### Why is this bad?\nIn some problem domains, it is good practice to avoid\ntruncation. This lint can be activated to help assess where additional\nchecks could be beneficial.\n\n### Example\n```rust\nfn as_u8(x: u64) -> u8 {\n    x as u8\n}\n```\nUse instead:\n```rust\nfn as_u8(x: u64) -> u8 {\n    if let Ok(x) = u8::try_from(x) {\n        x\n    } else {\n        todo!();\n    }\n}\n// Or\n#[allow(clippy::cast_possible_truncation)]\nfn as_u16(x: u64) -> u16 {\n    x as u16\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "Unspecified"
     }
   },
   {
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 121
+      "line": 137
     },
     "group": "pedantic",
     "level": "allow",
@@ -693,7 +693,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 208
+      "line": 224
     },
     "group": "pedantic",
     "level": "allow",
@@ -708,7 +708,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 347
+      "line": 363
     },
     "group": "correctness",
     "level": "deny",
@@ -738,7 +738,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 468
+      "line": 484
     },
     "group": "correctness",
     "level": "deny",
@@ -753,7 +753,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 597
+      "line": 613
     },
     "group": "suspicious",
     "level": "warn",
@@ -768,7 +768,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 375
+      "line": 391
     },
     "group": "complexity",
     "level": "warn",
@@ -2298,7 +2298,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 237
+      "line": 253
     },
     "group": "style",
     "level": "warn",
@@ -2313,7 +2313,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 312
+      "line": 328
     },
     "group": "restriction",
     "level": "allow",
@@ -2328,7 +2328,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 270
+      "line": 286
     },
     "group": "style",
     "level": "warn",
@@ -6018,7 +6018,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 404
+      "line": 420
     },
     "group": "pedantic",
     "level": "allow",
@@ -8088,7 +8088,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 180
+      "line": 196
     },
     "group": "complexity",
     "level": "warn",
