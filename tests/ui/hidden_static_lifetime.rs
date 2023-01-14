@@ -12,6 +12,9 @@ mod module {
     }
 }
 
+struct SMut<'a>(&'a mut i32);
+struct STuple<'a>(&'a i32);
+
 // ============= Should warn =============
 
 fn a<'a>() -> &'a str {
@@ -32,6 +35,15 @@ where
 // Only 'm1
 fn n<'m1, 'm2, T>() -> &'m1 fn(&'m2 T) {
     unsafe { std::ptr::null::<&'m1 fn(&'m2 T)>().read() }
+}
+
+// Only 's1
+fn s<'s1, 's2>() -> &'s1 STuple<'s2> {
+    unsafe { std::ptr::null::<&STuple<'s2>>().read() }
+}
+
+fn q<'q>() -> STuple<'q> {
+    STuple(&1)
 }
 
 // ============= Should not warn =============
@@ -76,6 +88,14 @@ where
     T: 'static,
 {
     unsafe { std::ptr::null::<&mut T>().read() }
+}
+
+fn p<'p>() -> SMut<'p> {
+    unsafe { std::ptr::null::<SMut<'p>>().read() }
+}
+
+fn r<'r1, 'r2>() -> &'r1 SMut<'r2> {
+    unsafe { std::ptr::null::<&SMut<'r2>>().read() }
 }
 
 fn main() {}

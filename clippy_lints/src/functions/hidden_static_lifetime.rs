@@ -1,18 +1,20 @@
 use crate::rustc_lint::LintContext;
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{
-    intravisit::FnKind, FnDecl, FnRetTy, GenericArg, GenericBound, GenericParam, GenericParamKind, Generics,
-    LifetimeParamKind, ParamName, QPath, Ty, TyKind, TypeBindingKind, WherePredicate,
+    def::{DefKind, Res},
+    intravisit::FnKind,
+    FnDecl, FnRetTy, GenericArg, GenericBound, GenericParam, GenericParamKind, Generics, ItemKind, LifetimeParamKind,
+    Node, ParamName, QPath, Ty, TyKind, TypeBindingKind, WherePredicate,
 };
 use rustc_lint::LateContext;
-use rustc_middle::lint::in_external_macro;
+use rustc_middle::{hir::map::Map, lint::in_external_macro};
 use rustc_span::Span;
 
 use super::HIDDEN_STATIC_LIFETIME;
 
 pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'tcx FnDecl<'_>, span: Span) {
-    if !in_external_macro(cx.sess(), span) && let FnKind::ItemFn(_, generics, _) = kind {
-        let mut lifetime_is_used;
+    if !in_external_macro(cx.sess(), span) && let FnKind::ItemFn(_, generics, _) =
+kind {         let mut lifetime_is_used;
         for generic in generics.params.iter() {
             if let GenericParamKind::Lifetime { kind } = generic.kind &&
 			kind != LifetimeParamKind::Elided {
@@ -65,8 +67,8 @@ pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'t
 												bound.span(),
 												"this lifetime can be changed to `'static`",
 												None,
-								&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()),
-											);
+								&format!("try removing the lifetime parameter `{}` and changing references to `'static`",
+generic.name.ident().as_str()), 											);
 										};
 									};
 								};
@@ -81,25 +83,27 @@ pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'t
 											region_predicate.span,
 											"this lifetime can be changed to `'static`",
 											None,
-								&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()),
-										);
+								&format!("try removing the lifetime parameter `{}` and changing references to `'static`",
+generic.name.ident().as_str()), 										);
 									};
 								};
 							};
 						};
 
 						// Check again.
-						if !lifetime_is_used {
+						if !lifetime_is_used &&
 							// Check validness
-							if check_validness(ret_ty, generic, generics) {
+							check_validness(ret_ty, generic, generics)
+							&& check_mut_fields(cx.tcx.hir(), &ret_ty.peel_refs().kind) {
 								span_lint_and_help(cx,
-									HIDDEN_STATIC_LIFETIME,
-									generic.span,
-									"this lifetime can be changed to `'static`",
-									None,
-									&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()),
+								HIDDEN_STATIC_LIFETIME,
+								generic.span,
+								"this lifetime can be changed to `'static`",
+								None,
+								&format!(
+									"try removing the lifetime parameter `{}` and changing references to `'static`",
+									generic.name.ident().as_str()),
 								);
-							};
 						};
 					};
 				};
@@ -162,6 +166,41 @@ fn check_validness(ret_ty: &Ty<'_>, generic: &GenericParam<'_>, generics: &Gener
                     }
                 }
             }
+        }
+    };
+    true
+}
+
+// true = no mut fields
+fn check_mut_fields(map: Map<'_>, tykind: &TyKind<'_>) -> bool {
+    if_chain! {
+        if let TyKind::Path(qpath) = tykind;
+        if let QPath::Resolved(_, path) = qpath;
+        if let Res::Def(defkind, def_id) = path.res;
+        if let DefKind::Struct = defkind;
+        then {
+            if let Some(node) = map.get_if_local(def_id) {
+                if let Node::Item(item) = node {
+                    if let ItemKind::Struct(variant_data, _) = &item.kind {
+                        for field in variant_data.fields() {
+                            if let TyKind::Ref(_, mut_ty) = &field.ty.kind {
+                                if mut_ty.mutbl.is_mut() {
+                                    return false;
+                                };
+                                return true;
+                            } else if let TyKind::Ptr(mut_ty) = &field.ty.kind {
+                                if mut_ty.mutbl.is_mut() {
+                                    return false;
+                                };
+                                return true;
+                            }
+                        }
+                    }
+                };
+                return true;
+            };
+                // Don't lint if struct isn't local.
+                return false
         }
     };
     true
