@@ -162,13 +162,13 @@ mod issue6675 {
 
     unsafe fn foo() {
         let s = "test".to_owned();
-        let s = &s as *const _;
+        let s = &s as *const String;
         None.unwrap_or_else(|| ptr_to_ref(s));
     }
 
     fn bar() {
         let s = "test".to_owned();
-        let s = &s as *const _;
+        let s = &s as *const String;
         None.unwrap_or_else(|| unsafe { ptr_to_ref(s) });
         #[rustfmt::skip]
         None.unwrap_or_else(|| unsafe { ptr_to_ref(s) });

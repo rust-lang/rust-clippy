@@ -10,8 +10,8 @@ fn one_liners() {
     }
 }
 
-pub const ZPTR: *const usize = 0 as *const _;
-pub const NOT_ZPTR: *const usize = 1 as *const _;
+pub const ZPTR: *const usize = 0 as *const usize;
+pub const NOT_ZPTR: *const usize = 1 as *const usize;
 
 fn transmute_const() {
     unsafe {

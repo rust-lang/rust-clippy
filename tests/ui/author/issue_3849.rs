@@ -3,7 +3,7 @@
 #![allow(clippy::transmute_ptr_to_ref)]
 #![allow(clippy::transmuting_null)]
 
-pub const ZPTR: *const usize = 0 as *const _;
+pub const ZPTR: *const usize = 0 as *const usize;
 
 fn main() {
     unsafe {

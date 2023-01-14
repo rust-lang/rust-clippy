@@ -1,5 +1,6 @@
 mod as_ptr_cast_mut;
 mod as_underscore;
+mod as_underscore_ptr;
 mod borrow_as_ptr;
 mod cast_abs_to_unsigned;
 mod cast_enum_constructor;
@@ -557,6 +558,52 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for the usage of `as *const _` or `as *mut _` where the pointed to type is inferred.
+    ///
+    /// ### Why is this bad?
+    /// When converting to a pointer, it can be dangerous to not specify the type. Type inference can
+    /// be affected by many things, types may not always be obvious, and when working with pointers, while
+    /// the pointed to type doesn't technically matter until an access, you should always know what types
+    /// you intend to work with. When using multiple chained `as` casts, it can be especially dangerous,
+    /// because `*const T as *const U` **always compiles** (for Sized types T and U).
+    ///
+    /// ### Example
+    /// ```rust
+    /// // intent: turn a `&u64` into a `*const u8` that points to the bytes of the u64 (⚠️does not work⚠️)
+    /// fn owo(x: &u64) -> *const u8 {
+    ///     // ⚠️ `&x` is a `&&u64`, so this turns a double pointer into a single pointer
+    ///     // ⚠️ This pointer is a dangling pointer to a local
+    ///     &x as *const _ as *const u8
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// // intent: turn a `&u64` into a `*const u8` that points to the bytes of the u64 (⚠️does not work⚠️)
+    /// fn owo(x: &u64) -> *const u8 {
+    ///     // ⚠️ `&x` is a `&&u64`, so this turns a double pointer into a single pointer
+    ///     // ⚠️ This pointer is a dangling pointer to a local
+    ///     &x as *const &u64 as *const u8
+    /// }
+    /// ```
+    /// While this is still buggy, the bug is more visible here: you have a `*const &u64`. To actually fix the
+    /// underlying issue, use:
+    /// ```rust
+    /// // turn a `&u64` into a `*const u8` that points to the bytes of the u64
+    /// fn owo(x: &u64) -> *const u8 {
+    ///     x as *const u64 as *const u8
+    /// //  ^ now `x` instead of `&x`
+    /// }
+    /// ```
+    /// This lint cannot suggest this final code because it's a more broad `restriction` lint that forces the
+    /// user to be more specific, and this transformation is not always valid.
+    #[clippy::version = "1.70.0"]
+    pub AS_UNDERSCORE_PTR,
+    restriction,
+    "detects `as *{const,mut} _ conversions"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for the usage of `&expr as *const T` or
     /// `&mut expr as *mut T`, and suggest using `ptr::addr_of` or
     /// `ptr::addr_of_mut` instead.
@@ -693,6 +740,7 @@ impl_lint_pass!(Casts => [
     CAST_ENUM_CONSTRUCTOR,
     CAST_ABS_TO_UNSIGNED,
     AS_UNDERSCORE,
+    AS_UNDERSCORE_PTR,
     BORROW_AS_PTR,
     CAST_SLICE_FROM_RAW_PARTS,
     AS_PTR_CAST_MUT,
@@ -741,6 +789,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
             }
 
             as_underscore::check(cx, expr, cast_to_hir);
+            as_underscore_ptr::check(cx, expr, cast_to_hir);
 
             if self.msrv.meets(msrvs::BORROW_AS_PTR) {
                 borrow_as_ptr::check(cx, expr, cast_expr, cast_to_hir);

@@ -1164,3 +1164,28 @@ pub fn is_interior_mut_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
         _ => false,
     }
 }
+
+/// If a type is a pointer or something that is known to act like a pointer, returns
+/// the wrapped type by recursively unpacking the type.  Otherwise returns None.
+/// "pointer-like" types are:
+///     &T
+///     &mut T
+///     *const T
+///     *mut T
+///     Box<T>
+///     Rc<T>
+///     Arc<T>
+pub fn is_ptr_like<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
+    match ty.kind() {
+        ty::Ref(_, ty, _) | ty::RawPtr(ty::TypeAndMut { ty, .. }) => is_ptr_like(tcx, *ty).or(Some(*ty)),
+        ty::Adt(def, generics)
+            if def.is_box()
+                || tcx.is_diagnostic_item(sym::Rc, def.did())
+                || tcx.is_diagnostic_item(sym::Arc, def.did()) =>
+        {
+            let ty = generics.type_at(0);
+            is_ptr_like(tcx, ty).or(Some(ty))
+        },
+        _ => None,
+    }
+}

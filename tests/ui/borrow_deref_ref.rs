@@ -51,8 +51,8 @@ mod should_not_lint2 {
 mod false_negative {
     fn foo() {
         let x = &12;
-        let addr_x = &x as *const _ as usize;
-        let addr_y = &&*x as *const _ as usize; // assert ok
+        let addr_x = &x as *const &i32 as usize;
+        let addr_y = &&*x as *const &i32 as usize; // assert ok
         // let addr_y = &x as *const _ as usize; // assert fail
         assert_ne!(addr_x, addr_y);
     }

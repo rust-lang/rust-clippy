@@ -8,7 +8,7 @@ use rustc_hir::hir_id::HirIdMap;
 use rustc_hir::{Body, Expr, ExprKind, HirId, ImplItem, ImplItemKind, Node, PatKind, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::subst::{EarlyBinder, GenericArgKind, SubstsRef};
-use rustc_middle::ty::{self, ConstKind};
+use rustc_middle::ty::{self, ConstKind, List};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::symbol::{kw, Ident};
 use rustc_span::Span;
@@ -249,7 +249,7 @@ impl<'tcx> LateLintPass<'tcx> for OnlyUsedInRecursion {
                 {
                     (
                         trait_item_id,
-                        FnKind::ImplTraitFn(cx.tcx.erase_regions(trait_ref.substs) as *const _ as usize),
+                        FnKind::ImplTraitFn(cx.tcx.erase_regions(trait_ref.substs) as *const List<_> as usize),
                         usize::from(sig.decl.implicit_self.has_implicit_self()),
                     )
                 } else {
@@ -390,6 +390,6 @@ fn has_matching_substs(kind: FnKind, substs: SubstsRef<'_>) -> bool {
             GenericArgKind::Const(c) => matches!(c.kind(), ConstKind::Param(c) if c.index as usize == idx),
         }),
         #[allow(trivial_casts)]
-        FnKind::ImplTraitFn(expected_substs) => substs as *const _ as usize == expected_substs,
+        FnKind::ImplTraitFn(expected_substs) => substs as *const List<_> as usize == expected_substs,
     }
 }

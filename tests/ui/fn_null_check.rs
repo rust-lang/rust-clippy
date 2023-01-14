@@ -4,8 +4,8 @@
 #![allow(clippy::ptr_eq)]
 #![allow(clippy::zero_ptr)]
 
-pub const ZPTR: *const () = 0 as *const _;
-pub const NOT_ZPTR: *const () = 1 as *const _;
+pub const ZPTR: *const () = 0 as *const ();
+pub const NOT_ZPTR: *const () = 1 as *const ();
 
 fn main() {
     let fn_ptr = main;

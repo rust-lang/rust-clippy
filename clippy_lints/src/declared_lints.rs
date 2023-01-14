@@ -69,6 +69,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::cargo::WILDCARD_DEPENDENCIES_INFO,
     crate::casts::AS_PTR_CAST_MUT_INFO,
     crate::casts::AS_UNDERSCORE_INFO,
+    crate::casts::AS_UNDERSCORE_PTR_INFO,
     crate::casts::BORROW_AS_PTR_INFO,
     crate::casts::CAST_ABS_TO_UNSIGNED_INFO,
     crate::casts::CAST_ENUM_CONSTRUCTOR_INFO,
