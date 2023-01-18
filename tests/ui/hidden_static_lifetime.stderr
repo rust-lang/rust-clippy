@@ -1,5 +1,5 @@
 error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:20:6
+  --> $DIR/hidden_static_lifetime.rs:27:6
    |
 LL | fn a<'a>() -> &'a str {
    |      ^^
@@ -8,15 +8,7 @@ LL | fn a<'a>() -> &'a str {
    = note: `-D clippy::hidden-static-lifetime` implied by `-D warnings`
 
 error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:23:6
-   |
-LL | fn h<'h>() -> S<'h> {
-   |      ^^
-   |
-   = help: try removing the lifetime parameter `'h` and changing references to `'static`
-
-error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:28:6
+  --> $DIR/hidden_static_lifetime.rs:32:6
    |
 LL | fn o<'o, T>() -> &'o mut T
    |      ^^
@@ -24,7 +16,7 @@ LL | fn o<'o, T>() -> &'o mut T
    = help: try removing the lifetime parameter `'o` and changing references to `'static`
 
 error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:36:6
+  --> $DIR/hidden_static_lifetime.rs:40:6
    |
 LL | fn n<'m1, 'm2, T>() -> &'m1 fn(&'m2 T) {
    |      ^^^
@@ -32,7 +24,7 @@ LL | fn n<'m1, 'm2, T>() -> &'m1 fn(&'m2 T) {
    = help: try removing the lifetime parameter `'m1` and changing references to `'static`
 
 error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:41:6
+  --> $DIR/hidden_static_lifetime.rs:45:6
    |
 LL | fn s<'s1, 's2>() -> &'s1 STuple<'s2> {
    |      ^^^
@@ -40,28 +32,20 @@ LL | fn s<'s1, 's2>() -> &'s1 STuple<'s2> {
    = help: try removing the lifetime parameter `'s1` and changing references to `'static`
 
 error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:41:11
+  --> $DIR/hidden_static_lifetime.rs:54:6
    |
-LL | fn s<'s1, 's2>() -> &'s1 STuple<'s2> {
-   |           ^^^
+LL | fn r<'r1, 'r2>() -> &'r1 SMut<'r2> {
+   |      ^^^
    |
-   = help: try removing the lifetime parameter `'s2` and changing references to `'static`
+   = help: try removing the lifetime parameter `'r1` and changing references to `'static`
 
 error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:45:6
-   |
-LL | fn q<'q>() -> STuple<'q> {
-   |      ^^
-   |
-   = help: try removing the lifetime parameter `'q` and changing references to `'static`
-
-error: this lifetime can be changed to `'static`
-  --> $DIR/hidden_static_lifetime.rs:86:6
+  --> $DIR/hidden_static_lifetime.rs:100:6
    |
 LL | fn l<'l, T>() -> &'l mut T
    |      ^^
    |
    = help: try removing the lifetime parameter `'l` and changing references to `'static`
 
-error: aborting due to 8 previous errors
+error: aborting due to 6 previous errors
 

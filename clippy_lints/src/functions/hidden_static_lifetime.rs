@@ -1,16 +1,24 @@
 use crate::rustc_lint::LintContext;
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{
-    def::{DefKind, Res},
-    intravisit::FnKind,
-    FnDecl, FnRetTy, GenericArg, GenericBound, GenericParam, GenericParamKind, Generics, ItemKind, LifetimeParamKind,
-    Node, ParamName, QPath, Ty, TyKind, TypeBindingKind, WherePredicate,
+    intravisit::FnKind, BareFnTy, FnDecl, FnRetTy, GenericArg, GenericArgs, GenericBound, GenericParam,
+    GenericParamKind, Generics, Lifetime, LifetimeParamKind, MutTy, ParamName, PolyTraitRef, QPath, Ty, TyKind,
+    TypeBindingKind, WherePredicate,
 };
 use rustc_lint::LateContext;
-use rustc_middle::{hir::map::Map, lint::in_external_macro};
+use rustc_middle::lint::in_external_macro;
 use rustc_span::Span;
 
 use super::HIDDEN_STATIC_LIFETIME;
+
+// As a summary:
+//
+// A lifetime can only be changed if:
+// * Used in immutable references.
+// * Not behind a mutable reference.
+// * Not used in function types
+//
+// NOTE: Struct's fields follow the same rules as types
 
 pub(super) fn check_fn<'tcx>(cx: &LateContext<'_>, kind: FnKind<'tcx>, decl: &'tcx FnDecl<'_>, span: Span) {
     if !in_external_macro(cx.sess(), span) && let FnKind::ItemFn(_, generics, _) =
@@ -57,18 +65,16 @@ kind {         let mut lifetime_is_used;
 													for ty_binding in gen_args.bindings {
 														if let TypeBindingKind::Equality { .. } = ty_binding.kind {
 															lifetime_is_used = true;
-														}
-													}
-												}
-											}
+														};
+													};
+												};
+											};
 										} else {
 											span_lint_and_help(cx,
 												HIDDEN_STATIC_LIFETIME,
 												bound.span(),
-												"this lifetime can be changed to `'static`",
-												None,
-								&format!("try removing the lifetime parameter `{}` and changing references to `'static`",
-generic.name.ident().as_str()), 											);
+												"this lifetime can be changed to `'static`",None,
+								&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()));
 										};
 									};
 								};
@@ -83,8 +89,7 @@ generic.name.ident().as_str()), 											);
 											region_predicate.span,
 											"this lifetime can be changed to `'static`",
 											None,
-								&format!("try removing the lifetime parameter `{}` and changing references to `'static`",
-generic.name.ident().as_str()), 										);
+								&format!("try removing the lifetime parameter `{}` and changing references to `'static`", generic.name.ident().as_str()));
 									};
 								};
 							};
@@ -92,9 +97,8 @@ generic.name.ident().as_str()), 										);
 
 						// Check again.
 						if !lifetime_is_used &&
-							// Check validness
-							check_validness(ret_ty, generic, generics)
-							&& check_mut_fields(cx.tcx.hir(), &ret_ty.peel_refs().kind) {
+							check_validness(ret_ty, generic, generics) &&
+							lifetime_not_used_in_ty(ret_ty, generic) {
 								span_lint_and_help(cx,
 								HIDDEN_STATIC_LIFETIME,
 								generic.span,
@@ -103,7 +107,7 @@ generic.name.ident().as_str()), 										);
 								&format!(
 									"try removing the lifetime parameter `{}` and changing references to `'static`",
 									generic.name.ident().as_str()),
-								);
+							);
 						};
 					};
 				};
@@ -171,37 +175,106 @@ fn check_validness(ret_ty: &Ty<'_>, generic: &GenericParam<'_>, generics: &Gener
     true
 }
 
-// true = no mut fields
-fn check_mut_fields(map: Map<'_>, tykind: &TyKind<'_>) -> bool {
-    if_chain! {
-        if let TyKind::Path(qpath) = tykind;
-        if let QPath::Resolved(_, path) = qpath;
-        if let Res::Def(defkind, def_id) = path.res;
-        if let DefKind::Struct = defkind;
-        then {
-            if let Some(node) = map.get_if_local(def_id) {
-                if let Node::Item(item) = node {
-                    if let ItemKind::Struct(variant_data, _) = &item.kind {
-                        for field in variant_data.fields() {
-                            if let TyKind::Ref(_, mut_ty) = &field.ty.kind {
-                                if mut_ty.mutbl.is_mut() {
-                                    return false;
-                                };
-                                return true;
-                            } else if let TyKind::Ptr(mut_ty) = &field.ty.kind {
-                                if mut_ty.mutbl.is_mut() {
-                                    return false;
-                                };
-                                return true;
+// true = lifetime isn't used (success)
+fn lifetime_not_used_in_ty(ret_ty: &Ty<'_>, generic: &GenericParam<'_>) -> bool {
+    fn ty_uses_lifetime(ty: &Ty<'_>, generic: &GenericParam<'_>) -> bool {
+        if let TyKind::Path(QPath::Resolved(_, path)) = ty.kind {
+            for segment in path.segments {
+                if let Some(GenericArgs { args, .. }) = segment.args {
+                    for arg in args.iter() {
+                        if let GenericArg::Lifetime(lifetime) = arg {
+                            if lifetime.ident.name == generic.name.ident().name {
+                                // generic is used
+                                return false;
                             }
+                        } else if let GenericArg::Type(ty) = arg {
+                            return classify_ty(ty, generic);
                         }
                     }
-                };
-                return true;
-            };
-                // Don't lint if struct isn't local.
-                return false
+                }
+            }
         }
-    };
-    true
+        true
+    }
+
+    #[inline]
+    fn barefn_uses_lifetime(barefn: &BareFnTy<'_>, generic: &GenericParam<'_>) -> bool {
+        for param in barefn.generic_params {
+            if param.def_id == generic.def_id {
+                return false;
+            }
+        }
+        true
+    }
+
+    #[inline]
+    fn tuple_uses_lifetime(tuple: &[Ty<'_>], generic: &GenericParam<'_>) -> bool {
+        tuple.iter().any(|ty| classify_ty(ty, generic))
+    }
+
+    fn opaquedef_uses_lifetime(args: &[GenericArg<'_>], generic: &GenericParam<'_>) -> bool {
+        for arg in args.iter() {
+            if let GenericArg::Lifetime(lifetime) = arg {
+                if lifetime.ident.name == generic.name.ident().name {
+                    // generic is used
+                    return false;
+                }
+            } else if let GenericArg::Type(ty) = arg {
+                return classify_ty(ty, generic);
+            }
+        }
+        true
+    }
+
+    #[inline]
+    fn traitobject_uses_lifetime(lifetime: &Lifetime, traits: &[PolyTraitRef<'_>], generic: &GenericParam<'_>) -> bool {
+        if lifetime.ident.name == generic.name.ident().name {
+            return true;
+        }
+        for PolyTraitRef {
+            bound_generic_params, ..
+        } in traits
+        {
+            if bound_generic_params.iter().any(|param| param.def_id == generic.def_id) {
+                return false;
+            };
+        }
+        true
+    }
+
+    #[inline]
+    fn classify_ty(ty: &Ty<'_>, generic: &GenericParam<'_>) -> bool {
+        match &ty.kind {
+            TyKind::Slice(ty) | TyKind::Array(ty, _) => ty_uses_lifetime(ty, generic),
+            TyKind::Ptr(mut_ty) => ty_uses_lifetime(mut_ty.ty, generic),
+            TyKind::BareFn(barefnty) => barefn_uses_lifetime(barefnty, generic),
+            TyKind::Tup(tuple) => tuple_uses_lifetime(tuple, generic),
+            TyKind::Path(_) => ty_uses_lifetime(ty, generic),
+            TyKind::OpaqueDef(_, genericargs, _) => opaquedef_uses_lifetime(genericargs, generic),
+            TyKind::TraitObject(poly_trait_ref, lifetime, _) =>
+            	traitobject_uses_lifetime(lifetime, poly_trait_ref, generic),
+            TyKind::Typeof(_) // This is unused for now, this needs revising when Typeof is used.
+            | TyKind::Err
+            | TyKind::Ref(_, _) /* This will never be the case*/
+            | TyKind::Never => true,
+            TyKind::Infer => false,
+        }
+    }
+
+    // Separate refs from ty.
+    let mut can_change = false;
+    let mut final_ty = ret_ty;
+    while let TyKind::Ref(lifetime, MutTy { ty, .. }) = &final_ty.kind {
+        if lifetime.ident.name == generic.name.ident().name {
+            can_change = true;
+        };
+        final_ty = ty;
+    }
+
+    // Now final_ty is equivalent to ret_ty.peel_refs
+
+    if can_change {
+        return classify_ty(final_ty, generic);
+    }
+    false
 }
