@@ -15,7 +15,7 @@ use rustc_span::source_map::{ExpnKind, Span};
 
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{
-    get_parent_expr, in_constant, is_integer_literal, is_no_std_crate, iter_input_pats, last_path_segment, SpanlessEq,
+    get_parent_expr, is_integer_literal, is_no_std_crate, iter_input_pats, last_path_segment, SpanlessEq,
 };
 
 declare_clippy_lint! {
@@ -328,26 +328,21 @@ fn non_macro_local(cx: &LateContext<'_>, res: def::Res) -> bool {
 
 impl LintPass {
     fn check_cast(&self, cx: &LateContext<'_>, span: Span, e: &Expr<'_>, ty: &hir::Ty<'_>) {
-        if_chain! {
-            if let TyKind::Ptr(ref mut_ty) = ty.kind;
-            if is_integer_literal(e, 0);
-            if !in_constant(cx, e.hir_id);
-            then {
-                let (msg, sugg_fn) = match mut_ty.mutbl {
-                    Mutability::Mut => ("`0 as *mut _` detected", "ptr::null_mut"),
-                    Mutability::Not => ("`0 as *const _` detected", "ptr::null"),
-                };
+        if let TyKind::Ptr(ref mut_ty) = ty.kind && is_integer_literal(e, 0) {
+            let (msg, sugg_fn) = match mut_ty.mutbl {
+                Mutability::Mut => ("`0 as *mut _` detected", "ptr::null_mut"),
+                Mutability::Not => ("`0 as *const _` detected", "ptr::null"),
+            };
 
-                let (sugg, appl) = if let TyKind::Infer = mut_ty.ty.kind {
-                    (format!("{}::{sugg_fn}()", self.std_or_core), Applicability::MachineApplicable)
-                } else if let Some(mut_ty_snip) = snippet_opt(cx, mut_ty.ty.span) {
-                    (format!("{}::{sugg_fn}::<{mut_ty_snip}>()", self.std_or_core), Applicability::MachineApplicable)
-                } else {
-                    // `MaybeIncorrect` as type inference may not work with the suggested code
-                    (format!("{}::{sugg_fn}()", self.std_or_core), Applicability::MaybeIncorrect)
-                };
-                span_lint_and_sugg(cx, ZERO_PTR, span, msg, "try", sugg, appl);
-            }
+            let (sugg, appl) = if let TyKind::Infer = mut_ty.ty.kind {
+                (format!("{}::{sugg_fn}()", self.std_or_core), Applicability::MachineApplicable)
+            } else if let Some(mut_ty_snip) = snippet_opt(cx, mut_ty.ty.span) {
+                (format!("{}::{sugg_fn}::<{mut_ty_snip}>()", self.std_or_core), Applicability::MachineApplicable)
+            } else {
+                // `MaybeIncorrect` as type inference may not work with the suggested code
+                (format!("{}::{sugg_fn}()", self.std_or_core), Applicability::MaybeIncorrect)
+            };
+            span_lint_and_sugg(cx, ZERO_PTR, span, msg, "try", sugg, appl);
         }
     }
 }
