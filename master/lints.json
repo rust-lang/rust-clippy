@@ -4785,6 +4785,21 @@
     }
   },
   {
+    "id": "multiple_unsafe_ops_per_block",
+    "id_span": {
+      "path": "src/multiple_unsafe_ops_per_block.rs",
+      "line": 61
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for `unsafe` blocks that contain more than one unsafe operation.\n\n### Why is this bad?\nCombined with `undocumented_unsafe_blocks`,\nthis lint ensures that each unsafe operation must be independently justified.\nCombined with `unused_unsafe`, this lint also ensures\nelimination of unnecessary unsafe blocks through refactoring.\n\n### Example\n```rust\n/// Reads a `char` from the given pointer.\n///\n/// # Safety\n///\n/// `ptr` must point to four consecutive, initialized bytes which\n/// form a valid `char` when interpreted in the native byte order.\nfn read_char(ptr: *const u8) -> char {\n    // SAFETY: The caller has guaranteed that the value pointed\n    // to by `bytes` is a valid `char`.\n    unsafe { char::from_u32_unchecked(*ptr.cast::<u32>()) }\n}\n```\nUse instead:\n```rust\n/// Reads a `char` from the given pointer.\n///\n/// # Safety\n///\n/// - `ptr` must be 4-byte aligned, point to four consecutive\n///   initialized bytes, and be valid for reads of 4 bytes.\n/// - The bytes pointed to by `ptr` must represent a valid\n///   `char` when interpreted in the native byte order.\nfn read_char(ptr: *const u8) -> char {\n    // SAFETY: `ptr` is 4-byte aligned, points to four consecutive\n    // initialized bytes, and is valid for reads of 4 bytes.\n    let int_value = unsafe { *ptr.cast::<u32>() };\n\n    // SAFETY: The caller has guaranteed that the four bytes\n    // pointed to by `bytes` represent a valid `char`.\n    unsafe { char::from_u32_unchecked(int_value) }\n}\n```",
+    "version": "1.68.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "must_use_candidate",
     "id_span": {
       "path": "src/functions/mod.rs",
