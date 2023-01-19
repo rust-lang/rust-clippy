@@ -1,5 +1,5 @@
 // run-rustfix
-#![allow(clippy::unnecessary_cast)]
+#![allow(clippy::unnecessary_cast, clippy::byte_char_slice)]
 
 fn main() {
     let vec = vec![b'a', b'b', b'c'];
