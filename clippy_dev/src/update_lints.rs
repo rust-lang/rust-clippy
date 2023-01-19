@@ -397,7 +397,7 @@ pub fn deprecate(name: &str, reason: Option<&String>) {
     let Some(lint) = lints.iter().find(|l| l.name == name_lower) else { eprintln!("error: failed to find lint `{name}`"); return; };
 
     let mod_path = {
-        let mut mod_path = PathBuf::from(format!("clippy_lints/src/{}", lint.module));
+        let mut mod_path = Path::new("clippy_lints").join("src").join(&lint.module);
         if mod_path.is_dir() {
             mod_path = mod_path.join("mod");
         }

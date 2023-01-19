@@ -1,0 +1,102 @@
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:8:5
+   |
+LL |     PathBuf::from(format!("{base_path1}/foo/bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::paths-from-format` implied by `-D warnings`
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new(&base_path1).join("foo").join("bar");
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:9:5
+   |
+LL |     PathBuf::from(format!("/foo/bar/{base_path1}"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new("/").join("foo").join("bar").join(&base_path1);
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:10:5
+   |
+LL |     PathBuf::from(format!("/foo/{base_path1}/bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new("/").join("foo").join(&base_path1).join("bar");
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:11:5
+   |
+LL |     PathBuf::from(format!("foo/{base_path1}/bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new("foo").join(&base_path1).join("bar");
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:12:5
+   |
+LL |     PathBuf::from(format!("foo/foooo/{base_path1}/bar/barrr"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new("foo").join("foooo").join(&base_path1).join("bar").join("barrr");
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:13:5
+   |
+LL |     PathBuf::from(format!("foo/foooo/{base_path1}/bar/barrr/{base_path2}"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new("foo").join("foooo").join(&base_path1).join("bar").join("barrr").join(&base_path2);
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:14:5
+   |
+LL |     PathBuf::from(format!("{base_path2}/foo/{base_path1}/bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new(&base_path2).join("foo").join(&base_path1).join("bar");
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:17:5
+   |
+LL |     PathBuf::from(format!(r"C:/{base_path2}/foo/{base_path1}/bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new("C:/").join(&base_path2).join("foo").join(&base_path1).join("bar");
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: `format!(..)` used to form `PathBuf`
+  --> $DIR/paths_from_format.rs:18:5
+   |
+LL |     PathBuf::from(format!("C:/{base_path2}/foo/{base_path1}/bar"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider using `Path::new()` and `.join()` to make it OS-agnostic and improve code readability
+   |
+LL |     Path::new("C:/").join(&base_path2).join("foo").join(&base_path1).join("bar");
+   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: aborting due to 9 previous errors
+
