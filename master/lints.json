@@ -2468,7 +2468,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks if we're passing a `c_void` raw pointer to `{Box,Rc,Arc,Weak}::from_raw(_)`\n\n### Why is this bad?\nWhen dealing with `c_void` raw pointers in FFI, it is easy to run into the pitfall of calling `from_raw` with the `c_void` pointer.\nThe type signature of `Box::from_raw` is `fn from_raw(raw: *mut T) -> Box<T>`, so if you pass a `*mut c_void` you will get a `Box<c_void>` (and similarly for `Rc`, `Arc` and `Weak`).\nFor this to be safe, `c_void` would need to have the same memory layout as the original type, which is often not the case.\n\n### Example\n```rust\nlet ptr = Box::into_raw(Box::new(42usize)) as *mut c_void;\nlet _ = unsafe { Box::from_raw(ptr) };\n```\nUse instead:\n```rust\nlet _ = unsafe { Box::from_raw(ptr as *mut usize) };\n```\n",
-    "version": "1.66.0",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3518,7 +3518,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `let _ = <expr>` where the resulting type of expr implements `Future`\n\n### Why is this bad?\nFutures must be polled for work to be done. The original intention was most likely to await the future\nand ignore the resulting value.\n\n### Example\n```rust\nasync fn foo() -> Result<(), ()> {\n    Ok(())\n}\nlet _ = foo();\n```\n\nUse instead:\n```rust\nasync fn foo() -> Result<(), ()> {\n    Ok(())\n}\nlet _ = foo().await;\n```",
-    "version": "1.66",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3788,7 +3788,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nSuggests to use dedicated built-in methods,\n`is_ascii_(lowercase|uppercase|digit)` for checking on corresponding ascii range\n\n### Why is this bad?\nUsing the built-in functions is more readable and makes it\nclear that it's not a specific subset of characters, but all\nASCII (lowercase|uppercase|digit) characters.\n### Example\n```rust\nfn main() {\n    assert!(matches!('x', 'a'..='z'));\n    assert!(matches!(b'X', b'A'..=b'Z'));\n    assert!(matches!('2', '0'..='9'));\n    assert!(matches!('x', 'A'..='Z' | 'a'..='z'));\n\n    ('0'..='9').contains(&'0');\n    ('a'..='z').contains(&'a');\n    ('A'..='Z').contains(&'A');\n}\n```\nUse instead:\n```rust\nfn main() {\n    assert!('x'.is_ascii_lowercase());\n    assert!(b'X'.is_ascii_uppercase());\n    assert!('2'.is_ascii_digit());\n    assert!('x'.is_ascii_alphabetic());\n\n    '0'.is_ascii_digit();\n    'a'.is_ascii_lowercase();\n    'A'.is_ascii_uppercase();\n}\n```",
-    "version": "1.66.0",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -6698,7 +6698,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\n\nChecks an argument of `seek` method of `Seek` trait\nand if it start seek from `SeekFrom::Current(0)`, suggests `stream_position` instead.\n\n### Why is this bad?\n\nReadability. Use dedicated method.\n\n### Example\n\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.seek(SeekFrom::Current(0))?);\n\n    Ok(())\n}\n```\nUse instead:\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.stream_position()?);\n\n    Ok(())\n}\n```",
-    "version": "1.66.0",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -6713,7 +6713,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\n\nChecks for jumps to the start of a stream that implements `Seek`\nand uses the `seek` method providing `Start` as parameter.\n\n### Why is this bad?\n\nReadability. There is a specific method that was implemented for\nthis exact scenario.\n\n### Example\n```rust\nfn foo<T: io::Seek>(t: &mut T) {\n    t.seek(io::SeekFrom::Start(0));\n}\n```\nUse instead:\n```rust\nfn foo<T: io::Seek>(t: &mut T) {\n    t.rewind();\n}\n```",
-    "version": "1.66.0",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -7478,7 +7478,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nWarns for a Bitwise XOR (`^`) operator being probably confused as a powering. It will not trigger if any of the numbers are not in decimal.\n### Why is this bad?\n\tIt's most probably a typo and may lead to unexpected behaviours.\n### Example\n```rust\nlet x = 3_i32 ^ 4_i32;\n```\nUse instead:\n```rust\nlet x = 3_i32.pow(4);\n```",
-    "version": "1.66.0",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -7928,7 +7928,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nLints subtraction between an [`Instant`] and a [`Duration`].\n\n### Why is this bad?\nUnchecked subtraction could cause underflow on certain platforms, leading to\nunintentional panics.\n\n### Example\n```rust\nlet time_passed = Instant::now() - Duration::from_secs(5);\n```\n\nUse instead:\n```rust\nlet time_passed = Instant::now().checked_sub(Duration::from_secs(5));\n```\n\n[`Duration`]: std::time::Duration\n[`Instant::now()`]: std::time::Instant::now;\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
-    "version": "1.65.0",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -8258,7 +8258,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for the doc comments of publicly visible\nsafe functions and traits and warns if there is a `# Safety` section.\n\n### Why is this bad?\nSafe functions and traits are safe to implement and therefore do not\nneed to describe safety preconditions that users are required to uphold.\n\n### Examples\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub fn start_apocalypse_but_safely(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nThe function is safe, so there shouldn't be any preconditions\nthat have to be explained for safety reasons.\n\n```rust\n/// This function should really be documented\npub fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```",
-    "version": "1.66.0",
+    "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
