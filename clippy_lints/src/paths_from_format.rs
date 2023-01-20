@@ -124,6 +124,8 @@ fn push_comps(string: &mut String, path: &str) {
     }
 }
 
+// In essence, this checks if the format!() used is made for concatenation of the filenames / folder names itself.
+// This returns true when it is something like `PathBuf::from(format!("/x/folder{}/textfile.txt", folder_number))
 fn is_valid_use_case(string: &str, string2: &str) -> bool {
     !(string.is_empty() || string.ends_with('/') || string.ends_with('\\'))
         || !(string2.is_empty() || string2.starts_with('/') || string2.starts_with('\\'))
