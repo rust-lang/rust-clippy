@@ -44,7 +44,7 @@ declare_lint_pass!(PathsFromFormat => [PATHS_FROM_FORMAT]);
 impl<'tcx> LateLintPass<'tcx> for PathsFromFormat {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
-            if let ExprKind::Call(_, args) = expr.kind;
+            if let ExprKind::Call(_, [args, ..]) = expr.kind;
             if let ty = cx.typeck_results().expr_ty(expr);
             if is_type_diagnostic_item(cx, ty, sym::PathBuf);
             if !args.is_empty();
@@ -54,9 +54,15 @@ impl<'tcx> LateLintPass<'tcx> for PathsFromFormat {
             then {
                 let format_string_parts = format_args.format_string.parts;
                 let format_value_args = format_args.args;
-                let string_parts: Vec<&str> = format_string_parts.iter().map(rustc_span::Symbol::as_str).collect();
+                let string_parts: Vec<&str> = format_string_parts
+                    .iter()
+                    .map(rustc_span::Symbol::as_str)
+                    .collect();
                 let mut applicability = Applicability::MachineApplicable;
-                let real_vars: Vec<Sugg<'_>> = format_value_args.iter().map(|x| Sugg::hir_with_applicability(cx, x.param.value, "..", &mut applicability)).collect();
+                let real_vars: Vec<Sugg<'_>> = format_value_args
+                    .iter()
+                    .map(|x| Sugg::hir_with_applicability(cx, x.param.value, "..", &mut applicability))
+                    .collect();
                 let mut paths_zip = string_parts.iter().take(real_vars.len()).zip(real_vars.clone());
                 let mut sugg = String::new();
                 if let Some((part, arg)) = paths_zip.next() {
