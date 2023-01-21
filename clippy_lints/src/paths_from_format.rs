@@ -49,7 +49,7 @@ impl<'tcx> LateLintPass<'tcx> for PathsFromFormat {
             if is_type_diagnostic_item(cx, ty, sym::PathBuf);
             if let Some(macro_call) = root_macro_call(arg.span);
             if cx.tcx.item_name(macro_call.def_id) == sym::format;
-            if let Some(format_args) = FormatArgsExpn::find_nested(cx, &arg, macro_call.expn);
+            if let Some(format_args) = FormatArgsExpn::find_nested(cx, arg, macro_call.expn);
             then {
                 let format_string_parts = format_args.format_string.parts;
                 let format_value_args = format_args.args;
