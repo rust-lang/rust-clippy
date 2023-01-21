@@ -44,13 +44,12 @@ declare_lint_pass!(PathsFromFormat => [PATHS_FROM_FORMAT]);
 impl<'tcx> LateLintPass<'tcx> for PathsFromFormat {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if_chain! {
-            if let ExprKind::Call(_, [args, ..]) = expr.kind;
+            if let ExprKind::Call(_, [arg, ..]) = expr.kind;
             if let ty = cx.typeck_results().expr_ty(expr);
             if is_type_diagnostic_item(cx, ty, sym::PathBuf);
-            if !args.is_empty();
-            if let Some(macro_call) = root_macro_call(args[0].span);
+            if let Some(macro_call) = root_macro_call(arg.span);
             if cx.tcx.item_name(macro_call.def_id) == sym::format;
-            if let Some(format_args) = FormatArgsExpn::find_nested(cx, &args[0], macro_call.expn);
+            if let Some(format_args) = FormatArgsExpn::find_nested(cx, &arg, macro_call.expn);
             then {
                 let format_string_parts = format_args.format_string.parts;
                 let format_value_args = format_args.args;
