@@ -450,13 +450,17 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
+    /// # unsafe {
     /// let original = [1,2,3];
     /// let slice: &[i32] = core::mem::transmute((original.as_ptr(), original.len()));
+    /// # }
     /// ```
     /// Use instead:
     /// ```rust
+    /// # unsafe {
     /// let original = [1,2,3];
     /// let slice: &[i32] = core::slice::from_raw_parts(original.as_ptr(), original.len());
+    /// # }
     /// ```
     #[clippy::version = "1.68.0"]
     pub TRANSMUTE_TUPLE_TO_SLICE,
