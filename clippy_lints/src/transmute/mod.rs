@@ -8,6 +8,7 @@ mod transmute_num_to_bytes;
 mod transmute_ptr_to_ptr;
 mod transmute_ptr_to_ref;
 mod transmute_ref_to_ref;
+mod transmute_tuple_to_slice;
 mod transmute_undefined_repr;
 mod transmutes_expressible_as_ptr_casts;
 mod transmuting_null;
@@ -438,6 +439,29 @@ declare_clippy_lint! {
     "transmute results in a null function pointer, which is undefined behavior"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for casts from `(*[const, mut] T, usize)` into a `&[T]`/`&mut [T]`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// This is undefined behaviour.
+    ///
+    /// ### Example
+    /// ```rust
+    /// core::mem::transmute((ptr, len))
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// core::slice::from_raw_parts(ptr, len)
+    /// ```
+    #[clippy::version = "1.68.0"]
+    pub TRANSMUTE_TUPLE_TO_SLICE,
+    correctness,
+    "transmutes from a tuple of pointer and length to a slice, which is undefined behavior"
+}
+
 pub struct Transmute {
     msrv: Msrv,
 }
@@ -458,6 +482,7 @@ impl_lint_pass!(Transmute => [
     TRANSMUTE_UNDEFINED_REPR,
     TRANSMUTING_NULL,
     TRANSMUTE_NULL_TO_FN,
+    TRANSMUTE_TUPLE_TO_SLICE,
 ]);
 impl Transmute {
     #[must_use]
@@ -477,6 +502,7 @@ impl<'tcx> LateLintPass<'tcx> for Transmute {
                 // - from/to bits (https://github.com/rust-lang/rust/issues/73736)
                 // - dereferencing raw pointers (https://github.com/rust-lang/rust/issues/51911)
                 // - char conversions (https://github.com/rust-lang/rust/issues/89259)
+                // - slice::from_raw_parts (https://github.com/rust-lang/rust/issues/67456)
                 let const_context = in_constant(cx, e.hir_id);
 
                 let (from_ty, from_ty_adjusted) = match cx.typeck_results().expr_adjustments(arg) {
@@ -503,6 +529,7 @@ impl<'tcx> LateLintPass<'tcx> for Transmute {
                     | transmute_int_to_float::check(cx, e, from_ty, to_ty, arg, const_context)
                     | transmute_float_to_int::check(cx, e, from_ty, to_ty, arg, const_context)
                     | transmute_num_to_bytes::check(cx, e, from_ty, to_ty, arg, const_context)
+                    | transmute_tuple_to_slice::check(cx, e, from_ty, to_ty, arg, const_context, &self.msrv)
                     | (
                         unsound_collection_transmute::check(cx, e, from_ty, to_ty)
                         || transmute_undefined_repr::check(cx, e, from_ty, to_ty)

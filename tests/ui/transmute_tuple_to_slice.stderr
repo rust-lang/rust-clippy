@@ -1,0 +1,16 @@
+error: transmute from `(*mut u8, usize)` to `&[u8]`
+  --> $DIR/transmute_tuple_to_slice.rs:7:14
+   |
+LL |     unsafe { core::mem::transmute::<_, &mut [u8]>((data.as_mut_ptr(), 2usize)) };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `core::slice::from_raw_parts_mut(data.as_mut_ptr(), 2usize)`
+   |
+   = note: `-D clippy::transmute-tuple-to-slice` implied by `-D warnings`
+
+error: transmute from `(*const u8, usize)` to `&[u8]`
+  --> $DIR/transmute_tuple_to_slice.rs:9:14
+   |
+LL |     unsafe { core::mem::transmute::<_, &[u8]>((data.as_ptr(), 2usize)) };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `core::slice::from_raw_parts(data.as_ptr(), 2usize)`
+
+error: aborting due to 2 previous errors
+

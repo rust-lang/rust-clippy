@@ -20,6 +20,7 @@ macro_rules! msrv_aliases {
 // names may refer to stabilized feature flags or library items
 msrv_aliases! {
     1,65,0 { LET_ELSE }
+    1,64,0 { CONST_SLICE_FROM_RAW_PARTS }
     1,62,0 { BOOL_THEN_SOME, DEFAULT_ENUM_ATTRIBUTE }
     1,58,0 { FORMAT_ARGS_CAPTURE, PATTERN_TRAIT_CHAR_ARRAY }
     1,55,0 { SEEK_REWIND }
