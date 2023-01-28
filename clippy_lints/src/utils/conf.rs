@@ -29,6 +29,7 @@ const DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
     "TeX", "LaTeX", "BibTeX", "BibLaTeX",
     "MinGW",
     "CamelCase",
+    "AviSynth", "VapourSynth",
 ];
 const DEFAULT_DISALLOWED_NAMES: &[&str] = &["foo", "baz", "quux"];
 
