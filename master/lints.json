@@ -3063,7 +3063,7 @@
     "id": "invalid_regex",
     "id_span": {
       "path": "src/regex.rs",
-      "line": 25
+      "line": 28
     },
     "group": "correctness",
     "level": "deny",
@@ -7848,7 +7848,7 @@
     "id": "trivial_regex",
     "id_span": {
       "path": "src/regex.rs",
-      "line": 50
+      "line": 53
     },
     "group": "nursery",
     "level": "allow",
