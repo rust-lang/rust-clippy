@@ -52,7 +52,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for ranges which almost include the entire range of letters from 'a' to 'z'\nor digits from '0' to '9', but don't because they're a half open range.\n\n### Why is this bad?\nThis (`'a'..'z'`) is almost certainly a typo meant to include all letters.\n\n### Example\n```rust\nlet _ = 'a'..'z';\n```\nUse instead:\n```rust\nlet _ = 'a'..='z';\n```\n### Past names\n\n* `almost_complete_letter_range`\n\n",
+    "docs": "\n### What it does\nChecks for ranges which almost include the entire range of letters from 'a' to 'z'\nor digits from '0' to '9', but don't because they're a half open range.\n\n### Why is this bad?\nThis (`'a'..'z'`) is almost certainly a typo meant to include all letters.\n\n### Example\n```rust\nlet _ = 'a'..'z';\n```\nUse instead:\n```rust\nlet _ = 'a'..='z';\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n\n### Past names\n\n* `almost_complete_letter_range`\n\n",
     "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -232,7 +232,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nAllows users to configure types which should not be held across `await`\nsuspension points.\n\n### Why is this bad?\nThere are some types which are perfectly \"safe\" to be used concurrently\nfrom a memory access perspective but will cause bugs at runtime if they\nare held in such a way.\n\n### Example\n\n```toml\nawait-holding-invalid-types = [\n  # You can specify a type name\n  \"CustomLockType\",\n  # You can (optionally) specify a reason\n  { path = \"OtherCustomLockType\", reason = \"Relies on a thread local\" }\n]\n```\n\n```rust\nstruct CustomLockType;\nstruct OtherCustomLockType;\nasync fn foo() {\n  let _x = CustomLockType;\n  let _y = OtherCustomLockType;\n  baz().await; // Lint violation\n}\n```",
+    "docs": "\n### What it does\nAllows users to configure types which should not be held across `await`\nsuspension points.\n\n### Why is this bad?\nThere are some types which are perfectly \"safe\" to be used concurrently\nfrom a memory access perspective but will cause bugs at runtime if they\nare held in such a way.\n\n### Example\n\n```toml\nawait-holding-invalid-types = [\n  # You can specify a type name\n  \"CustomLockType\",\n  # You can (optionally) specify a reason\n  { path = \"OtherCustomLockType\", reason = \"Relies on a thread local\" }\n]\n```\n\n```rust\nstruct CustomLockType;\nstruct OtherCustomLockType;\nasync fn foo() {\n  let _x = CustomLockType;\n  let _y = OtherCustomLockType;\n  baz().await; // Lint violation\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `await-holding-invalid-types`: `Vec<crate::utils::conf::DisallowedPath>`(defaults to `[]`): \n",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -513,7 +513,7 @@
     "id": "bytes_count_to_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2517
+      "line": 2518
     },
     "group": "complexity",
     "level": "warn",
@@ -528,7 +528,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1996
+      "line": 1997
     },
     "group": "style",
     "level": "warn",
@@ -558,7 +558,7 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2545
+      "line": 2546
     },
     "group": "pedantic",
     "level": "allow",
@@ -997,7 +997,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for consecutive calls to `str::replace` (2 or more)\nthat can be collapsed into a single call.\n\n### Why is this bad?\nConsecutive `str::replace` calls scan the string multiple times\nwith repetitive code.\n\n### Example\n```rust\nlet hello = \"hesuo worpd\"\n    .replace('s', \"l\")\n    .replace(\"u\", \"l\")\n    .replace('p', \"l\");\n```\nUse instead:\n```rust\nlet hello = \"hesuo worpd\".replace(['s', 'u', 'p'], \"l\");\n```",
+    "docs": "\n### What it does\nChecks for consecutive calls to `str::replace` (2 or more)\nthat can be collapsed into a single call.\n\n### Why is this bad?\nConsecutive `str::replace` calls scan the string multiple times\nwith repetitive code.\n\n### Example\n```rust\nlet hello = \"hesuo worpd\"\n    .replace('s', \"l\")\n    .replace(\"u\", \"l\")\n    .replace('p', \"l\");\n```\nUse instead:\n```rust\nlet hello = \"hesuo worpd\".replace(['s', 'u', 'p'], \"l\");\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.65.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1282,7 +1282,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nDetects manual `std::default::Default` implementations that are identical to a derived implementation.\n\n### Why is this bad?\nIt is less concise.\n\n### Example\n```rust\nstruct Foo {\n    bar: bool\n}\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Self {\n            bar: false\n        }\n    }\n}\n```\n\nUse instead:\n```rust\n#[derive(Default)]\nstruct Foo {\n    bar: bool\n}\n```\n\n### Known problems\nDerive macros [sometimes use incorrect bounds](https://github.com/rust-lang/rust/issues/26925)\nin generic types and the user defined `impl` may be more generalized or\nspecialized than what derive will produce. This lint can't detect the manual `impl`\nhas exactly equal bounds, and therefore this lint is disabled for types with\ngeneric parameters.",
+    "docs": "\n### What it does\nDetects manual `std::default::Default` implementations that are identical to a derived implementation.\n\n### Why is this bad?\nIt is less concise.\n\n### Example\n```rust\nstruct Foo {\n    bar: bool\n}\n\nimpl Default for Foo {\n    fn default() -> Self {\n        Self {\n            bar: false\n        }\n    }\n}\n```\n\nUse instead:\n```rust\n#[derive(Default)]\nstruct Foo {\n    bar: bool\n}\n```\n\n### Known problems\nDerive macros [sometimes use incorrect bounds](https://github.com/rust-lang/rust/issues/26925)\nin generic types and the user defined `impl` may be more generalized or\nspecialized than what derive will produce. This lint can't detect the manual `impl`\nhas exactly equal bounds, and therefore this lint is disabled for types with\ngeneric parameters.\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2103,7 +2103,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1948
+      "line": 1949
     },
     "group": "complexity",
     "level": "warn",
@@ -2433,7 +2433,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1895
+      "line": 1896
     },
     "group": "pedantic",
     "level": "allow",
@@ -2508,7 +2508,7 @@
     "id": "get_first",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2571
+      "line": 2572
     },
     "group": "style",
     "level": "warn",
@@ -2658,7 +2658,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2022
+      "line": 2023
     },
     "group": "pedantic",
     "level": "allow",
@@ -2797,7 +2797,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of indexing or slicing. Arrays are special cases, this lint\ndoes report on arrays if we can tell that slicing operations are in bounds and does not\nlint on constant `usize` indexing on arrays because that is handled by rustc's `const_err` lint.\n\n### Why is this bad?\nIndexing and slicing can panic at runtime and there are\nsafe alternatives.\n\n### Example\n```rust\n// Vector\nlet x = vec![0; 5];\n\nx[2];\n&x[2..100];\n\n// Array\nlet y = [0, 1, 2, 3];\n\n&y[10..100];\n&y[10..];\n```\n\nUse instead:\n```rust\n\nx.get(2);\nx.get(2..100);\n\ny.get(10);\ny.get(10..100);\n```",
+    "docs": "\n### What it does\nChecks for usage of indexing or slicing. Arrays are special cases, this lint\ndoes report on arrays if we can tell that slicing operations are in bounds and does not\nlint on constant `usize` indexing on arrays because that is handled by rustc's `const_err` lint.\n\n### Why is this bad?\nIndexing and slicing can panic at runtime and there are\nsafe alternatives.\n\n### Example\n```rust\n// Vector\nlet x = vec![0; 5];\n\nx[2];\n&x[2..100];\n\n// Array\nlet y = [0, 1, 2, 3];\n\n&y[10..100];\n&y[10..];\n```\n\nUse instead:\n```rust\n\nx.get(2);\nx.get(2..100);\n\ny.get(10);\ny.get(10..100);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `suppress-restriction-lint-in-const`: `bool`(defaults to `false`): Whether to suppress a restriction lint in constant code. In same\n   cases the restructured operation might not be unavoidable, as the\n   suggested counterparts are unavailable in constant code. This\n   configuration will cause restriction lints to trigger even\n   if no suggestion can be made.\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2973,7 +2973,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1925
+      "line": 1926
     },
     "group": "complexity",
     "level": "warn",
@@ -3123,7 +3123,7 @@
     "id": "is_digit_ascii_radix",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2327
+      "line": 2328
     },
     "group": "style",
     "level": "warn",
@@ -3168,7 +3168,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2052
+      "line": 2053
     },
     "group": "complexity",
     "level": "warn",
@@ -3183,7 +3183,7 @@
     "id": "iter_kv_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3063
+      "line": 3064
     },
     "group": "complexity",
     "level": "warn",
@@ -3273,7 +3273,7 @@
     "id": "iter_on_empty_collections",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2461
+      "line": 2462
     },
     "group": "nursery",
     "level": "allow",
@@ -3288,7 +3288,7 @@
     "id": "iter_on_single_items",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2429
+      "line": 2430
     },
     "group": "nursery",
     "level": "allow",
@@ -3457,7 +3457,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for functions taking arguments by value, where\nthe argument type is `Copy` and large enough to be worth considering\npassing by reference. Does not trigger if the function is being exported,\nbecause that might induce API breakage, if the parameter is declared as mutable,\nor if the argument is a `self`.\n\n### Why is this bad?\nArguments passed by value might result in an unnecessary\nshallow copy, taking up more space in the stack and requiring a call to\n`memcpy`, which can be expensive.\n\n### Example\n```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\nfn foo(v: TooLarge) {}\n```\n\nUse instead:\n```rust\nfn foo(v: &TooLarge) {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
+    "docs": "\n### What it does\nChecks for functions taking arguments by value, where\nthe argument type is `Copy` and large enough to be worth considering\npassing by reference. Does not trigger if the function is being exported,\nbecause that might induce API breakage, if the parameter is declared as mutable,\nor if the argument is a `self`.\n\n### Why is this bad?\nArguments passed by value might result in an unnecessary\nshallow copy, taking up more space in the stack and requiring a call to\n`memcpy`, which can be expensive.\n\n### Example\n```rust\n#[derive(Clone, Copy)]\nstruct TooLarge([u8; 2048]);\n\nfn foo(v: TooLarge) {}\n```\n\nUse instead:\n```rust\nfn foo(v: &TooLarge) {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n* `pass-by-value-size-limit`: `u64`(defaults to `256`): The minimum size (in bytes) to consider a type for passing by reference instead of by value.\n",
     "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3787,7 +3787,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nSuggests to use dedicated built-in methods,\n`is_ascii_(lowercase|uppercase|digit)` for checking on corresponding ascii range\n\n### Why is this bad?\nUsing the built-in functions is more readable and makes it\nclear that it's not a specific subset of characters, but all\nASCII (lowercase|uppercase|digit) characters.\n### Example\n```rust\nfn main() {\n    assert!(matches!('x', 'a'..='z'));\n    assert!(matches!(b'X', b'A'..=b'Z'));\n    assert!(matches!('2', '0'..='9'));\n    assert!(matches!('x', 'A'..='Z' | 'a'..='z'));\n\n    ('0'..='9').contains(&'0');\n    ('a'..='z').contains(&'a');\n    ('A'..='Z').contains(&'A');\n}\n```\nUse instead:\n```rust\nfn main() {\n    assert!('x'.is_ascii_lowercase());\n    assert!(b'X'.is_ascii_uppercase());\n    assert!('2'.is_ascii_digit());\n    assert!('x'.is_ascii_alphabetic());\n\n    '0'.is_ascii_digit();\n    'a'.is_ascii_lowercase();\n    'A'.is_ascii_uppercase();\n}\n```",
+    "docs": "\n### What it does\nSuggests to use dedicated built-in methods,\n`is_ascii_(lowercase|uppercase|digit)` for checking on corresponding ascii range\n\n### Why is this bad?\nUsing the built-in functions is more readable and makes it\nclear that it's not a specific subset of characters, but all\nASCII (lowercase|uppercase|digit) characters.\n### Example\n```rust\nfn main() {\n    assert!(matches!('x', 'a'..='z'));\n    assert!(matches!(b'X', b'A'..=b'Z'));\n    assert!(matches!('2', '0'..='9'));\n    assert!(matches!('x', 'A'..='Z' | 'a'..='z'));\n\n    ('0'..='9').contains(&'0');\n    ('a'..='z').contains(&'a');\n    ('A'..='Z').contains(&'A');\n}\n```\nUse instead:\n```rust\nfn main() {\n    assert!('x'.is_ascii_lowercase());\n    assert!(b'X'.is_ascii_uppercase());\n    assert!('2'.is_ascii_digit());\n    assert!('x'.is_ascii_alphabetic());\n\n    '0'.is_ascii_digit();\n    'a'.is_ascii_lowercase();\n    'A'.is_ascii_uppercase();\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3858,7 +3858,7 @@
     "id": "manual_ok_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2597
+      "line": 2598
     },
     "group": "pedantic",
     "level": "allow",
@@ -3892,7 +3892,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for an expression like `((x % 4) + 4) % 4` which is a common manual reimplementation\nof `x.rem_euclid(4)`.\n\n### Why is this bad?\nIt's simpler and more readable.\n\n### Example\n```rust\nlet x: i32 = 24;\nlet rem = ((x % 4) + 4) % 4;\n```\nUse instead:\n```rust\nlet x: i32 = 24;\nlet rem = x.rem_euclid(4);\n```",
+    "docs": "\n### What it does\nChecks for an expression like `((x % 4) + 4) % 4` which is a common manual reimplementation\nof `x.rem_euclid(4)`.\n\n### Why is this bad?\nIt's simpler and more readable.\n\n### Example\n```rust\nlet x: i32 = 24;\nlet rem = ((x % 4) + 4) % 4;\n```\nUse instead:\n```rust\nlet x: i32 = 24;\nlet rem = x.rem_euclid(4);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3907,7 +3907,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for code to be replaced by `.retain()`.\n### Why is this bad?\n`.retain()` is simpler and avoids needless allocation.\n### Example\n```rust\nlet mut vec = vec![0, 1, 2];\nvec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();\nvec = vec.into_iter().filter(|x| x % 2 == 0).collect();\n```\nUse instead:\n```rust\nlet mut vec = vec![0, 1, 2];\nvec.retain(|x| x % 2 == 0);\n```",
+    "docs": "\n### What it does\nChecks for code to be replaced by `.retain()`.\n### Why is this bad?\n`.retain()` is simpler and avoids needless allocation.\n### Example\n```rust\nlet mut vec = vec![0, 1, 2];\nvec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();\nvec = vec.into_iter().filter(|x| x % 2 == 0).collect();\n```\nUse instead:\n```rust\nlet mut vec = vec![0, 1, 2];\nvec.retain(|x| x % 2 == 0);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3933,7 +3933,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2189
+      "line": 2190
     },
     "group": "complexity",
     "level": "warn",
@@ -3948,7 +3948,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2153
+      "line": 2154
     },
     "group": "perf",
     "level": "warn",
@@ -4038,7 +4038,7 @@
     "id": "map_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2626
+      "line": 2627
     },
     "group": "style",
     "level": "warn",
@@ -4053,7 +4053,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1864
+      "line": 1865
     },
     "group": "style",
     "level": "warn",
@@ -4083,7 +4083,7 @@
     "id": "map_err_ignore",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2726
+      "line": 2727
     },
     "group": "restriction",
     "level": "allow",
@@ -4113,7 +4113,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1971
+      "line": 1972
     },
     "group": "complexity",
     "level": "warn",
@@ -4863,7 +4863,7 @@
     "id": "mut_mutex_lock",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2762
+      "line": 2763
     },
     "group": "style",
     "level": "warn",
@@ -4897,7 +4897,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for sets/maps with mutable key types.\n\n### Why is this bad?\nAll of `HashMap`, `HashSet`, `BTreeMap` and\n`BtreeSet` rely on either the hash or the order of keys be unchanging,\nso having types with interior mutability is a bad idea.\n\n### Known problems\n\n#### False Positives\nIt's correct to use a struct that contains interior mutability as a key, when its\nimplementation of `Hash` or `Ord` doesn't access any of the interior mutable types.\nHowever, this lint is unable to recognize this, so it will often cause false positives in\ntheses cases.  The `bytes` crate is a great example of this.\n\n#### False Negatives\nFor custom `struct`s/`enum`s, this lint is unable to check for interior mutability behind\nindirection.  For example, `struct BadKey<'a>(&'a Cell<usize>)` will be seen as immutable\nand cause a false negative if its implementation of `Hash`/`Ord` accesses the `Cell`.\n\nThis lint does check a few cases for indirection.  Firstly, using some standard library\ntypes (`Option`, `Result`, `Box`, `Rc`, `Arc`, `Vec`, `VecDeque`, `BTreeMap` and\n`BTreeSet`) directly as keys (e.g. in `HashMap<Box<Cell<usize>>, ()>`) **will** trigger the\nlint, because the impls of `Hash`/`Ord` for these types directly call `Hash`/`Ord` on their\ncontained type.\n\nSecondly, the implementations of `Hash` and `Ord` for raw pointers (`*const T` or `*mut T`)\napply only to the **address** of the contained value.  Therefore, interior mutability\nbehind raw pointers (e.g. in `HashSet<*mut Cell<usize>>`) can't impact the value of `Hash`\nor `Ord`, and therefore will not trigger this link.  For more info, see issue\n[#6745](https://github.com/rust-lang/rust-clippy/issues/6745).\n\n### Example\n```rust\nuse std::cmp::{PartialEq, Eq};\nuse std::collections::HashSet;\nuse std::hash::{Hash, Hasher};\nuse std::sync::atomic::AtomicUsize;\n\nstruct Bad(AtomicUsize);\nimpl PartialEq for Bad {\n    fn eq(&self, rhs: &Self) -> bool {\n         ..\n; unimplemented!();\n    }\n}\n\nimpl Eq for Bad {}\n\nimpl Hash for Bad {\n    fn hash<H: Hasher>(&self, h: &mut H) {\n        ..\n; unimplemented!();\n    }\n}\n\nfn main() {\n    let _: HashSet<Bad> = HashSet::new();\n}\n```",
+    "docs": "\n### What it does\nChecks for sets/maps with mutable key types.\n\n### Why is this bad?\nAll of `HashMap`, `HashSet`, `BTreeMap` and\n`BtreeSet` rely on either the hash or the order of keys be unchanging,\nso having types with interior mutability is a bad idea.\n\n### Known problems\n\n#### False Positives\nIt's correct to use a struct that contains interior mutability as a key, when its\nimplementation of `Hash` or `Ord` doesn't access any of the interior mutable types.\nHowever, this lint is unable to recognize this, so it will often cause false positives in\ntheses cases.  The `bytes` crate is a great example of this.\n\n#### False Negatives\nFor custom `struct`s/`enum`s, this lint is unable to check for interior mutability behind\nindirection.  For example, `struct BadKey<'a>(&'a Cell<usize>)` will be seen as immutable\nand cause a false negative if its implementation of `Hash`/`Ord` accesses the `Cell`.\n\nThis lint does check a few cases for indirection.  Firstly, using some standard library\ntypes (`Option`, `Result`, `Box`, `Rc`, `Arc`, `Vec`, `VecDeque`, `BTreeMap` and\n`BTreeSet`) directly as keys (e.g. in `HashMap<Box<Cell<usize>>, ()>`) **will** trigger the\nlint, because the impls of `Hash`/`Ord` for these types directly call `Hash`/`Ord` on their\ncontained type.\n\nSecondly, the implementations of `Hash` and `Ord` for raw pointers (`*const T` or `*mut T`)\napply only to the **address** of the contained value.  Therefore, interior mutability\nbehind raw pointers (e.g. in `HashSet<*mut Cell<usize>>`) can't impact the value of `Hash`\nor `Ord`, and therefore will not trigger this link.  For more info, see issue\n[#6745](https://github.com/rust-lang/rust-clippy/issues/6745).\n\n### Example\n```rust\nuse std::cmp::{PartialEq, Eq};\nuse std::collections::HashSet;\nuse std::hash::{Hash, Hasher};\nuse std::sync::atomic::AtomicUsize;\n\nstruct Bad(AtomicUsize);\nimpl PartialEq for Bad {\n    fn eq(&self, rhs: &Self) -> bool {\n         ..\n; unimplemented!();\n    }\n}\n\nimpl Eq for Bad {}\n\nimpl Hash for Bad {\n    fn hash<H: Hasher>(&self, h: &mut H) {\n        ..\n; unimplemented!();\n    }\n}\n\nfn main() {\n    let _: HashSet<Bad> = HashSet::new();\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `ignore-interior-mutability`: `Vec<String>`(defaults to `[\"bytes::Bytes\"]`): A list of paths to types that should be treated like `Arc`, i.e. ignored but\n   for the generic parameters for determining interior mutability\n",
     "version": "1.42.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4938,7 +4938,7 @@
     "id": "naive_bytecount",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2492
+      "line": 2493
     },
     "group": "pedantic",
     "level": "allow",
@@ -5002,7 +5002,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\nlet x: &i32 = &&&&&&5;\nfun(&x);\n```\n\nUse instead:\n```rust\nlet x: &i32 = &5;\nfun(x);\n```\n### Past names\n\n* `ref_in_deref`\n\n",
+    "docs": "\n### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\nlet x: &i32 = &&&&&&5;\nfun(&x);\n```\n\nUse instead:\n```rust\nlet x: &i32 = &5;\nfun(x);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n\n### Past names\n\n* `ref_in_deref`\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5028,7 +5028,7 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3159
+      "line": 3160
     },
     "group": "nursery",
     "level": "allow",
@@ -5133,7 +5133,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2300
+      "line": 2301
     },
     "group": "complexity",
     "level": "warn",
@@ -5148,7 +5148,7 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2351
+      "line": 2352
     },
     "group": "complexity",
     "level": "warn",
@@ -5238,7 +5238,7 @@
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2212
+      "line": 2213
     },
     "group": "complexity",
     "level": "warn",
@@ -5373,7 +5373,7 @@
     "id": "no_effect_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2369
+      "line": 2370
     },
     "group": "suspicious",
     "level": "warn",
@@ -5463,7 +5463,7 @@
     "id": "nonsensical_open_options",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2783
+      "line": 2784
     },
     "group": "correctness",
     "level": "deny",
@@ -5508,7 +5508,7 @@
     "id": "obfuscated_if_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2397
+      "line": 2398
     },
     "group": "style",
     "level": "warn",
@@ -5853,7 +5853,7 @@
     "id": "path_buf_push_overwrite",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2815
+      "line": 2816
     },
     "group": "nursery",
     "level": "allow",
@@ -6168,7 +6168,7 @@
     "id": "range_zip_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2840
+      "line": 2841
     },
     "group": "complexity",
     "level": "warn",
@@ -6498,7 +6498,7 @@
     "id": "repeat_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2872
+      "line": 2873
     },
     "group": "complexity",
     "level": "warn",
@@ -6693,11 +6693,11 @@
     "id": "seek_from_current",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3106
+      "line": 3107
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\n\nChecks an argument of `seek` method of `Seek` trait\nand if it start seek from `SeekFrom::Current(0)`, suggests `stream_position` instead.\n\n### Why is this bad?\n\nReadability. Use dedicated method.\n\n### Example\n\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.seek(SeekFrom::Current(0))?);\n\n    Ok(())\n}\n```\nUse instead:\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.stream_position()?);\n\n    Ok(())\n}\n```",
+    "docs": "\n### What it does\n\nChecks an argument of `seek` method of `Seek` trait\nand if it start seek from `SeekFrom::Current(0)`, suggests `stream_position` instead.\n\n### Why is this bad?\n\nReadability. Use dedicated method.\n\n### Example\n\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.seek(SeekFrom::Current(0))?);\n\n    Ok(())\n}\n```\nUse instead:\n```rust\nuse std::fs::File;\nuse std::io::{self, Write, Seek, SeekFrom};\n\nfn main() -> io::Result<()> {\n    let mut f = File::create(\"foo.txt\")?;\n    f.write_all(b\"Hello\")?;\n    eprintln!(\"Written {} bytes\", f.stream_position()?);\n\n    Ok(())\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6708,7 +6708,7 @@
     "id": "seek_to_start_instead_of_rewind",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3137
+      "line": 3138
     },
     "group": "complexity",
     "level": "warn",
@@ -7128,7 +7128,7 @@
     "id": "stable_sort_primitive",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2910
+      "line": 2911
     },
     "group": "pedantic",
     "level": "allow",
@@ -7428,7 +7428,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2131
+      "line": 2132
     },
     "group": "correctness",
     "level": "deny",
@@ -7443,7 +7443,7 @@
     "id": "suspicious_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2100
+      "line": 2101
     },
     "group": "suspicious",
     "level": "warn",
@@ -7777,7 +7777,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for transmutes from a pointer to a reference.\n\n### Why is this bad?\nThis can always be rewritten with `&` and `*`.\n\n### Known problems\n- `mem::transmute` in statics and constants is stable from Rust 1.46.0,\nwhile dereferencing raw pointer is not stable yet.\nIf you need to do this in those places,\nyou would have to use `transmute` instead.\n\n### Example\n```rust\nunsafe {\n    let _: &T = std::mem::transmute(p); // where p: *const T\n}\n\n// can be written:\nlet _: &T = &*p;\n```",
+    "docs": "\n### What it does\nChecks for transmutes from a pointer to a reference.\n\n### Why is this bad?\nThis can always be rewritten with `&` and `*`.\n\n### Known problems\n- `mem::transmute` in statics and constants is stable from Rust 1.46.0,\nwhile dereferencing raw pointer is not stable yet.\nIf you need to do this in those places,\nyou would have to use `transmute` instead.\n\n### Example\n```rust\nunsafe {\n    let _: &T = std::mem::transmute(p); // where p: *const T\n}\n\n// can be written:\nlet _: &T = &*p;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8073,7 +8073,7 @@
     "id": "unit_hash",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2949
+      "line": 2950
     },
     "group": "correctness",
     "level": "deny",
@@ -8163,7 +8163,7 @@
     "id": "unnecessary_join",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2275
+      "line": 2276
     },
     "group": "pedantic",
     "level": "allow",
@@ -8178,11 +8178,11 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1843
+      "line": 1844
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nAs the counterpart to `or_fun_call`, this lint looks for unnecessary\nlazily evaluated closures on `Option` and `Result`.\n\nThis lint suggests changing the following functions, when eager evaluation results in\nsimpler code:\n - `unwrap_or_else` to `unwrap_or`\n - `and_then` to `and`\n - `or_else` to `or`\n - `get_or_insert_with` to `get_or_insert`\n - `ok_or_else` to `ok_or`\n\n### Why is this bad?\nUsing eager evaluation is shorter and simpler in some cases.\n\n### Known problems\nIt is possible, but not recommended for `Deref` and `Index` to have\nside effects. Eagerly evaluating them can change the semantics of the program.\n\n### Example\n```rust\n// example code where clippy issues a warning\nlet opt: Option<u32> = None;\n\nopt.unwrap_or_else(|| 42);\n```\nUse instead:\n```rust\nlet opt: Option<u32> = None;\n\nopt.unwrap_or(42);\n```",
+    "docs": "\n### What it does\nAs the counterpart to `or_fun_call`, this lint looks for unnecessary\nlazily evaluated closures on `Option` and `Result`.\n\nThis lint suggests changing the following functions, when eager evaluation results in\nsimpler code:\n - `unwrap_or_else` to `unwrap_or`\n - `and_then` to `and`\n - `or_else` to `or`\n - `get_or_insert_with` to `get_or_insert`\n - `ok_or_else` to `ok_or`\n - `then` to `then_some` (for msrv >= 1.62.0)\n\n### Why is this bad?\nUsing eager evaluation is shorter and simpler in some cases.\n\n### Known problems\nIt is possible, but not recommended for `Deref` and `Index` to have\nside effects. Eagerly evaluating them can change the semantics of the program.\n\n### Example\n```rust\n// example code where clippy issues a warning\nlet opt: Option<u32> = None;\n\nopt.unwrap_or_else(|| 42);\n```\nUse instead:\n```rust\nlet opt: Option<u32> = None;\n\nopt.unwrap_or(42);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.48.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8283,7 +8283,7 @@
     "id": "unnecessary_sort_by",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2983
+      "line": 2984
     },
     "group": "complexity",
     "level": "warn",
@@ -8298,7 +8298,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2243
+      "line": 2244
     },
     "group": "perf",
     "level": "warn",
@@ -8898,7 +8898,7 @@
     "id": "vec_resize_to_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3005
+      "line": 3006
     },
     "group": "correctness",
     "level": "deny",
@@ -8928,7 +8928,7 @@
     "id": "verbose_file_reads",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3032
+      "line": 3033
     },
     "group": "restriction",
     "level": "allow",
