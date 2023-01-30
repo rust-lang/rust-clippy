@@ -71,6 +71,7 @@ fn test_units() {
 /// TeX LaTeX BibTeX BibLaTeX
 /// MinGW
 /// CamelCase (see also #2395)
+/// AviSynth VapourSynth
 /// be_sure_we_got_to_the_end_of_it
 fn test_allowed() {
 }
