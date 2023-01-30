@@ -1,0 +1,83 @@
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:7:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+   = note: `-D clippy::stable-sort` implied by `-D warnings`
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:9:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:11:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:13:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:15:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:17:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:19:5
+   |
+LL |     arr.sort();
+   |     ^^^^^^^^^^ help: try: `arr.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:21:5
+   |
+LL |     vec_of_complex.sort();
+   |     ^^^^^^^^^^^^^^^^^^^^^ help: try: `vec_of_complex.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:24:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: used `sort` over `sort_unstable`
+  --> $DIR/stable_sort.rs:26:5
+   |
+LL |     vec.sort();
+   |     ^^^^^^^^^^ help: try: `vec.sort_unstable()`
+   |
+   = note: an unstable sort typically performs faster without any observable difference for this data type
+
+error: aborting due to 10 previous errors
+

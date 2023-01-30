@@ -77,7 +77,7 @@ mod single_char_insert_string;
 mod single_char_pattern;
 mod single_char_push_string;
 mod skip_while_next;
-mod stable_sort_primitive;
+mod stable_sort;
 mod str_splitn;
 mod string_extend_chars;
 mod suspicious_map;
@@ -2907,7 +2907,7 @@ declare_clippy_lint! {
     /// vec.sort_unstable();
     /// ```
     #[clippy::version = "1.47.0"]
-    pub STABLE_SORT_PRIMITIVE,
+    pub STABLE_SORT,
     pedantic,
     "use of sort() when sort_unstable() is equivalent"
 }
@@ -3279,7 +3279,7 @@ impl_lint_pass!(Methods => [
     PATH_BUF_PUSH_OVERWRITE,
     RANGE_ZIP_WITH_LEN,
     REPEAT_ONCE,
-    STABLE_SORT_PRIMITIVE,
+    STABLE_SORT,
     UNIT_HASH,
     UNNECESSARY_SORT_BY,
     VEC_RESIZE_TO_ZERO,
@@ -3691,7 +3691,7 @@ impl Methods {
                     }
                 },
                 ("sort", []) => {
-                    stable_sort_primitive::check(cx, expr, recv);
+                    stable_sort::check(cx, expr, recv);
                 },
                 ("sort_by", [arg]) => {
                     unnecessary_sort_by::check(cx, expr, recv, arg, false);
