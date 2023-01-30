@@ -4788,7 +4788,7 @@
     "id": "multiple_unsafe_ops_per_block",
     "id_span": {
       "path": "src/multiple_unsafe_ops_per_block.rs",
-      "line": 61
+      "line": 62
     },
     "group": "restriction",
     "level": "allow",
