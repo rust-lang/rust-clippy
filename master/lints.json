@@ -1668,7 +1668,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 268
+      "line": 269
     },
     "group": "suspicious",
     "level": "warn",
@@ -1923,7 +1923,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 234
+      "line": 235
     },
     "group": "complexity",
     "level": "warn",
@@ -1953,7 +1953,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 145
+      "line": 146
     },
     "group": "pedantic",
     "level": "allow",
@@ -1968,7 +1968,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 116
+      "line": 117
     },
     "group": "pedantic",
     "level": "allow",
@@ -2343,7 +2343,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 324
+      "line": 325
     },
     "group": "style",
     "level": "warn",
@@ -3198,7 +3198,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 169
+      "line": 170
     },
     "group": "correctness",
     "level": "deny",
@@ -3723,7 +3723,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 572
+      "line": 573
     },
     "group": "complexity",
     "level": "warn",
@@ -3753,7 +3753,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 505
+      "line": 506
     },
     "group": "complexity",
     "level": "warn",
@@ -4593,7 +4593,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 541
+      "line": 542
     },
     "group": "perf",
     "level": "warn",
@@ -4878,7 +4878,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 382
+      "line": 383
     },
     "group": "suspicious",
     "level": "warn",
@@ -5208,11 +5208,11 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 82
+      "line": 83
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for looping over the range of `0..len` of some\ncollection just to get the values by index.\n\n### Why is this bad?\nJust iterating the collection itself makes the intent\nmore clear and is probably faster.\n\n### Example\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```\n\nUse instead:\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in vec {\n    println!(\"{}\", i);\n}\n```",
+    "docs": "\n### What it does\nChecks for looping over the range of `0..len` of some\ncollection just to get the values by index.\n\n### Why is this bad?\nJust iterating the collection itself makes the intent\nmore clear and is probably faster because it eliminates\nthe bounds check that is done when indexing.\n\n### Example\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in 0..vec.len() {\n    println!(\"{}\", vec[i]);\n}\n```\n\nUse instead:\n```rust\nlet vec = vec!['a', 'b', 'c'];\nfor i in vec {\n    println!(\"{}\", i);\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5313,7 +5313,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 346
+      "line": 347
     },
     "group": "correctness",
     "level": "deny",
@@ -6648,7 +6648,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 445
+      "line": 446
     },
     "group": "style",
     "level": "warn",
@@ -7023,7 +7023,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 473
+      "line": 474
     },
     "group": "complexity",
     "level": "warn",
@@ -8958,7 +8958,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 409
+      "line": 410
     },
     "group": "correctness",
     "level": "deny",
@@ -8973,7 +8973,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 202
+      "line": 203
     },
     "group": "complexity",
     "level": "warn",
@@ -8988,7 +8988,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 295
+      "line": 296
     },
     "group": "style",
     "level": "warn",
