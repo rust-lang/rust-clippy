@@ -2028,7 +2028,7 @@
     "id": "extra_unused_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 87
+      "line": 84
     },
     "group": "complexity",
     "level": "warn",
@@ -5103,15 +5103,15 @@
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 56
+      "line": 53
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for lifetime annotations which can be removed by\nrelying on lifetime elision.\n\n### Why is this bad?\nThe additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.\n\n### Known problems\n- We bail out if the function has a `where` clause where lifetimes\nare mentioned due to potential false positives.\n- Lifetime bounds such as `impl Foo + 'a` and `T: 'a` must be elided with the\nplaceholder notation `'_` because the fully elided notation leaves the type bound to `'static`.\n\n### Example\n```rust\n// Unnecessary lifetime annotations\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {\n    x\n}\n```\n\nUse instead:\n```rust\nfn elided(x: &u8, y: u8) -> &u8 {\n    x\n}\n```",
+    "docs": "\n### What it does\nChecks for lifetime annotations which can be removed by\nrelying on lifetime elision.\n\n### Why is this bad?\nThe additional lifetimes make the code look more\ncomplicated, while there is nothing out of the ordinary going on. Removing\nthem leads to more readable code.\n\n### Known problems\n- We bail out if the function has a `where` clause where lifetimes\nare mentioned due to potential false positives.\n\n### Example\n```rust\n// Unnecessary lifetime annotations\nfn in_and_out<'a>(x: &'a u8, y: u8) -> &'a u8 {\n    x\n}\n```\n\nUse instead:\n```rust\nfn elided(x: &u8, y: u8) -> &u8 {\n    x\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
