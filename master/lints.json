@@ -2028,7 +2028,7 @@
     "id": "extra_unused_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 86
+      "line": 87
     },
     "group": "complexity",
     "level": "warn",
@@ -5103,7 +5103,7 @@
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 55
+      "line": 56
     },
     "group": "complexity",
     "level": "warn",
