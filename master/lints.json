@@ -8030,8 +8030,8 @@
       "path": "src/format_args.rs",
       "line": 127
     },
-    "group": "style",
-    "level": "warn",
+    "group": "pedantic",
+    "level": "allow",
     "docs": "\n### What it does\nDetect when a variable is not inlined in a format string,\nand suggests to inline it.\n\n### Why is this bad?\nNon-inlined code is slightly more difficult to read and understand,\nas it requires arguments to be matched against the format string.\nThe inlined syntax, where allowed, is simpler.\n\n### Example\n```rust\nformat!(\"{}\", var);\nformat!(\"{v:?}\", v = var);\nformat!(\"{0} {0}\", var);\nformat!(\"{0:1$}\", var, width);\nformat!(\"{:.*}\", prec, var);\n```\nUse instead:\n```rust\nformat!(\"{var}\");\nformat!(\"{var:?}\");\nformat!(\"{var} {var}\");\nformat!(\"{var:width$}\");\nformat!(\"{var:.prec$}\");\n```\n\nIf allow-mixed-uninlined-format-args is set to false in clippy.toml,\nthe following code will also trigger the lint:\n```rust\nformat!(\"{} {}\", var, 1+2);\n```\nUse instead:\n```rust\nformat!(\"{var} {}\", 1+2);\n```\n\n### Known Problems\n\nIf a format string contains a numbered argument that cannot be inlined\nnothing will be suggested, e.g. `println!(\"{0}={1}\", var, 1+2)`.\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n* `allow-mixed-uninlined-format-args`: `bool`(defaults to `true`): Whether to allow mixed uninlined format args, e.g. `format!(\"{} {}\", a, foo.bar)`\n",
     "version": "1.66.0",
     "applicability": {
