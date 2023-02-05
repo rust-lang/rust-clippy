@@ -237,10 +237,17 @@ fn hashmap_neg() {
 }
 
 fn false_negative_5707() {
-    fn foo(_x: &Alpha, _y: &mut Alpha) {}
+    use std::marker::PhantomData;
 
-    let x = Alpha;
-    let mut y = Alpha;
+    #[derive(Clone, Debug)]
+    struct Alpha<'a> {
+        _phantom: PhantomData<&'a ()>,
+    }
+
+    fn foo<'a>(_x: &'a Alpha<'_>, _y: &mut Alpha<'a>) {}
+
+    let x = Alpha { _phantom: PhantomData };
+    let mut y = Alpha { _phantom: PhantomData };
     foo(&x, &mut y);
     let _z = x.clone(); // pr 7346 can't lint on `x`
     drop(y);

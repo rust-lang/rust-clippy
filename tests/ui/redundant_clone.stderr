@@ -180,13 +180,13 @@ LL |     foo(&x.clone(), move || {
    |          ^
 
 error: redundant clone
-  --> $DIR/redundant_clone.rs:246:40
+  --> $DIR/redundant_clone.rs:253:40
    |
 LL |     s = s.chars().filter(|&c| c != 'o').to_owned().collect();
    |                                        ^^^^^^^^^^^ help: remove this
    |
 note: this value is dropped without further use
-  --> $DIR/redundant_clone.rs:246:9
+  --> $DIR/redundant_clone.rs:253:9
    |
 LL |     s = s.chars().filter(|&c| c != 'o').to_owned().collect();
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

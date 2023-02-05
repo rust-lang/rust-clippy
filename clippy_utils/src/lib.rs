@@ -20,6 +20,7 @@
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;
 extern crate rustc_attr;
+extern crate rustc_borrowck;
 extern crate rustc_const_eval;
 extern crate rustc_data_structures;
 // The `rustc_driver` crate seems to be required in order to use the `rust_ast` crate.
@@ -33,7 +34,10 @@ extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
 extern crate rustc_middle;
+extern crate rustc_mir_build;
 extern crate rustc_mir_dataflow;
+extern crate rustc_mir_transform;
+extern crate rustc_parse_format;
 extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_target;

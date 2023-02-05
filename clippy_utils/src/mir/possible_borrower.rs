@@ -1,249 +1,85 @@
-use super::possible_origin::PossibleOriginVisitor;
+use super::{translate_local, translate_location};
 use crate::ty::is_copy;
-use rustc_data_structures::fx::{FxHashMap, FxIndexMap};
-use rustc_index::bit_set::{BitSet, HybridBitSet};
+use rustc_borrowck::{borrow_set::BorrowSet, nll, region_infer::RegionInferenceContext, NllCtxt};
+use rustc_hir::def_id::LocalDefId;
+use rustc_index::{bit_set::BitSet, vec::IndexVec};
+use rustc_infer::infer::{DefiningAnchor, TyCtxtInferExt};
 use rustc_lint::LateContext;
-use rustc_middle::mir::{
-    self, visit::Visitor as _, BasicBlock, Local, Location, Mutability, Statement, StatementKind, Terminator,
-};
-use rustc_middle::ty::{self, visit::TypeVisitor, TyCtxt};
-use rustc_mir_dataflow::{
-    fmt::DebugWithContext, impls::MaybeStorageLive, lattice::JoinSemiLattice, Analysis, AnalysisDomain,
-    CallReturnPlaces, ResultsCursor,
-};
+use rustc_middle::mir;
+use rustc_middle::ty::{self, visit::TypeVisitor, RegionKind, RegionVid, Ty, TyCtxt, WithOptConstParam};
+use rustc_mir_build::{build::mir_build_fn_or_const, thir::cx::thir_build};
+use rustc_mir_dataflow::{impls::MaybeStorageLive, Analysis, ResultsCursor};
+use rustc_mir_transform::{mir_compute_const_qualifs, mir_promote, mir_ready_for_const_eval};
 use std::borrow::Cow;
 use std::ops::ControlFlow;
-
-/// Collects the possible borrowers of each local.
-/// For example, `b = &a; c = &a;` will make `b` and (transitively) `c`
-/// possible borrowers of `a`.
-#[allow(clippy::module_name_repetitions)]
-struct PossibleBorrowerAnalysis<'b, 'tcx> {
-    tcx: TyCtxt<'tcx>,
-    body: &'b mir::Body<'tcx>,
-    possible_origin: FxHashMap<mir::Local, HybridBitSet<mir::Local>>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct PossibleBorrowerState {
-    map: FxIndexMap<Local, BitSet<Local>>,
-    domain_size: usize,
-}
-
-impl PossibleBorrowerState {
-    fn new(domain_size: usize) -> Self {
-        Self {
-            map: FxIndexMap::default(),
-            domain_size,
-        }
-    }
-
-    #[allow(clippy::similar_names)]
-    fn add(&mut self, borrowed: Local, borrower: Local) {
-        self.map
-            .entry(borrowed)
-            .or_insert(BitSet::new_empty(self.domain_size))
-            .insert(borrower);
-    }
-}
-
-impl<C> DebugWithContext<C> for PossibleBorrowerState {
-    fn fmt_with(&self, _ctxt: &C, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <_ as std::fmt::Debug>::fmt(self, f)
-    }
-    fn fmt_diff_with(&self, _old: &Self, _ctxt: &C, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        unimplemented!()
-    }
-}
-
-impl JoinSemiLattice for PossibleBorrowerState {
-    fn join(&mut self, other: &Self) -> bool {
-        let mut changed = false;
-        for (&borrowed, borrowers) in other.map.iter() {
-            if !borrowers.is_empty() {
-                changed |= self
-                    .map
-                    .entry(borrowed)
-                    .or_insert(BitSet::new_empty(self.domain_size))
-                    .union(borrowers);
-            }
-        }
-        changed
-    }
-}
-
-impl<'b, 'tcx> AnalysisDomain<'tcx> for PossibleBorrowerAnalysis<'b, 'tcx> {
-    type Domain = PossibleBorrowerState;
-
-    const NAME: &'static str = "possible_borrower";
-
-    fn bottom_value(&self, body: &mir::Body<'tcx>) -> Self::Domain {
-        PossibleBorrowerState::new(body.local_decls.len())
-    }
-
-    fn initialize_start_block(&self, _body: &mir::Body<'tcx>, _entry_set: &mut Self::Domain) {}
-}
-
-impl<'b, 'tcx> PossibleBorrowerAnalysis<'b, 'tcx> {
-    fn new(
-        tcx: TyCtxt<'tcx>,
-        body: &'b mir::Body<'tcx>,
-        possible_origin: FxHashMap<mir::Local, HybridBitSet<mir::Local>>,
-    ) -> Self {
-        Self {
-            tcx,
-            body,
-            possible_origin,
-        }
-    }
-}
-
-impl<'b, 'tcx> Analysis<'tcx> for PossibleBorrowerAnalysis<'b, 'tcx> {
-    fn apply_call_return_effect(
-        &self,
-        _state: &mut Self::Domain,
-        _block: BasicBlock,
-        _return_places: CallReturnPlaces<'_, 'tcx>,
-    ) {
-    }
-
-    fn apply_statement_effect(&self, state: &mut Self::Domain, statement: &Statement<'tcx>, _location: Location) {
-        if let StatementKind::Assign(box (place, rvalue)) = &statement.kind {
-            let lhs = place.local;
-            match rvalue {
-                mir::Rvalue::Ref(_, _, borrowed) => {
-                    state.add(borrowed.local, lhs);
-                },
-                other => {
-                    if ContainsRegion
-                        .visit_ty(place.ty(&self.body.local_decls, self.tcx).ty)
-                        .is_continue()
-                    {
-                        return;
-                    }
-                    rvalue_locals(other, |rhs| {
-                        if lhs != rhs {
-                            state.add(rhs, lhs);
-                        }
-                    });
-                },
-            }
-        }
-    }
-
-    fn apply_terminator_effect(&self, state: &mut Self::Domain, terminator: &Terminator<'tcx>, _location: Location) {
-        if let mir::TerminatorKind::Call {
-            args,
-            destination: mir::Place { local: dest, .. },
-            ..
-        } = &terminator.kind
-        {
-            // TODO add doc
-            // If the call returns something with lifetimes,
-            // let's conservatively assume the returned value contains lifetime of all the arguments.
-            // For example, given `let y: Foo<'a> = foo(x)`, `y` is considered to be a possible borrower of `x`.
-
-            let mut immutable_borrowers = vec![];
-            let mut mutable_borrowers = vec![];
-
-            for op in args {
-                match op {
-                    mir::Operand::Copy(p) | mir::Operand::Move(p) => {
-                        if let ty::Ref(_, _, Mutability::Mut) = self.body.local_decls[p.local].ty.kind() {
-                            mutable_borrowers.push(p.local);
-                        } else {
-                            immutable_borrowers.push(p.local);
-                        }
-                    },
-                    mir::Operand::Constant(..) => (),
-                }
-            }
-
-            let mut mutable_variables: Vec<mir::Local> = mutable_borrowers
-                .iter()
-                .filter_map(|r| self.possible_origin.get(r))
-                .flat_map(HybridBitSet::iter)
-                .collect();
-
-            if ContainsRegion.visit_ty(self.body.local_decls[*dest].ty).is_break() {
-                mutable_variables.push(*dest);
-            }
-
-            for y in mutable_variables {
-                for x in &immutable_borrowers {
-                    state.add(*x, y);
-                }
-                for x in &mutable_borrowers {
-                    state.add(*x, y);
-                }
-            }
-        }
-    }
-}
-
-struct ContainsRegion;
-
-impl TypeVisitor<TyCtxt<'_>> for ContainsRegion {
-    type BreakTy = ();
-
-    fn visit_region(&mut self, _: ty::Region<'_>) -> ControlFlow<Self::BreakTy> {
-        ControlFlow::Break(())
-    }
-}
-
-fn rvalue_locals(rvalue: &mir::Rvalue<'_>, mut visit: impl FnMut(mir::Local)) {
-    use rustc_middle::mir::Rvalue::{Aggregate, BinaryOp, Cast, CheckedBinaryOp, Repeat, UnaryOp, Use};
-
-    let mut visit_op = |op: &mir::Operand<'_>| match op {
-        mir::Operand::Copy(p) | mir::Operand::Move(p) => visit(p.local),
-        mir::Operand::Constant(..) => (),
-    };
-
-    match rvalue {
-        Use(op) | Repeat(op, _) | Cast(_, op, _) | UnaryOp(_, op) => visit_op(op),
-        Aggregate(_, ops) => ops.iter().for_each(visit_op),
-        BinaryOp(_, box (lhs, rhs)) | CheckedBinaryOp(_, box (lhs, rhs)) => {
-            visit_op(lhs);
-            visit_op(rhs);
-        },
-        _ => (),
-    }
-}
+use std::rc::Rc;
 
 /// Result of `PossibleBorrowerAnalysis`.
 #[allow(clippy::module_name_repetitions)]
 pub struct PossibleBorrowerMap<'b, 'tcx> {
-    body: &'b mir::Body<'tcx>,
-    possible_borrower: ResultsCursor<'b, 'tcx, PossibleBorrowerAnalysis<'b, 'tcx>>,
+    tcx: TyCtxt<'tcx>,
+    local_def_id: LocalDefId,
+    regioncx: Rc<RegionInferenceContext<'tcx>>,
+    body: Rc<mir::Body<'tcx>>,
+    borrow_set: Rc<BorrowSet<'tcx>>,
     maybe_live: ResultsCursor<'b, 'tcx, MaybeStorageLive<'b>>,
-    pushed: BitSet<Local>,
-    stack: Vec<Local>,
 }
 
 impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
-    pub fn new(cx: &LateContext<'tcx>, mir: &'b mir::Body<'tcx>) -> Self {
-        let possible_origin = {
-            let mut vis = PossibleOriginVisitor::new(mir);
-            vis.visit_body(mir);
-            vis.into_map(cx)
-        };
-        let possible_borrower = PossibleBorrowerAnalysis::new(cx.tcx, mir, possible_origin)
-            .into_engine(cx.tcx, mir)
+    pub fn new(cx: &LateContext<'tcx>, local_def_id: LocalDefId) -> Self {
+        let tcx = cx.tcx;
+
+        let infcx = tcx
+            .infer_ctxt()
+            .with_opaque_type_inference(DefiningAnchor::Bind(local_def_id))
+            .build();
+
+        let (input_body, input_promoted) = Self::mir_build(tcx, local_def_id);
+
+        let mut nll_ctxt = NllCtxt::new(&infcx, &input_body, &input_promoted);
+
+        let nll::NllOutput { regioncx, .. } = nll_ctxt.compute_regions(false);
+
+        let NllCtxt { body, borrow_set, .. } = nll_ctxt;
+
+        let regioncx = Rc::new(regioncx);
+        let body = Rc::new(body);
+        let borrow_set = Rc::new(borrow_set);
+
+        let maybe_live = MaybeStorageLive::new(Cow::Owned(BitSet::new_empty(body.local_decls.len())))
+            .into_engine(tcx, &body)
             .pass_name("possible_borrower")
             .iterate_to_fixpoint()
-            .into_results_cursor(mir);
-        let maybe_live = MaybeStorageLive::new(Cow::Owned(BitSet::new_empty(mir.local_decls.len())))
-            .into_engine(cx.tcx, mir)
-            .pass_name("possible_borrower")
-            .iterate_to_fixpoint()
-            .into_results_cursor(mir);
+            .into_results_cursor(body.clone());
+
         PossibleBorrowerMap {
-            body: mir,
-            possible_borrower,
+            tcx,
+            local_def_id,
+            regioncx,
+            body,
+            borrow_set,
             maybe_live,
-            pushed: BitSet::new_empty(mir.local_decls.len()),
-            stack: Vec::with_capacity(mir.local_decls.len()),
         }
+    }
+
+    fn mir_build(
+        tcx: TyCtxt<'tcx>,
+        local_def_id: LocalDefId,
+    ) -> (mir::Body<'tcx>, IndexVec<mir::Promoted, mir::Body<'tcx>>) {
+        let def = WithOptConstParam {
+            did: local_def_id,
+            const_param_did: None,
+        };
+
+        let (thir, expr) = thir_build(tcx, def).expect("`thir_build` should succeed");
+
+        let body_init = mir_build_fn_or_const(tcx, def, thir, expr);
+
+        let body_const = mir_ready_for_const_eval(tcx, body_init);
+
+        let const_qualifs = mir_compute_const_qualifs(tcx, def, || &body_const);
+
+        mir_promote(tcx, const_qualifs, body_const)
     }
 
     /// Returns true if the set of borrowers of `borrowed` living at `at` includes no more than
@@ -263,49 +99,101 @@ impl<'b, 'tcx> PossibleBorrowerMap<'b, 'tcx> {
         borrowed: mir::Local,
         at: mir::Location,
     ) -> bool {
-        if is_copy(cx, self.body.local_decls[borrowed].ty) {
+        let mir = cx.tcx.optimized_mir(self.local_def_id.to_def_id());
+        if is_copy(cx, mir.local_decls[borrowed].ty) {
             return true;
         }
 
-        self.possible_borrower.seek_before_primary_effect(at);
+        let Some(borrowers) = borrowers
+            .iter()
+            .map(|&borrower| translate_local(cx.tcx, mir, &self.body, borrower))
+            .collect::<Option<Vec<_>>>()
+         else {
+            debug_assert!(false, "can't find {borrowers:?}");
+            return false;
+        };
+
+        let Some(borrowed) = translate_local(cx.tcx, mir, &self.body, borrowed) else {
+            debug_assert!(false, "can't find {borrowed:?}");
+            return false;
+        };
+
+        let Some(at) = translate_location(cx.tcx, mir, &self.body, at) else {
+            debug_assert!(false, "can't find {at:?}: {:?}", mir.stmt_at(at));
+            return false;
+        };
+
         self.maybe_live.seek_before_primary_effect(at);
 
-        let possible_borrower = &self.possible_borrower.get().map;
-        let maybe_live = &self.maybe_live;
+        let maybe_live = self.maybe_live.get();
 
-        self.pushed.clear();
-        self.stack.clear();
+        // For each borrow of `borrowed`, ask the following question:
+        //
+        // - Is there any local, live at location `at`, and with an associated region that is outlived by
+        //   the borrow region, but that is not also outlived by any of the regions of `borrowers`?
+        //
+        // If the answer to any of these question is "yes," then there are potential additional borrowers of
+        // `borrowed`.
+        //
+        // Note that the `any` closure has no side effects. So the result is the same regardless of the
+        // order in which `index`es are visited.
+        #[allow(rustc::potential_query_instability)]
+        !self.borrow_set.local_map[&borrowed].iter().any(|index| {
+            let root_vid = self.borrow_set.location_map[index.as_usize()].region;
 
-        if let Some(borrowers) = possible_borrower.get(&borrowed) {
-            for b in borrowers.iter() {
-                if self.pushed.insert(b) {
-                    self.stack.push(b);
-                }
-            }
-        } else {
-            // Nothing borrows `borrowed` at `at`.
-            return true;
-        }
+            maybe_live.iter().any(|local| {
+                let local_regions = collect_regions(self.body.local_decls[local].ty);
 
-        while let Some(borrower) = self.stack.pop() {
-            if maybe_live.contains(borrower) && !borrowers.contains(&borrower) {
-                return false;
-            }
-
-            if let Some(borrowers) = possible_borrower.get(&borrower) {
-                for b in borrowers.iter() {
-                    if self.pushed.insert(b) {
-                        self.stack.push(b);
+                local_regions.iter().any(|&local_vid| {
+                    if !self.regioncx.eval_outlives(root_vid, local_vid) {
+                        return false;
                     }
-                }
-            }
-        }
 
-        true
+                    !borrowers
+                        .iter()
+                        .filter_map(|&borrower| self.borrower_vid(borrower))
+                        .any(|borrower_vid| self.regioncx.eval_outlives(borrower_vid, local_vid))
+                })
+            })
+        })
+    }
+
+    fn borrower_vid(&self, borrower: mir::Local) -> Option<RegionVid> {
+        if let ty::Ref(region, _, _) = self.body.local_decls[borrower].ty.kind()
+            && let ty::RegionKind::ReVar(borrower_vid) = region.kind()
+        {
+            Some(borrower_vid)
+        } else {
+            None
+        }
     }
 
     pub fn local_is_alive_at(&mut self, local: mir::Local, at: mir::Location) -> bool {
+        let mir = self.tcx.optimized_mir(self.local_def_id.to_def_id());
+
+        let Some(at) = translate_location(self.tcx, mir, &self.body, at) else {
+            debug_assert!(false, "can't find {at:?}: {:?}", mir.stmt_at(at));
+            return false;
+        };
+
         self.maybe_live.seek_after_primary_effect(at);
         self.maybe_live.contains(local)
+    }
+}
+
+fn collect_regions(ty: Ty<'_>) -> Vec<RegionVid> {
+    let mut rc = RegionCollector(Vec::new());
+    rc.visit_ty(ty);
+    rc.0
+}
+
+struct RegionCollector(Vec<RegionVid>);
+
+impl<'tcx> TypeVisitor<'tcx> for RegionCollector {
+    fn visit_region(&mut self, region: ty::Region<'tcx>) -> ControlFlow<Self::BreakTy> {
+        if let RegionKind::ReVar(vid) = region.kind() {
+            self.0.push(vid);
+        }
+        ControlFlow::Continue(())
     }
 }

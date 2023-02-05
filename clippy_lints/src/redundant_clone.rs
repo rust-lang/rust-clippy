@@ -81,7 +81,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
 
         let mir = cx.tcx.optimized_mir(def_id.to_def_id());
 
-        let mut possible_borrower = PossibleBorrowerMap::new(cx, mir);
+        let mut possible_borrower = PossibleBorrowerMap::new(cx, def_id);
 
         for (bb, bbdata) in mir.basic_blocks.iter_enumerated() {
             let terminator = bbdata.terminator();
