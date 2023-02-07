@@ -50,8 +50,6 @@ pub const IDENT_AS_STR: [&str; 4] = ["rustc_span", "symbol", "Ident", "as_str"];
 pub const INSERT_STR: [&str; 4] = ["alloc", "string", "String", "insert_str"];
 pub const ITER_EMPTY: [&str; 5] = ["core", "iter", "sources", "empty", "Empty"];
 pub const ITER_EXTEND: [&str; 6] = ["core", "iter", "traits", "collect", "Extend", "extend"];
-pub const ITER_REPEAT: [&str; 5] = ["core", "iter", "sources", "repeat", "repeat"];
-#[expect(clippy::invalid_paths)] // internal lints do not know about all external crates
 pub const ITERTOOLS_NEXT_TUPLE: [&str; 3] = ["itertools", "Itertools", "next_tuple"];
 #[cfg(feature = "internal")]
 pub const KW_MODULE: [&str; 3] = ["rustc_span", "symbol", "kw"];
