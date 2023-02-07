@@ -48,7 +48,7 @@ impl UnnecessaryReserve {
 
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryReserve {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
-        if !self.msrv.meets(msrvs::CHECK_UNNECESSARY_RESERVE) {
+        if !self.msrv.meets(msrvs::EXTEND_IMPLICIT_RESERVE) {
             return;
         }
 
