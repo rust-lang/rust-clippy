@@ -333,7 +333,7 @@
     "id": "bool_assert_comparison",
     "id_span": {
       "path": "src/bool_assert_comparison.rs",
-      "line": 30
+      "line": 31
     },
     "group": "style",
     "level": "warn",
