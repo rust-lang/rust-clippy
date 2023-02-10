@@ -268,7 +268,7 @@ impl HirEqInterExpr<'_, '_, '_> {
             (&ExprKind::Let(l), &ExprKind::Let(r)) => {
                 self.eq_pat(l.pat, r.pat) && both(&l.ty, &r.ty, |l, r| self.eq_ty(l, r)) && self.eq_expr(l.init, r.init)
             },
-            (ExprKind::Lit(l), ExprKind::Lit(r)) => l.node == r.node,
+            (&ExprKind::Lit(ref l), &ExprKind::Lit(ref r)) => l.node == r.node,
             (&ExprKind::Loop(lb, ref ll, ref lls, _), &ExprKind::Loop(rb, ref rl, ref rls, _)) => {
                 lls == rls && self.eq_block(lb, rb) && both(ll, rl, |l, r| l.ident.name == r.ident.name)
             },
@@ -290,11 +290,11 @@ impl HirEqInterExpr<'_, '_, '_> {
                     && self.eq_expr(l_receiver, r_receiver)
                     && self.eq_exprs(l_args, r_args)
             },
-            (ExprKind::Path(l), ExprKind::Path(r)) => self.eq_qpath(l, r),
+            (&ExprKind::Path(ref l), &ExprKind::Path(ref r)) => self.eq_qpath(l, r),
             (&ExprKind::Repeat(le, ll), &ExprKind::Repeat(re, rl)) => {
                 self.eq_expr(le, re) && self.eq_array_length(ll, rl)
             },
-            (ExprKind::Ret(l), ExprKind::Ret(r)) => both(l, r, |l, r| self.eq_expr(l, r)),
+            (&ExprKind::Ret(l), ExprKind::Ret(r)) => both(&l, r, |l, r| self.eq_expr(l, r)),
             (&ExprKind::Struct(l_path, lf, ref lo), &ExprKind::Struct(r_path, rf, ref ro)) => {
                 self.eq_qpath(l_path, r_path)
                     && both(lo, ro, |l, r| self.eq_expr(l, r))
@@ -319,13 +319,13 @@ impl HirEqInterExpr<'_, '_, '_> {
             | &ExprKind::Index(..)
             | &ExprKind::If(..)
             | &ExprKind::Let(..)
-            | ExprKind::Lit(..)
+            | &ExprKind::Lit(..)
             | &ExprKind::Loop(..)
             | &ExprKind::Match(..)
             | &ExprKind::MethodCall(..)
-            | ExprKind::Path(..)
+            | &ExprKind::Path(..)
             | &ExprKind::Repeat(..)
-            | ExprKind::Ret(..)
+            | &ExprKind::Ret(..)
             | &ExprKind::Struct(..)
             | &ExprKind::Tup(..)
             | &ExprKind::Unary(..)
