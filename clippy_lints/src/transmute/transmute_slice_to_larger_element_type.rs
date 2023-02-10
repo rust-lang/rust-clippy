@@ -40,7 +40,7 @@ pub(super) fn check<'tcx>(
                             .to_slice()"
                         );
                         let sugg_reallocate = Cow::from(sugg_reallocate);
-                        let sugg_align_to = format!("std::slice::align_to::<{ty_elem_to}>({transmute_arg}).1");
+                        let sugg_align_to = format!("({transmute_arg}).align_to::<{ty_elem_to}>().1");
                         let sugg_align_to = Cow::from(sugg_align_to);
                         diag.note("this transmute leads out-of-bounds read");
                         diag.span_suggestions(

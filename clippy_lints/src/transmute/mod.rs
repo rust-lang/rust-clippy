@@ -449,19 +449,21 @@ declare_clippy_lint! {
     /// ### Example
     /// ```rust
     /// let i8_slice: &[i8] = &[1i8, 2, 3, 4];
-    //  let i32_slice: &[i32] = unsafe { std::mem::transmute(i8_slice) };
+    /// let i32_slice: &[i32] = unsafe { std::mem::transmute(i8_slice) };
     /// ```
     ///
     /// Use instead:
     ///
     /// ```rust
+    /// let i8_slice: &[i8] = &[1i8, 2, 3, 4];
     /// let i32_slice: &[i32] = i8_slice.iter().map(|item| unsafe { std::mem::transmute(item) }).collect::<Vec<_>>().to_slice();
     /// ```
     ///
     /// or, alternatively:
     ///
     /// ```rust
-    /// let i32_slice: &[i32] = std::slice::align_to::<i32>(i8_slice).1;
+    /// let i8_slice: &[i8] = &[1i8, 2, 3, 4];
+    /// let i32_slice: &[i32] = unsafe { i8_slice.align_to::<i32>().1 };
     /// ```
     #[clippy::version = "1.69.0"]
     pub TRANSMUTE_SLICE_TO_LARGER_ELEMENT_TYPE,
