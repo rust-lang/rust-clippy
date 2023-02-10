@@ -441,21 +441,32 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for slice creation which has larger element before transmute.
     ///
     /// ### Why is this bad?
+    /// Creating those slices leads to out-of-bounds read, considered Undefined Behavior.
     ///
     /// ### Example
     /// ```rust
-    /// // example code where clippy issues a warning
+    /// let i8_slice: &[i8] = &[1i8, 2, 3, 4];
+    //  let i32_slice: &[i32] = unsafe { std::mem::transmute(i8_slice) };
     /// ```
+    ///
     /// Use instead:
+    ///
     /// ```rust
-    /// // example code which does not raise clippy warning
+    /// let i32_slice: &[i32] = i8_slice.iter().map(|item| unsafe { std::mem::transmute(item) }).collect::<Vec<_>>().to_slice();
+    /// ```
+    ///
+    /// or, alternatively:
+    ///
+    /// ```rust
+    /// let i32_slice: &[i32] = std::slice::align_to::<i32>(i8_slice).1;
     /// ```
     #[clippy::version = "1.69.0"]
     pub TRANSMUTE_SLICE_TO_LARGER_ELEMENT_TYPE,
     correctness,
-    "default lint description"
+    "transmute leads out-of-bounds read, which is undefined behavior"
 }
 
 pub struct Transmute {
