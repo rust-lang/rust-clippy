@@ -9,7 +9,6 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 use std::borrow::Cow;
 
-// TODO: Adjust the parameters as necessary
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     call_to_transmute: &'tcx Expr<'_>,
