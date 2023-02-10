@@ -31,6 +31,7 @@ pub(super) fn check<'tcx>(
                         let transmute_arg = sugg::Sugg::hir(cx, transmute_arg, "..");
                         // TODO: In this case, outer unsafe block is not needed anymore. It should be removed in
                         // suggestion.
+                        // FIXME: this do not compile, because temporal Vec dropped at end of outer unsafe block.
                         let sugg_reallocate = format!(
                             "{transmute_arg}\
                             .iter()\
