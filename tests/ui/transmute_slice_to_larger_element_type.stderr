@@ -1,0 +1,17 @@
+error: transmute from `&[i8]` to `&[i32]` results in undefined behavior
+  --> $DIR/transmute_slice_to_larger_element_type.rs:6:38
+   |
+LL |     let i32_slice: &[i32] = unsafe { std::mem::transmute(i8_slice) };
+   |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this transmute leads out-of-bounds read
+   = note: `-D clippy::transmute-slice-to-larger-element-type` implied by `-D warnings`
+help: try
+   |
+LL |     let i32_slice: &[i32] = unsafe { i8_slice.iter().map(|item| unsafe { std::mem::transmute(item) }).collect::<Vec<_>>().to_slice() };
+   |                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+LL |     let i32_slice: &[i32] = unsafe { std::slice::align_to::<i32>(i8_slice).1 };
+   |                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: aborting due to previous error
+

@@ -8,6 +8,7 @@ mod transmute_num_to_bytes;
 mod transmute_ptr_to_ptr;
 mod transmute_ptr_to_ref;
 mod transmute_ref_to_ref;
+mod transmute_slice_to_larger_element_type;
 mod transmute_undefined_repr;
 mod transmutes_expressible_as_ptr_casts;
 mod transmuting_null;
@@ -438,6 +439,25 @@ declare_clippy_lint! {
     "transmute results in a null function pointer, which is undefined behavior"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// ### Why is this bad?
+    ///
+    /// ### Example
+    /// ```rust
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.69.0"]
+    pub TRANSMUTE_SLICE_TO_LARGER_ELEMENT_TYPE,
+    correctness,
+    "default lint description"
+}
+
 pub struct Transmute {
     msrv: Msrv,
 }
@@ -458,6 +478,7 @@ impl_lint_pass!(Transmute => [
     TRANSMUTE_UNDEFINED_REPR,
     TRANSMUTING_NULL,
     TRANSMUTE_NULL_TO_FN,
+    TRANSMUTE_SLICE_TO_LARGER_ELEMENT_TYPE,
 ]);
 impl Transmute {
     #[must_use]
@@ -503,6 +524,7 @@ impl<'tcx> LateLintPass<'tcx> for Transmute {
                     | transmute_int_to_float::check(cx, e, from_ty, to_ty, arg, const_context)
                     | transmute_float_to_int::check(cx, e, from_ty, to_ty, arg, const_context)
                     | transmute_num_to_bytes::check(cx, e, from_ty, to_ty, arg, const_context)
+                    | transmute_slice_to_larger_element_type::check(cx, e, from_ty, to_ty, arg)
                     | (
                         unsound_collection_transmute::check(cx, e, from_ty, to_ty)
                         || transmute_undefined_repr::check(cx, e, from_ty, to_ty)
