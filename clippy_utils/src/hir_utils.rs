@@ -229,47 +229,67 @@ impl HirEqInterExpr<'_, '_, '_> {
             (&ExprKind::AddrOf(lb, l_mut, le), &ExprKind::AddrOf(rb, r_mut, re)) => {
                 lb == rb && l_mut == r_mut && self.eq_expr(le, re)
             },
-            (&ExprKind::Continue(li), &ExprKind::Continue(ri)) => {
-                both(&li.label, &ri.label, |l, r| l.ident.name == r.ident.name)
-            },
+            (&ExprKind::AddrOf(..), _) => false,
+            (&ExprKind::Array(l), &ExprKind::Array(r)) => self.eq_exprs(l, r),
+            (&ExprKind::Array(_), _) => false,
             (&ExprKind::Assign(ll, lr, _), &ExprKind::Assign(rl, rr, _)) => {
                 self.inner.allow_side_effects && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
             },
+            (&ExprKind::Assign(..), _) => false,
             (&ExprKind::AssignOp(ref lo, ll, lr), &ExprKind::AssignOp(ref ro, rl, rr)) => {
                 self.inner.allow_side_effects && lo.node == ro.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
             },
-            (&ExprKind::Block(l, _), &ExprKind::Block(r, _)) => self.eq_block(l, r),
+            (&ExprKind::AssignOp(..), _) => false,
             (&ExprKind::Binary(l_op, ll, lr), &ExprKind::Binary(r_op, rl, rr)) => {
                 l_op.node == r_op.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
                     || swap_binop(l_op.node, ll, lr).map_or(false, |(l_op, ll, lr)| {
                         l_op == r_op.node && self.eq_expr(ll, rl) && self.eq_expr(lr, rr)
                     })
             },
+            (&ExprKind::Binary(..), _) => false,
+            (&ExprKind::Block(l, _), &ExprKind::Block(r, _)) => self.eq_block(l, r),
+            (&ExprKind::Block(..), _) => false,
+            (&ExprKind::Box(l), &ExprKind::Box(r)) => self.eq_expr(l, r),
+            (&ExprKind::Box(..), _) => false,
             (&ExprKind::Break(li, ref le), &ExprKind::Break(ri, ref re)) => {
                 both(&li.label, &ri.label, |l, r| l.ident.name == r.ident.name)
                     && both(le, re, |l, r| self.eq_expr(l, r))
             },
-            (&ExprKind::Box(l), &ExprKind::Box(r)) => self.eq_expr(l, r),
+            (&ExprKind::Break(..), _) => false,
             (&ExprKind::Call(l_fun, l_args), &ExprKind::Call(r_fun, r_args)) => {
                 self.inner.allow_side_effects && self.eq_expr(l_fun, r_fun) && self.eq_exprs(l_args, r_args)
             },
+            (&ExprKind::Call(..), _) => false,
             (&ExprKind::Cast(lx, lt), &ExprKind::Cast(rx, rt)) | (&ExprKind::Type(lx, lt), &ExprKind::Type(rx, rt)) => {
                 self.eq_expr(lx, rx) && self.eq_ty(lt, rt)
             },
+            (&ExprKind::Cast(..), _) => false,
+            (&ExprKind::Continue(li), &ExprKind::Continue(ri)) => {
+                both(&li.label, &ri.label, |l, r| l.ident.name == r.ident.name)
+            },
+            (&ExprKind::Continue(..), _) => false,
+            (&ExprKind::DropTemps(le), &ExprKind::DropTemps(re)) => self.eq_expr(le, re),
+            (&ExprKind::DropTemps(..), _) => false,
             (&ExprKind::Field(l_f_exp, ref l_f_ident), &ExprKind::Field(r_f_exp, ref r_f_ident)) => {
                 l_f_ident.name == r_f_ident.name && self.eq_expr(l_f_exp, r_f_exp)
             },
+            (&ExprKind::Field(..), _) => false,
             (&ExprKind::Index(la, li), &ExprKind::Index(ra, ri)) => self.eq_expr(la, ra) && self.eq_expr(li, ri),
+            (&ExprKind::Index(..), _) => false,
             (&ExprKind::If(lc, lt, ref le), &ExprKind::If(rc, rt, ref re)) => {
                 self.eq_expr(lc, rc) && self.eq_expr(lt, rt) && both(le, re, |l, r| self.eq_expr(l, r))
             },
+            (&ExprKind::If(..), _) => false,
             (&ExprKind::Let(l), &ExprKind::Let(r)) => {
                 self.eq_pat(l.pat, r.pat) && both(&l.ty, &r.ty, |l, r| self.eq_ty(l, r)) && self.eq_expr(l.init, r.init)
             },
+            (&ExprKind::Let(..), _) => false,
             (ExprKind::Lit(l), ExprKind::Lit(r)) => l.node == r.node,
+            (ExprKind::Lit(..), _) => false,
             (&ExprKind::Loop(lb, ref ll, ref lls, _), &ExprKind::Loop(rb, ref rl, ref rls, _)) => {
                 lls == rls && self.eq_block(lb, rb) && both(ll, rl, |l, r| l.ident.name == r.ident.name)
             },
+            (&ExprKind::Loop(..), _) => false,
             (&ExprKind::Match(le, la, ref ls), &ExprKind::Match(re, ra, ref rs)) => {
                 ls == rs
                     && self.eq_expr(le, re)
@@ -279,6 +299,7 @@ impl HirEqInterExpr<'_, '_, '_> {
                             && self.eq_expr(l.body, r.body)
                     })
             },
+            (&ExprKind::Match(..), _) => false,
             (
                 &ExprKind::MethodCall(l_path, l_receiver, l_args, _),
                 &ExprKind::MethodCall(r_path, r_receiver, r_args, _),
@@ -288,21 +309,31 @@ impl HirEqInterExpr<'_, '_, '_> {
                     && self.eq_expr(l_receiver, r_receiver)
                     && self.eq_exprs(l_args, r_args)
             },
+            (&ExprKind::MethodCall(..), _) => false,
+            (ExprKind::Path(l), ExprKind::Path(r)) => self.eq_qpath(l, r),
+            (ExprKind::Path(..), _) => false,
             (&ExprKind::Repeat(le, ll), &ExprKind::Repeat(re, rl)) => {
                 self.eq_expr(le, re) && self.eq_array_length(ll, rl)
             },
+            (&ExprKind::Repeat(..), _) => false,
             (ExprKind::Ret(l), ExprKind::Ret(r)) => both(l, r, |l, r| self.eq_expr(l, r)),
-            (ExprKind::Path(l), ExprKind::Path(r)) => self.eq_qpath(l, r),
+            (ExprKind::Ret(..), _) => false,
             (&ExprKind::Struct(l_path, lf, ref lo), &ExprKind::Struct(r_path, rf, ref ro)) => {
                 self.eq_qpath(l_path, r_path)
                     && both(lo, ro, |l, r| self.eq_expr(l, r))
                     && over(lf, rf, |l, r| self.eq_expr_field(l, r))
             },
+            (&ExprKind::Struct(..), _) => false,
             (&ExprKind::Tup(l_tup), &ExprKind::Tup(r_tup)) => self.eq_exprs(l_tup, r_tup),
+            (&ExprKind::Tup(..), _) => false,
             (&ExprKind::Unary(l_op, le), &ExprKind::Unary(r_op, re)) => l_op == r_op && self.eq_expr(le, re),
-            (&ExprKind::Array(l), &ExprKind::Array(r)) => self.eq_exprs(l, r),
-            (&ExprKind::DropTemps(le), &ExprKind::DropTemps(re)) => self.eq_expr(le, re),
-            _ => false,
+            (&ExprKind::Unary(..), _) => false,
+            (&ExprKind::ConstBlock(_), _)
+            | (&ExprKind::Closure(_), _)
+            | (&ExprKind::InlineAsm(_), _)
+            | (&ExprKind::Yield(..), _)
+            | (&ExprKind::Type(..), _)
+            | (&ExprKind::Err, _) => false,
         };
         (is_eq && (!self.should_ignore(left) || !self.should_ignore(right)))
             || self.inner.expr_fallback.as_mut().map_or(false, |f| f(left, right))
