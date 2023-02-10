@@ -8,10 +8,10 @@ LL |     let i32_slice: &[i32] = unsafe { std::mem::transmute(i8_slice) };
    = note: `-D clippy::transmute-slice-to-larger-element-type` implied by `-D warnings`
 help: try
    |
+LL |     let i32_slice: &[i32] = unsafe { (i8_slice).align_to::<i32>().1 };
+   |                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 LL |     let i32_slice: &[i32] = unsafe { i8_slice.iter().map(|item| unsafe { std::mem::transmute(item) }).collect::<Vec<_>>().to_slice() };
    |                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-LL |     let i32_slice: &[i32] = unsafe { i8_slice.align_to::<i32>().1 };
-   |                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error: aborting due to previous error
 
