@@ -36,7 +36,7 @@ pub(super) fn check<'tcx>(
                             .iter()\
                             .map(|item| unsafe {{ std::mem::transmute(item) }})\
                             .collect::<Vec<_>>()\
-                            .to_slice()"
+                            .as_slice()"
                         );
                         let sugg_reallocate = Cow::from(sugg_reallocate);
                         let sugg_align_to = format!("({transmute_arg}).align_to::<{ty_elem_to}>().1");
