@@ -4,7 +4,7 @@ use crate::source::snippet_opt;
 use rustc_ast::ast::InlineAsmTemplatePiece;
 use rustc_data_structures::fx::FxHasher;
 use rustc_hir::def::Res;
-use rustc_hir::HirIdMap;
+use rustc_hir::{HirIdMap, YieldSource};
 use rustc_hir::{
     ArrayLen, BinOpKind, BindingAnnotation, Block, BodyId, Closure, Expr, ExprField, ExprKind, FnRetTy, GenericArg,
     GenericArgs, Guard, HirId, InlineAsmOperand, Let, Lifetime, LifetimeName, Pat, PatField, PatKind, Path,
@@ -205,6 +205,7 @@ impl HirEqInterExpr<'_, '_, '_> {
         res
     }
 
+    /// Determine whether two expressions are syntactically equal.
     #[expect(clippy::similar_names, clippy::too_many_lines)]
     pub fn eq_expr(&mut self, left: &Expr<'_>, right: &Expr<'_>) -> bool {
         if !self.inner.allow_side_effects && left.span.ctxt() != right.span.ctxt() {
@@ -226,6 +227,8 @@ impl HirEqInterExpr<'_, '_, '_> {
             reduce_exprkind(self.inner.cx, &left.kind),
             reduce_exprkind(self.inner.cx, &right.kind),
         ) {
+            // Style note: These patterns are ordered alphabetically.
+            // If you add new cases, please try and maintain this order!
             (&ExprKind::AddrOf(lb, l_mut, le), &ExprKind::AddrOf(rb, r_mut, re)) => {
                 lb == rb && l_mut == r_mut && self.eq_expr(le, re)
             },
@@ -254,14 +257,32 @@ impl HirEqInterExpr<'_, '_, '_> {
             (&ExprKind::Cast(lx, lt), &ExprKind::Cast(rx, rt)) | (&ExprKind::Type(lx, lt), &ExprKind::Type(rx, rt)) => {
                 self.eq_expr(lx, rx) && self.eq_ty(lt, rt)
             },
+            (&ExprKind::Closure(..), &ExprKind::Closure(..)) => {
+                // For the time being, we always consider that two closures are different.
+                // This behavior may change in the future.
+                false
+            },
             (&ExprKind::Continue(li), &ExprKind::Continue(ri)) => {
                 both(&li.label, &ri.label, |l, r| l.ident.name == r.ident.name)
             },
+            (&ExprKind::ConstBlock(ref l), &ExprKind::ConstBlock(ref r)) => {
+                self.eq_body(l.body, r.body)
+            },
             (&ExprKind::DropTemps(le), &ExprKind::DropTemps(re)) => self.eq_expr(le, re),
+            (&ExprKind::Err, _) | (_, &ExprKind::Err) => {
+                // `Err` represents an invalid expression, so let's never assume that
+                // an invalid expressions is equal to anything.
+                false
+            }
             (&ExprKind::Field(l_f_exp, ref l_f_ident), &ExprKind::Field(r_f_exp, ref r_f_ident)) => {
                 l_f_ident.name == r_f_ident.name && self.eq_expr(l_f_exp, r_f_exp)
             },
             (&ExprKind::Index(la, li), &ExprKind::Index(ra, ri)) => self.eq_expr(la, ra) && self.eq_expr(li, ri),
+            (&ExprKind::InlineAsm(_), &ExprKind::InlineAsm(_)) => {
+                // For the time being, we always consider that two instances of InlineAsm are different.
+                // This behavior may change in the future.
+                false
+            },
             (&ExprKind::If(lc, lt, ref le), &ExprKind::If(rc, rt, ref re)) => {
                 self.eq_expr(lc, rc) && self.eq_expr(lt, rt) && both(le, re, |l, r| self.eq_expr(l, r))
             },
@@ -302,6 +323,10 @@ impl HirEqInterExpr<'_, '_, '_> {
             },
             (&ExprKind::Tup(l_tup), &ExprKind::Tup(r_tup)) => self.eq_exprs(l_tup, r_tup),
             (&ExprKind::Unary(l_op, le), &ExprKind::Unary(r_op, re)) => l_op == r_op && self.eq_expr(le, re),
+            (&ExprKind::Yield(le, YieldSource::Await { .. }), &ExprKind::Yield(re, YieldSource::Await { .. }))
+            | (&ExprKind::Yield(le, YieldSource::Yield), &ExprKind::Yield(re, YieldSource::Yield)) => {
+                self.eq_expr(le, re)
+            },
             // Else branches for branches above, grouped as per `match_same_arms`.
             (&ExprKind::AddrOf(..)
             | &ExprKind::Array(..)
@@ -313,10 +338,13 @@ impl HirEqInterExpr<'_, '_, '_> {
             | &ExprKind::Break(..)
             | &ExprKind::Call(..)
             | &ExprKind::Cast(..)
+            | &ExprKind::Closure(_)
+            | &ExprKind::ConstBlock(..)
             | &ExprKind::Continue(..)
             | &ExprKind::DropTemps(..)
             | &ExprKind::Field(..)
             | &ExprKind::Index(..)
+            | &ExprKind::InlineAsm(..)
             | &ExprKind::If(..)
             | &ExprKind::Let(..)
             | &ExprKind::Lit(..)
@@ -328,15 +356,9 @@ impl HirEqInterExpr<'_, '_, '_> {
             | &ExprKind::Ret(..)
             | &ExprKind::Struct(..)
             | &ExprKind::Tup(..)
-            | &ExprKind::Unary(..)
-
-            // Note: The following do NOT have a positive match.
-            | &ExprKind::ConstBlock(_)
-            | &ExprKind::Closure(_)
-            | &ExprKind::InlineAsm(_)
-            | &ExprKind::Yield(..)
             | &ExprKind::Type(..)
-            | &ExprKind::Err
+            | &ExprKind::Unary(..)
+            | &ExprKind::Yield(..)
             , _) => false,
         };
         (is_eq && (!self.should_ignore(left) || !self.should_ignore(right)))
