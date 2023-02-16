@@ -1083,7 +1083,7 @@
     "id": "crosspointer_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 109
+      "line": 110
     },
     "group": "complexity",
     "level": "warn",
@@ -7728,7 +7728,7 @@
     "id": "transmute_bytes_to_str",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 205
+      "line": 206
     },
     "group": "complexity",
     "level": "warn",
@@ -7743,7 +7743,7 @@
     "id": "transmute_float_to_int",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 274
+      "line": 300
     },
     "group": "complexity",
     "level": "warn",
@@ -7758,7 +7758,7 @@
     "id": "transmute_int_to_bool",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 228
+      "line": 229
     },
     "group": "complexity",
     "level": "warn",
@@ -7773,7 +7773,7 @@
     "id": "transmute_int_to_char",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 171
+      "line": 172
     },
     "group": "complexity",
     "level": "warn",
@@ -7788,7 +7788,7 @@
     "id": "transmute_int_to_float",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 251
+      "line": 252
     },
     "group": "complexity",
     "level": "warn",
@@ -7800,10 +7800,25 @@
     }
   },
   {
+    "id": "transmute_int_to_non_zero",
+    "id_span": {
+      "path": "src/transmute/mod.rs",
+      "line": 277
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for transmutes from integers to `NonZero*` types, and suggests their `new_unchecked`\nmethod instead.\n\n### Why is this bad?\nTransmutes work on any types and thus might cause unsoundness when those types change\nelsewhere. `new_unchecked` only works for the appropriate types instead.\n\n### Example\n```rust\nlet _non_zero: NonZeroU32 = unsafe { std::mem::transmute(123) };\n```\nUse instead:\n```rust\nlet _non_zero = unsafe { NonZeroU32::new_unchecked(123) };\n```",
+    "version": "1.69.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unspecified"
+    }
+  },
+  {
     "id": "transmute_null_to_fn",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 436
+      "line": 462
     },
     "group": "correctness",
     "level": "deny",
@@ -7818,7 +7833,7 @@
     "id": "transmute_num_to_bytes",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 297
+      "line": 323
     },
     "group": "complexity",
     "level": "warn",
@@ -7833,7 +7848,7 @@
     "id": "transmute_ptr_to_ptr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 325
+      "line": 351
     },
     "group": "pedantic",
     "level": "allow",
@@ -7848,7 +7863,7 @@
     "id": "transmute_ptr_to_ref",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 137
+      "line": 138
     },
     "group": "complexity",
     "level": "warn",
@@ -7863,7 +7878,7 @@
     "id": "transmute_undefined_repr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 386
+      "line": 412
     },
     "group": "nursery",
     "level": "allow",
@@ -7878,7 +7893,7 @@
     "id": "transmutes_expressible_as_ptr_casts",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 90
+      "line": 91
     },
     "group": "complexity",
     "level": "warn",
@@ -7893,7 +7908,7 @@
     "id": "transmuting_null",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 408
+      "line": 434
     },
     "group": "correctness",
     "level": "deny",
@@ -8553,7 +8568,7 @@
     "id": "unsound_collection_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 357
+      "line": 383
     },
     "group": "correctness",
     "level": "deny",
@@ -8913,7 +8928,7 @@
     "id": "useless_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 64
+      "line": 65
     },
     "group": "complexity",
     "level": "warn",
@@ -9213,7 +9228,7 @@
     "id": "wrong_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 44
+      "line": 45
     },
     "group": "correctness",
     "level": "deny",
