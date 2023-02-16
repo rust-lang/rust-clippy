@@ -1428,7 +1428,7 @@
     "id": "doc_link_with_quotes",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 218
+      "line": 223
     },
     "group": "pedantic",
     "level": "allow",
@@ -1443,7 +1443,7 @@
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 71
+      "line": 76
     },
     "group": "pedantic",
     "level": "allow",
@@ -4563,7 +4563,7 @@
     "id": "missing_errors_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 135
+      "line": 140
     },
     "group": "pedantic",
     "level": "allow",
@@ -4593,7 +4593,7 @@
     "id": "missing_panics_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 166
+      "line": 171
     },
     "group": "pedantic",
     "level": "allow",
@@ -4608,7 +4608,7 @@
     "id": "missing_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 106
+      "line": 111
     },
     "group": "style",
     "level": "warn",
@@ -5088,7 +5088,7 @@
     "id": "needless_doctest_main",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 195
+      "line": 200
     },
     "group": "style",
     "level": "warn",
@@ -8343,7 +8343,7 @@
     "id": "unnecessary_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 254
+      "line": 259
     },
     "group": "restriction",
     "level": "allow",
