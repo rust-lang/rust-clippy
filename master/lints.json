@@ -6150,6 +6150,21 @@
     }
   },
   {
+    "id": "question_mark_used",
+    "id_span": {
+      "path": "src/question_mark_used.rs",
+      "line": 28
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for expressions that use the question mark operator and rejects them.\n\n### Why is this bad?\nSometimes code wants to avoid the question mark operator because for instance a local\nblock requires a macro to re-throw errors to attach additional information to the\nerror.\n\n### Example\n```rust\nlet result = expr?;\n```\n\nCould be written:\n\n```rust\nutility_macro!(expr);\n```",
+    "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "range_minus_one",
     "id_span": {
       "path": "src/ranges.rs",
