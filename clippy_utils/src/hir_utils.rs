@@ -4,12 +4,13 @@ use crate::source::snippet_opt;
 use rustc_ast::ast::InlineAsmTemplatePiece;
 use rustc_data_structures::fx::FxHasher;
 use rustc_hir::def::Res;
-use rustc_hir::{HirIdMap, YieldSource};
 use rustc_hir::{
-    ArrayLen, BinOpKind, BindingAnnotation, Block, BodyId, Closure, Expr, ExprField, ExprKind, FnRetTy, GenericArg,
-    GenericArgs, Guard, HirId, InlineAsmOperand, Let, Lifetime, LifetimeName, Pat, PatField, PatKind, Path,
-    PathSegment, PrimTy, QPath, Stmt, StmtKind, Ty, TyKind, TypeBinding,
+    ArrayLen, BinOpKind, BindingAnnotation, Block, BodyId, Closure, Expr, ExprField, ExprKind, FnDecl, FnRetTy,
+    GenericArg, GenericArgs, GenericParam, GenericParamKind, Guard, HirId, InlineAsmOperand, Let, Lifetime,
+    LifetimeName, Pat, PatField, PatKind, Path, PathSegment, PolyTraitRef, PrimTy, QPath, Stmt, StmtKind, Ty, TyKind,
+    TypeBinding,
 };
+use rustc_hir::{HirIdMap, YieldSource};
 use rustc_lexer::{tokenize, TokenKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::TypeckResults;
@@ -257,39 +258,22 @@ impl HirEqInterExpr<'_, '_, '_> {
             (&ExprKind::Cast(lx, lt), &ExprKind::Cast(rx, rt)) | (&ExprKind::Type(lx, lt), &ExprKind::Type(rx, rt)) => {
                 self.eq_expr(lx, rx) && self.eq_ty(lt, rt)
             },
-            (&ExprKind::Closure(..), &ExprKind::Closure(..)) => {
-                // For the time being, we always consider that two closures are different.
-                // This behavior may change in the future.
-                false
-            },
             (&ExprKind::Continue(li), &ExprKind::Continue(ri)) => {
                 both(&li.label, &ri.label, |l, r| l.ident.name == r.ident.name)
             },
-            (&ExprKind::ConstBlock(ref l), &ExprKind::ConstBlock(ref r)) => {
-                self.eq_body(l.body, r.body)
-            },
+            (ExprKind::ConstBlock(l), ExprKind::ConstBlock(r)) => self.eq_body(l.body, r.body),
             (&ExprKind::DropTemps(le), &ExprKind::DropTemps(re)) => self.eq_expr(le, re),
-            (&ExprKind::Err, _) | (_, &ExprKind::Err) => {
-                // `Err` represents an invalid expression, so let's never assume that
-                // an invalid expressions is equal to anything.
-                false
-            }
             (&ExprKind::Field(l_f_exp, ref l_f_ident), &ExprKind::Field(r_f_exp, ref r_f_ident)) => {
                 l_f_ident.name == r_f_ident.name && self.eq_expr(l_f_exp, r_f_exp)
             },
             (&ExprKind::Index(la, li), &ExprKind::Index(ra, ri)) => self.eq_expr(la, ra) && self.eq_expr(li, ri),
-            (&ExprKind::InlineAsm(_), &ExprKind::InlineAsm(_)) => {
-                // For the time being, we always consider that two instances of InlineAsm are different.
-                // This behavior may change in the future.
-                false
-            },
             (&ExprKind::If(lc, lt, ref le), &ExprKind::If(rc, rt, ref re)) => {
                 self.eq_expr(lc, rc) && self.eq_expr(lt, rt) && both(le, re, |l, r| self.eq_expr(l, r))
             },
             (&ExprKind::Let(l), &ExprKind::Let(r)) => {
                 self.eq_pat(l.pat, r.pat) && both(&l.ty, &r.ty, |l, r| self.eq_ty(l, r)) && self.eq_expr(l.init, r.init)
             },
-            (&ExprKind::Lit(ref l), &ExprKind::Lit(ref r)) => l.node == r.node,
+            (ExprKind::Lit(l), ExprKind::Lit(r)) => l.node == r.node,
             (&ExprKind::Loop(lb, ref ll, ref lls, _), &ExprKind::Loop(rb, ref rl, ref rls, _)) => {
                 lls == rls && self.eq_block(lb, rb) && both(ll, rl, |l, r| l.ident.name == r.ident.name)
             },
@@ -311,7 +295,7 @@ impl HirEqInterExpr<'_, '_, '_> {
                     && self.eq_expr(l_receiver, r_receiver)
                     && self.eq_exprs(l_args, r_args)
             },
-            (&ExprKind::Path(ref l), &ExprKind::Path(ref r)) => self.eq_qpath(l, r),
+            (ExprKind::Path(l), ExprKind::Path(r)) => self.eq_qpath(l, r),
             (&ExprKind::Repeat(le, ll), &ExprKind::Repeat(re, rl)) => {
                 self.eq_expr(le, re) && self.eq_array_length(ll, rl)
             },
@@ -327,39 +311,52 @@ impl HirEqInterExpr<'_, '_, '_> {
             | (&ExprKind::Yield(le, YieldSource::Yield), &ExprKind::Yield(re, YieldSource::Yield)) => {
                 self.eq_expr(le, re)
             },
-            // Else branches for branches above, grouped as per `match_same_arms`.
-            (&ExprKind::AddrOf(..)
-            | &ExprKind::Array(..)
-            | &ExprKind::Assign(..)
-            | &ExprKind::AssignOp(..)
-            | &ExprKind::Binary(..)
-            | &ExprKind::Block(..)
-            | &ExprKind::Box(..)
-            | &ExprKind::Break(..)
-            | &ExprKind::Call(..)
-            | &ExprKind::Cast(..)
-            | &ExprKind::Closure(_)
-            | &ExprKind::ConstBlock(..)
-            | &ExprKind::Continue(..)
-            | &ExprKind::DropTemps(..)
-            | &ExprKind::Field(..)
-            | &ExprKind::Index(..)
-            | &ExprKind::InlineAsm(..)
-            | &ExprKind::If(..)
-            | &ExprKind::Let(..)
-            | &ExprKind::Lit(..)
-            | &ExprKind::Loop(..)
-            | &ExprKind::Match(..)
-            | &ExprKind::MethodCall(..)
-            | &ExprKind::Path(..)
-            | &ExprKind::Repeat(..)
-            | &ExprKind::Ret(..)
-            | &ExprKind::Struct(..)
-            | &ExprKind::Tup(..)
-            | &ExprKind::Type(..)
-            | &ExprKind::Unary(..)
-            | &ExprKind::Yield(..)
-            , _) => false,
+            (
+                // Else branches for branches above, grouped as per `match_same_arms`.
+                | &ExprKind::AddrOf(..)
+                | &ExprKind::Array(..)
+                | &ExprKind::Assign(..)
+                | &ExprKind::AssignOp(..)
+                | &ExprKind::Binary(..)
+                | &ExprKind::Block(..)
+                | &ExprKind::Box(..)
+                | &ExprKind::Break(..)
+                | &ExprKind::Call(..)
+                | &ExprKind::Cast(..)
+                | &ExprKind::ConstBlock(..)
+                | &ExprKind::Continue(..)
+                | &ExprKind::DropTemps(..)
+                | &ExprKind::Field(..)
+                | &ExprKind::Index(..)
+                | &ExprKind::If(..)
+                | &ExprKind::Let(..)
+                | &ExprKind::Lit(..)
+                | &ExprKind::Loop(..)
+                | &ExprKind::Match(..)
+                | &ExprKind::MethodCall(..)
+                | &ExprKind::Path(..)
+                | &ExprKind::Repeat(..)
+                | &ExprKind::Ret(..)
+                | &ExprKind::Struct(..)
+                | &ExprKind::Tup(..)
+                | &ExprKind::Type(..)
+                | &ExprKind::Unary(..)
+                | &ExprKind::Yield(..)
+
+                // --- Special cases that do not have a positive branch.
+
+                // `Err` represents an invalid expression, so let's never assume that
+                // an invalid expressions is equal to anything.
+                | &ExprKind::Err
+
+                // For the time being, we always consider that two closures are unequal.
+                // This behavior may change in the future.
+                | &ExprKind::Closure(..)
+                // For the time being, we always consider that two instances of InlineAsm are different.
+                // This behavior may change in the future.
+                | &ExprKind::InlineAsm(_)
+                , _
+            ) => false,
         };
         (is_eq && (!self.should_ignore(left) || !self.should_ignore(right)))
             || self.inner.expr_fallback.as_mut().map_or(false, |f| f(left, right))
@@ -482,18 +479,145 @@ impl HirEqInterExpr<'_, '_, '_> {
         left.ident.name == right.ident.name && both(&left.args, &right.args, |l, r| self.eq_path_parameters(l, r))
     }
 
+    fn eq_generic_param(&mut self, left: &GenericParam<'_>, right: &GenericParam<'_>) -> bool {
+        if left.name != right.name || left.pure_wrt_drop != right.pure_wrt_drop {
+            return false;
+        }
+        match (&left.kind, &right.kind) {
+            (GenericParamKind::Lifetime { kind: left }, GenericParamKind::Lifetime { kind: right }) => left == right,
+            (
+                GenericParamKind::Type {
+                    default: None,
+                    synthetic: ls,
+                },
+                GenericParamKind::Type {
+                    default: None,
+                    synthetic: rs,
+                },
+            ) => ls == rs,
+            (
+                GenericParamKind::Type {
+                    default: Some(lt),
+                    synthetic: ls,
+                },
+                GenericParamKind::Type {
+                    default: Some(rt),
+                    synthetic: rs,
+                },
+            ) => ls == rs && self.eq_ty(lt, rt),
+            (GenericParamKind::Const { default: None, ty: lt }, GenericParamKind::Const { default: None, ty: rt }) => {
+                self.eq_ty(lt, rt)
+            },
+            (
+                GenericParamKind::Const {
+                    default: Some(lc),
+                    ty: lt,
+                },
+                GenericParamKind::Const {
+                    default: Some(rc),
+                    ty: rt,
+                },
+            ) => {
+                lc == rc && // FIXME: This is probably NOT how you compare `AnonConst`s.
+                self.eq_ty(lt, rt)
+            },
+            (GenericParamKind::Lifetime { .. } | GenericParamKind::Type { .. } | GenericParamKind::Const { .. }, _) => {
+                false
+            },
+        }
+    }
+
+    fn eq_poly_trait_ref(&mut self, left: &PolyTraitRef<'_>, right: &PolyTraitRef<'_>) -> bool {
+        over(left.bound_generic_params, right.bound_generic_params, |l, r| {
+            self.eq_generic_param(l, r)
+        }) && self.eq_path(left.trait_ref.path, right.trait_ref.path)
+    }
+
+    fn eq_fn_decl(&mut self, left: &FnDecl<'_>, right: &FnDecl<'_>) -> bool {
+        over(left.inputs, right.inputs, |l, r| self.eq_ty(l, r))
+            && match (&left.output, &right.output) {
+                // Default return is context-dependent.
+                // For a function, it means `()`, so `true` makes sense.
+                // For a closure, "infer", so that's less clear. However, to maintain consistency with `TyKind::Infer`,
+                // we also return `true`.
+                (&FnRetTy::DefaultReturn(_), &FnRetTy::DefaultReturn(_)) => true,
+
+                (&FnRetTy::Return(lt), &FnRetTy::Return(rt)) => self.eq_ty(lt, rt),
+                (
+                    // Else branches for branches above
+                    &FnRetTy::DefaultReturn(_) | &FnRetTy::Return(_),
+                    _,
+                ) => false,
+            }
+            && left.c_variadic == right.c_variadic
+    }
+
     pub fn eq_ty(&mut self, left: &Ty<'_>, right: &Ty<'_>) -> bool {
         match (&left.kind, &right.kind) {
-            (&TyKind::Slice(l_vec), &TyKind::Slice(r_vec)) => self.eq_ty(l_vec, r_vec),
             (&TyKind::Array(lt, ll), &TyKind::Array(rt, rl)) => self.eq_ty(lt, rt) && self.eq_array_length(ll, rl),
+            (TyKind::BareFn(rustc_hir::BareFnTy {
+                unsafety: lu,
+                abi: la,
+                generic_params: left_gp,
+                decl: left_decl,
+                // We ignore param names here, as they are not relevant for type equality/
+                param_names: _,
+            }), TyKind::BareFn(rustc_hir::BareFnTy {
+                unsafety: ru,
+                abi: ra,
+                generic_params: right_gp,
+                decl: right_decl,
+                // We ignore param names here, as they are not relevant for type equality/
+                param_names: _,
+            })) => {
+                lu == ru && la == ra
+                    &&
+                over(left_gp, right_gp, |l, r| self.eq_generic_param(l, r))
+                    && self.eq_fn_decl(left_decl, right_decl)
+            }
+            (&TyKind::Infer, &TyKind::Infer)
+            | (&TyKind::Never, &TyKind::Never) => true,
+            (&TyKind::OpaqueDef(_, la, lt), &TyKind::OpaqueDef(_, ra, rt)) =>
+                lt == rt &&
+                over(la, ra, |l, r| self.eq_generic_arg(l, r)),
+            (TyKind::Path(l), TyKind::Path(r)) => self.eq_qpath(l, r),
             (TyKind::Ptr(l_mut), TyKind::Ptr(r_mut)) => l_mut.mutbl == r_mut.mutbl && self.eq_ty(l_mut.ty, r_mut.ty),
             (TyKind::Ref(_, l_rmut), TyKind::Ref(_, r_rmut)) => {
                 l_rmut.mutbl == r_rmut.mutbl && self.eq_ty(l_rmut.ty, r_rmut.ty)
             },
-            (TyKind::Path(l), TyKind::Path(r)) => self.eq_qpath(l, r),
+            (&TyKind::Slice(l_vec), &TyKind::Slice(r_vec)) => self.eq_ty(l_vec, r_vec),
+            (&TyKind::TraitObject(lr, ll, ls), &TyKind::TraitObject(rr, rl, rs)) => {
+                over(lr, rr, |l, r| self.eq_poly_trait_ref(l, r))
+                && Self::eq_lifetime(ll, rl)
+                && ls == rs
+            },
             (&TyKind::Tup(l), &TyKind::Tup(r)) => over(l, r, |l, r| self.eq_ty(l, r)),
-            (&TyKind::Infer, &TyKind::Infer) => true,
-            _ => false,
+            (
+                // Else branches for branches above, grouped as per `match_same_arms`.
+                &TyKind::Array { .. }
+                | &TyKind::BareFn { .. }
+                | &TyKind::Infer { .. }
+                | &TyKind::Never
+                | &TyKind::OpaqueDef { .. }
+                | &TyKind::Path { .. }
+                | &TyKind::Ptr { .. }
+                | &TyKind::Ref { .. }
+                | &TyKind::Slice { .. }
+                | &TyKind::TraitObject { .. }
+                | &TyKind::Tup { .. }
+
+                // --- Special cases that do not have a positive branch.
+                // `Err` represents an invalid type, so let's never assume that
+                // it is is equal to anything.
+                | &TyKind::Err { .. }
+
+                // `Typeof` is unused in the compiler for the time being, so let's
+                // assume `false`.
+                // FIXME: Should we rather panic!() here?
+                | &TyKind::Typeof { .. }
+                ,
+                _,
+            ) => false,
         }
     }
 
