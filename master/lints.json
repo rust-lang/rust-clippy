@@ -1473,7 +1473,7 @@
     "id": "double_must_use",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 160
+      "line": 161
     },
     "group": "style",
     "level": "warn",
@@ -2664,6 +2664,21 @@
     "level": "deny",
     "docs": "\n### What it does\nChecks for consecutive `if`s with the same condition.\n\n### Why is this bad?\nThis is probably a copy & paste error.\n\n### Example\n```rust\nif a == b {\n    …\n} else if a == b {\n    …\n}\n```\n\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n\n```rust\nif foo() {\n    …\n} else if foo() { // not linted\n    …\n}\n```",
     "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "impl_trait_in_params",
+    "id_span": {
+      "path": "src/functions/mod.rs",
+      "line": 352
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nLints when `impl Trait` is being used in a function's paremeters.\n### Why is this bad?\nTurbofish syntax (`::<>`) cannot be used when `impl Trait` is being used, making `impl Trait` less powerful. Readability may also be a factor.\n\n### Example\n```rust\ntrait MyTrait {}\nfn foo(a: impl MyTrait) {\n\t// [...]\n}\n```\nUse instead:\n```rust\ntrait MyTrait {}\nfn foo<T: MyTrait>(a: T) {\n\t// [...]\n}\n```",
+    "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4488,7 +4503,7 @@
     "id": "misnamed_getters",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 325
+      "line": 326
     },
     "group": "suspicious",
     "level": "warn",
@@ -4833,7 +4848,7 @@
     "id": "must_use_candidate",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 190
+      "line": 191
     },
     "group": "pedantic",
     "level": "allow",
@@ -4848,7 +4863,7 @@
     "id": "must_use_unit",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 136
+      "line": 137
     },
     "group": "style",
     "level": "warn",
@@ -5523,7 +5538,7 @@
     "id": "not_unsafe_ptr_arg_deref",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 116
+      "line": 117
     },
     "group": "correctness",
     "level": "deny",
@@ -6588,7 +6603,7 @@
     "id": "result_large_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 283
+      "line": 284
     },
     "group": "perf",
     "level": "warn",
@@ -6633,7 +6648,7 @@
     "id": "result_unit_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 240
+      "line": 241
     },
     "group": "style",
     "level": "warn",
@@ -7653,7 +7668,7 @@
     "id": "too_many_arguments",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 32
+      "line": 33
     },
     "group": "complexity",
     "level": "warn",
@@ -7668,7 +7683,7 @@
     "id": "too_many_lines",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 56
+      "line": 57
     },
     "group": "pedantic",
     "level": "allow",
