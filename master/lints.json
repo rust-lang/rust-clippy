@@ -2043,7 +2043,7 @@
     "id": "extra_unused_type_parameters",
     "id_span": {
       "path": "src/extra_unused_type_parameters.rs",
-      "line": 37
+      "line": 40
     },
     "group": "complexity",
     "level": "warn",
