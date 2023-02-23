@@ -5445,6 +5445,21 @@
     }
   },
   {
+    "id": "no_mangle_with_rust_abi",
+    "id_span": {
+      "path": "src/no_mangle_with_rust_abi.rs",
+      "line": 31
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for Rust ABI functions with the `#[no_mangle]` attribute.\n\n### Why is this bad?\nThe Rust ABI is not stable, but in many simple cases matches\nenough with the C ABI that it is possible to forget to add\n`extern \"C\"` to a function called from C. Changes to the\nRust ABI can break this at any point.\n\n### Example\n```rust\n #[no_mangle]\n fn example(arg_one: u32, arg_two: usize) {}\n```\n\nUse instead:\n```rust\n #[no_mangle]\n extern \"C\" fn example(arg_one: u32, arg_two: usize) {}\n```",
+    "version": "1.69.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "non_ascii_literal",
     "id_span": {
       "path": "src/unicode.rs",
