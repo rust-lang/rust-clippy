@@ -1,27 +1,22 @@
 // run-rustfix
-#![warn(clippy::stable_sort_primitive)]
+#![warn(clippy::stable_sort)]
 
 fn main() {
-    // positive examples
+    // Positive examples
     let mut vec = vec![1, 3, 2];
-    vec.sort_unstable();
+    vec.sort();
     let mut vec = vec![false, false, true];
-    vec.sort_unstable();
+    vec.sort();
     let mut vec = vec!['a', 'A', 'c'];
-    vec.sort_unstable();
+    vec.sort();
     let mut vec = vec!["ab", "cd", "ab", "bc"];
-    vec.sort_unstable();
+    vec.sort();
     let mut vec = vec![(2, 1), (1, 2), (2, 5)];
-    vec.sort_unstable();
+    vec.sort();
     let mut vec = vec![[2, 1], [1, 2], [2, 5]];
-    vec.sort_unstable();
+    vec.sort();
     let mut arr = [1, 3, 2];
-    arr.sort_unstable();
-    // Negative examples: behavior changes if made unstable
-    let mut vec = vec![1, 3, 2];
-    vec.sort_by_key(|i| i / 2);
-    vec.sort_by(|&a, &b| (a + b).cmp(&b));
-    // negative examples - Not of a primitive type
+    arr.sort();
     let mut vec_of_complex = vec![String::from("hello"), String::from("world!")];
     vec_of_complex.sort();
     vec_of_complex.sort_by_key(String::len);
@@ -29,4 +24,8 @@ fn main() {
     vec.sort();
     let mut vec = vec![[String::from("hello"), String::from("world")]];
     vec.sort();
+    // Negative examples: behavior changes if made unstable
+    let mut vec = vec![1, 3, 2];
+    vec.sort_by_key(|i| i / 2);
+    vec.sort_by(|&a, &b| (a + b).cmp(&b));
 }
