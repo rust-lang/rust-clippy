@@ -1263,7 +1263,7 @@
     "id": "deref_by_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 66
+      "line": 64
     },
     "group": "restriction",
     "level": "allow",
@@ -6498,7 +6498,7 @@
     "id": "redundant_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 42
+      "line": 40
     },
     "group": "complexity",
     "level": "warn",
