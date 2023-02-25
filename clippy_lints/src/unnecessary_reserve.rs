@@ -113,7 +113,7 @@ fn check_extend_method(
         {
             read_found = true;
         }
-        let _ = !read_found;
+        let _: bool = !read_found;
         ControlFlow::Continue(())
     });
 
