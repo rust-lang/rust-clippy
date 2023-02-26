@@ -1852,7 +1852,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nDetects calls to the `exit()` function which terminates the program.\n\n### Why is this bad?\nExit terminates the program at the location it is called. For unrecoverable\nerrors `panics` should be used to provide a stacktrace and potentualy other\ninformation. A normal termination or one with an error code should happen in\nthe main function.\n\n### Example\n```rust\nstd::process::exit(0)\n```\n\nUse instead:\n\n```rust\n// To provide a stacktrace and additional information\npanic!(\"message\");\n\n// or a main method with a return\nfn main() -> Result<(), i32> {\n    Ok(())\n}\n```",
+    "docs": "\n### What it does\nDetects calls to the `exit()` function which terminates the program.\n\n### Why is this bad?\nExit terminates the program at the location it is called. For unrecoverable\nerrors `panics` should be used to provide a stacktrace and potentially other\ninformation. A normal termination or one with an error code should happen in\nthe main function.\n\n### Example\n```rust\nstd::process::exit(0)\n```\n\nUse instead:\n\n```rust\n// To provide a stacktrace and additional information\npanic!(\"message\");\n\n// or a main method with a return\nfn main() -> Result<(), i32> {\n    Ok(())\n}\n```",
     "version": "1.41.0",
     "applicability": {
       "is_multi_part_suggestion": false,
