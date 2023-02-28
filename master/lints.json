@@ -53,7 +53,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for ranges which almost include the entire range of letters from 'a' to 'z'\nor digits from '0' to '9', but don't because they're a half open range.\n\n### Why is this bad?\nThis (`'a'..'z'`) is almost certainly a typo meant to include all letters.\n\n### Example\n```rust\nlet _ = 'a'..'z';\n```\nUse instead:\n```rust\nlet _ = 'a'..='z';\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n\n### Past names\n\n* `almost_complete_letter_range`\n\n",
-    "version": "1.63.0",
+    "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -2288,7 +2288,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for comparing a function pointer to null.\n\n### Why is this bad?\nFunction pointers are assumed to not be null.\n\n### Example\n```rust\nlet fn_ptr: fn() = /* somehow obtained nullable function pointer */\n\nif (fn_ptr as *const ()).is_null() { ... }\n```\nUse instead:\n```rust\nlet fn_ptr: Option<fn()> = /* somehow obtained nullable function pointer */\n\nif fn_ptr.is_none() { ... }\n```",
-    "version": "1.67.0",
+    "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5948,7 +5948,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for calls to `std::fs::Permissions.set_readonly` with argument `false`.\n\n### Why is this bad?\nOn Unix platforms this results in the file being world writable,\nequivalent to `chmod a+w <file>`.\n### Example\n```rust\nuse std::fs::File;\nlet f = File::create(\"foo.txt\").unwrap();\nlet metadata = f.metadata().unwrap();\nlet mut permissions = metadata.permissions();\npermissions.set_readonly(false);\n```",
-    "version": "1.66.0",
+    "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7178,7 +7178,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\n\nChecks for calls to `std::mem::size_of_val()` where the argument is\na reference to a reference.\n\n### Why is this bad?\n\nCalling `size_of_val()` with a reference to a reference as the argument\nyields the size of the reference-type, not the size of the value behind\nthe reference.\n\n### Example\n```rust\nstruct Foo {\n    buffer: [u8],\n}\n\nimpl Foo {\n    fn size(&self) -> usize {\n        // Note that `&self` as an argument is a `&&Foo`: Because `self`\n        // is already a reference, `&self` is a double-reference.\n        // The return value of `size_of_val()` therefor is the\n        // size of the reference-type, not the size of `self`.\n        std::mem::size_of_val(&self)\n    }\n}\n```\nUse instead:\n```rust\nstruct Foo {\n    buffer: [u8],\n}\n\nimpl Foo {\n    fn size(&self) -> usize {\n        // Correct\n        std::mem::size_of_val(self)\n    }\n}\n```",
-    "version": "1.67.0",
+    "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7853,7 +7853,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for null function pointer creation through transmute.\n\n### Why is this bad?\nCreating a null function pointer is undefined behavior.\n\nMore info: https://doc.rust-lang.org/nomicon/ffi.html#the-nullable-pointer-optimization\n\n### Known problems\nNot all cases can be detected at the moment of this writing.\nFor example, variables which hold a null pointer and are then fed to a `transmute`\ncall, aren't detectable yet.\n\n### Example\n```rust\nlet null_fn: fn() = unsafe { std::mem::transmute( std::ptr::null::<()>() ) };\n```\nUse instead:\n```rust\nlet null_fn: Option<fn()> = None;\n```",
-    "version": "1.67.0",
+    "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
