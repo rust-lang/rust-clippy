@@ -3625,7 +3625,7 @@
       "path": "src/let_underscore.rs",
       "line": 126
     },
-    "group": "pedantic",
+    "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for `let _ = <expr>` without a type annotation, and suggests to either provide one,\nor remove the `let` keyword altogether.\n\n### Why is this bad?\nThe `let _ = <expr>` expression ignores the value of `<expr>` but will remain doing so even\nif the type were to change, thus potentially introducing subtle bugs. By supplying a type\nannotation, one will be forced to re-visit the decision to ignore the value in such cases.\n\n### Known problems\nThe `_ = <expr>` is not properly supported by some tools (e.g. IntelliJ) and may seem odd\nto many developers. This lint also partially overlaps with the other `let_underscore_*`\nlints.\n\n### Example\n```rust\nfn foo() -> Result<u32, ()> {\n    Ok(123)\n}\nlet _ = foo();\n```\nUse instead:\n```rust\nfn foo() -> Result<u32, ()> {\n    Ok(123)\n}\n// Either provide a type annotation:\nlet _: Result<u32, ()> = foo();\n// …or drop the let keyword:\n_ = foo();\n```",
     "version": "1.69.0",
