@@ -57,7 +57,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
-    }
+    },
+    "former_ids": [
+      "almost_complete_letter_range"
+    ]
   },
   {
     "id": "almost_swapped",
@@ -297,7 +300,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "option_and_then_some"
+    ]
   },
   {
     "id": "blanket_clippy_restriction_lints",
@@ -327,7 +333,11 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "block_in_if_condition_expr",
+      "block_in_if_condition_stmt"
+    ]
   },
   {
     "id": "bool_assert_comparison",
@@ -447,7 +457,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "box_vec"
+    ]
   },
   {
     "id": "box_default",
@@ -942,7 +955,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "cyclomatic_complexity"
+    ]
   },
   {
     "id": "collapsible_else_if",
@@ -1332,7 +1348,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "derive_hash_xor_eq"
+    ]
   },
   {
     "id": "disallowed_macros",
@@ -1362,7 +1381,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "disallowed_method"
+    ]
   },
   {
     "id": "disallowed_names",
@@ -1377,7 +1399,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "blacklisted_name"
+    ]
   },
   {
     "id": "disallowed_script_idents",
@@ -1407,7 +1432,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "disallowed_type"
+    ]
   },
   {
     "id": "diverging_sub_expression",
@@ -1887,7 +1915,11 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "option_expect_used",
+      "result_expect_used"
+    ]
   },
   {
     "id": "expl_impl_clone_on_copy",
@@ -3147,7 +3179,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "zero_width_space"
+    ]
   },
   {
     "id": "is_digit_ascii_radix",
@@ -4182,7 +4217,12 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "option_map_unwrap_or",
+      "option_map_unwrap_or_else",
+      "result_map_unwrap_or_else"
+    ]
   },
   {
     "id": "match_as_ref",
@@ -4287,7 +4327,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "if_let_some_result"
+    ]
   },
   {
     "id": "match_same_arms",
@@ -4707,7 +4750,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "eval_order_dependence"
+    ]
   },
   {
     "id": "mod_module_files",
@@ -4752,7 +4798,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "stutter"
+    ]
   },
   {
     "id": "modulo_arithmetic",
@@ -5052,7 +5101,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "ref_in_deref"
+    ]
   },
   {
     "id": "needless_borrowed_reference",
@@ -5397,7 +5449,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
-    }
+    },
+    "former_ids": [
+      "new_without_default_derive"
+    ]
   },
   {
     "id": "no_effect",
@@ -5817,7 +5872,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
-    }
+    },
+    "former_ids": [
+      "logic_bug"
+    ]
   },
   {
     "id": "panic",
@@ -6327,7 +6385,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "to_string_in_display"
+    ]
   },
   {
     "id": "redundant_allocation",
@@ -6522,7 +6583,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "const_static_lifetime"
+    ]
   },
   {
     "id": "ref_binding_to_reference",
@@ -7062,7 +7126,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "single_char_push_str"
+    ]
   },
   {
     "id": "single_char_lifetime_names",
@@ -8817,7 +8884,11 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "option_unwrap_used",
+      "result_unwrap_used"
+    ]
   },
   {
     "id": "upper_case_acronyms",
@@ -8922,7 +8993,10 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
-    }
+    },
+    "former_ids": [
+      "identity_conversion"
+    ]
   },
   {
     "id": "useless_format",
