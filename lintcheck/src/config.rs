@@ -1,5 +1,8 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
+use log::LevelFilter;
+use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::env;
+use std::fs::{self, File};
 use std::path::PathBuf;
 
 fn get_clap_config() -> ArgMatches {
@@ -39,6 +42,11 @@ fn get_clap_config() -> ArgMatches {
                 .help("Run clippy on the dependencies of crates specified in crates-toml")
                 .conflicts_with("threads")
                 .conflicts_with("fix"),
+            Arg::new("verbose")
+                .short('v')
+                .long("--verbose")
+                .action(ArgAction::Count)
+                .help("Verbosity to use, default to WARN"),
         ])
         .get_matches()
 }
@@ -66,6 +74,27 @@ pub(crate) struct LintcheckConfig {
 impl LintcheckConfig {
     pub fn new() -> Self {
         let clap_config = get_clap_config();
+        let level_filter = match clap_config.get_count("verbose") {
+            0 => LevelFilter::Warn,
+            1 => LevelFilter::Info,
+            2 => LevelFilter::Debug,
+            _ => LevelFilter::Trace,
+        };
+        // using `create_dir_all` as it does not error when the dir already exists
+        fs::create_dir_all("lintcheck-logs").expect("Creating the log dir failed");
+        let _ = CombinedLogger::init(vec![
+            TermLogger::new(
+                std::cmp::min(level_filter, LevelFilter::Info), // do not print more verbose log than `INFO` to stdout,
+                Config::default(),
+                TerminalMode::Mixed,
+                ColorChoice::Auto,
+            ),
+            WriteLogger::new(
+                level_filter,
+                Config::default(),
+                File::create("lintcheck-logs/lintcheck.log").unwrap(),
+            ),
+        ]);
 
         // first, check if we got anything passed via the LINTCHECK_TOML env var,
         // if not, ask clap if we got any value for --crates-toml  <foo>
@@ -84,7 +113,7 @@ impl LintcheckConfig {
         // wasd.toml, use "wasd"...)
         let filename: PathBuf = sources_toml_path.file_stem().unwrap().into();
         let lintcheck_results_path = PathBuf::from(format!(
-            "lintcheck-logs/{}_logs.{}",
+            "lintcheck-logs/{}_results.{}",
             filename.display(),
             if markdown { "md" } else { "txt" }
         ));
