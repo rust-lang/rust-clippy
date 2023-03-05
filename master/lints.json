@@ -66,7 +66,7 @@
     "id": "almost_swapped",
     "id_span": {
       "path": "src/swap.rs",
-      "line": 67
+      "line": 68
     },
     "group": "correctness",
     "level": "deny",
@@ -1039,7 +1039,7 @@
     "id": "comparison_to_empty",
     "id_span": {
       "path": "src/len_zero.rs",
-      "line": 115
+      "line": 114
     },
     "group": "style",
     "level": "warn",
@@ -1174,7 +1174,7 @@
     "id": "default_instead_of_iter_empty",
     "id_span": {
       "path": "src/default_instead_of_iter_empty.rs",
-      "line": 27
+      "line": 28
     },
     "group": "style",
     "level": "warn",
@@ -3533,7 +3533,7 @@
     "id": "len_without_is_empty",
     "id_span": {
       "path": "src/len_zero.rs",
-      "line": 77
+      "line": 76
     },
     "group": "style",
     "level": "warn",
@@ -3548,7 +3548,7 @@
     "id": "len_zero",
     "id_span": {
       "path": "src/len_zero.rs",
-      "line": 51
+      "line": 50
     },
     "group": "style",
     "level": "warn",
@@ -3743,7 +3743,7 @@
     "id": "manual_bits",
     "id_span": {
       "path": "src/manual_bits.rs",
-      "line": 30
+      "line": 31
     },
     "group": "style",
     "level": "warn",
@@ -4073,7 +4073,7 @@
     "id": "manual_swap",
     "id_span": {
       "path": "src/swap.rs",
-      "line": 41
+      "line": 42
     },
     "group": "complexity",
     "level": "warn",
