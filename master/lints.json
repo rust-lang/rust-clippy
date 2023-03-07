@@ -1021,6 +1021,21 @@
     }
   },
   {
+    "id": "collection_is_never_read",
+    "id_span": {
+      "path": "src/collection_is_never_read.rs",
+      "line": 41
+    },
+    "group": "nursery",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for collections that are never queried.\n\n### Why is this bad?\nPutting effort into constructing a collection but then never querying it might indicate that\nthe author forgot to do whatever they intended to do with the collection. Example: Clone\na vector, sort it for iteration, but then mistakenly iterate the original vector\ninstead.\n\n### Example\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &samples { // Oops, meant to use `sorted_samples`.\n    println!(\"{sample}\");\n}\n```\nUse instead:\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &sorted_samples {\n    println!(\"{sample}\");\n}\n```",
+    "version": "1.69.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "comparison_chain",
     "id_span": {
       "path": "src/comparison_chain.rs",
