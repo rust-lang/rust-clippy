@@ -3665,6 +3665,21 @@
     }
   },
   {
+    "id": "let_with_type_underscore",
+    "id_span": {
+      "path": "src/let_with_type_underscore.rs",
+      "line": 21
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nDetects when a variable is declared with an explicit type of `_`.\n### Why is this bad?\nIt adds noise, `: _` provides zero clarity or utility.\n### Example\n```rust\nlet my_number: _ = 1;\n```\nUse instead:\n```rust\nlet my_number = 1;\n```",
+    "version": "1.69.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "linkedlist",
     "id_span": {
       "path": "src/types/mod.rs",
