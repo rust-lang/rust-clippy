@@ -3788,7 +3788,7 @@
     "id": "manual_clamp",
     "id_span": {
       "path": "src/manual_clamp.rs",
-      "line": 83
+      "line": 84
     },
     "group": "nursery",
     "level": "allow",
