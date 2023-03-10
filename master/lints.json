@@ -6106,7 +6106,7 @@
     "id": "print_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 142
+      "line": 143
     },
     "group": "style",
     "level": "warn",
@@ -6121,7 +6121,7 @@
     "id": "print_stderr",
     "id_span": {
       "path": "src/write.rs",
-      "line": 99
+      "line": 100
     },
     "group": "restriction",
     "level": "allow",
@@ -6136,7 +6136,7 @@
     "id": "print_stdout",
     "id_span": {
       "path": "src/write.rs",
-      "line": 77
+      "line": 78
     },
     "group": "restriction",
     "level": "allow",
@@ -6151,7 +6151,7 @@
     "id": "print_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 55
+      "line": 56
     },
     "group": "style",
     "level": "warn",
@@ -6166,7 +6166,7 @@
     "id": "println_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 30
+      "line": 31
     },
     "group": "style",
     "level": "warn",
@@ -8969,7 +8969,7 @@
     "id": "use_debug",
     "id_span": {
       "path": "src/write.rs",
-      "line": 119
+      "line": 120
     },
     "group": "restriction",
     "level": "allow",
@@ -9317,7 +9317,7 @@
     "id": "write_literal",
     "id_span": {
       "path": "src/write.rs",
-      "line": 228
+      "line": 229
     },
     "group": "style",
     "level": "warn",
@@ -9332,7 +9332,7 @@
     "id": "write_with_newline",
     "id_span": {
       "path": "src/write.rs",
-      "line": 200
+      "line": 201
     },
     "group": "style",
     "level": "warn",
@@ -9347,7 +9347,7 @@
     "id": "writeln_empty_string",
     "id_span": {
       "path": "src/write.rs",
-      "line": 169
+      "line": 170
     },
     "group": "style",
     "level": "warn",
