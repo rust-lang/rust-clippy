@@ -18,7 +18,7 @@
     "id": "alloc_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 81
+      "line": 80
     },
     "group": "restriction",
     "level": "allow",
@@ -3953,7 +3953,7 @@
     "id": "manual_non_exhaustive",
     "id_span": {
       "path": "src/manual_non_exhaustive.rs",
-      "line": 59
+      "line": 58
     },
     "group": "style",
     "level": "warn",
@@ -5335,7 +5335,7 @@
     "id": "needless_question_mark",
     "id_span": {
       "path": "src/needless_question_mark.rs",
-      "line": 57
+      "line": 56
     },
     "group": "complexity",
     "level": "warn",
@@ -7360,7 +7360,7 @@
     "id": "std_instead_of_alloc",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 55
+      "line": 54
     },
     "group": "restriction",
     "level": "allow",
@@ -7375,7 +7375,7 @@
     "id": "std_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 29
+      "line": 28
     },
     "group": "restriction",
     "level": "allow",
@@ -8470,7 +8470,7 @@
     "id": "unnecessary_owned_empty_strings",
     "id_span": {
       "path": "src/unnecessary_owned_empty_strings.rs",
-      "line": 29
+      "line": 30
     },
     "group": "style",
     "level": "warn",
