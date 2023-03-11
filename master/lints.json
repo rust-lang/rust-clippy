@@ -5548,7 +5548,7 @@
     "id": "no_mangle_with_rust_abi",
     "id_span": {
       "path": "src/no_mangle_with_rust_abi.rs",
-      "line": 31
+      "line": 32
     },
     "group": "pedantic",
     "level": "allow",
@@ -5556,7 +5556,7 @@
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "MaybeIncorrect"
     }
   },
   {
