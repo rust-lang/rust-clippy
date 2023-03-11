@@ -2690,7 +2690,7 @@
     "id": "if_then_some_else_none",
     "id_span": {
       "path": "src/if_then_some_else_none.rs",
-      "line": 42
+      "line": 44
     },
     "group": "restriction",
     "level": "allow",
@@ -5788,7 +5788,7 @@
     "id": "option_if_let_else",
     "id_span": {
       "path": "src/option_if_let_else.rs",
-      "line": 70
+      "line": 71
     },
     "group": "nursery",
     "level": "allow",
@@ -6967,7 +6967,7 @@
     "id": "semicolon_if_nothing_returned",
     "id_span": {
       "path": "src/semicolon_if_nothing_returned.rs",
-      "line": 33
+      "line": 32
     },
     "group": "pedantic",
     "level": "allow",
