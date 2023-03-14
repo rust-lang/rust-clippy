@@ -446,6 +446,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::needless_parens_on_range_literals::NEEDLESS_PARENS_ON_RANGE_LITERALS_INFO,
     crate::needless_pass_by_value::NEEDLESS_PASS_BY_VALUE_INFO,
     crate::needless_question_mark::NEEDLESS_QUESTION_MARK_INFO,
+    crate::needless_traits_in_scope::NEEDLESS_TRAITS_IN_SCOPE_INFO,
     crate::needless_update::NEEDLESS_UPDATE_INFO,
     crate::neg_cmp_op_on_partial_ord::NEG_CMP_OP_ON_PARTIAL_ORD_INFO,
     crate::neg_multiply::NEG_MULTIPLY_INFO,
