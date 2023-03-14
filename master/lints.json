@@ -1328,7 +1328,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for deriving `Ord` but implementing `PartialOrd`\nexplicitly or vice versa.\n\n### Why is this bad?\nThe implementation of these traits must agree (for\nexample for use with `sort`) so it’s probably a bad idea to use a\ndefault-generated `Ord` implementation with an explicitly defined\n`PartialOrd`. In particular, the following must hold for any type\nimplementing `Ord`:\n\n```text\nk1.cmp(&k2) == k1.partial_cmp(&k2).unwrap()\n```\n\n### Example\n```rust\n#[derive(Ord, PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    ...\n}\n```\nUse instead:\n```rust\n#[derive(PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    fn partial_cmp(&self, other: &Foo) -> Option<Ordering> {\n       Some(self.cmp(other))\n    }\n}\n\nimpl Ord for Foo {\n    ...\n}\n```\nor, if you don't need a custom ordering:\n```rust\n#[derive(Ord, PartialOrd, PartialEq, Eq)]\nstruct Foo;\n```",
+    "docs": "\n### What it does\nLints against manual `PartialOrd` and `Ord` implementations for types with a derived `Ord`\nor `PartialOrd` implementation.\n\n### Why is this bad?\nThe implementation of these traits must agree (for\nexample for use with `sort`) so it’s probably a bad idea to use a\ndefault-generated `Ord` implementation with an explicitly defined\n`PartialOrd`. In particular, the following must hold for any type\nimplementing `Ord`:\n\n```text\nk1.cmp(&k2) == k1.partial_cmp(&k2).unwrap()\n```\n\n### Example\n```rust\n#[derive(Ord, PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    ...\n}\n```\nUse instead:\n```rust\n#[derive(PartialEq, Eq)]\nstruct Foo;\n\nimpl PartialOrd for Foo {\n    fn partial_cmp(&self, other: &Foo) -> Option<Ordering> {\n       Some(self.cmp(other))\n    }\n}\n\nimpl Ord for Foo {\n    ...\n}\n```\nor, if you don't need a custom ordering:\n```rust\n#[derive(Ord, PartialOrd, PartialEq, Eq)]\nstruct Foo;\n```",
     "version": "1.47.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1358,7 +1358,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for deriving `Hash` but implementing `PartialEq`\nexplicitly or vice versa.\n\n### Why is this bad?\nThe implementation of these traits must agree (for\nexample for use with `HashMap`) so it’s probably a bad idea to use a\ndefault-generated `Hash` implementation with an explicitly defined\n`PartialEq`. In particular, the following must hold for any type:\n\n```text\nk1 == k2 ⇒ hash(k1) == hash(k2)\n```\n\n### Example\n```rust\n#[derive(Hash)]\nstruct Foo;\n\nimpl PartialEq for Foo {\n    ...\n}\n```\n### Past names\n\n* `derive_hash_xor_eq`\n\n",
+    "docs": "\n### What it does\nLints against manual `PartialEq` implementations for types with a derived `Hash`\nimplementation.\n\n### Why is this bad?\nThe implementation of these traits must agree (for\nexample for use with `HashMap`) so it’s probably a bad idea to use a\ndefault-generated `Hash` implementation with an explicitly defined\n`PartialEq`. In particular, the following must hold for any type:\n\n```text\nk1 == k2 ⇒ hash(k1) == hash(k2)\n```\n\n### Example\n```rust\n#[derive(Hash)]\nstruct Foo;\n\nimpl PartialEq for Foo {\n    ...\n}\n```\n### Past names\n\n* `derive_hash_xor_eq`\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
