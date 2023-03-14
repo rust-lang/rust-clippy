@@ -496,7 +496,7 @@
     "id": "branches_sharing_code",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 157
+      "line": 159
     },
     "group": "nursery",
     "level": "allow",
@@ -2675,7 +2675,7 @@
     "id": "if_same_then_else",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 118
+      "line": 120
     },
     "group": "correctness",
     "level": "deny",
@@ -2705,11 +2705,11 @@
     "id": "ifs_same_cond",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 48
+      "line": 50
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for consecutive `if`s with the same condition.\n\n### Why is this bad?\nThis is probably a copy & paste error.\n\n### Example\n```rust\nif a == b {\n    …\n} else if a == b {\n    …\n}\n```\n\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n\n```rust\nif foo() {\n    …\n} else if foo() { // not linted\n    …\n}\n```",
+    "docs": "\n### What it does\nChecks for consecutive `if`s with the same condition.\n\n### Why is this bad?\nThis is probably a copy & paste error.\n\n### Example\n```rust\nif a == b {\n    …\n} else if a == b {\n    …\n}\n```\n\nNote that this lint ignores all conditions with a function call as it could\nhave side effects:\n\n```rust\nif foo() {\n    …\n} else if foo() { // not linted\n    …\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `ignore-interior-mutability`: `Vec<String>`(defaults to `[\"bytes::Bytes\"]`): A list of paths to types that should be treated like `Arc`, i.e. ignored but\n   for the generic parameters for determining interior mutability\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5032,7 +5032,7 @@
     "id": "mutable_key_type",
     "id_span": {
       "path": "src/mut_key.rs",
-      "line": 78
+      "line": 79
     },
     "group": "suspicious",
     "level": "warn",
@@ -6832,7 +6832,7 @@
     "id": "same_functions_in_if_condition",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 96
+      "line": 98
     },
     "group": "pedantic",
     "level": "allow",
