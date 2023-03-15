@@ -14,7 +14,9 @@ declare_clippy_lint! {
     /// It also helps identify the traits in `use` statements.
     ///
     /// ### Why is this bad?
-    /// This needlessly brings a trait in trait's namespace.
+    /// This needlessly brings a trait in trait's namespace, where it could
+    /// shadow other things. This is not really a problem, this lint is just
+    /// for those who like to keep things tidy.
     ///
     /// ### Example
     /// ```rust
