@@ -218,6 +218,7 @@ mod needless_late_init;
 mod needless_parens_on_range_literals;
 mod needless_pass_by_value;
 mod needless_question_mark;
+mod needless_traits_in_scope;
 mod needless_update;
 mod neg_cmp_op_on_partial_ord;
 mod neg_multiply;
@@ -934,6 +935,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(missing_assert_message::MissingAssertMessage));
     store.register_early_pass(|| Box::new(redundant_async_block::RedundantAsyncBlock));
     store.register_late_pass(|_| Box::new(let_with_type_underscore::UnderscoreTyped));
+    store.register_late_pass(|_| Box::new(needless_traits_in_scope::NeedlessTraitsInScope));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

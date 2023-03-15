@@ -1,0 +1,10 @@
+error: trait is needlessly imported in trait's namespace
+  --> $DIR/needless_traits_in_scope.rs:6:9
+   |
+LL |     use std::io::Read;
+   |         ^^^^^^^^^^^^^ help: you can import the trait anonymously: `std::io::Read as _`
+   |
+   = note: `-D clippy::needless-traits-in-scope` implied by `-D warnings`
+
+error: aborting due to previous error
+
