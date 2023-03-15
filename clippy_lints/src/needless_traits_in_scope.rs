@@ -47,6 +47,14 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessTraitsInScope {
         let ItemKind::Use(use_path, UseKind::Single) = item.kind else {
             return
         };
+        // Check if it's a trait
+        if !use_path
+            .res
+            .iter()
+            .any(|res| matches!(res, def::Res::Def(def::DefKind::Trait, _)))
+        {
+            return;
+        }
         // Check if the `use` is aliased with ` as `.
         // If aliased, then do not process, it's probably for a good reason
         if item.ident != use_path.segments.last().unwrap().ident {

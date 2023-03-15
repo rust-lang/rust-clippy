@@ -22,6 +22,17 @@ pub mod trait_not_in_scope {
     }
 }
 
+pub mod is_not_a_trait {
+    mod inner {
+        pub struct Read;
+    }
+    use inner::Read;
+
+    pub fn ok() {
+        let _ = Read;
+    }
+}
+
 // FIXME: when the trait is explicitely used, the lint should not trigger
 // pub mod useful_trait_in_scope {
 //     use std::io::Read;
@@ -36,5 +47,6 @@ pub mod trait_not_in_scope {
 fn main() {
     useless_trait_in_scope::warn();
     trait_not_in_scope::ok();
+    is_not_a_trait::ok();
     // useful_trait_in_scope::ok();
 }
