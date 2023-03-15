@@ -36,7 +36,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.69.0"]
     pub NEEDLESS_TRAITS_IN_SCOPE,
-    pedantic,
+    restriction,
     "trait is needlessly imported in trait's namespace, and can be anonymously imported"
 }
 declare_lint_pass!(NeedlessTraitsInScope => [NEEDLESS_TRAITS_IN_SCOPE]);
