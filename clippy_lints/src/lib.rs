@@ -295,6 +295,7 @@ mod trait_bounds;
 mod transmute;
 mod types;
 mod undocumented_unsafe_blocks;
+mod unflagged_test_modules;
 mod unicode;
 mod uninit_vec;
 mod unit_return_expecting_ord;
@@ -938,6 +939,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(let_with_type_underscore::UnderscoreTyped));
     store.register_late_pass(|_| Box::new(allow_attributes::AllowAttribute));
     store.register_late_pass(move |_| Box::new(manual_main_separator_str::ManualMainSeparatorStr::new(msrv())));
+    store.register_late_pass(|_| Box::new(unflagged_test_modules::UnflaggedTestModules));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

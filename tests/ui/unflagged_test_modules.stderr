@@ -1,0 +1,15 @@
+error: this testing module isn't flagged with #[cfg(test)]
+  --> $DIR/unflagged_test_modules.rs:15:1
+   |
+LL | mod test {
+   | ^^^^^^^^
+   |
+   = note: `-D clippy::unflagged-test-modules` implied by `-D warnings`
+help: add the attribute
+   |
+LL + #[cfg(test)]
+LL ~ mod test {
+   |
+
+error: aborting due to previous error
+
