@@ -3935,6 +3935,21 @@
     }
   },
   {
+    "id": "manual_main_separator_str",
+    "id_span": {
+      "path": "src/manual_main_separator_str.rs",
+      "line": 30
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for references on `std::path::MAIN_SEPARATOR.to_string()` used\nto build a `&str`.\n\n### Why is this bad?\nThere exists a `std::path::MAIN_SEPARATOR_STR` which does not require\nan extra memory allocation.\n\n### Example\n```rust\nlet s: &str = &std::path::MAIN_SEPARATOR.to_string();\n```\nUse instead:\n```rust\nlet s: &str = std::path::MAIN_SEPARATOR_STR;\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
