@@ -14,7 +14,7 @@ declare_clippy_lint! {
     /// It also helps identify the traits in `use` statements.
     ///
     /// ### Why is this bad?
-    /// This needlessly brings a trait in trait's namespace, where it could
+    /// This needlessly brings a trait into the type namespace, where it could
     /// shadow other things. This is not really a problem, this lint is just
     /// for those who like to keep things tidy.
     ///
@@ -39,7 +39,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.69.0"]
     pub NEEDLESS_TRAITS_IN_SCOPE,
     restriction,
-    "trait is needlessly imported in trait's namespace, and can be anonymously imported"
+    "trait is needlessly imported into the type namespace, and can be anonymously imported"
 }
 declare_lint_pass!(NeedlessTraitsInScope => [NEEDLESS_TRAITS_IN_SCOPE]);
 
@@ -77,7 +77,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessTraitsInScope {
             cx,
             NEEDLESS_TRAITS_IN_SCOPE,
             use_path.span,
-            "trait is needlessly imported in trait's namespace",
+            "trait is needlessly imported into the type namespace",
             "you can import the trait anonymously",
             format!("{path} as _"),
             Applicability::MachineApplicable,
