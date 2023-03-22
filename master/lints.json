@@ -6486,8 +6486,8 @@
       "path": "src/redundant_async_block.rs",
       "line": 34
     },
-    "group": "complexity",
-    "level": "warn",
+    "group": "nursery",
+    "level": "allow",
     "docs": "\n### What it does\nChecks for `async` block that only returns `await` on a future.\n\n### Why is this bad?\nIt is simpler and more efficient to use the future directly.\n\n### Example\n```rust\nasync fn f() -> i32 {\n    1 + 2\n}\n\nlet fut = async {\n    f().await\n};\n```\nUse instead:\n```rust\nasync fn f() -> i32 {\n    1 + 2\n}\n\nlet fut = f();\n```",
     "version": "1.69.0",
     "applicability": {
