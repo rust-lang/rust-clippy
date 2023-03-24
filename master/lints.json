@@ -8572,6 +8572,21 @@
     }
   },
   {
+    "id": "unnecessary_struct_initialization",
+    "id_span": {
+      "path": "src/unnecessary_struct_initialization.rs",
+      "line": 29
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for initialization of a `struct` by copying a base without setting\nany field.\n\n### Why is this bad?\nReadibility suffers from unnecessary struct building.\n\n### Example\n```rust\nstruct S { s: String }\n\nlet a = S { s: String::from(\"Hello, world!\") };\nlet b = S { ..a };\n```\nUse instead:\n```rust\nstruct S { s: String }\n\nlet a = S { s: String::from(\"Hello, world!\") };\nlet b = a;\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
