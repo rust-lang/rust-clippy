@@ -3773,7 +3773,7 @@
     "id": "manual_async_fn",
     "id_span": {
       "path": "src/manual_async_fn.rs",
-      "line": 34
+      "line": 33
     },
     "group": "style",
     "level": "warn",
