@@ -101,12 +101,14 @@ struct FormatTraitNames {
 pub struct FormatImpl {
     // Whether we are inside Display or Debug trait impl - None for neither
     format_trait_impl: Option<FormatTraitNames>,
+    include_custom: bool,
 }
 
 impl FormatImpl {
-    pub fn new() -> Self {
+    pub fn new(include_custom: bool) -> Self {
         Self {
             format_trait_impl: None,
+            include_custom,
         }
     }
 }
@@ -131,6 +133,7 @@ impl<'tcx> LateLintPass<'tcx> for FormatImpl {
                 cx,
                 expr,
                 format_trait_impl,
+                include_custom: self.include_custom,
             };
             linter.check_to_string_in_display();
             linter.check_self_in_format_args();
@@ -143,6 +146,7 @@ struct FormatImplExpr<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     expr: &'tcx Expr<'tcx>,
     format_trait_impl: FormatTraitNames,
+    include_custom: bool,
 }
 
 impl<'a, 'tcx> FormatImplExpr<'a, 'tcx> {
@@ -174,7 +178,7 @@ impl<'a, 'tcx> FormatImplExpr<'a, 'tcx> {
         // Check each arg in format calls - do we ever use Display on self (directly or via deref)?
         if let Some(outer_macro) = root_macro_call_first_node(self.cx, self.expr)
             && let macro_def_id = outer_macro.def_id
-            && is_format_macro(self.cx, macro_def_id)
+            && (self.include_custom || is_format_macro(self.cx, macro_def_id))
             && let Some(format_args) = find_format_args(self.cx, self.expr, outer_macro.expn)
         {
             for piece in &format_args.template {
