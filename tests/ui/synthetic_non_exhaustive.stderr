@@ -1,0 +1,16 @@
+error: missing `#[non_exhaustive]` on an enum with hidden variants
+  --> $DIR/synthetic_non_exhaustive.rs:10:1
+   |
+LL | / pub enum Foo2 {
+LL | |     A,
+LL | |     B,
+LL | |     #[doc(hidden)]
+LL | |     C,
+LL | | }
+   | |_^
+   |
+   = help: consider adding the `#[non_exhaustive]` attribute to the enum
+   = note: `-D clippy::synthetic-non-exhaustive` implied by `-D warnings`
+
+error: aborting due to previous error
+

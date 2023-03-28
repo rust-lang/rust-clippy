@@ -287,6 +287,7 @@ mod suspicious_trait_impl;
 mod suspicious_xor_used_as_pow;
 mod swap;
 mod swap_ptr_to_ref;
+mod synthetic_non_exhaustive;
 mod tabs_in_doc_comments;
 mod temporary_assignment;
 mod to_digit_is_some;
@@ -940,6 +941,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(allow_attributes::AllowAttribute));
     store.register_late_pass(move |_| Box::new(manual_main_separator_str::ManualMainSeparatorStr::new(msrv())));
     store.register_late_pass(|_| Box::new(unnecessary_struct_initialization::UnnecessaryStruct));
+    store.register_early_pass(|| Box::new(synthetic_non_exhaustive::SyntheticNonExhaustive));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
