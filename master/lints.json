@@ -6136,7 +6136,7 @@
     "id": "print_in_format_impl",
     "id_span": {
       "path": "src/format_impl.rs",
-      "line": 86
+      "line": 88
     },
     "group": "suspicious",
     "level": "warn",
@@ -6466,7 +6466,7 @@
     "id": "recursive_format_impl",
     "id_span": {
       "path": "src/format_impl.rs",
-      "line": 45
+      "line": 47
     },
     "group": "correctness",
     "level": "deny",
@@ -9122,7 +9122,7 @@
     "id": "useless_format",
     "id_span": {
       "path": "src/format.rs",
-      "line": 38
+      "line": 37
     },
     "group": "complexity",
     "level": "warn",
