@@ -266,7 +266,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub TYPE_COMPLEXITY,
-    complexity,
+    pedantic,
     "usage of very complex types that might be better factored into `type` definitions"
 }
 
