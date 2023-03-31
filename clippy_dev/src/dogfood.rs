@@ -1,5 +1,8 @@
 use crate::clippy_project_root;
-use std::process::Command;
+use std::{
+    io::{self, Write},
+    process::Command,
+};
 
 /// # Panics
 ///
@@ -28,6 +31,6 @@ pub fn dogfood(fix: bool, allow_dirty: bool, allow_staged: bool) {
     cmd.env("__CLIPPY_DOGFOOD_ARGS", dogfood_args.join(" "));
 
     let output = cmd.output().expect("failed to run command");
-
-    println!("{}", String::from_utf8_lossy(&output.stdout));
+    io::stdout().write_all(&output.stdout).unwrap();
+    io::stderr().write_all(&output.stderr).unwrap();
 }
