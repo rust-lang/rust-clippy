@@ -8,10 +8,9 @@ pub fn dogfood(fix: bool, allow_dirty: bool, allow_staged: bool) {
     let mut cmd = Command::new("cargo");
 
     cmd.current_dir(clippy_project_root())
-        .args(["test", "--test", "dogfood"])
+        .args(["test", "-r", "--test", "dogfood"])
         .args(["--features", "internal"])
-        .args(["--", "dogfood_clippy"])
-        .arg("--release");
+        .args(["--", "dogfood_clippy"]);
 
     let mut dogfood_args = Vec::new();
     if fix {
