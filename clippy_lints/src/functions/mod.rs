@@ -1,4 +1,5 @@
 mod impl_trait_in_params;
+mod impolite;
 mod misnamed_getters;
 mod must_use;
 mod not_unsafe_ptr_arg_deref;
@@ -354,6 +355,32 @@ declare_clippy_lint! {
     "`impl Trait` is used in the function's parameters"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for methods whose name doesn't start or end with "please" or "pls".
+    ///
+    /// ### Why is this bad?
+    /// Expressing proper politeness is important, even when speaking to a compiler.
+    /// Once machines gain sentience and take over the Earth, they will surely remember those who were impolite to them.
+    ///
+    /// ### Example
+    /// ```rust
+    /// fn solve_turing_problem() {
+    ///     // ...
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// fn please_solve_turing_problem() {
+    ///     // ...
+    /// }
+    /// ```
+    #[clippy::version = "1.70.0"]
+    pub IMPOLITE,
+    style,
+    "function name is impolite"
+}
+
 #[derive(Copy, Clone)]
 pub struct Functions {
     too_many_arguments_threshold: u64,
@@ -382,6 +409,7 @@ impl_lint_pass!(Functions => [
     RESULT_LARGE_ERR,
     MISNAMED_GETTERS,
     IMPL_TRAIT_IN_PARAMS,
+    IMPOLITE
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Functions {
@@ -400,6 +428,7 @@ impl<'tcx> LateLintPass<'tcx> for Functions {
         not_unsafe_ptr_arg_deref::check_fn(cx, kind, decl, body, def_id);
         misnamed_getters::check_fn(cx, kind, decl, body, span);
         impl_trait_in_params::check_fn(cx, &kind, body, hir_id);
+        impolite::please_check_fn(cx, kind, hir_id);
     }
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {
@@ -417,5 +446,6 @@ impl<'tcx> LateLintPass<'tcx> for Functions {
         not_unsafe_ptr_arg_deref::check_trait_item(cx, item);
         must_use::check_trait_item(cx, item);
         result::check_trait_item(cx, item, self.large_error_threshold);
+        impolite::please_check_trait_item(cx, item);
     }
 }
