@@ -10,8 +10,14 @@ use std::{
 pub fn dogfood(fix: bool, allow_dirty: bool, allow_staged: bool) {
     let mut cmd = Command::new("cargo");
 
+    #[cfg(not(target_os = "windows"))]
     cmd.current_dir(clippy_project_root())
         .args(["test", "-r", "--test", "dogfood"])
+        .args(["--features", "internal"])
+        .args(["--", "dogfood_clippy"]);
+    #[cfg(target_os = "windows")]
+    cmd.current_dir(clippy_project_root())
+        .args(["test", "--test", "dogfood"])
         .args(["--features", "internal"])
         .args(["--", "dogfood_clippy"]);
 
