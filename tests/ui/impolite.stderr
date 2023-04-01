@@ -1,0 +1,33 @@
+error: function name is impolite
+  --> $DIR/impolite.rs:4:8
+   |
+LL |     fn greet(&self);
+   |        ^^^^^
+   |
+   = note: `-D clippy::impolite` implied by `-D warnings`
+help: consider using a polite prefix
+   |
+LL |     fn please_greet(&self);
+   |        ~~~~~~~~~~~~
+help: consider using a polite suffix
+   |
+LL |     fn greet_please(&self);
+   |        ~~~~~~~~~~~~
+
+error: function name is impolite
+  --> $DIR/impolite.rs:15:4
+   |
+LL | fn greet() {
+   |    ^^^^^
+   |
+help: consider using a polite prefix
+   |
+LL | fn please_greet() {
+   |    ~~~~~~~~~~~~
+help: consider using a polite suffix
+   |
+LL | fn greet_please() {
+   |    ~~~~~~~~~~~~
+
+error: aborting due to 2 previous errors
+
