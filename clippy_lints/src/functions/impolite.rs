@@ -2,11 +2,11 @@ use clippy_utils::{diagnostics::span_lint_and_then, is_trait_impl_item};
 use rustc_errors::Applicability;
 use rustc_hir::{intravisit::FnKind, HirId, TraitItem};
 use rustc_lint::LateContext;
-use rustc_span::symbol::Ident;
+use rustc_span::{sym, symbol::Ident};
 
 use super::IMPOLITE;
 
-const POLITE_WORDS: [&str; 2] = [&"please", &"pls"];
+const POLITE_WORDS: [&str; 2] = ["please", "pls"];
 
 fn please_check(cx: &LateContext<'_>, ident: Ident) {
     let name = ident.name.as_str();
@@ -17,7 +17,7 @@ fn please_check(cx: &LateContext<'_>, ident: Ident) {
         }
     }
 
-    let span = ident.span.clone();
+    let span = ident.span;
     let prefix_suggestion = format!("please_{name}");
     let suffix_suggestion = format!("{name}_please");
 
@@ -43,7 +43,7 @@ pub fn please_check_fn(cx: &LateContext<'_>, kind: FnKind<'_>, hir_id: HirId) {
         FnKind::ItemFn(ident, _, _) => {
             // Ignore main for now
             // TODO: Rename main to please_main in rustc
-            if ident.name.as_str() != "main" {
+            if ident.name != sym::main {
                 please_check(cx, ident);
             }
         },

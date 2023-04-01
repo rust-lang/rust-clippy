@@ -377,7 +377,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.70.0"]
     pub IMPOLITE,
-    style,
+    restriction,
     "function name is impolite"
 }
 
