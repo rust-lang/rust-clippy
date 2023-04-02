@@ -3,6 +3,7 @@ mod misnamed_getters;
 mod must_use;
 mod not_unsafe_ptr_arg_deref;
 mod result;
+mod safe_unchecked;
 mod too_many_arguments;
 mod too_many_lines;
 
@@ -354,6 +355,35 @@ declare_clippy_lint! {
     "`impl Trait` is used in the function's parameters"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Triggers when a function with a name ending with `_unchecked` is not marked as unsafe.
+    ///
+    /// ### Why is this bad?
+    /// `_unchecked` functions that have safety requirements should be marked `unsafe`.
+    ///
+    /// ### Known problems
+    /// An `_unchecked` function can be completely safe, with no conditions to maintain memory safety. In those cases they should not be marked `unsafe`.
+    ///
+    /// ### Example
+    /// ```rust
+    /// fn do_foo_unchecked() {
+    ///     // [...]
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust
+    /// unsafe fn do_foo_unchecked() {
+    ///     // [...]
+    /// }
+    /// ```
+    #[clippy::version = "1.70.0"]
+    pub SAFE_UNCHECKED,
+    restriction,
+    "a function ending in `_unchecked` that isn't marked `unsafe`"
+}
+
 #[derive(Copy, Clone)]
 pub struct Functions {
     too_many_arguments_threshold: u64,
@@ -382,6 +412,7 @@ impl_lint_pass!(Functions => [
     RESULT_LARGE_ERR,
     MISNAMED_GETTERS,
     IMPL_TRAIT_IN_PARAMS,
+    SAFE_UNCHECKED,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Functions {
@@ -400,6 +431,7 @@ impl<'tcx> LateLintPass<'tcx> for Functions {
         not_unsafe_ptr_arg_deref::check_fn(cx, kind, decl, body, def_id);
         misnamed_getters::check_fn(cx, kind, decl, body, span);
         impl_trait_in_params::check_fn(cx, &kind, body, hir_id);
+        safe_unchecked::check_fn(cx, &kind, span, hir_id);
     }
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {

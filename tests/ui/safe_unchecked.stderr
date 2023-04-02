@@ -1,0 +1,14 @@
+error: this function ending with `_unchecked` isn't marked with `unsafe`
+  --> $DIR/safe_unchecked.rs:5:4
+   |
+LL | fn should_lint_unchecked() {}
+   |    ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::safe-unchecked` implied by `-D warnings`
+help: add an unsafe marker
+   |
+LL | unsafe fn should_lint_unchecked() {}
+   | ++++++
+
+error: aborting due to previous error
+
