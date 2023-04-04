@@ -7837,6 +7837,21 @@
     }
   },
   {
+    "id": "tests_outside_test_module",
+    "id_span": {
+      "path": "src/tests_outside_test_module.rs",
+      "line": 38
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nTriggers when a testing function (marked with the `#[test]` attribute) isn't inside a testing module\n(marked with `#[cfg(test)]`).\n### Why is this bad?\nThe idiomatic (and more performant) way of writing tests is inside a testing module (flagged with `#[cfg(test)]`),\nhaving test functions outside of this module is confusing and may lead to them being \"hidden\".\n### Example\n```rust\n#[test]\nfn my_cool_test() {\n    // [...]\n}\n\n#[cfg(test)]\nmod tests {\n    // [...]\n}\n\n```\nUse instead:\n```rust\n#[cfg(test)]\nmod tests {\n    #[test]\n    fn my_cool_test() {\n        // [...]\n    }\n}\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "to_digit_is_some",
     "id_span": {
       "path": "src/to_digit_is_some.rs",
