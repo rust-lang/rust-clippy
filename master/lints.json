@@ -6529,11 +6529,11 @@
     "id": "redundant_async_block",
     "id_span": {
       "path": "src/redundant_async_block.rs",
-      "line": 34
+      "line": 39
     },
-    "group": "nursery",
-    "level": "allow",
-    "docs": "\n### What it does\nChecks for `async` block that only returns `await` on a future.\n\n### Why is this bad?\nIt is simpler and more efficient to use the future directly.\n\n### Example\n```rust\nasync fn f() -> i32 {\n    1 + 2\n}\n\nlet fut = async {\n    f().await\n};\n```\nUse instead:\n```rust\nasync fn f() -> i32 {\n    1 + 2\n}\n\nlet fut = f();\n```",
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `async` block that only returns `await` on a future.\n\n### Why is this bad?\nIt is simpler and more efficient to use the future directly.\n\n### Example\n```rust\nlet f = async {\n   1 + 2\n};\nlet fut = async {\n    f.await\n};\n```\nUse instead:\n```rust\nlet f = async {\n   1 + 2\n};\nlet fut = f;\n```",
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
