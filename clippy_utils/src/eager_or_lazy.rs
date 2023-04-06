@@ -50,7 +50,7 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
     let name = name.as_str();
 
     let ty = match cx.tcx.impl_of_method(fn_id) {
-        Some(id) => cx.tcx.type_of(id),
+        Some(id) => cx.tcx.type_of(id).subst_identity(),
         None => return Lazy,
     };
 
@@ -71,7 +71,7 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
             .variants()
             .iter()
             .flat_map(|v| v.fields.iter())
-            .any(|x| matches!(cx.tcx.type_of(x.did).peel_refs().kind(), ty::Param(_)))
+            .any(|x| matches!(cx.tcx.type_of(x.did).subst_identity().peel_refs().kind(), ty::Param(_)))
             && all_predicates_of(cx.tcx, fn_id).all(|(pred, _)| match pred.kind().skip_binder() {
                 PredicateKind::Clause(ty::Clause::Trait(pred)) => cx.tcx.trait_def(pred.trait_ref.def_id).is_marker,
                 _ => true,
@@ -79,7 +79,7 @@ fn fn_eagerness(cx: &LateContext<'_>, fn_id: DefId, name: Symbol, have_one_arg: 
             && subs.types().all(|x| matches!(x.peel_refs().kind(), ty::Param(_)))
         {
             // Limit the function to either `(self) -> bool` or `(&self) -> bool`
-            match &**cx.tcx.fn_sig(fn_id).skip_binder().inputs_and_output {
+            match &**cx.tcx.fn_sig(fn_id).subst_identity().skip_binder().inputs_and_output {
                 [arg, res] if !arg.is_mutable_ptr() && arg.peel_refs() == ty && res.is_bool() => NoChange,
                 _ => Lazy,
             }
@@ -193,17 +193,15 @@ fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessS
                 | ExprKind::Ret(_)
                 | ExprKind::InlineAsm(_)
                 | ExprKind::Yield(..)
-                | ExprKind::Err => {
+                | ExprKind::Err(_) => {
                     self.eagerness = ForceNoChange;
                     return;
                 },
 
                 // Memory allocation, custom operator, loop, or call to an unknown function
-                ExprKind::Box(_)
-                | ExprKind::Unary(..)
-                | ExprKind::Binary(..)
-                | ExprKind::Loop(..)
-                | ExprKind::Call(..) => self.eagerness = Lazy,
+                ExprKind::Unary(..) | ExprKind::Binary(..) | ExprKind::Loop(..) | ExprKind::Call(..) => {
+                    self.eagerness = Lazy;
+                },
 
                 ExprKind::ConstBlock(_)
                 | ExprKind::Array(_)

@@ -1,8 +1,12 @@
+// aux-build:proc_macros.rs
 #![allow(unused)]
 #![allow(deref_nullptr)]
 #![allow(clippy::unnecessary_operation)]
 #![allow(clippy::drop_copy)]
 #![warn(clippy::multiple_unsafe_ops_per_block)]
+
+extern crate proc_macros;
+use proc_macros::external;
 
 use core::arch::asm;
 
@@ -105,6 +109,42 @@ unsafe fn read_char_bad(ptr: *const u8) -> char {
 unsafe fn read_char_good(ptr: *const u8) -> char {
     let int_value = unsafe { *ptr.cast::<u32>() };
     unsafe { core::char::from_u32_unchecked(int_value) }
+}
+
+// no lint
+fn issue10259() {
+    external!(unsafe {
+        *core::ptr::null::<()>();
+        *core::ptr::null::<()>();
+    });
+}
+
+fn _fn_ptr(x: unsafe fn()) {
+    unsafe {
+        x();
+        x();
+    }
+}
+
+fn _assoc_const() {
+    trait X {
+        const X: unsafe fn();
+    }
+    fn _f<T: X>() {
+        unsafe {
+            T::X();
+            T::X();
+        }
+    }
+}
+
+fn _field_fn_ptr(x: unsafe fn()) {
+    struct X(unsafe fn());
+    let x = X(x);
+    unsafe {
+        x.0();
+        x.0();
+    }
 }
 
 fn main() {}

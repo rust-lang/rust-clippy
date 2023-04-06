@@ -1,15 +1,16 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_hir_and_then};
-use clippy_utils::source::{snippet, snippet_opt};
+use clippy_utils::source::{snippet, snippet_opt, snippet_with_context};
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
-    self as hir, def, BinOpKind, BindingAnnotation, Body, ByRef, Expr, ExprKind, FnDecl, HirId, Mutability, PatKind,
-    Stmt, StmtKind, TyKind,
+    self as hir, def, BinOpKind, BindingAnnotation, Body, ByRef, Expr, ExprKind, FnDecl, Mutability, PatKind, Stmt,
+    StmtKind, TyKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::lint::in_external_macro;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_span::def_id::LocalDefId;
 use rustc_span::hygiene::DesugaringKind;
 use rustc_span::source_map::{ExpnKind, Span};
 
@@ -151,7 +152,7 @@ impl<'tcx> LateLintPass<'tcx> for LintPass {
         decl: &'tcx FnDecl<'_>,
         body: &'tcx Body<'_>,
         span: Span,
-        _: HirId,
+        _: LocalDefId,
     ) {
         if let FnKind::Closure = k {
             // Does not apply to closures
@@ -180,20 +181,17 @@ impl<'tcx> LateLintPass<'tcx> for LintPass {
             if let PatKind::Binding(BindingAnnotation(ByRef::Yes, mutabl), .., name, None) = local.pat.kind;
             if let Some(init) = local.init;
             then {
-                // use the macro callsite when the init span (but not the whole local span)
-                // comes from an expansion like `vec![1, 2, 3]` in `let ref _ = vec![1, 2, 3];`
-                let sugg_init = if init.span.from_expansion() && !local.span.from_expansion() {
-                    Sugg::hir_with_macro_callsite(cx, init, "..")
-                } else {
-                    Sugg::hir(cx, init, "..")
-                };
+                let ctxt = local.span.ctxt();
+                let mut app = Applicability::MachineApplicable;
+                let sugg_init = Sugg::hir_with_context(cx, init, ctxt, "..", &mut app);
                 let (mutopt, initref) = if mutabl == Mutability::Mut {
                     ("mut ", sugg_init.mut_addr())
                 } else {
                     ("", sugg_init.addr())
                 };
                 let tyopt = if let Some(ty) = local.ty {
-                    format!(": &{mutopt}{ty}", ty=snippet(cx, ty.span, ".."))
+                    let ty_snip = snippet_with_context(cx, ty.span, ctxt, "_", &mut app).0;
+                    format!(": &{mutopt}{ty_snip}")
                 } else {
                     String::new()
                 };
@@ -211,7 +209,7 @@ impl<'tcx> LateLintPass<'tcx> for LintPass {
                                 "let {name}{tyopt} = {initref};",
                                 name=snippet(cx, name.span, ".."),
                             ),
-                            Applicability::MachineApplicable,
+                            app,
                         );
                     }
                 );

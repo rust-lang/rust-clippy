@@ -1,12 +1,19 @@
+// run-rustfix
+// aux-build:proc_macros.rs
+
 #![warn(clippy::needless_lifetimes)]
 #![allow(
-    dead_code,
+    unused,
     clippy::boxed_local,
+    clippy::extra_unused_type_parameters,
     clippy::needless_pass_by_value,
     clippy::unnecessary_wraps,
     dyn_drop,
     clippy::get_first
 )]
+
+extern crate proc_macros;
+use proc_macros::inline_macros;
 
 fn distinct_lifetimes<'a, 'b>(_x: &'a u8, _y: &'b u8, _z: u8) {}
 
@@ -492,6 +499,48 @@ mod pr_9743_output_lifetime_checks {
     // don't lint: multiple inputs, output would be elided (which would create an ambiguity)
     fn multiple_inputs_output_would_be_elided<'a, 'b>(x: &'a u8, y: &'b u8, z: &'b u8) -> &'a u8 {
         unimplemented!()
+    }
+}
+
+#[inline_macros]
+mod in_macro {
+    use proc_macros::external;
+
+    // lint local macro expands to function with needless lifetimes
+    inline! {
+        fn one_input<'a>(x: &'a u8) -> &'a u8 {
+            unimplemented!()
+        }
+    }
+
+    // no lint on external macro
+    external! {
+        fn needless_lifetime<'a>(x: &'a u8) -> &'a u8 {
+            unimplemented!()
+        }
+    }
+
+    inline! {
+        fn f<$'a>(arg: &$'a str) -> &$'a str {
+            arg
+        }
+    }
+}
+
+mod issue5787 {
+    use std::sync::MutexGuard;
+
+    struct Foo;
+
+    impl Foo {
+        // doesn't get linted without async
+        pub async fn wait<'a, T>(&self, guard: MutexGuard<'a, T>) -> MutexGuard<'a, T> {
+            guard
+        }
+    }
+
+    async fn foo<'a>(_x: &i32, y: &'a str) -> &'a str {
+        y
     }
 }
 

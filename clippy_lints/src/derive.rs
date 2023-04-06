@@ -7,7 +7,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{walk_expr, walk_fn, walk_item, FnKind, Visitor};
 use rustc_hir::{
-    self as hir, BlockCheckMode, BodyId, Constness, Expr, ExprKind, FnDecl, HirId, Impl, Item, ItemKind, UnsafeSource,
+    self as hir, BlockCheckMode, BodyId, Constness, Expr, ExprKind, FnDecl, Impl, Item, ItemKind, UnsafeSource,
     Unsafety,
 };
 use rustc_lint::{LateContext, LateLintPass};
@@ -18,13 +18,14 @@ use rustc_middle::ty::{
     TraitPredicate, Ty, TyCtxt,
 };
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::def_id::LocalDefId;
 use rustc_span::source_map::Span;
 use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for deriving `Hash` but implementing `PartialEq`
-    /// explicitly or vice versa.
+    /// Lints against manual `PartialEq` implementations for types with a derived `Hash`
+    /// implementation.
     ///
     /// ### Why is this bad?
     /// The implementation of these traits must agree (for
@@ -53,8 +54,8 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for deriving `Ord` but implementing `PartialOrd`
-    /// explicitly or vice versa.
+    /// Lints against manual `PartialOrd` and `Ord` implementations for types with a derived `Ord`
+    /// or `PartialOrd` implementation.
     ///
     /// ### Why is this bad?
     /// The implementation of these traits must agree (for
@@ -210,8 +211,8 @@ impl<'tcx> LateLintPass<'tcx> for Derive {
             ..
         }) = item.kind
         {
-            let ty = cx.tcx.type_of(item.owner_id);
-            let is_automatically_derived = cx.tcx.has_attr(item.owner_id.to_def_id(), sym::automatically_derived);
+            let ty = cx.tcx.type_of(item.owner_id).subst_identity();
+            let is_automatically_derived = cx.tcx.has_attr(item.owner_id, sym::automatically_derived);
 
             check_hash_peq(cx, item.span, trait_ref, ty, is_automatically_derived);
             check_ord_partial_ord(cx, item.span, trait_ref, ty, is_automatically_derived);
@@ -251,7 +252,7 @@ fn check_hash_peq<'tcx>(
 
                 // Only care about `impl PartialEq<Foo> for Foo`
                 // For `impl PartialEq<B> for A, input_types is [A, B]
-                if trait_ref.substs.type_at(1) == ty {
+                if trait_ref.subst_identity().substs.type_at(1) == ty {
                     span_lint_and_then(
                         cx,
                         DERIVED_HASH_WITH_MANUAL_EQ,
@@ -299,7 +300,7 @@ fn check_ord_partial_ord<'tcx>(
 
                 // Only care about `impl PartialOrd<Foo> for Foo`
                 // For `impl PartialOrd<B> for A, input_types is [A, B]
-                if trait_ref.substs.type_at(1) == ty {
+                if trait_ref.subst_identity().substs.type_at(1) == ty {
                     let mess = if partial_ord_is_automatically_derived {
                         "you are implementing `Ord` explicitly but have derived `PartialOrd`"
                     } else {
@@ -346,7 +347,7 @@ fn check_copy_clone<'tcx>(cx: &LateContext<'tcx>, item: &Item<'_>, trait_ref: &h
             let has_copy_impl = cx.tcx.all_local_trait_impls(()).get(&copy_id).map_or(false, |impls| {
                 impls
                     .iter()
-                    .any(|&id| matches!(cx.tcx.type_of(id).kind(), ty::Adt(adt, _) if ty_adt.did() == adt.did()))
+                    .any(|&id| matches!(cx.tcx.type_of(id).subst_identity().kind(), ty::Adt(adt, _) if ty_adt.did() == adt.did()))
             });
             if !has_copy_impl {
                 return;
@@ -425,7 +426,7 @@ struct UnsafeVisitor<'a, 'tcx> {
 impl<'tcx> Visitor<'tcx> for UnsafeVisitor<'_, 'tcx> {
     type NestedFilter = nested_filter::All;
 
-    fn visit_fn(&mut self, kind: FnKind<'tcx>, decl: &'tcx FnDecl<'_>, body_id: BodyId, _: Span, id: HirId) {
+    fn visit_fn(&mut self, kind: FnKind<'tcx>, decl: &'tcx FnDecl<'_>, body_id: BodyId, _: Span, id: LocalDefId) {
         if self.has_unsafe {
             return;
         }
@@ -513,7 +514,7 @@ fn param_env_for_derived_eq(tcx: TyCtxt<'_>, did: DefId, eq_trait_id: DefId) -> 
     }
 
     ParamEnv::new(
-        tcx.mk_predicates(ty_predicates.iter().map(|&(p, _)| p).chain(
+        tcx.mk_predicates_from_iter(ty_predicates.iter().map(|&(p, _)| p).chain(
             params.iter().filter(|&&(_, needs_eq)| needs_eq).map(|&(param, _)| {
                 tcx.mk_predicate(Binder::dummy(PredicateKind::Clause(Clause::Trait(TraitPredicate {
                     trait_ref: tcx.mk_trait_ref(eq_trait_id, [tcx.mk_param_from_def(param)]),

@@ -18,13 +18,14 @@ use rustc_hir_typeck::expr_use_visitor as euv;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::FakeReadCause;
-use rustc_middle::ty::{self, TypeVisitable};
+use rustc_middle::ty::{self, TypeVisitableExt};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::kw;
 use rustc_span::{sym, Span};
 use rustc_target::spec::abi::Abi;
 use rustc_trait_selection::traits;
-use rustc_trait_selection::traits::misc::can_type_implement_copy;
+use rustc_trait_selection::traits::misc::type_allowed_to_implement_copy;
 use std::borrow::Cow;
 
 declare_clippy_lint! {
@@ -82,11 +83,13 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
         decl: &'tcx FnDecl<'_>,
         body: &'tcx Body<'_>,
         span: Span,
-        hir_id: HirId,
+        fn_def_id: LocalDefId,
     ) {
         if span.from_expansion() {
             return;
         }
+
+        let hir_id = cx.tcx.hir().local_def_id_to_hir_id(fn_def_id);
 
         match kind {
             FnKind::ItemFn(.., header) => {
@@ -119,13 +122,11 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
 
         let sized_trait = need!(cx.tcx.lang_items().sized_trait());
 
-        let fn_def_id = cx.tcx.hir().local_def_id(hir_id);
-
         let preds = traits::elaborate_predicates(cx.tcx, cx.param_env.caller_bounds().iter())
             .filter(|p| !p.is_global())
-            .filter_map(|obligation| {
+            .filter_map(|pred| {
                 // Note that we do not want to deal with qualified predicates here.
-                match obligation.predicate.kind().no_bound_vars() {
+                match pred.kind().no_bound_vars() {
                     Some(ty::PredicateKind::Clause(ty::Clause::Trait(pred))) if pred.def_id() != sized_trait => {
                         Some(pred)
                     },
@@ -147,8 +148,8 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
             ctx
         };
 
-        let fn_sig = cx.tcx.fn_sig(fn_def_id);
-        let fn_sig = cx.tcx.erase_late_bound_regions(fn_sig);
+        let fn_sig = cx.tcx.fn_sig(fn_def_id).subst_identity();
+        let fn_sig = cx.tcx.liberate_late_bound_regions(fn_def_id.to_def_id(), fn_sig);
 
         for (idx, ((input, &ty), arg)) in decl.inputs.iter().zip(fn_sig.inputs()).zip(body.params).enumerate() {
             // All spans generated from a proc-macro invocation are the same...
@@ -200,7 +201,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
                     let sugg = |diag: &mut Diagnostic| {
                         if let ty::Adt(def, ..) = ty.kind() {
                             if let Some(span) = cx.tcx.hir().span_if_local(def.did()) {
-                                if can_type_implement_copy(
+                                if type_allowed_to_implement_copy(
                                     cx.tcx,
                                     cx.param_env,
                                     ty,

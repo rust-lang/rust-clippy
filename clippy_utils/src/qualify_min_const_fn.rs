@@ -30,12 +30,14 @@ pub fn is_min_const_fn<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>, msrv: &Msrv) 
                     ty::Clause::RegionOutlives(_)
                     | ty::Clause::TypeOutlives(_)
                     | ty::Clause::Projection(_)
-                    | ty::Clause::Trait(..),
+                    | ty::Clause::Trait(..)
+                    | ty::Clause::ConstArgHasType(..),
                 )
                 | ty::PredicateKind::WellFormed(_)
                 | ty::PredicateKind::ConstEvaluatable(..)
                 | ty::PredicateKind::ConstEquate(..)
                 | ty::PredicateKind::TypeWellFormedFromEnv(..) => continue,
+                ty::PredicateKind::AliasRelate(..) => panic!("alias relate predicate on function: {predicate:#?}"),
                 ty::PredicateKind::ObjectSafe(_) => panic!("object safe predicate on function: {predicate:#?}"),
                 ty::PredicateKind::ClosureKind(..) => panic!("closure kind predicate on function: {predicate:#?}"),
                 ty::PredicateKind::Subtype(_) => panic!("subtype predicate on function: {predicate:#?}"),
@@ -55,7 +57,7 @@ pub fn is_min_const_fn<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>, msrv: &Msrv) 
     // impl trait is gone in MIR, so check the return type manually
     check_ty(
         tcx,
-        tcx.fn_sig(def_id).output().skip_binder(),
+        tcx.fn_sig(def_id).subst_identity().output().skip_binder(),
         body.local_decls.iter().next().unwrap().source_info.span,
     )?;
 
@@ -174,6 +176,10 @@ fn check_rvalue<'tcx>(
             // FIXME(dyn-star)
             unimplemented!()
         },
+        Rvalue::Cast(CastKind::Transmute, _, _) => Err((
+            span,
+            "transmute can attempt to turn pointers into integers, so is unstable in const fn".into(),
+        )),
         // binops are fine on integers
         Rvalue::BinaryOp(_, box (lhs, rhs)) | Rvalue::CheckedBinaryOp(_, box (lhs, rhs)) => {
             check_operand(tcx, lhs, span, body)?;
@@ -239,7 +245,9 @@ fn check_statement<'tcx>(
         | StatementKind::StorageDead(_)
         | StatementKind::Retag { .. }
         | StatementKind::AscribeUserType(..)
+        | StatementKind::PlaceMention(..)
         | StatementKind::Coverage(..)
+        | StatementKind::ConstEvalCounter
         | StatementKind::Nop => Ok(()),
     }
 }
@@ -296,10 +304,6 @@ fn check_terminator<'tcx>(
         | TerminatorKind::Unreachable => Ok(()),
 
         TerminatorKind::Drop { place, .. } => check_place(tcx, *place, span, body),
-        TerminatorKind::DropAndReplace { place, value, .. } => {
-            check_place(tcx, *place, span, body)?;
-            check_operand(tcx, value, span, body)
-        },
 
         TerminatorKind::SwitchInt { discr, targets: _ } => check_operand(tcx, discr, span, body),
 

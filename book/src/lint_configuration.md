@@ -43,6 +43,7 @@ Please use that command to update the file and do not edit it by hand.
 | [allowed-scripts](#allowed-scripts) | `["Latin"]` |
 | [enable-raw-pointer-heuristic-for-send](#enable-raw-pointer-heuristic-for-send) | `true` |
 | [max-suggested-slice-pattern-length](#max-suggested-slice-pattern-length) | `3` |
+| [await-holding-invalid-types](#await-holding-invalid-types) | `[]` |
 | [max-include-file-size](#max-include-file-size) | `1000000` |
 | [allow-expect-in-tests](#allow-expect-in-tests) | `false` |
 | [allow-unwrap-in-tests](#allow-unwrap-in-tests) | `false` |
@@ -52,6 +53,8 @@ Please use that command to update the file and do not edit it by hand.
 | [ignore-interior-mutability](#ignore-interior-mutability) | `["bytes::Bytes"]` |
 | [allow-mixed-uninlined-format-args](#allow-mixed-uninlined-format-args) | `true` |
 | [suppress-restriction-lint-in-const](#suppress-restriction-lint-in-const) | `false` |
+| [missing-docs-in-crate-items](#missing-docs-in-crate-items) | `false` |
+| [future-size-threshold](#future-size-threshold) | `16384` |
 
 ### arithmetic-side-effects-allowed
 Suppress checking of the passed type names in all types of operations.
@@ -128,6 +131,7 @@ Suppress lints whenever the suggested change would cause breakage for other crat
 * [option_option](https://rust-lang.github.io/rust-clippy/master/index.html#option_option)
 * [linkedlist](https://rust-lang.github.io/rust-clippy/master/index.html#linkedlist)
 * [rc_mutex](https://rust-lang.github.io/rust-clippy/master/index.html#rc_mutex)
+* [unnecessary_box_returns](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_box_returns)
 
 
 ### msrv
@@ -167,6 +171,17 @@ The minimum rust version that the project supports
 * [manual_clamp](https://rust-lang.github.io/rust-clippy/master/index.html#manual_clamp)
 * [manual_let_else](https://rust-lang.github.io/rust-clippy/master/index.html#manual_let_else)
 * [unchecked_duration_subtraction](https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_duration_subtraction)
+* [collapsible_str_replace](https://rust-lang.github.io/rust-clippy/master/index.html#collapsible_str_replace)
+* [seek_from_current](https://rust-lang.github.io/rust-clippy/master/index.html#seek_from_current)
+* [seek_rewind](https://rust-lang.github.io/rust-clippy/master/index.html#seek_rewind)
+* [unnecessary_lazy_evaluations](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_lazy_evaluations)
+* [transmute_ptr_to_ref](https://rust-lang.github.io/rust-clippy/master/index.html#transmute_ptr_to_ref)
+* [almost_complete_range](https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_range)
+* [needless_borrow](https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrow)
+* [derivable_impls](https://rust-lang.github.io/rust-clippy/master/index.html#derivable_impls)
+* [manual_is_ascii_check](https://rust-lang.github.io/rust-clippy/master/index.html#manual_is_ascii_check)
+* [manual_rem_euclid](https://rust-lang.github.io/rust-clippy/master/index.html#manual_rem_euclid)
+* [manual_retain](https://rust-lang.github.io/rust-clippy/master/index.html#manual_retain)
 
 
 ### cognitive-complexity-threshold
@@ -180,7 +195,7 @@ The maximum cognitive complexity a function can have
 ### disallowed-names
 The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
 `".."` can be used as part of the list to indicate, that the configured values should be appended to the
-default configuration of Clippy. By default any configuration will replace the default value.
+default configuration of Clippy. By default, any configuration will replace the default value.
 
 **Default Value:** `["foo", "baz", "quux"]` (`Vec<String>`)
 
@@ -190,7 +205,7 @@ default configuration of Clippy. By default any configuration will replace the d
 ### doc-valid-idents
 The list of words this lint should not consider as identifiers needing ticks. The value
 `".."` can be used as part of the list to indicate, that the configured values should be appended to the
-default configuration of Clippy. By default any configuraction will replace the default value. For example:
+default configuration of Clippy. By default, any configuration will replace the default value. For example:
 * `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
 * `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
 
@@ -279,7 +294,7 @@ The minimum size (in bytes) to consider a type for passing by reference instead 
 
 **Default Value:** `256` (`u64`)
 
-* [large_type_pass_by_move](https://rust-lang.github.io/rust-clippy/master/index.html#large_type_pass_by_move)
+* [large_types_passed_by_value](https://rust-lang.github.io/rust-clippy/master/index.html#large_types_passed_by_value)
 
 
 ### too-many-lines-threshold
@@ -293,7 +308,7 @@ The maximum number of lines a function or method can have
 ### array-size-threshold
 The maximum allowed size for arrays on the stack
 
-**Default Value:** `512000` (`u128`)
+**Default Value:** `512000` (`u64`)
 
 * [large_stack_arrays](https://rust-lang.github.io/rust-clippy/master/index.html#large_stack_arrays)
 * [large_const_arrays](https://rust-lang.github.io/rust-clippy/master/index.html#large_const_arrays)
@@ -400,7 +415,7 @@ For internal testing only, ignores the current `publish` settings in the Cargo m
 Enforce the named macros always use the braces specified.
 
 A `MacroMatcher` can be added like so `{ name = "macro_name", brace = "(" }`. If the macro
-is could be used with a full path two `MacroMatcher`s have to be added one with the full path
+could be used with a full path two `MacroMatcher`s have to be added one with the full path
 `crate_name::macro_name` and one with just the macro name.
 
 **Default Value:** `[]` (`Vec<crate::nonstandard_macro_braces::MacroMatcher>`)
@@ -434,12 +449,20 @@ Whether to apply the raw pointer heuristic to determine if a type is `Send`.
 
 ### max-suggested-slice-pattern-length
 When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in
-the slice pattern that is suggested. If more elements would be necessary, the lint is suppressed.
+the slice pattern that is suggested. If more elements are necessary, the lint is suppressed.
 For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.
 
 **Default Value:** `3` (`u64`)
 
 * [index_refutable_slice](https://rust-lang.github.io/rust-clippy/master/index.html#index_refutable_slice)
+
+
+### await-holding-invalid-types
+
+
+**Default Value:** `[]` (`Vec<crate::utils::conf::DisallowedPath>`)
+
+* [await_holding_invalid_type](https://rust-lang.github.io/rust-clippy/master/index.html#await_holding_invalid_type)
 
 
 ### max-include-file-size
@@ -451,7 +474,7 @@ The maximum size of a file included via `include_bytes!()` or `include_str!()`, 
 
 
 ### allow-expect-in-tests
-Whether `expect` should be allowed within `#[cfg(test)]`
+Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 
 **Default Value:** `false` (`bool`)
 
@@ -459,7 +482,7 @@ Whether `expect` should be allowed within `#[cfg(test)]`
 
 
 ### allow-unwrap-in-tests
-Whether `unwrap` should be allowed in test cfg
+Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
 
 **Default Value:** `false` (`bool`)
 
@@ -467,7 +490,7 @@ Whether `unwrap` should be allowed in test cfg
 
 
 ### allow-dbg-in-tests
-Whether `dbg!` should be allowed in test functions
+Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`
 
 **Default Value:** `false` (`bool`)
 
@@ -475,7 +498,7 @@ Whether `dbg!` should be allowed in test functions
 
 
 ### allow-print-in-tests
-Whether print macros (ex. `println!`) should be allowed in test functions
+Whether print macros (ex. `println!`) should be allowed in test functions or `#[cfg(test)]`
 
 **Default Value:** `false` (`bool`)
 
@@ -497,7 +520,8 @@ for the generic parameters for determining interior mutability
 
 **Default Value:** `["bytes::Bytes"]` (`Vec<String>`)
 
-* [mutable_key](https://rust-lang.github.io/rust-clippy/master/index.html#mutable_key)
+* [mutable_key_type](https://rust-lang.github.io/rust-clippy/master/index.html#mutable_key_type)
+* [ifs_same_cond](https://rust-lang.github.io/rust-clippy/master/index.html#ifs_same_cond)
 
 
 ### allow-mixed-uninlined-format-args
@@ -509,7 +533,7 @@ Whether to allow mixed uninlined format args, e.g. `format!("{} {}", a, foo.bar)
 
 
 ### suppress-restriction-lint-in-const
-In same
+Whether to suppress a restriction lint in constant code. In same
 cases the restructured operation might not be unavoidable, as the
 suggested counterparts are unavailable in constant code. This
 configuration will cause restriction lints to trigger even
@@ -518,6 +542,23 @@ if no suggestion can be made.
 **Default Value:** `false` (`bool`)
 
 * [indexing_slicing](https://rust-lang.github.io/rust-clippy/master/index.html#indexing_slicing)
+
+
+### missing-docs-in-crate-items
+Whether to **only** check for missing documentation in items visible within the current
+crate. For example, `pub(crate)` items.
+
+**Default Value:** `false` (`bool`)
+
+* [missing_docs_in_private_items](https://rust-lang.github.io/rust-clippy/master/index.html#missing_docs_in_private_items)
+
+
+### future-size-threshold
+The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint
+
+**Default Value:** `16384` (`u64`)
+
+* [large_futures](https://rust-lang.github.io/rust-clippy/master/index.html#large_futures)
 
 
 

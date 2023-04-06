@@ -392,12 +392,16 @@ pub fn is_expr_unsafe<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
                         .cx
                         .typeck_results()
                         .type_dependent_def_id(e.hir_id)
-                        .map_or(false, |id| self.cx.tcx.fn_sig(id).unsafety() == Unsafety::Unsafe) =>
+                        .map_or(false, |id| {
+                            self.cx.tcx.fn_sig(id).skip_binder().unsafety() == Unsafety::Unsafe
+                        }) =>
                 {
                     self.is_unsafe = true;
                 },
                 ExprKind::Call(func, _) => match *self.cx.typeck_results().expr_ty(func).peel_refs().kind() {
-                    ty::FnDef(id, _) if self.cx.tcx.fn_sig(id).unsafety() == Unsafety::Unsafe => self.is_unsafe = true,
+                    ty::FnDef(id, _) if self.cx.tcx.fn_sig(id).skip_binder().unsafety() == Unsafety::Unsafe => {
+                        self.is_unsafe = true;
+                    },
                     ty::FnPtr(sig) if sig.unsafety() == Unsafety::Unsafe => self.is_unsafe = true,
                     _ => walk_expr(self, e),
                 },
@@ -595,10 +599,7 @@ pub fn for_each_unconsumed_temporary<'tcx, B>(
             | ExprKind::Let(&Let { init: e, .. }) => {
                 helper(typeck, false, e, f)?;
             },
-            ExprKind::Block(&Block { expr: Some(e), .. }, _)
-            | ExprKind::Box(e)
-            | ExprKind::Cast(e, _)
-            | ExprKind::Unary(_, e) => {
+            ExprKind::Block(&Block { expr: Some(e), .. }, _) | ExprKind::Cast(e, _) | ExprKind::Unary(_, e) => {
                 helper(typeck, true, e, f)?;
             },
             ExprKind::Call(callee, args) => {
@@ -661,7 +662,7 @@ pub fn for_each_unconsumed_temporary<'tcx, B>(
             | ExprKind::Path(_)
             | ExprKind::Continue(_)
             | ExprKind::InlineAsm(_)
-            | ExprKind::Err => (),
+            | ExprKind::Err(_) => (),
         }
         ControlFlow::Continue(())
     }

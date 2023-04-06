@@ -9,6 +9,7 @@ mod chars_last_cmp;
 mod chars_last_cmp_with_unwrap;
 mod chars_next_cmp;
 mod chars_next_cmp_with_unwrap;
+mod clear_with_drain;
 mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
@@ -80,6 +81,7 @@ mod skip_while_next;
 mod stable_sort_primitive;
 mod str_splitn;
 mod string_extend_chars;
+mod suspicious_command_arg_space;
 mod suspicious_map;
 mod suspicious_splitn;
 mod suspicious_to_owned;
@@ -109,7 +111,7 @@ use clippy_utils::ty::{contains_ty_adt_constructor_opaque, implements_trait, is_
 use clippy_utils::{contains_return, is_bool, is_trait_method, iter_input_pats, return_ty};
 use if_chain::if_chain;
 use rustc_hir as hir;
-use rustc_hir::{Expr, ExprKind, TraitItem, TraitItemKind};
+use rustc_hir::{Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
 use rustc_hir_analysis::hir_ty_to_ty;
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
@@ -339,8 +341,9 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for methods with certain name prefixes and which
-    /// doesn't match how self is taken. The actual rules are:
+    /// Checks for methods with certain name prefixes or suffixes, and which
+    /// do not adhere to standard conventions regarding how `self` is taken.
+    /// The actual rules are:
     ///
     /// |Prefix |Postfix     |`self` taken                   | `self` type  |
     /// |-------|------------|-------------------------------|--------------|
@@ -1818,6 +1821,7 @@ declare_clippy_lint! {
     ///  - `or_else` to `or`
     ///  - `get_or_insert_with` to `get_or_insert`
     ///  - `ok_or_else` to `ok_or`
+    ///  - `then` to `then_some` (for msrv >= 1.62.0)
     ///
     /// ### Why is this bad?
     /// Using eager evaluation is shorter and simpler in some cases.
@@ -3161,6 +3165,57 @@ declare_clippy_lint! {
     "collecting an iterator when collect is not needed"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// Checks for `Command::arg()` invocations that look like they
+    /// should be multiple arguments instead, such as `arg("-t ext2")`.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// `Command::arg()` does not split arguments by space. An argument like `arg("-t ext2")`
+    /// will be passed as a single argument to the command,
+    /// which is likely not what was intended.
+    ///
+    /// ### Example
+    /// ```rust
+    /// std::process::Command::new("echo").arg("-n hello").spawn().unwrap();
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// std::process::Command::new("echo").args(["-n", "hello"]).spawn().unwrap();
+    /// ```
+    #[clippy::version = "1.67.0"]
+    pub SUSPICIOUS_COMMAND_ARG_SPACE,
+    suspicious,
+    "single command line argument that looks like it should be multiple arguments"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.drain(..)` for the sole purpose of clearing a `Vec`.
+    ///
+    /// ### Why is this bad?
+    /// This creates an unnecessary iterator that is dropped immediately.
+    ///
+    /// Calling `.clear()` also makes the intent clearer.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let mut v = vec![1, 2, 3];
+    /// v.drain(..);
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let mut v = vec![1, 2, 3];
+    /// v.clear();
+    /// ```
+    #[clippy::version = "1.69.0"]
+    pub CLEAR_WITH_DRAIN,
+    nursery,
+    "calling `drain` in order to `clear` a `Vec`"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3288,6 +3343,8 @@ impl_lint_pass!(Methods => [
     SEEK_FROM_CURRENT,
     SEEK_TO_START_INSTEAD_OF_REWIND,
     NEEDLESS_COLLECT,
+    SUSPICIOUS_COMMAND_ARG_SPACE,
+    CLEAR_WITH_DRAIN,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -3348,11 +3405,11 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
         let name = impl_item.ident.name.as_str();
         let parent = cx.tcx.hir().get_parent_item(impl_item.hir_id()).def_id;
         let item = cx.tcx.hir().expect_item(parent);
-        let self_ty = cx.tcx.type_of(item.owner_id);
+        let self_ty = cx.tcx.type_of(item.owner_id).subst_identity();
 
         let implements_trait = matches!(item.kind, hir::ItemKind::Impl(hir::Impl { of_trait: Some(_), .. }));
         if let hir::ImplItemKind::Fn(ref sig, id) = impl_item.kind {
-            let method_sig = cx.tcx.fn_sig(impl_item.owner_id);
+            let method_sig = cx.tcx.fn_sig(impl_item.owner_id).subst_identity();
             let method_sig = cx.tcx.erase_late_bound_regions(method_sig);
             let first_arg_ty_opt = method_sig.inputs().iter().next().copied();
             // if this impl block implements a trait, lint in trait definition instead
@@ -3412,7 +3469,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
         }
 
         if let hir::ImplItemKind::Fn(_, _) = impl_item.kind {
-            let ret_ty = return_ty(cx, impl_item.hir_id());
+            let ret_ty = return_ty(cx, impl_item.owner_id);
 
             if contains_ty_adt_constructor_opaque(cx, ret_ty, self_ty) {
                 return;
@@ -3460,7 +3517,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
         if_chain! {
             if item.ident.name == sym::new;
             if let TraitItemKind::Fn(_, _) = item.kind;
-            let ret_ty = return_ty(cx, item.hir_id());
+            let ret_ty = return_ty(cx, item.owner_id);
             let self_ty = TraitRef::identity(cx.tcx, item.owner_id.to_def_id())
                 .self_ty()
                 .skip_binder();
@@ -3495,6 +3552,9 @@ impl Methods {
                         unnecessary_lazy_eval::check(cx, expr, recv, arg, "and");
                     }
                 },
+                ("arg", [arg]) => {
+                    suspicious_command_arg_space::check(cx, recv, arg, span);
+                }
                 ("as_deref" | "as_deref_mut", []) => {
                     needless_option_as_deref::check(cx, expr, recv, name);
                 },
@@ -3530,7 +3590,13 @@ impl Methods {
                     _ => {},
                 },
                 ("drain", [arg]) => {
-                    iter_with_drain::check(cx, expr, recv, span, arg);
+                if let Node::Stmt(Stmt { hir_id: _, kind, .. }) = cx.tcx.hir().get_parent(expr.hir_id)
+                    && matches!(kind, StmtKind::Semi(_))
+                    {
+                        clear_with_drain::check(cx, expr, recv, span, arg);
+                    } else {
+                        iter_with_drain::check(cx, expr, recv, span, arg);
+                    }
                 },
                 ("ends_with", [arg]) => {
                     if let ExprKind::MethodCall(.., span) = expr.kind {

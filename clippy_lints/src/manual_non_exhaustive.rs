@@ -8,7 +8,6 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::{self as hir, Expr, ExprKind, QPath};
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::DefIdTree;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::def_id::{DefId, LocalDefId};
 use rustc_span::{sym, Span};
@@ -157,11 +156,10 @@ impl<'tcx> LateLintPass<'tcx> for ManualNonExhaustiveEnum {
             && def.variants.len() > 1
         {
             let mut iter = def.variants.iter().filter_map(|v| {
-                let id = cx.tcx.hir().local_def_id(v.hir_id);
-                (matches!(v.data, hir::VariantData::Unit(..))
+                (matches!(v.data, hir::VariantData::Unit(_, _))
                     && v.ident.as_str().starts_with('_')
                     && is_doc_hidden(cx.tcx.hir().attrs(v.hir_id)))
-                .then_some((id, v.span))
+                .then_some((v.def_id, v.span))
             });
             if let Some((id, span)) = iter.next()
                 && iter.next().is_none()

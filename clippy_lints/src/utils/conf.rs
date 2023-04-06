@@ -249,11 +249,11 @@ define_Conf! {
     /// arithmetic-side-effects-allowed-unary = ["SomeType", "AnotherType"]
     /// ```
     (arithmetic_side_effects_allowed_unary: rustc_data_structures::fx::FxHashSet<String> = <_>::default()),
-    /// Lint: ENUM_VARIANT_NAMES, LARGE_TYPES_PASSED_BY_VALUE, TRIVIALLY_COPY_PASS_BY_REF, UNNECESSARY_WRAPS, UNUSED_SELF, UPPER_CASE_ACRONYMS, WRONG_SELF_CONVENTION, BOX_COLLECTION, REDUNDANT_ALLOCATION, RC_BUFFER, VEC_BOX, OPTION_OPTION, LINKEDLIST, RC_MUTEX.
+    /// Lint: ENUM_VARIANT_NAMES, LARGE_TYPES_PASSED_BY_VALUE, TRIVIALLY_COPY_PASS_BY_REF, UNNECESSARY_WRAPS, UNUSED_SELF, UPPER_CASE_ACRONYMS, WRONG_SELF_CONVENTION, BOX_COLLECTION, REDUNDANT_ALLOCATION, RC_BUFFER, VEC_BOX, OPTION_OPTION, LINKEDLIST, RC_MUTEX, UNNECESSARY_BOX_RETURNS.
     ///
     /// Suppress lints whenever the suggested change would cause breakage for other crates.
     (avoid_breaking_exported_api: bool = true),
-    /// Lint: MANUAL_SPLIT_ONCE, MANUAL_STR_REPEAT, CLONED_INSTEAD_OF_COPIED, REDUNDANT_FIELD_NAMES, REDUNDANT_STATIC_LIFETIMES, FILTER_MAP_NEXT, CHECKED_CONVERSIONS, MANUAL_RANGE_CONTAINS, USE_SELF, MEM_REPLACE_WITH_DEFAULT, MANUAL_NON_EXHAUSTIVE, OPTION_AS_REF_DEREF, MAP_UNWRAP_OR, MATCH_LIKE_MATCHES_MACRO, MANUAL_STRIP, MISSING_CONST_FOR_FN, UNNESTED_OR_PATTERNS, FROM_OVER_INTO, PTR_AS_PTR, IF_THEN_SOME_ELSE_NONE, APPROX_CONSTANT, DEPRECATED_CFG_ATTR, INDEX_REFUTABLE_SLICE, MAP_CLONE, BORROW_AS_PTR, MANUAL_BITS, ERR_EXPECT, CAST_ABS_TO_UNSIGNED, UNINLINED_FORMAT_ARGS, MANUAL_CLAMP, MANUAL_LET_ELSE, UNCHECKED_DURATION_SUBTRACTION.
+    /// Lint: MANUAL_SPLIT_ONCE, MANUAL_STR_REPEAT, CLONED_INSTEAD_OF_COPIED, REDUNDANT_FIELD_NAMES, REDUNDANT_STATIC_LIFETIMES, FILTER_MAP_NEXT, CHECKED_CONVERSIONS, MANUAL_RANGE_CONTAINS, USE_SELF, MEM_REPLACE_WITH_DEFAULT, MANUAL_NON_EXHAUSTIVE, OPTION_AS_REF_DEREF, MAP_UNWRAP_OR, MATCH_LIKE_MATCHES_MACRO, MANUAL_STRIP, MISSING_CONST_FOR_FN, UNNESTED_OR_PATTERNS, FROM_OVER_INTO, PTR_AS_PTR, IF_THEN_SOME_ELSE_NONE, APPROX_CONSTANT, DEPRECATED_CFG_ATTR, INDEX_REFUTABLE_SLICE, MAP_CLONE, BORROW_AS_PTR, MANUAL_BITS, ERR_EXPECT, CAST_ABS_TO_UNSIGNED, UNINLINED_FORMAT_ARGS, MANUAL_CLAMP, MANUAL_LET_ELSE, UNCHECKED_DURATION_SUBTRACTION, COLLAPSIBLE_STR_REPLACE, SEEK_FROM_CURRENT, SEEK_REWIND, UNNECESSARY_LAZY_EVALUATIONS, TRANSMUTE_PTR_TO_REF, ALMOST_COMPLETE_RANGE, NEEDLESS_BORROW, DERIVABLE_IMPLS, MANUAL_IS_ASCII_CHECK, MANUAL_REM_EUCLID, MANUAL_RETAIN.
     ///
     /// The minimum rust version that the project supports
     (msrv: Option<String> = None),
@@ -275,13 +275,13 @@ define_Conf! {
     ///
     /// The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
     /// `".."` can be used as part of the list to indicate, that the configured values should be appended to the
-    /// default configuration of Clippy. By default any configuration will replace the default value.
+    /// default configuration of Clippy. By default, any configuration will replace the default value.
     (disallowed_names: Vec<String> = super::DEFAULT_DISALLOWED_NAMES.iter().map(ToString::to_string).collect()),
     /// Lint: DOC_MARKDOWN.
     ///
     /// The list of words this lint should not consider as identifiers needing ticks. The value
     /// `".."` can be used as part of the list to indicate, that the configured values should be appended to the
-    /// default configuration of Clippy. By default any configuraction will replace the default value. For example:
+    /// default configuration of Clippy. By default, any configuration will replace the default value. For example:
     /// * `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
     /// * `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
     ///
@@ -323,7 +323,7 @@ define_Conf! {
     ///
     /// The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference.
     (trivial_copy_size_limit: Option<u64> = None),
-    /// Lint: LARGE_TYPE_PASS_BY_MOVE.
+    /// Lint: LARGE_TYPES_PASSED_BY_VALUE.
     ///
     /// The minimum size (in bytes) to consider a type for passing by reference instead of by value.
     (pass_by_value_size_limit: u64 = 256),
@@ -334,7 +334,7 @@ define_Conf! {
     /// Lint: LARGE_STACK_ARRAYS, LARGE_CONST_ARRAYS.
     ///
     /// The maximum allowed size for arrays on the stack
-    (array_size_threshold: u128 = 512_000),
+    (array_size_threshold: u64 = 512_000),
     /// Lint: VEC_BOX.
     ///
     /// The size of the boxed type in bytes, where boxing in a `Vec` is allowed
@@ -390,7 +390,7 @@ define_Conf! {
     /// Enforce the named macros always use the braces specified.
     ///
     /// A `MacroMatcher` can be added like so `{ name = "macro_name", brace = "(" }`. If the macro
-    /// is could be used with a full path two `MacroMatcher`s have to be added one with the full path
+    /// could be used with a full path two `MacroMatcher`s have to be added one with the full path
     /// `crate_name::macro_name` and one with just the macro name.
     (standard_macro_braces: Vec<crate::nonstandard_macro_braces::MacroMatcher> = Vec::new()),
     /// Lint: MISSING_ENFORCED_IMPORT_RENAMES.
@@ -408,10 +408,10 @@ define_Conf! {
     /// Lint: INDEX_REFUTABLE_SLICE.
     ///
     /// When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in
-    /// the slice pattern that is suggested. If more elements would be necessary, the lint is suppressed.
+    /// the slice pattern that is suggested. If more elements are necessary, the lint is suppressed.
     /// For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.
     (max_suggested_slice_pattern_length: u64 = 3),
-    /// Lint: AWAIT_HOLDING_INVALID_TYPE
+    /// Lint: AWAIT_HOLDING_INVALID_TYPE.
     (await_holding_invalid_types: Vec<crate::utils::conf::DisallowedPath> = Vec::new()),
     /// Lint: LARGE_INCLUDE_FILE.
     ///
@@ -419,25 +419,25 @@ define_Conf! {
     (max_include_file_size: u64 = 1_000_000),
     /// Lint: EXPECT_USED.
     ///
-    /// Whether `expect` should be allowed within `#[cfg(test)]`
+    /// Whether `expect` should be allowed in test functions or `#[cfg(test)]`
     (allow_expect_in_tests: bool = false),
     /// Lint: UNWRAP_USED.
     ///
-    /// Whether `unwrap` should be allowed in test cfg
+    /// Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
     (allow_unwrap_in_tests: bool = false),
     /// Lint: DBG_MACRO.
     ///
-    /// Whether `dbg!` should be allowed in test functions
+    /// Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`
     (allow_dbg_in_tests: bool = false),
     /// Lint: PRINT_STDOUT, PRINT_STDERR.
     ///
-    /// Whether print macros (ex. `println!`) should be allowed in test functions
+    /// Whether print macros (ex. `println!`) should be allowed in test functions or `#[cfg(test)]`
     (allow_print_in_tests: bool = false),
     /// Lint: RESULT_LARGE_ERR.
     ///
     /// The maximum size of the `Err`-variant in a `Result` returned from a function
     (large_error_threshold: u64 = 128),
-    /// Lint: MUTABLE_KEY.
+    /// Lint: MUTABLE_KEY_TYPE, IFS_SAME_COND.
     ///
     /// A list of paths to types that should be treated like `Arc`, i.e. ignored but
     /// for the generic parameters for determining interior mutability
@@ -446,7 +446,7 @@ define_Conf! {
     ///
     /// Whether to allow mixed uninlined format args, e.g. `format!("{} {}", a, foo.bar)`
     (allow_mixed_uninlined_format_args: bool = true),
-    /// Lint: INDEXING_SLICING
+    /// Lint: INDEXING_SLICING.
     ///
     /// Whether to suppress a restriction lint in constant code. In same
     /// cases the restructured operation might not be unavoidable, as the
@@ -454,6 +454,15 @@ define_Conf! {
     /// configuration will cause restriction lints to trigger even
     /// if no suggestion can be made.
     (suppress_restriction_lint_in_const: bool = false),
+    /// Lint: MISSING_DOCS_IN_PRIVATE_ITEMS.
+    ///
+    /// Whether to **only** check for missing documentation in items visible within the current
+    /// crate. For example, `pub(crate)` items.
+    (missing_docs_in_crate_items: bool = false),
+    /// Lint: LARGE_FUTURES.
+    ///
+    /// The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint
+    (future_size_threshold: u64 = 16 * 1024),
 }
 
 /// Search for the configuration file.
@@ -461,7 +470,7 @@ define_Conf! {
 /// # Errors
 ///
 /// Returns any unexpected filesystem error encountered when searching for the config file
-pub fn lookup_conf_file() -> io::Result<Option<PathBuf>> {
+pub fn lookup_conf_file() -> io::Result<(Option<PathBuf>, Vec<String>)> {
     /// Possible filename to search for.
     const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
 
@@ -469,9 +478,11 @@ pub fn lookup_conf_file() -> io::Result<Option<PathBuf>> {
     // If neither of those exist, use ".".
     let mut current = env::var_os("CLIPPY_CONF_DIR")
         .or_else(|| env::var_os("CARGO_MANIFEST_DIR"))
-        .map_or_else(|| PathBuf::from("."), PathBuf::from);
+        .map_or_else(|| PathBuf::from("."), PathBuf::from)
+        .canonicalize()?;
 
     let mut found_config: Option<PathBuf> = None;
+    let mut warnings = vec![];
 
     loop {
         for config_file_name in &CONFIG_FILE_NAMES {
@@ -482,12 +493,12 @@ pub fn lookup_conf_file() -> io::Result<Option<PathBuf>> {
                     Ok(md) if md.is_dir() => {},
                     Ok(_) => {
                         // warn if we happen to find two config files #8323
-                        if let Some(ref found_config_) = found_config {
-                            eprintln!(
-                                "Using config file `{}`\nWarning: `{}` will be ignored.",
-                                found_config_.display(),
-                                config_file.display(),
-                            );
+                        if let Some(ref found_config) = found_config {
+                            warnings.push(format!(
+                                "using config file `{}`, `{}` will be ignored",
+                                found_config.display(),
+                                config_file.display()
+                            ));
                         } else {
                             found_config = Some(config_file);
                         }
@@ -497,12 +508,12 @@ pub fn lookup_conf_file() -> io::Result<Option<PathBuf>> {
         }
 
         if found_config.is_some() {
-            return Ok(found_config);
+            return Ok((found_config, warnings));
         }
 
         // If the current directory has no parent, we're done searching.
         if !current.pop() {
-            return Ok(None);
+            return Ok((None, warnings));
         }
     }
 }

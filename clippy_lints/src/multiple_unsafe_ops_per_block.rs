@@ -10,6 +10,8 @@ use hir::{
 use rustc_ast::Mutability;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::lint::in_external_macro;
+use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::Span;
 
@@ -66,7 +68,7 @@ declare_lint_pass!(MultipleUnsafeOpsPerBlock => [MULTIPLE_UNSAFE_OPS_PER_BLOCK])
 
 impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx hir::Block<'_>) {
-        if !matches!(block.rules, BlockCheckMode::UnsafeBlock(_)) {
+        if !matches!(block.rules, BlockCheckMode::UnsafeBlock(_)) || in_external_macro(cx.tcx.sess, block.span) {
             return;
         }
         let mut unsafe_ops = vec![];
@@ -119,40 +121,22 @@ fn collect_unsafe_exprs<'tcx>(
                 unsafe_ops.push(("raw pointer dereference occurs here", expr.span));
             },
 
-            ExprKind::Call(path_expr, _) => match path_expr.kind {
-                ExprKind::Path(QPath::Resolved(
-                    _,
-                    hir::Path {
-                        res: Res::Def(kind, def_id),
-                        ..
-                    },
-                )) if kind.is_fn_like() => {
-                    let sig = cx.tcx.bound_fn_sig(*def_id);
-                    if sig.0.unsafety() == Unsafety::Unsafe {
-                        unsafe_ops.push(("unsafe function call occurs here", expr.span));
-                    }
-                },
-
-                ExprKind::Path(QPath::TypeRelative(..)) => {
-                    if let Some(sig) = cx
-                        .typeck_results()
-                        .type_dependent_def_id(path_expr.hir_id)
-                        .map(|def_id| cx.tcx.bound_fn_sig(def_id))
-                    {
-                        if sig.0.unsafety() == Unsafety::Unsafe {
-                            unsafe_ops.push(("unsafe function call occurs here", expr.span));
-                        }
-                    }
-                },
-
-                _ => {},
+            ExprKind::Call(path_expr, _) => {
+                let sig = match *cx.typeck_results().expr_ty(path_expr).kind() {
+                    ty::FnDef(id, _) => cx.tcx.fn_sig(id).skip_binder(),
+                    ty::FnPtr(sig) => sig,
+                    _ => return Continue(Descend::Yes),
+                };
+                if sig.unsafety() == Unsafety::Unsafe {
+                    unsafe_ops.push(("unsafe function call occurs here", expr.span));
+                }
             },
 
             ExprKind::MethodCall(..) => {
                 if let Some(sig) = cx
                     .typeck_results()
                     .type_dependent_def_id(expr.hir_id)
-                    .map(|def_id| cx.tcx.bound_fn_sig(def_id))
+                    .map(|def_id| cx.tcx.fn_sig(def_id))
                 {
                     if sig.0.unsafety() == Unsafety::Unsafe {
                         unsafe_ops.push(("unsafe method call occurs here", expr.span));

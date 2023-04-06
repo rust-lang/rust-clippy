@@ -1,6 +1,6 @@
 #![feature(rustc_private)]
 #![feature(let_chains)]
-#![feature(once_cell)]
+#![feature(lazy_cell)]
 #![feature(lint_reasons)]
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
 // warn on lints, that are included in `rust-lang/rust`s bootstrap
@@ -130,7 +130,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
     #[allow(rustc::bad_opt_access)]
     fn config(&mut self, config: &mut interface::Config) {
         let conf_path = clippy_lints::lookup_conf_file();
-        let conf_path_string = if let Ok(Some(path)) = &conf_path {
+        let conf_path_string = if let Ok((Some(path), _)) = &conf_path {
             path.to_str().map(String::from)
         } else {
             None
@@ -176,7 +176,7 @@ Common options:
         --rustc              Pass all args to rustc
     -V, --version            Print version info and exit
 
-Other options are the same as `cargo check`.
+For the other options see `cargo check --help`.
 
 To allow or deny a lint from the command line you can use `cargo clippy --`
 with:
@@ -209,7 +209,7 @@ fn report_clippy_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     // Separate the output with an empty line
     eprintln!();
 
-    let fallback_bundle = rustc_errors::fallback_fluent_bundle(rustc_errors::DEFAULT_LOCALE_RESOURCES, false);
+    let fallback_bundle = rustc_errors::fallback_fluent_bundle(rustc_driver::DEFAULT_LOCALE_RESOURCES.to_vec(), false);
     let emitter = Box::new(rustc_errors::emitter::EmitterWriter::stderr(
         rustc_errors::ColorConfig::Auto,
         None,
@@ -220,6 +220,7 @@ fn report_clippy_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         None,
         false,
         false,
+        rustc_errors::TerminalUrl::No,
     ));
     let handler = rustc_errors::Handler::with_emitter(true, None, emitter);
 
