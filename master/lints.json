@@ -7687,6 +7687,21 @@
     }
   },
   {
+    "id": "suspicious_doc_comments",
+    "id_span": {
+      "path": "src/suspicious_doc_comments.rs",
+      "line": 51
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nDetects the use of outer doc comments (`///`, `/**`) followed by a bang (`!`): `///!`\n\n### Why is this bad?\nTriple-slash comments (known as \"outer doc comments\") apply to items that follow it.\nAn outer doc comment followed by a bang (i.e. `///!`) has no specific meaning.\n\nThe user most likely meant to write an inner doc comment (`//!`, `/*!`), which\napplies to the parent item (i.e. the item that the comment is contained in,\nusually a module or crate).\n\n### Known problems\nInner doc comments can only appear before items, so there are certain cases where the suggestion\nmade by this lint is not valid code. For example:\n```rs\nfn foo() {}\n///!\nfn bar() {}\n```\nThis lint detects the doc comment and suggests changing it to `//!`, but an inner doc comment\nis not valid at that position.\n\n### Example\nIn this example, the doc comment is attached to the *function*, rather than the *module*.\n```rust\npub mod util {\n    ///! This module contains utility functions.\n\n    pub fn dummy() {}\n}\n```\n\nUse instead:\n```rust\npub mod util {\n    //! This module contains utility functions.\n\n    pub fn dummy() {}\n}\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "suspicious_else_formatting",
     "id_span": {
       "path": "src/formatting.rs",
