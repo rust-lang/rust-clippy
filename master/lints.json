@@ -7300,7 +7300,7 @@
     "id": "single_component_path_imports",
     "id_span": {
       "path": "src/single_component_path_imports.rs",
-      "line": 32
+      "line": 33
     },
     "group": "style",
     "level": "warn",
