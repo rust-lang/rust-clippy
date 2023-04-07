@@ -4115,6 +4115,21 @@
     }
   },
   {
+    "id": "manual_slice_size_calculation",
+    "id_span": {
+      "path": "src/manual_slice_size_calculation.rs",
+      "line": 33
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nWhen `a` is `&[T]`, detect `a.len() * size_of::<T>()` and suggest `size_of_val(a)`\ninstead.\n\n### Why is this better?\n* Shorter to write\n* Removes the need for the human and the compiler to worry about overflow in the\n  multiplication\n* Potentially faster at runtime as rust emits special no-wrapping flags when it\n  calculates the byte length\n* Less turbofishing\n\n### Example\n```rust\nlet newlen = data.len() * std::mem::size_of::<i32>();\n```\nUse instead:\n```rust\nlet newlen = std::mem::size_of_val(data);\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
