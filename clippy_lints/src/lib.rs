@@ -73,6 +73,7 @@ mod as_conversions;
 mod asm_syntax;
 mod assertions_on_constants;
 mod assertions_on_result_states;
+mod assigning_clones;
 mod async_yields_async;
 mod attrs;
 mod await_holding_invalid;
@@ -960,6 +961,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(tests_outside_test_module::TestsOutsideTestModule));
     store.register_late_pass(|_| Box::new(manual_slice_size_calculation::ManualSliceSizeCalculation));
     store.register_early_pass(|| Box::new(suspicious_doc_comments::SuspiciousDocComments));
+    store.register_late_pass(|_| Box::new(assigning_clones::AssigningClones));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

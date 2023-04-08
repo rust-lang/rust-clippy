@@ -1,0 +1,34 @@
+error: assigning the result of `Clone::clone()` may be inefficient
+  --> $DIR/assigning_clones.rs:14:5
+   |
+LL |     *mut_thing = value_thing.clone();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_from()`: `mut_thing.clone_from(&value_thing)`
+   |
+   = note: `-D clippy::assigning-clones` implied by `-D warnings`
+
+error: assigning the result of `Clone::clone()` may be inefficient
+  --> $DIR/assigning_clones.rs:18:5
+   |
+LL |     *mut_thing = ref_thing.clone();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_from()`: `mut_thing.clone_from(ref_thing)`
+
+error: assigning the result of `Clone::clone()` may be inefficient
+  --> $DIR/assigning_clones.rs:23:5
+   |
+LL |     *(mut_thing + &mut Thing) = ref_thing.clone();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_from()`: `(mut_thing + &mut Thing).clone_from(ref_thing)`
+
+error: assigning the result of `Clone::clone()` may be inefficient
+  --> $DIR/assigning_clones.rs:28:5
+   |
+LL |     *mut_thing = (ref_thing + ref_thing).clone();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_from()`: `mut_thing.clone_from(ref_thing + ref_thing)`
+
+error: assigning the result of `ToOwned::to_owned()` may be inefficient
+  --> $DIR/assigning_clones.rs:50:5
+   |
+LL |     *mut_string = ref_str.to_owned();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_into()`: `ref_str.clone_into(mut_string)`
+
+error: aborting due to 5 previous errors
+
