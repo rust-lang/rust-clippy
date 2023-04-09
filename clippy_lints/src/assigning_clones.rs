@@ -56,7 +56,7 @@ impl<'tcx> LateLintPass<'tcx> for AssigningClones {
             return;
         }
 
-        let op = if method_name.ident.name == sym!(clone) {
+        let op = if method_name.ident.name == sym::clone {
             Op::Clone
         } else if method_name.ident.name == sym!(to_owned) {
             Op::ToOwned
