@@ -31,7 +31,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.70.0"]
     pub UNARY_PARENTHESIS_FOLLOWED_BY_CAST,
     complexity,
-    "default lint description"
+    "`as` cast with parenthesized simple argument"
 }
 declare_lint_pass!(UnaryParenthesisFollowedByCast => [UNARY_PARENTHESIS_FOLLOWED_BY_CAST]);
 
