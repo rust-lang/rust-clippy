@@ -298,6 +298,7 @@ mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
 mod types;
+mod unary_parenthesis_followed_by_cast;
 mod undocumented_unsafe_blocks;
 mod unicode;
 mod uninit_vec;
@@ -960,6 +961,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(tests_outside_test_module::TestsOutsideTestModule));
     store.register_late_pass(|_| Box::new(manual_slice_size_calculation::ManualSliceSizeCalculation));
     store.register_early_pass(|| Box::new(suspicious_doc_comments::SuspiciousDocComments));
+    store.register_early_pass(|| Box::new(unary_parenthesis_followed_by_cast::UnaryParenthesisFollowedByCast));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

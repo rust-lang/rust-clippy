@@ -1,0 +1,11 @@
+error: unnecessary parenthesis
+  --> $DIR/unary_parenthesis_followed_by_cast.rs:11:11
+   |
+LL |     hello((x) as f64);
+   |           ^^^
+   |
+   = help: consider remove parenthesis
+   = note: `-D clippy::unary-parenthesis-followed-by-cast` implied by `-D warnings`
+
+error: aborting due to previous error
+
