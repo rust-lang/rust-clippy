@@ -860,7 +860,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `.drain(..)` for the sole purpose of clearing a `Vec`.\n\n### Why is this bad?\nThis creates an unnecessary iterator that is dropped immediately.\n\nCalling `.clear()` also makes the intent clearer.\n\n### Example\n```rust\nlet mut v = vec![1, 2, 3];\nv.drain(..);\n```\nUse instead:\n```rust\nlet mut v = vec![1, 2, 3];\nv.clear();\n```",
+    "docs": "\n### What it does\nChecks for usage of `.drain(..)` for the sole purpose of clearing a container.\n\n### Why is this bad?\nThis creates an unnecessary iterator that is dropped immediately.\n\nCalling `.clear()` also makes the intent clearer.\n\n### Example\n```rust\nlet mut v = vec![1, 2, 3];\nv.drain(..);\n```\nUse instead:\n```rust\nlet mut v = vec![1, 2, 3];\nv.clear();\n```",
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
