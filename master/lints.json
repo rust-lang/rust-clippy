@@ -145,7 +145,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for the result of a `&self`-taking `as_ptr` being cast to a mutable pointer\n\n### Why is this bad?\nSince `as_ptr` takes a `&self`, the pointer won't have write permissions unless interior\nmutability is used, making it unlikely that having it as a mutable pointer is correct.\n\n### Example\n```rust\nlet string = String::with_capacity(1);\nlet ptr = string.as_ptr() as *mut u8;\nunsafe { ptr.write(4) }; // UNDEFINED BEHAVIOUR\n```\nUse instead:\n```rust\nlet mut string = String::with_capacity(1);\nlet ptr = string.as_mut_ptr();\nunsafe { ptr.write(4) };\n```",
+    "docs": "\n### What it does\nChecks for the result of a `&self`-taking `as_ptr` being cast to a mutable pointer\n\n### Why is this bad?\nSince `as_ptr` takes a `&self`, the pointer won't have write permissions unless interior\nmutability is used, making it unlikely that having it as a mutable pointer is correct.\n\n### Example\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_ptr() as *mut u8;\nunsafe { ptr.write(4) }; // UNDEFINED BEHAVIOUR\n```\nUse instead:\n```rust\nlet mut vec = Vec::<u8>::with_capacity(1);\nlet ptr = vec.as_mut_ptr();\nunsafe { ptr.write(4) };\n```",
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
