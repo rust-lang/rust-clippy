@@ -37,7 +37,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\nDetects uses of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThe expect attribute is still unstable and requires the `lint_reasons`\non nightly. It can be enabled by adding `#![feature(lint_reasons)]` to\nthe crate root.\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why is this bad?\n\n`#[expect]` attributes suppress the lint emission, but emit a warning, if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#![feature(lint_reasons)]\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```",
+    "docs": "\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThe expect attribute is still unstable and requires the `lint_reasons`\non nightly. It can be enabled by adding `#![feature(lint_reasons)]` to\nthe crate root.\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why is this bad?\n\n`#[expect]` attributes suppress the lint emission, but emit a warning, if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#![feature(lint_reasons)]\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```",
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -452,7 +452,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of `&Box<T>` anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nA `&Box<T>` parameter requires the function caller to box `T` first before passing it to a function.\nUsing `&T` defines a concrete type for the parameter and generalizes the function, this would also\nauto-deref to `&T` at the function call site if passed a `&Box<T>`.\n\n### Example\n```rust\nfn foo(bar: &Box<T>) { ... }\n```\n\nBetter:\n\n```rust\nfn foo(bar: &T) { ... }\n```",
+    "docs": "\n### What it does\nChecks for usage of `&Box<T>` anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nA `&Box<T>` parameter requires the function caller to box `T` first before passing it to a function.\nUsing `&T` defines a concrete type for the parameter and generalizes the function, this would also\nauto-deref to `&T` at the function call site if passed a `&Box<T>`.\n\n### Example\n```rust\nfn foo(bar: &Box<T>) { ... }\n```\n\nBetter:\n\n```rust\nfn foo(bar: &T) { ... }\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -467,7 +467,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of `Box<T>` where T is a collection such as Vec anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nCollections already keeps their contents in a separate area on\nthe heap. So if you `Box` them, you just add another level of indirection\nwithout any benefit whatsoever.\n\n### Example\n```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n\n### Past names\n\n* `box_vec`\n\n",
+    "docs": "\n### What it does\nChecks for usage of `Box<T>` where T is a collection such as Vec anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\nCollections already keeps their contents in a separate area on\nthe heap. So if you `Box` them, you just add another level of indirection\nwithout any benefit whatsoever.\n\n### Example\n```rust\nstruct X {\n    values: Box<Vec<Foo>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<Foo>,\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n\n### Past names\n\n* `box_vec`\n\n",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -605,7 +605,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for uses of the `abs()` method that cast the result to unsigned.\n\n### Why is this bad?\nThe `unsigned_abs()` method avoids panic when called on the MIN value.\n\n### Example\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.abs() as u32;\n```\nUse instead:\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.unsigned_abs();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "docs": "\n### What it does\nChecks for usage of the `abs()` method that cast the result to unsigned.\n\n### Why is this bad?\nThe `unsigned_abs()` method avoids panic when called on the MIN value.\n\n### Example\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.abs() as u32;\n```\nUse instead:\n```rust\nlet x: i32 = -42;\nlet y: u32 = x.unsigned_abs();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -920,7 +920,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usages of `cloned()` on an `Iterator` or `Option` where\n`copied()` could be used instead.\n\n### Why is this bad?\n`copied()` is better because it guarantees that the type being cloned\nimplements `Copy`.\n\n### Example\n```rust\n[1, 2, 3].iter().cloned();\n```\nUse instead:\n```rust\n[1, 2, 3].iter().copied();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "docs": "\n### What it does\nChecks for usage of `cloned()` on an `Iterator` or `Option` where\n`copied()` could be used instead.\n\n### Why is this bad?\n`copied()` is better because it guarantees that the type being cloned\nimplements `Copy`.\n\n### Example\n```rust\n[1, 2, 3].iter().cloned();\n```\nUse instead:\n```rust\n[1, 2, 3].iter().copied();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.53.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1118,7 +1118,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of `crate` as opposed to `$crate` in a macro definition.\n\n### Why is this bad?\n`crate` refers to the macro call's crate, whereas `$crate` refers to the macro definition's\ncrate. Rarely is the former intended. See:\nhttps://doc.rust-lang.org/reference/macros-by-example.html#hygiene\n\n### Example\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\nUse instead:\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", $crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\n\nNote that if the use of `crate` is intentional, an `allow` attribute can be applied to the\nmacro definition, e.g.:\n```rust\n#[allow(clippy::crate_in_macro_def)]\nmacro_rules! ok { ... crate::foo ... }\n```",
+    "docs": "\n### What it does\nChecks for usage of `crate` as opposed to `$crate` in a macro definition.\n\n### Why is this bad?\n`crate` refers to the macro call's crate, whereas `$crate` refers to the macro definition's\ncrate. Rarely is the former intended. See:\nhttps://doc.rust-lang.org/reference/macros-by-example.html#hygiene\n\n### Example\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\nUse instead:\n```rust\n#[macro_export]\nmacro_rules! print_message {\n    () => {\n        println!(\"{}\", $crate::MESSAGE);\n    };\n}\npub const MESSAGE: &str = \"Hello!\";\n```\n\nNote that if the use of `crate` is intentional, an `allow` attribute can be applied to the\nmacro definition, e.g.:\n```rust\n#[allow(clippy::crate_in_macro_def)]\nmacro_rules! ok { ... crate::foo ... }\n```",
     "version": "1.62.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2274,7 +2274,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usages of `Iterator::flat_map()` where `filter_map()` could be\nused instead.\n\n### Why is this bad?\nWhen applicable, `filter_map()` is more clear since it shows that\n`Option` is used to produce 0 or 1 items.\n\n### Example\n```rust\nlet nums: Vec<i32> = [\"1\", \"2\", \"whee!\"].iter().flat_map(|x| x.parse().ok()).collect();\n```\nUse instead:\n```rust\nlet nums: Vec<i32> = [\"1\", \"2\", \"whee!\"].iter().filter_map(|x| x.parse().ok()).collect();\n```",
+    "docs": "\n### What it does\nChecks for usage of `Iterator::flat_map()` where `filter_map()` could be\nused instead.\n\n### Why is this bad?\nWhen applicable, `filter_map()` is more clear since it shows that\n`Option` is used to produce 0 or 1 items.\n\n### Example\n```rust\nlet nums: Vec<i32> = [\"1\", \"2\", \"whee!\"].iter().flat_map(|x| x.parse().ok()).collect();\n```\nUse instead:\n```rust\nlet nums: Vec<i32> = [\"1\", \"2\", \"whee!\"].iter().filter_map(|x| x.parse().ok()).collect();\n```",
     "version": "1.53.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2604,7 +2604,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for using `x.get(0)` instead of\n`x.first()`.\n\n### Why is this bad?\nUsing `x.first()` is easier to read and has the same\nresult.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.get(0);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.first();\n```",
+    "docs": "\n### What it does\nChecks for usage of `x.get(0)` instead of\n`x.first()`.\n\n### Why is this bad?\nUsing `x.first()` is easier to read and has the same\nresult.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.get(0);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.first();\n```",
     "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2619,7 +2619,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for using `x.get(x.len() - 1)` instead of\n`x.last()`.\n\n### Why is this bad?\nUsing `x.last()` is easier to read and has the same\nresult.\n\nNote that using `x[x.len() - 1]` is semantically different from\n`x.last()`.  Indexing into the array will panic on out-of-bounds\naccesses, while `x.get()` and `x.last()` will return `None`.\n\nThere is another lint (get_unwrap) that covers the case of using\n`x.get(index).unwrap()` instead of `x[index]`.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet last_element = x.get(x.len() - 1);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet last_element = x.last();\n```",
+    "docs": "\n### What it does\nChecks for usage of `x.get(x.len() - 1)` instead of\n`x.last()`.\n\n### Why is this bad?\nUsing `x.last()` is easier to read and has the same\nresult.\n\nNote that using `x[x.len() - 1]` is semantically different from\n`x.last()`.  Indexing into the array will panic on out-of-bounds\naccesses, while `x.get()` and `x.last()` will return `None`.\n\nThere is another lint (get_unwrap) that covers the case of using\n`x.get(index).unwrap()` instead of `x[index]`.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet last_element = x.get(x.len() - 1);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet last_element = x.last();\n```",
     "version": "1.37.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2634,7 +2634,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for use of `.get().unwrap()` (or\n`.get_mut().unwrap`) on a standard library type which implements `Index`\n\n### Why is this bad?\nUsing the Index trait (`[]`) is more clear and more\nconcise.\n\n### Known problems\nNot a replacement for error handling: Using either\n`.unwrap()` or the Index trait (`[]`) carries the risk of causing a `panic`\nif the value being accessed is `None`. If the use of `.get().unwrap()` is a\ntemporary placeholder for dealing with the `Option` type, then this does\nnot mitigate the need for error handling. If there is a chance that `.get()`\nwill be `None` in your program, then it is advisable that the `None` case\nis handled in a future refactor instead of using `.unwrap()` or the Index\ntrait.\n\n### Example\n```rust\nlet mut some_vec = vec![0, 1, 2, 3];\nlet last = some_vec.get(3).unwrap();\n*some_vec.get_mut(0).unwrap() = 1;\n```\nThe correct use would be:\n```rust\nlet mut some_vec = vec![0, 1, 2, 3];\nlet last = some_vec[3];\nsome_vec[0] = 1;\n```",
+    "docs": "\n### What it does\nChecks for usage of `.get().unwrap()` (or\n`.get_mut().unwrap`) on a standard library type which implements `Index`\n\n### Why is this bad?\nUsing the Index trait (`[]`) is more clear and more\nconcise.\n\n### Known problems\nNot a replacement for error handling: Using either\n`.unwrap()` or the Index trait (`[]`) carries the risk of causing a `panic`\nif the value being accessed is `None`. If the use of `.get().unwrap()` is a\ntemporary placeholder for dealing with the `Option` type, then this does\nnot mitigate the need for error handling. If there is a chance that `.get()`\nwill be `None` in your program, then it is advisable that the `None` case\nis handled in a future refactor instead of using `.unwrap()` or the Index\ntrait.\n\n### Example\n```rust\nlet mut some_vec = vec![0, 1, 2, 3];\nlet last = some_vec.get(3).unwrap();\n*some_vec.get_mut(0).unwrap() = 1;\n```\nThe correct use would be:\n```rust\nlet mut some_vec = vec![0, 1, 2, 3];\nlet last = some_vec[3];\nsome_vec[0] = 1;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3357,7 +3357,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of `.iter().nth()` (and the related\n`.iter_mut().nth()`) on standard library types with *O*(1) element access.\n\n### Why is this bad?\n`.get()` and `.get_mut()` are more efficient and more\nreadable.\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.get(3);\nlet bad_slice = &some_vec[..].get(3);\n```",
+    "docs": "\n### What it does\nChecks for usage of `.iter().nth()` (and the related\n`.iter_mut().nth()`) on standard library types with *O*(1) element access.\n\n### Why is this bad?\n`.get()` and `.get_mut()` are more efficient and more\nreadable.\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.get(3);\nlet bad_slice = &some_vec[..].get(3);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3432,7 +3432,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of `.skip(x).next()` on iterators.\n\n### Why is this bad?\n`.nth(x)` is cleaner\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```",
+    "docs": "\n### What it does\nChecks for usage of `.skip(x).next()` on iterators.\n\n### Why is this bad?\n`.nth(x)` is cleaner\n\n### Example\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().skip(3).next();\nlet bad_slice = &some_vec[..].iter().skip(3).next();\n```\nThe correct use would be:\n```rust\nlet some_vec = vec![0, 1, 2, 3];\nlet bad_vec = some_vec.iter().nth(3);\nlet bad_slice = &some_vec[..].iter().nth(3);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3447,7 +3447,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for use of `.drain(..)` on `Vec` and `VecDeque` for iteration.\n\n### Why is this bad?\n`.into_iter()` is simpler with better performance.\n\n### Example\n```rust\nlet mut foo = vec![0, 1, 2, 3];\nlet bar: HashSet<usize> = foo.drain(..).collect();\n```\nUse instead:\n```rust\nlet foo = vec![0, 1, 2, 3];\nlet bar: HashSet<usize> = foo.into_iter().collect();\n```",
+    "docs": "\n### What it does\nChecks for usage of `.drain(..)` on `Vec` and `VecDeque` for iteration.\n\n### Why is this bad?\n`.into_iter()` is simpler with better performance.\n\n### Example\n```rust\nlet mut foo = vec![0, 1, 2, 3];\nlet bar: HashSet<usize> = foo.drain(..).collect();\n```\nUse instead:\n```rust\nlet foo = vec![0, 1, 2, 3];\nlet bar: HashSet<usize> = foo.into_iter().collect();\n```",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3732,7 +3732,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nDetect uses of `lines.filter_map(Result::ok)` or `lines.flat_map(Result::ok)`\nwhen `lines` has type `std::io::Lines`.\n\n### Why is this bad?\n`Lines` instances might produce a never-ending stream of `Err`, in which case\n`filter_map(Result::ok)` will enter an infinite loop while waiting for an\n`Ok` variant. Calling `next()` once is sufficient to enter the infinite loop,\neven in the absence of explicit loops in the user code.\n\nThis situation can arise when working with user-provided paths. On some platforms,\n`std::fs::File::open(path)` might return `Ok(fs)` even when `path` is a directory,\nbut any later attempt to read from `fs` will return an error.\n\n### Known problems\nThis lint suggests replacing `filter_map()` or `flat_map()` applied to a `Lines`\ninstance in all cases. There two cases where the suggestion might not be\nappropriate or necessary:\n\n- If the `Lines` instance can never produce any error, or if an error is produced\n  only once just before terminating the iterator, using `map_while()` is not\n  necessary but will not do any harm.\n- If the `Lines` instance can produce intermittent errors then recover and produce\n  successful results, using `map_while()` would stop at the first error.\n\n### Example\n```rust\nlet mut lines = BufReader::new(File::open(\"some-path\")?).lines().filter_map(Result::ok);\n// If \"some-path\" points to a directory, the next statement never terminates:\nlet first_line: Option<String> = lines.next();\n```\nUse instead:\n```rust\nlet mut lines = BufReader::new(File::open(\"some-path\")?).lines().map_while(Result::ok);\nlet first_line: Option<String> = lines.next();\n```",
+    "docs": "\n### What it does\nChecks for usage of `lines.filter_map(Result::ok)` or `lines.flat_map(Result::ok)`\nwhen `lines` has type `std::io::Lines`.\n\n### Why is this bad?\n`Lines` instances might produce a never-ending stream of `Err`, in which case\n`filter_map(Result::ok)` will enter an infinite loop while waiting for an\n`Ok` variant. Calling `next()` once is sufficient to enter the infinite loop,\neven in the absence of explicit loops in the user code.\n\nThis situation can arise when working with user-provided paths. On some platforms,\n`std::fs::File::open(path)` might return `Ok(fs)` even when `path` is a directory,\nbut any later attempt to read from `fs` will return an error.\n\n### Known problems\nThis lint suggests replacing `filter_map()` or `flat_map()` applied to a `Lines`\ninstance in all cases. There two cases where the suggestion might not be\nappropriate or necessary:\n\n- If the `Lines` instance can never produce any error, or if an error is produced\n  only once just before terminating the iterator, using `map_while()` is not\n  necessary but will not do any harm.\n- If the `Lines` instance can produce intermittent errors then recover and produce\n  successful results, using `map_while()` would stop at the first error.\n\n### Example\n```rust\nlet mut lines = BufReader::new(File::open(\"some-path\")?).lines().filter_map(Result::ok);\n// If \"some-path\" points to a directory, the next statement never terminates:\nlet first_line: Option<String> = lines.next();\n```\nUse instead:\n```rust\nlet mut lines = BufReader::new(File::open(\"some-path\")?).lines().map_while(Result::ok);\nlet first_line: Option<String> = lines.next();\n```",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3837,7 +3837,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for uses of `std::mem::size_of::<T>() * 8` when\n`T::BITS` is available.\n\n### Why is this bad?\nCan be written as the shorter `T::BITS`.\n\n### Example\n```rust\nstd::mem::size_of::<usize>() * 8;\n```\nUse instead:\n```rust\nusize::BITS as usize;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "docs": "\n### What it does\nChecks for usage of `std::mem::size_of::<T>() * 8` when\n`T::BITS` is available.\n\n### Why is this bad?\nCan be written as the shorter `T::BITS`.\n\n### Example\n```rust\nstd::mem::size_of::<usize>() * 8;\n```\nUse instead:\n```rust\nusize::BITS as usize;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3867,7 +3867,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usages of `match` which could be implemented using `filter`\n\n### Why is this bad?\nUsing the `filter` method is clearer and more concise.\n\n### Example\n```rust\nmatch Some(0) {\n    Some(x) => if x % 2 == 0 {\n                    Some(x)\n               } else {\n                    None\n                },\n    None => None,\n};\n```\nUse instead:\n```rust\nSome(0).filter(|&x| x % 2 == 0);\n```",
+    "docs": "\n### What it does\nChecks for usage of `match` which could be implemented using `filter`\n\n### Why is this bad?\nUsing the `filter` method is clearer and more concise.\n\n### Example\n```rust\nmatch Some(0) {\n    Some(x) => if x % 2 == 0 {\n                    Some(x)\n               } else {\n                    None\n                },\n    None => None,\n};\n```\nUse instead:\n```rust\nSome(0).filter(|&x| x % 2 == 0);\n```",
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4002,7 +4002,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usages of `match` which could be implemented using `map`\n\n### Why is this bad?\nUsing the `map` method is clearer and more concise.\n\n### Example\n```rust\nmatch Some(0) {\n    Some(x) => Some(x + 1),\n    None => None,\n};\n```\nUse instead:\n```rust\nSome(0).map(|x| x + 1);\n```",
+    "docs": "\n### What it does\nChecks for usage of `match` which could be implemented using `map`\n\n### Why is this bad?\nUsing the `map` method is clearer and more concise.\n\n### Example\n```rust\nmatch Some(0) {\n    Some(x) => Some(x + 1),\n    None => None,\n};\n```\nUse instead:\n```rust\nSome(0).map(|x| x + 1);\n```",
     "version": "1.52.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4137,7 +4137,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usages of `str::splitn(2, _)`\n\n### Why is this bad?\n`split_once` is both clearer in intent and slightly more efficient.\n\n### Example\n```rust\nlet s = \"key=value=add\";\nlet (key, value) = s.splitn(2, '=').next_tuple()?;\nlet value = s.splitn(2, '=').nth(1)?;\n\nlet mut parts = s.splitn(2, '=');\nlet key = parts.next()?;\nlet value = parts.next()?;\n```\n\nUse instead:\n```rust\nlet s = \"key=value=add\";\nlet (key, value) = s.split_once('=')?;\nlet value = s.split_once('=')?.1;\n\nlet (key, value) = s.split_once('=')?;\n```\n\n### Limitations\nThe multiple statement variant currently only detects `iter.next()?`/`iter.next().unwrap()`\nin two separate `let` statements that immediately follow the `splitn()`\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "docs": "\n### What it does\nChecks for usage of `str::splitn(2, _)`\n\n### Why is this bad?\n`split_once` is both clearer in intent and slightly more efficient.\n\n### Example\n```rust\nlet s = \"key=value=add\";\nlet (key, value) = s.splitn(2, '=').next_tuple()?;\nlet value = s.splitn(2, '=').nth(1)?;\n\nlet mut parts = s.splitn(2, '=');\nlet key = parts.next()?;\nlet value = parts.next()?;\n```\n\nUse instead:\n```rust\nlet s = \"key=value=add\";\nlet (key, value) = s.split_once('=')?;\nlet value = s.split_once('=')?.1;\n\nlet (key, value) = s.split_once('=')?;\n```\n\n### Limitations\nThe multiple statement variant currently only detects `iter.next()?`/`iter.next().unwrap()`\nin two separate `let` statements that immediately follow the `splitn()`\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.57.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4272,7 +4272,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for uses of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.\n\n### Why is this bad?\nUsing `entry` is more efficient.\n\n### Known problems\nThe suggestion may have type inference errors in some cases. e.g.\n```rust\nlet mut map = std::collections::HashMap::new();\nlet _ = if !map.contains_key(&0) {\n    map.insert(0, 0)\n} else {\n    None\n};\n```\n\n### Example\n```rust\nif !map.contains_key(&k) {\n    map.insert(k, v);\n}\n```\nUse instead:\n```rust\nmap.entry(k).or_insert(v);\n```",
+    "docs": "\n### What it does\nChecks for usage of `contains_key` + `insert` on `HashMap`\nor `BTreeMap`.\n\n### Why is this bad?\nUsing `entry` is more efficient.\n\n### Known problems\nThe suggestion may have type inference errors in some cases. e.g.\n```rust\nlet mut map = std::collections::HashMap::new();\nlet _ = if !map.contains_key(&0) {\n    map.insert(0, 0)\n} else {\n    None\n};\n```\n\n### Example\n```rust\nif !map.contains_key(&k) {\n    map.insert(k, v);\n}\n```\nUse instead:\n```rust\nmap.entry(k).or_insert(v);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5141,7 +5141,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usages of `Mutex<X>` where an atomic will do.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.\n\nOn the other hand, `Mutex`es are, in general, easier to\nverify correctness. An atomic does not behave the same as\nan equivalent mutex. See [this issue](https://github.com/rust-lang/rust-clippy/issues/4295)'s commentary for more details.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(&y);\n```\n\nUse instead:\n```rust\nlet x = AtomicBool::new(y);\n```",
+    "docs": "\n### What it does\nChecks for usage of `Mutex<X>` where an atomic will do.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain bool or\nreference sequential is shooting flies with cannons.\n`std::sync::atomic::AtomicBool` and `std::sync::atomic::AtomicPtr` are leaner and\nfaster.\n\nOn the other hand, `Mutex`es are, in general, easier to\nverify correctness. An atomic does not behave the same as\nan equivalent mutex. See [this issue](https://github.com/rust-lang/rust-clippy/issues/4295)'s commentary for more details.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(&y);\n```\n\nUse instead:\n```rust\nlet x = AtomicBool::new(y);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5156,7 +5156,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usages of `Mutex<X>` where `X` is an integral\ntype.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain integer\nsequential is\nshooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(0usize);\n```\n\nUse instead:\n```rust\nlet x = AtomicUsize::new(0usize);\n```",
+    "docs": "\n### What it does\nChecks for usage of `Mutex<X>` where `X` is an integral\ntype.\n\n### Why is this bad?\nUsing a mutex just to make access to a plain integer\nsequential is\nshooting flies with cannons. `std::sync::atomic::AtomicUsize` is leaner and faster.\n\n### Known problems\nThis lint cannot detect if the mutex is actually used\nfor waiting before a critical section.\n\n### Example\n```rust\nlet x = Mutex::new(0usize);\n```\n\nUse instead:\n```rust\nlet x = AtomicUsize::new(0usize);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5201,7 +5201,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for uses of bitwise and/or operators between booleans, where performance may be improved by using\na lazy and.\n\n### Why is this bad?\nThe bitwise operators do not support short-circuiting, so it may hinder code performance.\nAdditionally, boolean logic \"masked\" as bitwise logic is not caught by lints like `unnecessary_fold`\n\n### Known problems\nThis lint evaluates only when the right side is determined to have no side effects. At this time, that\ndetermination is quite conservative.\n\n### Example\n```rust\nlet (x,y) = (true, false);\nif x & !y {} // where both x and y are booleans\n```\nUse instead:\n```rust\nlet (x,y) = (true, false);\nif x && !y {}\n```",
+    "docs": "\n### What it does\nChecks for usage of bitwise and/or operators between booleans, where performance may be improved by using\na lazy and.\n\n### Why is this bad?\nThe bitwise operators do not support short-circuiting, so it may hinder code performance.\nAdditionally, boolean logic \"masked\" as bitwise logic is not caught by lints like `unnecessary_fold`\n\n### Known problems\nThis lint evaluates only when the right side is determined to have no side effects. At this time, that\ndetermination is quite conservative.\n\n### Example\n```rust\nlet (x,y) = (true, false);\nif x & !y {} // where both x and y are booleans\n```\nUse instead:\n```rust\nlet (x,y) = (true, false);\nif x && !y {}\n```",
     "version": "1.54.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5474,7 +5474,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usages of `str::splitn` (or `str::rsplitn`) where using `str::split` would be the same.\n### Why is this bad?\nThe function `split` is simpler and there is no performance difference in these cases, considering\nthat both functions return a lazy iterator.\n### Example\n```rust\nlet str = \"key=value=add\";\nlet _ = str.splitn(3, '=').next().unwrap();\n```\n\nUse instead:\n```rust\nlet str = \"key=value=add\";\nlet _ = str.split('=').next().unwrap();\n```",
+    "docs": "\n### What it does\nChecks for usage of `str::splitn` (or `str::rsplitn`) where using `str::split` would be the same.\n### Why is this bad?\nThe function `split` is simpler and there is no performance difference in these cases, considering\nthat both functions return a lazy iterator.\n### Example\n```rust\nlet str = \"key=value=add\";\nlet _ = str.splitn(3, '=').next().unwrap();\n```\n\nUse instead:\n```rust\nlet str = \"key=value=add\";\nlet _ = str.split('=').next().unwrap();\n```",
     "version": "1.59.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5762,7 +5762,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usages of `.then_some(..).unwrap_or(..)`\n\n### Why is this bad?\nThis can be written more clearly with `if .. else ..`\n\n### Limitations\nThis lint currently only looks for usages of\n`.then_some(..).unwrap_or(..)`, but will be expanded\nto account for similar patterns.\n\n### Example\n```rust\nlet x = true;\nx.then_some(\"a\").unwrap_or(\"b\");\n```\nUse instead:\n```rust\nlet x = true;\nif x { \"a\" } else { \"b\" };\n```",
+    "docs": "\n### What it does\nChecks for usage of `.then_some(..).unwrap_or(..)`\n\n### Why is this bad?\nThis can be written more clearly with `if .. else ..`\n\n### Limitations\nThis lint currently only looks for usages of\n`.then_some(..).unwrap_or(..)`, but will be expanded\nto account for similar patterns.\n\n### Example\n```rust\nlet x = true;\nx.then_some(\"a\").unwrap_or(\"b\");\n```\nUse instead:\n```rust\nlet x = true;\nif x { \"a\" } else { \"b\" };\n```",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5927,7 +5927,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for use of `Option<Option<_>>` in function signatures and type\ndefinitions\n\n### Why is this bad?\n`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.\n\nIf you have a case where `Some(Some(_))`, `Some(None)` and `None` are distinct cases,\nconsider a custom `enum` instead, with clear names for each case.\n\n### Example\n```rust\nfn get_data() -> Option<Option<u32>> {\n    None\n}\n```\n\nBetter:\n\n```rust\npub enum Contents {\n    Data(Vec<u8>), // Was Some(Some(Vec<u8>))\n    NotYetFetched, // Was Some(None)\n    None,          // Was None\n}\n\nfn get_data() -> Contents {\n    Contents::None\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
+    "docs": "\n### What it does\nChecks for usage of `Option<Option<_>>` in function signatures and type\ndefinitions\n\n### Why is this bad?\n`Option<_>` represents an optional value. `Option<Option<_>>`\nrepresents an optional optional value which is logically the same thing as an optional\nvalue but has an unneeded extra level of wrapping.\n\nIf you have a case where `Some(Some(_))`, `Some(None)` and `None` are distinct cases,\nconsider a custom `enum` instead, with clear names for each case.\n\n### Example\n```rust\nfn get_data() -> Option<Option<u32>> {\n    None\n}\n```\n\nBetter:\n\n```rust\npub enum Contents {\n    Data(Vec<u8>), // Was Some(Some(Vec<u8>))\n    NotYetFetched, // Was Some(None)\n    None,          // Was None\n}\n\nfn get_data() -> Contents {\n    Contents::None\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6185,7 +6185,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of `println`, `print`, `eprintln` or `eprint` in an\nimplementation of a formatting trait.\n\n### Why is this bad?\nUsing a print macro is likely unintentional since formatting traits\nshould write to the `Formatter`, not stdout/stderr.\n\n### Example\n```rust\nuse std::fmt::{Display, Error, Formatter};\n\nstruct S;\nimpl Display for S {\n    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {\n        println!(\"S\");\n\n        Ok(())\n    }\n}\n```\nUse instead:\n```rust\nuse std::fmt::{Display, Error, Formatter};\n\nstruct S;\nimpl Display for S {\n    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {\n        writeln!(f, \"S\");\n\n        Ok(())\n    }\n}\n```",
+    "docs": "\n### What it does\nChecks for usage of `println`, `print`, `eprintln` or `eprint` in an\nimplementation of a formatting trait.\n\n### Why is this bad?\nUsing a print macro is likely unintentional since formatting traits\nshould write to the `Formatter`, not stdout/stderr.\n\n### Example\n```rust\nuse std::fmt::{Display, Error, Formatter};\n\nstruct S;\nimpl Display for S {\n    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {\n        println!(\"S\");\n\n        Ok(())\n    }\n}\n```\nUse instead:\n```rust\nuse std::fmt::{Display, Error, Formatter};\n\nstruct S;\nimpl Display for S {\n    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {\n        writeln!(f, \"S\");\n\n        Ok(())\n    }\n}\n```",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6533,7 +6533,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of redundant allocations anywhere in the code.\n\n### Why is this bad?\nExpressions such as `Rc<&T>`, `Rc<Rc<T>>`, `Rc<Arc<T>>`, `Rc<Box<T>>`, `Arc<&T>`, `Arc<Rc<T>>`,\n`Arc<Arc<T>>`, `Arc<Box<T>>`, `Box<&T>`, `Box<Rc<T>>`, `Box<Arc<T>>`, `Box<Box<T>>`, add an unnecessary level of indirection.\n\n### Example\n```rust\nfn foo(bar: Rc<&usize>) {}\n```\n\nBetter:\n\n```rust\nfn foo(bar: &usize) {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
+    "docs": "\n### What it does\nChecks for usage of redundant allocations anywhere in the code.\n\n### Why is this bad?\nExpressions such as `Rc<&T>`, `Rc<Rc<T>>`, `Rc<Arc<T>>`, `Rc<Box<T>>`, `Arc<&T>`, `Arc<Rc<T>>`,\n`Arc<Arc<T>>`, `Arc<Box<T>>`, `Box<&T>`, `Box<Rc<T>>`, `Box<Arc<T>>`, `Box<Box<T>>`, add an unnecessary level of indirection.\n\n### Example\n```rust\nfn foo(bar: Rc<&usize>) {}\n```\n\nBetter:\n\n```rust\nfn foo(bar: &usize) {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
     "version": "1.44.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7664,7 +7664,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of the non-existent `=*`, `=!` and `=-`\noperators.\n\n### Why is this bad?\nThis is either a typo of `*=`, `!=` or `-=` or\nconfusing.\n\n### Example\n```rust\na =- 42; // confusing, should it be `a -= 42` or `a = -42`?\n```",
+    "docs": "\n### What it does\nChecks for usage of the non-existent `=*`, `=!` and `=-`\noperators.\n\n### Why is this bad?\nThis is either a typo of `*=`, `!=` or `-=` or\nconfusing.\n\n### Example\n```rust\na =- 42; // confusing, should it be `a -= 42` or `a = -42`?\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8249,7 +8249,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usages of `Err(x)?`.\n\n### Why is this bad?\nThe `?` operator is designed to allow calls that\ncan fail to be easily chained. For example, `foo()?.bar()` or\n`foo(bar()?)`. Because `Err(x)?` can't be used that way (it will\nalways return), it is more clear to write `return Err(x)`.\n\n### Example\n```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      Err(\"failed\")?;\n    }\n    Ok(0)\n}\n```\nCould be written:\n\n```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      return Err(\"failed\".into());\n    }\n    Ok(0)\n}\n```",
+    "docs": "\n### What it does\nChecks for usage of `Err(x)?`.\n\n### Why is this bad?\nThe `?` operator is designed to allow calls that\ncan fail to be easily chained. For example, `foo()?.bar()` or\n`foo(bar()?)`. Because `Err(x)?` can't be used that way (it will\nalways return), it is more clear to write `return Err(x)`.\n\n### Example\n```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      Err(\"failed\")?;\n    }\n    Ok(0)\n}\n```\nCould be written:\n\n```rust\nfn foo(fail: bool) -> Result<i32, String> {\n    if fail {\n      return Err(\"failed\".into());\n    }\n    Ok(0)\n}\n```",
     "version": "1.38.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8534,7 +8534,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for using `fold` when a more succinct alternative exists.\nSpecifically, this checks for `fold`s which could be replaced by `any`, `all`,\n`sum` or `product`.\n\n### Why is this bad?\nReadability.\n\n### Example\n```rust\n(0..3).fold(false, |acc, x| acc || x > 2);\n```\n\nUse instead:\n```rust\n(0..3).any(|x| x > 2);\n```",
+    "docs": "\n### What it does\nChecks for usage of `fold` when a more succinct alternative exists.\nSpecifically, this checks for `fold`s which could be replaced by `any`, `all`,\n`sum` or `product`.\n\n### Why is this bad?\nReadability.\n\n### Example\n```rust\n(0..3).fold(false, |acc, x| acc || x > 2);\n```\n\nUse instead:\n```rust\n(0..3).any(|x| x > 2);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8549,7 +8549,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for use of `.collect::<Vec<String>>().join(\"\")` on iterators.\n\n### Why is this bad?\n`.collect::<String>()` is more concise and might be more performant\n\n### Example\n```rust\nlet vector = vec![\"hello\",  \"world\"];\nlet output = vector.iter().map(|item| item.to_uppercase()).collect::<Vec<String>>().join(\"\");\nprintln!(\"{}\", output);\n```\nThe correct use would be:\n```rust\nlet vector = vec![\"hello\",  \"world\"];\nlet output = vector.iter().map(|item| item.to_uppercase()).collect::<String>();\nprintln!(\"{}\", output);\n```\n### Known problems\nWhile `.collect::<String>()` is sometimes more performant, there are cases where\nusing `.collect::<String>()` over `.collect::<Vec<String>>().join(\"\")`\nwill prevent loop unrolling and will result in a negative performance impact.\n\nAdditionally, differences have been observed between aarch64 and x86_64 assembly output,\nwith aarch64 tending to producing faster assembly in more cases when using `.collect::<String>()`",
+    "docs": "\n### What it does\nChecks for usage of `.collect::<Vec<String>>().join(\"\")` on iterators.\n\n### Why is this bad?\n`.collect::<String>()` is more concise and might be more performant\n\n### Example\n```rust\nlet vector = vec![\"hello\",  \"world\"];\nlet output = vector.iter().map(|item| item.to_uppercase()).collect::<Vec<String>>().join(\"\");\nprintln!(\"{}\", output);\n```\nThe correct use would be:\n```rust\nlet vector = vec![\"hello\",  \"world\"];\nlet output = vector.iter().map(|item| item.to_uppercase()).collect::<String>();\nprintln!(\"{}\", output);\n```\n### Known problems\nWhile `.collect::<String>()` is sometimes more performant, there are cases where\nusing `.collect::<String>()` over `.collect::<Vec<String>>().join(\"\")`\nwill prevent loop unrolling and will result in a negative performance impact.\n\nAdditionally, differences have been observed between aarch64 and x86_64 assembly output,\nwith aarch64 tending to producing faster assembly in more cases when using `.collect::<String>()`",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8669,7 +8669,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nDetects uses of `Vec::sort_by` passing in a closure\nwhich compares the two arguments, either directly or indirectly.\n\n### Why is this bad?\nIt is more clear to use `Vec::sort_by_key` (or `Vec::sort` if\npossible) than to use `Vec::sort_by` and a more complicated\nclosure.\n\n### Known problems\nIf the suggested `Vec::sort_by_key` uses Reverse and it isn't already\nimported by a use statement, then it will need to be added manually.\n\n### Example\n```rust\nvec.sort_by(|a, b| a.foo().cmp(&b.foo()));\n```\nUse instead:\n```rust\nvec.sort_by_key(|a| a.foo());\n```",
+    "docs": "\n### What it does\nChecks for usage of `Vec::sort_by` passing in a closure\nwhich compares the two arguments, either directly or indirectly.\n\n### Why is this bad?\nIt is more clear to use `Vec::sort_by_key` (or `Vec::sort` if\npossible) than to use `Vec::sort_by` and a more complicated\nclosure.\n\n### Known problems\nIf the suggested `Vec::sort_by_key` uses Reverse and it isn't already\nimported by a use statement, then it will need to be added manually.\n\n### Example\n```rust\nvec.sort_by(|a, b| a.foo().cmp(&b.foo()));\n```\nUse instead:\n```rust\nvec.sort_by_key(|a| a.foo());\n```",
     "version": "1.46.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9074,7 +9074,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usages of `_.unwrap_or_else(Default::default)` on `Option` and\n`Result` values.\n\n### Why is this bad?\nReadability, these can be written as `_.unwrap_or_default`, which is\nsimpler and more concise.\n\n### Examples\n```rust\nx.unwrap_or_else(Default::default);\nx.unwrap_or_else(u32::default);\n```\n\nUse instead:\n```rust\nx.unwrap_or_default();\n```",
+    "docs": "\n### What it does\nChecks for usage of `_.unwrap_or_else(Default::default)` on `Option` and\n`Result` values.\n\n### Why is this bad?\nReadability, these can be written as `_.unwrap_or_default`, which is\nsimpler and more concise.\n\n### Examples\n```rust\nx.unwrap_or_else(Default::default);\nx.unwrap_or_else(u32::default);\n```\n\nUse instead:\n```rust\nx.unwrap_or_default();\n```",
     "version": "1.56.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9123,7 +9123,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for use of `Debug` formatting. The purpose of this\nlint is to catch debugging remnants.\n\n### Why is this bad?\nThe purpose of the `Debug` trait is to facilitate\ndebugging Rust code. It should not be used in user-facing output.\n\n### Example\n```rust\nprintln!(\"{:?}\", foo);\n```",
+    "docs": "\n### What it does\nChecks for usage of `Debug` formatting. The purpose of this\nlint is to catch debugging remnants.\n\n### Why is this bad?\nThe purpose of the `Debug` trait is to facilitate\ndebugging Rust code. It should not be used in user-facing output.\n\n### Example\n```rust\nprintln!(\"{:?}\", foo);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9276,7 +9276,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for use of `Vec<Box<T>>` where T: Sized anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\n`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.\n\n### Known problems\nVec<Box<T: Sized>> makes sense if T is a large type (see [#3530](https://github.com/rust-lang/rust-clippy/issues/3530),\n1st comment).\n\n### Example\n```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n* `vec-box-size-threshold`: `u64`(defaults to `4096`): The size of the boxed type in bytes, where boxing in a `Vec` is allowed\n",
+    "docs": "\n### What it does\nChecks for usage of `Vec<Box<T>>` where T: Sized anywhere in the code.\nCheck the [Box documentation](https://doc.rust-lang.org/std/boxed/index.html) for more information.\n\n### Why is this bad?\n`Vec` already keeps its contents in a separate area on\nthe heap. So if you `Box` its contents, you just add another level of indirection.\n\n### Known problems\nVec<Box<T: Sized>> makes sense if T is a large type (see [#3530](https://github.com/rust-lang/rust-clippy/issues/3530),\n1st comment).\n\n### Example\n```rust\nstruct X {\n    values: Vec<Box<i32>>,\n}\n```\n\nBetter:\n\n```rust\nstruct X {\n    values: Vec<i32>,\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n* `vec-box-size-threshold`: `u64`(defaults to `4096`): The size of the boxed type in bytes, where boxing in a `Vec` is allowed\n",
     "version": "1.33.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9336,7 +9336,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for use of File::read_to_end and File::read_to_string.\n\n### Why is this bad?\n`fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.\nSee also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)\n\n### Example\n```rust\nlet mut f = File::open(\"foo.txt\").unwrap();\nlet mut bytes = Vec::new();\nf.read_to_end(&mut bytes).unwrap();\n```\nCan be written more concisely as\n```rust\nlet mut bytes = fs::read(\"foo.txt\").unwrap();\n```",
+    "docs": "\n### What it does\nChecks for usage of File::read_to_end and File::read_to_string.\n\n### Why is this bad?\n`fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.\nSee also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)\n\n### Example\n```rust\nlet mut f = File::open(\"foo.txt\").unwrap();\nlet mut bytes = Vec::new();\nf.read_to_end(&mut bytes).unwrap();\n```\nCan be written more concisely as\n```rust\nlet mut bytes = fs::read(\"foo.txt\").unwrap();\n```",
     "version": "1.44.0",
     "applicability": {
       "is_multi_part_suggestion": false,
