@@ -1,0 +1,40 @@
+error: generic trait method is marked `#[inline]`
+  --> $DIR/inlined_generics.rs:8:5
+   |
+LL | /     fn bar(&self, t: T) {
+LL | |         self.foo(t);
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::inlined-generics` implied by `-D warnings`
+
+error: generic method is marked `#[inline(always)]`
+  --> $DIR/inlined_generics.rs:15:5
+   |
+LL |     fn foo(&self, t: T) {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+
+error: generic method is marked `#[inline]`
+  --> $DIR/inlined_generics.rs:25:5
+   |
+LL |     fn baz<T>(t: T) {}
+   |     ^^^^^^^^^^^^^^^^^^
+
+error: generic function is marked `#[inline]`
+  --> $DIR/inlined_generics.rs:32:1
+   |
+LL | fn foo<T: Copy>(t: T) {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: generic function is marked `#[inline(always)]`
+  --> $DIR/inlined_generics.rs:34:1
+   |
+LL | / fn bar<T>(t: T)
+LL | | where
+LL | |     T: Clone,
+LL | | {
+LL | | }
+   | |_^
+
+error: aborting due to 5 previous errors
+
