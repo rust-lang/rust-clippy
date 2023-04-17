@@ -1,3 +1,4 @@
+mod path_join_correction;
 mod bind_instead_of_map;
 mod bytecount;
 mod bytes_count_to_len;
@@ -3216,6 +3217,25 @@ declare_clippy_lint! {
     "calling `drain` in order to `clear` a container"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// ### Why is this bad?
+    ///
+    /// ### Example
+    /// ```rust
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.70.0"]
+    pub PATH_JOIN_CORRECTION,
+    pedantic,
+    "default lint description"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3345,6 +3365,7 @@ impl_lint_pass!(Methods => [
     NEEDLESS_COLLECT,
     SUSPICIOUS_COMMAND_ARG_SPACE,
     CLEAR_WITH_DRAIN,
+    PATH_JOIN_CORRECTION,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -3655,7 +3676,11 @@ impl Methods {
                     if let Some(("collect", _, _, span, _)) = method_call(recv) {
                         unnecessary_join::check(cx, expr, recv, join_arg, span);
                     }
+		    else {path_join_correction::check(cx, expr,  join_arg, span);}
                 },
+	        /*("join", [join_arg]) => {
+		    path_join_correction::check(cx, expr,  join_arg, span);
+		},*/
                 ("last", []) | ("skip", [_]) => {
                     if let Some((name2, recv2, args2, _span2, _)) = method_call(recv) {
                         if let ("cloned", []) = (name2, args2) {
