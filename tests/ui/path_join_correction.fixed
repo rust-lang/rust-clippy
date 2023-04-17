@@ -5,7 +5,7 @@
 fn main() {
     // should be linted
     let path = std::path::Path::new("/bin");
-    path.join("/sh");
+    path.join("your/path/here");
     println!("{}", path.display());
 
     //should not be linted

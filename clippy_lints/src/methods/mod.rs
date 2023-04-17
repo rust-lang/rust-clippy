@@ -1,4 +1,3 @@
-mod path_join_correction;
 mod bind_instead_of_map;
 mod bytecount;
 mod bytes_count_to_len;
@@ -69,6 +68,7 @@ mod option_map_unwrap_or;
 mod or_fun_call;
 mod or_then_unwrap;
 mod path_buf_push_overwrite;
+mod path_join_correction;
 mod range_zip_with_len;
 mod repeat_once;
 mod search_is_some;
@@ -3219,21 +3219,23 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    ///
+    /// Checks for initial '/' in an argument to .join on a path.
     /// ### Why is this bad?
-    ///
+    /// .join() calls on paths already attach the '/'.
     /// ### Example
     /// ```rust
     /// // example code where clippy issues a warning
+    /// let path = std::path::Path::new("/bin");
+    /// path.join("/sh");
     /// ```
     /// Use instead:
     /// ```rust
-    /// // example code which does not raise clippy warning
+    /// // path.join("sh");
     /// ```
     #[clippy::version = "1.70.0"]
     pub PATH_JOIN_CORRECTION,
     pedantic,
-    "default lint description"
+    "arg to .join called on a Path contains '/' at the start"
 }
 
 pub struct Methods {
@@ -3678,9 +3680,6 @@ impl Methods {
                     }
 		    else {path_join_correction::check(cx, expr,  join_arg, span);}
                 },
-	        /*("join", [join_arg]) => {
-		    path_join_correction::check(cx, expr,  join_arg, span);
-		},*/
                 ("last", []) | ("skip", [_]) => {
                     if let Some((name2, recv2, args2, _span2, _)) = method_call(recv) {
                         if let ("cloned", []) = (name2, args2) {
