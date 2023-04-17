@@ -7,7 +7,6 @@ use rustc_span::Span;
 
 use super::PATH_JOIN_CORRECTION;
 
-// TODO: Adjust the parameters as necessary
 
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
