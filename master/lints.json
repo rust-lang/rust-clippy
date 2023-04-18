@@ -4118,7 +4118,7 @@
     "id": "manual_slice_size_calculation",
     "id_span": {
       "path": "src/manual_slice_size_calculation.rs",
-      "line": 36
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
