@@ -98,6 +98,7 @@ fn check_no_effect(cx: &LateContext<'_>, stmt: &Stmt<'_>) -> bool {
             if has_no_effect(cx, init);
             if let PatKind::Binding(_, _, ident, _) = local.pat.kind;
             if ident.name.to_ident_string().starts_with('_');
+            if !ident.name.to_ident_string().starts_with("__");
             then {
                 span_lint_hir(
                     cx,
