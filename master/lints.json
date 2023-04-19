@@ -8470,11 +8470,11 @@
     "id": "unnecessary_box_returns",
     "id_span": {
       "path": "src/unnecessary_box_returns.rs",
-      "line": 32
+      "line": 35
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\n\nChecks for a return type containing a `Box<T>` where `T` implements `Sized`\n\n### Why is this bad?\n\nIt's better to just return `T` in these cases. The caller may not need\nthe value to be boxed, and it's expensive to free the memory once the\n`Box<T>` been dropped.\n\n### Example\n```rust\nfn foo() -> Box<String> {\n    Box::new(String::from(\"Hello, world!\"))\n}\n```\nUse instead:\n```rust\nfn foo() -> String {\n    String::from(\"Hello, world!\")\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
+    "docs": "\n### What it does\n\nChecks for a return type containing a `Box<T>` where `T` implements `Sized`\n\nThe lint ignores `Box<T>` where `T` is larger than `unnecessary_box_size`,\nas returning a large `T` directly may be detrimental to performance.\n\n### Why is this bad?\n\nIt's better to just return `T` in these cases. The caller may not need\nthe value to be boxed, and it's expensive to free the memory once the\n`Box<T>` been dropped.\n\n### Example\n```rust\nfn foo() -> Box<String> {\n    Box::new(String::from(\"Hello, world!\"))\n}\n```\nUse instead:\n```rust\nfn foo() -> String {\n    String::from(\"Hello, world!\")\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n* `unnecessary-box-size`: `u64`(defaults to `128`): The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint\n",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
