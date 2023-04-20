@@ -13,7 +13,7 @@ use rustc_span::symbol::Symbol;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks the paths module for invalid paths.
+    /// Checks for the usage of paths module for invalid paths.
     ///
     /// ### Why is this bad?
     /// It indicates a bug in the code.

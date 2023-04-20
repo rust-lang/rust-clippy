@@ -12,7 +12,7 @@ use rustc_session::{declare_lint_pass, declare_tool_lint};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Check that the `extract_msrv_attr!` macro is used, when a lint has a MSRV.
+    /// Check for the usage of `extract_msrv_attr!` macro, when a lint has a MSRV.
     ///
     pub MISSING_MSRV_ATTR_IMPL,
     internal,

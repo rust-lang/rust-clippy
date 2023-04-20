@@ -19,7 +19,7 @@ use std::borrow::Cow;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for interning symbols that have already been pre-interned and defined as constants.
+    /// Checks for usage of interning symbols that have already been pre-interned and defined as constants.
     ///
     /// ### Why is this bad?
     /// It's faster and easier to use the symbol constant.
@@ -40,7 +40,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for unnecessary conversion from Symbol to a string.
+    /// Checks for usage of unnecessary conversion from Symbol to a string.
     ///
     /// ### Why is this bad?
     /// It's faster use symbols directly instead of strings.

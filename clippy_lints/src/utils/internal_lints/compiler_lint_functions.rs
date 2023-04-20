@@ -9,7 +9,7 @@ use rustc_session::{declare_tool_lint, impl_lint_pass};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for calls to `cx.span_lint*` and suggests to use the `utils::*`
+    /// Checks for usage of `cx.span_lint*` and suggests to use the `utils::*`
     /// variant of the function.
     ///
     /// ### Why is this bad?

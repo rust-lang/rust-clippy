@@ -48,7 +48,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for cases of an auto-generated lint without an updated description,
+    /// Checks for usage of an auto-generated lint without an updated description,
     /// i.e. `default lint description`.
     ///
     /// ### Why is this bad?
@@ -70,7 +70,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for invalid `clippy::version` attributes.
+    /// Checks for usage of invalid `clippy::version` attributes.
     ///
     /// Valid values are:
     /// * "pre 1.29.0"
@@ -82,7 +82,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for declared clippy lints without the `clippy::version` attribute.
+    /// Checks for the usage of declared clippy lints without the `clippy::version` attribute.
     ///
     pub MISSING_CLIPPY_VERSION_ATTRIBUTE,
     internal,
@@ -91,7 +91,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for cases of an auto-generated deprecated lint without an updated reason,
+    /// Checks for usage of an auto-generated deprecated lint without an updated reason,
     /// i.e. `"default deprecation note"`.
     ///
     /// ### Why is this bad?
