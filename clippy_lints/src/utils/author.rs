@@ -1,6 +1,7 @@
 //! A group of attributes that can be attached to Rust code in order
 //! to generate a clippy lint detecting said code automatically.
 
+use clippy_utils::macros::{collect_format_args, is_format_macro, root_macro_call_first_node};
 use clippy_utils::{get_attr, higher};
 use rustc_ast::ast::{LitFloatType, LitKind};
 use rustc_ast::LitIntType;
@@ -239,14 +240,14 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
         }
     }
 
-    fn slice<T>(&self, slice: &Binding<&[T]>, f: impl Fn(&Binding<&T>)) {
+    fn slice<T>(&self, slice: &Binding<&[T]>, f: impl Fn(Binding<&T>)) {
         if slice.value.is_empty() {
             chain!(self, "{slice}.is_empty()");
         } else {
             chain!(self, "{slice}.len() == {}", slice.value.len());
             for (i, value) in slice.value.iter().enumerate() {
                 let name = format!("{slice}[{i}]");
-                f(&Binding { name, value });
+                f(Binding { name, value });
             }
         }
     }
@@ -333,6 +334,24 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
 
     #[allow(clippy::too_many_lines)]
     fn expr(&self, expr: &Binding<&hir::Expr<'_>>) {
+        if let Some(macro_call) = root_macro_call_first_node(self.cx, expr.value)
+            && is_format_macro(self.cx, macro_call.def_id)
+        {
+            let diag = self.cx.tcx.get_diagnostic_name(macro_call.def_id).unwrap();
+            bind!(self, macro_call);
+            chain!(self, "let Some({macro_call}) = macros::root_macro_call_first_node(cx, {expr})");
+            chain!(self, "cx.tcx.is_diagnostic_item(sym::{diag}, {macro_call}.def_id)");
+            let exprs = collect_format_args(self.cx, |_fmt_args| {}, expr.value, macro_call.value.expn);
+            let args = exprs.as_slice();
+            bind!(self, args);
+            chain!(self, "let {args} = macros::collect_format_args(cx, |_fmt_args| {{}}, {expr}, {macro_call}.expn)");
+            self.slice(args, |e| {
+                let expr = Binding { name: e.name, value: *e.value };
+                self.expr(&expr);
+            });
+            return;
+        }
+
         if let Some(higher::While { condition, body }) = higher::While::hir(expr.value) {
             bind!(self, condition, body);
             chain!(
@@ -398,25 +417,25 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
             ExprKind::Array(elements) => {
                 bind!(self, elements);
                 kind!("Array({elements})");
-                self.slice(elements, |e| self.expr(e));
+                self.slice(elements, |e| self.expr(&e));
             },
             ExprKind::Call(func, args) => {
                 bind!(self, func, args);
                 kind!("Call({func}, {args})");
                 self.expr(func);
-                self.slice(args, |e| self.expr(e));
+                self.slice(args, |e| self.expr(&e));
             },
             ExprKind::MethodCall(method_name, receiver, args, _) => {
                 bind!(self, method_name, receiver, args);
                 kind!("MethodCall({method_name}, {receiver}, {args}, _)");
                 self.ident(field!(method_name.ident));
                 self.expr(receiver);
-                self.slice(args, |e| self.expr(e));
+                self.slice(args, |e| self.expr(&e));
             },
             ExprKind::Tup(elements) => {
                 bind!(self, elements);
                 kind!("Tup({elements})");
-                self.slice(elements, |e| self.expr(e));
+                self.slice(elements, |e| self.expr(&e));
             },
             ExprKind::Binary(op, left, right) => {
                 bind!(self, op, left, right);
@@ -469,7 +488,7 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
                 bind!(self, scrutinee, arms);
                 kind!("Match({scrutinee}, {arms}, MatchSource::{des:?})");
                 self.expr(scrutinee);
-                self.slice(arms, |arm| self.arm(arm));
+                self.slice(arms, |arm| self.arm(&arm));
             },
             ExprKind::Closure(&Closure {
                 capture_clause,
@@ -593,7 +612,7 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
     }
 
     fn block(&self, block: &Binding<&hir::Block<'_>>) {
-        self.slice(field!(block.stmts), |stmt| self.stmt(stmt));
+        self.slice(field!(block.stmts), |stmt| self.stmt(&stmt));
         self.option(field!(block.expr), "trailing_expr", |expr| {
             self.expr(expr);
         });
@@ -639,13 +658,13 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
             PatKind::Or(fields) => {
                 bind!(self, fields);
                 kind!("Or({fields})");
-                self.slice(fields, |pat| self.pat(pat));
+                self.slice(fields, |pat| self.pat(&pat));
             },
             PatKind::TupleStruct(ref qpath, fields, skip_pos) => {
                 bind!(self, qpath, fields);
                 kind!("TupleStruct(ref {qpath}, {fields}, {skip_pos:?})");
                 self.qpath(qpath);
-                self.slice(fields, |pat| self.pat(pat));
+                self.slice(fields, |pat| self.pat(&pat));
             },
             PatKind::Path(ref qpath) => {
                 bind!(self, qpath);
@@ -655,7 +674,7 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
             PatKind::Tuple(fields, skip_pos) => {
                 bind!(self, fields);
                 kind!("Tuple({fields}, {skip_pos:?})");
-                self.slice(fields, |field| self.pat(field));
+                self.slice(fields, |field| self.pat(&field));
             },
             PatKind::Box(pat) => {
                 bind!(self, pat);
@@ -683,8 +702,8 @@ impl<'a, 'tcx> PrintVisitor<'a, 'tcx> {
                 opt_bind!(self, middle);
                 kind!("Slice({start}, {middle}, {end})");
                 middle.if_some(|p| self.pat(p));
-                self.slice(start, |pat| self.pat(pat));
-                self.slice(end, |pat| self.pat(pat));
+                self.slice(start, |pat| self.pat(&pat));
+                self.slice(end, |pat| self.pat(&pat));
             },
         }
     }
