@@ -3260,6 +3260,21 @@
     }
   },
   {
+    "id": "items_after_test_module",
+    "id_span": {
+      "path": "src/items_after_test_module.rs",
+      "line": 36
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nTriggers if an item is declared after the testing module marked with `#[cfg(test)]`.\n### Why is this bad?\nHaving items declared after the testing module is confusing and may lead to bad test coverage.\n### Example\n```rust\n#[cfg(test)]\nmod tests {\n    // [...]\n}\n\nfn my_function() {\n    // [...]\n}\n```\nUse instead:\n```rust\nfn my_function() {\n    // [...]\n}\n\n#[cfg(test)]\nmod tests {\n    // [...]\n}\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "iter_cloned_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
