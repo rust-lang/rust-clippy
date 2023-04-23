@@ -2840,7 +2840,7 @@
     "id": "imprecise_flops",
     "id_span": {
       "path": "src/floating_point_arithmetic.rs",
-      "line": 46
+      "line": 47
     },
     "group": "nursery",
     "level": "allow",
@@ -7645,7 +7645,7 @@
     "id": "suboptimal_flops",
     "id_span": {
       "path": "src/floating_point_arithmetic.rs",
-      "line": 103
+      "line": 104
     },
     "group": "nursery",
     "level": "allow",
