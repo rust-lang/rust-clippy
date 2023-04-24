@@ -33,7 +33,7 @@
     "id": "allow_attributes",
     "id_span": {
       "path": "src/allow_attributes.rs",
-      "line": 43
+      "line": 44
     },
     "group": "restriction",
     "level": "allow",
