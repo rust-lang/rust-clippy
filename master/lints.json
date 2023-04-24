@@ -3653,7 +3653,7 @@
     "id": "let_underscore_future",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 88
+      "line": 89
     },
     "group": "suspicious",
     "level": "warn",
@@ -3668,7 +3668,7 @@
     "id": "let_underscore_lock",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 57
+      "line": 58
     },
     "group": "correctness",
     "level": "deny",
@@ -3683,7 +3683,7 @@
     "id": "let_underscore_must_use",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 29
+      "line": 30
     },
     "group": "restriction",
     "level": "allow",
@@ -3698,7 +3698,7 @@
     "id": "let_underscore_untyped",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 126
+      "line": 127
     },
     "group": "restriction",
     "level": "allow",
