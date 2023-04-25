@@ -34,7 +34,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.70.0"]
     pub ITEMS_AFTER_TEST_MODULE,
-    style,
+    nursery,
     "An item was found after the testing module `tests`"
 }
 
