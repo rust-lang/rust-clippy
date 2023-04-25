@@ -1,15 +1,22 @@
 // run-rustfix
 #![allow(unused)]
 #![warn(clippy::path_join_correction)]
+use std::path::Path;
+//use std::string::String;
 
 fn main() {
     // should be linted
-    let path = std::path::Path::new("/bin");
+    let path = Path::new("/bin");
     path.join("/sh");
     println!("{}", path.display());
 
+    // should not be linted
+    let path: &[&str] = &["/bin"];
+    path.join("/sh");
+    println!("{:?}", path);
+
     //should not be linted
-    let path = std::path::Path::new("/bin");
+    let path = Path::new("/bin");
     path.join("sh");
     println!("{}", path.display());
 }
