@@ -7106,7 +7106,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\n\nSuggests moving the semicolon after a block to the inside of the block, after its last\nexpression.\n\n### Why is this bad?\n\nFor consistency it's best to have the semicolon inside/outside the block. Either way is fine\nand this lint suggests inside the block.\nTake a look at `semicolon_outside_block` for the other alternative.\n\n### Example\n\n```rust\nunsafe { f(x) };\n```\nUse instead:\n```rust\nunsafe { f(x); }\n```",
+    "docs": "\n### What it does\n\nSuggests moving the semicolon after a block to the inside of the block, after its last\nexpression.\n\n### Why is this bad?\n\nFor consistency it's best to have the semicolon inside/outside the block. Either way is fine\nand this lint suggests inside the block.\nTake a look at `semicolon_outside_block` for the other alternative.\n\n### Example\n\n```rust\nunsafe { f(x) };\n```\nUse instead:\n```rust\nunsafe { f(x); }\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `semicolon-inside-block-ignore-singleline`: `bool`(defaults to `false`): Whether to lint only if it's multiline.\n",
     "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7121,7 +7121,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\n\nSuggests moving the semicolon from a block's final expression outside of the block.\n\n### Why is this bad?\n\nFor consistency it's best to have the semicolon inside/outside the block. Either way is fine\nand this lint suggests outside the block.\nTake a look at `semicolon_inside_block` for the other alternative.\n\n### Example\n\n```rust\nunsafe { f(x); }\n```\nUse instead:\n```rust\nunsafe { f(x) };\n```",
+    "docs": "\n### What it does\n\nSuggests moving the semicolon from a block's final expression outside of the block.\n\n### Why is this bad?\n\nFor consistency it's best to have the semicolon inside/outside the block. Either way is fine\nand this lint suggests outside the block.\nTake a look at `semicolon_inside_block` for the other alternative.\n\n### Example\n\n```rust\nunsafe { f(x); }\n```\nUse instead:\n```rust\nunsafe { f(x) };\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `semicolon-outside-block-ignore-multiline`: `bool`(defaults to `false`): Whether to lint only if it's singleline.\n",
     "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
