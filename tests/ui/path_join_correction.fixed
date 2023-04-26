@@ -2,7 +2,6 @@
 #![allow(unused)]
 #![warn(clippy::path_join_correction)]
 use std::path::Path;
-//use std::string::String;
 
 fn main() {
     // should be linted
