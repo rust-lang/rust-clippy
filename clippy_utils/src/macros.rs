@@ -3,7 +3,7 @@
 use crate::visitors::{for_each_expr, Descend};
 
 use arrayvec::ArrayVec;
-use rustc_ast::{FormatArgs, FormatArgument, FormatPlaceholder};
+use rustc_ast::{FormatArgs, FormatArgsPiece, FormatArgument, FormatPlaceholder};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::{self as hir, Expr, ExprKind, HirId, Node, QPath};
 use rustc_lint::LateContext;
@@ -423,6 +423,38 @@ pub fn find_format_arg_expr<'hir, 'ast>(
         }
     })
     .ok_or(&target.expr)
+}
+
+/// Finds and extracts all format arguments from a format-like macro call.
+///
+/// `callback` can also be passed, to process the [`FormatArgs`] manually
+/// if needed, without calling [`find_format_args`] separately.
+///
+/// ```ignore
+/// // vvvvv any format-like macro
+/// println!("Hello, {}!", "ferris")
+/// //                     ^^^^^^^^ returns these expressions
+/// ```
+pub fn collect_format_args<'hir>(
+    cx: &LateContext<'_>,
+    callback: impl FnOnce(&FormatArgs),
+    start: &'hir Expr<'hir>,
+    expn_id: ExpnId,
+) -> Vec<&'hir Expr<'hir>> {
+    let mut args = vec![];
+    find_format_args(cx, start, expn_id, |format_args| {
+        for piece in &format_args.template {
+            if let FormatArgsPiece::Placeholder(placeholder) = piece
+                && let Ok(index) = placeholder.argument.index
+                && let Some(arg) = format_args.arguments.all_args().get(index)
+                && let Ok(arg_expr) = find_format_arg_expr(start, arg)
+            {
+                args.push(arg_expr);
+            }
+        }
+        callback(format_args);
+    });
+    args
 }
 
 /// Span of the `:` and format specifiers
