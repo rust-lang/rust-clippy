@@ -1741,7 +1741,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 269
+      "line": 270
     },
     "group": "suspicious",
     "level": "warn",
@@ -2000,7 +2000,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 235
+      "line": 236
     },
     "group": "complexity",
     "level": "warn",
@@ -2030,7 +2030,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 146
+      "line": 147
     },
     "group": "pedantic",
     "level": "allow",
@@ -2045,7 +2045,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 117
+      "line": 118
     },
     "group": "pedantic",
     "level": "allow",
@@ -2435,7 +2435,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 325
+      "line": 326
     },
     "group": "style",
     "level": "warn",
@@ -3323,7 +3323,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 170
+      "line": 171
     },
     "group": "correctness",
     "level": "deny",
@@ -3908,7 +3908,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 573
+      "line": 574
     },
     "group": "complexity",
     "level": "warn",
@@ -3938,7 +3938,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 506
+      "line": 507
     },
     "group": "complexity",
     "level": "warn",
@@ -4028,7 +4028,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 52
+      "line": 53
     },
     "group": "perf",
     "level": "warn",
@@ -4229,6 +4229,21 @@
     "level": "warn",
     "docs": "\n### What it does\nFinds patterns that reimplement `Option::unwrap_or` or `Result::unwrap_or`.\n\n### Why is this bad?\nConcise code helps focusing on behavior instead of boilerplate.\n\n### Example\n```rust\nlet foo: Option<i32> = None;\nmatch foo {\n    Some(v) => v,\n    None => 1,\n};\n```\n\nUse instead:\n```rust\nlet foo: Option<i32> = None;\nfoo.unwrap_or(1);\n```",
     "version": "1.49.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "manual_while_let_some",
+    "id_span": {
+      "path": "src/loops/mod.rs",
+      "line": 604
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nLooks for loops that check for emptiness of a `Vec` in the condition and pop an element\nin the body as a separate operation.\n\n### Why is this bad?\nSuch loops can be written in a more idiomatic way by using a while-let loop and directly\npattern matching on the return value of `Vec::pop()`.\n\n### Example\n```rust\nlet mut numbers = vec![1, 2, 3, 4, 5];\nwhile !numbers.is_empty() {\n    let number = numbers.pop().unwrap();\n    // use `number`\n}\n```\nUse instead:\n```rust\nlet mut numbers = vec![1, 2, 3, 4, 5];\nwhile let Some(number) = numbers.pop() {\n    // use `number`\n}\n```",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -4831,7 +4846,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 542
+      "line": 543
     },
     "group": "perf",
     "level": "warn",
@@ -5122,7 +5137,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 383
+      "line": 384
     },
     "group": "suspicious",
     "level": "warn",
@@ -5470,7 +5485,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 83
+      "line": 84
     },
     "group": "style",
     "level": "warn",
@@ -5575,7 +5590,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 347
+      "line": 348
     },
     "group": "correctness",
     "level": "deny",
@@ -6967,7 +6982,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 446
+      "line": 447
     },
     "group": "style",
     "level": "warn",
@@ -7360,7 +7375,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 474
+      "line": 475
     },
     "group": "complexity",
     "level": "warn",
@@ -9392,7 +9407,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 410
+      "line": 411
     },
     "group": "correctness",
     "level": "deny",
@@ -9407,7 +9422,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 203
+      "line": 204
     },
     "group": "complexity",
     "level": "warn",
@@ -9422,7 +9437,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 296
+      "line": 297
     },
     "group": "style",
     "level": "warn",
