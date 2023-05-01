@@ -3218,19 +3218,32 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for initial '/' in an argument to .join on a path.
+    /// Checks for initial `'/'` in an argument to `.join()` on a `Path`.
+    ///
     /// ### Why is this bad?
-    /// .join() calls on paths already attach the '/'.
+    /// `.join()` comments starting with a separator, can replace the entire path.
+    /// If this is intentional, prefer creating a new `Path` instead.
+    ///
+    /// See [`Path::join()`](https://doc.rust-lang.org/std/path/struct.Path.html#method.join)
+    ///
     /// ### Example
     /// ```rust
-    /// // example code where clippy issues a warning
     /// let path = std::path::Path::new("/bin");
-    /// path.join("/sh");
+    /// let res = path.join("/sh");
+    /// assert_eq!(res, PathBuf::from("/sh"));
     /// ```
+    ///
     /// Use instead:
     /// ```rust
-    /// // path.join("sh");
+    /// let path = std::path::Path::new("/bin");
+    ///
+    /// // If this was unintentional, remove the leading separator
+    /// let extend = path.join("sh");
+    /// assert_eq!(extend, PathBuf::from("/bin/sh"));
+    ///
+    /// // If this was intentional, create a new path instead
+    /// let new = Path::new("/sh")
+    /// assert_eq!(new PathBuf::from("/sh"));
     /// ```
     #[clippy::version = "1.70.0"]
     pub PATH_JOIN_CORRECTION,
@@ -3678,7 +3691,7 @@ impl Methods {
                     if let Some(("collect", _, _, span, _)) = method_call(recv) {
                         unnecessary_join::check(cx, expr, recv, join_arg, span);
                     }
-		    else {path_join_correction::check(cx, expr,  join_arg, span);}
+                    else {path_join_correction::check(cx, expr,  join_arg, span);}
                 },
                 ("last", []) | ("skip", [_]) => {
                     if let Some((name2, recv2, args2, _span2, _)) = method_call(recv) {
