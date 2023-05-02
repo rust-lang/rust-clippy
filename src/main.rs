@@ -109,7 +109,6 @@ impl ClippyCmd {
                 _ => {},
             }
 
-            println!("{:#?}", &arg);
             if &arg != "--safe" {
                 // --safe isn't supported by Cargo
                 args.push(arg);
