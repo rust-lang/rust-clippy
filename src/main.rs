@@ -14,6 +14,7 @@ Usage:
 Common options:
     --no-deps                Run Clippy only on the given crate, without linting the dependencies
     --fix                    Automatically apply lint suggestions. This flag implies `--no-deps` and `--all-targets`
+    --safe               Ignores all lints which may have known problems. Intended to be only be used when `--fix` is used
     -h, --help               Print this message
     -V, --version            Print version info and exit
     --explain LINT           Print the documentation for a given lint
@@ -94,16 +95,31 @@ impl ClippyCmd {
                     clippy_args.push("--no-deps".into());
                     continue;
                 },
+                "--safe" => {
+                    clippy_args.push("--".to_owned());
+                    let unsafe_lints = include_str!("../clippy_lints/unsafe-lints")[74..]
+                        .lines()
+                        .collect::<Vec<&str>>(); // Cut first line and split.
+                    for unsafe_lint in unsafe_lints {
+                        clippy_args.push("-A".into());
+                        clippy_args.push(format!("clippy::{unsafe_lint}"));
+                    }
+                },
                 "--" => break,
                 _ => {},
             }
 
-            args.push(arg);
+            println!("{:#?}", &arg);
+            if &arg != "--safe" {
+                // --safe isn't supported by Cargo
+                args.push(arg);
+            }
         }
 
         clippy_args.append(&mut (old_args.collect()));
         if cargo_subcommand == "fix" && !clippy_args.iter().any(|arg| arg == "--no-deps") {
-            clippy_args.push("--no-deps".into());
+            // Order is important if it's a safe fix
+            clippy_args.insert(0, "--no-deps".into());
         }
 
         Self {
@@ -200,5 +216,14 @@ mod tests {
         let args = "cargo clippy".split_whitespace().map(ToString::to_string);
         let cmd = ClippyCmd::new(args);
         assert_eq!("check", cmd.cargo_subcommand);
+    }
+
+    #[test]
+    fn safe_fix() {
+        let args = "cargo clippy --fix --safe".split_whitespace().map(ToString::to_string);
+        let cmd = ClippyCmd::new(args);
+        assert_eq!("fix", cmd.cargo_subcommand);
+        // Manual check:
+        dbg!(cmd.clippy_args);
     }
 }
