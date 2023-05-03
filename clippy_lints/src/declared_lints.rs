@@ -502,6 +502,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::operators::VERBOSE_BIT_MASK_INFO,
     crate::option_env_unwrap::OPTION_ENV_UNWRAP_INFO,
     crate::option_if_let_else::OPTION_IF_LET_ELSE_INFO,
+    crate::option_is_some_with::OPTION_IS_SOME_WITH_INFO,
     crate::overflow_check_conditional::OVERFLOW_CHECK_CONDITIONAL_INFO,
     crate::panic_in_result_fn::PANIC_IN_RESULT_FN_INFO,
     crate::panic_unimplemented::PANIC_INFO,

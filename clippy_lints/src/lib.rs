@@ -239,6 +239,7 @@ mod only_used_in_recursion;
 mod operators;
 mod option_env_unwrap;
 mod option_if_let_else;
+mod option_is_some_with;
 mod overflow_check_conditional;
 mod panic_in_result_fn;
 mod panic_unimplemented;
@@ -972,6 +973,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| Box::new(suspicious_doc_comments::SuspiciousDocComments));
     store.register_late_pass(|_| Box::new(items_after_test_module::ItemsAfterTestModule));
     store.register_late_pass(|_| Box::new(default_constructed_unit_structs::DefaultConstructedUnitStructs));
+    store.register_late_pass(|_| Box::new(option_is_some_with::OptionIsSomeWith));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
