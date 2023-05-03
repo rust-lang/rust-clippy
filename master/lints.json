@@ -1216,6 +1216,21 @@
     }
   },
   {
+    "id": "default_constructed_unit_structs",
+    "id_span": {
+      "path": "src/default_constructed_unit_structs.rs",
+      "line": 40
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nCheck for construction on unit struct using `default`.\n\n### Why is this bad?\nThis adds code complexity and an unnecessary function call.\n\n### Example\n```rust\n#[derive(Default)]\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData::default()\n};\n```\nUse instead:\n```rust\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData\n};\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "default_instead_of_iter_empty",
     "id_span": {
       "path": "src/default_instead_of_iter_empty.rs",
