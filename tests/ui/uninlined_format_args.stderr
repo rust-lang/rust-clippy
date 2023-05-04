@@ -179,6 +179,18 @@ LL +     println!("{local_f64:.1}");
    |
 
 error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:64:5
+   |
+LL |     println!("Hello {} is {:.*}", "x", local_i32, local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("Hello {} is {:.*}", "x", local_i32, local_f64);
+LL +     println!("Hello x is {local_f64:.local_i32$}");
+   |
+
+error: variables can be used directly in the `format!` string
   --> $DIR/uninlined_format_args.rs:67:5
    |
 LL |     println!("{} {}", local_i32, local_f64);
@@ -407,6 +419,18 @@ LL +     println!("{local_f64} {local_i32} {local_f64} {local_i32}");
    |
 
 error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:88:5
+   |
+LL |     println!("{1} {0}", "str", local_i32);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("{1} {0}", "str", local_i32);
+LL +     println!("{local_i32} str");
+   |
+
+error: variables can be used directly in the `format!` string
   --> $DIR/uninlined_format_args.rs:89:5
    |
 LL |     println!("{v}", v = local_i32);
@@ -416,54 +440,6 @@ help: change this to
    |
 LL -     println!("{v}", v = local_i32);
 LL +     println!("{local_i32}");
-   |
-
-error: variables can be used directly in the `format!` string
-  --> $DIR/uninlined_format_args.rs:90:5
-   |
-LL |     println!("{local_i32:0$}", width);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: change this to
-   |
-LL -     println!("{local_i32:0$}", width);
-LL +     println!("{local_i32:width$}");
-   |
-
-error: variables can be used directly in the `format!` string
-  --> $DIR/uninlined_format_args.rs:91:5
-   |
-LL |     println!("{local_i32:w$}", w = width);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: change this to
-   |
-LL -     println!("{local_i32:w$}", w = width);
-LL +     println!("{local_i32:width$}");
-   |
-
-error: variables can be used directly in the `format!` string
-  --> $DIR/uninlined_format_args.rs:92:5
-   |
-LL |     println!("{local_i32:.0$}", prec);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: change this to
-   |
-LL -     println!("{local_i32:.0$}", prec);
-LL +     println!("{local_i32:.prec$}");
-   |
-
-error: variables can be used directly in the `format!` string
-  --> $DIR/uninlined_format_args.rs:93:5
-   |
-LL |     println!("{local_i32:.p$}", p = prec);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: change this to
-   |
-LL -     println!("{local_i32:.p$}", p = prec);
-LL +     println!("{local_i32:.prec$}");
    |
 
 error: variables can be used directly in the `format!` string
@@ -845,5 +821,89 @@ LL -     println!("expand='{}'", local_i32);
 LL +     println!("expand='{local_i32}'");
    |
 
-error: aborting due to 71 previous errors
+error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:278:5
+   |
+LL |     println!("{}", "foo");
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("{}", "foo");
+LL +     println!("foo");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:279:5
+   |
+LL |     println!("{:5}", "foo");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("{:5}", "foo");
+LL +     println!("foo");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:281:5
+   |
+LL |     println!("{:-5}", "foo");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("{:-5}", "foo");
+LL +     println!("foo");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:283:5
+   |
+LL |     println!("var {} lit {}", var, "foo");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("var {} lit {}", var, "foo");
+LL +     println!("var {var} lit foo");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:284:5
+   |
+LL |     println!("var {1} lit {0}", "foo", var);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("var {1} lit {0}", "foo", var);
+LL +     println!("var {var} lit foo");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:285:5
+   |
+LL |     println!("var {} lit {0}", "foo");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("var {} lit {0}", "foo");
+LL +     println!("var foo lit foo");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> $DIR/uninlined_format_args.rs:286:5
+   |
+LL |     println!("var {0} lit {} {},", "foo", var);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     println!("var {0} lit {} {},", "foo", var);
+LL +     println!("var foo lit foo {var},");
+   |
+
+error: aborting due to 76 previous errors
 

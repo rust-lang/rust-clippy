@@ -594,7 +594,7 @@ fn positional_arg_piece_span(piece: &FormatArgsPiece) -> Option<(Span, usize)> {
 /// `r#"a"#` -> (`a`, true)
 ///
 /// `"b"` -> (`b`, false)
-fn extract_str_literal(literal: &str) -> Option<(String, bool)> {
+pub fn extract_str_literal(literal: &str) -> Option<(String, bool)> {
     let (literal, raw) = match literal.strip_prefix('r') {
         Some(stripped) => (stripped.trim_matches('#'), true),
         None => (literal, false),

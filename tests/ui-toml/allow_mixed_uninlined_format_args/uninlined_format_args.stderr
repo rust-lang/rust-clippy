@@ -21,7 +21,7 @@ LL |     println!("Hello {} is {:.*}", "x", local_i32, local_f64);
 help: change this to
    |
 LL -     println!("Hello {} is {:.*}", "x", local_i32, local_f64);
-LL +     println!("Hello {} is {local_f64:.local_i32$}", "x");
+LL +     println!("Hello x is {local_f64:.local_i32$}");
    |
 
 error: literal with an empty format string
