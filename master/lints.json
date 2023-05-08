@@ -6814,6 +6814,21 @@
     }
   },
   {
+    "id": "ref_patterns",
+    "id_span": {
+      "path": "src/ref_patterns.rs",
+      "line": 23
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usages of the `ref` keyword.\n### Why is this bad?\nThe `ref` keyword can be confusing for people unfamiliar with it, and often\nit is more concise to use `&` instead.\n### Example\n```rust\nlet opt = Some(5);\nif let Some(ref foo) = opt {}\n```\nUse instead:\n```rust\nlet opt = Some(5);\nif let Some(foo) = &opt {}\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "regex_macro",
     "id_span": {
       "path": "src/deprecated_lints.rs",
@@ -7222,7 +7237,7 @@
     "id": "short_circuit_statement",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 98
+      "line": 101
     },
     "group": "complexity",
     "level": "warn",
@@ -8005,7 +8020,7 @@
     "id": "toplevel_ref_arg",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 52
+      "line": 55
     },
     "group": "style",
     "level": "warn",
@@ -9194,7 +9209,7 @@
     "id": "used_underscore_binding",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 77
+      "line": 80
     },
     "group": "pedantic",
     "level": "allow",
@@ -9632,7 +9647,7 @@
     "id": "zero_ptr",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 121
+      "line": 124
     },
     "group": "style",
     "level": "warn",
