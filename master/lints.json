@@ -418,7 +418,7 @@
     "id": "borrow_deref_ref",
     "id_span": {
       "path": "src/borrow_deref_ref.rs",
-      "line": 43
+      "line": 44
     },
     "group": "complexity",
     "level": "warn",
