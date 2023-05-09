@@ -8054,7 +8054,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for cases where generics are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.\n\n### Why is this bad?\nDuplicate bounds makes the code\nless readable than specifying them only once.\n\n### Example\n```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nUse instead:\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n\n// or\n\nfn func<T>(arg: T) where T: Clone + Default {}\n```\n\n```rust\nfn foo<T: Default + Default>(bar: T) {}\n```\nUse instead:\n```rust\nfn foo<T: Default>(bar: T) {}\n```\n\n```rust\nfn foo<T>(bar: T) where T: Default + Default {}\n```\nUse instead:\n```rust\nfn foo<T>(bar: T) where T: Default {}\n```",
+    "docs": "\n### What it does\nChecks for cases where generics or trait objects are being used and multiple\nsyntax specifications for trait bounds are used simultaneously.\n\n### Why is this bad?\nDuplicate bounds makes the code\nless readable than specifying them only once.\n\n### Example\n```rust\nfn func<T: Clone + Default>(arg: T) where T: Clone + Default {}\n```\n\nUse instead:\n```rust\nfn func<T: Clone + Default>(arg: T) {}\n\n// or\n\nfn func<T>(arg: T) where T: Clone + Default {}\n```\n\n```rust\nfn foo<T: Default + Default>(bar: T) {}\n```\nUse instead:\n```rust\nfn foo<T: Default>(bar: T) {}\n```\n\n```rust\nfn foo<T>(bar: T) where T: Default + Default {}\n```\nUse instead:\n```rust\nfn foo<T>(bar: T) where T: Default {}\n```",
     "version": "1.47.0",
     "applicability": {
       "is_multi_part_suggestion": false,
