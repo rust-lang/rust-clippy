@@ -48,7 +48,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 290
+      "line": 336
     },
     "group": "restriction",
     "level": "allow",
@@ -324,7 +324,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 197
+      "line": 243
     },
     "group": "suspicious",
     "level": "warn",
@@ -1279,7 +1279,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 228
+      "line": 274
     },
     "group": "complexity",
     "level": "warn",
@@ -1717,6 +1717,21 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for `enum`s with no variants.\n\nAs of this writing, the `never_type` is still a\nnightly-only experimental API. Therefore, this lint is only triggered\nif the `never_type` is enabled.\n\n### Why is this bad?\nIf you want to introduce a type which\ncan't be instantiated, you should use `!` (the primitive type \"never\"),\nor a wrapper around it, because `!` has more extensive\ncompiler support (type inference, etc...) and wrappers\naround it are the conventional way to define an uninhabited type.\nFor further information visit [never type documentation](https://doc.rust-lang.org/std/primitive.never.html)\n\n\n### Example\n```rust\nenum Test {}\n```\n\nUse instead:\n```rust\n#![feature(never_type)]\n\nstruct Test(!);\n```",
     "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "empty_line_after_doc_comments",
+    "id_span": {
+      "path": "src/attrs.rs",
+      "line": 220
+    },
+    "group": "nursery",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for empty lines after documenation comments.\n\n### Why is this bad?\nThe documentation comment was most likely meant to be an inner attribute or regular comment.\nIf it was intended to be a documentation comment, then the empty line should be removed to\nbe more idiomatic.\n\n### Known problems\nOnly detects empty lines immediately following the documentation. If the doc comment is followed\nby an attribute and then an empty line, this lint will not trigger. Use `empty_line_after_outer_attr`\nin combination with this lint to detect both cases.\n\nDoes not detect empty lines after doc attributes (e.g. `#[doc = \"\"]`).\n\n### Example\n```rust\n/// Some doc comment with a blank line after it.\n\nfn not_quite_good_code() { }\n```\n\nUse instead:\n```rust\n/// Good (no blank line)\nfn this_is_fine() { }\n```\n\n```rust\n// Good (convert to a regular comment)\n\nfn this_is_fine_too() { }\n```\n\n```rust\n//! Good (convert to a comment on an inner attribute)\n\nfn this_is_fine_as_well() { }\n```",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4681,7 +4696,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 261
+      "line": 307
     },
     "group": "correctness",
     "level": "deny",
