@@ -18,6 +18,7 @@ mod fn_to_numeric_cast;
 mod fn_to_numeric_cast_any;
 mod fn_to_numeric_cast_with_truncation;
 mod ptr_as_ptr;
+mod ptr_as_underscore;
 mod unnecessary_cast;
 mod utils;
 
@@ -424,6 +425,23 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// TODO
+    ///
+    /// ### Why is this bad?
+    /// TODO
+    ///
+    /// ### Example
+    /// TODO
+    /// Use instead:
+    /// TODO
+    #[clippy::version = "1.71.0"]
+    pub PTR_AS_UNDERSCORE,
+    nursery,
+    "TODO"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for casts from an enum type to an integral type which will definitely truncate the
     /// value.
     ///
@@ -689,6 +707,7 @@ impl_lint_pass!(Casts => [
     FN_TO_NUMERIC_CAST_WITH_TRUNCATION,
     CHAR_LIT_AS_U8,
     PTR_AS_PTR,
+    PTR_AS_UNDERSCORE,
     CAST_ENUM_TRUNCATION,
     CAST_ENUM_CONSTRUCTOR,
     CAST_ABS_TO_UNSIGNED,
@@ -703,6 +722,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if !in_external_macro(cx.sess(), expr.span) {
             ptr_as_ptr::check(cx, expr, &self.msrv);
+            ptr_as_underscore::check(cx, expr);
         }
 
         if expr.span.from_expansion() {
