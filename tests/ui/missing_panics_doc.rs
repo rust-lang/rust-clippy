@@ -112,6 +112,21 @@ pub fn todo() {
     todo!()
 }
 
+/**
+# Panics
+A reason
+*/
+pub fn panic_documented_in_block() {
+    panic!();
+}
+
+/**
+ <Cool documentation here>
+*/
+pub fn panic_undocumented_in_block() {
+    panic!();
+}
+
 /// This is okay because it is private
 fn unwrap_private() {
     let result = Err("Hi");

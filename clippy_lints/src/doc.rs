@@ -454,6 +454,18 @@ fn lint_for_missing_headers(
 #[expect(clippy::cast_possible_truncation)]
 #[must_use]
 pub fn strip_doc_comment_decoration(doc: &str, comment_kind: CommentKind, span: Span) -> (String, Vec<(usize, Span)>) {
+    fn get_line_indentation(line: &Vec<char>) -> u32 {
+        let mut indent = 0;
+        for c in line {
+            if *c == ' ' {
+                indent += 1;
+            } else if *c == '\n' {
+                indent += 4;
+            }; // Standard "Tab" space
+        }
+        indent
+    }
+
     // one-line comments lose their prefix
     if comment_kind == CommentKind::Line {
         let mut doc = doc.to_owned();
@@ -465,15 +477,32 @@ pub fn strip_doc_comment_decoration(doc: &str, comment_kind: CommentKind, span: 
 
     let mut sizes = vec![];
     let mut contains_initial_stars = false;
+    let mut least_indented = 10; // (Hoping the document has less indentation than 10)
     for line in doc.lines() {
         let offset = line.as_ptr() as usize - doc.as_ptr() as usize;
         debug_assert_eq!(offset as u32 as usize, offset);
+        if !line.is_empty() {
+            // Empty lines don't have indentation
+            let line_indent = get_line_indentation(&line.chars().collect::<Vec<char>>());
+            if line_indent < least_indented {
+                least_indented = line_indent;
+            };
+        };
         contains_initial_stars |= line.trim_start().starts_with('*');
         // +1 adds the newline, +3 skips the opening delimiter
         sizes.push((line.len() + 1, span.with_lo(span.lo() + BytePos(3 + offset as u32))));
     }
     if !contains_initial_stars {
-        return (doc.to_string(), sizes);
+        let mut new_doc = Vec::new();
+        for line in doc.lines() {
+            if line.len() >= least_indented as usize {
+                new_doc.push(&line[least_indented.saturating_sub(1) as usize..]); // Sometimes users start the comment the same line the doc comment is defined.
+                // /** Example of this behaviour
+                // (Some description)
+                // */
+            };
+        }
+        return (new_doc.join("\n"), sizes);
     }
     // remove the initial '*'s if any
     let mut no_stars = String::with_capacity(doc.len());

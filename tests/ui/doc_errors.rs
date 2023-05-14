@@ -63,6 +63,25 @@ impl Struct1 {
         unimplemented!();
     }
 
+    /**
+    Before text
+    ```
+        Indentation block
+    ```
+    # Errors
+    Hi
+     */
+    pub fn pub_method_with_block_errors_header() -> Result<(), ()> {
+        unimplemented!();
+    }
+
+    /**
+    This is not sufficiently documented.
+    */
+    pub fn pub_method_missing_block_errors_header() -> Result<(), ()> {
+        unimplemented!();
+    }
+
     /// # Errors
     /// A description of the errors goes here.
     pub async fn async_pub_method_with_errors_header() -> Result<(), ()> {
