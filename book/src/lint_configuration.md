@@ -13,6 +13,8 @@ Please use that command to update the file and do not edit it by hand.
 | [msrv](#msrv) | `None` |
 | [cognitive-complexity-threshold](#cognitive-complexity-threshold) | `25` |
 | [disallowed-names](#disallowed-names) | `["foo", "baz", "quux"]` |
+| [semicolon-inside-block-ignore-singleline](#semicolon-inside-block-ignore-singleline) | `false` |
+| [semicolon-outside-block-ignore-multiline](#semicolon-outside-block-ignore-multiline) | `false` |
 | [doc-valid-idents](#doc-valid-idents) | `["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "DirectX", "ECMAScript", "GPLv2", "GPLv3", "GitHub", "GitLab", "IPv4", "IPv6", "ClojureScript", "CoffeeScript", "JavaScript", "PureScript", "TypeScript", "NaN", "NaNs", "OAuth", "GraphQL", "OCaml", "OpenGL", "OpenMP", "OpenSSH", "OpenSSL", "OpenStreetMap", "OpenDNS", "WebGL", "TensorFlow", "TrueType", "iOS", "macOS", "FreeBSD", "TeX", "LaTeX", "BibTeX", "BibLaTeX", "MinGW", "CamelCase"]` |
 | [too-many-arguments-threshold](#too-many-arguments-threshold) | `7` |
 | [type-complexity-threshold](#type-complexity-threshold) | `250` |
@@ -55,6 +57,7 @@ Please use that command to update the file and do not edit it by hand.
 | [suppress-restriction-lint-in-const](#suppress-restriction-lint-in-const) | `false` |
 | [missing-docs-in-crate-items](#missing-docs-in-crate-items) | `false` |
 | [future-size-threshold](#future-size-threshold) | `16384` |
+| [unnecessary-box-size](#unnecessary-box-size) | `128` |
 
 ### arithmetic-side-effects-allowed
 Suppress checking of the passed type names in all types of operations.
@@ -200,6 +203,22 @@ default configuration of Clippy. By default, any configuration will replace the 
 **Default Value:** `["foo", "baz", "quux"]` (`Vec<String>`)
 
 * [disallowed_names](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_names)
+
+
+### semicolon-inside-block-ignore-singleline
+Whether to lint only if it's multiline.
+
+**Default Value:** `false` (`bool`)
+
+* [semicolon_inside_block](https://rust-lang.github.io/rust-clippy/master/index.html#semicolon_inside_block)
+
+
+### semicolon-outside-block-ignore-multiline
+Whether to lint only if it's singleline.
+
+**Default Value:** `false` (`bool`)
+
+* [semicolon_outside_block](https://rust-lang.github.io/rust-clippy/master/index.html#semicolon_outside_block)
 
 
 ### doc-valid-idents
@@ -559,6 +578,14 @@ The maximum byte size a `Future` can have, before it triggers the `clippy::large
 **Default Value:** `16384` (`u64`)
 
 * [large_futures](https://rust-lang.github.io/rust-clippy/master/index.html#large_futures)
+
+
+### unnecessary-box-size
+The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint
+
+**Default Value:** `128` (`u64`)
+
+* [unnecessary_box_returns](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_box_returns)
 
 
 

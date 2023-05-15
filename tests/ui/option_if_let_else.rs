@@ -1,4 +1,4 @@
-// run-rustfix
+//@run-rustfix
 #![warn(clippy::option_if_let_else)]
 #![allow(
     unused_tuple_struct_fields,
@@ -33,7 +33,7 @@ fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
         *s += 1;
         s
     } else {
-        &mut 0
+        &0
     };
     let _ = if let Some(ref s) = num { s } else { &0 };
     let _ = if let Some(mut s) = num {
@@ -46,7 +46,7 @@ fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
         *s += 1;
         s
     } else {
-        &mut 0
+        &0
     };
 }
 
@@ -120,7 +120,7 @@ enum DummyEnum {
     Two,
 }
 
-// should not warn since there is a compled complex subpat
+// should not warn since there is a complex subpat
 // see #7991
 fn complex_subpat() -> DummyEnum {
     let x = Some(DummyEnum::One(1));

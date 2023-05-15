@@ -1,11 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::{implements_trait, is_must_use_ty, match_type};
 use clippy_utils::{is_must_use_func_call, paths};
-use rustc_hir::{Local, PatKind};
+use rustc_hir::{ExprKind, Local, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::subst::GenericArgKind;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_span::{BytePos, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -189,13 +190,29 @@ impl<'tcx> LateLintPass<'tcx> for LetUnderscore {
 
             if local.pat.default_binding_modes && local.ty.is_none() {
                 // When `default_binding_modes` is true, the `let` keyword is present.
-                span_lint_and_help(
+
+				// Ignore function calls that return impl traits...
+				if let Some(init) = local.init &&
+				matches!(init.kind, ExprKind::Call(_, _) | ExprKind::MethodCall(_, _, _, _)) {
+					let expr_ty = cx.typeck_results().expr_ty(init);
+					if expr_ty.is_impl_trait() {
+						return;
+					}
+				}
+
+
+				span_lint_and_help(
                     cx,
                     LET_UNDERSCORE_UNTYPED,
                     local.span,
                     "non-binding `let` without a type annotation",
-                    None,
-                    "consider adding a type annotation or removing the `let` keyword",
+                    Some(
+						Span::new(local.pat.span.hi(),
+						local.pat.span.hi() + BytePos(1),
+						local.pat.span.ctxt(),
+						local.pat.span.parent()
+					)),
+                    "consider adding a type annotation",
                 );
             }
         }

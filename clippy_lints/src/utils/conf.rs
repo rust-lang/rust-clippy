@@ -174,16 +174,15 @@ macro_rules! define_Conf {
             }
         }
 
-        #[cfg(feature = "internal")]
         pub mod metadata {
-            use crate::utils::internal_lints::metadata_collector::ClippyConfiguration;
+            use crate::utils::ClippyConfiguration;
 
             macro_rules! wrap_option {
                 () => (None);
                 ($x:literal) => (Some($x));
             }
 
-            pub(crate) fn get_configuration_metadata() -> Vec<ClippyConfiguration> {
+            pub fn get_configuration_metadata() -> Vec<ClippyConfiguration> {
                 vec![
                     $(
                         {
@@ -277,6 +276,14 @@ define_Conf! {
     /// `".."` can be used as part of the list to indicate, that the configured values should be appended to the
     /// default configuration of Clippy. By default, any configuration will replace the default value.
     (disallowed_names: Vec<String> = super::DEFAULT_DISALLOWED_NAMES.iter().map(ToString::to_string).collect()),
+    /// Lint: SEMICOLON_INSIDE_BLOCK.
+    ///
+    /// Whether to lint only if it's multiline.
+    (semicolon_inside_block_ignore_singleline: bool = false),
+    /// Lint: SEMICOLON_OUTSIDE_BLOCK.
+    ///
+    /// Whether to lint only if it's singleline.
+    (semicolon_outside_block_ignore_multiline: bool = false),
     /// Lint: DOC_MARKDOWN.
     ///
     /// The list of words this lint should not consider as identifiers needing ticks. The value
@@ -463,6 +470,10 @@ define_Conf! {
     ///
     /// The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint
     (future_size_threshold: u64 = 16 * 1024),
+    /// Lint: UNNECESSARY_BOX_RETURNS.
+    ///
+    /// The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint
+    (unnecessary_box_size: u64 = 128),
 }
 
 /// Search for the configuration file.

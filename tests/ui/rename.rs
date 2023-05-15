@@ -2,7 +2,7 @@
 // Use that command to update this file and do not edit by hand.
 // Manual edits will be overwritten.
 
-// run-rustfix
+//@run-rustfix
 
 #![allow(clippy::almost_complete_range)]
 #![allow(clippy::disallowed_names)]
@@ -27,6 +27,7 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::recursive_format_impl)]
 #![allow(clippy::invisible_characters)]
+#![allow(suspicious_double_ref_op)]
 #![allow(drop_bounds)]
 #![allow(for_loops_over_fallibles)]
 #![allow(array_into_iter)]
@@ -67,6 +68,7 @@
 #![warn(clippy::stutter)]
 #![warn(clippy::to_string_in_display)]
 #![warn(clippy::zero_width_space)]
+#![warn(clippy::clone_double_ref)]
 #![warn(clippy::drop_bounds)]
 #![warn(clippy::for_loop_over_option)]
 #![warn(clippy::for_loop_over_result)]

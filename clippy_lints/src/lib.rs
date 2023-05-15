@@ -94,6 +94,7 @@ mod crate_in_macro_def;
 mod create_dir;
 mod dbg_macro;
 mod default;
+mod default_constructed_unit_structs;
 mod default_instead_of_iter_empty;
 mod default_numeric_fallback;
 mod default_union_representation;
@@ -158,6 +159,7 @@ mod int_plus_one;
 mod invalid_upcast_comparisons;
 mod invalid_utf8_in_unchecked;
 mod items_after_statements;
+mod items_after_test_module;
 mod iter_not_returning_iterator;
 mod large_const_arrays;
 mod large_enum_variant;
@@ -264,6 +266,7 @@ mod redundant_pub_crate;
 mod redundant_slicing;
 mod redundant_static_lifetimes;
 mod ref_option_ref;
+mod ref_patterns;
 mod reference;
 mod regex;
 mod return_self_not_must_use;
@@ -329,8 +332,11 @@ mod zero_div_zero;
 mod zero_sized_map_values;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
-use crate::utils::conf::{format_error, TryConf};
 pub use crate::utils::conf::{lookup_conf_file, Conf};
+use crate::utils::{
+    conf::{format_error, metadata::get_configuration_metadata, TryConf},
+    FindAll,
+};
 
 /// Register all pre expansion lints
 ///
@@ -352,7 +358,7 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, sess: &Se
 pub fn read_conf(sess: &Session, path: &io::Result<(Option<PathBuf>, Vec<String>)>) -> Conf {
     if let Ok((_, warnings)) = path {
         for warning in warnings {
-            sess.warn(warning);
+            sess.warn(warning.clone());
         }
     }
     let file_name = match path {
@@ -386,7 +392,7 @@ pub fn read_conf(sess: &Session, path: &io::Result<(Option<PathBuf>, Vec<String>
     conf
 }
 
-#[derive(Default)]
+#[derive(Default)] //~ ERROR no such field
 struct RegistrationGroups {
     all: Vec<LintId>,
     cargo: Vec<LintId>,
@@ -469,7 +475,22 @@ pub(crate) struct LintInfo {
 pub fn explain(name: &str) {
     let target = format!("clippy::{}", name.to_ascii_uppercase());
     match declared_lints::LINTS.iter().find(|info| info.lint.name == target) {
-        Some(info) => print!("{}", info.explanation),
+        Some(info) => {
+            println!("{}", info.explanation);
+            // Check if the lint has configuration
+            let mdconf = get_configuration_metadata();
+            if let Some(config_vec_positions) = mdconf
+                .iter()
+                .find_all(|cconf| cconf.lints.contains(&info.lint.name_lower()[8..].to_owned()))
+            {
+                // If it has, print it
+                println!("### Configuration for {}:\n", info.lint.name_lower());
+                for position in config_vec_positions {
+                    let conf = &mdconf[position];
+                    println!("  - {}: {} (default: {})", conf.name, conf.doc, conf.default);
+                }
+            }
+        },
         None => println!("unknown lint: {name}"),
     }
 }
@@ -932,7 +953,14 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(from_raw_with_void_ptr::FromRawWithVoidPtr));
     store.register_late_pass(|_| Box::new(suspicious_xor_used_as_pow::ConfusingXorAndPow));
     store.register_late_pass(move |_| Box::new(manual_is_ascii_check::ManualIsAsciiCheck::new(msrv())));
-    store.register_late_pass(|_| Box::new(semicolon_block::SemicolonBlock));
+    let semicolon_inside_block_ignore_singleline = conf.semicolon_inside_block_ignore_singleline;
+    let semicolon_outside_block_ignore_multiline = conf.semicolon_outside_block_ignore_multiline;
+    store.register_late_pass(move |_| {
+        Box::new(semicolon_block::SemicolonBlock::new(
+            semicolon_inside_block_ignore_singleline,
+            semicolon_outside_block_ignore_multiline,
+        ))
+    });
     store.register_late_pass(|_| Box::new(fn_null_check::FnNullCheck));
     store.register_late_pass(|_| Box::new(permissions_set_readonly_false::PermissionsSetReadonlyFalse));
     store.register_late_pass(|_| Box::new(size_of_ref::SizeOfRef));
@@ -950,15 +978,20 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(allow_attributes::AllowAttribute));
     store.register_late_pass(move |_| Box::new(manual_main_separator_str::ManualMainSeparatorStr::new(msrv())));
     store.register_late_pass(|_| Box::new(unnecessary_struct_initialization::UnnecessaryStruct));
+    let unnecessary_box_size = conf.unnecessary_box_size;
     store.register_late_pass(move |_| {
         Box::new(unnecessary_box_returns::UnnecessaryBoxReturns::new(
             avoid_breaking_exported_api,
+            unnecessary_box_size,
         ))
     });
     store.register_late_pass(|_| Box::new(lines_filter_map_ok::LinesFilterMapOk));
     store.register_late_pass(|_| Box::new(tests_outside_test_module::TestsOutsideTestModule));
     store.register_late_pass(|_| Box::new(manual_slice_size_calculation::ManualSliceSizeCalculation));
     store.register_early_pass(|| Box::new(suspicious_doc_comments::SuspiciousDocComments));
+    store.register_late_pass(|_| Box::new(items_after_test_module::ItemsAfterTestModule));
+    store.register_early_pass(|| Box::new(ref_patterns::RefPatterns));
+    store.register_late_pass(|_| Box::new(default_constructed_unit_structs::DefaultConstructedUnitStructs));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
