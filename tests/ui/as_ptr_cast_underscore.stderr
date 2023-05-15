@@ -1,0 +1,51 @@
+error: casting a raw pointer using `as *mut _` without changing type or constness
+  --> $DIR/as_ptr_cast_underscore.rs:17:13
+   |
+LL |     let e = return_raw() as *mut _;
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: this is an extrenuous operation
+   = note: `-D clippy::as-ptr-cast-underscore` implied by `-D warnings`
+
+error: casting a raw pointer using `as *mut _` without changing type or constness
+  --> $DIR/as_ptr_cast_underscore.rs:26:13
+   |
+LL |     let z = z.as_mut_ptr() as *mut _;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: this is an extrenuous operation
+
+error: casting a raw pointer using `as *mut _` without changing type or constness
+  --> $DIR/as_ptr_cast_underscore.rs:27:13
+   |
+LL |     let z = takes_raw(z as *mut _) as *mut _;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: this is an extrenuous operation
+
+error: casting a raw pointer using `as *mut _` without changing type or constness
+  --> $DIR/as_ptr_cast_underscore.rs:27:23
+   |
+LL |     let z = takes_raw(z as *mut _) as *mut _;
+   |                       ^^^^^^^^^^^
+   |
+   = help: this is an extrenuous operation
+
+error: casting a raw pointer using `as *const _` without changing type or constness
+  --> $DIR/as_ptr_cast_underscore.rs:33:13
+   |
+LL |     let w = x.as_ptr() as *const _;
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: this is an extrenuous operation
+
+error: casting a raw pointer using `as *mut _` without changing type or constness
+  --> $DIR/as_ptr_cast_underscore.rs:34:13
+   |
+LL |     let x = x.as_mut_ptr() as *mut _;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: this is an extrenuous operation
+
+error: aborting due to 6 previous errors
+

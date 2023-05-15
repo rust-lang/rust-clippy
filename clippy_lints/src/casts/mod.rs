@@ -1,4 +1,5 @@
 mod as_ptr_cast_mut;
+mod as_ptr_cast_underscore;
 mod as_underscore;
 mod borrow_as_ptr;
 mod cast_abs_to_unsigned;
@@ -18,7 +19,6 @@ mod fn_to_numeric_cast;
 mod fn_to_numeric_cast_any;
 mod fn_to_numeric_cast_with_truncation;
 mod ptr_as_ptr;
-mod ptr_as_underscore;
 mod unnecessary_cast;
 mod utils;
 
@@ -435,7 +435,7 @@ declare_clippy_lint! {
     /// Use instead:
     /// TODO
     #[clippy::version = "1.71.0"]
-    pub PTR_AS_UNDERSCORE,
+    pub AS_PTR_CAST_UNDERSCORE,
     nursery,
     "TODO"
 }
@@ -707,7 +707,6 @@ impl_lint_pass!(Casts => [
     FN_TO_NUMERIC_CAST_WITH_TRUNCATION,
     CHAR_LIT_AS_U8,
     PTR_AS_PTR,
-    PTR_AS_UNDERSCORE,
     CAST_ENUM_TRUNCATION,
     CAST_ENUM_CONSTRUCTOR,
     CAST_ABS_TO_UNSIGNED,
@@ -715,6 +714,7 @@ impl_lint_pass!(Casts => [
     BORROW_AS_PTR,
     CAST_SLICE_FROM_RAW_PARTS,
     AS_PTR_CAST_MUT,
+    AS_PTR_CAST_UNDERSCORE,
     CAST_NAN_TO_INT,
 ]);
 
@@ -722,7 +722,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if !in_external_macro(cx.sess(), expr.span) {
             ptr_as_ptr::check(cx, expr, &self.msrv);
-            ptr_as_underscore::check(cx, expr);
+            as_ptr_cast_underscore::check(cx, expr);
         }
 
         if expr.span.from_expansion() {
