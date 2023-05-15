@@ -425,19 +425,26 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// TODO
+    /// Checks for `as` casts between raw pointers that change neither its constness or type.
     ///
     /// ### Why is this bad?
-    /// TODO
+    /// It's an unnecessary operation. If the type and constness is the same, the cast can be entirely
+    /// emitted.
     ///
     /// ### Example
-    /// TODO
+    /// ```rust
+    /// let x = [10; 4];
+    /// let px = x.as_ptr() as *const _;
+    /// ```
     /// Use instead:
-    /// TODO
+    /// ```rust
+    /// let x = [10; 4];
+    /// let px = x.as_ptr();
+    /// ```
     #[clippy::version = "1.71.0"]
     pub AS_PTR_CAST_UNDERSCORE,
     nursery,
-    "TODO"
+    "casting raw pointers that change neither its constness or type"
 }
 
 declare_clippy_lint! {
