@@ -3208,8 +3208,8 @@ declare_clippy_lint! {
     /// ### Example
     /// ```rust
     /// let path = std::path::Path::new("/bin");
-     /// let res = path.join("/sh");
-    /// assert_eq!(res, PathBuf::from("/sh"));
+    /// let res = path.join("/sh");
+    /// assert_eq!(res, std::path::PathBuf::from("/sh"));
     /// ```
     ///
     /// Use instead;
@@ -3218,11 +3218,11 @@ declare_clippy_lint! {
     ///
     /// // If this was unintentional, remove the leading separator
     /// let extend = path.join("sh");
-    /// assert_eq!(extend, PathBuf::from("/bin/sh"));
+    /// assert_eq!(extend, std::path::PathBuf::from("/bin/sh"));
     ///
     /// // If this was intentional, create a new path instead
-    /// let new = Path::new("/sh")
-    /// assert_eq!(new PathBuf::from("/sh"));
+    /// let new = std::path::Path::new("/sh")
+    /// assert_eq!(new std::path::PathBuf::from("/sh"));
     /// ```
     #[clippy::version = "1.70.0"]
     pub PATH_JOIN_CORRECTION,
