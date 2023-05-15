@@ -3222,7 +3222,7 @@ declare_clippy_lint! {
     ///
     /// // If this was intentional, create a new path instead
     /// let new = std::path::Path::new("/sh");
-    /// assert_eq!(new std::path::PathBuf::from("/sh"));
+    /// assert_eq!(new, std::path::PathBuf::from("/sh"));
     /// ```
     #[clippy::version = "1.70.0"]
     pub PATH_JOIN_CORRECTION,
