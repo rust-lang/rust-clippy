@@ -3196,7 +3196,7 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
-<<<<<<< HEAD
+    /// ### What it does
     /// Checks for initial `'/'` in an argument to `.join()` on a `Path`.
     ///
     /// ### Why is this bad?
@@ -3208,11 +3208,11 @@ declare_clippy_lint! {
     /// ### Example
     /// ```rust
     /// let path = std::path::Path::new("/bin");
-    /// let res = path.join("/sh");
+     /// let res = path.join("/sh");
     /// assert_eq!(res, PathBuf::from("/sh"));
     /// ```
     ///
-    /// Use instead:
+    /// Use instead;
     /// ```rust
     /// let path = std::path::Path::new("/bin");
     ///
@@ -3227,8 +3227,10 @@ declare_clippy_lint! {
     #[clippy::version = "1.70.0"]
     pub PATH_JOIN_CORRECTION,
     pedantic,
-    "arg to .join called on a Path contains '/' at the start"
-=======
+  "arg to .join called on a Path contains '/' at the start"
+}
+
+declare_clippy_lint! {
     /// ### What it does
     /// Checks for `.rev().next()` on a `DoubleEndedIterator`
     ///
@@ -3249,7 +3251,6 @@ declare_clippy_lint! {
     pub MANUAL_NEXT_BACK,
     style,
     "manual reverse iteration of `DoubleEndedIterator`"
->>>>>>> upstream/master
 }
 
 pub struct Methods {
@@ -3380,11 +3381,8 @@ impl_lint_pass!(Methods => [
     NEEDLESS_COLLECT,
     SUSPICIOUS_COMMAND_ARG_SPACE,
     CLEAR_WITH_DRAIN,
-<<<<<<< HEAD
     PATH_JOIN_CORRECTION,
-=======
     MANUAL_NEXT_BACK,
->>>>>>> upstream/master
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
