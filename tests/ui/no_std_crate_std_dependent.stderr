@@ -1,16 +1,15 @@
-error: lol ExternCrate {
-           src: Extern(
-               DefId(0:4 ~ no_std_crate_std_dependent[fc81]::std_dependent_crate1),
-           ),
-           span: $DIR/no_std_crate_std_dependent.rs:10:1: 10:35 (#0),
-           path_len: 1,
-           dependency_of: crate4,
-       } "no_std_crate_std_dependent"
-  --> $DIR/no_std_crate_std_dependent.rs:10:1
+error: `#![no_std]` crate depends on a crate that isn't `#![no_std]`
+  --> $DIR/no_std_crate_std_dependent.rs:9:1
    |
-LL | extern crate std_dependent_crate1;
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL | extern crate fake_no_std;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
    |
+   = help: find and remove the offending dependency
+help: try removing this dependency
+  --> $DIR/no_std_crate_std_dependent.rs:9:1
+   |
+LL | extern crate fake_no_std;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
    = note: `-D clippy::no-std-crate-std-dependent` implied by `-D warnings`
 
 error: aborting due to previous error
