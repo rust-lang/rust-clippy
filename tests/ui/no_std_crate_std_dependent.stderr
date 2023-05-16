@@ -1,0 +1,11 @@
+error: `#![no_std]` crate depends on a crate that isn't `#![no_std]`: `std_dependent_crate2`
+  --> $DIR/no_std_crate_std_dependent.rs:9:1
+   |
+LL | extern crate no_std;
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the offending dependency
+   = note: `-D clippy::no-std-crate-std-dependent` implied by `-D warnings`
+
+error: aborting due to previous error
+

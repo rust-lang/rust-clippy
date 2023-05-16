@@ -90,6 +90,7 @@ mod collection_is_never_read;
 mod comparison_chain;
 mod copies;
 mod copy_iterator;
+mod crate_dependent_on;
 mod crate_in_macro_def;
 mod create_dir;
 mod dbg_macro;
@@ -1012,6 +1013,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_early_pass(|| Box::new(needless_else::NeedlessElse));
     store.register_late_pass(|_| Box::new(missing_fields_in_debug::MissingFieldsInDebug));
     store.register_late_pass(|_| Box::new(endian_bytes::EndianBytes));
+    store.register_late_pass(|_| Box::new(crate_dependent_on::CrateDependentOn));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
