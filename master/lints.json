@@ -484,7 +484,7 @@
     "id": "box_default",
     "id_span": {
       "path": "src/box_default.rs",
-      "line": 34
+      "line": 36
     },
     "group": "perf",
     "level": "warn",
@@ -3656,7 +3656,7 @@
     "id": "let_underscore_future",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 90
+      "line": 91
     },
     "group": "suspicious",
     "level": "warn",
@@ -3671,7 +3671,7 @@
     "id": "let_underscore_lock",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 59
+      "line": 60
     },
     "group": "correctness",
     "level": "deny",
@@ -3686,7 +3686,7 @@
     "id": "let_underscore_must_use",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 31
+      "line": 32
     },
     "group": "restriction",
     "level": "allow",
@@ -3701,7 +3701,7 @@
     "id": "let_underscore_untyped",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 128
+      "line": 129
     },
     "group": "restriction",
     "level": "allow",
