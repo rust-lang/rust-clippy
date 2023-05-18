@@ -7664,7 +7664,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for slice operations on strings\n\n### Why is this bad?\nUTF-8 characters span multiple bytes, and it is easy to inadvertently confuse character\ncounts and string indices. This may lead to panics, and should warrant some test cases\ncontaining wide UTF-8 characters. This lint is most useful in code that should avoid\npanics at all costs.\n\n### Known problems\nProbably lots of false positives. If an index comes from a known valid position (e.g.\nobtained via `char_indices` over the same string), it is totally OK.\n\n# Example\n```rust\n&\"Ölkanne\"[1..];\n```",
+    "docs": "\n### What it does\nChecks for slice operations on strings\n\n### Why is this bad?\nUTF-8 characters span multiple bytes, and it is easy to inadvertently confuse character\ncounts and string indices. This may lead to panics, and should warrant some test cases\ncontaining wide UTF-8 characters. This lint is most useful in code that should avoid\npanics at all costs.\n\n### Known problems\nProbably lots of false positives. If an index comes from a known valid position (e.g.\nobtained via `char_indices` over the same string), it is totally OK.\n\n### Example\n```rust\n&\"Ölkanne\"[1..];\n```",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
