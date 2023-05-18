@@ -856,7 +856,7 @@
     "id": "clear_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3192
+      "line": 3195
     },
     "group": "nursery",
     "level": "allow",
@@ -4058,7 +4058,7 @@
     "id": "manual_next_back",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3215
+      "line": 3218
     },
     "group": "style",
     "level": "warn",
@@ -5335,11 +5335,11 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3141
+      "line": 3144
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for functions collecting an iterator when collect\nis not needed.\n\n### Why is this bad?\n`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.\n\n### Example\n```rust\nlet len = iterator.clone().collect::<Vec<_>>().len();\n// should be\nlet len = iterator.count();\n```",
+    "docs": "\n### What it does\nChecks for functions collecting an iterator when collect\nis not needed.\n\n### Why is this bad?\n`collect` causes the allocation of a new data structure,\nwhen this allocation may not be needed.\n\n### Example\n```rust\nlet len = iterator.collect::<Vec<_>>().len();\n```\nUse instead:\n```rust\nlet len = iterator.count();\n```",
     "version": "1.30.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7765,7 +7765,7 @@
     "id": "suspicious_command_arg_space",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3167
+      "line": 3170
     },
     "group": "suspicious",
     "level": "warn",
