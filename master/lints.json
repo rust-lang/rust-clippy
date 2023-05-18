@@ -115,12 +115,15 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks any kind of arithmetic operation of any type.\n\nOperators like `+`, `-`, `*` or `<<` are usually capable of overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor can panic (`/`, `%`).\n\nKnown safe built-in types like `Wrapping` or `Saturating`, floats, operations in constant\nenvironments, allowed types and non-constant operations that won't overflow are ignored.\n\n### Why is this bad?\nFor integers, overflow will trigger a panic in debug builds or wrap the result in\nrelease mode; division by zero will cause a panic in either mode. As a result, it is\ndesirable to explicitly call checked, wrapping or saturating arithmetic methods.\n\n#### Example\n```rust\n// `n` can be any number, including `i32::MAX`.\nfn foo(n: i32) -> i32 {\n  n + 1\n}\n```\n\nThird-party types can also overflow or present unwanted side-effects.\n\n#### Example\n```rust\nuse rust_decimal::Decimal;\nlet _n = Decimal::MAX + Decimal::MAX;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `arithmetic-side-effects-allowed`: `rustc_data_structures::fx::FxHashSet<String>`(defaults to `{}`): Suppress checking of the passed type names in all types of operations.\n\n   If a specific operation is desired, consider using `arithmetic_side_effects_allowed_binary` or `arithmetic_side_effects_allowed_unary` instead.\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed = [\"SomeType\", \"AnotherType\"]\n   ```\n\n   #### Noteworthy\n\n   A type, say `SomeType`, listed in this configuration has the same behavior of\n   `[\"SomeType\" , \"*\"], [\"*\", \"SomeType\"]` in `arithmetic_side_effects_allowed_binary`.\n* `arithmetic-side-effects-allowed-binary`: `Vec<[String; 2]>`(defaults to `[]`): Suppress checking of the passed type pair names in binary operations like addition or\n   multiplication.\n\n   Supports the \"*\" wildcard to indicate that a certain type won't trigger the lint regardless\n   of the involved counterpart. For example, `[\"SomeType\", \"*\"]` or `[\"*\", \"AnotherType\"]`.\n\n   Pairs are asymmetric, which means that `[\"SomeType\", \"AnotherType\"]` is not the same as\n   `[\"AnotherType\", \"SomeType\"]`.\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed-binary = [[\"SomeType\" , \"f32\"], [\"AnotherType\", \"*\"]]\n   ```\n* `arithmetic-side-effects-allowed-unary`: `rustc_data_structures::fx::FxHashSet<String>`(defaults to `{}`): Suppress checking of the passed type names in unary operations like \"negation\" (`-`).\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed-unary = [\"SomeType\", \"AnotherType\"]\n   ```\n",
+    "docs": "\n### What it does\nChecks any kind of arithmetic operation of any type.\n\nOperators like `+`, `-`, `*` or `<<` are usually capable of overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor can panic (`/`, `%`).\n\nKnown safe built-in types like `Wrapping` or `Saturating`, floats, operations in constant\nenvironments, allowed types and non-constant operations that won't overflow are ignored.\n\n### Why is this bad?\nFor integers, overflow will trigger a panic in debug builds or wrap the result in\nrelease mode; division by zero will cause a panic in either mode. As a result, it is\ndesirable to explicitly call checked, wrapping or saturating arithmetic methods.\n\n#### Example\n```rust\n// `n` can be any number, including `i32::MAX`.\nfn foo(n: i32) -> i32 {\n  n + 1\n}\n```\n\nThird-party types can also overflow or present unwanted side-effects.\n\n#### Example\n```rust\nuse rust_decimal::Decimal;\nlet _n = Decimal::MAX + Decimal::MAX;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `arithmetic-side-effects-allowed`: `rustc_data_structures::fx::FxHashSet<String>`(defaults to `{}`): Suppress checking of the passed type names in all types of operations.\n\n   If a specific operation is desired, consider using `arithmetic_side_effects_allowed_binary` or `arithmetic_side_effects_allowed_unary` instead.\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed = [\"SomeType\", \"AnotherType\"]\n   ```\n\n   #### Noteworthy\n\n   A type, say `SomeType`, listed in this configuration has the same behavior of\n   `[\"SomeType\" , \"*\"], [\"*\", \"SomeType\"]` in `arithmetic_side_effects_allowed_binary`.\n* `arithmetic-side-effects-allowed-binary`: `Vec<[String; 2]>`(defaults to `[]`): Suppress checking of the passed type pair names in binary operations like addition or\n   multiplication.\n\n   Supports the \"*\" wildcard to indicate that a certain type won't trigger the lint regardless\n   of the involved counterpart. For example, `[\"SomeType\", \"*\"]` or `[\"*\", \"AnotherType\"]`.\n\n   Pairs are asymmetric, which means that `[\"SomeType\", \"AnotherType\"]` is not the same as\n   `[\"AnotherType\", \"SomeType\"]`.\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed-binary = [[\"SomeType\" , \"f32\"], [\"AnotherType\", \"*\"]]\n   ```\n* `arithmetic-side-effects-allowed-unary`: `rustc_data_structures::fx::FxHashSet<String>`(defaults to `{}`): Suppress checking of the passed type names in unary operations like \"negation\" (`-`).\n\n   #### Example\n\n```toml\n   arithmetic-side-effects-allowed-unary = [\"SomeType\", \"AnotherType\"]\n   ```\n\n### Past names\n\n* `integer_arithmetic`\n\n",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
+    },
+    "former_ids": [
+      "integer_arithmetic"
+    ]
   },
   {
     "id": "as_conversions",
@@ -201,7 +204,7 @@
     "id": "assign_op_pattern",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 174
+      "line": 148
     },
     "group": "style",
     "level": "warn",
@@ -291,7 +294,7 @@
     "id": "bad_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 239
+      "line": 213
     },
     "group": "correctness",
     "level": "deny",
@@ -916,7 +919,7 @@
     "id": "cmp_nan",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 534
+      "line": 508
     },
     "group": "correctness",
     "level": "deny",
@@ -946,7 +949,7 @@
     "id": "cmp_owned",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 563
+      "line": 537
     },
     "group": "perf",
     "level": "warn",
@@ -1531,7 +1534,7 @@
     "id": "double_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 323
+      "line": 297
     },
     "group": "complexity",
     "level": "warn",
@@ -1666,7 +1669,7 @@
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 353
+      "line": 327
     },
     "group": "complexity",
     "level": "warn",
@@ -1831,7 +1834,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 385
+      "line": 359
     },
     "group": "correctness",
     "level": "deny",
@@ -1861,7 +1864,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 431
+      "line": 405
     },
     "group": "correctness",
     "level": "deny",
@@ -2300,7 +2303,7 @@
     "id": "float_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 139
+      "line": 113
     },
     "group": "restriction",
     "level": "allow",
@@ -2315,7 +2318,7 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 600
+      "line": 574
     },
     "group": "pedantic",
     "level": "allow",
@@ -2330,7 +2333,7 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 635
+      "line": 609
     },
     "group": "restriction",
     "level": "allow",
@@ -2345,7 +2348,7 @@
     "id": "float_equality_without_abs",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 464
+      "line": 438
     },
     "group": "suspicious",
     "level": "warn",
@@ -2660,7 +2663,7 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 483
+      "line": 457
     },
     "group": "complexity",
     "level": "warn",
@@ -2930,7 +2933,7 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 272
+      "line": 246
     },
     "group": "correctness",
     "level": "deny",
@@ -3122,25 +3125,10 @@
     }
   },
   {
-    "id": "integer_arithmetic",
-    "id_span": {
-      "path": "src/operators/mod.rs",
-      "line": 120
-    },
-    "group": "restriction",
-    "level": "allow",
-    "docs": "\n### What it does\nChecks for integer arithmetic operations which could overflow or panic.\n\nSpecifically, checks for any operators (`+`, `-`, `*`, `<<`, etc) which are capable\nof overflowing according to the [Rust\nReference](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow),\nor which can panic (`/`, `%`). No bounds analysis or sophisticated reasoning is\nattempted.\n\n### Why is this bad?\nInteger overflow will trigger a panic in debug builds or will wrap in\nrelease mode. Division by zero will cause a panic in either mode. In some applications one\nwants explicitly checked, wrapping or saturating arithmetic.\n\n### Example\n```rust\na + 1;\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "integer_division",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 509
+      "line": 483
     },
     "group": "restriction",
     "level": "allow",
@@ -4741,7 +4729,7 @@
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 201
+      "line": 175
     },
     "group": "suspicious",
     "level": "warn",
@@ -5002,7 +4990,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 681
+      "line": 655
     },
     "group": "restriction",
     "level": "allow",
@@ -5017,7 +5005,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 659
+      "line": 633
     },
     "group": "correctness",
     "level": "deny",
@@ -5257,7 +5245,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 710
+      "line": 684
     },
     "group": "pedantic",
     "level": "allow",
@@ -5893,7 +5881,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 409
+      "line": 383
     },
     "group": "style",
     "level": "warn",
@@ -6376,7 +6364,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 739
+      "line": 713
     },
     "group": "style",
     "level": "warn",
@@ -7102,7 +7090,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 778
+      "line": 752
     },
     "group": "correctness",
     "level": "deny",
@@ -9407,7 +9395,7 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 295
+      "line": 269
     },
     "group": "pedantic",
     "level": "allow",
