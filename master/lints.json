@@ -1591,45 +1591,15 @@
     }
   },
   {
-    "id": "drop_copy",
-    "id_span": {
-      "path": "src/drop_forget_ref.rs",
-      "line": 73
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for calls to `std::mem::drop` with a value\nthat derives the Copy trait\n\n### Why is this bad?\nCalling `std::mem::drop` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html), since the\nvalue will be copied and moved into the function on invocation.\n\n### Example\n```rust\nlet x: i32 = 42; // i32 implements Copy\nstd::mem::drop(x) // A copy of x is passed to the function, leaving the\n                  // original unaffected\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "drop_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 121
+      "line": 25
     },
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for calls to `std::mem::drop` with a value that does not implement `Drop`.\n\n### Why is this bad?\nCalling `std::mem::drop` is no different than dropping such a type. A different value may\nhave been intended.\n\n### Example\n```rust\nstruct Foo;\nlet x = Foo;\nstd::mem::drop(x);\n```",
     "version": "1.62.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "drop_ref",
-    "id_span": {
-      "path": "src/drop_forget_ref.rs",
-      "line": 29
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for calls to `std::mem::drop` with a reference\ninstead of an owned value.\n\n### Why is this bad?\nCalling `drop` on a reference will only drop the\nreference itself, which is a no-op. It will not call the `drop` method (from\nthe `Drop` trait implementation) on the underlying referenced value, which\nis likely what was intended.\n\n### Example\n```rust\nlet mut lock_guard = mutex.lock();\nstd::mem::drop(&lock_guard) // Should have been drop(lock_guard), mutex\n// still locked\noperation_that_requires_mutex_to_be_unlocked();\n```",
-    "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2465,45 +2435,15 @@
     }
   },
   {
-    "id": "forget_copy",
-    "id_span": {
-      "path": "src/drop_forget_ref.rs",
-      "line": 101
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for calls to `std::mem::forget` with a value that\nderives the Copy trait\n\n### Why is this bad?\nCalling `std::mem::forget` [does nothing for types that\nimplement Copy](https://doc.rust-lang.org/std/mem/fn.drop.html) since the\nvalue will be copied and moved into the function on invocation.\n\nAn alternative, but also valid, explanation is that Copy types do not\nimplement\nthe Drop trait, which means they have no destructors. Without a destructor,\nthere\nis nothing for `std::mem::forget` to ignore.\n\n### Example\n```rust\nlet x: i32 = 42; // i32 implements Copy\nstd::mem::forget(x) // A copy of x is passed to the function, leaving the\n                    // original unaffected\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "forget_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 141
+      "line": 45
     },
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for calls to `std::mem::forget` with a value that does not implement `Drop`.\n\n### Why is this bad?\nCalling `std::mem::forget` is no different than dropping such a type. A different value may\nhave been intended.\n\n### Example\n```rust\nstruct Foo;\nlet x = Foo;\nstd::mem::forget(x);\n```",
     "version": "1.62.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "forget_ref",
-    "id_span": {
-      "path": "src/drop_forget_ref.rs",
-      "line": 51
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for calls to `std::mem::forget` with a reference\ninstead of an owned value.\n\n### Why is this bad?\nCalling `forget` on a reference will only forget the\nreference itself, which is a no-op. It will not forget the underlying\nreferenced\nvalue, which is likely what was intended.\n\n### Example\n```rust\nlet x = Box::new(1);\nstd::mem::forget(&x) // Should have been forget(x), x will still be dropped\n```",
-    "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -8413,7 +8353,7 @@
     "id": "undropped_manually_drops",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 170
+      "line": 74
     },
     "group": "correctness",
     "level": "deny",
