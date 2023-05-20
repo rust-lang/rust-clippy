@@ -5728,6 +5728,21 @@
     }
   },
   {
+    "id": "non_minimal_cfg",
+    "id_span": {
+      "path": "src/attrs.rs",
+      "line": 360
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `any` and `all` combinators in `cfg` with only one condition.\n\n### Why is this bad?\nIf there is only one condition, no need to wrap it into `any` or `all` combinators.\n\n### Example\n```rust\n#[cfg(any(unix))]\npub struct Bar;\n```\n\nUse instead:\n```rust\n#[cfg(unix)]\npub struct Bar;\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "non_octal_unix_permissions",
     "id_span": {
       "path": "src/non_octal_unix_permissions.rs",
