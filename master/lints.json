@@ -144,7 +144,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 639
+      "line": 668
     },
     "group": "nursery",
     "level": "allow",
@@ -159,7 +159,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 553
+      "line": 582
     },
     "group": "restriction",
     "level": "allow",
@@ -406,7 +406,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 586
+      "line": 615
     },
     "group": "pedantic",
     "level": "allow",
@@ -604,7 +604,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 525
+      "line": 554
     },
     "group": "suspicious",
     "level": "warn",
@@ -619,7 +619,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 502
+      "line": 531
     },
     "group": "suspicious",
     "level": "warn",
@@ -634,7 +634,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 439
+      "line": 468
     },
     "group": "suspicious",
     "level": "warn",
@@ -649,7 +649,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 170
+      "line": 171
     },
     "group": "pedantic",
     "level": "allow",
@@ -664,7 +664,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 661
+      "line": 690
     },
     "group": "suspicious",
     "level": "warn",
@@ -679,7 +679,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 113
+      "line": 114
     },
     "group": "pedantic",
     "level": "allow",
@@ -694,7 +694,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 137
+      "line": 138
     },
     "group": "pedantic",
     "level": "allow",
@@ -709,7 +709,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 52
+      "line": 53
     },
     "group": "pedantic",
     "level": "allow",
@@ -724,7 +724,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 224
+      "line": 225
     },
     "group": "pedantic",
     "level": "allow",
@@ -739,7 +739,7 @@
     "id": "cast_ref_to_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 363
+      "line": 364
     },
     "group": "correctness",
     "level": "deny",
@@ -754,7 +754,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 74
+      "line": 75
     },
     "group": "pedantic",
     "level": "allow",
@@ -769,7 +769,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 484
+      "line": 513
     },
     "group": "correctness",
     "level": "deny",
@@ -784,7 +784,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 613
+      "line": 642
     },
     "group": "suspicious",
     "level": "warn",
@@ -799,7 +799,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 391
+      "line": 392
     },
     "group": "complexity",
     "level": "warn",
@@ -2378,7 +2378,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 253
+      "line": 254
     },
     "group": "style",
     "level": "warn",
@@ -2393,7 +2393,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 328
+      "line": 329
     },
     "group": "restriction",
     "level": "allow",
@@ -2408,7 +2408,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 286
+      "line": 287
     },
     "group": "style",
     "level": "warn",
@@ -6319,12 +6319,27 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 420
+      "line": 421
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `as` casts between raw pointers without changing its mutability,\nnamely `*const T` to `*const U` and `*mut T` to `*mut U`.\n\n### Why is this bad?\nThough `as` casts between raw pointers is not terrible, `pointer::cast` is safer because\nit cannot accidentally change the pointer's mutability nor cast the pointer to other types like `usize`.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "docs": "\n### What it does\nChecks for `as` casts between raw pointers without changing its mutability,\nnamely `*const T` to `*const U` and `*mut T` to `*mut U`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast` is safer because\nit cannot accidentally change the pointer's mutability nor cast the pointer to other types like `usize`.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.51.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "ptr_cast_constness",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 449
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for `as` casts between raw pointers which change its constness, namely `*const T` to\n`*mut T` and `*mut T` to `*const T`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast_mut` and\n`pointer::cast_const` are safer because they cannot accidentally cast the pointer to another\ntype.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr as *mut u32;\nlet ptr = mut_ptr as *const u32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr.cast_mut();\nlet ptr = mut_ptr.cast_const();\n```",
+    "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -8533,7 +8548,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 196
+      "line": 197
     },
     "group": "complexity",
     "level": "warn",
