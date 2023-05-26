@@ -595,7 +595,9 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(float_literal::FloatLiteral));
     store.register_late_pass(|_| Box::new(ptr::Ptr));
     store.register_late_pass(|_| Box::new(needless_bool::NeedlessBool));
-    store.register_late_pass(|_| Box::new(needless_bool::BoolComparison));
+    let bool_comparison_false_ty = conf.bool_comparison_false_ty.clone();
+    store
+        .register_late_pass(move |_| Box::new(needless_bool::BoolComparison::new(bool_comparison_false_ty.as_deref())));
     store.register_late_pass(|_| Box::new(needless_for_each::NeedlessForEach));
     store.register_late_pass(|_| Box::<misc::LintPass>::default());
     store.register_late_pass(|_| Box::new(eta_reduction::EtaReduction));

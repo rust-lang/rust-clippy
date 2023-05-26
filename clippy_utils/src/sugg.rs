@@ -514,6 +514,11 @@ impl<T: Display> Display for ParenHelper<T> {
     }
 }
 
+/// Builds the string for `<expr> == false` adding parenthesis when necessary.
+pub fn make_eq_false(expr: Sugg<'_>) -> Sugg<'static> {
+    Sugg::MaybeParen(format!("{} == false", expr.maybe_par()).into())
+}
+
 /// Builds the string for `<op><expr>` adding parenthesis when necessary.
 ///
 /// For convenience, the operator is taken as a string because all unary

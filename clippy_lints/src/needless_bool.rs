@@ -4,7 +4,7 @@
 
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::sugg::Sugg;
+use clippy_utils::sugg::{make_eq_false, Sugg};
 use clippy_utils::{
     get_parent_node, is_else_clause, is_expn_of, peel_blocks, peel_blocks_with_stmt, span_extract_comment,
 };
@@ -13,9 +13,12 @@ use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Block, Expr, ExprKind, HirId, Node, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::{declare_lint_pass, declare_tool_lint, impl_lint_pass};
 use rustc_span::source_map::Spanned;
 use rustc_span::Span;
+
+type BoolComparisonBinCb<'any> = fn(Sugg<'any>, Sugg<'any>) -> Sugg<'any>;
+type BoolComparisonUnaryCb<'any> = fn(Sugg<'any>) -> Sugg<'any>;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -233,66 +236,166 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
     }
 }
 
-declare_lint_pass!(BoolComparison => [BOOL_COMPARISON]);
+#[derive(Debug)]
+pub struct BoolComparison {
+    bcft: BoolComparisonFalseTy,
+}
+
+impl_lint_pass!(BoolComparison => [BOOL_COMPARISON]);
+
+impl BoolComparison {
+    pub fn new(bcft: Option<&str>) -> Self {
+        Self {
+            bcft: bcft.map_or(BoolComparisonFalseTy::ExclamationMark, BoolComparisonFalseTy::from),
+        }
+    }
+
+    fn manage_bcft_bin<'any, 's>(
+        bcft: BoolComparisonFalseTy,
+        equal_cb: BoolComparisonBinCb<'any>,
+        not_cb: BoolComparisonBinCb<'any>,
+    ) -> (BoolComparisonBinCb<'any>, &'s str) {
+        let msg = "order comparisons between booleans can be simplified";
+        match bcft {
+            BoolComparisonFalseTy::Equals => (equal_cb, msg),
+            BoolComparisonFalseTy::ExclamationMark => (not_cb, msg),
+        }
+    }
+
+    fn manage_bcft_single<'any, 's>(
+        bcft: BoolComparisonFalseTy,
+        equal_s: Option<&'s str>,
+        not_s: &'s str,
+    ) -> Option<(BoolComparisonUnaryCb<'any>, &'s str)> {
+        match bcft {
+            BoolComparisonFalseTy::Equals => equal_s.map(|elem| {
+                let type_infer: BoolComparisonUnaryCb<'any> = make_eq_false;
+                (type_infer, elem)
+            }),
+            BoolComparisonFalseTy::ExclamationMark => Some((|h| !h, not_s)),
+        }
+    }
+}
+
+macro_rules! base_gt_str {
+    () => {
+        "greater than checks against false are unnecessary"
+    };
+}
+macro_rules! base_lt_str {
+    () => {
+        "less than comparison against true can be replaced "
+    };
+}
+macro_rules! base_ne_str {
+    () => {
+        "inequality checks against true can be replaced "
+    };
+}
 
 impl<'tcx> LateLintPass<'tcx> for BoolComparison {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         if e.span.from_expansion() {
             return;
         }
+        match e.kind {
+            ExprKind::Binary(Spanned { node, .. }, ..) => {
+                let ignore_case = None::<(BoolComparisonUnaryCb<'_>, &str)>;
+                let ignore_no_literal = None::<(fn(_, _) -> _, &str)>;
+                match node {
+                    BinOpKind::Eq => {
+                        let true_case = Some((|h| h, "equality checks against true are unnecessary"));
+                        let false_case = Self::manage_bcft_single(
+                            self.bcft,
+                            None,
+                            "equality checks against false can be replaced by a negation",
+                        );
+                        check_comparison(cx, e, true_case, false_case, true_case, false_case, ignore_no_literal);
+                    },
+                    BinOpKind::Ne => {
+                        let true_case = Self::manage_bcft_single(
+                            self.bcft,
+                            Some(concat!(base_ne_str!(), "with a comparison against `false`")),
+                            concat!(base_ne_str!(), "by a negation"),
+                        );
+                        let false_case = Some((|h| h, "inequality checks against false are unnecessary"));
+                        check_comparison(cx, e, true_case, false_case, true_case, false_case, ignore_no_literal);
+                    },
+                    BinOpKind::Lt => check_comparison(
+                        cx,
+                        e,
+                        ignore_case,
+                        Some((|h| h, base_gt_str!())),
+                        Self::manage_bcft_single(
+                            self.bcft,
+                            Some(concat!(base_lt_str!(), "with a comparison against `false`")),
+                            concat!(base_lt_str!(), "by a negation"),
+                        ),
+                        ignore_case,
+                        Some(Self::manage_bcft_bin(
+                            self.bcft,
+                            |l, r| make_eq_false(l).bit_and(&r),
+                            |l, r| (!l).bit_and(&r),
+                        )),
+                    ),
+                    BinOpKind::Gt => check_comparison(
+                        cx,
+                        e,
+                        Self::manage_bcft_single(
+                            self.bcft,
+                            Some(concat!(base_lt_str!(), "with a comparison against `false`")),
+                            concat!(base_lt_str!(), "by a negation"),
+                        ),
+                        ignore_case,
+                        ignore_case,
+                        Some((|h| h, base_gt_str!())),
+                        Some(Self::manage_bcft_bin(
+                            self.bcft,
+                            |l, r| l.bit_and(&make_eq_false(r)),
+                            |l, r| l.bit_and(&(!r)),
+                        )),
+                    ),
+                    _ => {},
+                }
+            },
+            ExprKind::Unary(UnOp::Not, local_expr) => {
+                if self.bcft != BoolComparisonFalseTy::Equals {
+                    return;
+                }
+                if !cx.typeck_results().expr_ty(local_expr).is_bool() {
+                    return;
+                }
+                let mut applicability = Applicability::MachineApplicable;
+                span_lint_and_sugg(
+                    cx,
+                    BOOL_COMPARISON,
+                    e.span,
+                    "negation (`!`) is hard to see and can lead to possible misunderstandings",
+                    "try replacing it with a comparison against `false`",
+                    format!(
+                        "{} == false",
+                        snippet_with_applicability(cx, local_expr.span, "..", &mut applicability),
+                    ),
+                    applicability,
+                );
+            },
+            _ => {},
+        }
+    }
+}
 
-        if let ExprKind::Binary(Spanned { node, .. }, ..) = e.kind {
-            let ignore_case = None::<(fn(_) -> _, &str)>;
-            let ignore_no_literal = None::<(fn(_, _) -> _, &str)>;
-            match node {
-                BinOpKind::Eq => {
-                    let true_case = Some((|h| h, "equality checks against true are unnecessary"));
-                    let false_case = Some((
-                        |h: Sugg<'tcx>| !h,
-                        "equality checks against false can be replaced by a negation",
-                    ));
-                    check_comparison(cx, e, true_case, false_case, true_case, false_case, ignore_no_literal);
-                },
-                BinOpKind::Ne => {
-                    let true_case = Some((
-                        |h: Sugg<'tcx>| !h,
-                        "inequality checks against true can be replaced by a negation",
-                    ));
-                    let false_case = Some((|h| h, "inequality checks against false are unnecessary"));
-                    check_comparison(cx, e, true_case, false_case, true_case, false_case, ignore_no_literal);
-                },
-                BinOpKind::Lt => check_comparison(
-                    cx,
-                    e,
-                    ignore_case,
-                    Some((|h| h, "greater than checks against false are unnecessary")),
-                    Some((
-                        |h: Sugg<'tcx>| !h,
-                        "less than comparison against true can be replaced by a negation",
-                    )),
-                    ignore_case,
-                    Some((
-                        |l: Sugg<'tcx>, r: Sugg<'tcx>| (!l).bit_and(&r),
-                        "order comparisons between booleans can be simplified",
-                    )),
-                ),
-                BinOpKind::Gt => check_comparison(
-                    cx,
-                    e,
-                    Some((
-                        |h: Sugg<'tcx>| !h,
-                        "less than comparison against true can be replaced by a negation",
-                    )),
-                    ignore_case,
-                    ignore_case,
-                    Some((|h| h, "greater than checks against false are unnecessary")),
-                    Some((
-                        |l: Sugg<'tcx>, r: Sugg<'tcx>| l.bit_and(&(!r)),
-                        "order comparisons between booleans can be simplified",
-                    )),
-                ),
-                _ => (),
-            }
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum BoolComparisonFalseTy {
+    Equals,
+    ExclamationMark,
+}
+
+impl From<&str> for BoolComparisonFalseTy {
+    fn from(s: &str) -> Self {
+        match s {
+            "equals" => Self::Equals,
+            "exclamation-mark" => Self::ExclamationMark,
+            _ => panic!("Unknown configuration attribute"),
         }
     }
 }

@@ -12,6 +12,7 @@ error: error reading Clippy's configuration file `$DIR/clippy.toml`: unknown fie
            avoid-breaking-exported-api
            await-holding-invalid-types
            blacklisted-names
+           bool-comparison-false-ty
            cargo-ignore-publish
            cognitive-complexity-threshold
            cyclomatic-complexity-threshold

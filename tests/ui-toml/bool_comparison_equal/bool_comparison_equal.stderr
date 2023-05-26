@@ -1,0 +1,52 @@
+error: inequality checks against true can be replaced with a comparison against `false`
+  --> $DIR/bool_comparison_equal.rs:7:13
+   |
+LL |     let _ = x != true;
+   |             ^^^^^^^^^ help: try simplifying it as shown: `x == false`
+   |
+   = note: `-D clippy::bool-comparison` implied by `-D warnings`
+
+error: inequality checks against true can be replaced with a comparison against `false`
+  --> $DIR/bool_comparison_equal.rs:8:13
+   |
+LL |     let _ = true != x;
+   |             ^^^^^^^^^ help: try simplifying it as shown: `x == false`
+
+error: less than comparison against true can be replaced with a comparison against `false`
+  --> $DIR/bool_comparison_equal.rs:9:13
+   |
+LL |     let _ = x < true;
+   |             ^^^^^^^^ help: try simplifying it as shown: `x == false`
+
+error: less than comparison against true can be replaced with a comparison against `false`
+  --> $DIR/bool_comparison_equal.rs:10:13
+   |
+LL |     let _ = true > x;
+   |             ^^^^^^^^ help: try simplifying it as shown: `x == false`
+
+error: order comparisons between booleans can be simplified
+  --> $DIR/bool_comparison_equal.rs:13:13
+   |
+LL |     let _ = x < y;
+   |             ^^^^^ help: try simplifying it as shown: `x == false & y`
+
+error: order comparisons between booleans can be simplified
+  --> $DIR/bool_comparison_equal.rs:14:13
+   |
+LL |     let _ = x > y;
+   |             ^^^^^ help: try simplifying it as shown: `x & y == false`
+
+error: order comparisons between booleans can be simplified
+  --> $DIR/bool_comparison_equal.rs:15:13
+   |
+LL |     let _ = x > y && !x && y == false;
+   |             ^^^^^ help: try simplifying it as shown: `x & y == false`
+
+error: negation (`!`) is hard to see and can lead to possible misunderstandings
+  --> $DIR/bool_comparison_equal.rs:15:22
+   |
+LL |     let _ = x > y && !x && y == false;
+   |                      ^^ help: try replacing it with a comparison against `false`: `x == false`
+
+error: aborting due to 8 previous errors
+
