@@ -5308,7 +5308,7 @@
     "id": "needless_else",
     "id_span": {
       "path": "src/needless_else.rs",
-      "line": 30
+      "line": 31
     },
     "group": "style",
     "level": "warn",
