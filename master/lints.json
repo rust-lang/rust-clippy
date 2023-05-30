@@ -38,7 +38,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThe expect attribute is still unstable and requires the `lint_reasons`\non nightly. It can be enabled by adding `#![feature(lint_reasons)]` to\nthe crate root.\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why is this bad?\n\n`#[expect]` attributes suppress the lint emission, but emit a warning, if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#![feature(lint_reasons)]\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -864,7 +864,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of `.drain(..)` for the sole purpose of clearing a container.\n\n### Why is this bad?\nThis creates an unnecessary iterator that is dropped immediately.\n\nCalling `.clear()` also makes the intent clearer.\n\n### Example\n```rust\nlet mut v = vec![1, 2, 3];\nv.drain(..);\n```\nUse instead:\n```rust\nlet mut v = vec![1, 2, 3];\nv.clear();\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -1047,7 +1047,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nChecks for collections that are never queried.\n\n### Why is this bad?\nPutting effort into constructing a collection but then never querying it might indicate that\nthe author forgot to do whatever they intended to do with the collection. Example: Clone\na vector, sort it for iteration, but then mistakenly iterate the original vector\ninstead.\n\n### Example\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &samples { // Oops, meant to use `sorted_samples`.\n    println!(\"{sample}\");\n}\n```\nUse instead:\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &sorted_samples {\n    println!(\"{sample}\");\n}\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3496,7 +3496,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = big_fut([0u8; 1024]);\n    wait(fut).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = Box::pin(big_fut([0u8; 1024]));\n    wait(fut).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
-    "version": "1.68.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
@@ -3676,7 +3676,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nDetects when a variable is declared with an explicit type of `_`.\n### Why is this bad?\nIt adds noise, `: _` provides zero clarity or utility.\n### Example\n```rust\nlet my_number: _ = 1;\n```\nUse instead:\n```rust\nlet my_number = 1;\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4689,7 +4689,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks assertions without a custom panic message.\n\n### Why is this bad?\nWithout a good custom message, it'd be hard to understand what went wrong when the assertion fails.\nA good custom message should be more about why the failure of the assertion is problematic\nand not what is failed because the assertion already conveys that.\n\n### Known problems\nThis lint cannot check the quality of the custom panic messages.\nHence, you can suppress this lint simply by adding placeholder messages\nlike \"assertion failed\". However, we recommend coming up with good messages\nthat provide useful information instead of placeholder messages that\ndon't provide any extra information.\n\n### Example\n```rust\nfn call(service: Service) {\n    assert!(service.ready);\n}\n```\nUse instead:\n```rust\nfn call(service: Service) {\n    assert!(service.ready, \"`service.poll_ready()` must be called first to ensure that service is ready to receive requests\");\n}\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -6597,7 +6597,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `async` block that only returns `await` on a future.\n\n### Why is this bad?\nIt is simpler and more efficient to use the future directly.\n\n### Example\n```rust\nlet f = async {\n   1 + 2\n};\nlet fut = async {\n    f.await\n};\n```\nUse instead:\n```rust\nlet f = async {\n   1 + 2\n};\nlet fut = f;\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
