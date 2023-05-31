@@ -4756,6 +4756,21 @@
     }
   },
   {
+    "id": "missing_fields_in_debug",
+    "id_span": {
+      "path": "src/missing_fields_in_debug.rs",
+      "line": 83
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for manual [`core::fmt::Debug`](https://doc.rust-lang.org/core/fmt/trait.Debug.html) implementations that do not use all fields.\n\n### Why is this bad?\nA common mistake is to forget to update manual `Debug` implementations when adding a new field\nto a struct or a new variant to an enum.\n\nAt the same time, it also acts as a style lint to suggest using [`core::fmt::DebugStruct::finish_non_exhaustive`](https://doc.rust-lang.org/core/fmt/struct.DebugStruct.html#method.finish_non_exhaustive)\nfor the times when the user intentionally wants to leave out certain fields (e.g. to hide implementation details).\n\n### Known problems\nThis lint works based on the `DebugStruct` helper types provided by the `Formatter`,\nso this won't detect `Debug` impls that use the `write!` macro.\nOftentimes there is more logic to a `Debug` impl if it uses `write!` macro, so it tries\nto be on the conservative side and not lint in those cases in an attempt to prevent false positives.\n\nThis lint also does not look through function calls, so calling a function does not consider fields\nused inside of that function as used by the `Debug` impl.\n\nLastly, it also ignores tuple structs as their `DebugTuple` formatter does not have a `finish_non_exhaustive`\nmethod, as well as enums because their exhaustiveness is already checked by the compiler when matching on the enum,\nmaking it much less likely to accidentally forget to update the `Debug` impl when adding a new variant.\n\n### Example\n```rust\nuse std::fmt;\nstruct Foo {\n    data: String,\n    // implementation detail\n    hidden_data: i32\n}\nimpl fmt::Debug for Foo {\n    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {\n        formatter\n            .debug_struct(\"Foo\")\n            .field(\"data\", &self.data)\n            .finish()\n    }\n}\n```\nUse instead:\n```rust\nuse std::fmt;\nstruct Foo {\n    data: String,\n    // implementation detail\n    hidden_data: i32\n}\nimpl fmt::Debug for Foo {\n    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {\n        formatter\n            .debug_struct(\"Foo\")\n            .field(\"data\", &self.data)\n            .finish_non_exhaustive()\n    }\n}\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "missing_inline_in_public_items",
     "id_span": {
       "path": "src/missing_inline.rs",
