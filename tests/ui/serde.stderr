@@ -1,4 +1,90 @@
-error: you should not implement `visit_string` without also implementing `visit_str`
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:4:1
+   |
+LL | extern crate serde;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:9:5
+   |
+LL |     type Value = ();
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:11:5
+   |
+LL | /     fn expecting(&self, _: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+LL | |         unimplemented!()
+LL | |     }
+   | |_____^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:15:5
+   |
+LL | /     fn visit_str<E>(self, _v: &str) -> Result<Self::Value, E>
+LL | |     where
+LL | |         E: serde::de::Error,
+LL | |     {
+LL | |         unimplemented!()
+LL | |     }
+   | |_____^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:22:5
+   |
+LL | /     fn visit_string<E>(self, _v: String) -> Result<Self::Value, E>
+LL | |     where
+LL | |         E: serde::de::Error,
+LL | |     {
+LL | |         unimplemented!()
+LL | |     }
+   | |_____^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:8:11
+   |
+LL | impl<'de> serde::de::Visitor<'de> for A {
+   |           ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:33:5
+   |
+LL |     type Value = ();
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:35:5
+   |
+LL | /     fn expecting(&self, _: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+LL | |         unimplemented!()
+LL | |     }
+   | |_____^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
   --> $DIR/serde.rs:39:5
    |
 LL | /     fn visit_string<E>(self, _v: String) -> Result<Self::Value, E>
@@ -9,7 +95,72 @@ LL | |         unimplemented!()
 LL | |     }
    | |_____^
    |
-   = note: `-D clippy::serde-api-misuse` implied by `-D warnings`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: aborting due to previous error
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:32:11
+   |
+LL | impl<'de> serde::de::Visitor<'de> for B {
+   |           ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:17:12
+   |
+LL |         E: serde::de::Error,
+   |            ^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:24:12
+   |
+LL |         E: serde::de::Error,
+   |            ^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:41:12
+   |
+LL |         E: serde::de::Error,
+   |            ^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:15:47
+   |
+LL |     fn visit_str<E>(self, _v: &str) -> Result<Self::Value, E>
+   |                                               ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:22:52
+   |
+LL |     fn visit_string<E>(self, _v: String) -> Result<Self::Value, E>
+   |                                                    ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/serde.rs:39:52
+   |
+LL |     fn visit_string<E>(self, _v: String) -> Result<Self::Value, E>
+   |                                                    ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error: aborting due to 16 previous errors
+
+For more information about this error, try `rustc --explain E0658`.

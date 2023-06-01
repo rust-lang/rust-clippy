@@ -1,82 +1,57 @@
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:14:13
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/needless_splitn.rs:7:1
    |
-LL |     let _ = str.splitn(2, '=').next();
-   |             ^^^^^^^^^^^^^^^^^^ help: try this: `str.split('=')`
+LL | extern crate itertools;
+   | ^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: `-D clippy::needless-splitn` implied by `-D warnings`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:15:13
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/needless_splitn.rs:10:5
    |
-LL |     let _ = str.splitn(2, '=').nth(0);
-   |             ^^^^^^^^^^^^^^^^^^ help: try this: `str.split('=')`
+LL | use itertools::Itertools;
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:18:18
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/needless_splitn.rs:17:37
+   |
+LL |     let (_, _) = str.splitn(2, '=').next_tuple().unwrap();
+   |                                     ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/needless_splitn.rs:18:37
    |
 LL |     let (_, _) = str.splitn(3, '=').next_tuple().unwrap();
-   |                  ^^^^^^^^^^^^^^^^^^ help: try this: `str.split('=')`
-
-error: unnecessary use of `rsplitn`
-  --> $DIR/needless_splitn.rs:21:13
+   |                                     ^^^^^^^^^^
    |
-LL |     let _ = str.rsplitn(2, '=').next();
-   |             ^^^^^^^^^^^^^^^^^^^ help: try this: `str.rsplit('=')`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: unnecessary use of `rsplitn`
-  --> $DIR/needless_splitn.rs:22:13
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/needless_splitn.rs:24:38
    |
-LL |     let _ = str.rsplitn(2, '=').nth(0);
-   |             ^^^^^^^^^^^^^^^^^^^ help: try this: `str.rsplit('=')`
+LL |     let (_, _) = str.rsplitn(2, '=').next_tuple().unwrap();
+   |                                      ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: unnecessary use of `rsplitn`
-  --> $DIR/needless_splitn.rs:25:18
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/needless_splitn.rs:25:38
    |
 LL |     let (_, _) = str.rsplitn(3, '=').next_tuple().unwrap();
-   |                  ^^^^^^^^^^^^^^^^^^^ help: try this: `str.rsplit('=')`
-
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:27:13
+   |                                      ^^^^^^^^^^
    |
-LL |     let _ = str.splitn(5, '=').next();
-   |             ^^^^^^^^^^^^^^^^^^ help: try this: `str.split('=')`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:28:13
-   |
-LL |     let _ = str.splitn(5, '=').nth(3);
-   |             ^^^^^^^^^^^^^^^^^^ help: try this: `str.split('=')`
+error: aborting due to 6 previous errors
 
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:34:13
-   |
-LL |     let _ = s.splitn(2, '=').next()?;
-   |             ^^^^^^^^^^^^^^^^ help: try this: `s.split('=')`
-
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:35:13
-   |
-LL |     let _ = s.splitn(2, '=').nth(0)?;
-   |             ^^^^^^^^^^^^^^^^ help: try this: `s.split('=')`
-
-error: unnecessary use of `rsplitn`
-  --> $DIR/needless_splitn.rs:36:13
-   |
-LL |     let _ = s.rsplitn(2, '=').next()?;
-   |             ^^^^^^^^^^^^^^^^^ help: try this: `s.rsplit('=')`
-
-error: unnecessary use of `rsplitn`
-  --> $DIR/needless_splitn.rs:37:13
-   |
-LL |     let _ = s.rsplitn(2, '=').nth(0)?;
-   |             ^^^^^^^^^^^^^^^^^ help: try this: `s.rsplit('=')`
-
-error: unnecessary use of `splitn`
-  --> $DIR/needless_splitn.rs:45:13
-   |
-LL |     let _ = "key=value".splitn(2, '=').nth(0).unwrap();
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try this: `"key=value".split('=')`
-
-error: aborting due to 13 previous errors
-
+For more information about this error, try `rustc --explain E0658`.

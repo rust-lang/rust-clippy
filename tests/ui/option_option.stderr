@@ -1,80 +1,170 @@
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:4:10
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:68:1
    |
-LL | const C: Option<Option<i32>> = None;
-   |          ^^^^^^^^^^^^^^^^^^^
+LL | extern crate serde;
+   | ^^^^^^^^^^^^^^^^^^^
    |
-note: the lint level is defined here
-  --> $DIR/option_option.rs:1:9
-   |
-LL | #![deny(clippy::option_option)]
-   |         ^^^^^^^^^^^^^^^^^^^^^
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:5:11
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:70:17
    |
-LL | static S: Option<Option<i32>> = None;
-   |           ^^^^^^^^^^^^^^^^^^^
-
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:7:13
+LL |     use serde::{Deserialize, Deserializer, Serialize};
+   |                 ^^^^^^^^^^^
    |
-LL | fn input(_: Option<Option<u8>>) {}
-   |             ^^^^^^^^^^^^^^^^^^
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:9:16
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:70:30
    |
-LL | fn output() -> Option<Option<u8>> {
-   |                ^^^^^^^^^^^^^^^^^^
-
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:13:27
+LL |     use serde::{Deserialize, Deserializer, Serialize};
+   |                              ^^^^^^^^^^^^
    |
-LL | fn output_nested() -> Vec<Option<Option<u8>>> {
-   |                           ^^^^^^^^^^^^^^^^^^
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:18:30
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:70:44
    |
-LL | fn output_nested_nested() -> Option<Option<Option<u8>>> {
-   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:23:8
+LL |     use serde::{Deserialize, Deserializer, Serialize};
+   |                                            ^^^^^^^^^
    |
-LL |     x: Option<Option<u8>>,
-   |        ^^^^^^^^^^^^^^^^^^
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:27:23
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:14
    |
-LL |     fn struct_fn() -> Option<Option<u8>> {
-   |                       ^^^^^^^^^^^^^^^^^^
-
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:33:22
+LL |     #[derive(Serialize, Deserialize)]
+   |              ^^^^^^^^^
    |
-LL |     fn trait_fn() -> Option<Option<u8>>;
-   |                      ^^^^^^^^^^^^^^^^^^
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the derive macro `Serialize` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:37:11
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:25
    |
-LL |     Tuple(Option<Option<u8>>),
-   |           ^^^^^^^^^^^^^^^^^^
-
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:38:17
+LL |     #[derive(Serialize, Deserialize)]
+   |                         ^^^^^^^^^^^
    |
-LL |     Struct { x: Option<Option<u8>> },
-   |                 ^^^^^^^^^^^^^^^^^^
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the derive macro `Deserialize` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: consider using `Option<T>` instead of `Option<Option<T>>` or a custom enum if you need to distinguish all 3 cases
-  --> $DIR/option_option.rs:79:14
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:85:12
    |
-LL |         foo: Option<Option<Cow<'a, str>>>,
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         D: Deserializer<'a>,
+   |            ^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: aborting due to 12 previous errors
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:14
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |              ^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
 
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:75:9
+   |
+LL | /         #[serde(deserialize_with = "func")]
+LL | |         #[serde(skip_serializing_if = "Option::is_none")]
+LL | |         #[serde(default)]
+LL | |         #[serde(borrow)]
+LL | |         foo: Option<Option<Cow<'a, str>>>,
+   | |_________________________________________^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:14
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |              ^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:14
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |              ^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:25
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |                         ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:25
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |                         ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:25
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |                         ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:25
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |                         ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:73:25
+   |
+LL |     #[derive(Serialize, Deserialize)]
+   |                         ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+   = note: this error originates in the macro `try` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/option_option.rs:83:66
+   |
+LL |     fn func<'a, D>(_: D) -> Result<Option<Option<Cow<'a, str>>>, D::Error>
+   |                                                                  ^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error: aborting due to 17 previous errors
+
+For more information about this error, try `rustc --explain E0658`.

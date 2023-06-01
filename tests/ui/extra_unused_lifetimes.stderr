@@ -1,40 +1,9 @@
-error: this lifetime isn't used in the function definition
-  --> $DIR/extra_unused_lifetimes.rs:19:14
+error[E0433]: failed to resolve: use of undeclared crate or module `serde`
+  --> $DIR/extra_unused_lifetimes.rs:98:9
    |
-LL | fn unused_lt<'a>(x: u8) {}
-   |              ^^
-   |
-   = note: `-D clippy::extra-unused-lifetimes` implied by `-D warnings`
+LL |     use serde::de::Visitor;
+   |         ^^^^^ use of undeclared crate or module `serde`
 
-error: this lifetime isn't used in the function definition
-  --> $DIR/extra_unused_lifetimes.rs:46:10
-   |
-LL |     fn x<'a>(&self) {}
-   |          ^^
+error: aborting due to previous error
 
-error: this lifetime isn't used in the function definition
-  --> $DIR/extra_unused_lifetimes.rs:72:22
-   |
-LL |         fn unused_lt<'a>(x: u8) {}
-   |                      ^^
-
-error: this lifetime isn't used in the impl
-  --> $DIR/extra_unused_lifetimes.rs:83:10
-   |
-LL |     impl<'a> std::ops::AddAssign<&Scalar> for &mut Scalar {
-   |          ^^
-
-error: this lifetime isn't used in the impl
-  --> $DIR/extra_unused_lifetimes.rs:89:10
-   |
-LL |     impl<'b> Scalar {
-   |          ^^
-
-error: this lifetime isn't used in the function definition
-  --> $DIR/extra_unused_lifetimes.rs:90:26
-   |
-LL |         pub fn something<'c>() -> Self {
-   |                          ^^
-
-error: aborting due to 6 previous errors
-
+For more information about this error, try `rustc --explain E0433`.

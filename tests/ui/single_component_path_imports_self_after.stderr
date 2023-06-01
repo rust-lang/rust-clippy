@@ -1,0 +1,9 @@
+error[E0432]: unresolved import `regex`
+  --> $DIR/single_component_path_imports_self_after.rs:9:5
+   |
+LL | use regex;
+   |     ^^^^^ no external crate `regex`
+
+error: aborting due to previous error
+
+For more information about this error, try `rustc --explain E0432`.

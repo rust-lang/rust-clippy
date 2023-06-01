@@ -1,3 +1,28 @@
+error[E0432]: unresolved import `regex`
+  --> $DIR/single_component_path_imports_nested_first.rs:4:5
+   |
+LL | use regex;
+   |     ^^^^^ no external crate `regex`
+
+error[E0432]: unresolved import `serde`
+  --> $DIR/single_component_path_imports_nested_first.rs:6:9
+   |
+LL | pub use serde;
+   |         ^^^^^ no external crate `serde`
+
+error[E0432]: unresolved imports `regex`, `serde`
+  --> $DIR/single_component_path_imports_nested_first.rs:13:10
+   |
+LL |     use {regex, serde};
+   |          ^^^^^  ^^^^^ no external crate `serde`
+   |          |
+   |          no external crate `regex`
+   |
+   = help: consider importing this unresolved item instead:
+           crate::regex
+   = help: consider importing this unresolved item instead:
+           crate::serde
+
 error: this import is redundant
   --> $DIR/single_component_path_imports_nested_first.rs:4:1
    |
@@ -22,5 +47,6 @@ LL |     use {regex, serde};
    |
    = help: remove this import
 
-error: aborting due to 3 previous errors
+error: aborting due to 6 previous errors
 
+For more information about this error, try `rustc --explain E0432`.

@@ -1,35 +1,147 @@
-error: non-binding `let` on a synchronization lock
-  --> $DIR/let_underscore_lock.rs:9:5
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:3:1
+   |
+LL | extern crate parking_lot;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:8:26
+   |
+LL |     let p_m: Mutex<()> = Mutex::const_new(RawMutex::INIT, ());
+   |                          ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:8:43
+   |
+LL |     let p_m: Mutex<()> = Mutex::const_new(RawMutex::INIT, ());
+   |                                           ^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:8:14
+   |
+LL |     let p_m: Mutex<()> = Mutex::const_new(RawMutex::INIT, ());
+   |              ^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:11:16
+   |
+LL |     let p_m1 = Mutex::new(0);
+   |                ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:14:16
+   |
+LL |     let p_rw = RwLock::new(0);
+   |                ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:6:23
+   |
+LL |     use parking_lot::{lock_api::RawMutex, Mutex, RwLock};
+   |                       ^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:6:43
+   |
+LL |     use parking_lot::{lock_api::RawMutex, Mutex, RwLock};
+   |                                           ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:6:50
+   |
+LL |     use parking_lot::{lock_api::RawMutex, Mutex, RwLock};
+   |                                                  ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:8:26
+   |
+LL |     let p_m: Mutex<()> = Mutex::const_new(RawMutex::INIT, ());
+   |                          ^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:9:17
    |
 LL |     let _ = p_m.lock();
-   |     ^^^^^^^^^^^^^^^^^^^
+   |                 ^^^^
    |
-   = help: consider using an underscore-prefixed named binding or dropping explicitly with `std::mem::drop`
-   = note: `-D clippy::let-underscore-lock` implied by `-D warnings`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: non-binding `let` on a synchronization lock
-  --> $DIR/let_underscore_lock.rs:12:5
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:11:16
+   |
+LL |     let p_m1 = Mutex::new(0);
+   |                ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:12:18
    |
 LL |     let _ = p_m1.lock();
-   |     ^^^^^^^^^^^^^^^^^^^^
+   |                  ^^^^
    |
-   = help: consider using an underscore-prefixed named binding or dropping explicitly with `std::mem::drop`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: non-binding `let` on a synchronization lock
-  --> $DIR/let_underscore_lock.rs:15:5
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:14:16
+   |
+LL |     let p_rw = RwLock::new(0);
+   |                ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:15:18
    |
 LL |     let _ = p_rw.read();
-   |     ^^^^^^^^^^^^^^^^^^^^
+   |                  ^^^^
    |
-   = help: consider using an underscore-prefixed named binding or dropping explicitly with `std::mem::drop`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: non-binding `let` on a synchronization lock
-  --> $DIR/let_underscore_lock.rs:16:5
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/let_underscore_lock.rs:16:18
    |
 LL |     let _ = p_rw.write();
-   |     ^^^^^^^^^^^^^^^^^^^^^
+   |                  ^^^^^
    |
-   = help: consider using an underscore-prefixed named binding or dropping explicitly with `std::mem::drop`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: aborting due to 4 previous errors
+error: aborting due to 16 previous errors
 
+For more information about this error, try `rustc --explain E0658`.

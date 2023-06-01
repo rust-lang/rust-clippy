@@ -1,197 +1,858 @@
-error: trivial regex
-  --> $DIR/regex.rs:13:45
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:4:1
+   |
+LL | extern crate regex;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:6:20
+   |
+LL | use regex::bytes::{Regex as BRegex, RegexBuilder as BRegexBuilder, RegexSet as BRegexSet};
+   |                    ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:6:37
+   |
+LL | use regex::bytes::{Regex as BRegex, RegexBuilder as BRegexBuilder, RegexSet as BRegexSet};
+   |                                     ^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:6:68
+   |
+LL | use regex::bytes::{Regex as BRegex, RegexBuilder as BRegexBuilder, RegexSet as BRegexSet};
+   |                                                                    ^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:7:13
+   |
+LL | use regex::{Regex, RegexBuilder, RegexSet};
+   |             ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:7:20
+   |
+LL | use regex::{Regex, RegexBuilder, RegexSet};
+   |                    ^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:7:34
+   |
+LL | use regex::{Regex, RegexBuilder, RegexSet};
+   |                                  ^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:13:34
    |
 LL |     let pipe_in_wrong_position = Regex::new("|");
-   |                                             ^^^
+   |                                  ^^^^^
    |
-   = help: the regex is unlikely to be useful as it is
-   = note: `-D clippy::trivial-regex` implied by `-D warnings`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:14:60
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:14:42
    |
 LL |     let pipe_in_wrong_position_builder = RegexBuilder::new("|");
-   |                                                            ^^^
+   |                                          ^^^^^^^^^^^^
    |
-   = help: the regex is unlikely to be useful as it is
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex syntax error: invalid character class range, the start must be <= the end
-  --> $DIR/regex.rs:15:42
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:15:29
    |
 LL |     let wrong_char_ranice = Regex::new("[z-a]");
-   |                                          ^^^
+   |                             ^^^^^
    |
-   = note: `-D clippy::invalid-regex` implied by `-D warnings`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex syntax error: invalid character class range, the start must be <= the end
-  --> $DIR/regex.rs:16:37
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:16:24
    |
 LL |     let some_unicode = Regex::new("[é-è]");
-   |                                     ^^^
+   |                        ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex parse error:
-           (
-           ^
-       error: unclosed group
-  --> $DIR/regex.rs:18:33
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:18:22
    |
 LL |     let some_regex = Regex::new(OPENING_PAREN);
-   |                                 ^^^^^^^^^^^^^
+   |                      ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:20:53
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:20:41
    |
 LL |     let binary_pipe_in_wrong_position = BRegex::new("|");
-   |                                                     ^^^
+   |                                         ^^^^^^
    |
-   = help: the regex is unlikely to be useful as it is
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex parse error:
-           (
-           ^
-       error: unclosed group
-  --> $DIR/regex.rs:21:41
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:21:29
    |
 LL |     let some_binary_regex = BRegex::new(OPENING_PAREN);
-   |                                         ^^^^^^^^^^^^^
+   |                             ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex parse error:
-           (
-           ^
-       error: unclosed group
-  --> $DIR/regex.rs:22:56
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:22:37
    |
 LL |     let some_binary_regex_builder = BRegexBuilder::new(OPENING_PAREN);
-   |                                                        ^^^^^^^^^^^^^
+   |                                     ^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex parse error:
-           (
-           ^
-       error: unclosed group
-  --> $DIR/regex.rs:34:37
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:25:22
+   |
+LL |     let not_linted = Regex::new(closing_paren);
+   |                      ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:27:15
+   |
+LL |     let set = RegexSet::new(&[r"[a-z]+@[a-z]+/.(com|org|net)", r"[a-z]+/.(com|org|net)"]);
+   |               ^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:28:16
+   |
+LL |     let bset = BRegexSet::new(&[
+   |                ^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:34:21
    |
 LL |     let set_error = RegexSet::new(&[OPENING_PAREN, r"[a-z]+/.(com|org|net)"]);
-   |                                     ^^^^^^^^^^^^^
+   |                     ^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex parse error:
-           (
-           ^
-       error: unclosed group
-  --> $DIR/regex.rs:35:39
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:35:22
    |
 LL |     let bset_error = BRegexSet::new(&[OPENING_PAREN, r"[a-z]+/.(com|org|net)"]);
-   |                                       ^^^^^^^^^^^^^
+   |                      ^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex parse error:
-           /b/c
-             ^^
-       error: unrecognized escape sequence
-  --> $DIR/regex.rs:42:42
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:38:28
+   |
+LL |     let raw_string_error = Regex::new(r"[...//...]");
+   |                            ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:39:28
+   |
+LL |     let raw_string_error = Regex::new(r#"[...//...]"#);
+   |                            ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:40:13
+   |
+LL |     let _ = Regex::new(r"(?<hi>hi)").unwrap();
+   |             ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:42:31
    |
 LL |     let escaped_string_span = Regex::new("/b/c");
-   |                                          ^^^^^^^^
+   |                               ^^^^^
    |
-   = help: consider using a raw string literal: `r".."`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex syntax error: duplicate flag
-  --> $DIR/regex.rs:44:34
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:44:20
    |
 LL |     let aux_span = Regex::new("(?ixi)");
-   |                                  ^ ^
+   |                    ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: regex syntax error: pattern can match invalid UTF-8
-  --> $DIR/regex.rs:49:53
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:46:27
+   |
+LL |     let should_not_lint = Regex::new("(?u).");
+   |                           ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:47:27
+   |
+LL |     let should_not_lint = BRegex::new("(?u).");
+   |                           ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:48:40
+   |
+LL |     let invalid_utf8_should_not_lint = BRegex::new("(?-u).");
+   |                                        ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:49:36
    |
 LL |     let invalid_utf8_should_lint = Regex::new("(?-u).");
-   |                                                     ^
+   |                                    ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:53:33
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:53:22
    |
 LL |     let trivial_eq = Regex::new("^foobar$");
-   |                                 ^^^^^^^^^^
+   |                      ^^^^^
    |
-   = help: consider using `==` on `str`s
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:55:48
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:55:30
    |
 LL |     let trivial_eq_builder = RegexBuilder::new("^foobar$");
-   |                                                ^^^^^^^^^^
+   |                              ^^^^^^^^^^^^
    |
-   = help: consider using `==` on `str`s
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:57:42
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:57:31
    |
 LL |     let trivial_starts_with = Regex::new("^foobar");
-   |                                          ^^^^^^^^^
+   |                               ^^^^^
    |
-   = help: consider using `str::starts_with`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:59:40
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:59:29
    |
 LL |     let trivial_ends_with = Regex::new("foobar$");
-   |                                        ^^^^^^^^^
+   |                             ^^^^^
    |
-   = help: consider using `str::ends_with`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:61:39
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:61:28
    |
 LL |     let trivial_contains = Regex::new("foobar");
-   |                                       ^^^^^^^^
+   |                            ^^^^^
    |
-   = help: consider using `str::contains`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:63:39
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:63:28
    |
 LL |     let trivial_contains = Regex::new(NOT_A_REAL_REGEX);
-   |                                       ^^^^^^^^^^^^^^^^
+   |                            ^^^^^
    |
-   = help: consider using `str::contains`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:65:40
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:65:29
    |
 LL |     let trivial_backslash = Regex::new("a/.b");
-   |                                        ^^^^^^^
+   |                             ^^^^^
    |
-   = help: consider using `str::contains`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:68:36
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:68:25
    |
 LL |     let trivial_empty = Regex::new("");
-   |                                    ^^
+   |                         ^^^^^
    |
-   = help: the regex is unlikely to be useful as it is
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:70:36
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:70:25
    |
 LL |     let trivial_empty = Regex::new("^");
-   |                                    ^^^
+   |                         ^^^^^
    |
-   = help: the regex is unlikely to be useful as it is
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:72:36
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:72:25
    |
 LL |     let trivial_empty = Regex::new("^$");
-   |                                    ^^^^
+   |                         ^^^^^
    |
-   = help: consider using `str::is_empty`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: trivial regex
-  --> $DIR/regex.rs:74:44
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:74:32
    |
 LL |     let binary_trivial_empty = BRegex::new("^$");
-   |                                            ^^^^
+   |                                ^^^^^^
    |
-   = help: consider using `str::is_empty`
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
-error: aborting due to 24 previous errors
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:77:27
+   |
+LL |     let non_trivial_dot = Regex::new("a.b");
+   |                           ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
 
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:78:35
+   |
+LL |     let non_trivial_dot_builder = RegexBuilder::new("a.b");
+   |                                   ^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:79:27
+   |
+LL |     let non_trivial_dot = Regex::new(".");
+   |                           ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:80:27
+   |
+LL |     let non_trivial_dot = BRegex::new(".");
+   |                           ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:81:26
+   |
+LL |     let non_trivial_eq = Regex::new("^foo|bar$");
+   |                          ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:82:35
+   |
+LL |     let non_trivial_starts_with = Regex::new("^foo|bar");
+   |                                   ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:83:33
+   |
+LL |     let non_trivial_ends_with = Regex::new("^foo|bar");
+   |                                 ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:84:33
+   |
+LL |     let non_trivial_ends_with = Regex::new("foo|bar");
+   |                                 ^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:85:30
+   |
+LL |     let non_trivial_binary = BRegex::new("foo|bar");
+   |                              ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:86:38
+   |
+LL |     let non_trivial_binary_builder = BRegexBuilder::new("foo|bar");
+   |                                      ^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:89:29
+   |
+LL |     let a_byte_of_unicode = BRegex::new(r"/p{C}");
+   |                             ^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:13:34
+   |
+LL |     let pipe_in_wrong_position = Regex::new("|");
+   |                                  ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:14:42
+   |
+LL |     let pipe_in_wrong_position_builder = RegexBuilder::new("|");
+   |                                          ^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:15:29
+   |
+LL |     let wrong_char_ranice = Regex::new("[z-a]");
+   |                             ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:16:24
+   |
+LL |     let some_unicode = Regex::new("[é-è]");
+   |                        ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:18:22
+   |
+LL |     let some_regex = Regex::new(OPENING_PAREN);
+   |                      ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:20:41
+   |
+LL |     let binary_pipe_in_wrong_position = BRegex::new("|");
+   |                                         ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:21:29
+   |
+LL |     let some_binary_regex = BRegex::new(OPENING_PAREN);
+   |                             ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:22:37
+   |
+LL |     let some_binary_regex_builder = BRegexBuilder::new(OPENING_PAREN);
+   |                                     ^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:25:22
+   |
+LL |     let not_linted = Regex::new(closing_paren);
+   |                      ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:27:15
+   |
+LL |     let set = RegexSet::new(&[r"[a-z]+@[a-z]+/.(com|org|net)", r"[a-z]+/.(com|org|net)"]);
+   |               ^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:28:16
+   |
+LL |     let bset = BRegexSet::new(&[
+   |                ^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:34:21
+   |
+LL |     let set_error = RegexSet::new(&[OPENING_PAREN, r"[a-z]+/.(com|org|net)"]);
+   |                     ^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:35:22
+   |
+LL |     let bset_error = BRegexSet::new(&[OPENING_PAREN, r"[a-z]+/.(com|org|net)"]);
+   |                      ^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:38:28
+   |
+LL |     let raw_string_error = Regex::new(r"[...//...]");
+   |                            ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:39:28
+   |
+LL |     let raw_string_error = Regex::new(r#"[...//...]"#);
+   |                            ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:40:13
+   |
+LL |     let _ = Regex::new(r"(?<hi>hi)").unwrap();
+   |             ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:42:31
+   |
+LL |     let escaped_string_span = Regex::new("/b/c");
+   |                               ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:44:20
+   |
+LL |     let aux_span = Regex::new("(?ixi)");
+   |                    ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:46:27
+   |
+LL |     let should_not_lint = Regex::new("(?u).");
+   |                           ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:47:27
+   |
+LL |     let should_not_lint = BRegex::new("(?u).");
+   |                           ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:48:40
+   |
+LL |     let invalid_utf8_should_not_lint = BRegex::new("(?-u).");
+   |                                        ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:49:36
+   |
+LL |     let invalid_utf8_should_lint = Regex::new("(?-u).");
+   |                                    ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:53:22
+   |
+LL |     let trivial_eq = Regex::new("^foobar$");
+   |                      ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:55:30
+   |
+LL |     let trivial_eq_builder = RegexBuilder::new("^foobar$");
+   |                              ^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:57:31
+   |
+LL |     let trivial_starts_with = Regex::new("^foobar");
+   |                               ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:59:29
+   |
+LL |     let trivial_ends_with = Regex::new("foobar$");
+   |                             ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:61:28
+   |
+LL |     let trivial_contains = Regex::new("foobar");
+   |                            ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:63:28
+   |
+LL |     let trivial_contains = Regex::new(NOT_A_REAL_REGEX);
+   |                            ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:65:29
+   |
+LL |     let trivial_backslash = Regex::new("a/.b");
+   |                             ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:68:25
+   |
+LL |     let trivial_empty = Regex::new("");
+   |                         ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:70:25
+   |
+LL |     let trivial_empty = Regex::new("^");
+   |                         ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:72:25
+   |
+LL |     let trivial_empty = Regex::new("^$");
+   |                         ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:74:32
+   |
+LL |     let binary_trivial_empty = BRegex::new("^$");
+   |                                ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:77:27
+   |
+LL |     let non_trivial_dot = Regex::new("a.b");
+   |                           ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:78:35
+   |
+LL |     let non_trivial_dot_builder = RegexBuilder::new("a.b");
+   |                                   ^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:79:27
+   |
+LL |     let non_trivial_dot = Regex::new(".");
+   |                           ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:80:27
+   |
+LL |     let non_trivial_dot = BRegex::new(".");
+   |                           ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:81:26
+   |
+LL |     let non_trivial_eq = Regex::new("^foo|bar$");
+   |                          ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:82:35
+   |
+LL |     let non_trivial_starts_with = Regex::new("^foo|bar");
+   |                                   ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:83:33
+   |
+LL |     let non_trivial_ends_with = Regex::new("^foo|bar");
+   |                                 ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:84:33
+   |
+LL |     let non_trivial_ends_with = Regex::new("foo|bar");
+   |                                 ^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:85:30
+   |
+LL |     let non_trivial_binary = BRegex::new("foo|bar");
+   |                              ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:86:38
+   |
+LL |     let non_trivial_binary_builder = BRegexBuilder::new("foo|bar");
+   |                                      ^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error[E0658]: use of unstable library feature 'rustc_private': this crate is being loaded from the sysroot, an unstable location; did you mean to load this crate from crates.io via `Cargo.toml` instead?
+  --> $DIR/regex.rs:89:29
+   |
+LL |     let a_byte_of_unicode = BRegex::new(r"/p{C}");
+   |                             ^^^^^^^^^^^
+   |
+   = note: see issue #27812 <https://github.com/rust-lang/rust/issues/27812> for more information
+   = help: add `#![feature(rustc_private)]` to the crate attributes to enable
+
+error: aborting due to 95 previous errors
+
+For more information about this error, try `rustc --explain E0658`.

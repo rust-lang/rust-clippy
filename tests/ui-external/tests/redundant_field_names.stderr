@@ -1,15 +1,3 @@
-error[E0463]: can't find crate for `derive_new`
-  --> $DIR/redundant_field_names.rs:7:1
-   |
-LL | extern crate derive_new;
-   | ^^^^^^^^^^^^^^^^^^^^^^^^ can't find crate
-
-error: cannot find derive macro `new` in this scope
-  --> $DIR/redundant_field_names.rs:23:10
-   |
-LL | #[derive(new)]
-   |          ^^^
-
 error: redundant field names in struct initialization
   --> $DIR/redundant_field_names.rs:35:9
    |
@@ -60,6 +48,5 @@ error: redundant field names in struct initialization
 LL |     let _ = RangeFrom { start: start };
    |                         ^^^^^^^^^^^^ help: replace it with: `start`
 
-error: aborting due to 10 previous errors
+error: aborting due to 8 previous errors
 
-For more information about this error, try `rustc --explain E0463`.

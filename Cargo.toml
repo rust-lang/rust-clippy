@@ -25,6 +25,7 @@ clippy_lints = { path = "clippy_lints" }
 rustc_tools_util = "0.3.0"
 tempfile = { version = "3.2", optional = true }
 termize = "0.1"
+ui-external = { path = "tests/ui-external", optional = true }
 
 [dev-dependencies]
 compiletest_rs = { version = "0.10", features = ["tmp"] }
@@ -34,20 +35,17 @@ toml = "0.5"
 walkdir = "2.3"
 # This is used by the `collect-metadata` alias.
 filetime = "0.2"
-
-# UI test dependencies
-clap = { version = "4.1.4", features = ["derive"] }
 clippy_utils = { path = "clippy_utils" }
-derive-new = "0.5"
 if_chain = "1.0"
-itertools = "0.10.1"
 quote = "1.0"
+itertools = "0.10.1"
 serde = { version = "1.0.125", features = ["derive"] }
 syn = { version = "2.0", features = ["full"] }
 futures = "0.3"
 parking_lot = "0.12"
 tokio = { version = "1", features = ["io-util"] }
 rustc-semver = "1.1"
+
 
 [build-dependencies]
 rustc_tools_util = "0.3.0"
@@ -56,6 +54,7 @@ rustc_tools_util = "0.3.0"
 deny-warnings = ["clippy_lints/deny-warnings"]
 integration = ["tempfile"]
 internal = ["clippy_lints/internal", "tempfile"]
+external = ["dep:ui-external"]
 
 [package.metadata.rust-analyzer]
 # This package uses #[feature(rustc_private)]

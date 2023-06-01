@@ -22,22 +22,7 @@ mod test_utils;
 const RUN_INTERNAL_TESTS: bool = cfg!(feature = "internal");
 
 /// All crates used in UI tests are listed here
-static TEST_DEPENDENCIES: &[&str] = &[
-    "clippy_lints",
-    "clippy_utils",
-    "derive_new",
-    "futures",
-    "if_chain",
-    "itertools",
-    "quote",
-    "regex",
-    "serde",
-    "serde_derive",
-    "syn",
-    "tokio",
-    "parking_lot",
-    "rustc_semver",
-];
+static TEST_DEPENDENCIES: &[&str] = &["clippy_lints", "clippy_utils", "quote", "syn"];
 
 // Test dependencies may need an `extern crate` here to ensure that they show up
 // in the depinfo file (otherwise cargo thinks they are unused)
@@ -46,23 +31,12 @@ extern crate clippy_lints;
 #[allow(unused_extern_crates)]
 extern crate clippy_utils;
 #[allow(unused_extern_crates)]
-extern crate derive_new;
-#[allow(unused_extern_crates)]
-extern crate futures;
-#[allow(unused_extern_crates)]
-extern crate if_chain;
-#[allow(unused_extern_crates)]
-extern crate itertools;
-#[allow(unused_extern_crates)]
-extern crate parking_lot;
-#[allow(unused_extern_crates)]
 extern crate quote;
-#[allow(unused_extern_crates)]
-extern crate rustc_semver;
 #[allow(unused_extern_crates)]
 extern crate syn;
 #[allow(unused_extern_crates)]
-extern crate tokio;
+#[cfg(feature = "external")]
+extern crate ui_external;
 
 /// Produces a string with an `--extern` flag for all UI test crate
 /// dependencies.
@@ -165,8 +139,8 @@ fn base_config(test_dir: &str) -> compiletest::Config {
     config
 }
 
-fn run_ui() {
-    let mut config = base_config("ui");
+fn run_ui(ui_dir: &str) {
+    let mut config = base_config(ui_dir);
     config.rustfix_coverage = true;
     // use tests/clippy.toml
     let _g = VarGuard::set("CARGO_MANIFEST_DIR", fs::canonicalize("tests").unwrap());
@@ -355,7 +329,9 @@ fn run_ui_cargo() {
 #[test]
 fn compile_test() {
     set_var("CLIPPY_DISABLE_DOCS_LINKS", "true");
-    run_ui();
+    run_ui("ui");
+    #[cfg(feature = "external")]
+    run_ui("ui-external/tests");
     run_ui_toml();
     run_ui_cargo();
     run_internal_tests();
