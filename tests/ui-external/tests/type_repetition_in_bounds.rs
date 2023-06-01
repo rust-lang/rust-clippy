@@ -54,14 +54,14 @@ mod issue4323 {
 }
 
 // Extern macros shouldn't lint (see #4326)
-extern crate serde;
+use external::serde;
 mod issue4326 {
-    use serde::{Deserialize, Serialize};
+    use external::serde::{Deserialize, Serialize};
 
     trait Foo {}
     impl Foo for String {}
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, external::serde::Serialize, external::serde::Deserialize)]
     struct Bar<S>
     where
         S: Foo,

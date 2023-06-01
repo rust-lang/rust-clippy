@@ -1,7 +1,7 @@
 error: this import is redundant
   --> $DIR/single_component_path_imports_nested_first.rs:4:1
    |
-LL | use regex;
+LL | use external::regex;
    | ^^^^^^^^^^ help: remove it entirely
    |
    = note: `-D clippy::single-component-path-imports` implied by `-D warnings`

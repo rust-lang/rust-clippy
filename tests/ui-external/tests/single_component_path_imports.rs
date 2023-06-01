@@ -3,14 +3,14 @@
 #![allow(unused_imports)]
 
 use core;
-use regex;
-use serde as edres;
-pub use serde;
+use external::regex;
+use external::serde as edres;
+pub use external::serde;
 use std;
 
 macro_rules! m {
     () => {
-        use regex;
+        use external::regex;
     };
 }
 
@@ -26,14 +26,14 @@ fn main() {
 }
 
 mod hello_mod {
-    use regex;
+    use external::regex;
     #[allow(dead_code)]
     fn hello_mod() {}
 }
 
 mod hi_mod {
     use self::regex::{Regex, RegexSet};
-    use regex;
+    use external::regex;
     #[allow(dead_code)]
     fn hi_mod() {}
 }

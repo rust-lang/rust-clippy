@@ -610,7 +610,7 @@ mod issue8845 {
 }
 
 mod issue6902 {
-    use serde::Serialize;
+    use external::serde::Serialize;
 
     #[derive(Serialize)]
     pub enum Foo {

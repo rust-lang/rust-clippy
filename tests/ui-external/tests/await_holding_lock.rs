@@ -1,4 +1,5 @@
 #![warn(clippy::await_holding_lock)]
+use external::parking_lot;
 
 // When adding or modifying a test, please do the same for parking_lot::Mutex.
 mod std_mutex {
@@ -81,7 +82,7 @@ mod std_mutex {
 // When adding or modifying a test, please do the same for std::Mutex.
 mod parking_lot_mutex {
     use super::baz;
-    use parking_lot::{Mutex, RwLock};
+    use external::parking_lot::{Mutex, RwLock};
 
     pub async fn bad(x: &Mutex<u32>) -> u32 {
         let guard = x.lock();

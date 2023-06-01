@@ -74,12 +74,12 @@ mod c {
 // https://github.com/rust-lang/rust-clippy/issues/7511
 pub mod split {
     #[allow(clippy::module_name_repetitions)]
-    pub use regex::SplitN;
+    pub use external::regex::SplitN;
 }
 
 // https://github.com/rust-lang/rust-clippy/issues/8768
 #[allow(clippy::single_component_path_imports)]
-use regex;
+use external::regex;
 
 fn main() {
     test_indented_attr();

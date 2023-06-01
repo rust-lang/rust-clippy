@@ -4,15 +4,13 @@
 
 extern crate macros;
 
-use serde::Serialize;
-
 fn main() {
     println!("one");
     println!("two");
     cfg!(unix);
     vec![1, 2, 3];
 
-    #[derive(Serialize)]
+    #[derive(external::serde::Serialize)]
     struct Derive;
 
     let _ = macros::expr!();

@@ -1,7 +1,7 @@
 #![warn(clippy::serde_api_misuse)]
 #![allow(dead_code)]
 
-extern crate serde;
+use external::serde;
 
 struct A;
 

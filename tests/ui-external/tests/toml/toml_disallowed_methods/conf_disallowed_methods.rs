@@ -2,11 +2,11 @@
 
 #![warn(clippy::disallowed_methods)]
 
-extern crate futures;
-extern crate regex;
+use external::futures;
+use external::regex;
 
-use futures::stream::{empty, select_all};
-use regex::Regex;
+use external::futures::stream::{empty, select_all};
+use external::regex::Regex;
 
 fn local_fn() {}
 

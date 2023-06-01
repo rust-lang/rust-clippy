@@ -65,12 +65,11 @@ fn main() {
     let expr = Some(Some(true));
 }
 
-extern crate serde;
 mod issue_4298 {
-    use serde::{Deserialize, Deserializer, Serialize};
+    use external::serde::{Deserialize, Deserializer, Serialize};
     use std::borrow::Cow;
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(external::serde::Serialize, external::serdeDeserialize)]
     struct Foo<'a> {
         #[serde(deserialize_with = "func")]
         #[serde(skip_serializing_if = "Option::is_none")]

@@ -4,13 +4,13 @@
 
 use core;
 
-use serde as edres;
-pub use serde;
+use external::serde as edres;
+pub use external::serde;
 use std;
 
 macro_rules! m {
     () => {
-        use regex;
+        use external::regex;
     };
 }
 
@@ -33,7 +33,7 @@ mod hello_mod {
 
 mod hi_mod {
     use self::regex::{Regex, RegexSet};
-    use regex;
+    use external::regex;
     #[allow(dead_code)]
     fn hi_mod() {}
 }

@@ -22,7 +22,7 @@ mod test_utils;
 const RUN_INTERNAL_TESTS: bool = cfg!(feature = "internal");
 
 /// All crates used in UI tests are listed here
-static TEST_DEPENDENCIES: &[&str] = &["clippy_lints", "clippy_utils", "quote", "syn"];
+static TEST_DEPENDENCIES: &[&str] = &["clippy_lints", "clippy_utils", "quote", "syn", "if_chain", "external"];
 
 // Test dependencies may need an `extern crate` here to ensure that they show up
 // in the depinfo file (otherwise cargo thinks they are unused)
@@ -31,12 +31,14 @@ extern crate clippy_lints;
 #[allow(unused_extern_crates)]
 extern crate clippy_utils;
 #[allow(unused_extern_crates)]
+#[cfg(feature = "external")]
+extern crate external;
+#[allow(unused_extern_crates)]
+extern crate if_chain;
+#[allow(unused_extern_crates)]
 extern crate quote;
 #[allow(unused_extern_crates)]
-extern crate syn;
-#[allow(unused_extern_crates)]
-#[cfg(feature = "external")]
-extern crate ui_external;
+extern crate syn; // For ui-external tests
 
 /// Produces a string with an `--extern` flag for all UI test crate
 /// dependencies.
@@ -166,7 +168,7 @@ fn run_internal_tests() {
     compiletest::run_tests(&config);
 }
 
-fn run_ui_toml() {
+fn run_ui_toml(toml_dir: &str) {
     fn run_tests(config: &compiletest::Config, mut tests: Vec<tester::TestDescAndFn>) -> Result<bool, io::Error> {
         let mut result = true;
         let opts = compiletest::test_opts(config);
@@ -202,7 +204,7 @@ fn run_ui_toml() {
         Ok(result)
     }
 
-    let mut config = base_config("ui-toml");
+    let mut config = base_config(toml_dir);
     config.src_base = config.src_base.canonicalize().unwrap();
 
     let tests = compiletest::make_tests(&config);
@@ -330,9 +332,11 @@ fn run_ui_cargo() {
 fn compile_test() {
     set_var("CLIPPY_DISABLE_DOCS_LINKS", "true");
     run_ui("ui");
-    #[cfg(feature = "external")]
-    run_ui("ui-external/tests");
-    run_ui_toml();
+    if cfg!(feature = "external") {
+        run_ui("ui-external/tests");
+        run_ui_toml("ui-external/tests/toml");
+    }
+    run_ui_toml("ui-toml");
     run_ui_cargo();
     run_internal_tests();
 }

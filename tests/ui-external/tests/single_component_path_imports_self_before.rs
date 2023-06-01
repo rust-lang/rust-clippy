@@ -1,7 +1,7 @@
 #![warn(clippy::single_component_path_imports)]
 #![allow(unused_imports)]
 
-use regex;
+use external::regex;
 
 use self::regex::{Regex as xeger, RegexSet as tesxeger};
 pub use self::{

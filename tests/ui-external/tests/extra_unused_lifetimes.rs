@@ -95,7 +95,7 @@ mod issue6437 {
 
 // https://github.com/rust-lang/rust-clippy/pull/8737#pullrequestreview-951268213
 mod first_case {
-    use serde::de::Visitor;
+    use external::serde::de::Visitor;
     pub trait Expected {
         fn fmt(&self, formatter: &mut std::fmt::Formatter);
     }

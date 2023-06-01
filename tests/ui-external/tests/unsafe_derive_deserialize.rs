@@ -1,11 +1,11 @@
 #![warn(clippy::unsafe_derive_deserialize)]
 #![allow(unused, clippy::missing_safety_doc)]
 
-extern crate serde;
+use external::serde;
 
-use serde::Deserialize;
+use external::serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(external::serde::Deserialize)]
 pub struct A;
 impl A {
     pub unsafe fn new(_a: i32, _b: i32) -> Self {
@@ -13,13 +13,13 @@ impl A {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(external::serde::Deserialize)]
 pub struct B;
 impl B {
     pub unsafe fn unsafe_method(&self) {}
 }
 
-#[derive(Deserialize)]
+#[derive(external::serde::Deserialize)]
 pub struct C;
 impl C {
     pub fn unsafe_block(&self) {
@@ -27,7 +27,7 @@ impl C {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(external::serde::Deserialize)]
 pub struct D;
 impl D {
     pub fn inner_unsafe_fn(&self) {
@@ -54,12 +54,12 @@ impl E {
 }
 
 // Does not have methods using `unsafe`, should be ignored
-#[derive(Deserialize)]
+#[derive(external::serde::Deserialize)]
 pub struct F;
 
 // Check that we honor the `allow` attribute on the ADT
 #[allow(clippy::unsafe_derive_deserialize)]
-#[derive(Deserialize)]
+#[derive(external::serde::Deserialize)]
 pub struct G;
 impl G {
     pub fn unsafe_block(&self) {

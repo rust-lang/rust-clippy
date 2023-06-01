@@ -1,9 +1,9 @@
-use serde::Deserialize;
+use external::serde::Deserialize;
 
 /// Tests that we do not lint for unused underscores in a `MacroAttribute`
 /// expansion
 #[deny(clippy::used_underscore_binding)]
-#[derive(Deserialize)]
+#[derive(external::serde::Deserialize)]
 struct MacroAttributesTest {
     _foo: u32,
 }

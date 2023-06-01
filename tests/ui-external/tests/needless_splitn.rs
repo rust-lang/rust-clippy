@@ -4,7 +4,7 @@
 #![warn(clippy::needless_splitn)]
 #![allow(clippy::iter_skip_next, clippy::iter_nth_zero, clippy::manual_split_once)]
 
-extern crate itertools;
+use external::itertools;
 
 #[allow(unused_imports)]
 use itertools::Itertools;

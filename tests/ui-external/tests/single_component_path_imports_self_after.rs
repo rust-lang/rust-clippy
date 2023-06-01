@@ -6,7 +6,7 @@ pub use self::{
     regex::{Regex, RegexSet},
     some_mod::SomeType,
 };
-use regex;
+use external::regex;
 
 mod some_mod {
     pub struct SomeType;

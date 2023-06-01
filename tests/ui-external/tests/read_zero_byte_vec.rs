@@ -4,9 +4,11 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-extern crate futures;
-use futures::io::{AsyncRead, AsyncReadExt};
-use tokio::io::{AsyncRead as TokioAsyncRead, AsyncReadExt as _, AsyncWrite as TokioAsyncWrite, AsyncWriteExt as _};
+use external::futures;
+use external::futures::io::{AsyncRead, AsyncReadExt};
+use external::tokio::io::{
+    AsyncRead as TokioAsyncRead, AsyncReadExt as _, AsyncWrite as TokioAsyncWrite, AsyncWriteExt as _,
+};
 
 fn test() -> io::Result<()> {
     let cap = 1000;

@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 #![warn(clippy::unused_io_amount)]
 
-extern crate futures;
-use futures::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use external::futures;
+use external::futures::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use std::io::{self, Read};
 
 fn question_mark<T: io::Read + io::Write>(s: &mut T) -> io::Result<()> {
@@ -103,7 +103,9 @@ async fn async_read_nested_or<R: AsyncRead + Unpin>(r: &mut R, do_it: bool) -> R
     Ok(buf)
 }
 
-use tokio::io::{AsyncRead as TokioAsyncRead, AsyncReadExt as _, AsyncWrite as TokioAsyncWrite, AsyncWriteExt as _};
+use external::tokio::io::{
+    AsyncRead as TokioAsyncRead, AsyncReadExt as _, AsyncWrite as TokioAsyncWrite, AsyncWriteExt as _,
+};
 
 async fn bad_async_write_tokio<W: TokioAsyncWrite + Unpin>(w: &mut W) {
     w.write(b"hello world").await.unwrap();

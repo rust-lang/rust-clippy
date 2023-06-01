@@ -3,7 +3,7 @@
 #![warn(clippy::manual_split_once)]
 #![allow(unused, clippy::iter_skip_next, clippy::iter_nth_zero)]
 
-extern crate itertools;
+use external::itertools;
 
 #[allow(unused_imports)]
 use itertools::Itertools;

@@ -1,10 +1,10 @@
 #![allow(unused, clippy::needless_borrow)]
 #![warn(clippy::invalid_regex, clippy::trivial_regex)]
 
-extern crate regex;
+use external::regex;
 
-use regex::bytes::{Regex as BRegex, RegexBuilder as BRegexBuilder, RegexSet as BRegexSet};
-use regex::{Regex, RegexBuilder, RegexSet};
+use external::regex::bytes::{Regex as BRegex, RegexBuilder as BRegexBuilder, RegexSet as BRegexSet};
+use external::regex::{Regex, RegexBuilder, RegexSet};
 
 const OPENING_PAREN: &str = "(";
 const NOT_A_REAL_REGEX: &str = "foobar";
