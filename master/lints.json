@@ -144,7 +144,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 668
+      "line": 632
     },
     "group": "nursery",
     "level": "allow",
@@ -159,7 +159,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 582
+      "line": 546
     },
     "group": "restriction",
     "level": "allow",
@@ -406,7 +406,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 615
+      "line": 579
     },
     "group": "pedantic",
     "level": "allow",
@@ -604,7 +604,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 554
+      "line": 518
     },
     "group": "suspicious",
     "level": "warn",
@@ -619,7 +619,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 531
+      "line": 495
     },
     "group": "suspicious",
     "level": "warn",
@@ -634,7 +634,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 468
+      "line": 432
     },
     "group": "suspicious",
     "level": "warn",
@@ -649,7 +649,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 171
+      "line": 170
     },
     "group": "pedantic",
     "level": "allow",
@@ -664,7 +664,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 690
+      "line": 654
     },
     "group": "suspicious",
     "level": "warn",
@@ -679,7 +679,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 114
+      "line": 113
     },
     "group": "pedantic",
     "level": "allow",
@@ -694,7 +694,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 138
+      "line": 137
     },
     "group": "pedantic",
     "level": "allow",
@@ -709,7 +709,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 53
+      "line": 52
     },
     "group": "pedantic",
     "level": "allow",
@@ -724,7 +724,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 225
+      "line": 224
     },
     "group": "pedantic",
     "level": "allow",
@@ -736,25 +736,10 @@
     }
   },
   {
-    "id": "cast_ref_to_mut",
-    "id_span": {
-      "path": "src/casts/mod.rs",
-      "line": 364
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for casts of `&T` to `&mut T` anywhere in the code.\n\n### Why is this bad?\nIt’s basically guaranteed to be undefined behavior.\n`UnsafeCell` is the only way to obtain aliasable data that is considered\nmutable.\n\n### Example\n```rust\nfn x(r: &i32) {\n    unsafe {\n        *(r as *const _ as *mut _) += 1;\n    }\n}\n```\n\nInstead consider using interior mutability types.\n\n```rust\nuse std::cell::UnsafeCell;\n\nfn x(r: &UnsafeCell<i32>) {\n    unsafe {\n        *r.get() += 1;\n    }\n}\n```",
-    "version": "1.33.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 75
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
@@ -769,7 +754,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 513
+      "line": 477
     },
     "group": "correctness",
     "level": "deny",
@@ -784,7 +769,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 642
+      "line": 606
     },
     "group": "suspicious",
     "level": "warn",
@@ -799,7 +784,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 392
+      "line": 356
     },
     "group": "complexity",
     "level": "warn",
@@ -2378,7 +2363,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 254
+      "line": 253
     },
     "group": "style",
     "level": "warn",
@@ -2393,7 +2378,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 329
+      "line": 328
     },
     "group": "restriction",
     "level": "allow",
@@ -2408,7 +2393,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 287
+      "line": 286
     },
     "group": "style",
     "level": "warn",
@@ -3134,21 +3119,6 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for comparisons where the relation is always either\ntrue or false, but where one side has been upcast so that the comparison is\nnecessary. Only integer types are checked.\n\n### Why is this bad?\nAn expression like `let x : u8 = ...; (x as u32) > 300`\nwill mistakenly imply that it is possible for `x` to be outside the range of\n`u8`.\n\n### Known problems\nhttps://github.com/rust-lang/rust-clippy/issues/886\n\n### Example\n```rust\nlet x: u8 = 1;\n(x as u32) > 300;\n```",
     "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "invalid_utf8_in_unchecked",
-    "id_span": {
-      "path": "src/invalid_utf8_in_unchecked.rs",
-      "line": 25
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for `std::str::from_utf8_unchecked` with an invalid UTF-8 literal\n\n### Why is this bad?\nCreating such a `str` would result in undefined behavior\n\n### Example\n```rust\nunsafe {\n    std::str::from_utf8_unchecked(b\"cl\\x82ippy\");\n}\n```",
-    "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5443,7 +5413,7 @@
     "id": "needless_pass_by_value",
     "id_span": {
       "path": "src/needless_pass_by_value.rs",
-      "line": 60
+      "line": 59
     },
     "group": "pedantic",
     "level": "allow",
@@ -6334,7 +6304,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 421
+      "line": 385
     },
     "group": "pedantic",
     "level": "allow",
@@ -6349,7 +6319,7 @@
     "id": "ptr_cast_constness",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 449
+      "line": 413
     },
     "group": "pedantic",
     "level": "allow",
@@ -7558,7 +7528,7 @@
     "id": "str_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 397
+      "line": 398
     },
     "group": "restriction",
     "level": "allow",
@@ -7663,7 +7633,7 @@
     "id": "string_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 447
+      "line": 448
     },
     "group": "restriction",
     "level": "allow",
@@ -8278,7 +8248,7 @@
     "id": "trim_split_whitespace",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 491
+      "line": 492
     },
     "group": "style",
     "level": "warn",
@@ -8563,7 +8533,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 197
+      "line": 196
     },
     "group": "complexity",
     "level": "warn",
