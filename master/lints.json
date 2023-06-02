@@ -8552,7 +8552,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer types\nand casts of float literals to float types.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
+    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer types, casts of float\nliterals to float types and casts between raw pointers without changing type or constness.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
