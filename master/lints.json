@@ -3896,7 +3896,7 @@
     "id": "manual_let_else",
     "id_span": {
       "path": "src/manual_let_else.rs",
-      "line": 47
+      "line": 48
     },
     "group": "pedantic",
     "level": "allow",
