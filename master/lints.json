@@ -163,7 +163,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nCheck for the usage of `as _` conversion using inferred type.\n\n### Why is this bad?\nThe conversion might include lossy conversion and dangerous cast that might go\nundetected due to the type being inferred.\n\nThe lint is allowed by default as using `_` is less wordy than always specifying the type.\n\n### Example\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as _);\n```\nUse instead:\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as usize);\n```",
+    "docs": "\n### What it does\nChecks for the usage of `as _` conversion using inferred type.\n\n### Why is this bad?\nThe conversion might include lossy conversion and dangerous cast that might go\nundetected due to the type being inferred.\n\nThe lint is allowed by default as using `_` is less wordy than always specifying the type.\n\n### Example\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as _);\n```\nUse instead:\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as usize);\n```",
     "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1196,7 +1196,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for construction on unit struct using `default`.\n\n### Why is this bad?\nThis adds code complexity and an unnecessary function call.\n\n### Example\n```rust\n#[derive(Default)]\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData::default()\n};\n```\nUse instead:\n```rust\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData\n};\n```",
+    "docs": "\n### What it does\nChecks for construction on unit struct using `default`.\n\n### Why is this bad?\nThis adds code complexity and an unnecessary function call.\n\n### Example\n```rust\n#[derive(Default)]\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData::default()\n};\n```\nUse instead:\n```rust\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData\n};\n```",
     "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3825,7 +3825,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for manual implementations of Iterator::find\n\n### Why is this bad?\nIt doesn't affect performance, but using `find` is shorter and easier to read.\n\n### Example\n\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    for el in arr {\n        if el == 1 {\n            return Some(el);\n        }\n    }\n    None\n}\n```\nUse instead:\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    arr.into_iter().find(|&el| el == 1)\n}\n```",
+    "docs": "\n### What it does\nChecks for manual implementations of Iterator::find\n\n### Why is this bad?\nIt doesn't affect performance, but using `find` is shorter and easier to read.\n\n### Example\n\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    for el in arr {\n        if el == 1 {\n            return Some(el);\n        }\n    }\n    None\n}\n```\nUse instead:\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    arr.into_iter().find(|&el| el == 1)\n}\n```",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3855,7 +3855,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for unnecessary `if let` usage in a for loop\nwhere only the `Some` or `Ok` variant of the iterator element is used.\n\n### Why is this bad?\nIt is verbose and can be simplified\nby first calling the `flatten` method on the `Iterator`.\n\n### Example\n\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x {\n    if let Some(n) = n {\n        println!(\"{}\", n);\n    }\n}\n```\nUse instead:\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x.into_iter().flatten() {\n    println!(\"{}\", n);\n}\n```",
+    "docs": "\n### What it does\nChecks for unnecessary `if let` usage in a for loop\nwhere only the `Some` or `Ok` variant of the iterator element is used.\n\n### Why is this bad?\nIt is verbose and can be simplified\nby first calling the `flatten` method on the `Iterator`.\n\n### Example\n\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x {\n    if let Some(n) = n {\n        println!(\"{}\", n);\n    }\n}\n```\nUse instead:\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x.into_iter().flatten() {\n    println!(\"{}\", n);\n}\n```",
     "version": "1.52.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4808,7 +4808,7 @@
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for empty spin loops\n\n### Why is this bad?\nThe loop body should have something like `thread::park()` or at least\n`std::hint::spin_loop()` to avoid needlessly burning cycles and conserve\nenergy. Perhaps even better use an actual lock, if possible.\n\n### Known problems\nThis lint doesn't currently trigger on `while let` or\n`loop { match .. { .. } }` loops, which would be considered idiomatic in\ncombination with e.g. `AtomicBool::compare_exchange_weak`.\n\n### Example\n\n```rust\nuse core::sync::atomic::{AtomicBool, Ordering};\nlet b = AtomicBool::new(true);\n// give a ref to `b` to another thread,wait for it to become false\nwhile b.load(Ordering::Acquire) {};\n```\nUse instead:\n```rust\nwhile b.load(Ordering::Acquire) {\n    std::hint::spin_loop()\n}\n```",
+    "docs": "\n### What it does\nChecks for empty spin loops\n\n### Why is this bad?\nThe loop body should have something like `thread::park()` or at least\n`std::hint::spin_loop()` to avoid needlessly burning cycles and conserve\nenergy. Perhaps even better use an actual lock, if possible.\n\n### Known problems\nThis lint doesn't currently trigger on `while let` or\n`loop { match .. { .. } }` loops, which would be considered idiomatic in\ncombination with e.g. `AtomicBool::compare_exchange_weak`.\n\n### Example\n\n```rust\nuse core::sync::atomic::{AtomicBool, Ordering};\nlet b = AtomicBool::new(true);\n// give a ref to `b` to another thread,wait for it to become false\nwhile b.load(Ordering::Acquire) {};\n```\nUse instead:\n```rust\nwhile b.load(Ordering::Acquire) {\n    std::hint::spin_loop()\n}\n```",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7289,7 +7289,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nCheck for temporaries returned from function calls in a match scrutinee that have the\n`clippy::has_significant_drop` attribute.\n\n### Why is this bad?\nThe `clippy::has_significant_drop` attribute can be added to types whose Drop impls have\nan important side-effect, such as unlocking a mutex, making it important for users to be\nable to accurately understand their lifetimes. When a temporary is returned in a function\ncall in a match scrutinee, its lifetime lasts until the end of the match block, which may\nbe surprising.\n\nFor `Mutex`es this can lead to a deadlock. This happens when the match scrutinee uses a\nfunction call that returns a `MutexGuard` and then tries to lock again in one of the match\narms. In that case the `MutexGuard` in the scrutinee will not be dropped until the end of\nthe match block and thus will not unlock.\n\n### Example\n```rust\nlet mutex = Mutex::new(State {});\n\nmatch mutex.lock().unwrap().foo() {\n    true => {\n        mutex.lock().unwrap().bar(); // Deadlock!\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```\nUse instead:\n```rust\nlet mutex = Mutex::new(State {});\n\nlet is_foo = mutex.lock().unwrap().foo();\nmatch is_foo {\n    true => {\n        mutex.lock().unwrap().bar();\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```",
+    "docs": "\n### What it does\nChecks for temporaries returned from function calls in a match scrutinee that have the\n`clippy::has_significant_drop` attribute.\n\n### Why is this bad?\nThe `clippy::has_significant_drop` attribute can be added to types whose Drop impls have\nan important side-effect, such as unlocking a mutex, making it important for users to be\nable to accurately understand their lifetimes. When a temporary is returned in a function\ncall in a match scrutinee, its lifetime lasts until the end of the match block, which may\nbe surprising.\n\nFor `Mutex`es this can lead to a deadlock. This happens when the match scrutinee uses a\nfunction call that returns a `MutexGuard` and then tries to lock again in one of the match\narms. In that case the `MutexGuard` in the scrutinee will not be dropped until the end of\nthe match block and thus will not unlock.\n\n### Example\n```rust\nlet mutex = Mutex::new(State {});\n\nmatch mutex.lock().unwrap().foo() {\n    true => {\n        mutex.lock().unwrap().bar(); // Deadlock!\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```\nUse instead:\n```rust\nlet mutex = Mutex::new(State {});\n\nlet is_foo = mutex.lock().unwrap().foo();\nmatch is_foo {\n    true => {\n        mutex.lock().unwrap().bar();\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
