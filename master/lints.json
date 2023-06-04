@@ -1958,7 +1958,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 144
+      "line": 146
     },
     "group": "complexity",
     "level": "warn",
@@ -1988,11 +1988,11 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 64
+      "line": 66
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for explicit `deref()` or `deref_mut()` method calls.\n\n### Why is this bad?\nDereferencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.\n\n### Example\n```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\n\nUse instead:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes:\n```rust\nlet _ = d.unwrap().deref();\n```",
+    "docs": "\n### What it does\nChecks for explicit `deref()` or `deref_mut()` method calls.\n\n### Why is this bad?\nDereferencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.\n\n### Example\n```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\n\nUse instead:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes all of:\n```rust\nlet _ = d.unwrap().deref();\nlet _ = Foo::deref(&foo);\nlet _ = <Foo as Deref>::deref(&foo);\n```",
     "version": "1.44.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5230,7 +5230,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 93
+      "line": 95
     },
     "group": "style",
     "level": "warn",
@@ -6790,7 +6790,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 121
+      "line": 123
     },
     "group": "pedantic",
     "level": "allow",
