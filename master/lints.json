@@ -306,6 +306,21 @@
     }
   },
   {
+    "id": "big_endian_bytes",
+    "id_span": {
+      "path": "src/endian_bytes.rs",
+      "line": 61
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for the usage of the `to_be_bytes` method and/or the function `from_be_bytes`.\n\n### Why is this bad?\nIt's not, but some may wish to lint usage of this method, either to suggest using the host\nendianness or little endian.\n\n### Example\n```rust\nlet _x = 2i32.to_be_bytes();\nlet _y = 2i64.to_be_bytes();\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "bind_instead_of_map",
     "id_span": {
       "path": "src/methods/mod.rs",
@@ -2585,6 +2600,21 @@
     }
   },
   {
+    "id": "host_endian_bytes",
+    "id_span": {
+      "path": "src/endian_bytes.rs",
+      "line": 23
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for the usage of the `to_ne_bytes` method and/or the function `from_ne_bytes`.\n\n### Why is this bad?\nIt's not, but some may prefer to specify the target endianness explicitly.\n\n### Example\n```rust\nlet _x = 2i32.to_ne_bytes();\nlet _y = 2i64.to_ne_bytes();\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
@@ -3677,6 +3707,21 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of any `LinkedList`, suggesting to use a\n`Vec` or a `VecDeque` (formerly called `RingBuf`).\n\n### Why is this bad?\nGankra says:\n\n> The TL;DR of `LinkedList` is that it's built on a massive amount of\npointers and indirection.\n> It wastes memory, it has terrible cache locality, and is all-around slow.\n`RingBuf`, while\n> \"only\" amortized for push/pop, should be faster in the general case for\nalmost every possible\n> workload, and isn't even amortized at all if you can predict the capacity\nyou need.\n>\n> `LinkedList`s are only really good if you're doing a lot of merging or\nsplitting of lists.\n> This is because they can just mangle some pointers instead of actually\ncopying the data. Even\n> if you're doing a lot of insertion in the middle of the list, `RingBuf`\ncan still be better\n> because of how expensive it is to seek to the middle of a `LinkedList`.\n\n### Known problems\nFalse positives – the instances where using a\n`LinkedList` makes sense are few and far between, but they can still happen.\n\n### Example\n```rust\nlet x: LinkedList<usize> = LinkedList::new();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
     "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "little_endian_bytes",
+    "id_span": {
+      "path": "src/endian_bytes.rs",
+      "line": 42
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for the usage of the `to_le_bytes` method and/or the function `from_le_bytes`.\n\n### Why is this bad?\nIt's not, but some may wish to lint usage of this method, either to suggest using the host\nendianness or big endian.\n\n### Example\n```rust\nlet _x = 2i32.to_le_bytes();\nlet _y = 2i64.to_le_bytes();\n```",
+    "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
