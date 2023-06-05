@@ -577,7 +577,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.60.0"]
     pub BORROW_AS_PTR,
-    pedantic,
+    suspicious,
     "borrowing just to cast to a raw pointer"
 }
 

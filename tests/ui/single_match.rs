@@ -1,6 +1,11 @@
 //@run-rustfix
 #![warn(clippy::single_match)]
-#![allow(unused, clippy::uninlined_format_args, clippy::redundant_pattern_matching)]
+#![allow(
+    unused,
+    clippy::borrow_as_ptr,
+    clippy::uninlined_format_args,
+    clippy::redundant_pattern_matching
+)]
 fn dummy() {}
 
 fn single_match() {

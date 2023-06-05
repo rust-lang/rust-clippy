@@ -1,6 +1,6 @@
 //@run-rustfix
 
-#![allow(unused)]
+#![allow(unused, clippy::borrow_as_ptr)]
 #![warn(clippy::unnecessary_struct_initialization)]
 
 struct S {

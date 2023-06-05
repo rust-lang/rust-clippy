@@ -1,7 +1,13 @@
 //@run-rustfix
 //@aux-build: proc_macros.rs
 #![warn(clippy::single_match_else)]
-#![allow(unused, clippy::needless_return, clippy::no_effect, clippy::uninlined_format_args)]
+#![allow(
+    unused,
+    clippy::borrow_as_ptr,
+    clippy::needless_return,
+    clippy::no_effect,
+    clippy::uninlined_format_args
+)]
 extern crate proc_macros;
 use proc_macros::with_span;
 

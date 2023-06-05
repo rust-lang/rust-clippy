@@ -1,5 +1,4 @@
 //@run-rustfix
-#![warn(clippy::borrow_as_ptr)]
 
 fn main() {
     let val = 1;
