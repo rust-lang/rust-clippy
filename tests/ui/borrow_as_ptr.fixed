@@ -4,7 +4,9 @@
 fn main() {
     let val = 1;
     let _p = std::ptr::addr_of!(val);
+    let _p = std::ptr::addr_of!(val) as *const u32;
 
     let mut val_mut = 1;
     let _p_mut = std::ptr::addr_of_mut!(val_mut);
+    let _p_mut = std::ptr::addr_of_mut!(val_mut) as *mut u32;
 }
