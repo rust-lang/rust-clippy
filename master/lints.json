@@ -48,7 +48,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 336
+      "line": 339
     },
     "group": "restriction",
     "level": "allow",
@@ -327,7 +327,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 243
+      "line": 246
     },
     "group": "suspicious",
     "level": "warn",
@@ -1267,7 +1267,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 274
+      "line": 277
     },
     "group": "complexity",
     "level": "warn",
@@ -1282,7 +1282,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 132
+      "line": 135
     },
     "group": "correctness",
     "level": "deny",
@@ -1684,7 +1684,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 220
+      "line": 223
     },
     "group": "nursery",
     "level": "allow",
@@ -1699,7 +1699,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 174
+      "line": 177
     },
     "group": "nursery",
     "level": "allow",
@@ -2963,7 +2963,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 69
+      "line": 72
     },
     "group": "pedantic",
     "level": "allow",
@@ -4504,7 +4504,7 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 386
+      "line": 389
     },
     "group": "suspicious",
     "level": "warn",
@@ -4609,7 +4609,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 307
+      "line": 310
     },
     "group": "correctness",
     "level": "deny",
@@ -5686,7 +5686,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 360
+      "line": 363
     },
     "group": "style",
     "level": "warn",
@@ -9242,7 +9242,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 112
+      "line": 115
     },
     "group": "correctness",
     "level": "deny",
