@@ -6832,6 +6832,21 @@
     ]
   },
   {
+    "id": "redundant_type_annotations",
+    "id_span": {
+      "path": "src/redundant_type_annotations.rs",
+      "line": 33
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nWarns about needless / redundant type annotations.\n\n### Why is this bad?\nCode without type annotations is shorter and in most cases\nmore idiomatic and easier to modify.\n\n### Limitations\nThis lint doesn't support:\n\n- Generics\n- Refs returned from anything else than a `MethodCall`\n- Complex types (tuples, arrays, etc...)\n- `Path` to anything else than a primitive type.\n\n### Example\n```rust\nlet foo: String = String::new();\n```\nUse instead:\n```rust\nlet foo = String::new();\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
