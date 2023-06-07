@@ -144,7 +144,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 632
+      "line": 633
     },
     "group": "nursery",
     "level": "allow",
@@ -159,7 +159,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 546
+      "line": 547
     },
     "group": "restriction",
     "level": "allow",
@@ -421,7 +421,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 579
+      "line": 580
     },
     "group": "pedantic",
     "level": "allow",
@@ -619,7 +619,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 518
+      "line": 519
     },
     "group": "suspicious",
     "level": "warn",
@@ -634,7 +634,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 495
+      "line": 496
     },
     "group": "suspicious",
     "level": "warn",
@@ -649,7 +649,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 432
+      "line": 433
     },
     "group": "suspicious",
     "level": "warn",
@@ -664,7 +664,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 170
+      "line": 171
     },
     "group": "pedantic",
     "level": "allow",
@@ -679,7 +679,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 654
+      "line": 655
     },
     "group": "suspicious",
     "level": "warn",
@@ -709,11 +709,11 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 137
+      "line": 138
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e., nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.\n\n### Why is this bad?\nWhile such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.\n\n### Example\n```rust\nu32::MAX as i32; // will yield a value of `-1`\n```",
+    "docs": "\n### What it does\nChecks for casts from an unsigned type to a signed type of\nthe same size, or possibly smaller due to target dependent integers.\nPerforming such a cast is a 'no-op' for the compiler, i.e., nothing is\nchanged at the bit level, and the binary representation of the value is\nreinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.\n\n### Why is this bad?\nWhile such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.\n\n### Example\n```rust\nu32::MAX as i32; // will yield a value of `-1`\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -739,7 +739,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 224
+      "line": 225
     },
     "group": "pedantic",
     "level": "allow",
@@ -769,7 +769,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 477
+      "line": 478
     },
     "group": "correctness",
     "level": "deny",
@@ -784,7 +784,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 606
+      "line": 607
     },
     "group": "suspicious",
     "level": "warn",
@@ -799,7 +799,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 356
+      "line": 357
     },
     "group": "complexity",
     "level": "warn",
@@ -2378,7 +2378,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 253
+      "line": 254
     },
     "group": "style",
     "level": "warn",
@@ -2393,7 +2393,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 328
+      "line": 329
     },
     "group": "restriction",
     "level": "allow",
@@ -2408,7 +2408,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 286
+      "line": 287
     },
     "group": "style",
     "level": "warn",
@@ -6364,7 +6364,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 385
+      "line": 386
     },
     "group": "pedantic",
     "level": "allow",
@@ -6379,7 +6379,7 @@
     "id": "ptr_cast_constness",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 413
+      "line": 414
     },
     "group": "pedantic",
     "level": "allow",
@@ -8608,7 +8608,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 196
+      "line": 197
     },
     "group": "complexity",
     "level": "warn",
