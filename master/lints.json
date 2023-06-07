@@ -3671,7 +3671,7 @@
     "id": "let_with_type_underscore",
     "id_span": {
       "path": "src/let_with_type_underscore.rs",
-      "line": 21
+      "line": 22
     },
     "group": "complexity",
     "level": "warn",
