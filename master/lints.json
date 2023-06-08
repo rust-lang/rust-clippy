@@ -108,6 +108,21 @@
     }
   },
   {
+    "id": "arc_with_non_send_sync",
+    "id_span": {
+      "path": "src/arc_with_non_send_sync.rs",
+      "line": 35
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does.\nThis lint warns when you use `Arc` with a type that does not implement `Send` or `Sync`.\n\n### Why is this bad?\nWrapping a type in Arc doesn't add thread safety to the underlying data, so data races\ncould occur when touching the underlying data.\n\n### Example\n```rust\n\nfn main() {\n    // This is safe, as `i32` implements `Send` and `Sync`.\n    let a = Arc::new(42);\n\n    // This is not safe, as `RefCell` does not implement `Sync`.\n    let b = Arc::new(RefCell::new(42));\n}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "arithmetic_side_effects",
     "id_span": {
       "path": "src/operators/mod.rs",
