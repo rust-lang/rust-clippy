@@ -9380,11 +9380,11 @@
     "id": "useless_vec",
     "id_span": {
       "path": "src/vec.rs",
-      "line": 42
+      "line": 47
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `&vec![..]` when using `&[..]` would\nbe possible.\n\n### Why is this bad?\nThis is less efficient.\n\n### Example\n```rust\nfn foo(_x: &[u8]) {}\n\nfoo(&vec![1, 2]);\n```\n\nUse instead:\n```rust\nfoo(&[1, 2]);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `too-large-for-stack`: `u64`(defaults to `200`): The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap\n",
+    "docs": "\n### What it does\nChecks for usage of `vec![..]` when using `[..]` would\nbe possible.\n\n### Why is this bad?\nThis is less efficient.\n\n### Example\n```rust\nfn foo(_x: &[u8]) {}\n\nfoo(&vec![1, 2]);\n```\n\nUse instead:\n```rust\nfoo(&[1, 2]);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `too-large-for-stack`: `u64`(defaults to `200`): The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
