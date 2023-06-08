@@ -122,7 +122,7 @@ declare_clippy_lint! {
     /// }
     /// // Either provide a type annotation:
     /// let _: Result<u32, ()> = foo();
-    /// // …or drop the let keyword:
+    /// // …or drop the `let` keyword to allow this anyway.
     /// _ = foo();
     /// ```
     #[clippy::version = "1.69.0"]
