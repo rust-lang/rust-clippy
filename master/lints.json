@@ -1879,11 +1879,11 @@
     "id": "excessive_nesting",
     "id_span": {
       "path": "src/excessive_nesting.rs",
-      "line": 60
+      "line": 61
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for blocks which are nested beyond a certain threshold.\n\nNote: Even though this lint is warn-by-default, it will only trigger if a maximum nesting level is defined in the clippy.toml file.\n\n### Why is this bad?\nIt can severely hinder readability.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\nexcessive-nesting-threshold = 3\n```\nlib.rs:\n```rust\npub mod a {\n    pub struct X;\n    impl X {\n        pub fn run(&self) {\n            if true {\n                // etc...\n            }\n        }\n    }\n}\nUse instead:\na.rs:\n```rust,ignore\nfn private_run(x: &X) {\n    if true {\n        // etc...\n    }\n}\n\npub struct X;\nimpl X {\n    pub fn run(&self) {\n        private_run(self);\n    }\n}\n```rust\nlib.rs:\n```rust,ignore\npub mod a;\n```rust\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `excessive-nesting-threshold`: `u64`(defaults to `0`): The maximum amount of nesting a block can reside in\n",
+    "docs": "\n### What it does\nChecks for blocks which are nested beyond a certain threshold.\n\nNote: Even though this lint is warn-by-default, it will only trigger if a maximum nesting level is defined in the clippy.toml file.\n\n### Why is this bad?\nIt can severely hinder readability.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\nexcessive-nesting-threshold = 3\n```\n```rust\n// lib.rs\npub mod a {\n    pub struct X;\n    impl X {\n        pub fn run(&self) {\n            if true {\n                // etc...\n            }\n        }\n    }\n}\n```\nUse instead:\n```rust\n// a.rs\nfn private_run(x: &X) {\n    if true {\n        // etc...\n    }\n}\n\npub struct X;\nimpl X {\n    pub fn run(&self) {\n        private_run(self);\n    }\n}\n```\n```rust\n// lib.rs\npub mod a;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `excessive-nesting-threshold`: `u64`(defaults to `0`): The maximum amount of nesting a block can reside in\n",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
