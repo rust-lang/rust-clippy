@@ -3,12 +3,13 @@
 #![allow(clippy::module_name_repetitions)]
 
 use rustc_session::Session;
-use rustc_span::{BytePos, Pos, SourceFile, Span, SyntaxContext};
+use rustc_span::{BytePos, FileName, Pos, SourceFile, Span, SyntaxContext};
 use serde::de::{Deserializer, IgnoredAny, IntoDeserializer, MapAccess, Visitor};
 use serde::Deserialize;
+use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Range;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::{cmp, env, fmt, fs, io};
 
@@ -100,31 +101,42 @@ impl From<io::Error> for TryConf {
 #[derive(Debug)]
 pub struct ConfError {
     pub message: String,
+    pub file: Option<PathBuf>,
     pub span: Option<Span>,
 }
 
 impl ConfError {
     fn from_toml(file: &SourceFile, error: &toml::de::Error) -> Self {
         if let Some(span) = error.span() {
-            Self::spanned(file, error.message(), span)
-        } else {
-            Self {
-                message: error.message().to_string(),
-                span: None,
-            }
+            return Self::spanned(file, error.message(), span);
+        } else if let FileName::Real(filename) = &file.name
+            && let Some(filename) = filename.local_path()
+        {
+                return Self {
+                    message: error.message().to_string(),
+                    file: Some(filename.to_owned()),
+                    span: None,
+                };
         }
+
+        unreachable!();
     }
 
     fn spanned(file: &SourceFile, message: impl Into<String>, span: Range<usize>) -> Self {
-        Self {
-            message: message.into(),
-            span: Some(Span::new(
-                file.start_pos + BytePos::from_usize(span.start),
-                file.start_pos + BytePos::from_usize(span.end),
-                SyntaxContext::root(),
-                None,
-            )),
+        if let FileName::Real(filename) = &file.name && let Some(filename) = filename.local_path() {
+            return Self {
+                message: message.into(),
+                file: Some(filename.to_owned()),
+                span: Some(Span::new(
+                    file.start_pos + BytePos::from_usize(span.start),
+                    file.start_pos + BytePos::from_usize(span.end),
+                    SyntaxContext::root(),
+                    None,
+                )),
+            };
         }
+
+        unreachable!();
     }
 }
 
@@ -132,6 +144,7 @@ impl From<io::Error> for ConfError {
     fn from(value: io::Error) -> Self {
         Self {
             message: value.to_string(),
+            file: None,
             span: None,
         }
     }
@@ -144,6 +157,7 @@ macro_rules! define_Conf {
         ($name:ident: $ty:ty = $default:expr),
     )*) => {
         /// Clippy lint configuration
+        #[derive(Deserialize)]
         pub struct Conf {
             $($(#[doc = $doc])+ pub $name: $ty,)*
         }
@@ -158,15 +172,15 @@ macro_rules! define_Conf {
             }
         }
 
+        #[allow(non_camel_case_types)]
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "kebab-case")]
-        #[allow(non_camel_case_types)]
         enum Field { $($name,)* third_party, }
 
-        struct ConfVisitor<'a>(&'a SourceFile);
+        struct ConfVisitor<'a>(&'a SourceFile, &'a mut TryConf);
 
         impl<'de> Visitor<'de> for ConfVisitor<'_> {
-            type Value = TryConf;
+            type Value = ();
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("Conf")
@@ -210,8 +224,14 @@ macro_rules! define_Conf {
                         Ok(Field::third_party) => drop(map.next_value::<IgnoredAny>())
                     }
                 }
-                let conf = Conf { $($name: $name.unwrap_or_else(defaults::$name),)* };
-                Ok(TryConf { conf, errors, warnings })
+                $(
+                    if let Some($name) = $name {
+                        self.1.conf.$name = $name;
+                    }
+                )*
+                self.1.errors.extend(errors);
+                self.1.warnings.extend(warnings);
+                Ok(())
             }
         }
 
@@ -536,12 +556,17 @@ define_Conf! {
     (min_ident_chars_threshold: u64 = 1),
 }
 
-/// Search for the configuration file.
+/// Search for any configuration files. The index corresponds to the priority; the higher the index,
+/// the lower the priority.
+///
+/// Note: It's up to the caller to reverse the priority of configuration files, otherwise the last
+/// configuration file will have the highest priority.
 ///
 /// # Errors
 ///
-/// Returns any unexpected filesystem error encountered when searching for the config file
-pub fn lookup_conf_file() -> io::Result<(Option<PathBuf>, Vec<String>)> {
+/// Returns any unexpected filesystem error encountered when searching for the config file or when
+/// running `cargo metadata`.
+pub fn lookup_conf_files() -> Result<(Vec<PathBuf>, Vec<String>), Box<dyn Error + Send + Sync>> {
     /// Possible filename to search for.
     const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
 
@@ -552,66 +577,74 @@ pub fn lookup_conf_file() -> io::Result<(Option<PathBuf>, Vec<String>)> {
         .map_or_else(|| PathBuf::from("."), PathBuf::from)
         .canonicalize()?;
 
-    let mut found_config: Option<PathBuf> = None;
+    let mut found_configs: Vec<PathBuf> = vec![];
     let mut warnings = vec![];
 
+    // TODO: This will continue searching even outside of the workspace, and even add an erroneous
+    // configuration file to the list! Is it worth fixing this? `workspace_root` on `cargo metadata`
+    // doesn't work for clippy_lints' clippy.toml in cwd. We likely can't just use cwd as what if
+    // it's called in src?
     loop {
         for config_file_name in &CONFIG_FILE_NAMES {
             if let Ok(config_file) = current.join(config_file_name).canonicalize() {
                 match fs::metadata(&config_file) {
                     Err(e) if e.kind() == io::ErrorKind::NotFound => {},
-                    Err(e) => return Err(e),
+                    Err(e) => return Err(e.into()),
                     Ok(md) if md.is_dir() => {},
                     Ok(_) => {
-                        // warn if we happen to find two config files #8323
-                        if let Some(ref found_config) = found_config {
+                        // Warn if we happen to find two config files #8323
+                        if let [.., last_config] = &*found_configs
+                            && let Some(last_config_dir) = last_config.parent()
+                            && let Some(config_file_dir) = config_file.parent()
+                            && last_config_dir == config_file_dir
+                        {
                             warnings.push(format!(
                                 "using config file `{}`, `{}` will be ignored",
-                                found_config.display(),
+                                last_config.display(),
                                 config_file.display()
                             ));
                         } else {
-                            found_config = Some(config_file);
+                            found_configs.push(config_file);
                         }
                     },
                 }
             }
         }
 
-        if found_config.is_some() {
-            return Ok((found_config, warnings));
-        }
-
-        // If the current directory has no parent, we're done searching.
         if !current.pop() {
-            return Ok((None, warnings));
+            break;
         }
     }
+
+    Ok((found_configs, warnings))
 }
 
 /// Read the `toml` configuration file.
 ///
 /// In case of error, the function tries to continue as much as possible.
-pub fn read(sess: &Session, path: &Path) -> TryConf {
-    let file = match sess.source_map().load_file(path) {
-        Err(e) => return e.into(),
-        Ok(file) => file,
-    };
-    match toml::de::Deserializer::new(file.src.as_ref().unwrap()).deserialize_map(ConfVisitor(&file)) {
-        Ok(mut conf) => {
-            extend_vec_if_indicator_present(&mut conf.conf.doc_valid_idents, DEFAULT_DOC_VALID_IDENTS);
-            extend_vec_if_indicator_present(&mut conf.conf.disallowed_names, DEFAULT_DISALLOWED_NAMES);
-            // TODO: THIS SHOULD BE TESTED, this comment will be gone soon
-            if conf.conf.allowed_idents_below_min_chars.contains(&"..".to_owned()) {
-                conf.conf
-                    .allowed_idents_below_min_chars
-                    .extend(DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS.iter().map(ToString::to_string));
-            }
-
-            conf
-        },
-        Err(e) => TryConf::from_toml_error(&file, &e),
+pub fn read(sess: &Session, paths: &[PathBuf]) -> TryConf {
+    let mut conf = TryConf::default();
+    for file in paths.iter().rev() {
+        let file = match sess.source_map().load_file(file) {
+            Err(e) => return e.into(),
+            Ok(file) => file,
+        };
+        match toml::de::Deserializer::new(file.src.as_ref().unwrap()).deserialize_map(ConfVisitor(&file, &mut conf)) {
+            Ok(_) => {
+                extend_vec_if_indicator_present(&mut conf.conf.doc_valid_idents, DEFAULT_DOC_VALID_IDENTS);
+                extend_vec_if_indicator_present(&mut conf.conf.disallowed_names, DEFAULT_DISALLOWED_NAMES);
+                // TODO: THIS SHOULD BE TESTED, this comment will be gone soon
+                if conf.conf.allowed_idents_below_min_chars.contains(&"..".to_owned()) {
+                    conf.conf
+                        .allowed_idents_below_min_chars
+                        .extend(DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS.iter().map(ToString::to_string));
+                }
+            },
+            Err(e) => return TryConf::from_toml_error(&file, &e),
+        }
     }
+
+    conf
 }
 
 fn extend_vec_if_indicator_present(vec: &mut Vec<String>, default: &[&str]) {

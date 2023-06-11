@@ -1,0 +1,44 @@
+error: 3 bindings with single-character names in scope
+  --> $DIR/main.rs:6:10
+   |
+LL |     let (a, b, c) = (1, 2, 3);
+   |          ^  ^  ^
+   |
+   = note: `-D clippy::many-single-char-names` implied by `-D warnings`
+
+error: this function has too many lines (4/3)
+  --> $DIR/main.rs:4:1
+   |
+LL | / fn main() {
+LL | |     // Inherited from outer config
+LL | |     let (a, b, c) = (1, 2, 3);
+LL | |     _ = ();
+...  |
+LL | |     // Too many lines, not 1 but 3 because of inner config
+LL | | }
+   | |_^
+   |
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+
+error: this let-binding has unit value
+  --> $DIR/main.rs:7:5
+   |
+LL |     _ = ();
+   |     ^^^^^^ help: omit the `let` binding: `();`
+   |
+   = note: `-D clippy::let-unit-value` implied by `-D warnings`
+
+error: this let-binding has unit value
+  --> $DIR/main.rs:8:5
+   |
+LL |     _ = ();
+   |     ^^^^^^ help: omit the `let` binding: `();`
+
+error: this let-binding has unit value
+  --> $DIR/main.rs:9:5
+   |
+LL |     _ = ();
+   |     ^^^^^^ help: omit the `let` binding: `();`
+
+error: aborting due to 5 previous errors
+

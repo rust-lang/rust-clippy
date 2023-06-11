@@ -1,1 +1,2 @@
 # default config for tests, overrides clippy.toml at the project root
+avoid-breaking-exported-api = true

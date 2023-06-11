@@ -48,7 +48,7 @@ extern crate clippy_utils;
 #[macro_use]
 extern crate declare_clippy_lint;
 
-use std::io;
+use std::error::Error;
 use std::path::PathBuf;
 
 use clippy_utils::msrvs::Msrv;
@@ -339,7 +339,7 @@ mod zero_div_zero;
 mod zero_sized_map_values;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
-pub use crate::utils::conf::{lookup_conf_file, Conf};
+pub use crate::utils::conf::{lookup_conf_files, Conf};
 use crate::utils::{
     conf::{metadata::get_configuration_metadata, TryConf},
     FindAll,
@@ -362,22 +362,23 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, sess: &Se
 }
 
 #[doc(hidden)]
-pub fn read_conf(sess: &Session, path: &io::Result<(Option<PathBuf>, Vec<String>)>) -> Conf {
+#[expect(clippy::type_complexity)]
+pub fn read_conf(sess: &Session, path: &Result<(Vec<PathBuf>, Vec<String>), Box<dyn Error + Send + Sync>>) -> Conf {
     if let Ok((_, warnings)) = path {
         for warning in warnings {
             sess.warn(warning.clone());
         }
     }
-    let file_name = match path {
-        Ok((Some(path), _)) => path,
-        Ok((None, _)) => return Conf::default(),
+    let file_names = match path {
+        Ok((file_names, _)) if file_names.is_empty() => return Conf::default(),
+        Ok((file_names, _)) => file_names,
         Err(error) => {
             sess.err(format!("error finding Clippy's configuration file: {error}"));
             return Conf::default();
         },
     };
 
-    let TryConf { conf, errors, warnings } = utils::conf::read(sess, file_name);
+    let TryConf { conf, errors, warnings } = utils::conf::read(sess, file_names);
     // all conf errors are non-fatal, we just use the default conf in case of error
     for error in errors {
         if let Some(span) = error.span {
@@ -385,10 +386,15 @@ pub fn read_conf(sess: &Session, path: &io::Result<(Option<PathBuf>, Vec<String>
                 span,
                 format!("error reading Clippy's configuration file: {}", error.message),
             );
-        } else {
+        } else if let Some(file) = error.file {
             sess.err(format!(
                 "error reading Clippy's configuration file `{}`: {}",
-                file_name.display(),
+                file.display(),
+                error.message
+            ));
+        } else {
+            sess.err(format!(
+                "error reading any of Clippy's configuration files: {}",
                 error.message
             ));
         }
@@ -400,10 +406,15 @@ pub fn read_conf(sess: &Session, path: &io::Result<(Option<PathBuf>, Vec<String>
                 span,
                 format!("error reading Clippy's configuration file: {}", warning.message),
             );
-        } else {
-            sess.warn(format!(
+        } else if let Some(file) = warning.file {
+            sess.err(format!(
                 "error reading Clippy's configuration file `{}`: {}",
-                file_name.display(),
+                file.display(),
+                warning.message
+            ));
+        } else {
+            sess.err(format!(
+                "error reading any of Clippy's configuration files: {}",
                 warning.message
             ));
         }

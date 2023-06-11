@@ -1,1 +1,2 @@
+# NOTE: Any changes here must be reversed in `tests/clippy.toml`
 avoid-breaking-exported-api = false
