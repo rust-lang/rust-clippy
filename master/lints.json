@@ -1744,7 +1744,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 270
+      "line": 271
     },
     "group": "suspicious",
     "level": "warn",
@@ -2018,7 +2018,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 236
+      "line": 237
     },
     "group": "complexity",
     "level": "warn",
@@ -2048,7 +2048,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 147
+      "line": 148
     },
     "group": "pedantic",
     "level": "allow",
@@ -2063,7 +2063,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 118
+      "line": 119
     },
     "group": "pedantic",
     "level": "allow",
@@ -2453,7 +2453,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 326
+      "line": 327
     },
     "group": "style",
     "level": "warn",
@@ -3296,7 +3296,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 171
+      "line": 172
     },
     "group": "correctness",
     "level": "deny",
@@ -3896,7 +3896,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 574
+      "line": 575
     },
     "group": "complexity",
     "level": "warn",
@@ -3926,7 +3926,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 507
+      "line": 508
     },
     "group": "complexity",
     "level": "warn",
@@ -4016,7 +4016,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 53
+      "line": 54
     },
     "group": "perf",
     "level": "warn",
@@ -4241,7 +4241,7 @@
     "id": "manual_while_let_some",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 604
+      "line": 605
     },
     "group": "style",
     "level": "warn",
@@ -4879,7 +4879,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 543
+      "line": 544
     },
     "group": "perf",
     "level": "warn",
@@ -5170,7 +5170,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 384
+      "line": 385
     },
     "group": "suspicious",
     "level": "warn",
@@ -5548,7 +5548,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 84
+      "line": 85
     },
     "group": "style",
     "level": "warn",
@@ -5653,7 +5653,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 348
+      "line": 349
     },
     "group": "correctness",
     "level": "deny",
@@ -7105,7 +7105,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 447
+      "line": 448
     },
     "group": "style",
     "level": "warn",
@@ -7498,7 +7498,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 475
+      "line": 476
     },
     "group": "complexity",
     "level": "warn",
@@ -9530,7 +9530,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 411
+      "line": 412
     },
     "group": "correctness",
     "level": "deny",
@@ -9545,7 +9545,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 204
+      "line": 205
     },
     "group": "complexity",
     "level": "warn",
@@ -9560,7 +9560,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 297
+      "line": 298
     },
     "group": "style",
     "level": "warn",
