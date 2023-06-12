@@ -5410,6 +5410,21 @@
     }
   },
   {
+    "id": "needless_if",
+    "id_span": {
+      "path": "src/needless_if.rs",
+      "line": 33
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for empty `if` branches with no else branch.\n\n### Why is this bad?\nIt can be entirely omitted, and often the condition too.\n\n### Known issues\nThis will usually only suggest to remove the `if` statement, not the condition. Other lints\nsuch as `no_effect` will take care of removing the condition if it's unnecessary.\n\n### Example\n```rust\nif really_expensive_condition(&i) {}\nif really_expensive_condition_with_side_effects(&mut i) {}\n```\nUse instead:\n```rust\n// <omitted>\nreally_expensive_condition_with_side_effects(&mut i);\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "needless_late_init",
     "id_span": {
       "path": "src/needless_late_init.rs",
