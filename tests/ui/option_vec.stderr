@@ -1,0 +1,16 @@
+error: usage of `Option<Vec<T>>`
+  --> $DIR/option_vec.rs:12:10
+   |
+LL | struct A(std::option::Option<Vec<u16>>);
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::option-vec` implied by `-D warnings`
+
+error: usage of `Option<Vec<T>>`
+  --> $DIR/option_vec.rs:13:10
+   |
+LL | struct B(Option<Vec<u16>>);
+   |          ^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+

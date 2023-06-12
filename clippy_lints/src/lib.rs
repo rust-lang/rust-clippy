@@ -246,6 +246,7 @@ mod only_used_in_recursion;
 mod operators;
 mod option_env_unwrap;
 mod option_if_let_else;
+mod option_vec;
 mod overflow_check_conditional;
 mod panic_in_result_fn;
 mod panic_unimplemented;
@@ -1045,6 +1046,11 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     });
     let stack_size_threshold = conf.stack_size_threshold;
     store.register_late_pass(move |_| Box::new(large_stack_frames::LargeStackFrames::new(stack_size_threshold)));
+    store.register_late_pass(move |_| {
+        Box::new(option_vec::OptionVec {
+            avoid_breaking_exported_api,
+        })
+    });
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
