@@ -9455,7 +9455,7 @@
     "id": "useless_vec",
     "id_span": {
       "path": "src/vec.rs",
-      "line": 49
+      "line": 48
     },
     "group": "perf",
     "level": "warn",
