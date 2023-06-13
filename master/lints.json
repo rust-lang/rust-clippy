@@ -5443,7 +5443,7 @@
     "id": "needless_if",
     "id_span": {
       "path": "src/needless_if.rs",
-      "line": 33
+      "line": 30
     },
     "group": "complexity",
     "level": "warn",
