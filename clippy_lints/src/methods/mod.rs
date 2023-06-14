@@ -42,6 +42,7 @@ mod iter_nth;
 mod iter_nth_zero;
 mod iter_on_single_or_empty_collections;
 mod iter_overeager_cloned;
+mod iter_skip;
 mod iter_skip_next;
 mod iter_with_drain;
 mod iterator_step_by_zero;
@@ -3247,6 +3248,35 @@ declare_clippy_lint! {
     "manual reverse iteration of `DoubleEndedIterator`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `.iter()` followed by `.skip(n)`.
+    ///
+    /// ### Why is this bad?
+    /// It's slower than using `.get(n..)`.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// let mut sum = 0u32;
+    /// for x in list.iter().skip(5) {
+    ///     sum = sum.wrapping_add(*x);
+    /// }
+    /// sum
+    /// ```
+    /// Use instead:
+    /// ```rust,ignore
+    /// let mut sum = 0u32;
+    /// for x in list.get(5..).unwrap_or(&[]) {
+    ///     sum = sum.wrapping_add(*x);
+    /// }
+    /// sum
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub ITER_SKIP,
+    perf,
+    "calling `iter` followed by `skip`"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3314,6 +3344,7 @@ impl_lint_pass!(Methods => [
     ITER_NTH,
     ITER_NTH_ZERO,
     BYTES_NTH,
+    ITER_SKIP,
     ITER_SKIP_NEXT,
     GET_UNWRAP,
     GET_LAST_WITH_LEN,
@@ -3693,6 +3724,13 @@ impl Methods {
                     }
                 },
                 ("last", []) | ("skip", [_]) => {
+                    match (name, args) {
+                        ("skip", [arg]) if let Some((name2 @ ("into_iter" | "iter" | "iter_mut"), e, ..)) = method_call(recv) => {
+                            iter_skip::check(cx, expr, arg, name2, e.span);
+                        }
+                        _ => {}
+                    }
+
                     if let Some((name2, recv2, args2, _span2, _)) = method_call(recv) {
                         if let ("cloned", []) = (name2, args2) {
                             iter_overeager_cloned::check(cx, expr, recv, recv2, false, false);

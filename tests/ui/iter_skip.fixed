@@ -1,0 +1,44 @@
+//@run-rustfix
+#![warn(clippy::iter_skip)]
+#![allow(
+    clippy::iter_skip_next,
+    clippy::useless_vec,
+    clippy::into_iter_on_ref,
+    for_loops_over_fallibles,
+    clippy::iter_next_loop
+)]
+#![no_main]
+
+pub fn _1(list: &[u32]) {
+    for _ in list.get(5..).unwrap_or(&[]) {}
+}
+
+pub fn _2(list: &mut [u32]) {
+    for _ in list.get_mut(5..).unwrap_or(&mut []) {}
+}
+
+pub fn _3(list: Vec<u32>) {
+    for _ in list.get(5..).unwrap_or(&[]) {}
+}
+
+pub fn _4(mut list: Vec<u32>) {
+    for _ in list.get_mut(5..).unwrap_or(&mut []) {}
+}
+
+pub fn _5(list: &[u32]) {
+    for _ in list.get(5..).unwrap_or(&[]) {}
+}
+
+pub fn _6(list: &mut [u32]) {
+    for _ in list.get(5..).unwrap_or(&[]) {}
+}
+
+// Don't lint
+
+pub fn _7(list: &[u32]) {
+    for _ in list.get(5..).unwrap_or(&[]).iter().next() {}
+}
+
+pub fn _8(list: &[u32]) {
+    for _ in list.get(5..).unwrap_or(&[]).iter().next() {}
+}

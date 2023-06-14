@@ -199,7 +199,7 @@ impl<'tcx> LateLintPass<'tcx> for TraitBounds {
                 if bounds.len() != unique_traits.len() {
                     let mut bounds_span = bounds[0].span;
 
-                    for bound in bounds.iter().skip(1) {
+                    for bound in bounds.get(1..).unwrap_or(&[]) {
                         bounds_span = bounds_span.to(bound.span);
                     }
 

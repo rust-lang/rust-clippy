@@ -4,6 +4,7 @@
 #![warn(clippy::iter_skip_next)]
 #![allow(clippy::disallowed_names)]
 #![allow(clippy::iter_nth)]
+#![allow(clippy::iter_skip)]
 #![allow(clippy::useless_vec)]
 #![allow(unused_mut, dead_code)]
 

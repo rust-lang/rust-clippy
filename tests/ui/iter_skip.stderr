@@ -1,0 +1,67 @@
+error: called `iter()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:13:18
+   |
+LL |     for _ in list.iter().skip(5) {}
+   |                  ^^^^^^^^^^^^^^^ help: use `get` instead: `.get(5..).unwrap_or(&[])`
+   |
+   = note: you may need to call `copied`
+   = note: `-D clippy::iter-skip` implied by `-D warnings`
+
+error: called `iter_mut()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:17:18
+   |
+LL |     for _ in list.iter_mut().skip(5) {}
+   |                  ^^^^^^^^^^^^^^^^^^^ help: use `get` instead: `.get_mut(5..).unwrap_or(&mut [])`
+   |
+   = note: you may need to call `copied`
+
+error: called `iter()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:21:18
+   |
+LL |     for _ in list.iter().skip(5) {}
+   |                  ^^^^^^^^^^^^^^^ help: use `get` instead: `.get(5..).unwrap_or(&[])`
+   |
+   = note: you may need to call `copied`
+
+error: called `iter_mut()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:25:18
+   |
+LL |     for _ in list.iter_mut().skip(5) {}
+   |                  ^^^^^^^^^^^^^^^^^^^ help: use `get` instead: `.get_mut(5..).unwrap_or(&mut [])`
+   |
+   = note: you may need to call `copied`
+
+error: called `into_iter()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:29:18
+   |
+LL |     for _ in list.into_iter().skip(5) {}
+   |                  ^^^^^^^^^^^^^^^^^^^^ help: use `get` instead: `.get(5..).unwrap_or(&[])`
+   |
+   = note: you may need to call `copied`
+
+error: called `into_iter()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:33:18
+   |
+LL |     for _ in list.into_iter().skip(5) {}
+   |                  ^^^^^^^^^^^^^^^^^^^^ help: use `get` instead: `.get(5..).unwrap_or(&[])`
+   |
+   = note: you may need to call `copied`
+
+error: called `iter()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:39:18
+   |
+LL |     for _ in list.iter().skip(5).next() {}
+   |                  ^^^^^^^^^^^^^^^ help: use `get` instead: `.get(5..).unwrap_or(&[]).iter()`
+   |
+   = note: you may need to call `copied`
+
+error: called `iter()` followed by `skip(..)`
+  --> $DIR/iter_skip.rs:43:18
+   |
+LL |     for _ in list.iter().skip(5).next() {}
+   |                  ^^^^^^^^^^^^^^^ help: use `get` instead: `.get(5..).unwrap_or(&[]).iter()`
+   |
+   = note: you may need to call `copied`
+
+error: aborting due to 8 previous errors
+

@@ -172,7 +172,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
                     !preds.is_empty() && {
                         let ty_empty_region = cx.tcx.mk_imm_ref(cx.tcx.lifetimes.re_erased, ty);
                         preds.iter().all(|t| {
-                            let ty_params = t.trait_ref.substs.iter().skip(1).collect::<Vec<_>>();
+                            let ty_params = t.trait_ref.substs.get(1..).unwrap_or(&[]).to_vec();
                             implements_trait(cx, ty_empty_region, t.def_id(), &ty_params)
                         })
                     },

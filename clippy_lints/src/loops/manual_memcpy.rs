@@ -407,10 +407,11 @@ fn get_assignments<'a, 'tcx>(
             if let ExprKind::AssignOp(_, place, _) = e.kind {
                 path_to_local(place).map_or(false, |id| {
                     !loop_counters
-                        .iter()
                         // skip the first item which should be `StartKind::Range`
                         // this makes it possible to use the slice with `StartKind::Range` in the same iterator loop.
-                        .skip(1)
+                        .get(1..)
+                        .unwrap_or(&[])
+                        .iter()
                         .any(|counter| counter.id == id)
                 })
             } else {

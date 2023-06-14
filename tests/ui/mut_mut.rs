@@ -1,7 +1,12 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::mut_mut)]
 #![allow(unused)]
-#![allow(clippy::no_effect, clippy::uninlined_format_args, clippy::unnecessary_operation)]
+#![allow(
+    clippy::no_effect,
+    clippy::iter_skip,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_operation
+)]
 
 extern crate proc_macros;
 use proc_macros::{external, inline_macros};
