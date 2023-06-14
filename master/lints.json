@@ -1357,7 +1357,7 @@
     "id": "derivable_impls",
     "id_span": {
       "path": "src/derivable_impls.rs",
-      "line": 52
+      "line": 54
     },
     "group": "complexity",
     "level": "warn",
