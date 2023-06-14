@@ -5731,7 +5731,7 @@
     "id": "no_effect",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 28
+      "line": 33
     },
     "group": "complexity",
     "level": "warn",
@@ -5739,7 +5739,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MaybeIncorrect"
     }
   },
   {
@@ -5761,7 +5761,7 @@
     "id": "no_effect_underscore_binding",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 51
+      "line": 56
     },
     "group": "pedantic",
     "level": "allow",
@@ -8803,7 +8803,7 @@
     "id": "unnecessary_operation",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 70
+      "line": 75
     },
     "group": "complexity",
     "level": "warn",
