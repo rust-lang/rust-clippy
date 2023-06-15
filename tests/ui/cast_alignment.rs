@@ -9,7 +9,8 @@ extern crate libc;
     clippy::no_effect,
     clippy::unnecessary_operation,
     clippy::cast_lossless,
-    clippy::borrow_as_ptr
+    clippy::borrow_as_ptr,
+    clippy::ptr_to_temporary
 )]
 
 fn main() {

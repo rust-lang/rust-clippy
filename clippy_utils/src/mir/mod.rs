@@ -1,7 +1,8 @@
 use rustc_hir::{Expr, HirId};
 use rustc_middle::mir::visit::{MutatingUseContext, NonMutatingUseContext, PlaceContext, Visitor};
 use rustc_middle::mir::{
-    traversal, Body, InlineAsmOperand, Local, Location, Place, StatementKind, TerminatorKind, START_BLOCK,
+    traversal, Body, InlineAsmOperand, Local, Location, Place, Statement, StatementKind, Terminator, TerminatorKind,
+    START_BLOCK,
 };
 use rustc_middle::ty::TyCtxt;
 
@@ -164,4 +165,21 @@ fn is_local_assignment(mir: &Body<'_>, local: Local, location: Location) -> bool
             _ => false,
         }
     }
+}
+
+/// Gets the statement or terminator this `Location` points to.
+pub fn location_to_node<'a, 'tcx>(body: &'tcx Body<'tcx>, loc: Location) -> StatementOrTerminator<'a, 'tcx> {
+    let data = &body.basic_blocks[loc.block];
+
+    if data.statements.len() == loc.statement_index {
+        StatementOrTerminator::Terminator(data.terminator())
+    } else {
+        StatementOrTerminator::Statement(&data.statements[loc.statement_index])
+    }
+}
+
+#[derive(Debug)]
+pub enum StatementOrTerminator<'a, 'tcx> {
+    Statement(&'a Statement<'tcx>),
+    Terminator(&'a Terminator<'tcx>),
 }

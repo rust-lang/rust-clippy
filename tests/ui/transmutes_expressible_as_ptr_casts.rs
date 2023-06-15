@@ -4,7 +4,7 @@
 // would otherwise be responsible for
 #![warn(clippy::useless_transmute)]
 #![warn(clippy::transmute_ptr_to_ptr)]
-#![allow(unused, clippy::borrow_as_ptr)]
+#![allow(unused, clippy::borrow_as_ptr, clippy::ptr_to_temporary)]
 
 use std::mem::{size_of, transmute};
 

@@ -1,0 +1,185 @@
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:24:5
+   |
+LL |     &(100 + *&0) as *const i32
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer by callers will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+   = note: `-D clippy::ptr-to-temporary` implied by `-D warnings`
+
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:29:5
+   |
+LL |     &(*&a) as *const i32
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer by callers will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:34:5
+   |
+LL |     &a as *const i32
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer by callers will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:39:5
+   |
+LL |     &a as *const i32
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer by callers will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:49:5
+   |
+LL |     &a as *const i32
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer by callers will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:53:14
+   |
+LL |     let pv = vec![1].as_ptr();
+   |              ^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:61:14
+   |
+LL |     let pa = helper().as_ptr();
+   |              ^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:65:14
+   |
+LL |     let pc = Cell::new("oops ub").as_ptr();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:69:15
+   |
+LL |     let prc = RefCell::new("oops more ub").as_ptr();
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:74:26
+   |
+LL |     let pcstr = unsafe { CString::new(vec![]).unwrap().as_ptr() };
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:78:24
+   |
+LL |     let pab = unsafe { AtomicBool::new(true).as_ptr() };
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:82:14
+   |
+LL |     let ps = vec![1].as_slice().as_ptr();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:86:14
+   |
+LL |     let ps = <[i32]>::as_ptr(Vec::as_slice(&vec![1]));
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:90:5
+   |
+LL |     CString::new("asd".to_owned()).unwrap().as_c_str().as_ptr();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:94:14
+   |
+LL |     let pv = (*vec![12].into_boxed_slice()).as_ptr();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:98:14
+   |
+LL |     let pv = vec![12].into_boxed_slice().as_ptr();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_mut_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:102:5
+   |
+LL |     [1u8, 2].as_mut_ptr();
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:167:1
+   |
+LL | / external! {
+LL | |     fn bad_external() -> *const i32 {
+LL | |         let a = 0i32;
+LL | |         &a as *const i32
+...  |
+LL | |     }
+LL | | }
+   | |_^
+   |
+   = note: usage of this pointer by callers will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+   = note: this error originates in the macro `external` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:167:1
+   |
+LL | / external! {
+LL | |     fn bad_external() -> *const i32 {
+LL | |         let a = 0i32;
+LL | |         &a as *const i32
+...  |
+LL | |     }
+LL | | }
+   | |_^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+   = note: this error originates in the macro `external` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:178:5
+   |
+LL |     span
+   |     ^^^^
+   |
+   = note: usage of this pointer by callers will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: calling `as_ptr` on a temporary value
+  --> $DIR/ptr_to_temporary.rs:178:5
+   |
+LL |     span
+   |     ^^^^
+   |
+   = note: usage of this pointer will cause Undefined Behavior as the temporary will be deallocated at the end of the statement, yet the pointer will continue pointing to it, resulting in a dangling pointer
+
+error: aborting due to 21 previous errors
+

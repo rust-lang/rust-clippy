@@ -5,6 +5,7 @@
     clippy::borrow_as_ptr,
     clippy::no_effect,
     clippy::nonstandard_macro_braces,
+    clippy::ptr_to_temporary,
     clippy::unnecessary_operation,
     nonstandard_style,
     unused

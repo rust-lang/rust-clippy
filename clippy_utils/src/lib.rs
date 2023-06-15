@@ -2458,6 +2458,16 @@ pub fn is_test_module_or_function(tcx: TyCtxt<'_>, item: &Item<'_>) -> bool {
             && item.ident.name.as_str().split('_').any(|a| a == "test" || a == "tests")
 }
 
+/// Returns whether `expr` is a temporary value that will be freed at the end of the statement.
+pub fn is_temporary(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    !expr.is_place_expr(|base| {
+        cx.typeck_results()
+            .adjustments()
+            .get(base.hir_id)
+            .is_some_and(|x| x.iter().any(|adj| matches!(adj.kind, Adjust::Deref(_))))
+    })
+}
+
 /// Walks the HIR tree from the given expression, up to the node where the value produced by the
 /// expression is consumed. Calls the function for every node encountered this way until it returns
 /// `Some`.

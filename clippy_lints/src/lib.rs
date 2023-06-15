@@ -1,6 +1,7 @@
 #![feature(array_windows)]
 #![feature(binary_heap_into_iter_sorted)]
 #![feature(box_patterns)]
+#![feature(exclusive_range_pattern)]
 #![feature(if_let_guard)]
 #![feature(iter_intersperse)]
 #![feature(let_chains)]
@@ -262,6 +263,7 @@ mod permissions_set_readonly_false;
 mod precedence;
 mod ptr;
 mod ptr_offset_with_cast;
+mod ptr_to_temporary;
 mod pub_use;
 mod question_mark;
 mod question_mark_used;
@@ -1082,6 +1084,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(manual_float_methods::ManualFloatMethods));
     store.register_late_pass(|_| Box::new(four_forward_slashes::FourForwardSlashes));
     store.register_late_pass(|_| Box::new(error_impl_error::ErrorImplError));
+    store.register_late_pass(move |_| Box::new(ptr_to_temporary::PtrToTemporary));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
