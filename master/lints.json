@@ -1027,7 +1027,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 679
+      "line": 682
     },
     "group": "style",
     "level": "warn",
@@ -3881,7 +3881,7 @@
     "id": "manual_filter",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 926
+      "line": 929
     },
     "group": "complexity",
     "level": "warn",
@@ -4016,7 +4016,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 898
+      "line": 901
     },
     "group": "style",
     "level": "warn",
@@ -4241,7 +4241,7 @@
     "id": "manual_unwrap_or",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 706
+      "line": 709
     },
     "group": "complexity",
     "level": "warn",
@@ -4441,7 +4441,7 @@
     "id": "match_on_vec_items",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 742
+      "line": 745
     },
     "group": "pedantic",
     "level": "allow",
@@ -4504,11 +4504,11 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 598
+      "line": 601
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `match` with identical arm bodies.\n\n### Why is this bad?\nThis is probably a copy & paste error. If arm bodies\nare the same on purpose, you can factor them\n[using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).\n\n### Known problems\nFalse positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang/rust-clippy/issues/860)).\n\n### Example\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\n\nThis should probably be\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\n\nor if the original code was not a typo:\n```rust\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```",
+    "docs": "\n### What it does\nChecks for `match` with identical arm bodies.\n\nNote: Does not lint on wildcards if the `non_exhaustive_omitted_patterns_lint` feature is\nenabled and disallowed.\n\n### Why is this bad?\nThis is probably a copy & paste error. If arm bodies\nare the same on purpose, you can factor them\n[using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).\n\n### Known problems\nFalse positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang/rust-clippy/issues/860)).\n\n### Example\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\n\nThis should probably be\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\n\nor if the original code was not a typo:\n```rust\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4534,7 +4534,7 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 773
+      "line": 776
     },
     "group": "correctness",
     "level": "deny",
@@ -5488,7 +5488,7 @@
     "id": "needless_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 641
+      "line": 644
     },
     "group": "complexity",
     "level": "warn",
@@ -7420,7 +7420,7 @@
     "id": "significant_drop_in_scrutinee",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 839
+      "line": 842
     },
     "group": "nursery",
     "level": "allow",
@@ -8458,7 +8458,7 @@
     "id": "try_err",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 874
+      "line": 877
     },
     "group": "restriction",
     "level": "allow",
