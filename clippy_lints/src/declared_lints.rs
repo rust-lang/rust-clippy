@@ -501,6 +501,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::non_octal_unix_permissions::NON_OCTAL_UNIX_PERMISSIONS_INFO,
     crate::non_send_fields_in_send_ty::NON_SEND_FIELDS_IN_SEND_TY_INFO,
     crate::nonstandard_macro_braces::NONSTANDARD_MACRO_BRACES_INFO,
+    crate::null_pointer_optimization::NULL_POINTER_OPTIMIZATION_INFO,
     crate::octal_escapes::OCTAL_ESCAPES_INFO,
     crate::only_used_in_recursion::ONLY_USED_IN_RECURSION_INFO,
     crate::operators::ABSURD_EXTREME_COMPARISONS_INFO,

@@ -1,0 +1,57 @@
+error: usage of `Box<Option<T>>`
+  --> $DIR/null_pointer_optimization.rs:7:13
+   |
+LL | type A<T> = Box<Option<T>>;
+   |             ^^^^^^^^^^^^^^
+   |
+   = help: consider using `Option<Box<T>>` instead, as it will grant better performance. For more information, see
+           https://doc.rust-lang.org/core/option/#representation
+   = note: `-D clippy::null-pointer-optimization` implied by `-D warnings`
+
+error: usage of `Box<Option<T>>`
+  --> $DIR/null_pointer_optimization.rs:9:12
+   |
+LL | fn a<T>(a: Box<Option<T>>) {}
+   |            ^^^^^^^^^^^^^^
+   |
+   = help: consider using `Option<Box<T>>` instead, as it will grant better performance. For more information, see
+           https://doc.rust-lang.org/core/option/#representation
+
+error: usage of `NonNull<Option<T>>`
+  --> $DIR/null_pointer_optimization.rs:16:12
+   |
+LL | fn c<T>(c: NonNull<Option<T>>) {}
+   |            ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Option<NonNull<T>>` instead, as it will grant better performance. For more information, see
+           https://doc.rust-lang.org/core/option/#representation
+
+error: usage of `Box<Option<T>>`
+  --> $DIR/null_pointer_optimization.rs:18:19
+   |
+LL | fn g<T>(e: Option<Box<Option<T>>>) {}
+   |                   ^^^^^^^^^^^^^^
+   |
+   = help: consider using `Option<Box<T>>` instead, as it will grant better performance. For more information, see
+           https://doc.rust-lang.org/core/option/#representation
+
+error: usage of `Box<Option<T>>`
+  --> $DIR/null_pointer_optimization.rs:20:13
+   |
+LL | struct H<T>(Box<Option<T>>);
+   |             ^^^^^^^^^^^^^^
+   |
+   = help: consider using `Option<Box<T>>` instead, as it will grant better performance. For more information, see
+           https://doc.rust-lang.org/core/option/#representation
+
+error: usage of `Box<Option<T>>`
+  --> $DIR/null_pointer_optimization.rs:23:7
+   |
+LL |     J(Box<Option<T>>),
+   |       ^^^^^^^^^^^^^^
+   |
+   = help: consider using `Option<Box<T>>` instead, as it will grant better performance. For more information, see
+           https://doc.rust-lang.org/core/option/#representation
+
+error: aborting due to 6 previous errors
+
