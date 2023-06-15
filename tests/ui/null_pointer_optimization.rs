@@ -2,28 +2,26 @@
 #![warn(clippy::null_pointer_optimization)]
 #![no_main]
 
+use std::marker::PhantomData;
 use std::ptr::NonNull;
 
-type A<T> = Box<Option<T>>;
+type A<T> = Box<Option<T>>; //~ ERROR: usage of `Box<Option<T>>`
 
-fn a<T>(a: Box<Option<T>>) {}
+fn a<T>(a: Box<Option<T>>) {} //~ ERROR: usage of `Box<Option<T>>`
 
-// lint at `type A<T>`, but not here.
 fn a_ty_alias<T>(a: A<T>) {}
 
 fn b(b: String) {}
 
-fn c<T>(c: NonNull<Option<T>>) {}
+fn c<T>(c: NonNull<Option<T>>) {} //~ ERROR: usage of `NonNull<Option<T>>`
 
-fn g<T>(e: Option<Box<Option<T>>>) {}
+fn g<T>(e: Option<Box<Option<T>>>) {} //~ ERROR: usage of `Box<Option<T>>`
 
-struct H<T>(Box<Option<T>>);
+struct H<T>(Box<Option<T>>); //~ ERROR: usage of `Box<Option<T>>`
 
 enum I<T> {
-    J(Box<Option<T>>),
+    I(Box<Option<T>>), //~ ERROR: usage of `Box<Option<T>>`
 }
-
-// do not lint
 
 struct D<T>(Option<T>);
 

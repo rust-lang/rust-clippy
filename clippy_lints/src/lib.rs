@@ -246,7 +246,6 @@ mod non_expressive_names;
 mod non_octal_unix_permissions;
 mod non_send_fields_in_send_ty;
 mod nonstandard_macro_braces;
-mod null_pointer_optimization;
 mod octal_escapes;
 mod only_used_in_recursion;
 mod operators;
@@ -1071,9 +1070,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         Box::new(single_call_fn::SingleCallFn {
             avoid_breaking_exported_api,
             def_id_to_usage: rustc_data_structures::fx::FxHashMap::default(),
-    store.register_late_pass(move |_| {
-        Box::new(null_pointer_optimization::NullPointerOptimization {
-            avoid_breaking_exported_api,
         })
     });
     let needless_raw_string_hashes_allow_one = conf.allow_one_hash_in_raw_strings;

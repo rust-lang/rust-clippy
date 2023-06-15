@@ -1,5 +1,5 @@
 error: usage of `Box<Option<T>>`
-  --> $DIR/null_pointer_optimization.rs:7:13
+  --> $DIR/null_pointer_optimization.rs:8:13
    |
 LL | type A<T> = Box<Option<T>>;
    |             ^^^^^^^^^^^^^^
@@ -9,7 +9,7 @@ LL | type A<T> = Box<Option<T>>;
    = note: `-D clippy::null-pointer-optimization` implied by `-D warnings`
 
 error: usage of `Box<Option<T>>`
-  --> $DIR/null_pointer_optimization.rs:9:12
+  --> $DIR/null_pointer_optimization.rs:10:12
    |
 LL | fn a<T>(a: Box<Option<T>>) {}
    |            ^^^^^^^^^^^^^^
@@ -47,7 +47,7 @@ LL | struct H<T>(Box<Option<T>>);
 error: usage of `Box<Option<T>>`
   --> $DIR/null_pointer_optimization.rs:23:7
    |
-LL |     J(Box<Option<T>>),
+LL |     I(Box<Option<T>>),
    |       ^^^^^^^^^^^^^^
    |
    = help: consider using `Option<Box<T>>` instead, as it will grant better performance. For more information, see
