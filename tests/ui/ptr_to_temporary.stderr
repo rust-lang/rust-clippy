@@ -1,0 +1,43 @@
+error: raw pointer to a temporary value
+  --> $DIR/ptr_to_temporary.rs:16:14
+   |
+LL |     let _p = &0 as *const i32;
+   |              ^^^^^^^^^^^^^^^^
+   |
+   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+   = note: `#[deny(clippy::ptr_to_temporary)]` on by default
+
+error: raw pointer to a temporary value
+  --> $DIR/ptr_to_temporary.rs:17:14
+   |
+LL |     let _p = &a() as *const i32;
+   |              ^^^^^^^^^^^^^^^^^^
+   |
+   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+
+error: raw pointer to a temporary value
+  --> $DIR/ptr_to_temporary.rs:19:14
+   |
+LL |     let _p = &vec.len() as *const usize;
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+
+error: raw pointer to a temporary value
+  --> $DIR/ptr_to_temporary.rs:20:13
+   |
+LL |     let x = &(1 + 2) as *const i32;
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+
+error: raw pointer to a temporary value
+  --> $DIR/ptr_to_temporary.rs:21:13
+   |
+LL |     let x = &(x as *const i32) as *const *const i32;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+
+error: aborting due to 5 previous errors
+

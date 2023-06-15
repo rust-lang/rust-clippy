@@ -18,6 +18,7 @@ mod fn_to_numeric_cast_any;
 mod fn_to_numeric_cast_with_truncation;
 mod ptr_as_ptr;
 mod ptr_cast_constness;
+mod ptr_to_temporary;
 mod unnecessary_cast;
 mod utils;
 
@@ -665,6 +666,33 @@ declare_clippy_lint! {
     "casting a known floating-point NaN into an integer"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for raw pointers that point to temporary values.
+    ///
+    /// ### Why is this bad?
+    /// Usage of such a pointer can result in Undefined Behavior, as the pointer will stop pointing
+    /// to valid stack memory once the temporary is dropped.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// const PS: [usize; 3] = [2usize, 3usize, 11usize];
+    /// let mut ps = vec![];
+    ///
+    /// for p in PS {
+    ///     ps.push(&p as *const usize);
+    /// }
+    ///
+    /// for p in ps {
+    ///     unsafe { p.read() }; // ⚠️
+    /// }
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub PTR_TO_TEMPORARY,
+    correctness,
+    "disallows obtaining a raw pointer to a temporary value"
+}
+
 pub struct Casts {
     msrv: Msrv,
 }
@@ -699,6 +727,7 @@ impl_lint_pass!(Casts => [
     CAST_SLICE_FROM_RAW_PARTS,
     AS_PTR_CAST_MUT,
     CAST_NAN_TO_INT,
+    PTR_TO_TEMPORARY,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Casts {
@@ -744,6 +773,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
             }
 
             as_underscore::check(cx, expr, cast_to_hir);
+            ptr_to_temporary::check(cx, expr, cast_expr, cast_to_hir);
 
             if self.msrv.meets(msrvs::BORROW_AS_PTR) {
                 borrow_as_ptr::check(cx, expr, cast_expr, cast_to_hir);
