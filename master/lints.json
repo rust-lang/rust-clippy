@@ -7570,6 +7570,21 @@
     }
   },
   {
+    "id": "single_range_in_vec_init",
+    "id_span": {
+      "path": "src/single_range_in_vec_init.rs",
+      "line": 33
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `Vec` or array initializations that contain only one range.\n\n### Why is this bad?\nThis is almost always incorrect, as it will result in a `Vec` that has only one element.\nAlmost always, the programmer intended for it to include all elements in the range or for\nthe end of the range to be the length instead.\n\n### Example\n```rust\nlet x = [0..200];\n```\nUse instead:\n```rust\n// If it was intended to include every element in the range...\nlet x = (0..200).collect::<Vec<i32>>();\n// ...Or if 200 was meant to be the len\nlet x = [0; 200];\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "size_of_in_element_count",
     "id_span": {
       "path": "src/size_of_in_element_count.rs",
