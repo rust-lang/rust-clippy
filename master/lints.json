@@ -2900,6 +2900,21 @@
     }
   },
   {
+    "id": "incorrect_clone_impl_on_copy_type",
+    "id_span": {
+      "path": "src/incorrect_impls.rs",
+      "line": 45
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for manual implementations of `Clone` when `Copy` is already implemented.\n\n### Why is this bad?\nIf both `Clone` and `Copy` are implemented, they must agree. This is done by dereferencing\n`self` in `Clone`'s implementation. Anything else is incorrect.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        Self(self.0)\n    }\n}\n\nimpl Copy for A {}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        *self\n    }\n}\n\nimpl Copy for A {}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "index_refutable_slice",
     "id_span": {
       "path": "src/index_refutable_slice.rs",
