@@ -4926,6 +4926,7 @@ Released 2018-09-13
 [`lines_filter_map_ok`]: https://rust-lang.github.io/rust-clippy/master/index.html#lines_filter_map_ok
 [`linkedlist`]: https://rust-lang.github.io/rust-clippy/master/index.html#linkedlist
 [`little_endian_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#little_endian_bytes
+[`local_assigned_single_value`]: https://rust-lang.github.io/rust-clippy/master/index.html#local_assigned_single_value
 [`logic_bug`]: https://rust-lang.github.io/rust-clippy/master/index.html#logic_bug
 [`lossy_float_literal`]: https://rust-lang.github.io/rust-clippy/master/index.html#lossy_float_literal
 [`macro_use_imports`]: https://rust-lang.github.io/rust-clippy/master/index.html#macro_use_imports

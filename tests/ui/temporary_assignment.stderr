@@ -1,3 +1,14 @@
+error: local only ever assigned single value
+  --> $DIR/temporary_assignment.rs:45:17
+   |
+LL |     let mut t = (0, 0);
+   |                 ^^^^^^
+...
+LL |     t.0 = 1;
+   |     ^^^^^^^
+   |
+   = note: `#[deny(clippy::local_assigned_single_value)]` on by default
+
 error: assignment to temporary
   --> $DIR/temporary_assignment.rs:47:5
    |
@@ -28,5 +39,5 @@ error: assignment to temporary
 LL |     (0, 0).0 = 1;
    |     ^^^^^^^^^^^^
 
-error: aborting due to 4 previous errors
+error: aborting due to 5 previous errors
 

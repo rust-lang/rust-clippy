@@ -2,7 +2,13 @@
 
 #![feature(lint_reasons)]
 #![warn(clippy::let_unit_value)]
-#![allow(unused, clippy::no_effect, clippy::needless_late_init, path_statements)]
+#![allow(
+    unused,
+    clippy::local_assigned_single_value,
+    clippy::no_effect,
+    clippy::needless_late_init,
+    path_statements
+)]
 
 macro_rules! let_and_return {
     ($n:expr) => {{

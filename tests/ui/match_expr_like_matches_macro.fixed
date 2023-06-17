@@ -4,6 +4,7 @@
 #![allow(
     unreachable_patterns,
     dead_code,
+    clippy::local_assigned_single_value,
     clippy::equatable_if_let,
     clippy::needless_borrowed_reference
 )]

@@ -1,0 +1,58 @@
+error: local only ever assigned single value
+  --> $DIR/local_assigned_single_value.rs:33:17
+   |
+LL |     let mut x = _a.0;
+   |                 ^^^^
+LL |     x = 1;
+   |     ^^^^^
+LL |     x = 1;
+   |     ^^^^^
+   |
+   = note: `-D clippy::local-assigned-single-value` implied by `-D warnings`
+
+error: local only ever assigned single value
+  --> $DIR/local_assigned_single_value.rs:37:17
+   |
+LL |     let mut x = (1,).0;
+   |                 ^^^^^^
+LL |     x = 1;
+   |     ^^^^^
+LL |     x = 1;
+   |     ^^^^^
+
+error: local only ever assigned single value
+  --> $DIR/local_assigned_single_value.rs:53:17
+   |
+LL |     let mut x = 1.0f32;
+   |                 ^^^^^^
+LL |     x = 1.0;
+   |     ^^^^^^^
+LL |     x = 1.0;
+   |     ^^^^^^^
+LL |     {
+LL |         x = 1.0;
+   |         ^^^^^^^
+
+error: local only ever assigned single value
+  --> $DIR/local_assigned_single_value.rs:79:10
+   |
+LL |     let [mut x, y] = [1, 2];
+   |          ^^^^^
+LL |     x = 1;
+   |     ^^^^^
+LL |     x = 1;
+   |     ^^^^^
+LL |     {
+LL |         x = 1;
+   |         ^^^^^
+
+error: local only ever assigned single value
+  --> $DIR/local_assigned_single_value.rs:85:17
+   |
+LL |     let mut x = 1;
+   |                 ^
+LL |     x = 1;
+   |     ^^^^^
+
+error: aborting due to 5 previous errors
+

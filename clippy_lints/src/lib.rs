@@ -24,6 +24,7 @@
 extern crate rustc_arena;
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;
+extern crate rustc_const_eval;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_errors;
@@ -177,6 +178,7 @@ mod let_with_type_underscore;
 mod lifetimes;
 mod lines_filter_map_ok;
 mod literal_representation;
+mod local_assigned_single_value;
 mod loops;
 mod macro_use;
 mod main_recursion;
@@ -1068,6 +1070,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
             needless_raw_string_hashes_allow_one,
         })
     });
+    store.register_late_pass(|_| Box::new(local_assigned_single_value::LocalAssignedSingleValue));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

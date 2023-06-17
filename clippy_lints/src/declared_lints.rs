@@ -249,6 +249,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::literal_representation::MISTYPED_LITERAL_SUFFIXES_INFO,
     crate::literal_representation::UNREADABLE_LITERAL_INFO,
     crate::literal_representation::UNUSUAL_BYTE_GROUPINGS_INFO,
+    crate::local_assigned_single_value::LOCAL_ASSIGNED_SINGLE_VALUE_INFO,
     crate::loops::EMPTY_LOOP_INFO,
     crate::loops::EXPLICIT_COUNTER_LOOP_INFO,
     crate::loops::EXPLICIT_INTO_ITER_LOOP_INFO,
