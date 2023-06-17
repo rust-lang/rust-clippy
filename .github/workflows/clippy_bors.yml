@@ -193,7 +193,7 @@ jobs:
     - name: Upload Binaries
       uses: actions/upload-artifact@v3
       with:
-        name: target/debug
+        name: binaries
         path: target/debug
 
   integration:
@@ -236,7 +236,7 @@ jobs:
     - name: Download target dir
       uses: actions/download-artifact@v3
       with:
-        name: target/debug
+        name: binaries
         path: target/debug
 
     - name: Make Binaries Executable
