@@ -193,8 +193,8 @@ jobs:
     - name: Upload Binaries
       uses: actions/upload-artifact@v3
       with:
-        name: $CARGO_TARGET_DIR/debug
-        path: $CARGO_TARGET_DIR/debug
+        name: target/debug
+        path: target/debug
 
   integration:
     needs: integration_build
@@ -236,8 +236,8 @@ jobs:
     - name: Download target dir
       uses: actions/download-artifact@v3
       with:
-        name: $CARGO_TARGET_DIR/debug
-        path: $CARGO_TARGET_DIR/debug
+        name: target/debug
+        path: target/debug
 
     - name: Make Binaries Executable
       run: chmod +x $CARGO_TARGET_DIR/debug/*
