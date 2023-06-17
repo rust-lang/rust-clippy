@@ -120,5 +120,11 @@ error: collection is never read
 LL |     let mut x = std::collections::VecDeque::new(); // WARNING
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 20 previous errors
+error: collection is never read
+  --> $DIR/collection_is_never_read.rs:204:5
+   |
+LL |     let mut v1 = Vec::new(); // WARNING
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 21 previous errors
 

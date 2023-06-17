@@ -200,4 +200,8 @@ fn supported_types() {
 
     let mut x = std::collections::VecDeque::new(); // WARNING
     x.push_front(1);
+
+    let mut v1 = Vec::new(); // WARNING
+    let iter = 0..10;
+    v1.extend(iter.collect::<Vec<_>>());
 }
