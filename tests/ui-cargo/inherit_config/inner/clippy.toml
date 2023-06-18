@@ -1,2 +1,4 @@
 too-many-lines-threshold = 3
 msrv = "1.1"
+# Will emit an error if uncommented, and revert to default config
+# workspace = true

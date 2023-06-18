@@ -1,2 +1,3 @@
-# NOTE: Any changes here must be reversed in `tests/clippy.toml`
+# NOTE: Any changes here must be reversed in `tests/clippy.toml`, expect `workspace`
+workspace = true
 avoid-breaking-exported-api = false

@@ -175,9 +175,14 @@ macro_rules! define_Conf {
         #[allow(non_camel_case_types)]
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "kebab-case")]
-        enum Field { $($name,)* third_party, }
+        enum Field { $($name,)* third_party, workspace }
 
-        struct ConfVisitor<'a>(&'a SourceFile, &'a mut TryConf);
+        struct ConfVisitor<'a> {
+            file: &'a SourceFile,
+            conf: &'a mut TryConf,
+            priority: usize,
+            workspace: &'a mut bool,
+        }
 
         impl<'de> Visitor<'de> for ConfVisitor<'_> {
             type Value = ();
@@ -195,22 +200,22 @@ macro_rules! define_Conf {
                     match Field::deserialize(name.get_ref().as_str().into_deserializer()) {
                         Err(e) => {
                             let e: FieldError = e;
-                            errors.push(ConfError::spanned(self.0, e.0, name.span()));
+                            errors.push(ConfError::spanned(self.file, e.0, name.span()));
                         }
                         $(Ok(Field::$name) => {
-                            $(warnings.push(ConfError::spanned(self.0, format!("deprecated field `{}`. {}", name.get_ref(), $dep), name.span()));)?
+                            $(warnings.push(ConfError::spanned(self.file, format!("deprecated field `{}`. {}", name.get_ref(), $dep), name.span()));)?
                             let raw_value = map.next_value::<toml::Spanned<toml::Value>>()?;
                             let value_span = raw_value.span();
                             match <$ty>::deserialize(raw_value.into_inner()) {
-                                Err(e) => errors.push(ConfError::spanned(self.0, e.to_string().replace('\n', " ").trim(), value_span)),
+                                Err(e) => errors.push(ConfError::spanned(self.file, e.to_string().replace('\n', " ").trim(), value_span)),
                                 Ok(value) => match $name {
-                                    Some(_) => errors.push(ConfError::spanned(self.0, format!("duplicate field `{}`", name.get_ref()), name.span())),
+                                    Some(_) => errors.push(ConfError::spanned(self.file, format!("duplicate field `{}`", name.get_ref()), name.span())),
                                     None => {
                                         $name = Some(value);
                                         // $new_conf is the same as one of the defined `$name`s, so
                                         // this variable is defined in line 2 of this function.
                                         $(match $new_conf {
-                                            Some(_) => errors.push(ConfError::spanned(self.0, concat!(
+                                            Some(_) => errors.push(ConfError::spanned(self.file, concat!(
                                                 "duplicate field `", stringify!($new_conf),
                                                 "` (provided as `", stringify!($name), "`)"
                                             ), name.span())),
@@ -220,17 +225,25 @@ macro_rules! define_Conf {
                                 }
                             }
                         })*
+                        // Opt into config inheritence, only allowed on root config
+                        Ok(Field::workspace) => {
+                            if self.priority == 0 {
+                                *self.workspace = true;
+                            } else {
+                                errors.push(ConfError::spanned(self.file, "use of `workspace` field in non-root config", name.span()));
+                            }
+                        },
                         // ignore contents of the third_party key
                         Ok(Field::third_party) => drop(map.next_value::<IgnoredAny>())
                     }
                 }
                 $(
                     if let Some($name) = $name {
-                        self.1.conf.$name = $name;
+                        self.conf.conf.$name = $name;
                     }
                 )*
-                self.1.errors.extend(errors);
-                self.1.warnings.extend(warnings);
+                self.conf.errors.extend(errors);
+                self.conf.warnings.extend(warnings);
                 Ok(())
             }
         }
@@ -624,16 +637,21 @@ pub fn lookup_conf_files() -> Result<(Vec<PathBuf>, Vec<String>), Box<dyn Error 
 /// In case of error, the function tries to continue as much as possible.
 pub fn read(sess: &Session, paths: &[PathBuf]) -> TryConf {
     let mut conf = TryConf::default();
-    for file in paths.iter().rev() {
+    let mut workspace = false;
+    for (priority, file) in paths.iter().rev().enumerate() {
         let file = match sess.source_map().load_file(file) {
             Err(e) => return e.into(),
             Ok(file) => file,
         };
-        match toml::de::Deserializer::new(file.src.as_ref().unwrap()).deserialize_map(ConfVisitor(&file, &mut conf)) {
+        match toml::de::Deserializer::new(file.src.as_ref().unwrap()).deserialize_map(ConfVisitor {
+            file: &file,
+            conf: &mut conf,
+            priority,
+            workspace: &mut workspace,
+        }) {
             Ok(_) => {
                 extend_vec_if_indicator_present(&mut conf.conf.doc_valid_idents, DEFAULT_DOC_VALID_IDENTS);
                 extend_vec_if_indicator_present(&mut conf.conf.disallowed_names, DEFAULT_DISALLOWED_NAMES);
-                // TODO: THIS SHOULD BE TESTED, this comment will be gone soon
                 if conf.conf.allowed_idents_below_min_chars.contains(&"..".to_owned()) {
                     conf.conf
                         .allowed_idents_below_min_chars
@@ -641,6 +659,11 @@ pub fn read(sess: &Session, paths: &[PathBuf]) -> TryConf {
                 }
             },
             Err(e) => return TryConf::from_toml_error(&file, &e),
+        }
+
+        // Retain old functionality if not opted into
+        if priority == 0 && !workspace {
+            break;
         }
     }
 
