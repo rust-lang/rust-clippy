@@ -1,14 +1,3 @@
-error: local only ever assigned single value
-  --> $DIR/mixed_read_write_in_expression.rs:91:19
-   |
-LL |     let mut tup = (0, 0);
-   |                   ^^^^^^
-LL |     let c = {
-LL |         tup.0 = 1;
-   |         ^^^^^^^^^
-   |
-   = note: `#[deny(clippy::local_assigned_single_value)]` on by default
-
 error: unsequenced read of `x`
   --> $DIR/mixed_read_write_in_expression.rs:14:9
    |
@@ -58,5 +47,5 @@ note: whether read occurs before this write depends on evaluation order
 LL |             x = 20;
    |             ^^^^^^
 
-error: aborting due to 5 previous errors
+error: aborting due to 4 previous errors
 

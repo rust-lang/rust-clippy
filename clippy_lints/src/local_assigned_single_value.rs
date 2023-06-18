@@ -3,6 +3,7 @@ use clippy_utils::fn_has_unsatisfiable_preds;
 use clippy_utils::source::snippet_opt;
 use itertools::Itertools;
 use rustc_const_eval::interpret::Scalar;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{intravisit::FnKind, Body, FnDecl};
 use rustc_index::IndexVec;
@@ -10,7 +11,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::{
     self, interpret::ConstValue, visit::Visitor, Constant, Location, Mutability, Operand, Place, Rvalue,
 };
-use rustc_middle::mir::{AggregateKind, PlaceElem, Terminator, TerminatorKind};
+use rustc_middle::mir::{AggregateKind, CastKind, PlaceElem, Terminator, TerminatorKind};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::source_map::Spanned;
 use rustc_span::Span;
@@ -61,78 +62,35 @@ impl LateLintPass<'_> for LocalAssignedSingleValue {
         };
         v.visit_body(mir);
 
-        // for (local, i) in v.map.iter_enumerated() {
-        //     dbg!(local, i);
-        // }
-
         for (local, i) in v.map.iter_enumerated() {
-            if !i.assigned_non_const_rvalue
-                && !i.mut_ref_acquired
-                && nested_locals_are_not_from_bad_instr(&v.map, i)
-                && assignments_all_same_value(&v.map, i)
+            let LocalUsageValues {
+                usage,
+                mut_ref_acquired,
+            } = i;
+
+            if !mut_ref_acquired && eval_nested_locals_are_constant(&v.map, i)
+                && eval_local(&v.map, i)
+                && let Some(local_decl) = mir.local_decls.get(local)
+                    && let [dbg_info] = &*mir
+                        .var_debug_info
+                        .iter()
+                        .filter(|info| info.source_info.span == local_decl.source_info.span)
+                        .collect_vec()
+                // Don't handle function arguments.
+                && dbg_info.argument_index.is_none()
+                // Ignore anything from a procedural macro, or locals we cannot prove aren't
+                // temporaries
+                && let Some(snippet) = snippet_opt(cx, dbg_info.source_info.span)
+                && snippet.ends_with(dbg_info.name.as_str())
             {
-                let LocalUsageValues {
-                    usage,
-                    mut_ref_acquired: _,
-                    assigned_non_const_rvalue: _,
-                    is_from_bad_instr: _,
-                } = i;
-
-                if let Some(local_decl) = mir.local_decls.get(local)
-                    && let [dbg_info] = &*mir
-                        .var_debug_info
-                        .iter()
-                        .filter(|info| info.source_info.span == local_decl.source_info.span)
-                        .collect_vec()
-                    // Don't handle function arguments.
-                    && dbg_info.argument_index.is_none()
-                    // Ignore anything from a procedural macro, or locals we cannot prove aren't
-                    // temporaries
-                    && let Some(snippet) = snippet_opt(cx, dbg_info.source_info.span)
-                    && snippet.ends_with(dbg_info.name.as_str())
-                {
-                    span_lint(
-                        cx,
-                        LOCAL_ASSIGNED_SINGLE_VALUE,
-                        usage.iter().map(|i| i.span).collect_vec(),
-                        "local only ever assigned single value",
-                    );
-                }
+                span_lint(
+                    cx,
+                    LOCAL_ASSIGNED_SINGLE_VALUE,
+                    usage.iter().map(|i| i.span).collect_vec(),
+                    "local only ever assigned single value",
+                );
             }
         }
-
-        /*
-        for (local, usage) in &v.local_usage {
-            if should_lint(&v.local_usage, *local, usage) {
-                let LocalUsageValues {
-                    usage,
-                    mut_ref_acquired: _,
-                    assigned_non_const: _,
-                } = usage;
-
-                if let Some(local_decl) = mir.local_decls.get(*local)
-                    && let [dbg_info] = &*mir
-                        .var_debug_info
-                        .iter()
-                        .filter(|info| info.source_info.span == local_decl.source_info.span)
-                        .collect_vec()
-                    // Don't handle function arguments.
-                    && dbg_info.argument_index.is_none()
-                    // Ignore anything from a procedural macro, or locals we cannot prove aren't
-                    // temporaries
-                    && let Some(snippet) = snippet_opt(cx, dbg_info.source_info.span)
-                    && snippet.ends_with(dbg_info.name.as_str())
-                {
-                    span_lint(
-                        cx,
-                        LOCAL_ASSIGNED_SINGLE_VALUE,
-                        usage.iter().map(|(span, _)| *span).collect_vec(),
-                        "local only ever assigned single value",
-                    );
-                }
-            }
-        }
-        */
     }
 }
 
@@ -145,13 +103,6 @@ struct LocalUsageValues<'tcx> {
     usage: Vec<Spanned<LocalUsage<'tcx>>>,
     /// Whether it's mutably borrowed, ever. We should not lint this.
     mut_ref_acquired: bool,
-    /// Whether it's assigned a value we cannot prove is constant, ever. We should not lint this.
-    assigned_non_const_rvalue: bool,
-    /// Whether it's assigned a value that we know cannot be constant. This is differentiated from
-    /// `assigned_non_const` since we check this for nested locals.
-    ///
-    /// This is set to `true` for function calls or binary operations.
-    is_from_bad_instr: bool,
 }
 
 #[derive(Debug)]
@@ -165,6 +116,10 @@ enum LocalUsage<'tcx> {
     /// When a `Local` depends on the value of another local by accessing any of its fields or
     /// indexing
     DependsOnWithProj(mir::Local, &'tcx PlaceElem<'tcx>),
+    /// Used when a local's assigned a value we cannot prove is constant.
+    NonConst,
+    /// This is always overwritten.
+    Pending,
 }
 
 struct V<'a, 'tcx> {
@@ -193,30 +148,28 @@ impl<'a, 'tcx> Visitor<'tcx> for V<'a, 'tcx> {
         }
 
         let usage = &mut map[place.local];
+        let mut spanned = Spanned {
+            node: LocalUsage::Pending,
+            span: stmt.source_info.span,
+        };
 
-        if let Rvalue::Use(Operand::Constant(constant)) = rvalue
-            && let Constant { literal, .. } = **constant
-            && let Some(ConstValue::Scalar(scalar)) = literal.try_to_value(cx.tcx)
-        {
-            usage.usage.push(Spanned { node: LocalUsage::Scalar(scalar), span: stmt.source_info.span });
-        } else if let Rvalue::Use(operand) = rvalue
-            && let Some(place) = operand.place()
-        {
-            if let [base_proj, ..] = place.projection.as_slice()
-                // Handle `let [x, y] = [1, 1]` and `let (x, y) = (1, 1)`
-                && matches!(base_proj, PlaceElem::Field(..) | PlaceElem::Index(..))
+        if let Rvalue::Use(operand) = rvalue {
+            if let Operand::Constant(constant) = operand
+                && let Constant { literal, .. } = **constant
+                && let Some(ConstValue::Scalar(scalar)) = literal.try_to_value(cx.tcx)
             {
-                usage.usage.push(Spanned {
-                    node: LocalUsage::DependsOnWithProj(place.local, base_proj),
-                    span: stmt.source_info.span,
-                });
-            } else {
-                // It seems sometimes a local's just moved, no projections, so let's make sure we
-                // don't set `assigned_non_const` to true for these cases
-                usage.usage.push(Spanned {
-                    node: LocalUsage::DependsOn(place.local),
-                    span: stmt.source_info.span
-                });
+                spanned.node = LocalUsage::Scalar(scalar);
+            } else if let Some(place) = operand.place() {
+                if let [base_proj, ..] = place.projection.as_slice()
+                    // Handle `let [x, y] = [1, 1]` and `let (x, y) = (1, 1)`
+                    && matches!(base_proj, PlaceElem::Field(..) | PlaceElem::Index(..))
+                {
+                    spanned.node = LocalUsage::DependsOnWithProj(place.local, base_proj);
+                } else {
+                    // It seems sometimes a local's just moved, no projections, so let's make sure we
+                    // don't set `assigned_non_const` to true for these cases
+                    spanned.node = LocalUsage::DependsOn(place.local);
+                }
             }
         }
         // Handle creation of tuples/arrays, otherwise the above would be useless
@@ -226,25 +179,45 @@ impl<'a, 'tcx> Visitor<'tcx> for V<'a, 'tcx> {
             // TODO: Let's remove this `cloned` call, if possible.
             && let Some(scalars) = extract_scalars(cx, fields.into_iter().cloned())
         {
-            usage.usage.push(Spanned {
-                node: LocalUsage::Scalars(scalars),
-                span: stmt.source_info.span,
-            })
-        } else if let Rvalue::BinaryOp(..) | Rvalue::CheckedBinaryOp(..) = rvalue {
-            usage.is_from_bad_instr = true;
+            spanned.node = LocalUsage::Scalars(scalars);
+        } else if let Rvalue::Cast(kind, operand, _) = rvalue {
+            if let Operand::Constant(constant) = operand
+                && matches!(
+                    kind,
+                    CastKind::IntToInt | CastKind::FloatToInt | CastKind::FloatToFloat | CastKind::IntToFloat,
+                )
+                && let Constant { literal, .. } = **constant
+                && let Some(ConstValue::Scalar(scalar)) = literal.try_to_value(cx.tcx)
+            {
+                spanned.node = LocalUsage::Scalar(scalar);
+            } else if let Operand::Move(place) = operand {
+                if let [base_proj, ..] = place.projection.as_slice()
+                    && matches!(base_proj, PlaceElem::Field(..) | PlaceElem::Index(..))
+                {
+                    // Probably unnecessary
+                    spanned.node = LocalUsage::DependsOnWithProj(place.local, base_proj);
+                } else {
+                    // Handle casts from enum discriminants
+                    spanned.node = LocalUsage::DependsOn(place.local);
+                }
+            }
         } else {
-            // We can also probably handle stuff like `x += 1` here, maybe. But this would be
-            // very very complex. Let's keep it simple enough.
-            usage.assigned_non_const_rvalue = true;
+            spanned.node = LocalUsage::NonConst;
+        }
+
+        if !matches!(spanned.node, LocalUsage::Pending) {
+            usage.usage.push(spanned);
         }
     }
 
     fn visit_terminator(&mut self, terminator: &Terminator<'_>, _: Location) {
         let Self { body: _, cx: _, map } = self;
 
-        // TODO: Maybe we can allow const fns, if we can evaluate them of course
         if let TerminatorKind::Call { destination, .. } = terminator.kind {
-            map[destination.local].is_from_bad_instr = true;
+            map[destination.local].usage.push(Spanned {
+                node: LocalUsage::NonConst,
+                span: terminator.source_info.span,
+            });
         }
     }
 }
@@ -269,87 +242,85 @@ where
         .collect::<Option<Vec<_>>>()
 }
 
-fn assignments_all_same_value(map: &LocalUsageMap<'_>, usage: &LocalUsageValues<'_>) -> bool {
-    let LocalUsageValues {
-        usage,
-        mut_ref_acquired: _,
-        assigned_non_const_rvalue: _,
-        is_from_bad_instr: _,
-    } = usage;
+fn eval_local(map: &LocalUsageMap<'_>, local: &LocalUsageValues<'_>) -> bool {
+    let mut assignments = vec![];
 
-    if usage.len() <= 1 {
+    if local.usage.len() == 1 {
         return false;
     }
 
-    // TODO: This code is clone-hell.
-
-    let mut all_assignments = vec![];
-    for assignment in usage {
-        match &assignment.node {
-            LocalUsage::Scalar(scalar) => {
-                all_assignments.push(scalar.clone());
-            },
-            // FIXME: This doesn't handle assignment of tuples, arrays or anything else currently.
-            LocalUsage::Scalars(_) => {},
-            // FIXME: This doesn't allow nested dependencies, currently.
-            // FIXME: This only allows one assignment for dependencies.
+    for assignment in &local.usage {
+        match assignment.node {
+            LocalUsage::Scalar(scalar) => assignments.push(scalar),
             LocalUsage::DependsOn(local) => {
-                let [assignment] = &*map[*local].usage else {
-                    continue;
+                let [assignment] = &*map[local].usage else {
+                    return false;
                 };
-                match assignment.node {
-                    LocalUsage::Scalar(scalar) => all_assignments.push(scalar.clone()),
-                    LocalUsage::Scalars(_) => {},
-                    _ => return false,
+                if let LocalUsage::Scalar(scalar) = assignment.node {
+                    assignments.push(scalar);
+                } else {
+                    return false;
                 }
             },
             LocalUsage::DependsOnWithProj(local, base_proj) => {
-                let [assignment] = &*map[*local].usage else {
-                    continue;
+                let [assignment] = &*map[local].usage else {
+                    return false;
                 };
                 match base_proj {
                     PlaceElem::Field(idx, _) if let LocalUsage::Scalars(scalars) = &assignment.node => {
-                        all_assignments.push(scalars[idx.as_usize()].clone());
+                        assignments.push(scalars[idx.as_usize()]);
                     },
                     PlaceElem::Index(idx) if let LocalUsage::Scalars(scalars) = &assignment.node => {
-                        all_assignments.push(scalars[idx.as_usize()].clone());
+                        assignments.push(scalars[idx.as_usize()]);
                     },
                     _ => return false,
                 }
             },
+            _ => return false,
         }
     }
 
-    if let [head, tail @ ..] = &*all_assignments && tail.iter().all(|i| i == head) {
+    if let Some(assignments) = assignments.iter().map(|i| {
+            if let Scalar::Int(int) = i {
+                return Some(int.to_bits(int.size()).ok()).flatten();
+            };
+
+            None
+        })
+        .collect::<Option<Vec<_>>>()
+        && let [head, tail @ ..] = &*assignments
+        && tail.iter().all(|&i| i == *head)
+    {
         return true;
     }
 
     false
 }
 
-fn nested_locals_are_not_from_bad_instr(map: &LocalUsageMap<'_>, usage: &LocalUsageValues<'_>) -> bool {
-    // FIXME: This is a hacky workaround to not have a stack overflow. Instead, we should fix the root
-    // cause.
-    nested_locals_are_not_from_bad_instr_inner(map, usage, 0)
+fn eval_nested_locals_are_constant(map: &LocalUsageMap<'_>, local: &LocalUsageValues<'_>) -> bool {
+    eval_nested_locals_are_constant_with_visited_locals(map, local, &mut FxHashSet::default())
 }
 
-fn nested_locals_are_not_from_bad_instr_inner(
+/// Do not call this manually - use `eval_nested_locals_are_constant` instead.
+fn eval_nested_locals_are_constant_with_visited_locals(
     map: &LocalUsageMap<'_>,
-    usage: &LocalUsageValues<'_>,
-    depth: usize,
+    local: &LocalUsageValues<'_>,
+    visited_locals: &mut FxHashSet<mir::Local>,
 ) -> bool {
-    if depth < 10 && !usage.is_from_bad_instr {
-        let mut all_good_instrs = true;
-        for assignment in &usage.usage {
-            match assignment.node {
-                LocalUsage::Scalar(_) | LocalUsage::Scalars(_) => continue,
-                LocalUsage::DependsOn(local) | LocalUsage::DependsOnWithProj(local, _) => {
-                    all_good_instrs &= nested_locals_are_not_from_bad_instr_inner(map, &map[local], depth + 1);
-                },
-            }
-        }
-        return all_good_instrs;
-    }
+    let mut constness = true;
+    for assignment in &local.usage {
+        match assignment.node {
+            LocalUsage::DependsOn(local) | LocalUsage::DependsOnWithProj(local, _) => {
+                if !visited_locals.insert(local) {
+                    // Short-circuit to ensure we don't get stuck in a loop
+                    return false;
+                }
 
-    false
+                constness &= eval_nested_locals_are_constant_with_visited_locals(map, &map[local], visited_locals);
+            },
+            LocalUsage::NonConst => return false,
+            _ => {},
+        }
+    }
+    constness
 }

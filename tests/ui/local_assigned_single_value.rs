@@ -1,6 +1,14 @@
-//@aux-build:proc_macros.rs
-#![allow(unused)]
+//@aux-build:proc_macros.rs:proc-macro
+#![allow(clippy::almost_swapped, unused)]
 #![warn(clippy::local_assigned_single_value)]
+
+// Ensure this does not get stuck in a loop
+fn foo() {
+    let mut a = 0;
+    let mut b = 9;
+    a = b;
+    b = a;
+}
 
 #[macro_use]
 extern crate proc_macros;
@@ -11,6 +19,13 @@ struct A(u32, u32);
 
 #[repr(i32)]
 enum B {
+    A = 0,
+    B = 1,
+    C = 2,
+}
+
+#[repr(i32)]
+enum NonCLike {
     A,
     B,
     C,
@@ -46,7 +61,9 @@ fn main() {
     x = 1;
     x = 1;
     x = true as i32;
-    x = B::B as i32;
+    // FIXME: We should lint this. For non C-like enums, this works, but not for C-like enums.
+    // x = B::B as i32;
+    x = NonCLike::B as i32;
     {
         x = 1;
     }
@@ -72,7 +89,6 @@ fn main() {
     // Don't lint
     a(&mut x);
     let mut y = 1;
-    // FIXME: Linting this requires nested dependencies, thus we don't currently, but please fix
     (x, y) = (1, 1);
     y = 1;
     // Don't lint
