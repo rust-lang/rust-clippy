@@ -317,6 +317,7 @@ mod to_digit_is_some;
 mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
+mod trivial_default_constructed_types;
 mod tuple_array_conversions;
 mod types;
 mod undocumented_unsafe_blocks;
@@ -1093,6 +1094,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
             absolute_paths_allowed_crates: absolute_paths_allowed_crates.clone(),
         })
     });
+    store.register_late_pass(|_| Box::new(trivial_default_constructed_types::TrivialDefaultConstructedTypes));
     store.register_late_pass(|_| Box::new(redundant_locals::RedundantLocals));
     store.register_late_pass(|_| Box::new(ignored_unit_patterns::IgnoredUnitPatterns));
     // add lints here, do not remove this comment, it's used in `new_lint`

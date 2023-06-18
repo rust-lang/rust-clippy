@@ -1,0 +1,52 @@
+error: constructing a trivial type using `default`
+  --> $DIR/trivial_default_constructed_types.rs:10:5
+   |
+LL |     u32::default();
+   |     ^^^^^^^^^^^^^^ help: try: `0`
+   |
+   = note: `-D clippy::trivial-default-constructed-types` implied by `-D warnings`
+
+error: constructing a trivial type using `default`
+  --> $DIR/trivial_default_constructed_types.rs:11:26
+   |
+LL |     let x: Option<u32> = Option::default();
+   |                          ^^^^^^^^^^^^^^^^^ help: try: `None`
+
+error: constructing a trivial tuple using `default`
+  --> $DIR/trivial_default_constructed_types.rs:12:23
+   |
+LL |     let y: (usize,) = Default::default();
+   |                       ^^^^^^^^^^^^^^^^^^ help: try: `(0,)`
+
+error: constructing a unit using `default`
+  --> $DIR/trivial_default_constructed_types.rs:13:5
+   |
+LL |     <()>::default();
+   |     ^^^^^^^^^^^^^^^ help: try: `()`
+
+error: constructing a trivial array using `default`
+  --> $DIR/trivial_default_constructed_types.rs:14:24
+   |
+LL |     let x: [u32; 10] = Default::default();
+   |                        ^^^^^^^^^^^^^^^^^^ help: try: `[0; 10]`
+
+error: constructing a trivial type using `default`
+  --> $DIR/trivial_default_constructed_types.rs:15:27
+   |
+LL |     let x: [f32; 1000] = [Default::default(); 1000];
+   |                           ^^^^^^^^^^^^^^^^^^ help: try: `0.0`
+
+error: constructing a trivial type using `default`
+  --> $DIR/trivial_default_constructed_types.rs:16:13
+   |
+LL |     let x = <&str>::default();
+   |             ^^^^^^^^^^^^^^^^^ help: try: `""`
+
+error: constructing a trivial type using `default`
+  --> $DIR/trivial_default_constructed_types.rs:17:13
+   |
+LL |     let x = bool::default();
+   |             ^^^^^^^^^^^^^^^ help: try: `false`
+
+error: aborting due to 8 previous errors
+
