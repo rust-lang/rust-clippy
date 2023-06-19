@@ -36,7 +36,7 @@ impl ClippyProjectInfo {
 }
 
 pub fn setup_rustc_src(rustc_path: &str) {
-    let Ok(rustc_source_dir) = check_and_get_rustc_dir(rustc_path) else {
+    let Some(rustc_source_dir) = check_and_get_rustc_dir(rustc_path).ok() else {
         return
     };
 
@@ -171,7 +171,7 @@ pub fn remove_rustc_src() {
 }
 
 fn remove_rustc_src_from_project(project: &ClippyProjectInfo) -> bool {
-    let Ok(mut cargo_content) = read_project_file(project.cargo_file) else {
+    let Some(mut cargo_content) = read_project_file(project.cargo_file).ok() else {
         return false;
     };
     let Some(section_start) = cargo_content.find(RUSTC_PATH_SECTION) else {

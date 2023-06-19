@@ -2506,13 +2506,16 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str)> {
 /// Checks whether a given span has any comment token
 /// This checks for all types of comment: line "//", block "/**", doc "///" "//!"
 pub fn span_contains_comment(sm: &SourceMap, span: Span) -> bool {
-    let Ok(snippet) = sm.span_to_snippet(span) else { return false };
-    return tokenize(&snippet).any(|token| {
-        matches!(
-            token.kind,
-            TokenKind::BlockComment { .. } | TokenKind::LineComment { .. }
-        )
-    });
+    if let Ok(snippet) = sm.span_to_snippet(span) {
+        return tokenize(&snippet).any(|token| {
+            matches!(
+                token.kind,
+                TokenKind::BlockComment { .. } | TokenKind::LineComment { .. }
+            )
+        });
+    }
+
+    false
 }
 
 /// Return all the comments a given span contains

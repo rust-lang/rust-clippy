@@ -171,6 +171,7 @@ mod large_include_file;
 mod large_stack_arrays;
 mod large_stack_frames;
 mod len_zero;
+mod let_else_on_result_ok;
 mod let_if_seq;
 mod let_underscore;
 mod let_with_type_underscore;
@@ -1062,6 +1063,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
             def_id_to_usage: rustc_data_structures::fx::FxHashMap::default(),
         })
     });
+    store.register_late_pass(move |_| Box::new(let_else_on_result_ok::LetElseOnResultOk::new(msrv())));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

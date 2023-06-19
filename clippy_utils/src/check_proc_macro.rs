@@ -154,14 +154,7 @@ fn expr_search_pat(tcx: TyCtxt<'_>, e: &Expr<'_>) -> (Pat, Pat) {
             (expr_search_pat(tcx, e).0, Pat::Str("await"))
         },
         ExprKind::Closure(&Closure { body, .. }) => (Pat::Str(""), expr_search_pat(tcx, tcx.hir().body(body).value).1),
-        ExprKind::Block(
-            Block {
-                rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
-                ..
-            },
-            None,
-        ) => (Pat::Str("unsafe"), Pat::Str("}")),
-        ExprKind::Block(_, None) => (Pat::Str("{"), Pat::Str("}")),
+        ExprKind::Block(block, _) => block_search_pat(block),
         ExprKind::Field(e, name) => (expr_search_pat(tcx, e).0, Pat::Sym(name.name)),
         ExprKind::Index(e, _) => (expr_search_pat(tcx, e).0, Pat::Str("]")),
         ExprKind::Path(ref path) => qpath_search_pat(path),
@@ -348,6 +341,16 @@ fn ident_search_pat(ident: Ident) -> (Pat, Pat) {
     (Pat::OwnedStr(ident.name.as_str().to_owned()), Pat::Str(""))
 }
 
+fn block_search_pat(block: &Block<'_>) -> (Pat, Pat) {
+    let start = if matches!(block.rules, BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)) {
+        "unsafe"
+    } else {
+        "{"
+    };
+
+    (Pat::Str(start), Pat::Str("}"))
+}
+
 pub trait WithSearchPat<'cx> {
     type Context: LintContext;
     fn search_pat(&self, cx: &Self::Context) -> (Pat, Pat);
@@ -375,6 +378,7 @@ impl_with_search_pat!(LateContext: ImplItem with impl_item_search_pat);
 impl_with_search_pat!(LateContext: FieldDef with field_def_search_pat);
 impl_with_search_pat!(LateContext: Variant with variant_search_pat);
 impl_with_search_pat!(LateContext: Ty with ty_search_pat);
+impl_with_search_pat!(LateContext: Block with block_search_pat);
 
 impl<'cx> WithSearchPat<'cx> for (&FnKind<'cx>, &Body<'cx>, HirId, Span) {
     type Context = LateContext<'cx>;
