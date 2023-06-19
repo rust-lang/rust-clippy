@@ -81,6 +81,7 @@ mod single_char_insert_string;
 mod single_char_pattern;
 mod single_char_push_string;
 mod skip_while_next;
+mod slice_as_bytes;
 mod stable_sort_primitive;
 mod str_splitn;
 mod string_extend_chars;
@@ -3316,6 +3317,26 @@ declare_clippy_lint! {
     "checks for usage of `Iterator::fold` with a type that implements `Try`"
 }
 
+declare_clippy_lint! {
+    /// Checks for string slices immediantly followed by `as_bytes`.
+    /// ### Why is this bad?
+    /// It involves doing an unnecessary UTF-8 alignment check which is less efficient, and can cause a panic.
+    /// ### Example
+    /// ```rust
+    /// let s = "Lorem ipsum";
+    /// s[1..5].as_bytes();
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let s = "Lorem ipsum";
+    /// &s.as_bytes()[1..5];
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub SLICE_AS_BYTES,
+    perf,
+    "slicing a string and immediately calling as_bytes is less efficient and can lead to panics"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3448,6 +3469,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_LITERAL_UNWRAP,
     DRAIN_COLLECT,
     MANUAL_TRY_FOLD,
+    SLICE_AS_BYTES,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -3655,6 +3677,9 @@ impl Methods {
                 },
                 ("arg", [arg]) => {
                     suspicious_command_arg_space::check(cx, recv, arg, span);
+                }
+                ("as_bytes",[]) => {
+                    slice_as_bytes::check(cx, expr, recv);
                 }
                 ("as_deref" | "as_deref_mut", []) => {
                     needless_option_as_deref::check(cx, expr, recv, name);
