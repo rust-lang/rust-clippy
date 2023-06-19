@@ -3,7 +3,7 @@ use clippy_utils::source::snippet;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, GenericArg, GenericBounds, GenericParamKind};
-use rustc_hir::{HirId, Lifetime, MutTy, Mutability, Node, QPath, TyKind};
+use rustc_hir::{HirId, Item, ItemKind, Lifetime, MutTy, Mutability, Node, QPath, TyKind};
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
@@ -14,6 +14,18 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, m
         TyKind::Path(ref qpath) => {
             let hir_id = mut_ty.ty.hir_id;
             let def = cx.qpath_res(qpath, hir_id);
+            // Don't lint if it's a return type. See #10982
+            if let Node::Item(Item {
+                ident: _,
+                owner_id: _,
+                kind: ItemKind::Fn(sig, ..),
+                ..
+            }) = cx.tcx.hir().get_parent(hir_ty.hir_id)
+            {
+                if hir_ty.span == sig.decl.output.span() {
+                    return false;
+                }
+            }
             if_chain! {
                 if let Some(def_id) = def.opt_def_id();
                 if Some(def_id) == cx.tcx.lang_items().owned_box();

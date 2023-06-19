@@ -104,6 +104,16 @@ pub fn test19<'a>(_display: &'a Box<impl Display + 'a>) {}
 // it's fine that unnecessary parentheses appear in the future for some reason.
 pub fn test20(_display: &Box<(dyn Display + Send)>) {}
 
+// Don't lint
+pub fn test21<'a>() -> &'a Box<u32> {
+    unimplemented!();
+}
+
+// Don't lint (not a reference)
+pub fn test22() -> Box<u32> {
+    unimplemented!();
+}
+
 fn main() {
     test1(&mut Box::new(false));
     test2();
