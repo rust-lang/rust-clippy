@@ -7492,6 +7492,21 @@
     }
   },
   {
+    "id": "single_call_fn",
+    "id_span": {
+      "path": "src/single_call_fn.rs",
+      "line": 51
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for functions that are only used once. Does not lint tests.\n\n### Why is this bad?\nIt's usually not, splitting a function into multiple parts often improves readability and in\nthe case of generics, can prevent the compiler from duplicating the function dozens of\ntime; instead, only duplicating a thunk. But this can prevent segmentation across a\ncodebase, where many small functions are used only once.\n\nNote: If this lint is used, prepare to allow this a lot.\n\n### Example\n```rust\npub fn a<T>(t: &T)\nwhere\n    T: AsRef<str>,\n{\n    a_inner(t.as_ref())\n}\n\nfn a_inner(t: &str) {\n    /* snip */\n}\n\n```\nUse instead:\n```rust\npub fn a<T>(t: &T)\nwhere\n    T: AsRef<str>,\n{\n    let t = t.as_ref();\n    /* snip */\n}\n\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
