@@ -1,0 +1,72 @@
+error: usage of a legacy integral constant
+  --> $DIR/legacy_integral_constants.rs:10:5
+   |
+LL |     std::f32::EPSILON;
+   |     ^^^^^^^^^^^^^^^^^ help: try: `f32::EPSILON`
+   |
+   = note: `-D clippy::legacy-integral-constants` implied by `-D warnings`
+
+error: usage of a legacy integral constant
+  --> $DIR/legacy_integral_constants.rs:11:5
+   |
+LL |     std::u8::MIN;
+   |     ^^^^^^^^^^^^ help: try: `u8::MIN`
+
+error: usage of a legacy integral constant
+  --> $DIR/legacy_integral_constants.rs:12:5
+   |
+LL |     std::usize::MIN;
+   |     ^^^^^^^^^^^^^^^ help: try: `usize::MIN`
+
+error: usage of a legacy integral constant
+  --> $DIR/legacy_integral_constants.rs:13:5
+   |
+LL |     std::u32::MAX;
+   |     ^^^^^^^^^^^^^ help: try: `u32::MAX`
+
+error: usage of a legacy integral constant
+  --> $DIR/legacy_integral_constants.rs:15:5
+   |
+LL |     MAX;
+   |     ^^^ help: try: `u32::MAX`
+
+error: usage of a legacy integral constant method
+  --> $DIR/legacy_integral_constants.rs:16:10
+   |
+LL |     u32::max_value();
+   |          ^^^^^^^^^^^ help: try: `MAX`
+
+error: usage of a legacy integral constant method
+  --> $DIR/legacy_integral_constants.rs:17:9
+   |
+LL |     u8::max_value();
+   |         ^^^^^^^^^^^ help: try: `MAX`
+
+error: usage of a legacy integral constant method
+  --> $DIR/legacy_integral_constants.rs:18:9
+   |
+LL |     u8::min_value();
+   |         ^^^^^^^^^^^ help: try: `MIN`
+
+error: usage of a legacy integral constant method
+  --> $DIR/legacy_integral_constants.rs:21:27
+   |
+LL |     ::std::primitive::u8::min_value();
+   |                           ^^^^^^^^^^^ help: try: `MIN`
+
+error: usage of a legacy integral constant method
+  --> $DIR/legacy_integral_constants.rs:22:26
+   |
+LL |     std::primitive::u32::max_value();
+   |                          ^^^^^^^^^^^ help: try: `MAX`
+
+error: usage of a legacy integral constant
+  --> $DIR/legacy_integral_constants.rs:24:5
+   |
+LL |     f64::MAX;
+   |     ^^^^^^^^ help: try: `std::primitive::f64::MAX`
+   |
+   = note: if you remove the `use` statement that introduces `f64`, using the above is unnecessary
+
+error: aborting due to 11 previous errors
+

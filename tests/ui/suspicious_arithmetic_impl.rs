@@ -1,3 +1,4 @@
+#![allow(clippy::legacy_integral_constants)]
 #![warn(clippy::suspicious_arithmetic_impl)]
 use std::ops::{
     Add, AddAssign, BitAnd, BitOr, BitOrAssign, BitXor, Div, DivAssign, Mul, MulAssign, Rem, Shl, Shr, Sub,

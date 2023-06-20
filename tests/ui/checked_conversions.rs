@@ -2,6 +2,7 @@
 
 #![allow(
     clippy::cast_lossless,
+    clippy::legacy_integral_constants,
     unused,
     // Int::max_value will be deprecated in the future
     deprecated,

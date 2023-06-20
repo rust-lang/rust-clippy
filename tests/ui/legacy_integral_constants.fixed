@@ -1,0 +1,33 @@
+//@run-rustfix
+//@aux-build:proc_macros.rs
+#![allow(clippy::no_effect, deprecated, unused)]
+#![warn(clippy::legacy_integral_constants)]
+
+#[macro_use]
+extern crate proc_macros;
+
+fn main() {
+    f32::EPSILON;
+    u8::MIN;
+    usize::MIN;
+    u32::MAX;
+    use std::u32::MAX;
+    u32::MAX;
+    u32::MAX;
+    u8::MAX;
+    u8::MIN;
+    ::std::primitive::u8::MIN;
+    ::std::u8::MIN;
+    ::std::primitive::u8::MIN;
+    std::primitive::u32::MAX;
+    use std::f64;
+    std::primitive::f64::MAX;
+    // Don't lint
+    f32::EPSILON;
+    u8::MIN;
+    external! {
+        ::std::primitive::u8::MIN;
+        ::std::u8::MIN;
+        ::std::primitive::u8::min_value();
+    }
+}
