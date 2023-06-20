@@ -1,75 +1,30 @@
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:28:9
+error: usage of `let...else` on `Ok`
+  --> $DIR/let_else_on_result_ok.rs:70:9
    |
-LL |     let Ok(_) = a() else {
+LL |     let Ok(_) = c() else {
    |         ^^^^^
    |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
+   = note: this will ignore the contents of the `Err` variant
+   = help: consider using a `match` instead, or propagating it to the caller
    = note: `-D clippy::let-else-on-result-ok` implied by `-D warnings`
 
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:31:10
+error: usage of `let...else` on `Ok`
+  --> $DIR/let_else_on_result_ok.rs:73:9
    |
-LL |     let (Ok(_), true) = (a(), true) else {
-   |          ^^^^^
+LL |     let Ok(_) = e() else {
+   |         ^^^^^
    |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
+   = note: this will ignore the contents of the `Err` variant
+   = help: consider using a `match` instead, or propagating it to the caller
 
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:34:10
+error: usage of `let...else` on `Ok`
+  --> $DIR/let_else_on_result_ok.rs:76:9
    |
-LL |     let [Ok(_), Ok(_)] = [a(), Err(())] else {
-   |          ^^^^^
+LL |     let Ok(_) = f() else {
+   |         ^^^^^
    |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
+   = note: this will ignore the contents of the `Err` variant
+   = help: consider using a `match` instead, or propagating it to the caller
 
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:34:17
-   |
-LL |     let [Ok(_), Ok(_)] = [a(), Err(())] else {
-   |                 ^^^^^
-   |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
-
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:37:11
-   |
-LL |     let A(Ok(A(Ok(A(Ok(A(Ok(_)))))))) = a_constructor() else {
-   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
-
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:37:16
-   |
-LL |     let A(Ok(A(Ok(A(Ok(A(Ok(_)))))))) = a_constructor() else {
-   |                ^^^^^^^^^^^^^^^^^^^
-   |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
-
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:37:21
-   |
-LL |     let A(Ok(A(Ok(A(Ok(A(Ok(_)))))))) = a_constructor() else {
-   |                     ^^^^^^^^^^^^
-   |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
-
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:37:26
-   |
-LL |     let A(Ok(A(Ok(A(Ok(A(Ok(_)))))))) = a_constructor() else {
-   |                          ^^^^^
-   |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
-
-error: usage of `let...else` on `Err`
-  --> $DIR/let_else_on_result_ok.rs:40:19
-   |
-LL |     let AnEnum::A(Ok(A(Err(_)))) = an_enum_constructor() else {
-   |                   ^^^^^^^^^^^^^
-   |
-   = note: consider handling the `Err` variant gracefully or propagating it to the caller
-
-error: aborting due to 9 previous errors
+error: aborting due to 3 previous errors
 

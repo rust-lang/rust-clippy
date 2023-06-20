@@ -11,8 +11,50 @@ enum AnEnum {
     A(Result<&'static A, ()>),
 }
 
+struct B;
+
+struct C(u32);
+
+enum D {
+    A,
+    B,
+}
+
+enum E {
+    A,
+    B(u32),
+}
+
+#[repr(C)]
+union F {
+    a: u32,
+}
+
 fn a() -> Result<(), ()> {
     Ok(())
+}
+
+fn b() -> Result<(), ()> {
+    let (Ok(_), 1) = (a(), 1) else {
+        return Err::<(), _>(());
+    };
+    Ok(())
+}
+
+fn c() -> Result<(), C> {
+    todo!()
+}
+
+fn d() -> Result<(), D> {
+    todo!()
+}
+
+fn e() -> Result<(), E> {
+    todo!()
+}
+
+fn f() -> Result<(), F> {
+    todo!()
 }
 
 fn a_constructor() -> A {
@@ -23,26 +65,34 @@ fn an_enum_constructor() -> AnEnum {
     todo!();
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Lint
-    let Ok(_) = a() else {
-        return;
+    let Ok(_) = c() else {
+        return Ok(());
     };
-    let (Ok(_), true) = (a(), true) else {
-        return;
+    let Ok(_) = e() else {
+        return Ok(());
     };
-    let [Ok(_), Ok(_)] = [a(), Err(())] else {
-        return;
-    };
-    let A(Ok(A(Ok(A(Ok(A(Ok(_)))))))) = a_constructor() else {
-        return;
-    };
-    let AnEnum::A(Ok(A(Err(_)))) = an_enum_constructor() else {
-        return;
+    let Ok(_) = f() else {
+        return Ok(());
     };
     // Don't lint
+    loop {
+        let Ok(_) = c() else {
+            continue;
+        };
+    }
     let Err(_) = a() else {
-        return;
+        return Ok(());
+    };
+    let Ok(_) = a() else {
+        return Ok(());
+    };
+    let Ok(_) = b() else {
+        return Ok(());
+    };
+    let Ok(_) = d() else {
+        return Ok(());
     };
     match a() {
         Ok(a) => a,
@@ -50,7 +100,21 @@ fn main() {
     };
     external! {
         let Ok(_) = a() else {
-            return;
+            return Ok(());
         };
     }
+    Ok(())
+}
+
+fn no_result_main() {
+    // Don't lint
+    let Ok(_) = c() else {
+        return;
+    };
+    let Ok(_) = e() else {
+        return;
+    };
+    let Ok(_) = f() else {
+        return;
+    };
 }

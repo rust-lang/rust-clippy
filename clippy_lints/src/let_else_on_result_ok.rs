@@ -1,16 +1,21 @@
 use clippy_utils::{
-    diagnostics::span_lint_and_note,
-    is_from_proc_macro, is_lang_item_or_ctor,
+    diagnostics::span_lint_and_then,
+    is_from_proc_macro, is_path_diagnostic_item,
     msrvs::{self, Msrv},
+    ty::is_type_diagnostic_item,
+    visitors::for_each_expr,
 };
-use rustc_hir::{LangItem, PatKind, Stmt, StmtKind};
+use rustc_hir::{ExprKind, FnRetTy, ItemKind, OwnerNode, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::lint::in_external_macro;
+use rustc_middle::{lint::in_external_macro, ty};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_span::sym;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for the usage of `Ok` in a `let...else` statement.
+    /// Checks for the usage of `Ok` in a `let...else` statement in a function that returns
+    /// `Result`.
     ///
     /// ### Why is this bad?
     /// This will ignore the contents of the `Err` variant, which is generally unintended and not
@@ -48,7 +53,7 @@ declare_clippy_lint! {
     /// # fn foo() -> Result<(), ()> {
     /// #    Err(())
     /// # }
-    /// // If you want to ignore the contents of the `Err` variant:
+    /// // If you want to explicitly ignore the contents of the `Err` variant:
     /// let Some(foo) = foo().ok() else {
     ///     return;
     /// };
@@ -77,13 +82,32 @@ impl<'tcx> LateLintPass<'tcx> for LetElseOnResultOk {
             return;
         }
 
-        if let StmtKind::Local(local) = stmt.kind && let Some(els) = local.els {
+        if let StmtKind::Local(local) = stmt.kind
+            && let Some(els) = local.els
+            && let OwnerNode::Item(item) = cx.tcx.hir().owner(cx.tcx.hir().get_parent_item(stmt.hir_id))
+            && let ItemKind::Fn(sig, _, _) = item.kind
+            && let FnRetTy::Return(ret_ty) = sig.decl.output
+            && is_path_diagnostic_item(cx, ret_ty, sym::Result)
+            // Only lint if we return from it
+            && for_each_expr(els, |expr| {
+                if matches!(expr.kind, ExprKind::Ret(..)) {
+                    return ControlFlow::Break(());
+                }
+
+                ControlFlow::Continue(())
+            })
+            .is_some()
+        {
             let spans = {
                 let mut spans = vec![];
                 local.pat.walk_always(|pat| {
-                    if let PatKind::TupleStruct(qpath, _, _) = pat.kind
-                        && let Some(def_id) = cx.qpath_res(&qpath, pat.hir_id).opt_def_id()
-                        && is_lang_item_or_ctor(cx, def_id, LangItem::ResultOk)
+                    let ty = cx.typeck_results().pat_ty(pat);
+                    if is_type_diagnostic_item(cx, ty, sym::Result)
+                        && let ty::Adt(_, substs) = ty.kind()
+                        && let [_, err_ty] = substs.as_slice()
+                        && let Some(err_ty) = err_ty.as_type()
+                        && let Some(err_def) = err_ty.ty_adt_def()
+                        && err_def.all_fields().count() != 0
                     {
                         spans.push(pat.span);
                     }
@@ -96,13 +120,15 @@ impl<'tcx> LateLintPass<'tcx> for LetElseOnResultOk {
             };
 
             for span in spans {
-                span_lint_and_note(
+                span_lint_and_then(
                     cx,
                     LET_ELSE_ON_RESULT_OK,
                     span,
-                    "usage of `let...else` on `Err`",
-                    None,
-                    "consider handling the `Err` variant gracefully or propagating it to the caller",
+                    "usage of `let...else` on `Ok`",
+                    |diag| {
+                        diag.note("this will ignore the contents of the `Err` variant");
+                        diag.help("consider using a `match` instead, or propagating it to the caller");
+                    }
                 );
             }
         }
