@@ -1,19 +1,13 @@
 use clippy_utils::{diagnostics::span_lint_and_sugg, source::snippet_with_applicability, ty::is_type_lang_item};
 use rustc_errors::Applicability;
-use rustc_hir::{
-    Expr, ExprKind,
-    LangItem::{self, Range, RangeFrom, RangeFull, RangeTo, RangeToInclusive},
-    QPath,
-};
+use rustc_hir::{is_range_literal, Expr, ExprKind, LangItem};
 use rustc_lint::LateContext;
 
 use super::SLICE_AS_BYTES;
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>) {
     if let ExprKind::Index(indexed, index) = recv.kind {
-        if let ExprKind::Struct(QPath::LangItem(Range | RangeFrom | RangeTo | RangeToInclusive | RangeFull, ..), ..) =
-            index.kind
-        {
+        if is_range_literal(index) {
             let ty = cx.typeck_results().expr_ty(indexed).peel_refs();
             let is_str = ty.is_str();
             let is_string = is_type_lang_item(cx, ty, LangItem::String);
