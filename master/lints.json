@@ -1027,7 +1027,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 682
+      "line": 687
     },
     "group": "style",
     "level": "warn",
@@ -2978,7 +2978,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 390
+      "line": 395
     },
     "group": "style",
     "level": "warn",
@@ -3911,7 +3911,7 @@
     "id": "manual_filter",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 929
+      "line": 934
     },
     "group": "complexity",
     "level": "warn",
@@ -4046,7 +4046,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 901
+      "line": 906
     },
     "group": "style",
     "level": "warn",
@@ -4271,7 +4271,7 @@
     "id": "manual_unwrap_or",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 709
+      "line": 714
     },
     "group": "complexity",
     "level": "warn",
@@ -4426,7 +4426,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 249
+      "line": 254
     },
     "group": "complexity",
     "level": "warn",
@@ -4441,7 +4441,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 173
+      "line": 178
     },
     "group": "pedantic",
     "level": "allow",
@@ -4456,7 +4456,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 553
+      "line": 558
     },
     "group": "style",
     "level": "warn",
@@ -4471,7 +4471,7 @@
     "id": "match_on_vec_items",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 745
+      "line": 750
     },
     "group": "pedantic",
     "level": "allow",
@@ -4486,7 +4486,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 196
+      "line": 201
     },
     "group": "style",
     "level": "warn",
@@ -4501,7 +4501,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 138
+      "line": 143
     },
     "group": "style",
     "level": "warn",
@@ -4534,7 +4534,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 601
+      "line": 606
     },
     "group": "pedantic",
     "level": "allow",
@@ -4549,7 +4549,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 424
+      "line": 429
     },
     "group": "complexity",
     "level": "warn",
@@ -4564,7 +4564,7 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 776
+      "line": 781
     },
     "group": "correctness",
     "level": "deny",
@@ -4579,7 +4579,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 219
+      "line": 224
     },
     "group": "pedantic",
     "level": "allow",
@@ -4594,7 +4594,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 323
+      "line": 328
     },
     "group": "pedantic",
     "level": "allow",
@@ -5518,7 +5518,7 @@
     "id": "needless_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 644
+      "line": 649
     },
     "group": "complexity",
     "level": "warn",
@@ -6877,7 +6877,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 514
+      "line": 519
     },
     "group": "style",
     "level": "warn",
@@ -7045,7 +7045,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 458
+      "line": 463
     },
     "group": "restriction",
     "level": "allow",
@@ -7450,7 +7450,7 @@
     "id": "significant_drop_in_scrutinee",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 842
+      "line": 847
     },
     "group": "nursery",
     "level": "allow",
@@ -7588,11 +7588,11 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 63
+      "line": 68
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for matches with a single arm where an `if let`\nwill usually suffice.\n\n### Why is this bad?\nJust readability – `if let` nests less than a `match`.\n\n### Example\n```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n```\n\nUse instead:\n```rust\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```",
+    "docs": "\n### What it does\nChecks for matches with a single arm where an `if let`\nwill usually suffice.\n\nThis intentionally does not lint if there are comments\ninside of the other arm, so as to allow the user to document\nwhy having another explicit pattern with an empty body is necessary,\nor because the comments need to be preserved for other reasons.\n\n### Why is this bad?\nJust readability – `if let` nests less than a `match`.\n\n### Example\n```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n```\n\nUse instead:\n```rust\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7603,7 +7603,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 105
+      "line": 110
     },
     "group": "pedantic",
     "level": "allow",
@@ -8503,7 +8503,7 @@
     "id": "try_err",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 877
+      "line": 882
     },
     "group": "restriction",
     "level": "allow",
@@ -9695,7 +9695,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 285
+      "line": 290
     },
     "group": "restriction",
     "level": "allow",
@@ -9725,7 +9725,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 354
+      "line": 359
     },
     "group": "complexity",
     "level": "warn",
