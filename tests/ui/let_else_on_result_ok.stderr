@@ -1,5 +1,5 @@
 error: usage of `let...else` on `Ok`
-  --> $DIR/let_else_on_result_ok.rs:70:9
+  --> $DIR/let_else_on_result_ok.rs:84:9
    |
 LL |     let Ok(_) = c() else {
    |         ^^^^^
@@ -9,7 +9,7 @@ LL |     let Ok(_) = c() else {
    = note: `-D clippy::let-else-on-result-ok` implied by `-D warnings`
 
 error: usage of `let...else` on `Ok`
-  --> $DIR/let_else_on_result_ok.rs:73:9
+  --> $DIR/let_else_on_result_ok.rs:87:9
    |
 LL |     let Ok(_) = e() else {
    |         ^^^^^
@@ -18,7 +18,7 @@ LL |     let Ok(_) = e() else {
    = help: consider using a `match` instead, or propagating it to the caller
 
 error: usage of `let...else` on `Ok`
-  --> $DIR/let_else_on_result_ok.rs:76:9
+  --> $DIR/let_else_on_result_ok.rs:90:9
    |
 LL |     let Ok(_) = f() else {
    |         ^^^^^
@@ -26,5 +26,23 @@ LL |     let Ok(_) = f() else {
    = note: this will ignore the contents of the `Err` variant
    = help: consider using a `match` instead, or propagating it to the caller
 
-error: aborting due to 3 previous errors
+error: usage of `let...else` on `Ok`
+  --> $DIR/let_else_on_result_ok.rs:93:9
+   |
+LL |     let Ok(_) = g() else {
+   |         ^^^^^
+   |
+   = note: this will ignore the contents of the `Err` variant
+   = help: consider using a `match` instead, or propagating it to the caller
+
+error: usage of `let...else` on `Ok`
+  --> $DIR/let_else_on_result_ok.rs:96:9
+   |
+LL |     let Ok(_) = h() else {
+   |         ^^^^^
+   |
+   = note: this will ignore the contents of the `Err` variant
+   = help: consider using a `match` instead, or propagating it to the caller
+
+error: aborting due to 5 previous errors
 

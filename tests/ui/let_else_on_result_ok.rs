@@ -30,6 +30,12 @@ union F {
     a: u32,
 }
 
+#[non_exhaustive]
+struct G {}
+
+#[non_exhaustive]
+enum H {}
+
 fn a() -> Result<(), ()> {
     Ok(())
 }
@@ -57,6 +63,14 @@ fn f() -> Result<(), F> {
     todo!()
 }
 
+fn g() -> Result<(), G> {
+    todo!()
+}
+
+fn h() -> Result<(), H> {
+    todo!()
+}
+
 fn a_constructor() -> A {
     todo!();
 }
@@ -74,6 +88,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     };
     let Ok(_) = f() else {
+        return Ok(());
+    };
+    let Ok(_) = g() else {
+        return Ok(());
+    };
+    let Ok(_) = h() else {
         return Ok(());
     };
     // Don't lint

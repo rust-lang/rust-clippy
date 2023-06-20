@@ -7,7 +7,10 @@ use clippy_utils::{
 };
 use rustc_hir::{ExprKind, FnRetTy, ItemKind, OwnerNode, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::{lint::in_external_macro, ty};
+use rustc_middle::{
+    lint::in_external_macro,
+    ty::{self, VariantDef},
+};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::sym;
 use std::ops::ControlFlow;
@@ -107,7 +110,12 @@ impl<'tcx> LateLintPass<'tcx> for LetElseOnResultOk {
                         && let [_, err_ty] = substs.as_slice()
                         && let Some(err_ty) = err_ty.as_type()
                         && let Some(err_def) = err_ty.ty_adt_def()
-                        && err_def.all_fields().count() != 0
+                        && (err_def.all_fields().count() != 0
+                            || err_def
+                                .variants()
+                                .iter()
+                                .any(VariantDef::is_field_list_non_exhaustive)
+                            || err_def.is_variant_list_non_exhaustive())
                     {
                         spans.push(pat.span);
                     }
