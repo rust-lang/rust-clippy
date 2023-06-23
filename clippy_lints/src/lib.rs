@@ -173,7 +173,7 @@ mod large_futures;
 mod large_include_file;
 mod large_stack_arrays;
 mod large_stack_frames;
-mod legacy_integral_constants;
+mod legacy_numeric_constants;
 mod len_zero;
 mod let_if_seq;
 mod let_underscore;
