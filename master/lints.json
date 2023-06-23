@@ -8248,7 +8248,7 @@
     "id": "trait_duplication_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 84
+      "line": 85
     },
     "group": "nursery",
     "level": "allow",
@@ -8533,11 +8533,11 @@
     "id": "type_repetition_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 38
+      "line": 39
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nThis lint warns about unnecessary type repetitions in trait bounds\n\n### Why is this bad?\nRepeating the type for every bound makes the code\nless readable than combining the bounds\n\n### Example\n```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nUse instead:\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `max-trait-bounds`: `u64`(defaults to `3`): The maximum number of bounds a trait can have to be linted\n",
+    "docs": "\n### What it does\nThis lint warns about unnecessary type repetitions in trait bounds\n\n### Why is this bad?\nRepeating the type for every bound makes the code\nless readable than combining the bounds\n\n### Example\n```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nUse instead:\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n* `max-trait-bounds`: `u64`(defaults to `3`): The maximum number of bounds a trait can have to be linted\n",
     "version": "1.38.0",
     "applicability": {
       "is_multi_part_suggestion": false,
