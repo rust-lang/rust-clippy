@@ -56,11 +56,21 @@ LL |         x.unwrap(); // will panic
 error: called `unwrap` on `x` after checking its variant with `is_none`
   --> $DIR/simple_conditionals.rs:53:9
    |
-LL |     if x.is_none() {
-   |     -------------- help: try: `if let Some(..) = x`
-...
 LL |         x.unwrap(); // unnecessary
    |         ^^^^^^^^^^
+   |
+help: try
+   |
+LL |     if let Some(..) = x {
+   |     ~~~~~~~~~~~~~~~~~~~
+help: this will require flipping the blocks
+   |
+LL ~     if x.is_none() {
+LL +         x.unwrap(); // unnecessary
+LL ~     } else {
+LL +         x.unwrap(); // will panic
+LL +     }
+   |
 
 error: called `unwrap` on `x` after checking its variant with `is_some`
   --> $DIR/simple_conditionals.rs:12:13
@@ -139,20 +149,44 @@ LL |         x.unwrap(); // will panic
 error: called `unwrap_err` on `x` after checking its variant with `is_err`
   --> $DIR/simple_conditionals.rs:71:9
    |
-LL |     if x.is_err() {
-   |     ------------- help: try: `if let Err(..) = x`
-LL |         x.unwrap(); // will panic
 LL |         x.unwrap_err(); // unnecessary
    |         ^^^^^^^^^^^^^^
+   |
+help: try
+   |
+LL |     if let Err(..) = x {
+   |     ~~~~~~~~~~~~~~~~~~
+help: this will require flipping the blocks
+   |
+LL ~     if x.is_err() {
+LL +         x.unwrap(); // unnecessary
+LL +         x.unwrap_err(); // will panic
+LL ~     } else {
+LL +         x.unwrap(); // will panic
+LL +         x.unwrap_err(); // unnecessary
+LL +     }
+   |
 
 error: called `unwrap` on `x` after checking its variant with `is_err`
   --> $DIR/simple_conditionals.rs:73:9
    |
-LL |     if x.is_err() {
-   |     ------------- help: try: `if let Ok(..) = x`
-...
 LL |         x.unwrap(); // unnecessary
    |         ^^^^^^^^^^
+   |
+help: try
+   |
+LL |     if let Ok(..) = x {
+   |     ~~~~~~~~~~~~~~~~~
+help: this will require flipping the blocks
+   |
+LL ~     if x.is_err() {
+LL +         x.unwrap(); // unnecessary
+LL +         x.unwrap_err(); // will panic
+LL ~     } else {
+LL +         x.unwrap(); // will panic
+LL +         x.unwrap_err(); // unnecessary
+LL +     }
+   |
 
 error: this call to `unwrap_err()` will always panic
   --> $DIR/simple_conditionals.rs:74:9
@@ -163,5 +197,43 @@ LL |     if x.is_err() {
 LL |         x.unwrap_err(); // will panic
    |         ^^^^^^^^^^^^^^
 
-error: aborting due to 17 previous errors
+error: called `unwrap` on `x` after checking its variant with `is_err`
+  --> $DIR/simple_conditionals.rs:93:9
+   |
+LL |         x.unwrap();
+   |         ^^^^^^^^^^
+   |
+help: try
+   |
+LL |     if let Ok(..) = x {
+   |     ~~~~~~~~~~~~~~~~~
+help: this will require flipping the blocks
+   |
+LL ~     if x.is_err() {
+LL +         x.unwrap();
+LL ~     } else {
+LL +         println!("lolol");
+LL +     }
+   |
+
+error: called `unwrap` on `x` after checking its variant with `is_none`
+  --> $DIR/simple_conditionals.rs:99:9
+   |
+LL |         x.unwrap();
+   |         ^^^^^^^^^^
+   |
+help: try
+   |
+LL |     if let Some(..) = x {
+   |     ~~~~~~~~~~~~~~~~~~~
+help: this will require flipping the blocks
+   |
+LL ~     if x.is_none() {
+LL +         x.unwrap();
+LL ~     } else {
+LL +         println!("lolol");
+LL +     }
+   |
+
+error: aborting due to 19 previous errors
 

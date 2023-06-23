@@ -86,7 +86,20 @@ fn main() {
         // only checks if conditions).
         x.unwrap_err();
     }
+    // #11006: Reverse blocks if `is_err`/`is_none` then `unwrap` in else
+    if x.is_err() {
+        println!("lolol");
+    } else {
+        x.unwrap();
+    }
+    let x = Some(());
+    if x.is_none() {
+        println!("lolol");
+    } else {
+        x.unwrap();
+    }
 
+    let mut x: Result<(), ()> = Ok(());
     assert!(x.is_ok(), "{:?}", x.unwrap_err()); // ok, it's a common test pattern
 }
 
