@@ -371,7 +371,6 @@ const RUSTFIX_COVERAGE_KNOWN_EXCEPTIONS: &[&str] = &[
     "eprint_with_newline.rs",
     "explicit_counter_loop.rs",
     "iter_skip_next_unfixable.rs",
-    "legacy_numeric_constants.rs",
     "let_and_return.rs",
     "literals.rs",
     "map_flatten.rs",

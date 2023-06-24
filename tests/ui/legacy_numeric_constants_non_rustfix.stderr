@@ -1,0 +1,27 @@
+error: usage of a legacy numeric constant
+  --> $DIR/legacy_numeric_constants_non_rustfix.rs:12:5
+   |
+LL |     u32::MAX;
+   |     ^^^^^^^^ help: use the associated constant instead: `u32::MAX`
+   |
+note: you may need to remove one of the following `use` statements
+  --> $DIR/legacy_numeric_constants_non_rustfix.rs:11:5
+   |
+LL |     use std::u32;
+   |     ^^^^^^^^^^^^^
+   = note: `-D clippy::legacy-numeric-constants` implied by `-D warnings`
+
+error: usage of a legacy numeric constant
+  --> $DIR/legacy_numeric_constants_non_rustfix.rs:14:5
+   |
+LL |     f64::MAX;
+   |     ^^^^^^^^ help: use the associated constant instead: `f64::MAX`
+   |
+note: you may need to remove one of the following `use` statements
+  --> $DIR/legacy_numeric_constants_non_rustfix.rs:13:5
+   |
+LL |     use std::f64;
+   |     ^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
