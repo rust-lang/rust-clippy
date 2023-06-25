@@ -1624,7 +1624,7 @@
     "id": "drop_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 25
+      "line": 26
     },
     "group": "suspicious",
     "level": "warn",
@@ -2483,7 +2483,7 @@
     "id": "forget_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 45
+      "line": 46
     },
     "group": "suspicious",
     "level": "warn",
@@ -4638,12 +4638,12 @@
   {
     "id": "mem_forget",
     "id_span": {
-      "path": "src/mem_forget.rs",
-      "line": 23
+      "path": "src/drop_forget_ref.rs",
+      "line": 96
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `std::mem::forget(t)` where `t` is\n`Drop`.\n\n### Why is this bad?\n`std::mem::forget(t)` prevents `t` from running its\ndestructor, possibly causing leaks.\n\n### Example\n```rust\nmem::forget(Rc::new(55))\n```",
+    "docs": "\n### What it does\nChecks for usage of `std::mem::forget(t)` where `t` is\n`Drop` or has a field that implements `Drop`.\n\n### Why is this bad?\n`std::mem::forget(t)` prevents `t` from running its\ndestructor, possibly causing leaks.\n\n### Example\n```rust\nmem::forget(Rc::new(55))\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8578,7 +8578,7 @@
     "id": "undropped_manually_drops",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 74
+      "line": 75
     },
     "group": "correctness",
     "level": "deny",
