@@ -48,6 +48,7 @@ msrv_aliases! {
     1,17,0 { FIELD_INIT_SHORTHAND, STATIC_IN_CONST, EXPECT_ERR }
     1,16,0 { STR_REPEAT }
     1,15,0 { MAYBE_BOUND_IN_WHERE }
+    1,2,0 { ITER_ONCE_AND_EMPTY }
 }
 
 fn parse_msrv(msrv: &str, sess: Option<&Session>, span: Option<Span>) -> Option<RustcVersion> {

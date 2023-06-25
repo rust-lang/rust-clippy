@@ -2,7 +2,7 @@
 //@aux-build:proc_macros.rs
 
 #![deny(clippy::try_err)]
-#![allow(clippy::unnecessary_wraps, clippy::needless_question_mark)]
+#![allow(clippy::unnecessary_wraps, clippy::needless_question_mark, clippy::option_iter)]
 
 extern crate proc_macros;
 use proc_macros::{external, inline_macros};

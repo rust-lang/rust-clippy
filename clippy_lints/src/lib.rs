@@ -247,6 +247,7 @@ mod only_used_in_recursion;
 mod operators;
 mod option_env_unwrap;
 mod option_if_let_else;
+mod option_iter;
 mod overflow_check_conditional;
 mod panic_in_result_fn;
 mod panic_unimplemented;
@@ -1063,6 +1064,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
             def_id_to_usage: rustc_data_structures::fx::FxHashMap::default(),
         })
     });
+    store.register_late_pass(move |_| Box::new(option_iter::OptionIter::new(msrv())));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

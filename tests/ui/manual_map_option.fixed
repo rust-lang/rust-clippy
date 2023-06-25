@@ -4,6 +4,7 @@
 #![allow(
     clippy::no_effect,
     clippy::map_identity,
+    clippy::option_iter,
     clippy::unit_arg,
     clippy::match_ref_pats,
     clippy::redundant_pattern_matching,

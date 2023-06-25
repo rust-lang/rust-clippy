@@ -1,0 +1,139 @@
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:10:5
+   |
+LL |     Some(0)
+   |     ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+note: this function returns a type implementing `IntoIterator`
+  --> $DIR/option_iter.rs:9:20
+   |
+LL | fn returned_1() -> impl IntoIterator<Item = i32> {
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::option-iter` implied by `-D warnings`
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:26:13
+   |
+LL |     let x = Some(1).iter();
+   |             ^^^^^^^-------
+   |             |
+   |             help: use `std::iter::once` instead: `std::iter::once(1)`
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:27:13
+   |
+LL |     let x = Some(1).iter_mut();
+   |             ^^^^^^^-----------
+   |             |
+   |             help: use `std::iter::once` instead: `std::iter::once(1)`
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:28:13
+   |
+LL |     let x = Some(1).into_iter();
+   |             ^^^^^^^------------
+   |             |
+   |             help: use `std::iter::once` instead: `std::iter::once(1)`
+
+error: usage of `None` to create an empty iterator
+  --> $DIR/option_iter.rs:29:13
+   |
+LL |     let x = None::<()>.iter();
+   |             ^^^^^^^^^^-------
+   |             |
+   |             help: use `std::iter::empty` instead: `std::iter::empty::<()>()`
+
+error: usage of `None` to create an empty iterator
+  --> $DIR/option_iter.rs:30:13
+   |
+LL |     let x = None::<()>.iter_mut();
+   |             ^^^^^^^^^^-----------
+   |             |
+   |             help: use `std::iter::empty` instead: `std::iter::empty::<()>()`
+
+error: usage of `None` to create an empty iterator
+  --> $DIR/option_iter.rs:31:13
+   |
+LL |     let x = None::<()>.into_iter();
+   |             ^^^^^^^^^^------------
+   |             |
+   |             help: use `std::iter::empty` instead: `std::iter::empty::<()>()`
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:32:39
+   |
+LL |     let x = vec![0].into_iter().chain(Some(0));
+   |                                       ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+note: this method is part of the `Iterator` trait
+  --> $DIR/option_iter.rs:32:33
+   |
+LL |     let x = vec![0].into_iter().chain(Some(0));
+   |                                 ^^^^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:33:37
+   |
+LL |     let x = vec![0].into_iter().zip(Some(0));
+   |                                     ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+note: this method is part of the `Iterator` trait
+  --> $DIR/option_iter.rs:33:33
+   |
+LL |     let x = vec![0].into_iter().zip(Some(0));
+   |                                 ^^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:34:36
+   |
+LL |     let x = vec![0].into_iter().eq(Some(0));
+   |                                    ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+note: this method is part of the `Iterator` trait
+  --> $DIR/option_iter.rs:34:33
+   |
+LL |     let x = vec![0].into_iter().eq(Some(0));
+   |                                 ^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:35:36
+   |
+LL |     let x = vec![0].into_iter().ne(Some(0));
+   |                                    ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+note: this method is part of the `Iterator` trait
+  --> $DIR/option_iter.rs:35:33
+   |
+LL |     let x = vec![0].into_iter().ne(Some(0));
+   |                                 ^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:36:36
+   |
+LL |     let x = vec![0].into_iter().lt(Some(0));
+   |                                    ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+note: this method is part of the `Iterator` trait
+  --> $DIR/option_iter.rs:36:33
+   |
+LL |     let x = vec![0].into_iter().lt(Some(0));
+   |                                 ^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/option_iter.rs:95:13
+   |
+LL |     let x = Some(1).into_iter();
+   |             ^^^^^^^------------
+   |             |
+   |             help: use `std::iter::once` instead: `std::iter::once(1)`
+
+error: usage of `None` to create an empty iterator
+  --> $DIR/option_iter.rs:96:13
+   |
+LL |     let x = None::<()>.into_iter();
+   |             ^^^^^^^^^^------------
+   |             |
+   |             help: use `std::iter::empty` instead: `std::iter::empty::<()>()`
+
+error: aborting due to 14 previous errors
+
