@@ -2153,7 +2153,7 @@
     "id": "extra_unused_type_parameters",
     "id_span": {
       "path": "src/extra_unused_type_parameters.rs",
-      "line": 40
+      "line": 41
     },
     "group": "complexity",
     "level": "warn",
