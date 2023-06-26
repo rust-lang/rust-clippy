@@ -1,34 +1,65 @@
-#![allow(clippy::explicit_auto_deref, clippy::unnecessary_cast, clippy::useless_vec)]
+//@aux-build:proc_macros.rs
+#![allow(clippy::borrow_deref_ref, clippy::deref_addrof, clippy::identity_op, unused)]
+#![warn(clippy::ptr_to_temporary)]
+#![no_main]
 
-use std::ptr::addr_of;
+#[macro_use]
+extern crate proc_macros;
 
-fn a() -> i32 {
-    0
+fn bad_1() -> *const i32 {
+    &(100 + *&0) as *const i32
 }
 
-struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+fn bad_2() -> *const i32 {
+    let a = 0i32;
+    &(*&a) as *const i32
 }
 
-fn main() {
-    let _p = &0 as *const i32;
-    let _p = &a() as *const i32;
-    let vec = vec![1];
-    let _p = &vec.len() as *const usize;
-    let x = &(1 + 2) as *const i32;
-    let x = &(x as *const i32) as *const *const i32;
+fn bad_3() -> *const i32 {
+    let a = 0i32;
+    &a as *const i32
+}
 
-    // Do not lint...
-    let ptr = &Vec3 { x: 1.0, y: 2.0, z: 3.0 };
-    let some_variable = 1i32;
-    let x = &(*ptr).x as *const f32;
-    let x = &(some_variable) as *const i32;
+fn bad_4() -> *const i32 {
+    let mut a = 0i32;
+    &a as *const i32
+}
 
-    // ...As `addr_of!` does not report anything out of the ordinary
-    let ptr = &Vec3 { x: 1.0, y: 2.0, z: 3.0 };
-    let some_variable = 1i32;
-    let x = addr_of!((*ptr).x) as *const f32;
-    let x = addr_of!(some_variable);
+fn bad_5() -> *const i32 {
+    const A: &i32 = &1i32;
+    let mut a = 0i32;
+
+    if true {
+        return &(*A) as *const i32;
+    }
+    &a as *const i32
+}
+
+fn fine_1() -> *const i32 {
+    &100 as *const i32
+}
+
+fn fine_2() -> *const i32 {
+    const A: &i32 = &0i32;
+    A as *const i32
+}
+
+fn fine_3() -> *const i32 {
+    const A: &i32 = &0i32;
+    &(*A) as *const i32
+}
+
+external! {
+    fn fine_external() -> *const i32 {
+        let a = 0i32;
+        &a as *const i32
+    }
+}
+
+with_span! {
+    span
+    fn fine_proc_macro() -> *const i32 {
+        let a = 0i32;
+        &a as *const i32
+    }
 }

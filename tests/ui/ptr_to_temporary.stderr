@@ -1,43 +1,43 @@
-error: raw pointer to a temporary value
-  --> $DIR/ptr_to_temporary.rs:16:14
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:10:5
    |
-LL |     let _p = &0 as *const i32;
-   |              ^^^^^^^^^^^^^^^^
+LL |     &(100 + *&0) as *const i32
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
-   = note: `#[deny(clippy::ptr_to_temporary)]` on by default
+   = note: usage of this pointer by callers will cause Undefined Behavior
+   = note: `-D clippy::ptr-to-temporary` implied by `-D warnings`
 
-error: raw pointer to a temporary value
-  --> $DIR/ptr_to_temporary.rs:17:14
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:15:5
    |
-LL |     let _p = &a() as *const i32;
-   |              ^^^^^^^^^^^^^^^^^^
+LL |     &(*&a) as *const i32
+   |     ^^^^^^^^^^^^^^^^^^^^
    |
-   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+   = note: usage of this pointer by callers will cause Undefined Behavior
 
-error: raw pointer to a temporary value
-  --> $DIR/ptr_to_temporary.rs:19:14
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:20:5
    |
-LL |     let _p = &vec.len() as *const usize;
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     &a as *const i32
+   |     ^^^^^^^^^^^^^^^^
    |
-   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+   = note: usage of this pointer by callers will cause Undefined Behavior
 
-error: raw pointer to a temporary value
-  --> $DIR/ptr_to_temporary.rs:20:13
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:25:5
    |
-LL |     let x = &(1 + 2) as *const i32;
-   |             ^^^^^^^^^^^^^^^^^^^^^^
+LL |     &a as *const i32
+   |     ^^^^^^^^^^^^^^^^
    |
-   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+   = note: usage of this pointer by callers will cause Undefined Behavior
 
-error: raw pointer to a temporary value
-  --> $DIR/ptr_to_temporary.rs:21:13
+error: returning a raw pointer to a temporary value that cannot be promoted to a constant
+  --> $DIR/ptr_to_temporary.rs:35:5
    |
-LL |     let x = &(x as *const i32) as *const *const i32;
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     &a as *const i32
+   |     ^^^^^^^^^^^^^^^^
    |
-   = help: usage of this pointer will cause Undefined Behavior; create a local binding to make it longer lived
+   = note: usage of this pointer by callers will cause Undefined Behavior
 
 error: aborting due to 5 previous errors
 
