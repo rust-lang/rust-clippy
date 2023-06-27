@@ -5620,6 +5620,36 @@
     }
   },
   {
+    "id": "needless_raw_string_hashes",
+    "id_span": {
+      "path": "src/raw_strings.rs",
+      "line": 51
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for raw string literals with an unnecessary amount of hashes around them.\n\n### Why is this bad?\nIt's just unnecessary, and makes it look like there's more escaping needed than is actually\nnecessary.\n\n### Example\n```rust\nlet r = r###\"Hello, \"world\"!\"###;\n```\nUse instead:\n```rust\nlet r = r#\"Hello, \"world\"!\"#;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "needless_raw_strings",
+    "id_span": {
+      "path": "src/raw_strings.rs",
+      "line": 30
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for raw string literals where a string literal can be used instead.\n\n### Why is this bad?\nIt's just unnecessary, but there are many cases where using a raw string literal is more\nidiomatic than a string literal, so it's opt-in.\n\n### Example\n```rust\nlet r = r\"Hello, world!\";\n```\nUse instead:\n```rust\nlet r = \"Hello, world!\";\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
