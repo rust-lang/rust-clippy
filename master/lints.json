@@ -4133,6 +4133,21 @@
     }
   },
   {
+    "id": "manual_range_patterns",
+    "id_span": {
+      "path": "src/manual_range_patterns.rs",
+      "line": 33
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nLooks for combined OR patterns that are all contained in a specific range,\ne.g. `6 | 4 | 5 | 9 | 7 | 8` can be rewritten as `4..=9`.\n\n### Why is this bad?\nUsing an explicit range is more concise and easier to read.\n\n### Example\n```rust\nlet x = 6;\nlet foo = matches!(x, 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10);\n```\nUse instead:\n```rust\nlet x = 6;\nlet foo = matches!(x, 1..=10);\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_rem_euclid",
     "id_span": {
       "path": "src/manual_rem_euclid.rs",
