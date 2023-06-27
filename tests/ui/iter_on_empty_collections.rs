@@ -10,6 +10,19 @@ fn array() {
     assert_eq!(None.iter_mut().next(), Option::<&mut i32>::None);
     assert_eq!(None.iter().next(), Option::<&i32>::None);
 
+    let x: [u32; 0] = [];
+    x.iter().copied().chain([]);
+    x.iter().copied().eq([]);
+    x.iter().copied().ne([]);
+    let x: Vec<u32> = vec![];
+    x.iter().copied().chain(vec![]);
+    x.iter().copied().eq(vec![]);
+    x.iter().copied().ne(vec![]);
+    let x: Vec<u32> = vec![];
+    x.iter().copied().chain(vec![0; 0]);
+    x.iter().copied().eq(vec![0; 0]);
+    x.iter().copied().ne(vec![0; 0]);
+
     // Don't trigger on non-iter methods
     let _: Option<String> = None.clone();
     let _: [String; 0] = [].clone();

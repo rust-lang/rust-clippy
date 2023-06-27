@@ -1,4 +1,5 @@
 #![warn(clippy::iter_not_returning_iterator)]
+#![allow(clippy::iter_on_empty_collections)]
 
 struct Data {
     begin: u32,

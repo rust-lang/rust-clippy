@@ -1,40 +1,178 @@
-error: `into_iter` call on a collection with only one item
+error: usage of `[T; 1]` to create an iterator with only one element
   --> $DIR/iter_on_single_items.rs:6:16
    |
 LL |     assert_eq!([123].into_iter().next(), Some(123));
-   |                ^^^^^^^^^^^^^^^^^ help: try: `std::iter::once(123)`
+   |                ^^^^^------------
+   |                |
+   |                help: use `std::iter::once` instead: `std::iter::once(123)`
    |
    = note: `-D clippy::iter-on-single-items` implied by `-D warnings`
 
-error: `iter_mut` call on a collection with only one item
+error: usage of `[T; 1]` to create an iterator with only one element
   --> $DIR/iter_on_single_items.rs:7:16
    |
 LL |     assert_eq!([123].iter_mut().next(), Some(&mut 123));
-   |                ^^^^^^^^^^^^^^^^ help: try: `std::iter::once(&mut 123)`
+   |                ^^^^^-----------
+   |                |
+   |                help: use `std::iter::once` instead: `std::iter::once(&mut 123)`
 
-error: `iter` call on a collection with only one item
+error: usage of `[T; 1]` to create an iterator with only one element
   --> $DIR/iter_on_single_items.rs:8:16
    |
 LL |     assert_eq!([123].iter().next(), Some(&123));
-   |                ^^^^^^^^^^^^ help: try: `std::iter::once(&123)`
+   |                ^^^^^-------
+   |                |
+   |                help: use `std::iter::once` instead: `std::iter::once(&123)`
 
-error: `into_iter` call on a collection with only one item
+error: usage of `Some` to create an iterator with only one element
   --> $DIR/iter_on_single_items.rs:9:16
    |
 LL |     assert_eq!(Some(123).into_iter().next(), Some(123));
-   |                ^^^^^^^^^^^^^^^^^^^^^ help: try: `std::iter::once(123)`
+   |                ^^^^^^^^^------------
+   |                |
+   |                help: use `std::iter::once` instead: `std::iter::once(123)`
 
-error: `iter_mut` call on a collection with only one item
+error: usage of `Some` to create an iterator with only one element
   --> $DIR/iter_on_single_items.rs:10:16
    |
 LL |     assert_eq!(Some(123).iter_mut().next(), Some(&mut 123));
-   |                ^^^^^^^^^^^^^^^^^^^^ help: try: `std::iter::once(&mut 123)`
+   |                ^^^^^^^^^-----------
+   |                |
+   |                help: use `std::iter::once` instead: `std::iter::once(&mut 123)`
 
-error: `iter` call on a collection with only one item
+error: usage of `Some` to create an iterator with only one element
   --> $DIR/iter_on_single_items.rs:11:16
    |
 LL |     assert_eq!(Some(123).iter().next(), Some(&123));
-   |                ^^^^^^^^^^^^^^^^ help: try: `std::iter::once(&123)`
+   |                ^^^^^^^^^-------
+   |                |
+   |                help: use `std::iter::once` instead: `std::iter::once(&123)`
 
-error: aborting due to 6 previous errors
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:14:29
+   |
+LL |     x.iter().copied().chain([1]);
+   |                             ^^^ help: use `std::iter::once` instead: `std::iter::once(1)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:15:26
+   |
+LL |     x.iter().copied().eq([1]);
+   |                          ^^^ help: use `std::iter::once` instead: `std::iter::once(1)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:16:26
+   |
+LL |     x.iter().copied().ne([1]);
+   |                          ^^^ help: use `std::iter::once` instead: `std::iter::once(1)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:18:29
+   |
+LL |     x.iter().copied().chain(vec![1]);
+   |                             ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(1)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:19:26
+   |
+LL |     x.iter().copied().eq(vec![1]);
+   |                          ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(1)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:20:26
+   |
+LL |     x.iter().copied().ne(vec![1]);
+   |                          ^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(1)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:22:29
+   |
+LL |     x.iter().copied().chain(vec![0; 1]);
+   |                             ^^^^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:23:26
+   |
+LL |     x.iter().copied().eq(vec![0; 1]);
+   |                          ^^^^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:24:26
+   |
+LL |     x.iter().copied().ne(vec![0; 1]);
+   |                          ^^^^^^^^^^ help: use `std::iter::once` instead: `std::iter::once(0)`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:75:5
+   |
+LL |         assert_eq!([123].into_iter().next(), Some(123));
+   |                    ----------------- help: use `std::iter::once` instead: `std::iter::once(123)`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:75:5
+   |
+LL |         assert_eq!([123].iter_mut().next(), Some(&mut 123));
+   |                    ---------------- help: use `std::iter::once` instead: `std::iter::once(&mut 123)`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `[T; 1]` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:75:5
+   |
+LL |         assert_eq!([123].iter().next(), Some(&123));
+   |                    ------------ help: use `std::iter::once` instead: `std::iter::once(&123)`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:75:5
+   |
+LL |         assert_eq!(Some(123).into_iter().next(), Some(123));
+   |                    --------------------- help: use `std::iter::once` instead: `std::iter::once(123)`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:75:5
+   |
+LL |         assert_eq!(Some(123).iter_mut().next(), Some(&mut 123));
+   |                    -------------------- help: use `std::iter::once` instead: `std::iter::once(&mut 123)`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `Some` to create an iterator with only one element
+  --> $DIR/iter_on_single_items.rs:75:5
+   |
+LL |         assert_eq!(Some(123).iter().next(), Some(&123));
+   |                    ---------------- help: use `std::iter::once` instead: `std::iter::once(&123)`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: aborting due to 21 previous errors
 

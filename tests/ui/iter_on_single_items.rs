@@ -10,6 +10,19 @@ fn array() {
     assert_eq!(Some(123).iter_mut().next(), Some(&mut 123));
     assert_eq!(Some(123).iter().next(), Some(&123));
 
+    let x: [u32; 1] = [1];
+    x.iter().copied().chain([1]);
+    x.iter().copied().eq([1]);
+    x.iter().copied().ne([1]);
+    let x: Vec<u32> = vec![1];
+    x.iter().copied().chain(vec![1]);
+    x.iter().copied().eq(vec![1]);
+    x.iter().copied().ne(vec![1]);
+    let x: Vec<u32> = vec![];
+    x.iter().copied().chain(vec![0; 1]);
+    x.iter().copied().eq(vec![0; 1]);
+    x.iter().copied().ne(vec![0; 1]);
+
     // Don't trigger on non-iter methods
     let _: Option<String> = Some("test".to_string()).clone();
     let _: [String; 1] = ["test".to_string()].clone();

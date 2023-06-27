@@ -1,7 +1,7 @@
 //@run-rustfix
 #![deny(clippy::while_let_on_iterator)]
 #![allow(unused_mut)]
-#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::iter_on_empty_collections, clippy::uninlined_format_args)]
 
 use std::iter::Iterator;
 

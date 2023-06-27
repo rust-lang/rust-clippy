@@ -1,7 +1,7 @@
 //@run-rustfix
 // Tests from for_loop.rs that don't have suggestions
 
-#![allow(clippy::single_range_in_vec_init)]
+#![allow(clippy::iter_on_single_items, clippy::single_range_in_vec_init)]
 
 #[warn(clippy::single_element_loop)]
 fn main() {

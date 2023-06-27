@@ -29,7 +29,8 @@ use rustc_span::symbol::Symbol;
 use rustc_target::spec::abi::Abi;
 use rustc_trait_selection::infer::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
-use std::{fmt, iter};
+use std::fmt;
+use std::iter::{self, once};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -742,7 +743,7 @@ fn matches_preds<'tcx>(
     let infcx = cx.tcx.infer_ctxt().build();
     preds.iter().all(|&p| match cx.tcx.erase_late_bound_regions(p) {
         ExistentialPredicate::Trait(p) => infcx
-            .type_implements_trait(p.def_id, [ty.into()].into_iter().chain(p.args.iter()), cx.param_env)
+            .type_implements_trait(p.def_id, once(ty.into()).chain(p.args.iter()), cx.param_env)
             .must_apply_modulo_regions(),
         ExistentialPredicate::Projection(p) => infcx.predicate_must_hold_modulo_regions(&Obligation::new(
             cx.tcx,

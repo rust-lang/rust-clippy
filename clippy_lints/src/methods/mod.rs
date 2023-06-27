@@ -43,7 +43,6 @@ mod iter_kv_map;
 mod iter_next_slice;
 mod iter_nth;
 mod iter_nth_zero;
-mod iter_on_single_or_empty_collections;
 mod iter_overeager_cloned;
 mod iter_skip_next;
 mod iter_skip_zero;
@@ -85,6 +84,7 @@ mod single_char_add_str;
 mod single_char_insert_string;
 mod single_char_pattern;
 mod single_char_push_string;
+mod single_or_empty_collections_iter;
 mod skip_while_next;
 mod stable_sort_primitive;
 mod str_splitn;
@@ -2432,15 +2432,15 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    ///
-    /// Checks for calls to `iter`, `iter_mut` or `into_iter` on collections containing a single item
+    /// Checks for calls to `iter`, `iter_mut` or `into_iter` on collections containing a single item.
     ///
     /// ### Why is this bad?
+    /// It is simpler to use the once function from the standard library.
     ///
-    /// It is simpler to use the once function from the standard library:
+    /// ### Known problems
+    /// The type of the resulting iterator might become incompatible with its usage.
     ///
     /// ### Example
-    ///
     /// ```rust
     /// let a = [123].iter();
     /// let b = Some(123).into_iter();
@@ -2451,27 +2451,23 @@ declare_clippy_lint! {
     /// let a = iter::once(&123);
     /// let b = iter::once(123);
     /// ```
-    ///
-    /// ### Known problems
-    ///
-    /// The type of the resulting iterator might become incompatible with its usage
     #[clippy::version = "1.65.0"]
     pub ITER_ON_SINGLE_ITEMS,
-    nursery,
+    pedantic,
     "Iterator for array of length 1"
 }
 
 declare_clippy_lint! {
     /// ### What it does
-    ///
-    /// Checks for calls to `iter`, `iter_mut` or `into_iter` on empty collections
+    /// Checks for calls to `iter`, `iter_mut` or `into_iter` on empty collections.
     ///
     /// ### Why is this bad?
+    /// It is simpler to use the empty function from the standard library.
     ///
-    /// It is simpler to use the empty function from the standard library:
+    /// ### Known problems
+    /// The type of the resulting iterator might become incompatible with its usage.
     ///
     /// ### Example
-    ///
     /// ```rust
     /// use std::{slice, option};
     /// let a: slice::Iter<i32> = [].iter();
@@ -2483,13 +2479,9 @@ declare_clippy_lint! {
     /// let a: iter::Empty<i32> = iter::empty();
     /// let b: iter::Empty<i32> = iter::empty();
     /// ```
-    ///
-    /// ### Known problems
-    ///
-    /// The type of the resulting iterator might become incompatible with its usage
     #[clippy::version = "1.65.0"]
     pub ITER_ON_EMPTY_COLLECTIONS,
-    nursery,
+    pedantic,
     "Iterator for empty array"
 }
 
@@ -3695,6 +3687,8 @@ fn method_call<'tcx>(
 
 impl<'tcx> LateLintPass<'tcx> for Methods {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
+        single_or_empty_collections_iter::check(cx, expr, &self.msrv);
+
         if expr.span.from_expansion() {
             return;
         }
@@ -3991,9 +3985,6 @@ impl Methods {
                 ("is_digit", [radix]) => is_digit_ascii_radix::check(cx, expr, recv, radix, &self.msrv),
                 ("is_none", []) => check_is_some_is_none(cx, expr, recv, false),
                 ("is_some", []) => check_is_some_is_none(cx, expr, recv, true),
-                ("iter" | "iter_mut" | "into_iter", []) => {
-                    iter_on_single_or_empty_collections::check(cx, expr, name, recv);
-                },
                 ("join", [join_arg]) => {
                     if let Some(("collect", _, _, span, _)) = method_call(recv) {
                         unnecessary_join::check(cx, expr, recv, join_arg, span);

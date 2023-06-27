@@ -27,7 +27,7 @@ use rustc_target::abi::{Size, VariantIdx};
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::normalize::QueryNormalizeExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
-use std::iter;
+use std::iter::{self, once};
 
 use crate::{match_def_path, path_res, paths};
 
@@ -246,17 +246,15 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
     let trait_ref = TraitRef::new(
         tcx,
         trait_id,
-        Some(GenericArg::from(ty))
-            .into_iter()
-            .chain(args.into_iter().map(|arg| {
-                arg.into().unwrap_or_else(|| {
-                    let orig = TypeVariableOrigin {
-                        kind: TypeVariableOriginKind::MiscVariable,
-                        span: DUMMY_SP,
-                    };
-                    infcx.next_ty_var(orig).into()
-                })
-            })),
+        once(GenericArg::from(ty)).chain(args.into_iter().map(|arg| {
+            arg.into().unwrap_or_else(|| {
+                let orig = TypeVariableOrigin {
+                    kind: TypeVariableOriginKind::MiscVariable,
+                    span: DUMMY_SP,
+                };
+                infcx.next_ty_var(orig).into()
+            })
+        })),
     );
 
     debug_assert_eq!(tcx.def_kind(trait_id), DefKind::Trait);

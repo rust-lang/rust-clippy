@@ -1,6 +1,10 @@
 //@run-rustfix
 #![warn(clippy::flat_map_option)]
-#![allow(clippy::redundant_closure, clippy::unnecessary_filter_map)]
+#![allow(
+    clippy::iter_on_single_items,
+    clippy::redundant_closure,
+    clippy::unnecessary_filter_map
+)]
 
 fn main() {
     // yay

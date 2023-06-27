@@ -2,6 +2,7 @@
 
 #![warn(clippy::manual_map)]
 #![allow(
+    clippy::iter_on_single_items,
     clippy::no_effect,
     clippy::map_identity,
     clippy::unit_arg,
