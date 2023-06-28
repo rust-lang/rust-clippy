@@ -5605,6 +5605,21 @@
     }
   },
   {
+    "id": "needless_pub_self",
+    "id_span": {
+      "path": "src/visibility.rs",
+      "line": 25
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for usage of `pub(self)` and `pub(in self)`.\n\n### Why is this bad?\nIt's unnecessary, omitting the `pub` entirely will give the same results.\n\n### Example\n```rust\npub(self) type OptBox<T> = Option<Box<T>>;\n```\nUse instead:\n```rust\ntype OptBox<T> = Option<Box<T>>;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "needless_question_mark",
     "id_span": {
       "path": "src/needless_question_mark.rs",
@@ -6598,6 +6613,36 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "pub_with_shorthand",
+    "id_span": {
+      "path": "src/visibility.rs",
+      "line": 47
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of `pub(<loc>)` with `in`.\n\n### Why is this bad?\nConsistency. Use it or don't, just be consistent about it.\n\nAlso see the `pub_without_shorthand` lint for an alternative.\n\n### Example\n```rust\npub(super) type OptBox<T> = Option<Box<T>>;\n```\nUse instead:\n```rust\npub(in super) type OptBox<T> = Option<Box<T>>;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "pub_without_shorthand",
+    "id_span": {
+      "path": "src/visibility.rs",
+      "line": 72
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of `pub(<loc>)` without `in`.\n\nNote: As you cannot write a module's path in `pub(<loc>)`, this will only trigger on\n`pub(super)` and the like.\n\n### Why is this bad?\nConsistency. Use it or don't, just be consistent about it.\n\nAlso see the `pub_with_shorthand` lint for an alternative.\n\n### Example\n```rust\npub(in super) type OptBox<T> = Option<Box<T>>;\n```\nUse instead:\n```rust\npub(super) type OptBox<T> = Option<Box<T>>;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
