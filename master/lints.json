@@ -6649,7 +6649,7 @@
     "id": "question_mark",
     "id_span": {
       "path": "src/question_mark.rs",
-      "line": 39
+      "line": 40
     },
     "group": "style",
     "level": "warn",
