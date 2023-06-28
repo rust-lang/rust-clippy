@@ -9283,7 +9283,7 @@
     "id": "unused_async",
     "id_span": {
       "path": "src/unused_async.rs",
-      "line": 35
+      "line": 36
     },
     "group": "pedantic",
     "level": "allow",
