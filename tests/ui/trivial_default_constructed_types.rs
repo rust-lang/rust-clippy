@@ -15,8 +15,11 @@ fn main() {
     let x: [f32; 1000] = [Default::default(); 1000];
     let x = <&str>::default();
     let x = bool::default();
+    let x = <(u32, u32, bool)>::default();
     // Do not lint
     let x = char::default();
+    let x = NotDefault::default();
+    let x = <(u32, u32, bool, &str)>::default();
 
     external! {
         u32::default();
@@ -40,5 +43,13 @@ fn main() {
         let x = <&str>::default();
         let x = bool::default();
         let x = char::default();
+    }
+}
+
+struct NotDefault;
+
+impl NotDefault {
+    pub fn default() -> u32 {
+        0
     }
 }

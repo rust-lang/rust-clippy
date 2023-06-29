@@ -1,13 +1,11 @@
-use clippy_utils::{diagnostics::span_lint_and_sugg, is_from_proc_macro, is_lang_item_or_ctor, last_path_segment};
+use clippy_utils::{diagnostics::span_lint_and_sugg, is_from_proc_macro, is_lang_item_or_ctor, is_trait_item};
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, LangItem, QPath};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::{
-    lint::in_external_macro,
-    ty::{self, Ty},
-};
+use rustc_hir::{Expr, ExprKind, LangItem};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::{self, Ty};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::symbol::kw;
+use rustc_span::sym;
+use std::borrow::Cow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -33,12 +31,9 @@ declare_lint_pass!(TrivialDefaultConstructedTypes => [TRIVIAL_DEFAULT_CONSTRUCTE
 
 impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
-        if !in_external_macro(cx.sess(), expr.span)
+        if !expr.span.from_expansion()
             && let ExprKind::Call(call, _) = expr.kind
-            && let ExprKind::Path(qpath) = call.kind
-            // `last_path_segment` ICEs if we give it a `LangItem`.
-            && !matches!(qpath, QPath::LangItem(..))
-            && last_path_segment(&qpath).ident.name == kw::Default
+            && is_trait_item(cx, call, sym::Default)
         {
             let ret_ty = cx
                 .typeck_results()
@@ -58,14 +53,15 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
                     Applicability::MachineApplicable,
                 );
             } else if let ty::Tuple(fields) = ret_ty.kind()
+                && fields.len() <= 3
                 && let Some(fields_default) = fields.iter()
                     .map(|field| default_value(cx, field))
-                    .collect::<Option<Vec<&'static str>>>()
+                    .collect::<Option<Vec<_>>>()
                 && !is_from_proc_macro(cx, expr)
             {
-                let default = if fields.len() == 1 {
+                let default = if let [default] = &*fields_default {
                     // Needs trailing comma to be a single-element tuple
-                    fields_default[0].to_owned() + ","
+                    format!("{default},")
                 } else {
                     fields_default.join(", ")
                 };
@@ -101,19 +97,16 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
 }
 
 /// Gets the default value of `ty`.
-fn default_value(cx: &LateContext<'_>, ty: Ty<'_>) -> Option<&'static str> {
+fn default_value(cx: &LateContext<'_>, ty: Ty<'_>) -> Option<Cow<'static, str>> {
     match ty.kind() {
-        ty::Adt(def, _) => {
-            if is_lang_item_or_ctor(cx, def.did(), LangItem::Option) {
-                return Some("None");
-            }
-
-            None
+        ty::Adt(def, substs) if let [subst] = substs.as_slice() => {
+            is_lang_item_or_ctor(cx, def.did(), LangItem::Option).then(|| format!("None::<{subst}>").into())
         },
-        ty::Bool => Some("false"),
-        ty::Str => Some(r#""""#),
-        ty::Int(_) | ty::Uint(_) => Some("0"),
-        ty::Float(_) => Some("0.0"),
+        ty::Bool => Some("false".into()),
+        ty::Str => Some(r#""""#.into()),
+        ty::Int(suffix) => Some(format!("0{}", suffix.name_str()).into()),
+        ty::Uint(suffix) => Some(format!("0{}", suffix.name_str()).into()),
+        ty::Float(suffix) => Some(format!("0.0{}", suffix.name_str()).into()),
         // Do not handle `ty::Char`, it's a lot less readable
         _ => None,
     }

@@ -2,7 +2,7 @@ error: constructing a trivial type using `default`
   --> $DIR/trivial_default_constructed_types.rs:10:5
    |
 LL |     u32::default();
-   |     ^^^^^^^^^^^^^^ help: try: `0`
+   |     ^^^^^^^^^^^^^^ help: try: `0u32`
    |
    = note: `-D clippy::trivial-default-constructed-types` implied by `-D warnings`
 
@@ -10,13 +10,13 @@ error: constructing a trivial type using `default`
   --> $DIR/trivial_default_constructed_types.rs:11:26
    |
 LL |     let x: Option<u32> = Option::default();
-   |                          ^^^^^^^^^^^^^^^^^ help: try: `None`
+   |                          ^^^^^^^^^^^^^^^^^ help: try: `None::<u32>`
 
 error: constructing a trivial tuple using `default`
   --> $DIR/trivial_default_constructed_types.rs:12:23
    |
 LL |     let y: (usize,) = Default::default();
-   |                       ^^^^^^^^^^^^^^^^^^ help: try: `(0,)`
+   |                       ^^^^^^^^^^^^^^^^^^ help: try: `(0usize,)`
 
 error: constructing a unit using `default`
   --> $DIR/trivial_default_constructed_types.rs:13:5
@@ -28,13 +28,13 @@ error: constructing a trivial array using `default`
   --> $DIR/trivial_default_constructed_types.rs:14:24
    |
 LL |     let x: [u32; 10] = Default::default();
-   |                        ^^^^^^^^^^^^^^^^^^ help: try: `[0; 10]`
+   |                        ^^^^^^^^^^^^^^^^^^ help: try: `[0u32; 10]`
 
 error: constructing a trivial type using `default`
   --> $DIR/trivial_default_constructed_types.rs:15:27
    |
 LL |     let x: [f32; 1000] = [Default::default(); 1000];
-   |                           ^^^^^^^^^^^^^^^^^^ help: try: `0.0`
+   |                           ^^^^^^^^^^^^^^^^^^ help: try: `0.0f32`
 
 error: constructing a trivial type using `default`
   --> $DIR/trivial_default_constructed_types.rs:16:13
@@ -48,5 +48,11 @@ error: constructing a trivial type using `default`
 LL |     let x = bool::default();
    |             ^^^^^^^^^^^^^^^ help: try: `false`
 
-error: aborting due to 8 previous errors
+error: constructing a trivial tuple using `default`
+  --> $DIR/trivial_default_constructed_types.rs:18:13
+   |
+LL |     let x = <(u32, u32, bool)>::default();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(0u32, 0u32, false)`
+
+error: aborting due to 9 previous errors
 
