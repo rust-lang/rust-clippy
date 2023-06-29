@@ -149,6 +149,7 @@ mod implicit_hasher;
 mod implicit_return;
 mod implicit_saturating_add;
 mod implicit_saturating_sub;
+mod implicit_transmute_types;
 mod inconsistent_struct_constructor;
 mod incorrect_impls;
 mod index_refutable_slice;
@@ -1072,6 +1073,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     });
     store.register_late_pass(|_| Box::new(manual_range_patterns::ManualRangePatterns));
     store.register_early_pass(|| Box::new(visibility::Visibility));
+    store.register_late_pass(|_| Box::new(implicit_transmute_types::ImplicitTransmuteTypes));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

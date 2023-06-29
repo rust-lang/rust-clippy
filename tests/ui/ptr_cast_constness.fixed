@@ -2,7 +2,12 @@
 //@aux-build:proc_macros.rs:proc-macro
 
 #![warn(clippy::ptr_cast_constness)]
-#![allow(clippy::transmute_ptr_to_ref, clippy::unnecessary_cast, unused)]
+#![allow(
+    clippy::implicit_transmute_types,
+    clippy::transmute_ptr_to_ref,
+    clippy::unnecessary_cast,
+    unused
+)]
 
 extern crate proc_macros;
 use proc_macros::{external, inline_macros};

@@ -1,4 +1,5 @@
 #![warn(clippy::transmute_int_to_non_zero)]
+#![allow(clippy::implicit_transmute_types)]
 
 use core::num::*;
 

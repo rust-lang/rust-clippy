@@ -44,7 +44,7 @@ fn condition_is_unsafe_block() {
     let a: i32 = 1;
 
     // this should not warn because the condition is an unsafe block
-    if unsafe { 1u32 == std::mem::transmute(a) } {
+    if unsafe { 1u32 == std::mem::transmute::<i32, u32>(a) } {
         println!("1u32 == a");
     }
 }

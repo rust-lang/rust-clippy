@@ -1,4 +1,5 @@
 //@ignore-32bit
+#![allow(clippy::implicit_transmute_types)]
 
 #[warn(clippy::wrong_transmute)]
 fn main() {

@@ -7,7 +7,8 @@
     clippy::should_implement_trait,
     clippy::upper_case_acronyms,
     clippy::from_over_into,
-    clippy::self_named_constructors
+    clippy::self_named_constructors,
+    clippy::implicit_transmute_types
 )]
 
 #[macro_use]
