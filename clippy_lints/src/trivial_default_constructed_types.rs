@@ -35,6 +35,7 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
             && let ExprKind::Call(call, _) = expr.kind
             && is_trait_item(cx, call, sym::Default)
         {
+            let mut app = Applicability::MachineApplicable;
             let ret_ty = cx
                 .typeck_results()
                 .expr_ty(call)
@@ -42,7 +43,7 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
                 .output()
                 .skip_binder()
                 .peel_refs();
-            if let Some(default) = default_value(cx, ret_ty) && !is_from_proc_macro(cx, expr) {
+            if let Some(default) = default_value(cx, ret_ty, &mut app) && !is_from_proc_macro(cx, expr) {
                 span_lint_and_sugg(
                     cx,
                     TRIVIAL_DEFAULT_CONSTRUCTED_TYPES,
@@ -55,7 +56,7 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
             } else if let ty::Tuple(fields) = ret_ty.kind()
                 && fields.len() <= 3
                 && let Some(fields_default) = fields.iter()
-                    .map(|field| default_value(cx, field))
+                    .map(|field| default_value(cx, field, &mut app))
                     .collect::<Option<Vec<_>>>()
                 && !is_from_proc_macro(cx, expr)
             {
@@ -79,7 +80,7 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
                     Applicability::MachineApplicable,
                 );
             } else if let ty::Array(ty, len) = ret_ty.kind()
-                && let Some(default) = default_value(cx, *ty)
+                && let Some(default) = default_value(cx, *ty, &mut app)
                 && !is_from_proc_macro(cx, expr)
             {
                 span_lint_and_sugg(
@@ -89,7 +90,7 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
                     "constructing a trivial array using `default`",
                     "try",
                     format!("[{default}; {len}]"),
-                    Applicability::MachineApplicable,
+                    app,
                 );
             }
         }
@@ -97,10 +98,13 @@ impl<'tcx> LateLintPass<'tcx> for TrivialDefaultConstructedTypes {
 }
 
 /// Gets the default value of `ty`.
-fn default_value(cx: &LateContext<'_>, ty: Ty<'_>) -> Option<Cow<'static, str>> {
+fn default_value(cx: &LateContext<'_>, ty: Ty<'_>, app: &mut Applicability) -> Option<Cow<'static, str>> {
     match ty.kind() {
-        ty::Adt(def, substs) if let [subst] = substs.as_slice() => {
-            is_lang_item_or_ctor(cx, def.did(), LangItem::Option).then(|| format!("None::<{subst}>").into())
+        ty::Adt(def, _) => {
+            *app = Applicability::HasPlaceholders;
+            // Checking if the generic argument is required would substantially increase the
+            // complexity of this lint, for now, just use a placeholder (`_`).
+            is_lang_item_or_ctor(cx, def.did(), LangItem::Option).then(|| "None::<_>".into())
         },
         ty::Bool => Some("false".into()),
         ty::Str => Some(r#""""#.into()),

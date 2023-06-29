@@ -10,7 +10,7 @@ error: constructing a trivial type using `default`
   --> $DIR/trivial_default_constructed_types.rs:11:26
    |
 LL |     let x: Option<u32> = Option::default();
-   |                          ^^^^^^^^^^^^^^^^^ help: try: `None::<u32>`
+   |                          ^^^^^^^^^^^^^^^^^ help: try: `None::<_>`
 
 error: constructing a trivial tuple using `default`
   --> $DIR/trivial_default_constructed_types.rs:12:23
