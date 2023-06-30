@@ -3,7 +3,7 @@
     "id": "absurd_extreme_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 57
+      "line": 56
     },
     "group": "correctness",
     "level": "deny",
@@ -126,7 +126,7 @@
     "id": "arithmetic_side_effects",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 94
+      "line": 93
     },
     "group": "restriction",
     "level": "allow",
@@ -219,7 +219,7 @@
     "id": "assign_op_pattern",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 148
+      "line": 147
     },
     "group": "style",
     "level": "warn",
@@ -309,7 +309,7 @@
     "id": "bad_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 213
+      "line": 212
     },
     "group": "correctness",
     "level": "deny",
@@ -931,21 +931,6 @@
     }
   },
   {
-    "id": "cmp_nan",
-    "id_span": {
-      "path": "src/operators/mod.rs",
-      "line": 508
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for comparisons to NaN.\n\n### Why is this bad?\nNaN does not compare meaningfully to anything – not\neven itself – so those comparisons are simply wrong.\n\n### Example\n```rust\nif x == f32::NAN { }\n```\n\nUse instead:\n```rust\nif x.is_nan() { }\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
@@ -964,7 +949,7 @@
     "id": "cmp_owned",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 537
+      "line": 511
     },
     "group": "perf",
     "level": "warn",
@@ -1549,7 +1534,7 @@
     "id": "double_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 297
+      "line": 296
     },
     "group": "complexity",
     "level": "warn",
@@ -1669,7 +1654,7 @@
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 327
+      "line": 326
     },
     "group": "complexity",
     "level": "warn",
@@ -1834,7 +1819,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 359
+      "line": 358
     },
     "group": "correctness",
     "level": "deny",
@@ -1864,7 +1849,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 405
+      "line": 404
     },
     "group": "correctness",
     "level": "deny",
@@ -2318,7 +2303,7 @@
     "id": "float_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 113
+      "line": 112
     },
     "group": "restriction",
     "level": "allow",
@@ -2333,7 +2318,7 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 574
+      "line": 548
     },
     "group": "pedantic",
     "level": "allow",
@@ -2348,7 +2333,7 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 609
+      "line": 583
     },
     "group": "restriction",
     "level": "allow",
@@ -2363,7 +2348,7 @@
     "id": "float_equality_without_abs",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 438
+      "line": 437
     },
     "group": "suspicious",
     "level": "warn",
@@ -2663,7 +2648,7 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 457
+      "line": 456
     },
     "group": "complexity",
     "level": "warn",
@@ -2948,7 +2933,7 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 246
+      "line": 245
     },
     "group": "correctness",
     "level": "deny",
@@ -3143,7 +3128,7 @@
     "id": "integer_division",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 483
+      "line": 482
     },
     "group": "restriction",
     "level": "allow",
@@ -4654,7 +4639,7 @@
     "id": "mem_forget",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 96
+      "line": 67
     },
     "group": "restriction",
     "level": "allow",
@@ -4804,7 +4789,7 @@
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 175
+      "line": 174
     },
     "group": "suspicious",
     "level": "warn",
@@ -5080,7 +5065,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 655
+      "line": 629
     },
     "group": "restriction",
     "level": "allow",
@@ -5095,7 +5080,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 633
+      "line": 607
     },
     "group": "correctness",
     "level": "deny",
@@ -5335,7 +5320,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 684
+      "line": 658
     },
     "group": "pedantic",
     "level": "allow",
@@ -6061,7 +6046,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 383
+      "line": 382
     },
     "group": "style",
     "level": "warn",
@@ -6559,7 +6544,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 713
+      "line": 687
     },
     "group": "style",
     "level": "warn",
@@ -7345,7 +7330,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 752
+      "line": 726
     },
     "group": "correctness",
     "level": "deny",
@@ -8680,21 +8665,6 @@
     }
   },
   {
-    "id": "undropped_manually_drops",
-    "id_span": {
-      "path": "src/drop_forget_ref.rs",
-      "line": 75
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nPrevents the safe `std::mem::drop` function from being called on `std::mem::ManuallyDrop`.\n\n### Why is this bad?\nThe safe `drop` function does not drop the inner value of a `ManuallyDrop`.\n\n### Known problems\nDoes not catch cases if the user binds `std::mem::drop`\nto a different name and calls it that way.\n\n### Example\n```rust\nstruct S;\ndrop(std::mem::ManuallyDrop::new(S));\n```\nUse instead:\n```rust\nstruct S;\nunsafe {\n    std::mem::ManuallyDrop::drop(&mut std::mem::ManuallyDrop::new(S));\n}\n```",
-    "version": "1.49.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "unicode_not_nfc",
     "id_span": {
       "path": "src/unicode.rs",
@@ -9695,7 +9665,7 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 269
+      "line": 268
     },
     "group": "pedantic",
     "level": "allow",
