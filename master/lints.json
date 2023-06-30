@@ -7570,7 +7570,7 @@
     "id": "significant_drop_tightening",
     "id_span": {
       "path": "src/significant_drop_tightening.rs",
-      "line": 50
+      "line": 51
     },
     "group": "nursery",
     "level": "allow",
@@ -7578,7 +7578,7 @@
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MaybeIncorrect"
     }
   },
   {
