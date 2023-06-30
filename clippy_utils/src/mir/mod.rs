@@ -1,12 +1,8 @@
-use rustc_hir::{Expr, HirId};
-use rustc_middle::mir::visit::{
-    MutVisitor, MutatingUseContext, NonMutatingUseContext, PlaceContext, TyContext, Visitor,
-};
+use rustc_hir::Expr;
+use rustc_middle::mir::visit::{MutatingUseContext, NonMutatingUseContext, PlaceContext, Visitor};
 use rustc_middle::mir::{
-    traversal, Body, InlineAsmOperand, Local, LocalDecl, Location, Place, Statement, StatementKind, Terminator,
-    TerminatorKind, START_BLOCK,
+    traversal, Body, InlineAsmOperand, Local, Location, Place, StatementKind, TerminatorKind, START_BLOCK,
 };
-use rustc_middle::ty::{Region, Ty, TyCtxt};
 
 mod possible_borrower;
 pub use possible_borrower::PossibleBorrowerMap;
@@ -98,17 +94,9 @@ pub fn used_exactly_once(mir: &rustc_middle::mir::Body<'_>, local: rustc_middle:
     })
 }
 
-/// Returns the `mir::Body` containing the node associated with `hir_id`.
-#[allow(clippy::module_name_repetitions)]
-pub fn enclosing_mir(tcx: TyCtxt<'_>, hir_id: HirId) -> &Body<'_> {
-    let body_owner_local_def_id = tcx.hir().enclosing_body_owner(hir_id);
-    tcx.optimized_mir(body_owner_local_def_id.to_def_id())
-}
-
 /// Tries to determine the `Local` corresponding to `expr`, if any.
 /// This function is expensive and should be used sparingly.
-pub fn expr_local(tcx: TyCtxt<'_>, expr: &Expr<'_>) -> Option<Local> {
-    let mir = enclosing_mir(tcx, expr.hir_id);
+pub fn expr_local(mir: &Body<'_>, expr: &Expr<'_>) -> Option<Local> {
     mir.local_decls.iter_enumerated().find_map(|(local, local_decl)| {
         if local_decl.source_info.span == expr.span {
             Some(local)
@@ -116,193 +104,6 @@ pub fn expr_local(tcx: TyCtxt<'_>, expr: &Expr<'_>) -> Option<Local> {
             None
         }
     })
-}
-
-/// Tries to find the local in `to_mir` corresponding to `local` in `from_mir`.
-pub fn translate_local<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    from_mir: &Body<'tcx>,
-    to_mir: &Body<'tcx>,
-    local: Local,
-) -> Option<Local> {
-    let equiv_decl = |lhs: &LocalDecl<'tcx>, rhs: &LocalDecl<'tcx>| {
-        lhs.mutability == rhs.mutability
-            && tcx.erase_regions_ty(lhs.ty) == tcx.erase_regions_ty(rhs.ty)
-            && lhs.source_info.span == rhs.source_info.span
-    };
-
-    let from_decl = &from_mir.local_decls[local];
-
-    // Fast path
-    if to_mir
-        .local_decls
-        .get(local)
-        .map_or(false, |to_decl| equiv_decl(from_decl, to_decl))
-    {
-        return Some(local);
-    }
-
-    // Slow path
-    to_mir
-        .local_decls
-        .iter()
-        .position(|to_decl| equiv_decl(from_decl, to_decl))
-        .map(Into::into)
-}
-
-/// Tries to find the location in `to_mir` corresponding to `location` in `from_mir`.
-pub fn translate_location<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    from_mir: &Body<'tcx>,
-    to_mir: &Body<'tcx>,
-    location: Location,
-) -> Option<Location> {
-    let normalized_lhs = from_mir
-        .stmt_at(location)
-        .map_left(|statement| normalize_statement(tcx, statement))
-        .map_right(|terminator| normalize_terminator(tcx, terminator));
-
-    for (block, block_data) in to_mir.basic_blocks.iter_enumerated() {
-        if let Some(location) = normalized_lhs.as_ref().either(
-            |normalized_lhs| {
-                (0..block_data.statements.len()).find_map(|statement_index| {
-                    let rhs = &block_data.statements[statement_index];
-                    if normalized_lhs.source_info.span == rhs.source_info.span
-                        && normalized_lhs.kind == normalize_statement(tcx, rhs).kind
-                    {
-                        Some(Location { block, statement_index })
-                    } else {
-                        None
-                    }
-                })
-            },
-            |normalized_lhs| {
-                if block_data.terminator.as_ref().map_or(false, |rhs| {
-                    normalized_lhs.source_info.span == rhs.source_info.span
-                        && normalized_lhs.kind == normalize_terminator(tcx, rhs).kind
-                }) {
-                    Some(Location {
-                        block,
-                        statement_index: block_data.statements.len(),
-                    })
-                } else {
-                    None
-                }
-            },
-        ) {
-            return Some(location);
-        }
-    }
-
-    None
-}
-
-fn normalize_statement<'tcx>(tcx: TyCtxt<'tcx>, statement: &Statement<'tcx>) -> Statement<'tcx> {
-    let mut statement = statement.clone();
-    Normalizer { tcx }.visit_statement(&mut statement, Location::START);
-    statement
-}
-
-fn normalize_terminator<'tcx>(tcx: TyCtxt<'tcx>, terminator: &Terminator<'tcx>) -> Terminator<'tcx> {
-    let mut terminator = terminator.clone();
-    Normalizer { tcx }.visit_terminator(&mut terminator, Location::START);
-    match terminator.kind {
-        // No basic blocks
-        TerminatorKind::Abort
-        | TerminatorKind::GeneratorDrop
-        | TerminatorKind::Resume
-        | TerminatorKind::Return
-        | TerminatorKind::Unreachable => {},
-
-        // One basic block
-        TerminatorKind::Goto { ref mut target } => {
-            *target = Location::START.block;
-        },
-
-        // Two basic blocks
-        TerminatorKind::FalseEdge {
-            ref mut real_target,
-            ref mut imaginary_target,
-        } => {
-            *real_target = Location::START.block;
-            *imaginary_target = Location::START.block;
-        },
-
-        // One optional and one non-optional basic block
-        TerminatorKind::Assert {
-            ref mut target,
-            cleanup: ref mut unwind,
-            ..
-        }
-        | TerminatorKind::Drop {
-            ref mut target,
-            ref mut unwind,
-            ..
-        }
-        | TerminatorKind::DropAndReplace {
-            ref mut target,
-            ref mut unwind,
-            ..
-        }
-        | TerminatorKind::FalseUnwind {
-            real_target: ref mut target,
-            ref mut unwind,
-            ..
-        }
-        | TerminatorKind::Yield {
-            resume: ref mut target,
-            drop: ref mut unwind,
-            ..
-        } => {
-            *target = Location::START.block;
-            *unwind = None;
-        },
-
-        // Two optional basic blocks
-        TerminatorKind::Call {
-            ref mut target,
-            ref mut cleanup,
-            ..
-        }
-        | TerminatorKind::InlineAsm {
-            destination: ref mut target,
-            ref mut cleanup,
-            ..
-        } => {
-            *target = None;
-            *cleanup = None;
-        },
-
-        // Arbitrarily many basic blocks
-        TerminatorKind::SwitchInt { ref mut targets, .. } => {
-            for (_, ref mut target) in targets.iter() {
-                *target = Location::START.block;
-            }
-        },
-    }
-    terminator
-}
-
-struct Normalizer<'tcx> {
-    tcx: TyCtxt<'tcx>,
-}
-
-impl<'tcx> MutVisitor<'tcx> for Normalizer<'tcx> {
-    fn tcx<'a>(&'a self) -> TyCtxt<'tcx> {
-        self.tcx
-    }
-
-    fn visit_local(&mut self, local: &mut Local, _context: PlaceContext, _location: Location) {
-        *local = Local::from_u32(0);
-    }
-
-    fn visit_region(&mut self, region: &mut Region<'tcx>, _: Location) {
-        *region = self.tcx.lifetimes.re_erased;
-    }
-
-    fn visit_ty(&mut self, ty: &mut Ty<'tcx>, _: TyContext) {
-        *ty = self.tcx.erase_regions_ty(*ty);
-    }
 }
 
 /// Returns a vector of `mir::Location` where `local` is assigned.

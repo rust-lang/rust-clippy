@@ -545,7 +545,7 @@ define_Conf! {
 /// # Errors
 ///
 /// Returns any unexpected filesystem error encountered when searching for the config file
-pub fn lookup_conf_file() -> io::Result<(Option<PathBuf>, Vec<String>)> {
+pub(crate) fn lookup_conf_file() -> io::Result<(Option<PathBuf>, Vec<String>)> {
     /// Possible filename to search for.
     const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
 

@@ -24,6 +24,7 @@
 extern crate rustc_arena;
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;
+extern crate rustc_borrowck;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_errors;
@@ -48,12 +49,17 @@ extern crate clippy_utils;
 #[macro_use]
 extern crate declare_clippy_lint;
 
-use std::io;
-use std::path::PathBuf;
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::sync::OnceLock;
 
 use clippy_utils::msrvs::Msrv;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_lint::{Lint, LintId};
+use rustc_hir::intravisit::Visitor;
+use rustc_hir::BodyId;
+use rustc_lint::{LateContext, LateContextAndPass, LateLintPass, Lint, LintId, LintPass};
+use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 
 #[cfg(feature = "internal")]
@@ -340,9 +346,9 @@ mod zero_div_zero;
 mod zero_sized_map_values;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
-pub use crate::utils::conf::{lookup_conf_file, Conf};
+pub use crate::utils::conf::Conf;
 use crate::utils::{
-    conf::{metadata::get_configuration_metadata, TryConf},
+    conf::{metadata::get_configuration_metadata, lookup_conf_file, TryConf},
     FindAll,
 };
 
@@ -363,7 +369,16 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, sess: &Se
 }
 
 #[doc(hidden)]
-pub fn read_conf(sess: &Session, path: &io::Result<(Option<PathBuf>, Vec<String>)>) -> Conf {
+pub fn read_conf(sess: &Session) -> &'static Conf {
+    static CONF: OnceLock<Conf> = OnceLock::new();
+
+    CONF.get_or_init(|| read_conf_inner(sess))
+}
+
+fn read_conf_inner(sess: &Session) -> Conf {
+    let conf_path = lookup_conf_file();
+    let path = &conf_path;
+
     if let Ok((_, warnings)) = path {
         for warning in warnings {
             sess.warn(warning.clone());
@@ -781,7 +796,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     });
     store.register_late_pass(|_| Box::new(non_copy_const::NonCopyConst));
     store.register_late_pass(|_| Box::new(ptr_offset_with_cast::PtrOffsetWithCast));
-    store.register_late_pass(|_| Box::new(redundant_clone::RedundantClone));
     store.register_late_pass(|_| Box::new(slow_vector_initialization::SlowVectorInit));
     store.register_late_pass(move |_| Box::new(unnecessary_wraps::UnnecessaryWraps::new(avoid_breaking_exported_api)));
     store.register_late_pass(|_| Box::new(assertions_on_constants::AssertionsOnConstants));
@@ -866,7 +880,6 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(move |_| Box::new(wildcard_imports::WildcardImports::new(warn_on_all_wildcard_imports)));
     store.register_late_pass(|_| Box::<redundant_pub_crate::RedundantPubCrate>::default());
     store.register_late_pass(|_| Box::new(unnamed_address::UnnamedAddress));
-    store.register_late_pass(move |_| Box::new(dereference::Dereferencing::new(msrv())));
     store.register_late_pass(|_| Box::new(option_if_let_else::OptionIfLetElse));
     store.register_late_pass(|_| Box::new(future_not_send::FutureNotSend));
     let future_size_threshold = conf.future_size_threshold;
@@ -1046,6 +1059,66 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     let stack_size_threshold = conf.stack_size_threshold;
     store.register_late_pass(move |_| Box::new(large_stack_frames::LargeStackFrames::new(stack_size_threshold)));
     // add lints here, do not remove this comment, it's used in `new_lint`
+}
+
+pub struct BorrowckContext<'tcx> {
+    cell: RefCell<Option<Rc<LateContext<'tcx>>>>,
+}
+
+impl<'tcx> BorrowckContext<'tcx> {
+    pub fn new(tcx: TyCtxt<'tcx>, body_id: BodyId) -> Self {
+        let cx = LateContext::new(tcx, Some(body_id));
+
+        Self {
+            cell: RefCell::new(Some(Rc::new(cx))),
+        }
+    }
+
+    /// Returns a reference to the internal `LateContext` as an `Rc`. The `Rc` must be dropped
+    /// before `visit_hir_body` is called (if ever).
+    fn as_late_context(&self) -> Rc<LateContext<'tcx>> {
+        self.cell.borrow().as_ref().unwrap().clone()
+    }
+
+    /// Visits the current HIR body with `pass`. Panics if references to the internal `LateContext`
+    /// returned by `as_late_context` have not yet been dropped.
+    fn visit_hir_body<T: LateLintPass<'tcx>>(&self, pass: T) -> T {
+        let rc = self.cell.take().unwrap();
+
+        let context = Rc::into_inner(rc).unwrap();
+
+        let body = context.tcx.hir().body(context.enclosing_body.unwrap());
+
+        let mut context_and_pass = LateContextAndPass { context, pass };
+
+        context_and_pass.visit_body(body);
+
+        let LateContextAndPass { context, pass } = context_and_pass;
+
+        self.cell.replace(Some(Rc::new(context)));
+
+        pass
+    }
+}
+
+pub trait BorrowckLintPass<'b, 'tcx>: LintPass {
+    fn check_body_with_facts(
+        &mut self,
+        cx: &BorrowckContext<'tcx>,
+        body_with_facts: &'b Rc<BodyWithBorrowckFacts<'tcx>>,
+    );
+}
+
+pub fn borrowck_lint_passes<'b, 'tcx>(msrv: &Msrv) -> Vec<Box<dyn BorrowckLintPass<'b, 'tcx> + 'b>>
+where
+    'tcx: 'b,
+{
+    let msrv = msrv.clone();
+
+    vec![
+        Box::new(redundant_clone::RedundantClone),
+        Box::new(dereference::Dereferencing::new(msrv.clone())),
+    ]
 }
 
 #[rustfmt::skip]

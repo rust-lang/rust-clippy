@@ -1,5 +1,6 @@
+use crate::{BorrowckContext, BorrowckLintPass};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
-use clippy_utils::mir::{enclosing_mir, expr_local, local_assignments, used_exactly_once, PossibleBorrowerMap};
+use clippy_utils::mir::{expr_local, local_assignments, used_exactly_once, PossibleBorrowerMap};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::has_enclosing_paren;
@@ -8,22 +9,23 @@ use clippy_utils::{
     fn_def_id, get_parent_expr, get_parent_expr_for_hir, is_lint_allowed, path_to_local, walk_to_expr_usage,
 };
 
+use rustc_ast as ast;
 use rustc_ast::util::parser::{PREC_POSTFIX, PREC_PREFIX};
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_data_structures::graph::iterate::{CycleDetector, TriColorDepthFirstSearch};
 use rustc_errors::Applicability;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_hir::intravisit::{walk_ty, Visitor};
 use rustc_hir::{
-    self as hir,
-    def_id::{DefId, LocalDefId},
-    BindingAnnotation, Body, BodyId, BorrowKind, Closure, Expr, ExprKind, FnRetTy, GenericArg, HirId, ImplItem,
+    self as hir, BindingAnnotation, Body, BorrowKind, Closure, Expr, ExprKind, FnRetTy, GenericArg, HirId, ImplItem,
     ImplItemKind, Item, ItemKind, Local, MatchSource, Mutability, Node, Pat, PatKind, Path, QPath, TraitItem,
     TraitItemKind, TyKind, UnOp,
 };
 use rustc_index::bit_set::BitSet;
 use rustc_infer::infer::TyCtxtInferExt;
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir::{Rvalue, StatementKind};
+use rustc_lint::{late_lint_methods, LateContext, LateLintPass, LintPass};
+use rustc_middle::mir::{PlaceElem, Rvalue, StatementKind};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{
     self, Binder, BoundVariableKind, Clause, EarlyBinder, FnSig, GenericArgKind, List, ParamEnv, ParamTy,
@@ -34,6 +36,7 @@ use rustc_span::{symbol::sym, Span, Symbol};
 use rustc_trait_selection::infer::InferCtxtExt as _;
 use rustc_trait_selection::traits::{query::evaluate_obligation::InferCtxtExt as _, Obligation, ObligationCause};
 use std::collections::VecDeque;
+use std::rc::Rc;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -148,7 +151,7 @@ declare_clippy_lint! {
     "dereferencing when the compiler would automatically dereference"
 }
 
-impl_lint_pass!(Dereferencing<'_> => [
+impl_lint_pass!(Dereferencing<'_, '_> => [
     EXPLICIT_DEREF_METHODS,
     NEEDLESS_BORROW,
     REF_BINDING_TO_REFERENCE,
@@ -156,7 +159,7 @@ impl_lint_pass!(Dereferencing<'_> => [
 ]);
 
 #[derive(Default)]
-pub struct Dereferencing<'tcx> {
+pub struct Dereferencing<'b, 'tcx> {
     state: Option<(State, StateData)>,
 
     // While parsing a `deref` method call in ufcs form, the path to the function is itself an
@@ -167,7 +170,7 @@ pub struct Dereferencing<'tcx> {
     /// The body the first local was found in. Used to emit lints when the traversal of the body has
     /// been finished. Note we can't lint at the end of every body as they can be nested within each
     /// other.
-    current_body: Option<BodyId>,
+    current_body: Option<&'b Rc<BodyWithBorrowckFacts<'tcx>>>,
 
     /// The list of locals currently being checked by the lint.
     /// If the value is `None`, then the binding has been seen as a ref pattern, but is not linted.
@@ -177,16 +180,15 @@ pub struct Dereferencing<'tcx> {
     /// e.g. `m!(x) | Foo::Bar(ref x)`
     ref_locals: FxIndexMap<HirId, Option<RefPat>>,
 
-    /// Stack of (body owner, `PossibleBorrowerMap`) pairs. Used by
-    /// `needless_borrow_impl_arg_position` to determine when a borrowed expression can instead
-    /// be moved.
-    possible_borrowers: Vec<(LocalDefId, PossibleBorrowerMap<'tcx, 'tcx>)>,
+    /// Used by `needless_borrow_impl_arg_position` to determine when a borrowed expression can
+    /// instead be moved.
+    possible_borrowers: Option<PossibleBorrowerMap<'b, 'tcx>>,
 
     // `IntoIterator` for arrays requires Rust 1.53.
     msrv: Msrv,
 }
 
-impl<'tcx> Dereferencing<'tcx> {
+impl<'b, 'tcx> Dereferencing<'b, 'tcx> {
     #[must_use]
     pub fn new(msrv: Msrv) -> Self {
         Self {
@@ -256,7 +258,7 @@ struct RefPat {
     hir_id: HirId,
 }
 
-impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
+impl<'b, 'tcx> LateLintPass<'tcx> for Dereferencing<'b, 'tcx> {
     #[expect(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         // Skip path expressions from deref calls. e.g. `Deref::deref(e)`
@@ -288,7 +290,13 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
         match (self.state.take(), kind) {
             (None, kind) => {
                 let expr_ty = typeck.expr_ty(expr);
-                let (position, adjustments) = walk_parents(cx, &mut self.possible_borrowers, expr, &self.msrv);
+                let (position, adjustments) = walk_parents(
+                    cx,
+                    self.current_body.as_ref().unwrap(),
+                    &mut self.possible_borrowers,
+                    expr,
+                    &self.msrv,
+                );
                 match kind {
                     RefOp::Deref => {
                         let sub_ty = typeck.expr_ty(sub_expr);
@@ -548,7 +556,6 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                 then {
                     let mut app = Applicability::MachineApplicable;
                     let snip = snippet_with_context(cx, name.span, pat.span.ctxt(), "..", &mut app).0;
-                    self.current_body = self.current_body.or(cx.enclosing_body);
                     self.ref_locals.insert(
                         id,
                         Some(RefPat {
@@ -564,38 +571,64 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
         }
     }
 
-    fn check_body_post(&mut self, cx: &LateContext<'tcx>, body: &'tcx Body<'_>) {
-        if self.possible_borrowers.last().map_or(false, |&(local_def_id, _)| {
-            local_def_id == cx.tcx.hir().body_owner_def_id(body.id())
-        }) {
-            self.possible_borrowers.pop();
-        }
+    fn check_body_post(&mut self, cx: &LateContext<'tcx>, _body: &'tcx Body<'_>) {
+        self.possible_borrowers = None;
 
-        if Some(body.id()) == self.current_body {
-            for pat in self.ref_locals.drain(..).filter_map(|(_, x)| x) {
-                let replacements = pat.replacements;
-                let app = pat.app;
-                let lint = if pat.always_deref {
-                    NEEDLESS_BORROW
-                } else {
-                    REF_BINDING_TO_REFERENCE
-                };
-                span_lint_hir_and_then(
-                    cx,
-                    lint,
-                    pat.hir_id,
-                    pat.spans,
-                    "this pattern creates a reference to a reference",
-                    |diag| {
-                        diag.multipart_suggestion("try this", replacements, app);
-                    },
-                );
-            }
-            self.current_body = None;
+        for pat in self.ref_locals.drain(..).filter_map(|(_, x)| x) {
+            let replacements = pat.replacements;
+            let app = pat.app;
+            let lint = if pat.always_deref {
+                NEEDLESS_BORROW
+            } else {
+                REF_BINDING_TO_REFERENCE
+            };
+            span_lint_hir_and_then(
+                cx,
+                lint,
+                pat.hir_id,
+                pat.spans,
+                "this pattern creates a reference to a reference",
+                |diag| {
+                    diag.multipart_suggestion("try this", replacements, app);
+                },
+            );
         }
     }
 
     extract_msrv_attr!(LateContext);
+}
+
+#[allow(rustc::lint_pass_impl_without_macro)]
+impl<'b, 'tcx> LintPass for &mut Dereferencing<'b, 'tcx> {
+    fn name(&self) -> &'static str {
+        panic!()
+    }
+}
+
+macro_rules! impl_late_lint_pass {
+    ([], [$($(#[$attr:meta])* fn $f:ident($($param:ident: $arg:ty),*);)*]) => {
+        impl<'b, 'tcx> LateLintPass<'tcx> for &mut Dereferencing<'b, 'tcx> {
+            $(fn $f(&mut self, context: &LateContext<'tcx>, $($param: $arg),*) {
+                (*self).$f(context, $($param),*);
+            })*
+        }
+    };
+}
+
+late_lint_methods!(impl_late_lint_pass, []);
+
+impl<'b, 'tcx> BorrowckLintPass<'b, 'tcx> for Dereferencing<'b, 'tcx> {
+    fn check_body_with_facts(
+        &mut self,
+        cx: &BorrowckContext<'tcx>,
+        body_with_facts: &'b Rc<BodyWithBorrowckFacts<'tcx>>,
+    ) {
+        self.current_body = Some(body_with_facts);
+
+        let this = cx.visit_hir_body(self);
+
+        this.current_body = None;
+    }
 }
 
 fn try_parse_ref_op<'tcx>(
@@ -701,9 +734,10 @@ impl Position {
 /// is, and which adjustments will be applied to it. Note this will not consider auto-borrow
 /// locations as those follow different rules.
 #[expect(clippy::too_many_lines)]
-fn walk_parents<'tcx>(
+fn walk_parents<'b, 'tcx>(
     cx: &LateContext<'tcx>,
-    possible_borrowers: &mut Vec<(LocalDefId, PossibleBorrowerMap<'tcx, 'tcx>)>,
+    body_with_facts: &'b Rc<BodyWithBorrowckFacts<'tcx>>,
+    possible_borrowers: &mut Option<PossibleBorrowerMap<'b, 'tcx>>,
     e: &'tcx Expr<'_>,
     msrv: &Msrv,
 ) -> (Position, &'tcx [Adjustment<'tcx>]) {
@@ -841,6 +875,7 @@ fn walk_parents<'tcx>(
                                     {
                                         needless_borrow_impl_arg_position(
                                             cx,
+                                            body_with_facts,
                                             possible_borrowers,
                                             parent,
                                             i,
@@ -912,6 +947,7 @@ fn walk_parents<'tcx>(
                         {
                             needless_borrow_impl_arg_position(
                                 cx,
+                                body_with_facts,
                                 possible_borrowers,
                                 parent,
                                 i + 1,
@@ -1108,9 +1144,10 @@ fn call_is_qualified(expr: &Expr<'_>) -> bool {
 //   The "is copyable" condition is to avoid the case where removing the `&` means `e` would have to
 // be moved, but it cannot be.
 #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
-fn needless_borrow_impl_arg_position<'tcx>(
+fn needless_borrow_impl_arg_position<'b, 'tcx>(
     cx: &LateContext<'tcx>,
-    possible_borrowers: &mut Vec<(LocalDefId, PossibleBorrowerMap<'tcx, 'tcx>)>,
+    body_with_facts: &'b Rc<BodyWithBorrowckFacts<'tcx>>,
+    possible_borrowers: &mut Option<PossibleBorrowerMap<'b, 'tcx>>,
     parent: &Expr<'tcx>,
     arg_index: usize,
     param_ty: ParamTy,
@@ -1188,7 +1225,7 @@ fn needless_borrow_impl_arg_position<'tcx>(
 
         if !is_copy(cx, referent_ty)
             && (referent_ty.has_significant_drop(cx.tcx, cx.param_env)
-                || !referent_used_exactly_once(cx, possible_borrowers, reference))
+                || !referent_used_exactly_once(cx, body_with_facts, possible_borrowers, reference))
         {
             return false;
         }
@@ -1289,28 +1326,25 @@ fn is_mixed_projection_predicate<'tcx>(
     }
 }
 
-fn referent_used_exactly_once<'tcx>(
+fn referent_used_exactly_once<'b, 'tcx>(
     cx: &LateContext<'tcx>,
-    possible_borrowers: &mut Vec<(LocalDefId, PossibleBorrowerMap<'tcx, 'tcx>)>,
+    body_with_facts: &'b Rc<BodyWithBorrowckFacts<'tcx>>,
+    possible_borrowers: &mut Option<PossibleBorrowerMap<'b, 'tcx>>,
     reference: &Expr<'tcx>,
 ) -> bool {
-    let mir = enclosing_mir(cx.tcx, reference.hir_id);
-    if let Some(local) = expr_local(cx.tcx, reference)
+    let mir = &body_with_facts.body;
+    if let Some(local) = expr_local(mir, reference)
         && let [location] = *local_assignments(mir, local).as_slice()
         && let Some(statement) = mir.basic_blocks[location.block].statements.get(location.statement_index)
         && let StatementKind::Assign(box (_, Rvalue::Ref(_, _, place))) = statement.kind
-        && !place.has_deref()
+        && !place.projection.contains(&PlaceElem::Deref)
         // Ensure not in a loop (https://github.com/rust-lang/rust-clippy/issues/9710)
         && TriColorDepthFirstSearch::new(&mir.basic_blocks).run_from(location.block, &mut CycleDetector).is_none()
     {
-        let body_owner_local_def_id = cx.tcx.hir().enclosing_body_owner(reference.hir_id);
-        if possible_borrowers
-            .last()
-            .map_or(true, |&(local_def_id, _)| local_def_id != body_owner_local_def_id)
-        {
-            possible_borrowers.push((body_owner_local_def_id, PossibleBorrowerMap::new(cx, body_owner_local_def_id)));
+        if possible_borrowers.is_none() {
+            *possible_borrowers = Some(PossibleBorrowerMap::new(cx.tcx, body_with_facts));
         }
-        let possible_borrower = &mut possible_borrowers.last_mut().unwrap().1;
+        let possible_borrower = possible_borrowers.as_mut().unwrap();
         // If `place.local` were not included here, the `copyable_iterator::warn` test would fail. The
         // reason is that `PossibleBorrowerVisitor::visit_terminator` considers `place.local` a possible
         // borrower of itself. See the comment in that method for an explanation as to why.
@@ -1625,7 +1659,7 @@ fn report<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, state: State, data
     }
 }
 
-impl<'tcx> Dereferencing<'tcx> {
+impl<'b, 'tcx> Dereferencing<'b, 'tcx> {
     fn check_local_usage(&mut self, cx: &LateContext<'tcx>, e: &Expr<'tcx>, local: HirId) {
         if let Some(outer_pat) = self.ref_locals.get_mut(&local) {
             if let Some(pat) = outer_pat {

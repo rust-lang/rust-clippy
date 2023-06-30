@@ -1,19 +1,20 @@
+use crate::{BorrowckContext, BorrowckLintPass};
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
 use clippy_utils::mir::{visit_local_usage, LocalUsage, PossibleBorrowerMap};
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::{has_drop, is_copy, is_type_diagnostic_item, is_type_lang_item, walk_ptrs_ty_depth};
 use clippy_utils::{fn_has_unsatisfiable_preds, match_def_path, paths};
 use if_chain::if_chain;
+use rustc_borrowck::consumers::BodyWithBorrowckFacts;
 use rustc_errors::Applicability;
-use rustc_hir::intravisit::FnKind;
-use rustc_hir::{def_id, Body, FnDecl, LangItem};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_hir::{def_id, LangItem};
+use rustc_lint::LateContext;
 use rustc_middle::mir;
 use rustc_middle::ty::{self, Ty};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::def_id::LocalDefId;
-use rustc_span::source_map::{BytePos, Span};
+use rustc_span::source_map::BytePos;
 use rustc_span::sym;
+use std::rc::Rc;
 
 macro_rules! unwrap_or_continue {
     ($x:expr) => {
@@ -63,25 +64,26 @@ declare_clippy_lint! {
 
 declare_lint_pass!(RedundantClone => [REDUNDANT_CLONE]);
 
-impl<'tcx> LateLintPass<'tcx> for RedundantClone {
+impl<'b, 'tcx> BorrowckLintPass<'b, 'tcx> for RedundantClone {
     #[expect(clippy::too_many_lines)]
-    fn check_fn(
+    fn check_body_with_facts(
         &mut self,
-        cx: &LateContext<'tcx>,
-        _: FnKind<'tcx>,
-        _: &'tcx FnDecl<'_>,
-        _: &'tcx Body<'_>,
-        _: Span,
-        def_id: LocalDefId,
+        cx: &BorrowckContext<'tcx>,
+        body_with_facts: &'b Rc<BodyWithBorrowckFacts<'tcx>>,
     ) {
+        let rc = cx.as_late_context();
+        let cx: &LateContext<'tcx> = &rc;
+
+        let def_id = body_with_facts.body.source.def_id();
+
         // Building MIR for `fn`s with unsatisfiable preds results in ICE.
-        if fn_has_unsatisfiable_preds(cx, def_id.to_def_id()) {
+        if fn_has_unsatisfiable_preds(cx, def_id) {
             return;
         }
 
-        let mir = cx.tcx.optimized_mir(def_id.to_def_id());
+        let mir = &body_with_facts.body;
 
-        let mut possible_borrower = PossibleBorrowerMap::new(cx, def_id);
+        let mut possible_borrower = PossibleBorrowerMap::new(cx.tcx, body_with_facts);
 
         for (bb, bbdata) in mir.basic_blocks.iter_enumerated() {
             let terminator = bbdata.terminator();
@@ -257,10 +259,10 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
 }
 
 /// If `kind` is `y = func(x: &T)` where `T: !Copy`, returns `(DefId of func, x, T, y)`.
-fn is_call_with_ref_arg<'tcx>(
+fn is_call_with_ref_arg<'b, 'tcx>(
     cx: &LateContext<'tcx>,
-    mir: &'tcx mir::Body<'tcx>,
-    kind: &'tcx mir::TerminatorKind<'tcx>,
+    mir: &'b mir::Body<'tcx>,
+    kind: &'b mir::TerminatorKind<'tcx>,
 ) -> Option<(def_id::DefId, mir::Local, Ty<'tcx>, mir::Local)> {
     if_chain! {
         if let mir::TerminatorKind::Call { func, args, destination, .. } = kind;
@@ -268,7 +270,7 @@ fn is_call_with_ref_arg<'tcx>(
         if let mir::Operand::Move(mir::Place { local, .. }) = &args[0];
         if let ty::FnDef(def_id, _) = *func.ty(mir, cx.tcx).kind();
         if let (inner_ty, 1) = walk_ptrs_ty_depth(args[0].ty(mir, cx.tcx));
-        if !is_copy(cx, inner_ty);
+        if !is_copy(cx, cx.tcx.erase_regions(inner_ty));
         then {
             Some((def_id, *local, inner_ty, destination.as_local()?))
         } else {

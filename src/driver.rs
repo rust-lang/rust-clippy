@@ -10,12 +10,17 @@
 
 // FIXME: switch to something more ergonomic here, once available.
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
+extern crate rustc_borrowck;
 extern crate rustc_driver;
 extern crate rustc_interface;
+extern crate rustc_lint;
 extern crate rustc_session;
 extern crate rustc_span;
 
+use clippy_lints::{BorrowckContext, BorrowckLintPass};
+use rustc_borrowck::consumers::{do_mir_borrowck, BodyWithBorrowckFacts, ConsumerOptions};
 use rustc_interface::interface;
+use rustc_lint::LintPass;
 use rustc_session::parse::ParseSess;
 use rustc_span::symbol::Symbol;
 
@@ -23,6 +28,7 @@ use std::env;
 use std::ops::Deref;
 use std::path::Path;
 use std::process::exit;
+use std::rc::Rc;
 
 /// If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If
 /// true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`.
@@ -118,17 +124,44 @@ struct ClippyCallbacks {
     clippy_args_var: Option<String>,
 }
 
+type BorrowckLintPassObject<'b, 'tcx> = Box<dyn BorrowckLintPass<'b, 'tcx> + 'b>;
+
+/// Like [`rustc_lint::late::RuntimeCombinedLateLintPass`], but with [`BorrowckPass`]es instead of
+/// [`rustc_lint::LateLintPass`]es, and the passes are owned instead of borrowed.
+pub struct RuntimeCombinedBorrowckLintPass<'b, 'tcx> {
+    passes: Vec<BorrowckLintPassObject<'b, 'tcx>>,
+}
+
+#[allow(rustc::lint_pass_impl_without_macro)]
+impl LintPass for RuntimeCombinedBorrowckLintPass<'_, '_> {
+    fn name(&self) -> &'static str {
+        panic!()
+    }
+}
+
+impl<'b, 'tcx> BorrowckLintPass<'b, 'tcx> for RuntimeCombinedBorrowckLintPass<'b, 'tcx> {
+    fn check_body_with_facts(
+        &mut self,
+        cx: &BorrowckContext<'tcx>,
+        body_with_facts: &'b Rc<BodyWithBorrowckFacts<'tcx>>,
+    ) {
+        for pass in &mut self.passes {
+            pass.check_body_with_facts(cx, body_with_facts);
+        }
+    }
+}
+
 impl rustc_driver::Callbacks for ClippyCallbacks {
     // JUSTIFICATION: necessary in clippy driver to set `mir_opt_level`
     #[allow(rustc::bad_opt_access)]
     fn config(&mut self, config: &mut interface::Config) {
-        let conf_path = clippy_lints::lookup_conf_file();
         let previous = config.register_lints.take();
         let clippy_args_var = self.clippy_args_var.take();
         config.parse_sess_created = Some(Box::new(move |parse_sess| {
             track_clippy_args(parse_sess, &clippy_args_var);
             track_files(parse_sess);
         }));
+
         config.register_lints = Some(Box::new(move |sess, lint_store| {
             // technically we're ~guaranteed that this is none but might as well call anything that
             // is there already. Certainly it can't hurt.
@@ -136,11 +169,39 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
                 (previous)(sess, lint_store);
             }
 
-            let conf = clippy_lints::read_conf(sess, &conf_path);
-            clippy_lints::register_plugins(lint_store, sess, &conf);
-            clippy_lints::register_pre_expansion_lints(lint_store, sess, &conf);
+            let conf = clippy_lints::read_conf(sess);
+            clippy_lints::register_plugins(lint_store, sess, conf);
+            clippy_lints::register_pre_expansion_lints(lint_store, sess, conf);
             clippy_lints::register_renamed(lint_store);
         }));
+
+        config.override_queries = Some(|_sess, providers, _external_providers| {
+            providers.mir_borrowck = |tcx, local_def_id| {
+                let (result, body_with_facts) =
+                    do_mir_borrowck(tcx, local_def_id, ConsumerOptions::RegionInferenceContext);
+
+                let body_with_facts = Rc::new(*body_with_facts.unwrap());
+
+                let def_id = body_with_facts.body.source.def_id();
+                let body_id = tcx.hir().body_owned_by(def_id.as_local().unwrap());
+
+                let cx = BorrowckContext::new(tcx, body_id);
+
+                // FIXME: How to compute this just once?
+                let mut pass = {
+                    let conf = clippy_lints::read_conf(tcx.sess);
+                    let msrv = clippy_utils::msrvs::Msrv::read(&conf.msrv, tcx.sess);
+
+                    let passes = clippy_lints::borrowck_lint_passes(msrv);
+    
+                    RuntimeCombinedBorrowckLintPass { passes }
+                };
+
+                pass.check_body_with_facts(&cx, &body_with_facts);
+
+                tcx.arena.alloc(result)
+            };
+        });
 
         // FIXME: #4825; This is required, because Clippy lints that are based on MIR have to be
         // run on the unoptimized MIR. On the other hand this results in some false negatives. If
