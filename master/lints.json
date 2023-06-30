@@ -559,7 +559,7 @@
     "id": "builtin_type_shadow",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 246
+      "line": 247
     },
     "group": "style",
     "level": "warn",
@@ -1579,7 +1579,7 @@
     "id": "double_neg",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 101
+      "line": 102
     },
     "group": "style",
     "level": "warn",
@@ -1654,7 +1654,7 @@
     "id": "duplicate_underscore_argument",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 82
+      "line": 83
     },
     "group": "style",
     "level": "warn",
@@ -4999,7 +4999,7 @@
     "id": "mixed_case_hex_literals",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 128
+      "line": 129
     },
     "group": "style",
     "level": "warn",
@@ -6844,6 +6844,21 @@
     }
   },
   {
+    "id": "redundant_at_rest_pattern",
+    "id_span": {
+      "path": "src/misc_early/mod.rs",
+      "line": 347
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `[all @ ..]` patterns.\n\n### Why is this bad?\nIn all cases, `all` works fine and can often make code simpler, as you possibly won't need\nto convert from say a `Vec` to a slice by dereferencing.\n\n### Example\n```rust\nif let [all @ ..] = &*v {\n    // NOTE: Type is a slice here\n    println!(\"all elements: {all:#?}\");\n}\n```\nUse instead:\n```rust\nif let all = v {\n    // NOTE: Type is a `Vec` here\n    println!(\"all elements: {all:#?}\");\n}\n// or\nprintln!(\"all elements: {v:#?}\");\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "redundant_clone",
     "id_span": {
       "path": "src/redundant_clone.rs",
@@ -6952,7 +6967,7 @@
     "id": "redundant_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 277
+      "line": 278
     },
     "group": "style",
     "level": "warn",
@@ -7420,7 +7435,7 @@
     "id": "separated_literal_suffix",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 185
+      "line": 186
     },
     "group": "restriction",
     "level": "allow",
@@ -9103,7 +9118,7 @@
     "id": "unneeded_field_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 59
+      "line": 60
     },
     "group": "restriction",
     "level": "allow",
@@ -9118,7 +9133,7 @@
     "id": "unneeded_wildcard_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 316
+      "line": 317
     },
     "group": "complexity",
     "level": "warn",
@@ -9223,7 +9238,7 @@
     "id": "unseparated_literal_suffix",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 157
+      "line": 158
     },
     "group": "restriction",
     "level": "allow",
@@ -9935,7 +9950,7 @@
     "id": "zero_prefixed_literal",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 224
+      "line": 225
     },
     "group": "complexity",
     "level": "warn",
