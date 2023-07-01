@@ -1,4 +1,6 @@
-use clippy_utils::{diagnostics::span_lint_and_sugg, is_from_proc_macro, source::snippet_opt};
+use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_from_proc_macro;
+use clippy_utils::source::snippet_opt;
 use rustc_ast::{LitIntType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
@@ -29,6 +31,12 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
             LitIntType::Unsigned(int) => int.name_str(),
             LitIntType::Unsuffixed => "",
         };
+        // `lhs * 1` is useless
+        let rhs = if power_used == 1 {
+            arg_snippet.to_string()
+        } else {
+            format!("({arg_snippet} * {power_used})")
+        };
 
         span_lint_and_sugg(
             cx,
@@ -36,7 +44,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, recv: 
             expr.span,
             "inefficient `.pow()`",
             "use `<<` instead",
-            format!("1{suffix} << ({arg_snippet} * {power_used})"),
+            format!("1{suffix} << {rhs}"),
             Applicability::MaybeIncorrect,
         );
     }

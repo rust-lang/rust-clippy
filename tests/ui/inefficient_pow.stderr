@@ -2,7 +2,7 @@ error: inefficient `.pow()`
   --> $DIR/inefficient_pow.rs:16:9
    |
 LL |     _ = 2i32.pow(1);
-   |         ^^^^^^^^^^^ help: use `<<` instead: `1i32 << (1 * 1)`
+   |         ^^^^^^^^^^^ help: use `<<` instead: `1i32 << 1`
    |
    = note: `-D clippy::inefficient-pow` implied by `-D warnings`
 
@@ -10,19 +10,19 @@ error: inefficient `.pow()`
   --> $DIR/inefficient_pow.rs:17:9
    |
 LL |     _ = 2i32.pow(0);
-   |         ^^^^^^^^^^^ help: use `<<` instead: `1i32 << (0 * 1)`
+   |         ^^^^^^^^^^^ help: use `<<` instead: `1i32 << 0`
 
 error: inefficient `.pow()`
   --> $DIR/inefficient_pow.rs:18:9
    |
 LL |     _ = 2i32.pow(3);
-   |         ^^^^^^^^^^^ help: use `<<` instead: `1i32 << (3 * 1)`
+   |         ^^^^^^^^^^^ help: use `<<` instead: `1i32 << 3`
 
 error: inefficient `.pow()`
   --> $DIR/inefficient_pow.rs:19:9
    |
 LL |     _ = 2i32.pow(100);
-   |         ^^^^^^^^^^^^^ help: use `<<` instead: `1i32 << (100 * 1)`
+   |         ^^^^^^^^^^^^^ help: use `<<` instead: `1i32 << 100`
 
 error: inefficient `.pow()`
   --> $DIR/inefficient_pow.rs:20:9
