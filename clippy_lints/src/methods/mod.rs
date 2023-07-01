@@ -32,6 +32,7 @@ mod get_first;
 mod get_last_with_len;
 mod get_unwrap;
 mod implicit_clone;
+mod inefficient_pow;
 mod inefficient_to_string;
 mod inspect_for_each;
 mod into_iter_on_ref;
@@ -3446,6 +3447,37 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for calls to `.pow()` that get the power of two of `n`, power of four, etc.
+    ///
+    /// ### Why is this bad?
+    /// It's not, but it's not optimized down to a simple `<<`, thus, it's slower. This lint is
+    /// available for when that additional performance is absolutely necessary, at the cost of
+    /// readability.
+    ///
+    /// ### Known issues
+    /// If the linted `pow` would overflow, the suggested `<<` will give an incorrect value with
+    /// overflow checks off. In these cases, `pow` will return 0 whilst `<<` will continue on as
+    /// usual. It may also fail to compile if `arithmetic_overflow` is denied. If this happens,
+    /// it likely means the original code was incorrect regardless as it would always return `0`.
+    ///
+    /// ### Example
+    /// ```rust,ignore
+    /// let _ = 2u32.pow(n);
+    /// let _ = 32u32.pow(n);
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let _ = 1u32 << n;
+    /// let _ = 1u32 << (n * 5);
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub INEFFICIENT_POW,
+    restriction,
+    "usage of `.pow()` when `<<` is faster"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for usage of `.skip(0)` on iterators.
     ///
     /// ### Why is this bad?
@@ -3602,6 +3634,7 @@ impl_lint_pass!(Methods => [
     FORMAT_COLLECT,
     STRING_LIT_CHARS_ANY,
     ITER_SKIP_ZERO,
+    INEFFICIENT_POW,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4008,6 +4041,9 @@ impl Methods {
                         unnecessary_lazy_eval::check(cx, expr, recv, arg, "or");
                     }
                 },
+                ("pow", [arg]) => {
+                    inefficient_pow::check(cx, expr, recv, arg);
+                }
                 ("push", [arg]) => {
                     path_buf_push_overwrite::check(cx, expr, arg);
                 },

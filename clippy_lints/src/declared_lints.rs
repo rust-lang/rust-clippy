@@ -345,6 +345,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::methods::GET_LAST_WITH_LEN_INFO,
     crate::methods::GET_UNWRAP_INFO,
     crate::methods::IMPLICIT_CLONE_INFO,
+    crate::methods::INEFFICIENT_POW_INFO,
     crate::methods::INEFFICIENT_TO_STRING_INFO,
     crate::methods::INSPECT_FOR_EACH_INFO,
     crate::methods::INTO_ITER_ON_REF_INFO,
