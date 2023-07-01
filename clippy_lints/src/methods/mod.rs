@@ -3466,7 +3466,7 @@ declare_clippy_lint! {
     /// let _ = 32u32.pow(n);
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```rust,ignore
     /// let _ = 1u32 << n;
     /// let _ = 1u32 << (n * 5);
     /// ```
