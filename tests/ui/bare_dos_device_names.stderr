@@ -1,0 +1,48 @@
+error: this path refers to a DOS device
+  --> $DIR/bare_dos_device_names.rs:17:7
+   |
+LL |     a("con");
+   |       ^^^^^
+   |
+   = note: `-D clippy::bare-dos-device-names` implied by `-D warnings`
+help: if this is intended, try
+   |
+LL |     a("//./con");
+   |       ~~~~~~~~~
+help: if this was intended to point to a file or folder, try
+   |
+LL |     a("./con");
+   |       ~~~~~~~
+
+error: this path refers to a DOS device
+  --> $DIR/bare_dos_device_names.rs:18:7
+   |
+LL |     b("conin$");
+   |       ^^^^^^^^
+   |
+help: if this is intended, try
+   |
+LL |     b("//./conin$");
+   |       ~~~~~~~~~~~~
+help: if this was intended to point to a file or folder, try
+   |
+LL |     b("./conin$");
+   |       ~~~~~~~~~~
+
+error: this path refers to a DOS device
+  --> $DIR/bare_dos_device_names.rs:19:16
+   |
+LL |     File::open("conin$");
+   |                ^^^^^^^^
+   |
+help: if this is intended, try
+   |
+LL |     File::open("//./conin$");
+   |                ~~~~~~~~~~~~
+help: if this was intended to point to a file or folder, try
+   |
+LL |     File::open("./conin$");
+   |                ~~~~~~~~~~
+
+error: aborting due to 3 previous errors
+

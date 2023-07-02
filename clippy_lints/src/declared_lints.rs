@@ -61,6 +61,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::await_holding_invalid::AWAIT_HOLDING_INVALID_TYPE_INFO,
     crate::await_holding_invalid::AWAIT_HOLDING_LOCK_INFO,
     crate::await_holding_invalid::AWAIT_HOLDING_REFCELL_REF_INFO,
+    crate::bare_dos_device_names::BARE_DOS_DEVICE_NAMES_INFO,
     crate::blocks_in_if_conditions::BLOCKS_IN_IF_CONDITIONS_INFO,
     crate::bool_assert_comparison::BOOL_ASSERT_COMPARISON_INFO,
     crate::bool_to_int_with_if::BOOL_TO_INT_WITH_IF_INFO,

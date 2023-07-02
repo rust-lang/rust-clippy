@@ -4702,6 +4702,7 @@ Released 2018-09-13
 [`await_holding_lock`]: https://rust-lang.github.io/rust-clippy/master/index.html#await_holding_lock
 [`await_holding_refcell_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#await_holding_refcell_ref
 [`bad_bit_mask`]: https://rust-lang.github.io/rust-clippy/master/index.html#bad_bit_mask
+[`bare_dos_device_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#bare_dos_device_names
 [`big_endian_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#big_endian_bytes
 [`bind_instead_of_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#bind_instead_of_map
 [`blacklisted_name`]: https://rust-lang.github.io/rust-clippy/master/index.html#blacklisted_name
