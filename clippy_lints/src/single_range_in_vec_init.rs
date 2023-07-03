@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::get_trait_def_id;
 use clippy_utils::higher::VecArgs;
 use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::implements_trait;
+use clippy_utils::{get_parent_expr, get_trait_def_id, peel_blocks};
 use rustc_ast::{LitIntType, LitKind, UintTy};
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, LangItem, QPath};
+use rustc_hir::{Expr, ExprKind, LangItem, Local, Node, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use std::fmt::{self, Display, Formatter};
@@ -68,7 +68,7 @@ impl Display for SuggestedType {
 }
 
 impl LateLintPass<'_> for SingleRangeInVecInit {
-    fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
+    fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // inner_expr: `vec![0..200]` or `[0..200]`
         //                   ^^^^^^       ^^^^^^^
         // span: `vec![0..200]` or `[0..200]`
@@ -92,6 +92,7 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
 
         if matches!(lang_item, LangItem::Range)
             && let ty = cx.typeck_results().expr_ty(start.expr)
+            && !(has_type_annotations(cx, expr) || is_argument(cx, expr))
             && let Some(snippet) = snippet_opt(cx, span)
             // `is_from_proc_macro` will skip any `vec![]`. Let's not!
             && snippet.starts_with(suggested_type.starts_with())
@@ -141,9 +142,52 @@ impl LateLintPass<'_> for SingleRangeInVecInit {
                                 Applicability::MaybeIncorrect,
                             );
                         }
+
+                        if let Some(local) = get_local(cx, expr) {
+                            diag.span_suggestion(
+                                local.pat.span.shrink_to_hi(),
+                                "if this is intended, give it type annotations",
+                                format!(": {}", cx.typeck_results().expr_ty(expr)),
+                                Applicability::HasPlaceholders,
+                            );
+                        }
                     },
                 );
             }
         }
     }
+}
+
+fn get_local<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<&'tcx Local<'tcx>> {
+    cx.tcx
+        .hir()
+        .parent_iter(expr.hir_id)
+        .find(|p| matches!(p.1, Node::Local(_)))
+        .map(|local| local.1.expect_local())
+}
+
+/// Returns whether `expr` has type annotations if it's a local binding. We should not lint this.
+fn has_type_annotations(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let Some((_, Node::Local(local))) = cx
+        .tcx
+        .hir()
+        .parent_iter(expr.hir_id)
+        .find(|p| matches!(p.1, Node::Local(_)))
+    else {
+        return false;
+    };
+    let Some(init) = local.init else {
+        return false;
+    };
+
+    peel_blocks(init).hir_id == expr.hir_id && local.ty.is_some()
+}
+
+/// Returns whether `expr` is used as an argument to a function. We should not lint this.
+fn is_argument(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let Some(parent) = get_parent_expr(cx, expr) else {
+        return false;
+    };
+
+    matches!(parent.kind, ExprKind::Call(_, _) | ExprKind::MethodCall(..))
 }
