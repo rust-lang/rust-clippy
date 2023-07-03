@@ -1,13 +1,14 @@
 use clippy_utils::{
     diagnostics::{span_lint_and_sugg, span_lint_and_then},
     get_parent_node, is_res_lang_ctor, last_path_segment, path_res,
-    ty::implements_trait,
+    ty::{implements_trait, is_type_lang_item},
 };
+use itertools::Itertools;
 use rustc_errors::Applicability;
 use rustc_hir::{def::Res, Expr, ExprKind, ImplItem, ImplItemKind, ItemKind, LangItem, Node, UnOp};
 use rustc_hir_analysis::hir_ty_to_ty;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::EarlyBinder;
+use rustc_middle::ty::{self, EarlyBinder};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::{sym, symbol::kw};
 
@@ -18,6 +19,14 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     /// If both `Clone` and `Copy` are implemented, they must agree. This is done by dereferencing
     /// `self` in `Clone`'s implementation. Anything else is incorrect.
+    ///
+    /// ### Known issues
+    /// While anything other than `*self` is *technically* incorrect, it can often be done as an
+    /// optimization, like in the case of `MaybeUninit` for example. Returning a new `MaybeUninit`
+    /// is both faster and as correct as `memcpy`ing the original. If this is not the case however,
+    /// the lint's advice should almost always be applied.
+    ///
+    /// Note: This lint ignores `Clone` implementations on types that are just `MaybeUninit`.
     ///
     /// ### Example
     /// ```rust,ignore
@@ -47,7 +56,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.72.0"]
     pub INCORRECT_CLONE_IMPL_ON_COPY_TYPE,
-    correctness,
+    complexity,
     "manual implementation of `Clone` on a `Copy` type"
 }
 declare_clippy_lint! {
@@ -140,7 +149,31 @@ impl LateLintPass<'_> for IncorrectImpls {
                     copy_def_id,
                     &[],
                 )
+            && let ty::Adt(def, substs) = hir_ty_to_ty(cx.tcx, imp.self_ty).kind()
         {
+            let fields = def.all_fields().collect_vec();
+            // Necessary as `all` returns true on an empty iterator
+            if !fields.is_empty()
+                && fields.iter().all(|field| {
+                    let ty = field.ty(cx.tcx, substs);
+
+                    match ty.kind() {
+                        // `MaybeUninit<T>`
+                        ty::Adt(_, _) if is_type_lang_item(cx, ty, LangItem::MaybeUninit) => true,
+                        // `[MaybeUninit<T>; N]`
+                        ty::Array(inner_ty, _) | ty::Slice(inner_ty)
+                            if is_type_lang_item(cx, *inner_ty, LangItem::MaybeUninit) =>
+                        {
+                            true
+                        },
+                        // Other cases are likely pretty rare.
+                        _ => false,
+                    }
+                })
+            {
+                return;
+            }
+
             if impl_item.ident.name == sym::clone {
                 if block.stmts.is_empty()
                     && let Some(expr) = block.expr
