@@ -6,6 +6,8 @@
 #[macro_use]
 extern crate proc_macros;
 
+use std::ops::Range;
+
 macro_rules! a {
     () => {
         vec![0..200];
@@ -20,6 +22,8 @@ fn awa_vec<T: PartialOrd>(start: T, end: T) {
     vec![start..end];
 }
 
+fn do_not_lint_as_argument(_: Vec<Range<usize>>) {}
+
 fn main() {
     // Lint
     [0..200];
@@ -33,11 +37,17 @@ fn main() {
     // Only suggest collect
     [0..200isize];
     vec![0..200isize];
+    // Lints, but suggests adding type annotations
+    let x = vec![0..200];
+    do_not_lint_as_argument(vec![0..200]);
     // Do not lint
     [0..200, 0..100];
     vec![0..200, 0..100];
     [0.0..200.0];
     vec![0.0..200.0];
+    // Issue #11086
+    let do_not_lint_if_has_type_annotations: Vec<Range<_>> = vec![0..200];
+    do_not_lint_as_argument(vec![0..200]);
     // `Copy` is not implemented for `Range`, so this doesn't matter
     // FIXME: [0..200; 2];
     // FIXME: [vec!0..200; 2];
