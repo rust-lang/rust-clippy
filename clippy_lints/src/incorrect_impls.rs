@@ -161,16 +161,19 @@ impl LateLintPass<'_> for IncorrectImpls {
                         // `MaybeUninit<T>`
                         ty::Adt(_, _) if is_type_lang_item(cx, ty, LangItem::MaybeUninit) => true,
                         // `[MaybeUninit<T>; N]`
-                        ty::Array(inner_ty, _) | ty::Slice(inner_ty)
-                            if is_type_lang_item(cx, *inner_ty, LangItem::MaybeUninit) =>
-                        {
-                            true
+                        ty::Array(inner_ty, _) | ty::Slice(inner_ty) => {
+                            is_type_lang_item(cx, *inner_ty, LangItem::MaybeUninit)
                         },
                         // Other cases are likely pretty rare.
                         _ => false,
                     }
                 })
             {
+                return;
+            }
+
+            // Skip `never`-like enums
+            if def.is_enum() && def.variants().is_empty() {
                 return;
             }
 
