@@ -111,7 +111,7 @@
     "id": "arc_with_non_send_sync",
     "id_span": {
       "path": "src/arc_with_non_send_sync.rs",
-      "line": 35
+      "line": 36
     },
     "group": "correctness",
     "level": "deny",
