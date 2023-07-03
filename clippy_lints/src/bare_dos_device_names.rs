@@ -1,15 +1,17 @@
-use clippy_utils::{
-    diagnostics::span_lint_and_then, get_parent_expr, is_from_proc_macro, match_def_path, path_res, paths::PATH_NEW,
-    ty::is_type_diagnostic_item,
-};
-use rustc_ast::LitKind;
+use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::paths::PATH_NEW;
+use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::{get_parent_expr, is_from_proc_macro, match_def_path, path_res};
+use rustc_ast::{LitKind, StrStyle};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::{lint::in_external_macro, ty};
+use rustc_middle::lint::in_external_macro;
+use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::{sym, Symbol};
+use std::borrow::Cow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -41,7 +43,7 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if !in_external_macro(cx.sess(), expr.span)
             && let ExprKind::Lit(arg) = expr.kind
-            && let LitKind::Str(str_sym, _) = arg.node
+            && let LitKind::Str(str_sym, str_style) = arg.node
             && matches!(
                 &*str_sym.as_str().to_ascii_lowercase(),
                 "aux"
@@ -55,6 +57,9 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
                     // Using `CONIN$` and `CONOUT$` is common enough in other languages that it may
                     // trip up a couple newbies coming to rust. Besides, it's unlikely someone will
                     // ever use `CONIN$` as a filename.
+                    //
+                    // TODO: Perhaps `com10` etc. are also DOS device names? `com42` is used in
+                    // `starship-rs` so perhaps they are. But this needs confirmation.
                     | "com1"
                     | "com2"
                     | "com3"
@@ -77,7 +82,7 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
                     | "prn"
                 )
             && let Some(parent) = get_parent_expr(cx, expr)
-            && (is_path_constructor(cx, parent) || is_path_ty(cx, expr, parent))
+            && (is_path_like_constructor(cx, parent) || is_path_like_ty(cx, expr, parent))
             && !is_from_proc_macro(cx, expr)
         {
             span_lint_and_then(
@@ -86,20 +91,25 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
                 expr.span,
                 "this path refers to a DOS device",
                 |diag| {
+                    // Keep `r###` and `###`
+                    let (prefix, hashes) = if let StrStyle::Raw(num) = str_style {
+                        (Cow::Borrowed("r"), "#".repeat(num as usize).into())
+                    } else {
+                        (Cow::Borrowed(""), Cow::Borrowed(""))
+                    };
+
                     // Suggest making current behavior explicit
                     diag.span_suggestion_verbose(
                         expr.span,
-                        "if this is intended, try",
-                        // FIXME: I have zero clue why it normalizes this. `\` -> `/`
-                        format!(r#"r"\\.\{str_sym}"\"#),
+                        "if this is intended, use",
+                        format!(r#"r{hashes}"\\.\{str_sym}"{hashes}"#),
                         Applicability::MaybeIncorrect,
-                    );
-
+                    )
                     // Suggest making the code refer to a file or folder in the current directory
-                    diag.span_suggestion_verbose(
+                    .span_suggestion_verbose(
                         expr.span,
-                        "if this was intended to point to a file or folder, try",
-                        format!("\"./{str_sym}\""),
+                        "if this was intended to point to a file or folder, use",
+                        format!(r#"{prefix}{hashes}"./{str_sym}"{hashes}"#),
                         Applicability::MaybeIncorrect,
                     );
                 }
@@ -112,9 +122,7 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
 /// parent `Expr`, for performance's sake.
 ///
 /// We can't use `is_path_ty` as these take `AsRef<OsStr>` or similar.
-///
-/// TODO: Should we lint `OsStr` too, in `is_path_ty`? I personally don't think so.
-fn is_path_constructor(cx: &LateContext<'_>, parent: &Expr<'_>) -> bool {
+fn is_path_like_constructor(cx: &LateContext<'_>, parent: &Expr<'_>) -> bool {
     enum DefPathOrTyAndName {
         /// Something from `clippy_utils::paths`.
         DefPath(&'static [&'static str]),
@@ -136,21 +144,25 @@ fn is_path_constructor(cx: &LateContext<'_>, parent: &Expr<'_>) -> bool {
         && let QPath::TypeRelative(ty, last_segment) = qpath
         && let Some(call_def_id) = path_res(cx, path).opt_def_id()
         && let Some(ty_def_id) = path_res(cx, ty).opt_def_id()
+        && LINTED_METHODS.iter().any(|method| match method {
+            DefPath(path) => match_def_path(cx, call_def_id, path),
+            TyAndName((ty_name, method_name)) => {
+                cx.tcx.is_diagnostic_item(*ty_name, ty_def_id) && last_segment.ident.name == *method_name
+            },
+        })
     {
-        return LINTED_METHODS.iter().any(|method| {
-            match method {
-                DefPath(path) => match_def_path(cx, call_def_id, path),
-                TyAndName((ty_name, method_name)) => {
-                    cx.tcx.is_diagnostic_item(*ty_name, ty_def_id) && last_segment.ident.name == *method_name
-                },
-            }
-        });
+        return true;
     }
 
     false
 }
 
 /// Gets the `DefId` and arguments of `expr`, if it's a `Call` or `MethodCall`
+///
+/// TODO: Move this to `clippy_utils` and extend it to give more info (not just `DefId` and
+/// arguments). There are many lints that often need this sorta functionality. Most recently
+/// `incorrect_partial_ord_impl_on_ord_type`, but basically all `methods` lints can use this to lint
+/// `Self::method(self)` as well.
 fn get_def_id_and_args<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<(DefId, &'tcx [Expr<'tcx>])> {
     match expr.kind {
         ExprKind::Call(path, args) => Some((path_res(cx, path).opt_def_id()?, args)),
@@ -161,19 +173,16 @@ fn get_def_id_and_args<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> 
 
 /// Given a `Ty`, returns whether it is likely a path type, like `Path` or `PathBuf`. Also returns
 /// true if it's `impl AsRef<Path>`, `T: AsRef<Path>`, etc. You get the idea.
-fn is_path_ty<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, parent: &'tcx Expr<'tcx>) -> bool {
+fn is_path_like_ty<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, parent: &'tcx Expr<'tcx>) -> bool {
     const LINTED_TRAITS: &[(Symbol, Symbol)] = &[
         (sym::AsRef, sym::Path),
         (sym::AsMut, sym::Path),
-        // Basically useless, but let's lint these anyway
         (sym::AsRef, sym::PathBuf),
         (sym::AsMut, sym::PathBuf),
         (sym::Into, sym::Path),
         (sym::Into, sym::PathBuf),
-        // Never seen `From` used in a generic context before, but let's lint these anyway
         (sym::From, sym::Path),
         (sym::From, sym::PathBuf),
-        // TODO: Let's add more traits here.
     ];
 
     let Some((callee, callee_args)) = get_def_id_and_args(cx, parent) else {
@@ -204,14 +213,11 @@ fn is_path_ty<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, parent: &'tc
             // I believe `0` is always `Self`, i.e., `T` or `impl <trait>` so get `1` instead
             && let [_, subst] = trit.trait_ref.substs.as_slice()
             && let Some(as_ref_ty) = subst.as_type()
-        {
-            for (trait_sym, ty_sym) in LINTED_TRAITS {
-                if cx.tcx.is_diagnostic_item(*trait_sym, trit.trait_ref.def_id)
+            && LINTED_TRAITS.iter().any(|(trait_sym, ty_sym)| {
+                cx.tcx.is_diagnostic_item(*trait_sym, trit.trait_ref.def_id)
                     && is_type_diagnostic_item(cx, as_ref_ty, *ty_sym)
-                {
-                    return true;
-                }
-            }
+        }) {
+            return true;
         }
     }
 
