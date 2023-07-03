@@ -13,6 +13,8 @@ fn a<T: AsRef<Path>>(t: T) {}
 
 fn b(t: impl AsRef<Path>) {}
 
+// TODO: More tests for traits.
+
 fn main() {
     a("con");
     b("conin$");

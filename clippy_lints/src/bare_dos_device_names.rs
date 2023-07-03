@@ -5,7 +5,7 @@ use clippy_utils::{
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_hir::*;
+use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::{lint::in_external_macro, ty};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -13,18 +13,22 @@ use rustc_span::{sym, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// TODO please do soon
+    /// Checks for paths implicitly referring to DOS devices.
     ///
     /// ### Why is this bad?
-    /// TODO please
+    /// This will lead to unexpected path transformations on Windows. Usually, the programmer will
+    /// have intended to refer to a file/folder instead.
     ///
     /// ### Example
-    /// ```rust
-    /// // TODO
+    /// ```rust,ignore
+    /// let _ = PathBuf::from("CON");
     /// ```
     /// Use instead:
-    /// ```rust
-    /// // TODO
+    /// ```rust,ignore
+    /// // If this was unintended:
+    /// let _ = PathBuf::from("./CON");
+    /// // To silence the lint:
+    /// let _ = PathBuf::from(r"\\.\CON");
     /// ```
     #[clippy::version = "1.72.0"]
     pub BARE_DOS_DEVICE_NAMES,
@@ -73,7 +77,7 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
                     | "prn"
                 )
             && let Some(parent) = get_parent_expr(cx, expr)
-            && (is_path_buf_from_or_path_new(cx, parent) || is_path_ty(cx, expr, parent))
+            && (is_path_constructor(cx, parent) || is_path_ty(cx, expr, parent))
             && !is_from_proc_macro(cx, expr)
         {
             span_lint_and_then(
@@ -86,7 +90,8 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
                     diag.span_suggestion_verbose(
                         expr.span,
                         "if this is intended, try",
-                        format!(r#""\\.\{str_sym}""#),
+                        // FIXME: I have zero clue why it normalizes this. `\` -> `/`
+                        format!(r#"r"\\.\{str_sym}"\"#),
                         Applicability::MaybeIncorrect,
                     );
 
@@ -103,22 +108,43 @@ impl<'tcx> LateLintPass<'tcx> for BareDosDeviceNames {
     }
 }
 
-/// Gets whether the `Expr` is an argument to `Path::new` or `PathBuf::from`. The caller must
-/// provide the parent `Expr`, for performance's sake.
+/// Gets whether the `Expr` is an argument to path type constructors. The caller must provide the
+/// parent `Expr`, for performance's sake.
 ///
-/// TODO: We can likely refactor this like we did with `LINTED_TRAITS`.
-fn is_path_buf_from_or_path_new(cx: &LateContext<'_>, parent: &Expr<'_>) -> bool {
+/// We can't use `is_path_ty` as these take `AsRef<OsStr>` or similar.
+///
+/// TODO: Should we lint `OsStr` too, in `is_path_ty`? I personally don't think so.
+fn is_path_constructor(cx: &LateContext<'_>, parent: &Expr<'_>) -> bool {
+    enum DefPathOrTyAndName {
+        /// Something from `clippy_utils::paths`.
+        DefPath(&'static [&'static str]),
+        /// The type's name and the method's name. The type must be a diagnostic item and not its
+        /// constructor.
+        ///
+        /// Currently, this is only used for `PathBuf::from`. `PathBuf::from` is unfortunately
+        /// tricky, as all we end up having for `match_def_path` is `core::convert::From::from`,
+        /// not `std::path::PathBuf::from`. Basically useless.
+        TyAndName((Symbol, Symbol)),
+    }
+    // Provides no additional clarity
+    use DefPathOrTyAndName::{DefPath, TyAndName};
+
+    const LINTED_METHODS: &[DefPathOrTyAndName] = &[DefPath(&PATH_NEW), TyAndName((sym::PathBuf, sym::from))];
+
     if let ExprKind::Call(path, _) = parent.kind
         && let ExprKind::Path(qpath) = path.kind
         && let QPath::TypeRelative(ty, last_segment) = qpath
         && let Some(call_def_id) = path_res(cx, path).opt_def_id()
         && let Some(ty_def_id) = path_res(cx, ty).opt_def_id()
-        && (match_def_path(cx, call_def_id, &PATH_NEW)
-            // `PathBuf::from` is unfortunately tricky, as all we end up having for `match_def_path`
-            // is `core::convert::From::from`, not `std::path::PathBuf::from`. Basically useless.
-            || cx.tcx.is_diagnostic_item(sym::PathBuf, ty_def_id) && last_segment.ident.as_str() == "from")
     {
-        return true;
+        return LINTED_METHODS.iter().any(|method| {
+            match method {
+                DefPath(path) => match_def_path(cx, call_def_id, path),
+                TyAndName((ty_name, method_name)) => {
+                    cx.tcx.is_diagnostic_item(*ty_name, ty_def_id) && last_segment.ident.name == *method_name
+                },
+            }
+        });
     }
 
     false
@@ -138,8 +164,15 @@ fn get_def_id_and_args<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> 
 fn is_path_ty<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, parent: &'tcx Expr<'tcx>) -> bool {
     const LINTED_TRAITS: &[(Symbol, Symbol)] = &[
         (sym::AsRef, sym::Path),
-        (sym::Into, sym::PathBuf),
+        (sym::AsMut, sym::Path),
+        // Basically useless, but let's lint these anyway
+        (sym::AsRef, sym::PathBuf),
+        (sym::AsMut, sym::PathBuf),
         (sym::Into, sym::Path),
+        (sym::Into, sym::PathBuf),
+        // Never seen `From` used in a generic context before, but let's lint these anyway
+        (sym::From, sym::Path),
+        (sym::From, sym::PathBuf),
         // TODO: Let's add more traits here.
     ];
 
@@ -168,7 +201,7 @@ fn is_path_ty<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, parent: &'tc
     {
         if let ty::ClauseKind::Trait(trit) = predicate
             && trit.trait_ref.self_ty() == arg_ty
-            // I believe `0` is always `Self`, so `T` or `impl <trait>`
+            // I believe `0` is always `Self`, i.e., `T` or `impl <trait>` so get `1` instead
             && let [_, subst] = trit.trait_ref.substs.as_slice()
             && let Some(as_ref_ty) = subst.as_type()
         {

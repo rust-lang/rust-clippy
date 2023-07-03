@@ -1,5 +1,5 @@
 error: this path refers to a DOS device
-  --> $DIR/bare_dos_device_names.rs:17:7
+  --> $DIR/bare_dos_device_names.rs:19:7
    |
 LL |     a("con");
    |       ^^^^^
@@ -7,38 +7,38 @@ LL |     a("con");
    = note: `-D clippy::bare-dos-device-names` implied by `-D warnings`
 help: if this is intended, try
    |
-LL |     a("//./con");
-   |       ~~~~~~~~~
+LL |     a(r"//./con"/);
+   |       ~~~~~~~~~~~
 help: if this was intended to point to a file or folder, try
    |
 LL |     a("./con");
    |       ~~~~~~~
 
 error: this path refers to a DOS device
-  --> $DIR/bare_dos_device_names.rs:18:7
+  --> $DIR/bare_dos_device_names.rs:20:7
    |
 LL |     b("conin$");
    |       ^^^^^^^^
    |
 help: if this is intended, try
    |
-LL |     b("//./conin$");
-   |       ~~~~~~~~~~~~
+LL |     b(r"//./conin$"/);
+   |       ~~~~~~~~~~~~~~
 help: if this was intended to point to a file or folder, try
    |
 LL |     b("./conin$");
    |       ~~~~~~~~~~
 
 error: this path refers to a DOS device
-  --> $DIR/bare_dos_device_names.rs:19:16
+  --> $DIR/bare_dos_device_names.rs:21:16
    |
 LL |     File::open("conin$");
    |                ^^^^^^^^
    |
 help: if this is intended, try
    |
-LL |     File::open("//./conin$");
-   |                ~~~~~~~~~~~~
+LL |     File::open(r"//./conin$"/);
+   |                ~~~~~~~~~~~~~~
 help: if this was intended to point to a file or folder, try
    |
 LL |     File::open("./conin$");
