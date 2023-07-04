@@ -4,6 +4,7 @@ use clippy_utils::{
     msrvs::{self, Msrv},
     path_to_local,
 };
+use itertools::Itertools;
 use rustc_ast::LitKind;
 use rustc_hir::{Expr, ExprKind, HirId, Node, Pat};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
@@ -45,8 +46,8 @@ impl LateLintPass<'_> for TupleArrayConversions {
     fn check_expr<'tcx>(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if !in_external_macro(cx.sess(), expr.span) && self.msrv.meets(msrvs::TUPLE_ARRAY_CONVERSIONS) {
             match expr.kind {
-                ExprKind::Array(elements) if (1..=12).contains(&elements.len()) => check_array(cx, expr, elements),
-                ExprKind::Tup(elements) if (1..=12).contains(&elements.len()) => check_tuple(cx, expr, elements),
+                ExprKind::Array(elements) => check_array(cx, expr, elements),
+                ExprKind::Tup(elements) => check_tuple(cx, expr, elements),
                 _ => {},
             }
         }
@@ -60,48 +61,58 @@ impl LateLintPass<'_> for TupleArrayConversions {
     reason = "not a FP, but this is much easier to understand"
 )]
 fn check_array<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, elements: &'tcx [Expr<'tcx>]) {
-    if should_lint(
-        cx,
-        elements,
-        // This is cursed.
-        Some,
-        |(first_id, local)| {
-            if let Node::Pat(pat) = local
+    let ty::Array(ty, _) = cx.typeck_results().expr_ty(expr).kind() else {
+        return;
+    };
+
+    if (1..=12).contains(&elements.len())
+        && (should_lint(
+            cx,
+            elements,
+            // This is cursed.
+            Some,
+            |(first_id, local)| {
+                if let Node::Pat(pat) = local
                 && let parent = parent_pat(cx, pat)
                 && parent.hir_id == first_id
             {
                 return matches!(
                     cx.typeck_results().pat_ty(parent).peel_refs().kind(),
-                    ty::Tuple(len) if len.len() == elements.len()
+                    ty::Tuple(tuple_elements) if tuple_elements.len() == elements.len()
+                        // Issue #11100
+                        && tuple_elements.iter().chain(once(*ty)).all_equal()
                 );
             }
 
-            false
-        },
-    ) || should_lint(
-        cx,
-        elements,
-        |(i, expr)| {
-            if let ExprKind::Field(path, field) = expr.kind && field.as_str() == i.to_string() {
-                return Some((i, path));
-            };
+                false
+            },
+        ) || should_lint(
+            cx,
+            elements,
+            |(i, expr)| {
+                if let ExprKind::Field(path, field) = expr.kind && field.as_str() == i.to_string() {
+                    return Some((i, path));
+                };
 
-            None
-        },
-        |(first_id, local)| {
-            if let Node::Pat(pat) = local
+                None
+            },
+            |(first_id, local)| {
+                if let Node::Pat(pat) = local
                 && let parent = parent_pat(cx, pat)
                 && parent.hir_id == first_id
             {
                 return matches!(
                     cx.typeck_results().pat_ty(parent).peel_refs().kind(),
-                    ty::Tuple(len) if len.len() == elements.len()
+                    ty::Tuple(tuple_elements) if tuple_elements.len() == elements.len()
+                        // Issue #11100
+                        && tuple_elements.iter().chain(once(*ty)).all_equal()
                 );
             }
 
-            false
-        },
-    ) {
+                false
+            },
+        ))
+    {
         emit_lint(cx, expr, ToType::Array);
     }
 }
@@ -112,46 +123,58 @@ fn check_array<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, elements: &
 )]
 #[expect(clippy::cast_possible_truncation)]
 fn check_tuple<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, elements: &'tcx [Expr<'tcx>]) {
-    if should_lint(cx, elements, Some, |(first_id, local)| {
-        if let Node::Pat(pat) = local
-                && let parent = parent_pat(cx, pat)
-                && parent.hir_id == first_id
-            {
-                return matches!(
-                    cx.typeck_results().pat_ty(parent).peel_refs().kind(),
-                    ty::Array(_, len) if len.eval_target_usize(cx.tcx, cx.param_env) as usize == elements.len()
-                );
-            }
+    let ty::Tuple(tuple_elements) = cx.typeck_results().expr_ty(expr).kind() else {
+        return;
+    };
 
-        false
-    }) || should_lint(
-        cx,
-        elements,
-        |(i, expr)| {
-            if let ExprKind::Index(path, index) = expr.kind
-                && let ExprKind::Lit(lit) = index.kind
-                && let LitKind::Int(val, _) = lit.node
-                && val as usize == i
-            {
-                return Some((i, path));
-            };
-
-            None
-        },
-        |(first_id, local)| {
+    if (1..=12).contains(&elements.len())
+        // Issue #11100
+        && (should_lint(cx, elements, Some, |(first_id, local)| {
             if let Node::Pat(pat) = local
                 && let parent = parent_pat(cx, pat)
                 && parent.hir_id == first_id
             {
                 return matches!(
                     cx.typeck_results().pat_ty(parent).peel_refs().kind(),
-                    ty::Array(_, len) if len.eval_target_usize(cx.tcx, cx.param_env) as usize == elements.len()
+                    ty::Array(ty, len) if len.eval_target_usize(cx.tcx, cx.param_env) as usize == elements.len()
+                        // Issue #11100
+                        && tuple_elements.iter().chain(once(*ty)).all_equal()
                 );
             }
 
             false
-        },
-    ) {
+        })
+        || should_lint(
+            cx,
+            elements,
+            |(i, expr)| {
+                if let ExprKind::Index(path, index) = expr.kind
+                    && let ExprKind::Lit(lit) = index.kind
+                    && let LitKind::Int(val, _) = lit.node
+                    && val as usize == i
+                {
+                    return Some((i, path));
+                };
+
+                None
+            },
+            |(first_id, local)| {
+                if let Node::Pat(pat) = local
+                    && let parent = parent_pat(cx, pat)
+                    && parent.hir_id == first_id
+                {
+                    return matches!(
+                        cx.typeck_results().pat_ty(parent).peel_refs().kind(),
+                        ty::Array(ty, len) if len.eval_target_usize(cx.tcx, cx.param_env) as usize == elements.len()
+                            // Issue #11100
+                            && tuple_elements.iter().chain(once(*ty)).all_equal()
+                    );
+                }
+
+                false
+            },
+        ))
+    {
         emit_lint(cx, expr, ToType::Tuple);
     }
 }
@@ -208,6 +231,8 @@ fn emit_lint<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, to_type: ToTy
     false
 }
 
+// TODO: This function is a bit hard to read, we should rewrite it at some point. There's also quite
+// a bit of code duplication across the place, this makes adding onto this a tad more time-consuming
 fn should_lint<'tcx>(
     cx: &LateContext<'tcx>,
     elements: &'tcx [Expr<'tcx>],

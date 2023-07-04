@@ -71,3 +71,13 @@ fn msrv_juust_right() {
     let x = &[1, 2];
     let x = (x[0], x[1]);
 }
+
+fn issue_11100_array_to_tuple(this: [&mut i32; 2]) -> (&i32, &mut i32) {
+    let [input, output] = this;
+    (input, output)
+}
+
+fn issue_11100_tuple_to_array<'a>(this: (&'a mut i32, &'a mut i32)) -> [&'a i32; 2] {
+    let (input, output) = this;
+    [input, output]
+}
