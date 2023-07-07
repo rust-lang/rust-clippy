@@ -2888,7 +2888,7 @@
     "id": "incorrect_clone_impl_on_copy_type",
     "id_span": {
       "path": "src/incorrect_impls.rs",
-      "line": 45
+      "line": 44
     },
     "group": "correctness",
     "level": "deny",
