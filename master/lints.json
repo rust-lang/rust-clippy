@@ -7630,7 +7630,7 @@
     "id": "significant_drop_tightening",
     "id_span": {
       "path": "src/significant_drop_tightening.rs",
-      "line": 51
+      "line": 53
     },
     "group": "nursery",
     "level": "allow",
