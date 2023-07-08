@@ -4013,6 +4013,36 @@
     }
   },
   {
+    "id": "manual_is_finite",
+    "id_span": {
+      "path": "src/manual_float_methods.rs",
+      "line": 57
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for manual `is_finite` reimplementations\n(i.e., `x != <float>::INFINITY && x != <float>::NEG_INFINITY`).\n\n### Why is this bad?\nThe method `is_finite` is shorter and more readable.\n\n### Example\n```rust\nif x != f32::INFINITY && x != f32::NEG_INFINITY {}\nif x.abs() < f32::INFINITY {}\n```\nUse instead:\n```rust\nif x.is_finite() {}\nif x.is_finite() {}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "manual_is_infinite",
+    "id_span": {
+      "path": "src/manual_float_methods.rs",
+      "line": 32
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for manual `is_infinite` reimplementations\n(i.e., `x == <float>::INFINITY || x == <float>::NEG_INFINITY`).\n\n### Why is this bad?\nThe method `is_infinite` is shorter and more readable.\n\n### Example\n```rust\nif x == f32::INFINITY || x == f32::NEG_INFINITY {}\n```\nUse instead:\n```rust\nif x.is_infinite() {}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "manual_let_else",
     "id_span": {
       "path": "src/manual_let_else.rs",
