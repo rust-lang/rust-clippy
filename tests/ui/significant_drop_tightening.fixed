@@ -2,7 +2,15 @@
 
 #![warn(clippy::significant_drop_tightening)]
 
-use std::sync::Mutex;
+use std::{
+    cell::UnsafeCell,
+    mem::{drop as unlock, MaybeUninit},
+    sync::{
+        atomic::{AtomicU64, AtomicUsize},
+        Mutex,
+    },
+    task::Waker,
+};
 
 pub fn complex_return_triggers_the_lint() -> i32 {
     fn foo() -> i32 {
@@ -28,9 +36,41 @@ pub fn issue_10413() {
     }
 }
 
-pub fn issue_11128() {
-    use std::mem::drop as unlock;
+pub fn issue_11125() {
+    pub struct Channel<T> {
+        pub inner: Inner,
+        pub slots: [UnsafeCell<MaybeUninit<T>>],
+    }
 
+    pub struct Inner {
+        pub join_wakers: Mutex<Vec<Waker>>,
+        pub ref_count: AtomicUsize,
+        pub sender_wakers: Mutex<Vec<Waker>>,
+        pub status: AtomicU64,
+    }
+
+    pub struct SendValue<'s, T> {
+        pub channel: &'s Channel<T>,
+        pub registered_waker: Option<Waker>,
+        pub value: Option<T>,
+    }
+
+    impl<'s, T> Drop for SendValue<'s, T> {
+        fn drop(&mut self) {
+            if let Some(waker) = self.registered_waker.take() {
+                let mut sender_wakers = self.channel.inner.sender_wakers.lock().unwrap();
+                let idx_opt = sender_wakers.iter().position(|w| w.will_wake(&waker));
+                if let Some(idx) = idx_opt {
+                    let local_waker = sender_wakers.swap_remove(idx);
+                    unlock(sender_wakers);
+                    drop(local_waker);
+                }
+            }
+        }
+    }
+}
+
+pub fn issue_11128() {
     struct Foo {
         droppable: Option<Vec<i32>>,
         mutex: Mutex<Vec<i32>>,
