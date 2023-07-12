@@ -100,6 +100,7 @@ mod unnecessary_lazy_eval;
 mod unnecessary_literal_unwrap;
 mod unnecessary_sort_by;
 mod unnecessary_to_owned;
+mod unnecessary_unwrap_unchecked;
 mod unwrap_or_else_default;
 mod unwrap_used;
 mod useless_asref;
@@ -3378,6 +3379,28 @@ declare_clippy_lint! {
     "calling `Stdin::read_line`, then trying to parse it without first trimming"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `unwrap_unchecked` when an `_unchecked` variant of the function exists.
+    ///
+    /// ### Why is this bad?
+    /// Calling the `_unchecked` variant instead alleviates a check that's entirely redundant if
+    /// `unwrap_unchecked` is called.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let s = unsafe { std::str::from_utf8(&[]).unwrap_unchecked() };
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let s = unsafe { std::str::from_utf8_unchecked(&[]) };
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub UNNECESSARY_UNWRAP_UNCHECKED,
+    perf,
+    "calling `unwrap_unchecked` when an `_unchecked` variant of the function exists"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3512,6 +3535,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_LITERAL_UNWRAP,
     DRAIN_COLLECT,
     MANUAL_TRY_FOLD,
+    UNNECESSARY_UNWRAP_UNCHECKED,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -3999,6 +4023,9 @@ impl Methods {
                     }
                     unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
                     unwrap_used::check(cx, expr, recv, false, self.allow_unwrap_in_tests);
+                }
+                ("unwrap_unchecked", []) => {
+                    unnecessary_unwrap_unchecked::check(cx, expr, recv, span);
                 },
                 ("unwrap_err", []) => {
                     unnecessary_literal_unwrap::check(cx, expr, recv, name, args);
@@ -4204,7 +4231,7 @@ impl SelfKind {
             };
 
             let Some(trait_def_id) = cx.tcx.get_diagnostic_item(trait_sym) else {
-                return false
+                return false;
             };
             implements_trait(cx, ty, trait_def_id, &[parent_ty.into()])
         }
