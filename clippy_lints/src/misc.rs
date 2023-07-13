@@ -1,24 +1,28 @@
-use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_hir_and_then};
-use clippy_utils::source::{snippet, snippet_opt, snippet_with_context};
+use clippy_utils::{
+    diagnostics::{span_lint, span_lint_and_sugg, span_lint_hir_and_then},
+    get_parent_expr, in_constant, is_from_proc_macro, is_integer_literal, is_lint_allowed, iter_input_pats,
+    last_path_segment,
+    source::{snippet, snippet_opt, snippet_with_context},
+    std_or_core,
+    sugg::Sugg,
+    SpanlessEq,
+};
+use hir::OwnerNode;
 use if_chain::if_chain;
+use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
-    self as hir, def, BinOpKind, BindingAnnotation, Body, ByRef, Expr, ExprKind, FnDecl, Mutability, PatKind, Stmt,
-    StmtKind, TyKind,
+    self as hir, def, BinOpKind, BindingAnnotation, Body, ByRef, Expr, ExprKind, FnDecl, ItemKind, Lit, Mutability,
+    Node, PatKind, Stmt, StmtKind, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::hygiene::DesugaringKind;
 use rustc_span::source_map::{ExpnKind, Span};
-
-use clippy_utils::sugg::Sugg;
-use clippy_utils::{
-    get_parent_expr, in_constant, is_integer_literal, is_lint_allowed, is_no_std_crate, iter_input_pats,
-    last_path_segment, SpanlessEq,
-};
+use rustc_span::BytePos;
 
 use crate::ref_patterns::REF_PATTERNS;
 
@@ -126,28 +130,99 @@ declare_clippy_lint! {
     "using `0 as *{const, mut} T`"
 }
 
-pub struct LintPass {
-    std_or_core: &'static str,
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for numeric literals (e.g., `1.0_f64`) without a suffix (The `u32` in `1u32`).
+    ///
+    /// ### Why is this bad?
+    /// It's not, but some projects may wish to make the type of every literal explicit. In many
+    /// cases this can prevent default numeric fallback as well, see
+    /// [RFC0212](https://github.com/rust-lang/rfcs/blob/master/text/0212-restore-int-fallback.md)
+    /// for more info and `default_numeric_fallback` for an alternative that only tackles the
+    /// latter if explicitness is not desired.
+    ///
+    /// Note that when type annotations are provided, the type is already explicit; the lint will
+    /// not lint those cases unless the `allow_missing_suffix_with_type_annotations` configuration
+    /// option is disabled.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let x = 1;
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let x = 1i32;
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub NUMERIC_LITERAL_MISSING_SUFFIX,
+    restriction,
+    "numeric literals missing explicit suffixes"
 }
-impl Default for LintPass {
-    fn default() -> Self {
-        Self { std_or_core: "std" }
-    }
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for numeric literals (e.g., 1.0_f64) without a separator (`_`) before the suffix
+    /// (`f64` in `1.0_f64`).
+    ///
+    /// ### Why is this bad?
+    /// It's not, but enforcing a consistent style is important. In this case the codebase prefers
+    /// a separator.
+    ///
+    /// Also see the `suffix_without_separator` lint for an alternative.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let x = 1i32;
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let x = 1_i32;
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub SUFFIX_WITH_SEPARATOR,
+    restriction,
+    "prefer numeric literals with a separator (`_`) before the suffix"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for numeric literals (e.g., 1.0_f64) with a separator (`_`) before the suffix (`f64`
+    /// in `1.0_f64`).
+    ///
+    /// ### Why is this bad?
+    /// It's not, but enforcing a consistent style is important. In this case the codebase prefers
+    /// no separator.
+    ///
+    /// Also see the `suffix_with_separator` lint for an alternative.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let x = 1_i32;
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let x = 1i32;
+    /// ```
+    #[clippy::version = "1.72.0"]
+    pub SUFFIX_WITHOUT_SEPARATOR,
+    restriction,
+    "prefer numeric literals without a separator (`_`) before the suffix"
+}
+
+pub struct LintPass {
+    pub allow_missing_suffix_with_type_annotations: bool,
 }
 impl_lint_pass!(LintPass => [
     TOPLEVEL_REF_ARG,
     USED_UNDERSCORE_BINDING,
     SHORT_CIRCUIT_STATEMENT,
     ZERO_PTR,
+    NUMERIC_LITERAL_MISSING_SUFFIX,
+    SUFFIX_WITH_SEPARATOR,
+    SUFFIX_WITHOUT_SEPARATOR,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for LintPass {
-    fn check_crate(&mut self, cx: &LateContext<'_>) {
-        if is_no_std_crate(cx) {
-            self.std_or_core = "core";
-        }
-    }
-
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -253,6 +328,9 @@ impl<'tcx> LateLintPass<'tcx> for LintPass {
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
+        if let ExprKind::Lit(lit) = expr.kind {
+            self.check_lit(cx, lit, expr);
+        }
         if let ExprKind::Cast(e, ty) = expr.kind {
             self.check_cast(cx, expr.span, e, ty);
             return;
@@ -333,7 +411,8 @@ fn non_macro_local(cx: &LateContext<'_>, res: def::Res) -> bool {
     }
 }
 
-impl LintPass {
+impl<'tcx> LintPass {
+    #[expect(clippy::unused_self)]
     fn check_cast(&self, cx: &LateContext<'_>, span: Span, e: &Expr<'_>, ty: &hir::Ty<'_>) {
         if_chain! {
             if let TyKind::Ptr(ref mut_ty) = ty.kind;
@@ -344,16 +423,90 @@ impl LintPass {
                     Mutability::Mut => ("`0 as *mut _` detected", "ptr::null_mut"),
                     Mutability::Not => ("`0 as *const _` detected", "ptr::null"),
                 };
+                let std_or_core = std_or_core(cx).unwrap_or("...");
 
                 let (sugg, appl) = if let TyKind::Infer = mut_ty.ty.kind {
-                    (format!("{}::{sugg_fn}()", self.std_or_core), Applicability::MachineApplicable)
+                    (format!("{std_or_core}::{sugg_fn}()"), Applicability::MachineApplicable)
                 } else if let Some(mut_ty_snip) = snippet_opt(cx, mut_ty.ty.span) {
-                    (format!("{}::{sugg_fn}::<{mut_ty_snip}>()", self.std_or_core), Applicability::MachineApplicable)
+                    (format!("{std_or_core}::{sugg_fn}::<{mut_ty_snip}>()"), Applicability::MachineApplicable)
                 } else {
                     // `MaybeIncorrect` as type inference may not work with the suggested code
-                    (format!("{}::{sugg_fn}()", self.std_or_core), Applicability::MaybeIncorrect)
+                    (format!("{std_or_core}::{sugg_fn}()"), Applicability::MaybeIncorrect)
                 };
                 span_lint_and_sugg(cx, ZERO_PTR, span, msg, "try", sugg, appl);
+            }
+        }
+    }
+
+    fn check_lit(&self, cx: &LateContext<'tcx>, lit: &Lit, expr: &'tcx Expr<'tcx>) {
+        if expr.span.from_expansion() {
+            return;
+        }
+        if !matches!(lit.node, LitKind::Int(_, _) | LitKind::Float(_, _)) {
+            return;
+        }
+
+        let sm = cx.sess().source_map();
+        let ty = cx.typeck_results().expr_ty(expr).to_string();
+
+        if lit.node.is_unsuffixed()
+            && !is_from_proc_macro(cx, expr)
+            && (!self.allow_missing_suffix_with_type_annotations
+                || !(matches!(
+                    cx.tcx.hir().owner(cx.tcx.hir().get_parent_item(expr.hir_id)),
+                    OwnerNode::Item(item) if matches!(
+                        item.kind,
+                        ItemKind::Static(_, _, _) | ItemKind::Const(_, _),
+                    ),
+                ) || cx
+                    .tcx
+                    .hir()
+                    .parent_iter(expr.hir_id)
+                    .any(|(_, p)| matches!(p, Node::Local(local) if local.ty.is_some()))))
+        {
+            span_lint_and_sugg(
+                cx,
+                NUMERIC_LITERAL_MISSING_SUFFIX,
+                lit.span.shrink_to_hi(),
+                "this literal is missing an explicit suffix",
+                "add it",
+                ty.clone(),
+                Applicability::MachineApplicable,
+            );
+        }
+
+        if lit.node.is_suffixed()
+            && let Some(ty_first_char) = ty.chars().next()
+            && let separator_span = sm.span_extend_to_prev_char(lit.span.shrink_to_hi(), ty_first_char, false)
+            // TODO: There's probably a better way to do this. We want to turn `64` from `_f64` into `_`
+            && let separator_span = separator_span
+                .with_lo(separator_span.lo() - BytePos(2))
+                .with_hi(separator_span.lo() - BytePos(1))
+            && let Some(separator_snip) = snippet_opt(cx, separator_span)
+        {
+            if separator_snip == "_" && !is_from_proc_macro(cx, expr) {
+                span_lint_and_sugg(
+                    cx,
+                    SUFFIX_WITHOUT_SEPARATOR,
+                    separator_span,
+                    "this literal has a separator before its suffix",
+                    "remove it",
+                    String::new(),
+                    Applicability::MachineApplicable,
+                );
+            } else if !is_from_proc_macro(cx, expr) {
+                span_lint_and_sugg(
+                    cx,
+                    SUFFIX_WITH_SEPARATOR,
+                    // Since this one has no separator, we must be careful with our suggestion. We
+                    // cannot just use the original `separator_span` as that'll overwrite the last
+                    // digit of the literal. So make it empty and point to after that digit.
+                    separator_span.with_lo(separator_span.lo() + BytePos(1)).shrink_to_lo(),
+                    "this literal is missing a separator before its suffix",
+                    "add it",
+                    "_".to_owned(),
+                    Applicability::MachineApplicable,
+                );
             }
         }
     }

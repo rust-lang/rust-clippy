@@ -1,0 +1,46 @@
+error: this literal is missing a separator before its suffix
+  --> $DIR/suffix_with_separator.rs:10:10
+   |
+LL |     _ = 1u32;
+   |          ^ help: add it: `_`
+   |
+   = note: `-D clippy::suffix-with-separator` implied by `-D warnings`
+
+error: this literal is missing a separator before its suffix
+  --> $DIR/suffix_with_separator.rs:11:10
+   |
+LL |     _ = 1u8;
+   |          ^ help: add it: `_`
+
+error: this literal is missing a separator before its suffix
+  --> $DIR/suffix_with_separator.rs:12:11
+   |
+LL |     _ = (1u8);
+   |           ^ help: add it: `_`
+
+error: this literal is missing a separator before its suffix
+  --> $DIR/suffix_with_separator.rs:13:11
+   |
+LL |     _ = [1u8, 2u8];
+   |           ^ help: add it: `_`
+
+error: this literal is missing a separator before its suffix
+  --> $DIR/suffix_with_separator.rs:13:16
+   |
+LL |     _ = [1u8, 2u8];
+   |                ^ help: add it: `_`
+
+error: this literal is missing a separator before its suffix
+  --> $DIR/suffix_with_separator.rs:14:12
+   |
+LL |     _ = 1.0f64;
+   |            ^ help: add it: `_`
+
+error: this literal is missing a separator before its suffix
+  --> $DIR/suffix_with_separator.rs:15:10
+   |
+LL |     _ = 1f64;
+   |          ^ help: add it: `_`
+
+error: aborting due to 7 previous errors
+

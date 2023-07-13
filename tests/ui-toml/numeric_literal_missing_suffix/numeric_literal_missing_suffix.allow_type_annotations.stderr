@@ -1,0 +1,16 @@
+error: this literal is missing an explicit suffix
+  --> $DIR/numeric_literal_missing_suffix.rs:15:14
+   |
+LL |     let x = 1;
+   |              ^ help: add it: `i32`
+   |
+   = note: `-D clippy::numeric-literal-missing-suffix` implied by `-D warnings`
+
+error: this literal is missing an explicit suffix
+  --> $DIR/numeric_literal_missing_suffix.rs:16:16
+   |
+LL |     let x = 1.0;
+   |                ^ help: add it: `f64`
+
+error: aborting due to 2 previous errors
+

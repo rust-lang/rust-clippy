@@ -1,0 +1,46 @@
+error: this literal has a separator before its suffix
+  --> $DIR/suffix_without_separator.rs:10:10
+   |
+LL |     _ = 1_u32;
+   |          ^ help: remove it
+   |
+   = note: `-D clippy::suffix-without-separator` implied by `-D warnings`
+
+error: this literal has a separator before its suffix
+  --> $DIR/suffix_without_separator.rs:11:10
+   |
+LL |     _ = 1_u8;
+   |          ^ help: remove it
+
+error: this literal has a separator before its suffix
+  --> $DIR/suffix_without_separator.rs:12:11
+   |
+LL |     _ = (1_u8);
+   |           ^ help: remove it
+
+error: this literal has a separator before its suffix
+  --> $DIR/suffix_without_separator.rs:13:11
+   |
+LL |     _ = [1_u8, 2_u8];
+   |           ^ help: remove it
+
+error: this literal has a separator before its suffix
+  --> $DIR/suffix_without_separator.rs:13:17
+   |
+LL |     _ = [1_u8, 2_u8];
+   |                 ^ help: remove it
+
+error: this literal has a separator before its suffix
+  --> $DIR/suffix_without_separator.rs:14:12
+   |
+LL |     _ = 1.0_f64;
+   |            ^ help: remove it
+
+error: this literal has a separator before its suffix
+  --> $DIR/suffix_without_separator.rs:15:10
+   |
+LL |     _ = 1_f64;
+   |          ^ help: remove it
+
+error: aborting due to 7 previous errors
+
