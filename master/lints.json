@@ -2003,7 +2003,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 146
+      "line": 151
     },
     "group": "complexity",
     "level": "warn",
@@ -5425,11 +5425,11 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 95
+      "line": 100
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\nlet x: &i32 = &&&&&&5;\nfun(&x);\n```\n\nUse instead:\n```rust\nlet x: &i32 = &5;\nfun(x);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n\n### Past names\n\n* `ref_in_deref`\n\n",
+    "docs": "\n### What it does\nChecks for address of operations (`&`) that are going to\nbe dereferenced immediately by the compiler.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Known problems\nThe lint cannot tell when the implementation of a trait\nfor `&T` and `T` do different things. Removing a borrow\nin such a case can change the semantics of the code.\n\n### Example\n```rust\nfn fun(_a: &i32) {}\n\nlet x: &i32 = &&&&&&5;\nfun(&x);\n```\n\nUse instead:\n```rust\nlet x: &i32 = &5;\nfun(x);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n\n### Past names\n\n* `ref_in_deref`\n\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7135,7 +7135,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 123
+      "line": 128
     },
     "group": "pedantic",
     "level": "allow",
