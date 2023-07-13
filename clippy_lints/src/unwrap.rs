@@ -1,5 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher;
+use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::{path_to_local, usage::is_potentially_mutated};
 use if_chain::if_chain;
@@ -231,67 +232,83 @@ impl<'a, 'tcx> Visitor<'tcx> for UnwrappableVariablesVisitor<'a, 'tcx> {
             }
         } else {
             // find `unwrap[_err]()` calls:
-            if_chain! {
-                if let ExprKind::MethodCall(method_name, self_arg, ..) = expr.kind;
-                if let Some(id) = path_to_local(self_arg);
-                if [sym::unwrap, sym::expect, sym!(unwrap_err)].contains(&method_name.ident.name);
-                let call_to_unwrap = [sym::unwrap, sym::expect].contains(&method_name.ident.name);
-                if let Some(unwrappable) = self.unwrappables.iter()
-                    .find(|u| u.local_id == id);
-                // Span contexts should not differ with the conditional branch
-                let span_ctxt = expr.span.ctxt();
-                if unwrappable.branch.span.ctxt() == span_ctxt;
-                if unwrappable.check.span.ctxt() == span_ctxt;
-                then {
-                    if call_to_unwrap == unwrappable.safe_to_unwrap {
-                        let is_entire_condition = unwrappable.is_entire_condition;
-                        let unwrappable_variable_name = self.cx.tcx.hir().name(unwrappable.local_id);
-                        let suggested_pattern = if call_to_unwrap {
-                            unwrappable.kind.success_variant_pattern()
-                        } else {
-                            unwrappable.kind.error_variant_pattern()
-                        };
+            if let ExprKind::MethodCall(method_name, self_arg, ..) = expr.kind
+                && let Some(id) = path_to_local(self_arg)
+                && [sym::unwrap, sym::expect, sym!(unwrap_err)].contains(&method_name.ident.name)
+                && let call_to_unwrap = [sym::unwrap, sym::expect].contains(&method_name.ident.name)
+                && let Some(unwrappable) = self.unwrappables.iter().find(|u| u.local_id == id)
+                && let span_ctxt = expr.span.ctxt()
+                && unwrappable.branch.span.ctxt() == span_ctxt
+                && unwrappable.check.span.ctxt() == span_ctxt
+            {
+                if call_to_unwrap == unwrappable.safe_to_unwrap {
+                    let is_entire_condition = unwrappable.is_entire_condition;
+                    let unwrappable_variable_name = self.cx.tcx.hir().name(unwrappable.local_id);
+                    let suggested_pattern = if call_to_unwrap {
+                        unwrappable.kind.success_variant_pattern()
+                    } else {
+                        unwrappable.kind.error_variant_pattern()
+                    };
 
-                        span_lint_hir_and_then(
-                            self.cx,
-                            UNNECESSARY_UNWRAP,
-                            expr.hir_id,
-                            expr.span,
-                            &format!(
-                                "called `{}` on `{unwrappable_variable_name}` after checking its variant with `{}`",
-                                method_name.ident.name,
-                                unwrappable.check_name.ident.as_str(),
-                            ),
-                            |diag| {
-                                if is_entire_condition {
-                                    diag.span_suggestion(
-                                        unwrappable.check.span.with_lo(unwrappable.if_expr.span.lo()),
-                                        "try",
-                                        format!(
-                                            "if let {suggested_pattern} = {unwrappable_variable_name}",
-                                        ),
-                                        // We don't track how the unwrapped value is used inside the
-                                        // block or suggest deleting the unwrap, so we can't offer a
-                                        // fixable solution.
+                    span_lint_hir_and_then(
+                        self.cx,
+                        UNNECESSARY_UNWRAP,
+                        expr.hir_id,
+                        expr.span,
+                        &format!(
+                            "called `{}` on `{unwrappable_variable_name}` after checking its variant with `{}`",
+                            method_name.ident.name,
+                            unwrappable.check_name.ident.as_str(),
+                        ),
+                        |diag| {
+                            if is_entire_condition {
+                                diag.span_suggestion(
+                                    unwrappable.check.span.with_lo(unwrappable.if_expr.span.lo()),
+                                    "try",
+                                    format!(
+                                        "if let {suggested_pattern} = {unwrappable_variable_name}",
+                                    ),
+                                    // We don't track how the unwrapped value is used inside the
+                                    // block or suggest deleting the unwrap, so we can't offer a
+                                    // fixable solution.
+                                    Applicability::Unspecified,
+                                );
+                                // Reverse the blocks if it's `is_none`/`is_err`
+                                if let Some(higher::If {
+                                    cond: _,
+                                    then,
+                                    r#else: Some(r#else),
+                                }) = higher::If::hir(unwrappable.if_expr)
+                                    && ["is_none", "is_err"].contains(&unwrappable.check_name.ident.name.as_str())
+                                {
+                                    let then_snip = snippet(self.cx, then.span, "<then>");
+                                    let else_snip = snippet(self.cx, r#else.span, "<else>");
+
+                                    diag.multipart_suggestion(
+                                        "this will require flipping the blocks",
+                                        vec![
+                                            (then.span, else_snip.into_owned()),
+                                            (r#else.span, then_snip.into_owned()),
+                                        ],
                                         Applicability::Unspecified,
                                     );
-                                } else {
-                                    diag.span_label(unwrappable.check.span, "the check is happening here");
-                                    diag.help("try using `if let` or `match`");
                                 }
-                            },
-                        );
-                    } else {
-                        span_lint_hir_and_then(
-                            self.cx,
-                            PANICKING_UNWRAP,
-                            expr.hir_id,
-                            expr.span,
-                            &format!("this call to `{}()` will always panic",
-                            method_name.ident.name),
-                            |diag| { diag.span_label(unwrappable.check.span, "because of this check"); },
-                        );
-                    }
+                            } else {
+                                diag.span_label(unwrappable.check.span, "the check is happening here");
+                                diag.help("try using `if let` or `match`");
+                            }
+                        },
+                    );
+                } else {
+                    span_lint_hir_and_then(
+                        self.cx,
+                        PANICKING_UNWRAP,
+                        expr.hir_id,
+                        expr.span,
+                        &format!("this call to `{}()` will always panic",
+                        method_name.ident.name),
+                        |diag| { diag.span_label(unwrappable.check.span, "because of this check"); },
+                    );
                 }
             }
             walk_expr(self, expr);
