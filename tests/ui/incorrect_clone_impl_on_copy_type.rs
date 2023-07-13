@@ -105,3 +105,27 @@ impl<A: Copy> Clone for Uwu<A> {
 }
 
 impl<A: std::fmt::Debug + Copy + Clone> Copy for Uwu<A> {}
+
+// do not lint if type has only `MaybeUninit` fields, #11072
+
+struct G([std::mem::MaybeUninit<u32>; 100]);
+
+impl Clone for G {
+    fn clone(&self) -> Self {
+        todo!()
+    }
+}
+
+impl Copy for G {}
+
+// do not lint `never`-like enums, #11071
+
+enum H {}
+
+impl Clone for H {
+    fn clone(&self) -> Self {
+        todo!()
+    }
+}
+
+impl Copy for H {}

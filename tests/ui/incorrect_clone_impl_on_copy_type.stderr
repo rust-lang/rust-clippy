@@ -7,7 +7,7 @@ LL | |         Self(self.0)
 LL | |     }
    | |_____^ help: change this to: `{ *self }`
    |
-   = note: `#[deny(clippy::incorrect_clone_impl_on_copy_type)]` on by default
+   = note: `-D clippy::incorrect-clone-impl-on-copy-type` implied by `-D warnings`
 
 error: incorrect implementation of `clone_from` on a `Copy` type
   --> $DIR/incorrect_clone_impl_on_copy_type.rs:14:5
