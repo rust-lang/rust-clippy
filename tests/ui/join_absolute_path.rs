@@ -1,6 +1,6 @@
 // run-rustfix
 #![allow(unused)]
-#![warn(clippy::path_join_correction)]
+#![warn(clippy::join_absolute_path)]
 use std::path::Path;
 
 fn main() {

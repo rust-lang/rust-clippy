@@ -69,7 +69,7 @@ mod option_map_unwrap_or;
 mod or_fun_call;
 mod or_then_unwrap;
 mod path_buf_push_overwrite;
-mod path_join_correction;
+mod join_absolute_path;
 mod range_zip_with_len;
 mod repeat_once;
 mod search_is_some;
@@ -3225,7 +3225,7 @@ declare_clippy_lint! {
     /// assert_eq!(new, std::path::PathBuf::from("/sh"));
     /// ```
     #[clippy::version = "1.70.0"]
-    pub PATH_JOIN_CORRECTION,
+    pub JOIN_ABSOLUTE_PATH,
     pedantic,
   "arg to .join called on a Path contains '/' at the start"
 }
@@ -3381,7 +3381,7 @@ impl_lint_pass!(Methods => [
     NEEDLESS_COLLECT,
     SUSPICIOUS_COMMAND_ARG_SPACE,
     CLEAR_WITH_DRAIN,
-    PATH_JOIN_CORRECTION,
+    JOIN_ABSOLUTE_PATH,
     MANUAL_NEXT_BACK,
 ]);
 
@@ -3691,7 +3691,7 @@ impl Methods {
                     if let Some(("collect", _, _, span, _)) = method_call(recv) {
                         unnecessary_join::check(cx, expr, recv, join_arg, span);
                     }
-                    else {path_join_correction::check(cx, expr,  join_arg, span);}
+                    else {join_absolute_path::check(cx, expr,  join_arg, span);}
                 },
                 ("last", []) | ("skip", [_]) => {
                     if let Some((name2, recv2, args2, _span2, _)) = method_call(recv) {

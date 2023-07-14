@@ -380,7 +380,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::methods::OR_FUN_CALL_INFO,
     crate::methods::OR_THEN_UNWRAP_INFO,
     crate::methods::PATH_BUF_PUSH_OVERWRITE_INFO,
-    crate::methods::PATH_JOIN_CORRECTION_INFO,
+    crate::methods::JOIN_ABSOLUTE_PATH_INFO,
     crate::methods::RANGE_ZIP_WITH_LEN_INFO,
     crate::methods::REPEAT_ONCE_INFO,
     crate::methods::RESULT_MAP_OR_INTO_OPTION_INFO,
