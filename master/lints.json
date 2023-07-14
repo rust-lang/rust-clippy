@@ -1327,7 +1327,7 @@
     "id": "deref_by_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 64
+      "line": 65
     },
     "group": "restriction",
     "level": "allow",
@@ -2369,21 +2369,6 @@
     "level": "deny",
     "docs": "\n### What it does\nChecks for comparisons with an address of a function item.\n\n### Why is this bad?\nFunction item address is not guaranteed to be unique and could vary\nbetween different code generation units. Furthermore different function items could have\nthe same address after being merged together.\n\n### Example\n```rust\ntype F = fn();\nfn a() {}\nlet f: F = a;\nif f == a {\n    // ...\n}\n```",
     "version": "1.44.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "fn_null_check",
-    "id_span": {
-      "path": "src/fn_null_check.rs",
-      "line": 29
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for comparing a function pointer to null.\n\n### Why is this bad?\nFunction pointers are assumed to not be null.\n\n### Example\n```rust\nlet fn_ptr: fn() = /* somehow obtained nullable function pointer */\n\nif (fn_ptr as *const ()).is_null() { ... }\n```\nUse instead:\n```rust\nlet fn_ptr: Option<fn()> = /* somehow obtained nullable function pointer */\n\nif fn_ptr.is_none() { ... }\n```",
-    "version": "1.68.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7087,7 +7072,7 @@
     "id": "redundant_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 40
+      "line": 41
     },
     "group": "complexity",
     "level": "warn",
