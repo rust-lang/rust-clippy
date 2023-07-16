@@ -3,7 +3,7 @@ use clippy_utils::higher::VecArgs;
 use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{get_parent_expr, get_trait_def_id, peel_blocks};
+use clippy_utils::{get_trait_def_id, peel_blocks};
 use rustc_ast::{LitIntType, LitKind, UintTy};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem, Local, Node, QPath};
@@ -183,11 +183,15 @@ fn has_type_annotations(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     peel_blocks(init).hir_id == expr.hir_id && local.ty.is_some()
 }
 
-/// Returns whether `expr` is used as an argument to a function. We should not lint this.
+/// Returns whether `expr` is used as an argument to a function or initializing a struct/enum in any
+/// way. We should not lint this.
 fn is_argument(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    let Some(parent) = get_parent_expr(cx, expr) else {
-        return false;
-    };
+    let parent = cx.tcx.parent_hir_node(expr.hir_id);
 
-    matches!(parent.kind, ExprKind::Call(_, _) | ExprKind::MethodCall(..))
+    matches!(
+        parent,
+        Node::Expr(e) if matches!(e.kind, ExprKind::Call(_, _) | ExprKind::MethodCall(..) | ExprKind::Assign(_, _, _)))
+        // NOTE: This will ignore anything akin to `Vec<&dyn Any>` as well, which could ideally be
+        // linted as well, but this should be fine due to the rarity of those circumstances
+        || matches!(parent, Node::ExprField(_))
 }

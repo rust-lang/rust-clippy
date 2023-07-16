@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 //@no-rustfix: overlapping suggestions
-#![allow(clippy::no_effect, clippy::useless_vec, unused)]
+#![allow(clippy::temporary_assignment, clippy::no_effect, clippy::useless_vec, unused)]
 #![warn(clippy::single_range_in_vec_init)]
 #![feature(generic_arg_infer)]
 
@@ -48,6 +48,22 @@ fn main() {
     vec![0.0..200.0];
     // Issue #11086
     let do_not_lint_if_has_type_annotations: Vec<Range<_>> = vec![0..200];
+    // https://github.com/rust-lang/rust-clippy/issues/11086#issuecomment-1636996525
+    struct DoNotLintStructInitializersUnit(Vec<Range<usize>>);
+    struct DoNotLintStructInitializersNamed {
+        a: Vec<Range<usize>>,
+    };
+    enum DoNotLintEnums {
+        One(Vec<Range<usize>>),
+        Two(Vec<Range<usize>>),
+    }
+    DoNotLintStructInitializersUnit(vec![0..200]).0 = vec![0..200];
+    DoNotLintStructInitializersNamed { a: vec![0..200] }.a = vec![0..200];
+    let o = DoNotLintEnums::One(vec![0..200]);
+    match o {
+        DoNotLintEnums::One(mut e) => e = vec![0..200],
+        _ => todo!(),
+    }
     do_not_lint_as_argument(vec![0..200]);
     // `Copy` is not implemented for `Range`, so this doesn't matter
     // FIXME: [0..200; 2];
