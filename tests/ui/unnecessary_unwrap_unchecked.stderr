@@ -1,0 +1,43 @@
+error: usage of `unwrap_unchecked` when an `_unchecked` variant of the method exists
+  --> $DIR/unnecessary_unwrap_unchecked.rs:51:31
+   |
+LL |     let a = unsafe { A::a(&A).unwrap_unchecked() };
+   |                               ^^^^^^^^^^^^^^^^
+   |
+   = help: call the method `a_unchecked` instead, and remove the `unwrap_unchecked` call
+   = note: `-D clippy::unnecessary-unwrap-unchecked` implied by `-D warnings`
+
+error: usage of `unwrap_unchecked` when an `_unchecked` variant of the method exists
+  --> $DIR/unnecessary_unwrap_unchecked.rs:54:15
+   |
+LL |         a.a().unwrap_unchecked()
+   |               ^^^^^^^^^^^^^^^^
+   |
+   = help: call the method `a_unchecked` instead, and remove the `unwrap_unchecked` call
+
+error: usage of `unwrap_unchecked` when an `_unchecked` variant of the associated function exists
+  --> $DIR/unnecessary_unwrap_unchecked.rs:56:49
+   |
+LL |     let an_assoc_fn = unsafe { A::an_assoc_fn().unwrap_unchecked() };
+   |                                                 ^^^^^^^^^^^^^^^^
+   |
+   = help: call the associated function `an_assoc_fn_unchecked` instead, and remove the `unwrap_unchecked` call
+
+error: usage of `unwrap_unchecked` when an `_unchecked` variant of the function exists
+  --> $DIR/unnecessary_unwrap_unchecked.rs:57:36
+   |
+LL |     let extern_fn = unsafe { lol().unwrap_unchecked() };
+   |                                    ^^^^^^^^^^^^^^^^
+   |
+   = help: call the function `lol_unchecked` instead, and remove the `unwrap_unchecked` call
+
+error: usage of `unwrap_unchecked` when an `_unchecked` variant of the function exists
+  --> $DIR/unnecessary_unwrap_unchecked.rs:58:42
+   |
+LL |     let local_fn = unsafe { b::test_fn().unwrap_unchecked() };
+   |                                          ^^^^^^^^^^^^^^^^
+   |
+   = help: call the function `test_fn_unchecked` instead, and remove the `unwrap_unchecked` call
+
+error: aborting due to 5 previous errors
+
