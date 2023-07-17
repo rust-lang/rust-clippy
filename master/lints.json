@@ -7458,7 +7458,7 @@
     "version": "1.52.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MaybeIncorrect"
+      "applicability": "MachineApplicable"
     }
   },
   {
