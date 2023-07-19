@@ -3365,6 +3365,7 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    /// ### What it does
     /// Looks for calls to [`Stdin::read_line`] to read a line from the standard input
     /// into a string, then later attempting to parse this string into a type without first trimming it, which will
     /// always fail because the string has a trailing newline in it.
@@ -3415,7 +3416,7 @@ declare_clippy_lint! {
     /// # let c = 'c';
     /// matches!(c, '\\' | '.' | '+' | '*' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$' | '#' | '&' | '-' | '~');
     /// ```
-    #[clippy::version = "1.72.0"]
+    #[clippy::version = "1.73.0"]
     pub STRING_LIT_CHARS_ANY,
     restriction,
     "checks for `<string_lit>.chars().any(|i| i == c)`"
@@ -3450,7 +3451,7 @@ declare_clippy_lint! {
     ///     })
     /// }
     /// ```
-    #[clippy::version = "1.72.0"]
+    #[clippy::version = "1.73.0"]
     pub FORMAT_COLLECT,
     perf,
     "`format!`ing every element in a collection, then collecting the strings into a new `String`"
@@ -3471,7 +3472,7 @@ declare_clippy_lint! {
     /// let y = v.iter().collect::<Vec<_>>();
     /// assert_eq!(x, y);
     /// ```
-    #[clippy::version = "1.72.0"]
+    #[clippy::version = "1.73.0"]
     pub ITER_SKIP_ZERO,
     correctness,
     "disallows `.skip(0)`"

@@ -84,7 +84,7 @@ error: this argument is a mutable reference, but never used mutably
 LL | fn cfg_warn(s: &mut u32) {}
    |                ^^^^^^^^ help: consider using an immutable reference instead: `&u32`
    |
-   = note: this is cfg-gated and may require further changes
+   = note: this is `cfg`-gated and may require further changes
 
 error: this argument is a mutable reference, but never used mutably
   --> $DIR/needless_pass_by_ref_mut.rs:194:20
@@ -92,7 +92,7 @@ error: this argument is a mutable reference, but never used mutably
 LL |     fn cfg_warn(s: &mut u32) {}
    |                    ^^^^^^^^ help: consider using an immutable reference instead: `&u32`
    |
-   = note: this is cfg-gated and may require further changes
+   = note: this is `cfg`-gated and may require further changes
 
 error: aborting due to 15 previous errors
 

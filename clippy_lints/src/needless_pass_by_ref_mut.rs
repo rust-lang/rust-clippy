@@ -214,7 +214,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByRefMut<'tcx> {
                                 diag.warn("changing this function will impact semver compatibility");
                             }
                             if *is_cfged {
-                                diag.note("this is cfg-gated and may require further changes");
+                                diag.note("this is `cfg`-gated and may require further changes");
                             }
                         },
                     );

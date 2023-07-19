@@ -4,7 +4,7 @@
 use std::ptr::NonNull;
 
 fn foo(s: &mut Vec<u32>, b: &u32, x: &mut u32) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     *x += *b + s.len() as u32;
 }
 
@@ -29,7 +29,7 @@ fn foo5(s: &mut Vec<u32>) {
 }
 
 fn foo6(s: &mut Vec<u32>) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     non_mut_ref(s);
 }
 
@@ -42,12 +42,12 @@ impl Bar {
     fn bar(&mut self) {}
 
     fn mushroom(&self, vec: &mut Vec<i32>) -> usize {
-        //~^ ERROR: this argument is a mutable reference, but not used mutably
+        //~^ ERROR: this argument is a mutable reference, but never used mutably
         vec.len()
     }
 
     fn badger(&mut self, vec: &mut Vec<i32>) -> usize {
-        //~^ ERROR: this argument is a mutable reference, but not used mutably
+        //~^ ERROR: this argument is a mutable reference, but never used mutably
         vec.len()
     }
 }
@@ -124,35 +124,35 @@ async fn f7(x: &mut i32, y: i32, z: &mut i32, a: i32) {
 }
 
 async fn a1(x: &mut i32) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", x);
 }
 async fn a2(x: &mut i32, y: String) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", x);
 }
 async fn a3(x: &mut i32, y: String, z: String) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", x);
 }
 async fn a4(x: &mut i32, y: i32) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", x);
 }
 async fn a5(x: i32, y: &mut i32) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", x);
 }
 async fn a6(x: i32, y: &mut i32) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", x);
 }
 async fn a7(x: i32, y: i32, z: &mut i32) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", z);
 }
 async fn a8(x: i32, a: &mut i32, y: i32, z: &mut i32) {
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
     println!("{:?}", z);
 }
 
@@ -186,14 +186,14 @@ fn lint_attr(s: &mut u32) {}
 
 #[cfg(not(feature = "a"))]
 fn cfg_warn(s: &mut u32) {}
-//~^ ERROR: this argument is a mutable reference, but not used mutably
-//~| NOTE: this is cfg-gated and may require further changes
+//~^ ERROR: this argument is a mutable reference, but never used mutably
+//~| NOTE: this is `cfg`-gated and may require further changes
 
 #[cfg(not(feature = "a"))]
 mod foo {
     fn cfg_warn(s: &mut u32) {}
-    //~^ ERROR: this argument is a mutable reference, but not used mutably
-    //~| NOTE: this is cfg-gated and may require further changes
+    //~^ ERROR: this argument is a mutable reference, but never used mutably
+    //~| NOTE: this is `cfg`-gated and may require further changes
 }
 
 fn main() {
