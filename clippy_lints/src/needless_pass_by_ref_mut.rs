@@ -21,7 +21,7 @@ use rustc_target::spec::abi::Abi;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Check if a `&mut` function argument is actually used mutably.
+    /// Checks if a `&mut` function argument is actually used mutably.
     ///
     /// Be careful if the function is publicly reexported as it would break compatibility with
     /// users of this function.
@@ -89,7 +89,6 @@ fn should_skip<'tcx>(
         }
     }
 
-    // All spans generated from a proc-macro invocation are the same...
     is_from_proc_macro(cx, &input)
 }
 
@@ -203,11 +202,11 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByRefMut<'tcx> {
                         NEEDLESS_PASS_BY_REF_MUT,
                         cx.tcx.hir().local_def_id_to_hir_id(*fn_def_id),
                         sp,
-                        "this argument is a mutable reference, but not used mutably",
+                        "this argument is a mutable reference, but never used mutably",
                         |diag| {
                             diag.span_suggestion(
                                 sp,
-                                "consider changing to".to_string(),
+                                "consider using an immutable reference instead",
                                 format!("&{}", snippet(cx, cx.tcx.hir().span(inner_ty.ty.hir_id), "_"),),
                                 Applicability::Unspecified,
                             );

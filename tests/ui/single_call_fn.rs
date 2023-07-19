@@ -72,3 +72,11 @@ fn k() {}
 fn l() {
     k();
 }
+
+// Make sure lint attributes work properly
+#[allow(clippy::single_call_fn)]
+fn lint_attr_test() {}
+
+fn lint_attr_test_caller() {
+    lint_attr_test();
+}

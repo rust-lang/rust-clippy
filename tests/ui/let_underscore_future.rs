@@ -1,3 +1,5 @@
+#![allow(clippy::needless_pass_by_ref_mut)]
+
 use std::future::Future;
 
 async fn some_async_fn() {}
