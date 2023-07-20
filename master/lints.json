@@ -1876,6 +1876,21 @@
     }
   },
   {
+    "id": "error_impl_error",
+    "id_span": {
+      "path": "src/error_impl_error.rs",
+      "line": 32
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for types named `Error` that implement `Error`.\n\n### Why is this bad?\nIt can become confusing when a codebase has 20 types all named `Error`, requiring either\naliasing them in the `use` statement or qualifying them like `my_module::Error`. This\nhinders comprehension, as it requires you to memorize every variation of importing `Error`\nused across a codebase.\n\n### Example\n```rust\n#[derive(Debug)]\npub enum Error { ... }\n\nimpl std::fmt::Display for Error { ... }\n\nimpl std::error::Error for Error { ... }\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "excessive_nesting",
     "id_span": {
       "path": "src/excessive_nesting.rs",
