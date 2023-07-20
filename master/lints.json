@@ -2918,7 +2918,7 @@
     "id": "incorrect_clone_impl_on_copy_type",
     "id_span": {
       "path": "src/incorrect_impls.rs",
-      "line": 49
+      "line": 50
     },
     "group": "correctness",
     "level": "deny",
@@ -2933,11 +2933,11 @@
     "id": "incorrect_partial_ord_impl_on_ord_type",
     "id_span": {
       "path": "src/incorrect_impls.rs",
-      "line": 106
+      "line": 111
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for manual implementations of both `PartialOrd` and `Ord` when only `Ord` is\nnecessary.\n\n### Why is this bad?\nIf both `PartialOrd` and `Ord` are implemented, they must agree. This is commonly done by\nwrapping the result of `cmp` in `Some` for `partial_cmp`. Not doing this may silently\nintroduce an error upon refactoring.\n\n### Limitations\nWill not lint if `Self` and `Rhs` do not have the same type.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        // ...\n    }\n}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        Some(self.cmp(other))\n    }\n}\n```",
+    "docs": "\n### What it does\nChecks for manual implementations of both `PartialOrd` and `Ord` when only `Ord` is\nnecessary.\n\n### Why is this bad?\nIf both `PartialOrd` and `Ord` are implemented, they must agree. This is commonly done by\nwrapping the result of `cmp` in `Some` for `partial_cmp`. Not doing this may silently\nintroduce an error upon refactoring.\n\n### Known issues\nCode that calls the `.into()` method instead will be flagged as incorrect, despite `.into()`\nwrapping it in `Some`.\n\n### Limitations\nWill not lint if `Self` and `Rhs` do not have the same type.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        // ...\n    }\n}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        Some(self.cmp(other))\n    }\n}\n```",
     "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
