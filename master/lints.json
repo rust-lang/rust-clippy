@@ -159,7 +159,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 633
+      "line": 641
     },
     "group": "nursery",
     "level": "allow",
@@ -174,7 +174,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 547
+      "line": 555
     },
     "group": "restriction",
     "level": "allow",
@@ -436,7 +436,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 580
+      "line": 588
     },
     "group": "pedantic",
     "level": "allow",
@@ -634,7 +634,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 519
+      "line": 527
     },
     "group": "suspicious",
     "level": "warn",
@@ -649,7 +649,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 496
+      "line": 504
     },
     "group": "suspicious",
     "level": "warn",
@@ -664,7 +664,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 433
+      "line": 441
     },
     "group": "suspicious",
     "level": "warn",
@@ -694,7 +694,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 655
+      "line": 663
     },
     "group": "suspicious",
     "level": "warn",
@@ -754,7 +754,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 225
+      "line": 233
     },
     "group": "pedantic",
     "level": "allow",
@@ -784,7 +784,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 478
+      "line": 486
     },
     "group": "correctness",
     "level": "deny",
@@ -799,7 +799,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 607
+      "line": 615
     },
     "group": "suspicious",
     "level": "warn",
@@ -814,7 +814,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 357
+      "line": 365
     },
     "group": "complexity",
     "level": "warn",
@@ -2408,7 +2408,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 254
+      "line": 262
     },
     "group": "style",
     "level": "warn",
@@ -2423,7 +2423,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 329
+      "line": 337
     },
     "group": "restriction",
     "level": "allow",
@@ -2438,7 +2438,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 287
+      "line": 295
     },
     "group": "style",
     "level": "warn",
@@ -6634,7 +6634,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 386
+      "line": 394
     },
     "group": "pedantic",
     "level": "allow",
@@ -6649,7 +6649,7 @@
     "id": "ptr_cast_constness",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 414
+      "line": 422
     },
     "group": "pedantic",
     "level": "allow",
@@ -8998,11 +8998,11 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 197
+      "line": 205
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer types, casts of float\nliterals to float types and casts between raw pointers without changing type or constness.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
+    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer types, casts of float\nliterals to float types and casts between raw pointers without changing type or constness.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Known problems\nWhen the expression on the left is a function call, the lint considers the return type to be\na type alias if it's aliased through a `use` statement\n(like `use std::io::Result as IoResult`). It will not lint such cases.\n\nThis check is also rather primitive. It will only work on primitive types without any\nintermediate references, raw pointers and trait objects may or may not work.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
