@@ -551,6 +551,10 @@ define_Conf! {
     ///
     /// Whether to allow `r#""#` when `r""` can be used
     (allow_one_hash_in_raw_strings: bool = false),
+    /// Lint: NUMERIC_LITERAL_MISSING_SUFFIX.
+    ///
+    /// Whether to allow missing suffixes when it has type annotations like `: u8`
+    (allow_missing_suffix_with_type_annotations: bool = true),
 }
 
 /// Search for the configuration file.

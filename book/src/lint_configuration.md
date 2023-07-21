@@ -730,3 +730,13 @@ Whether to allow `r#""#` when `r""` can be used
 * [`unnecessary_raw_string_hashes`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_raw_string_hashes)
 
 
+## `allow-missing-suffix-with-type-annotations`
+Whether to allow missing suffixes when it has type annotations like `: u8`
+
+**Default Value:** `true` (`bool`)
+
+---
+**Affected lints:**
+* [`numeric_literal_missing_suffix`](https://rust-lang.github.io/rust-clippy/master/index.html#numeric_literal_missing_suffix)
+
+

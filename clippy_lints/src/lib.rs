@@ -629,7 +629,12 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(needless_bool::NeedlessBool));
     store.register_late_pass(|_| Box::new(needless_bool::BoolComparison));
     store.register_late_pass(|_| Box::new(needless_for_each::NeedlessForEach));
-    store.register_late_pass(|_| Box::<misc::LintPass>::default());
+    let allow_missing_suffix_with_type_annotations = conf.allow_missing_suffix_with_type_annotations;
+    store.register_late_pass(move |_| {
+        Box::new(misc::LintPass {
+            allow_missing_suffix_with_type_annotations,
+        })
+    });
     store.register_late_pass(|_| Box::new(eta_reduction::EtaReduction));
     store.register_late_pass(|_| Box::new(mut_mut::MutMut));
     store.register_late_pass(|_| Box::new(mut_reference::UnnecessaryMutPassed));
