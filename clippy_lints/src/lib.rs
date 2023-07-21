@@ -76,6 +76,7 @@ mod assertions_on_result_states;
 mod async_yields_async;
 mod attrs;
 mod await_holding_invalid;
+mod bare_dos_device_names;
 mod blocks_in_if_conditions;
 mod bool_assert_comparison;
 mod bool_to_int_with_if;
@@ -1082,6 +1083,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(manual_float_methods::ManualFloatMethods));
     store.register_late_pass(|_| Box::new(four_forward_slashes::FourForwardSlashes));
     store.register_late_pass(|_| Box::new(error_impl_error::ErrorImplError));
+    store.register_late_pass(move |_| Box::new(bare_dos_device_names::BareDosDeviceNames));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

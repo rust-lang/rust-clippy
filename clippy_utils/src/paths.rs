@@ -68,6 +68,7 @@ pub const PARKING_LOT_RWLOCK_READ_GUARD: [&str; 3] = ["lock_api", "rwlock", "RwL
 pub const PARKING_LOT_RWLOCK_WRITE_GUARD: [&str; 3] = ["lock_api", "rwlock", "RwLockWriteGuard"];
 pub const PATH_BUF_AS_PATH: [&str; 4] = ["std", "path", "PathBuf", "as_path"];
 pub const PATH_MAIN_SEPARATOR: [&str; 3] = ["std", "path", "MAIN_SEPARATOR"];
+pub const PATH_NEW: [&str; 4] = ["std", "path", "Path", "new"];
 pub const PATH_TO_PATH_BUF: [&str; 4] = ["std", "path", "Path", "to_path_buf"];
 pub const PEEKABLE: [&str; 5] = ["core", "iter", "adapters", "peekable", "Peekable"];
 pub const PERMISSIONS: [&str; 3] = ["std", "fs", "Permissions"];
