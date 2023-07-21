@@ -1,5 +1,20 @@
 [
   {
+    "id": "absolute_paths",
+    "id_span": {
+      "path": "src/absolute_paths.rs",
+      "line": 42
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of items through absolute paths, like `std::env::current_dir`.\n\n### Why is this bad?\nMany codebases have their own style when it comes to importing, but one that is seldom used\nis using absolute paths *everywhere*. This is generally considered unidiomatic, and you\nshould add a `use` statement.\n\nThe default maximum segments (2) is pretty strict, you may want to increase this in\n`clippy.toml`.\n\nNote: One exception to this is code from macro expansion - this does not lint such cases, as\nusing absolute paths is the proper way of referencing items in one.\n\n### Example\n```rust\nlet x = std::f64::consts::PI;\n```\nUse any of the below instead, or anything else:\n```rust\nuse std::f64;\nuse std::f64::consts;\nuse std::f64::consts::PI;\nlet x = f64::consts::PI;\nlet x = consts::PI;\nlet x = PI;\nuse std::f64::consts as f64_consts;\nlet x = f64_consts::PI;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `absolute-paths-max-segments`: `u64`(defaults to `2`): The maximum number of segments a path can have before being linted, anything above this will\n   be linted.\n* `absolute-paths-allowed-crates`: `rustc_data_structures::fx::FxHashSet<String>`(defaults to `{}`): Which crates to allow absolute paths from\n",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "absurd_extreme_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
@@ -2138,7 +2153,7 @@
     "id": "extra_unused_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 85
+      "line": 86
     },
     "group": "complexity",
     "level": "warn",
@@ -5608,7 +5623,7 @@
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 54
+      "line": 55
     },
     "group": "complexity",
     "level": "warn",
@@ -7147,7 +7162,7 @@
     "id": "redundant_static_lifetimes",
     "id_span": {
       "path": "src/redundant_static_lifetimes.rs",
-      "line": 30
+      "line": 31
     },
     "group": "style",
     "level": "warn",
