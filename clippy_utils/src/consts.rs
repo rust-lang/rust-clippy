@@ -1,7 +1,8 @@
 #![allow(clippy::float_cmp)]
 
 use crate::source::{get_source_text, walk_span_to_context};
-use crate::{clip, is_direct_expn_of, sext, unsext};
+use crate::visitors::for_each_expr;
+use crate::{clip, is_ctor_or_promotable_const_function, is_direct_expn_of, path_res, sext, unsext};
 use if_chain::if_chain;
 use rustc_ast::ast::{self, LitFloatType, LitKind};
 use rustc_data_structures::sync::Lrc;
@@ -17,6 +18,7 @@ use rustc_span::SyntaxContext;
 use std::cmp::Ordering::{self, Equal};
 use std::hash::{Hash, Hasher};
 use std::iter;
+use std::ops::ControlFlow;
 
 /// A `LitKind`-like enum to fold constant `Expr`s into.
 #[derive(Debug, Clone)]
@@ -735,4 +737,30 @@ fn field_of_struct<'tcx>(
     else {
         None
     }
+}
+
+/// Returns whether a certain `Expr` will be promoted to a constant.
+pub fn is_promotable<'tcx>(cx: &LateContext<'tcx>, start: &'tcx Expr<'tcx>) -> bool {
+    let ty = cx.typeck_results().expr_ty(start);
+    for_each_expr(start, |expr| {
+        match expr.kind {
+            ExprKind::Binary(_, _, _) => ControlFlow::Break(()),
+            ExprKind::Unary(UnOp::Deref, e) if !matches!(path_res(cx, e), Res::Def(DefKind::Const, _)) => {
+                ControlFlow::Break(())
+            },
+            ExprKind::Call(_, _) if !is_ctor_or_promotable_const_function(cx, expr) => ControlFlow::Break(()),
+            ExprKind::MethodCall(..) if let Some(def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+                && !cx.tcx.is_promotable_const_fn(def_id) =>
+            {
+                ControlFlow::Break(())
+            },
+            ExprKind::Path(qpath) if let Res::Local(_) = cx.qpath_res(&qpath, expr.hir_id) => {
+                ControlFlow::Break(())
+            },
+            _ => ControlFlow::Continue(()),
+        }
+    })
+    .is_none()
+        && ty.is_freeze(cx.tcx, cx.param_env)
+        && !ty.needs_drop(cx.tcx, cx.param_env)
 }

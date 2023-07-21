@@ -1,7 +1,7 @@
 //@run-rustfix
 //@aux-build: proc_macros.rs:proc-macro
 
-#![allow(dead_code, unused_variables)]
+#![allow(clippy::ptr_to_temporary, dead_code, unused_variables)]
 
 extern crate proc_macros;
 use proc_macros::with_span;
