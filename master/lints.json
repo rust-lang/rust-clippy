@@ -7099,6 +7099,21 @@
     }
   },
   {
+    "id": "redundant_locals",
+    "id_span": {
+      "path": "src/redundant_locals.rs",
+      "line": 39
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for redundant redefinitions of local bindings.\n\n### Why is this bad?\nRedundant redefinitions of local bindings do not change behavior and are likely to be unintended.\n\nNote that although these bindings do not affect your code's meaning, they _may_ affect `rustc`'s stack allocation.\n\n### Example\n```rust\nlet a = 0;\nlet a = a;\n\nfn foo(b: i32) {\n   let b = b;\n}\n```\nUse instead:\n```rust\nlet a = 0;\n// no redefinition with the same name\n\nfn foo(b: i32) {\n  // no redefinition with the same name\n}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "redundant_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
