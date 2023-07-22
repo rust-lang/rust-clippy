@@ -1027,7 +1027,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 687
+      "line": 688
     },
     "group": "style",
     "level": "warn",
@@ -3023,7 +3023,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 395
+      "line": 396
     },
     "group": "style",
     "level": "warn",
@@ -3971,7 +3971,7 @@
     "id": "manual_filter",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 934
+      "line": 935
     },
     "group": "complexity",
     "level": "warn",
@@ -4136,7 +4136,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 906
+      "line": 907
     },
     "group": "style",
     "level": "warn",
@@ -4391,7 +4391,7 @@
     "id": "manual_unwrap_or",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 714
+      "line": 715
     },
     "group": "complexity",
     "level": "warn",
@@ -4546,7 +4546,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 254
+      "line": 255
     },
     "group": "complexity",
     "level": "warn",
@@ -4561,7 +4561,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 178
+      "line": 179
     },
     "group": "pedantic",
     "level": "allow",
@@ -4576,7 +4576,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 558
+      "line": 559
     },
     "group": "style",
     "level": "warn",
@@ -4591,7 +4591,7 @@
     "id": "match_on_vec_items",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 750
+      "line": 751
     },
     "group": "pedantic",
     "level": "allow",
@@ -4606,7 +4606,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 201
+      "line": 202
     },
     "group": "style",
     "level": "warn",
@@ -4621,7 +4621,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 143
+      "line": 144
     },
     "group": "style",
     "level": "warn",
@@ -4654,7 +4654,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 606
+      "line": 607
     },
     "group": "pedantic",
     "level": "allow",
@@ -4669,7 +4669,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 429
+      "line": 430
     },
     "group": "complexity",
     "level": "warn",
@@ -4684,7 +4684,7 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 781
+      "line": 782
     },
     "group": "correctness",
     "level": "deny",
@@ -4699,7 +4699,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 224
+      "line": 225
     },
     "group": "pedantic",
     "level": "allow",
@@ -4714,7 +4714,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 328
+      "line": 329
     },
     "group": "pedantic",
     "level": "allow",
@@ -5638,7 +5638,7 @@
     "id": "needless_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 649
+      "line": 650
     },
     "group": "complexity",
     "level": "warn",
@@ -7099,6 +7099,21 @@
     }
   },
   {
+    "id": "redundant_guards",
+    "id_span": {
+      "path": "src/matches/mod.rs",
+      "line": 965
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for unnecessary guards in match expressions.\n\n### Why is this bad?\nIt's more complex and much less readable. Making it part of the pattern can improve\nexhaustiveness checking as well.\n\n### Example\n```rust\nmatch x {\n    Some(x) if matches!(x, Some(1)) => ..,\n    Some(x) if x == Some(2) => ..,\n    _ => todo!(),\n}\n```\nUse instead:\n```rust\nmatch x {\n    Some(Some(1)) => ..,\n    Some(Some(2)) => ..,\n    _ => todo!(),\n}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "redundant_locals",
     "id_span": {
       "path": "src/redundant_locals.rs",
@@ -7132,7 +7147,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 519
+      "line": 520
     },
     "group": "style",
     "level": "warn",
@@ -7300,7 +7315,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 463
+      "line": 464
     },
     "group": "restriction",
     "level": "allow",
@@ -7705,7 +7720,7 @@
     "id": "significant_drop_in_scrutinee",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 847
+      "line": 848
     },
     "group": "nursery",
     "level": "allow",
@@ -7843,7 +7858,7 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 68
+      "line": 69
     },
     "group": "style",
     "level": "warn",
@@ -7858,7 +7873,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 110
+      "line": 111
     },
     "group": "pedantic",
     "level": "allow",
@@ -8773,7 +8788,7 @@
     "id": "try_err",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 882
+      "line": 883
     },
     "group": "restriction",
     "level": "allow",
@@ -9980,7 +9995,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 290
+      "line": 291
     },
     "group": "restriction",
     "level": "allow",
@@ -10010,7 +10025,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 359
+      "line": 360
     },
     "group": "complexity",
     "level": "warn",
