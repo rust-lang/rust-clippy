@@ -1087,7 +1087,7 @@
     "id": "comparison_to_empty",
     "id_span": {
       "path": "src/len_zero.rs",
-      "line": 116
+      "line": 115
     },
     "group": "style",
     "level": "warn",
@@ -3686,7 +3686,7 @@
     "id": "len_without_is_empty",
     "id_span": {
       "path": "src/len_zero.rs",
-      "line": 78
+      "line": 77
     },
     "group": "style",
     "level": "warn",
@@ -3701,7 +3701,7 @@
     "id": "len_zero",
     "id_span": {
       "path": "src/len_zero.rs",
-      "line": 52
+      "line": 51
     },
     "group": "style",
     "level": "warn",
