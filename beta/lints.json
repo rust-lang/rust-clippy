@@ -3,7 +3,7 @@
     "id": "absurd_extreme_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 57
+      "line": 56
     },
     "group": "correctness",
     "level": "deny",
@@ -38,7 +38,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThe expect attribute is still unstable and requires the `lint_reasons`\non nightly. It can be enabled by adding `#![feature(lint_reasons)]` to\nthe crate root.\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why is this bad?\n\n`#[expect]` attributes suppress the lint emission, but emit a warning, if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#![feature(lint_reasons)]\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -48,7 +48,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 336
+      "line": 339
     },
     "group": "restriction",
     "level": "allow",
@@ -108,10 +108,25 @@
     }
   },
   {
+    "id": "arc_with_non_send_sync",
+    "id_span": {
+      "path": "src/arc_with_non_send_sync.rs",
+      "line": 35
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does.\nThis lint warns when you use `Arc` with a type that does not implement `Send` or `Sync`.\n\n### Why is this bad?\nWrapping a type in Arc doesn't add thread safety to the underlying data, so data races\ncould occur when touching the underlying data.\n\n### Example\n```rust\n\nfn main() {\n    // This is safe, as `i32` implements `Send` and `Sync`.\n    let a = Arc::new(42);\n\n    // This is not safe, as `RefCell` does not implement `Sync`.\n    let b = Arc::new(RefCell::new(42));\n}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "arithmetic_side_effects",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 94
+      "line": 93
     },
     "group": "restriction",
     "level": "allow",
@@ -129,7 +144,7 @@
     "id": "as_conversions",
     "id_span": {
       "path": "src/as_conversions.rs",
-      "line": 41
+      "line": 42
     },
     "group": "restriction",
     "level": "allow",
@@ -144,7 +159,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 639
+      "line": 633
     },
     "group": "nursery",
     "level": "allow",
@@ -159,11 +174,11 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 553
+      "line": 547
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nCheck for the usage of `as _` conversion using inferred type.\n\n### Why is this bad?\nThe conversion might include lossy conversion and dangerous cast that might go\nundetected due to the type being inferred.\n\nThe lint is allowed by default as using `_` is less wordy than always specifying the type.\n\n### Example\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as _);\n```\nUse instead:\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as usize);\n```",
+    "docs": "\n### What it does\nChecks for the usage of `as _` conversion using inferred type.\n\n### Why is this bad?\nThe conversion might include lossy conversion and dangerous cast that might go\nundetected due to the type being inferred.\n\nThe lint is allowed by default as using `_` is less wordy than always specifying the type.\n\n### Example\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as _);\n```\nUse instead:\n```rust\nfn foo(n: usize) {}\nlet n: u16 = 256;\nfoo(n as usize);\n```",
     "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -204,7 +219,7 @@
     "id": "assign_op_pattern",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 148
+      "line": 147
     },
     "group": "style",
     "level": "warn",
@@ -294,7 +309,7 @@
     "id": "bad_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 213
+      "line": 212
     },
     "group": "correctness",
     "level": "deny",
@@ -306,10 +321,25 @@
     }
   },
   {
+    "id": "big_endian_bytes",
+    "id_span": {
+      "path": "src/endian_bytes.rs",
+      "line": 61
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for the usage of the `to_be_bytes` method and/or the function `from_be_bytes`.\n\n### Why is this bad?\nIt's not, but some may wish to lint usage of this method, either to suggest using the host\nendianness or little endian.\n\n### Example\n```rust\nlet _x = 2i32.to_be_bytes();\nlet _y = 2i64.to_be_bytes();\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "bind_instead_of_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 586
+      "line": 617
     },
     "group": "complexity",
     "level": "warn",
@@ -327,7 +357,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 243
+      "line": 246
     },
     "group": "suspicious",
     "level": "warn",
@@ -406,7 +436,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 586
+      "line": 580
     },
     "group": "pedantic",
     "level": "allow",
@@ -529,7 +559,7 @@
     "id": "builtin_type_shadow",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 246
+      "line": 247
     },
     "group": "style",
     "level": "warn",
@@ -544,7 +574,7 @@
     "id": "bytes_count_to_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2499
+      "line": 2530
     },
     "group": "complexity",
     "level": "warn",
@@ -559,7 +589,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1978
+      "line": 2009
     },
     "group": "style",
     "level": "warn",
@@ -589,7 +619,7 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2527
+      "line": 2558
     },
     "group": "pedantic",
     "level": "allow",
@@ -604,7 +634,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 525
+      "line": 519
     },
     "group": "suspicious",
     "level": "warn",
@@ -619,7 +649,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 502
+      "line": 496
     },
     "group": "suspicious",
     "level": "warn",
@@ -634,7 +664,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 439
+      "line": 433
     },
     "group": "suspicious",
     "level": "warn",
@@ -649,7 +679,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 170
+      "line": 171
     },
     "group": "pedantic",
     "level": "allow",
@@ -664,7 +694,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 661
+      "line": 655
     },
     "group": "suspicious",
     "level": "warn",
@@ -694,11 +724,11 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 137
+      "line": 138
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for casts from an unsigned type to a signed type of\nthe same size. Performing such a cast is a 'no-op' for the compiler,\ni.e., nothing is changed at the bit level, and the binary representation of\nthe value is reinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.\n\n### Why is this bad?\nWhile such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.\n\n### Example\n```rust\nu32::MAX as i32; // will yield a value of `-1`\n```",
+    "docs": "\n### What it does\nChecks for casts from an unsigned type to a signed type of\nthe same size, or possibly smaller due to target dependent integers.\nPerforming such a cast is a 'no-op' for the compiler, i.e., nothing is\nchanged at the bit level, and the binary representation of the value is\nreinterpreted. This can cause wrapping if the value is too big\nfor the target signed type. However, the cast works as defined, so this lint\nis `Allow` by default.\n\n### Why is this bad?\nWhile such a cast is not bad in itself, the results can\nbe surprising when this is not the intended behavior, as demonstrated by the\nexample below.\n\n### Example\n```rust\nu32::MAX as i32; // will yield a value of `-1`\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -724,27 +754,12 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 224
+      "line": 225
     },
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for casts, using `as` or `pointer::cast`,\nfrom a less-strictly-aligned pointer to a more-strictly-aligned pointer\n\n### Why is this bad?\nDereferencing the resulting pointer may be undefined\nbehavior.\n\n### Known problems\nUsing `std::ptr::read_unaligned` and `std::ptr::write_unaligned` or similar\non the resulting pointer is fine. Is over-zealous: Casts with manual alignment checks or casts like\nu64-> u8 -> u16 can be fine. Miri is able to do a more in-depth analysis.\n\n### Example\n```rust\nlet _ = (&1u8 as *const u8) as *const u16;\nlet _ = (&mut 1u8 as *mut u8) as *mut u16;\n\n(&1u8 as *const u8).cast::<u16>();\n(&mut 1u8 as *mut u8).cast::<u16>();\n```",
     "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "cast_ref_to_mut",
-    "id_span": {
-      "path": "src/casts/mod.rs",
-      "line": 363
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for casts of `&T` to `&mut T` anywhere in the code.\n\n### Why is this bad?\nIt’s basically guaranteed to be undefined behavior.\n`UnsafeCell` is the only way to obtain aliasable data that is considered\nmutable.\n\n### Example\n```rust\nfn x(r: &i32) {\n    unsafe {\n        *(r as *const _ as *mut _) += 1;\n    }\n}\n```\n\nInstead consider using interior mutability types.\n\n```rust\nuse std::cell::UnsafeCell;\n\nfn x(r: &UnsafeCell<i32>) {\n    unsafe {\n        *r.get() += 1;\n    }\n}\n```",
-    "version": "1.33.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -769,7 +784,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 484
+      "line": 478
     },
     "group": "correctness",
     "level": "deny",
@@ -784,7 +799,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 613
+      "line": 607
     },
     "group": "suspicious",
     "level": "warn",
@@ -799,7 +814,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 391
+      "line": 357
     },
     "group": "complexity",
     "level": "warn",
@@ -814,7 +829,7 @@
     "id": "chars_last_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1423
+      "line": 1454
     },
     "group": "style",
     "level": "warn",
@@ -829,7 +844,7 @@
     "id": "chars_next_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 825
+      "line": 856
     },
     "group": "style",
     "level": "warn",
@@ -859,12 +874,12 @@
     "id": "clear_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3195
+      "line": 3226
     },
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of `.drain(..)` for the sole purpose of clearing a container.\n\n### Why is this bad?\nThis creates an unnecessary iterator that is dropped immediately.\n\nCalling `.clear()` also makes the intent clearer.\n\n### Example\n```rust\nlet mut v = vec![1, 2, 3];\nv.drain(..);\n```\nUse instead:\n```rust\nlet mut v = vec![1, 2, 3];\nv.clear();\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -874,7 +889,7 @@
     "id": "clone_on_copy",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 952
+      "line": 983
     },
     "group": "complexity",
     "level": "warn",
@@ -889,7 +904,7 @@
     "id": "clone_on_ref_ptr",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 983
+      "line": 1014
     },
     "group": "restriction",
     "level": "allow",
@@ -904,7 +919,7 @@
     "id": "cloned_instead_of_copied",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 141
+      "line": 144
     },
     "group": "pedantic",
     "level": "allow",
@@ -916,25 +931,10 @@
     }
   },
   {
-    "id": "cmp_nan",
-    "id_span": {
-      "path": "src/operators/mod.rs",
-      "line": 508
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for comparisons to NaN.\n\n### Why is this bad?\nNaN does not compare meaningfully to anything – not\neven itself – so those comparisons are simply wrong.\n\n### Example\n```rust\nif x == f32::NAN { }\n```\n\nUse instead:\n```rust\nif x.is_nan() { }\n```",
-    "version": "pre 1.29.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 93
+      "line": 95
     },
     "group": "style",
     "level": "warn",
@@ -949,7 +949,7 @@
     "id": "cmp_owned",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 537
+      "line": 511
     },
     "group": "perf",
     "level": "warn",
@@ -1012,7 +1012,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 679
+      "line": 687
     },
     "group": "style",
     "level": "warn",
@@ -1027,7 +1027,7 @@
     "id": "collapsible_str_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 167
+      "line": 170
     },
     "group": "perf",
     "level": "warn",
@@ -1047,7 +1047,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nChecks for collections that are never queried.\n\n### Why is this bad?\nPutting effort into constructing a collection but then never querying it might indicate that\nthe author forgot to do whatever they intended to do with the collection. Example: Clone\na vector, sort it for iteration, but then mistakenly iterate the original vector\ninstead.\n\n### Example\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &samples { // Oops, meant to use `sorted_samples`.\n    println!(\"{sample}\");\n}\n```\nUse instead:\n```rust\nlet mut sorted_samples = samples.clone();\nsorted_samples.sort();\nfor sample in &sorted_samples {\n    println!(\"{sample}\");\n}\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -1211,7 +1211,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for construction on unit struct using `default`.\n\n### Why is this bad?\nThis adds code complexity and an unnecessary function call.\n\n### Example\n```rust\n#[derive(Default)]\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData::default()\n};\n```\nUse instead:\n```rust\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData\n};\n```",
+    "docs": "\n### What it does\nChecks for construction on unit struct using `default`.\n\n### Why is this bad?\nThis adds code complexity and an unnecessary function call.\n\n### Example\n```rust\n#[derive(Default)]\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData::default()\n};\n```\nUse instead:\n```rust\nstruct S<T> {\n    _marker: PhantomData<T>\n}\n\nlet _: S<i32> = S {\n    _marker: PhantomData\n};\n```",
     "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1282,7 +1282,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 274
+      "line": 277
     },
     "group": "complexity",
     "level": "warn",
@@ -1297,7 +1297,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 132
+      "line": 135
     },
     "group": "correctness",
     "level": "deny",
@@ -1342,7 +1342,7 @@
     "id": "derivable_impls",
     "id_span": {
       "path": "src/derivable_impls.rs",
-      "line": 52
+      "line": 54
     },
     "group": "complexity",
     "level": "warn",
@@ -1523,7 +1523,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.\n\n### Why is this bad?\n*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.\n\n### Known problems\nLots of bad docs won’t be fixed, what the lint checks\nfor is limited, and there are still false positives. HTML elements and their\ncontent are not linted.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therefore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.\n\n### Examples\n```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `doc-valid-idents`: `Vec<String>`(defaults to `[\"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"DirectX\", \"ECMAScript\", \"GPLv2\", \"GPLv3\", \"GitHub\", \"GitLab\", \"IPv4\", \"IPv6\", \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\", \"NaN\", \"NaNs\", \"OAuth\", \"GraphQL\", \"OCaml\", \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenDNS\", \"WebGL\", \"TensorFlow\", \"TrueType\", \"iOS\", \"macOS\", \"FreeBSD\", \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\", \"MinGW\", \"CamelCase\"]`): The list of words this lint should not consider as identifiers needing ticks. The value\n   `\"..\"` can be used as part of the list to indicate, that the configured values should be appended to the\n   default configuration of Clippy. By default, any configuration will replace the default value. For example:\n   * `doc-valid-idents = [\"ClipPy\"]` would replace the default list with `[\"ClipPy\"]`.\n   * `doc-valid-idents = [\"ClipPy\", \"..\"]` would append `ClipPy` to the default list.\n\n   Default list:\n",
+    "docs": "\n### What it does\nChecks for the presence of `_`, `::` or camel-case words\noutside ticks in documentation.\n\n### Why is this bad?\n*Rustdoc* supports markdown formatting, `_`, `::` and\ncamel-case probably indicates some code which should be included between\nticks. `_` can also be used for emphasis in markdown, this lint tries to\nconsider that.\n\n### Known problems\nLots of bad docs won’t be fixed, what the lint checks\nfor is limited, and there are still false positives. HTML elements and their\ncontent are not linted.\n\nIn addition, when writing documentation comments, including `[]` brackets\ninside a link text would trip the parser. Therefore, documenting link with\n`[`SmallVec<[T; INLINE_CAPACITY]>`]` and then [`SmallVec<[T; INLINE_CAPACITY]>`]: SmallVec\nwould fail.\n\n### Examples\n```rust\n/// Do something with the foo_bar parameter. See also\n/// that::other::module::foo.\n// ^ `foo_bar` and `that::other::module::foo` should be ticked.\nfn doit(foo_bar: usize) {}\n```\n\n```rust\n// Link text with `[]` brackets should be written as following:\n/// Consume the array and return the inner\n/// [`SmallVec<[T; INLINE_CAPACITY]>`][SmallVec].\n/// [SmallVec]: SmallVec\nfn main() {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `doc-valid-idents`: `Vec<String>`(defaults to `[\"KiB\", \"MiB\", \"GiB\", \"TiB\", \"PiB\", \"EiB\", \"DirectX\", \"ECMAScript\", \"GPLv2\", \"GPLv3\", \"GitHub\", \"GitLab\", \"IPv4\", \"IPv6\", \"ClojureScript\", \"CoffeeScript\", \"JavaScript\", \"PureScript\", \"TypeScript\", \"WebAssembly\", \"NaN\", \"NaNs\", \"OAuth\", \"GraphQL\", \"OCaml\", \"OpenGL\", \"OpenMP\", \"OpenSSH\", \"OpenSSL\", \"OpenStreetMap\", \"OpenDNS\", \"WebGL\", \"TensorFlow\", \"TrueType\", \"iOS\", \"macOS\", \"FreeBSD\", \"TeX\", \"LaTeX\", \"BibTeX\", \"BibLaTeX\", \"MinGW\", \"CamelCase\"]`): The list of words this lint should not consider as identifiers needing ticks. The value\n   `\"..\"` can be used as part of the list to indicate, that the configured values should be appended to the\n   default configuration of Clippy. By default, any configuration will replace the default value. For example:\n   * `doc-valid-idents = [\"ClipPy\"]` would replace the default list with `[\"ClipPy\"]`.\n   * `doc-valid-idents = [\"ClipPy\", \"..\"]` would append `ClipPy` to the default list.\n\n   Default list:\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1534,7 +1534,7 @@
     "id": "double_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 297
+      "line": 296
     },
     "group": "complexity",
     "level": "warn",
@@ -1564,7 +1564,7 @@
     "id": "double_neg",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 101
+      "line": 102
     },
     "group": "style",
     "level": "warn",
@@ -1591,10 +1591,25 @@
     }
   },
   {
+    "id": "drain_collect",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 3285
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for calls to `.drain()` that clear the collection, immediately followed by a call to `.collect()`.\n\n> \"Collection\" in this context refers to any type with a `drain` method:\n> `Vec`, `VecDeque`, `BinaryHeap`, `HashSet`,`HashMap`, `String`\n\n### Why is this bad?\nUsing `mem::take` is faster as it avoids the allocation.\nWhen using `mem::take`, the old collection is replaced with an empty one and ownership of\nthe old collection is returned.\n\n### Known issues\n`mem::take(&mut vec)` is almost equivalent to `vec.drain(..).collect()`, except that\nit also moves the **capacity**. The user might have explicitly written it this way\nto keep the capacity on the original `Vec`.\n\n### Example\n```rust\nfn remove_all(v: &mut Vec<i32>) -> Vec<i32> {\n    v.drain(..).collect()\n}\n```\nUse instead:\n```rust\nuse std::mem;\nfn remove_all(v: &mut Vec<i32>) -> Vec<i32> {\n    mem::take(v)\n}\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "drop_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 25
+      "line": 26
     },
     "group": "suspicious",
     "level": "warn",
@@ -1624,7 +1639,7 @@
     "id": "duplicate_underscore_argument",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 82
+      "line": 83
     },
     "group": "style",
     "level": "warn",
@@ -1639,7 +1654,7 @@
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 327
+      "line": 326
     },
     "group": "complexity",
     "level": "warn",
@@ -1699,7 +1714,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 220
+      "line": 223
     },
     "group": "nursery",
     "level": "allow",
@@ -1714,7 +1729,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 174
+      "line": 177
     },
     "group": "nursery",
     "level": "allow",
@@ -1729,7 +1744,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 270
+      "line": 271
     },
     "group": "suspicious",
     "level": "warn",
@@ -1804,7 +1819,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 359
+      "line": 358
     },
     "group": "correctness",
     "level": "deny",
@@ -1834,7 +1849,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 405
+      "line": 404
     },
     "group": "correctness",
     "level": "deny",
@@ -1849,7 +1864,7 @@
     "id": "err_expect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 438
+      "line": 467
     },
     "group": "style",
     "level": "warn",
@@ -1858,6 +1873,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "excessive_nesting",
+    "id_span": {
+      "path": "src/excessive_nesting.rs",
+      "line": 61
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for blocks which are nested beyond a certain threshold.\n\nNote: Even though this lint is warn-by-default, it will only trigger if a maximum nesting level is defined in the clippy.toml file.\n\n### Why is this bad?\nIt can severely hinder readability.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\nexcessive-nesting-threshold = 3\n```\n```rust\n// lib.rs\npub mod a {\n    pub struct X;\n    impl X {\n        pub fn run(&self) {\n            if true {\n                // etc...\n            }\n        }\n    }\n}\n```\nUse instead:\n```rust\n// a.rs\nfn private_run(x: &X) {\n    if true {\n        // etc...\n    }\n}\n\npub struct X;\nimpl X {\n    pub fn run(&self) {\n        private_run(self);\n    }\n}\n```\n```rust\n// lib.rs\npub mod a;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `excessive-nesting-threshold`: `u64`(defaults to `0`): The maximum amount of nesting a block can reside in\n",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
     }
   },
   {
@@ -1924,7 +1954,7 @@
     "id": "expect_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 934
+      "line": 965
     },
     "group": "perf",
     "level": "warn",
@@ -1939,7 +1969,7 @@
     "id": "expect_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 308
+      "line": 337
     },
     "group": "restriction",
     "level": "allow",
@@ -1973,7 +2003,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 144
+      "line": 146
     },
     "group": "complexity",
     "level": "warn",
@@ -1988,7 +2018,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 236
+      "line": 237
     },
     "group": "complexity",
     "level": "warn",
@@ -2003,11 +2033,11 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 64
+      "line": 66
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for explicit `deref()` or `deref_mut()` method calls.\n\n### Why is this bad?\nDereferencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.\n\n### Example\n```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\n\nUse instead:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes:\n```rust\nlet _ = d.unwrap().deref();\n```",
+    "docs": "\n### What it does\nChecks for explicit `deref()` or `deref_mut()` method calls.\n\n### Why is this bad?\nDereferencing by `&*x` or `&mut *x` is clearer and more concise,\nwhen not part of a method chain.\n\n### Example\n```rust\nuse std::ops::Deref;\nlet a: &mut String = &mut String::from(\"foo\");\nlet b: &str = a.deref();\n```\n\nUse instead:\n```rust\nlet a: &mut String = &mut String::from(\"foo\");\nlet b = &*a;\n```\n\nThis lint excludes all of:\n```rust\nlet _ = d.unwrap().deref();\nlet _ = Foo::deref(&foo);\nlet _ = <Foo as Deref>::deref(&foo);\n```",
     "version": "1.44.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -2018,7 +2048,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 147
+      "line": 148
     },
     "group": "pedantic",
     "level": "allow",
@@ -2033,7 +2063,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 118
+      "line": 119
     },
     "group": "pedantic",
     "level": "allow",
@@ -2078,7 +2108,7 @@
     "id": "extend_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1343
+      "line": 1374
     },
     "group": "perf",
     "level": "warn",
@@ -2093,7 +2123,7 @@
     "id": "extra_unused_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 84
+      "line": 85
     },
     "group": "complexity",
     "level": "warn",
@@ -2108,7 +2138,7 @@
     "id": "extra_unused_type_parameters",
     "id_span": {
       "path": "src/extra_unused_type_parameters.rs",
-      "line": 40
+      "line": 41
     },
     "group": "complexity",
     "level": "warn",
@@ -2153,7 +2183,7 @@
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1705
+      "line": 1736
     },
     "group": "restriction",
     "level": "allow",
@@ -2183,7 +2213,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1930
+      "line": 1961
     },
     "group": "complexity",
     "level": "warn",
@@ -2198,7 +2228,7 @@
     "id": "filter_map_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 743
+      "line": 774
     },
     "group": "pedantic",
     "level": "allow",
@@ -2213,7 +2243,7 @@
     "id": "filter_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 611
+      "line": 642
     },
     "group": "complexity",
     "level": "warn",
@@ -2243,7 +2273,7 @@
     "id": "flat_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 766
+      "line": 797
     },
     "group": "complexity",
     "level": "warn",
@@ -2258,7 +2288,7 @@
     "id": "flat_map_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 221
+      "line": 224
     },
     "group": "pedantic",
     "level": "allow",
@@ -2273,7 +2303,7 @@
     "id": "float_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 113
+      "line": 112
     },
     "group": "restriction",
     "level": "allow",
@@ -2288,7 +2318,7 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 574
+      "line": 548
     },
     "group": "pedantic",
     "level": "allow",
@@ -2303,7 +2333,7 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 609
+      "line": 583
     },
     "group": "restriction",
     "level": "allow",
@@ -2318,7 +2348,7 @@
     "id": "float_equality_without_abs",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 438
+      "line": 437
     },
     "group": "suspicious",
     "level": "warn",
@@ -2378,7 +2408,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 253
+      "line": 254
     },
     "group": "style",
     "level": "warn",
@@ -2393,7 +2423,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 328
+      "line": 329
     },
     "group": "restriction",
     "level": "allow",
@@ -2408,7 +2438,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 286
+      "line": 287
     },
     "group": "style",
     "level": "warn",
@@ -2423,7 +2453,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 326
+      "line": 327
     },
     "group": "style",
     "level": "warn",
@@ -2438,7 +2468,7 @@
     "id": "forget_non_drop",
     "id_span": {
       "path": "src/drop_forget_ref.rs",
-      "line": 45
+      "line": 46
     },
     "group": "suspicious",
     "level": "warn",
@@ -2483,7 +2513,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1877
+      "line": 1908
     },
     "group": "pedantic",
     "level": "allow",
@@ -2558,7 +2588,7 @@
     "id": "get_first",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2553
+      "line": 2584
     },
     "group": "style",
     "level": "warn",
@@ -2573,7 +2603,7 @@
     "id": "get_last_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1278
+      "line": 1309
     },
     "group": "complexity",
     "level": "warn",
@@ -2588,7 +2618,7 @@
     "id": "get_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1315
+      "line": 1346
     },
     "group": "restriction",
     "level": "allow",
@@ -2600,10 +2630,25 @@
     }
   },
   {
+    "id": "host_endian_bytes",
+    "id_span": {
+      "path": "src/endian_bytes.rs",
+      "line": 23
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for the usage of the `to_ne_bytes` method and/or the function `from_ne_bytes`.\n\n### Why is this bad?\nIt's not, but some may prefer to specify the target endianness explicitly.\n\n### Example\n```rust\nlet _x = 2i32.to_ne_bytes();\nlet _y = 2i64.to_ne_bytes();\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 457
+      "line": 456
     },
     "group": "complexity",
     "level": "warn",
@@ -2723,7 +2768,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2004
+      "line": 2035
     },
     "group": "pedantic",
     "level": "allow",
@@ -2840,6 +2885,21 @@
     }
   },
   {
+    "id": "incorrect_clone_impl_on_copy_type",
+    "id_span": {
+      "path": "src/incorrect_impls.rs",
+      "line": 45
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for manual implementations of `Clone` when `Copy` is already implemented.\n\n### Why is this bad?\nIf both `Clone` and `Copy` are implemented, they must agree. This is done by dereferencing\n`self` in `Clone`'s implementation. Anything else is incorrect.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        Self(self.0)\n    }\n}\n\nimpl Copy for A {}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        *self\n    }\n}\n\nimpl Copy for A {}\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "index_refutable_slice",
     "id_span": {
       "path": "src/index_refutable_slice.rs",
@@ -2873,7 +2933,7 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 246
+      "line": 245
     },
     "group": "correctness",
     "level": "deny",
@@ -2888,7 +2948,7 @@
     "id": "inefficient_to_string",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1007
+      "line": 1038
     },
     "group": "pedantic",
     "level": "allow",
@@ -2903,7 +2963,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 390
+      "line": 395
     },
     "group": "style",
     "level": "warn",
@@ -2978,7 +3038,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 69
+      "line": 72
     },
     "group": "pedantic",
     "level": "allow",
@@ -3038,7 +3098,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1907
+      "line": 1938
     },
     "group": "complexity",
     "level": "warn",
@@ -3068,7 +3128,7 @@
     "id": "integer_division",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 483
+      "line": 482
     },
     "group": "restriction",
     "level": "allow",
@@ -3083,7 +3143,7 @@
     "id": "into_iter_on_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1561
+      "line": 1592
     },
     "group": "style",
     "level": "warn",
@@ -3098,7 +3158,7 @@
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 149
+      "line": 151
     },
     "group": "correctness",
     "level": "deny",
@@ -3140,21 +3200,6 @@
     }
   },
   {
-    "id": "invalid_utf8_in_unchecked",
-    "id_span": {
-      "path": "src/invalid_utf8_in_unchecked.rs",
-      "line": 25
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for `std::str::from_utf8_unchecked` with an invalid UTF-8 literal\n\n### Why is this bad?\nCreating such a `str` would result in undefined behavior\n\n### Example\n```rust\nunsafe {\n    std::str::from_utf8_unchecked(b\"cl\\x82ippy\");\n}\n```",
-    "version": "1.64.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
     "id": "invisible_characters",
     "id_span": {
       "path": "src/unicode.rs",
@@ -3176,7 +3221,7 @@
     "id": "is_digit_ascii_radix",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2309
+      "line": 2340
     },
     "group": "style",
     "level": "warn",
@@ -3221,7 +3266,7 @@
     "id": "iter_cloned_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1397
+      "line": 1428
     },
     "group": "style",
     "level": "warn",
@@ -3236,7 +3281,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2034
+      "line": 2065
     },
     "group": "complexity",
     "level": "warn",
@@ -3251,7 +3296,7 @@
     "id": "iter_kv_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3045
+      "line": 3076
     },
     "group": "complexity",
     "level": "warn",
@@ -3266,7 +3311,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 171
+      "line": 172
     },
     "group": "correctness",
     "level": "deny",
@@ -3281,7 +3326,7 @@
     "id": "iter_next_slice",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1758
+      "line": 1789
     },
     "group": "style",
     "level": "warn",
@@ -3311,7 +3356,7 @@
     "id": "iter_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1195
+      "line": 1226
     },
     "group": "perf",
     "level": "warn",
@@ -3326,7 +3371,7 @@
     "id": "iter_nth_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1168
+      "line": 1199
     },
     "group": "style",
     "level": "warn",
@@ -3341,7 +3386,7 @@
     "id": "iter_on_empty_collections",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2443
+      "line": 2474
     },
     "group": "nursery",
     "level": "allow",
@@ -3356,7 +3401,7 @@
     "id": "iter_on_single_items",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2411
+      "line": 2442
     },
     "group": "nursery",
     "level": "allow",
@@ -3371,7 +3416,7 @@
     "id": "iter_overeager_cloned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 198
+      "line": 201
     },
     "group": "perf",
     "level": "warn",
@@ -3386,7 +3431,7 @@
     "id": "iter_skip_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1220
+      "line": 1251
     },
     "group": "style",
     "level": "warn",
@@ -3401,7 +3446,7 @@
     "id": "iter_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1245
+      "line": 1276
     },
     "group": "nursery",
     "level": "allow",
@@ -3416,7 +3461,7 @@
     "id": "iterator_step_by_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1116
+      "line": 1147
     },
     "group": "correctness",
     "level": "deny",
@@ -3496,7 +3541,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = big_fut([0u8; 1024]);\n    wait(fut).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = Box::pin(big_fut([0u8; 1024]));\n    wait(fut).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
-    "version": "1.68.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
@@ -3527,6 +3572,21 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for local arrays that may be too large.\n\n### Why is this bad?\nLarge local arrays may cause stack overflow.\n\n### Example\n```rust\nlet a = [0u32; 1_000_000];\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `array-size-threshold`: `u64`(defaults to `512000`): The maximum allowed size for arrays on the stack\n",
     "version": "1.41.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "large_stack_frames",
+    "id_span": {
+      "path": "src/large_stack_frames.rs",
+      "line": 78
+    },
+    "group": "nursery",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for functions that use a lot of stack space.\n\nThis often happens when constructing a large type, such as an array with a lot of elements,\nor constructing *many* smaller-but-still-large structs, or copying around a lot of large types.\n\nThis lint is a more general version of [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/master/#large_stack_arrays)\nthat is intended to look at functions as a whole instead of only individual array expressions inside of a function.\n\n### Why is this bad?\nThe stack region of memory is very limited in size (usually *much* smaller than the heap) and attempting to\nuse too much will result in a stack overflow and crash the program.\nTo avoid this, you should consider allocating large types on the heap instead (e.g. by boxing them).\n\nKeep in mind that the code path to construction of large types does not even need to be reachable;\nit purely needs to *exist* inside of the function to contribute to the stack size.\nFor example, this causes a stack overflow even though the branch is unreachable:\n```rust\nfn main() {\n    if false {\n        let x = [0u8; 10000000]; // 10 MB stack array\n        black_box(&x);\n    }\n}\n```\n\n### Known issues\nFalse positives. The stack size that clippy sees is an estimated value and can be vastly different\nfrom the actual stack usage after optimizations passes have run (especially true in release mode).\nModern compilers are very smart and are able to optimize away a lot of unnecessary stack allocations.\nIn debug mode however, it is usually more accurate.\n\nThis lint works by summing up the size of all variables that the user typed, variables that were\nimplicitly introduced by the compiler for temporaries, function arguments and the return value,\nand comparing them against a (configurable, but high-by-default).\n\n### Example\nThis function creates four 500 KB arrays on the stack. Quite big but just small enough to not trigger `large_stack_arrays`.\nHowever, looking at the function as a whole, it's clear that this uses a lot of stack space.\n```rust\nstruct QuiteLargeType([u8; 500_000]);\nfn foo() {\n    // ... some function that uses a lot of stack space ...\n    let _x1 = QuiteLargeType([0; 500_000]);\n    let _x2 = QuiteLargeType([0; 500_000]);\n    let _x3 = QuiteLargeType([0; 500_000]);\n    let _x4 = QuiteLargeType([0; 500_000]);\n}\n```\n\nInstead of doing this, allocate the arrays on the heap.\nThis currently requires going through a `Vec` first and then converting it to a `Box`:\n```rust\nstruct NotSoLargeType(Box<[u8]>);\n\nfn foo() {\n    let _x1 = NotSoLargeType(vec![0; 500_000].into_boxed_slice());\n//                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  Now heap allocated.\n//                                                                The size of `NotSoLargeType` is 16 bytes.\n//  ...\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `stack-size-threshold`: `u64`(defaults to `512000`): The maximum allowed stack size for functions in bytes\n",
+    "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3581,11 +3641,11 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 42
+      "line": 48
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for `let`-bindings, which are subsequently\nreturned.\n\n### Why is this bad?\nIt is just extraneous code. Remove it to make your code\nmore rusty.\n\n### Example\n```rust\nfn foo() -> String {\n    let x = String::new();\n    x\n}\n```\ninstead, use\n```rust\nfn foo() -> String {\n    String::new()\n}\n```",
+    "docs": "\n### What it does\nChecks for `let`-bindings, which are subsequently\nreturned.\n\n### Why is this bad?\nIt is just extraneous code. Remove it to make your code\nmore rusty.\n\n### Known problems\nIn the case of some temporaries, e.g. locks, eliding the variable binding could lead\nto deadlocks. See [this issue](https://github.com/rust-lang/rust/issues/37612).\nThis could become relevant if the code is later changed to use the code that would have been\nbound without first assigning it to a let-binding.\n\n### Example\n```rust\nfn foo() -> String {\n    let x = String::new();\n    x\n}\n```\ninstead, use\n```rust\nfn foo() -> String {\n    String::new()\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3671,12 +3731,12 @@
     "id": "let_with_type_underscore",
     "id_span": {
       "path": "src/let_with_type_underscore.rs",
-      "line": 21
+      "line": 22
     },
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nDetects when a variable is declared with an explicit type of `_`.\n### Why is this bad?\nIt adds noise, `: _` provides zero clarity or utility.\n### Example\n```rust\nlet my_number: _ = 1;\n```\nUse instead:\n```rust\nlet my_number = 1;\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3707,6 +3767,21 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of any `LinkedList`, suggesting to use a\n`Vec` or a `VecDeque` (formerly called `RingBuf`).\n\n### Why is this bad?\nGankra says:\n\n> The TL;DR of `LinkedList` is that it's built on a massive amount of\npointers and indirection.\n> It wastes memory, it has terrible cache locality, and is all-around slow.\n`RingBuf`, while\n> \"only\" amortized for push/pop, should be faster in the general case for\nalmost every possible\n> workload, and isn't even amortized at all if you can predict the capacity\nyou need.\n>\n> `LinkedList`s are only really good if you're doing a lot of merging or\nsplitting of lists.\n> This is because they can just mangle some pointers instead of actually\ncopying the data. Even\n> if you're doing a lot of insertion in the middle of the list, `RingBuf`\ncan still be better\n> because of how expensive it is to seek to the middle of a `LinkedList`.\n\n### Known problems\nFalse positives – the instances where using a\n`LinkedList` makes sense are few and far between, but they can still happen.\n\n### Example\n```rust\nlet x: LinkedList<usize> = LinkedList::new();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
     "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "little_endian_bytes",
+    "id_span": {
+      "path": "src/endian_bytes.rs",
+      "line": 42
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for the usage of the `to_le_bytes` method and/or the function `from_le_bytes`.\n\n### Why is this bad?\nIt's not, but some may wish to lint usage of this method, either to suggest using the host\nendianness or big endian.\n\n### Example\n```rust\nlet _x = 2i32.to_le_bytes();\nlet _y = 2i64.to_le_bytes();\n```",
+    "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3821,7 +3896,7 @@
     "id": "manual_filter",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 926
+      "line": 934
     },
     "group": "complexity",
     "level": "warn",
@@ -3836,7 +3911,7 @@
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 694
+      "line": 725
     },
     "group": "complexity",
     "level": "warn",
@@ -3851,11 +3926,11 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 574
+      "line": 575
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for manual implementations of Iterator::find\n\n### Why is this bad?\nIt doesn't affect performance, but using `find` is shorter and easier to read.\n\n### Example\n\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    for el in arr {\n        if el == 1 {\n            return Some(el);\n        }\n    }\n    None\n}\n```\nUse instead:\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    arr.into_iter().find(|&el| el == 1)\n}\n```",
+    "docs": "\n### What it does\nChecks for manual implementations of Iterator::find\n\n### Why is this bad?\nIt doesn't affect performance, but using `find` is shorter and easier to read.\n\n### Example\n\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    for el in arr {\n        if el == 1 {\n            return Some(el);\n        }\n    }\n    None\n}\n```\nUse instead:\n```rust\nfn example(arr: Vec<i32>) -> Option<i32> {\n    arr.into_iter().find(|&el| el == 1)\n}\n```",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3866,7 +3941,7 @@
     "id": "manual_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 720
+      "line": 751
     },
     "group": "complexity",
     "level": "warn",
@@ -3881,11 +3956,11 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 507
+      "line": 508
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for unnecessary `if let` usage in a for loop\nwhere only the `Some` or `Ok` variant of the iterator element is used.\n\n### Why is this bad?\nIt is verbose and can be simplified\nby first calling the `flatten` method on the `Iterator`.\n\n### Example\n\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x {\n    if let Some(n) = n {\n        println!(\"{}\", n);\n    }\n}\n```\nUse instead:\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x.into_iter().flatten() {\n    println!(\"{}\", n);\n}\n```",
+    "docs": "\n### What it does\nChecks for unnecessary `if let` usage in a for loop\nwhere only the `Some` or `Ok` variant of the iterator element is used.\n\n### Why is this bad?\nIt is verbose and can be simplified\nby first calling the `flatten` method on the `Iterator`.\n\n### Example\n\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x {\n    if let Some(n) = n {\n        println!(\"{}\", n);\n    }\n}\n```\nUse instead:\n```rust\nlet x = vec![Some(1), Some(2), Some(3)];\nfor n in x.into_iter().flatten() {\n    println!(\"{}\", n);\n}\n```",
     "version": "1.52.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3926,7 +4001,7 @@
     "id": "manual_let_else",
     "id_span": {
       "path": "src/manual_let_else.rs",
-      "line": 47
+      "line": 48
     },
     "group": "pedantic",
     "level": "allow",
@@ -3956,7 +4031,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 898
+      "line": 906
     },
     "group": "style",
     "level": "warn",
@@ -3971,7 +4046,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 53
+      "line": 54
     },
     "group": "perf",
     "level": "warn",
@@ -3986,7 +4061,7 @@
     "id": "manual_next_back",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3218
+      "line": 3249
     },
     "group": "style",
     "level": "warn",
@@ -4016,7 +4091,7 @@
     "id": "manual_ok_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2579
+      "line": 2610
     },
     "group": "pedantic",
     "level": "allow",
@@ -4037,6 +4112,21 @@
     "level": "warn",
     "docs": "\n### What it does\nChecks for expressions like `x >= 3 && x < 8` that could\nbe more readably expressed as `(3..8).contains(x)`.\n\n### Why is this bad?\n`contains` expresses the intent better and has less\nfailure modes (such as fencepost errors or using `||` instead of `&&`).\n\n### Example\n```rust\n// given\nlet x = 6;\n\nassert!(x >= 3 && x < 8);\n```\nUse instead:\n```rust\nassert!((3..8).contains(&x));\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.49.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "manual_range_patterns",
+    "id_span": {
+      "path": "src/manual_range_patterns.rs",
+      "line": 33
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nLooks for combined OR patterns that are all contained in a specific range,\ne.g. `6 | 4 | 5 | 9 | 7 | 8` can be rewritten as `4..=9`.\n\n### Why is this bad?\nUsing an explicit range is more concise and easier to read.\n\n### Example\n```rust\nlet x = 6;\nlet foo = matches!(x, 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10);\n```\nUse instead:\n```rust\nlet x = 6;\nlet foo = matches!(x, 1..=10);\n```",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -4076,7 +4166,7 @@
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1645
+      "line": 1676
     },
     "group": "style",
     "level": "warn",
@@ -4106,7 +4196,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2171
+      "line": 2202
     },
     "group": "complexity",
     "level": "warn",
@@ -4121,7 +4211,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2135
+      "line": 2166
     },
     "group": "perf",
     "level": "warn",
@@ -4178,10 +4268,25 @@
     }
   },
   {
+    "id": "manual_try_fold",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 3314
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for usage of `Iterator::fold` with a type that implements `Try`.\n\n### Why is this bad?\nThe code should use `try_fold` instead, which short-circuits on failure, thus opening the\ndoor for additional optimizations not possible with `fold` as rustc can guarantee the\nfunction is never called on `None`, `Err`, etc., alleviating otherwise necessary checks. It's\nalso slightly more idiomatic.\n\n### Known issues\nThis lint doesn't take into account whether a function does something on the failure case,\ni.e., whether short-circuiting will affect behavior. Refactoring to `try_fold` is not\ndesirable in those cases.\n\n### Example\n```rust\nvec![1, 2, 3].iter().fold(Some(0i32), |sum, i| sum?.checked_add(*i));\n```\nUse instead:\n```rust\nvec![1, 2, 3].iter().try_fold(0i32, |sum, i| sum.checked_add(*i));\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "HasPlaceholders"
+    }
+  },
+  {
     "id": "manual_unwrap_or",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 706
+      "line": 714
     },
     "group": "complexity",
     "level": "warn",
@@ -4196,7 +4301,7 @@
     "id": "manual_while_let_some",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 604
+      "line": 605
     },
     "group": "style",
     "level": "warn",
@@ -4226,7 +4331,7 @@
     "id": "map_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2608
+      "line": 2639
     },
     "group": "style",
     "level": "warn",
@@ -4241,7 +4346,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1846
+      "line": 1877
     },
     "group": "style",
     "level": "warn",
@@ -4271,7 +4376,7 @@
     "id": "map_err_ignore",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2708
+      "line": 2739
     },
     "group": "restriction",
     "level": "allow",
@@ -4286,7 +4391,7 @@
     "id": "map_flatten",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 666
+      "line": 697
     },
     "group": "complexity",
     "level": "warn",
@@ -4301,7 +4406,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1953
+      "line": 1984
     },
     "group": "complexity",
     "level": "warn",
@@ -4316,11 +4421,11 @@
     "id": "map_unwrap_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 500
+      "line": 531
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.\n\n### Why is this bad?\nReadability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.\n\n### Known problems\nThe order of the arguments is not in execution order\n\n### Examples\n```rust\noption.map(|a| a + 1).unwrap_or(0);\nresult.map(|a| a + 1).unwrap_or_else(some_function);\n```\n\nUse instead:\n```rust\noption.map_or(0, |a| a + 1);\nresult.map_or_else(some_function, |a| a + 1);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n\n### Past names\n\n* `option_map_unwrap_or`\n* `option_map_unwrap_or_else`\n* `result_map_unwrap_or_else`\n\n",
+    "docs": "\n### What it does\nChecks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or\n`result.map(_).unwrap_or_else(_)`.\n\n### Why is this bad?\nReadability, these can be written more concisely (resp.) as\n`option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.\n\n### Known problems\nThe order of the arguments is not in execution order\n\n### Examples\n```rust\noption.map(|a| a + 1).unwrap_or(0);\noption.map(|a| a > 10).unwrap_or(false);\nresult.map(|a| a + 1).unwrap_or_else(some_function);\n```\n\nUse instead:\n```rust\noption.map_or(0, |a| a + 1);\noption.is_some_and(|a| a > 10);\nresult.map_or_else(some_function, |a| a + 1);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n\n### Past names\n\n* `option_map_unwrap_or`\n* `option_map_unwrap_or_else`\n* `result_map_unwrap_or_else`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4336,7 +4441,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 249
+      "line": 254
     },
     "group": "complexity",
     "level": "warn",
@@ -4351,7 +4456,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 173
+      "line": 178
     },
     "group": "pedantic",
     "level": "allow",
@@ -4366,7 +4471,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 553
+      "line": 558
     },
     "group": "style",
     "level": "warn",
@@ -4381,7 +4486,7 @@
     "id": "match_on_vec_items",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 742
+      "line": 750
     },
     "group": "pedantic",
     "level": "allow",
@@ -4396,7 +4501,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 196
+      "line": 201
     },
     "group": "style",
     "level": "warn",
@@ -4411,7 +4516,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 138
+      "line": 143
     },
     "group": "style",
     "level": "warn",
@@ -4444,11 +4549,11 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 598
+      "line": 606
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `match` with identical arm bodies.\n\n### Why is this bad?\nThis is probably a copy & paste error. If arm bodies\nare the same on purpose, you can factor them\n[using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).\n\n### Known problems\nFalse positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang/rust-clippy/issues/860)).\n\n### Example\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\n\nThis should probably be\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\n\nor if the original code was not a typo:\n```rust\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```",
+    "docs": "\n### What it does\nChecks for `match` with identical arm bodies.\n\nNote: Does not lint on wildcards if the `non_exhaustive_omitted_patterns_lint` feature is\nenabled and disallowed.\n\n### Why is this bad?\nThis is probably a copy & paste error. If arm bodies\nare the same on purpose, you can factor them\n[using `|`](https://doc.rust-lang.org/book/patterns.html#multiple-patterns).\n\n### Known problems\nFalse positive possible with order dependent `match`\n(see issue\n[#860](https://github.com/rust-lang/rust-clippy/issues/860)).\n\n### Example\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => bar(), // <= oops\n}\n```\n\nThis should probably be\n```rust\nmatch foo {\n    Bar => bar(),\n    Quz => quz(),\n    Baz => baz(), // <= fixed\n}\n```\n\nor if the original code was not a typo:\n```rust\nmatch foo {\n    Bar | Baz => bar(), // <= shows the intent better\n    Quz => quz(),\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4459,7 +4564,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 424
+      "line": 429
     },
     "group": "complexity",
     "level": "warn",
@@ -4474,7 +4579,7 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 773
+      "line": 781
     },
     "group": "correctness",
     "level": "deny",
@@ -4489,7 +4594,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 219
+      "line": 224
     },
     "group": "pedantic",
     "level": "allow",
@@ -4504,7 +4609,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 323
+      "line": 328
     },
     "group": "pedantic",
     "level": "allow",
@@ -4531,14 +4636,29 @@
     }
   },
   {
+    "id": "maybe_misused_cfg",
+    "id_span": {
+      "path": "src/attrs.rs",
+      "line": 389
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `#[cfg(features = \"...\")]` and suggests to replace it with\n`#[cfg(feature = \"...\")]`.\n\n### Why is this bad?\nMisspelling `feature` as `features` can be sometimes hard to spot. It\nmay cause conditional compilation not work quitely.\n\n### Example\n```rust\n#[cfg(features = \"some-feature\")]\nfn conditional() { }\n```\n\nUse instead:\n```rust\n#[cfg(feature = \"some-feature\")]\nfn conditional() { }\n```",
+    "version": "1.69.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "mem_forget",
     "id_span": {
-      "path": "src/mem_forget.rs",
-      "line": 23
+      "path": "src/drop_forget_ref.rs",
+      "line": 67
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `std::mem::forget(t)` where `t` is\n`Drop`.\n\n### Why is this bad?\n`std::mem::forget(t)` prevents `t` from running its\ndestructor, possibly causing leaks.\n\n### Example\n```rust\nmem::forget(Rc::new(55))\n```",
+    "docs": "\n### What it does\nChecks for usage of `std::mem::forget(t)` where `t` is\n`Drop` or has a field that implements `Drop`.\n\n### Why is this bad?\n`std::mem::forget(t)` prevents `t` from running its\ndestructor, possibly causing leaks.\n\n### Example\n```rust\nmem::forget(Rc::new(55))\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4591,6 +4711,21 @@
     }
   },
   {
+    "id": "min_ident_chars",
+    "id_span": {
+      "path": "src/min_ident_chars.rs",
+      "line": 38
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for idents which comprise of a single letter.\n\nNote: This lint can be very noisy when enabled; it may be desirable to only enable it\ntemporarily.\n\n### Why is this bad?\nIn many cases it's not, but at times it can severely hinder readability. Some codebases may\nwish to disallow this to improve readability.\n\n### Example\n```rust\nfor m in movies {\n\t    let title = m.t;\n}\n```\nUse instead:\n```rust\nfor movie in movies {\n    let title = movie.title;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `allowed-idents-below-min-chars`: `rustc_data_structures::fx::FxHashSet<String>`(defaults to `{\"j\", \"z\", \"i\", \"y\", \"n\", \"x\", \"w\"}`): Allowed names below the minimum allowed characters. The value `\"..\"` can be used as part of\n   the list to indicate, that the configured values should be appended to the default\n   configuration of Clippy. By default, any configuration will replace the default value.\n* `min-ident-chars-threshold`: `u64`(defaults to `1`): Minimum chars an ident can have, anything below or equal to this will be linted.\n",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "min_max",
     "id_span": {
       "path": "src/minmax.rs",
@@ -4624,7 +4759,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 307
+      "line": 310
     },
     "group": "correctness",
     "level": "deny",
@@ -4669,7 +4804,7 @@
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 175
+      "line": 174
     },
     "group": "suspicious",
     "level": "warn",
@@ -4689,7 +4824,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks assertions without a custom panic message.\n\n### Why is this bad?\nWithout a good custom message, it'd be hard to understand what went wrong when the assertion fails.\nA good custom message should be more about why the failure of the assertion is problematic\nand not what is failed because the assertion already conveys that.\n\n### Known problems\nThis lint cannot check the quality of the custom panic messages.\nHence, you can suppress this lint simply by adding placeholder messages\nlike \"assertion failed\". However, we recommend coming up with good messages\nthat provide useful information instead of placeholder messages that\ndon't provide any extra information.\n\n### Example\n```rust\nfn call(service: Service) {\n    assert!(service.ready);\n}\n```\nUse instead:\n```rust\nfn call(service: Service) {\n    assert!(service.ready, \"`service.poll_ready()` must be called first to ensure that service is ready to receive requests\");\n}\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4756,6 +4891,21 @@
     }
   },
   {
+    "id": "missing_fields_in_debug",
+    "id_span": {
+      "path": "src/missing_fields_in_debug.rs",
+      "line": 83
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for manual [`core::fmt::Debug`](https://doc.rust-lang.org/core/fmt/trait.Debug.html) implementations that do not use all fields.\n\n### Why is this bad?\nA common mistake is to forget to update manual `Debug` implementations when adding a new field\nto a struct or a new variant to an enum.\n\nAt the same time, it also acts as a style lint to suggest using [`core::fmt::DebugStruct::finish_non_exhaustive`](https://doc.rust-lang.org/core/fmt/struct.DebugStruct.html#method.finish_non_exhaustive)\nfor the times when the user intentionally wants to leave out certain fields (e.g. to hide implementation details).\n\n### Known problems\nThis lint works based on the `DebugStruct` helper types provided by the `Formatter`,\nso this won't detect `Debug` impls that use the `write!` macro.\nOftentimes there is more logic to a `Debug` impl if it uses `write!` macro, so it tries\nto be on the conservative side and not lint in those cases in an attempt to prevent false positives.\n\nThis lint also does not look through function calls, so calling a function does not consider fields\nused inside of that function as used by the `Debug` impl.\n\nLastly, it also ignores tuple structs as their `DebugTuple` formatter does not have a `finish_non_exhaustive`\nmethod, as well as enums because their exhaustiveness is already checked by the compiler when matching on the enum,\nmaking it much less likely to accidentally forget to update the `Debug` impl when adding a new variant.\n\n### Example\n```rust\nuse std::fmt;\nstruct Foo {\n    data: String,\n    // implementation detail\n    hidden_data: i32\n}\nimpl fmt::Debug for Foo {\n    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {\n        formatter\n            .debug_struct(\"Foo\")\n            .field(\"data\", &self.data)\n            .finish()\n    }\n}\n```\nUse instead:\n```rust\nuse std::fmt;\nstruct Foo {\n    data: String,\n    // implementation detail\n    hidden_data: i32\n}\nimpl fmt::Debug for Foo {\n    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {\n        formatter\n            .debug_struct(\"Foo\")\n            .field(\"data\", &self.data)\n            .finish_non_exhaustive()\n    }\n}\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "missing_inline_in_public_items",
     "id_span": {
       "path": "src/missing_inline.rs",
@@ -4804,11 +4954,11 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 543
+      "line": 544
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nCheck for empty spin loops\n\n### Why is this bad?\nThe loop body should have something like `thread::park()` or at least\n`std::hint::spin_loop()` to avoid needlessly burning cycles and conserve\nenergy. Perhaps even better use an actual lock, if possible.\n\n### Known problems\nThis lint doesn't currently trigger on `while let` or\n`loop { match .. { .. } }` loops, which would be considered idiomatic in\ncombination with e.g. `AtomicBool::compare_exchange_weak`.\n\n### Example\n\n```rust\nuse core::sync::atomic::{AtomicBool, Ordering};\nlet b = AtomicBool::new(true);\n// give a ref to `b` to another thread,wait for it to become false\nwhile b.load(Ordering::Acquire) {};\n```\nUse instead:\n```rust\nwhile b.load(Ordering::Acquire) {\n    std::hint::spin_loop()\n}\n```",
+    "docs": "\n### What it does\nChecks for empty spin loops\n\n### Why is this bad?\nThe loop body should have something like `thread::park()` or at least\n`std::hint::spin_loop()` to avoid needlessly burning cycles and conserve\nenergy. Perhaps even better use an actual lock, if possible.\n\n### Known problems\nThis lint doesn't currently trigger on `while let` or\n`loop { match .. { .. } }` loops, which would be considered idiomatic in\ncombination with e.g. `AtomicBool::compare_exchange_weak`.\n\n### Example\n\n```rust\nuse core::sync::atomic::{AtomicBool, Ordering};\nlet b = AtomicBool::new(true);\n// give a ref to `b` to another thread,wait for it to become false\nwhile b.load(Ordering::Acquire) {};\n```\nUse instead:\n```rust\nwhile b.load(Ordering::Acquire) {\n    std::hint::spin_loop()\n}\n```",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4849,7 +4999,7 @@
     "id": "mixed_case_hex_literals",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 128
+      "line": 129
     },
     "group": "style",
     "level": "warn",
@@ -4882,7 +5032,7 @@
     "id": "mod_module_files",
     "id_span": {
       "path": "src/module_style.rs",
-      "line": 33
+      "line": 34
     },
     "group": "restriction",
     "level": "allow",
@@ -4901,7 +5051,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for modules that have the same name as their\nparent module\n\n### Why is this bad?\nA typical beginner mistake is to have `mod foo;` and\nagain `mod foo { ..\n}` in `foo.rs`.\nThe expectation is that items inside the inner `mod foo { .. }` are then\navailable\nthrough `foo::x`, but they are only available through\n`foo::foo::x`.\nIf this is done on purpose, it would be better to choose a more\nrepresentative module name.\n\n### Example\n```rust\n// lib.rs\nmod foo;\n// foo.rs\nmod foo {\n    ...\n}\n```",
+    "docs": "\n### What it does\nChecks for modules that have the same name as their\nparent module\n\n### Why is this bad?\nA typical beginner mistake is to have `mod foo;` and\nagain `mod foo { ..\n}` in `foo.rs`.\nThe expectation is that items inside the inner `mod foo { .. }` are then\navailable\nthrough `foo::x`, but they are only available through\n`foo::foo::x`.\nIf this is done on purpose, it would be better to choose a more\nrepresentative module name.\n\n### Example\n```rust\n// lib.rs\nmod foo;\n// foo.rs\nmod foo {\n    ...\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `allow-private-module-inception`: `bool`(defaults to `false`): Whether to allow module inception if it's not public.\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -4930,7 +5080,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 655
+      "line": 629
     },
     "group": "restriction",
     "level": "allow",
@@ -4945,7 +5095,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 633
+      "line": 607
     },
     "group": "correctness",
     "level": "deny",
@@ -5050,7 +5200,7 @@
     "id": "mut_from_ref",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 126
+      "line": 128
     },
     "group": "correctness",
     "level": "deny",
@@ -5080,7 +5230,7 @@
     "id": "mut_mutex_lock",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2744
+      "line": 2775
     },
     "group": "style",
     "level": "warn",
@@ -5095,7 +5245,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 384
+      "line": 385
     },
     "group": "suspicious",
     "level": "warn",
@@ -5155,7 +5305,7 @@
     "id": "naive_bytecount",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2474
+      "line": 2505
     },
     "group": "pedantic",
     "level": "allow",
@@ -5185,7 +5335,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 684
+      "line": 658
     },
     "group": "pedantic",
     "level": "allow",
@@ -5230,7 +5380,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 93
+      "line": 95
     },
     "group": "style",
     "level": "warn",
@@ -5263,7 +5413,7 @@
     "id": "needless_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3144
+      "line": 3175
     },
     "group": "nursery",
     "level": "allow",
@@ -5305,6 +5455,21 @@
     }
   },
   {
+    "id": "needless_else",
+    "id_span": {
+      "path": "src/needless_else.rs",
+      "line": 31
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for empty `else` branches.\n\n### Why is this bad?\nAn empty else branch does nothing and can be removed.\n\n### Example\n```rust\nif check() {\n    println!(\"Check successful!\");\n} else {\n}\n```\nUse instead:\n```rust\nif check() {\n    println!(\"Check successful!\");\n}\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "needless_for_each",
     "id_span": {
       "path": "src/needless_for_each.rs",
@@ -5314,6 +5479,21 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of `for_each` that would be more simply written as a\n`for` loop.\n\n### Why is this bad?\n`for_each` may be used after applying iterator transformers like\n`filter` for better readability and performance. It may also be used to fit a simple\noperation on one line.\nBut when none of these apply, a simple `for` loop is more idiomatic.\n\n### Example\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| {\n    println!(\"{}\", elem);\n})\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\nfor elem in v.iter() {\n    println!(\"{}\", elem);\n}\n```",
     "version": "1.53.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "needless_if",
+    "id_span": {
+      "path": "src/needless_if.rs",
+      "line": 30
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for empty `if` branches with no else branch.\n\n### Why is this bad?\nIt can be entirely omitted, and often the condition too.\n\n### Known issues\nThis will usually only suggest to remove the `if` statement, not the condition. Other lints\nsuch as `no_effect` will take care of removing the condition if it's unnecessary.\n\n### Example\n```rust\nif really_expensive_condition(&i) {}\nif really_expensive_condition_with_side_effects(&mut i) {}\n```\nUse instead:\n```rust\n// <omitted>\nreally_expensive_condition_with_side_effects(&mut i);\n```",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -5338,7 +5518,7 @@
     "id": "needless_lifetimes",
     "id_span": {
       "path": "src/lifetimes.rs",
-      "line": 53
+      "line": 54
     },
     "group": "complexity",
     "level": "warn",
@@ -5353,7 +5533,7 @@
     "id": "needless_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 641
+      "line": 649
     },
     "group": "complexity",
     "level": "warn",
@@ -5368,7 +5548,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2282
+      "line": 2313
     },
     "group": "complexity",
     "level": "warn",
@@ -5383,7 +5563,7 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2333
+      "line": 2364
     },
     "group": "complexity",
     "level": "warn",
@@ -5413,7 +5593,7 @@
     "id": "needless_pass_by_value",
     "id_span": {
       "path": "src/needless_pass_by_value.rs",
-      "line": 60
+      "line": 58
     },
     "group": "pedantic",
     "level": "allow",
@@ -5422,6 +5602,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "needless_pub_self",
+    "id_span": {
+      "path": "src/visibility.rs",
+      "line": 25
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for usage of `pub(self)` and `pub(in self)`.\n\n### Why is this bad?\nIt's unnecessary, omitting the `pub` entirely will give the same results.\n\n### Example\n```rust\npub(self) type OptBox<T> = Option<Box<T>>;\n```\nUse instead:\n```rust\ntype OptBox<T> = Option<Box<T>>;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -5443,7 +5638,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 84
+      "line": 85
     },
     "group": "style",
     "level": "warn",
@@ -5455,10 +5650,40 @@
     }
   },
   {
+    "id": "needless_raw_string_hashes",
+    "id_span": {
+      "path": "src/raw_strings.rs",
+      "line": 51
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for raw string literals with an unnecessary amount of hashes around them.\n\n### Why is this bad?\nIt's just unnecessary, and makes it look like there's more escaping needed than is actually\nnecessary.\n\n### Example\n```rust\nlet r = r###\"Hello, \"world\"!\"###;\n```\nUse instead:\n```rust\nlet r = r#\"Hello, \"world\"!\"#;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "needless_raw_strings",
+    "id_span": {
+      "path": "src/raw_strings.rs",
+      "line": 30
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for raw string literals where a string literal can be used instead.\n\n### Why is this bad?\nIt's just unnecessary, but there are many cases where using a raw string literal is more\nidiomatic than a string literal, so it's opt-in.\n\n### Example\n```rust\nlet r = r\"Hello, world!\";\n```\nUse instead:\n```rust\nlet r = \"Hello, world!\";\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 68
+      "line": 74
     },
     "group": "style",
     "level": "warn",
@@ -5466,14 +5691,14 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2194
+      "line": 2225
     },
     "group": "complexity",
     "level": "warn",
@@ -5548,7 +5773,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 348
+      "line": 349
     },
     "group": "correctness",
     "level": "deny",
@@ -5563,7 +5788,7 @@
     "id": "new_ret_no_self",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1069
+      "line": 1100
     },
     "group": "style",
     "level": "warn",
@@ -5596,7 +5821,7 @@
     "id": "no_effect",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 28
+      "line": 33
     },
     "group": "complexity",
     "level": "warn",
@@ -5604,14 +5829,14 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MaybeIncorrect"
     }
   },
   {
     "id": "no_effect_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2351
+      "line": 2382
     },
     "group": "suspicious",
     "level": "warn",
@@ -5626,7 +5851,7 @@
     "id": "no_effect_underscore_binding",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 51
+      "line": 56
     },
     "group": "pedantic",
     "level": "allow",
@@ -5671,7 +5896,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 360
+      "line": 363
     },
     "group": "style",
     "level": "warn",
@@ -5731,7 +5956,7 @@
     "id": "nonsensical_open_options",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2765
+      "line": 2796
     },
     "group": "correctness",
     "level": "deny",
@@ -5776,7 +6001,7 @@
     "id": "obfuscated_if_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2379
+      "line": 2410
     },
     "group": "style",
     "level": "warn",
@@ -5806,7 +6031,7 @@
     "id": "ok_expect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 415
+      "line": 444
     },
     "group": "style",
     "level": "warn",
@@ -5836,7 +6061,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 383
+      "line": 382
     },
     "group": "style",
     "level": "warn",
@@ -5851,7 +6076,7 @@
     "id": "option_as_ref_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1731
+      "line": 1762
     },
     "group": "complexity",
     "level": "warn",
@@ -5881,7 +6106,7 @@
     "id": "option_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1138
+      "line": 1169
     },
     "group": "complexity",
     "level": "warn",
@@ -5911,7 +6136,7 @@
     "id": "option_map_or_none",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 528
+      "line": 559
     },
     "group": "style",
     "level": "warn",
@@ -5956,7 +6181,7 @@
     "id": "or_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 860
+      "line": 891
     },
     "group": "nursery",
     "level": "allow",
@@ -5971,7 +6196,7 @@
     "id": "or_then_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 896
+      "line": 927
     },
     "group": "complexity",
     "level": "warn",
@@ -6124,7 +6349,7 @@
     "id": "path_buf_push_overwrite",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2797
+      "line": 2828
     },
     "group": "nursery",
     "level": "allow",
@@ -6289,7 +6514,7 @@
     "id": "ptr_arg",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 63
+      "line": 65
     },
     "group": "style",
     "level": "warn",
@@ -6304,12 +6529,27 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 420
+      "line": 386
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `as` casts between raw pointers without changing its mutability,\nnamely `*const T` to `*const U` and `*mut T` to `*mut U`.\n\n### Why is this bad?\nThough `as` casts between raw pointers is not terrible, `pointer::cast` is safer because\nit cannot accidentally change the pointer's mutability nor cast the pointer to other types like `usize`.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "docs": "\n### What it does\nChecks for `as` casts between raw pointers without changing its mutability,\nnamely `*const T` to `*const U` and `*mut T` to `*mut U`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast` is safer because\nit cannot accidentally change the pointer's mutability nor cast the pointer to other types like `usize`.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr as *const i32;\nlet _ = mut_ptr as *mut i32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr: *mut u32 = &mut 42_u32;\nlet _ = ptr.cast::<i32>();\nlet _ = mut_ptr.cast::<i32>();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.51.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "ptr_cast_constness",
+    "id_span": {
+      "path": "src/casts/mod.rs",
+      "line": 414
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for `as` casts between raw pointers which change its constness, namely `*const T` to\n`*mut T` and `*mut T` to `*const T`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast_mut` and\n`pointer::cast_const` are safer because they cannot accidentally cast the pointer to another\ntype.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr as *mut u32;\nlet ptr = mut_ptr as *const u32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr.cast_mut();\nlet ptr = mut_ptr.cast_const();\n```",
+    "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -6319,7 +6559,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 713
+      "line": 687
     },
     "group": "style",
     "level": "warn",
@@ -6376,10 +6616,40 @@
     }
   },
   {
+    "id": "pub_with_shorthand",
+    "id_span": {
+      "path": "src/visibility.rs",
+      "line": 47
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of `pub(<loc>)` with `in`.\n\n### Why is this bad?\nConsistency. Use it or don't, just be consistent about it.\n\nAlso see the `pub_without_shorthand` lint for an alternative.\n\n### Example\n```rust\npub(super) type OptBox<T> = Option<Box<T>>;\n```\nUse instead:\n```rust\npub(in super) type OptBox<T> = Option<Box<T>>;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "pub_without_shorthand",
+    "id_span": {
+      "path": "src/visibility.rs",
+      "line": 72
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of `pub(<loc>)` without `in`.\n\nNote: As you cannot write a module's path in `pub(<loc>)`, this will only trigger on\n`pub(super)` and the like.\n\n### Why is this bad?\nConsistency. Use it or don't, just be consistent about it.\n\nAlso see the `pub_with_shorthand` lint for an alternative.\n\n### Example\n```rust\npub(in super) type OptBox<T> = Option<Box<T>>;\n```\nUse instead:\n```rust\npub(super) type OptBox<T> = Option<Box<T>>;\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "question_mark",
     "id_span": {
       "path": "src/question_mark.rs",
-      "line": 39
+      "line": 40
     },
     "group": "style",
     "level": "warn",
@@ -6454,7 +6724,7 @@
     "id": "range_zip_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2822
+      "line": 2853
     },
     "group": "complexity",
     "level": "warn",
@@ -6567,7 +6837,22 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `async` block that only returns `await` on a future.\n\n### Why is this bad?\nIt is simpler and more efficient to use the future directly.\n\n### Example\n```rust\nlet f = async {\n   1 + 2\n};\nlet fut = async {\n    f.await\n};\n```\nUse instead:\n```rust\nlet f = async {\n   1 + 2\n};\nlet fut = f;\n```",
-    "version": "1.69.0",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "redundant_at_rest_pattern",
+    "id_span": {
+      "path": "src/misc_early/mod.rs",
+      "line": 347
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `[all @ ..]` patterns.\n\n### Why is this bad?\nIn all cases, `all` works fine and can often make code simpler, as you possibly won't need\nto convert from say a `Vec` to a slice by dereferencing.\n\n### Example\n```rust\nif let [all @ ..] = &*v {\n    // NOTE: Type is a slice here\n    println!(\"all elements: {all:#?}\");\n}\n```\nUse instead:\n```rust\nif let all = v {\n    // NOTE: Type is a `Vec` here\n    println!(\"all elements: {all:#?}\");\n}\n// or\nprintln!(\"all elements: {v:#?}\");\n```",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -6579,8 +6864,8 @@
       "path": "src/redundant_clone.rs",
       "line": 59
     },
-    "group": "perf",
-    "level": "warn",
+    "group": "nursery",
+    "level": "allow",
     "docs": "\n### What it does\nChecks for a redundant `clone()` (and its relatives) which clones an owned\nvalue that is going to be dropped without further use.\n\n### Why is this bad?\nIt is not always possible for the compiler to eliminate useless\nallocations and deallocations generated by redundant `clone()`s.\n\n### Known problems\nFalse-negatives: analysis performed by this lint is conservative and limited.\n\n### Example\n```rust\n{\n    let x = Foo::new();\n    call(x.clone());\n    call(x.clone()); // this can just pass `x`\n}\n\n[\"lorem\", \"ipsum\"].join(\" \").to_string();\n\nPath::new(\"/a/b\").join(\"c\").to_path_buf();\n```",
     "version": "1.32.0",
     "applicability": {
@@ -6682,7 +6967,7 @@
     "id": "redundant_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 277
+      "line": 278
     },
     "group": "style",
     "level": "warn",
@@ -6697,7 +6982,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 514
+      "line": 519
     },
     "group": "style",
     "level": "warn",
@@ -6705,7 +6990,7 @@
     "version": "1.31.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MaybeIncorrect"
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -6757,10 +7042,25 @@
     ]
   },
   {
+    "id": "redundant_type_annotations",
+    "id_span": {
+      "path": "src/redundant_type_annotations.rs",
+      "line": 33
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nWarns about needless / redundant type annotations.\n\n### Why is this bad?\nCode without type annotations is shorter and in most cases\nmore idiomatic and easier to modify.\n\n### Limitations\nThis lint doesn't support:\n\n- Generics\n- Refs returned from anything else than a `MethodCall`\n- Complex types (tuples, arrays, etc...)\n- `Path` to anything else than a primitive type.\n\n### Example\n```rust\nlet foo: String = String::new();\n```\nUse instead:\n```rust\nlet foo = String::new();\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 121
+      "line": 123
     },
     "group": "pedantic",
     "level": "allow",
@@ -6820,7 +7120,7 @@
     "id": "repeat_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2854
+      "line": 2885
     },
     "group": "complexity",
     "level": "warn",
@@ -6850,7 +7150,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 458
+      "line": 463
     },
     "group": "restriction",
     "level": "allow",
@@ -6880,7 +7180,7 @@
     "id": "result_map_or_into_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 553
+      "line": 584
     },
     "group": "style",
     "level": "warn",
@@ -6970,7 +7270,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 447
+      "line": 448
     },
     "group": "style",
     "level": "warn",
@@ -7000,7 +7300,7 @@
     "id": "search_is_some",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 799
+      "line": 830
     },
     "group": "complexity",
     "level": "warn",
@@ -7015,7 +7315,7 @@
     "id": "seek_from_current",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3088
+      "line": 3119
     },
     "group": "complexity",
     "level": "warn",
@@ -7030,7 +7330,7 @@
     "id": "seek_to_start_instead_of_rewind",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3119
+      "line": 3150
     },
     "group": "complexity",
     "level": "warn",
@@ -7045,7 +7345,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 752
+      "line": 726
     },
     "group": "correctness",
     "level": "deny",
@@ -7075,7 +7375,7 @@
     "id": "self_named_module_files",
     "id_span": {
       "path": "src/module_style.rs",
-      "line": 63
+      "line": 64
     },
     "group": "restriction",
     "level": "allow",
@@ -7135,7 +7435,7 @@
     "id": "separated_literal_suffix",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 185
+      "line": 186
     },
     "group": "restriction",
     "level": "allow",
@@ -7240,7 +7540,7 @@
     "id": "should_implement_trait",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 338
+      "line": 367
     },
     "group": "style",
     "level": "warn",
@@ -7255,11 +7555,11 @@
     "id": "significant_drop_in_scrutinee",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 839
+      "line": 847
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nCheck for temporaries returned from function calls in a match scrutinee that have the\n`clippy::has_significant_drop` attribute.\n\n### Why is this bad?\nThe `clippy::has_significant_drop` attribute can be added to types whose Drop impls have\nan important side-effect, such as unlocking a mutex, making it important for users to be\nable to accurately understand their lifetimes. When a temporary is returned in a function\ncall in a match scrutinee, its lifetime lasts until the end of the match block, which may\nbe surprising.\n\nFor `Mutex`es this can lead to a deadlock. This happens when the match scrutinee uses a\nfunction call that returns a `MutexGuard` and then tries to lock again in one of the match\narms. In that case the `MutexGuard` in the scrutinee will not be dropped until the end of\nthe match block and thus will not unlock.\n\n### Example\n```rust\nlet mutex = Mutex::new(State {});\n\nmatch mutex.lock().unwrap().foo() {\n    true => {\n        mutex.lock().unwrap().bar(); // Deadlock!\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```\nUse instead:\n```rust\nlet mutex = Mutex::new(State {});\n\nlet is_foo = mutex.lock().unwrap().foo();\nmatch is_foo {\n    true => {\n        mutex.lock().unwrap().bar();\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```",
+    "docs": "\n### What it does\nChecks for temporaries returned from function calls in a match scrutinee that have the\n`clippy::has_significant_drop` attribute.\n\n### Why is this bad?\nThe `clippy::has_significant_drop` attribute can be added to types whose Drop impls have\nan important side-effect, such as unlocking a mutex, making it important for users to be\nable to accurately understand their lifetimes. When a temporary is returned in a function\ncall in a match scrutinee, its lifetime lasts until the end of the match block, which may\nbe surprising.\n\nFor `Mutex`es this can lead to a deadlock. This happens when the match scrutinee uses a\nfunction call that returns a `MutexGuard` and then tries to lock again in one of the match\narms. In that case the `MutexGuard` in the scrutinee will not be dropped until the end of\nthe match block and thus will not unlock.\n\n### Example\n```rust\nlet mutex = Mutex::new(State {});\n\nmatch mutex.lock().unwrap().foo() {\n    true => {\n        mutex.lock().unwrap().bar(); // Deadlock!\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```\nUse instead:\n```rust\nlet mutex = Mutex::new(State {});\n\nlet is_foo = mutex.lock().unwrap().foo();\nmatch is_foo {\n    true => {\n        mutex.lock().unwrap().bar();\n    }\n    false => {}\n};\n\nprintln!(\"All done!\");\n```",
     "version": "1.60.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7270,7 +7570,7 @@
     "id": "significant_drop_tightening",
     "id_span": {
       "path": "src/significant_drop_tightening.rs",
-      "line": 50
+      "line": 51
     },
     "group": "nursery",
     "level": "allow",
@@ -7278,7 +7578,7 @@
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MaybeIncorrect"
     }
   },
   {
@@ -7297,10 +7597,25 @@
     }
   },
   {
+    "id": "single_call_fn",
+    "id_span": {
+      "path": "src/single_call_fn.rs",
+      "line": 51
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for functions that are only used once. Does not lint tests.\n\n### Why is this bad?\nIt's usually not, splitting a function into multiple parts often improves readability and in\nthe case of generics, can prevent the compiler from duplicating the function dozens of\ntime; instead, only duplicating a thunk. But this can prevent segmentation across a\ncodebase, where many small functions are used only once.\n\nNote: If this lint is used, prepare to allow this a lot.\n\n### Example\n```rust\npub fn a<T>(t: &T)\nwhere\n    T: AsRef<str>,\n{\n    a_inner(t.as_ref())\n}\n\nfn a_inner(t: &str) {\n    /* snip */\n}\n\n```\nUse instead:\n```rust\npub fn a<T>(t: &T)\nwhere\n    T: AsRef<str>,\n{\n    let t = t.as_ref();\n    /* snip */\n}\n\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `avoid-breaking-exported-api`: `bool`(defaults to `true`): Suppress lints whenever the suggested change would cause breakage for other crates.\n",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1785
+      "line": 1816
     },
     "group": "style",
     "level": "warn",
@@ -7333,7 +7648,7 @@
     "id": "single_char_pattern",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1096
+      "line": 1127
     },
     "group": "perf",
     "level": "warn",
@@ -7363,7 +7678,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 475
+      "line": 476
     },
     "group": "complexity",
     "level": "warn",
@@ -7378,11 +7693,11 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 63
+      "line": 68
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for matches with a single arm where an `if let`\nwill usually suffice.\n\n### Why is this bad?\nJust readability – `if let` nests less than a `match`.\n\n### Example\n```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n```\n\nUse instead:\n```rust\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```",
+    "docs": "\n### What it does\nChecks for matches with a single arm where an `if let`\nwill usually suffice.\n\nThis intentionally does not lint if there are comments\ninside of the other arm, so as to allow the user to document\nwhy having another explicit pattern with an empty body is necessary,\nor because the comments need to be preserved for other reasons.\n\n### Why is this bad?\nJust readability – `if let` nests less than a `match`.\n\n### Example\n```rust\nmatch x {\n    Some(ref foo) => bar(foo),\n    _ => (),\n}\n```\n\nUse instead:\n```rust\nif let Some(ref foo) = x {\n    bar(foo);\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7393,7 +7708,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 105
+      "line": 110
     },
     "group": "pedantic",
     "level": "allow",
@@ -7402,6 +7717,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "HasPlaceholders"
+    }
+  },
+  {
+    "id": "single_range_in_vec_init",
+    "id_span": {
+      "path": "src/single_range_in_vec_init.rs",
+      "line": 33
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `Vec` or array initializations that contain only one range.\n\n### Why is this bad?\nThis is almost always incorrect, as it will result in a `Vec` that has only one element.\nAlmost always, the programmer intended for it to include all elements in the range or for\nthe end of the range to be the length instead.\n\n### Example\n```rust\nlet x = [0..200];\n```\nUse instead:\n```rust\n// If it was intended to include every element in the range...\nlet x = (0..200).collect::<Vec<i32>>();\n// ...Or if 200 was meant to be the len\nlet x = [0; 200];\n```",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
     }
   },
   {
@@ -7438,7 +7768,7 @@
     "id": "skip_while_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 636
+      "line": 667
     },
     "group": "complexity",
     "level": "warn",
@@ -7468,7 +7798,7 @@
     "id": "stable_sort_primitive",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2892
+      "line": 2923
     },
     "group": "pedantic",
     "level": "allow",
@@ -7513,7 +7843,7 @@
     "id": "str_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 397
+      "line": 398
     },
     "group": "restriction",
     "level": "allow",
@@ -7558,7 +7888,7 @@
     "id": "string_extend_chars",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1373
+      "line": 1404
     },
     "group": "style",
     "level": "warn",
@@ -7618,7 +7948,7 @@
     "id": "string_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 447
+      "line": 448
     },
     "group": "restriction",
     "level": "allow",
@@ -7708,7 +8038,7 @@
     "id": "suspicious_command_arg_space",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3170
+      "line": 3201
     },
     "group": "suspicious",
     "level": "warn",
@@ -7753,7 +8083,7 @@
     "id": "suspicious_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1581
+      "line": 1612
     },
     "group": "suspicious",
     "level": "warn",
@@ -7798,7 +8128,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2113
+      "line": 2144
     },
     "group": "correctness",
     "level": "deny",
@@ -7813,7 +8143,7 @@
     "id": "suspicious_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2082
+      "line": 2113
     },
     "group": "suspicious",
     "level": "warn",
@@ -8023,7 +8353,7 @@
     "id": "trait_duplication_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 84
+      "line": 85
     },
     "group": "nursery",
     "level": "allow",
@@ -8233,7 +8563,7 @@
     "id": "trim_split_whitespace",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 491
+      "line": 492
     },
     "group": "style",
     "level": "warn",
@@ -8278,7 +8608,7 @@
     "id": "try_err",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 874
+      "line": 882
     },
     "group": "restriction",
     "level": "allow",
@@ -8287,6 +8617,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "tuple_array_conversions",
+    "id_span": {
+      "path": "src/tuple_array_conversions.rs",
+      "line": 33
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for tuple<=>array conversions that are not done with `.into()`.\n\n### Why is this bad?\nIt's unnecessary complexity. `.into()` works for tuples<=>arrays at or below 12 elements and\nconveys the intent a lot better, while also leaving less room for hard to spot bugs!\n\n### Example\n```rust\nlet t1 = &[(1, 2), (3, 4)];\nlet v1: Vec<[u32; 2]> = t1.iter().map(|&(a, b)| [a, b]).collect();\n```\nUse instead:\n```rust\nlet t1 = &[(1, 2), (3, 4)];\nlet v1: Vec<[u32; 2]> = t1.iter().map(|&t| t.into()).collect();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
     }
   },
   {
@@ -8308,11 +8653,11 @@
     "id": "type_repetition_in_bounds",
     "id_span": {
       "path": "src/trait_bounds.rs",
-      "line": 38
+      "line": 39
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nThis lint warns about unnecessary type repetitions in trait bounds\n\n### Why is this bad?\nRepeating the type for every bound makes the code\nless readable than combining the bounds\n\n### Example\n```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nUse instead:\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `max-trait-bounds`: `u64`(defaults to `3`): The maximum number of bounds a trait can have to be linted\n",
+    "docs": "\n### What it does\nThis lint warns about unnecessary type repetitions in trait bounds\n\n### Why is this bad?\nRepeating the type for every bound makes the code\nless readable than combining the bounds\n\n### Example\n```rust\npub fn foo<T>(t: T) where T: Copy, T: Clone {}\n```\n\nUse instead:\n```rust\npub fn foo<T>(t: T) where T: Copy + Clone {}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n* `max-trait-bounds`: `u64`(defaults to `3`): The maximum number of bounds a trait can have to be linted\n",
     "version": "1.38.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8342,23 +8687,8 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `unsafe` blocks and impls without a `// SAFETY: ` comment\nexplaining why the unsafe operations performed inside\nthe block are safe.\n\nNote the comment must appear on the line(s) preceding the unsafe block\nwith nothing appearing in between. The following is ok:\n```rust\nfoo(\n    // SAFETY:\n    // This is a valid safety comment\n    unsafe { *x }\n)\n```\nBut neither of these are:\n```rust\n// SAFETY:\n// This is not a valid safety comment\nfoo(\n    /* SAFETY: Neither is this */ unsafe { *x },\n);\n```\n\n### Why is this bad?\nUndocumented unsafe blocks and impls can make it difficult to\nread and maintain code, as well as uncover unsoundness\nand bugs.\n\n### Example\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\nUse instead:\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\n// SAFETY: references are guaranteed to be non-null.\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```",
+    "docs": "\n### What it does\nChecks for `unsafe` blocks and impls without a `// SAFETY: ` comment\nexplaining why the unsafe operations performed inside\nthe block are safe.\n\nNote the comment must appear on the line(s) preceding the unsafe block\nwith nothing appearing in between. The following is ok:\n```rust\nfoo(\n    // SAFETY:\n    // This is a valid safety comment\n    unsafe { *x }\n)\n```\nBut neither of these are:\n```rust\n// SAFETY:\n// This is not a valid safety comment\nfoo(\n    /* SAFETY: Neither is this */ unsafe { *x },\n);\n```\n\n### Why is this bad?\nUndocumented unsafe blocks and impls can make it difficult to\nread and maintain code, as well as uncover unsoundness\nand bugs.\n\n### Example\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\nUse instead:\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\n// SAFETY: references are guaranteed to be non-null.\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `accept-comment-above-statement`: `bool`(defaults to `false`): Whether to accept a safety comment to be placed above the statement containing the `unsafe` block\n* `accept-comment-above-attributes`: `bool`(defaults to `false`): Whether to accept a safety comment to be placed above the attributes for the `unsafe` block\n",
     "version": "1.58.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "undropped_manually_drops",
-    "id_span": {
-      "path": "src/drop_forget_ref.rs",
-      "line": 74
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nPrevents the safe `std::mem::drop` function from being called on `std::mem::ManuallyDrop`.\n\n### Why is this bad?\nThe safe `drop` function does not drop the inner value of a `ManuallyDrop`.\n\n### Known problems\nDoes not catch cases if the user binds `std::mem::drop`\nto a different name and calls it that way.\n\n### Example\n```rust\nstruct S;\ndrop(std::mem::ManuallyDrop::new(S));\n```\nUse instead:\n```rust\nstruct S;\nunsafe {\n    std::mem::ManuallyDrop::drop(&mut std::mem::ManuallyDrop::new(S));\n}\n```",
-    "version": "1.49.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -8398,7 +8728,7 @@
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1616
+      "line": 1647
     },
     "group": "correctness",
     "level": "deny",
@@ -8473,7 +8803,7 @@
     "id": "unit_hash",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2931
+      "line": 2962
     },
     "group": "correctness",
     "level": "deny",
@@ -8518,11 +8848,11 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 196
+      "line": 197
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer types\nand casts of float literals to float types.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
+    "docs": "\n### What it does\nChecks for casts to the same type, casts of int literals to integer types, casts of float\nliterals to float types and casts between raw pointers without changing type or constness.\n\n### Why is this bad?\nIt's just unnecessary.\n\n### Example\n```rust\nlet _ = 2i32 as i32;\nlet _ = 0.5 as f32;\n```\n\nBetter:\n\n```rust\nlet _ = 2_i32;\nlet _ = 0.5_f32;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8533,7 +8863,7 @@
     "id": "unnecessary_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1504
+      "line": 1535
     },
     "group": "complexity",
     "level": "warn",
@@ -8548,7 +8878,7 @@
     "id": "unnecessary_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1534
+      "line": 1565
     },
     "group": "complexity",
     "level": "warn",
@@ -8563,7 +8893,7 @@
     "id": "unnecessary_fold",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1474
+      "line": 1505
     },
     "group": "style",
     "level": "warn",
@@ -8578,7 +8908,7 @@
     "id": "unnecessary_join",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2257
+      "line": 2288
     },
     "group": "pedantic",
     "level": "allow",
@@ -8593,12 +8923,27 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1825
+      "line": 1856
     },
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nAs the counterpart to `or_fun_call`, this lint looks for unnecessary\nlazily evaluated closures on `Option` and `Result`.\n\nThis lint suggests changing the following functions, when eager evaluation results in\nsimpler code:\n - `unwrap_or_else` to `unwrap_or`\n - `and_then` to `and`\n - `or_else` to `or`\n - `get_or_insert_with` to `get_or_insert`\n - `ok_or_else` to `ok_or`\n - `then` to `then_some` (for msrv >= 1.62.0)\n\n### Why is this bad?\nUsing eager evaluation is shorter and simpler in some cases.\n\n### Known problems\nIt is possible, but not recommended for `Deref` and `Index` to have\nside effects. Eagerly evaluating them can change the semantics of the program.\n\n### Example\n```rust\n// example code where clippy issues a warning\nlet opt: Option<u32> = None;\n\nopt.unwrap_or_else(|| 42);\n```\nUse instead:\n```rust\nlet opt: Option<u32> = None;\n\nopt.unwrap_or(42);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.48.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "unnecessary_literal_unwrap",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 300
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `.unwrap()` related calls on `Result`s and `Option`s that are constructed.\n\n### Why is this bad?\nIt is better to write the value directly without the indirection.\n\n### Examples\n```rust\nlet val1 = Some(1).unwrap();\nlet val2 = Ok::<_, ()>(1).unwrap();\nlet val3 = Err::<(), _>(1).unwrap_err();\n```\n\nUse instead:\n```rust\nlet val1 = 1;\nlet val2 = 1;\nlet val3 = 1;\n```",
+    "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -8623,7 +8968,7 @@
     "id": "unnecessary_operation",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 70
+      "line": 75
     },
     "group": "complexity",
     "level": "warn",
@@ -8698,7 +9043,7 @@
     "id": "unnecessary_sort_by",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2965
+      "line": 2996
     },
     "group": "complexity",
     "level": "warn",
@@ -8728,7 +9073,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2225
+      "line": 2256
     },
     "group": "perf",
     "level": "warn",
@@ -8773,7 +9118,7 @@
     "id": "unneeded_field_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 59
+      "line": 60
     },
     "group": "restriction",
     "level": "allow",
@@ -8788,7 +9133,7 @@
     "id": "unneeded_wildcard_pattern",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 316
+      "line": 317
     },
     "group": "complexity",
     "level": "warn",
@@ -8893,7 +9238,7 @@
     "id": "unseparated_literal_suffix",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 157
+      "line": 158
     },
     "group": "restriction",
     "level": "allow",
@@ -8953,7 +9298,7 @@
     "id": "unused_async",
     "id_span": {
       "path": "src/unused_async.rs",
-      "line": 35
+      "line": 36
     },
     "group": "pedantic",
     "level": "allow",
@@ -9103,7 +9448,7 @@
     "id": "unwrap_or_else_default",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 465
+      "line": 494
     },
     "group": "style",
     "level": "warn",
@@ -9118,7 +9463,7 @@
     "id": "unwrap_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 271
+      "line": 274
     },
     "group": "restriction",
     "level": "allow",
@@ -9197,7 +9542,7 @@
     "id": "useless_asref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1449
+      "line": 1480
     },
     "group": "complexity",
     "level": "warn",
@@ -9212,7 +9557,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 112
+      "line": 115
     },
     "group": "correctness",
     "level": "deny",
@@ -9227,7 +9572,7 @@
     "id": "useless_conversion",
     "id_span": {
       "path": "src/useless_conversion.rs",
-      "line": 34
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
@@ -9290,11 +9635,11 @@
     "id": "useless_vec",
     "id_span": {
       "path": "src/vec.rs",
-      "line": 42
+      "line": 48
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `&vec![..]` when using `&[..]` would\nbe possible.\n\n### Why is this bad?\nThis is less efficient.\n\n### Example\n```rust\nfn foo(_x: &[u8]) {}\n\nfoo(&vec![1, 2]);\n```\n\nUse instead:\n```rust\nfoo(&[1, 2]);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `too-large-for-stack`: `u64`(defaults to `200`): The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap\n",
+    "docs": "\n### What it does\nChecks for usage of `vec![..]` when using `[..]` would\nbe possible.\n\n### Why is this bad?\nThis is less efficient.\n\n### Example\n```rust\nfn foo(_x: &[u8]) {}\n\nfoo(&vec![1, 2]);\n```\n\nUse instead:\n```rust\nfoo(&[1, 2]);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `too-large-for-stack`: `u64`(defaults to `200`): The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap\n",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9335,7 +9680,7 @@
     "id": "vec_resize_to_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2987
+      "line": 3018
     },
     "group": "correctness",
     "level": "deny",
@@ -9350,7 +9695,7 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 269
+      "line": 268
     },
     "group": "pedantic",
     "level": "allow",
@@ -9365,7 +9710,7 @@
     "id": "verbose_file_reads",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3014
+      "line": 3045
     },
     "group": "restriction",
     "level": "allow",
@@ -9395,7 +9740,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 411
+      "line": 412
     },
     "group": "correctness",
     "level": "deny",
@@ -9410,7 +9755,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 204
+      "line": 205
     },
     "group": "complexity",
     "level": "warn",
@@ -9425,7 +9770,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 297
+      "line": 298
     },
     "group": "style",
     "level": "warn",
@@ -9455,7 +9800,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 285
+      "line": 290
     },
     "group": "restriction",
     "level": "allow",
@@ -9470,11 +9815,11 @@
     "id": "wildcard_imports",
     "id_span": {
       "path": "src/wildcard_imports.rs",
-      "line": 96
+      "line": 97
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for wildcard imports `use _::*`.\n\n### Why is this bad?\nwildcard imports can pollute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.\n\n### Exceptions\nWildcard imports are allowed from modules named `prelude`. Many crates (including the standard library)\nprovide modules named \"prelude\" specifically designed for wildcard import.\n\n`use super::*` is allowed in test modules. This is defined as any module with \"test\" in the name.\n\nThese exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.\n\n### Known problems\nIf macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.\n\n### Example\n```rust\nuse crate1::*;\n\nfoo();\n```\n\nUse instead:\n```rust\nuse crate1::foo;\n\nfoo();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `warn-on-all-wildcard-imports`: `bool`(defaults to `false`): Whether to allow certain wildcard imports (prelude, super in tests).\n",
+    "docs": "\n### What it does\nChecks for wildcard imports `use _::*`.\n\n### Why is this bad?\nwildcard imports can pollute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.\n\n### Exceptions\nWildcard imports are allowed from modules that their name contains `prelude`. Many crates\n(including the standard library) provide modules named \"prelude\" specifically designed\nfor wildcard import.\n\n`use super::*` is allowed in test modules. This is defined as any module with \"test\" in the name.\n\nThese exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.\n\n### Known problems\nIf macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.\n\n### Example\n```rust\nuse crate1::*;\n\nfoo();\n```\n\nUse instead:\n```rust\nuse crate1::foo;\n\nfoo();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `warn-on-all-wildcard-imports`: `bool`(defaults to `false`): Whether to allow certain wildcard imports (prelude, super in tests).\n",
     "version": "1.43.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9485,7 +9830,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 354
+      "line": 359
     },
     "group": "complexity",
     "level": "warn",
@@ -9560,7 +9905,7 @@
     "id": "wrong_self_convention",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 387
+      "line": 416
     },
     "group": "style",
     "level": "warn",
@@ -9605,7 +9950,7 @@
     "id": "zero_prefixed_literal",
     "id_span": {
       "path": "src/misc_early/mod.rs",
-      "line": 224
+      "line": 225
     },
     "group": "complexity",
     "level": "warn",
@@ -9650,7 +9995,7 @@
     "id": "zst_offset",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1663
+      "line": 1694
     },
     "group": "correctness",
     "level": "deny",
