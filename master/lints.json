@@ -3716,7 +3716,7 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 49
+      "line": 51
     },
     "group": "style",
     "level": "warn",
@@ -5803,7 +5803,7 @@
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 75
+      "line": 77
     },
     "group": "style",
     "level": "warn",
@@ -5812,6 +5812,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "needless_return_with_question_mark",
+    "id_span": {
+      "path": "src/returns.rs",
+      "line": 117
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for return statements on `Err` paired with the `?` operator.\n\n### Why is this bad?\nThe `return` is unnecessary.\n\n### Example\n```rust\nfn foo(x: usize) -> Result<(), Box<dyn Error>> {\n    if x == 0 {\n        return Err(...)?;\n    }\n    Ok(())\n}\n```\nsimplify to\n```rust\nfn foo(x: usize) -> Result<(), Box<dyn Error>> {\n    if x == 0 {\n        Err(...)?;\n    }\n    Ok(())\n}\n```\nif paired with `try_err`, use instead:\n```rust\nfn foo(x: usize) -> Result<(), Box<dyn Error>> {\n    if x == 0 {\n        return Err(...);\n    }\n    Ok(())\n}\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
