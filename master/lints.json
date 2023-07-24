@@ -949,7 +949,7 @@
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 94
+      "line": 95
     },
     "group": "style",
     "level": "warn",
@@ -3218,7 +3218,7 @@
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 150
+      "line": 151
     },
     "group": "correctness",
     "level": "deny",
@@ -5305,7 +5305,7 @@
     "id": "mut_from_ref",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 127
+      "line": 128
     },
     "group": "correctness",
     "level": "deny",
@@ -6634,7 +6634,7 @@
     "id": "ptr_arg",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 64
+      "line": 65
     },
     "group": "style",
     "level": "warn",
