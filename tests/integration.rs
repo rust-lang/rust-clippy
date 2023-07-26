@@ -175,9 +175,11 @@ fn integration_test_rustc() {
         .strip_prefix("commit-hash: ")
         .expect("failed parsing commit line");
 
+    dbg!(&commit);
     // check out the commit in the rustc repo to ensure clippy is compatible
 
     let st_git_checkout = Command::new("git")
+        .current_dir(&repo_dir)
         .arg("checkout")
         .arg(commit)
         .status()
@@ -186,15 +188,15 @@ fn integration_test_rustc() {
 
     let root_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let target_dir = std::path::Path::new(&root_dir).join("target");
-    let clippy_binary = target_dir.join(env!("PROFILE")).join(CARGO_CLIPPY);
+    // let clippy_binary = target_dir.join(env!("PROFILE")).join(CARGO_CLIPPY);
 
     // we need to make sure that `x.py clippy` picks up our self-built clippy
     // try to make the target dir discoverable as PATH
 
     let path_env = target_dir.join(env!("PROFILE"));
 
-    let output = Command::new("x.py")
-        .current_dir("rust")
+    let output = Command::new("./x.py")
+        .current_dir(&repo_dir)
         .env("RUST_BACKTRACE", "full")
         .env("PATH", path_env)
         .args(["clippy", "-Wclippy::pedantic", "-Wclippy::nursery"])
