@@ -195,7 +195,8 @@ fn integration_test_rustc() {
 
     let path_env = target_dir.join(env!("PROFILE"));
 
-    let output = Command::new("./x.py")
+    let output = Command::new("python")
+        .arg("./x.py")
         .current_dir(&repo_dir)
         .env("RUST_BACKTRACE", "full")
         .env("PATH", path_env)
