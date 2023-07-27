@@ -211,7 +211,7 @@ fn integration_test_rustc() {
             .arg("./x.py")
             .current_dir(&repo_dir)
             .env("RUST_BACKTRACE", "full")
-            .env("PATH", path_new)
+            .env("PATH", new_path)
             .args(["clippy", "-Wclippy::pedantic", "-Wclippy::nursery"])
     )
     .output()
