@@ -6241,7 +6241,7 @@
     "id": "option_env_unwrap",
     "id_span": {
       "path": "src/option_env_unwrap.rs",
-      "line": 30
+      "line": 29
     },
     "group": "correctness",
     "level": "deny",
