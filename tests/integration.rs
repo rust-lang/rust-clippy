@@ -146,6 +146,7 @@ fn integration_test_rustc() {
     let mut repo_dir = tempfile::tempdir().expect("couldn't create temp dir").into_path();
     repo_dir.push(crate_name);
 
+    dbg!("cloning git repo");
     let st_git_cl = Command::new("git")
         .args([
             OsStr::new("clone"),
@@ -157,6 +158,7 @@ fn integration_test_rustc() {
         .expect("unable to run git");
     assert!(st_git_cl.success());
 
+    dbg!("getting rustc version");
     // clippy is pinned to a specific nightly version
     // check out the commit of that nightly to ensure compatibility
     let rustc_output = Command::new("rustc")
@@ -178,6 +180,7 @@ fn integration_test_rustc() {
     dbg!(&commit);
     // check out the commit in the rustc repo to ensure clippy is compatible
 
+    dbg!("checking out commit in rustc repo");
     let st_git_checkout = Command::new("git")
         .current_dir(&repo_dir)
         .arg("checkout")
@@ -195,14 +198,16 @@ fn integration_test_rustc() {
 
     let path_env = target_dir.join(env!("PROFILE"));
 
-    let output = Command::new("python")
-        .arg("./x.py")
-        .current_dir(&repo_dir)
-        .env("RUST_BACKTRACE", "full")
-        .env("PATH", path_env)
-        .args(["clippy", "-Wclippy::pedantic", "-Wclippy::nursery"])
-        .output()
-        .expect("unable to run x.py  clippy");
+    let output = dbg!(
+        Command::new("python")
+            .arg("./x.py")
+            .current_dir(&repo_dir)
+            .env("RUST_BACKTRACE", "full")
+            .env("PATH", path_env)
+            .args(["clippy", "-Wclippy::pedantic", "-Wclippy::nursery"])
+    )
+    .output()
+    .expect("unable to run x.py  clippy");
 
     let stderr = String::from_utf8_lossy(&output.stderr);
 
