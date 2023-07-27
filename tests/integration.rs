@@ -198,12 +198,20 @@ fn integration_test_rustc() {
 
     let path_env = target_dir.join(env!("PROFILE"));
 
+    dbg!(&repo_dir);
+    assert!(repo_dir.is_dir(), "repo_dir not a dir!");
+
+    let path_env = std::env::var_os("PATH").expect("PATH env var not set");
+    let mut paths = env::split_paths(&path_env).collect::<Vec<_>>();
+    paths.push(target_dir.join(env!("PROFILE")));
+    let new_path = env::join_paths(paths).expect("failed to join paths");
+
     let output = dbg!(
         Command::new("python")
             .arg("./x.py")
             .current_dir(&repo_dir)
             .env("RUST_BACKTRACE", "full")
-            .env("PATH", path_env)
+            .env("PATH", path_new)
             .args(["clippy", "-Wclippy::pedantic", "-Wclippy::nursery"])
     )
     .output()
