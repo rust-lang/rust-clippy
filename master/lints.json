@@ -1342,7 +1342,7 @@
     "id": "deref_by_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 65
+      "line": 64
     },
     "group": "restriction",
     "level": "allow",
@@ -3731,7 +3731,7 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 51
+      "line": 50
     },
     "group": "style",
     "level": "warn",
@@ -3746,7 +3746,7 @@
     "id": "let_underscore_future",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 90
+      "line": 89
     },
     "group": "suspicious",
     "level": "warn",
@@ -3761,7 +3761,7 @@
     "id": "let_underscore_lock",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 59
+      "line": 58
     },
     "group": "correctness",
     "level": "deny",
@@ -3776,7 +3776,7 @@
     "id": "let_underscore_must_use",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 31
+      "line": 30
     },
     "group": "restriction",
     "level": "allow",
@@ -3791,7 +3791,7 @@
     "id": "let_underscore_untyped",
     "id_span": {
       "path": "src/let_underscore.rs",
-      "line": 128
+      "line": 127
     },
     "group": "restriction",
     "level": "allow",
@@ -5818,7 +5818,7 @@
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 77
+      "line": 76
     },
     "group": "style",
     "level": "warn",
@@ -5833,7 +5833,7 @@
     "id": "needless_return_with_question_mark",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 117
+      "line": 116
     },
     "group": "style",
     "level": "warn",
@@ -6076,7 +6076,7 @@
     "id": "non_send_fields_in_send_ty",
     "id_span": {
       "path": "src/non_send_fields_in_send_ty.rs",
-      "line": 53
+      "line": 52
     },
     "group": "nursery",
     "level": "allow",
@@ -6196,7 +6196,7 @@
     "id": "only_used_in_recursion",
     "id_span": {
       "path": "src/only_used_in_recursion.rs",
-      "line": 83
+      "line": 82
     },
     "group": "complexity",
     "level": "warn",
@@ -7222,7 +7222,7 @@
     "id": "redundant_slicing",
     "id_span": {
       "path": "src/redundant_slicing.rs",
-      "line": 41
+      "line": 40
     },
     "group": "complexity",
     "level": "warn",
@@ -7780,7 +7780,7 @@
     "id": "significant_drop_tightening",
     "id_span": {
       "path": "src/significant_drop_tightening.rs",
-      "line": 50
+      "line": 49
     },
     "group": "nursery",
     "level": "allow",
