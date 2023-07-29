@@ -224,6 +224,7 @@ fn integration_test_rustc() {
     );
 
     let bin_dir = sysroot_path.join("bin");
+    dbg!(&bin_dir);
     //  ^ this is the dir we want to copy our clippy binary into now
 
     // there should not be
@@ -233,9 +234,9 @@ fn integration_test_rustc() {
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
         .for_each(|file| {
-            let old_path = file.clone();
-            let new_base = PathBuf::from(&bin_dir);
-            let new_path = new_base.join(&file.file_name().expect("got directory instead of file"));
+            let old_path = dbg!(file.clone());
+            let new_base = dbg!(PathBuf::from(&bin_dir));
+            let new_path = dbg!(new_base.join(&file));
 
             fs::copy(dbg!(old_path), dbg!(new_path)).expect("could not copy files"); //error
 
