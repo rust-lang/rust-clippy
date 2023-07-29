@@ -245,7 +245,8 @@ fn integration_test_rustc() {
         .for_each(|file| {
             let old_path = dbg!(file.clone());
             let new_base = dbg!(PathBuf::from(&bin_dir));
-            let new_path = dbg!(new_base.join(&file));
+            let bin_file_name = dbg!(old_path.parent().unwrap());
+            let new_path = dbg!(new_base.join(&bin_file_name));
 
             fs::copy(dbg!(old_path), dbg!(new_path)).expect("could not copy files"); //error
 
