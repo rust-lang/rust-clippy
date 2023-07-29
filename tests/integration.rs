@@ -134,7 +134,7 @@ fn integration_test_rustc() {
     let repo_name = env::var("INTEGRATION").expect("`INTEGRATION` var not set");
 
     // try to avoid running this test locally
-    if repo_name != "rust-lang/rust" || env::var("GITHUB_ACTIONS").is_none() {
+    if repo_name != "rust-lang/rust" || env::var("GITHUB_ACTIONS").is_ok() {
         return;
     }
 
@@ -204,8 +204,9 @@ fn integration_test_rustc() {
 
     let path_env = std::env::var_os("PATH").expect("PATH env var not set");
     let mut paths = env::split_paths(&path_env).collect::<Vec<_>>();
-    paths.push(target_dir.join(env!("PROFILE")));
+    paths.push(path_env.into());
     let new_path = env::join_paths(paths).expect("failed to join paths");
+    dbg!(&new_path);
 
     let output = dbg!(
         Command::new("python")
