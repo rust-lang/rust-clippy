@@ -214,7 +214,8 @@ fn integration_test_rustc() {
         .output()
         .expect("rustc failed to print sysroot");
     let untrimmed = String::from_utf8_lossy(&sysroot_output.stdout).to_string();
-    let mut sysroot = dbg!(untrimmed.trim());
+    let sysroot2 = dbg!(untrimmed.trim());
+    let mut sysroot = sysroot2.to_string();
     sysroot.push('/');
     dbg!(&sysroot);
 
