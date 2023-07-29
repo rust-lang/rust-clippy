@@ -1,5 +1,20 @@
+//@aux-build:no_mangle_with_rust_abi.rs
 #![allow(unused)]
 #![warn(clippy::no_mangle_with_rust_abi)]
+
+extern crate no_mangle_with_rust_abi as external;
+
+pub struct UsingMeInCIsUB(u32, u32);
+#[no_mangle]
+pub static ZERO_UB: UsingMeInCIsUB = UsingMeInCIsUB(0, 0);
+
+#[repr(C)]
+pub struct UsingMeInCIsFine(u32, u32);
+#[no_mangle]
+pub static ZERO_DB: UsingMeInCIsFine = UsingMeInCIsFine(0, 0);
+
+#[no_mangle]
+pub static ZERO_UB_AGAIN: external::UsingMeInCIsUB = external::UsingMeInCIsUB(0, 0);
 
 #[no_mangle]
 fn rust_abi_fn_one(arg_one: u32, arg_two: usize) {}
