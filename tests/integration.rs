@@ -243,10 +243,10 @@ fn integration_test_rustc() {
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
         .for_each(|file| {
-            let old_path = dbg!(file.clone());
-            let new_base = dbg!(PathBuf::from(&bin_dir));
-            let bin_file_name = dbg!(old_path.parent().unwrap());
-            let new_path = dbg!(new_base.with_file_name(&bin_file_name));
+            let old_path: PathBuf = dbg!(file.clone());
+            let new_base: &PathBuf = dbg!(&bin_dir);
+            let bin_file_name: &std::ffi::OsStr = dbg!(old_path.file_name().unwrap());
+            let new_path: PathBuf = dbg!(new_base.with_file_name(&bin_file_name));
 
             fs::copy(dbg!(old_path), dbg!(new_path)).expect("could not copy files"); //error
 
