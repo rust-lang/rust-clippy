@@ -223,6 +223,8 @@ fn integration_test_rustc() {
         format!("sysroot path '{}' not found!", sysroot_path.display())
     );
 
+    dbg!(&sysroot_path);
+
     let bin_dir = sysroot_path.join("bin");
     dbg!(&bin_dir);
     //  ^ this is the dir we want to copy our clippy binary into now
