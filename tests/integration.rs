@@ -11,9 +11,10 @@
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
 #![warn(rust_2018_idioms, unused_lifetimes)]
 
-use std::env;
 use std::ffi::OsStr;
+use std::path::PathBuf;
 use std::process::Command;
+use std::{env, fs};
 
 #[cfg(not(windows))]
 const CARGO_CLIPPY: &str = "cargo-clippy";
@@ -202,10 +203,40 @@ fn integration_test_rustc() {
 
     let path_env = std::env::var_os("PATH").expect("PATH env var not set");
     let mut paths = env::split_paths(&path_env).collect::<Vec<_>>();
-    paths.push(clippy_exec_dir);
+    paths.push(clippy_exec_dir.clone());
     let new_path = env::join_paths(paths).expect("failed to join paths");
     dbg!(&new_path);
 
+    // copy our own clippy binary into the rustc toolchain dir so that x.py finds them
+    let sysroot_output = Command::new("rustc")
+        .arg("--print")
+        .arg("sysroot")
+        .output()
+        .expect("rustc failed to print sysroot");
+    let sysroot = String::from_utf8_lossy(&sysroot_output.stdout).to_string();
+    let sysroot_path = PathBuf::from(sysroot);
+    assert!(
+        sysroot_path.is_dir(),
+        "{}",
+        format!("sysroot path '{}' not found!", sysroot_path.display())
+    );
+
+    let bin_dir = sysroot_path.join("bin");
+    //  ^ this is the dir we want to copy our clippy binary into now
+
+    // there should not be
+    std::fs::read_dir(&clippy_exec_dir)
+        .expect("failed to read clippys target/ dir")
+        .map(|entry| entry.ok().expect("could not convert direntry into path"))
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file())
+        .for_each(|file| {
+            let old_path = file.clone();
+            let new_base = PathBuf::from(&bin_dir);
+            let new_path = new_base.join(&file.file_name().expect("got directory instead of file"));
+
+            fs::copy(old_path, new_path).expect("could not copy files");
+        });
     let output = dbg!(
         Command::new("python")
             .arg("./x.py")
