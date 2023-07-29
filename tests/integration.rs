@@ -133,8 +133,8 @@ fn integration_test() {
 fn integration_test_rustc() {
     let repo_name = env::var("INTEGRATION").expect("`INTEGRATION` var not set");
 
-    // try to avoid running this test locall
-    if repo_name != "rust-lang/rust" || env::var("GITHUB_ACTIONS") == Ok(String::from("true")) {
+    // try to avoid running this test locally
+    if !(repo_name == "rust-lang/rust" && env::var("GITHUB_ACTIONS") == Ok(String::from("true"))) {
         return;
     }
 
