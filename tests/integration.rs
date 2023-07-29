@@ -237,7 +237,9 @@ fn integration_test_rustc() {
             let new_base = PathBuf::from(&bin_dir);
             let new_path = new_base.join(&file.file_name().expect("got directory instead of file"));
 
-            fs::copy(old_path, new_path).expect("could not copy files");
+            fs::copy(dbg!(old_path), dbg!(new_path)).expect("could not copy files"); //error
+
+            //   https://github.com/rust-lang/rust-clippy/actions/runs/5700035285/job/15449530554#step:8:132
         });
     let output = dbg!(
         Command::new("python")
