@@ -215,8 +215,11 @@ fn integration_test_rustc() {
         .expect("rustc failed to print sysroot");
     let sysroot = dbg!(String::from_utf8_lossy(&sysroot_output.stdout).to_string());
 
-    let mut sysroot_path = PathBuf::from(sysroot);
+    let mut sysroot_path = dbg!(PathBuf::from(sysroot));
     sysroot_path.join("/");
+
+    dbg!(&sysroot_path);
+
     assert!(
         sysroot_path.exists(),
         "{}",
