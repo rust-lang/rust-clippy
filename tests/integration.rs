@@ -133,8 +133,8 @@ fn integration_test() {
 fn integration_test_rustc() {
     let repo_name = env::var("INTEGRATION").expect("`INTEGRATION` var not set");
 
-    // try to avoid running this test locally
-    if repo_name != "rust-lang/rust" || env::var("GITHUB_ACTIONS").is_ok() {
+    // try to avoid running this test locall
+    if repo_name != "rust-lang/rust" || env::var("GITHUB_ACTIONS") == Ok(String::from("true")) {
         return;
     }
 
@@ -192,19 +192,17 @@ fn integration_test_rustc() {
 
     let root_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let target_dir = std::path::Path::new(&root_dir).join("target");
-    // let clippy_binary = target_dir.join(env!("PROFILE")).join(CARGO_CLIPPY);
+    let clippy_exec_dir = target_dir.join(env!("PROFILE"));
 
     // we need to make sure that `x.py clippy` picks up our self-built clippy
     // try to make the target dir discoverable as PATH
-
-    let path_env = target_dir.join(env!("PROFILE"));
 
     dbg!(&repo_dir);
     assert!(repo_dir.is_dir(), "repo_dir not a dir!");
 
     let path_env = std::env::var_os("PATH").expect("PATH env var not set");
     let mut paths = env::split_paths(&path_env).collect::<Vec<_>>();
-    paths.push(path_env.into());
+    paths.push(clippy_exec_dir);
     let new_path = env::join_paths(paths).expect("failed to join paths");
     dbg!(&new_path);
 
