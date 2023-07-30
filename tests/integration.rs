@@ -130,6 +130,7 @@ fn integration_test() {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 #[cfg_attr(feature = "integration", test)]
 fn integration_test_rustc() {
     let repo_name = env::var("INTEGRATION").expect("`INTEGRATION` var not set");
@@ -187,7 +188,7 @@ fn integration_test_rustc() {
     // check out the commit in the rustc repo to ensure clippy is compatible with std/core and the
     // compiler internals
 
-    println!("checking out commit '{}' in rustc repo", commit);
+    println!("checking out commit '{commit}' in rustc repo");
     let st_git_checkout = Command::new("git")
         .current_dir(&repo_dir)
         .arg("checkout")
@@ -229,16 +230,16 @@ fn integration_test_rustc() {
     eprintln!("clippy binaries will be put int {}", sysroot_bin_dir.display());
 
     // copy files from target dir into our $sysroot/bin
-    std::fs::read_dir(&clippy_exec_dir)
+    std::fs::read_dir(clippy_exec_dir)
         .expect("failed to read clippys target/ dir that we downloaded from previous ci step")
-        .map(|entry| entry.ok().expect("DirEntry not ok"))
+        .map(|entry| entry.expect("DirEntry not ok"))
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
         .for_each(|clippy_binary| {
             let new_base: PathBuf = sysroot_bin_dir.join("willbeoverwritten"); // file_name() will overwrite this
             // set the path from /foo/dir/willbeoverwritten to /foo/dir/cargo-clippy
             let bin_file_name: &std::ffi::OsStr = clippy_binary.file_name().unwrap();
-            let new_path: PathBuf = new_base.with_file_name(&bin_file_name);
+            let new_path: PathBuf = new_base.with_file_name(bin_file_name);
 
             fs::copy(dbg!(clippy_binary), dbg!(new_path))
                 .expect("could not copy file from '{clippy_binary}' to '{new_path}'");
