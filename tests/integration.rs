@@ -188,41 +188,31 @@ fn integration_test_rustc() {
         .arg("checkout")
         .arg(commit)
         .status()
-        .expect("git failed to check out commit");
+        .expect("git failed to check out commit '{commit}' in rustc repo");
     assert!(st_git_checkout.success());
 
     let root_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let target_dir = std::path::Path::new(&root_dir).join("target");
+    // the clippy binary is in there
     let clippy_exec_dir = target_dir.join(env!("PROFILE"));
 
-    // we need to make sure that `x.py clippy` picks up our self-built clippy
-    // try to make the target dir discoverable as PATH
+    // we want that `x.py clippy` picks up our self-built clippy for testing!
+    // copy the clippy we built earlier into the toolchain directory of the nightly
+    // that clippy is pinned, so that x.py can pick it up and use it
 
-    dbg!(&repo_dir);
-    assert!(repo_dir.is_dir(), "repo_dir not a dir!");
-
-    let path_env = std::env::var_os("PATH").expect("PATH env var not set");
-    let mut paths = env::split_paths(&path_env).collect::<Vec<_>>();
-    paths.push(clippy_exec_dir.clone());
-    let new_path = env::join_paths(paths).expect("failed to join paths");
-    dbg!(&new_path);
-
-    // copy our own clippy binary into the rustc toolchain dir so that x.py finds them
+    // copy our own clippy binary into the rustc toolchain dir so that x.py finds them:
+    // get the sysroot path from nightly and put our binaries into ${sysroot}/bin/
     let sysroot_output = Command::new("rustc")
         .arg("--print")
         .arg("sysroot")
         .output()
         .expect("rustc failed to print sysroot");
+    // trim away the "\n" at the end because we don't want this in our Path :D
     let untrimmed = String::from_utf8_lossy(&sysroot_output.stdout).to_string();
-    let sysroot2 = dbg!(untrimmed.trim());
-    let mut sysroot = sysroot2.to_string();
+    let sysroot_trimmed = untrimmed.trim();
+    let mut sysroot = sysroot_trimmed.to_string();
     sysroot.push('/');
-    dbg!(&sysroot);
-
-    let sysroot_path = dbg!(PathBuf::from(sysroot));
-    //let sysroot_path = sysroot_path.join("/");
-
-    dbg!(&sysroot_path);
+    let sysroot_path = PathBuf::from(sysroot);
 
     assert!(
         sysroot_path.exists(),
@@ -230,63 +220,37 @@ fn integration_test_rustc() {
         format!("sysroot path '{}' not found!", sysroot_path.display())
     );
 
-    dbg!(&sysroot_path);
+    let sysroot_bin_dir = sysroot_path.join("bin");
+    eprintln!("clippy binaries will be put int {}", sysroot_bin_dir.display());
 
-    let bin_dir = sysroot_path.join("bin");
-    dbg!(&bin_dir);
-    //  ^ this is the dir we want to copy our clippy binary into now
-
-    // there should not be
+    // copy files from target dir into our $sysroot/bin
     std::fs::read_dir(&clippy_exec_dir)
-        .expect("failed to read clippys target/ dir")
-        .map(|entry| entry.ok().expect("could not convert direntry into path"))
+        .expect("failed to read clippys target/ dir that we downloaded from previous ci step")
+        .map(|entry| entry.ok().expect("DirEntry not ok"))
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
-        .for_each(|file| {
-            let old_path: PathBuf = dbg!(file.clone());
-            let new_base: PathBuf = dbg!(&bin_dir).join("willbeoverwritten");
-            let bin_file_name: &std::ffi::OsStr = dbg!(old_path.file_name().unwrap());
-            let new_path: PathBuf = dbg!(new_base.with_file_name(&bin_file_name));
+        .for_each(|clippy_binary| {
+            let new_base: PathBuf = sysroot_bin_dir.join("willbeoverwritten"); // file_name() will overwrite this
+            // set the path from /foo/dir/willbeoverwritten to /foo/dir/cargo-clippy
+            let bin_file_name: &std::ffi::OsStr = clippy_binary.file_name().unwrap();
+            let new_path: PathBuf = new_base.with_file_name(&bin_file_name);
 
-            fs::copy(dbg!(old_path), dbg!(new_path)).expect("could not copy files"); //error
-
-            //   https://github.com/rust-lang/rust-clippy/actions/runs/5700035285/job/15449530554#step:8:132
+            fs::copy(dbg!(clippy_binary), dbg!(new_path))
+                .expect("could not copy file from '{clippy_binary}' to '{new_path}'");
         });
-    let output = dbg!(
-        Command::new("python")
-            .arg("./x.py")
-            .current_dir(&repo_dir)
-            .env("RUST_BACKTRACE", "full")
-            .env("PATH", new_path)
-            .args(["clippy", "-Wclippy::pedantic", "-Wclippy::nursery"])
-    )
-    .output()
-    .expect("unable to run x.py  clippy");
+
+    // some notes: x.py will set --cap-lints warn by default
+    let output = Command::new("python")
+        .arg("./x.py")
+        .current_dir(&repo_dir)
+        .env("RUST_BACKTRACE", "full")
+        .args(["clippy", "-Wclippy::pedantic", "-Wclippy::cargo"])
+        .output()
+        .expect("unable to run x.py clippy");
 
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // debug:
     eprintln!("{stderr}");
-
-    // this is an internal test to make sure we would correctly panic on a delay_span_bug
-    if repo_name == "matthiaskrgr/clippy_ci_panic_test" {
-        // we need to kind of switch around our logic here:
-        // if we find a panic, everything is fine, if we don't panic, SOMETHING is broken about our testing
-
-        // the repo basically just contains a delay_span_bug that forces rustc/clippy to panic:
-        /*
-           #![feature(rustc_attrs)]
-           #[rustc_error(delay_span_bug_from_inside_query)]
-           fn main() {}
-        */
-
-        if stderr.find("error: internal compiler error").is_some() {
-            eprintln!("we saw that we intentionally panicked, yay");
-            return;
-        }
-
-        panic!("panic caused by delay_span_bug was NOT detected! Something is broken!");
-    }
 
     if let Some(backtrace_start) = stderr.find("error: internal compiler error") {
         static BACKTRACE_END_MSG: &str = "end of query stack";
