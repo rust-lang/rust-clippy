@@ -171,6 +171,11 @@ fn integration_test_rustc() {
     let st_git_cl = Command::new("git")
         .args([
             OsStr::new("clone"),
+            // we can't use depth=x because we don't know how far away the master branc tip is from our nightly commit
+            // that we need.
+            // however, we can still gain a lot by using --filter=tree:0 which is still ~10x faster than a full clone
+
+            // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
             OsStr::new("--filter=tree:0"),
             OsStr::new(&repo_url),
             OsStr::new(&repo_dir),
