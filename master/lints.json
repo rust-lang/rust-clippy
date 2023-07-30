@@ -7057,7 +7057,7 @@
     "id": "redundant_closure",
     "id_span": {
       "path": "src/eta_reduction.rs",
-      "line": 45
+      "line": 48
     },
     "group": "style",
     "level": "warn",
@@ -7087,7 +7087,7 @@
     "id": "redundant_closure_for_method_calls",
     "id_span": {
       "path": "src/eta_reduction.rs",
-      "line": 67
+      "line": 70
     },
     "group": "pedantic",
     "level": "allow",
