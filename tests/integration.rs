@@ -139,6 +139,25 @@ fn integration_test_rustc() {
         return;
     }
 
+    println!("getting rustc version");
+    // clippy is pinned to a specific nightly version
+    // check out the commit of that nightly to ensure compatibility
+    let rustc_output = Command::new("rustc")
+        .arg("--version")
+        .arg("--verbose")
+        .output()
+        .expect("failed to run rustc --version");
+
+    let rustc_output_string = String::from_utf8_lossy(&rustc_output.stdout);
+    let commit_line = rustc_output_string
+        .lines()
+        .find(|line| line.starts_with("commit-hash: "))
+        .expect("did not find 'commit-hash: ' in --version output");
+
+    let commit = commit_line
+        .strip_prefix("commit-hash: ")
+        .expect("failed parsing commit line");
+
     let repo_url = format!("https://github.com/{repo_name}");
     let crate_name = repo_name
         .split('/')
@@ -148,7 +167,7 @@ fn integration_test_rustc() {
     let mut repo_dir = tempfile::tempdir().expect("couldn't create temp dir").into_path();
     repo_dir.push(crate_name);
 
-    dbg!("cloning git repo");
+    println!("cloning git repo");
     let st_git_cl = Command::new("git")
         .args([
             OsStr::new("clone"),
@@ -157,32 +176,13 @@ fn integration_test_rustc() {
             OsStr::new(&repo_dir),
         ])
         .status()
-        .expect("unable to run git");
+        .expect("unable to run git clone");
     assert!(st_git_cl.success());
 
-    dbg!("getting rustc version");
-    // clippy is pinned to a specific nightly version
-    // check out the commit of that nightly to ensure compatibility
-    let rustc_output = Command::new("rustc")
-        .arg("--version")
-        .arg("--verbose")
-        .output()
-        .expect("failed to run rustc --version");
+    // check out the commit in the rustc repo to ensure clippy is compatible with std/core and the
+    // compiler internals
 
-    let commit_line = String::from_utf8_lossy(&rustc_output.stdout);
-    let commit_line_ = commit_line
-        .lines()
-        .find(|line| line.starts_with("commit-hash: "))
-        .expect("did not find 'commit-hash:' in --version output");
-
-    let commit = commit_line_
-        .strip_prefix("commit-hash: ")
-        .expect("failed parsing commit line");
-
-    dbg!(&commit);
-    // check out the commit in the rustc repo to ensure clippy is compatible
-
-    dbg!("checking out commit in rustc repo");
+    println!("checking out commit '{}' in rustc repo", commit);
     let st_git_checkout = Command::new("git")
         .current_dir(&repo_dir)
         .arg("checkout")
