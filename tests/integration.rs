@@ -152,7 +152,7 @@ fn integration_test_rustc() {
     let st_git_cl = Command::new("git")
         .args([
             OsStr::new("clone"),
-            OsStr::new("--depth=5000"),
+            OsStr::new("--filter=tree:0"),
             OsStr::new(&repo_url),
             OsStr::new(&repo_dir),
         ])
