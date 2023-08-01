@@ -9,6 +9,7 @@ note: this type is implicitly `#[repr(Rust)]`
    |
 LL | pub static ZERO_UB: UsingMeInCIsUB = UsingMeInCIsUB(0, 0);
    |                     ^^^^^^^^^^^^^^
+   = note: usage of this static in an external context is Undefined Behavior, as its layout is undefined
    = help: set an explicit ABI (like `#[repr(C)]`) on the type's definition
    = note: `-D clippy::no-mangle-with-rust-abi` implied by `-D warnings`
 
@@ -30,6 +31,7 @@ error: `#[no_mangle]` set on a function with the default (`Rust`) ABI
 LL | fn rust_abi_fn_one(arg_one: u32, arg_two: usize) {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
+   = note: calling this function in an external content is Undefined Behavior, as its calling convention (ABI) is undefined
 help: set an ABI
    |
 LL | extern "C" fn rust_abi_fn_one(arg_one: u32, arg_two: usize) {}

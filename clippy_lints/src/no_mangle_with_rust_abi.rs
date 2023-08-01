@@ -2,7 +2,6 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_opt;
 use rustc_errors::Applicability;
 use rustc_hir::{FnSig, Item, ItemKind, Ty};
-use rustc_hir_analysis::hir_ty_to_ty;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -65,7 +64,8 @@ fn check_fn(cx: &LateContext<'_>, fn_sig: FnSig<'_>) {
         && let Some((fn_attrs, _)) = snippet.split_once("fn")
         && !fn_attrs.contains("extern")
     {
-        let sugg_span = fn_sig.span
+        let sugg_span = fn_sig
+            .span
             .with_lo(fn_sig.span.lo() + BytePos::from_usize(fn_attrs.len()))
             .shrink_to_lo();
 
@@ -75,12 +75,11 @@ fn check_fn(cx: &LateContext<'_>, fn_sig: FnSig<'_>) {
             fn_sig.span,
             "`#[no_mangle]` set on a function with the default (`Rust`) ABI",
             |diag| {
-                diag.span_suggestion(
-                    sugg_span,
-                    "set an ABI",
-                    "extern \"C\" ",
-                    Applicability::MaybeIncorrect,
+                diag.note_once(
+                    "calling this function in an external content is Undefined Behavior, as its calling convention \
+                     (ABI) is undefined",
                 )
+                .span_suggestion(sugg_span, "set an ABI", "extern \"C\" ", Applicability::MaybeIncorrect)
                 .span_suggestion(
                     sugg_span,
                     "or explicitly set the default",
@@ -94,24 +93,28 @@ fn check_fn(cx: &LateContext<'_>, fn_sig: FnSig<'_>) {
 
 /// Check for static items with a type that is implicitly using the Rust ABI.
 fn check_static(cx: &LateContext<'_>, item: &Item<'_>, ty: &Ty<'_>) {
-    // TODO(Centri3): Once/if Rust allows an explicit `#[repr(Rust)]`, change this to check for
-    // that. It should work by checking `ReprOptions::flags` for `IS_EXPLICIT_RUST`, whatever
-    // value that may be.
+    // TODO(Centri3): Add a check here for `#[repr(Rust)]` once #114201 is merged.
 
-    if let ty::Adt(def, _) = hir_ty_to_ty(cx.tcx, ty).kind()
-        // No explicit representation. `align` and `pack` don't need to be checked as,
-        // afaik, what mostly matters is just the Rust ABI.
-        && def.repr().flags.bits() == 0
-    {
+    if let Some(is_local) = match cx.tcx.type_of(item.owner_id).skip_binder().kind() {
+        ty::Adt(def, _) => {
+            let repr = def.repr();
+            (!repr.c() && !repr.transparent() && !repr.simd() && repr.int.is_none()).then(|| def.did().is_local())
+        },
+        ty::Tuple(tys) => (tys.len() != 0).then_some(false),
+        _ => return,
+    } {
         span_lint_and_then(
             cx,
             NO_MANGLE_WITH_RUST_ABI,
             item.span,
             "`#[no_mangle]` set on a static with the default (`Rust`) ABI",
             |diag| {
-                diag.span_note(ty.span, "this type is implicitly `#[repr(Rust)]`");
+                diag.span_note(ty.span, "this type is implicitly `#[repr(Rust)]`")
+                    .note_once(
+                        "usage of this static in an external context is Undefined Behavior, as its layout is undefined",
+                    );
 
-                if def.did().is_local() {
+                if is_local {
                     diag.help("set an explicit ABI (like `#[repr(C)]`) on the type's definition");
                 }
             },
