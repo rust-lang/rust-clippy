@@ -2810,6 +2810,21 @@
     }
   },
   {
+    "id": "ignored_unit_patterns",
+    "id_span": {
+      "path": "src/ignored_unit_patterns.rs",
+      "line": 32
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of `_` in patterns of type `()`.\n\n### Why is this bad?\nMatching with `()` explicitly instead of `_` outlines\nthe fact that the pattern contains no data. Also it\nwould detect a type change that `_` would ignore.\n\n### Example\n```rust\nmatch std::fs::create_dir(\"tmp-work-dir\") {\n   Ok(_) => println!(\"Working directory created\"),\n   Err(s) => eprintln!(\"Could not create directory: {s}\"),\n}\n```\nUse instead:\n```rust\nmatch std::fs::create_dir(\"tmp-work-dir\") {\n   Ok(()) => println!(\"Working directory created\"),\n   Err(s) => eprintln!(\"Could not create directory: {s}\"),\n}\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "impl_trait_in_params",
     "id_span": {
       "path": "src/functions/mod.rs",
