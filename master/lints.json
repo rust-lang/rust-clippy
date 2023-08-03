@@ -8413,7 +8413,7 @@
     "id": "suspicious_xor_used_as_pow",
     "id_span": {
       "path": "src/suspicious_xor_used_as_pow.rs",
-      "line": 23
+      "line": 25
     },
     "group": "restriction",
     "level": "allow",
