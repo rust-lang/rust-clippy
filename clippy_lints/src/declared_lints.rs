@@ -97,6 +97,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::casts::PTR_AS_PTR_INFO,
     crate::casts::PTR_CAST_CONSTNESS_INFO,
     crate::casts::UNNECESSARY_CAST_INFO,
+    crate::cfg_not_test::CFG_NOT_TEST_INFO,
     crate::checked_conversions::CHECKED_CONVERSIONS_INFO,
     crate::cognitive_complexity::COGNITIVE_COMPLEXITY_INFO,
     crate::collapsible_if::COLLAPSIBLE_ELSE_IF_INFO,
