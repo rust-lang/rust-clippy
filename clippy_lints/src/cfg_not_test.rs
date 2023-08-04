@@ -12,11 +12,13 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
+    /// # fn important_check() {}
     /// #[cfg(not(test))]
     /// important_check(); // I'm not actually tested, but not including me will falsely increase coverage!
     /// ```
     /// Use instead:
     /// ```rust
+    /// # fn important_check() {}
     /// important_check();
     /// ```
     #[clippy::version = "1.73.0"]
