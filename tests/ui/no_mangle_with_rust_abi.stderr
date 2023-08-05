@@ -1,37 +1,50 @@
 error: `#[no_mangle]` set on a static with the default (`Rust`) ABI
-  --> $DIR/no_mangle_with_rust_abi.rs:9:1
+  --> $DIR/no_mangle_with_rust_abi.rs:11:1
    |
 LL | pub static ZERO_UB: UsingMeInCIsUB = UsingMeInCIsUB(0, 0);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: this type is implicitly `#[repr(Rust)]`
-  --> $DIR/no_mangle_with_rust_abi.rs:9:21
+  --> $DIR/no_mangle_with_rust_abi.rs:11:21
    |
 LL | pub static ZERO_UB: UsingMeInCIsUB = UsingMeInCIsUB(0, 0);
    |                     ^^^^^^^^^^^^^^
-   = note: usage of this static in an external context is Undefined Behavior, as its layout is undefined
+   = note: this static's layout (ABI) is unstable, and changes to the `Rust` ABI can break this at any time
    = help: set an explicit ABI (like `#[repr(C)]`) on the type's definition
    = note: `-D clippy::no-mangle-with-rust-abi` implied by `-D warnings`
 
 error: `#[no_mangle]` set on a static with the default (`Rust`) ABI
-  --> $DIR/no_mangle_with_rust_abi.rs:17:1
+  --> $DIR/no_mangle_with_rust_abi.rs:19:1
    |
 LL | pub static ZERO_UB_AGAIN: external::UsingMeInCIsUB = external::UsingMeInCIsUB(0, 0);
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: this type is implicitly `#[repr(Rust)]`
-  --> $DIR/no_mangle_with_rust_abi.rs:17:27
+  --> $DIR/no_mangle_with_rust_abi.rs:19:27
    |
 LL | pub static ZERO_UB_AGAIN: external::UsingMeInCIsUB = external::UsingMeInCIsUB(0, 0);
    |                           ^^^^^^^^^^^^^^^^^^^^^^^^
 
+error: `#[no_mangle]` set on a static with the default (`Rust`) ABI
+  --> $DIR/no_mangle_with_rust_abi.rs:41:1
+   |
+LL | pub static PTR_UB: Ptr = Ptr(null());
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: this type is implicitly `#[repr(Rust)]`
+  --> $DIR/no_mangle_with_rust_abi.rs:41:20
+   |
+LL | pub static PTR_UB: Ptr = Ptr(null());
+   |                    ^^^
+   = help: set an explicit ABI (like `#[repr(C)]`) on the type's definition
+
 error: `#[no_mangle]` set on a function with the default (`Rust`) ABI
-  --> $DIR/no_mangle_with_rust_abi.rs:20:1
+  --> $DIR/no_mangle_with_rust_abi.rs:44:1
    |
 LL | fn rust_abi_fn_one(arg_one: u32, arg_two: usize) {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: calling this function in an external content is Undefined Behavior, as its calling convention (ABI) is undefined
+   = note: this function's calling convention (ABI) is unstable, and changes to the `Rust` ABI can break this at any time
 help: set an ABI
    |
 LL | extern "C" fn rust_abi_fn_one(arg_one: u32, arg_two: usize) {}
@@ -42,7 +55,7 @@ LL | extern "Rust" fn rust_abi_fn_one(arg_one: u32, arg_two: usize) {}
    | +++++++++++++
 
 error: `#[no_mangle]` set on a function with the default (`Rust`) ABI
-  --> $DIR/no_mangle_with_rust_abi.rs:23:1
+  --> $DIR/no_mangle_with_rust_abi.rs:47:1
    |
 LL | pub fn rust_abi_fn_two(arg_one: u32, arg_two: usize) {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -57,7 +70,7 @@ LL | pub extern "Rust" fn rust_abi_fn_two(arg_one: u32, arg_two: usize) {}
    |     +++++++++++++
 
 error: `#[no_mangle]` set on a function with the default (`Rust`) ABI
-  --> $DIR/no_mangle_with_rust_abi.rs:28:1
+  --> $DIR/no_mangle_with_rust_abi.rs:52:1
    |
 LL | pub unsafe fn rust_abi_fn_three(arg_one: u32, arg_two: usize) {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -72,7 +85,7 @@ LL | pub unsafe extern "Rust" fn rust_abi_fn_three(arg_one: u32, arg_two: usize)
    |            +++++++++++++
 
 error: `#[no_mangle]` set on a function with the default (`Rust`) ABI
-  --> $DIR/no_mangle_with_rust_abi.rs:33:1
+  --> $DIR/no_mangle_with_rust_abi.rs:57:1
    |
 LL | unsafe fn rust_abi_fn_four(arg_one: u32, arg_two: usize) {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -87,7 +100,7 @@ LL | unsafe extern "Rust" fn rust_abi_fn_four(arg_one: u32, arg_two: usize) {}
    |        +++++++++++++
 
 error: `#[no_mangle]` set on a function with the default (`Rust`) ABI
-  --> $DIR/no_mangle_with_rust_abi.rs:36:1
+  --> $DIR/no_mangle_with_rust_abi.rs:60:1
    |
 LL | / fn rust_abi_multiline_function_really_long_name_to_overflow_args_to_multiple_lines(
 LL | |     arg_one: u32,
@@ -104,5 +117,5 @@ help: or explicitly set the default
 LL | extern "Rust" fn rust_abi_multiline_function_really_long_name_to_overflow_args_to_multiple_lines(
    | +++++++++++++
 
-error: aborting due to 7 previous errors
+error: aborting due to 8 previous errors
 

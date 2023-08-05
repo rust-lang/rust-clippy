@@ -76,8 +76,8 @@ fn check_fn(cx: &LateContext<'_>, fn_sig: FnSig<'_>) {
             "`#[no_mangle]` set on a function with the default (`Rust`) ABI",
             |diag| {
                 diag.note_once(
-                    "calling this function in an external content is Undefined Behavior, as its calling convention \
-                     (ABI) is undefined",
+                    "this function's calling convention (ABI) is unstable, and changes to the `Rust` ABI can break \
+                     this at any time",
                 )
                 .span_suggestion(sugg_span, "set an ABI", "extern \"C\" ", Applicability::MaybeIncorrect)
                 .span_suggestion(
@@ -111,7 +111,8 @@ fn check_static(cx: &LateContext<'_>, item: &Item<'_>, ty: &Ty<'_>) {
             |diag| {
                 diag.span_note(ty.span, "this type is implicitly `#[repr(Rust)]`")
                     .note_once(
-                        "usage of this static in an external context is Undefined Behavior, as its layout is undefined",
+                        "this static's layout (ABI) is unstable, and changes to the `Rust` ABI can break this at any \
+                        time",
                     );
 
                 if is_local {

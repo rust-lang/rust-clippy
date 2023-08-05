@@ -4,6 +4,8 @@
 
 extern crate no_mangle_with_rust_abi as external;
 
+use std::ptr::null;
+
 pub struct UsingMeInCIsUB(u32, u32);
 #[no_mangle]
 pub static ZERO_UB: UsingMeInCIsUB = UsingMeInCIsUB(0, 0);
@@ -15,6 +17,28 @@ pub static ZERO_DB: UsingMeInCIsFine = UsingMeInCIsFine(0, 0);
 
 #[no_mangle]
 pub static ZERO_UB_AGAIN: external::UsingMeInCIsUB = external::UsingMeInCIsUB(0, 0);
+
+#[no_mangle]
+pub static U32_DB: u32 = 0;
+
+#[repr(transparent)]
+pub struct PtrTransparent(*const u32);
+
+unsafe impl Send for PtrTransparent {}
+
+unsafe impl Sync for PtrTransparent {}
+
+pub struct Ptr(*const u32);
+
+unsafe impl Send for Ptr {}
+
+unsafe impl Sync for Ptr {}
+
+#[no_mangle]
+pub static PTR_DB: PtrTransparent = PtrTransparent(null());
+
+#[no_mangle]
+pub static PTR_UB: Ptr = Ptr(null());
 
 #[no_mangle]
 fn rust_abi_fn_one(arg_one: u32, arg_two: usize) {}
