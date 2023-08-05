@@ -439,7 +439,7 @@ fn rollup_traits(cx: &LateContext<'_>, bounds: &[GenericBound<'_>], msg: &str) -
     }
 
     // Put bounds in source order
-    let mut comparable_bounds = vec![Default::default(); map.len()];
+    let mut comparable_bounds = vec![(ComparableTraitRef::default(), Span::default()); map.len()];
     for (k, (v, i)) in map {
         comparable_bounds[i] = (k, v);
     }

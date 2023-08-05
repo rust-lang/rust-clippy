@@ -1,58 +1,154 @@
-error: constructing a trivial type using `default`
-  --> $DIR/trivial_default_constructed_types.rs:10:5
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:33:5
    |
 LL |     u32::default();
    |     ^^^^^^^^^^^^^^ help: try: `0u32`
    |
    = note: `-D clippy::trivial-default-constructed-types` implied by `-D warnings`
 
-error: constructing a trivial type using `default`
-  --> $DIR/trivial_default_constructed_types.rs:11:26
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:34:26
    |
-LL |     let x: Option<u32> = Option::default();
-   |                          ^^^^^^^^^^^^^^^^^ help: try: `None::<_>`
+LL |     let _: Option<u32> = Option::default();
+   |                          ^^^^^^^^^^^^^^^^^ help: try: `None`
 
-error: constructing a trivial tuple using `default`
-  --> $DIR/trivial_default_constructed_types.rs:12:23
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:35:13
    |
-LL |     let y: (usize,) = Default::default();
+LL |     let _ = Option::<u32>::default();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `None::<u32>`
+
+error: constructing a trivial tuple using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:36:23
+   |
+LL |     let _: (usize,) = Default::default();
    |                       ^^^^^^^^^^^^^^^^^^ help: try: `(0usize,)`
 
-error: constructing a unit using `default`
-  --> $DIR/trivial_default_constructed_types.rs:13:5
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:37:18
+   |
+LL |     let _: u32 = <_>::default();
+   |                  ^^^^^^^^^^^^^^ help: try: `0u32`
+
+error: constructing a trivial tuple using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:38:23
+   |
+LL |     let _: (u32, _) = <(_, u32)>::default();
+   |                       ^^^^^^^^^^^^^^^^^^^^^ help: try: `(0u32, 0u32)`
+
+error: constructing a trivial array using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:39:24
+   |
+LL |     let _: [u32; 10] = <[_; 10]>::default();
+   |                        ^^^^^^^^^^^^^^^^^^^^ help: try: `[0u32; 10]`
+
+error: constructing a trivial array using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:40:24
+   |
+LL |     let _: [u32; 10] = <[_; _]>::default();
+   |                        ^^^^^^^^^^^^^^^^^^^ help: try: `[0u32; _]`
+
+error: constructing a trivial unit using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:41:5
    |
 LL |     <()>::default();
    |     ^^^^^^^^^^^^^^^ help: try: `()`
 
-error: constructing a trivial array using `default`
-  --> $DIR/trivial_default_constructed_types.rs:14:24
+error: constructing a trivial array using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:42:24
    |
-LL |     let x: [u32; 10] = Default::default();
+LL |     let _: [u32; 10] = Default::default();
    |                        ^^^^^^^^^^^^^^^^^^ help: try: `[0u32; 10]`
 
-error: constructing a trivial type using `default`
-  --> $DIR/trivial_default_constructed_types.rs:15:27
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:43:27
    |
-LL |     let x: [f32; 1000] = [Default::default(); 1000];
+LL |     let _: [f32; 1000] = [Default::default(); 1000];
    |                           ^^^^^^^^^^^^^^^^^^ help: try: `0.0f32`
 
-error: constructing a trivial type using `default`
-  --> $DIR/trivial_default_constructed_types.rs:16:13
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:44:13
    |
-LL |     let x = <&str>::default();
-   |             ^^^^^^^^^^^^^^^^^ help: try: `""`
+LL |     let _ = <&str>::default();
+   |             ^^^^^^^^^^^^^^^^^ help: try: `&""`
 
-error: constructing a trivial type using `default`
-  --> $DIR/trivial_default_constructed_types.rs:17:13
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:45:13
    |
-LL |     let x = bool::default();
+LL |     let _ = bool::default();
    |             ^^^^^^^^^^^^^^^ help: try: `false`
 
-error: constructing a trivial tuple using `default`
-  --> $DIR/trivial_default_constructed_types.rs:18:13
+error: constructing a trivial tuple using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:46:13
    |
-LL |     let x = <(u32, u32, bool)>::default();
+LL |     let _ = <(u32, u32, bool)>::default();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(0u32, 0u32, false)`
 
-error: aborting due to 9 previous errors
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:47:13
+   |
+LL |     let _ = AtomicBool::default();
+   |             ^^^^^^^^^^^^^^^^^^^^^ help: try: `std::sync::atomic::AtomicBool::new(false)`
+
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:48:13
+   |
+LL |     let _ = AtomicI8::default();
+   |             ^^^^^^^^^^^^^^^^^^^ help: try: `std::sync::atomic::AtomicI8::new(0)`
+
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:49:13
+   |
+LL |     let _ = AtomicPtr::<u32>::default();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::sync::atomic::AtomicPtr::new(std::ptr::null_mut::<u32>())`
+
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:50:13
+   |
+LL |     let _ = AtomicPtr::<()>::default();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::sync::atomic::AtomicPtr::new(std::ptr::null_mut::<()>())`
+
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:51:13
+   |
+LL |     let _ = AtomicU8::default();
+   |             ^^^^^^^^^^^^^^^^^^^ help: try: `std::sync::atomic::AtomicU8::new(0)`
+
+error: constructing a trivial slice using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:52:13
+   |
+LL |     let _ = <&[u8]>::default();
+   |             ^^^^^^^^^^^^^^^^^^ help: try: `&[0u8]`
+
+error: constructing a trivial slice using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:53:13
+   |
+LL |     let _ = <&mut [u8]>::default();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `&mut [0u8]`
+
+error: constructing a trivial array using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:54:13
+   |
+LL |     let _ = <[u8; 31]>::default();
+   |             ^^^^^^^^^^^^^^^^^^^^^ help: try: `[0u8; 31]`
+
+error: constructing a trivial tuple using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:55:33
+   |
+LL |     let _: (usize, OtherType) = Default::default();
+   |                                 ^^^^^^^^^^^^^^^^^^ help: try: `(0usize, <OtherType>::default())`
+
+error: constructing a trivial tuple using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:57:53
+   |
+LL |     let _: (usize, OtherTypeWithParams<u32, u16>) = Default::default();
+   |                                                     ^^^^^^^^^^^^^^^^^^ help: try: `(0usize, <OtherTypeWithParams::<u32, u16>>::default())`
+
+error: constructing a trivial type using `Default::default`
+  --> $DIR/trivial_default_constructed_types.rs:58:13
+   |
+LL |     let _ = char::default();
+   |             ^^^^^^^^^^^^^^^ help: try: `'/x00'`
+
+error: aborting due to 25 previous errors
 
