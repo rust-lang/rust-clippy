@@ -13,6 +13,9 @@ fn main() {
     important_check();
 }
 
+#[cfg(not(not(test)))]
+struct CfgNotTest;
+
 // Deeply nested `not(test)`
 #[cfg(not(test))]
 fn foo() {}

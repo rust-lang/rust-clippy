@@ -15,34 +15,30 @@ LL |     #[cfg(not(test))]
    |     ^^^^^^^^^^^^^^^^^
    |
    = help: consider not excluding any code from test builds
-   = note: this could increase code coverage despite not actually being tested
 
 error: code is excluded from test builds
-  --> $DIR/cfg_not_test.rs:17:1
+  --> $DIR/cfg_not_test.rs:20:1
    |
 LL | #[cfg(not(test))]
    | ^^^^^^^^^^^^^^^^^
    |
    = help: consider not excluding any code from test builds
-   = note: this could increase code coverage despite not actually being tested
 
 error: code is excluded from test builds
-  --> $DIR/cfg_not_test.rs:19:1
+  --> $DIR/cfg_not_test.rs:22:1
    |
 LL | #[cfg(all(debug_assertions, not(test)))]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = help: consider not excluding any code from test builds
-   = note: this could increase code coverage despite not actually being tested
 
 error: code is excluded from test builds
-  --> $DIR/cfg_not_test.rs:21:1
+  --> $DIR/cfg_not_test.rs:24:1
    |
 LL | #[cfg(not(any(not(debug_assertions), test)))]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = help: consider not excluding any code from test builds
-   = note: this could increase code coverage despite not actually being tested
 
 error: aborting due to 5 previous errors
 

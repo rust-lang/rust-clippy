@@ -9,6 +9,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// This may give the false impression that a codebase has 100% coverage, yet actually has untested code.
+    /// Enabling this also guards against excessive mockery as well, which is an anti-pattern.
     ///
     /// ### Example
     /// ```rust
@@ -39,7 +40,7 @@ impl EarlyLintPass for CfgNotTest {
                 "code is excluded from test builds",
                 |diag| {
                     diag.help("consider not excluding any code from test builds");
-                    diag.note("this could increase code coverage despite not actually being tested");
+                    diag.note_once("this could increase code coverage despite not actually being tested");
                 },
             );
         }
