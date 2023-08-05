@@ -1,0 +1,39 @@
+error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+  --> $DIR/hashset_insert_after_contains.rs:17:5
+   |
+LL | /     if !set.contains(&value) {
+LL | |         set.insert(value);
+LL | |         println!("Just a comment");
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::hashset-insert-after-contains` implied by `-D warnings`
+
+error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+  --> $DIR/hashset_insert_after_contains.rs:22:5
+   |
+LL | /     if set.contains(&value) {
+LL | |         set.insert(value);
+LL | |         println!("Just a comment");
+LL | |     }
+   | |_____^
+
+error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+  --> $DIR/hashset_insert_after_contains.rs:27:5
+   |
+LL | /     if !set.contains(&value) {
+LL | |         set.insert(value);
+LL | |     }
+   | |_____^
+
+error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+  --> $DIR/hashset_insert_after_contains.rs:31:5
+   |
+LL | /     if !!set.contains(&value) {
+LL | |         set.insert(value);
+LL | |         println!("Just a comment");
+LL | |     }
+   | |_____^
+
+error: aborting due to 4 previous errors
+
