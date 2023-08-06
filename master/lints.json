@@ -7300,7 +7300,7 @@
     "id": "redundant_type_annotations",
     "id_span": {
       "path": "src/redundant_type_annotations.rs",
-      "line": 33
+      "line": 35
     },
     "group": "restriction",
     "level": "allow",
