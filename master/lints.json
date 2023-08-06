@@ -18,7 +18,7 @@
     "id": "absurd_extreme_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 56
+      "line": 57
     },
     "group": "correctness",
     "level": "deny",
@@ -141,7 +141,7 @@
     "id": "arithmetic_side_effects",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 93
+      "line": 94
     },
     "group": "restriction",
     "level": "allow",
@@ -234,7 +234,7 @@
     "id": "assign_op_pattern",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 147
+      "line": 148
     },
     "group": "style",
     "level": "warn",
@@ -324,7 +324,7 @@
     "id": "bad_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 212
+      "line": 213
     },
     "group": "correctness",
     "level": "deny",
@@ -964,7 +964,7 @@
     "id": "cmp_owned",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 511
+      "line": 551
     },
     "group": "perf",
     "level": "warn",
@@ -1549,7 +1549,7 @@
     "id": "double_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 296
+      "line": 297
     },
     "group": "complexity",
     "level": "warn",
@@ -1669,7 +1669,7 @@
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 326
+      "line": 366
     },
     "group": "complexity",
     "level": "warn",
@@ -1834,7 +1834,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 358
+      "line": 398
     },
     "group": "correctness",
     "level": "deny",
@@ -1864,7 +1864,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 404
+      "line": 444
     },
     "group": "correctness",
     "level": "deny",
@@ -2348,7 +2348,7 @@
     "id": "float_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 112
+      "line": 113
     },
     "group": "restriction",
     "level": "allow",
@@ -2363,7 +2363,7 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 548
+      "line": 588
     },
     "group": "pedantic",
     "level": "allow",
@@ -2378,7 +2378,7 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 583
+      "line": 623
     },
     "group": "restriction",
     "level": "allow",
@@ -2393,7 +2393,7 @@
     "id": "float_equality_without_abs",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 437
+      "line": 477
     },
     "group": "suspicious",
     "level": "warn",
@@ -2708,7 +2708,7 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 456
+      "line": 496
     },
     "group": "complexity",
     "level": "warn",
@@ -2915,6 +2915,21 @@
     }
   },
   {
+    "id": "impossible_comparisons",
+    "id_span": {
+      "path": "src/operators/mod.rs",
+      "line": 316
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for double comparisons that can never succeed\n\n### Why is this bad?\nThe whole expression can be replaced by `false`,\nwhich is probably not the programmer's intention\n\n### Example\n```rust\nif status_code <= 400 && status_code > 500 {}\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "imprecise_flops",
     "id_span": {
       "path": "src/floating_point_arithmetic.rs",
@@ -3023,7 +3038,7 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 245
+      "line": 246
     },
     "group": "correctness",
     "level": "deny",
@@ -3218,7 +3233,7 @@
     "id": "integer_division",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 482
+      "line": 522
     },
     "group": "restriction",
     "level": "allow",
@@ -4939,7 +4954,7 @@
     "id": "misrefactored_assign_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 174
+      "line": 175
     },
     "group": "suspicious",
     "level": "warn",
@@ -5215,7 +5230,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 629
+      "line": 669
     },
     "group": "restriction",
     "level": "allow",
@@ -5230,7 +5245,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 607
+      "line": 647
     },
     "group": "correctness",
     "level": "deny",
@@ -5470,7 +5485,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 658
+      "line": 698
     },
     "group": "pedantic",
     "level": "allow",
@@ -6226,7 +6241,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 382
+      "line": 422
     },
     "group": "style",
     "level": "warn",
@@ -6724,7 +6739,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 687
+      "line": 727
     },
     "group": "style",
     "level": "warn",
@@ -7111,6 +7126,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "redundant_comparisons",
+    "id_span": {
+      "path": "src/operators/mod.rs",
+      "line": 336
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for ineffective double comparisons against constants.\n\n### Why is this bad?\nOnly one of the comparisons has any effect on the result, the programmer\nprobably intended to flip one of the comparison operators, or compare a\ndifferent value entirely.\n\n### Example\n```rust\nif status_code <= 400 && status_code < 500 {}\n```",
+    "version": "1.71.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
     }
   },
   {
@@ -7570,7 +7600,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 726
+      "line": 766
     },
     "group": "correctness",
     "level": "deny",
@@ -9953,7 +9983,7 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 268
+      "line": 269
     },
     "group": "pedantic",
     "level": "allow",
