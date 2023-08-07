@@ -1,4 +1,4 @@
-error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+error: usage of `HashSet::insert` after `HashSet::contains`
   --> $DIR/hashset_insert_after_contains.rs:17:5
    |
 LL | /     if !set.contains(&value) {
@@ -7,9 +7,15 @@ LL | |         println!("Just a comment");
 LL | |     }
    | |_____^
    |
+   = note: `HashSet::insert` returns whether it was inserted
+help: remove the `HashSet::contains` call
+  --> $DIR/hashset_insert_after_contains.rs:17:13
+   |
+LL |     if !set.contains(&value) {
+   |             ^^^^^^^^^^^^^^^^
    = note: `-D clippy::hashset-insert-after-contains` implied by `-D warnings`
 
-error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+error: usage of `HashSet::insert` after `HashSet::contains`
   --> $DIR/hashset_insert_after_contains.rs:22:5
    |
 LL | /     if set.contains(&value) {
@@ -17,16 +23,30 @@ LL | |         set.insert(value);
 LL | |         println!("Just a comment");
 LL | |     }
    | |_____^
+   |
+   = note: `HashSet::insert` returns whether it was inserted
+help: remove the `HashSet::contains` call
+  --> $DIR/hashset_insert_after_contains.rs:22:12
+   |
+LL |     if set.contains(&value) {
+   |            ^^^^^^^^^^^^^^^^
 
-error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+error: usage of `HashSet::insert` after `HashSet::contains`
   --> $DIR/hashset_insert_after_contains.rs:27:5
    |
 LL | /     if !set.contains(&value) {
 LL | |         set.insert(value);
 LL | |     }
    | |_____^
+   |
+   = note: `HashSet::insert` returns whether it was inserted
+help: remove the `HashSet::contains` call
+  --> $DIR/hashset_insert_after_contains.rs:27:13
+   |
+LL |     if !set.contains(&value) {
+   |             ^^^^^^^^^^^^^^^^
 
-error: usage of `HashSet::insert` after `HashSet::contains`. Remove the usage of `HashSet::contains` and just call `HashSet::contains` instead
+error: usage of `HashSet::insert` after `HashSet::contains`
   --> $DIR/hashset_insert_after_contains.rs:31:5
    |
 LL | /     if !!set.contains(&value) {
@@ -34,6 +54,13 @@ LL | |         set.insert(value);
 LL | |         println!("Just a comment");
 LL | |     }
    | |_____^
+   |
+   = note: `HashSet::insert` returns whether it was inserted
+help: remove the `HashSet::contains` call
+  --> $DIR/hashset_insert_after_contains.rs:31:14
+   |
+LL |     if !!set.contains(&value) {
+   |              ^^^^^^^^^^^^^^^^
 
 error: aborting due to 4 previous errors
 
