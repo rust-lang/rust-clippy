@@ -2,12 +2,14 @@
 //@aux-build:proc_macros.rs:proc-macro
 #![allow(clippy::no_effect, deprecated, unused)]
 #![warn(clippy::legacy_numeric_constants)]
+#![feature(lint_reasons)]
 
 #[macro_use]
 extern crate proc_macros;
 
 use std::u128 as _;
 pub mod a {
+    #![expect(clippy::legacy_numeric_constants)]
     pub use std::u128;
 }
 
@@ -17,6 +19,7 @@ fn main() {
     usize::MIN;
     u32::MAX;
     u32::MAX;
+    #![expect(clippy::legacy_numeric_constants)]
     use std::u32::MAX;
     u32::MAX;
     u32::MAX;

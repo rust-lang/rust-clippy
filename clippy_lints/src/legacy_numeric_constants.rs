@@ -1,22 +1,17 @@
-use clippy_utils::{
-    diagnostics::span_lint_and_then,
-    get_parent_expr, is_from_proc_macro, last_path_segment,
-    msrvs::{self, Msrv},
-};
-use itertools::Itertools;
-use rustc_data_structures::fx::FxHashMap;
+use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
+use clippy_utils::msrvs::{Msrv, NUMERIC_ASSOCIATED_CONSTANTS};
+use clippy_utils::source::snippet_opt;
+use clippy_utils::{get_parent_expr, is_from_proc_macro, last_path_segment, std_or_core};
 use rustc_errors::Applicability;
-use rustc_hir::{
-    def::Res,
-    def_id::DefId,
-    intravisit::{walk_expr, Visitor},
-    Item, UseKind,
-};
-use rustc_hir::{Expr, ExprKind, ItemKind, PrimTy, QPath, TyKind};
+use rustc_hir::def::{DefKind, Res};
+use rustc_hir::intravisit::{walk_expr, Visitor};
+use rustc_hir::{Expr, ExprKind, Item, ItemKind, PrimTy, QPath, TyKind, UseKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::{hir::nested_filter::OnlyBodies, lint::in_external_macro};
+use rustc_middle::hir::nested_filter::OnlyBodies;
+use rustc_middle::lint::in_external_macro;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
-use rustc_span::{sym, Span, Symbol};
+use rustc_span::symbol::kw;
+use rustc_span::{sym, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -25,7 +20,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// All of these have been superceded by the associated constants on their respective types,
-    /// such as `i128::MAX`. These legacy constants may be deprecated in a future version of rust.
+    /// such as `i128::MAX`. These legacy items may be deprecated in a future version of rust.
     ///
     /// ### Example
     /// ```rust
@@ -42,18 +37,12 @@ declare_clippy_lint! {
 }
 pub struct LegacyNumericConstants {
     msrv: Msrv,
-    use_stmts: FxHashMap<Symbol, Vec<Span>>,
-    glob_use_stmts: Vec<Span>,
 }
 
 impl LegacyNumericConstants {
     #[must_use]
     pub fn new(msrv: Msrv) -> Self {
-        Self {
-            msrv,
-            use_stmts: FxHashMap::default(),
-            glob_use_stmts: vec![],
-        }
+        Self { msrv }
     }
 }
 
@@ -61,45 +50,51 @@ impl_lint_pass!(LegacyNumericConstants => [LEGACY_NUMERIC_CONSTANTS]);
 
 impl<'tcx> LateLintPass<'tcx> for LegacyNumericConstants {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        let Self {
-            msrv: _,
-            use_stmts,
-            glob_use_stmts,
-        } = self;
+        let Self { msrv } = self;
 
-        if !item.span.is_dummy() && let ItemKind::Use(path, kind) = item.kind {
-            match kind {
-                UseKind::Single => {
-                    for res in &path.res {
-                        if let Some(def_id) = res.opt_def_id()
-                            && let Some(module_name) = is_path_in_integral_module(cx, def_id)
-                            && let _ = use_stmts.insert(module_name, vec![])
-                            && let Some(use_stmts) = use_stmts.get_mut(&module_name)
-                        {
-                            use_stmts.push(item.span);
-                        }
+        if msrv.meets(NUMERIC_ASSOCIATED_CONSTANTS)
+            && !in_external_macro(cx.sess(), item.span)
+            && let ItemKind::Use(path, kind @ (UseKind::Single | UseKind::Glob)) = item.kind
+            // These modules are "TBD" deprecated, and the contents are too, so lint on the `use`
+            // statement directly
+            && let def_path = cx.get_def_path(path.res[0].def_id())
+            && is_path_in_numeric_module(&def_path, true)
+        {
+            let plurality = matches!(
+                kind,
+                UseKind::Glob | UseKind::Single if matches!(path.res[0], Res::Def(DefKind::Mod, _)),
+            );
+
+            span_lint_and_then(
+                cx,
+                LEGACY_NUMERIC_CONSTANTS,
+                path.span,
+                if plurality {
+                    "importing legacy numeric constants"
+                } else {
+                    "importing a legacy numeric constant"
+                },
+                |diag| {
+                    if item.ident.name != kw::Underscore {
+                        let msg = if plurality && let [.., module_name] = &*def_path {
+                            format!("use the associated constants on `{module_name}` instead at their usage")
+                        } else if let [.., module_name, name] = &*def_path {
+                            format!("use the associated constant `{module_name}::{name}` instead at its usage")
+                        } else {
+                            return;
+                        };
+
+                        diag.help(msg);
                     }
                 },
-                UseKind::Glob => glob_use_stmts.push(item.span),
-                UseKind::ListStem => {},
-            }
+            );
         }
     }
 
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
-        let Self {
-            msrv,
-            use_stmts,
-            glob_use_stmts,
-        } = self;
+        let Self { msrv } = self;
 
-        let mut v = V {
-            cx,
-            msrv,
-            use_stmts,
-            glob_use_stmts,
-        };
-        cx.tcx.hir().visit_all_item_likes_in_crate(&mut v);
+        cx.tcx.hir().visit_all_item_likes_in_crate(&mut V { cx, msrv });
     }
 
     extract_msrv_attr!(LateContext);
@@ -108,8 +103,6 @@ impl<'tcx> LateLintPass<'tcx> for LegacyNumericConstants {
 struct V<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     msrv: &'a Msrv,
-    use_stmts: &'a FxHashMap<Symbol, Vec<Span>>,
-    glob_use_stmts: &'a Vec<Span>,
 }
 
 impl<'tcx> Visitor<'tcx> for V<'_, 'tcx> {
@@ -121,14 +114,9 @@ impl<'tcx> Visitor<'tcx> for V<'_, 'tcx> {
 
     fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
         walk_expr(self, expr);
-        let Self {
-            cx,
-            msrv,
-            use_stmts,
-            glob_use_stmts,
-        } = *self;
+        let Self { cx, msrv } = *self;
 
-        if !msrv.meets(msrvs::STD_INTEGRAL_CONSTANTS) || in_external_macro(cx.sess(), expr.span) {
+        if !msrv.meets(NUMERIC_ASSOCIATED_CONSTANTS) || in_external_macro(cx.sess(), expr.span) {
             return;
         }
         let ExprKind::Path(qpath) = expr.kind else {
@@ -136,20 +124,26 @@ impl<'tcx> Visitor<'tcx> for V<'_, 'tcx> {
         };
 
         // `std::<integer>::<CONST>` check
-        let (span, sugg, is_method, use_stmts) = if let QPath::Resolved(_, path) = qpath
+        let (span, sugg, msg) = if let QPath::Resolved(None, path) = qpath
             && let Some(def_id) = path.res.opt_def_id()
-            && let Some(name) = path.segments.iter().last().map(|segment| segment.ident.name)
-            && let Some(module_name) = is_path_in_integral_module(cx, def_id)
+            && let path = cx.get_def_path(def_id)
+            && is_path_in_numeric_module(&path, false)
+            && let [.., module_name, name] = &*path
+            && let Some(snippet) = snippet_opt(cx, expr.span)
+            && let is_float_module = (*module_name == sym::f32 || *module_name == sym::f64)
+            // Skip linting if this usage looks identical to the associated constant, since this
+            // would only require removing a `use` import. We don't ignore ones from `f32` or `f64`, however.
+            && let identical = snippet == format!("{module_name}::{name}")
+            && (!identical || is_float_module)
         {
             (
                 expr.span,
-                format!("{module_name}::{name}"),
-                false,
-                if path.segments.get(0).is_some_and(|segment| segment.ident.name == module_name) {
-                    use_stmts.get(&module_name)
-                } else {
+                if identical {
                     None
-                }
+                } else {
+                    Some(format!("{module_name}::{name}"))
+                },
+                "usage of a legacy numeric constant",
             )
         // `<integer>::xxx_value` check
         } else if let QPath::TypeRelative(ty, _) = qpath
@@ -164,43 +158,40 @@ impl<'tcx> Visitor<'tcx> for V<'_, 'tcx> {
         {
             (
                 qpath.last_segment_span().with_hi(par_expr.span.hi()),
-                name[..=2].to_ascii_uppercase(),
-                true,
-                None,
+                Some(name[..=2].to_ascii_uppercase()),
+                "usage of a legacy numeric method",
             )
         } else {
             return;
         };
 
         if !is_from_proc_macro(cx, expr) {
-            let msg = if is_method {
-                "usage of a legacy numeric method"
-            } else {
-                "usage of a legacy numeric constant"
-            };
-
-            span_lint_and_then(cx, LEGACY_NUMERIC_CONSTANTS, span, msg, |diag| {
-                let app = if use_stmts.is_none() {
-                    Applicability::MachineApplicable
-                } else {
-                    Applicability::MaybeIncorrect
-                };
-                diag.span_suggestion(span, "use the associated constant instead", sugg, app);
-                if let Some(use_stmts) = use_stmts {
-                    diag.span_note(
-                        use_stmts.iter().chain(glob_use_stmts).copied().collect_vec(),
-                        "you may need to remove one of the following `use` statements",
+            span_lint_hir_and_then(cx, LEGACY_NUMERIC_CONSTANTS, expr.hir_id, span, msg, |diag| {
+                if let Some(sugg) = sugg {
+                    diag.span_suggestion(
+                        span,
+                        "use the associated constant instead",
+                        sugg,
+                        Applicability::MaybeIncorrect,
                     );
+                } else if let Some(std_or_core) = std_or_core(cx)
+                    && let QPath::Resolved(None, path) = qpath
+                {
+                    diag.help(format!(
+                        "remove the import that brings `{std_or_core}::{}` into scope",
+                        // Must be `<module>::<CONST>` if `needs_import_removed` is true yet is
+                        // being linted
+                        path.segments[0].ident.name,
+                    ));
                 }
             });
         }
     }
 }
 
-fn is_path_in_integral_module(cx: &LateContext<'_>, def_id: DefId) -> Option<Symbol> {
-    let path = cx.get_def_path(def_id);
+fn is_path_in_numeric_module(path: &[Symbol], ignore_float_modules: bool) -> bool {
     if let [
-        sym::core | sym::std,
+        sym::core,
         module @ (sym::u8
         | sym::i8
         | sym::u16
@@ -216,12 +207,17 @@ fn is_path_in_integral_module(cx: &LateContext<'_>, def_id: DefId) -> Option<Sym
         | sym::f32
         | sym::f64),
         ..,
-    ] = &*cx.get_def_path(def_id)
-        // So `use` statements like `std::f32` also work
-        && path.len() <= 3
+    ] = path
+        && !path.get(2).is_some_and(|&s| s == sym!(consts))
     {
-        return Some(*module);
+        // If `ignore_float_modules` is `true`, return `None` for `_::f32` or `_::f64`, but not
+        // _::f64::MAX` or similar.
+        if ignore_float_modules && (*module == sym::f32 || *module == sym::f64) && path.get(2).is_none() {
+            return false;
+        }
+
+        return true;
     }
 
-    None
+    false
 }
