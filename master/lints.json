@@ -8038,11 +8038,11 @@
     "id": "slow_vector_initialization",
     "id_span": {
       "path": "src/slow_vector_initialization.rs",
-      "line": 44
+      "line": 54
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks slow zero-filled vector initialization\n\n### Why is this bad?\nThese structures are non-idiomatic and less efficient than simply using\n`vec![0; len]`.\n\n### Example\n```rust\nlet mut vec1 = Vec::with_capacity(len);\nvec1.resize(len, 0);\n\nlet mut vec1 = Vec::with_capacity(len);\nvec1.resize(vec1.capacity(), 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.extend(repeat(0).take(len));\n```\n\nUse instead:\n```rust\nlet mut vec1 = vec![0; len];\nlet mut vec2 = vec![0; len];\n```",
+    "docs": "\n### What it does\nChecks slow zero-filled vector initialization\n\n### Why is this bad?\nThese structures are non-idiomatic and less efficient than simply using\n`vec![0; len]`.\n\nSpecifically, for `vec![0; len]`, the compiler can use a specialized type of allocation\nthat also zero-initializes the allocated memory in the same call\n(see: [alloc_zeroed](https://doc.rust-lang.org/stable/std/alloc/trait.GlobalAlloc.html#method.alloc_zeroed)).\n\nWriting `Vec::new()` followed by `vec.resize(len, 0)` is suboptimal because,\nwhile it does do the same number of allocations,\nit involves two operations for allocating and initializing.\nThe `resize` call first allocates memory (since `Vec::new()` did not), and only *then* zero-initializes it.\n\n### Example\n```rust\nlet mut vec1 = Vec::new();\nvec1.resize(len, 0);\n\nlet mut vec2 = Vec::with_capacity(len);\nvec2.resize(len, 0);\n\nlet mut vec3 = Vec::with_capacity(len);\nvec3.extend(repeat(0).take(len));\n```\n\nUse instead:\n```rust\nlet mut vec1 = vec![0; len];\nlet mut vec2 = vec![0; len];\nlet mut vec3 = vec![0; len];\n```",
     "version": "1.32.0",
     "applicability": {
       "is_multi_part_suggestion": false,
