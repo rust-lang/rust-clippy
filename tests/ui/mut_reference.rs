@@ -1,4 +1,4 @@
-#![allow(unused_variables, dead_code)]
+#![allow(clippy::needless_pass_by_ref_mut, unused_variables, dead_code)]
 
 fn takes_an_immutable_reference(a: &i32) {}
 fn takes_a_mutable_reference(a: &mut i32) {}

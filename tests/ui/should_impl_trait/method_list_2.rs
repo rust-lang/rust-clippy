@@ -1,6 +1,7 @@
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(
     clippy::missing_errors_doc,
+    clippy::needless_pass_by_ref_mut,
     clippy::needless_pass_by_value,
     clippy::must_use_candidate,
     clippy::unused_self,
