@@ -1,5 +1,6 @@
 #![allow(unused)]
 #![allow(clippy::nonminimal_bool)]
+#![allow(clippy::needless_borrow)]
 #![warn(clippy::hashset_insert_after_contains)]
 
 use std::collections::HashSet;
@@ -31,6 +32,20 @@ fn should_warn_cases() {
     if !!set.contains(&value) {
         set.insert(value);
         println!("Just a comment");
+    }
+
+    if (&set).contains(&value) {
+        set.insert(value);
+    }
+
+    let borrow_value = &6;
+    if !set.contains(borrow_value) {
+        set.insert(*borrow_value);
+    }
+
+    let borrow_set = &mut set;
+    if !borrow_set.contains(&value) {
+        borrow_set.insert(value);
     }
 }
 

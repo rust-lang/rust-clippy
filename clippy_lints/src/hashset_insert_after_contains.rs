@@ -77,21 +77,11 @@ fn try_parse_contains<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'_>) -> Optio
         ExprKind::Unary(UnOp::Not, e) => Some(e),
         _ => None,
     });
-    if let ExprKind::MethodCall(
-        path,
-        receiver,
-        [
-            Expr {
-                kind: ExprKind::AddrOf(_, _, value),
-                span: value_span,
-                ..
-            },
-        ],
-        span,
-    ) = expr.kind
-    {
-        let receiver_ty = cx.typeck_results().expr_ty(receiver);
-        if value_span.ctxt() == expr.span.ctxt()
+    if let ExprKind::MethodCall(path, receiver, [value], span) = expr.kind {
+        let value = value.peel_borrows();
+        let receiver = receiver.peel_borrows();
+        let receiver_ty = cx.typeck_results().expr_ty(receiver).peel_refs();
+        if value.span.ctxt() == expr.span.ctxt()
             && is_type_diagnostic_item(cx, receiver_ty, sym::HashSet)
             && path.ident.name == sym!(contains)
         {
@@ -107,7 +97,12 @@ struct InsertExpr<'tcx> {
 }
 fn try_parse_insert<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<InsertExpr<'tcx>> {
     if let ExprKind::MethodCall(path, receiver, [value], _) = expr.kind {
-        let receiver_ty = cx.typeck_results().expr_ty(receiver);
+        let value = value.peel_borrows();
+        let value = peel_hir_expr_while(value, |e| match e.kind {
+            ExprKind::Unary(UnOp::Deref, e) => Some(e),
+            _ => None,
+        });
+        let receiver_ty = cx.typeck_results().expr_ty(receiver).peel_refs();
         if is_type_diagnostic_item(cx, receiver_ty, sym::HashSet) && path.ident.name == sym!(insert) {
             Some(InsertExpr { receiver, value })
         } else {
