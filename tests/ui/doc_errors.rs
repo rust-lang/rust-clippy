@@ -1,4 +1,4 @@
-#![warn(clippy::missing_errors_doc)]
+#![warn(clippy::missing_errors_doc, clippy::doc_markdown)]
 #![allow(clippy::result_unit_err)]
 #![allow(clippy::unnecessary_wraps)]
 
@@ -79,6 +79,29 @@ impl Struct1 {
     This is not sufficiently documented.
     */
     pub fn pub_method_missing_block_errors_header() -> Result<(), ()> {
+        unimplemented!();
+    }
+
+    /**
+    # Errors
+    This is sufficiently documented.
+
+    This function is a test for this lint's capabilities with other
+    lints, such as `doc_markdown`
+    std::str;
+    */
+    pub fn pub_method_block_errors_header_doc_markdown() -> Result<(), ()> {
+        unimplemented!();
+    }
+
+    /**
+    This is not sufficiently documented.
+
+    This function is also a test for this lint's capabilities with other
+    lints, such as `doc_markdown`
+    std::str;
+    */
+    pub fn pub_method_missing_block_errors_header_doc_markdown() -> Result<(), ()> {
         unimplemented!();
     }
 

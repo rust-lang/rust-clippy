@@ -456,12 +456,17 @@ fn lint_for_missing_headers(
 pub fn strip_doc_comment_decoration(doc: &str, comment_kind: CommentKind, span: Span) -> (String, Vec<(usize, Span)>) {
     fn get_line_indentation(line: &Vec<char>) -> u32 {
         let mut indent = 0;
+        let mut smallest_indent = 0;
         for c in line {
             if *c == ' ' {
                 indent += 1;
-            } else if *c == '\n' {
-                indent += 4;
-            }; // Standard "Tab" space
+            } else {
+                if smallest_indent > indent {
+                    smallest_indent = indent;
+                }
+                indent = 0;
+                continue;
+            }
         }
         indent
     }
@@ -496,7 +501,8 @@ pub fn strip_doc_comment_decoration(doc: &str, comment_kind: CommentKind, span: 
         let mut new_doc = Vec::new();
         for line in doc.lines() {
             if line.len() >= least_indented as usize {
-                new_doc.push(&line[least_indented.saturating_sub(1) as usize..]); // Sometimes users start the comment the same line the doc comment is defined.
+                
+                new_doc.push(&line[least_indented as usize..]); // Sometimes users start the comment the same line the doc comment is defined.
                 // /** Example of this behaviour
                 // (Some description)
                 // */

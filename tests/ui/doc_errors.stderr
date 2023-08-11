@@ -45,8 +45,14 @@ LL |     pub fn pub_method_missing_block_errors_header() -> Result<(), ()> {
 error: docs for function returning `Result` missing `# Errors` section
   --> $DIR/doc_errors.rs:104:5
    |
+LL |     pub fn pub_method_missing_block_errors_header_doc_markdown() -> Result<(), ()> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: docs for function returning `Result` missing `# Errors` section
+  --> $DIR/doc_errors.rs:127:5
+   |
 LL |     fn trait_method_missing_errors_header() -> Result<(), ()>;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 8 previous errors
+error: aborting due to 9 previous errors
 
