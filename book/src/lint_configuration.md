@@ -95,6 +95,7 @@ Suppress lints whenever the suggested change would cause breakage for other crat
 * [`rc_mutex`](https://rust-lang.github.io/rust-clippy/master/index.html#rc_mutex)
 * [`unnecessary_box_returns`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_box_returns)
 * [`single_call_fn`](https://rust-lang.github.io/rust-clippy/master/index.html#single_call_fn)
+* [`null_pointer_optimization`](https://rust-lang.github.io/rust-clippy/master/index.html#null_pointer_optimization)
 
 
 ## `msrv`

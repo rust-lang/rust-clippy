@@ -1,6 +1,7 @@
 mod borrowed_box;
 mod box_collection;
 mod linked_list;
+mod null_pointer_optimization;
 mod option_option;
 mod rc_buffer;
 mod rc_mutex;
@@ -303,13 +304,50 @@ declare_clippy_lint! {
     "usage of `Rc<Mutex<T>>`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for `C<Option<T>>` where `C` is a type that has
+    /// [null pointer optimization](https://doc.rust-lang.org/core/option/#representation).
+    ///
+    /// Note: There are some cases where `C<Option<T>>` is necessary, like getting a
+    /// `&mut Option<T>` from a `Box<Option<T>>`. This requires ownership of the `Box`, so
+    /// if you have a reference this is not possible to do.
+    ///
+    /// ### Why is this bad?
+    /// It's slower, as `Option` can use `null` as `None`, instead of adding another layer of
+    /// indirection.
+    ///
+    /// ### Example
+    /// ```rust
+    /// struct MyWrapperType<T>(Box<Option<T>>);
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// struct MyWrapperType<T>(Option<Box<T>>);
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub NULL_POINTER_OPTIMIZATION,
+    perf,
+    "checks for `C<Option<T>>` where `C` is a type that has null pointer optimization"
+}
 pub struct Types {
     vec_box_size_threshold: u64,
     type_complexity_threshold: u64,
     avoid_breaking_exported_api: bool,
 }
 
-impl_lint_pass!(Types => [BOX_COLLECTION, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX, REDUNDANT_ALLOCATION, RC_BUFFER, RC_MUTEX, TYPE_COMPLEXITY]);
+impl_lint_pass!(Types => [
+    BOX_COLLECTION,
+    VEC_BOX,
+    OPTION_OPTION,
+    LINKEDLIST,
+    BORROWED_BOX,
+    REDUNDANT_ALLOCATION,
+    RC_BUFFER,
+    RC_MUTEX,
+    TYPE_COMPLEXITY,
+    NULL_POINTER_OPTIMIZATION,
+]);
 
 impl<'tcx> LateLintPass<'tcx> for Types {
     fn check_fn(
@@ -349,10 +387,11 @@ impl<'tcx> LateLintPass<'tcx> for Types {
         let is_exported = cx.effective_visibilities.is_exported(item.owner_id.def_id);
 
         match item.kind {
-            ItemKind::Static(ty, _, _) | ItemKind::Const(ty, _) => self.check_ty(
+            ItemKind::Static(ty, _, _) | ItemKind::Const(ty, _) | ItemKind::TyAlias(ty, _) => self.check_ty(
                 cx,
                 ty,
                 CheckTyContext {
+                    is_in_ty_alias: matches!(item.kind, ItemKind::TyAlias(..)),
                     is_exported,
                     ..CheckTyContext::default()
                 },
@@ -476,7 +515,10 @@ impl Types {
             return;
         }
 
-        if !context.is_nested_call && type_complexity::check(cx, hir_ty, self.type_complexity_threshold) {
+        if !context.is_nested_call
+            && !context.is_in_ty_alias
+            && type_complexity::check(cx, hir_ty, self.type_complexity_threshold)
+        {
             return;
         }
 
@@ -492,13 +534,16 @@ impl Types {
                         // in `clippy_lints::utils::conf.rs`
 
                         let mut triggered = false;
-                        triggered |= box_collection::check(cx, hir_ty, qpath, def_id);
-                        triggered |= redundant_allocation::check(cx, hir_ty, qpath, def_id);
-                        triggered |= rc_buffer::check(cx, hir_ty, qpath, def_id);
-                        triggered |= vec_box::check(cx, hir_ty, qpath, def_id, self.vec_box_size_threshold);
-                        triggered |= option_option::check(cx, hir_ty, qpath, def_id);
-                        triggered |= linked_list::check(cx, hir_ty, def_id);
-                        triggered |= rc_mutex::check(cx, hir_ty, qpath, def_id);
+                        if !context.is_in_ty_alias {
+                            triggered |= box_collection::check(cx, hir_ty, qpath, def_id);
+                            triggered |= redundant_allocation::check(cx, hir_ty, qpath, def_id);
+                            triggered |= rc_buffer::check(cx, hir_ty, qpath, def_id);
+                            triggered |= vec_box::check(cx, hir_ty, qpath, def_id, self.vec_box_size_threshold);
+                            triggered |= option_option::check(cx, hir_ty, qpath, def_id);
+                            triggered |= linked_list::check(cx, hir_ty, def_id);
+                            triggered |= rc_mutex::check(cx, hir_ty, qpath, def_id);
+                        }
+                        triggered |= null_pointer_optimization::check(cx, hir_ty, qpath, res);
 
                         if triggered {
                             return;
@@ -580,6 +625,7 @@ impl Types {
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Copy, Default)]
 struct CheckTyContext {
+    is_in_ty_alias: bool,
     is_in_trait_impl: bool,
     /// `true` for types on local variables.
     is_local: bool,
