@@ -7207,7 +7207,7 @@
     "id": "redundant_locals",
     "id_span": {
       "path": "src/redundant_locals.rs",
-      "line": 40
+      "line": 41
     },
     "group": "correctness",
     "level": "deny",
