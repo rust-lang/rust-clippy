@@ -16,7 +16,7 @@ use rustc_span::symbol::{Ident, Symbol};
 use rustc_span::SyntaxContext;
 use std::cmp::Ordering::{self, Equal};
 use std::hash::{Hash, Hasher};
-use std::iter;
+use std::iter::{self, once};
 
 /// A `LitKind`-like enum to fold constant `Expr`s into.
 #[derive(Debug, Clone)]
@@ -534,7 +534,7 @@ impl<'a, 'tcx> ConstEvalLateContext<'a, 'tcx> {
                     if !tokenize(src)
                         .map(|t| t.kind)
                         .filter(|t| !matches!(t, Whitespace | LineComment { .. } | BlockComment { .. } | Semi))
-                        .eq([OpenBrace])
+                        .eq(once(OpenBrace))
                     {
                         self.source = ConstantSource::Constant;
                     }

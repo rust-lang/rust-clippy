@@ -509,6 +509,7 @@ impl Types {
                     QPath::Resolved(Some(ty), p) => {
                         context.is_nested_call = true;
                         self.check_ty(cx, ty, context);
+                        #[expect(clippy::iter_on_empty_collections)] // FP
                         for ty in p.segments.iter().flat_map(|seg| {
                             seg.args
                                 .as_ref()
@@ -523,6 +524,7 @@ impl Types {
                     },
                     QPath::Resolved(None, p) => {
                         context.is_nested_call = true;
+                        #[expect(clippy::iter_on_empty_collections)] // FP
                         for ty in p.segments.iter().flat_map(|seg| {
                             seg.args
                                 .as_ref()

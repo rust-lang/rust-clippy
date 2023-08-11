@@ -33,6 +33,8 @@ cfg-expr = {name = "cfg-expr", versions = ['0.7.1']}
 puffin = {name = "puffin", git_url = "https://github.com/EmbarkStudios/puffin", git_hash = "02dd4a3"}
 rpmalloc = {name = "rpmalloc", versions = ['0.2.0']}
 tame-oidc = {name = "tame-oidc", versions = ['0.1.0']}
+bevy = {name = "bevy", versions = ['0.10.1']}
+deno = {name = "deno", versions = ['1.34.3']}
 
 [recursive]
 ignore = [

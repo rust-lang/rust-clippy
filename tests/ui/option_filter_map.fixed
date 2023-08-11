@@ -1,6 +1,6 @@
 //@run-rustfix
 #![warn(clippy::option_filter_map)]
-#![allow(clippy::map_flatten)]
+#![allow(clippy::iter_on_single_items, clippy::map_flatten)]
 
 fn main() {
     let _ = Some(Some(1)).flatten();

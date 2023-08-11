@@ -1,3 +1,5 @@
+use std::iter::once;
+
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::{multispan_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
@@ -112,11 +114,11 @@ impl<'tcx> LateLintPass<'tcx> for ManualStrip {
                         multispan_sugg(
                             diag,
                             &format!("try using the `strip_{kind_word}` method"),
-                            vec![(test_span,
+                            once((test_span,
                                   format!("if let Some(<stripped>) = {}.strip_{kind_word}({}) ",
                                           snippet(cx, target_arg.span, ".."),
-                                          snippet(cx, pattern.span, "..")))]
-                            .into_iter().chain(strippings.into_iter().map(|span| (span, "<stripped>".into()))),
+                                          snippet(cx, pattern.span, ".."))))
+                            .chain(strippings.into_iter().map(|span| (span, "<stripped>".into()))),
                         );
                     });
                 }

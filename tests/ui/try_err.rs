@@ -3,6 +3,7 @@
 
 #![deny(clippy::try_err)]
 #![allow(
+    clippy::iter_on_single_items,
     clippy::unnecessary_wraps,
     clippy::needless_question_mark,
     clippy::needless_return_with_question_mark

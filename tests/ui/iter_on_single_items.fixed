@@ -10,6 +10,19 @@ fn array() {
     assert_eq!(std::iter::once(&mut 123).next(), Some(&mut 123));
     assert_eq!(std::iter::once(&123).next(), Some(&123));
 
+    let x: [u32; 1] = [1];
+    x.iter().copied().chain(std::iter::once(1));
+    x.iter().copied().eq(std::iter::once(1));
+    x.iter().copied().ne(std::iter::once(1));
+    let x: Vec<u32> = vec![1];
+    x.iter().copied().chain(std::iter::once(1));
+    x.iter().copied().eq(std::iter::once(1));
+    x.iter().copied().ne(std::iter::once(1));
+    let x: Vec<u32> = vec![];
+    x.iter().copied().chain(std::iter::once(0));
+    x.iter().copied().eq(std::iter::once(0));
+    x.iter().copied().ne(std::iter::once(0));
+
     // Don't trigger on non-iter methods
     let _: Option<String> = Some("test".to_string()).clone();
     let _: [String; 1] = ["test".to_string()].clone();
@@ -25,12 +38,12 @@ fn array() {
 
 macro_rules! in_macros {
     () => {
-        assert_eq!([123].into_iter().next(), Some(123));
-        assert_eq!([123].iter_mut().next(), Some(&mut 123));
-        assert_eq!([123].iter().next(), Some(&123));
-        assert_eq!(Some(123).into_iter().next(), Some(123));
-        assert_eq!(Some(123).iter_mut().next(), Some(&mut 123));
-        assert_eq!(Some(123).iter().next(), Some(&123));
+        assert_eq!(std::iter::once(123).next(), Some(123));
+        assert_eq!(std::iter::once(&mut 123).next(), Some(&mut 123));
+        assert_eq!(std::iter::once(&123).next(), Some(&123));
+        assert_eq!(std::iter::once(123).next(), Some(123));
+        assert_eq!(std::iter::once(&mut 123).next(), Some(&mut 123));
+        assert_eq!(std::iter::once(&123).next(), Some(&123));
     };
 }
 

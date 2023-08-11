@@ -2,6 +2,7 @@
 #![warn(clippy::redundant_closure, clippy::redundant_closure_for_method_calls)]
 #![allow(unused)]
 #![allow(
+    clippy::iter_on_single_items,
     clippy::needless_borrow,
     clippy::needless_pass_by_value,
     clippy::no_effect,

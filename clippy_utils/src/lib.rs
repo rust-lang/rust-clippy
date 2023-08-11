@@ -536,6 +536,7 @@ fn find_primitive_impls<'tcx>(tcx: TyCtxt<'tcx>, name: &str) -> impl Iterator<It
         "u128" => SimplifiedType::Uint(UintTy::U128),
         "f32" => SimplifiedType::Float(FloatTy::F32),
         "f64" => SimplifiedType::Float(FloatTy::F64),
+        #[expect(clippy::iter_on_empty_collections)] // FP
         _ => return [].iter().copied(),
     };
 

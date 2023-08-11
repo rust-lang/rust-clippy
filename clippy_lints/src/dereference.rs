@@ -37,6 +37,7 @@ use rustc_trait_selection::infer::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
 use std::collections::VecDeque;
+use std::iter::once;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -455,7 +456,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                     && cx.tcx.infer_ctxt().build()
                                         .type_implements_trait(
                                             trait_id,
-                                            [impl_ty.into()].into_iter().chain(args.iter().copied()),
+                                            once(impl_ty.into()).chain(args.iter().copied()),
                                             cx.param_env,
                                         )
                                         .must_apply_modulo_regions()

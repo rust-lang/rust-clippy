@@ -1,40 +1,178 @@
-error: `into_iter` call on an empty collection
+error: usage of `[T; 0]` to create an empty iterator
   --> $DIR/iter_on_empty_collections.rs:6:16
    |
 LL |     assert_eq!([].into_iter().next(), Option::<i32>::None);
-   |                ^^^^^^^^^^^^^^ help: try: `std::iter::empty()`
+   |                ^^------------
+   |                |
+   |                help: use `std::iter::empty` instead: `std::iter::empty()`
    |
    = note: `-D clippy::iter-on-empty-collections` implied by `-D warnings`
 
-error: `iter_mut` call on an empty collection
+error: usage of `[T; 0]` to create an empty iterator
   --> $DIR/iter_on_empty_collections.rs:7:16
    |
 LL |     assert_eq!([].iter_mut().next(), Option::<&mut i32>::None);
-   |                ^^^^^^^^^^^^^ help: try: `std::iter::empty()`
+   |                ^^-----------
+   |                |
+   |                help: use `std::iter::empty` instead: `std::iter::empty()`
 
-error: `iter` call on an empty collection
+error: usage of `[T; 0]` to create an empty iterator
   --> $DIR/iter_on_empty_collections.rs:8:16
    |
 LL |     assert_eq!([].iter().next(), Option::<&i32>::None);
-   |                ^^^^^^^^^ help: try: `std::iter::empty()`
+   |                ^^-------
+   |                |
+   |                help: use `std::iter::empty` instead: `std::iter::empty()`
 
-error: `into_iter` call on an empty collection
+error: usage of `None` to create an empty iterator
   --> $DIR/iter_on_empty_collections.rs:9:16
    |
 LL |     assert_eq!(None.into_iter().next(), Option::<i32>::None);
-   |                ^^^^^^^^^^^^^^^^ help: try: `std::iter::empty()`
+   |                ^^^^------------
+   |                |
+   |                help: use `std::iter::empty` instead: `std::iter::empty()`
 
-error: `iter_mut` call on an empty collection
+error: usage of `None` to create an empty iterator
   --> $DIR/iter_on_empty_collections.rs:10:16
    |
 LL |     assert_eq!(None.iter_mut().next(), Option::<&mut i32>::None);
-   |                ^^^^^^^^^^^^^^^ help: try: `std::iter::empty()`
+   |                ^^^^-----------
+   |                |
+   |                help: use `std::iter::empty` instead: `std::iter::empty()`
 
-error: `iter` call on an empty collection
+error: usage of `None` to create an empty iterator
   --> $DIR/iter_on_empty_collections.rs:11:16
    |
 LL |     assert_eq!(None.iter().next(), Option::<&i32>::None);
-   |                ^^^^^^^^^^^ help: try: `std::iter::empty()`
+   |                ^^^^-------
+   |                |
+   |                help: use `std::iter::empty` instead: `std::iter::empty()`
 
-error: aborting due to 6 previous errors
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:14:29
+   |
+LL |     x.iter().copied().chain([]);
+   |                             ^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:15:26
+   |
+LL |     x.iter().copied().eq([]);
+   |                          ^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:16:26
+   |
+LL |     x.iter().copied().ne([]);
+   |                          ^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:18:29
+   |
+LL |     x.iter().copied().chain(vec![]);
+   |                             ^^^^^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:19:26
+   |
+LL |     x.iter().copied().eq(vec![]);
+   |                          ^^^^^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:20:26
+   |
+LL |     x.iter().copied().ne(vec![]);
+   |                          ^^^^^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:22:29
+   |
+LL |     x.iter().copied().chain(vec![0; 0]);
+   |                             ^^^^^^^^^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:23:26
+   |
+LL |     x.iter().copied().eq(vec![0; 0]);
+   |                          ^^^^^^^^^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:24:26
+   |
+LL |     x.iter().copied().ne(vec![0; 0]);
+   |                          ^^^^^^^^^^ help: use `std::iter::empty` instead: `std::iter::empty()`
+   |
+   = note: this method is generic over `Iterator`
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:75:5
+   |
+LL |         assert_eq!([].into_iter().next(), Option::<i32>::None);
+   |                    -------------- help: use `std::iter::empty` instead: `std::iter::empty()`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:75:5
+   |
+LL |         assert_eq!([].iter_mut().next(), Option::<&mut i32>::None);
+   |                    ------------- help: use `std::iter::empty` instead: `std::iter::empty()`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `[T; 0]` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:75:5
+   |
+LL |         assert_eq!([].iter().next(), Option::<&i32>::None);
+   |                    --------- help: use `std::iter::empty` instead: `std::iter::empty()`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `None` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:75:5
+   |
+LL |         assert_eq!(None.into_iter().next(), Option::<i32>::None);
+   |                    ---------------- help: use `std::iter::empty` instead: `std::iter::empty()`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `None` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:75:5
+   |
+LL |         assert_eq!(None.iter_mut().next(), Option::<&mut i32>::None);
+   |                    --------------- help: use `std::iter::empty` instead: `std::iter::empty()`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: usage of `None` to create an empty iterator
+  --> $DIR/iter_on_empty_collections.rs:75:5
+   |
+LL |         assert_eq!(None.iter().next(), Option::<&i32>::None);
+   |                    ----------- help: use `std::iter::empty` instead: `std::iter::empty()`
+...
+LL |     in_macros!();
+   |     ^^^^^^^^^^^^
+
+error: aborting due to 21 previous errors
 

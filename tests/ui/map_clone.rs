@@ -3,6 +3,7 @@
 #![allow(
     clippy::clone_on_copy,
     clippy::iter_cloned_collect,
+    clippy::iter_on_single_items,
     clippy::many_single_char_names,
     clippy::redundant_clone,
     clippy::useless_vec
