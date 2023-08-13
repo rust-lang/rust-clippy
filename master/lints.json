@@ -4301,7 +4301,7 @@
     "id": "manual_retain",
     "id_span": {
       "path": "src/manual_retain.rs",
-      "line": 47
+      "line": 49
     },
     "group": "perf",
     "level": "warn",
