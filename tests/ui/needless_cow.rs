@@ -54,6 +54,18 @@ fn main() {
         _ => return,
     };
 
+    if true {
+        "".into()
+    } else {
+        Cow::Owned(String::new())
+    };
+
+    if true {
+        Cow::from("")
+    } else {
+        Cow::Owned(String::new())
+    };
+
     // Probably a bit too pedantic to lint this.
     _ = Cow::Borrowed("");
 }

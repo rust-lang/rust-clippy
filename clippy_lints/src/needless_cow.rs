@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
-use clippy_utils::fn_has_unsatisfiable_preds;
 use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::{fn_has_unsatisfiable_preds, is_diag_trait_item};
 use itertools::Itertools;
 use rustc_const_eval::interpret::{AllocId, AllocRange, ConstValue, GlobalAlloc};
 use rustc_data_structures::fx::{FxIndexMap, IndexEntry};
@@ -10,6 +10,7 @@ use rustc_hir::{Body, FnDecl};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::{
     self, AggregateKind, ConstantKind, Location, Operand, Place, Rvalue, SourceInfo, Statement, StatementKind,
+    TerminatorKind,
 };
 use rustc_middle::ty::TyCtxt;
 use rustc_mir_dataflow::lattice::FlatSet;
@@ -21,38 +22,48 @@ use rustc_target::abi::{FieldIdx, Size};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for locals who are assigned a `Cow`, yet the `Borrowed` variant is only ever used for
+    /// Checks for locals which are assigned a `Cow`, yet the `Borrowed` variant is only ever used for
     /// empty string slices.
     ///
     /// ### Why is this bad?
     /// An empty string does not allocate any memory. This can use `String` instead, with the
-    /// `Borrowed` invocations substituted for `String::new`.
+    /// `Borrowed` constructor substituted for `String::new`.
+    ///
+    /// ### Known problems
+    /// If the `Cow` is passed to a function expecting `Cow`, or is mutably borrowed, this will
+    /// still lint.
     ///
     /// ### Example
     /// ```rust
+    /// # use std::borrow::Cow;
+    ///
     /// # let my_owned_string = String::new();
     /// # let something = true;
     /// # let other_thing = true;
+    ///
     /// let _ = if something {
     ///     Cow::Owned(my_owned_string);
     /// } else if other_thing {
     ///     Cow::Owned(String::new());
     /// } else {
     ///     Cow::Borrowed("");
-    /// }
+    /// };
     /// ```
     /// Use instead:
     /// ```rust
+    /// # use std::borrow::Cow;
+    ///
     /// # let my_owned_string = String::new();
     /// # let something = true;
     /// # let other_thing = true;
+    ///
     /// let _ = if something {
     ///     my_owned_string;
     /// } else if other_thing {
     ///     String::new();
     /// } else {
     ///     String::new();
-    /// }
+    /// };
     /// ```
     #[clippy::version = "1.73.0"]
     pub NEEDLESS_COW,
@@ -105,7 +116,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessCow {
             },
         );
 
-        for assignments in cow_locals_to_assignments.into_values() {
+        for assignments in cow_locals_to_assignments.values() {
             if assignments.len() == 1 {
                 continue;
             }
@@ -116,17 +127,38 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessCow {
             span_lint_hir_and_then(
                 cx,
                 NEEDLESS_COW,
-                mir.source_scopes[first.scope]
+                mir.source_scopes[first.source_info().scope]
                     .local_data
                     .as_ref()
                     .assert_crate_local()
                     .lint_root,
-                assignments.into_iter().map(|scope| scope.span).collect_vec(),
+                assignments.iter().map(|a| a.source_info().span).collect_vec(),
                 "usage of `Cow` where the `Borrowed` variant is only ever used for empty strings",
                 |diag| {
                     diag.help("remove the `Cow` and use `String::new` instead, as it allocates no memory");
+
+                    for into_or_from in assignments.iter().filter(|a| matches!(a, CowAssignment::IntoOrFrom(_))) {
+                        diag.span_note(into_or_from.source_info().span, "this implicitly constructs `Borrowed`");
+                    }
                 },
             );
+        }
+    }
+}
+
+type CowAssignments = Vec<CowAssignment>;
+
+#[derive(Clone, Copy)]
+enum CowAssignment {
+    Borrowed(SourceInfo),
+    Owned(SourceInfo),
+    IntoOrFrom(SourceInfo),
+}
+
+impl CowAssignment {
+    fn source_info(self) -> SourceInfo {
+        match self {
+            Self::Borrowed(s) | Self::Owned(s) | Self::IntoOrFrom(s) => s,
         }
     }
 }
@@ -184,7 +216,7 @@ impl<'tcx> ValueAnalysis<'tcx> for NeedlessCowAnalysis {
 
 struct NeedlessCowVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
-    cow_locals_to_assignments: &'a mut FxIndexMap<mir::Local, Vec<SourceInfo>>,
+    cow_locals_to_assignments: &'a mut FxIndexMap<mir::Local, CowAssignments>,
 }
 
 impl<'mir, 'tcx> ResultsVisitor<'mir, 'tcx, Results<'tcx, ValueAnalysisWrapper<NeedlessCowAnalysis>>>
@@ -210,31 +242,77 @@ impl<'mir, 'tcx> ResultsVisitor<'mir, 'tcx, Results<'tcx, ValueAnalysisWrapper<N
 
         match rvalue {
             Rvalue::Aggregate(box AggregateKind::Adt(def_id, variant, args, _, None), init)
-                if let Some(arg_place) = init.get(FieldIdx::from(0u32)).and_then(Operand::place)
+                if let Some(arg) = init.get(FieldIdx::from(0u32))
                     && let ty = cx.tcx.type_of(def_id).instantiate(cx.tcx, args)
                     && is_type_diagnostic_item(cx, ty, sym::Cow)
                     && let Some(def) = ty.ty_adt_def()
-                    && let Some(assignments) = cow_locals_to_assignments.get_mut(&target.local) =>
+                    && let IndexEntry::Occupied(mut entry) = cow_locals_to_assignments.entry(target.local) =>
             {
                 // Only used for its span
                 if def.variant(*variant).name == sym!(Owned) {
-                    assignments.push(stmt.source_info);
+                    entry.get_mut().push(CowAssignment::Owned(stmt.source_info));
                     return;
                 }
 
-                if let FlatSet::Elem(value) = state.get(
-                        arg_place.as_ref(),
-                        &results.analysis.0.map,
-                    )
-                    && let value = value.eval(cx.tcx, cx.param_env)
-                    && is_empty_str(cx.tcx, value)
-                {
-                    assignments.push(stmt.source_info);
-                } else if let IndexEntry::Occupied(entry) = cow_locals_to_assignments.entry(target.local) {
+                let FlatSet::Elem(val) = (match arg {
+                    Operand::Move(arg_place) | Operand::Copy(arg_place) => {
+                        state.get(arg_place.as_ref(), &results.analysis.0.map)
+                    },
+                    Operand::Constant(constant) => FlatSet::Elem(constant.literal),
+                }) else {
+                    return;
+                };
+                let val = val.eval(cx.tcx, cx.param_env);
+
+                if is_empty_str(cx.tcx, val) {
+                    entry.get_mut().push(CowAssignment::Borrowed(stmt.source_info));
+                } else {
                     entry.remove_entry();
                 }
             }
             _ => {},
+        }
+    }
+
+    fn visit_terminator_before_primary_effect(
+        &mut self,
+        results: &Results<'tcx, ValueAnalysisWrapper<NeedlessCowAnalysis>>,
+        state: &Self::FlowState,
+        term: &'mir mir::Terminator<'tcx>,
+        _: Location,
+    ) {
+        let Self {
+            cx,
+            cow_locals_to_assignments,
+        } = self;
+
+        // Handle `Into::into` and `From::from` as well
+        if let TerminatorKind::Call {
+                func,
+                args,
+                destination,
+                ..
+            } = &term.kind
+            && let Some((def_id, _)) = func.const_fn_def()
+            && let [arg] = args.as_slice()
+            && (is_diag_trait_item(cx, def_id, sym::Into) || is_diag_trait_item(cx, def_id, sym::From))
+            && let IndexEntry::Occupied(mut entry) = cow_locals_to_assignments.entry(destination.local)
+        {
+            let FlatSet::Elem(val) = (match arg {
+                Operand::Move(arg_place) | Operand::Copy(arg_place) => {
+                    state.get(arg_place.as_ref(), &results.analysis.0.map)
+                },
+                Operand::Constant(constant) => FlatSet::Elem(constant.literal),
+            }) else {
+                return;
+            };
+            let value = val.eval(cx.tcx, cx.param_env);
+
+            if is_empty_str(cx.tcx, value) {
+                entry.get_mut().push(CowAssignment::IntoOrFrom(term.source_info));
+            } else {
+                entry.remove_entry();
+            }
         }
     }
 }

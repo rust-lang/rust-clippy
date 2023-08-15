@@ -48,5 +48,37 @@ LL |         4 => Cow::Owned("aa".to_string()),
    |
    = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
 
-error: aborting due to 5 previous errors
+error: usage of `Cow` where the `Borrowed` variant is only ever used for empty strings
+  --> $DIR/needless_cow.rs:58:9
+   |
+LL |         "".into()
+   |         ^^^^^^^^^
+LL |     } else {
+LL |         Cow::Owned(String::new())
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
+note: this implicitly constructs `Borrowed`
+  --> $DIR/needless_cow.rs:58:9
+   |
+LL |         "".into()
+   |         ^^^^^^^^^
+
+error: usage of `Cow` where the `Borrowed` variant is only ever used for empty strings
+  --> $DIR/needless_cow.rs:64:9
+   |
+LL |         Cow::from("")
+   |         ^^^^^^^^^^^^^
+LL |     } else {
+LL |         Cow::Owned(String::new())
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
+note: this implicitly constructs `Borrowed`
+  --> $DIR/needless_cow.rs:64:9
+   |
+LL |         Cow::from("")
+   |         ^^^^^^^^^^^^^
+
+error: aborting due to 7 previous errors
 
