@@ -1,0 +1,52 @@
+error: usage of `Cow` where the `Borrowed` variant is only ever used for empty strings
+  --> $DIR/needless_cow.rs:15:23
+   |
+LL |     let x = if true { Cow::Borrowed("") } else { Cow::Borrowed("") };
+   |                       ^^^^^^^^^^^^^^^^^          ^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
+   = note: `-D clippy::needless-cow` implied by `-D warnings`
+
+error: usage of `Cow` where the `Borrowed` variant is only ever used for empty strings
+  --> $DIR/needless_cow.rs:25:23
+   |
+LL |     let x = if true { Cow::Borrowed("") } else { Cow::Borrowed("") };
+   |                       ^^^^^^^^^^^^^^^^^          ^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
+
+error: usage of `Cow` where the `Borrowed` variant is only ever used for empty strings
+  --> $DIR/needless_cow.rs:33:15
+   |
+LL |     if true { Cow::Borrowed("") } else { Cow::Borrowed("") }
+   |               ^^^^^^^^^^^^^^^^^          ^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
+
+error: usage of `Cow` where the `Borrowed` variant is only ever used for empty strings
+  --> $DIR/needless_cow.rs:38:9
+   |
+LL |         Cow::Owned(String::new())
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     } else {
+LL |         if true { Cow::Borrowed("") } else { Cow::Borrowed(&*"") }
+   |                   ^^^^^^^^^^^^^^^^^          ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
+
+error: usage of `Cow` where the `Borrowed` variant is only ever used for empty strings
+  --> $DIR/needless_cow.rs:50:14
+   |
+LL |         1 => Cow::Owned(String::new()),
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         2 => Cow::Borrowed(""),
+   |              ^^^^^^^^^^^^^^^^^
+LL |         3 => Cow::Borrowed(""),
+   |              ^^^^^^^^^^^^^^^^^
+LL |         4 => Cow::Owned("aa".to_string()),
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `Cow` and use `String::new` instead, as it allocates no memory
+
+error: aborting due to 5 previous errors
+
