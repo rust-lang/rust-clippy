@@ -9860,7 +9860,7 @@
     "id": "useless_conversion",
     "id_span": {
       "path": "src/useless_conversion.rs",
-      "line": 34
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
