@@ -18,6 +18,7 @@
     - [Type Checking](development/type_checking.md)
     - [Method Checking](development/method_checking.md)
     - [Macro Expansions](development/macro_expansions.md)
+    - [Example: Early lint](development/early_example.md)
     - [Common Tools](development/common_tools_writing_lints.md)
     - [Infrastructure](development/infrastructure/README.md)
         - [Syncing changes between Clippy and rust-lang/rust](development/infrastructure/sync.md)
