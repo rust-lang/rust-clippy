@@ -5991,7 +5991,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MaybeIncorrect"
+      "applicability": "MachineApplicable"
     },
     "former_ids": [
       "new_without_default_derive"
