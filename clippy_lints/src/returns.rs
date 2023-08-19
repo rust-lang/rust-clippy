@@ -417,12 +417,7 @@ fn check_final_expr<'tcx>(
                         arm.body,
                         semi_spans.clone(),
                         RetReplacement::Unit,
-                        // Here we pass this as arm could have
-                        // - match directly as expr: in this case our thing works
-                        // - block expr: in this case our thing gets overriden
-                        // by call to check_block_return
-                        // - anything else: doesn't matter
-                        Some(StmtKind::Expr(arm.body)),
+                        None,
                         parent_fn_return_type,
                     );
                 });
