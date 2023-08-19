@@ -63,7 +63,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 337
+      "line": 341
     },
     "group": "restriction",
     "level": "allow",
@@ -372,7 +372,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 244
+      "line": 248
     },
     "group": "suspicious",
     "level": "warn",
@@ -1297,7 +1297,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 275
+      "line": 279
     },
     "group": "complexity",
     "level": "warn",
@@ -1312,7 +1312,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 133
+      "line": 137
     },
     "group": "correctness",
     "level": "deny",
@@ -1729,7 +1729,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 221
+      "line": 225
     },
     "group": "nursery",
     "level": "allow",
@@ -1744,7 +1744,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 175
+      "line": 179
     },
     "group": "nursery",
     "level": "allow",
@@ -3143,7 +3143,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 70
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
@@ -4789,7 +4789,7 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 387
+      "line": 426
     },
     "group": "suspicious",
     "level": "warn",
@@ -4909,7 +4909,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 308
+      "line": 312
     },
     "group": "correctness",
     "level": "deny",
@@ -6076,7 +6076,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 361
+      "line": 400
     },
     "group": "style",
     "level": "warn",
@@ -7804,6 +7804,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "should_panic_without_expect",
+    "id_span": {
+      "path": "src/attrs.rs",
+      "line": 376
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for `#[should_panic]` attributes without specifying the expected panic message.\n\n### Why is this bad?\nThe expected panic message should be specified to ensure that the test is actually\npanicking with the expected message, and not another unrelated panic.\n\n### Example\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```\n\nUse instead:\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic = \"attempt to divide by zero\"]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "HasPlaceholders"
     }
   },
   {
@@ -9845,7 +9860,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 113
+      "line": 117
     },
     "group": "correctness",
     "level": "deny",
