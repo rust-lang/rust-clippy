@@ -1,9 +1,8 @@
 use super::transitive_relation::TransitiveRelation;
-use crate::ty::is_copy;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_index::bit_set::DenseBitSet;
-use rustc_lint::LateContext;
 use rustc_middle::mir;
+use rustc_middle::ty::{TyCtxt, TypingEnv};
 
 /// Collect possible borrowed for every `&mut` local.
 /// For example, `_1 = &mut _2` generate _1: {_2,...}
@@ -22,10 +21,14 @@ impl<'a, 'tcx> PossibleOriginVisitor<'a, 'tcx> {
         }
     }
 
-    pub fn into_map(self, cx: &LateContext<'tcx>) -> FxHashMap<mir::Local, DenseBitSet<mir::Local>> {
+    pub fn into_map(
+        self,
+        tcx: TyCtxt<'tcx>,
+        typing_env: TypingEnv<'tcx>,
+    ) -> FxHashMap<mir::Local, DenseBitSet<mir::Local>> {
         let mut map = FxHashMap::default();
         for row in (1..self.body.local_decls.len()).map(mir::Local::from_usize) {
-            if is_copy(cx, self.body.local_decls[row].ty) {
+            if tcx.type_is_copy_modulo_regions(typing_env, self.body.local_decls[row].ty) {
                 continue;
             }
 
