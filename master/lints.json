@@ -7402,6 +7402,21 @@
     }
   },
   {
+    "id": "reserve_after_initialization",
+    "id_span": {
+      "path": "src/reserve_after_initialization.rs",
+      "line": 30
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nInforms the user about a more concise way to create a vector with a known capacity.\n\n### Why is this bad?\nThe `Vec::with_capacity` constructor is less complex.\n\n### Example\n```rust\nlet mut v: Vec<usize> = vec![];\nv.reserve(10);\n```\nUse instead:\n```rust\nlet mut v: Vec<usize> = Vec::with_capacity(10);\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "HasPlaceholders"
+    }
+  },
+  {
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches/mod.rs",
