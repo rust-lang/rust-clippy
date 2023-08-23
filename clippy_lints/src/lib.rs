@@ -24,6 +24,7 @@
 extern crate rustc_arena;
 extern crate rustc_ast;
 extern crate rustc_ast_pretty;
+extern crate rustc_const_eval;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_errors;
@@ -36,6 +37,7 @@ extern crate rustc_infer;
 extern crate rustc_lexer;
 extern crate rustc_lint;
 extern crate rustc_middle;
+extern crate rustc_mir_dataflow;
 extern crate rustc_parse;
 extern crate rustc_session;
 extern crate rustc_span;
@@ -228,6 +230,7 @@ mod needless_arbitrary_self_type;
 mod needless_bool;
 mod needless_borrowed_ref;
 mod needless_continue;
+mod needless_cow;
 mod needless_else;
 mod needless_for_each;
 mod needless_if;
@@ -1095,6 +1098,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     });
     store.register_late_pass(|_| Box::new(redundant_locals::RedundantLocals));
     store.register_late_pass(|_| Box::new(ignored_unit_patterns::IgnoredUnitPatterns));
+    store.register_late_pass(move |_| Box::new(needless_cow::NeedlessCow));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
