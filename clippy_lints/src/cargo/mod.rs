@@ -1,6 +1,7 @@
 mod common_metadata;
 mod feature_name;
 mod multiple_crate_versions;
+mod require_workspace_dependencies;
 mod wildcard_dependencies;
 
 use cargo_metadata::MetadataCommand;
@@ -162,6 +163,34 @@ declare_clippy_lint! {
     "wildcard dependencies being used"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Ensures only workspace dependencies are used in the `Cargo.toml`.
+    ///
+    /// ### Why is this bad?
+    /// Sometime may choose a workflow that requires that all the dependency versions
+    /// are specified at the workspace level. Then, violating this rule by using
+    /// a non-workspace (i.e. crates.io, registry, path or git) dependency breaks
+    /// that workflow.
+    ///
+    /// ### Example
+    /// ```toml
+    /// [dependencies]
+    /// regex = "1"
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```toml
+    /// [dependencies]
+    /// regex = { workspace = true }
+    /// ```
+    #[clippy::version = "1.73.0"]
+    pub REQUIRE_WORKSPACE_DEPENDENCIES,
+    restriction,
+    "workspace dependencies are required"
+}
+
 pub struct Cargo {
     pub ignore_publish: bool,
 }
@@ -171,7 +200,8 @@ impl_lint_pass!(Cargo => [
     REDUNDANT_FEATURE_NAMES,
     NEGATIVE_FEATURE_NAMES,
     MULTIPLE_CRATE_VERSIONS,
-    WILDCARD_DEPENDENCIES
+    WILDCARD_DEPENDENCIES,
+    REQUIRE_WORKSPACE_DEPENDENCIES,
 ]);
 
 impl LateLintPass<'_> for Cargo {
@@ -181,6 +211,7 @@ impl LateLintPass<'_> for Cargo {
             REDUNDANT_FEATURE_NAMES,
             NEGATIVE_FEATURE_NAMES,
             WILDCARD_DEPENDENCIES,
+            REQUIRE_WORKSPACE_DEPENDENCIES,
         ];
         static WITH_DEPS_LINTS: &[&Lint] = &[MULTIPLE_CRATE_VERSIONS];
 
@@ -193,6 +224,7 @@ impl LateLintPass<'_> for Cargo {
                     common_metadata::check(cx, &metadata, self.ignore_publish);
                     feature_name::check(cx, &metadata);
                     wildcard_dependencies::check(cx, &metadata);
+                    require_workspace_dependencies::check(cx, &metadata);
                 },
                 Err(e) => {
                     for lint in NO_DEPS_LINTS {
