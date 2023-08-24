@@ -1,0 +1,5 @@
+error: non-workspace dependency `regex`
+  |
+  = note: `-D clippy::require-workspace-dependencies` implied by `-D warnings`
+
+error: could not compile `require_workspace_dependencies` (bin "require_workspace_dependencies") due to previous error

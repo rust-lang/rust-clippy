@@ -1,0 +1,12 @@
+[package]
+name = "require_workspace_dependencies"
+version = "0.1.0"
+publish = false
+
+[workspace]
+
+[workspace.dependencies]
+regex = "1"
+
+[dependencies]
+regex = "1"
