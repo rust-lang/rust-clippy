@@ -85,6 +85,7 @@ mod borrow_deref_ref;
 mod box_default;
 mod cargo;
 mod casts;
+mod cfg_not_test;
 mod checked_conversions;
 mod cognitive_complexity;
 mod collapsible_if;
@@ -1097,6 +1098,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
     store.register_late_pass(|_| Box::new(redundant_locals::RedundantLocals));
     store.register_late_pass(|_| Box::new(ignored_unit_patterns::IgnoredUnitPatterns));
     store.register_late_pass(|_| Box::<reserve_after_initialization::ReserveAfterInitialization>::default());
+    store.register_early_pass(|| Box::new(cfg_not_test::CfgNotTest));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
