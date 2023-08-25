@@ -4,6 +4,21 @@ error: `clippy::restriction` is not meant to be enabled as a group
    = help: enable the restriction lints you need individually
    = note: `-D clippy::blanket-clippy-restriction-lints` implied by `-D warnings`
 
+error: non-workspace dependency `clippy_lints`
+   |
+note: the lint level is defined here
+  --> $DIR/blanket_clippy_restriction_lints.rs:10:11
+   |
+LL | #![forbid(clippy::restriction)]
+   |           ^^^^^^^^^^^^^^^^^^^
+   = note: `#[forbid(clippy::require_workspace_dependencies)]` implied by `#[forbid(clippy::restriction)]`
+
+error: non-workspace dependency `rustc_tools_util`
+
+error: non-workspace dependency `tempfile`
+
+error: non-workspace dependency `termize`
+
 error: `clippy::restriction` is not meant to be enabled as a group
   --> $DIR/blanket_clippy_restriction_lints.rs:6:9
    |
@@ -28,5 +43,5 @@ LL | #![forbid(clippy::restriction)]
    |
    = help: enable the restriction lints you need individually
 
-error: aborting due to 4 previous errors
+error: aborting due to 8 previous errors
 
