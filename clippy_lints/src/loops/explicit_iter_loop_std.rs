@@ -77,7 +77,6 @@ impl AdjustKind {
 
 /// Checks if an `iter` or `iter_mut` call returns `IntoIterator::IntoIter`. Returns how the
 /// argument needs to be adjusted.
-#[expect(clippy::too_many_lines)]
 fn is_ref_iterable<'tcx>(
     cx: &LateContext<'tcx>,
     self_arg: &Expr<'_>,
@@ -112,17 +111,16 @@ fn is_ref_iterable<'tcx>(
             None
         };
 
-        if !adjustments.is_empty() {
-            if self_is_copy {
-                // Using by value won't consume anything
-                if implements_trait(cx, self_ty, trait_id, &[])
-                    && let Some(ty) =
-                        make_normalized_projection(cx.tcx, cx.param_env, trait_id, sym!(IntoIter), [self_ty])
-                    && ty == res_ty
-                {
-                    return Some((AdjustKind::None, self_ty));
-                }
-            }         }
+        if !adjustments.is_empty() && self_is_copy {
+            // Using by value won't consume anything
+            if implements_trait(cx, self_ty, trait_id, &[])
+                && let Some(ty) =
+                    make_normalized_projection(cx.tcx, cx.param_env, trait_id, sym!(IntoIter), [self_ty])
+                && ty == res_ty
+            {
+                return Some((AdjustKind::None, self_ty));
+            }
+        }
         if let Some(mutbl) = mutbl
             && !self_ty.is_ref()
         {

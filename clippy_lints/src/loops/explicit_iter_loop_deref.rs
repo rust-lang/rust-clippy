@@ -77,7 +77,6 @@ impl AdjustKind {
 
 /// Checks if an `iter` or `iter_mut` call returns `IntoIterator::IntoIter`. Returns how the
 /// argument needs to be adjusted.
-#[expect(clippy::too_many_lines)]
 fn is_ref_iterable<'tcx>(
     cx: &LateContext<'tcx>,
     self_arg: &Expr<'_>,
@@ -106,28 +105,27 @@ fn is_ref_iterable<'tcx>(
             None
         };
 
-        if !adjustments.is_empty() {
-            if let ty::Ref(region, ty, Mutability::Mut) = *self_ty.kind()
+        if !adjustments.is_empty() && let ty::Ref(region, ty, Mutability::Mut) = *self_ty.kind()
                 && let Some(mutbl) = mutbl
             {
-                // Attempt to reborrow the mutable reference
-                let self_ty = if mutbl.is_mut() {
-                    self_ty
-                } else {
-                    Ty::new_ref(cx.tcx,region, TypeAndMut { ty, mutbl })
-                };
-                if implements_trait(cx, self_ty, trait_id, &[])
-                    && let Some(ty) =
-                        make_normalized_projection(cx.tcx, cx.param_env, trait_id, sym!(IntoIter), [self_ty])
-                    && ty == res_ty
-                {
-                    return Some((AdjustKind::reborrow(mutbl), self_ty));
-                }
+            // Attempt to reborrow the mutable reference
+            let self_ty = if mutbl.is_mut() {
+                self_ty
+            } else {
+                Ty::new_ref(cx.tcx,region, TypeAndMut { ty, mutbl })
+            };
+            if implements_trait(cx, self_ty, trait_id, &[])
+                && let Some(ty) =
+                    make_normalized_projection(cx.tcx, cx.param_env, trait_id, sym!(IntoIter), [self_ty])
+                && ty == res_ty
+            {
+                return Some((AdjustKind::reborrow(mutbl), self_ty));
             }
+
         }
 
-        match adjustments {
-            &[
+        match *adjustments {
+            [
                 Adjustment { kind: Adjust::Deref(_), ..},
                 Adjustment {
                     kind: Adjust::Borrow(AutoBorrow::Ref(_, mutbl)),
@@ -146,7 +144,7 @@ fn is_ref_iterable<'tcx>(
                     None
                 }
             }
-            &[Adjustment { kind: Adjust::Deref(_), target }, ..] => {
+            [Adjustment { kind: Adjust::Deref(_), target }, ..] => {
                 if is_copy(cx, target)
                     && implements_trait(cx, target, trait_id, &[])
                     && let Some(ty) =
