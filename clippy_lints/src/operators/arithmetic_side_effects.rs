@@ -98,16 +98,17 @@ impl ArithmeticSideEffects {
                 Some(sym::NonZeroU128 | sym::NonZeroU16 | sym::NonZeroU32 | sym::NonZeroU64 | sym::NonZeroU8)
             )
         };
+        let is_sat_or_wrap = |ty: Ty<'_>| match_type(cx, ty, SATURATING) || match_type(cx, ty, WRAPPING);
+
         // If the RHS is NonZeroU*, then division or module by zero will never occur
         if is_non_zero_u(type_diagnostic_name(cx, rhs_ty)) && is_div_or_rem {
             return true;
         }
         // `Saturation` and `Wrapping` can overflow if the RHS is zero in a division or module
-        let is_lhs_sat_or_wrap = match_type(cx, lhs_ty, SATURATING) || match_type(cx, lhs_ty, WRAPPING);
-        let is_rhs_sat_or_wrap = match_type(cx, rhs_ty, SATURATING) || match_type(cx, rhs_ty, WRAPPING);
-        if is_lhs_sat_or_wrap || is_rhs_sat_or_wrap {
+        if is_sat_or_wrap(lhs_ty) || is_sat_or_wrap(rhs_ty) {
             return !is_div_or_rem;
         }
+
         false
     }
 
