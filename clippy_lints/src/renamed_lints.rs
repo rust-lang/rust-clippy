@@ -12,6 +12,7 @@ pub static RENAMED_LINTS: &[(&str, &str)] = &[
     ("clippy::derive_hash_xor_eq", "clippy::derived_hash_with_manual_eq"),
     ("clippy::disallowed_method", "clippy::disallowed_methods"),
     ("clippy::disallowed_type", "clippy::disallowed_types"),
+    ("clippy::explicit_iter_loop", "clippy::explicit_iter_loop_std"),
     ("clippy::eval_order_dependence", "clippy::mixed_read_write_in_expression"),
     ("clippy::identity_conversion", "clippy::useless_conversion"),
     ("clippy::if_let_some_result", "clippy::match_result_ok"),

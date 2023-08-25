@@ -137,6 +137,7 @@ declare_clippy_lint! {
     /// ### Example
     /// ```rust
     /// // with `y` a borrowed mut vec or slice:
+    /// # let mut vec = vec![1, 2, 3, 4];
     /// # let y = &mut vec;
     /// for x in y.iter() {
     ///     // ..
@@ -145,6 +146,7 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     /// ```rust
+    /// # let mut vec = vec![1, 2, 3, 4];
     /// # let y = &mut vec;
     /// for x in &*y {
     ///     // ..
