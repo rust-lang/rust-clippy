@@ -1,4 +1,4 @@
-use super::EXPLICIT_ITER_LOOP;
+use super::EXPLICIT_ITER_LOOP_DEREF;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
@@ -35,7 +35,7 @@ pub(super) fn check(cx: &LateContext<'_>, self_arg: &Expr<'_>, call_expr: &Expr<
     let object = snippet_with_applicability(cx, self_arg.span, "_", &mut applicability);
     span_lint_and_sugg(
         cx,
-        EXPLICIT_ITER_LOOP,
+        EXPLICIT_ITER_LOOP_DEREF,
         call_expr.span,
         "it is more concise to loop over references to containers instead of using explicit \
          iteration methods",
@@ -47,28 +47,11 @@ pub(super) fn check(cx: &LateContext<'_>, self_arg: &Expr<'_>, call_expr: &Expr<
 
 #[derive(Clone, Copy)]
 enum AdjustKind {
-    None,
-    Borrow,
-    BorrowMut,
     Deref,
     Reborrow,
     ReborrowMut,
 }
 impl AdjustKind {
-    fn borrow(mutbl: Mutability) -> Self {
-        match mutbl {
-            Mutability::Not => Self::Borrow,
-            Mutability::Mut => Self::BorrowMut,
-        }
-    }
-
-    fn auto_borrow(mutbl: AutoBorrowMutability) -> Self {
-        match mutbl {
-            AutoBorrowMutability::Not => Self::Borrow,
-            AutoBorrowMutability::Mut { .. } => Self::BorrowMut,
-        }
-    }
-
     fn reborrow(mutbl: Mutability) -> Self {
         match mutbl {
             Mutability::Not => Self::Reborrow,
@@ -85,9 +68,6 @@ impl AdjustKind {
 
     fn display(self) -> &'static str {
         match self {
-            Self::None => "",
-            Self::Borrow => "&",
-            Self::BorrowMut => "&mut ",
             Self::Deref => "*",
             Self::Reborrow => "&*",
             Self::ReborrowMut => "&mut *",
@@ -117,12 +97,6 @@ fn is_ref_iterable<'tcx>(
     {
         let adjustments = typeck.expr_adjustments(self_arg);
         let self_ty = typeck.expr_ty(self_arg);
-        let self_is_copy = is_copy(cx, self_ty);
-
-        if adjustments.is_empty() && self_is_copy {
-            // Exact type match, already checked earlier
-            return Some((AdjustKind::None, self_ty));
-        }
 
         let res_ty = cx.tcx.erase_regions(EarlyBinder::bind(req_res_ty)
             .instantiate(cx.tcx, typeck.node_args(call_expr.hir_id)));
@@ -133,16 +107,7 @@ fn is_ref_iterable<'tcx>(
         };
 
         if !adjustments.is_empty() {
-            if self_is_copy {
-                // Using by value won't consume anything
-                if implements_trait(cx, self_ty, trait_id, &[])
-                    && let Some(ty) =
-                        make_normalized_projection(cx.tcx, cx.param_env, trait_id, sym!(IntoIter), [self_ty])
-                    && ty == res_ty
-                {
-                    return Some((AdjustKind::None, self_ty));
-                }
-            } else if let ty::Ref(region, ty, Mutability::Mut) = *self_ty.kind()
+            if let ty::Ref(region, ty, Mutability::Mut) = *self_ty.kind()
                 && let Some(mutbl) = mutbl
             {
                 // Attempt to reborrow the mutable reference
@@ -160,24 +125,8 @@ fn is_ref_iterable<'tcx>(
                 }
             }
         }
-        if let Some(mutbl) = mutbl
-            && !self_ty.is_ref()
-        {
-            // Attempt to borrow
-            let self_ty = Ty::new_ref(cx.tcx,cx.tcx.lifetimes.re_erased, TypeAndMut {
-                ty: self_ty,
-                mutbl,
-            });
-            if implements_trait(cx, self_ty, trait_id, &[])
-                && let Some(ty) = make_normalized_projection(cx.tcx, cx.param_env, trait_id, sym!(IntoIter), [self_ty])
-                && ty == res_ty
-            {
-                return Some((AdjustKind::borrow(mutbl), self_ty));
-            }
-        }
 
         match adjustments {
-            [] => Some((AdjustKind::None, self_ty)),
             &[
                 Adjustment { kind: Adjust::Deref(_), ..},
                 Adjustment {
@@ -205,24 +154,6 @@ fn is_ref_iterable<'tcx>(
                     && ty == res_ty
                 {
                     Some((AdjustKind::Deref, target))
-                } else {
-                    None
-                }
-            }
-            &[
-                Adjustment {
-                    kind: Adjust::Borrow(AutoBorrow::Ref(_, mutbl)),
-                    target,
-                },
-                ..
-            ] => {
-                if self_ty.is_ref()
-                    && implements_trait(cx, target, trait_id, &[])
-                    && let Some(ty) =
-                        make_normalized_projection(cx.tcx, cx.param_env, trait_id, sym!(IntoIter), [target])
-                    && ty == res_ty
-                {
-                    Some((AdjustKind::auto_borrow(mutbl), target))
                 } else {
                     None
                 }

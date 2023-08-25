@@ -1,7 +1,8 @@
 mod empty_loop;
 mod explicit_counter_loop;
 mod explicit_into_iter_loop;
-mod explicit_iter_loop;
+mod explicit_iter_loop_deref;
+mod explicit_iter_loop_std;
 mod for_kv_map;
 mod iter_next_loop;
 mod manual_find;
@@ -116,9 +117,43 @@ declare_clippy_lint! {
     /// }
     /// ```
     #[clippy::version = "pre 1.29.0"]
-    pub EXPLICIT_ITER_LOOP,
+    pub EXPLICIT_ITER_LOOP_STD,
     pedantic,
     "for-looping over `_.iter()` or `_.iter_mut()` when `&_` or `&mut _` would do"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for loops on `x.iter()` where `&x` will do, and
+    /// suggests the latter.
+    ///
+    /// ### Why is this bad?
+    /// Readability.
+    ///
+    /// ### Known problems
+    /// False negatives. We currently only warn on some known
+    /// types.
+    ///
+    /// ### Example
+    /// ```rust
+    /// // with `y` a borrowed mut vec or slice:
+    /// # let y = &mut vec;
+    /// for x in y.iter() {
+    ///     // ..
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```rust
+    /// # let y = &mut vec;
+    /// for x in &*y {
+    ///     // ..
+    /// }
+    /// ```
+    #[clippy::version = "pre 1.29.0"]
+    pub EXPLICIT_ITER_LOOP_DEREF,
+    pedantic,
+    "for-looping over `_.iter()` or `_.iter_mut()` when `&*_` or `&mut *_` would do"
 }
 
 declare_clippy_lint! {
@@ -619,7 +654,6 @@ impl_lint_pass!(Loops => [
     MANUAL_MEMCPY,
     MANUAL_FLATTEN,
     NEEDLESS_RANGE_LOOP,
-    EXPLICIT_ITER_LOOP,
     EXPLICIT_INTO_ITER_LOOP,
     ITER_NEXT_LOOP,
     WHILE_LET_LOOP,
@@ -719,7 +753,8 @@ impl Loops {
         if let ExprKind::MethodCall(method, self_arg, [], _) = arg.kind {
             match method.ident.as_str() {
                 "iter" | "iter_mut" => {
-                    explicit_iter_loop::check(cx, self_arg, arg, &self.msrv);
+                    explicit_iter_loop_std::check(cx, self_arg, arg, &self.msrv);
+                    explicit_iter_loop_deref::check(cx, self_arg, arg, &self.msrv);
                 },
                 "into_iter" => {
                     explicit_into_iter_loop::check(cx, self_arg, arg);
