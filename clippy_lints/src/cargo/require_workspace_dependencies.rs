@@ -14,7 +14,7 @@ pub(super) fn check(cx: &LateContext<'_>, metadata: &Metadata) {
             cx,
             REQUIRE_WORKSPACE_DEPENDENCIES,
             DUMMY_SP,
-            &format!("unable to read the crate manifest `{}`", manifest_path),
+            &format!("unable to read the crate manifest `{manifest_path}`"),
         );
         return;
     };
@@ -23,7 +23,7 @@ pub(super) fn check(cx: &LateContext<'_>, metadata: &Metadata) {
             cx,
             REQUIRE_WORKSPACE_DEPENDENCIES,
             DUMMY_SP,
-            &format!("unable to parse the crate manifest `{}`", manifest_path),
+            &format!("unable to parse the crate manifest `{manifest_path}`"),
         );
         return;
     };
@@ -34,8 +34,8 @@ pub(super) fn check(cx: &LateContext<'_>, metadata: &Metadata) {
         manifest.build_dependencies,
     ]
     .into_iter()
-    .flat_map(|maybe_table| maybe_table.into_iter())
-    .flat_map(|table| table.into_iter());
+    .flat_map(std::iter::IntoIterator::into_iter)
+    .flat_map(std::iter::IntoIterator::into_iter);
 
     for (name, dep) in all_deps {
         if_chain! {
@@ -51,7 +51,7 @@ pub(super) fn check(cx: &LateContext<'_>, metadata: &Metadata) {
             cx,
             REQUIRE_WORKSPACE_DEPENDENCIES,
             DUMMY_SP,
-            &format!("non-workspace dependency `{}`", name),
+            &format!("non-workspace dependency `{name}`"),
         );
     }
 }
