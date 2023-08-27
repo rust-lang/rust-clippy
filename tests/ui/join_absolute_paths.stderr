@@ -1,0 +1,23 @@
+error: argument to `Path::join` starts with a path separator
+  --> $DIR/join_absolute_paths.rs:8:15
+   |
+LL |     path.join("/sh");
+   |               ^^^^^
+   |
+   = note: joining a path starting with separator will replace the path instead
+   = help: if this is unintentional, try removing the starting separator
+   = help: if this is intentional, try creating a new Path instead
+   = note: `-D clippy::join-absolute-paths` implied by `-D warnings`
+
+error: argument to `Path::join` starts with a path separator
+  --> $DIR/join_absolute_paths.rs:12:15
+   |
+LL |     path.join("//user");
+   |               ^^^^^^^^
+   |
+   = note: joining a path starting with separator will replace the path instead
+   = help: if this is unintentional, try removing the starting separator
+   = help: if this is intentional, try creating a new Path instead
+
+error: aborting due to 2 previous errors
+

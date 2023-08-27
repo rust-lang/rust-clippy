@@ -1,0 +1,26 @@
+//@run-rustfix
+#![allow(unused)]
+#![warn(clippy::join_absolute_paths)]
+use std::path::Path;
+
+fn main() {
+    // should be linted
+    let path = Path::new("/bin");
+    pathjoin("your/path/here")"/sh");
+    println!("{}", path.display());
+
+    //should be linted
+    let path = Path::new("C:\\Users");
+    pathjoin("your/path/here")"\\user");
+    println!("{}", path.display());
+
+    // should not be linted
+    let path: &[&str] = &["/bin"];
+    path.join("/sh");
+    println!("{:?}", path);
+
+    //should not be linted
+    let path = Path::new("/bin");
+    path.join("sh");
+    println!("{}", path.display());
+}
