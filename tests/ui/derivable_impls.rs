@@ -18,6 +18,8 @@ struct FooDefault<'a> {
 }
 
 impl std::default::Default for FooDefault<'_> {
+//~^ ERROR: this `impl` can be derived
+//~| NOTE: `-D clippy::derivable-impls` implied by `-D warnings`
     fn default() -> Self {
         Self {
             a: false,
@@ -39,6 +41,7 @@ impl std::default::Default for FooDefault<'_> {
 struct TupleDefault(bool, i32, u64);
 
 impl std::default::Default for TupleDefault {
+//~^ ERROR: this `impl` can be derived
     fn default() -> Self {
         Self(false, 0, 0u64)
     }
@@ -91,6 +94,7 @@ impl Default for FooNDVec {
 struct StrDefault<'a>(&'a str);
 
 impl Default for StrDefault<'_> {
+//~^ ERROR: this `impl` can be derived
     fn default() -> Self {
         Self("")
     }
@@ -117,6 +121,7 @@ mac!(0);
 
 struct Y(u32);
 impl Default for Y {
+//~^ ERROR: this `impl` can be derived
     fn default() -> Self {
         Self(mac!())
     }
@@ -156,6 +161,7 @@ struct WithoutSelfCurly {
 }
 
 impl Default for WithoutSelfCurly {
+//~^ ERROR: this `impl` can be derived
     fn default() -> Self {
         WithoutSelfCurly { a: false }
     }
@@ -164,6 +170,7 @@ impl Default for WithoutSelfCurly {
 struct WithoutSelfParan(bool);
 
 impl Default for WithoutSelfParan {
+//~^ ERROR: this `impl` can be derived
     fn default() -> Self {
         WithoutSelfParan(false)
     }
@@ -214,6 +221,7 @@ pub struct RepeatDefault1 {
 }
 
 impl Default for RepeatDefault1 {
+//~^ ERROR: this `impl` can be derived
     fn default() -> Self {
         RepeatDefault1 { a: [0; 32] }
     }
@@ -248,6 +256,7 @@ pub enum SimpleEnum {
 }
 
 impl Default for SimpleEnum {
+//~^ ERROR: this `impl` can be derived
     fn default() -> Self {
         SimpleEnum::Bar
     }

@@ -7,4 +7,6 @@ fn main() {
 
     // Single-line case.
     let _ = v.iter().filter(|&x| *x < 0).next();
+    //~^ ERROR: called `filter(..).next()` on an `Iterator`. This is more succinctly expre
+    //~| NOTE: `-D clippy::filter-next` implied by `-D warnings`
 }

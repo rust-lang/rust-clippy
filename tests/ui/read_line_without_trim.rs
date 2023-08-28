@@ -10,22 +10,27 @@ fn main() {
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x: i32 = input.parse().unwrap();
+    //~^ ERROR: calling `.parse()` without trimming the trailing newline character
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<i32>().unwrap();
+    //~^ ERROR: calling `.parse()` without trimming the trailing newline character
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<u32>().unwrap();
+    //~^ ERROR: calling `.parse()` without trimming the trailing newline character
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<f32>().unwrap();
+    //~^ ERROR: calling `.parse()` without trimming the trailing newline character
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<bool>().unwrap();
+    //~^ ERROR: calling `.parse()` without trimming the trailing newline character
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();

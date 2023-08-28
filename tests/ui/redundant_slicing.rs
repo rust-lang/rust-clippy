@@ -6,10 +6,13 @@ use std::io::Read;
 fn main() {
     let slice: &[u32] = &[0];
     let _ = &slice[..]; // Redundant slice
+    //~^ ERROR: redundant slicing of the whole range
+    //~| NOTE: `-D clippy::redundant-slicing` implied by `-D warnings`
 
     let v = vec![0];
     let _ = &v[..]; // Ok, results in `&[_]`
     let _ = &(&*v)[..]; // Outer borrow is redundant
+    //~^ ERROR: redundant slicing of the whole range
 
     static S: &[u8] = &[0, 1, 2];
     let _ = &mut &S[..]; // Ok, re-borrows slice
@@ -27,6 +30,7 @@ fn main() {
         };
     }
     let _ = &m!(slice)[..];
+    //~^ ERROR: redundant slicing of the whole range
 
     macro_rules! m2 {
         ($e:expr) => {

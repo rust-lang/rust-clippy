@@ -9,16 +9,21 @@ fn main() {
     // basic case
     let foo: Option<i32> = None;
     foo.map_or(Err("error"), |v| Ok(v));
+    //~^ ERROR: this pattern reimplements `Option::ok_or`
+    //~| NOTE: `-D clippy::manual-ok-or` implied by `-D warnings`
 
     // eta expansion case
     foo.map_or(Err("error"), Ok);
+    //~^ ERROR: this pattern reimplements `Option::ok_or`
 
     // turbo fish syntax
     None::<i32>.map_or(Err("error"), |v| Ok(v));
+    //~^ ERROR: this pattern reimplements `Option::ok_or`
 
     // multiline case
     #[rustfmt::skip]
     foo.map_or(Err::<i32, &str>(
+    //~^ ERROR: this pattern reimplements `Option::ok_or`
         &format!(
             "{}{}{}{}{}{}{}",
             "Alice", "Bob", "Sarah", "Marc", "Sandra", "Eric", "Jenifer")

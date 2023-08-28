@@ -5,11 +5,15 @@
 fn main() {
     // should lint
     let _: Option<&usize> = Some(&1).as_deref();
+    //~^ ERROR: derefed type is same as origin
+    //~| NOTE: `-D clippy::needless-option-as-deref` implied by `-D warnings`
     let _: Option<&mut usize> = Some(&mut 1).as_deref_mut();
+    //~^ ERROR: derefed type is same as origin
 
     let mut y = 0;
     let mut x = Some(&mut y);
     let _ = x.as_deref_mut();
+    //~^ ERROR: derefed type is same as origin
 
     // should not lint
     let _ = Some(Box::new(1)).as_deref();

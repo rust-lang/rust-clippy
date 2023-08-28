@@ -27,19 +27,25 @@ fn main() {}
 fn foo() -> Option<()> {
     // Fire here, normal case
     let Some(v) = g() else { return None };
+    //~^ ERROR: this `let...else` may be rewritten with the `?` operator
+    //~| NOTE: `-D clippy::question-mark` implied by `-D warnings`
 
     // Don't fire here, the pattern is refutable
     let Variant::A(v, w) = e() else { return None };
 
     // Fire here, the pattern is irrefutable
     let Some((v, w)) = g() else { return None };
+    //~^ ERROR: this `let...else` may be rewritten with the `?` operator
 
     // Don't fire manual_let_else in this instance: question mark can be used instead.
     let v = if let Some(v_some) = g() { v_some } else { return None };
+    //~^ ERROR: this block may be rewritten with the `?` operator
 
     // Do fire manual_let_else in this instance: question mark cannot be used here due to the return
     // body.
     let v = if let Some(v_some) = g() {
+    //~^ ERROR: this could be rewritten as `let...else`
+    //~| NOTE: `-D clippy::manual-let-else` implied by `-D warnings`
         v_some
     } else {
         return Some(());
@@ -51,6 +57,7 @@ fn foo() -> Option<()> {
     #[allow(clippy::question_mark)]
     {
         let v = match g() {
+        //~^ ERROR: this could be rewritten as `let...else`
             Some(v_some) => v_some,
             _ => return None,
         };
@@ -61,6 +68,7 @@ fn foo() -> Option<()> {
     #[allow(clippy::question_mark)]
     {
         let v = if let Some(v_some) = g() { v_some } else { return None };
+        //~^ ERROR: this could be rewritten as `let...else`
     }
 
     Some(())

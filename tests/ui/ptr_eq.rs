@@ -17,7 +17,10 @@ fn main() {
     let b = &[1, 2, 3];
 
     let _ = a as *const _ as usize == b as *const _ as usize;
+    //~^ ERROR: use `std::ptr::eq` when comparing raw pointers
+    //~| NOTE: `-D clippy::ptr-eq` implied by `-D warnings`
     let _ = a as *const _ == b as *const _;
+    //~^ ERROR: use `std::ptr::eq` when comparing raw pointers
     let _ = a.as_ptr() == b as *const _;
     let _ = a.as_ptr() == b.as_ptr();
 

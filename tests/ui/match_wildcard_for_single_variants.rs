@@ -20,6 +20,8 @@ impl Color {
             Self::Green => (),
             Self::Blue => (),
             _ => (),
+            //~^ ERROR: wildcard matches only a single variant and will also match any fut
+            //~| NOTE: `-D clippy::match-wildcard-for-single-variants` implied by `-D warn
         };
     }
 }
@@ -30,6 +32,7 @@ fn main() {
         Foo::A => {},
         Foo::B => {},
         _ => {},
+        //~^ ERROR: wildcard matches only a single variant and will also match any future
     }
 
     let color = Color::Red;
@@ -40,6 +43,7 @@ fn main() {
         Color::Green => {},
         Color::Rgb(_r, _g, _b) => {},
         _ => {},
+        //~^ ERROR: wildcard matches only a single variant and will also match any future
     }
 
     // check exhaustive wild
@@ -48,12 +52,14 @@ fn main() {
         Color::Green => {},
         Color::Rgb(..) => {},
         _ => {},
+        //~^ ERROR: wildcard matches only a single variant and will also match any future
     }
     match color {
         Color::Red => {},
         Color::Green => {},
         Color::Rgb(_, _, _) => {},
         _ => {},
+        //~^ ERROR: wildcard matches only a single variant and will also match any future
     }
 
     // shouldn't lint as there is one missing variant
@@ -71,6 +77,7 @@ fn main() {
         Color::Green => (),
         &Color::Rgb(..) => (),
         &_ => (),
+        //~^ ERROR: wildcard matches only a single variant and will also match any future
     }
 
     use self::Color as C;
@@ -80,6 +87,7 @@ fn main() {
         C::Green => (),
         C::Rgb(..) => (),
         _ => (),
+        //~^ ERROR: wildcard matches only a single variant and will also match any future
     }
 
     match color {
@@ -87,6 +95,7 @@ fn main() {
         Color::Green => (),
         Color::Rgb(..) => (),
         _ => (),
+        //~^ ERROR: wildcard matches only a single variant and will also match any future
     }
 
     match Some(0) {
@@ -122,6 +131,7 @@ fn main() {
             Enum::B => (),
             Enum::C => (),
             _ => (),
+            //~^ ERROR: wildcard matches only a single variant and will also match any fut
         }
         match Enum::A {
             Enum::A => (),
@@ -149,6 +159,7 @@ mod issue9993 {
             _ if false => 0,
             Foo::A(_) => 1,
             _ => 2,
+            //~^ ERROR: wildcard matches only a single variant and will also match any fut
         };
     }
 }

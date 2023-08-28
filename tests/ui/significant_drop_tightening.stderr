@@ -23,14 +23,14 @@ LL +     drop(lock);
    |
 
 error: temporary with significant `Drop` can be early dropped
-  --> $DIR/significant_drop_tightening.rs:104:13
+  --> $DIR/significant_drop_tightening.rs:106:13
    |
 LL | /     {
 LL | |         let mutex = Mutex::new(1i32);
 LL | |         let lock = mutex.lock().unwrap();
    | |             ^^^^
-LL | |         let rslt0 = lock.abs();
-LL | |         let rslt1 = lock.is_positive();
+LL | |
+...  |
 LL | |         do_heavy_computation_that_takes_time((rslt0, rslt1));
 LL | |     }
    | |_____- temporary `lock` is currently being dropped at the end of its contained scope
@@ -43,13 +43,14 @@ LL +         drop(lock);
    |
 
 error: temporary with significant `Drop` can be early dropped
-  --> $DIR/significant_drop_tightening.rs:125:13
+  --> $DIR/significant_drop_tightening.rs:129:13
    |
 LL | /     {
 LL | |         let mutex = Mutex::new(1i32);
 LL | |         let lock = mutex.lock().unwrap();
    | |             ^^^^
-LL | |         let rslt0 = lock.abs();
+LL | |
+...  |
 LL | |         do_heavy_computation_that_takes_time(rslt0);
 LL | |     }
    | |_____- temporary `lock` is currently being dropped at the end of its contained scope
@@ -67,13 +68,14 @@ LL +
    |
 
 error: temporary with significant `Drop` can be early dropped
-  --> $DIR/significant_drop_tightening.rs:131:17
+  --> $DIR/significant_drop_tightening.rs:137:17
    |
 LL | /     {
 LL | |         let mutex = Mutex::new(vec![1i32]);
 LL | |         let mut lock = mutex.lock().unwrap();
    | |                 ^^^^
-LL | |         lock.clear();
+LL | |
+...  |
 LL | |         do_heavy_computation_that_takes_time(());
 LL | |     }
    | |_____- temporary `lock` is currently being dropped at the end of its contained scope

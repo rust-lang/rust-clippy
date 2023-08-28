@@ -11,13 +11,13 @@ LL | #![deny(clippy::zero_ptr)]
    |         ^^^^^^^^^^^^^^^^
 
 error: `0 as *mut _` detected
-  --> $DIR/zero_ptr_no_std.rs:8:13
+  --> $DIR/zero_ptr_no_std.rs:9:13
    |
 LL |     let _ = 0 as *mut f64;
    |             ^^^^^^^^^^^^^ help: try: `core::ptr::null_mut::<f64>()`
 
 error: `0 as *const _` detected
-  --> $DIR/zero_ptr_no_std.rs:9:24
+  --> $DIR/zero_ptr_no_std.rs:11:24
    |
 LL |     let _: *const u8 = 0 as *const _;
    |                        ^^^^^^^^^^^^^ help: try: `core::ptr::null()`

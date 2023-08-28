@@ -8,7 +8,9 @@ fn main() {
     let rrrstr: &&&str = &rrstr;
     let _: String = rstr.to_string();
     let _: String = (*rrstr).to_string();
+    //~^ ERROR: calling `to_string` on `&&str`
     let _: String = (**rrrstr).to_string();
+    //~^ ERROR: calling `to_string` on `&&&str`
 
     let string: String = String::from("hello");
     let rstring: &String = &string;
@@ -17,7 +19,9 @@ fn main() {
     let _: String = string.to_string();
     let _: String = rstring.to_string();
     let _: String = (*rrstring).to_string();
+    //~^ ERROR: calling `to_string` on `&&std::string::String`
     let _: String = (**rrrstring).to_string();
+    //~^ ERROR: calling `to_string` on `&&&std::string::String`
 
     let cow: Cow<'_, str> = Cow::Borrowed("hello");
     let rcow: &Cow<'_, str> = &cow;
@@ -26,5 +30,7 @@ fn main() {
     let _: String = cow.to_string();
     let _: String = rcow.to_string();
     let _: String = (*rrcow).to_string();
+    //~^ ERROR: calling `to_string` on `&&std::borrow::Cow<'_, str>`
     let _: String = (**rrrcow).to_string();
+    //~^ ERROR: calling `to_string` on `&&&std::borrow::Cow<'_, str>`
 }

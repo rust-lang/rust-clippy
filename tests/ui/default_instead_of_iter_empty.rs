@@ -10,8 +10,12 @@ struct Iter {
 fn main() {
     // Do lint.
     let _ = std::iter::Empty::<usize>::default();
+    //~^ ERROR: `std::iter::empty()` is the more idiomatic way
+    //~| NOTE: `-D clippy::default-instead-of-iter-empty` implied by `-D warnings`
     let _ = std::iter::Empty::<HashMap<usize, usize>>::default();
+    //~^ ERROR: `std::iter::empty()` is the more idiomatic way
     let _foo: std::iter::Empty<usize> = std::iter::Empty::default();
+    //~^ ERROR: `std::iter::empty()` is the more idiomatic way
 
     // Do not lint.
     let _ = Vec::<usize>::default();

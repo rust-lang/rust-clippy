@@ -14,49 +14,69 @@ fn main() {
     let mut vec = vec![1, 2, 3, 4];
 
     for _ in vec.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
     for _ in vec.iter_mut() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let rvec = &vec;
     for _ in rvec.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let rmvec = &mut vec;
     for _ in rmvec.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
     for _ in rmvec.iter_mut() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     for _ in &vec {} // these are fine
     for _ in &mut vec {} // these are fine
 
     for _ in [1, 2, 3].iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     for _ in (&mut [1, 2, 3]).iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
+    //~| ERROR: the method `iter` doesn't need a mutable reference
+    //~| NOTE: `-D clippy::unnecessary-mut-passed` implied by `-D warnings`
 
     for _ in [0; 32].iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
     for _ in [0; 33].iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let ll: LinkedList<()> = LinkedList::new();
     for _ in ll.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
     let rll = &ll;
     for _ in rll.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let vd: VecDeque<()> = VecDeque::new();
     for _ in vd.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
     let rvd = &vd;
     for _ in rvd.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let bh: BinaryHeap<()> = BinaryHeap::new();
     for _ in bh.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let hm: HashMap<(), ()> = HashMap::new();
     for _ in hm.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let bt: BTreeMap<(), ()> = BTreeMap::new();
     for _ in bt.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let hs: HashSet<()> = HashSet::new();
     for _ in hs.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let bs: BTreeSet<()> = BTreeSet::new();
     for _ in bs.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     struct NoIntoIter();
     impl NoIntoIter {
@@ -146,8 +166,11 @@ fn main() {
     }
     let mut x = CustomType;
     for _ in x.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
     for _ in x.iter_mut() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 
     let r = &x;
     for _ in r.iter() {}
+    //~^ ERROR: it is more concise to loop over references to containers instead of using
 }

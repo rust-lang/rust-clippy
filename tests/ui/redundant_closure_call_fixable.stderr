@@ -7,10 +7,11 @@ LL |     let a = (|| 42)();
    = note: `-D clippy::redundant-closure-call` implied by `-D warnings`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:17:13
+  --> $DIR/redundant_closure_call_fixable.rs:19:13
    |
 LL |       let b = (async || {
    |  _____________^
+LL | |
 LL | |         let x = something().await;
 LL | |         let y = something_else().await;
 LL | |         x * y
@@ -20,6 +21,7 @@ LL | |     })();
 help: try doing something like
    |
 LL ~     let b = async {
+LL +
 LL +         let x = something().await;
 LL +         let y = something_else().await;
 LL +         x * y
@@ -27,10 +29,11 @@ LL ~     };
    |
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:22:13
+  --> $DIR/redundant_closure_call_fixable.rs:25:13
    |
 LL |       let c = (|| {
    |  _____________^
+LL | |
 LL | |         let x = 21;
 LL | |         let y = 2;
 LL | |         x * y
@@ -40,6 +43,7 @@ LL | |     })();
 help: try doing something like
    |
 LL ~     let c = {
+LL +
 LL +         let x = 21;
 LL +         let y = 2;
 LL +         x * y
@@ -47,13 +51,13 @@ LL ~     };
    |
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:27:13
+  --> $DIR/redundant_closure_call_fixable.rs:31:13
    |
 LL |     let d = (async || something().await)();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try doing something like: `async { something().await }`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:36:13
+  --> $DIR/redundant_closure_call_fixable.rs:41:13
    |
 LL |             (|| m!())()
    |             ^^^^^^^^^^^ help: try doing something like: `m!()`
@@ -64,7 +68,7 @@ LL |     m2!();
    = note: this error originates in the macro `m2` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:31:13
+  --> $DIR/redundant_closure_call_fixable.rs:36:13
    |
 LL |             (|| 0)()
    |             ^^^^^^^^ help: try doing something like: `0`
@@ -75,49 +79,49 @@ LL |     m2!();
    = note: this error originates in the macro `m` which comes from the expansion of the macro `m2` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:44:16
+  --> $DIR/redundant_closure_call_fixable.rs:49:16
    |
 LL |     assert_eq!((|| || 43)()(), 42);
    |                ^^^^^^^^^^^^^^ help: try doing something like: `43`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:53:10
+  --> $DIR/redundant_closure_call_fixable.rs:59:10
    |
 LL |     dbg!((|| 42)());
    |          ^^^^^^^^^ help: try doing something like: `42`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:56:13
+  --> $DIR/redundant_closure_call_fixable.rs:63:13
    |
 LL |     let a = (|| || || 123)();
    |             ^^^^^^^^^^^^^^^^ help: try doing something like: `(|| || 123)`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:60:13
+  --> $DIR/redundant_closure_call_fixable.rs:68:13
    |
 LL |     let a = (|| || || || async || 1)()()()()();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try doing something like: `async { 1 }`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:69:13
+  --> $DIR/redundant_closure_call_fixable.rs:78:13
    |
 LL |     let a = (|| echo!(|| echo!(|| 1)))()()();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try doing something like: `1`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:71:13
+  --> $DIR/redundant_closure_call_fixable.rs:81:13
    |
 LL |     let a = (|| echo!((|| 123)))()();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try doing something like: `123`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:84:11
+  --> $DIR/redundant_closure_call_fixable.rs:95:11
    |
 LL |     bar()((|| || 42)()(), 5);
    |           ^^^^^^^^^^^^^^ help: try doing something like: `42`
 
 error: try not to call a closure in the expression where it is declared
-  --> $DIR/redundant_closure_call_fixable.rs:85:9
+  --> $DIR/redundant_closure_call_fixable.rs:97:9
    |
 LL |     foo((|| || 42)()(), 5);
    |         ^^^^^^^^^^^^^^ help: try doing something like: `42`

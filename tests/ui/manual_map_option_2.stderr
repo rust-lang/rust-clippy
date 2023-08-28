@@ -3,10 +3,10 @@ error: manual implementation of `Option::map`
    |
 LL |       let _ = match Some(0) {
    |  _____________^
+LL | |
+LL | |
 LL | |         Some(x) => Some({
-LL | |             let y = (String::new(), String::new());
-LL | |             (x, y.0)
-LL | |         }),
+...  |
 LL | |         None => None,
 LL | |     };
    | |_____^
@@ -21,10 +21,11 @@ LL ~         });
    |
 
 error: manual implementation of `Option::map`
-  --> $DIR/manual_map_option_2.rs:48:13
+  --> $DIR/manual_map_option_2.rs:50:13
    |
 LL |       let _ = match &s {
    |  _____________^
+LL | |
 LL | |         Some(x) => Some({
 LL | |             if let Some(ref s) = s { (x.clone(), s) } else { panic!() }
 LL | |         }),
@@ -40,30 +41,33 @@ LL ~         });
    |
 
 error: manual implementation of `Option::map`
-  --> $DIR/manual_map_option_2.rs:60:17
+  --> $DIR/manual_map_option_2.rs:63:17
    |
 LL |           let _ = match Some(0) {
    |  _________________^
+LL | |
 LL | |             Some(x) => Some(f(x)),
 LL | |             None => None,
 LL | |         };
    | |_________^ help: try: `Some(0).map(|x| f(x))`
 
 error: manual implementation of `Option::map`
-  --> $DIR/manual_map_option_2.rs:65:13
+  --> $DIR/manual_map_option_2.rs:69:13
    |
 LL |       let _ = match Some(0) {
    |  _____________^
+LL | |
 LL | |         Some(x) => unsafe { Some(f(x)) },
 LL | |         None => None,
 LL | |     };
    | |_____^ help: try: `Some(0).map(|x| unsafe { f(x) })`
 
 error: manual implementation of `Option::map`
-  --> $DIR/manual_map_option_2.rs:69:13
+  --> $DIR/manual_map_option_2.rs:74:13
    |
 LL |       let _ = match Some(0) {
    |  _____________^
+LL | |
 LL | |         Some(x) => Some(unsafe { f(x) }),
 LL | |         None => None,
 LL | |     };

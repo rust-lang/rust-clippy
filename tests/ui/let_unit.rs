@@ -10,10 +10,13 @@ macro_rules! let_and_return {
 
 fn main() {
     let _x = println!("x");
+    //~^ ERROR: this let-binding has unit value
+    //~| NOTE: `-D clippy::let-unit-value` implied by `-D warnings`
     let _y = 1; // this is fine
     let _z = ((), 1); // this as well
     if true {
         let _a = ();
+        //~^ ERROR: this let-binding has unit value
     }
 
     consume_units_with_for_loop(); // should be fine as well
@@ -49,6 +52,7 @@ fn multiline_sugg() {
     let v: Vec<u8> = vec![2];
 
     let _ = v
+    //~^ ERROR: this let-binding has unit value
         .into_iter()
         .map(|i| i * 2)
         .filter(|i| i % 2 == 0)
@@ -76,12 +80,16 @@ fn _returns_generic() {
 
     let _: () = f(); // Ok
     let x: () = f(); // Lint.
+    //~^ ERROR: this let-binding has unit value
 
     let _: () = f2(0i32); // Ok
     let x: () = f2(0i32); // Lint.
+    //~^ ERROR: this let-binding has unit value
 
     let _: () = f3(()); // Lint
+    //~^ ERROR: this let-binding has unit value
     let x: () = f3(()); // Lint
+    //~^ ERROR: this let-binding has unit value
 
     // Should lint:
     // fn f4<T>(mut x: Vec<T>) -> T {
@@ -98,6 +106,7 @@ fn _returns_generic() {
 
     let _: () = if true { f() } else { f2(0) }; // Ok
     let x: () = if true { f() } else { f2(0) }; // Lint
+    //~^ ERROR: this let-binding has unit value
 
     // Ok
     let _: () = match Some(0) {
@@ -109,6 +118,7 @@ fn _returns_generic() {
 
     // Lint
     let _: () = match Some(0) {
+    //~^ ERROR: this let-binding has unit value
         None => f2(1),
         Some(0) => f(),
         Some(1) => f2(3),
@@ -156,6 +166,7 @@ fn _returns_generic() {
             let _: () = x;
             let _: () = y;
             let _: () = z;
+            //~^ ERROR: this let-binding has unit value
             let _: () = x1;
             let _: () = x2;
             let _: () = opt;

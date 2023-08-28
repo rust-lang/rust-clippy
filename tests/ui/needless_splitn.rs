@@ -11,29 +11,42 @@ use itertools::Itertools;
 fn main() {
     let str = "key=value=end";
     let _ = str.splitn(2, '=').next();
+    //~^ ERROR: unnecessary use of `splitn`
+    //~| NOTE: `-D clippy::needless-splitn` implied by `-D warnings`
     let _ = str.splitn(2, '=').nth(0);
+    //~^ ERROR: unnecessary use of `splitn`
     let _ = str.splitn(2, '=').nth(1);
     let (_, _) = str.splitn(2, '=').next_tuple().unwrap();
     let (_, _) = str.splitn(3, '=').next_tuple().unwrap();
+    //~^ ERROR: unnecessary use of `splitn`
     let _: Vec<&str> = str.splitn(3, '=').collect();
 
     let _ = str.rsplitn(2, '=').next();
+    //~^ ERROR: unnecessary use of `rsplitn`
     let _ = str.rsplitn(2, '=').nth(0);
+    //~^ ERROR: unnecessary use of `rsplitn`
     let _ = str.rsplitn(2, '=').nth(1);
     let (_, _) = str.rsplitn(2, '=').next_tuple().unwrap();
     let (_, _) = str.rsplitn(3, '=').next_tuple().unwrap();
+    //~^ ERROR: unnecessary use of `rsplitn`
 
     let _ = str.splitn(5, '=').next();
+    //~^ ERROR: unnecessary use of `splitn`
     let _ = str.splitn(5, '=').nth(3);
+    //~^ ERROR: unnecessary use of `splitn`
     let _ = str.splitn(5, '=').nth(4);
     let _ = str.splitn(5, '=').nth(5);
 }
 
 fn _question_mark(s: &str) -> Option<()> {
     let _ = s.splitn(2, '=').next()?;
+    //~^ ERROR: unnecessary use of `splitn`
     let _ = s.splitn(2, '=').nth(0)?;
+    //~^ ERROR: unnecessary use of `splitn`
     let _ = s.rsplitn(2, '=').next()?;
+    //~^ ERROR: unnecessary use of `rsplitn`
     let _ = s.rsplitn(2, '=').nth(0)?;
+    //~^ ERROR: unnecessary use of `rsplitn`
 
     Some(())
 }
@@ -42,4 +55,5 @@ fn _question_mark(s: &str) -> Option<()> {
 fn _test_msrv() {
     // `manual_split_once` MSRV shouldn't apply to `needless_splitn`
     let _ = "key=value".splitn(2, '=').nth(0).unwrap();
+    //~^ ERROR: unnecessary use of `splitn`
 }

@@ -12,17 +12,27 @@ fn main() {
     let map: HashMap<u32, u32> = HashMap::new();
 
     let _ = map.iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's keys
+    //~| NOTE: `-D clippy::iter-kv-map` implied by `-D warnings`
     let _ = map.iter().map(|(_, value)| value).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
     let _ = map.iter().map(|(_, v)| v + 2).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
 
     let _ = map.clone().into_iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's keys
     let _ = map.clone().into_iter().map(|(key, _)| key + 2).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's keys
 
     let _ = map.clone().into_iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
     let _ = map.clone().into_iter().map(|(_, val)| val + 2).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
 
     let _ = map.clone().iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
     let _ = map.iter().map(|(key, _)| key).filter(|x| *x % 2 == 0).count();
+    //~^ ERROR: iterating on a map's keys
 
     // Don't lint
     let _ = map.iter().filter(|(_, val)| *val % 2 == 0).map(|(key, _)| key).count();
@@ -33,13 +43,17 @@ fn main() {
 
     // Lint
     let _ = map.iter().map(|(key, _value)| key * 9).count();
+    //~^ ERROR: iterating on a map's keys
     let _ = map.iter().map(|(_key, value)| value * 17).count();
+    //~^ ERROR: iterating on a map's values
 
     // Preserve the ref in the fix.
     let _ = map.clone().into_iter().map(|(_, ref val)| ref_acceptor(val)).count();
+    //~^ ERROR: iterating on a map's values
 
     // Preserve the mut in the fix.
     let _ = map
+    //~^ ERROR: iterating on a map's values
         .clone()
         .into_iter()
         .map(|(_, mut val)| {
@@ -50,21 +64,31 @@ fn main() {
 
     // Don't let a mut interfere.
     let _ = map.clone().into_iter().map(|(_, mut val)| val).count();
+    //~^ ERROR: iterating on a map's values
 
     let map: BTreeMap<u32, u32> = BTreeMap::new();
 
     let _ = map.iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's keys
     let _ = map.iter().map(|(_, value)| value).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
     let _ = map.iter().map(|(_, v)| v + 2).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
 
     let _ = map.clone().into_iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's keys
     let _ = map.clone().into_iter().map(|(key, _)| key + 2).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's keys
 
     let _ = map.clone().into_iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
     let _ = map.clone().into_iter().map(|(_, val)| val + 2).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
 
     let _ = map.clone().iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ ERROR: iterating on a map's values
     let _ = map.iter().map(|(key, _)| key).filter(|x| *x % 2 == 0).count();
+    //~^ ERROR: iterating on a map's keys
 
     // Don't lint
     let _ = map.iter().filter(|(_, val)| *val % 2 == 0).map(|(key, _)| key).count();
@@ -75,13 +99,17 @@ fn main() {
 
     // Lint
     let _ = map.iter().map(|(key, _value)| key * 9).count();
+    //~^ ERROR: iterating on a map's keys
     let _ = map.iter().map(|(_key, value)| value * 17).count();
+    //~^ ERROR: iterating on a map's values
 
     // Preserve the ref in the fix.
     let _ = map.clone().into_iter().map(|(_, ref val)| ref_acceptor(val)).count();
+    //~^ ERROR: iterating on a map's values
 
     // Preserve the mut in the fix.
     let _ = map
+    //~^ ERROR: iterating on a map's values
         .clone()
         .into_iter()
         .map(|(_, mut val)| {
@@ -92,4 +120,5 @@ fn main() {
 
     // Don't let a mut interfere.
     let _ = map.clone().into_iter().map(|(_, mut val)| val).count();
+    //~^ ERROR: iterating on a map's values
 }

@@ -14,14 +14,24 @@ macro_rules! trip {
 
 fn main() {
     1 << 2 + 3;
+    //~^ ERROR: operator precedence can trip the unwary
+    //~| NOTE: `-D clippy::precedence` implied by `-D warnings`
     1 + 2 << 3;
+    //~^ ERROR: operator precedence can trip the unwary
     4 >> 1 + 1;
+    //~^ ERROR: operator precedence can trip the unwary
     1 + 3 >> 2;
+    //~^ ERROR: operator precedence can trip the unwary
     1 ^ 1 - 1;
+    //~^ ERROR: operator precedence can trip the unwary
     3 | 2 - 1;
+    //~^ ERROR: operator precedence can trip the unwary
     3 & 5 - 2;
+    //~^ ERROR: operator precedence can trip the unwary
     -1i32.abs();
+    //~^ ERROR: unary minus has lower precedence than method call
     -1f32.abs();
+    //~^ ERROR: unary minus has lower precedence than method call
 
     // These should not trigger an error
     let _ = (-1i32).abs();
@@ -49,8 +59,11 @@ fn main() {
 
     // Chains containing any non-odd function should trigger (issue #5924)
     let _ = -1.0_f64.cos().cos();
+    //~^ ERROR: unary minus has lower precedence than method call
     let _ = -1.0_f64.cos().sin();
+    //~^ ERROR: unary minus has lower precedence than method call
     let _ = -1.0_f64.sin().cos();
+    //~^ ERROR: unary minus has lower precedence than method call
 
     // Chains of odd functions shouldn't trigger
     let _ = -1f64.sin().sin();

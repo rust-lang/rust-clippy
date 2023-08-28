@@ -15,6 +15,8 @@ fn main() {
     fn size_hint<I: Iterator>(iter: &AppendIter<I>) -> (usize, Option<usize>) {
         match &iter.inner {
             Some((iter, _item)) => match iter.size_hint() {
+            //~^ ERROR: this match could be written as a `let` statement
+            //~| NOTE: `-D clippy::match-single-binding` implied by `-D warnings`
                 (min, max) => (min.saturating_add(1), max.and_then(|max| max.checked_add(1))),
             },
             None => (0, Some(0)),
@@ -28,6 +30,7 @@ fn main() {
         #[rustfmt::skip]
         Some((first, _second)) => {
             match get_tup() {
+            //~^ ERROR: this match could be written as a `let` statement
                 (a, b) => println!("a {:?} and b {:?}", a, b),
             }
         },
@@ -39,6 +42,7 @@ fn main() {
     // Lint (scrutinee has side effects)
     // issue #7094
     match side_effects() {
+    //~^ ERROR: this match could be replaced by its scrutinee and body
         _ => println!("Side effects"),
     }
 
@@ -46,6 +50,7 @@ fn main() {
     // issue #7094
     let x = 1;
     match match x {
+    //~^ ERROR: this match could be replaced by its scrutinee and body
         0 => 1,
         _ => 2,
     } {

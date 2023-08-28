@@ -6,6 +6,8 @@
 struct StringWrapper(String);
 
 impl Into<StringWrapper> for String {
+//~^ ERROR: an implementation of `From` is preferred since it gives you `Into<_>` for free
+//~| NOTE: `-D clippy::from-over-into` implied by `-D warnings`
     fn into(self) -> StringWrapper {
         StringWrapper(self)
     }
@@ -14,6 +16,7 @@ impl Into<StringWrapper> for String {
 struct SelfType(String);
 
 impl Into<SelfType> for String {
+//~^ ERROR: an implementation of `From` is preferred since it gives you `Into<_>` for free
     fn into(self) -> SelfType {
         SelfType(Self::new())
     }
@@ -29,6 +32,7 @@ impl X {
 struct SelfKeywords;
 
 impl Into<SelfKeywords> for X {
+//~^ ERROR: an implementation of `From` is preferred since it gives you `Into<_>` for free
     fn into(self) -> SelfKeywords {
         let _ = Self;
         let _ = Self::FOO;
@@ -41,6 +45,7 @@ impl Into<SelfKeywords> for X {
 struct ExplicitPaths(bool);
 
 impl core::convert::Into<bool> for crate::ExplicitPaths {
+//~^ ERROR: an implementation of `From` is preferred since it gives you `Into<_>` for free
     fn into(mut self) -> bool {
         let in_closure = || self.0;
 
@@ -61,6 +66,7 @@ impl From<String> for A {
 struct PathInExpansion;
 
 impl Into<String> for PathInExpansion {
+//~^ ERROR: an implementation of `From` is preferred since it gives you `Into<_>` for free
     fn into(self) -> String {
         // non self/Self paths in expansions are fine
         panic!()
@@ -83,6 +89,7 @@ fn msrv_1_41() {
     struct FromOverInto<T>(Vec<T>);
 
     impl<T> Into<FromOverInto<T>> for Vec<T> {
+    //~^ ERROR: an implementation of `From` is preferred since it gives you `Into<_>` for
         fn into(self) -> FromOverInto<T> {
             FromOverInto(self)
         }

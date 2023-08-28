@@ -5,4 +5,6 @@
 fn main() {
     let s = "Hello, world!";
     println!("{}", s.to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
+    //~| NOTE: `-D clippy::to-string-in-format-args` implied by `-D warnings`
 }

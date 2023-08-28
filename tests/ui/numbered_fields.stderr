@@ -3,6 +3,8 @@ error: used a field initializer for a tuple struct
    |
 LL |       let _ = TupleStruct {
    |  _____________^
+LL | |
+LL | |
 LL | |         0: 1u32,
 LL | |         1: 42,
 LL | |         2: 23u8,
@@ -12,10 +14,11 @@ LL | |     };
    = note: `-D clippy::init-numbered-fields` implied by `-D warnings`
 
 error: used a field initializer for a tuple struct
-  --> $DIR/numbered_fields.rs:25:13
+  --> $DIR/numbered_fields.rs:27:13
    |
 LL |       let _ = TupleStruct {
    |  _____________^
+LL | |
 LL | |         0: 1u32,
 LL | |         2: 2u8,
 LL | |         1: 3u32,

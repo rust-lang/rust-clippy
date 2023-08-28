@@ -6,18 +6,28 @@ fn methods_with_negation() {
     let b: Result<i32, i32> = unimplemented!();
     let _ = a.is_some();
     let _ = !a.is_some();
+    //~^ ERROR: this boolean expression can be simplified
+    //~| NOTE: `-D clippy::nonminimal-bool` implied by `-D warnings`
     let _ = a.is_none();
     let _ = !a.is_none();
+    //~^ ERROR: this boolean expression can be simplified
     let _ = b.is_err();
     let _ = !b.is_err();
+    //~^ ERROR: this boolean expression can be simplified
     let _ = b.is_ok();
     let _ = !b.is_ok();
+    //~^ ERROR: this boolean expression can be simplified
     let c = false;
     let _ = !(a.is_some() && !c);
+    //~^ ERROR: this boolean expression can be simplified
     let _ = !(a.is_some() || !c);
+    //~^ ERROR: this boolean expression can be simplified
     let _ = !(!c ^ c) || !a.is_some();
+    //~^ ERROR: this boolean expression can be simplified
     let _ = (!c ^ c) || !a.is_some();
+    //~^ ERROR: this boolean expression can be simplified
     let _ = !c ^ c || !a.is_some();
+    //~^ ERROR: this boolean expression can be simplified
 }
 
 // Simplified versions of https://github.com/rust-lang/rust-clippy/issues/2638
@@ -90,11 +100,15 @@ fn dont_warn_for_custom_methods_with_negation() {
 fn warn_for_built_in_methods_with_negation() {
     let res: Result<usize, usize> = Ok(1);
     if !res.is_ok() {}
+    //~^ ERROR: this boolean expression can be simplified
     if !res.is_err() {}
+    //~^ ERROR: this boolean expression can be simplified
 
     let res = Some(1);
     if !res.is_some() {}
+    //~^ ERROR: this boolean expression can be simplified
     if !res.is_none() {}
+    //~^ ERROR: this boolean expression can be simplified
 }
 
 #[allow(clippy::neg_cmp_op_on_partial_ord)]

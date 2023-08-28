@@ -6,6 +6,8 @@ fn ref_pats() {
     {
         let v = &Some(0);
         match v {
+        //~^ ERROR: you don't need to add `&` to all patterns
+        //~| NOTE: `-D clippy::match-ref-pats` implied by `-D warnings`
             &Some(v) => println!("{:?}", v),
             &None => println!("none"),
         }
@@ -23,6 +25,7 @@ fn ref_pats() {
     // Special case: using `&` both in expr and pats.
     let w = Some(0);
     match &w {
+    //~^ ERROR: you don't need to add `&` to both the expression and the patterns
         &Some(v) => println!("{:?}", v),
         &None => println!("none"),
     }
@@ -35,11 +38,14 @@ fn ref_pats() {
 
     let a = &Some(0);
     if let &None = a {
+    //~^ ERROR: redundant pattern matching, consider using `is_none()`
+    //~| NOTE: `-D clippy::redundant-pattern-matching` implied by `-D warnings`
         println!("none");
     }
 
     let b = Some(0);
     if let &None = &b {
+    //~^ ERROR: redundant pattern matching, consider using `is_none()`
         println!("none");
     }
 }
@@ -100,6 +106,7 @@ mod issue_7740 {
     fn issue_7740() {
         // Issue #7740
         match foobar_variant!(0) {
+        //~^ ERROR: you don't need to add `&` to all patterns
             &FooBar::Foo => println!("Foo"),
             &FooBar::Bar => println!("Bar"),
             &FooBar::FooBar => println!("FooBar"),

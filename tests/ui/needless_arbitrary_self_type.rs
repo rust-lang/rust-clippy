@@ -8,6 +8,8 @@ pub enum ValType {
 
 impl ValType {
     pub fn bad(self: Self) {
+    //~^ ERROR: the type of the `self` parameter does not need to be arbitrary
+    //~| NOTE: `-D clippy::needless-arbitrary-self-type` implied by `-D warnings`
         unimplemented!();
     }
 
@@ -16,6 +18,7 @@ impl ValType {
     }
 
     pub fn mut_bad(mut self: Self) {
+    //~^ ERROR: the type of the `self` parameter does not need to be arbitrary
         unimplemented!();
     }
 
@@ -24,6 +27,7 @@ impl ValType {
     }
 
     pub fn ref_bad(self: &Self) {
+    //~^ ERROR: the type of the `self` parameter does not need to be arbitrary
         unimplemented!();
     }
 
@@ -32,6 +36,7 @@ impl ValType {
     }
 
     pub fn ref_bad_with_lifetime<'a>(self: &'a Self) {
+    //~^ ERROR: the type of the `self` parameter does not need to be arbitrary
         unimplemented!();
     }
 
@@ -40,6 +45,7 @@ impl ValType {
     }
 
     pub fn mut_ref_bad(self: &mut Self) {
+    //~^ ERROR: the type of the `self` parameter does not need to be arbitrary
         unimplemented!();
     }
 
@@ -48,6 +54,7 @@ impl ValType {
     }
 
     pub fn mut_ref_bad_with_lifetime<'a>(self: &'a mut Self) {
+    //~^ ERROR: the type of the `self` parameter does not need to be arbitrary
         unimplemented!();
     }
 

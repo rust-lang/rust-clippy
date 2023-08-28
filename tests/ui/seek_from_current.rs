@@ -17,6 +17,8 @@ fn _msrv_1_51() -> io::Result<()> {
     let mut f = File::create("foo.txt")?;
     f.write_all(b"Hi!")?;
     f.seek(SeekFrom::Current(0))?;
+    //~^ ERROR: using `SeekFrom::Current` to start from current position
+    //~| NOTE: `-D clippy::seek-from-current` implied by `-D warnings`
     f.seek(SeekFrom::Current(1))?;
     Ok(())
 }

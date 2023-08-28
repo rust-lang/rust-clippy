@@ -8,6 +8,8 @@ fn a() -> i32 {
 fn main() {
     let val = 1;
     let _p = &val as *const i32;
+    //~^ ERROR: borrow as raw pointer
+    //~| NOTE: `-D clippy::borrow-as-ptr` implied by `-D warnings`
     let _p = &0 as *const i32;
     let _p = &a() as *const i32;
     let vec = vec![1];
@@ -15,4 +17,5 @@ fn main() {
 
     let mut val_mut = 1;
     let _p_mut = &mut val_mut as *mut i32;
+    //~^ ERROR: borrow as raw pointer
 }

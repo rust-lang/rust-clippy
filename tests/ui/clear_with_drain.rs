@@ -20,10 +20,13 @@ fn vec_range() {
     // Do lint
     let mut v = vec![1, 2, 3];
     v.drain(0..v.len());
+    //~^ ERROR: `drain` used to clear a `Vec`
+    //~| NOTE: `-D clippy::clear-with-drain` implied by `-D warnings`
 
     // Do lint
     let mut v = vec![1, 2, 3];
     v.drain(usize::MIN..v.len());
+    //~^ ERROR: `drain` used to clear a `Vec`
 }
 
 fn vec_range_from() {
@@ -43,10 +46,12 @@ fn vec_range_from() {
     // Do lint
     let mut v = vec![1, 2, 3];
     v.drain(0..);
+    //~^ ERROR: `drain` used to clear a `Vec`
 
     // Do lint
     let mut v = vec![1, 2, 3];
     v.drain(usize::MIN..);
+    //~^ ERROR: `drain` used to clear a `Vec`
 }
 
 fn vec_range_full() {
@@ -63,6 +68,7 @@ fn vec_range_full() {
     // Do lint
     let mut v = vec![1, 2, 3];
     v.drain(..);
+    //~^ ERROR: `drain` used to clear a `Vec`
 }
 
 fn vec_range_to() {
@@ -80,6 +86,7 @@ fn vec_range_to() {
     // Do lint
     let mut v = vec![1, 2, 3];
     v.drain(..v.len());
+    //~^ ERROR: `drain` used to clear a `Vec`
 }
 
 fn vec_partial_drains() {
@@ -118,10 +125,12 @@ fn vec_deque_range() {
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
     deque.drain(0..deque.len());
+    //~^ ERROR: `drain` used to clear a `VecDeque`
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
     deque.drain(usize::MIN..deque.len());
+    //~^ ERROR: `drain` used to clear a `VecDeque`
 }
 
 fn vec_deque_range_from() {
@@ -141,10 +150,12 @@ fn vec_deque_range_from() {
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
     deque.drain(0..);
+    //~^ ERROR: `drain` used to clear a `VecDeque`
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
     deque.drain(usize::MIN..);
+    //~^ ERROR: `drain` used to clear a `VecDeque`
 }
 
 fn vec_deque_range_full() {
@@ -161,6 +172,7 @@ fn vec_deque_range_full() {
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
     deque.drain(..);
+    //~^ ERROR: `drain` used to clear a `VecDeque`
 }
 
 fn vec_deque_range_to() {
@@ -178,6 +190,7 @@ fn vec_deque_range_to() {
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
     deque.drain(..deque.len());
+    //~^ ERROR: `drain` used to clear a `VecDeque`
 }
 
 fn vec_deque_partial_drains() {
@@ -216,10 +229,12 @@ fn string_range() {
     // Do lint
     let mut s = String::from("Hello, world!");
     s.drain(0..s.len());
+    //~^ ERROR: `drain` used to clear a `String`
 
     // Do lint
     let mut s = String::from("Hello, world!");
     s.drain(usize::MIN..s.len());
+    //~^ ERROR: `drain` used to clear a `String`
 }
 
 fn string_range_from() {
@@ -239,10 +254,12 @@ fn string_range_from() {
     // Do lint
     let mut s = String::from("Hello, world!");
     s.drain(0..);
+    //~^ ERROR: `drain` used to clear a `String`
 
     // Do lint
     let mut s = String::from("Hello, world!");
     s.drain(usize::MIN..);
+    //~^ ERROR: `drain` used to clear a `String`
 }
 
 fn string_range_full() {
@@ -259,6 +276,7 @@ fn string_range_full() {
     // Do lint
     let mut s = String::from("Hello, world!");
     s.drain(..);
+    //~^ ERROR: `drain` used to clear a `String`
 }
 
 fn string_range_to() {
@@ -276,6 +294,7 @@ fn string_range_to() {
     // Do lint
     let mut s = String::from("Hello, world!");
     s.drain(..s.len());
+    //~^ ERROR: `drain` used to clear a `String`
 }
 
 fn string_partial_drains() {
@@ -314,6 +333,7 @@ fn hash_set() {
     // Do lint
     let mut set = HashSet::from([1, 2, 3]);
     set.drain();
+    //~^ ERROR: `drain` used to clear a `HashSet`
 }
 
 fn hash_map() {
@@ -333,6 +353,7 @@ fn hash_map() {
     // Do lint
     let mut map = HashMap::from([(1, "a"), (2, "b")]);
     map.drain();
+    //~^ ERROR: `drain` used to clear a `HashMap`
 }
 
 fn binary_heap() {
@@ -352,6 +373,7 @@ fn binary_heap() {
     // Do lint
     let mut heap = BinaryHeap::from([1, 2]);
     heap.drain();
+    //~^ ERROR: `drain` used to clear a `BinaryHeap`
 }
 
 fn main() {}

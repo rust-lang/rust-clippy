@@ -52,26 +52,46 @@ fn get_drop_struct() -> DropStruct {
 
 fn main() {
     Tuple(get_number());
+    //~^ ERROR: unnecessary operation
+    //~| NOTE: `-D clippy::unnecessary-operation` implied by `-D warnings`
     Struct { field: get_number() };
+    //~^ ERROR: unnecessary operation
     Struct { ..get_struct() };
+    //~^ ERROR: unnecessary operation
     Enum::Tuple(get_number());
+    //~^ ERROR: unnecessary operation
     Enum::Struct { field: get_number() };
+    //~^ ERROR: unnecessary operation
     5 + get_number();
+    //~^ ERROR: unnecessary operation
     *&get_number();
+    //~^ ERROR: unnecessary operation
     &get_number();
+    //~^ ERROR: unnecessary operation
     (5, 6, get_number());
+    //~^ ERROR: unnecessary operation
     get_number()..;
+    //~^ ERROR: unnecessary operation
     ..get_number();
+    //~^ ERROR: unnecessary operation
     5..get_number();
+    //~^ ERROR: unnecessary operation
     [42, get_number()];
+    //~^ ERROR: unnecessary operation
     [42, 55][get_usize()];
+    //~^ ERROR: unnecessary operation
     (42, get_number()).1;
+    //~^ ERROR: unnecessary operation
     [get_number(); 55];
+    //~^ ERROR: unnecessary operation
     [42; 55][get_usize()];
+    //~^ ERROR: unnecessary operation
     {
+    //~^ ERROR: unnecessary operation
         get_number()
     };
     FooString {
+    //~^ ERROR: unnecessary operation
         s: String::from("blah"),
     };
 

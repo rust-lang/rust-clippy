@@ -9,7 +9,7 @@ LL |     writeln!(v, "");
    = note: `-D clippy::writeln-empty-string` implied by `-D warnings`
 
 error: empty string literal in `writeln!`
-  --> $DIR/writeln_empty_string.rs:12:5
+  --> $DIR/writeln_empty_string.rs:14:5
    |
 LL |     writeln!(suggestion, "");
    |     ^^^^^^^^^^^^^^^^^^^----^

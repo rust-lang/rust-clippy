@@ -22,16 +22,22 @@ fn existential() -> impl Any {
 fn main() {
     let any_box: Box<dyn Any> = Box::new(0usize);
     let _ = any_box.type_id();
+    //~^ ERROR: calling `.type_id()` on a `Box<dyn Any>`
+    //~| NOTE: this returns the type id of the literal type `Box<dyn Any>` instead of the
     let _ = TypeId::of::<Box<dyn Any>>(); // Don't lint. We explicitly say "do this instead" if this is intentional
     let _ = (*any_box).type_id();
     let any_box: &Box<dyn Any> = &(Box::new(0usize) as Box<dyn Any>);
     let _ = any_box.type_id(); // 2 derefs are needed here to get to the `dyn Any`
+    //~^ ERROR: calling `.type_id()` on a `Box<dyn Any>`
+    //~| NOTE: this returns the type id of the literal type `Box<dyn Any>` instead of the
 
     let b = existential();
     let _ = b.type_id(); // Don't lint.
 
     let b: SomeBox = Box::new(0usize);
     let _ = b.type_id();
+    //~^ ERROR: calling `.type_id()` on a `Box<dyn Any>`
+    //~| NOTE: this returns the type id of the literal type `Box<dyn Any>` instead of the
 
     let b = BadBox(Box::new(0usize));
     let _ = b.type_id(); // Don't lint. This is a call to `<BadBox as Any>::type_id`. Not `std::boxed::Box`!

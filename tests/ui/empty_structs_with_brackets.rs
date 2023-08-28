@@ -2,7 +2,10 @@
 #![allow(dead_code)]
 
 pub struct MyEmptyStruct {} // should trigger lint
+//~^ ERROR: found empty brackets on struct declaration
+//~| NOTE: `-D clippy::empty-structs-with-brackets` implied by `-D warnings`
 struct MyEmptyTupleStruct(); // should trigger lint
+//~^ ERROR: found empty brackets on struct declaration
 
 // should not trigger lint
 struct MyCfgStruct {

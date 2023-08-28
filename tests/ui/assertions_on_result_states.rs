@@ -22,6 +22,8 @@ fn main() {
     let r: Result<Foo, DebugFoo> = Ok(Foo);
     debug_assert!(r.is_ok());
     assert!(r.is_ok());
+    //~^ ERROR: called `assert!` with `Result::is_ok`
+    //~| NOTE: `-D clippy::assertions-on-result-states` implied by `-D warnings`
 
     // test ok with non-debug error type
     let r: Result<Foo, Foo> = Ok(Foo);
@@ -40,9 +42,11 @@ fn main() {
         Ok(Foo)
     }
     assert!(get_ok().is_ok());
+    //~^ ERROR: called `assert!` with `Result::is_ok`
 
     // test macro ok
     assert!(get_ok_macro!().is_ok());
+    //~^ ERROR: called `assert!` with `Result::is_ok`
 
     // test ok that shouldn't be moved
     let r: Result<CopyFoo, DebugFoo> = Ok(CopyFoo);
@@ -56,12 +60,14 @@ fn main() {
     // test ok that is copied
     let r: Result<CopyFoo, CopyFoo> = Ok(CopyFoo);
     assert!(r.is_ok());
+    //~^ ERROR: called `assert!` with `Result::is_ok`
     r.unwrap();
 
     // test reference to ok
     let r: Result<CopyFoo, CopyFoo> = Ok(CopyFoo);
     fn test_ref_copy_ok(r: &Result<CopyFoo, CopyFoo>) {
         assert!(r.is_ok());
+        //~^ ERROR: called `assert!` with `Result::is_ok`
     }
     test_ref_copy_ok(&r);
     r.unwrap();
@@ -70,6 +76,7 @@ fn main() {
     let r: Result<DebugFoo, Foo> = Err(Foo);
     debug_assert!(r.is_err());
     assert!(r.is_err());
+    //~^ ERROR: called `assert!` with `Result::is_err`
 
     // test err with non-debug value type
     let r: Result<Foo, Foo> = Err(Foo);
@@ -80,4 +87,5 @@ fn main() {
 fn issue9450() {
     let res: Result<i32, i32> = Ok(1);
     assert!(res.is_err())
+    //~^ ERROR: called `assert!` with `Result::is_err`
 }

@@ -6,9 +6,12 @@
 fn main(_argc: isize, _argv: *const *const u8) -> isize {
     let val = 1;
     let _p = &val as *const i32;
+    //~^ ERROR: borrow as raw pointer
+    //~| NOTE: `-D clippy::borrow-as-ptr` implied by `-D warnings`
 
     let mut val_mut = 1;
     let _p_mut = &mut val_mut as *mut i32;
+    //~^ ERROR: borrow as raw pointer
     0
 }
 

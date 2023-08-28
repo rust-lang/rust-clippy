@@ -7,10 +7,15 @@ fn main() {
     // These should be linted:
 
     (42..=21).for_each(|x| println!("{}", x));
+    //~^ ERROR: this range is empty so it will yield no values
+    //~| NOTE: `-D clippy::reversed-empty-ranges` implied by `-D warnings`
     let _ = (ANSWER..21).filter(|x| x % 2 == 0).take(10).collect::<Vec<_>>();
+    //~^ ERROR: this range is empty so it will yield no values
 
     for _ in -21..=-42 {}
+    //~^ ERROR: this range is empty so it will yield no values
     for _ in 42u32..21u32 {}
+    //~^ ERROR: this range is empty so it will yield no values
 
     // These should be ignored as they are not empty ranges:
 

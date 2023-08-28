@@ -34,23 +34,56 @@ fn main() {
     {
         // Test `get().unwrap()`
         let _ = boxed_slice.get(1).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a slice. Using `[]` is more clear and more
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         let _ = some_slice.get(0).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a slice. Using `[]` is more clear and more
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         let _ = some_vec.get(0).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a Vec. Using `[]` is more clear and more c
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         let _ = some_vecdeque.get(0).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a VecDeque. Using `[]` is more clear and m
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         let _ = some_hashmap.get(&1).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a HashMap. Using `[]` is more clear and mo
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         let _ = some_btreemap.get(&1).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a BTreeMap. Using `[]` is more clear and m
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         #[allow(clippy::unwrap_used)]
         let _ = false_positive.get(0).unwrap();
         // Test with deref
         let _: u8 = *boxed_slice.get(1).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a slice. Using `[]` is more clear and more
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
     }
 
     {
         // Test `get_mut().unwrap()`
         *boxed_slice.get_mut(0).unwrap() = 1;
+        //~^ ERROR: called `.get_mut().unwrap()` on a slice. Using `[]` is more clear and
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         *some_slice.get_mut(0).unwrap() = 1;
+        //~^ ERROR: called `.get_mut().unwrap()` on a slice. Using `[]` is more clear and
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         *some_vec.get_mut(0).unwrap() = 1;
+        //~^ ERROR: called `.get_mut().unwrap()` on a Vec. Using `[]` is more clear and mo
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         *some_vecdeque.get_mut(0).unwrap() = 1;
+        //~^ ERROR: called `.get_mut().unwrap()` on a VecDeque. Using `[]` is more clear a
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         // Check false positives
         #[allow(clippy::unwrap_used)]
         {
@@ -63,7 +96,13 @@ fn main() {
     {
         // Test `get().unwrap().foo()` and `get_mut().unwrap().bar()`
         let _ = some_vec.get(0..1).unwrap().to_vec();
+        //~^ ERROR: called `.get().unwrap()` on a Vec. Using `[]` is more clear and more c
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
         let _ = some_vec.get_mut(0..1).unwrap().to_vec();
+        //~^ ERROR: called `.get_mut().unwrap()` on a Vec. Using `[]` is more clear and mo
+        //~| ERROR: used `unwrap()` on an `Option` value
+        //~| NOTE: if this value is `None`, it will panic
     }
 }
 mod issue9909 {
@@ -74,12 +113,15 @@ mod issue9909 {
 
         // include a borrow in the suggestion, even if the argument is not just a numeric literal
         let _x: &i32 = f.get(1 + 2).unwrap();
+        //~^ ERROR: called `.get().unwrap()` on a slice. Using `[]` is more clear and more
 
         // don't include a borrow here
         let _x = f.get(1 + 2).unwrap().to_string();
+        //~^ ERROR: called `.get().unwrap()` on a slice. Using `[]` is more clear and more
 
         // don't include a borrow here
         let _x = f.get(1 + 2).unwrap().abs();
+        //~^ ERROR: called `.get().unwrap()` on a slice. Using `[]` is more clear and more
     }
 
     // original code:
@@ -97,6 +139,7 @@ mod issue9909 {
                         let (x, rest) = mat.split_at_mut(linidx(i, k) + 1);
                         let a = x.last_mut().unwrap();
                         let b = rest.get_mut(linidx(j, k) - linidx(i, k) - 1).unwrap();
+                        //~^ ERROR: called `.get_mut().unwrap()` on a slice. Using `[]` is
                         ::std::mem::swap(a, b);
                     }
                 }

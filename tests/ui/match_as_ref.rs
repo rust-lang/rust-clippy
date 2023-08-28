@@ -4,12 +4,15 @@
 fn match_as_ref() {
     let owned: Option<()> = None;
     let borrowed: Option<&()> = match owned {
+    //~^ ERROR: use `as_ref()` instead
+    //~| NOTE: `-D clippy::match-as-ref` implied by `-D warnings`
         None => None,
         Some(ref v) => Some(v),
     };
 
     let mut mut_owned: Option<()> = None;
     let borrow_mut: Option<&mut ()> = match mut_owned {
+    //~^ ERROR: use `as_mut()` instead
         None => None,
         Some(ref mut v) => Some(v),
     };
@@ -28,6 +31,7 @@ mod issue4437 {
     impl Error for E {
         fn source(&self) -> Option<&(dyn Error + 'static)> {
             match self.source {
+            //~^ ERROR: use `as_ref()` instead
                 Some(ref s) => Some(s),
                 None => None,
             }

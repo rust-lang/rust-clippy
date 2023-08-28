@@ -6,6 +6,8 @@
 
 fn str_to_int(x: &str) -> i32 {
     if let Some(y) = x.parse().ok() { y } else { 0 }
+    //~^ ERROR: matching on `Some` with `ok()` is redundant
+    //~| NOTE: `-D clippy::match-result-ok` implied by `-D warnings`
 }
 
 fn str_to_int_ok(x: &str) -> i32 {
@@ -16,6 +18,7 @@ fn str_to_int_ok(x: &str) -> i32 {
 fn strange_some_no_else(x: &str) -> i32 {
     {
         if let Some(y) = x   .   parse()   .   ok   ()    {
+        //~^ ERROR: matching on `Some` with `ok()` is redundant
             return y;
         };
         0
@@ -42,6 +45,7 @@ impl Wat {
 fn base_1(x: i32) {
     let mut wat = Wat { counter: x };
     while let Some(a) = wat.next().ok() {
+    //~^ ERROR: matching on `Some` with `ok()` is redundant
         println!("{}", a);
     }
 }

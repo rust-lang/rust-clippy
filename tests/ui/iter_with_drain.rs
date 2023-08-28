@@ -8,20 +8,27 @@ use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 fn full() {
     let mut a = vec!["aaa".to_string(), "bbb".to_string()];
     let mut a: BinaryHeap<_> = a.drain(..).collect();
+    //~^ ERROR: `drain(..)` used on a `Vec`
+    //~| NOTE: `-D clippy::iter-with-drain` implied by `-D warnings`
     let mut a: HashSet<_> = a.drain().collect();
     let mut a: VecDeque<_> = a.drain().collect();
     let mut a: Vec<_> = a.drain(..).collect();
+    //~^ ERROR: `drain(..)` used on a `VecDeque`
     let mut a: HashMap<_, _> = a.drain(..).map(|x| (x.clone(), x)).collect();
+    //~^ ERROR: `drain(..)` used on a `Vec`
     let _: Vec<(String, String)> = a.drain().collect();
 }
 
 fn closed() {
     let mut a = vec!["aaa".to_string(), "bbb".to_string()];
     let mut a: BinaryHeap<_> = a.drain(0..).collect();
+    //~^ ERROR: `drain(..)` used on a `Vec`
     let mut a: HashSet<_> = a.drain().collect();
     let mut a: VecDeque<_> = a.drain().collect();
     let mut a: Vec<_> = a.drain(..a.len()).collect();
+    //~^ ERROR: `drain(..)` used on a `VecDeque`
     let mut a: HashMap<_, _> = a.drain(0..a.len()).map(|x| (x.clone(), x)).collect();
+    //~^ ERROR: `drain(..)` used on a `Vec`
     let _: Vec<(String, String)> = a.drain().collect();
 }
 

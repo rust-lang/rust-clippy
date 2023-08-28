@@ -50,51 +50,69 @@ fn or_fun_call() {
 
     let with_constructor = Some(vec![1]);
     with_constructor.unwrap_or(make());
+    //~^ ERROR: use of `unwrap_or` followed by a function call
+    //~| NOTE: `-D clippy::or-fun-call` implied by `-D warnings`
 
     let with_new = Some(vec![1]);
     with_new.unwrap_or(Vec::new());
+    //~^ ERROR: use of `unwrap_or` to construct default value
+    //~| NOTE: `-D clippy::unwrap-or-default` implied by `-D warnings`
 
     let with_const_args = Some(vec![1]);
     with_const_args.unwrap_or(Vec::with_capacity(12));
+    //~^ ERROR: use of `unwrap_or` followed by a function call
 
     let with_err: Result<_, ()> = Ok(vec![1]);
     with_err.unwrap_or(make());
+    //~^ ERROR: use of `unwrap_or` followed by a function call
 
     let with_err_args: Result<_, ()> = Ok(vec![1]);
     with_err_args.unwrap_or(Vec::with_capacity(12));
+    //~^ ERROR: use of `unwrap_or` followed by a function call
 
     let with_default_trait = Some(1);
     with_default_trait.unwrap_or(Default::default());
+    //~^ ERROR: use of `unwrap_or` to construct default value
 
     let with_default_type = Some(1);
     with_default_type.unwrap_or(u64::default());
+    //~^ ERROR: use of `unwrap_or` to construct default value
 
     let self_default = None::<FakeDefault>;
     self_default.unwrap_or(<FakeDefault>::default());
+    //~^ ERROR: use of `unwrap_or` followed by a function call
 
     let real_default = None::<FakeDefault>;
     real_default.unwrap_or(<FakeDefault as Default>::default());
+    //~^ ERROR: use of `unwrap_or` to construct default value
 
     let with_vec = Some(vec![1]);
     with_vec.unwrap_or(vec![]);
+    //~^ ERROR: use of `unwrap_or` to construct default value
 
     let without_default = Some(Foo);
     without_default.unwrap_or(Foo::new());
+    //~^ ERROR: use of `unwrap_or` followed by a function call
 
     let mut map = HashMap::<u64, String>::new();
     map.entry(42).or_insert(String::new());
+    //~^ ERROR: use of `or_insert` to construct default value
 
     let mut map_vec = HashMap::<u64, Vec<i32>>::new();
     map_vec.entry(42).or_insert(vec![]);
+    //~^ ERROR: use of `or_insert` to construct default value
 
     let mut btree = BTreeMap::<u64, String>::new();
     btree.entry(42).or_insert(String::new());
+    //~^ ERROR: use of `or_insert` to construct default value
 
     let mut btree_vec = BTreeMap::<u64, Vec<i32>>::new();
     btree_vec.entry(42).or_insert(vec![]);
+    //~^ ERROR: use of `or_insert` to construct default value
 
     let stringy = Some(String::new());
     let _ = stringy.unwrap_or(String::new());
+    //~^ ERROR: use of `unwrap_or` to construct default value
 
     let opt = Some(1);
     let hello = "Hello";
@@ -103,8 +121,10 @@ fn or_fun_call() {
     // index
     let map = HashMap::<u64, u64>::new();
     let _ = Some(1).unwrap_or(map[&1]);
+    //~^ ERROR: use of `unwrap_or` followed by a function call
     let map = BTreeMap::<u64, u64>::new();
     let _ = Some(1).unwrap_or(map[&1]);
+    //~^ ERROR: use of `unwrap_or` followed by a function call
     // don't lint index vec
     let vec = vec![1];
     let _ = Some(1).unwrap_or(vec[1]);
@@ -129,6 +149,7 @@ fn test_or_with_ctors() {
     let _ = opt.or(Some(two));
 
     let _ = Some("a".to_string()).or(Some("b".to_string()));
+    //~^ ERROR: use of `or` followed by a function call
 
     let b = "b".to_string();
     let _ = Some(Bar("a".to_string(), Duration::from_secs(1)))
@@ -168,14 +189,17 @@ mod issue6675 {
         let s = "test".to_owned();
         let s = &s as *const _;
         None.unwrap_or(ptr_to_ref(s));
+        //~^ ERROR: use of `unwrap_or` followed by a function call
     }
 
     fn bar() {
         let s = "test".to_owned();
         let s = &s as *const _;
         None.unwrap_or(unsafe { ptr_to_ref(s) });
+        //~^ ERROR: use of `unwrap_or` followed by a function call
         #[rustfmt::skip]
         None.unwrap_or( unsafe { ptr_to_ref(s) }    );
+        //~^ ERROR: use of `unwrap_or` followed by a function call
     }
 }
 
@@ -251,7 +275,9 @@ mod issue8993 {
 
     fn test_map_or() {
         let _ = Some(4).map_or(g(), |v| v);
+        //~^ ERROR: use of `map_or` followed by a function call
         let _ = Some(4).map_or(g(), f);
+        //~^ ERROR: use of `map_or` followed by a function call
         let _ = Some(4).map_or(0, f);
     }
 }
@@ -283,24 +309,31 @@ mod lazy {
 
         let with_new = Some(vec![1]);
         with_new.unwrap_or_else(Vec::new);
+        //~^ ERROR: use of `unwrap_or_else` to construct default value
 
         let with_default_trait = Some(1);
         with_default_trait.unwrap_or_else(Default::default);
+        //~^ ERROR: use of `unwrap_or_else` to construct default value
 
         let with_default_type = Some(1);
         with_default_type.unwrap_or_else(u64::default);
+        //~^ ERROR: use of `unwrap_or_else` to construct default value
 
         let real_default = None::<FakeDefault>;
         real_default.unwrap_or_else(<FakeDefault as Default>::default);
+        //~^ ERROR: use of `unwrap_or_else` to construct default value
 
         let mut map = HashMap::<u64, String>::new();
         map.entry(42).or_insert_with(String::new);
+        //~^ ERROR: use of `or_insert_with` to construct default value
 
         let mut btree = BTreeMap::<u64, String>::new();
         btree.entry(42).or_insert_with(String::new);
+        //~^ ERROR: use of `or_insert_with` to construct default value
 
         let stringy = Some(String::new());
         let _ = stringy.unwrap_or_else(String::new);
+        //~^ ERROR: use of `unwrap_or_else` to construct default value
 
         // negative tests
         let self_default = None::<FakeDefault>;

@@ -3,11 +3,18 @@
 
 fn array() {
     assert_eq!([123].into_iter().next(), Some(123));
+    //~^ ERROR: `into_iter` call on a collection with only one item
+    //~| NOTE: `-D clippy::iter-on-single-items` implied by `-D warnings`
     assert_eq!([123].iter_mut().next(), Some(&mut 123));
+    //~^ ERROR: `iter_mut` call on a collection with only one item
     assert_eq!([123].iter().next(), Some(&123));
+    //~^ ERROR: `iter` call on a collection with only one item
     assert_eq!(Some(123).into_iter().next(), Some(123));
+    //~^ ERROR: `into_iter` call on a collection with only one item
     assert_eq!(Some(123).iter_mut().next(), Some(&mut 123));
+    //~^ ERROR: `iter_mut` call on a collection with only one item
     assert_eq!(Some(123).iter().next(), Some(&123));
+    //~^ ERROR: `iter` call on a collection with only one item
 
     // Don't trigger on non-iter methods
     let _: Option<String> = Some("test".to_string()).clone();

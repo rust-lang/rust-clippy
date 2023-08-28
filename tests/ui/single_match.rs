@@ -12,6 +12,8 @@ fn single_match() {
     let x = Some(1u8);
 
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
+    //~| NOTE: `-D clippy::single-match` implied by `-D warnings`
         Some(y) => {
             println!("{:?}", y);
         },
@@ -20,6 +22,7 @@ fn single_match() {
 
     let x = Some(1u8);
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         // Note the missing block braces.
         // We suggest `if let Some(y) = x { .. }` because the macro
         // is expanded before we can do anything.
@@ -29,6 +32,7 @@ fn single_match() {
 
     let z = (1u8, 1u8);
     match z {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         (2..=3, 7..=9) => dummy(),
         _ => {},
     };
@@ -58,11 +62,13 @@ fn single_match_know_enum() {
     let y: Result<_, i8> = Ok(1i8);
 
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         Some(y) => dummy(),
         None => (),
     };
 
     match y {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         Ok(y) => dummy(),
         Err(..) => (),
     };
@@ -70,6 +76,7 @@ fn single_match_know_enum() {
     let c = Cow::Borrowed("");
 
     match c {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         Cow::Borrowed(..) => dummy(),
         Cow::Owned(..) => (),
     };
@@ -91,6 +98,7 @@ fn single_match_know_enum() {
 fn if_suggestion() {
     let x = "test";
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for an equality check. Consider using
         "test" => println!(),
         _ => (),
     }
@@ -104,23 +112,27 @@ fn if_suggestion() {
 
     let x = Foo::A;
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for an equality check. Consider using
         Foo::A => println!(),
         _ => (),
     }
 
     const FOO_C: Foo = Foo::C(0);
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for an equality check. Consider using
         FOO_C => println!(),
         _ => (),
     }
 
     match &&x {
+    //~^ ERROR: you seem to be trying to use `match` for an equality check. Consider using
         Foo::A => println!(),
         _ => (),
     }
 
     let x = &x;
     match &x {
+    //~^ ERROR: you seem to be trying to use `match` for an equality check. Consider using
         Foo::A => println!(),
         _ => (),
     }
@@ -138,6 +150,7 @@ fn if_suggestion() {
 
     let x = Bar::A;
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         Bar::A => println!(),
         _ => (),
     }
@@ -146,6 +159,7 @@ fn if_suggestion() {
     struct X;
     let x = Some(X);
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         None => println!(),
         _ => (),
     };
@@ -168,18 +182,21 @@ fn ranges() {
 
     // lint
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         (Some(_), _) => {},
         (None, _) => {},
     }
 
     // lint
     match x {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         (Some(E::V), _) => todo!(),
         (_, _) => {},
     }
 
     // lint
     match (Some(42), Some(E::V), Some(42)) {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         (.., Some(E::V), _) => {},
         (..) => {},
     }
@@ -252,6 +269,7 @@ fn main() {
 
 fn issue_10808(bar: Option<i32>) {
     match bar {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         Some(v) => unsafe {
             let r = &v as *const i32;
             println!("{}", *r);
@@ -260,6 +278,7 @@ fn issue_10808(bar: Option<i32>) {
     }
 
     match bar {
+    //~^ ERROR: you seem to be trying to use `match` for destructuring a single pattern. C
         #[rustfmt::skip]
         Some(v) => {
             unsafe {

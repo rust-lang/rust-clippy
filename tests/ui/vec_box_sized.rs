@@ -8,14 +8,20 @@ struct BigStruct([i32; 10000]);
 mod should_trigger {
     use super::SizedStruct;
     const C: Vec<Box<i32>> = Vec::new();
+    //~^ ERROR: `Vec<T>` is already on the heap, the boxing is unnecessary
+    //~| NOTE: `-D clippy::vec-box` implied by `-D warnings`
     static S: Vec<Box<i32>> = Vec::new();
+    //~^ ERROR: `Vec<T>` is already on the heap, the boxing is unnecessary
 
     struct StructWithVecBox {
         sized_type: Vec<Box<SizedStruct>>,
+        //~^ ERROR: `Vec<T>` is already on the heap, the boxing is unnecessary
     }
 
     struct A(Vec<Box<SizedStruct>>);
+    //~^ ERROR: `Vec<T>` is already on the heap, the boxing is unnecessary
     struct B(Vec<Vec<Box<(u32)>>>);
+    //~^ ERROR: `Vec<T>` is already on the heap, the boxing is unnecessary
 }
 
 /// The following should not trigger the lint
@@ -44,6 +50,7 @@ mod inner_mod {
         use super::inner::S;
 
         pub fn f() -> Vec<Box<S>> {
+        //~^ ERROR: `Vec<T>` is already on the heap, the boxing is unnecessary
             vec![]
         }
     }

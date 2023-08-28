@@ -8,6 +8,8 @@ fn main() {
         .iter()
         .map(|item| item.to_uppercase())
         .collect::<Vec<String>>()
+        //~^ ERROR: called `.collect::<Vec<String>>().join("")` on an iterator
+        //~| NOTE: `-D clippy::unnecessary-join` implied by `-D warnings`
         .join("");
     println!("{}", output);
 
@@ -17,6 +19,7 @@ fn main() {
         .iter()
         .map(|item| item.to_uppercase())
         .collect::<Vec<_>>()
+        //~^ ERROR: called `.collect::<Vec<String>>().join("")` on an iterator
         .join("");
     println!("{}", output);
 

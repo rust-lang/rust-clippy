@@ -85,65 +85,91 @@ fn main() {
 
     assert_eq!("a".len(), 1);
     assert_eq!("a".is_empty(), false);
+    //~^ ERROR: used `assert_eq!` with a literal bool
+    //~| NOTE: `-D clippy::bool-assert-comparison` implied by `-D warnings`
     assert_eq!("".is_empty(), true);
+    //~^ ERROR: used `assert_eq!` with a literal bool
     assert_eq!(true, "".is_empty());
+    //~^ ERROR: used `assert_eq!` with a literal bool
     assert_eq!(a!(), b!());
     assert_eq!(a!(), "".is_empty());
     assert_eq!("".is_empty(), b!());
     assert_eq!(a, true);
     assert_eq!(b, true);
+    //~^ ERROR: used `assert_eq!` with a literal bool
 
     assert_ne!("a".len(), 1);
     assert_ne!("a".is_empty(), false);
+    //~^ ERROR: used `assert_ne!` with a literal bool
     assert_ne!("".is_empty(), true);
+    //~^ ERROR: used `assert_ne!` with a literal bool
     assert_ne!(true, "".is_empty());
+    //~^ ERROR: used `assert_ne!` with a literal bool
     assert_ne!(a!(), b!());
     assert_ne!(a!(), "".is_empty());
     assert_ne!("".is_empty(), b!());
     assert_ne!(a, true);
     assert_ne!(b, true);
+    //~^ ERROR: used `assert_ne!` with a literal bool
 
     debug_assert_eq!("a".len(), 1);
     debug_assert_eq!("a".is_empty(), false);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
     debug_assert_eq!("".is_empty(), true);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
     debug_assert_eq!(true, "".is_empty());
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
     debug_assert_eq!(a!(), b!());
     debug_assert_eq!(a!(), "".is_empty());
     debug_assert_eq!("".is_empty(), b!());
     debug_assert_eq!(a, true);
     debug_assert_eq!(b, true);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
 
     debug_assert_ne!("a".len(), 1);
     debug_assert_ne!("a".is_empty(), false);
+    //~^ ERROR: used `debug_assert_ne!` with a literal bool
     debug_assert_ne!("".is_empty(), true);
+    //~^ ERROR: used `debug_assert_ne!` with a literal bool
     debug_assert_ne!(true, "".is_empty());
+    //~^ ERROR: used `debug_assert_ne!` with a literal bool
     debug_assert_ne!(a!(), b!());
     debug_assert_ne!(a!(), "".is_empty());
     debug_assert_ne!("".is_empty(), b!());
     debug_assert_ne!(a, true);
     debug_assert_ne!(b, true);
+    //~^ ERROR: used `debug_assert_ne!` with a literal bool
 
     // assert with error messages
     assert_eq!("a".len(), 1, "tadam {}", 1);
     assert_eq!("a".len(), 1, "tadam {}", true);
     assert_eq!("a".is_empty(), false, "tadam {}", 1);
+    //~^ ERROR: used `assert_eq!` with a literal bool
     assert_eq!("a".is_empty(), false, "tadam {}", true);
+    //~^ ERROR: used `assert_eq!` with a literal bool
     assert_eq!(false, "a".is_empty(), "tadam {}", true);
+    //~^ ERROR: used `assert_eq!` with a literal bool
     assert_eq!(a, true, "tadam {}", false);
 
     debug_assert_eq!("a".len(), 1, "tadam {}", 1);
     debug_assert_eq!("a".len(), 1, "tadam {}", true);
     debug_assert_eq!("a".is_empty(), false, "tadam {}", 1);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
     debug_assert_eq!("a".is_empty(), false, "tadam {}", true);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
     debug_assert_eq!(false, "a".is_empty(), "tadam {}", true);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
     debug_assert_eq!(a, true, "tadam {}", false);
 
     assert_eq!(a!(), true);
+    //~^ ERROR: used `assert_eq!` with a literal bool
     assert_eq!(true, b!());
+    //~^ ERROR: used `assert_eq!` with a literal bool
 
     use debug_assert_eq as renamed;
     renamed!(a, true);
     renamed!(b, true);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
 
     let non_copy = NonCopy;
     assert_eq!(non_copy, true);
@@ -158,12 +184,20 @@ fn main() {
     in_macro!(a);
 
     assert_eq!("".is_empty(), true);
+    //~^ ERROR: used `assert_eq!` with a literal bool
     assert_ne!("".is_empty(), false);
+    //~^ ERROR: used `assert_ne!` with a literal bool
     assert_ne!("requires negation".is_empty(), true);
+    //~^ ERROR: used `assert_ne!` with a literal bool
     assert_eq!("requires negation".is_empty(), false);
+    //~^ ERROR: used `assert_eq!` with a literal bool
 
     debug_assert_eq!("".is_empty(), true);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
     debug_assert_ne!("".is_empty(), false);
+    //~^ ERROR: used `debug_assert_ne!` with a literal bool
     debug_assert_ne!("requires negation".is_empty(), true);
+    //~^ ERROR: used `debug_assert_ne!` with a literal bool
     debug_assert_eq!("requires negation".is_empty(), false);
+    //~^ ERROR: used `debug_assert_eq!` with a literal bool
 }

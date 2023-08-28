@@ -4,9 +4,12 @@
 
 fn main() {
     r#"aaa"#;
+    //~^ ERROR: unnecessary raw string literal
+    //~| NOTE: `-D clippy::needless-raw-strings` implied by `-D warnings`
     r#""aaa""#;
     r#"\s"#;
     br#"aaa"#;
+    //~^ ERROR: unnecessary raw string literal
     br#""aaa""#;
     br#"\s"#;
     // currently disabled: https://github.com/rust-lang/rust/issues/113333

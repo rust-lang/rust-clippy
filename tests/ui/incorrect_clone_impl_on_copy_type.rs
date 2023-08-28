@@ -7,10 +7,13 @@ struct A(u32);
 
 impl Clone for A {
     fn clone(&self) -> Self {
+    //~^ ERROR: incorrect implementation of `clone` on a `Copy` type
+    //~| NOTE: `#[deny(clippy::incorrect_clone_impl_on_copy_type)]` on by default
         Self(self.0)
     }
 
     fn clone_from(&mut self, source: &Self) {
+    //~^ ERROR: incorrect implementation of `clone_from` on a `Copy` type
         source.clone();
         *self = source.clone();
     }
@@ -78,10 +81,12 @@ struct F(u32);
 
 impl Clone for F {
     fn clone(&self) -> Self {
+    //~^ ERROR: incorrect implementation of `clone` on a `Copy` type
         Self(self.0)
     }
 
     fn clone_from(&mut self, source: &Self) {
+    //~^ ERROR: incorrect implementation of `clone_from` on a `Copy` type
         source.clone();
         *self = source.clone();
     }

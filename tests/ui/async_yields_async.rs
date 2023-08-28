@@ -37,30 +37,37 @@ fn main() {
     };
     let _h = async {
         async {
+        //~^ ERROR: an async construct yields a type which is itself awaitable
+        //~| NOTE: `-D clippy::async-yields-async` implied by `-D warnings`
             3
         }
     };
     let _i = async {
         CustomFutureType
+        //~^ ERROR: an async construct yields a type which is itself awaitable
     };
     let _i = async || {
         3
     };
     let _j = async || {
         async {
+        //~^ ERROR: an async construct yields a type which is itself awaitable
             3
         }
     };
     let _k = async || {
         CustomFutureType
+        //~^ ERROR: an async construct yields a type which is itself awaitable
     };
     let _l = async || CustomFutureType;
+    //~^ ERROR: an async construct yields a type which is itself awaitable
     let _m = async || {
         println!("I'm bored");
         // Some more stuff
 
         // Finally something to await
         CustomFutureType
+        //~^ ERROR: an async construct yields a type which is itself awaitable
     };
     let _n = async || custom_future_type_ctor();
     let _o = async || f();

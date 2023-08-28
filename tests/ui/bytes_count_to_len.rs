@@ -5,15 +5,20 @@ use std::io::Read;
 fn main() {
     // should fix, because type is String
     let _ = String::from("foo").bytes().count();
+    //~^ ERROR: using long and hard to read `.bytes().count()`
+    //~| NOTE: `-D clippy::bytes-count-to-len` implied by `-D warnings`
 
     let s1 = String::from("foo");
     let _ = s1.bytes().count();
+    //~^ ERROR: using long and hard to read `.bytes().count()`
 
     // should fix, because type is &str
     let _ = "foo".bytes().count();
+    //~^ ERROR: using long and hard to read `.bytes().count()`
 
     let s2 = "foo";
     let _ = s2.bytes().count();
+    //~^ ERROR: using long and hard to read `.bytes().count()`
 
     // make sure using count() normally doesn't trigger warning
     let vector = [0, 1, 2];

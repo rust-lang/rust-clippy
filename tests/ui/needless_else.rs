@@ -21,6 +21,8 @@ fn main() {
     if b {
         println!("Foobar");
     } else {
+    //~^ ERROR: this `else` branch is empty
+    //~| NOTE: `-D clippy::needless-else` implied by `-D warnings`
     }
 
     if b {

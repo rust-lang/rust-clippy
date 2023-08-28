@@ -18,8 +18,12 @@ struct Unitter;
 impl Unitter {
     #[allow(clippy::no_effect)]
     pub fn get_unit<F: Fn() -> (), G>(&self, f: F, _g: G) -> ()
+    //~^ ERROR: unneeded unit return type
+    //~| ERROR: unneeded unit return type
     where G: Fn() -> () {
+    //~^ ERROR: unneeded unit return type
         let _y: &dyn Fn() -> () = &f;
+        //~^ ERROR: unneeded unit return type
         (); // this should not lint, as it's not in return type position
     }
 }
@@ -27,25 +31,35 @@ impl Unitter {
 impl Into<()> for Unitter {
     #[rustfmt::skip]
     fn into(self) -> () {
+    //~^ ERROR: unneeded unit return type
         ()
+        //~^ ERROR: unneeded unit expression
     }
 }
 
 trait Trait {
     fn redundant<F: FnOnce() -> (), G, H>(&self, _f: F, _g: G, _h: H)
+    //~^ ERROR: unneeded unit return type
     where
         G: FnMut() -> (),
+        //~^ ERROR: unneeded unit return type
         H: Fn() -> ();
+        //~^ ERROR: unneeded unit return type
 }
 
 impl Trait for Unitter {
     fn redundant<F: FnOnce() -> (), G, H>(&self, _f: F, _g: G, _h: H)
+    //~^ ERROR: unneeded unit return type
     where
         G: FnMut() -> (),
+        //~^ ERROR: unneeded unit return type
         H: Fn() -> () {}
+        //~^ ERROR: unneeded unit return type
 }
 
 fn return_unit() -> () { () }
+//~^ ERROR: unneeded unit return type
+//~| ERROR: unneeded unit expression
 
 #[allow(clippy::needless_return)]
 #[allow(clippy::never_loop)]
@@ -56,8 +70,10 @@ fn main() {
     return_unit();
     loop {
         break();
+        //~^ ERROR: unneeded `()`
     }
     return();
+    //~^ ERROR: unneeded `()`
 }
 
 // https://github.com/rust-lang/rust-clippy/issues/4076
@@ -75,12 +91,15 @@ fn foo() {
 
 #[rustfmt::skip]
 fn test()->(){}
+//~^ ERROR: unneeded unit return type
 
 #[rustfmt::skip]
 fn test2() ->(){}
+//~^ ERROR: unneeded unit return type
 
 #[rustfmt::skip]
 fn test3()-> (){}
+//~^ ERROR: unneeded unit return type
 
 fn macro_expr() {
     macro_rules! e {

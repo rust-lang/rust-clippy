@@ -13,35 +13,44 @@ struct A {
 
 fn fake_abs1(num: f64) -> f64 {
     if num >= 0.0 { num } else { -num }
+    //~^ ERROR: manual implementation of `abs` method
+    //~| NOTE: `-D clippy::suboptimal-flops` implied by `-D warnings`
 }
 
 fn fake_abs2(num: f64) -> f64 {
     if 0.0 < num { num } else { -num }
+    //~^ ERROR: manual implementation of `abs` method
 }
 
 fn fake_abs3(a: A) -> f64 {
     if a.a > 0.0 { a.a } else { -a.a }
+    //~^ ERROR: manual implementation of `abs` method
 }
 
 fn fake_abs4(num: f64) -> f64 {
     if 0.0 >= num { -num } else { num }
+    //~^ ERROR: manual implementation of `abs` method
 }
 
 fn fake_abs5(a: A) -> f64 {
     if a.a < 0.0 { -a.a } else { a.a }
+    //~^ ERROR: manual implementation of `abs` method
 }
 
 fn fake_nabs1(num: f64) -> f64 {
     if num < 0.0 { num } else { -num }
+    //~^ ERROR: manual implementation of negation of `abs` method
 }
 
 fn fake_nabs2(num: f64) -> f64 {
     if 0.0 >= num { num } else { -num }
+    //~^ ERROR: manual implementation of negation of `abs` method
 }
 
 fn fake_nabs3(a: A) -> A {
     A {
         a: if a.a >= 0.0 { -a.a } else { a.a },
+        //~^ ERROR: manual implementation of negation of `abs` method
         b: a.b,
     }
 }

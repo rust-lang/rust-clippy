@@ -32,50 +32,69 @@ fn result_map_unit_fn() {
     let _: Result<(), usize> = x.field.map(do_nothing);
 
     x.field.map(do_nothing);
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a function that returns
+    //~| NOTE: `-D clippy::result-map-unit-fn` implied by `-D warnings`
 
     x.field.map(do_nothing);
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a function that returns
 
     x.field.map(diverge);
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a function that returns
 
     let captured = 10;
     if let Ok(value) = x.field { do_nothing(value + captured) };
     let _: Result<(), usize> = x.field.map(|value| do_nothing(value + captured));
 
     x.field.map(|value| x.do_result_nothing(value + captured));
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { x.do_result_plus_one(value + captured); });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
 
     x.field.map(|value| do_nothing(value + captured));
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { do_nothing(value + captured) });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { do_nothing(value + captured); });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { { do_nothing(value + captured); } });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
 
     x.field.map(|value| diverge(value + captured));
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { diverge(value + captured) });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { diverge(value + captured); });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { { diverge(value + captured); } });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
 
     x.field.map(|value| plus_one(value + captured));
     x.field.map(|value| { plus_one(value + captured) });
     x.field.map(|value| { let y = plus_one(value + captured); });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { plus_one(value + captured); });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| { { plus_one(value + captured); } });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
 
     x.field.map(|ref value| { do_nothing(value + captured) });
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 
     x.field.map(|value| println!("{:?}", value));
+    //~^ ERROR: called `map(f)` on an `Result` value where `f` is a closure that returns t
 }
 
 fn main() {}

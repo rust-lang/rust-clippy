@@ -5,6 +5,8 @@
 
 fn some_func(a: Option<u32>) -> Option<u32> {
     if a.is_none() {
+    //~^ ERROR: this block may be rewritten with the `?` operator
+    //~| NOTE: `-D clippy::question-mark` implied by `-D warnings`
         return None;
     }
 
@@ -50,20 +52,24 @@ impl CopyStruct {
     #[rustfmt::skip]
     pub fn func(&self) -> Option<u32> {
         if (self.opt).is_none() {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             return None;
         }
 
         if self.opt.is_none() {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             return None
         }
 
         let _ = if self.opt.is_none() {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             return None;
         } else {
             self.opt
         };
 
         let _ = if let Some(x) = self.opt {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             x
         } else {
             return None;
@@ -81,6 +87,7 @@ pub struct MoveStruct {
 impl MoveStruct {
     pub fn ref_func(&self) -> Option<Vec<u32>> {
         if self.opt.is_none() {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             return None;
         }
 
@@ -89,6 +96,7 @@ impl MoveStruct {
 
     pub fn mov_func_reuse(self) -> Option<Vec<u32>> {
         if self.opt.is_none() {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             return None;
         }
 
@@ -97,6 +105,7 @@ impl MoveStruct {
 
     pub fn mov_func_no_use(self) -> Option<Vec<u32>> {
         if self.opt.is_none() {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             return None;
         }
         Some(Vec::new())
@@ -104,6 +113,7 @@ impl MoveStruct {
 
     pub fn if_let_ref_func(self) -> Option<Vec<u32>> {
         let v: &Vec<_> = if let Some(ref v) = self.opt {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             v
         } else {
             return None;
@@ -114,6 +124,7 @@ impl MoveStruct {
 
     pub fn if_let_mov_func(self) -> Option<Vec<u32>> {
         let v = if let Some(v) = self.opt {
+        //~^ ERROR: this block may be rewritten with the `?` operator
             v
         } else {
             return None;
@@ -129,6 +140,7 @@ fn func() -> Option<i32> {
     }
 
     if f().is_none() {
+    //~^ ERROR: this block may be rewritten with the `?` operator
         return None;
     }
 
@@ -141,8 +153,10 @@ fn func_returning_result() -> Result<i32, i32> {
 
 fn result_func(x: Result<i32, i32>) -> Result<i32, i32> {
     let _ = if let Ok(x) = x { x } else { return x };
+    //~^ ERROR: this block may be rewritten with the `?` operator
 
     if x.is_err() {
+    //~^ ERROR: this block may be rewritten with the `?` operator
         return x;
     }
 
@@ -211,6 +225,7 @@ fn do_something() {}
 
 fn err_immediate_return() -> Result<i32, i32> {
     if let Err(err) = func_returning_result() {
+    //~^ ERROR: this block may be rewritten with the `?` operator
         return Err(err);
     }
     Ok(1)
@@ -218,6 +233,7 @@ fn err_immediate_return() -> Result<i32, i32> {
 
 fn err_immediate_return_and_do_something() -> Result<i32, i32> {
     if let Err(err) = func_returning_result() {
+    //~^ ERROR: this block may be rewritten with the `?` operator
         return Err(err);
     }
     do_something();
@@ -295,6 +311,7 @@ fn issue6828_nested_body() -> Option<u32> {
     try {
         fn f2(a: Option<i32>) -> Option<i32> {
             if a.is_none() {
+            //~^ ERROR: this block may be rewritten with the `?` operator
                 return None;
                 // do lint here, the outer `try` is not relevant here
                 // https://github.com/rust-lang/rust-clippy/pull/11001#issuecomment-1610636867

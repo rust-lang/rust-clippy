@@ -9,11 +9,17 @@
 
 fn main() {
     let _: Vec<i8> = vec![5_i8; 6].iter().map(|x| *x).collect();
+    //~^ ERROR: you are using an explicit closure for copying elements
+    //~| NOTE: `-D clippy::map-clone` implied by `-D warnings`
     let _: Vec<String> = vec![String::new()].iter().map(|x| x.clone()).collect();
+    //~^ ERROR: you are using an explicit closure for cloning elements
     let _: Vec<u32> = vec![42, 43].iter().map(|&x| x).collect();
+    //~^ ERROR: you are using an explicit closure for copying elements
     let _: Option<u64> = Some(Box::new(16)).map(|b| *b);
     let _: Option<u64> = Some(&16).map(|b| *b);
+    //~^ ERROR: you are using an explicit closure for copying elements
     let _: Option<u8> = Some(&1).map(|x| x.clone());
+    //~^ ERROR: you are using an explicit closure for copying elements
 
     // Don't lint these
     let v = vec![5_i8; 6];
@@ -25,6 +31,7 @@ fn main() {
 
     // Issue #498
     let _ = std::env::args().map(|v| v.clone());
+    //~^ ERROR: you are needlessly cloning iterator elements
 
     // Issue #4824 item types that aren't references
     {

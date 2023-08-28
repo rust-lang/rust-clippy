@@ -15,16 +15,20 @@ impl Bar {
 fn main() {
     let x = vec![2, 3, 5];
     let _ = x.get(0); // Use x.first()
+    //~^ ERROR: accessing first element with `x.get(0)`
+    //~| NOTE: `-D clippy::get-first` implied by `-D warnings`
     let _ = x.get(1);
     let _ = x[0];
 
     let y = [2, 3, 5];
     let _ = y.get(0); // Use y.first()
+    //~^ ERROR: accessing first element with `y.get(0)`
     let _ = y.get(1);
     let _ = y[0];
 
     let z = &[2, 3, 5];
     let _ = z.get(0); // Use z.first()
+    //~^ ERROR: accessing first element with `z.get(0)`
     let _ = z.get(1);
     let _ = z[0];
 

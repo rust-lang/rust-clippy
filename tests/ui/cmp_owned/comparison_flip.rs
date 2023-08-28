@@ -4,10 +4,13 @@ fn main() {
     let a = Foo;
 
     if a.to_string() != "bar" {
+    //~^ ERROR: this creates an owned instance just for comparison
+    //~| NOTE: `-D clippy::cmp-owned` implied by `-D warnings`
         println!("foo");
     }
 
     if "bar" != a.to_string() {
+    //~^ ERROR: this creates an owned instance just for comparison
         println!("foo");
     }
 }

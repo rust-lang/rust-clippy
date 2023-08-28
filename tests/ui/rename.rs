@@ -50,58 +50,113 @@
 #![allow(unknown_lints)]
 #![allow(unused_labels)]
 #![warn(clippy::almost_complete_letter_range)]
+//~^ ERROR: lint `clippy::almost_complete_letter_range` has been renamed to `clippy::almos
+//~| NOTE: `-D renamed-and-removed-lints` implied by `-D warnings`
 #![warn(clippy::blacklisted_name)]
+//~^ ERROR: lint `clippy::blacklisted_name` has been renamed to `clippy::disallowed_names`
 #![warn(clippy::block_in_if_condition_expr)]
+//~^ ERROR: lint `clippy::block_in_if_condition_expr` has been renamed to `clippy::blocks_
 #![warn(clippy::block_in_if_condition_stmt)]
+//~^ ERROR: lint `clippy::block_in_if_condition_stmt` has been renamed to `clippy::blocks_
 #![warn(clippy::box_vec)]
+//~^ ERROR: lint `clippy::box_vec` has been renamed to `clippy::box_collection`
 #![warn(clippy::const_static_lifetime)]
+//~^ ERROR: lint `clippy::const_static_lifetime` has been renamed to `clippy::redundant_st
 #![warn(clippy::cyclomatic_complexity)]
+//~^ ERROR: lint `clippy::cyclomatic_complexity` has been renamed to `clippy::cognitive_co
 #![warn(clippy::derive_hash_xor_eq)]
+//~^ ERROR: lint `clippy::derive_hash_xor_eq` has been renamed to `clippy::derived_hash_wi
 #![warn(clippy::disallowed_method)]
+//~^ ERROR: lint `clippy::disallowed_method` has been renamed to `clippy::disallowed_metho
 #![warn(clippy::disallowed_type)]
+//~^ ERROR: lint `clippy::disallowed_type` has been renamed to `clippy::disallowed_types`
 #![warn(clippy::eval_order_dependence)]
+//~^ ERROR: lint `clippy::eval_order_dependence` has been renamed to `clippy::mixed_read_w
 #![warn(clippy::identity_conversion)]
+//~^ ERROR: lint `clippy::identity_conversion` has been renamed to `clippy::useless_conver
 #![warn(clippy::if_let_some_result)]
+//~^ ERROR: lint `clippy::if_let_some_result` has been renamed to `clippy::match_result_ok
 #![warn(clippy::integer_arithmetic)]
+//~^ ERROR: lint `clippy::integer_arithmetic` has been renamed to `clippy::arithmetic_side
 #![warn(clippy::logic_bug)]
+//~^ ERROR: lint `clippy::logic_bug` has been renamed to `clippy::overly_complex_bool_expr
 #![warn(clippy::new_without_default_derive)]
+//~^ ERROR: lint `clippy::new_without_default_derive` has been renamed to `clippy::new_wit
 #![warn(clippy::option_and_then_some)]
+//~^ ERROR: lint `clippy::option_and_then_some` has been renamed to `clippy::bind_instead_
 #![warn(clippy::option_expect_used)]
+//~^ ERROR: lint `clippy::option_expect_used` has been renamed to `clippy::expect_used`
 #![warn(clippy::option_map_unwrap_or)]
+//~^ ERROR: lint `clippy::option_map_unwrap_or` has been renamed to `clippy::map_unwrap_or
 #![warn(clippy::option_map_unwrap_or_else)]
+//~^ ERROR: lint `clippy::option_map_unwrap_or_else` has been renamed to `clippy::map_unwr
 #![warn(clippy::option_unwrap_used)]
+//~^ ERROR: lint `clippy::option_unwrap_used` has been renamed to `clippy::unwrap_used`
 #![warn(clippy::ref_in_deref)]
+//~^ ERROR: lint `clippy::ref_in_deref` has been renamed to `clippy::needless_borrow`
 #![warn(clippy::result_expect_used)]
+//~^ ERROR: lint `clippy::result_expect_used` has been renamed to `clippy::expect_used`
 #![warn(clippy::result_map_unwrap_or_else)]
+//~^ ERROR: lint `clippy::result_map_unwrap_or_else` has been renamed to `clippy::map_unwr
 #![warn(clippy::result_unwrap_used)]
+//~^ ERROR: lint `clippy::result_unwrap_used` has been renamed to `clippy::unwrap_used`
 #![warn(clippy::single_char_push_str)]
+//~^ ERROR: lint `clippy::single_char_push_str` has been renamed to `clippy::single_char_a
 #![warn(clippy::stutter)]
+//~^ ERROR: lint `clippy::stutter` has been renamed to `clippy::module_name_repetitions`
 #![warn(clippy::to_string_in_display)]
+//~^ ERROR: lint `clippy::to_string_in_display` has been renamed to `clippy::recursive_for
 #![warn(clippy::unwrap_or_else_default)]
+//~^ ERROR: lint `clippy::unwrap_or_else_default` has been renamed to `clippy::unwrap_or_d
 #![warn(clippy::zero_width_space)]
+//~^ ERROR: lint `clippy::zero_width_space` has been renamed to `clippy::invisible_charact
 #![warn(clippy::cast_ref_to_mut)]
+//~^ ERROR: lint `clippy::cast_ref_to_mut` has been renamed to `invalid_reference_casting`
 #![warn(clippy::clone_double_ref)]
+//~^ ERROR: lint `clippy::clone_double_ref` has been renamed to `suspicious_double_ref_op`
 #![warn(clippy::cmp_nan)]
+//~^ ERROR: lint `clippy::cmp_nan` has been renamed to `invalid_nan_comparisons`
 #![warn(clippy::drop_bounds)]
+//~^ ERROR: lint `clippy::drop_bounds` has been renamed to `drop_bounds`
 #![warn(clippy::drop_copy)]
+//~^ ERROR: lint `clippy::drop_copy` has been renamed to `dropping_copy_types`
 #![warn(clippy::drop_ref)]
+//~^ ERROR: lint `clippy::drop_ref` has been renamed to `dropping_references`
 #![warn(clippy::for_loop_over_option)]
+//~^ ERROR: lint `clippy::for_loop_over_option` has been renamed to `for_loops_over_fallib
 #![warn(clippy::for_loop_over_result)]
+//~^ ERROR: lint `clippy::for_loop_over_result` has been renamed to `for_loops_over_fallib
 #![warn(clippy::for_loops_over_fallibles)]
+//~^ ERROR: lint `clippy::for_loops_over_fallibles` has been renamed to `for_loops_over_fa
 #![warn(clippy::forget_copy)]
+//~^ ERROR: lint `clippy::forget_copy` has been renamed to `forgetting_copy_types`
 #![warn(clippy::forget_ref)]
+//~^ ERROR: lint `clippy::forget_ref` has been renamed to `forgetting_references`
 #![warn(clippy::fn_null_check)]
+//~^ ERROR: lint `clippy::fn_null_check` has been renamed to `useless_ptr_null_checks`
 #![warn(clippy::into_iter_on_array)]
+//~^ ERROR: lint `clippy::into_iter_on_array` has been renamed to `array_into_iter`
 #![warn(clippy::invalid_atomic_ordering)]
+//~^ ERROR: lint `clippy::invalid_atomic_ordering` has been renamed to `invalid_atomic_ord
 #![warn(clippy::invalid_ref)]
+//~^ ERROR: lint `clippy::invalid_ref` has been renamed to `invalid_value`
 #![warn(clippy::invalid_utf8_in_unchecked)]
+//~^ ERROR: lint `clippy::invalid_utf8_in_unchecked` has been renamed to `invalid_from_utf
 #![warn(clippy::let_underscore_drop)]
+//~^ ERROR: lint `clippy::let_underscore_drop` has been renamed to `let_underscore_drop`
 #![warn(clippy::mem_discriminant_non_enum)]
+//~^ ERROR: lint `clippy::mem_discriminant_non_enum` has been renamed to `enum_intrinsics_
 #![warn(clippy::panic_params)]
+//~^ ERROR: lint `clippy::panic_params` has been renamed to `non_fmt_panics`
 #![warn(clippy::positional_named_format_parameters)]
+//~^ ERROR: lint `clippy::positional_named_format_parameters` has been renamed to `named_a
 #![warn(clippy::temporary_cstring_as_ptr)]
+//~^ ERROR: lint `clippy::temporary_cstring_as_ptr` has been renamed to `temporary_cstring
 #![warn(clippy::undropped_manually_drops)]
+//~^ ERROR: lint `clippy::undropped_manually_drops` has been renamed to `undropped_manuall
 #![warn(clippy::unknown_clippy_lints)]
+//~^ ERROR: lint `clippy::unknown_clippy_lints` has been renamed to `unknown_lints`
 #![warn(clippy::unused_label)]
+//~^ ERROR: lint `clippy::unused_label` has been renamed to `unused_labels`
 
 fn main() {}

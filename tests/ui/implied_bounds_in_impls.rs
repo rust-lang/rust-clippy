@@ -11,6 +11,8 @@ fn normal_deref<T>(x: T) -> impl Deref<Target = T> {
 
 // Deref implied by DerefMut
 fn deref_derefmut<T>(x: T) -> impl Deref<Target = T> + DerefMut<Target = T> {
+//~^ ERROR: this bound is already specified as the supertrait of `DerefMut<Target = T>`
+//~| NOTE: `-D clippy::implied-bounds-in-impls` implied by `-D warnings`
     Box::new(x)
 }
 
@@ -28,14 +30,19 @@ impl<V> GenericSubtrait<(), i32, V> for () {}
 impl<V> GenericSubtrait<(), i64, V> for () {}
 
 fn generics_implied<U, W>() -> impl GenericTrait<W> + GenericSubtrait<U, W, U>
+//~^ ERROR: this bound is already specified as the supertrait of `GenericSubtrait<U, W, U>
 where
     (): GenericSubtrait<U, W, U>,
 {
 }
 
 fn generics_implied_multi<V>() -> impl GenericTrait<i32> + GenericTrait2<V> + GenericSubtrait<(), i32, V> {}
+//~^ ERROR: this bound is already specified as the supertrait of `GenericSubtrait<(), i32,
+//~| ERROR: this bound is already specified as the supertrait of `GenericSubtrait<(), i32,
 
 fn generics_implied_multi2<T, V>() -> impl GenericTrait<T> + GenericTrait2<V> + GenericSubtrait<(), T, V>
+//~^ ERROR: this bound is already specified as the supertrait of `GenericSubtrait<(), T, V
+//~| ERROR: this bound is already specified as the supertrait of `GenericSubtrait<(), T, V
 where
     (): GenericSubtrait<(), T, V> + GenericTrait<T>,
 {
@@ -46,21 +53,25 @@ fn generics_different() -> impl GenericTrait<i32> + GenericSubtrait<(), i64, ()>
 
 // i32 == i32, GenericSubtrait<_, i32, _> does imply GenericTrait<i32>, lint
 fn generics_same() -> impl GenericTrait<i32> + GenericSubtrait<(), i32, ()> {}
+//~^ ERROR: this bound is already specified as the supertrait of `GenericSubtrait<(), i32,
 
 trait SomeTrait {
     // Check that it works in trait declarations.
     fn f() -> impl Deref + DerefMut<Target = u8>;
+    //~^ ERROR: this bound is already specified as the supertrait of `DerefMut<Target = u8
 }
 struct SomeStruct;
 impl SomeStruct {
     // Check that it works in inherent impl blocks.
     fn f() -> impl Deref + DerefMut<Target = u8> {
+    //~^ ERROR: this bound is already specified as the supertrait of `DerefMut<Target = u8
         Box::new(123)
     }
 }
 impl SomeTrait for SomeStruct {
     // Check that it works in trait impls.
     fn f() -> impl Deref + DerefMut<Target = u8> {
+    //~^ ERROR: this bound is already specified as the supertrait of `DerefMut<Target = u8
         Box::new(42)
     }
 }

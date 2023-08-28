@@ -27,6 +27,8 @@ fn main() {
 // https://github.com/breard-r/acmed/blob/1f0dcc32aadbc5e52de6d23b9703554c0f925113/acmed/src/storage.rs#L262
 fn check_files(files: &[(FileType, &std::path::Path)]) -> bool {
     for (t, path) in files.iter().copied() {
+    //~^ ERROR: unnecessary use of `copied`
+    //~| NOTE: `-D clippy::unnecessary-to-owned` implied by `-D warnings`
         let other = match get_file_path(&t) {
             Ok(p) => p,
             Err(_) => {
@@ -42,6 +44,7 @@ fn check_files(files: &[(FileType, &std::path::Path)]) -> bool {
 
 fn check_files_vec(files: Vec<(FileType, &std::path::Path)>) -> bool {
     for (t, path) in files.iter().copied() {
+    //~^ ERROR: unnecessary use of `copied`
         let other = match get_file_path(&t) {
             Ok(p) => p,
             Err(_) => {

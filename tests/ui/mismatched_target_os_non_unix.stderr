@@ -9,7 +9,7 @@ LL | #[cfg(hermit)]
    = note: `-D clippy::mismatched-target-os` implied by `-D warnings`
 
 error: operating system used in target family position
-  --> $DIR/mismatched_target_os_non_unix.rs:7:1
+  --> $DIR/mismatched_target_os_non_unix.rs:9:1
    |
 LL | #[cfg(wasi)]
    | ^^^^^^----^^
@@ -17,7 +17,7 @@ LL | #[cfg(wasi)]
    |       help: try: `target_os = "wasi"`
 
 error: operating system used in target family position
-  --> $DIR/mismatched_target_os_non_unix.rs:10:1
+  --> $DIR/mismatched_target_os_non_unix.rs:13:1
    |
 LL | #[cfg(none)]
    | ^^^^^^----^^
@@ -25,7 +25,7 @@ LL | #[cfg(none)]
    |       help: try: `target_os = "none"`
 
 error: operating system used in target family position
-  --> $DIR/mismatched_target_os_non_unix.rs:14:1
+  --> $DIR/mismatched_target_os_non_unix.rs:18:1
    |
 LL | #[cfg(all(not(windows), wasi))]
    | ^^^^^^^^^^^^^^^^^^^^^^^^----^^^

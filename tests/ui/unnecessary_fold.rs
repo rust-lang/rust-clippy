@@ -4,17 +4,23 @@
 fn unnecessary_fold() {
     // Can be replaced by .any
     let _ = (0..3).fold(false, |acc, x| acc || x > 2);
+    //~^ ERROR: this `.fold` can be written more succinctly using another method
+    //~| NOTE: `-D clippy::unnecessary-fold` implied by `-D warnings`
     // Can be replaced by .all
     let _ = (0..3).fold(true, |acc, x| acc && x > 2);
+    //~^ ERROR: this `.fold` can be written more succinctly using another method
     // Can be replaced by .sum
     let _: i32 = (0..3).fold(0, |acc, x| acc + x);
+    //~^ ERROR: this `.fold` can be written more succinctly using another method
     // Can be replaced by .product
     let _: i32 = (0..3).fold(1, |acc, x| acc * x);
+    //~^ ERROR: this `.fold` can be written more succinctly using another method
 }
 
 /// Should trigger the `UNNECESSARY_FOLD` lint, with an error span including exactly `.fold(...)`
 fn unnecessary_fold_span_for_multi_element_chain() {
     let _: bool = (0..3).map(|x| 2 * x).fold(false, |acc, x| acc || x > 2);
+    //~^ ERROR: this `.fold` can be written more succinctly using another method
 }
 
 /// Calls which should not trigger the `UNNECESSARY_FOLD` lint
@@ -45,6 +51,7 @@ fn unnecessary_fold_over_multiple_lines() {
         .map(|x| x + 1)
         .filter(|x| x % 2 == 0)
         .fold(false, |acc, x| acc || x > 2);
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
 }
 
 fn issue10000() {
@@ -56,16 +63,25 @@ fn issue10000() {
     fn smoketest_map<S: BuildHasher>(mut map: HashMap<i32, i32, S>) {
         map.insert(0, 0);
         assert_eq!(map.values().fold(0, |x, y| x + y), 0);
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
 
         // more cases:
         let _ = map.values().fold(0, |x, y| x + y);
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
         let _ = map.values().fold(1, |x, y| x * y);
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
         let _: i32 = map.values().fold(0, |x, y| x + y);
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
         let _: i32 = map.values().fold(1, |x, y| x * y);
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
         anything(map.values().fold(0, |x, y| x + y));
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
         anything(map.values().fold(1, |x, y| x * y));
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
         num(map.values().fold(0, |x, y| x + y));
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
         num(map.values().fold(1, |x, y| x * y));
+        //~^ ERROR: this `.fold` can be written more succinctly using another method
     }
 
     smoketest_map(HashMap::new());

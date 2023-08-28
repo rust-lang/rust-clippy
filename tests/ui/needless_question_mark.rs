@@ -18,6 +18,8 @@ struct TR {
 fn simple_option_bad1(to: TO) -> Option<usize> {
     // return as a statement
     return Some(to.magic?);
+    //~^ ERROR: question mark operator is useless here
+    //~| NOTE: `-D clippy::needless-question-mark` implied by `-D warnings`
 }
 
 // formatting will add a semi-colon, which would make
@@ -26,16 +28,19 @@ fn simple_option_bad1(to: TO) -> Option<usize> {
 fn simple_option_bad2(to: TO) -> Option<usize> {
     // return as an expression
     return Some(to.magic?)
+    //~^ ERROR: question mark operator is useless here
 }
 
 fn simple_option_bad3(to: TO) -> Option<usize> {
     // block value "return"
     Some(to.magic?)
+    //~^ ERROR: question mark operator is useless here
 }
 
 fn simple_option_bad4(to: Option<TO>) -> Option<usize> {
     // single line closure
     to.and_then(|t| Some(t.magic?))
+    //~^ ERROR: question mark operator is useless here
 }
 
 // formatting this will remove the block brackets, making
@@ -45,11 +50,13 @@ fn simple_option_bad5(to: Option<TO>) -> Option<usize> {
     // closure with body
     to.and_then(|t| {
         Some(t.magic?)
+        //~^ ERROR: question mark operator is useless here
     })
 }
 
 fn simple_result_bad1(tr: TR) -> Result<usize, bool> {
     return Ok(tr.magic?);
+    //~^ ERROR: question mark operator is useless here
 }
 
 // formatting will add a semi-colon, which would make
@@ -57,14 +64,17 @@ fn simple_result_bad1(tr: TR) -> Result<usize, bool> {
 #[rustfmt::skip]
 fn simple_result_bad2(tr: TR) -> Result<usize, bool> {
     return Ok(tr.magic?)
+    //~^ ERROR: question mark operator is useless here
 }
 
 fn simple_result_bad3(tr: TR) -> Result<usize, bool> {
     Ok(tr.magic?)
+    //~^ ERROR: question mark operator is useless here
 }
 
 fn simple_result_bad4(tr: Result<TR, bool>) -> Result<usize, bool> {
     tr.and_then(|t| Ok(t.magic?))
+    //~^ ERROR: question mark operator is useless here
 }
 
 // formatting this will remove the block brackets, making
@@ -73,6 +83,7 @@ fn simple_result_bad4(tr: Result<TR, bool>) -> Result<usize, bool> {
 fn simple_result_bad5(tr: Result<TR, bool>) -> Result<usize, bool> {
     tr.and_then(|t| {
         Ok(t.magic?)
+        //~^ ERROR: question mark operator is useless here
     })
 }
 
@@ -80,6 +91,7 @@ fn also_bad(tr: Result<TR, bool>) -> Result<usize, bool> {
     if tr.is_ok() {
         let t = tr.unwrap();
         return Ok(t.magic?);
+        //~^ ERROR: question mark operator is useless here
     }
     Err(false)
 }
@@ -126,6 +138,7 @@ pub fn test2() {
 async fn async_option_bad(to: TO) -> Option<usize> {
     let _ = Some(3);
     Some(to.magic?)
+    //~^ ERROR: question mark operator is useless here
 }
 
 async fn async_deref_ref(s: Option<&String>) -> Option<&str> {
@@ -134,4 +147,5 @@ async fn async_deref_ref(s: Option<&String>) -> Option<&str> {
 
 async fn async_result_bad(s: TR) -> Result<usize, bool> {
     Ok(s.magic?)
+    //~^ ERROR: question mark operator is useless here
 }

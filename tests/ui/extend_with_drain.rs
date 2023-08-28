@@ -6,15 +6,19 @@ fn main() {
     let mut vec1 = vec![0u8; 1024];
     let mut vec2: std::vec::Vec<u8> = Vec::new();
     vec2.extend(vec1.drain(..));
+    //~^ ERROR: use of `extend` instead of `append` for adding the full range of a second
+    //~| NOTE: `-D clippy::extend-with-drain` implied by `-D warnings`
 
     let mut vec3 = vec![0u8; 1024];
     let mut vec4: std::vec::Vec<u8> = Vec::new();
 
     vec4.extend(vec3.drain(..));
+    //~^ ERROR: use of `extend` instead of `append` for adding the full range of a second
 
     let mut vec11: std::vec::Vec<u8> = Vec::new();
 
     vec11.extend(return_vector().drain(..));
+    //~^ ERROR: use of `extend` instead of `append` for adding the full range of a second
 
     //won't get linted it doesn't move the entire content of a vec into another
     let mut test1 = vec![0u8, 10];
@@ -46,6 +50,7 @@ fn main() {
     let ref_x = &mut x;
     let mut y = Vec::new();
     y.extend(ref_x.drain(..));
+    //~^ ERROR: use of `extend` instead of `append` for adding the full range of a second
 }
 
 fn return_vector() -> Vec<u8> {

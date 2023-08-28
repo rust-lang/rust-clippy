@@ -11,61 +11,61 @@ LL | #![deny(clippy::useless_asref)]
    |         ^^^^^^^^^^^^^^^^^^^^^
 
 error: this call to `as_ref` does nothing
-  --> $DIR/useless_asref.rs:48:20
+  --> $DIR/useless_asref.rs:49:20
    |
 LL |         foo_rslice(rslice.as_ref());
    |                    ^^^^^^^^^^^^^^^ help: try: `rslice`
 
 error: this call to `as_mut` does nothing
-  --> $DIR/useless_asref.rs:52:21
+  --> $DIR/useless_asref.rs:54:21
    |
 LL |         foo_mrslice(mrslice.as_mut());
    |                     ^^^^^^^^^^^^^^^^ help: try: `mrslice`
 
 error: this call to `as_ref` does nothing
-  --> $DIR/useless_asref.rs:54:20
+  --> $DIR/useless_asref.rs:57:20
    |
 LL |         foo_rslice(mrslice.as_ref());
    |                    ^^^^^^^^^^^^^^^^ help: try: `mrslice`
 
 error: this call to `as_ref` does nothing
-  --> $DIR/useless_asref.rs:61:20
+  --> $DIR/useless_asref.rs:65:20
    |
 LL |         foo_rslice(rrrrrslice.as_ref());
    |                    ^^^^^^^^^^^^^^^^^^^ help: try: `rrrrrslice`
 
 error: this call to `as_ref` does nothing
-  --> $DIR/useless_asref.rs:63:18
+  --> $DIR/useless_asref.rs:68:18
    |
 LL |         foo_rstr(rrrrrstr.as_ref());
    |                  ^^^^^^^^^^^^^^^^^ help: try: `rrrrrstr`
 
 error: this call to `as_mut` does nothing
-  --> $DIR/useless_asref.rs:68:21
+  --> $DIR/useless_asref.rs:74:21
    |
 LL |         foo_mrslice(mrrrrrslice.as_mut());
    |                     ^^^^^^^^^^^^^^^^^^^^ help: try: `mrrrrrslice`
 
 error: this call to `as_ref` does nothing
-  --> $DIR/useless_asref.rs:70:20
+  --> $DIR/useless_asref.rs:77:20
    |
 LL |         foo_rslice(mrrrrrslice.as_ref());
    |                    ^^^^^^^^^^^^^^^^^^^^ help: try: `mrrrrrslice`
 
 error: this call to `as_ref` does nothing
-  --> $DIR/useless_asref.rs:74:16
+  --> $DIR/useless_asref.rs:82:16
    |
 LL |     foo_rrrrmr((&&&&MoreRef).as_ref());
    |                ^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&&&&MoreRef)`
 
 error: this call to `as_mut` does nothing
-  --> $DIR/useless_asref.rs:124:13
+  --> $DIR/useless_asref.rs:133:13
    |
 LL |     foo_mrt(mrt.as_mut());
    |             ^^^^^^^^^^^^ help: try: `mrt`
 
 error: this call to `as_ref` does nothing
-  --> $DIR/useless_asref.rs:126:12
+  --> $DIR/useless_asref.rs:136:12
    |
 LL |     foo_rt(mrt.as_ref());
    |            ^^^^^^^^^^^^ help: try: `mrt`

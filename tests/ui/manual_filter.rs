@@ -3,6 +3,8 @@
 
 fn main() {
     match Some(0) {
+    //~^ ERROR: manual implementation of `Option::filter`
+    //~| NOTE: `-D clippy::manual-filter` implied by `-D warnings`
         None => None,
         Some(x) => {
             if x > 0 {
@@ -14,6 +16,7 @@ fn main() {
     };
 
     match Some(1) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => {
             if x > 0 {
                 None
@@ -25,6 +28,7 @@ fn main() {
     };
 
     match Some(2) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => {
             if x > 0 {
                 None
@@ -36,6 +40,7 @@ fn main() {
     };
 
     match Some(3) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => {
             if x > 0 {
                 Some(x)
@@ -48,6 +53,7 @@ fn main() {
 
     let y = Some(4);
     match y {
+    //~^ ERROR: manual implementation of `Option::filter`
         // Some(4)
         None => None,
         Some(x) => {
@@ -60,6 +66,7 @@ fn main() {
     };
 
     match Some(5) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => {
             if x > 0 {
                 Some(x)
@@ -71,6 +78,7 @@ fn main() {
     };
 
     match Some(6) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(ref x) => {
             if x > &0 {
                 Some(x)
@@ -83,6 +91,7 @@ fn main() {
 
     let external_cond = true;
     match Some(String::new()) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => {
             if external_cond {
                 Some(x)
@@ -94,12 +103,14 @@ fn main() {
     };
 
     if let Some(x) = Some(7) {
+    //~^ ERROR: manual implementation of `Option::filter`
         if external_cond { Some(x) } else { None }
     } else {
         None
     };
 
     match &Some(8) {
+    //~^ ERROR: manual implementation of `Option::filter`
         &Some(x) => {
             if x != 0 {
                 Some(x)
@@ -111,6 +122,7 @@ fn main() {
     };
 
     match Some(9) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => {
             if x > 10 && x < 100 {
                 Some(x)
@@ -137,6 +149,7 @@ fn main() {
 
     #[allow(clippy::blocks_in_if_conditions)]
     match Some(11) {
+    //~^ ERROR: manual implementation of `Option::filter`
         // Lint, statement is preserved by `.filter`
         Some(x) => {
             if {
@@ -181,6 +194,7 @@ fn main() {
         true
     }
     let _ = match Some(14) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => {
             if unsafe { f(x) } {
                 Some(x)
@@ -191,6 +205,7 @@ fn main() {
         None => None,
     };
     let _ = match Some(15) {
+    //~^ ERROR: manual implementation of `Option::filter`
         Some(x) => unsafe {
             if f(x) { Some(x) } else { None }
         },
@@ -201,6 +216,7 @@ fn main() {
     if let Some(_) = Some(16) {
         Some(16)
     } else if let Some(x) = Some(16) {
+    //~^ ERROR: manual implementation of `Option::filter`
         // Lint starting from here
         if x % 2 == 0 { Some(x) } else { None }
     } else {

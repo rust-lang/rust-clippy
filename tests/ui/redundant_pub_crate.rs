@@ -4,24 +4,30 @@
 mod m1 {
     fn f() {}
     pub(crate) fn g() {} // private due to m1
+    //~^ ERROR: pub(crate) function inside private module
+    //~| NOTE: `-D clippy::redundant-pub-crate` implied by `-D warnings`
     pub fn h() {}
 
     mod m1_1 {
         fn f() {}
         pub(crate) fn g() {} // private due to m1_1 and m1
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 
     pub(crate) mod m1_2 {
+    //~^ ERROR: pub(crate) module inside private module
         //:^ private due to m1
         fn f() {}
         pub(crate) fn g() {} // private due to m1_2 and m1
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 
     pub mod m1_3 {
         fn f() {}
         pub(crate) fn g() {} // private due to m1
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 }
@@ -29,24 +35,29 @@ mod m1 {
 pub(crate) mod m2 {
     fn f() {}
     pub(crate) fn g() {} // already crate visible due to m2
+    //~^ ERROR: pub(crate) function inside private module
     pub fn h() {}
 
     mod m2_1 {
         fn f() {}
         pub(crate) fn g() {} // private due to m2_1
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 
     pub(crate) mod m2_2 {
+    //~^ ERROR: pub(crate) module inside private module
         //:^ already crate visible due to m2
         fn f() {}
         pub(crate) fn g() {} // already crate visible due to m2_2 and m2
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 
     pub mod m2_3 {
         fn f() {}
         pub(crate) fn g() {} // already crate visible due to m2
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 }
@@ -59,6 +70,7 @@ pub mod m3 {
     mod m3_1 {
         fn f() {}
         pub(crate) fn g() {} // private due to m3_1
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 
@@ -66,6 +78,7 @@ pub mod m3 {
         //:^ ok
         fn f() {}
         pub(crate) fn g() {} // already crate visible due to m3_2
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 
@@ -79,18 +92,22 @@ pub mod m3 {
 mod m4 {
     fn f() {}
     pub(crate) fn g() {} // private: not re-exported by `pub use m4::*`
+    //~^ ERROR: pub(crate) function inside private module
     pub fn h() {}
 
     mod m4_1 {
         fn f() {}
         pub(crate) fn g() {} // private due to m4_1
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 
     pub(crate) mod m4_2 {
+    //~^ ERROR: pub(crate) module inside private module
         //:^ private: not re-exported by `pub use m4::*`
         fn f() {}
         pub(crate) fn g() {} // private due to m4_2
+        //~^ ERROR: pub(crate) function inside private module
         pub fn h() {}
     }
 

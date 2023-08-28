@@ -5,72 +5,87 @@
 fn main() {
     let x = true;
     if x == true {
+    //~^ ERROR: equality checks against true are unnecessary
+    //~| NOTE: `-D clippy::bool-comparison` implied by `-D warnings`
         "yes"
     } else {
         "no"
     };
     if x == false {
+    //~^ ERROR: equality checks against false can be replaced by a negation
         "yes"
     } else {
         "no"
     };
     if true == x {
+    //~^ ERROR: equality checks against true are unnecessary
         "yes"
     } else {
         "no"
     };
     if false == x {
+    //~^ ERROR: equality checks against false can be replaced by a negation
         "yes"
     } else {
         "no"
     };
     if x != true {
+    //~^ ERROR: inequality checks against true can be replaced by a negation
         "yes"
     } else {
         "no"
     };
     if x != false {
+    //~^ ERROR: inequality checks against false are unnecessary
         "yes"
     } else {
         "no"
     };
     if true != x {
+    //~^ ERROR: inequality checks against true can be replaced by a negation
         "yes"
     } else {
         "no"
     };
     if false != x {
+    //~^ ERROR: inequality checks against false are unnecessary
         "yes"
     } else {
         "no"
     };
     if x < true {
+    //~^ ERROR: less than comparison against true can be replaced by a negation
         "yes"
     } else {
         "no"
     };
     if false < x {
+    //~^ ERROR: greater than checks against false are unnecessary
         "yes"
     } else {
         "no"
     };
     if x > false {
+    //~^ ERROR: greater than checks against false are unnecessary
         "yes"
     } else {
         "no"
     };
     if true > x {
+    //~^ ERROR: less than comparison against true can be replaced by a negation
         "yes"
     } else {
         "no"
     };
     let y = true;
     if x < y {
+    //~^ ERROR: order comparisons between booleans can be simplified
         "yes"
     } else {
         "no"
     };
     if x > y {
+    //~^ ERROR: order comparisons between booleans can be simplified
         "yes"
     } else {
         "no"
@@ -119,12 +134,16 @@ fn issue4983() {
     let b = false;
 
     if a == !b {};
+    //~^ ERROR: this comparison might be written more concisely
     if !a == b {};
+    //~^ ERROR: this comparison might be written more concisely
     if a == b {};
     if !a == !b {};
 
     if b == !a {};
+    //~^ ERROR: this comparison might be written more concisely
     if !b == a {};
+    //~^ ERROR: this comparison might be written more concisely
     if b == a {};
     if !b == !a {};
 }
@@ -149,9 +168,13 @@ fn issue3973() {
 
     // lint, could be simplified
     if false == m!(func) {}
+    //~^ ERROR: equality checks against false can be replaced by a negation
     if m!(func) == false {}
+    //~^ ERROR: equality checks against false can be replaced by a negation
     if true == m!(func) {}
+    //~^ ERROR: equality checks against true are unnecessary
     if m!(func) == true {}
+    //~^ ERROR: equality checks against true are unnecessary
 
     // no lint with a variable
     let is_debug = false;

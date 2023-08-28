@@ -55,82 +55,152 @@ fn main() {
     let x_ref = &x;
 
     require_c_str(&Cow::from(c_str).into_owned());
+    //~^ ERROR: unnecessary use of `into_owned`
+    //~| NOTE: `-D clippy::unnecessary-to-owned` implied by `-D warnings`
     require_c_str(&c_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     require_os_str(&os_str.to_os_string());
+    //~^ ERROR: unnecessary use of `to_os_string`
     require_os_str(&Cow::from(os_str).into_owned());
+    //~^ ERROR: unnecessary use of `into_owned`
     require_os_str(&os_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     require_path(&path.to_path_buf());
+    //~^ ERROR: unnecessary use of `to_path_buf`
     require_path(&Cow::from(path).into_owned());
+    //~^ ERROR: unnecessary use of `into_owned`
     require_path(&path.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     require_str(&s.to_string());
+    //~^ ERROR: unnecessary use of `to_string`
     require_str(&Cow::from(s).into_owned());
+    //~^ ERROR: unnecessary use of `into_owned`
     require_str(&s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_str(&x_ref.to_string());
+    //~^ ERROR: unnecessary use of `to_string`
 
     require_slice(&slice.to_vec());
+    //~^ ERROR: unnecessary use of `to_vec`
     require_slice(&Cow::from(slice).into_owned());
+    //~^ ERROR: unnecessary use of `into_owned`
     require_slice(&array.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_slice(&array_ref.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_slice(&slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_slice(&x_ref.to_owned()); // No longer flagged because of #8759.
 
     require_x(&Cow::<X>::Owned(x.clone()).into_owned());
+    //~^ ERROR: unnecessary use of `into_owned`
     require_x(&x_ref.to_owned()); // No longer flagged because of #8759.
 
     require_deref_c_str(c_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_deref_os_str(os_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_deref_path(path.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_deref_str(s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_deref_slice(slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     require_impl_deref_c_str(c_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_deref_os_str(os_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_deref_path(path.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_deref_str(s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_deref_slice(slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     require_deref_str_slice(s.to_owned(), slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
     require_deref_slice_str(slice.to_owned(), s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
 
     require_as_ref_c_str(c_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_as_ref_os_str(os_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_as_ref_path(path.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_as_ref_str(s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_as_ref_str(x.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_as_ref_slice(array.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_as_ref_slice(array_ref.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_as_ref_slice(slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     require_impl_as_ref_c_str(c_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_as_ref_os_str(os_str.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_as_ref_path(path.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_as_ref_str(s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_as_ref_str(x.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_as_ref_slice(array.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_as_ref_slice(array_ref.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     require_impl_as_ref_slice(slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     require_as_ref_str_slice(s.to_owned(), array.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
     require_as_ref_str_slice(s.to_owned(), array_ref.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
     require_as_ref_str_slice(s.to_owned(), slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
     require_as_ref_slice_str(array.to_owned(), s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
     require_as_ref_slice_str(array_ref.to_owned(), s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
     require_as_ref_slice_str(slice.to_owned(), s.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
+    //~| ERROR: unnecessary use of `to_owned`
 
     let _ = x.join(&x_ref.to_string());
+    //~^ ERROR: unnecessary use of `to_string`
 
     let _ = slice.to_vec().into_iter();
+    //~^ ERROR: unnecessary use of `to_vec`
     let _ = slice.to_owned().into_iter();
+    //~^ ERROR: unnecessary use of `to_owned`
     let _ = [std::path::PathBuf::new()][..].to_vec().into_iter();
+    //~^ ERROR: unnecessary use of `to_vec`
     let _ = [std::path::PathBuf::new()][..].to_owned().into_iter();
+    //~^ ERROR: unnecessary use of `to_owned`
 
     let _ = IntoIterator::into_iter(slice.to_vec());
+    //~^ ERROR: unnecessary use of `to_vec`
     let _ = IntoIterator::into_iter(slice.to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
     let _ = IntoIterator::into_iter([std::path::PathBuf::new()][..].to_vec());
+    //~^ ERROR: unnecessary use of `to_vec`
     let _ = IntoIterator::into_iter([std::path::PathBuf::new()][..].to_owned());
+    //~^ ERROR: unnecessary use of `to_owned`
 
     let _ = check_files(&[FileType::Account]);
 
@@ -146,10 +216,15 @@ fn main() {
 
     // The following should be flagged by `redundant_clone`, but not by this lint.
     require_c_str(&CString::from_vec_with_nul(vec![0]).unwrap().to_owned());
+    //~^ ERROR: redundant clone
     require_os_str(&OsString::from("x").to_os_string());
+    //~^ ERROR: redundant clone
     require_path(&std::path::PathBuf::from("x").to_path_buf());
+    //~^ ERROR: redundant clone
     require_str(&String::from("x").to_string());
+    //~^ ERROR: redundant clone
     require_slice(&[String::from("x")].to_owned());
+    //~^ ERROR: redundant clone
 }
 
 fn require_c_str(_: &CStr) {}
@@ -193,6 +268,7 @@ fn require_as_ref_slice_str<T, U: AsRef<[T]>, V: AsRef<str>>(_: U, _: V) {}
 // https://github.com/breard-r/acmed/blob/1f0dcc32aadbc5e52de6d23b9703554c0f925113/acmed/src/storage.rs#L262
 fn check_files(file_types: &[FileType]) -> bool {
     for t in file_types.to_vec() {
+    //~^ ERROR: unnecessary use of `to_vec`
         let path = match get_file_path(&t) {
             Ok(p) => p,
             Err(_) => {
@@ -216,11 +292,13 @@ fn require_string(_: &String) {}
 fn _msrv_1_35() {
     // `copied` was stabilized in 1.36, so clippy should use `cloned`.
     let _ = &["x"][..].to_vec().into_iter();
+    //~^ ERROR: unnecessary use of `to_vec`
 }
 
 #[clippy::msrv = "1.36"]
 fn _msrv_1_36() {
     let _ = &["x"][..].to_vec().into_iter();
+    //~^ ERROR: unnecessary use of `to_vec`
 }
 
 // https://github.com/rust-lang/rust-clippy/issues/8507
@@ -268,6 +346,7 @@ mod issue_8507 {
     // Should lint because Y is copy.
     fn test_y(y: Y) -> Box<dyn Abstracted> {
         Box::new(build(y.to_string()))
+        //~^ ERROR: unnecessary use of `to_string`
     }
 }
 
@@ -376,6 +455,7 @@ mod issue_9351 {
     // Should lint
     fn single_return() -> impl AsRef<str> {
         id("abc".to_string())
+        //~^ ERROR: unnecessary use of `to_string`
     }
 
     // Should not lint

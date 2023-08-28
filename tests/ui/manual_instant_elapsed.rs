@@ -15,6 +15,8 @@ fn main() {
     }
 
     let duration = Instant::now() - prev_instant;
+    //~^ ERROR: manual implementation of `Instant::elapsed`
+    //~| NOTE: `-D clippy::manual-instant-elapsed` implied by `-D warnings`
 
     // don't catch
     let duration = prev_instant.elapsed();
@@ -24,4 +26,5 @@ fn main() {
     let ref_to_instant = &Instant::now();
 
     Instant::now() - *ref_to_instant; // to ensure parens are added correctly
+    //~^ ERROR: manual implementation of `Instant::elapsed`
 }

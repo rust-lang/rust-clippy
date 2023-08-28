@@ -6,6 +6,10 @@ fn main() {
 
     for _ in 1..3 {
         x = x + ".";
+        //~^ ERROR: you assigned the result of adding something to this string. Consider u
+        //~| NOTE: `-D clippy::string-add-assign` implied by `-D warnings`
+        //~| ERROR: manual implementation of an assign operation
+        //~| NOTE: `-D clippy::assign-op-pattern` implied by `-D warnings`
     }
 
     let y = String::new();
@@ -15,5 +19,6 @@ fn main() {
 
     let mut x = 1;
     x = x + 1;
+    //~^ ERROR: manual implementation of an assign operation
     assert_eq!(2, x);
 }

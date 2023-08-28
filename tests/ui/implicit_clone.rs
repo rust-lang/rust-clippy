@@ -63,12 +63,16 @@ fn main() {
     let vec = vec![5];
     let _ = return_owned_from_slice(&vec);
     let _ = vec.to_owned();
+    //~^ ERROR: implicitly cloning a `Vec` by calling `to_owned` on its dereferenced type
+    //~| NOTE: `-D clippy::implicit-clone` implied by `-D warnings`
     let _ = vec.to_vec();
+    //~^ ERROR: implicitly cloning a `Vec` by calling `to_vec` on its dereferenced type
 
     let vec_ref = &vec;
     let _ = return_owned_from_slice(vec_ref);
     let _ = vec_ref.to_owned();
     let _ = vec_ref.to_vec();
+    //~^ ERROR: implicitly cloning a `Vec` by calling `to_vec` on its dereferenced type
 
     // we expect no lint for this
     let _ = weird::to_vec(&vec);
@@ -81,10 +85,12 @@ fn main() {
 
     let str = "hello world".to_string();
     let _ = str.to_owned();
+    //~^ ERROR: implicitly cloning a `String` by calling `to_owned` on its dereferenced ty
 
     // testing w/ an arbitrary type
     let kitten = Kitten {};
     let _ = kitten.to_owned();
+    //~^ ERROR: implicitly cloning a `Kitten` by calling `to_owned` on its dereferenced ty
     let _ = own_same_from_ref(&kitten);
     // this shouldn't lint
     let _ = kitten.to_vec();
@@ -95,11 +101,15 @@ fn main() {
 
     let pathbuf = PathBuf::new();
     let _ = pathbuf.to_owned();
+    //~^ ERROR: implicitly cloning a `PathBuf` by calling `to_owned` on its dereferenced t
     let _ = pathbuf.to_path_buf();
+    //~^ ERROR: implicitly cloning a `PathBuf` by calling `to_path_buf` on its dereference
 
     let os_string = OsString::from("foo");
     let _ = os_string.to_owned();
+    //~^ ERROR: implicitly cloning a `OsString` by calling `to_owned` on its dereferenced
     let _ = os_string.to_os_string();
+    //~^ ERROR: implicitly cloning a `OsString` by calling `to_os_string` on its dereferen
 
     // we expect no lints for this
     let os_str = OsStr::new("foo");
@@ -111,9 +121,11 @@ fn main() {
     let pathbuf_ref = &pathbuf_ref;
     let _ = pathbuf_ref.to_owned(); // Don't lint. Returns `&PathBuf`
     let _ = pathbuf_ref.to_path_buf();
+    //~^ ERROR: implicitly cloning a `PathBuf` by calling `to_path_buf` on its dereference
     let pathbuf_ref = &pathbuf_ref;
     let _ = pathbuf_ref.to_owned(); // Don't lint. Returns `&&PathBuf`
     let _ = pathbuf_ref.to_path_buf();
+    //~^ ERROR: implicitly cloning a `PathBuf` by calling `to_path_buf` on its dereference
 
     struct NoClone;
     impl ToOwned for NoClone {

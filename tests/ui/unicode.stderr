@@ -7,19 +7,19 @@ LL |     print!("Here >​< is a ZWS, and ​another");
    = note: `-D clippy::invisible-characters` implied by `-D warnings`
 
 error: invisible character detected
-  --> $DIR/unicode.rs:7:12
+  --> $DIR/unicode.rs:9:12
    |
 LL |     print!("Here >­< is a SHY, and ­another");
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider replacing the string with: `"Here >\u{AD}< is a SHY, and \u{AD}another"`
 
 error: invisible character detected
-  --> $DIR/unicode.rs:9:12
+  --> $DIR/unicode.rs:12:12
    |
 LL |     print!("Here >⁠< is a WJ, and ⁠another");
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider replacing the string with: `"Here >\u{2060}< is a WJ, and \u{2060}another"`
 
 error: non-NFC Unicode sequence detected
-  --> $DIR/unicode.rs:15:12
+  --> $DIR/unicode.rs:19:12
    |
 LL |     print!("̀àh?");
    |            ^^^^^ help: consider replacing the string with: `"̀àh?"`
@@ -27,37 +27,37 @@ LL |     print!("̀àh?");
    = note: `-D clippy::unicode-not-nfc` implied by `-D warnings`
 
 error: literal non-ASCII character detected
-  --> $DIR/unicode.rs:23:16
+  --> $DIR/unicode.rs:29:16
    |
 LL |         print!("Üben!");
    |                ^^^^^^^ help: consider replacing the string with: `"\u{dc}ben!"`
    |
 note: the lint level is defined here
-  --> $DIR/unicode.rs:20:13
+  --> $DIR/unicode.rs:26:13
    |
 LL |     #![deny(clippy::non_ascii_literal)]
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: literal non-ASCII character detected
-  --> $DIR/unicode.rs:29:36
+  --> $DIR/unicode.rs:36:36
    |
 LL |         const _EMPTY_BLOCK: char = '▱';
    |                                    ^^^ help: consider replacing the string with: `'\u{25b1}'`
 
 error: literal non-ASCII character detected
-  --> $DIR/unicode.rs:30:35
+  --> $DIR/unicode.rs:38:35
    |
 LL |         const _FULL_BLOCK: char = '▰';
    |                                   ^^^ help: consider replacing the string with: `'\u{25b0}'`
 
 error: literal non-ASCII character detected
-  --> $DIR/unicode.rs:50:21
+  --> $DIR/unicode.rs:59:21
    |
 LL |             let _ = "悲しいかな、ここに日本語を書くことはできない。";
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider replacing the string with: `"\u{60b2}\u{3057}\u{3044}\u{304b}\u{306a}\u{3001}\u{3053}\u{3053}\u{306b}\u{65e5}\u{672c}\u{8a9e}\u{3092}\u{66f8}\u{304f}\u{3053}\u{3068}\u{306f}\u{3067}\u{304d}\u{306a}\u{3044}\u{3002}"`
    |
 note: the lint level is defined here
-  --> $DIR/unicode.rs:39:17
+  --> $DIR/unicode.rs:48:17
    |
 LL |         #![deny(clippy::non_ascii_literal)]
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^

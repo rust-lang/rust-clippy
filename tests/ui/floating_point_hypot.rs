@@ -4,8 +4,12 @@ fn main() {
     let x = 3f32;
     let y = 4f32;
     let _ = (x * x + y * y).sqrt();
+    //~^ ERROR: hypotenuse can be computed more accurately
+    //~| NOTE: `-D clippy::imprecise-flops` implied by `-D warnings`
     let _ = ((x + 1f32) * (x + 1f32) + y * y).sqrt();
+    //~^ ERROR: hypotenuse can be computed more accurately
     let _ = (x.powi(2) + y.powi(2)).sqrt();
+    //~^ ERROR: hypotenuse can be computed more accurately
     // Cases where the lint shouldn't be applied
     // TODO: linting this adds some complexity, but could be done
     let _ = x.mul_add(x, y * y).sqrt();

@@ -3,7 +3,9 @@
 
 fn test_generic<T: Copy>(val: T) -> T {
     let _ = val;
+    //~^ ERROR: useless conversion to the same type: `T`
     val
+    //~^ ERROR: useless conversion to the same type: `T`
 }
 
 fn test_generic2<T: Copy + Into<i32> + Into<U>, U: From<T>>(val: T) {
@@ -16,6 +18,7 @@ fn test_generic2<T: Copy + Into<i32> + Into<U>, U: From<T>>(val: T) {
 fn test_questionmark() -> Result<(), ()> {
     {
         let _: i32 = 0i32;
+        //~^ ERROR: useless conversion to the same type: `i32`
         Ok(Ok(()))
     }??;
     Ok(())
@@ -46,28 +49,33 @@ fn lint_into_iter_on_mutable_local_implementing_iterator_in_expr() {
     let text = "foo\r\nbar\n\nbaz\n";
     let mut lines = text.lines();
     if Some("ok") == lines.next() {}
+    //~^ ERROR: useless conversion to the same type: `std::str::Lines<'_>`
 }
 
 fn lint_into_iter_on_expr_implementing_iterator() {
     let text = "foo\r\nbar\n\nbaz\n";
     let mut lines = text.lines();
+    //~^ ERROR: useless conversion to the same type: `std::str::Lines<'_>`
     if Some("ok") == lines.next() {}
 }
 
 fn lint_into_iter_on_expr_implementing_iterator_2() {
     let text = "foo\r\nbar\n\nbaz\n";
     if Some("ok") == text.lines().next() {}
+    //~^ ERROR: useless conversion to the same type: `std::str::Lines<'_>`
 }
 
 #[allow(const_item_mutation)]
 fn lint_into_iter_on_const_implementing_iterator() {
     const NUMBERS: std::ops::Range<i32> = 0..10;
     let _ = NUMBERS.next();
+    //~^ ERROR: useless conversion to the same type: `std::ops::Range<i32>`
 }
 
 fn lint_into_iter_on_const_implementing_iterator_2() {
     const NUMBERS: std::ops::Range<i32> = 0..10;
     let mut n = NUMBERS;
+    //~^ ERROR: useless conversion to the same type: `std::ops::Range<i32>`
     n.next();
 }
 
@@ -130,27 +138,38 @@ fn main() {
     }
 
     let _: String = "foo".to_string();
+    //~^ ERROR: useless conversion to the same type: `std::string::String`
     let _: String = "foo".to_string();
+    //~^ ERROR: useless conversion to the same type: `std::string::String`
     let _ = "foo".to_string();
+    //~^ ERROR: useless conversion to the same type: `std::string::String`
     let _ = format!("A: {:04}", 123);
+    //~^ ERROR: useless conversion to the same type: `std::string::String`
     let _ = "".lines();
+    //~^ ERROR: useless conversion to the same type: `std::str::Lines<'_>`
     let _ = vec![1, 2, 3].into_iter();
+    //~^ ERROR: useless conversion to the same type: `std::vec::IntoIter<i32>`
     let _: String = format!("Hello {}", "world");
+    //~^ ERROR: useless conversion to the same type: `std::string::String`
 
     // keep parentheses around `a + b` for suggestion (see #4750)
     let a: i32 = 1;
     let b: i32 = 1;
     let _ = (a + b) * 3;
+    //~^ ERROR: useless conversion to the same type: `i32`
 
     // see #7205
     let s: Foo<'a'> = Foo;
     let _: Foo<'b'> = s.into();
     let s2: Foo<'a'> = Foo;
     let _: Foo<'a'> = s2;
+    //~^ ERROR: useless conversion to the same type: `Foo<'a'>`
     let s3: Foo<'a'> = Foo;
     let _ = s3;
+    //~^ ERROR: useless conversion to the same type: `Foo<'a'>`
     let s4: Foo<'a'> = Foo;
     let _ = vec![s4, s4, s4].into_iter();
+    //~^ ERROR: useless conversion to the same type: `std::vec::IntoIter<Foo<'a'>>`
 }
 
 #[allow(dead_code)]
@@ -181,12 +200,17 @@ fn explicit_into_iter_fn_arg() {
 
     a(vec![1, 2].into_iter());
     b(vec![1, 2]);
+    //~^ ERROR: explicit call to `.into_iter()` in function argument accepting `IntoIterat
     c(vec![1, 2]);
+    //~^ ERROR: explicit call to `.into_iter()` in function argument accepting `IntoIterat
     d(vec![1, 2]);
+    //~^ ERROR: explicit call to `.into_iter()` in function argument accepting `IntoIterat
     b([&1, &2, &3].into_iter().cloned());
 
     b(vec![1, 2]);
+    //~^ ERROR: explicit call to `.into_iter()` in function argument accepting `IntoIterat
     b(vec![1, 2]);
+    //~^ ERROR: explicit call to `.into_iter()` in function argument accepting `IntoIterat
 
     macro_rules! macro_generated {
         () => {

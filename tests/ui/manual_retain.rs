@@ -20,8 +20,12 @@ fn binary_heap_retain() {
     let mut binary_heap = BinaryHeap::from([1, 2, 3]);
     // Do lint.
     binary_heap = binary_heap.into_iter().filter(|x| x % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
+    //~| NOTE: `-D clippy::manual-retain` implied by `-D warnings`
     binary_heap = binary_heap.iter().filter(|&x| x % 2 == 0).copied().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     binary_heap = binary_heap.iter().filter(|&x| x % 2 == 0).cloned().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
 
     // Do not lint, because type conversion is performed
     binary_heap = binary_heap
@@ -52,8 +56,11 @@ fn btree_map_retain() {
     let mut btree_map: BTreeMap<i8, i8> = (0..8).map(|x| (x, x * 10)).collect();
     // Do lint.
     btree_map = btree_map.into_iter().filter(|(k, _)| k % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     btree_map = btree_map.into_iter().filter(|(_, v)| v % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     btree_map = btree_map
+    //~^ ERROR: this expression can be written more simply using `.retain()`
         .into_iter()
         .filter(|(k, v)| (k % 2 == 0) && (v % 2 == 0))
         .collect();
@@ -76,8 +83,11 @@ fn btree_set_retain() {
 
     // Do lint.
     btree_set = btree_set.iter().filter(|&x| x % 2 == 0).copied().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     btree_set = btree_set.iter().filter(|&x| x % 2 == 0).cloned().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     btree_set = btree_set.into_iter().filter(|x| x % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
 
     // Do not lint, because type conversion is performed
     btree_set = btree_set
@@ -108,8 +118,11 @@ fn hash_map_retain() {
     let mut hash_map: HashMap<i8, i8> = (0..8).map(|x| (x, x * 10)).collect();
     // Do lint.
     hash_map = hash_map.into_iter().filter(|(k, _)| k % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     hash_map = hash_map.into_iter().filter(|(_, v)| v % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     hash_map = hash_map
+    //~^ ERROR: this expression can be written more simply using `.retain()`
         .into_iter()
         .filter(|(k, v)| (k % 2 == 0) && (v % 2 == 0))
         .collect();
@@ -131,8 +144,11 @@ fn hash_set_retain() {
     let mut hash_set = HashSet::from([1, 2, 3, 4, 5, 6]);
     // Do lint.
     hash_set = hash_set.into_iter().filter(|x| x % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     hash_set = hash_set.iter().filter(|&x| x % 2 == 0).copied().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     hash_set = hash_set.iter().filter(|&x| x % 2 == 0).cloned().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
 
     // Do not lint, because type conversion is performed
     hash_set = hash_set.into_iter().filter(|x| x % 2 == 0).collect::<HashSet<i8>>();
@@ -162,6 +178,7 @@ fn string_retain() {
     let mut s = String::from("foobar");
     // Do lint.
     s = s.chars().filter(|&c| c != 'o').to_owned().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
 
     // Do not lint, because this expression is not assign.
     let mut bar: String = s.chars().filter(|&c| c != 'o').to_owned().collect();
@@ -174,8 +191,11 @@ fn vec_retain() {
     let mut vec = vec![0, 1, 2];
     // Do lint.
     vec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     vec = vec.iter().filter(|&x| x % 2 == 0).cloned().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     vec = vec.into_iter().filter(|x| x % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
 
     // Do not lint, because type conversion is performed
     vec = vec.into_iter().filter(|x| x % 2 == 0).collect::<Vec<i8>>();
@@ -198,8 +218,11 @@ fn vec_deque_retain() {
 
     // Do lint.
     vec_deque = vec_deque.iter().filter(|&x| x % 2 == 0).copied().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     vec_deque = vec_deque.iter().filter(|&x| x % 2 == 0).cloned().collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
     vec_deque = vec_deque.into_iter().filter(|x| x % 2 == 0).collect();
+    //~^ ERROR: this expression can be written more simply using `.retain()`
 
     // Do not lint, because type conversion is performed
     vec_deque = vec_deque

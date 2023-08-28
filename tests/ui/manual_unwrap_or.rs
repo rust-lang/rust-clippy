@@ -4,18 +4,22 @@
 fn option_unwrap_or() {
     // int case
     match Some(1) {
+    //~^ ERROR: this pattern reimplements `Option::unwrap_or`
+    //~| NOTE: `-D clippy::manual-unwrap-or` implied by `-D warnings`
         Some(i) => i,
         None => 42,
     };
 
     // int case reversed
     match Some(1) {
+    //~^ ERROR: this pattern reimplements `Option::unwrap_or`
         None => 42,
         Some(i) => i,
     };
 
     // richer none expr
     match Some(1) {
+    //~^ ERROR: this pattern reimplements `Option::unwrap_or`
         Some(i) => i,
         None => 1 + 42,
     };
@@ -23,6 +27,7 @@ fn option_unwrap_or() {
     // multiline case
     #[rustfmt::skip]
     match Some(1) {
+    //~^ ERROR: this pattern reimplements `Option::unwrap_or`
         Some(i) => i,
         None => {
             42 + 42
@@ -33,6 +38,7 @@ fn option_unwrap_or() {
 
     // string case
     match Some("Bob") {
+    //~^ ERROR: this pattern reimplements `Option::unwrap_or`
         Some(i) => i,
         None => "Alice",
     };
@@ -83,6 +89,7 @@ fn option_unwrap_or() {
 fn result_unwrap_or() {
     // int case
     match Ok::<i32, &str>(1) {
+    //~^ ERROR: this pattern reimplements `Result::unwrap_or`
         Ok(i) => i,
         Err(_) => 42,
     };
@@ -90,12 +97,14 @@ fn result_unwrap_or() {
     // int case, scrutinee is a binding
     let a = Ok::<i32, &str>(1);
     match a {
+    //~^ ERROR: this pattern reimplements `Result::unwrap_or`
         Ok(i) => i,
         Err(_) => 42,
     };
 
     // int case, suggestion must surround Result expr with parentheses
     match Ok(1) as Result<i32, &str> {
+    //~^ ERROR: this pattern reimplements `Result::unwrap_or`
         Ok(i) => i,
         Err(_) => 42,
     };
@@ -109,18 +118,21 @@ fn result_unwrap_or() {
     }
     let s = S {};
     match s.method() {
+    //~^ ERROR: this pattern reimplements `Option::unwrap_or`
         Some(i) => i,
         None => 42,
     };
 
     // int case reversed
     match Ok::<i32, &str>(1) {
+    //~^ ERROR: this pattern reimplements `Result::unwrap_or`
         Err(_) => 42,
         Ok(i) => i,
     };
 
     // richer none expr
     match Ok::<i32, &str>(1) {
+    //~^ ERROR: this pattern reimplements `Result::unwrap_or`
         Ok(i) => i,
         Err(_) => 1 + 42,
     };
@@ -128,6 +140,7 @@ fn result_unwrap_or() {
     // multiline case
     #[rustfmt::skip]
     match Ok::<i32, &str>(1) {
+    //~^ ERROR: this pattern reimplements `Result::unwrap_or`
         Ok(i) => i,
         Err(_) => {
             42 + 42
@@ -138,6 +151,7 @@ fn result_unwrap_or() {
 
     // string case
     match Ok::<&str, &str>("Bob") {
+    //~^ ERROR: this pattern reimplements `Result::unwrap_or`
         Ok(i) => i,
         Err(_) => "Alice",
     };
@@ -198,6 +212,7 @@ mod issue6965 {
 
     fn test() {
         let _ = match some_macro!() {
+        //~^ ERROR: this pattern reimplements `Option::unwrap_or`
             Some(val) => val,
             None => 0,
         };

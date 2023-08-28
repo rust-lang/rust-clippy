@@ -14,11 +14,14 @@ pub struct MyAtomic(AtomicBool);
 pub struct MyPure;
 
 pub fn pure(i: u8) -> u8 {
+//~^ ERROR: this function could have a `#[must_use]` attribute
+//~| NOTE: `-D clippy::must-use-candidate` implied by `-D warnings`
     i
 }
 
 impl MyPure {
     pub fn inherent_pure(&self) -> u8 {
+    //~^ ERROR: this method could have a `#[must_use]` attribute
         0
     }
 }
@@ -50,6 +53,7 @@ pub fn with_callback<F: Fn(u32) -> bool>(f: &F) -> bool {
 }
 
 pub fn with_marker(_d: std::marker::PhantomData<&mut u32>) -> bool {
+//~^ ERROR: this function could have a `#[must_use]` attribute
     true
 }
 
@@ -62,6 +66,7 @@ pub fn atomics(b: &AtomicBool) -> bool {
 }
 
 pub fn rcd(_x: Rc<u32>) -> bool {
+//~^ ERROR: this function could have a `#[must_use]` attribute
     true
 }
 
@@ -70,6 +75,7 @@ pub fn rcmut(_x: Rc<&mut u32>) -> bool {
 }
 
 pub fn arcd(_x: Arc<u32>) -> bool {
+//~^ ERROR: this function could have a `#[must_use]` attribute
     false
 }
 

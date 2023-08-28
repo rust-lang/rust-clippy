@@ -2,6 +2,8 @@ error: empty drop implementation
   --> $DIR/empty_drop.rs:7:1
    |
 LL | / impl Drop for Foo {
+LL | |
+LL | |
 LL | |     fn drop(&mut self) {}
 LL | | }
    | |_^ help: try removing this impl
@@ -9,9 +11,10 @@ LL | | }
    = note: `-D clippy::empty-drop` implied by `-D warnings`
 
 error: empty drop implementation
-  --> $DIR/empty_drop.rs:23:1
+  --> $DIR/empty_drop.rs:25:1
    |
 LL | / impl Drop for Baz {
+LL | |
 LL | |     fn drop(&mut self) {
 LL | |         {}
 LL | |     }

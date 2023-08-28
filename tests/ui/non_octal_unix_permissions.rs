@@ -10,11 +10,14 @@ fn main() {
     // OpenOptionsExt::mode
     let mut options = OpenOptions::new();
     options.mode(440);
+    //~^ ERROR: using a non-octal value to set unix file permissions
+    //~| NOTE: `-D clippy::non-octal-unix-permissions` implied by `-D warnings`
     options.mode(0o400);
     options.mode(permissions);
 
     // PermissionsExt::from_mode
     let _permissions = Permissions::from_mode(647);
+    //~^ ERROR: using a non-octal value to set unix file permissions
     let _permissions = Permissions::from_mode(0o000);
     let _permissions = Permissions::from_mode(permissions);
 
@@ -24,10 +27,12 @@ fn main() {
     let mut permissions = metadata.permissions();
 
     permissions.set_mode(644);
+    //~^ ERROR: using a non-octal value to set unix file permissions
     permissions.set_mode(0o704);
 
     // DirBuilderExt::mode
     let mut builder = DirBuilder::new();
     builder.mode(755);
+    //~^ ERROR: using a non-octal value to set unix file permissions
     builder.mode(0o406);
 }
