@@ -6484,7 +6484,7 @@
     "id": "panicking_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 71
+      "line": 74
     },
     "group": "correctness",
     "level": "deny",
@@ -9418,7 +9418,7 @@
     "id": "unnecessary_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 44
+      "line": 47
     },
     "group": "complexity",
     "level": "warn",
