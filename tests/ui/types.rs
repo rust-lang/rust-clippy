@@ -10,4 +10,6 @@ fn main() {
     // should suggest i64::from(c)
     let c: i32 = 42;
     let c_i64: i64 = c as i64;
+    //~^ ERROR: casting `i32` to `i64` may become silently lossy if you later change the t
+    //~| NOTE: `-D clippy::cast-lossless` implied by `-D warnings`
 }

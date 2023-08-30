@@ -3,6 +3,8 @@
 fn main() {
     let opt: Result<u32, &str> = Ok(1);
     let _ = opt.map_or(None, Some);
+    //~^ ERROR: called `map_or(None, Some)` on a `Result` value. This can be done more dir
+    //~| NOTE: `-D clippy::result-map-or-into-option` implied by `-D warnings`
 
     let rewrap = |s: u32| -> Option<u32> { Some(s) };
 

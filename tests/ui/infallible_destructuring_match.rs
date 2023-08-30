@@ -26,6 +26,8 @@ fn infallible_destructuring_match_enum() {
 
     // This should lint!
     let data = match wrapper {
+    //~^ ERROR: you seem to be trying to use `match` to destructure a single infallible pa
+    //~| NOTE: `-D clippy::infallible-destructuring-match` implied by `-D warnings`
         SingleVariantEnum::Variant(i) => i,
     };
 
@@ -58,6 +60,7 @@ fn infallible_destructuring_match_struct() {
 
     // This should lint!
     let data = match wrapper {
+    //~^ ERROR: you seem to be trying to use `match` to destructure a single infallible pa
         TupleStruct(i) => i,
     };
 
@@ -82,6 +85,7 @@ fn infallible_destructuring_match_struct_with_noncopy() {
 
     // This should lint! (keeping `ref` in the suggestion)
     let data = match wrapper {
+    //~^ ERROR: you seem to be trying to use `match` to destructure a single infallible pa
         TupleStructWithNonCopy(ref n) => n,
     };
 
@@ -101,6 +105,7 @@ fn never_enum() {
 
     // This should lint!
     let data = match wrapper {
+    //~^ ERROR: you seem to be trying to use `match` to destructure a single infallible pa
         Ok(i) => i,
     };
 

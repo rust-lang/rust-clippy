@@ -10,10 +10,13 @@ fn main() {
 
     unsafe {
         let _ = ptr.offset(offset_usize as isize);
+        //~^ ERROR: use of `offset` with a `usize` casted to an `isize`
+        //~| NOTE: `-D clippy::ptr-offset-with-cast` implied by `-D warnings`
         let _ = ptr.offset(offset_isize as isize);
         let _ = ptr.offset(offset_u8 as isize);
 
         let _ = ptr.wrapping_offset(offset_usize as isize);
+        //~^ ERROR: use of `wrapping_offset` with a `usize` casted to an `isize`
         let _ = ptr.wrapping_offset(offset_isize as isize);
         let _ = ptr.wrapping_offset(offset_u8 as isize);
     }

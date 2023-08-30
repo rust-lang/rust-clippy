@@ -74,35 +74,57 @@ fn main() {
     let x_ref = &x;
 
     let _ = format!("error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `format!` args
+    //~| NOTE: `-D clippy::to-string-in-format-args` implied by `-D warnings`
     let _ = write!(
         stdout(),
         "error: something failed at {}",
         Location::caller().to_string()
+        //~^ ERROR: `to_string` applied to a type that implements `Display` in `write!` ar
     );
     let _ = writeln!(
         stdout(),
         "error: something failed at {}",
         Location::caller().to_string()
+        //~^ ERROR: `to_string` applied to a type that implements `Display` in `writeln!`
     );
     print!("error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `print!` args
     println!("error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     eprint!("error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `eprint!` args
     eprintln!("error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `eprintln!` arg
     let _ = format_args!("error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `format_args!`
     assert!(true, "error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `assert!` args
     assert_eq!(0, 0, "error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `assert_eq!` ar
     assert_ne!(0, 0, "error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `assert_ne!` ar
     panic!("error: something failed at {}", Location::caller().to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `panic!` args
     println!("{}", X(1).to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     println!("{}", Y(&X(1)).to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     println!("{}", Z(1).to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     println!("{}", x.to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     println!("{}", x_ref.to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     // https://github.com/rust-lang/rust-clippy/issues/7903
     println!("{foo}{bar}", foo = "foo".to_string(), bar = "bar");
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     println!("{foo}{bar}", foo = "foo", bar = "bar".to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     println!("{foo}{bar}", bar = "bar".to_string(), foo = "foo");
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
     println!("{foo}{bar}", bar = "bar", foo = "foo".to_string());
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!` args
 
     // negative tests
     println!("error: something failed at {}", Somewhere.to_string());
@@ -115,7 +137,9 @@ fn main() {
     // https://github.com/rust-lang/rust-clippy/issues/7903
     println!("{foo}{foo:?}", foo = "foo".to_string());
     print!("{}", (Location::caller().to_string()));
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `print!` args
     print!("{}", ((Location::caller()).to_string()));
+    //~^ ERROR: `to_string` applied to a type that implements `Display` in `print!` args
 }
 
 fn issue8643(vendor_id: usize, product_id: usize, name: &str) {
@@ -144,6 +168,7 @@ mod issue_8855 {
         let b = A {};
 
         let x = format!("{} {}", a, b.to_string());
+        //~^ ERROR: `to_string` applied to a type that implements `Display` in `format!` a
         dbg!(x);
 
         let x = format!("{:>6} {:>6}", a, b.to_string());
@@ -158,6 +183,7 @@ mod issue_9256 {
     fn print_substring(original: &str) {
         assert!(original.len() > 10);
         println!("{}", original[..10].to_string());
+        //~^ ERROR: `to_string` applied to a type that implements `Display` in `println!`
     }
 
     fn main() {

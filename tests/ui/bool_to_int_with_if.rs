@@ -12,31 +12,43 @@ fn main() {
     // Should lint
     // precedence
     if a {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `a as i32` or `a.into()` can also be valid options
         1
     } else {
         0
     };
     if a {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `!a as i32` or `(!a).into()` can also be valid options
         0
     } else {
         1
     };
     if !a {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `!a as i32` or `(!a).into()` can also be valid options
         1
     } else {
         0
     };
     if a || b {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `(a || b) as i32` or `(a || b).into()` can also be valid options
         1
     } else {
         0
     };
     if cond(a, b) {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `cond(a, b) as i32` or `cond(a, b).into()` can also be valid options
         1
     } else {
         0
     };
     if x + y < 4 {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `(x + y < 4) as i32` or `(x + y < 4).into()` can also be valid options
         1
     } else {
         0
@@ -46,6 +58,8 @@ fn main() {
     if a {
         123
     } else if b {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `b as i32` or `b.into()` can also be valid options
         1
     } else {
         0
@@ -55,6 +69,8 @@ fn main() {
     if a {
         123
     } else if b {
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `!b as i32` or `(!b).into()` can also be valid options
         0
     } else {
         1
@@ -122,6 +138,8 @@ fn main() {
 // Lint returns and type inference
 fn some_fn(a: bool) -> u8 {
     if a { 1 } else { 0 }
+    //~^ ERROR: boolean to int conversion using if
+    //~| NOTE: `a as u8` or `a.into()` can also be valid options
 }
 
 fn side_effect() {}

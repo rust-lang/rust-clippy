@@ -10,7 +10,7 @@ LL | use std::fs::{self as alias};
    = note: `-D clippy::unnecessary-self-imports` implied by `-D warnings`
 
 error: import ending with `::{self}`
-  --> $DIR/unnecessary_self_imports.rs:7:1
+  --> $DIR/unnecessary_self_imports.rs:9:1
    |
 LL | use std::rc::{self};
    | ^^^^^^^^^-----------

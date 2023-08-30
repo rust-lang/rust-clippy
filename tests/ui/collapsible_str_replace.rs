@@ -16,35 +16,49 @@ fn main() {
 
     // LINT CASES
     let _ = "hesuo worpd".replace('s', "l").replace('u', "l");
+    //~^ ERROR: used consecutive `str::replace` call
+    //~| NOTE: `-D clippy::collapsible-str-replace` implied by `-D warnings`
 
     let _ = "hesuo worpd".replace('s', l).replace('u', l);
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo worpd".replace('s', "l").replace('u', "l").replace('p', "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo worpd"
         .replace('s', "l")
+        //~^ ERROR: used consecutive `str::replace` call
         .replace('u', "l")
         .replace('p', "l")
         .replace('d', "l");
 
     let _ = "hesuo world".replace(s, "l").replace('u', "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo worpd".replace(s, "l").replace('u', "l").replace('p', "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo worpd".replace(s, "l").replace(u, "l").replace('p', "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo worpd".replace(s, "l").replace(u, "l").replace(p, "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo worlp".replace('s', "l").replace('u', "l").replace('p', "d");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo worpd".replace('s', "x").replace('u', "l").replace('p', "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     // Note: Future iterations could lint `replace(|c| matches!(c, "su" | 'd' | 'p'), "l")`
     let _ = "hesudo worpd".replace("su", "l").replace('d', "l").replace('p', "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesudo worpd".replace(d, "l").replace('p', "l").replace("su", "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     let _ = "hesuo world".replace(get_filter(), "l").replace('s', "l");
+    //~^ ERROR: used consecutive `str::replace` call
 
     // NO LINT CASES
     let _ = "hesuo world".replace('s', "l").replace('u', "p");
@@ -82,4 +96,5 @@ fn msrv_1_57() {
 #[clippy::msrv = "1.58"]
 fn msrv_1_58() {
     let _ = "".replace('a', "1.58").replace('b', "1.58");
+    //~^ ERROR: used consecutive `str::replace` call
 }

@@ -16,6 +16,8 @@ mod unhygienic {
     macro_rules! print_message_unhygienic {
         () => {
             println!("{}", crate::unhygienic::MESSAGE);
+            //~^ ERROR: `crate` references the macro call's crate
+            //~| NOTE: `-D clippy::crate-in-macro-def` implied by `-D warnings`
         };
     }
 

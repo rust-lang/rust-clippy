@@ -66,43 +66,55 @@ fn main() {
     let s = String::new();
 
     let _: &str = &*s;
+    //~^ ERROR: deref which would be done by auto-deref
+    //~| NOTE: `-D clippy::explicit-auto-deref` implied by `-D warnings`
     let _: &str = &*{ String::new() };
+    //~^ ERROR: deref which would be done by auto-deref
     let _: &str = &mut *{ String::new() };
+    //~^ ERROR: deref which would be done by auto-deref
     let _ = &*s; // Don't lint. Inferred type would change.
     let _: &_ = &*s; // Don't lint. Inferred type would change.
 
     f_str(&*s);
+    //~^ ERROR: deref which would be done by auto-deref
     f_t(&*s); // Don't lint. Inferred type would change.
     f_ref_t(&*s); // Don't lint. Inferred type would change.
 
     f_str_t(&*s, &*s); // Don't lint second param.
+    //~^ ERROR: deref which would be done by auto-deref
 
     let b = Box::new(Box::new(Box::new(5)));
     let _: &Box<i32> = &**b;
+    //~^ ERROR: deref which would be done by auto-deref
     let _: &Box<_> = &**b; // Don't lint. Inferred type would change.
 
     f_box_t(&**b); // Don't lint. Inferred type would change.
 
     let c = |_x: &str| ();
     c(&*s);
+    //~^ ERROR: deref which would be done by auto-deref
 
     let c = |_x| ();
     c(&*s); // Don't lint. Inferred type would change.
 
     fn _f(x: &String) -> &str {
         &**x
+        //~^ ERROR: deref which would be done by auto-deref
     }
 
     fn _f1(x: &String) -> &str {
         { &**x }
+        //~^ ERROR: deref which would be done by auto-deref
     }
 
     fn _f2(x: &String) -> &str {
         &**{ x }
+        //~^ ERROR: deref which would be done by auto-deref
     }
 
     fn _f3(x: &Box<Box<Box<i32>>>) -> &Box<i32> {
         &***x
+        //~^ ERROR: deref which would be done by auto-deref
     }
 
     fn _f4(
@@ -120,25 +132,38 @@ fn main() {
         f11: &dyn CallableT<str, T = fn(&str)>,
     ) {
         f1(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f2(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f3(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f4.callable_str()(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f5(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f6(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f7.callable_str()(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f8.callable_t()(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f9(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f10(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
         f11.callable_t()(&*x);
+        //~^ ERROR: deref which would be done by auto-deref
     }
 
     struct S1<'a>(&'a str);
     let _ = S1(&*s);
+    //~^ ERROR: deref which would be done by auto-deref
 
     struct S2<'a> {
         s: &'a str,
     }
     let _ = S2 { s: &*s };
+    //~^ ERROR: deref which would be done by auto-deref
 
     struct S3<'a, T: ?Sized>(&'a T);
     let _ = S3(&*s); // Don't lint. Inferred type would change.
@@ -155,11 +180,15 @@ fn main() {
     impl<'a> E1<'a> {
         fn m1(s: &'a String) {
             let _ = Self::S1(&**s);
+            //~^ ERROR: deref which would be done by auto-deref
             let _ = Self::S2 { s: &**s };
+            //~^ ERROR: deref which would be done by auto-deref
         }
     }
     let _ = E1::S1(&*s);
+    //~^ ERROR: deref which would be done by auto-deref
     let _ = E1::S2 { s: &*s };
+    //~^ ERROR: deref which would be done by auto-deref
 
     enum E2<'a, T: ?Sized> {
         S1(&'a T),
@@ -178,7 +207,9 @@ fn main() {
     let b = Box::new(Box::new(S5 { foo: 5 }));
     let _ = b.foo;
     let _ = (*b).foo;
+    //~^ ERROR: deref which would be done by auto-deref
     let _ = (**b).foo;
+    //~^ ERROR: deref which would be done by auto-deref
 
     struct S6 {
         foo: S5,
@@ -194,8 +225,10 @@ fn main() {
 
     let ref_str = &"foo";
     let _ = f_str(*ref_str);
+    //~^ ERROR: deref which would be done by auto-deref
     let ref_ref_str = &ref_str;
     let _ = f_str(**ref_ref_str);
+    //~^ ERROR: deref which would be done by auto-deref
 
     fn _f5(x: &u32) -> u32 {
         if true {
@@ -206,7 +239,9 @@ fn main() {
     }
 
     f_str(&&*ref_str); // `needless_borrow` will suggest removing both references
+    //~^ ERROR: deref which would be done by auto-deref
     f_str(&&**ref_str); // `needless_borrow` will suggest removing only one reference
+    //~^ ERROR: deref which would be done by auto-deref
 
     let x = &&40;
     unsafe {
@@ -216,6 +251,7 @@ fn main() {
     let s = &"str";
     let _ = || return *s;
     let _ = || -> &'static str { return *s };
+    //~^ ERROR: deref which would be done by auto-deref
 
     struct X;
     struct Y(X);
@@ -235,6 +271,7 @@ fn main() {
 
     fn deref_to_u<U, T: core::ops::Deref<Target = U>>(x: &T) -> &U {
         &**x
+        //~^ ERROR: deref which would be done by auto-deref
     }
 
     let _ = |x: &'static Box<dyn Iterator<Item = u32>>| -> &'static dyn Iterator<Item = u32> { &**x };
@@ -258,11 +295,14 @@ fn main() {
     let c1 = |_: &Vec<&u32>| {};
     let x = &&vec![&1u32];
     c1(*x);
+    //~^ ERROR: deref which would be done by auto-deref
     let _ = for<'a, 'b> |x: &'a &'a Vec<&'b u32>, b: bool| -> &'a Vec<&'b u32> {
         if b {
             return *x;
+            //~^ ERROR: deref which would be done by auto-deref
         }
         *x
+        //~^ ERROR: deref which would be done by auto-deref
     };
 
     trait WithAssoc {

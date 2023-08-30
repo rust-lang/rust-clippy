@@ -14,17 +14,22 @@ async fn something_else() -> u32 {
 
 fn main() {
     let a = (|| 42)();
+    //~^ ERROR: try not to call a closure in the expression where it is declared
+    //~| NOTE: `-D clippy::redundant-closure-call` implied by `-D warnings`
     let b = (async || {
+    //~^ ERROR: try not to call a closure in the expression where it is declared
         let x = something().await;
         let y = something_else().await;
         x * y
     })();
     let c = (|| {
+    //~^ ERROR: try not to call a closure in the expression where it is declared
         let x = 21;
         let y = 2;
         x * y
     })();
     let d = (async || something().await)();
+    //~^ ERROR: try not to call a closure in the expression where it is declared
 
     macro_rules! m {
         () => {
@@ -42,6 +47,7 @@ fn main() {
 
 fn issue9956() {
     assert_eq!((|| || 43)()(), 42);
+    //~^ ERROR: try not to call a closure in the expression where it is declared
 
     // ... and some more interesting cases I've found while implementing the fix
 
@@ -51,13 +57,16 @@ fn issue9956() {
 
     // immediately calling it inside of a macro
     dbg!((|| 42)());
+    //~^ ERROR: try not to call a closure in the expression where it is declared
 
     // immediately calling only one closure, so we can't remove the other ones
     let a = (|| || || 123)();
+    //~^ ERROR: try not to call a closure in the expression where it is declared
     dbg!(a()());
 
     // nested async closures
     let a = (|| || || || async || 1)()()()()();
+    //~^ ERROR: try not to call a closure in the expression where it is declared
     let h = async { a.await };
 
     // macro expansion tests
@@ -67,8 +76,10 @@ fn issue9956() {
         };
     }
     let a = (|| echo!(|| echo!(|| 1)))()()();
+    //~^ ERROR: try not to call a closure in the expression where it is declared
     assert_eq!(a, 1);
     let a = (|| echo!((|| 123)))()();
+    //~^ ERROR: try not to call a closure in the expression where it is declared
     assert_eq!(a, 123);
 
     // chaining calls, but not closures
@@ -82,5 +93,7 @@ fn issue9956() {
     }
     fn foo(_: i32, _: i32) {}
     bar()((|| || 42)()(), 5);
+    //~^ ERROR: try not to call a closure in the expression where it is declared
     foo((|| || 42)()(), 5);
+    //~^ ERROR: try not to call a closure in the expression where it is declared
 }

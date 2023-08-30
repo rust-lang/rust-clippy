@@ -10,6 +10,8 @@
 
 fn bad1(string: Option<&str>) -> (bool, &str) {
     if let Some(x) = string {
+    //~^ ERROR: use Option::map_or instead of an if let/else
+    //~| NOTE: `-D clippy::option-if-let-else` implied by `-D warnings`
         (true, x)
     } else {
         (false, "hello")
@@ -28,21 +30,27 @@ fn else_if_option(string: Option<&str>) -> Option<(bool, &str)> {
 
 fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
     let _ = if let Some(s) = *string { s.len() } else { 0 };
+    //~^ ERROR: use Option::map_or instead of an if let/else
     let _ = if let Some(s) = &num { s } else { &0 };
+    //~^ ERROR: use Option::map_or instead of an if let/else
     let _ = if let Some(s) = &mut num {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         *s += 1;
         s
     } else {
         &0
     };
     let _ = if let Some(ref s) = num { s } else { &0 };
+    //~^ ERROR: use Option::map_or instead of an if let/else
     let _ = if let Some(mut s) = num {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         s += 1;
         s
     } else {
         0
     };
     let _ = if let Some(ref mut s) = num {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         *s += 1;
         s
     } else {
@@ -52,6 +60,7 @@ fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
 
 fn longer_body(arg: Option<u32>) -> u32 {
     if let Some(x) = arg {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         let y = x * x;
         y * y
     } else {
@@ -65,6 +74,7 @@ fn impure_else(arg: Option<i32>) {
         1
     };
     let _ = if let Some(x) = arg {
+    //~^ ERROR: use Option::map_or_else instead of an if let/else
         x
     } else {
         // map_or_else must be suggested
@@ -74,6 +84,7 @@ fn impure_else(arg: Option<i32>) {
 
 fn test_map_or_else(arg: Option<u32>) {
     let _ = if let Some(x) = arg {
+    //~^ ERROR: use Option::map_or_else instead of an if let/else
         x * x * x * x
     } else {
         let mut y = 1;
@@ -107,6 +118,7 @@ fn pattern_to_vec(pattern: &str) -> Vec<String> {
         .split('/')
         .flat_map(|s| {
             if let Some(idx) = s.find('.') {
+            //~^ ERROR: use Option::map_or_else instead of an if let/else
                 vec![s[..idx].to_string(), s[idx..].to_string()]
             } else {
                 vec![s.to_string()]
@@ -118,6 +130,7 @@ fn pattern_to_vec(pattern: &str) -> Vec<String> {
 // #10335
 fn test_result_impure_else(variable: Result<u32, &str>) {
     if let Ok(binding) = variable {
+    //~^ ERROR: use Option::map_or_else instead of an if let/else
         println!("Ok {binding}");
     } else {
         println!("Err");
@@ -140,6 +153,7 @@ fn complex_subpat() -> DummyEnum {
 fn main() {
     let optional = Some(5);
     let _ = if let Some(x) = optional { x + 2 } else { 5 };
+    //~^ ERROR: use Option::map_or instead of an if let/else
     let _ = bad1(None);
     let _ = else_if_option(None);
     unop_bad(&None, None);
@@ -150,6 +164,7 @@ fn main() {
     let _ = impure_else(None);
 
     let _ = if let Some(x) = Some(0) {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         loop {
             if x == 0 {
                 break x;
@@ -178,10 +193,12 @@ fn main() {
     let s = String::new();
     // Lint, both branches immutably borrow `s`.
     let _ = if let Some(x) = Some(0) { s.len() + x } else { s.len() };
+    //~^ ERROR: use Option::map_or instead of an if let/else
 
     let s = String::new();
     // Lint, `Some` branch consumes `s`, but else branch doesn't use `s`.
     let _ = if let Some(x) = Some(0) {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         let s = s;
         s.len() + x
     } else {
@@ -221,24 +238,29 @@ fn main() {
 
     // issue #8492
     let _ = match s {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         Some(string) => string.len(),
         None => 1,
     };
     let _ = match Some(10) {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         Some(a) => a + 1,
         None => 5,
     };
 
     let res: Result<i32, i32> = Ok(5);
     let _ = match res {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         Ok(a) => a + 1,
         _ => 1,
     };
     let _ = match res {
+    //~^ ERROR: use Option::map_or instead of an if let/else
         Err(_) => 1,
         Ok(a) => a + 1,
     };
     let _ = if let Ok(a) = res { a + 1 } else { 5 };
+    //~^ ERROR: use Option::map_or instead of an if let/else
 }
 
 #[allow(dead_code)]
@@ -256,6 +278,7 @@ mod issue10729 {
     pub fn reproduce(initial: &Option<String>) {
         // 👇 needs `.as_ref()` because initial is an `&Option<_>`
         match initial {
+        //~^ ERROR: use Option::map_or instead of an if let/else
             Some(value) => do_something(value),
             None => {},
         }
@@ -263,6 +286,7 @@ mod issue10729 {
 
     pub fn reproduce2(initial: &mut Option<String>) {
         match initial {
+        //~^ ERROR: use Option::map_or instead of an if let/else
             Some(value) => do_something2(value),
             None => {},
         }

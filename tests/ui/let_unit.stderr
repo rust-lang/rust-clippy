@@ -7,19 +7,19 @@ LL |     let _x = println!("x");
    = note: `-D clippy::let-unit-value` implied by `-D warnings`
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:16:9
+  --> $DIR/let_unit.rs:18:9
    |
 LL |         let _a = ();
    |         ^^^^^^^^^^^^ help: omit the `let` binding: `();`
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:51:5
+  --> $DIR/let_unit.rs:54:5
    |
 LL | /     let _ = v
+LL | |
 LL | |         .into_iter()
 LL | |         .map(|i| i * 2)
-LL | |         .filter(|i| i % 2 == 0)
-LL | |         .map(|_| ())
+...  |
 LL | |         .next()
 LL | |         .unwrap();
    | |__________________^
@@ -27,6 +27,7 @@ LL | |         .unwrap();
 help: omit the `let` binding
    |
 LL ~     v
+LL +
 LL +         .into_iter()
 LL +         .map(|i| i * 2)
 LL +         .filter(|i| i % 2 == 0)
@@ -36,7 +37,7 @@ LL +         .unwrap();
    |
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:78:5
+  --> $DIR/let_unit.rs:82:5
    |
 LL |     let x: () = f(); // Lint.
    |     ^^^^-^^^^^^^^^^^
@@ -44,7 +45,7 @@ LL |     let x: () = f(); // Lint.
    |         help: use a wild (`_`) binding: `_`
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:81:5
+  --> $DIR/let_unit.rs:86:5
    |
 LL |     let x: () = f2(0i32); // Lint.
    |     ^^^^-^^^^^^^^^^^^^^^^
@@ -52,19 +53,19 @@ LL |     let x: () = f2(0i32); // Lint.
    |         help: use a wild (`_`) binding: `_`
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:83:5
+  --> $DIR/let_unit.rs:89:5
    |
 LL |     let _: () = f3(()); // Lint
    |     ^^^^^^^^^^^^^^^^^^^ help: omit the `let` binding: `f3(());`
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:84:5
+  --> $DIR/let_unit.rs:91:5
    |
 LL |     let x: () = f3(()); // Lint
    |     ^^^^^^^^^^^^^^^^^^^ help: omit the `let` binding: `f3(());`
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:100:5
+  --> $DIR/let_unit.rs:108:5
    |
 LL |     let x: () = if true { f() } else { f2(0) }; // Lint
    |     ^^^^-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -72,9 +73,10 @@ LL |     let x: () = if true { f() } else { f2(0) }; // Lint
    |         help: use a wild (`_`) binding: `_`
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:111:5
+  --> $DIR/let_unit.rs:120:5
    |
 LL | /     let _: () = match Some(0) {
+LL | |
 LL | |         None => f2(1),
 LL | |         Some(0) => f(),
 LL | |         Some(1) => f2(3),
@@ -85,6 +87,7 @@ LL | |     };
 help: omit the `let` binding
    |
 LL ~     match Some(0) {
+LL +
 LL +         None => f2(1),
 LL +         Some(0) => f(),
 LL +         Some(1) => f2(3),
@@ -93,7 +96,7 @@ LL +     };
    |
 
 error: this let-binding has unit value
-  --> $DIR/let_unit.rs:158:13
+  --> $DIR/let_unit.rs:168:13
    |
 LL |             let _: () = z;
    |             ^^^^^^^^^^^^^^ help: omit the `let` binding: `z;`

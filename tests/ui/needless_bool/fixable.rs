@@ -38,16 +38,20 @@ fn main() {
     let x = true;
     let y = false;
     if x {
+    //~^ ERROR: this if-then-else expression returns a bool literal
+    //~| NOTE: `-D clippy::needless-bool` implied by `-D warnings`
         true
     } else {
         false
     };
     if x {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
     };
     if x && y {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
@@ -56,31 +60,37 @@ fn main() {
     let b = 1;
 
     if a == b {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
     };
     if a != b {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
     };
     if a < b {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
     };
     if a <= b {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
     };
     if a > b {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
     };
     if a >= b {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
@@ -109,6 +119,7 @@ fn main() {
 
 fn bool_ret3(x: bool) -> bool {
     if x {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         return true;
     } else {
         return false;
@@ -117,6 +128,7 @@ fn bool_ret3(x: bool) -> bool {
 
 fn bool_ret4(x: bool) -> bool {
     if x {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         return false;
     } else {
         return true;
@@ -125,6 +137,7 @@ fn bool_ret4(x: bool) -> bool {
 
 fn bool_ret5(x: bool, y: bool) -> bool {
     if x && y {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         return true;
     } else {
         return false;
@@ -133,6 +146,7 @@ fn bool_ret5(x: bool, y: bool) -> bool {
 
 fn bool_ret6(x: bool, y: bool) -> bool {
     if x && y {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         return false;
     } else {
         return true;
@@ -141,10 +155,13 @@ fn bool_ret6(x: bool, y: bool) -> bool {
 
 fn needless_bool(x: bool) {
     if x == true {};
+    //~^ ERROR: equality checks against true are unnecessary
+    //~| NOTE: `-D clippy::bool-comparison` implied by `-D warnings`
 }
 
 fn needless_bool2(x: bool) {
     if x == false {};
+    //~^ ERROR: equality checks against false can be replaced by a negation
 }
 
 fn needless_bool3(x: bool) {
@@ -155,7 +172,9 @@ fn needless_bool3(x: bool) {
     }
 
     if x == true {};
+    //~^ ERROR: equality checks against true are unnecessary
     if x == false {};
+    //~^ ERROR: equality checks against false can be replaced by a negation
 }
 
 fn needless_bool_in_the_suggestion_wraps_the_predicate_of_if_else_statement_in_brackets() {
@@ -165,6 +184,7 @@ fn needless_bool_in_the_suggestion_wraps_the_predicate_of_if_else_statement_in_b
     let x = if b {
         true
     } else if returns_bool() {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         false
     } else {
         true
@@ -178,14 +198,17 @@ unsafe fn no(v: u8) -> u8 {
 #[allow(clippy::unnecessary_operation)]
 fn needless_bool_condition() -> bool {
     if unsafe { no(4) } & 1 != 0 {
+    //~^ ERROR: this if-then-else expression returns a bool literal
         true
     } else {
         false
     };
     let _brackets_unneeded = if unsafe { no(4) } & 1 != 0 { true } else { false };
+    //~^ ERROR: this if-then-else expression returns a bool literal
     fn foo() -> bool {
         // parentheses are needed here
         if unsafe { no(4) } & 1 != 0 { true } else { false }
+        //~^ ERROR: this if-then-else expression returns a bool literal
     }
 
     foo()

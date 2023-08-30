@@ -7,16 +7,22 @@ use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedL
 fn main() {
     let sample = [1; 5];
     let len = sample.iter().collect::<Vec<_>>().len();
+    //~^ ERROR: avoid using `collect()` when not needed
+    //~| NOTE: `-D clippy::needless-collect` implied by `-D warnings`
     if sample.iter().collect::<Vec<_>>().is_empty() {
+    //~^ ERROR: avoid using `collect()` when not needed
         // Empty
     }
     sample.iter().cloned().collect::<Vec<_>>().contains(&1);
+    //~^ ERROR: avoid using `collect()` when not needed
     // #7164 HashMap's and BTreeMap's `len` usage should not be linted
     sample.iter().map(|x| (x, x)).collect::<HashMap<_, _>>().len();
     sample.iter().map(|x| (x, x)).collect::<BTreeMap<_, _>>().len();
 
     sample.iter().map(|x| (x, x)).collect::<HashMap<_, _>>().is_empty();
+    //~^ ERROR: avoid using `collect()` when not needed
     sample.iter().map(|x| (x, x)).collect::<BTreeMap<_, _>>().is_empty();
+    //~^ ERROR: avoid using `collect()` when not needed
 
     // Notice the `HashSet`--this should not be linted
     sample.iter().collect::<HashSet<_>>().len();
@@ -24,19 +30,27 @@ fn main() {
     sample.iter().collect::<BTreeSet<_>>().len();
 
     sample.iter().collect::<LinkedList<_>>().len();
+    //~^ ERROR: avoid using `collect()` when not needed
     sample.iter().collect::<LinkedList<_>>().is_empty();
+    //~^ ERROR: avoid using `collect()` when not needed
     sample.iter().cloned().collect::<LinkedList<_>>().contains(&1);
+    //~^ ERROR: avoid using `collect()` when not needed
     sample.iter().collect::<LinkedList<_>>().contains(&&1);
+    //~^ ERROR: avoid using `collect()` when not needed
 
     // `BinaryHeap` doesn't have `contains` method
     sample.iter().collect::<BinaryHeap<_>>().len();
+    //~^ ERROR: avoid using `collect()` when not needed
     sample.iter().collect::<BinaryHeap<_>>().is_empty();
+    //~^ ERROR: avoid using `collect()` when not needed
 
     // Don't lint string from str
     let _ = ["", ""].into_iter().collect::<String>().is_empty();
 
     let _ = sample.iter().collect::<HashSet<_>>().is_empty();
+    //~^ ERROR: avoid using `collect()` when not needed
     let _ = sample.iter().collect::<HashSet<_>>().contains(&&0);
+    //~^ ERROR: avoid using `collect()` when not needed
 
     struct VecWrapper<T>(Vec<T>);
     impl<T> core::ops::Deref for VecWrapper<T> {
@@ -59,14 +73,20 @@ fn main() {
     }
 
     let _ = sample.iter().collect::<VecWrapper<_>>().is_empty();
+    //~^ ERROR: avoid using `collect()` when not needed
     let _ = sample.iter().collect::<VecWrapper<_>>().contains(&&0);
+    //~^ ERROR: avoid using `collect()` when not needed
 
     #[allow(clippy::double_parens)]
     {
         Vec::<u8>::new().extend((0..10).collect::<Vec<_>>());
+        //~^ ERROR: avoid using `collect()` when not needed
         foo((0..10).collect::<Vec<_>>());
+        //~^ ERROR: avoid using `collect()` when not needed
         bar((0..10).collect::<Vec<_>>(), (0..10).collect::<Vec<_>>());
+        //~^ ERROR: avoid using `collect()` when not needed
         baz((0..10), (), ('a'..='z').collect::<Vec<_>>())
+        //~^ ERROR: avoid using `collect()` when not needed
     }
 
     let values = [1, 2, 3, 4];

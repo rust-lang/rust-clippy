@@ -3,11 +3,18 @@
 
 fn array() {
     assert_eq!([].into_iter().next(), Option::<i32>::None);
+    //~^ ERROR: `into_iter` call on an empty collection
+    //~| NOTE: `-D clippy::iter-on-empty-collections` implied by `-D warnings`
     assert_eq!([].iter_mut().next(), Option::<&mut i32>::None);
+    //~^ ERROR: `iter_mut` call on an empty collection
     assert_eq!([].iter().next(), Option::<&i32>::None);
+    //~^ ERROR: `iter` call on an empty collection
     assert_eq!(None.into_iter().next(), Option::<i32>::None);
+    //~^ ERROR: `into_iter` call on an empty collection
     assert_eq!(None.iter_mut().next(), Option::<&mut i32>::None);
+    //~^ ERROR: `iter_mut` call on an empty collection
     assert_eq!(None.iter().next(), Option::<&i32>::None);
+    //~^ ERROR: `iter` call on an empty collection
 
     // Don't trigger on non-iter methods
     let _: Option<String> = None.clone();

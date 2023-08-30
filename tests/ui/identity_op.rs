@@ -40,32 +40,46 @@ fn main() {
     let x = 0;
 
     x + 0;
+    //~^ ERROR: this operation has no effect
+    //~| NOTE: `-D clippy::identity-op` implied by `-D warnings`
     x + (1 - 1);
+    //~^ ERROR: this operation has no effect
     x + 1;
     0 + x;
+    //~^ ERROR: this operation has no effect
     1 + x;
     x - ZERO; //no error, as we skip lookups (for now)
     x | (0);
+    //~^ ERROR: this operation has no effect
     ((ZERO)) | x; //no error, as we skip lookups (for now)
 
     x * 1;
+    //~^ ERROR: this operation has no effect
     1 * x;
+    //~^ ERROR: this operation has no effect
     x / ONE; //no error, as we skip lookups (for now)
 
     x / 2; //no false positive
 
     x & NEG_ONE; //no error, as we skip lookups (for now)
     -1 & x;
+    //~^ ERROR: this operation has no effect
 
     let u: u8 = 0;
     u & 255;
+    //~^ ERROR: this operation has no effect
 
     1 << 0; // no error, this case is allowed, see issue 3430
     42 << 0;
+    //~^ ERROR: this operation has no effect
     1 >> 0;
+    //~^ ERROR: this operation has no effect
     42 >> 0;
+    //~^ ERROR: this operation has no effect
     &x >> 0;
+    //~^ ERROR: this operation has no effect
     x >> &0;
+    //~^ ERROR: this operation has no effect
 
     let mut a = A(String::new());
     let b = a << 0; // no error: non-integer
@@ -73,10 +87,15 @@ fn main() {
     1 * Meter; // no error: non-integer
 
     2 % 3;
+    //~^ ERROR: this operation has no effect
     -2 % 3;
+    //~^ ERROR: this operation has no effect
     2 % -3 + x;
+    //~^ ERROR: this operation has no effect
     -2 % -3 + x;
+    //~^ ERROR: this operation has no effect
     x + 1 % 3;
+    //~^ ERROR: this operation has no effect
     (x + 1) % 3; // no error
     4 % 3; // no error
     4 % -3; // no error
@@ -85,38 +104,60 @@ fn main() {
     let a = 0;
     let b = true;
     0 + if b { 1 } else { 2 };
+    //~^ ERROR: this operation has no effect
     0 + if b { 1 } else { 2 } + if b { 3 } else { 4 };
+    //~^ ERROR: this operation has no effect
     0 + match a { 0 => 10, _ => 20 };
+    //~^ ERROR: this operation has no effect
     0 + match a { 0 => 10, _ => 20 } + match a { 0 => 30, _ => 40 };
+    //~^ ERROR: this operation has no effect
     0 + if b { 1 } else { 2 } + match a { 0 => 30, _ => 40 };
+    //~^ ERROR: this operation has no effect
     0 + match a { 0 => 10, _ => 20 } + if b { 3 } else { 4 };
+    //~^ ERROR: this operation has no effect
     (if b { 1 } else { 2 }) + 0;
+    //~^ ERROR: this operation has no effect
 
     0 + { a } + 3;
+    //~^ ERROR: this operation has no effect
     0 + { a } * 2;
+    //~^ ERROR: this operation has no effect
     0 + loop { let mut c = 0; if c == 10 { break c; } c += 1; } + { a * 2 };
+    //~^ ERROR: this operation has no effect
 
     fn f(_: i32) {
         todo!();
     }
     f(1 * a + { 8 * 5 });
+    //~^ ERROR: this operation has no effect
     f(0 + if b { 1 } else { 2 } + 3);
+    //~^ ERROR: this operation has no effect
     const _: i32 = { 2 * 4 } + 0 + 3;
+    //~^ ERROR: this operation has no effect
     const _: i32 = 0 + { 1 + 2 * 3 } + 3;
+    //~^ ERROR: this operation has no effect
 
     0 + a as usize;
+    //~^ ERROR: this operation has no effect
     let _ = 0 + a as usize;
+    //~^ ERROR: this operation has no effect
     0 + { a } as usize;
+    //~^ ERROR: this operation has no effect
 
     2 * (0 + { a });
+    //~^ ERROR: this operation has no effect
     1 * ({ a } + 4);
+    //~^ ERROR: this operation has no effect
     1 * 1;
+    //~^ ERROR: this operation has no effect
 
     // Issue #9904
     let x = 0i32;
     let _: i32 = &x + 0;
+    //~^ ERROR: this operation has no effect
 }
 
 pub fn decide(a: bool, b: bool) -> u32 {
     0 + if a { 1 } else { 2 } + if b { 3 } else { 5 }
+    //~^ ERROR: this operation has no effect
 }

@@ -26,19 +26,28 @@ fn main() {
     let x = 0;
 
     x * -1;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
+    //~| NOTE: `-D clippy::neg-multiply` implied by `-D warnings`
 
     -1 * x;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
 
     100 + x * -1;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
 
     (100 + x) * -1;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
 
     -1 * 17;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
 
     0xcafe | 0xff00 * -1;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
 
     3_usize as i32 * -1;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
     (3_usize as i32) * -1;
+    //~^ ERROR: this multiplication by -1 can be written more succinctly
 
     -1 * -1; // should be ok
 

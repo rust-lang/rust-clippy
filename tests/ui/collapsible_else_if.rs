@@ -11,6 +11,8 @@ fn main() {
     if x == "hello" {
         print!("Hello ");
     } else {
+    //~^ ERROR: this `else { if .. }` block can be collapsed
+    //~| NOTE: `-D clippy::collapsible-else-if` implied by `-D warnings`
         if y == "world" {
             println!("world!")
         }
@@ -19,6 +21,7 @@ fn main() {
     if x == "hello" {
         print!("Hello ");
     } else {
+    //~^ ERROR: this `else { if .. }` block can be collapsed
         if let Some(42) = Some(42) {
             println!("world!")
         }
@@ -27,6 +30,7 @@ fn main() {
     if x == "hello" {
         print!("Hello ");
     } else {
+    //~^ ERROR: this `else { if .. }` block can be collapsed
         if y == "world" {
             println!("world")
         }
@@ -38,6 +42,7 @@ fn main() {
     if x == "hello" {
         print!("Hello ");
     } else {
+    //~^ ERROR: this `else { if .. }` block can be collapsed
         if let Some(42) = Some(42) {
             println!("world")
         }
@@ -49,6 +54,7 @@ fn main() {
     if let Some(42) = Some(42) {
         print!("Hello ");
     } else {
+    //~^ ERROR: this `else { if .. }` block can be collapsed
         if let Some(42) = Some(42) {
             println!("world")
         }
@@ -60,6 +66,7 @@ fn main() {
     if let Some(42) = Some(42) {
         print!("Hello ");
     } else {
+    //~^ ERROR: this `else { if .. }` block can be collapsed
         if x == "hello" {
             println!("world")
         }
@@ -71,6 +78,7 @@ fn main() {
     if let Some(42) = Some(42) {
         print!("Hello ");
     } else {
+    //~^ ERROR: this `else { if .. }` block can be collapsed
         if let Some(42) = Some(42) {
             println!("world")
         }
@@ -94,6 +102,7 @@ fn main() {
 fn issue_7318() {
     if true { println!("I've been resolved!")
     }else{
+    //~^ ERROR: this `else { if .. }` block can be collapsed
         if false {}
     }
 }

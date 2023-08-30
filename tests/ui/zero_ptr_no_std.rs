@@ -5,8 +5,11 @@
 #[start]
 fn main(_argc: isize, _argv: *const *const u8) -> isize {
     let _ = 0 as *const usize;
+    //~^ ERROR: `0 as *const _` detected
     let _ = 0 as *mut f64;
+    //~^ ERROR: `0 as *mut _` detected
     let _: *const u8 = 0 as *const _;
+    //~^ ERROR: `0 as *const _` detected
     0
 }
 

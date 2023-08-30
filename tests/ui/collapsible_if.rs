@@ -12,36 +12,43 @@ fn main() {
     let x = "hello";
     let y = "world";
     if x == "hello" {
+    //~^ ERROR: this `if` statement can be collapsed
+    //~| NOTE: `-D clippy::collapsible-if` implied by `-D warnings`
         if y == "world" {
             println!("Hello world!");
         }
     }
 
     if x == "hello" || x == "world" {
+    //~^ ERROR: this `if` statement can be collapsed
         if y == "world" || y == "hello" {
             println!("Hello world!");
         }
     }
 
     if x == "hello" && x == "world" {
+    //~^ ERROR: this `if` statement can be collapsed
         if y == "world" || y == "hello" {
             println!("Hello world!");
         }
     }
 
     if x == "hello" || x == "world" {
+    //~^ ERROR: this `if` statement can be collapsed
         if y == "world" && y == "hello" {
             println!("Hello world!");
         }
     }
 
     if x == "hello" && x == "world" {
+    //~^ ERROR: this `if` statement can be collapsed
         if y == "world" && y == "hello" {
             println!("Hello world!");
         }
     }
 
     if 42 == 1337 {
+    //~^ ERROR: this `if` statement can be collapsed
         if 'a' != 'A' {
             println!("world!")
         }
@@ -98,6 +105,7 @@ fn main() {
     }
 
     if x == "hello" {
+    //~^ ERROR: this `if` statement can be collapsed
         if y == "world" { // Collapsible
             println!("Hello world!");
         }
@@ -157,11 +165,13 @@ fn main() {
 
     // Fix #5962
     if matches!(true, true) {
+    //~^ ERROR: this `if` statement can be collapsed
         if matches!(true, true) {}
     }
 
     // Issue #9375
     if matches!(true, true) && truth() {
+    //~^ ERROR: this `if` statement can be collapsed
         if matches!(true, true) {}
     }
 

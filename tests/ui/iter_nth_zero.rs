@@ -16,16 +16,20 @@ fn main() {
     let mut s = HashSet::new();
     s.insert(1);
     let _x = s.iter().nth(0);
+    //~^ ERROR: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
+    //~| NOTE: `-D clippy::iter-nth-zero` implied by `-D warnings`
 
     let mut s2 = HashSet::new();
     s2.insert(2);
     let mut iter = s2.iter();
     let _y = iter.nth(0);
+    //~^ ERROR: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
 
     let mut s3 = HashSet::new();
     s3.insert(3);
     let mut iter2 = s3.iter();
     let _unwrapped = iter2.nth(0).unwrap();
+    //~^ ERROR: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
 }
 
 struct Issue9820;

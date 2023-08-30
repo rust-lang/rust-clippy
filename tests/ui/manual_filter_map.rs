@@ -6,42 +6,61 @@
 fn main() {
     // is_some(), unwrap()
     let _ = (0..).filter(|n| to_opt(*n).is_some()).map(|a| to_opt(a).unwrap());
+    //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
 
     // ref pattern, expect()
     let _ = (0..).filter(|&n| to_opt(n).is_some()).map(|a| to_opt(a).expect("hi"));
+    //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
 
     // is_ok(), unwrap_or()
     let _ = (0..).filter(|&n| to_res(n).is_ok()).map(|a| to_res(a).unwrap_or(1));
+    //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
 
     let _ = (1..5)
         .filter(|&x| to_ref(to_opt(x)).is_some())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|y| to_ref(to_opt(y)).unwrap());
     let _ = (1..5)
         .filter(|x| to_ref(to_opt(*x)).is_some())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|y| to_ref(to_opt(y)).unwrap());
 
     let _ = (1..5)
         .filter(|&x| to_ref(to_res(x)).is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|y| to_ref(to_res(y)).unwrap());
     let _ = (1..5)
         .filter(|x| to_ref(to_res(*x)).is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|y| to_ref(to_res(y)).unwrap());
 }
 
 #[rustfmt::skip]
 fn simple_equal() {
     iter::<Option<&u8>>().find(|x| x.is_some()).map(|x| x.cloned().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
+    //~| NOTE: `-D clippy::manual-find-map` implied by `-D warnings`
     iter::<&Option<&u8>>().find(|x| x.is_some()).map(|x| x.cloned().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<&Option<String>>().find(|x| x.is_some()).map(|x| x.as_deref().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<Option<&String>>().find(|&x| to_ref(x).is_some()).map(|y| to_ref(y).cloned().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
 
     iter::<Result<u8, ()>>().find(|x| x.is_ok()).map(|x| x.unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<&Result<u8, ()>>().find(|x| x.is_ok()).map(|x| x.unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<&&Result<u8, ()>>().find(|x| x.is_ok()).map(|x| x.unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<Result<&u8, ()>>().find(|x| x.is_ok()).map(|x| x.cloned().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<&Result<&u8, ()>>().find(|x| x.is_ok()).map(|x| x.cloned().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<&Result<String, ()>>().find(|x| x.is_ok()).map(|x| x.as_deref().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
     iter::<Result<&String, ()>>().find(|&x| to_ref(x).is_ok()).map(|y| to_ref(y).cloned().unwrap());
+    //~^ ERROR: `find(..).map(..)` can be simplified as `find_map(..)`
 }
 
 fn no_lint() {
@@ -90,46 +109,55 @@ fn issue_8920() {
     let _ = vec
         .iter()
         .filter(|f| f.option_field.is_some())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.option_field.clone().unwrap());
 
     let _ = vec
         .iter()
         .filter(|f| f.ref_field.is_some())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.ref_field.cloned().unwrap());
 
     let _ = vec
         .iter()
         .filter(|f| f.ref_field.is_some())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.ref_field.copied().unwrap());
 
     let _ = vec
         .iter()
         .filter(|f| f.result_field.is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.result_field.clone().unwrap());
 
     let _ = vec
         .iter()
         .filter(|f| f.result_field.is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.result_field.as_ref().unwrap());
 
     let _ = vec
         .iter()
         .filter(|f| f.result_field.is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.result_field.as_deref().unwrap());
 
     let _ = vec
         .iter_mut()
         .filter(|f| f.result_field.is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.result_field.as_mut().unwrap());
 
     let _ = vec
         .iter_mut()
         .filter(|f| f.result_field.is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.result_field.as_deref_mut().unwrap());
 
     let _ = vec
         .iter()
         .filter(|f| f.result_field.is_ok())
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|f| f.result_field.to_owned().unwrap());
 }
 
@@ -143,6 +171,7 @@ fn issue8010() {
     let iter = [Enum::A(123), Enum::B].into_iter();
 
     let _x = iter.clone().filter(|x| matches!(x, Enum::A(_))).map(|x| match x {
+    //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         Enum::A(s) => s,
         _ => unreachable!(),
     });
@@ -153,6 +182,7 @@ fn issue8010() {
     let _x = iter
         .clone()
         .filter(|x| matches!(x, Enum::A(_)))
+        //~^ ERROR: `filter(..).map(..)` can be simplified as `filter_map(..)`
         .map(|x| if let Enum::A(s) = x { s } else { unreachable!() });
     #[allow(clippy::unused_unit)]
     let _x = iter

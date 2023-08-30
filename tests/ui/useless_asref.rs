@@ -44,14 +44,18 @@ fn not_ok() {
     {
         let rslice: &[i32] = &*mrslice;
         foo_rstr(rstr.as_ref());
+        //~^ ERROR: this call to `as_ref` does nothing
         foo_rstr(rstr);
         foo_rslice(rslice.as_ref());
+        //~^ ERROR: this call to `as_ref` does nothing
         foo_rslice(rslice);
     }
     {
         foo_mrslice(mrslice.as_mut());
+        //~^ ERROR: this call to `as_mut` does nothing
         foo_mrslice(mrslice);
         foo_rslice(mrslice.as_ref());
+        //~^ ERROR: this call to `as_ref` does nothing
         foo_rslice(mrslice);
     }
 
@@ -59,19 +63,24 @@ fn not_ok() {
         let rrrrrstr = &&&&rstr;
         let rrrrrslice = &&&&&*mrslice;
         foo_rslice(rrrrrslice.as_ref());
+        //~^ ERROR: this call to `as_ref` does nothing
         foo_rslice(rrrrrslice);
         foo_rstr(rrrrrstr.as_ref());
+        //~^ ERROR: this call to `as_ref` does nothing
         foo_rstr(rrrrrstr);
     }
     {
         let mrrrrrslice = &mut &mut &mut &mut mrslice;
         foo_mrslice(mrrrrrslice.as_mut());
+        //~^ ERROR: this call to `as_mut` does nothing
         foo_mrslice(mrrrrrslice);
         foo_rslice(mrrrrrslice.as_ref());
+        //~^ ERROR: this call to `as_ref` does nothing
         foo_rslice(mrrrrrslice);
     }
     #[allow(unused_parens, clippy::double_parens, clippy::needless_borrow)]
     foo_rrrrmr((&&&&MoreRef).as_ref());
+    //~^ ERROR: this call to `as_ref` does nothing
 
     generic_not_ok(mrslice);
     generic_ok(mrslice);
@@ -122,8 +131,10 @@ fn foo_rt<T: Debug + ?Sized>(t: &T) {
 
 fn generic_not_ok<T: AsMut<T> + AsRef<T> + Debug + ?Sized>(mrt: &mut T) {
     foo_mrt(mrt.as_mut());
+    //~^ ERROR: this call to `as_mut` does nothing
     foo_mrt(mrt);
     foo_rt(mrt.as_ref());
+    //~^ ERROR: this call to `as_ref` does nothing
     foo_rt(mrt);
 }
 

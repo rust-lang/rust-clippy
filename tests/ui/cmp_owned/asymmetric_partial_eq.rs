@@ -44,7 +44,10 @@ mod borrowed_eq_owned {
         let borrowed = Borrowed {};
 
         if borrowed.to_owned() == owned {}
+        //~^ ERROR: this creates an owned instance just for comparison
+        //~| NOTE: `-D clippy::cmp-owned` implied by `-D warnings`
         if owned == borrowed.to_owned() {}
+        //~^ ERROR: this creates an owned instance just for comparison
     }
 }
 
@@ -63,7 +66,9 @@ mod owned_eq_borrowed {
         let borrowed = Borrowed {};
 
         if owned == borrowed.to_owned() {}
+        //~^ ERROR: this creates an owned instance just for comparison
         if borrowed.to_owned() == owned {}
+        //~^ ERROR: this creates an owned instance just for comparison
     }
 }
 
@@ -90,7 +95,9 @@ mod issue_4874 {
         let borrowed = Borrowed {};
 
         if "Hi" == borrowed.to_string() {}
+        //~^ ERROR: this creates an owned instance just for comparison
         if borrowed.to_string() == "Hi" {}
+        //~^ ERROR: this creates an owned instance just for comparison
     }
 }
 

@@ -39,7 +39,10 @@ fn main() {
     unsafe { unit_fn_block() };
 
     { unit_fn_block(); }
+    //~^ ERROR: consider moving the `;` outside the block for consistent formatting
+    //~| NOTE: `-D clippy::semicolon-outside-block` implied by `-D warnings`
     unsafe { unit_fn_block(); }
+    //~^ ERROR: consider moving the `;` outside the block for consistent formatting
 
     { unit_fn_block(); };
     unsafe { unit_fn_block(); };
@@ -49,6 +52,7 @@ fn main() {
         unit_fn_block()
     };
     {
+    //~^ ERROR: consider moving the `;` outside the block for consistent formatting
         unit_fn_block();
         unit_fn_block();
     }
@@ -59,6 +63,7 @@ fn main() {
 
     { m!(()) };
     { m!(()); }
+    //~^ ERROR: consider moving the `;` outside the block for consistent formatting
     { m!(()); };
     m!(0);
     m!(1);

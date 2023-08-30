@@ -7,15 +7,20 @@ fn main() {
     let v = vec![1, 2, 3];
 
     let _ = s.iter().next();
+    //~^ ERROR: using `.iter().next()` on an array
+    //~| NOTE: `-D clippy::iter-next-slice` implied by `-D warnings`
     // Should be replaced by s.first()
 
     let _ = s[2..].iter().next();
+    //~^ ERROR: using `.iter().next()` on a Slice without end index
     // Should be replaced by s.get(2)
 
     let _ = v[5..].iter().next();
+    //~^ ERROR: using `.iter().next()` on a Slice without end index
     // Should be replaced by v.get(5)
 
     let _ = v.iter().next();
+    //~^ ERROR: using `.iter().next()` on an array
     // Should be replaced by v.first()
 
     let o = Some(5);

@@ -21,6 +21,8 @@ fn macro_if() {
 
 fn condition_has_block() -> i32 {
     if {
+    //~^ ERROR: in an `if` condition, avoid complex blocks or closures with blocks; instea
+    //~| NOTE: `-D clippy::blocks-in-if-conditions` implied by `-D warnings`
         let x = 3;
         x == 3
     } {
@@ -32,11 +34,14 @@ fn condition_has_block() -> i32 {
 
 fn condition_has_block_with_single_expression() -> i32 {
     if { true } { 6 } else { 10 }
+    //~^ ERROR: omit braces around single expression condition
 }
 
 fn condition_is_normal() -> i32 {
     let x = 3;
     if true && x == 3 { 6 } else { 10 }
+    //~^ ERROR: this boolean expression can be simplified
+    //~| NOTE: `-D clippy::nonminimal-bool` implied by `-D warnings`
 }
 
 fn condition_is_unsafe_block() {

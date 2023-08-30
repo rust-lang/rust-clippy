@@ -17,28 +17,43 @@ struct Bad;
 
 impl SelfTrait for Bad {
     fn refs(p1: &Bad) -> &Bad {
+    //~^ ERROR: unnecessary structure name repetition
+    //~| NOTE: `-D clippy::use-self` implied by `-D warnings`
+    //~| ERROR: unnecessary structure name repetition
         p1
     }
 
     fn ref_refs<'a>(p1: &'a &'a Bad) -> &'a &'a Bad {
+    //~^ ERROR: unnecessary structure name repetition
+    //~| ERROR: unnecessary structure name repetition
         p1
     }
 
     fn mut_refs(p1: &mut Bad) -> &mut Bad {
+    //~^ ERROR: unnecessary structure name repetition
+    //~| ERROR: unnecessary structure name repetition
         p1
     }
 
     fn nested(_p1: Box<Bad>, _p2: (&u8, &Bad)) {}
+    //~^ ERROR: unnecessary structure name repetition
+    //~| ERROR: unnecessary structure name repetition
 
     fn vals(_: Bad) -> Bad {
+    //~^ ERROR: unnecessary structure name repetition
+    //~| ERROR: unnecessary structure name repetition
         Bad
+        //~^ ERROR: unnecessary structure name repetition
     }
 }
 
 impl Mul for Bad {
     type Output = Bad;
+    //~^ ERROR: unnecessary structure name repetition
 
     fn mul(self, rhs: Bad) -> Bad {
+    //~^ ERROR: unnecessary structure name repetition
+    //~| ERROR: unnecessary structure name repetition
         rhs
     }
 }
@@ -46,6 +61,7 @@ impl Mul for Bad {
 impl Clone for Bad {
     fn clone(&self) -> Self {
         Bad
+        //~^ ERROR: unnecessary structure name repetition
     }
 }
 
@@ -143,6 +159,7 @@ mod full_path_replacement {
     impl Error for std::fmt::Error {
         fn custom<T: std::fmt::Display>(_msg: T) -> Self {
             std::fmt::Error // Should lint
+            //~^ ERROR: unnecessary structure name repetition
         }
     }
 }

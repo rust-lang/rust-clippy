@@ -20,10 +20,17 @@ fn main() {
     let _bad = (
         0b1_10110_i64,
         0xd_e_adbee_f_usize,
+        //~^ ERROR: digits of hex, binary or octal literal not in groups of equal size
+        //~| NOTE: `-D clippy::unusual-byte-groupings` implied by `-D warnings`
         1_23456_f32,
+        //~^ ERROR: digit groups should be smaller
+        //~| NOTE: `-D clippy::large-digit-groups` implied by `-D warnings`
         1_23456.12_f32,
+        //~^ ERROR: digit groups should be smaller
         1_23456.12345_f64,
+        //~^ ERROR: digit groups should be smaller
         1_23456.12345_6_f64,
+        //~^ ERROR: digit groups should be smaller
     );
     // Ignore literals in macros
     let _ = mac!();

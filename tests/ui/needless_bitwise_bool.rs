@@ -20,6 +20,8 @@ fn main() {
         println!("true")
     }
     if y & !x {
+    //~^ ERROR: use of bitwise operator instead of lazy operator between booleans
+    //~| NOTE: `-D clippy::needless-bitwise-bool` implied by `-D warnings`
         println!("true")
     }
 

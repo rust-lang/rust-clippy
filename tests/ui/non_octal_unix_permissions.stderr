@@ -7,19 +7,19 @@ LL |     options.mode(440);
    = note: `-D clippy::non-octal-unix-permissions` implied by `-D warnings`
 
 error: using a non-octal value to set unix file permissions
-  --> $DIR/non_octal_unix_permissions.rs:17:47
+  --> $DIR/non_octal_unix_permissions.rs:19:47
    |
 LL |     let _permissions = Permissions::from_mode(647);
    |                                               ^^^ help: consider using an octal literal instead: `0o647`
 
 error: using a non-octal value to set unix file permissions
-  --> $DIR/non_octal_unix_permissions.rs:26:26
+  --> $DIR/non_octal_unix_permissions.rs:29:26
    |
 LL |     permissions.set_mode(644);
    |                          ^^^ help: consider using an octal literal instead: `0o644`
 
 error: using a non-octal value to set unix file permissions
-  --> $DIR/non_octal_unix_permissions.rs:31:18
+  --> $DIR/non_octal_unix_permissions.rs:35:18
    |
 LL |     builder.mode(755);
    |                  ^^^ help: consider using an octal literal instead: `0o755`

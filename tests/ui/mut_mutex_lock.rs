@@ -8,6 +8,8 @@ fn mut_mutex_lock() {
     let value_mutex = Arc::get_mut(&mut value_rc).unwrap();
 
     let mut value = value_mutex.lock().unwrap();
+    //~^ ERROR: calling `&mut Mutex::lock` unnecessarily locks an exclusive (mutable) refe
+    //~| NOTE: `-D clippy::mut-mutex-lock` implied by `-D warnings`
     *value += 1;
 }
 

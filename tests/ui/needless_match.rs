@@ -13,6 +13,8 @@ enum Simple {
 fn useless_match() {
     let i = 10;
     let _: i32 = match i {
+    //~^ ERROR: this match expression is unnecessary
+    //~| NOTE: `-D clippy::needless-match` implied by `-D warnings`
         0 => 0,
         1 => 1,
         2 => 2,
@@ -20,6 +22,7 @@ fn useless_match() {
     };
     let s = "test";
     let _: &str = match s {
+    //~^ ERROR: this match expression is unnecessary
         "a" => "a",
         "b" => "b",
         s => s,
@@ -29,6 +32,7 @@ fn useless_match() {
 fn custom_type_match() {
     let se = Simple::A;
     let _: Simple = match se {
+    //~^ ERROR: this match expression is unnecessary
         Simple::A => Simple::A,
         Simple::B => Simple::B,
         Simple::C => Simple::C,
@@ -51,6 +55,7 @@ fn custom_type_match() {
 
 fn option_match(x: Option<i32>) {
     let _: Option<i32> = match x {
+    //~^ ERROR: this match expression is unnecessary
         Some(a) => Some(a),
         None => None,
     };
@@ -67,10 +72,12 @@ fn func_ret_err<T>(err: T) -> Result<i32, T> {
 
 fn result_match() {
     let _: Result<i32, i32> = match Ok(1) {
+    //~^ ERROR: this match expression is unnecessary
         Ok(a) => Ok(a),
         Err(err) => Err(err),
     };
     let _: Result<i32, i32> = match func_ret_err(0_i32) {
+    //~^ ERROR: this match expression is unnecessary
         Err(err) => Err(err),
         Ok(a) => Ok(a),
     };
@@ -84,6 +91,7 @@ fn result_match() {
 
 fn if_let_option() {
     let _ = if let Some(a) = Some(1) { Some(a) } else { None };
+    //~^ ERROR: this if-let expression is unnecessary
 
     fn do_something() {}
 
@@ -119,7 +127,9 @@ fn if_let_option_result() -> Result<(), ()> {
 fn if_let_result() {
     let x: Result<i32, i32> = Ok(1);
     let _: Result<i32, i32> = if let Err(e) = x { Err(e) } else { x };
+    //~^ ERROR: this if-let expression is unnecessary
     let _: Result<i32, i32> = if let Ok(val) = x { Ok(val) } else { x };
+    //~^ ERROR: this if-let expression is unnecessary
     // Input type mismatch, don't trigger
     #[allow(clippy::question_mark)]
     let _: Result<i32, i32> = if let Err(e) = Ok(1) { Err(e) } else { x };
@@ -127,6 +137,7 @@ fn if_let_result() {
 
 fn if_let_custom_enum(x: Simple) {
     let _: Simple = if let Simple::A = x {
+    //~^ ERROR: this if-let expression is unnecessary
         Simple::A
     } else if let Simple::B = x {
         Simple::B
@@ -166,6 +177,7 @@ mod issue8542 {
         let bb = false;
 
         let _: Complex = match ce {
+        //~^ ERROR: this match expression is unnecessary
             Complex::A(a) => Complex::A(a),
             Complex::B(a, b) => Complex::B(a, b),
             Complex::C(a, b, c) => Complex::C(a, b, c),
@@ -250,12 +262,14 @@ mod issue9084 {
 
         // should lint
         let _ = match e {
+        //~^ ERROR: this match expression is unnecessary
             _ if some_bool => e,
             _ => e,
         };
 
         // should lint
         let _ = match e {
+        //~^ ERROR: this match expression is unnecessary
             Some(i) => Some(i),
             _ if some_bool => e,
             _ => e,

@@ -9,6 +9,8 @@ impl UnitStruct {
     fn new() -> Self {
         //should lint
         Self::default()
+        //~^ ERROR: use of `default` to create a unit struct
+        //~| NOTE: `-D clippy::default-constructed-unit-structs` implied by `-D warnings`
     }
 }
 
@@ -51,6 +53,7 @@ impl NormalStruct {
         // should lint
         Self {
             inner: PhantomData::default(),
+            //~^ ERROR: use of `default` to create a unit struct
         }
     }
 
@@ -124,9 +127,13 @@ mod issue_10755 {
 fn main() {
     // should lint
     let _ = PhantomData::<usize>::default();
+    //~^ ERROR: use of `default` to create a unit struct
     let _: PhantomData<i32> = PhantomData::default();
+    //~^ ERROR: use of `default` to create a unit struct
     let _: PhantomData<i32> = std::marker::PhantomData::default();
+    //~^ ERROR: use of `default` to create a unit struct
     let _ = UnitStruct::default();
+    //~^ ERROR: use of `default` to create a unit struct
 
     // should not lint
     let _ = TupleStruct::default();

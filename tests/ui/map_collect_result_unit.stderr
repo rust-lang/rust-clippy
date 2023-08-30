@@ -7,7 +7,7 @@ LL |         let _ = (0..3).map(|t| Err(t + 1)).collect::<Result<(), _>>();
    = note: `-D clippy::map-collect-result-unit` implied by `-D warnings`
 
 error: `.map().collect()` can be replaced with `.try_for_each()`
-  --> $DIR/map_collect_result_unit.rs:6:32
+  --> $DIR/map_collect_result_unit.rs:8:32
    |
 LL |         let _: Result<(), _> = (0..3).map(|t| Err(t + 1)).collect();
    |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(0..3).try_for_each(|t| Err(t + 1))`

@@ -30,6 +30,8 @@ impl Clone for V {
     fn clone(&self) -> Self {
         // Lint: `Self` implements `Copy`
         Self { ..*self }
+        //~^ ERROR: unnecessary struct building
+        //~| NOTE: `-D clippy::unnecessary-struct-initialization` implied by `-D warnings`
     }
 }
 
@@ -37,9 +39,11 @@ fn main() {
     // Should lint: `a` would be consumed anyway
     let a = S { f: String::from("foo") };
     let mut b = S { ..a };
+    //~^ ERROR: unnecessary struct building
 
     // Should lint: `b` would be consumed, and is mutable
     let c = &mut S { ..b };
+    //~^ ERROR: unnecessary struct building
 
     // Should not lint as `d` is not mutable
     let d = S { f: String::from("foo") };
@@ -48,9 +52,11 @@ fn main() {
     // Should lint as `f` would be consumed anyway
     let f = S { f: String::from("foo") };
     let g = &S { ..f };
+    //~^ ERROR: unnecessary struct building
 
     // Should lint: the result of an expression is mutable
     let h = &mut S {
+    //~^ ERROR: unnecessary struct building
         ..*Box::new(S { f: String::from("foo") })
     };
 
@@ -70,6 +76,7 @@ fn main() {
 
     // Should lint: the result of an expression is mutable and temporary
     let p = &mut T {
+    //~^ ERROR: unnecessary struct building
         ..*Box::new(T { f: 5 })
     };
 }

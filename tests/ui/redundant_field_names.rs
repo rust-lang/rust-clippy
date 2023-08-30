@@ -31,7 +31,10 @@ fn main() {
 
     let me = Person {
         gender: gender,
+        //~^ ERROR: redundant field names in struct initialization
+        //~| NOTE: `-D clippy::redundant-field-names` implied by `-D warnings`
         age: age,
+        //~^ ERROR: redundant field names in struct initialization
 
         name,          //should be ok
         buzz: fizz,    //should be ok
@@ -53,10 +56,15 @@ fn main() {
 
     // hand-written Range family structs are linted
     let _ = RangeFrom { start: start };
+    //~^ ERROR: redundant field names in struct initialization
     let _ = RangeTo { end: end };
+    //~^ ERROR: redundant field names in struct initialization
     let _ = Range { start: start, end: end };
+    //~^ ERROR: redundant field names in struct initialization
+    //~| ERROR: redundant field names in struct initialization
     let _ = RangeInclusive::new(start, end);
     let _ = RangeToInclusive { end: end };
+    //~^ ERROR: redundant field names in struct initialization
 }
 
 fn issue_3476() {
@@ -79,4 +87,5 @@ fn msrv_1_16() {
 fn msrv_1_17() {
     let start = 0;
     let _ = RangeFrom { start: start };
+    //~^ ERROR: redundant field names in struct initialization
 }

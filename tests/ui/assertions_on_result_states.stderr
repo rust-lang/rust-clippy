@@ -7,37 +7,37 @@ LL |     assert!(r.is_ok());
    = note: `-D clippy::assertions-on-result-states` implied by `-D warnings`
 
 error: called `assert!` with `Result::is_ok`
-  --> $DIR/assertions_on_result_states.rs:42:5
+  --> $DIR/assertions_on_result_states.rs:44:5
    |
 LL |     assert!(get_ok().is_ok());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `get_ok().unwrap()`
 
 error: called `assert!` with `Result::is_ok`
-  --> $DIR/assertions_on_result_states.rs:45:5
+  --> $DIR/assertions_on_result_states.rs:48:5
    |
 LL |     assert!(get_ok_macro!().is_ok());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `get_ok_macro!().unwrap()`
 
 error: called `assert!` with `Result::is_ok`
-  --> $DIR/assertions_on_result_states.rs:58:5
+  --> $DIR/assertions_on_result_states.rs:62:5
    |
 LL |     assert!(r.is_ok());
    |     ^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap()`
 
 error: called `assert!` with `Result::is_ok`
-  --> $DIR/assertions_on_result_states.rs:64:9
+  --> $DIR/assertions_on_result_states.rs:69:9
    |
 LL |         assert!(r.is_ok());
    |         ^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap()`
 
 error: called `assert!` with `Result::is_err`
-  --> $DIR/assertions_on_result_states.rs:72:5
+  --> $DIR/assertions_on_result_states.rs:78:5
    |
 LL |     assert!(r.is_err());
    |     ^^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap_err()`
 
 error: called `assert!` with `Result::is_err`
-  --> $DIR/assertions_on_result_states.rs:82:5
+  --> $DIR/assertions_on_result_states.rs:89:5
    |
 LL |     assert!(res.is_err())
    |     ^^^^^^^^^^^^^^^^^^^^^ help: replace with: `res.unwrap_err();`

@@ -5,6 +5,8 @@ fn main() {
     let a = ["1", "lol", "3", "NaN", "5"];
 
     let element: Option<i32> = a.iter().filter_map(|s| s.parse().ok()).next();
+    //~^ ERROR: called `filter_map(..).next()` on an `Iterator`. This is more succinctly e
+    //~| NOTE: `-D clippy::filter-map-next` implied by `-D warnings`
     assert_eq!(element, Some(1));
 }
 
@@ -18,4 +20,5 @@ fn msrv_1_29() {
 fn msrv_1_30() {
     let a = ["1", "lol", "3", "NaN", "5"];
     let _: Option<i32> = a.iter().filter_map(|s| s.parse().ok()).next();
+    //~^ ERROR: called `filter_map(..).next()` on an `Iterator`. This is more succinctly e
 }

@@ -20,13 +20,17 @@ impl SomeOtherStruct {
 fn main() {
     let option: Option<&str> = None;
     let _ = option.or(Some("fallback")).unwrap(); // should trigger lint
+    //~^ ERROR: found `.or(Some(…)).unwrap()`
+    //~| NOTE: `-D clippy::or-then-unwrap` implied by `-D warnings`
 
     let result: Result<&str, &str> = Err("Error");
     let _ = result.or::<&str>(Ok("fallback")).unwrap(); // should trigger lint
+    //~^ ERROR: found `.or(Ok(…)).unwrap()`
 
     // as part of a method chain
     let option: Option<&str> = None;
     let _ = option.map(|v| v).or(Some("fallback")).unwrap().to_string().chars(); // should trigger lint
+    //~^ ERROR: found `.or(Some(…)).unwrap()`
 
     // Not Option/Result
     let instance = SomeStruct {};

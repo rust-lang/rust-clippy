@@ -80,10 +80,13 @@ impl Deref for DerefToString {
 fn main() {
     let x = [1, 2];
     if x.len() == 0 {
+    //~^ ERROR: length comparison to zero
+    //~| NOTE: `-D clippy::len-zero` implied by `-D warnings`
         println!("This should not happen!");
     }
 
     if "".len() == 0 {}
+    //~^ ERROR: length comparison to zero
 
     let s = "Hello, world!";
     let s1 = &s;
@@ -93,14 +96,22 @@ fn main() {
     let s5 = &s4;
     let s6 = &s5;
     println!("{}", *s1 == "");
+    //~^ ERROR: comparison to empty slice
+    //~| NOTE: `-D clippy::comparison-to-empty` implied by `-D warnings`
     println!("{}", **s2 == "");
+    //~^ ERROR: comparison to empty slice
     println!("{}", ***s3 == "");
+    //~^ ERROR: comparison to empty slice
     println!("{}", ****s4 == "");
+    //~^ ERROR: comparison to empty slice
     println!("{}", *****s5 == "");
+    //~^ ERROR: comparison to empty slice
     println!("{}", ******(s6) == "");
+    //~^ ERROR: comparison to empty slice
 
     let d2s = DerefToDerefToString {};
     println!("{}", &**d2s == "");
+    //~^ ERROR: comparison to empty slice
 
     let y = One;
     if y.len() == 0 {
@@ -116,18 +127,23 @@ fn main() {
 
     let has_is_empty = HasIsEmpty;
     if has_is_empty.len() == 0 {
+    //~^ ERROR: length comparison to zero
         println!("Or this!");
     }
     if has_is_empty.len() != 0 {
+    //~^ ERROR: length comparison to zero
         println!("Or this!");
     }
     if has_is_empty.len() > 0 {
+    //~^ ERROR: length comparison to zero
         println!("Or this!");
     }
     if has_is_empty.len() < 1 {
+    //~^ ERROR: length comparison to one
         println!("Or this!");
     }
     if has_is_empty.len() >= 1 {
+    //~^ ERROR: length comparison to one
         println!("Or this!");
     }
     if has_is_empty.len() > 1 {
@@ -139,18 +155,23 @@ fn main() {
         println!("This can happen.");
     }
     if 0 == has_is_empty.len() {
+    //~^ ERROR: length comparison to zero
         println!("Or this!");
     }
     if 0 != has_is_empty.len() {
+    //~^ ERROR: length comparison to zero
         println!("Or this!");
     }
     if 0 < has_is_empty.len() {
+    //~^ ERROR: length comparison to zero
         println!("Or this!");
     }
     if 1 <= has_is_empty.len() {
+    //~^ ERROR: length comparison to one
         println!("Or this!");
     }
     if 1 > has_is_empty.len() {
+    //~^ ERROR: length comparison to one
         println!("Or this!");
     }
     if 1 < has_is_empty.len() {
@@ -165,6 +186,7 @@ fn main() {
 
     let with_is_empty: &dyn WithIsEmpty = &Wither;
     if with_is_empty.len() == 0 {
+    //~^ ERROR: length comparison to zero
         println!("Or this!");
     }
     assert!(!with_is_empty.is_empty());
@@ -177,9 +199,12 @@ fn main() {
 
     // issue #10529
     (has_is_empty.len() > 0).then(|| println!("This can happen."));
+    //~^ ERROR: length comparison to zero
     (has_is_empty.len() == 0).then(|| println!("Or this!"));
+    //~^ ERROR: length comparison to zero
 }
 
 fn test_slice(b: &[u8]) {
     if b.len() != 0 {}
+    //~^ ERROR: length comparison to zero
 }

@@ -7,7 +7,7 @@ LL |     r#"aaa"#;
    = note: `-D clippy::needless-raw-strings` implied by `-D warnings`
 
 error: unnecessary raw string literal
-  --> $DIR/needless_raw_string.rs:9:5
+  --> $DIR/needless_raw_string.rs:11:5
    |
 LL |     br#"aaa"#;
    |     ^^^^^^^^^ help: try: `b"aaa"`

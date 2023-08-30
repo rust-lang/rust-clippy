@@ -3,7 +3,10 @@
 fn main() {
     {
         let _ = (0..3).map(|t| Err(t + 1)).collect::<Result<(), _>>();
+        //~^ ERROR: `.map().collect()` can be replaced with `.try_for_each()`
+        //~| NOTE: `-D clippy::map-collect-result-unit` implied by `-D warnings`
         let _: Result<(), _> = (0..3).map(|t| Err(t + 1)).collect();
+        //~^ ERROR: `.map().collect()` can be replaced with `.try_for_each()`
 
         let _ = (0..3).try_for_each(|t| Err(t + 1));
     }

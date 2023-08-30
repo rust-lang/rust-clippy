@@ -14,6 +14,8 @@ impl Ord for A {
 }
 
 impl PartialOrd for A {
+//~^ ERROR: incorrect implementation of `partial_cmp` on an `Ord` type
+//~| NOTE: `#[deny(clippy::incorrect_partial_ord_impl_on_ord_type)]` on by default
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         todo!();
     }
@@ -48,6 +50,7 @@ impl Ord for C {
 }
 
 impl PartialOrd for C {
+//~^ ERROR: incorrect implementation of `partial_cmp` on an `Ord` type
     fn partial_cmp(&self, _: &Self) -> Option<Ordering> {
         todo!();
     }

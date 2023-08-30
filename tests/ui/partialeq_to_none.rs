@@ -12,6 +12,8 @@ impl PartialEq<Option<()>> for Foobar {
 #[allow(dead_code)]
 fn foo(f: Option<u32>) -> &'static str {
     if f != None { "yay" } else { "nay" }
+    //~^ ERROR: binary comparison to literal `Option::None`
+    //~| NOTE: `-D clippy::partialeq-to-none` implied by `-D warnings`
 }
 
 fn foobar() -> Option<()> {
@@ -42,19 +44,28 @@ fn main() {
     let x = Some(0);
 
     let _ = x == None;
+    //~^ ERROR: binary comparison to literal `Option::None`
     let _ = x != None;
+    //~^ ERROR: binary comparison to literal `Option::None`
     let _ = None == x;
+    //~^ ERROR: binary comparison to literal `Option::None`
     let _ = None != x;
+    //~^ ERROR: binary comparison to literal `Option::None`
 
     if foobar() == None {}
+    //~^ ERROR: binary comparison to literal `Option::None`
 
     if bar().ok() != None {}
+    //~^ ERROR: binary comparison to literal `Option::None`
 
     let _ = Some(1 + 2) != None;
+    //~^ ERROR: binary comparison to literal `Option::None`
 
     let _ = { Some(0) } == None;
+    //~^ ERROR: binary comparison to literal `Option::None`
 
     let _ = {
+    //~^ ERROR: binary comparison to literal `Option::None`
         /*
           This comment runs long
         */
@@ -65,10 +76,15 @@ fn main() {
     let _ = Foobar == None;
 
     let _ = optref() == &&None;
+    //~^ ERROR: binary comparison to literal `Option::None`
     let _ = &&None != optref();
+    //~^ ERROR: binary comparison to literal `Option::None`
     let _ = **optref() == None;
+    //~^ ERROR: binary comparison to literal `Option::None`
     let _ = &None != *optref();
+    //~^ ERROR: binary comparison to literal `Option::None`
 
     let x = Box::new(Option::<()>::None);
     let _ = None != *x;
+    //~^ ERROR: binary comparison to literal `Option::None`
 }

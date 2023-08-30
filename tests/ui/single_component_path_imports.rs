@@ -4,6 +4,8 @@
 use core;
 
 use regex;
+//~^ ERROR: this import is redundant
+//~| NOTE: `-D clippy::single-component-path-imports` implied by `-D warnings`
 
 use serde as edres;
 
@@ -30,6 +32,7 @@ fn main() {
 
 mod hello_mod {
     use regex;
+    //~^ ERROR: this import is redundant
     #[allow(dead_code)]
     fn hello_mod() {}
 }

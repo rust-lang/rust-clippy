@@ -2,6 +2,8 @@ error: in an `if` condition, avoid complex blocks or closures with blocks; inste
   --> $DIR/blocks_in_if_conditions.rs:23:5
    |
 LL | /     if {
+LL | |
+LL | |
 LL | |         let x = 3;
 LL | |         x == 3
 LL | |     } {
@@ -11,19 +13,21 @@ LL | |     } {
 help: try
    |
 LL ~     let res = {
+LL +
+LL +
 LL +         let x = 3;
 LL +         x == 3
 LL ~     }; if res {
    |
 
 error: omit braces around single expression condition
-  --> $DIR/blocks_in_if_conditions.rs:34:8
+  --> $DIR/blocks_in_if_conditions.rs:36:8
    |
 LL |     if { true } { 6 } else { 10 }
    |        ^^^^^^^^ help: try: `true`
 
 error: this boolean expression can be simplified
-  --> $DIR/blocks_in_if_conditions.rs:39:8
+  --> $DIR/blocks_in_if_conditions.rs:42:8
    |
 LL |     if true && x == 3 { 6 } else { 10 }
    |        ^^^^^^^^^^^^^^ help: try: `x == 3`

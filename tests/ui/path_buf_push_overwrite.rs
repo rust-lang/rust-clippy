@@ -4,4 +4,6 @@ use std::path::PathBuf;
 fn main() {
     let mut x = PathBuf::from("/foo");
     x.push("/bar");
+    //~^ ERROR: calling `push` with '/' or '\' (file system root) will overwrite the previ
+    //~| NOTE: `-D clippy::path-buf-push-overwrite` implied by `-D warnings`
 }

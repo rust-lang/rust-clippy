@@ -7,61 +7,43 @@ LL |     with_new.unwrap_or_else(Vec::new);
    = note: `-D clippy::unwrap-or-default` implied by `-D warnings`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:60:23
+  --> $DIR/unwrap_or_else_default.rs:62:23
    |
 LL |     with_real_default.unwrap_or_else(<HasDefaultAndDuplicate as Default>::default);
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:63:24
+  --> $DIR/unwrap_or_else_default.rs:66:24
    |
 LL |     with_default_trait.unwrap_or_else(Default::default);
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:66:23
+  --> $DIR/unwrap_or_else_default.rs:70:23
    |
 LL |     with_default_type.unwrap_or_else(u64::default);
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:69:23
+  --> $DIR/unwrap_or_else_default.rs:74:23
    |
 LL |     with_default_type.unwrap_or_else(Vec::new);
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:72:18
+  --> $DIR/unwrap_or_else_default.rs:78:18
    |
 LL |     empty_string.unwrap_or_else(|| "".to_string());
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:76:12
+  --> $DIR/unwrap_or_else_default.rs:83:12
    |
 LL |     option.unwrap_or_else(Vec::new).push(1);
    |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:79:12
-   |
-LL |     option.unwrap_or_else(Vec::new).push(1);
-   |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
-
-error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:82:12
-   |
-LL |     option.unwrap_or_else(Vec::new).push(1);
-   |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
-
-error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:85:12
-   |
-LL |     option.unwrap_or_else(Vec::new).push(1);
-   |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
-
-error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:88:12
+  --> $DIR/unwrap_or_else_default.rs:87:12
    |
 LL |     option.unwrap_or_else(Vec::new).push(1);
    |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
@@ -73,25 +55,43 @@ LL |     option.unwrap_or_else(Vec::new).push(1);
    |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:94:12
+  --> $DIR/unwrap_or_else_default.rs:95:12
    |
 LL |     option.unwrap_or_else(Vec::new).push(1);
    |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:97:12
+  --> $DIR/unwrap_or_else_default.rs:99:12
    |
 LL |     option.unwrap_or_else(Vec::new).push(1);
    |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `unwrap_or_else` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:113:12
+  --> $DIR/unwrap_or_else_default.rs:103:12
+   |
+LL |     option.unwrap_or_else(Vec::new).push(1);
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
+
+error: use of `unwrap_or_else` to construct default value
+  --> $DIR/unwrap_or_else_default.rs:107:12
+   |
+LL |     option.unwrap_or_else(Vec::new).push(1);
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
+
+error: use of `unwrap_or_else` to construct default value
+  --> $DIR/unwrap_or_else_default.rs:111:12
+   |
+LL |     option.unwrap_or_else(Vec::new).push(1);
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
+
+error: use of `unwrap_or_else` to construct default value
+  --> $DIR/unwrap_or_else_default.rs:128:12
    |
 LL |     option.unwrap_or_else(Vec::new).push(1);
    |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `unwrap_or_default()`
 
 error: use of `or_insert_with` to construct default value
-  --> $DIR/unwrap_or_else_default.rs:130:32
+  --> $DIR/unwrap_or_else_default.rs:146:32
    |
 LL |     let _ = inner_map.entry(0).or_insert_with(Default::default);
    |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`

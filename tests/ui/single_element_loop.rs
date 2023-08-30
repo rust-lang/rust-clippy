@@ -6,26 +6,33 @@
 fn main() {
     let item1 = 2;
     for item in &[item1] {
+    //~^ ERROR: for loop over a single element
+    //~| NOTE: `-D clippy::single-element-loop` implied by `-D warnings`
         dbg!(item);
     }
 
     for item in [item1].iter() {
+    //~^ ERROR: for loop over a single element
         dbg!(item);
     }
 
     for item in &[0..5] {
+    //~^ ERROR: for loop over a single element
         dbg!(item);
     }
 
     for item in [0..5].iter_mut() {
+    //~^ ERROR: for loop over a single element
         dbg!(item);
     }
 
     for item in [0..5] {
+    //~^ ERROR: for loop over a single element
         dbg!(item);
     }
 
     for item in [0..5].into_iter() {
+    //~^ ERROR: for loop over a single element
         dbg!(item);
     }
 
@@ -45,6 +52,7 @@ fn main() {
 
     // should lint (issue #10018)
     for _ in [42] {
+    //~^ ERROR: for loop over a single element
         let _f = |n: u32| {
             for i in 0..n {
                 if i > 10 {

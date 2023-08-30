@@ -13,10 +13,13 @@ fn main() {
     let ref_a = &a;
     let _ = x(&a); // no warning
     let _ = x(&&a); // warn
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
+    //~| NOTE: `-D clippy::needless-borrow` implied by `-D warnings`
 
     let mut b = 5;
     mut_ref(&mut b); // no warning
     mut_ref(&mut &mut b); // warn
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
 
     let s = &String::from("hi");
     let s_ident = f(&s); // should not error, because `&String` implements Copy, but `String` does not
@@ -29,14 +32,17 @@ fn main() {
         45 => {
             println!("foo");
             &&a
+            //~^ ERROR: this expression creates a reference which is immediately dereferen
         },
         46 => &&a,
+        //~^ ERROR: this expression creates a reference which is immediately dereferenced
         47 => {
             println!("foo");
             loop {
                 println!("{}", a);
                 if a == 25 {
                     break &ref_a;
+                    //~^ ERROR: this expression creates a reference which is immediately d
                 }
             }
         },
@@ -44,12 +50,17 @@ fn main() {
     };
 
     let _ = x(&&&a);
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     let _ = x(&mut &&a);
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     let _ = x(&&&mut b);
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     let _ = x(&&ref_a);
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     {
         let b = &mut b;
         x(&b);
+        //~^ ERROR: this expression creates a reference which is immediately dereferenced
     }
 
     // Issue #8191
@@ -57,9 +68,13 @@ fn main() {
     let mut x = &mut x;
 
     mut_ref(&mut x);
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     mut_ref(&mut &mut x);
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     let y: &mut i32 = &mut x;
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     let y: &mut i32 = &mut &mut x;
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
 
     let y = match 0 {
         // Don't lint. Removing the borrow would move 'x'
@@ -69,12 +84,14 @@ fn main() {
     let y: &mut i32 = match 0 {
         // Lint here. The type given above triggers auto-borrow.
         0 => &mut x,
+        //~^ ERROR: this expression creates a reference which is immediately dereferenced
         _ => &mut *x,
     };
     fn ref_mut_i32(_: &mut i32) {}
     ref_mut_i32(match 0 {
         // Lint here. The type given above triggers auto-borrow.
         0 => &mut x,
+        //~^ ERROR: this expression creates a reference which is immediately dereferenced
         _ => &mut *x,
     });
     // use 'x' after to make sure it's still usable in the fixed code.
@@ -87,8 +104,10 @@ fn main() {
 
     let x = (1, 2);
     let _ = (&x).0;
+    //~^ ERROR: this expression borrows a value the compiler would automatically borrow
     let x = &x as *const (i32, i32);
     let _ = unsafe { (&*x).0 };
+    //~^ ERROR: this expression borrows a value the compiler would automatically borrow
 
     // Issue #8367
     trait Foo {
@@ -99,6 +118,7 @@ fn main() {
     }
     (&()).foo(); // Don't lint. `()` doesn't implement `Foo`
     (&&()).foo();
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
 
     impl Foo for i32 {
         fn foo(self) {}
@@ -108,6 +128,7 @@ fn main() {
     }
     (&5).foo(); // Don't lint. `5` will call `<i32 as Foo>::foo`
     (&&5).foo();
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
 
     trait FooRef {
         fn foo_ref(&self);
@@ -133,12 +154,19 @@ fn main() {
     }
 
     let _ = std::process::Command::new("ls").args(&["-a", "-l"]).status().unwrap();
+    //~^ ERROR: the borrowed expression implements the required traits
     let _ = std::path::Path::new(".").join(&&".");
+    //~^ ERROR: the borrowed expression implements the required traits
     deref_target_is_x(&X);
+    //~^ ERROR: the borrowed expression implements the required traits
     multiple_constraints(&[[""]]);
+    //~^ ERROR: the borrowed expression implements the required traits
     multiple_constraints_normalizes_to_same(&X, X);
+    //~^ ERROR: the borrowed expression implements the required traits
     let _ = Some("").unwrap_or(&"");
+    //~^ ERROR: this expression creates a reference which is immediately dereferenced by t
     let _ = std::fs::write("x", &"".to_string());
+    //~^ ERROR: the borrowed expression implements the required traits
 
     only_sized(&""); // Don't lint. `Sized` is only bound
     let _ = std::any::Any::type_id(&""); // Don't lint. `Any` is only bound
@@ -188,6 +216,7 @@ mod issue9160 {
     {
         fn calls_field(&self) -> T {
             (&self.f)()
+            //~^ ERROR: this expression borrows a value the compiler would automatically b
         }
     }
 
@@ -197,6 +226,7 @@ mod issue9160 {
     {
         fn calls_mut_field(&mut self) -> T {
             (&mut self.f)()
+            //~^ ERROR: this expression borrows a value the compiler would automatically b
         }
     }
 }
@@ -281,6 +311,7 @@ mod copyable_iterator {
     #[allow(unused_mut)]
     fn warn(mut x: &mut Iter) {
         takes_iter(&mut x)
+        //~^ ERROR: the borrowed expression implements the required traits
     }
 }
 
@@ -295,6 +326,7 @@ mod under_msrv {
 mod meets_msrv {
     fn foo() {
         let _ = std::process::Command::new("ls").args(&["-a", "-l"]).status().unwrap();
+        //~^ ERROR: the borrowed expression implements the required traits
     }
 }
 
@@ -333,7 +365,9 @@ fn closure_test() {
         let loc = "loc".to_owned();
         let _ = std::fs::write("x", &env); // Don't lint. In environment
         let _ = std::fs::write("x", &arg);
+        //~^ ERROR: the borrowed expression implements the required traits
         let _ = std::fs::write("x", &loc);
+        //~^ ERROR: the borrowed expression implements the required traits
     };
     let _ = std::fs::write("x", &env); // Don't lint. Borrowed by `f`
     f(arg);
@@ -352,6 +386,7 @@ mod significant_drop {
 
     fn foo(x: X, y: Y) {
         debug(&x);
+        //~^ ERROR: the borrowed expression implements the required traits
         debug(&y); // Don't lint. Has significant drop
     }
 
@@ -361,6 +396,7 @@ mod significant_drop {
 mod used_exactly_once {
     fn foo(x: String) {
         use_x(&x);
+        //~^ ERROR: the borrowed expression implements the required traits
     }
     fn use_x(_: impl AsRef<str>) {}
 }
@@ -455,6 +491,7 @@ mod issue_9782 {
         // 8
         foo::<&[u8; 100]>(&a);
         foo(&a);
+        //~^ ERROR: the borrowed expression implements the required traits
     }
 }
 

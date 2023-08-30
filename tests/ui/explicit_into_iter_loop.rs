@@ -7,6 +7,8 @@ fn main() {
         for<'a> &'a T: IntoIterator<Item = &'a String>,
     {
         for _ in iterator.into_iter() {}
+        //~^ ERROR: it is more concise to loop over containers instead of using explicit i
+        //~| NOTE: `-D clippy::explicit-into-iter-loop` implied by `-D warnings`
     }
 
     struct T;
@@ -20,9 +22,11 @@ fn main() {
 
     let mut t = T;
     for _ in t.into_iter() {}
+    //~^ ERROR: it is more concise to loop over containers instead of using explicit itera
 
     let r = &t;
     for _ in r.into_iter() {}
+    //~^ ERROR: it is more concise to loop over containers instead of using explicit itera
 
     // No suggestion for this.
     // We'd have to suggest `for _ in *rr {}` which is less clear.
@@ -31,6 +35,7 @@ fn main() {
 
     let mr = &mut t;
     for _ in mr.into_iter() {}
+    //~^ ERROR: it is more concise to loop over containers instead of using explicit itera
 
     struct U;
     impl IntoIterator for &mut U {
@@ -43,9 +48,11 @@ fn main() {
 
     let mut u = U;
     for _ in u.into_iter() {}
+    //~^ ERROR: it is more concise to loop over containers instead of using explicit itera
 
     let mr = &mut u;
     for _ in mr.into_iter() {}
+    //~^ ERROR: it is more concise to loop over containers instead of using explicit itera
 
     // Issue #6900
     struct S;

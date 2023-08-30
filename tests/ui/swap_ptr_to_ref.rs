@@ -9,9 +9,14 @@ fn main() {
 
     unsafe {
         core::mem::swap(&mut *y, &mut *z);
+        //~^ ERROR: call to `core::mem::swap` with a parameter derived from a raw pointer
+        //~| NOTE: `-D clippy::swap-ptr-to-ref` implied by `-D warnings`
         core::mem::swap(&mut *y, &mut x);
+        //~^ ERROR: call to `core::mem::swap` with a parameter derived from a raw pointer
         core::mem::swap(&mut x, &mut *y);
+        //~^ ERROR: call to `core::mem::swap` with a parameter derived from a raw pointer
         core::mem::swap(&mut *addr_of_mut!(x), &mut *addr_of_mut!(x));
+        //~^ ERROR: call to `core::mem::swap` with a parameter derived from a raw pointer
     }
 
     let y = &mut x;

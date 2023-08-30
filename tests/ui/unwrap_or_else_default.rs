@@ -44,6 +44,8 @@ fn unwrap_or_else_default() {
 
     let with_new = Some(vec![1]);
     with_new.unwrap_or_else(Vec::new);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
+    //~| NOTE: `-D clippy::unwrap-or-default` implied by `-D warnings`
 
     let with_err: Result<_, ()> = Ok(vec![1]);
     with_err.unwrap_or_else(make);
@@ -58,43 +60,56 @@ fn unwrap_or_else_default() {
 
     let with_real_default = None::<HasDefaultAndDuplicate>;
     with_real_default.unwrap_or_else(<HasDefaultAndDuplicate as Default>::default);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let with_default_trait = Some(1);
     with_default_trait.unwrap_or_else(Default::default);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let with_default_type = Some(1);
     with_default_type.unwrap_or_else(u64::default);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let with_default_type: Option<Vec<u64>> = None;
     with_default_type.unwrap_or_else(Vec::new);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let empty_string = None::<String>;
     empty_string.unwrap_or_else(|| "".to_string());
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 }
 
 fn type_certainty(option: Option<Vec<u64>>) {
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let option: std::option::Option<std::vec::Vec<u64>> = None;
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let option: Option<Vec<u64>> = None;
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let option = std::option::Option::<std::vec::Vec<u64>>::None;
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let option = Option::<Vec<u64>>::None;
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let option = std::option::Option::None::<std::vec::Vec<u64>>;
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let option = Option::None::<Vec<u64>>;
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     let option = None::<Vec<u64>>;
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 
     // should not be changed: type annotation with infer, unconcretized initializer
     let option: Option<Vec<_>> = None;
@@ -111,6 +126,7 @@ fn type_certainty(option: Option<Vec<u64>>) {
     type Alias = Option<Vec<u32>>;
     let option: Alias = Option::<Vec<u32>>::Some(Vec::new());
     option.unwrap_or_else(Vec::new).push(1);
+    //~^ ERROR: use of `unwrap_or_else` to construct default value
 }
 
 fn method_call_with_deref() {
@@ -128,6 +144,7 @@ fn method_call_with_deref() {
     let inner_map = outer_map.get_mut(&option.unwrap()).unwrap();
 
     let _ = inner_map.entry(0).or_insert_with(Default::default);
+    //~^ ERROR: use of `or_insert_with` to construct default value
 }
 
 fn missing_suggested_method() {

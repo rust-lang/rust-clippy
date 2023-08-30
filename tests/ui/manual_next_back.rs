@@ -30,5 +30,8 @@ fn main() {
 
     // should lint
     let _ = (0..10).rev().next().unwrap();
+    //~^ ERROR: manual backwards iteration
+    //~| NOTE: `-D clippy::manual-next-back` implied by `-D warnings`
     let _ = "something".bytes().rev().next();
+    //~^ ERROR: manual backwards iteration
 }

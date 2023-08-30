@@ -3,8 +3,11 @@
 fn main() {
     fn with_to_string(x: &str) {
         x != "foo".to_string();
+        //~^ ERROR: this creates an owned instance just for comparison
+        //~| NOTE: `-D clippy::cmp-owned` implied by `-D warnings`
 
         "foo".to_string() != x;
+        //~^ ERROR: this creates an owned instance just for comparison
     }
 
     let x = "oh";
@@ -12,14 +15,18 @@ fn main() {
     with_to_string(x);
 
     x != "foo".to_owned();
+    //~^ ERROR: this creates an owned instance just for comparison
 
     x != String::from("foo");
+    //~^ ERROR: this creates an owned instance just for comparison
 
     42.to_string() == "42";
 
     Foo.to_owned() == Foo;
+    //~^ ERROR: this creates an owned instance just for comparison
 
     "abc".chars().filter(|c| c.to_owned() != 'X');
+    //~^ ERROR: this creates an owned instance just for comparison
 
     "abc".chars().filter(|c| *c != 'X');
 }

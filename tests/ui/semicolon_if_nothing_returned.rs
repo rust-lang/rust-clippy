@@ -6,21 +6,26 @@ fn get_unit() {}
 // the functions below trigger the lint
 fn main() {
     println!("Hello")
+    //~^ ERROR: consider adding a `;` to the last statement for consistent formatting
+    //~| NOTE: `-D clippy::semicolon-if-nothing-returned` implied by `-D warnings`
 }
 
 fn hello() {
     get_unit()
+    //~^ ERROR: consider adding a `;` to the last statement for consistent formatting
 }
 
 fn basic101(x: i32) {
     let y: i32;
     y = x + 1
+    //~^ ERROR: consider adding a `;` to the last statement for consistent formatting
 }
 
 #[rustfmt::skip]
 fn closure_error() {
     let _d = || {
         hello()
+        //~^ ERROR: consider adding a `;` to the last statement for consistent formatting
     };
 }
 
@@ -32,6 +37,7 @@ fn unsafe_checks_error() {
     let mut s = MaybeUninit::<String>::uninit();
     let _d = || unsafe {
         ptr::drop_in_place(s.as_mut_ptr())
+        //~^ ERROR: consider adding a `;` to the last statement for consistent formatting
     };
 }
 

@@ -16,10 +16,13 @@ fn foo(
 
 fn skip_on_statements() {
     #[cfg_attr(rustfmt, rustfmt::skip)]
+    //~^ ERROR: `cfg_attr` is deprecated for rustfmt and got replaced by tool attributes
+    //~| NOTE: `-D clippy::deprecated-cfg-attr` implied by `-D warnings`
     5+3;
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
+//~^ ERROR: `cfg_attr` is deprecated for rustfmt and got replaced by tool attributes
 fn main() {
     foo::f();
 }
@@ -39,5 +42,6 @@ fn msrv_1_29() {
 #[clippy::msrv = "1.30"]
 fn msrv_1_30() {
     #[cfg_attr(rustfmt, rustfmt::skip)]
+    //~^ ERROR: `cfg_attr` is deprecated for rustfmt and got replaced by tool attributes
     1+30;
 }

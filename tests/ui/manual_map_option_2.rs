@@ -4,6 +4,8 @@
 fn main() {
     // Lint. `y` is declared within the arm, so it isn't captured by the map closure
     let _ = match Some(0) {
+    //~^ ERROR: manual implementation of `Option::map`
+    //~| NOTE: `-D clippy::manual-map` implied by `-D warnings`
         Some(x) => Some({
             let y = (String::new(), String::new());
             (x, y.0)
@@ -46,6 +48,7 @@ fn main() {
     // Lint. `s` is captured by reference, so no lifetime issues.
     let s = Some(String::new());
     let _ = match &s {
+    //~^ ERROR: manual implementation of `Option::map`
         Some(x) => Some({
             if let Some(ref s) = s { (x.clone(), s) } else { panic!() }
         }),
@@ -58,15 +61,18 @@ fn main() {
     }
     unsafe {
         let _ = match Some(0) {
+        //~^ ERROR: manual implementation of `Option::map`
             Some(x) => Some(f(x)),
             None => None,
         };
     }
     let _ = match Some(0) {
+    //~^ ERROR: manual implementation of `Option::map`
         Some(x) => unsafe { Some(f(x)) },
         None => None,
     };
     let _ = match Some(0) {
+    //~^ ERROR: manual implementation of `Option::map`
         Some(x) => Some(unsafe { f(x) }),
         None => None,
     };

@@ -4,16 +4,28 @@
 fn main() {
     // Lossy whole-number float literals
     let _: f32 = 16_777_217.0;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
+    //~| NOTE: `-D clippy::lossy-float-literal` implied by `-D warnings`
     let _: f32 = 16_777_219.0;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _: f32 = 16_777_219.;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _: f32 = 16_777_219.000;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _ = 16_777_219f32;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _: f32 = -16_777_219.0;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _: f64 = 9_007_199_254_740_993.0;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _: f64 = 9_007_199_254_740_993.;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _: f64 = 9_007_199_254_740_993.00;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _ = 9_007_199_254_740_993f64;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
     let _: f64 = -9_007_199_254_740_993.0;
+    //~^ ERROR: literal cannot be represented as the underlying type without loss of preci
 
     // Lossless whole number float literals
     let _: f32 = 16_777_216.0;

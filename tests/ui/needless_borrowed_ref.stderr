@@ -12,7 +12,7 @@ LL +     let _ = v.iter_mut().filter(|a| a.is_empty());
    |
 
 error: this pattern takes a reference on something that is being dereferenced
-  --> $DIR/needless_borrowed_ref.rs:34:17
+  --> $DIR/needless_borrowed_ref.rs:36:17
    |
 LL |     if let Some(&ref v) = thingy {}
    |                 ^^^^^^
@@ -24,7 +24,7 @@ LL +     if let Some(v) = thingy {}
    |
 
 error: this pattern takes a reference on something that is being dereferenced
-  --> $DIR/needless_borrowed_ref.rs:36:14
+  --> $DIR/needless_borrowed_ref.rs:39:14
    |
 LL |     if let &[&ref a, ref b] = slice_of_refs {}
    |              ^^^^^^
@@ -36,7 +36,7 @@ LL +     if let &[a, ref b] = slice_of_refs {}
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:38:9
+  --> $DIR/needless_borrowed_ref.rs:42:9
    |
 LL |     let &[ref a, ..] = &array;
    |         ^^^^^^^^^^^^
@@ -48,7 +48,7 @@ LL +     let [a, ..] = &array;
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:39:9
+  --> $DIR/needless_borrowed_ref.rs:44:9
    |
 LL |     let &[ref a, ref b, ..] = &array;
    |         ^^^^^^^^^^^^^^^^^^^
@@ -60,7 +60,7 @@ LL +     let [a, b, ..] = &array;
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:41:12
+  --> $DIR/needless_borrowed_ref.rs:47:12
    |
 LL |     if let &[ref a, ref b] = slice {}
    |            ^^^^^^^^^^^^^^^
@@ -72,7 +72,7 @@ LL +     if let [a, b] = slice {}
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:42:12
+  --> $DIR/needless_borrowed_ref.rs:49:12
    |
 LL |     if let &[ref a, ref b] = &vec[..] {}
    |            ^^^^^^^^^^^^^^^
@@ -84,7 +84,7 @@ LL +     if let [a, b] = &vec[..] {}
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:44:12
+  --> $DIR/needless_borrowed_ref.rs:52:12
    |
 LL |     if let &[ref a, ref b, ..] = slice {}
    |            ^^^^^^^^^^^^^^^^^^^
@@ -96,7 +96,7 @@ LL +     if let [a, b, ..] = slice {}
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:45:12
+  --> $DIR/needless_borrowed_ref.rs:54:12
    |
 LL |     if let &[ref a, .., ref b] = slice {}
    |            ^^^^^^^^^^^^^^^^^^^
@@ -108,7 +108,7 @@ LL +     if let [a, .., b] = slice {}
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:46:12
+  --> $DIR/needless_borrowed_ref.rs:56:12
    |
 LL |     if let &[.., ref a, ref b] = slice {}
    |            ^^^^^^^^^^^^^^^^^^^
@@ -120,7 +120,7 @@ LL +     if let [.., a, b] = slice {}
    |
 
 error: dereferencing a slice pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:48:12
+  --> $DIR/needless_borrowed_ref.rs:59:12
    |
 LL |     if let &[ref a, _] = slice {}
    |            ^^^^^^^^^^^
@@ -132,7 +132,7 @@ LL +     if let [a, _] = slice {}
    |
 
 error: dereferencing a tuple pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:50:12
+  --> $DIR/needless_borrowed_ref.rs:62:12
    |
 LL |     if let &(ref a, ref b, ref c) = &tuple {}
    |            ^^^^^^^^^^^^^^^^^^^^^^
@@ -144,7 +144,7 @@ LL +     if let (a, b, c) = &tuple {}
    |
 
 error: dereferencing a tuple pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:51:12
+  --> $DIR/needless_borrowed_ref.rs:64:12
    |
 LL |     if let &(ref a, _, ref c) = &tuple {}
    |            ^^^^^^^^^^^^^^^^^^
@@ -156,7 +156,7 @@ LL +     if let (a, _, c) = &tuple {}
    |
 
 error: dereferencing a tuple pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:52:12
+  --> $DIR/needless_borrowed_ref.rs:66:12
    |
 LL |     if let &(ref a, ..) = &tuple {}
    |            ^^^^^^^^^^^^
@@ -168,7 +168,7 @@ LL +     if let (a, ..) = &tuple {}
    |
 
 error: dereferencing a tuple pattern where every element takes a reference
-  --> $DIR/needless_borrowed_ref.rs:54:12
+  --> $DIR/needless_borrowed_ref.rs:69:12
    |
 LL |     if let &TupleStruct(ref a, ..) = &tuple_struct {}
    |            ^^^^^^^^^^^^^^^^^^^^^^^
@@ -180,10 +180,11 @@ LL +     if let TupleStruct(a, ..) = &tuple_struct {}
    |
 
 error: dereferencing a struct pattern where every field's pattern takes a reference
-  --> $DIR/needless_borrowed_ref.rs:56:12
+  --> $DIR/needless_borrowed_ref.rs:72:12
    |
 LL |       if let &Struct {
    |  ____________^
+LL | |
 LL | |         ref a,
 LL | |         b: ref b,
 LL | |         c: ref renamed,
@@ -193,13 +194,14 @@ LL | |     } = &s
 help: try removing the `&` and `ref` parts
    |
 LL ~     if let Struct {
+LL |
 LL ~         a,
 LL ~         b: b,
 LL ~         c: renamed,
    |
 
 error: dereferencing a struct pattern where every field's pattern takes a reference
-  --> $DIR/needless_borrowed_ref.rs:63:12
+  --> $DIR/needless_borrowed_ref.rs:80:12
    |
 LL |     if let &Struct { ref a, b: _, .. } = &s {}
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^

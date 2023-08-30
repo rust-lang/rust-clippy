@@ -14,7 +14,7 @@ LL |     std::io::stdin().read_line(&mut input).unwrap();
    = note: `-D clippy::read-line-without-trim` implied by `-D warnings`
 
 error: calling `.parse()` without trimming the trailing newline character
-  --> $DIR/read_line_without_trim.rs:16:20
+  --> $DIR/read_line_without_trim.rs:17:20
    |
 LL |     let _x = input.parse::<i32>().unwrap();
    |              ----- ^^^^^^^^^^^^^^
@@ -22,13 +22,13 @@ LL |     let _x = input.parse::<i32>().unwrap();
    |              help: try: `input.trim_end()`
    |
 note: call to `.read_line()` here, which leaves a trailing newline character in the buffer, which in turn will cause `.parse()` to fail
-  --> $DIR/read_line_without_trim.rs:15:5
+  --> $DIR/read_line_without_trim.rs:16:5
    |
 LL |     std::io::stdin().read_line(&mut input).unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: calling `.parse()` without trimming the trailing newline character
-  --> $DIR/read_line_without_trim.rs:20:20
+  --> $DIR/read_line_without_trim.rs:22:20
    |
 LL |     let _x = input.parse::<u32>().unwrap();
    |              ----- ^^^^^^^^^^^^^^
@@ -36,13 +36,13 @@ LL |     let _x = input.parse::<u32>().unwrap();
    |              help: try: `input.trim_end()`
    |
 note: call to `.read_line()` here, which leaves a trailing newline character in the buffer, which in turn will cause `.parse()` to fail
-  --> $DIR/read_line_without_trim.rs:19:5
+  --> $DIR/read_line_without_trim.rs:21:5
    |
 LL |     std::io::stdin().read_line(&mut input).unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: calling `.parse()` without trimming the trailing newline character
-  --> $DIR/read_line_without_trim.rs:24:20
+  --> $DIR/read_line_without_trim.rs:27:20
    |
 LL |     let _x = input.parse::<f32>().unwrap();
    |              ----- ^^^^^^^^^^^^^^
@@ -50,13 +50,13 @@ LL |     let _x = input.parse::<f32>().unwrap();
    |              help: try: `input.trim_end()`
    |
 note: call to `.read_line()` here, which leaves a trailing newline character in the buffer, which in turn will cause `.parse()` to fail
-  --> $DIR/read_line_without_trim.rs:23:5
+  --> $DIR/read_line_without_trim.rs:26:5
    |
 LL |     std::io::stdin().read_line(&mut input).unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: calling `.parse()` without trimming the trailing newline character
-  --> $DIR/read_line_without_trim.rs:28:20
+  --> $DIR/read_line_without_trim.rs:32:20
    |
 LL |     let _x = input.parse::<bool>().unwrap();
    |              ----- ^^^^^^^^^^^^^^^
@@ -64,7 +64,7 @@ LL |     let _x = input.parse::<bool>().unwrap();
    |              help: try: `input.trim_end()`
    |
 note: call to `.read_line()` here, which leaves a trailing newline character in the buffer, which in turn will cause `.parse()` to fail
-  --> $DIR/read_line_without_trim.rs:27:5
+  --> $DIR/read_line_without_trim.rs:31:5
    |
 LL |     std::io::stdin().read_line(&mut input).unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

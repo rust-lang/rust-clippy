@@ -15,6 +15,7 @@ impl Foo {
 
     fn foo2<I: Iterator<Item = usize>>(mut it: I) {
         while let Some(e) = it.next() {
+        //~^ ERROR: this loop could be written as a `for` loop
             println!("{:?}", e);
         }
     }

@@ -4,34 +4,42 @@
 use std::future::Future;
 
 fn fut() -> impl Future<Output = i32> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
+//~| NOTE: `-D clippy::manual-async-fn` implied by `-D warnings`
     async { 42 }
 }
 
 #[rustfmt::skip]
 fn fut2() ->impl Future<Output = i32> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async { 42 }
 }
 
 #[rustfmt::skip]
 fn fut3()-> impl Future<Output = i32> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async { 42 }
 }
 
 fn empty_fut() -> impl Future<Output = ()> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async {}
 }
 
 #[rustfmt::skip]
 fn empty_fut2() ->impl Future<Output = ()> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async {}
 }
 
 #[rustfmt::skip]
 fn empty_fut3()-> impl Future<Output = ()> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async {}
 }
 
 fn core_fut() -> impl core::future::Future<Output = i32> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async move { 42 }
 }
 
@@ -54,6 +62,7 @@ async fn already_async() -> impl Future<Output = i32> {
 struct S;
 impl S {
     fn inh_fut() -> impl Future<Output = i32> {
+    //~^ ERROR: this function can be simplified using the `async fn` syntax
         async {
             // NOTE: this code is here just to check that the indentation is correct in the suggested fix
             let a = 42;
@@ -89,6 +98,7 @@ impl S {
 // Tests related to lifetime capture
 
 fn elided(_: &i32) -> impl Future<Output = i32> + '_ {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async { 42 }
 }
 
@@ -98,6 +108,7 @@ fn elided_not_bound(_: &i32) -> impl Future<Output = i32> {
 }
 
 fn explicit<'a, 'b>(_: &'a i32, _: &'b i32) -> impl Future<Output = i32> + 'a + 'b {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async { 42 }
 }
 
@@ -127,14 +138,17 @@ mod issue_5765 {
 }
 
 pub fn issue_10450() -> impl Future<Output = i32> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async { 42 }
 }
 
 pub(crate) fn issue_10450_2() -> impl Future<Output = i32> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async { 42 }
 }
 
 pub(self) fn issue_10450_3() -> impl Future<Output = i32> {
+//~^ ERROR: this function can be simplified using the `async fn` syntax
     async { 42 }
 }
 

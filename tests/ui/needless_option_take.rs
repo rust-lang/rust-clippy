@@ -10,4 +10,6 @@ fn main() {
     println!("Testing erroneous option_take_on_temporary");
     let x = Some(3);
     x.as_ref().take();
+    //~^ ERROR: called `Option::take()` on a temporary value
+    //~| NOTE: `-D clippy::needless-option-take` implied by `-D warnings`
 }

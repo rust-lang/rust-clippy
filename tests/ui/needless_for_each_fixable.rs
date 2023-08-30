@@ -13,27 +13,35 @@ fn should_lint() {
     let v: Vec<i32> = Vec::new();
     let mut acc = 0;
     v.iter().for_each(|elem| {
+    //~^ ERROR: needless use of `for_each`
+    //~| NOTE: `-D clippy::needless-for-each` implied by `-D warnings`
         acc += elem;
     });
     v.into_iter().for_each(|elem| {
+    //~^ ERROR: needless use of `for_each`
         acc += elem;
     });
 
     [1, 2, 3].iter().for_each(|elem| {
+    //~^ ERROR: needless use of `for_each`
         acc += elem;
     });
 
     let mut hash_map: HashMap<i32, i32> = HashMap::new();
     hash_map.iter().for_each(|(k, v)| {
+    //~^ ERROR: needless use of `for_each`
         acc += k + v;
     });
     hash_map.iter_mut().for_each(|(k, v)| {
+    //~^ ERROR: needless use of `for_each`
         acc += *k + *v;
     });
     hash_map.keys().for_each(|k| {
+    //~^ ERROR: needless use of `for_each`
         acc += k;
     });
     hash_map.values().for_each(|v| {
+    //~^ ERROR: needless use of `for_each`
         acc += v;
     });
 
@@ -41,6 +49,7 @@ fn should_lint() {
         Vec::new()
     }
     my_vec().iter().for_each(|elem| {
+    //~^ ERROR: needless use of `for_each`
         acc += elem;
     });
 }

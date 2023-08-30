@@ -21,23 +21,37 @@ fn main() {
     {
         use std::io::Write;
         write!(std::io::stdout(), "test").unwrap();
+        //~^ ERROR: use of `write!(stdout(), ...).unwrap()`
+        //~| NOTE: `-D clippy::explicit-write` implied by `-D warnings`
         write!(std::io::stderr(), "test").unwrap();
+        //~^ ERROR: use of `write!(stderr(), ...).unwrap()`
         writeln!(std::io::stdout(), "test").unwrap();
+        //~^ ERROR: use of `writeln!(stdout(), ...).unwrap()`
         writeln!(std::io::stderr(), "test").unwrap();
+        //~^ ERROR: use of `writeln!(stderr(), ...).unwrap()`
         std::io::stdout().write_fmt(format_args!("test")).unwrap();
+        //~^ ERROR: use of `stdout().write_fmt(...).unwrap()`
         std::io::stderr().write_fmt(format_args!("test")).unwrap();
+        //~^ ERROR: use of `stderr().write_fmt(...).unwrap()`
 
         // including newlines
         writeln!(std::io::stdout(), "test\ntest").unwrap();
+        //~^ ERROR: use of `writeln!(stdout(), ...).unwrap()`
         writeln!(std::io::stderr(), "test\ntest").unwrap();
+        //~^ ERROR: use of `writeln!(stderr(), ...).unwrap()`
 
         let value = 1;
         writeln!(std::io::stderr(), "with {}", value).unwrap();
+        //~^ ERROR: use of `writeln!(stderr(), ...).unwrap()`
         writeln!(std::io::stderr(), "with {} {}", 2, value).unwrap();
+        //~^ ERROR: use of `writeln!(stderr(), ...).unwrap()`
         writeln!(std::io::stderr(), "with {value}").unwrap();
+        //~^ ERROR: use of `writeln!(stderr(), ...).unwrap()`
         writeln!(std::io::stderr(), "macro arg {}", one!()).unwrap();
+        //~^ ERROR: use of `writeln!(stderr(), ...).unwrap()`
         let width = 2;
         writeln!(std::io::stderr(), "{:w$}", value, w = width).unwrap();
+        //~^ ERROR: use of `writeln!(stderr(), ...).unwrap()`
     }
     // these should not warn, different destination
     {

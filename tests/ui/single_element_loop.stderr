@@ -2,6 +2,8 @@ error: for loop over a single element
   --> $DIR/single_element_loop.rs:8:5
    |
 LL | /     for item in &[item1] {
+LL | |
+LL | |
 LL | |         dbg!(item);
 LL | |     }
    | |_____^
@@ -11,14 +13,17 @@ help: try
    |
 LL ~     {
 LL +         let item = &item1;
+LL +
+LL +
 LL +         dbg!(item);
 LL +     }
    |
 
 error: for loop over a single element
-  --> $DIR/single_element_loop.rs:12:5
+  --> $DIR/single_element_loop.rs:14:5
    |
 LL | /     for item in [item1].iter() {
+LL | |
 LL | |         dbg!(item);
 LL | |     }
    | |_____^
@@ -27,14 +32,16 @@ help: try
    |
 LL ~     {
 LL +         let item = &item1;
+LL +
 LL +         dbg!(item);
 LL +     }
    |
 
 error: for loop over a single element
-  --> $DIR/single_element_loop.rs:16:5
+  --> $DIR/single_element_loop.rs:19:5
    |
 LL | /     for item in &[0..5] {
+LL | |
 LL | |         dbg!(item);
 LL | |     }
    | |_____^
@@ -43,14 +50,16 @@ help: try
    |
 LL ~     {
 LL +         let item = &(0..5);
+LL +
 LL +         dbg!(item);
 LL +     }
    |
 
 error: for loop over a single element
-  --> $DIR/single_element_loop.rs:20:5
+  --> $DIR/single_element_loop.rs:24:5
    |
 LL | /     for item in [0..5].iter_mut() {
+LL | |
 LL | |         dbg!(item);
 LL | |     }
    | |_____^
@@ -59,14 +68,16 @@ help: try
    |
 LL ~     {
 LL +         let item = &mut (0..5);
+LL +
 LL +         dbg!(item);
 LL +     }
    |
 
 error: for loop over a single element
-  --> $DIR/single_element_loop.rs:24:5
+  --> $DIR/single_element_loop.rs:29:5
    |
 LL | /     for item in [0..5] {
+LL | |
 LL | |         dbg!(item);
 LL | |     }
    | |_____^
@@ -75,14 +86,16 @@ help: try
    |
 LL ~     {
 LL +         let item = 0..5;
+LL +
 LL +         dbg!(item);
 LL +     }
    |
 
 error: for loop over a single element
-  --> $DIR/single_element_loop.rs:28:5
+  --> $DIR/single_element_loop.rs:34:5
    |
 LL | /     for item in [0..5].into_iter() {
+LL | |
 LL | |         dbg!(item);
 LL | |     }
    | |_____^
@@ -91,17 +104,18 @@ help: try
    |
 LL ~     {
 LL +         let item = 0..5;
+LL +
 LL +         dbg!(item);
 LL +     }
    |
 
 error: for loop over a single element
-  --> $DIR/single_element_loop.rs:47:5
+  --> $DIR/single_element_loop.rs:54:5
    |
 LL | /     for _ in [42] {
+LL | |
 LL | |         let _f = |n: u32| {
 LL | |             for i in 0..n {
-LL | |                 if i > 10 {
 ...  |
 LL | |         };
 LL | |     }
@@ -111,6 +125,7 @@ help: try
    |
 LL ~     {
 LL +         let _ = 42;
+LL +
 LL +         let _f = |n: u32| {
 LL +             for i in 0..n {
 LL +                 if i > 10 {

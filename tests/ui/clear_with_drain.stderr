@@ -7,121 +7,121 @@ LL |     v.drain(0..v.len());
    = note: `-D clippy::clear-with-drain` implied by `-D warnings`
 
 error: `drain` used to clear a `Vec`
-  --> $DIR/clear_with_drain.rs:26:7
+  --> $DIR/clear_with_drain.rs:28:7
    |
 LL |     v.drain(usize::MIN..v.len());
    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `Vec`
-  --> $DIR/clear_with_drain.rs:45:7
+  --> $DIR/clear_with_drain.rs:48:7
    |
 LL |     v.drain(0..);
    |       ^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `Vec`
-  --> $DIR/clear_with_drain.rs:49:7
+  --> $DIR/clear_with_drain.rs:53:7
    |
 LL |     v.drain(usize::MIN..);
    |       ^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `Vec`
-  --> $DIR/clear_with_drain.rs:65:7
+  --> $DIR/clear_with_drain.rs:70:7
    |
 LL |     v.drain(..);
    |       ^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `Vec`
-  --> $DIR/clear_with_drain.rs:82:7
+  --> $DIR/clear_with_drain.rs:88:7
    |
 LL |     v.drain(..v.len());
    |       ^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `VecDeque`
-  --> $DIR/clear_with_drain.rs:120:11
+  --> $DIR/clear_with_drain.rs:127:11
    |
 LL |     deque.drain(0..deque.len());
    |           ^^^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `VecDeque`
-  --> $DIR/clear_with_drain.rs:124:11
+  --> $DIR/clear_with_drain.rs:132:11
    |
 LL |     deque.drain(usize::MIN..deque.len());
    |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `VecDeque`
-  --> $DIR/clear_with_drain.rs:143:11
+  --> $DIR/clear_with_drain.rs:152:11
    |
 LL |     deque.drain(0..);
    |           ^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `VecDeque`
-  --> $DIR/clear_with_drain.rs:147:11
+  --> $DIR/clear_with_drain.rs:157:11
    |
 LL |     deque.drain(usize::MIN..);
    |           ^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `VecDeque`
-  --> $DIR/clear_with_drain.rs:163:11
+  --> $DIR/clear_with_drain.rs:174:11
    |
 LL |     deque.drain(..);
    |           ^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `VecDeque`
-  --> $DIR/clear_with_drain.rs:180:11
+  --> $DIR/clear_with_drain.rs:192:11
    |
 LL |     deque.drain(..deque.len());
    |           ^^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `String`
-  --> $DIR/clear_with_drain.rs:218:7
+  --> $DIR/clear_with_drain.rs:231:7
    |
 LL |     s.drain(0..s.len());
    |       ^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `String`
-  --> $DIR/clear_with_drain.rs:222:7
+  --> $DIR/clear_with_drain.rs:236:7
    |
 LL |     s.drain(usize::MIN..s.len());
    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `String`
-  --> $DIR/clear_with_drain.rs:241:7
+  --> $DIR/clear_with_drain.rs:256:7
    |
 LL |     s.drain(0..);
    |       ^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `String`
-  --> $DIR/clear_with_drain.rs:245:7
+  --> $DIR/clear_with_drain.rs:261:7
    |
 LL |     s.drain(usize::MIN..);
    |       ^^^^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `String`
-  --> $DIR/clear_with_drain.rs:261:7
+  --> $DIR/clear_with_drain.rs:278:7
    |
 LL |     s.drain(..);
    |       ^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `String`
-  --> $DIR/clear_with_drain.rs:278:7
+  --> $DIR/clear_with_drain.rs:296:7
    |
 LL |     s.drain(..s.len());
    |       ^^^^^^^^^^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `HashSet`
-  --> $DIR/clear_with_drain.rs:316:9
+  --> $DIR/clear_with_drain.rs:335:9
    |
 LL |     set.drain();
    |         ^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `HashMap`
-  --> $DIR/clear_with_drain.rs:335:9
+  --> $DIR/clear_with_drain.rs:355:9
    |
 LL |     map.drain();
    |         ^^^^^^^ help: try: `clear()`
 
 error: `drain` used to clear a `BinaryHeap`
-  --> $DIR/clear_with_drain.rs:354:10
+  --> $DIR/clear_with_drain.rs:375:10
    |
 LL |     heap.drain();
    |          ^^^^^^^ help: try: `clear()`

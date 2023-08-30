@@ -5,14 +5,18 @@ fn main() {
     const MAX_LEN: usize = 42;
 
     for i in 10..0 {
+    //~^ ERROR: this range is empty so it will yield no values
+    //~| NOTE: `-D clippy::reversed-empty-ranges` implied by `-D warnings`
         println!("{}", i);
     }
 
     for i in 10..=0 {
+    //~^ ERROR: this range is empty so it will yield no values
         println!("{}", i);
     }
 
     for i in MAX_LEN..0 {
+    //~^ ERROR: this range is empty so it will yield no values
         println!("{}", i);
     }
 
@@ -32,15 +36,18 @@ fn main() {
     }
 
     for i in (10..0).map(|x| x * 2) {
+    //~^ ERROR: this range is empty so it will yield no values
         println!("{}", i);
     }
 
     // testing that the empty range lint folds constants
     for i in 10..5 + 4 {
+    //~^ ERROR: this range is empty so it will yield no values
         println!("{}", i);
     }
 
     for i in (5 + 2)..(3 - 1) {
+    //~^ ERROR: this range is empty so it will yield no values
         println!("{}", i);
     }
 

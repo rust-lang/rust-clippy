@@ -5,9 +5,15 @@ fn main() {
     let x: [u16; 3] = [1, 2, 3];
     // should lint
     let _: Vec<_> = x.iter().map(not_identity).map(|x| return x).collect();
+    //~^ ERROR: unnecessary map of the identity function
+    //~| NOTE: `-D clippy::map-identity` implied by `-D warnings`
     let _: Vec<_> = x.iter().map(std::convert::identity).map(|y| y).collect();
+    //~^ ERROR: unnecessary map of the identity function
+    //~| ERROR: unnecessary map of the identity function
     let _: Option<u8> = Some(3).map(|x| x);
+    //~^ ERROR: unnecessary map of the identity function
     let _: Result<i8, f32> = Ok(-3).map(|x| {
+    //~^ ERROR: unnecessary map of the identity function
         return x;
     });
     // should not lint
@@ -18,6 +24,7 @@ fn main() {
         return x + 3;
     });
     let _: Result<u32, u32> = Ok(1).map_err(|a| a);
+    //~^ ERROR: unnecessary map of the identity function
     let _: Result<u32, u32> = Ok(1).map_err(|a: u32| a * 42);
 }
 

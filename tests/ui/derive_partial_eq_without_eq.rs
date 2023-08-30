@@ -9,6 +9,8 @@ pub struct NotPartialEq {
 
 // Eq can be derived but is missing
 #[derive(Debug, PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
+//~| NOTE: `-D clippy::derive-partial-eq-without-eq` implied by `-D warnings`
 pub struct MissingEq {
     foo: u32,
     bar: String,
@@ -51,33 +53,39 @@ impl PartialEq for ManualPartialEqImpl {
 
 // Generic fields should be properly checked for Eq-ness
 #[derive(PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub struct GenericNotEq<T: Eq, U: PartialEq> {
     foo: T,
     bar: U,
 }
 
 #[derive(PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub struct GenericEq<T: Eq, U: Eq> {
     foo: T,
     bar: U,
 }
 
 #[derive(PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub struct TupleStruct(u32);
 
 #[derive(PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub struct GenericTupleStruct<T: Eq>(T);
 
 #[derive(PartialEq)]
 pub struct TupleStructNotEq(f32);
 
 #[derive(PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub enum Enum {
     Foo(u32),
     Bar { a: String, b: () },
 }
 
 #[derive(PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub enum GenericEnum<T: Eq, U: Eq, V: Eq> {
     Foo(T),
     Bar { a: U, b: V },
@@ -91,9 +99,11 @@ pub enum EnumNotEq {
 
 // Ensure that rustfix works properly when `PartialEq` has other derives on either side
 #[derive(Debug, PartialEq, Clone)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub struct RustFixWithOtherDerives;
 
 #[derive(PartialEq)]
+//~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
 pub struct Generic<T>(T);
 
 #[derive(PartialEq, Eq)]
@@ -101,9 +111,11 @@ pub struct GenericPhantom<T>(core::marker::PhantomData<T>);
 
 mod _hidden {
     #[derive(PartialEq)]
+    //~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
     pub struct Reexported;
 
     #[derive(PartialEq)]
+    //~^ ERROR: you are deriving `PartialEq` and can implement `Eq`
     pub struct InPubFn;
 
     #[derive(PartialEq)]

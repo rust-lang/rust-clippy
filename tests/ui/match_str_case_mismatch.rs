@@ -110,6 +110,8 @@ fn as_str_match_mismatch() {
     match var.to_ascii_lowercase().as_str() {
         "foo" => {},
         "Bar" => {},
+        //~^ ERROR: this `match` arm has a differing case than its expression
+        //~| NOTE: `-D clippy::match-str-case-mismatch` implied by `-D warnings`
         _ => {},
     }
 }
@@ -120,6 +122,7 @@ fn non_alphabetic_mismatch() {
     match var.to_ascii_lowercase().as_str() {
         "1234567890" => {},
         "~!@#$%^&*()-_=+Foo" => {},
+        //~^ ERROR: this `match` arm has a differing case than its expression
         "\n\r\t\x7F" => {},
         _ => {},
     }
@@ -132,6 +135,7 @@ fn unicode_cased_mismatch() {
         "水" => {},
         "νερό" => {},
         "Воды" => {},
+        //~^ ERROR: this `match` arm has a differing case than its expression
         "물" => {},
         _ => {},
     }
@@ -143,6 +147,7 @@ fn titlecase_mismatch() {
     match var.to_lowercase().as_str() {
         "fooǉ" => {},
         "barǲ" => {},
+        //~^ ERROR: this `match` arm has a differing case than its expression
         _ => {},
     }
 }
@@ -153,6 +158,7 @@ fn no_case_equivalent_mismatch() {
     match var.to_uppercase().as_str() {
         "FOOɕ" => {},
         "bARʁ" => {},
+        //~^ ERROR: this `match` arm has a differing case than its expression
         _ => {},
     }
 }
@@ -163,6 +169,7 @@ fn addrof_unary_match_mismatch() {
     match &*var.to_ascii_lowercase() {
         "foo" => {},
         "Bar" => {},
+        //~^ ERROR: this `match` arm has a differing case than its expression
         _ => {},
     }
 }
@@ -178,6 +185,7 @@ fn alternating_chain_mismatch() {
     {
         "FOO" => {},
         "bAR" => {},
+        //~^ ERROR: this `match` arm has a differing case than its expression
         _ => {},
     }
 }

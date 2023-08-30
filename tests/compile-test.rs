@@ -130,7 +130,7 @@ fn base_config(test_dir: &str) -> (Config, Args) {
     };
 
     let mut config = Config {
-        mode: Mode::Yolo { rustfix: true },
+        mode: Mode::Fail { rustfix: true, require_patterns: true },
         stderr_filters: vec![(Match::PathBackslash, b"/")],
         stdout_filters: vec![],
         output_conflict_handling: if bless {

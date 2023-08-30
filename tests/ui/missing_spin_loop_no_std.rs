@@ -10,6 +10,8 @@ fn main(_argc: isize, _argv: *const *const u8) -> isize {
     let b = AtomicBool::new(true);
     // This should lint with `core::hint::spin_loop()`
     while b.load(Ordering::Acquire) {}
+    //~^ ERROR: busy-waiting loop should at least have a spin loop hint
+    //~| NOTE: `-D clippy::missing-spin-loop` implied by `-D warnings`
     0
 }
 

@@ -2,6 +2,8 @@ error: this pattern reimplements `Option::unwrap_or`
   --> $DIR/manual_unwrap_or.rs:6:5
    |
 LL | /     match Some(1) {
+LL | |
+LL | |
 LL | |         Some(i) => i,
 LL | |         None => 42,
 LL | |     };
@@ -10,30 +12,32 @@ LL | |     };
    = note: `-D clippy::manual-unwrap-or` implied by `-D warnings`
 
 error: this pattern reimplements `Option::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:12:5
+  --> $DIR/manual_unwrap_or.rs:14:5
    |
 LL | /     match Some(1) {
+LL | |
 LL | |         None => 42,
 LL | |         Some(i) => i,
 LL | |     };
    | |_____^ help: replace with: `Some(1).unwrap_or(42)`
 
 error: this pattern reimplements `Option::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:18:5
+  --> $DIR/manual_unwrap_or.rs:21:5
    |
 LL | /     match Some(1) {
+LL | |
 LL | |         Some(i) => i,
 LL | |         None => 1 + 42,
 LL | |     };
    | |_____^ help: replace with: `Some(1).unwrap_or(1 + 42)`
 
 error: this pattern reimplements `Option::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:25:5
+  --> $DIR/manual_unwrap_or.rs:29:5
    |
 LL | /     match Some(1) {
+LL | |
 LL | |         Some(i) => i,
 LL | |         None => {
-LL | |             42 + 42
 ...  |
 LL | |         }
 LL | |     };
@@ -49,75 +53,82 @@ LL ~     });
    |
 
 error: this pattern reimplements `Option::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:35:5
+  --> $DIR/manual_unwrap_or.rs:40:5
    |
 LL | /     match Some("Bob") {
+LL | |
 LL | |         Some(i) => i,
 LL | |         None => "Alice",
 LL | |     };
    | |_____^ help: replace with: `Some("Bob").unwrap_or("Alice")`
 
 error: this pattern reimplements `Result::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:85:5
+  --> $DIR/manual_unwrap_or.rs:91:5
    |
 LL | /     match Ok::<i32, &str>(1) {
+LL | |
 LL | |         Ok(i) => i,
 LL | |         Err(_) => 42,
 LL | |     };
    | |_____^ help: replace with: `Ok::<i32, &str>(1).unwrap_or(42)`
 
 error: this pattern reimplements `Result::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:92:5
+  --> $DIR/manual_unwrap_or.rs:99:5
    |
 LL | /     match a {
+LL | |
 LL | |         Ok(i) => i,
 LL | |         Err(_) => 42,
 LL | |     };
    | |_____^ help: replace with: `a.unwrap_or(42)`
 
 error: this pattern reimplements `Result::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:98:5
+  --> $DIR/manual_unwrap_or.rs:106:5
    |
 LL | /     match Ok(1) as Result<i32, &str> {
+LL | |
 LL | |         Ok(i) => i,
 LL | |         Err(_) => 42,
 LL | |     };
    | |_____^ help: replace with: `(Ok(1) as Result<i32, &str>).unwrap_or(42)`
 
 error: this pattern reimplements `Option::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:111:5
+  --> $DIR/manual_unwrap_or.rs:120:5
    |
 LL | /     match s.method() {
+LL | |
 LL | |         Some(i) => i,
 LL | |         None => 42,
 LL | |     };
    | |_____^ help: replace with: `s.method().unwrap_or(42)`
 
 error: this pattern reimplements `Result::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:117:5
+  --> $DIR/manual_unwrap_or.rs:127:5
    |
 LL | /     match Ok::<i32, &str>(1) {
+LL | |
 LL | |         Err(_) => 42,
 LL | |         Ok(i) => i,
 LL | |     };
    | |_____^ help: replace with: `Ok::<i32, &str>(1).unwrap_or(42)`
 
 error: this pattern reimplements `Result::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:123:5
+  --> $DIR/manual_unwrap_or.rs:134:5
    |
 LL | /     match Ok::<i32, &str>(1) {
+LL | |
 LL | |         Ok(i) => i,
 LL | |         Err(_) => 1 + 42,
 LL | |     };
    | |_____^ help: replace with: `Ok::<i32, &str>(1).unwrap_or(1 + 42)`
 
 error: this pattern reimplements `Result::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:130:5
+  --> $DIR/manual_unwrap_or.rs:142:5
    |
 LL | /     match Ok::<i32, &str>(1) {
+LL | |
 LL | |         Ok(i) => i,
 LL | |         Err(_) => {
-LL | |             42 + 42
 ...  |
 LL | |         }
 LL | |     };
@@ -133,19 +144,21 @@ LL ~     });
    |
 
 error: this pattern reimplements `Result::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:140:5
+  --> $DIR/manual_unwrap_or.rs:153:5
    |
 LL | /     match Ok::<&str, &str>("Bob") {
+LL | |
 LL | |         Ok(i) => i,
 LL | |         Err(_) => "Alice",
 LL | |     };
    | |_____^ help: replace with: `Ok::<&str, &str>("Bob").unwrap_or("Alice")`
 
 error: this pattern reimplements `Option::unwrap_or`
-  --> $DIR/manual_unwrap_or.rs:200:17
+  --> $DIR/manual_unwrap_or.rs:214:17
    |
 LL |           let _ = match some_macro!() {
    |  _________________^
+LL | |
 LL | |             Some(val) => val,
 LL | |             None => 0,
 LL | |         };

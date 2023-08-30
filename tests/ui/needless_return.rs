@@ -24,35 +24,44 @@ fn test_end_of_fn() -> bool {
         return true;
     }
     return true;
+    //~^ ERROR: unneeded `return` statement
+    //~| NOTE: `-D clippy::needless-return` implied by `-D warnings`
 }
 
 fn test_no_semicolon() -> bool {
     return true;
+    //~^ ERROR: unneeded `return` statement
 }
 
 #[rustfmt::skip]
 fn test_multiple_semicolon() -> bool {
     return true;;;
+    //~^ ERROR: unneeded `return` statement
 }
 
 #[rustfmt::skip]
 fn test_multiple_semicolon_with_spaces() -> bool {
     return true;; ; ;
+    //~^ ERROR: unneeded `return` statement
 }
 
 fn test_if_block() -> bool {
     if true {
         return true;
+        //~^ ERROR: unneeded `return` statement
     } else {
         return false;
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
 fn test_match(x: bool) -> bool {
     match x {
         true => return false,
+        //~^ ERROR: unneeded `return` statement
         false => {
             return true;
+            //~^ ERROR: unneeded `return` statement
         },
     }
 }
@@ -60,22 +69,28 @@ fn test_match(x: bool) -> bool {
 fn test_closure() {
     let _ = || {
         return true;
+        //~^ ERROR: unneeded `return` statement
     };
     let _ = || return true;
+    //~^ ERROR: unneeded `return` statement
 }
 
 fn test_macro_call() -> i32 {
     return the_answer!();
+    //~^ ERROR: unneeded `return` statement
 }
 
 fn test_void_fun() {
+//~^ ERROR: unneeded `return` statement
     return;
 }
 
 fn test_void_if_fun(b: bool) {
     if b {
+    //~^ ERROR: unneeded `return` statement
         return;
     } else {
+    //~^ ERROR: unneeded `return` statement
         return;
     }
 }
@@ -84,6 +99,7 @@ fn test_void_match(x: u32) {
     match x {
         0 => (),
         _ => return,
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
@@ -92,9 +108,11 @@ fn test_nested_match(x: u32) {
         0 => (),
         1 => {
             let _ = 42;
+            //~^ ERROR: unneeded `return` statement
             return;
         },
         _ => return,
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
@@ -108,8 +126,10 @@ fn borrows_but_not_last(value: bool) -> String {
         let x = RefCell::<String>::default();
         let _a = x.borrow().clone();
         return String::from("test");
+        //~^ ERROR: unneeded `return` statement
     } else {
         return String::new();
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
@@ -132,19 +152,23 @@ mod issue6501 {
     #[allow(clippy::unnecessary_lazy_evaluations)]
     fn foo(bar: Result<(), ()>) {
         bar.unwrap_or_else(|_| return)
+        //~^ ERROR: unneeded `return` statement
     }
 
     fn test_closure() {
         let _ = || {
+        //~^ ERROR: unneeded `return` statement
             return;
         };
         let _ = || return;
+        //~^ ERROR: unneeded `return` statement
     }
 
     struct Foo;
     #[allow(clippy::unnecessary_lazy_evaluations)]
     fn bar(res: Result<Foo, u8>) -> Foo {
         res.unwrap_or_else(|_| return Foo)
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
@@ -154,25 +178,31 @@ async fn async_test_end_of_fn() -> bool {
         return true;
     }
     return true;
+    //~^ ERROR: unneeded `return` statement
 }
 
 async fn async_test_no_semicolon() -> bool {
     return true;
+    //~^ ERROR: unneeded `return` statement
 }
 
 async fn async_test_if_block() -> bool {
     if true {
         return true;
+        //~^ ERROR: unneeded `return` statement
     } else {
         return false;
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
 async fn async_test_match(x: bool) -> bool {
     match x {
         true => return false,
+        //~^ ERROR: unneeded `return` statement
         false => {
             return true;
+            //~^ ERROR: unneeded `return` statement
         },
     }
 }
@@ -180,22 +210,28 @@ async fn async_test_match(x: bool) -> bool {
 async fn async_test_closure() {
     let _ = || {
         return true;
+        //~^ ERROR: unneeded `return` statement
     };
     let _ = || return true;
+    //~^ ERROR: unneeded `return` statement
 }
 
 async fn async_test_macro_call() -> i32 {
     return the_answer!();
+    //~^ ERROR: unneeded `return` statement
 }
 
 async fn async_test_void_fun() {
+//~^ ERROR: unneeded `return` statement
     return;
 }
 
 async fn async_test_void_if_fun(b: bool) {
     if b {
+    //~^ ERROR: unneeded `return` statement
         return;
     } else {
+    //~^ ERROR: unneeded `return` statement
         return;
     }
 }
@@ -204,6 +240,7 @@ async fn async_test_void_match(x: u32) {
     match x {
         0 => (),
         _ => return,
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
@@ -217,8 +254,10 @@ async fn async_borrows_but_not_last(value: bool) -> String {
         let x = RefCell::<String>::default();
         let _a = x.borrow().clone();
         return String::from("test");
+        //~^ ERROR: unneeded `return` statement
     } else {
         return String::new();
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
@@ -235,6 +274,7 @@ fn needless_return_macro() -> String {
     let _ = "foo";
     let _ = "bar";
     return format!("Hello {}", "world!");
+    //~^ ERROR: unneeded `return` statement
 }
 
 fn issue_9361() -> i32 {
@@ -247,8 +287,10 @@ fn issue8336(x: i32) -> bool {
     if x > 0 {
         println!("something");
         return true;
+        //~^ ERROR: unneeded `return` statement
     } else {
         return false;
+        //~^ ERROR: unneeded `return` statement
     };
 }
 
@@ -256,9 +298,11 @@ fn issue8156(x: u8) -> u64 {
     match x {
         80 => {
             return 10;
+            //~^ ERROR: unneeded `return` statement
         },
         _ => {
             return 100;
+            //~^ ERROR: unneeded `return` statement
         },
     };
 }
@@ -267,6 +311,7 @@ fn issue8156(x: u8) -> u64 {
 fn issue9192() -> i32 {
     {
         return 0;
+        //~^ ERROR: unneeded `return` statement
     };
 }
 
@@ -274,8 +319,10 @@ fn issue9503(x: usize) -> isize {
     unsafe {
         if x > 12 {
             return *(x as *const isize);
+            //~^ ERROR: unneeded `return` statement
         } else {
             return !*(x as *const isize);
+            //~^ ERROR: unneeded `return` statement
         };
     };
 }
@@ -283,6 +330,7 @@ fn issue9503(x: usize) -> isize {
 mod issue9416 {
     pub fn with_newline() {
         let _ = 42;
+        //~^ ERROR: unneeded `return` statement
 
         return;
     }
@@ -290,6 +338,7 @@ mod issue9416 {
     #[rustfmt::skip]
     pub fn oneline() {
         let _ = 42; return;
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
@@ -302,18 +351,22 @@ fn issue9947() -> Result<(), String> {
 fn issue10051() -> Result<String, String> {
     if true {
         return Ok(format!("ok!"));
+        //~^ ERROR: unneeded `return` statement
     } else {
         return Err(format!("err!"));
+        //~^ ERROR: unneeded `return` statement
     }
 }
 
 mod issue10049 {
     fn single() -> u32 {
         return if true { 1 } else { 2 };
+        //~^ ERROR: unneeded `return` statement
     }
 
     fn multiple(b1: bool, b2: bool, b3: bool) -> u32 {
         return if b1 { 0 } else { 1 } | if b2 { 2 } else { 3 } | if b3 { 4 } else { 5 };
+        //~^ ERROR: unneeded `return` statement
     }
 }
 

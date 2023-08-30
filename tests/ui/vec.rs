@@ -28,24 +28,35 @@ impl Line {
 
 fn main() {
     on_slice(&vec![]);
+    //~^ ERROR: useless use of `vec!`
+    //~| NOTE: `-D clippy::useless-vec` implied by `-D warnings`
     on_slice(&[]);
     on_mut_slice(&mut vec![]);
+    //~^ ERROR: useless use of `vec!`
 
     on_slice(&vec![1, 2]);
+    //~^ ERROR: useless use of `vec!`
     on_slice(&[1, 2]);
     on_mut_slice(&mut vec![1, 2]);
+    //~^ ERROR: useless use of `vec!`
 
     on_slice(&vec![1, 2]);
+    //~^ ERROR: useless use of `vec!`
     on_slice(&[1, 2]);
     on_mut_slice(&mut vec![1, 2]);
+    //~^ ERROR: useless use of `vec!`
     #[rustfmt::skip]
     on_slice(&vec!(1, 2));
+    //~^ ERROR: useless use of `vec!`
     on_slice(&[1, 2]);
     on_mut_slice(&mut vec![1, 2]);
+    //~^ ERROR: useless use of `vec!`
 
     on_slice(&vec![1; 2]);
+    //~^ ERROR: useless use of `vec!`
     on_slice(&[1; 2]);
     on_mut_slice(&mut vec![1; 2]);
+    //~^ ERROR: useless use of `vec!`
 
     on_vec(&vec![]);
     on_vec(&vec![1, 2]);
@@ -72,17 +83,21 @@ fn main() {
 
     // https://github.com/rust-lang/rust-clippy/issues/2262#issuecomment-783979246
     let _x: i32 = vec![1, 2, 3].iter().sum();
+    //~^ ERROR: useless use of `vec!`
 
     // Do lint
     let mut x = vec![1, 2, 3];
+    //~^ ERROR: useless use of `vec!`
     x.fill(123);
     dbg!(x[0]);
     dbg!(x.len());
     dbg!(x.iter().sum::<i32>());
 
     let _x: &[i32] = &vec![1, 2, 3];
+    //~^ ERROR: useless use of `vec!`
 
     for _ in vec![1, 2, 3] {}
+    //~^ ERROR: useless use of `vec!`
 
     // Don't lint
     let x = vec![1, 2, 3];
@@ -121,6 +136,7 @@ fn issue11075() {
         };
     }
     for _string in vec![repro!(true), repro!(null)] {
+    //~^ ERROR: useless use of `vec!`
         unimplemented!();
     }
 
@@ -138,6 +154,8 @@ fn issue11075() {
     }
 
     in_macro!(1, vec![1, 2], vec![1; 2]);
+    //~^ ERROR: useless use of `vec!`
+    //~| ERROR: useless use of `vec!`
 
     macro_rules! from_macro {
         () => {
@@ -157,10 +175,12 @@ fn issue11075() {
 #[clippy::msrv = "1.53"]
 fn above() {
     for a in vec![1, 2, 3] {
+    //~^ ERROR: useless use of `vec!`
         let _: usize = a;
     }
 
     for a in vec![String::new(), String::new()] {
+    //~^ ERROR: useless use of `vec!`
         let _: String = a;
     }
 }

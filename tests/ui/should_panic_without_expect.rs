@@ -3,6 +3,7 @@
 
 #[test]
 #[should_panic]
+//~^ ERROR: #[should_panic] attribute without a reason
 fn no_message() {}
 
 #[test]

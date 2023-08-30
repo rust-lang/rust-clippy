@@ -5,10 +5,13 @@
 mod issue_3807 {
     fn suggestion_is_fine_range() {
         let _ = (0..42).len() == 0;
+        //~^ ERROR: length comparison to zero
+        //~| NOTE: `-D clippy::len-zero` implied by `-D warnings`
     }
 
     fn suggestion_is_fine_range_inclusive() {
         let _ = (0_u8..=42).len() == 0;
+        //~^ ERROR: length comparison to zero
     }
 }
 

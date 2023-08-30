@@ -16,6 +16,8 @@ fn main() {
 
     // This should lint
     let _ = TupleStruct {
+    //~^ ERROR: used a field initializer for a tuple struct
+    //~| NOTE: `-D clippy::init-numbered-fields` implied by `-D warnings`
         0: 1u32,
         1: 42,
         2: 23u8,
@@ -23,6 +25,7 @@ fn main() {
 
     // This should also lint and order the fields correctly
     let _ = TupleStruct {
+    //~^ ERROR: used a field initializer for a tuple struct
         0: 1u32,
         2: 2u8,
         1: 3u32,

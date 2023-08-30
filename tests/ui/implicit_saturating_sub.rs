@@ -25,6 +25,8 @@ fn main() {
 
     // Lint
     if u_8 > 0 {
+    //~^ ERROR: implicitly performing saturating subtraction
+    //~| NOTE: `-D clippy::implicit-saturating-sub` implied by `-D warnings`
         u_8 = u_8 - 1;
     }
 
@@ -32,6 +34,7 @@ fn main() {
         10 => {
             // Lint
             if u_8 > 0 {
+            //~^ ERROR: implicitly performing saturating subtraction
                 u_8 -= 1;
             }
         },
@@ -46,6 +49,7 @@ fn main() {
 
     // Lint
     if u_16 > 0 {
+    //~^ ERROR: implicitly performing saturating subtraction
         u_16 -= 1;
     }
 
@@ -56,6 +60,7 @@ fn main() {
 
     // Lint
     if u_32 != 0 {
+    //~^ ERROR: implicitly performing saturating subtraction
         u_32 -= 1;
     }
 
@@ -77,16 +82,19 @@ fn main() {
 
     // Lint
     if u_64 > 0 {
+    //~^ ERROR: implicitly performing saturating subtraction
         u_64 -= 1;
     }
 
     // Lint
     if 0 < u_64 {
+    //~^ ERROR: implicitly performing saturating subtraction
         u_64 -= 1;
     }
 
     // Lint
     if 0 != u_64 {
+    //~^ ERROR: implicitly performing saturating subtraction
         u_64 -= 1;
     }
 
@@ -108,6 +116,7 @@ fn main() {
 
     // Lint
     if u_usize > 0 {
+    //~^ ERROR: implicitly performing saturating subtraction
         u_usize -= 1;
     }
 
@@ -120,21 +129,25 @@ fn main() {
 
     // Lint
     if i_8 > i8::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_8 -= 1;
     }
 
     // Lint
     if i_8 > i8::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_8 -= 1;
     }
 
     // Lint
     if i_8 != i8::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_8 -= 1;
     }
 
     // Lint
     if i_8 != i8::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_8 -= 1;
     }
 
@@ -145,21 +158,25 @@ fn main() {
 
     // Lint
     if i_16 > i16::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_16 -= 1;
     }
 
     // Lint
     if i_16 > i16::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_16 -= 1;
     }
 
     // Lint
     if i_16 != i16::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_16 -= 1;
     }
 
     // Lint
     if i_16 != i16::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_16 -= 1;
     }
 
@@ -170,21 +187,25 @@ fn main() {
 
     // Lint
     if i_32 > i32::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_32 -= 1;
     }
 
     // Lint
     if i_32 > i32::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_32 -= 1;
     }
 
     // Lint
     if i_32 != i32::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_32 -= 1;
     }
 
     // Lint
     if i_32 != i32::MIN {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_32 -= 1;
     }
 
@@ -195,16 +216,19 @@ fn main() {
 
     // Lint
     if i64::MIN < i_64 {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_64 -= 1;
     }
 
     // Lint
     if i64::MIN != i_64 {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_64 -= 1;
     }
 
     // Lint
     if i64::MIN < i_64 {
+    //~^ ERROR: implicitly performing saturating subtraction
         i_64 -= 1;
     }
 

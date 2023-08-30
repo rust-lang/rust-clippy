@@ -12,7 +12,7 @@ LL +     { unit_fn_block(); }
    |
 
 error: consider moving the `;` inside the block for consistent formatting
-  --> $DIR/semicolon_inside_block.rs:39:5
+  --> $DIR/semicolon_inside_block.rs:41:5
    |
 LL |     unsafe { unit_fn_block() };
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -24,9 +24,10 @@ LL +     unsafe { unit_fn_block(); }
    |
 
 error: consider moving the `;` inside the block for consistent formatting
-  --> $DIR/semicolon_inside_block.rs:47:5
+  --> $DIR/semicolon_inside_block.rs:50:5
    |
 LL | /     {
+LL | |
 LL | |         unit_fn_block();
 LL | |         unit_fn_block()
 LL | |     };
@@ -39,7 +40,7 @@ LL ~     }
    |
 
 error: consider moving the `;` inside the block for consistent formatting
-  --> $DIR/semicolon_inside_block.rs:60:5
+  --> $DIR/semicolon_inside_block.rs:64:5
    |
 LL |     { m!(()) };
    |     ^^^^^^^^^^^

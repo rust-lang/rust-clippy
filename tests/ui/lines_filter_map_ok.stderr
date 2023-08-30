@@ -12,37 +12,37 @@ LL |     BufReader::new(f).lines().filter_map(Result::ok).for_each(|_| ());
    = note: `-D clippy::lines-filter-map-ok` implied by `-D warnings`
 
 error: `flat_map()` will run forever if the iterator repeatedly produces an `Err`
-  --> $DIR/lines_filter_map_ok.rs:12:31
+  --> $DIR/lines_filter_map_ok.rs:13:31
    |
 LL |     BufReader::new(f).lines().flat_map(Result::ok).for_each(|_| ());
    |                               ^^^^^^^^^^^^^^^^^^^^ help: replace with: `map_while(Result::ok)`
    |
 note: this expression returning a `std::io::Lines` may produce an infinite number of `Err` in case of a read error
-  --> $DIR/lines_filter_map_ok.rs:12:5
+  --> $DIR/lines_filter_map_ok.rs:13:5
    |
 LL |     BufReader::new(f).lines().flat_map(Result::ok).for_each(|_| ());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `filter_map()` will run forever if the iterator repeatedly produces an `Err`
-  --> $DIR/lines_filter_map_ok.rs:15:25
+  --> $DIR/lines_filter_map_ok.rs:17:25
    |
 LL |     io::stdin().lines().filter_map(Result::ok).for_each(|_| ());
    |                         ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `map_while(Result::ok)`
    |
 note: this expression returning a `std::io::Lines` may produce an infinite number of `Err` in case of a read error
-  --> $DIR/lines_filter_map_ok.rs:15:5
+  --> $DIR/lines_filter_map_ok.rs:17:5
    |
 LL |     io::stdin().lines().filter_map(Result::ok).for_each(|_| ());
    |     ^^^^^^^^^^^^^^^^^^^
 
 error: `filter_map()` will run forever if the iterator repeatedly produces an `Err`
-  --> $DIR/lines_filter_map_ok.rs:17:25
+  --> $DIR/lines_filter_map_ok.rs:20:25
    |
 LL |     io::stdin().lines().filter_map(|x| x.ok()).for_each(|_| ());
    |                         ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `map_while(Result::ok)`
    |
 note: this expression returning a `std::io::Lines` may produce an infinite number of `Err` in case of a read error
-  --> $DIR/lines_filter_map_ok.rs:17:5
+  --> $DIR/lines_filter_map_ok.rs:20:5
    |
 LL |     io::stdin().lines().filter_map(|x| x.ok()).for_each(|_| ());
    |     ^^^^^^^^^^^^^^^^^^^
