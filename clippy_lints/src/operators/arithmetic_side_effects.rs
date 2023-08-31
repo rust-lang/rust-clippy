@@ -105,7 +105,7 @@ impl ArithmeticSideEffects {
             return true;
         }
         // `Saturation` and `Wrapping` can overflow if the RHS is zero in a division or module
-        if is_sat_or_wrap(lhs_ty) || is_sat_or_wrap(rhs_ty) {
+        if is_sat_or_wrap(lhs_ty) {
             return !is_div_or_rem;
         }
 
