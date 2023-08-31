@@ -1,12 +1,14 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{expr_block, get_source_text, snippet};
-use clippy_utils::ty::{implements_trait, is_type_diagnostic_item, peel_mid_ty_refs};
-use clippy_utils::{is_lint_allowed, is_unit_expr, is_wild, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs};
-use core::cmp::max;
+use clippy_utils::ty::{implements_trait, peel_mid_ty_refs};
+use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs};
+use rustc_arena::DroplessArena;
 use rustc_errors::Applicability;
-use rustc_hir::{Arm, BindingAnnotation, Expr, ExprKind, Pat, PatKind};
+use rustc_hir::def::{DefKind, Res};
+use rustc_hir::intravisit::{walk_pat, Visitor};
+use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatKind, QPath};
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, Ty};
+use rustc_middle::ty::{self, AdtDef, ParamEnv, TyCtxt, TypeckResults, VariantDef};
 use rustc_span::{sym, Span};
 
 use super::{MATCH_BOOL, SINGLE_MATCH, SINGLE_MATCH_ELSE};
@@ -27,7 +29,7 @@ fn empty_arm_has_comment(cx: &LateContext<'_>, span: Span) -> bool {
 }
 
 #[rustfmt::skip]
-pub(crate) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>], expr: &Expr<'_>) {
+pub(crate) fn check<'tcx>(cx: &LateContext<'tcx>, ex: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], expr: &'tcx Expr<'_>) {
     if let [arm1, arm2] = arms
         && arm1.guard.is_none()
         && arm2.guard.is_none()
@@ -50,10 +52,31 @@ pub(crate) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>], expr:
             return;
         };
 
-        let ty = cx.typeck_results().expr_ty(ex);
-        if (*ty.kind() != ty::Bool || is_lint_allowed(cx, MATCH_BOOL, ex.hir_id))
-            && (is_wild(arm2.pat) || form_exhaustive_matches(cx, ty, arm1.pat, arm2.pat))
-        {
+        let typeck = cx.typeck_results();
+        if *typeck.expr_ty(ex).peel_refs().kind() != ty::Bool || is_lint_allowed(cx, MATCH_BOOL, ex.hir_id) {
+            let mut v = PatVisitor {
+                typeck,
+                has_binding: false,
+                has_enum: false,
+            };
+            v.visit_pat(arm2.pat);
+            if v.has_binding {
+                return;
+            }
+            if v.has_enum {
+                let cx = PatCtxt {
+                    tcx: cx.tcx,
+                    param_env: cx.param_env,
+                    typeck,
+                    arena: DroplessArena::default(),
+                };
+                let mut state = PatState::Other;
+                if !(state.add_pat(&cx, arm2.pat) || state.add_pat(&cx, arm1.pat)) {
+                    // Don't lint if the pattern contains an enum which doesn't have a wild match.
+                    return;
+                }
+            }
+
             report_single_pattern(cx, ex, arm1, expr, els);
         }
     }
@@ -119,100 +142,213 @@ fn report_single_pattern(cx: &LateContext<'_>, ex: &Expr<'_>, arm: &Arm<'_>, exp
     span_lint_and_sugg(cx, lint, expr.span, msg, "try", sugg, app);
 }
 
-/// Returns `true` if all of the types in the pattern are enums which we know
-/// won't be expanded in the future
-fn pat_in_candidate_enum<'a>(cx: &LateContext<'a>, ty: Ty<'a>, pat: &Pat<'_>) -> bool {
-    let mut paths_and_types = Vec::new();
-    collect_pat_paths(&mut paths_and_types, cx, pat, ty);
-    paths_and_types.iter().all(|ty| in_candidate_enum(cx, *ty))
+struct PatVisitor<'tcx> {
+    typeck: &'tcx TypeckResults<'tcx>,
+    has_binding: bool,
+    has_enum: bool,
+}
+impl<'tcx> Visitor<'tcx> for PatVisitor<'tcx> {
+    fn visit_pat(&mut self, pat: &'tcx Pat<'_>) {
+        if self.has_binding {
+            return;
+        }
+        self.has_enum |= self.typeck.pat_ty(pat).ty_adt_def().map_or(false, AdtDef::is_enum);
+        self.has_binding = matches!(pat.kind, PatKind::Binding(..));
+        walk_pat(self, pat);
+    }
 }
 
-/// Returns `true` if the given type is an enum we know won't be expanded in the future
-fn in_candidate_enum(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
-    // list of candidate `Enum`s we know will never get any more members
-    let candidates = [sym::Cow, sym::Option, sym::Result];
+/// The context needed to manipulate a `PatState`.
+struct PatCtxt<'tcx> {
+    tcx: TyCtxt<'tcx>,
+    param_env: ParamEnv<'tcx>,
+    typeck: &'tcx TypeckResults<'tcx>,
+    arena: DroplessArena,
+}
 
-    for candidate_ty in candidates {
-        if is_type_diagnostic_item(cx, ty, candidate_ty) {
-            return true;
+/// State for tracking whether a match can become non-exhaustive by adding a variant to a contained
+/// enum.
+///
+/// This treats certain std enums as if they will never be extended.
+enum PatState<'a> {
+    /// A state for which no patterns have been seen, or an enum which might be extended.
+    Other,
+    /// Any additional enum variants will be matched.
+    Wild,
+    /// A std enum with multiple variants containing values.
+    Enum(&'a mut [PatState<'a>]),
+}
+impl<'a> PatState<'a> {
+    /// For multi-value tuples, arrays, slices and structs. This is a wild match only if all
+    /// patterns are also a wild match.
+    fn add_and_pats<'tcx>(&mut self, cx: &'a PatCtxt<'tcx>, pats: impl IntoIterator<Item = &'tcx Pat<'tcx>>) -> bool {
+        let is_wild = pats.into_iter().all(|p| {
+            // By discarding the result this will result in false-negatives, but the alternative is a lot of
+            // extra state tracking.
+            // e.g. `(Ok(_), _) | `(Err(_), _)` should be a wild match
+            // however `(Ok(_), Ok(_)) | (Err(_), Err(_)) | (Ok(_), Err(_)) | (Err(_), Ok(X::A))` will fail
+            // if `X` has new variants added.
+            let mut state = Self::Other;
+            state.add_pat(cx, p)
+        });
+        if is_wild {
+            *self = Self::Wild;
+        }
+        is_wild
+    }
+
+    /// Attempts to get the state for the enum variant, initializing the current state if necessary.
+    fn get_enum_variant<'tcx>(
+        &mut self,
+        cx: &'a PatCtxt<'tcx>,
+        adt: AdtDef<'tcx>,
+        path: &'tcx QPath<'_>,
+        hir_id: HirId,
+    ) -> Option<(&mut Self, &'tcx VariantDef)> {
+        let states = match self {
+            Self::Wild => return None,
+            Self::Other => {
+                *self = Self::Enum(cx.arena.alloc_from_iter((0..adt.variants().len()).map(|_| Self::Other)));
+                let Self::Enum(x) = self else {
+                    unreachable!();
+                };
+                x
+            },
+            Self::Enum(x) => x,
+        };
+        let i = match cx.typeck.qpath_res(path, hir_id) {
+            Res::Def(DefKind::Ctor(..), id) => adt.variant_index_with_ctor_id(id),
+            Res::Def(DefKind::Variant, id) => adt.variant_index_with_id(id),
+            _ => return None,
+        };
+        Some((&mut states[i.as_usize()], adt.variant(i)))
+    }
+
+    fn check_all_wild_enum(&mut self) -> bool {
+        if let Self::Enum(states) = self
+            && states.iter().all(|s| matches!(s, Self::Wild))
+        {
+            *self = Self::Wild;
+            true
+        } else {
+            false
         }
     }
-    false
-}
 
-/// Collects types from the given pattern
-fn collect_pat_paths<'a>(acc: &mut Vec<Ty<'a>>, cx: &LateContext<'a>, pat: &Pat<'_>, ty: Ty<'a>) {
-    match pat.kind {
-        PatKind::Tuple(inner, _) => inner.iter().for_each(|p| {
-            let p_ty = cx.typeck_results().pat_ty(p);
-            collect_pat_paths(acc, cx, p, p_ty);
-        }),
-        PatKind::TupleStruct(..) | PatKind::Binding(BindingAnnotation::NONE, .., None) | PatKind::Path(_) => {
-            acc.push(ty);
-        },
-        _ => {},
-    }
-}
-
-/// Returns true if the given arm of pattern matching contains wildcard patterns.
-fn contains_only_wilds(pat: &Pat<'_>) -> bool {
-    match pat.kind {
-        PatKind::Wild => true,
-        PatKind::Tuple(inner, _) | PatKind::TupleStruct(_, inner, ..) => inner.iter().all(contains_only_wilds),
-        _ => false,
-    }
-}
-
-/// Returns true if the given patterns forms only exhaustive matches that don't contain enum
-/// patterns without a wildcard.
-fn form_exhaustive_matches<'a>(cx: &LateContext<'a>, ty: Ty<'a>, left: &Pat<'_>, right: &Pat<'_>) -> bool {
-    match (&left.kind, &right.kind) {
-        (PatKind::Wild, _) | (_, PatKind::Wild) => true,
-        (PatKind::Tuple(left_in, left_pos), PatKind::Tuple(right_in, right_pos)) => {
-            // We don't actually know the position and the presence of the `..` (dotdot) operator
-            // in the arms, so we need to evaluate the correct offsets here in order to iterate in
-            // both arms at the same time.
-            let left_pos = left_pos.as_opt_usize();
-            let right_pos = right_pos.as_opt_usize();
-            let len = max(
-                left_in.len() + usize::from(left_pos.is_some()),
-                right_in.len() + usize::from(right_pos.is_some()),
-            );
-            let mut left_pos = left_pos.unwrap_or(usize::MAX);
-            let mut right_pos = right_pos.unwrap_or(usize::MAX);
-            let mut left_dot_space = 0;
-            let mut right_dot_space = 0;
-            for i in 0..len {
-                let mut found_dotdot = false;
-                if i == left_pos {
-                    left_dot_space += 1;
-                    if left_dot_space < len - left_in.len() {
-                        left_pos += 1;
-                    }
-                    found_dotdot = true;
+    /// Adds the pattern into the current state. Returns whether or not the current state is a wild
+    /// match after the merge.
+    #[expect(clippy::similar_names, clippy::too_many_lines)]
+    fn add_pat<'tcx>(&mut self, cx: &'a PatCtxt<'tcx>, pat: &'tcx Pat<'_>) -> bool {
+        match pat.kind {
+            PatKind::Wild
+            | PatKind::Binding(_, _, _, None)
+            | PatKind::Lit(_)
+            | PatKind::Range(..)
+            | PatKind::Err(_) => {
+                *self = PatState::Wild;
+                true
+            },
+            PatKind::Path(_)
+                if !matches!(
+                    cx.typeck.pat_ty(pat).peel_refs().kind(),
+                    ty::Adt(..) | ty::Tuple(_) | ty::Array(..) | ty::Slice(_)
+                ) =>
+            {
+                *self = PatState::Wild;
+                true
+            },
+            PatKind::Path(_) | PatKind::Never => matches!(self, Self::Wild),
+            PatKind::Binding(_, _, _, Some(pat)) | PatKind::Ref(pat, _) | PatKind::Box(pat) => self.add_pat(cx, pat),
+            PatKind::Or(pats) => pats.iter().any(|p| self.add_pat(cx, p)),
+            PatKind::Tuple([sub_pat], pos)
+                if pos.as_opt_usize().is_none() || cx.typeck.pat_ty(pat).tuple_fields().len() == 1 =>
+            {
+                self.add_pat(cx, sub_pat)
+            },
+            PatKind::Tuple(pats, _) => self.add_and_pats(cx, pats),
+            PatKind::Slice([sub_pat], _, []) | PatKind::Slice([], _, [sub_pat])
+                if let ty::Array(_, len) = *cx.typeck.pat_ty(pat).kind()
+                    && len.try_eval_target_usize(cx.tcx, cx.param_env) == Some(1) =>
+            {
+                self.add_pat(cx, sub_pat)
+            },
+            PatKind::Slice(head, _, tail) => self.add_and_pats(cx, head.iter().chain(tail)),
+            PatKind::TupleStruct(ref path, pats, _) => {
+                let Some(adt) = cx.typeck.pat_ty(pat).ty_adt_def() else {
+                    return matches!(self, Self::Wild);
+                };
+                if adt.is_struct() {
+                    return if let [pat] = pats
+                        && adt.non_enum_variant().fields.len() == 1
+                    {
+                        self.add_pat(cx, pat)
+                    } else {
+                        self.add_and_pats(cx, pats)
+                    };
                 }
-                if i == right_pos {
-                    right_dot_space += 1;
-                    if right_dot_space < len - right_in.len() {
-                        right_pos += 1;
-                    }
-                    found_dotdot = true;
+                match cx.tcx.get_diagnostic_name(adt.did()) {
+                    Some(sym::Option) => {
+                        if let [pat] = pats {
+                            self.add_pat(cx, pat)
+                        } else {
+                            *self = Self::Wild;
+                            true
+                        }
+                    },
+                    Some(sym::Result | sym::Cow) => {
+                        let Some((state, variant)) = self.get_enum_variant(cx, adt, path, pat.hir_id) else {
+                            return matches!(self, Self::Wild);
+                        };
+                        let is_wild = if let [pat] = pats
+                            && variant.fields.len() == 1
+                        {
+                            state.add_pat(cx, pat)
+                        } else {
+                            state.add_and_pats(cx, pats)
+                        };
+                        is_wild && self.check_all_wild_enum()
+                    },
+                    _ => matches!(self, Self::Wild),
                 }
-                if found_dotdot {
-                    continue;
+            },
+            PatKind::Struct(ref path, pats, _) => {
+                let Some(adt) = cx.typeck.pat_ty(pat).ty_adt_def() else {
+                    return matches!(self, Self::Wild);
+                };
+                if adt.is_struct() {
+                    return if let [pat] = pats
+                        && adt.non_enum_variant().fields.len() == 1
+                    {
+                        self.add_pat(cx, pat.pat)
+                    } else {
+                        self.add_and_pats(cx, pats.iter().map(|x| x.pat))
+                    };
                 }
-                if !contains_only_wilds(&left_in[i - left_dot_space])
-                    && !contains_only_wilds(&right_in[i - right_dot_space])
-                {
-                    return false;
+                match cx.tcx.get_diagnostic_name(adt.did()) {
+                    Some(sym::Option) => {
+                        if let [pat] = pats {
+                            self.add_pat(cx, pat.pat)
+                        } else {
+                            *self = Self::Wild;
+                            true
+                        }
+                    },
+                    Some(sym::Result | sym::Cow) => {
+                        let Some((state, variant)) = self.get_enum_variant(cx, adt, path, pat.hir_id) else {
+                            return matches!(self, Self::Wild);
+                        };
+                        let is_wild = if let [pat] = pats
+                            && variant.fields.len() == 1
+                        {
+                            state.add_pat(cx, pat.pat)
+                        } else {
+                            state.add_and_pats(cx, pats.iter().map(|x| x.pat))
+                        };
+                        is_wild && self.check_all_wild_enum()
+                    },
+                    _ => matches!(self, Self::Wild),
                 }
-            }
-            true
-        },
-        (PatKind::TupleStruct(..), PatKind::Path(_)) => pat_in_candidate_enum(cx, ty, right),
-        (PatKind::TupleStruct(..), PatKind::TupleStruct(_, inner, _)) => {
-            pat_in_candidate_enum(cx, ty, right) && inner.iter().all(contains_only_wilds)
-        },
-        _ => false,
+            },
+        }
     }
 }
