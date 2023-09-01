@@ -5863,7 +5863,7 @@
     "id": "needless_raw_string_hashes",
     "id_span": {
       "path": "src/raw_strings.rs",
-      "line": 51
+      "line": 52
     },
     "group": "style",
     "level": "warn",
@@ -5878,7 +5878,7 @@
     "id": "needless_raw_strings",
     "id_span": {
       "path": "src/raw_strings.rs",
-      "line": 30
+      "line": 31
     },
     "group": "restriction",
     "level": "allow",
