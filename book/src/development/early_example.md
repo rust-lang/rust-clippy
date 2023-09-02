@@ -1,7 +1,9 @@
 # Example with `EarlyLintPass`
 
 Let us create a Clippy lint that implements `EarlyLintPass`
-so that we can put the knowledge from all previous chapters into practice. We'll implement this example in an **early** lint, but nowadays, late lints are the standard and the recommended for new lints.
+so that we can put the knowledge from all previous chapters into practice. We'll implement this
+example in an **early** lint, but nowadays, late lints are the standard and the recommended for
+new lints.
 
 > Note: This lint is actually implemented in Clippy.
 > If you are curious, feel free to check out the actual implementation
@@ -20,7 +22,8 @@ so that we can put the knowledge from all previous chapters into practice. We'll
 ## The Problem: Empty structs with brackets
 
 The usage of `struct <Name> {};` is very common in Rust projects.
-However, these brackets (`{}`) don't serve any function if the struct is empty, so, for legibility’s sake, we could remove them.
+However, these brackets (`{}`) don't serve any function if the struct is
+empty, so, for legibility’s sake, we could remove them.
 
 So, we're going to create this lint that warns you about empty structs with brackets.
 
@@ -33,7 +36,8 @@ Let's name it `empty_structs_with_brackets`, which suggests
 what this lint is aimed to do. Check the
 [lint naming conventions][naming_conventions] for more info about naming.
 
-Additionally, since this lint warns about useless syntax that should not be there in any case, we'll choose the `style` lint group. (Not the group choosen for this lint, but still).
+Additionally, since this lint warns about useless syntax that should not be there in any case, we'll choose the
+`style` lint group. (Not the group choosen for this lint, but still).
 
 With these decisions at hand, we could generate the new lint by running
 the following command inside our Clippy directory:
@@ -365,8 +369,5 @@ branch and create a pull request for Clippy's `master` branch.
 [check_item]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/trait.EarlyLintPass.html#method.check_item
 [Item]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Item.html
 [ItemKind]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.ItemKind.html
-[pub_use]: https://github.com/rust-lang/rust-clippy/blob/cf72565a12c982f577ca4394c3b80edb89f6c6d3/clippy_lints/src/pub_use.rs
-[Visibility]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Visibility.html
-[VisibilityKind]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Visibility.html
 [ast]: https://rustc-dev-guide.rust-lang.org/syntax-intro.html
 [naming_conventions]: https://rust-lang.github.io/rfcs/0344-conventions-galore.html#lints
