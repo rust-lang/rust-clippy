@@ -8,7 +8,7 @@ use rustc_hir::{
 use rustc_lint::LateContext;
 use rustc_span::sym;
 
-use super::BORROWED_BOX;
+use super::{BORROWED_BOX, BORROWED_OPTION};
 
 pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, mut_ty: &MutTy<'_>) -> bool {
     match mut_ty.ty.kind {
@@ -17,7 +17,7 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, m
             let def = cx.qpath_res(qpath, hir_id);
             if_chain! {
                 if let Some(def_id) = def.opt_def_id();
-                if Some(def_id) == cx.tcx.lang_items().owned_box();
+                if Some(def_id) == cx.tcx.lang_items().owned_box() || Some(def_id) == cx.tcx.lang_items().option_type();
                 if let QPath::Resolved(None, path) = *qpath;
                 if let [ref bx] = *path.segments;
                 if let Some(params) = bx.args;
@@ -27,7 +27,8 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, m
                     _ => None,
                 });
                 then {
-                    if is_any_trait(cx, inner) {
+                    let is_box = Some(def_id) == cx.tcx.lang_items().owned_box();
+                    if is_box && is_any_trait(cx, inner) {
                         // Ignore `Box<Any>` types; see issue #1884 for details.
                         return false;
                     }
@@ -41,6 +42,7 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, m
                     if mut_ty.mutbl == Mutability::Mut {
                         // Ignore `&mut Box<T>` types; see issue #2907 for
                         // details.
+                        // Same reasoning applies for `&mut Option<T>` types.
                         return false;
                     }
 
@@ -62,11 +64,15 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, m
                     };
                     span_lint_and_sugg(
                         cx,
-                        BORROWED_BOX,
+                        if is_box { BORROWED_BOX } else { BORROWED_OPTION },
                         hir_ty.span,
-                        "you seem to be trying to use `&Box<T>`. Consider using just `&T`",
+                        if is_box {
+                            "you seem to be trying to use `&Box<T>`. Consider using just `&T`"
+                        } else {
+                            "you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead"
+                        },
                         "try",
-                        suggestion,
+                        if is_box { suggestion } else { format!("Option<{suggestion}>") },
                         // To make this `MachineApplicable`, at least one needs to check if it isn't a trait item
                         // because the trait impls of it will break otherwise;
                         // and there may be other cases that result in invalid code.

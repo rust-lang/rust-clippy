@@ -3,6 +3,7 @@
     unused_tuple_struct_fields,
     clippy::redundant_closure,
     clippy::ref_option_ref,
+    clippy::borrowed_option,
     clippy::equatable_if_let,
     clippy::let_unit_value,
     clippy::redundant_locals
