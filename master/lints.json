@@ -1420,7 +1420,7 @@
     "id": "disallowed_macros",
     "id_span": {
       "path": "src/disallowed_macros.rs",
-      "line": 51
+      "line": 52
     },
     "group": "style",
     "level": "warn",
