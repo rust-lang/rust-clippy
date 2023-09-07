@@ -4301,7 +4301,7 @@
     "id": "manual_range_patterns",
     "id_span": {
       "path": "src/manual_range_patterns.rs",
-      "line": 33
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
