@@ -8113,7 +8113,7 @@
     "id": "slow_vector_initialization",
     "id_span": {
       "path": "src/slow_vector_initialization.rs",
-      "line": 54
+      "line": 55
     },
     "group": "perf",
     "level": "warn",
