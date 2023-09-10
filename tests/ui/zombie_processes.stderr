@@ -1,0 +1,49 @@
+error: spawned process is never `wait()`-ed on and leaves behind a zombie process
+  --> $DIR/zombie_processes.rs:6:13
+   |
+LL |     let _ = Command::new("").spawn().unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider calling `.wait()`
+   = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
+   = note: `-D clippy::zombie-processes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::zombie_processes)]`
+
+error: spawned process is never `wait()`-ed on and leaves behind a zombie process
+  --> $DIR/zombie_processes.rs:8:5
+   |
+LL |     Command::new("").spawn().unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider calling `.wait()`
+   = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
+
+error: spawned process is never `wait()`-ed on and leaves behind a zombie process
+  --> $DIR/zombie_processes.rs:10:5
+   |
+LL |     spawn_proc();
+   |     ^^^^^^^^^^^^
+   |
+   = help: consider calling `.wait()`
+   = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
+
+error: spawned process is never `wait()`-ed on and leaves behind a zombie process
+  --> $DIR/zombie_processes.rs:15:21
+   |
+LL |         let mut x = Command::new("").spawn().unwrap();
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider calling `.wait()`
+   = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
+
+error: spawned process is never `wait()`-ed on and leaves behind a zombie process
+  --> $DIR/zombie_processes.rs:42:21
+   |
+LL |         let mut x = Command::new("").spawn().unwrap();
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider calling `.wait()`
+   = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
+
+error: aborting due to 5 previous errors
+

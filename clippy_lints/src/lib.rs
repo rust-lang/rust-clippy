@@ -367,6 +367,7 @@ mod wildcard_imports;
 mod write;
 mod zero_div_zero;
 mod zero_sized_map_values;
+mod zombie_processes;
 // end lints modules, do not remove this comment, it’s used in `update_lints`
 
 use clippy_config::{get_configuration_metadata, Conf};
@@ -1105,6 +1106,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(incompatible_msrv::IncompatibleMsrv::new(msrv())));
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));
+    store.register_late_pass(|_| Box::new(zombie_processes::ZombieProcesses));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
