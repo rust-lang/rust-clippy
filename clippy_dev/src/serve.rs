@@ -25,7 +25,7 @@ pub fn run(port: u16, lint: Option<String>) -> ! {
         }
         if let Some(url) = url.take() {
             thread::spawn(move || {
-                Command::new("python3")
+                let mut child = Command::new("python3")
                     .arg("-m")
                     .arg("http.server")
                     .arg(port.to_string())
@@ -36,6 +36,7 @@ pub fn run(port: u16, lint: Option<String>) -> ! {
                 thread::sleep(Duration::from_millis(500));
                 // Launch browser after first export.py has completed and http.server is up
                 let _result = opener::open(url);
+                child.wait().unwrap();
             });
         }
         thread::sleep(Duration::from_millis(1000));
