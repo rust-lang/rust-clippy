@@ -1,0 +1,21 @@
+#![warn(clippy::zombie_processes)]
+
+use std::process::{Child, Command};
+
+fn main() {
+    let _ = Command::new("").spawn().unwrap().wait();
+    //~^ ERROR: spawned process is never `wait()`ed on
+    Command::new("").spawn().unwrap().wait();
+    //~^ ERROR: spawned process is never `wait()`ed on
+    spawn_proc().wait();
+    //~^ ERROR: spawned process is never `wait()`ed on
+    spawn_proc().wait().unwrap(); // OK
+}
+
+fn not_main() {
+    Command::new("").spawn().unwrap().wait();
+}
+
+fn spawn_proc() -> Child {
+    todo!()
+}
