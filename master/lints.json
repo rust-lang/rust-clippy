@@ -9316,6 +9316,21 @@
     }
   },
   {
+    "id": "unnecessary_map_on_constructor",
+    "id_span": {
+      "path": "src/unnecessary_map_on_constructor.rs",
+      "line": 27
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nSuggest removing the use of a may (or map_err) method when an Option or Result is being construted.\n\n### Why is this bad?\nIt introduces unnecessary complexity. In this case the function can be used directly and\nconstruct the Option or Result from the output.\n\n### Example\n```rust\nSome(4).map(i32::swap_bytes);\n```\nUse instead:\n```rust\nSome(i32::swap_bytes(4));\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "unnecessary_mut_passed",
     "id_span": {
       "path": "src/mut_reference.rs",
