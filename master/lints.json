@@ -9971,7 +9971,7 @@
     "id": "useless_conversion",
     "id_span": {
       "path": "src/useless_conversion.rs",
-      "line": 35
+      "line": 39
     },
     "group": "complexity",
     "level": "warn",
