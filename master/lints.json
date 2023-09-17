@@ -2033,7 +2033,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 153
+      "line": 136
     },
     "group": "complexity",
     "level": "warn",
@@ -2063,7 +2063,7 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 68
+      "line": 51
     },
     "group": "pedantic",
     "level": "allow",
@@ -5545,7 +5545,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 102
+      "line": 85
     },
     "group": "style",
     "level": "warn",
@@ -5568,6 +5568,21 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for bindings that needlessly destructure a reference and borrow the inner\nvalue with `&ref`.\n\n### Why is this bad?\nThis pattern has no effect in almost all cases.\n\n### Example\n```rust\nlet mut v = Vec::<String>::new();\nv.iter_mut().filter(|&ref a| a.is_empty());\n\nif let &[ref first, ref second] = v.as_slice() {}\n```\n\nUse instead:\n```rust\nlet mut v = Vec::<String>::new();\nv.iter_mut().filter(|a| a.is_empty());\n\nif let [first, second] = v.as_slice() {}\n```",
+    "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "needless_borrows_for_generic_args",
+    "id_span": {
+      "path": "src/needless_borrows_for_generic_args.rs",
+      "line": 54
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for borrow operations (`&`) that used as a generic argument to a\nfunction when the borrowed value could be used.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Known problems\nThe lint cannot tell when the implementation of a trait\nfor `&T` and `T` do different things. Removing a borrow\nin such a case can change the semantics of the code.\n\n### Example\n```rust\nfn f(_: impl AsRef<str>) {}\n\nlet x = \"foo\";\nf(&x);\n```\n\nUse instead:\n```rust\nfn f(_: impl AsRef<str>) {}\n\nlet x = \"foo\";\nf(x);\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -7381,7 +7396,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 130
+      "line": 113
     },
     "group": "pedantic",
     "level": "allow",
