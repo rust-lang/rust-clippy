@@ -70,6 +70,7 @@ mod renamed_lints;
 mod absolute_paths;
 mod allow_attributes;
 mod almost_complete_range;
+mod ambiguous_method_calls;
 mod approx_const;
 mod arc_with_non_send_sync;
 mod as_conversions;
@@ -1121,6 +1122,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         ))
     });
     store.register_late_pass(move |_| Box::new(manual_hash_one::ManualHashOne::new(msrv())));
+    store.register_late_pass(|_| Box::new(ambiguous_method_calls::AmbiguousMethodCalls));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

@@ -40,6 +40,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::absolute_paths::ABSOLUTE_PATHS_INFO,
     crate::allow_attributes::ALLOW_ATTRIBUTES_INFO,
     crate::almost_complete_range::ALMOST_COMPLETE_RANGE_INFO,
+    crate::ambiguous_method_calls::AMBIGUOUS_METHOD_CALLS_INFO,
     crate::approx_const::APPROX_CONSTANT_INFO,
     crate::arc_with_non_send_sync::ARC_WITH_NON_SEND_SYNC_INFO,
     crate::as_conversions::AS_CONVERSIONS_INFO,

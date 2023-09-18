@@ -1,0 +1,27 @@
+error: ambiguous trait method name
+  --> $DIR/ambiguous_method_calls.rs:21:8
+   |
+LL |     fn ambiguous(&self) {
+   |        ^^^^^^^^^
+   |
+   = note: `-D clippy::ambiguous-method-calls` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::ambiguous_method_calls)]`
+
+error: ambiguous struct method name
+  --> $DIR/ambiguous_method_calls.rs:11:8
+   |
+LL |     fn ambiguous(&self) {
+   |        ^^^^^^^^^
+   |
+   = help: consider renaming the struct impl's method
+
+error: ambiguous struct method call
+  --> $DIR/ambiguous_method_calls.rs:35:10
+   |
+LL |     Base.ambiguous();
+   |          ^^^^^^^^^^^
+   |
+   = help: consider renaming the struct impl's method or explicitly qualifying the call site
+
+error: aborting due to 3 previous errors
+
