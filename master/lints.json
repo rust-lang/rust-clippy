@@ -7861,7 +7861,7 @@
     "id": "short_circuit_statement",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 101
+      "line": 100
     },
     "group": "complexity",
     "level": "warn",
@@ -8704,7 +8704,7 @@
     "id": "toplevel_ref_arg",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 55
+      "line": 54
     },
     "group": "style",
     "level": "warn",
@@ -9941,7 +9941,7 @@
     "id": "used_underscore_binding",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 80
+      "line": 79
     },
     "group": "pedantic",
     "level": "allow",
@@ -10379,7 +10379,7 @@
     "id": "zero_ptr",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 124
+      "line": 123
     },
     "group": "style",
     "level": "warn",
