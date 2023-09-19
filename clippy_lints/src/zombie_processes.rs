@@ -1,11 +1,13 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::visitors::for_each_local_use_after_expr;
-use clippy_utils::{fn_def_id, match_any_def_paths, match_def_path, paths};
+use clippy_utils::{fn_def_id, get_enclosing_block, match_any_def_paths, match_def_path, paths};
 use rustc_ast::Mutability;
-use rustc_hir::{Expr, ExprKind, Node, PatKind, Stmt, StmtKind};
+use rustc_hir::def::DefKind;
+use rustc_hir::intravisit::{walk_expr, Visitor};
+use rustc_hir::{Expr, ExprKind, HirId, Local, Node, PatKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::Span;
+use rustc_span::{sym, Span};
 use std::ops::ControlFlow;
 
 declare_clippy_lint! {
@@ -95,20 +97,157 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
                         }
                     }).is_continue();
 
-                    if has_no_wait {
-                        emit_lint(cx, expr.span);
+                    // If it does have a `wait()` call, we're done. Don't lint.
+                    if !has_no_wait {
+                        return;
                     }
+
+                    check(cx, expr, local.hir_id);
                 },
-                Node::Local(local) if let PatKind::Wild = local.pat.kind => {
+                Node::Local(&Local { pat, hir_id, .. }) if let PatKind::Wild = pat.kind => {
                     // `let _ = child;`, also dropped immediately without `wait()`ing
-                    emit_lint(cx, expr.span);
+                    check(cx, expr, hir_id);
                 }
-                Node::Stmt(Stmt { kind: StmtKind::Semi(_), .. }) => {
+                Node::Stmt(&Stmt { kind: StmtKind::Semi(_), hir_id, .. }) => {
                     // Immediately dropped. E.g. `std::process::Command::new("echo").spawn().unwrap();`
-                    emit_lint(cx, expr.span);
+                    check(cx, expr, hir_id);
                 }
                 _ => {}
             }
+        }
+    }
+}
+
+/// This function has shared logic between the different kinds of nodes that can trigger the lint.
+///
+/// In particular, `let <binding> = <expr that spawns child>;` requires some custom additional logic
+/// such as checking that the binding is not used in certain ways, which isn't necessary for
+/// `let _ = <expr that spawns child>;`.
+///
+/// This checks if the program doesn't unconditionally exit after the spawn expression and that it
+/// isn't the last statement of the program.
+fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: HirId) {
+    let Some(block) = get_enclosing_block(cx, spawn_expr.hir_id) else {
+        return;
+    };
+
+    let mut vis = ExitPointFinder {
+        cx,
+        state: ExitPointState::LookingForSpawnExpr(spawn_expr.hir_id),
+    };
+    vis.visit_block(block);
+
+    // Visitor found an unconditional `exit()` call, so don't lint.
+    if let ExitPointState::ExitFound = vis.state {
+        return;
+    }
+
+    // This might be the last effective node of the program (main function).
+    // There's no need to lint in that case either, as this is basically equivalent to calling `exit()`
+    if is_last_node_in_main(cx, node_id) {
+        return;
+    }
+
+    emit_lint(cx, spawn_expr.span);
+}
+
+/// The hir id id may either correspond to a `Local` or `Stmt`, depending on how we got here.
+/// This function gets the enclosing function, checks if it's `main` and if so,
+/// check if the last statement modulo blocks is the given id.
+fn is_last_node_in_main(cx: &LateContext<'_>, id: HirId) -> bool {
+    let hir = cx.tcx.hir();
+    let body_owner = hir.enclosing_body_owner(id);
+    let enclosing_body = hir.body(hir.body_owned_by(body_owner));
+
+    if cx.tcx.opt_def_kind(body_owner) == Some(DefKind::Fn)
+        && cx.tcx.opt_item_name(body_owner.to_def_id()) == Some(sym::main)
+        && let ExprKind::Block(block, _) = &enclosing_body.value.peel_blocks().kind
+        && let [.., stmt] = block.stmts
+    {
+        matches!(stmt.kind, StmtKind::Local(local) if local.hir_id == id)
+            || matches!(stmt.kind, StmtKind::Semi(..) if stmt.hir_id == id)
+    } else {
+        false
+    }
+}
+
+/// Checks if the given expression exits the process.
+fn is_exit_expression(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    if let Some(fn_did) = fn_def_id(cx, expr) {
+        match_any_def_paths(cx, fn_did, &[&paths::EXIT, &paths::ABORT]).is_some()
+    } else {
+        false
+    }
+}
+
+#[derive(Debug)]
+enum ExitPointState {
+    /// Still walking up to the expression that initiated the visitor.
+    LookingForSpawnExpr(HirId),
+    /// We're inside of a control flow construct (e.g. `if`, `match`, `loop`)
+    /// Within this, we shouldn't accept any `exit()` calls in here, but we can leave all of these
+    /// constructs later and still continue looking for an `exit()` call afterwards. Example:
+    /// ```ignore
+    /// Command::new("").spawn().unwrap();
+    ///
+    /// if true {                // depth=1
+    ///     if true {            // depth=2
+    ///         match () {       // depth=3
+    ///             () => loop { // depth=4
+    ///
+    ///                 std::process::exit();
+    ///                 ^^^^^^^^^^^^^^^^^^^^^ conditional exit call, ignored
+    ///
+    ///             }           // depth=3
+    ///         }               // depth=2
+    ///     }                   // depth=1
+    /// }                       // depth=0
+    ///
+    /// std::process::exit();
+    /// ^^^^^^^^^^^^^^^^^^^^^ this exit call is accepted because we're now unconditionally calling it
+    /// ```
+    /// We can only get into this state from `NoExit`.
+    InControlFlow { depth: u32 },
+    /// No exit call found yet, but looking for one.
+    NoExit,
+    /// Found an expression that exits the process.
+    ExitFound,
+}
+
+fn expr_enters_control_flow(expr: &Expr<'_>) -> bool {
+    matches!(expr.kind, ExprKind::If(..) | ExprKind::Match(..) | ExprKind::Loop(..))
+}
+
+struct ExitPointFinder<'a, 'tcx> {
+    state: ExitPointState,
+    cx: &'a LateContext<'tcx>,
+}
+
+impl<'a, 'tcx> Visitor<'tcx> for ExitPointFinder<'a, 'tcx> {
+    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
+        match self.state {
+            ExitPointState::LookingForSpawnExpr(id) if expr.hir_id == id => {
+                self.state = ExitPointState::NoExit;
+                walk_expr(self, expr);
+            },
+            ExitPointState::NoExit if expr_enters_control_flow(expr) => {
+                self.state = ExitPointState::InControlFlow { depth: 1 };
+                walk_expr(self, expr);
+                if let ExitPointState::InControlFlow { .. } = self.state {
+                    self.state = ExitPointState::NoExit;
+                }
+            },
+            ExitPointState::NoExit if is_exit_expression(self.cx, expr) => self.state = ExitPointState::ExitFound,
+            ExitPointState::InControlFlow { ref mut depth } if expr_enters_control_flow(expr) => {
+                *depth += 1;
+                walk_expr(self, expr);
+                match self.state {
+                    ExitPointState::InControlFlow { depth: 1 } => self.state = ExitPointState::NoExit,
+                    ExitPointState::InControlFlow { ref mut depth } => *depth -= 1,
+                    _ => {},
+                }
+            },
+            _ => {},
         }
     }
 }

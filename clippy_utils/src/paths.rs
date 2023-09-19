@@ -4,6 +4,7 @@
 //! Whenever possible, please consider diagnostic items over hardcoded paths.
 //! See <https://github.com/rust-lang/rust-clippy/issues/5393> for more information.
 
+pub const ABORT: [&str; 3] = ["std", "process", "abort"];
 pub const APPLICABILITY: [&str; 2] = ["rustc_lint_defs", "Applicability"];
 pub const APPLICABILITY_VALUES: [[&str; 3]; 4] = [
     ["rustc_lint_defs", "Applicability", "Unspecified"],

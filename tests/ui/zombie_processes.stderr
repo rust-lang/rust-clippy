@@ -45,5 +45,23 @@ LL |         let mut x = Command::new("").spawn().unwrap();
    = help: consider calling `.wait()`
    = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
 
-error: aborting due to 5 previous errors
+error: spawned process is never `wait()`-ed on and leaves behind a zombie process
+  --> $DIR/zombie_processes.rs:67:21
+   |
+LL |         let mut x = Command::new("").spawn().unwrap();
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider calling `.wait()`
+   = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
+
+error: spawned process is never `wait()`-ed on and leaves behind a zombie process
+  --> $DIR/zombie_processes.rs:74:21
+   |
+LL |         let mut x = Command::new("").spawn().unwrap();
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider calling `.wait()`
+   = note: also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
+
+error: aborting due to 7 previous errors
 
