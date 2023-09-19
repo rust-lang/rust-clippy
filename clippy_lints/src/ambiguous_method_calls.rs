@@ -148,7 +148,7 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
     }
 }
 
-fn has_ambiguous_name<'tcx>(ty: Ty<'tcx>, ident: Ident) -> bool {
+fn has_ambiguous_name(ty: Ty<'_>, ident: Ident) -> bool {
     let ty_str = format!("{ty}");
     let trait_methods = trait_methods().lock().unwrap();
     let struct_methods = struct_methods().lock().unwrap();
@@ -166,7 +166,7 @@ fn struct_methods() -> &'static Mutex<FxHashMap<(String, Symbol), SpanData>> {
     NAMES.get_or_init(|| Mutex::new(FxHashMap::default()))
 }
 
-fn insert_method<'tcx>(is_trait_impl: bool, ty: Ty<'tcx>, ident: Ident) {
+fn insert_method(is_trait_impl: bool, ty: Ty<'_>, ident: Ident) {
     let ty_str = format!("{ty}");
     let mut trait_methods = trait_methods().lock().unwrap();
     let mut struct_methods = struct_methods().lock().unwrap();
