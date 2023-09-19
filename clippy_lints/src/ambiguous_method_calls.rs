@@ -2,9 +2,10 @@ use std::sync::{Mutex, OnceLock};
 
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
 use clippy_utils::is_trait_impl_item;
+use hir::intravisit::FnKind;
+use hir::{Body, FnDecl};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_hir::intravisit::FnKind;
-use rustc_hir::{Body, FnDecl};
+use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 use rustc_session::{declare_lint_pass, declare_tool_lint};
@@ -88,8 +89,16 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
         let is_trait_impl = is_trait_impl_item(cx, hir_id);
 
         if let FnKind::Method(ident, _) = kind {
-            let parent_item = cx.tcx.hir().get_parent_item(hir_id).to_def_id();
-            let parent_type = cx.tcx.type_of(parent_item).skip_binder();
+            let parent_item = cx.tcx.hir().get_parent_item(hir_id);
+
+            // Calling type_of on a method's default impl causes an ICE
+            if let Some(hir::Node::Item(item)) = cx.tcx.hir().find(hir::HirId::from(parent_item)) {
+                if let hir::ItemKind::Trait(..) = item.kind {
+                    return;
+                }
+            }
+
+            let parent_type = cx.tcx.type_of(parent_item.to_def_id()).skip_binder();
             let parent_ty_str = format!("{parent_type}");
 
             insert_method(is_trait_impl, parent_type, ident);
@@ -116,8 +125,8 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
         }
     }
 
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'_>) {
-        if let rustc_hir::ExprKind::MethodCall(path, receiver, _, call_span) = &expr.kind {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
+        if let hir::ExprKind::MethodCall(path, receiver, _, call_span) = &expr.kind {
             let recv_ty = cx.typeck_results().expr_ty(receiver).peel_refs();
             let recv_ty_str = format!("{recv_ty}");
 
