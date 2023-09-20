@@ -363,10 +363,11 @@ fn suggestion_snippet_for_continue_inside_else(cx: &EarlyContext<'_>, data: &Lin
 
 fn check_and_warn(cx: &EarlyContext<'_>, expr: &ast::Expr) {
     if_chain! {
-        if let ast::ExprKind::Loop(loop_block, ..) = &expr.kind;
+        if let ast::ExprKind::Loop(loop_block, loop_label, ..) = &expr.kind;
         if let Some(last_stmt) = loop_block.stmts.last();
         if let ast::StmtKind::Expr(inner_expr) | ast::StmtKind::Semi(inner_expr) = &last_stmt.kind;
-        if let ast::ExprKind::Continue(_) = inner_expr.kind;
+        if let ast::ExprKind::Continue(continue_label) = inner_expr.kind;
+        if compare_labels(loop_label.as_ref(), continue_label.as_ref());
         then {
             span_lint_and_help(
                 cx,
