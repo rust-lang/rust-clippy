@@ -1122,7 +1122,7 @@ pub fn register_plugins(store: &mut rustc_lint::LintStore, sess: &Session, conf:
         ))
     });
     store.register_late_pass(move |_| Box::new(manual_hash_one::ManualHashOne::new(msrv())));
-    store.register_late_pass(|_| Box::new(ambiguous_method_calls::AmbiguousMethodCalls));
+    store.register_late_pass(|_| Box::new(ambiguous_method_calls::AmbiguousMethodCalls::new()));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

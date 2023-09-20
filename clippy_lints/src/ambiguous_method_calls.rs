@@ -1,5 +1,3 @@
-use std::sync::{Mutex, OnceLock};
-
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
 use clippy_utils::is_trait_impl_item;
 use hir::intravisit::FnKind;
@@ -8,10 +6,10 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::Ident;
-use rustc_span::{Span, SpanData, Symbol};
+use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -73,7 +71,43 @@ declare_clippy_lint! {
     pedantic,
     "declarations and calls for same-named methods in struct impls and trait impls"
 }
-declare_lint_pass!(AmbiguousMethodCalls => [AMBIGUOUS_METHOD_CALLS]);
+
+#[derive(Clone)]
+pub struct AmbiguousMethodCalls {
+    trait_methods: FxHashMap<(String, Symbol), Span>,
+    inherent_methods: FxHashMap<(String, Symbol), Span>,
+    call_sites: FxHashMap<(String, Symbol), Vec<Span>>,
+}
+
+impl AmbiguousMethodCalls {
+    pub fn new() -> Self {
+        Self {
+            trait_methods: FxHashMap::default(),
+            inherent_methods: FxHashMap::default(),
+            call_sites: FxHashMap::default(),
+        }
+    }
+
+    fn insert_method(&mut self, is_trait_impl: bool, ty: Ty<'_>, ident: Ident) {
+        let ty_str = format!("{ty}");
+        if is_trait_impl {
+            self.trait_methods.insert((ty_str, ident.name), ident.span);
+        } else {
+            self.inherent_methods.insert((ty_str, ident.name), ident.span);
+        }
+    }
+
+    fn insert_call_site(&mut self, ty: Ty<'_>, ident: Ident, span: Span) {
+        let ty_str = format!("{ty}");
+        if let Some(spans) = self.call_sites.get_mut(&(ty_str.clone(), ident.name)) {
+            spans.push(span);
+        } else {
+            self.call_sites.insert((ty_str, ident.name), vec![span]);
+        }
+    }
+}
+
+impl_lint_pass!(AmbiguousMethodCalls => [AMBIGUOUS_METHOD_CALLS]);
 
 impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
     fn check_fn(
@@ -85,95 +119,62 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
         _: Span,
         def_id: LocalDefId,
     ) {
-        let hir_id = cx.tcx.hir().local_def_id_to_hir_id(def_id);
-        let is_trait_impl = is_trait_impl_item(cx, hir_id);
-
         if let FnKind::Method(ident, _) = kind {
-            let parent_item = cx.tcx.hir().get_parent_item(hir_id);
+            let hir_id = cx.tcx.hir().local_def_id_to_hir_id(def_id);
+            let is_trait_impl = is_trait_impl_item(cx, hir_id);
+            let parent_id = cx.tcx.hir().get_parent_item(hir_id);
 
             // Calling type_of on a method's default impl causes an ICE
-            if let Some(hir::Node::Item(item)) = cx.tcx.hir().find(hir::HirId::from(parent_item)) {
+            if let Some(hir::Node::Item(item)) = cx.tcx.hir().find(hir::HirId::from(parent_id)) {
                 if let hir::ItemKind::Trait(..) = item.kind {
                     return;
                 }
             }
 
-            let parent_type = cx.tcx.type_of(parent_item.to_def_id()).skip_binder();
-            let parent_ty_str = format!("{parent_type}");
+            let parent_ty = cx.tcx.type_of(parent_id.to_def_id()).skip_binder();
+            self.insert_method(is_trait_impl, parent_ty, ident);
+        }
+    }
 
-            insert_method(is_trait_impl, parent_type, ident);
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
+        if let hir::ExprKind::MethodCall(path, recv, _, call_span) = &expr.kind {
+            let recv_ty = cx.typeck_results().expr_ty(recv).peel_refs();
 
-            if has_ambiguous_name(parent_type, ident) {
-                let trait_methods = trait_methods().lock().unwrap();
-                let struct_methods = struct_methods().lock().unwrap();
+            self.insert_call_site(recv_ty, path.ident, *call_span);
+        }
+    }
 
+    fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
+        for k in self.inherent_methods.keys() {
+            if self.trait_methods.contains_key(k) {
                 span_lint(
                     cx,
                     AMBIGUOUS_METHOD_CALLS,
-                    trait_methods.get(&(parent_ty_str.clone(), ident.name)).unwrap().span(),
+                    *self.trait_methods.get(k).unwrap(),
                     "ambiguous trait method name",
                 );
                 span_lint_and_help(
                     cx,
                     AMBIGUOUS_METHOD_CALLS,
-                    struct_methods.get(&(parent_ty_str, ident.name)).unwrap().span(),
+                    *self.inherent_methods.get(k).unwrap(),
                     "ambiguous struct method name",
                     None,
                     "consider renaming the struct impl's method",
                 );
+
+                if let Some(spans) = self.call_sites.get(k) {
+                    for span in spans {
+                        span_lint_and_help(
+                            cx,
+                            AMBIGUOUS_METHOD_CALLS,
+                            *span,
+                            "ambiguous struct method call",
+                            None,
+                            "consider renaming the struct impl's method or explicitly qualifying the call site",
+                        );
+                    }
+                }
             }
         }
-    }
-
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'_>) {
-        if let hir::ExprKind::MethodCall(path, receiver, _, call_span) = &expr.kind {
-            let recv_ty = cx.typeck_results().expr_ty(receiver).peel_refs();
-            let recv_ty_str = format!("{recv_ty}");
-
-            let struct_methods = struct_methods().lock().unwrap();
-            let trait_methods = trait_methods().lock().unwrap();
-            if struct_methods.contains_key(&(recv_ty_str.clone(), path.ident.name))
-                && trait_methods.contains_key(&(recv_ty_str, path.ident.name))
-            {
-                span_lint_and_help(
-                    cx,
-                    AMBIGUOUS_METHOD_CALLS,
-                    *call_span,
-                    "ambiguous struct method call",
-                    None,
-                    "consider renaming the struct impl's method or explicitly qualifying the call site",
-                );
-            }
-        }
-    }
-}
-
-fn has_ambiguous_name(ty: Ty<'_>, ident: Ident) -> bool {
-    let ty_str = format!("{ty}");
-    let trait_methods = trait_methods().lock().unwrap();
-    let struct_methods = struct_methods().lock().unwrap();
-
-    trait_methods.contains_key(&(ty_str.clone(), ident.name)) && struct_methods.contains_key(&(ty_str, ident.name))
-}
-
-fn trait_methods() -> &'static Mutex<FxHashMap<(String, Symbol), SpanData>> {
-    static NAMES: OnceLock<Mutex<FxHashMap<(String, Symbol), SpanData>>> = OnceLock::new();
-    NAMES.get_or_init(|| Mutex::new(FxHashMap::default()))
-}
-
-fn struct_methods() -> &'static Mutex<FxHashMap<(String, Symbol), SpanData>> {
-    static NAMES: OnceLock<Mutex<FxHashMap<(String, Symbol), SpanData>>> = OnceLock::new();
-    NAMES.get_or_init(|| Mutex::new(FxHashMap::default()))
-}
-
-fn insert_method(is_trait_impl: bool, ty: Ty<'_>, ident: Ident) {
-    let ty_str = format!("{ty}");
-    let mut trait_methods = trait_methods().lock().unwrap();
-    let mut struct_methods = struct_methods().lock().unwrap();
-
-    if is_trait_impl {
-        trait_methods.insert((ty_str, ident.name), ident.span.data());
-    } else {
-        struct_methods.insert((ty_str, ident.name), ident.span.data());
     }
 }
