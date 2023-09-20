@@ -10,11 +10,21 @@ fn main() {
 
     Other.ambiguous();
     Other.also_ambiguous();
+
+    Base.another();
+
+    ambiguous();
 }
+
+fn ambiguous() {}
 
 trait MyTrait {
     fn ambiguous(&self);
     fn also_ambiguous(&self);
+}
+
+trait Another {
+    fn another(&self);
 }
 
 struct Base;
@@ -29,6 +39,8 @@ impl Base {
     fn unambiguous(&self) {
         println!("unambiguous struct impl");
     }
+
+    fn another(&self) {}
 }
 
 impl MyTrait for Base {
@@ -37,6 +49,10 @@ impl MyTrait for Base {
     }
 
     fn also_ambiguous(&self) {}
+}
+
+impl Another for Base {
+    fn another(&self) {}
 }
 
 struct Other;

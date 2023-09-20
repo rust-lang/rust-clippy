@@ -75,7 +75,7 @@ declare_clippy_lint! {
 #[derive(Clone)]
 pub struct AmbiguousMethodCalls {
     trait_methods: FxHashMap<(String, Symbol), Span>,
-    inherent_methods: FxHashMap<(String, Symbol), Span>,
+    inherent_methods: Vec<(String, Symbol, Span)>,
     call_sites: FxHashMap<(String, Symbol), Vec<Span>>,
 }
 
@@ -83,7 +83,7 @@ impl AmbiguousMethodCalls {
     pub fn new() -> Self {
         Self {
             trait_methods: FxHashMap::default(),
-            inherent_methods: FxHashMap::default(),
+            inherent_methods: Vec::default(),
             call_sites: FxHashMap::default(),
         }
     }
@@ -93,7 +93,7 @@ impl AmbiguousMethodCalls {
         if is_trait_impl {
             self.trait_methods.insert((ty_str, ident.name), ident.span);
         } else {
-            self.inherent_methods.insert((ty_str, ident.name), ident.span);
+            self.inherent_methods.push((ty_str, ident.name, ident.span));
         }
     }
 
@@ -145,7 +145,8 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
     }
 
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
-        for k in self.inherent_methods.keys() {
+        for (ty, name, span) in &self.inherent_methods {
+            let k = &(ty.clone(), *name);
             if self.trait_methods.contains_key(k) {
                 span_lint(
                     cx,
@@ -156,7 +157,7 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
                 span_lint_and_help(
                     cx,
                     AMBIGUOUS_METHOD_CALLS,
-                    *self.inherent_methods.get(k).unwrap(),
+                    *span,
                     "ambiguous struct method name",
                     None,
                     "consider renaming the struct impl's method",
@@ -168,7 +169,7 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
                             cx,
                             AMBIGUOUS_METHOD_CALLS,
                             *span,
-                            "ambiguous struct method call",
+                            "ambiguous method call",
                             None,
                             "consider renaming the struct impl's method or explicitly qualifying the call site",
                         );

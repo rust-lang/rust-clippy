@@ -1,21 +1,51 @@
 error: ambiguous trait method name
-  --> $DIR/ambiguous_method_calls.rs:39:8
+  --> $DIR/ambiguous_method_calls.rs:47:8
    |
-LL |     fn also_ambiguous(&self) {}
-   |        ^^^^^^^^^^^^^^
+LL |     fn ambiguous(&self) {
+   |        ^^^^^^^^^
    |
    = note: `-D clippy::ambiguous-method-calls` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::ambiguous_method_calls)]`
 
 error: ambiguous struct method name
-  --> $DIR/ambiguous_method_calls.rs:27:8
+  --> $DIR/ambiguous_method_calls.rs:33:8
+   |
+LL |     fn ambiguous(&self) {
+   |        ^^^^^^^^^
+   |
+   = help: consider renaming the struct impl's method
+
+error: ambiguous method call
+  --> $DIR/ambiguous_method_calls.rs:5:10
+   |
+LL |     Base.ambiguous();
+   |          ^^^^^^^^^^^
+   |
+   = help: consider renaming the struct impl's method or explicitly qualifying the call site
+
+error: ambiguous method call
+  --> $DIR/ambiguous_method_calls.rs:6:10
+   |
+LL |     Base.ambiguous();
+   |          ^^^^^^^^^^^
+   |
+   = help: consider renaming the struct impl's method or explicitly qualifying the call site
+
+error: ambiguous trait method name
+  --> $DIR/ambiguous_method_calls.rs:51:8
+   |
+LL |     fn also_ambiguous(&self) {}
+   |        ^^^^^^^^^^^^^^
+
+error: ambiguous struct method name
+  --> $DIR/ambiguous_method_calls.rs:37:8
    |
 LL |     fn also_ambiguous(&self) {}
    |        ^^^^^^^^^^^^^^
    |
    = help: consider renaming the struct impl's method
 
-error: ambiguous struct method call
+error: ambiguous method call
   --> $DIR/ambiguous_method_calls.rs:7:10
    |
 LL |     Base.also_ambiguous();
@@ -24,34 +54,26 @@ LL |     Base.also_ambiguous();
    = help: consider renaming the struct impl's method or explicitly qualifying the call site
 
 error: ambiguous trait method name
-  --> $DIR/ambiguous_method_calls.rs:35:8
+  --> $DIR/ambiguous_method_calls.rs:55:8
    |
-LL |     fn ambiguous(&self) {
-   |        ^^^^^^^^^
+LL |     fn another(&self) {}
+   |        ^^^^^^^
 
 error: ambiguous struct method name
-  --> $DIR/ambiguous_method_calls.rs:23:8
+  --> $DIR/ambiguous_method_calls.rs:43:8
    |
-LL |     fn ambiguous(&self) {
-   |        ^^^^^^^^^
+LL |     fn another(&self) {}
+   |        ^^^^^^^
    |
    = help: consider renaming the struct impl's method
 
-error: ambiguous struct method call
-  --> $DIR/ambiguous_method_calls.rs:5:10
+error: ambiguous method call
+  --> $DIR/ambiguous_method_calls.rs:14:10
    |
-LL |     Base.ambiguous();
-   |          ^^^^^^^^^^^
-   |
-   = help: consider renaming the struct impl's method or explicitly qualifying the call site
-
-error: ambiguous struct method call
-  --> $DIR/ambiguous_method_calls.rs:6:10
-   |
-LL |     Base.ambiguous();
-   |          ^^^^^^^^^^^
+LL |     Base.another();
+   |          ^^^^^^^^^
    |
    = help: consider renaming the struct impl's method or explicitly qualifying the call site
 
-error: aborting due to 7 previous errors
+error: aborting due to 10 previous errors
 
