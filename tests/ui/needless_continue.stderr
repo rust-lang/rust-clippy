@@ -63,7 +63,7 @@ error: this `continue` expression is redundant
   --> $DIR/needless_continue.rs:60:9
    |
 LL |         continue;
-   |         ^^^^^^^^^
+   |         ^^^^^^^^
    |
    = help: consider dropping the `continue` expression
 
@@ -71,7 +71,7 @@ error: this `continue` expression is redundant
   --> $DIR/needless_continue.rs:68:9
    |
 LL |         continue;
-   |         ^^^^^^^^^
+   |         ^^^^^^^^
    |
    = help: consider dropping the `continue` expression
 
@@ -91,8 +91,16 @@ LL |         continue
    |
    = help: consider dropping the `continue` expression
 
+error: this `continue` expression is redundant
+  --> $DIR/needless_continue.rs:93:11
+   |
+LL |         { continue }
+   |           ^^^^^^^^
+   |
+   = help: consider dropping the `continue` expression
+
 error: this `else` block is redundant
-  --> $DIR/needless_continue.rs:136:24
+  --> $DIR/needless_continue.rs:144:24
    |
 LL |                   } else {
    |  ________________________^
@@ -117,7 +125,7 @@ LL | |                 }
                            }
 
 error: there is no need for an explicit `else` block for this `if` expression
-  --> $DIR/needless_continue.rs:143:17
+  --> $DIR/needless_continue.rs:151:17
    |
 LL | /                 if condition() {
 LL | |
@@ -136,5 +144,21 @@ LL | |                 }
                                println!("bar-5");
                            }
 
-error: aborting due to 8 previous errors
+error: this `continue` expression is redundant
+  --> $DIR/needless_continue.rs:173:21
+   |
+LL |                     continue 'inner;
+   |                     ^^^^^^^^^^^^^^^
+   |
+   = help: consider dropping the `continue` expression
+
+error: this `continue` expression is redundant
+  --> $DIR/needless_continue.rs:176:21
+   |
+LL |                     continue 'inner;
+   |                     ^^^^^^^^^^^^^^^
+   |
+   = help: consider dropping the `continue` expression
+
+error: aborting due to 11 previous errors
 
