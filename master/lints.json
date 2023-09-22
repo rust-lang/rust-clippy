@@ -3656,11 +3656,11 @@
     "id": "large_futures",
     "id_span": {
       "path": "src/large_futures.rs",
-      "line": 43
+      "line": 37
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = big_fut([0u8; 1024]);\n    wait(fut).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = Box::pin(big_fut([0u8; 1024]));\n    wait(fut).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
+    "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    large_future([0u8; 16 * 1024]).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    Box::pin(large_future([0u8; 16 * 1024])).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
