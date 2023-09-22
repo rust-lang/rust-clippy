@@ -73,13 +73,13 @@ declare_clippy_lint! {
 }
 
 #[derive(Clone)]
-pub struct AmbiguousMethodCalls {
-    trait_methods: FxHashMap<(String, Symbol), Span>,
-    inherent_methods: Vec<(String, Symbol, Span)>,
-    call_sites: FxHashMap<(String, Symbol), Vec<Span>>,
+pub struct AmbiguousMethodCalls<'tcx> {
+    trait_methods: FxHashMap<(Ty<'tcx>, Symbol), Span>,
+    inherent_methods: Vec<(Ty<'tcx>, Symbol, Span)>,
+    call_sites: FxHashMap<(Ty<'tcx>, Symbol), Vec<Span>>,
 }
 
-impl AmbiguousMethodCalls {
+impl<'tcx> AmbiguousMethodCalls<'tcx> {
     pub fn new() -> Self {
         Self {
             trait_methods: FxHashMap::default(),
@@ -88,28 +88,26 @@ impl AmbiguousMethodCalls {
         }
     }
 
-    fn insert_method(&mut self, is_trait_impl: bool, ty: Ty<'_>, ident: Ident) {
-        let ty_str = format!("{ty}");
+    fn insert_method(&mut self, is_trait_impl: bool, ty: Ty<'tcx>, ident: Ident) {
         if is_trait_impl {
-            self.trait_methods.insert((ty_str, ident.name), ident.span);
+            self.trait_methods.insert((ty, ident.name), ident.span);
         } else {
-            self.inherent_methods.push((ty_str, ident.name, ident.span));
+            self.inherent_methods.push((ty, ident.name, ident.span));
         }
     }
 
-    fn insert_call_site(&mut self, ty: Ty<'_>, ident: Ident, span: Span) {
-        let ty_str = format!("{ty}");
-        if let Some(spans) = self.call_sites.get_mut(&(ty_str.clone(), ident.name)) {
+    fn insert_call_site(&mut self, ty: Ty<'tcx>, ident: Ident, span: Span) {
+        if let Some(spans) = self.call_sites.get_mut(&(ty, ident.name)) {
             spans.push(span);
         } else {
-            self.call_sites.insert((ty_str, ident.name), vec![span]);
+            self.call_sites.insert((ty, ident.name), vec![span]);
         }
     }
 }
 
-impl_lint_pass!(AmbiguousMethodCalls => [AMBIGUOUS_METHOD_CALLS]);
+impl_lint_pass!(AmbiguousMethodCalls<'_> => [AMBIGUOUS_METHOD_CALLS]);
 
-impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
+impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls<'tcx> {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -146,7 +144,7 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls {
 
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
         for (ty, name, span) in &self.inherent_methods {
-            let k = &(ty.clone(), *name);
+            let k = &(*ty, *name);
             if self.trait_methods.contains_key(k) {
                 span_lint(
                     cx,
