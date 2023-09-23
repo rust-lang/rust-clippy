@@ -67,18 +67,18 @@ declare_clippy_lint! {
     /// Base.ambiguous(); // prints "trait impl"
     /// ```
     #[clippy::version = "1.74.0"]
-    pub AMBIGUOUS_METHOD_CALLS,
+    pub AMBIGUOUS_METHOD_NAMES,
     pedantic,
     "declarations and calls for same-named methods in struct impls and trait impls"
 }
 
 #[derive(Clone)]
-pub struct AmbiguousMethodCalls<'tcx> {
+pub struct AmbiguousMethodNames<'tcx> {
     trait_methods: FxHashMap<(Ty<'tcx>, Symbol), Span>,
     inherent_methods: Vec<(Ty<'tcx>, Symbol, Span)>,
 }
 
-impl<'tcx> AmbiguousMethodCalls<'tcx> {
+impl<'tcx> AmbiguousMethodNames<'tcx> {
     pub fn new() -> Self {
         Self {
             trait_methods: FxHashMap::default(),
@@ -95,9 +95,9 @@ impl<'tcx> AmbiguousMethodCalls<'tcx> {
     }
 }
 
-impl_lint_pass!(AmbiguousMethodCalls<'_> => [AMBIGUOUS_METHOD_CALLS]);
+impl_lint_pass!(AmbiguousMethodNames<'_> => [AMBIGUOUS_METHOD_NAMES]);
 
-impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls<'tcx> {
+impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodNames<'tcx> {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -130,7 +130,7 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodCalls<'tcx> {
             if let Some(tm_span) = self.trait_methods.get(k) {
                 span_lint_and_note(
                     cx,
-                    AMBIGUOUS_METHOD_CALLS,
+                    AMBIGUOUS_METHOD_NAMES,
                     *span,
                     "ambiguous inherent method name",
                     Some(*tm_span),

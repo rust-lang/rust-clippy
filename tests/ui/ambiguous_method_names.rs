@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-#![warn(clippy::ambiguous_method_calls)]
+#![warn(clippy::ambiguous_method_names)]
 
 fn main() {
     Base.ambiguous();
@@ -14,6 +14,9 @@ fn main() {
     Base.another();
 
     ambiguous();
+
+    S::<u64>(42).f();
+    S::<i32>(-42).f();
 }
 
 fn ambiguous() {}
@@ -65,4 +68,14 @@ impl MyTrait for Other {
     fn also_ambiguous(&self) {
         println!("not actually ambiguous either")
     }
+}
+
+struct S<T>(T);
+
+impl S<i32> {
+    fn f(&self) {}
+}
+
+impl S<u64> {
+    fn f(&self) {}
 }

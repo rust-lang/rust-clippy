@@ -1,0 +1,40 @@
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:36:8
+   |
+LL |     fn ambiguous(&self) {
+   |        ^^^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:50:8
+   |
+LL |     fn ambiguous(&self) {
+   |        ^^^^^^^^^
+   = note: `-D clippy::ambiguous-method-names` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::ambiguous_method_names)]`
+
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:40:8
+   |
+LL |     fn also_ambiguous(&self) {}
+   |        ^^^^^^^^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:54:8
+   |
+LL |     fn also_ambiguous(&self) {}
+   |        ^^^^^^^^^^^^^^
+
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:46:8
+   |
+LL |     fn another(&self) {}
+   |        ^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:58:8
+   |
+LL |     fn another(&self) {}
+   |        ^^^^^^^
+
+error: aborting due to 3 previous errors
+
