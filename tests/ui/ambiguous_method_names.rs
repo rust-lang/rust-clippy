@@ -1,73 +1,69 @@
 #![allow(dead_code)]
 #![warn(clippy::ambiguous_method_names)]
 
-fn main() {
-    Base.ambiguous();
-    Base.ambiguous();
-    Base.also_ambiguous();
-
-    Base.unambiguous();
-
-    Other.ambiguous();
-    Other.also_ambiguous();
-
-    Base.another();
-
-    ambiguous();
-
-    S::<u64>(42).f();
-    S::<i32>(-42).f();
-}
+fn main() {}
 
 fn ambiguous() {}
 
 trait MyTrait {
     fn ambiguous(&self);
     fn also_ambiguous(&self);
+    fn ambiguous_default(&self) {}
 }
 
 trait Another {
     fn another(&self);
 }
 
-struct Base;
+struct A;
 
-impl Base {
-    fn ambiguous(&self) {
-        println!("ambiguous struct impl");
-    }
-
+impl A {
+    fn ambiguous(&self) {}
     fn also_ambiguous(&self) {}
-
-    fn unambiguous(&self) {
-        println!("unambiguous struct impl");
-    }
-
+    fn ambiguous_default(&self) {}
+    fn unambiguous(&self) {}
     fn another(&self) {}
 }
 
-impl MyTrait for Base {
-    fn ambiguous(&self) {
-        println!("ambiguous trait impl");
-    }
-
+impl MyTrait for A {
+    fn ambiguous(&self) {}
     fn also_ambiguous(&self) {}
 }
 
-impl Another for Base {
+impl Another for A {
     fn another(&self) {}
 }
 
-struct Other;
+struct B;
 
-impl MyTrait for Other {
-    fn ambiguous(&self) {
-        println!("not actually ambiguous")
-    }
+impl B {
+    fn ambiguous(&self) {}
+    fn also_ambiguous(&self) {}
+    fn ambiguous_default(&self) {}
+    fn another(&self) {}
+}
 
-    fn also_ambiguous(&self) {
-        println!("not actually ambiguous either")
-    }
+impl MyTrait for B {
+    fn ambiguous(&self) {}
+    fn also_ambiguous(&self) {}
+}
+
+impl Another for B {
+    fn another(&self) {}
+}
+
+struct C;
+
+impl MyTrait for C {
+    fn ambiguous(&self) {}
+    fn also_ambiguous(&self) {}
+}
+
+struct D;
+
+impl D {
+    fn ambiguous(&self) {}
+    fn also_ambiguous(&self) {}
 }
 
 struct S<T>(T);

@@ -1,13 +1,13 @@
 error: ambiguous inherent method name
-  --> $DIR/ambiguous_method_names.rs:36:8
+  --> $DIR/ambiguous_method_names.rs:21:8
    |
-LL |     fn ambiguous(&self) {
+LL |     fn ambiguous(&self) {}
    |        ^^^^^^^^^
    |
 note: trait method defined here
-  --> $DIR/ambiguous_method_names.rs:50:8
+  --> $DIR/ambiguous_method_names.rs:9:8
    |
-LL |     fn ambiguous(&self) {
+LL |     fn ambiguous(&self);
    |        ^^^^^^^^^
    = note: `-D clippy::ambiguous-method-names` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::ambiguous_method_names)]`
@@ -15,26 +15,86 @@ LL |     fn ambiguous(&self) {
 error: ambiguous inherent method name
   --> $DIR/ambiguous_method_names.rs:40:8
    |
+LL |     fn ambiguous(&self) {}
+   |        ^^^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:9:8
+   |
+LL |     fn ambiguous(&self);
+   |        ^^^^^^^^^
+
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:22:8
+   |
 LL |     fn also_ambiguous(&self) {}
    |        ^^^^^^^^^^^^^^
    |
 note: trait method defined here
-  --> $DIR/ambiguous_method_names.rs:54:8
+  --> $DIR/ambiguous_method_names.rs:10:8
    |
-LL |     fn also_ambiguous(&self) {}
+LL |     fn also_ambiguous(&self);
    |        ^^^^^^^^^^^^^^
 
 error: ambiguous inherent method name
-  --> $DIR/ambiguous_method_names.rs:46:8
+  --> $DIR/ambiguous_method_names.rs:41:8
+   |
+LL |     fn also_ambiguous(&self) {}
+   |        ^^^^^^^^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:10:8
+   |
+LL |     fn also_ambiguous(&self);
+   |        ^^^^^^^^^^^^^^
+
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:23:8
+   |
+LL |     fn ambiguous_default(&self) {}
+   |        ^^^^^^^^^^^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:11:8
+   |
+LL |     fn ambiguous_default(&self) {}
+   |        ^^^^^^^^^^^^^^^^^
+
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:42:8
+   |
+LL |     fn ambiguous_default(&self) {}
+   |        ^^^^^^^^^^^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:11:8
+   |
+LL |     fn ambiguous_default(&self) {}
+   |        ^^^^^^^^^^^^^^^^^
+
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:25:8
    |
 LL |     fn another(&self) {}
    |        ^^^^^^^
    |
 note: trait method defined here
-  --> $DIR/ambiguous_method_names.rs:58:8
+  --> $DIR/ambiguous_method_names.rs:15:8
+   |
+LL |     fn another(&self);
+   |        ^^^^^^^
+
+error: ambiguous inherent method name
+  --> $DIR/ambiguous_method_names.rs:43:8
    |
 LL |     fn another(&self) {}
    |        ^^^^^^^
+   |
+note: trait method defined here
+  --> $DIR/ambiguous_method_names.rs:15:8
+   |
+LL |     fn another(&self);
+   |        ^^^^^^^
 
-error: aborting due to 3 previous errors
+error: aborting due to 8 previous errors
 

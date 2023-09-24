@@ -1,15 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::is_trait_impl_item;
-use hir::intravisit::FnKind;
-use hir::{Body, FnDecl};
-use rustc_data_structures::fx::FxHashMap;
+use clippy_utils::ty::implements_trait;
+use hir::{ImplItem, Item};
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::Ty;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::Ident;
-use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -73,69 +70,61 @@ declare_clippy_lint! {
 }
 
 #[derive(Clone)]
-pub struct AmbiguousMethodNames<'tcx> {
-    trait_methods: FxHashMap<(Ty<'tcx>, Symbol), Span>,
-    inherent_methods: Vec<(Ty<'tcx>, Symbol, Span)>,
+pub struct AmbiguousMethodNames {
+    // Keeps track of trait methods
+    trait_methods: Vec<(LocalDefId, Ident)>,
+    // Keeps track of inherent methods
+    inherent_methods: Vec<(LocalDefId, Ident)>,
 }
 
-impl<'tcx> AmbiguousMethodNames<'tcx> {
+impl AmbiguousMethodNames {
     pub fn new() -> Self {
         Self {
-            trait_methods: FxHashMap::default(),
+            trait_methods: Vec::default(),
             inherent_methods: Vec::default(),
         }
     }
-
-    fn insert_method(&mut self, is_trait_impl: bool, ty: Ty<'tcx>, ident: Ident) {
-        if is_trait_impl {
-            self.trait_methods.insert((ty, ident.name), ident.span);
-        } else {
-            self.inherent_methods.push((ty, ident.name, ident.span));
-        }
-    }
 }
 
-impl_lint_pass!(AmbiguousMethodNames<'_> => [AMBIGUOUS_METHOD_NAMES]);
+impl_lint_pass!(AmbiguousMethodNames => [AMBIGUOUS_METHOD_NAMES]);
 
-impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodNames<'tcx> {
-    fn check_fn(
-        &mut self,
-        cx: &LateContext<'tcx>,
-        kind: FnKind<'tcx>,
-        _: &'tcx FnDecl<'_>,
-        _: &'tcx Body<'_>,
-        _: Span,
-        def_id: LocalDefId,
-    ) {
-        if let FnKind::Method(ident, _) = kind {
-            let hir_id = cx.tcx.hir().local_def_id_to_hir_id(def_id);
-            let is_trait_impl = is_trait_impl_item(cx, hir_id);
-            let parent_id = cx.tcx.hir().get_parent_item(hir_id);
-
-            // Calling type_of on a method's default impl causes an ICE
-            if let Some(hir::Node::Item(item)) = cx.tcx.hir().find(hir::HirId::from(parent_id))
-                && let hir::ItemKind::Trait(..) = item.kind
-            {
-                return;
+impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodNames {
+    // Check trait impls
+    fn check_item(&mut self, _: &LateContext<'tcx>, item: &'tcx Item<'_>) {
+        if let hir::ItemKind::Trait(_, _, _, _, tr_items) = item.kind {
+            for tr_item in tr_items {
+                if let hir::AssocItemKind::Fn { .. } = tr_item.kind {
+                    self.trait_methods.push((item.owner_id.def_id, tr_item.ident))
+                }
             }
+        }
+    }
 
-            let parent_ty = cx.tcx.type_of(parent_id.to_def_id()).skip_binder();
-            self.insert_method(is_trait_impl, parent_ty, ident);
+    // Check inherent methods
+    fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'_>) {
+        if let hir::ImplItemKind::Fn(..) = impl_item.kind {
+            let hir_id = cx.tcx.hir().local_def_id_to_hir_id(impl_item.owner_id.def_id);
+            if !is_trait_impl_item(cx, hir_id) {
+                let struct_id = cx.tcx.hir().get_parent_item(hir_id);
+                self.inherent_methods.push((struct_id.def_id, impl_item.ident))
+            }
         }
     }
 
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
-        for (ty, name, span) in &self.inherent_methods {
-            let k = &(*ty, *name);
-            if let Some(tm_span) = self.trait_methods.get(k) {
-                span_lint_and_note(
-                    cx,
-                    AMBIGUOUS_METHOD_NAMES,
-                    *span,
-                    "ambiguous inherent method name",
-                    Some(*tm_span),
-                    "trait method defined here",
-                );
+        for (r#trait, ident) in &self.trait_methods {
+            for (r#struct, inherent_ident) in &self.inherent_methods {
+                let struct_ty = cx.tcx.type_of(r#struct.to_def_id()).skip_binder();
+                if implements_trait(cx, struct_ty, r#trait.to_def_id(), &[]) && ident.name == inherent_ident.name {
+                    span_lint_and_note(
+                        cx,
+                        AMBIGUOUS_METHOD_NAMES,
+                        inherent_ident.span,
+                        "ambiguous inherent method name",
+                        Some(ident.span),
+                        "trait method defined here",
+                    );
+                }
             }
         }
     }
