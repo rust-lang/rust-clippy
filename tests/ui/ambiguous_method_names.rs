@@ -15,6 +15,10 @@ trait Another {
     fn another(&self);
 }
 
+trait G<T, U> {
+    fn g(&self, a: T, b: U);
+}
+
 struct A;
 
 impl A {

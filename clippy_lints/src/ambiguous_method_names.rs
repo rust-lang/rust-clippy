@@ -4,8 +4,9 @@ use clippy_utils::ty::implements_trait;
 use hir::{ImplItem, Item};
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty;
 use rustc_session::{declare_tool_lint, impl_lint_pass};
-use rustc_span::def_id::LocalDefId;
+use rustc_span::def_id::DefId;
 use rustc_span::symbol::Ident;
 
 declare_clippy_lint! {
@@ -72,9 +73,9 @@ declare_clippy_lint! {
 #[derive(Clone)]
 pub struct AmbiguousMethodNames {
     // Keeps track of trait methods
-    trait_methods: Vec<(LocalDefId, Ident)>,
+    trait_methods: Vec<(DefId, Ident)>,
     // Keeps track of inherent methods
-    inherent_methods: Vec<(LocalDefId, Ident)>,
+    inherent_methods: Vec<(DefId, Ident)>,
 }
 
 impl AmbiguousMethodNames {
@@ -94,7 +95,8 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodNames {
         if let hir::ItemKind::Trait(_, _, _, _, tr_items) = item.kind {
             for tr_item in tr_items {
                 if let hir::AssocItemKind::Fn { .. } = tr_item.kind {
-                    self.trait_methods.push((item.owner_id.def_id, tr_item.ident))
+                    self.trait_methods
+                        .push((item.owner_id.def_id.to_def_id(), tr_item.ident));
                 }
             }
         }
@@ -106,7 +108,8 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodNames {
             let hir_id = cx.tcx.hir().local_def_id_to_hir_id(impl_item.owner_id.def_id);
             if !is_trait_impl_item(cx, hir_id) {
                 let struct_id = cx.tcx.hir().get_parent_item(hir_id);
-                self.inherent_methods.push((struct_id.def_id, impl_item.ident))
+                self.inherent_methods
+                    .push((struct_id.def_id.to_def_id(), impl_item.ident));
             }
         }
     }
@@ -114,8 +117,16 @@ impl<'tcx> LateLintPass<'tcx> for AmbiguousMethodNames {
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
         for (r#trait, ident) in &self.trait_methods {
             for (r#struct, inherent_ident) in &self.inherent_methods {
-                let struct_ty = cx.tcx.type_of(r#struct.to_def_id()).skip_binder();
-                if implements_trait(cx, struct_ty, r#trait.to_def_id(), &[]) && ident.name == inherent_ident.name {
+                let struct_ty = cx.tcx.type_of(r#struct).skip_binder();
+                let trait_ref = ty::TraitRef::identity(cx.tcx, *r#trait);
+                let args = &trait_ref.args[1..];
+                if implements_trait(
+                    cx,
+                    struct_ty,
+                    *r#trait,
+                    &args[..cx.tcx.generics_of(r#trait).params.len() - 1],
+                ) && ident.name == inherent_ident.name
+                {
                     span_lint_and_note(
                         cx,
                         AMBIGUOUS_METHOD_NAMES,
