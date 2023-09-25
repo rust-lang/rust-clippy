@@ -1519,7 +1519,7 @@
     "id": "doc_link_with_quotes",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 222
+      "line": 223
     },
     "group": "pedantic",
     "level": "allow",
@@ -1534,7 +1534,7 @@
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 75
+      "line": 76
     },
     "group": "pedantic",
     "level": "allow",
@@ -5044,7 +5044,7 @@
     "id": "missing_errors_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 139
+      "line": 140
     },
     "group": "pedantic",
     "level": "allow",
@@ -5089,7 +5089,7 @@
     "id": "missing_panics_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 170
+      "line": 171
     },
     "group": "pedantic",
     "level": "allow",
@@ -5104,7 +5104,7 @@
     "id": "missing_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 110
+      "line": 111
     },
     "group": "style",
     "level": "warn",
@@ -5623,7 +5623,7 @@
     "id": "needless_doctest_main",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 199
+      "line": 200
     },
     "group": "style",
     "level": "warn",
@@ -7198,7 +7198,7 @@
     "id": "redundant_closure_call",
     "id_span": {
       "path": "src/redundant_closure_call.rs",
-      "line": 34
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
@@ -9439,7 +9439,7 @@
     "id": "unnecessary_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 258
+      "line": 259
     },
     "group": "restriction",
     "level": "allow",
