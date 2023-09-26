@@ -4088,6 +4088,21 @@
     }
   },
   {
+    "id": "manual_hash_one",
+    "id_span": {
+      "path": "src/manual_hash_one.rs",
+      "line": 44
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for cases where [`BuildHasher::hash_one`] can be used.\n\n[`BuildHasher::hash_one`]: https://doc.rust-lang.org/std/hash/trait.BuildHasher.html#method.hash_one\n\n### Why is this bad?\nIt is more concise to use the `hash_one` method.\n\n### Example\n```rust\nuse std::hash::{BuildHasher, Hash, Hasher};\nuse std::collections::hash_map::RandomState;\n\nlet s = RandomState::new();\nlet value = vec![1, 2, 3];\n\nlet mut hasher = s.build_hasher();\nvalue.hash(&mut hasher);\nlet hash = hasher.finish();\n```\nUse instead:\n```rust\nuse std::hash::BuildHasher;\nuse std::collections::hash_map::RandomState;\n\nlet s = RandomState::new();\nlet value = vec![1, 2, 3];\n\nlet hash = s.hash_one(&value);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "version": "1.74.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_instant_elapsed",
     "id_span": {
       "path": "src/instant_subtraction.rs",
