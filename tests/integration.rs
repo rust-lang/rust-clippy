@@ -250,7 +250,7 @@ fn integration_test_rustc() {
         .arg("./x.py")
         .current_dir(&repo_dir)
         .env("RUST_BACKTRACE", "full")
-        .args(["clippy", "-Wclippy::pedantic",/* "-Wclippy::cargo" */])
+        .args(["clippy", "-Wclippy::pedantic" /* "-Wclippy::cargo" */])
         .output()
         .expect("unable to run x.py clippy");
 
