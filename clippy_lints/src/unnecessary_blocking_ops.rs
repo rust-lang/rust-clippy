@@ -1,15 +1,17 @@
 use std::ops::ControlFlow;
 
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::visitors::for_each_expr_with_closures;
 use clippy_utils::{def_path_def_ids, fn_def_id, is_lint_allowed};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_errors::Applicability;
+use rustc_errors::{Applicability, Diagnostic};
 use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::CRATE_HIR_ID;
-use rustc_hir::{Body, ExprKind, GeneratorKind, HirIdSet};
+use rustc_hir::{Body, Expr, ExprKind, GeneratorKind, HirIdSet};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -33,7 +35,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```ignore
     /// use std::time::Duration;
     /// pub async fn foo() {
     ///     tokio::time::sleep(Duration::from_secs(5));
@@ -49,7 +51,7 @@ pub(crate) struct UnnecessaryBlockingOps {
     blocking_ops: Vec<String>,
     blocking_ops_with_suggs: Vec<[String; 2]>,
     /// Map of resolved funtion def_id with suggestion string after checking crate
-    id_with_suggs: FxHashMap<DefId, String>,
+    id_with_suggs: FxHashMap<DefId, Option<String>>,
     /// Keep track of visited block ids to skip checking the same bodies in `check_body` calls
     visited_block: HirIdSet,
 }
@@ -67,38 +69,30 @@ impl UnnecessaryBlockingOps {
 
 impl_lint_pass!(UnnecessaryBlockingOps => [UNNECESSARY_BLOCKING_OPS]);
 
-// TODO: Should we throw away all suggestions and and give full control to user configurations?
-// this feels like a free ad for tokio :P
-static HARD_CODED_BLOCKING_OPS_WITH_SUGG: [[&str; 2]; 26] = [
-    // Sleep
-    ["std::thread::sleep", "tokio::time::sleep"],
-    // IO functions
-    ["std::io::copy", "tokio::io::copy"],
-    ["std::io::empty", "tokio::io::empty"],
-    ["std::io::repeat", "tokio::io::repeat"],
-    ["std::io::sink", "tokio::io::sink"],
-    ["std::io::stderr", "tokio::io::stderr"],
-    ["std::io::stdin", "tokio::io::stdin"],
-    ["std::io::stdout", "tokio::io::stdout"],
+static HARD_CODED_BLOCKING_OPS: [&[&str]; 21] = [
+    &["std", "thread", "sleep"],
     // Filesystem functions
-    ["std::fs::try_exists", "tokio::fs::try_exists"],
-    ["std::fs::canonicalize", "tokio::fs::canonicalize"],
-    ["std::fs::copy", "tokio::fs::copy"],
-    ["std::fs::create_dir", "tokio::fs::create_dir"],
-    ["std::fs::create_dir_all", "tokio::fs::create_dir_all"],
-    ["std::fs::hard_link", "tokio::fs::hard_link"],
-    ["std::fs::metadata", "tokio::fs::metadata"],
-    ["std::fs::read", "tokio::fs::read"],
-    ["std::fs::read_dir", "tokio::fs::read_dir"],
-    ["std::fs::read_to_string", "tokio::fs::read_to_string"],
-    ["std::fs::remove_dir", "tokio::fs::remove_dir"],
-    ["std::fs::remove_dir_all", "tokio::fs::remove_dir_all"],
-    ["std::fs::remove_file", "tokio::fs::remove_file"],
-    ["std::fs::rename", "tokio::fs::rename"],
-    ["std::fs::set_permissions", "tokio::fs::set_permissions"],
-    ["std::fs::soft_link", "tokio::fs::soft_link"],
-    ["std::fs::symlink_metadata", "tokio::fs::symlink_metadata"],
-    ["std::fs::write", "tokio::fs::write"],
+    &["std", "fs", "try_exists"],
+    &["std", "fs", "canonicalize"],
+    &["std", "fs", "copy"],
+    &["std", "fs", "create_dir"],
+    &["std", "fs", "create_dir_all"],
+    &["std", "fs", "hard_link"],
+    &["std", "fs", "metadata"],
+    &["std", "fs", "read"],
+    &["std", "fs", "read_dir"],
+    &["std", "fs", "read_link"],
+    &["std", "fs", "read_to_string"],
+    &["std", "fs", "remove_dir"],
+    &["std", "fs", "remove_dir_all"],
+    &["std", "fs", "remove_file"],
+    &["std", "fs", "rename"],
+    &["std", "fs", "set_permissions"],
+    &["std", "fs", "symlink_metadata"],
+    &["std", "fs", "write"],
+    // IO functions
+    &["std", "io", "copy"],
+    &["std", "io", "read_to_string"],
 ];
 
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryBlockingOps {
@@ -108,55 +102,72 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryBlockingOps {
             return;
         }
 
-        let full_fn_list = HARD_CODED_BLOCKING_OPS_WITH_SUGG
+        let full_fn_list = HARD_CODED_BLOCKING_OPS
             .into_iter()
+            .map(|p| (p.to_vec(), None))
             // Chain configured functions without suggestions
-            .chain(self.blocking_ops.iter().map(|p| [p, ""]))
+            .chain(
+                self.blocking_ops
+                    .iter()
+                    .map(|p| (p.split("::").collect::<Vec<_>>(), None)),
+            )
             // Chain configured functions with suggestions
             .chain(
                 self.blocking_ops_with_suggs
                     .iter()
-                    .map(|[p, s]| [p.as_str(), s.as_str()]),
+                    .map(|[p, s]| (p.split("::").collect::<Vec<_>>(), Some(s.as_str()))),
             );
-
-        for [path_str, sugg_path_str] in full_fn_list {
-            let path = path_str.split("::").collect::<Vec<_>>();
+        for (path, maybe_sugg_str) in full_fn_list {
             for did in def_path_def_ids(cx, &path) {
-                self.id_with_suggs.insert(did, sugg_path_str.to_string());
+                self.id_with_suggs.insert(did, maybe_sugg_str.map(ToOwned::to_owned));
             }
         }
     }
 
     fn check_body(&mut self, cx: &LateContext<'tcx>, body: &'tcx Body<'tcx>) {
-        if self.visited_block.contains(&body.value.hir_id) {
+        if is_lint_allowed(cx, UNNECESSARY_BLOCKING_OPS, body.value.hir_id)
+            || self.visited_block.contains(&body.value.hir_id)
+        {
             return;
         }
         if let Some(GeneratorKind::Async(_)) = body.generator_kind() {
             for_each_expr_with_closures(cx, body, |ex| {
-                if let ExprKind::Block(block, _) = ex.kind {
-                    self.visited_block.insert(block.hir_id);
-                } else if let Some(call_did) = fn_def_id(cx, ex) &&
-                    let Some(replace_sugg) = self.id_with_suggs.get(&call_did)
-                {
-                    span_lint_and_then(
-                        cx,
-                        UNNECESSARY_BLOCKING_OPS,
-                        ex.span,
-                        "blocking function call detected in an async body",
-                        |diag| {
-                            if !replace_sugg.is_empty() {
-                                diag.span_suggestion(
-                                    ex.span,
-                                    "try using an async counterpart such as",
-                                    replace_sugg,
-                                    Applicability::Unspecified,
-                                );
+                match ex.kind {
+                    ExprKind::Block(block, _) => {
+                        self.visited_block.insert(block.hir_id);
+                    }
+                    ExprKind::Call(call, _)
+                        if let Some(call_did) = fn_def_id(cx, ex) &&
+                            let Some(maybe_sugg) = self.id_with_suggs.get(&call_did) => {
+                        span_lint_and_then(
+                            cx,
+                            UNNECESSARY_BLOCKING_OPS,
+                            call.span,
+                            "blocking function call detected in an async body",
+                            |diag| {
+                                if let Some(sugg_fn_path) = maybe_sugg {
+                                    make_suggestion(diag, cx, ex, call.span, sugg_fn_path);
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+                    _ => {}
                 }
                 ControlFlow::<()>::Continue(())
             });
         }
     }
+}
+
+fn make_suggestion(diag: &mut Diagnostic, cx: &LateContext<'_>, expr: &Expr<'_>, fn_span: Span, sugg_fn_path: &str) {
+    let mut applicability = Applicability::Unspecified;
+    let args_span = expr.span.with_lo(fn_span.hi());
+    let args_snippet = snippet_with_applicability(cx, args_span, "..", &mut applicability);
+    let suggestion = format!("{sugg_fn_path}{args_snippet}.await");
+    diag.span_suggestion(
+        expr.span,
+        "try using its async counterpart",
+        suggestion,
+        Applicability::Unspecified,
+    );
 }

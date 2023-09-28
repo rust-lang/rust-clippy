@@ -1,0 +1,51 @@
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:19:5
+   |
+LL |     sleep(Duration::from_secs(1));
+   |     ^^^^^------------------------
+   |     |
+   |     help: try using its async counterpart: `unnecessary_blocking_ops::async_mod::sleep(Duration::from_secs(1)).await`
+   |
+   = note: `-D clippy::unnecessary-blocking-ops` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_blocking_ops)]`
+
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:21:5
+   |
+LL |     fs::remove_dir("").unwrap();
+   |     ^^^^^^^^^^^^^^----
+   |     |
+   |     help: try using its async counterpart: `tokio::fs::remove_dir("").await`
+
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:23:5
+   |
+LL |     fs::copy("", "_").unwrap();
+   |     ^^^^^^^^---------
+   |     |
+   |     help: try using its async counterpart: `tokio::fs::copy("", "_").await`
+
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:27:5
+   |
+LL |     io::copy(&mut r, &mut w).unwrap();
+   |     ^^^^^^^^----------------
+   |     |
+   |     help: try using its async counterpart: `tokio::io::copy(&mut r, &mut w).await`
+
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:29:17
+   |
+LL |     let _cont = io::read_to_string(io::stdin()).unwrap();
+   |                 ^^^^^^^^^^^^^^^^^^-------------
+   |                 |
+   |                 help: try using its async counterpart: `unnecessary_blocking_ops::async_mod::read_to_string(io::stdin()).await`
+
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:31:5
+   |
+LL |     fs::create_dir("").unwrap();
+   |     ^^^^^^^^^^^^^^
+
+error: aborting due to 6 previous errors
+
