@@ -1,8 +1,8 @@
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:16:5
+  --> $DIR/unnecessary_blocking_ops.rs:15:5
    |
 LL |     sleep(Duration::from_secs(1));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::time::sleep`
+   |     ^^^^^
    |
    = note: `-D clippy::unnecessary-blocking-ops` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_blocking_ops)]`
@@ -11,61 +11,49 @@ error: blocking function call detected in an async body
   --> $DIR/unnecessary_blocking_ops.rs:17:5
    |
 LL |     fs::remove_dir("").unwrap();
-   |     ^^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::fs::remove_dir`
+   |     ^^^^^^^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:18:5
+  --> $DIR/unnecessary_blocking_ops.rs:19:5
    |
 LL |     fs::copy("", "_").unwrap();
-   |     ^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::fs::copy`
+   |     ^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:19:13
+  --> $DIR/unnecessary_blocking_ops.rs:21:13
    |
 LL |     let _ = fs::canonicalize("");
-   |             ^^^^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::fs::canonicalize`
+   |             ^^^^^^^^^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:22:9
+  --> $DIR/unnecessary_blocking_ops.rs:25:9
    |
 LL |         fs::write("", "").unwrap();
-   |         ^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::fs::write`
+   |         ^^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:23:17
-   |
-LL |         let _ = io::stdin();
-   |                 ^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::io::stdin`
-
-error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:25:19
-   |
-LL |     let _stdout = io::stdout();
-   |                   ^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::io::stdout`
-
-error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:28:5
+  --> $DIR/unnecessary_blocking_ops.rs:32:5
    |
 LL |     io::copy(&mut r, &mut w).unwrap();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::io::copy`
+   |     ^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:47:9
+  --> $DIR/unnecessary_blocking_ops.rs:51:9
    |
 LL |         sleep(Duration::from_secs(self.0 as _));
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::time::sleep`
+   |         ^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:54:22
+  --> $DIR/unnecessary_blocking_ops.rs:59:22
    |
 LL |     let _ = async || sleep(Duration::from_secs(1));
-   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::time::sleep`
+   |                      ^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:58:9
+  --> $DIR/unnecessary_blocking_ops.rs:64:9
    |
 LL |         sleep(Duration::from_secs(1));
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try using an async counterpart such as: `tokio::time::sleep`
+   |         ^^^^^
 
-error: aborting due to 11 previous errors
+error: aborting due to 9 previous errors
 
