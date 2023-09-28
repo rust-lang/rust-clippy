@@ -4984,11 +4984,11 @@
     "id": "missing_assert_message",
     "id_span": {
       "path": "src/missing_assert_message.rs",
-      "line": 40
+      "line": 44
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks assertions without a custom panic message.\n\n### Why is this bad?\nWithout a good custom message, it'd be hard to understand what went wrong when the assertion fails.\nA good custom message should be more about why the failure of the assertion is problematic\nand not what is failed because the assertion already conveys that.\n\n### Known problems\nThis lint cannot check the quality of the custom panic messages.\nHence, you can suppress this lint simply by adding placeholder messages\nlike \"assertion failed\". However, we recommend coming up with good messages\nthat provide useful information instead of placeholder messages that\ndon't provide any extra information.\n\n### Example\n```rust\nfn call(service: Service) {\n    assert!(service.ready);\n}\n```\nUse instead:\n```rust\nfn call(service: Service) {\n    assert!(service.ready, \"`service.poll_ready()` must be called first to ensure that service is ready to receive requests\");\n}\n```",
+    "docs": "\n### What it does\nChecks assertions without a custom panic message.\n\n### Why is this bad?\nWithout a good custom message, it'd be hard to understand what went wrong when the assertion fails.\nA good custom message should be more about why the failure of the assertion is problematic\nand not what is failed because the assertion already conveys that.\n\nAlthough the same reasoning applies to testing functions, this lint ignores them as they would be too noisy.\nAlso, in most cases understanding the test failure would be easier\ncompared to understanding a complex invariant distributed around the codebase.\n\n### Known problems\nThis lint cannot check the quality of the custom panic messages.\nHence, you can suppress this lint simply by adding placeholder messages\nlike \"assertion failed\". However, we recommend coming up with good messages\nthat provide useful information instead of placeholder messages that\ndon't provide any extra information.\n\n### Example\n```rust\nfn call(service: Service) {\n    assert!(service.ready);\n}\n```\nUse instead:\n```rust\nfn call(service: Service) {\n    assert!(service.ready, \"`service.poll_ready()` must be called first to ensure that service is ready to receive requests\");\n}\n```",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
