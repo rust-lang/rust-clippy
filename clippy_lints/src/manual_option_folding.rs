@@ -64,9 +64,9 @@ impl<'tcx> LateLintPass<'tcx> for ManualOptionFolding<'tcx> {
                 self.get_call = Some(expr);
                 self.recv = Some(recv);
                 self.get_method_name = Some(path.ident.name);
-            } else if let Some(get_call) = self.get_call
-                && let Some(get_call_recv) = self.recv
-                && let Some(get_method_name) = self.get_method_name
+            } else if let Some(get_call) = self.get_call.take()
+                && let Some(get_call_recv) = self.recv.take()
+                && let Some(get_method_name) = self.get_method_name.take()
                 && (path.ident.name == sym::unwrap
                     || path.ident.name == sym!(unwrap_unchecked)
                     || path.ident.name == sym::expect)
