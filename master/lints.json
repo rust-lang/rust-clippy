@@ -3245,6 +3245,21 @@
     }
   },
   {
+    "id": "into_iter_without_iter",
+    "id_span": {
+      "path": "src/iter_without_into_iter.rs",
+      "line": 90
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nThis is the opposite of the `iter_without_into_iter` lint.\nIt looks for `IntoIterator for (&|&mut) Type` implementations without an inherent `iter` or `iter_mut` method.\n\n### Why is this bad?\nIt's not bad, but having them is idiomatic and allows the type to be used in iterator chains\nby just calling `.iter()`, instead of the more awkward `<&Type>::into_iter` or `(&val).iter()` syntax\nin case of ambiguity with another `Intoiterator` impl.\n\n### Example\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.0.iter()\n    }\n}\n```\nUse instead:\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> MySlice<'a> {\n    pub fn iter(&self) -> std::slice::Iter<'a, u8> {\n        self.into_iter()\n    }\n}\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.0.iter()\n    }\n}\n```",
+    "version": "1.74.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unspecified"
+    }
+  },
+  {
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
@@ -3581,7 +3596,7 @@
     "id": "iter_without_into_iter",
     "id_span": {
       "path": "src/iter_without_into_iter.rs",
-      "line": 45
+      "line": 47
     },
     "group": "pedantic",
     "level": "allow",
