@@ -15,7 +15,7 @@ All contributors are expected to follow the [Rust Code of Conduct].
 - [Contributing to Clippy](#contributing-to-clippy)
   - [The Clippy book](#the-clippy-book)
   - [High level approach](#high-level-approach)
-  - [Finding something to fix/improve](#finding-something-to-fiximprove)
+  - [Look for something that needs fixing or improvement](#look-for-something-that-needs-fixing-or-improvement)
   - [Getting code-completion for rustc internals to work](#getting-code-completion-for-rustc-internals-to-work)
     - [IntelliJ Rust](#intellij-rust)
     - [Rust Analyzer](#rust-analyzer)
@@ -38,14 +38,14 @@ a [developer guide] and is a good place to start your journey.
 
 ## High level approach
 
-1. Find something to fix/improve
+1. Look for something that needs fixing or improvement
 2. Change code (likely some file in `clippy_lints/src/`)
 3. Follow the instructions in the [Basics docs](book/src/development/basics.md)
    to get set up
 4. Run `cargo test` in the root directory and wiggle code until it passes
 5. Open a PR (also can be done after 2. if you run into problems)
 
-## Finding something to fix/improve
+## Look for something that needs fixing or improvement
 
 All issues on Clippy are mentored, if you want help simply ask someone from the
 Clippy team directly by mentioning them in the issue or over on [Zulip]. All
