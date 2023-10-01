@@ -2858,7 +2858,7 @@
     "id": "implicit_hasher",
     "id_span": {
       "path": "src/implicit_hasher.rs",
-      "line": 57
+      "line": 56
     },
     "group": "pedantic",
     "level": "allow",
