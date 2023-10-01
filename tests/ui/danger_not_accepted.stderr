@@ -8,5 +8,37 @@ LL |     waz::woo();
    = note: `-D clippy::danger-not-accepted` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::danger_not_accepted)]`
 
-error: aborting due to previous error
+error: Called a method marked with `#[clippy::dangerous]` without blessing the calling module with `#![clippy::accept_danger]`.
+  --> $DIR/danger_not_accepted.rs:10:5
+   |
+LL |     Maz.faz();
+   |     ^^^^^^^^^
+   |
+   = help: This method poses the following unaccepted dangers: ["may_delete_system", "may_deadlock"]
+
+error: Called a method marked with `#[clippy::dangerous]` without blessing the calling module with `#![clippy::accept_danger]`.
+  --> $DIR/danger_not_accepted.rs:13:5
+   |
+LL |     Maz.faz();
+   |     ^^^^^^^^^
+   |
+   = help: This method poses the following unaccepted dangers: ["may_delete_system"]
+
+error: Called a method marked with `#[clippy::dangerous]` without blessing the calling module with `#![clippy::accept_danger]`.
+  --> $DIR/danger_not_accepted.rs:18:5
+   |
+LL |     Maz.faz2();
+   |     ^^^^^^^^^^
+   |
+   = help: This method poses the following unaccepted dangers: ["may_delete_system"]
+
+error: Called a method marked with `#[clippy::dangerous]` without blessing the calling module with `#![clippy::accept_danger]`.
+  --> $DIR/danger_not_accepted.rs:21:5
+   |
+LL |     Maz.faz2();
+   |     ^^^^^^^^^^
+   |
+   = help: This method poses the following unaccepted dangers: ["may_delete_system"]
+
+error: aborting due to 5 previous errors
 

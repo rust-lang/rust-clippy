@@ -39,8 +39,8 @@ impl_lint_pass!(DangerNotAccepted => [DANGER_NOT_ACCEPTED]);
 impl LateLintPass<'_> for DangerNotAccepted {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         // If we're calling a method...
-        if let ExprKind::MethodCall(path, _, _self_arg, ..) = &expr.kind
-            && let def::Res::Def(def::DefKind::Fn, fn_id) = path.res
+        if let ExprKind::MethodCall(_path, _, _self_arg, ..) = &expr.kind
+			&& let Some(fn_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
             // And that function is dangerous to us...
             && let Some(dangers) = self.get_unaccepted_dangers(cx, fn_id)
         {
