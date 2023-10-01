@@ -111,6 +111,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::copy_iterator::COPY_ITERATOR_INFO,
     crate::crate_in_macro_def::CRATE_IN_MACRO_DEF_INFO,
     crate::create_dir::CREATE_DIR_INFO,
+    crate::danger_not_accepted::DANGER_NOT_ACCEPTED_INFO,
     crate::dbg_macro::DBG_MACRO_INFO,
     crate::default::DEFAULT_TRAIT_ACCESS_INFO,
     crate::default::FIELD_REASSIGN_WITH_DEFAULT_INFO,

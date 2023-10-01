@@ -1,0 +1,12 @@
+error: Called a method marked with `#[clippy::dangerous]` without blessing the calling module with `#![clippy::accept_danger]`.
+  --> $DIR/danger_not_accepted.rs:5:5
+   |
+LL |     waz::woo();
+   |     ^^^^^^^^
+   |
+   = help: This method poses the following unaccepted dangers: ["may_deadlock"]
+   = note: `-D clippy::danger-not-accepted` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::danger_not_accepted)]`
+
+error: aborting due to previous error
+
