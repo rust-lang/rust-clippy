@@ -1,3 +1,5 @@
+#![allow(clippy::collection_is_never_read)]
+
 //@no-rustfix
 use std::iter::repeat;
 fn main() {

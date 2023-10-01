@@ -1,5 +1,5 @@
 //@no-rustfix: overlapping suggestions
-#![allow(unused_must_use)]
+#![allow(unused_must_use, clippy::collection_is_never_read)]
 #![warn(clippy::write_literal)]
 
 use std::io::Write;

@@ -1,4 +1,10 @@
-#![allow(unused, clippy::needless_if, clippy::suspicious_map, clippy::iter_count)]
+#![allow(
+    unused,
+    clippy::needless_if,
+    clippy::suspicious_map,
+    clippy::iter_count,
+    clippy::collection_is_never_read
+)]
 
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList};
 

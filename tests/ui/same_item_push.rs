@@ -1,4 +1,5 @@
 #![warn(clippy::same_item_push)]
+#![allow(clippy::collection_is_never_read)]
 
 const VALUE: u8 = 7;
 

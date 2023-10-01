@@ -1,4 +1,5 @@
 #![warn(clippy::uninit_vec)]
+#![allow(clippy::collection_is_never_read)]
 
 use std::mem::MaybeUninit;
 

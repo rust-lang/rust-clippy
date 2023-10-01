@@ -8,7 +8,8 @@
     clippy::redundant_closure_call,
     clippy::uninlined_format_args,
     clippy::useless_vec,
-    clippy::unnecessary_map_on_constructor
+    clippy::unnecessary_map_on_constructor,
+    clippy::collection_is_never_read
 )]
 
 use std::path::{Path, PathBuf};

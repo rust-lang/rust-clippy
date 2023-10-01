@@ -1,4 +1,4 @@
-#![allow(unused_must_use)]
+#![allow(unused_must_use, clippy::collection_is_never_read)]
 #![warn(clippy::writeln_empty_string)]
 use std::io::Write;
 

@@ -1,3 +1,5 @@
+#![allow(clippy::collection_is_never_read)]
+
 #[derive(Copy, Clone)]
 struct HasChars;
 

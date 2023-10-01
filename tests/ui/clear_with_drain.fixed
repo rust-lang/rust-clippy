@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::collection_is_never_read)]
 #![warn(clippy::clear_with_drain)]
 
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};

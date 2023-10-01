@@ -7,7 +7,8 @@
     unused_mut,
     clippy::into_iter_on_ref,
     clippy::unnecessary_operation,
-    clippy::useless_vec
+    clippy::useless_vec,
+    clippy::collection_is_never_read
 )]
 
 extern crate option_helpers;

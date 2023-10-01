@@ -6,7 +6,8 @@
     clippy::unnecessary_operation,
     clippy::vec_init_then_push,
     clippy::toplevel_ref_arg,
-    clippy::needless_borrow
+    clippy::needless_borrow,
+    clippy::collection_is_never_read
 )]
 
 use std::cell::RefCell;

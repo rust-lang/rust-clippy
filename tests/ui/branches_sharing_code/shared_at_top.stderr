@@ -1,5 +1,5 @@
 error: all if blocks contain the same code at the start
-  --> $DIR/shared_at_top.rs:11:5
+  --> $DIR/shared_at_top.rs:15:5
    |
 LL | /     if true {
 LL | |
@@ -18,7 +18,7 @@ LL +     if true {
    |
 
 error: all if blocks contain the same code at the start
-  --> $DIR/shared_at_top.rs:21:5
+  --> $DIR/shared_at_top.rs:25:5
    |
 LL | /     if x == 0 {
 LL | |
@@ -37,7 +37,7 @@ LL +     if x == 0 {
    |
 
 error: all if blocks contain the same code at the start
-  --> $DIR/shared_at_top.rs:43:5
+  --> $DIR/shared_at_top.rs:47:5
    |
 LL | /     let _ = if x == 7 {
 LL | |
@@ -51,7 +51,7 @@ LL +     let _ = if x == 7 {
    |
 
 error: all if blocks contain the same code at the start
-  --> $DIR/shared_at_top.rs:62:5
+  --> $DIR/shared_at_top.rs:66:5
    |
 LL | /     if x == 10 {
 LL | |
@@ -68,7 +68,7 @@ LL +     if x == 10 {
    |
 
 error: all if blocks contain the same code at the start
-  --> $DIR/shared_at_top.rs:77:5
+  --> $DIR/shared_at_top.rs:81:5
    |
 LL | /     if x == 11 {
 LL | |
@@ -85,7 +85,7 @@ LL +     if x == 11 {
    |
 
 error: all if blocks contain the same code at the start
-  --> $DIR/shared_at_top.rs:94:5
+  --> $DIR/shared_at_top.rs:98:5
    |
 LL | /     if x == 2020 {
 LL | |
@@ -101,7 +101,7 @@ LL +     if x == 2020 {
    |
 
 error: this `if` has identical blocks
-  --> $DIR/shared_at_top.rs:103:18
+  --> $DIR/shared_at_top.rs:107:18
    |
 LL |       if x == 2019 {
    |  __________________^
@@ -111,7 +111,7 @@ LL | |     } else {
    | |_____^
    |
 note: same as this
-  --> $DIR/shared_at_top.rs:106:12
+  --> $DIR/shared_at_top.rs:110:12
    |
 LL |       } else {
    |  ____________^

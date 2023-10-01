@@ -1,6 +1,6 @@
 // FIXME: Ideally these suggestions would be fixed via rustfix. Blocked by rust-lang/rust#53934
 
-#![allow(clippy::write_literal)]
+#![allow(clippy::write_literal, clippy::collection_is_never_read)]
 #![warn(clippy::write_with_newline)]
 
 use std::io::Write;

@@ -1,5 +1,5 @@
 #![warn(clippy::manual_retain)]
-#![allow(unused, clippy::redundant_clone)]
+#![allow(unused, clippy::redundant_clone, clippy::collection_is_never_read)]
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, VecDeque};
 
 fn main() {
