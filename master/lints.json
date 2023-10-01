@@ -4271,7 +4271,7 @@
     "id": "manual_non_exhaustive",
     "id_span": {
       "path": "src/manual_non_exhaustive.rs",
-      "line": 58
+      "line": 59
     },
     "group": "style",
     "level": "warn",
