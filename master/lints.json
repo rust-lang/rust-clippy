@@ -5820,8 +5820,8 @@
       "path": "src/needless_pass_by_ref_mut.rs",
       "line": 51
     },
-    "group": "suspicious",
-    "level": "warn",
+    "group": "nursery",
+    "level": "allow",
     "docs": "\n### What it does\nCheck if a `&mut` function argument is actually used mutably.\n\nBe careful if the function is publicly reexported as it would break compatibility with\nusers of this function.\n\n### Why is this bad?\nLess `mut` means less fights with the borrow checker. It can also lead to more\nopportunities for parallelization.\n\n### Example\n```rust\nfn foo(y: &mut i32) -> i32 {\n    12 + *y\n}\n```\nUse instead:\n```rust\nfn foo(y: &i32) -> i32 {\n    12 + *y\n}\n```",
     "version": "1.72.0",
     "applicability": {
