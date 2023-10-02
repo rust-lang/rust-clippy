@@ -14,9 +14,9 @@ use rustc_span::{Span, Symbol};
 // - Allow users to override modules as *not* having a specific danger.
 // - Allow users to specify additional dangerous items in the clippy config.
 // - Devise a scheme (maybe path compression?) to reduce the amount of ancestry tracing we have to
-//   do to determine the dangers posed by a method?
+//   do to determine the dangers posed by a method.
 // - Implement a way to forbid `accept_danger` in a given module.
-// - Allow `accept_danger` and `dangerous` as internal attributes on stable Rust?
+// - Allow `accept_danger` and `dangerous` to be used as inner attributes on stable Rust.
 //
 
 declare_clippy_lint! {
