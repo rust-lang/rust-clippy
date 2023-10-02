@@ -265,8 +265,8 @@ fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted
         DANGER_NOT_ACCEPTED,
         expr.span,
         &format!(
-            "Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling \
-             module with `#![clippy::accept_danger({})]`.",
+            "called a method marked with `#[clippy::dangerous(...)]` without blessing the calling \
+             module with `#![clippy::accept_danger({})]`",
             fmt_inline(|f| {
                 let mut is_subsequent = false;
                 for danger in &unique_dangers {
@@ -281,7 +281,7 @@ fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted
         ),
         |diag| {
             for (danger_span, danger_name) in unaccepted_dangers {
-                diag.span_note(*danger_span, format!("Danger `{danger_name}` declared here."));
+                diag.span_note(*danger_span, format!("danger `{danger_name}` declared here"));
             }
         },
     );

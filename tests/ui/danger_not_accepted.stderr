@@ -1,10 +1,10 @@
-error: Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock)]`.
+error: called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock)]`
   --> $DIR/danger_not_accepted.rs:5:5
    |
 LL |     waz::woo();
    |     ^^^^^^^^
    |
-note: Danger `may_deadlock` declared here.
+note: danger `may_deadlock` declared here
   --> $DIR/danger_not_accepted.rs:36:21
    |
 LL | #[clippy::dangerous(may_deadlock)]
@@ -12,71 +12,71 @@ LL | #[clippy::dangerous(may_deadlock)]
    = note: `-D clippy::danger-not-accepted` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::danger_not_accepted)]`
 
-error: Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system, may_deadlock)]`.
+error: called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system, may_deadlock)]`
   --> $DIR/danger_not_accepted.rs:10:5
    |
 LL |     Maz.faz();
    |     ^^^^^^^^^
    |
-note: Danger `may_delete_system` declared here.
+note: danger `may_delete_system` declared here
   --> $DIR/danger_not_accepted.rs:44:29
    |
 LL |         #[clippy::dangerous(may_delete_system)]
    |                             ^^^^^^^^^^^^^^^^^
-note: Danger `may_deadlock` declared here.
+note: danger `may_deadlock` declared here
   --> $DIR/danger_not_accepted.rs:36:21
    |
 LL | #[clippy::dangerous(may_deadlock)]
    |                     ^^^^^^^^^^^^
 
-error: Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system)]`.
+error: called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system)]`
   --> $DIR/danger_not_accepted.rs:13:5
    |
 LL |     Maz.faz();
    |     ^^^^^^^^^
    |
-note: Danger `may_delete_system` declared here.
+note: danger `may_delete_system` declared here
   --> $DIR/danger_not_accepted.rs:44:29
    |
 LL |         #[clippy::dangerous(may_delete_system)]
    |                             ^^^^^^^^^^^^^^^^^
 
-error: Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system)]`.
+error: called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system)]`
   --> $DIR/danger_not_accepted.rs:18:5
    |
 LL |     Maz.faz2();
    |     ^^^^^^^^^^
    |
-note: Danger `may_delete_system` declared here.
+note: danger `may_delete_system` declared here
   --> $DIR/danger_not_accepted.rs:54:25
    |
 LL |     #[clippy::dangerous(may_delete_system)]
    |                         ^^^^^^^^^^^^^^^^^
 
-error: Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system)]`.
+error: called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system)]`
   --> $DIR/danger_not_accepted.rs:21:5
    |
 LL |     Maz.faz2();
    |     ^^^^^^^^^^
    |
-note: Danger `may_delete_system` declared here.
+note: danger `may_delete_system` declared here
   --> $DIR/danger_not_accepted.rs:54:25
    |
 LL |     #[clippy::dangerous(may_delete_system)]
    |                         ^^^^^^^^^^^^^^^^^
 
-error: Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock)]`.
+error: called a method marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock)]`
   --> $DIR/danger_not_accepted.rs:26:5
    |
 LL |     waz::woo2();
    |     ^^^^^^^^^
    |
-note: Danger `may_deadlock` declared here.
+note: danger `may_deadlock` declared here
   --> $DIR/danger_not_accepted.rs:40:25
    |
 LL |     #[clippy::dangerous(may_deadlock)]
    |                         ^^^^^^^^^^^^
-note: Danger `may_deadlock` declared here.
+note: danger `may_deadlock` declared here
   --> $DIR/danger_not_accepted.rs:36:21
    |
 LL | #[clippy::dangerous(may_deadlock)]
