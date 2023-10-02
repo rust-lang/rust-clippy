@@ -101,7 +101,15 @@ impl DangerNotAccepted {
         let mut item_iter = Some(item_id);
 
         while let Some(item_id) = item_iter {
-            for attr in cx.tcx.get_attrs_by_path(item_id, &[sym!(clippy), sym!(dangerous)]) {
+            item_iter = cx.tcx.opt_parent(item_id);
+
+            // HACK: Ensure that this is not an intrinsic because calling `get_attrs_unchecked` on
+            //  a foreign module breaks everything.
+            if cx.tcx.def_kind(item_id) == def::DefKind::ForeignMod {
+                continue;
+            }
+
+            for attr in get_attr(cx.sess(), cx.tcx.get_attrs_unchecked(item_id), "dangerous") {
                 for danger in parse_dangers_attr(cx, attr) {
                     if self.accepted_dangers.contains_key(&danger) {
                         continue;
@@ -110,8 +118,6 @@ impl DangerNotAccepted {
                     unaccepted_dangers.push(danger);
                 }
             }
-
-            item_iter = cx.tcx.opt_parent(item_id);
         }
 
         (!unaccepted_dangers.is_empty()).then_some(unaccepted_dangers)
