@@ -23,11 +23,12 @@ declare_clippy_lint! {
     /// ### What it does
     ///
     /// Checks for uses of functions, inherent methods, and trait methods which have been marked as
-    /// dangerous with the `#[clippy::dangerous(...)]` attribute.
+    /// dangerous with the `#[clippy::dangerous(...)]` attribute and whose dangers have not been
+    /// explicitly accepted.
     ///
     /// Each `#[clippy::dangerous(reason_1, reason_2, ...)]` attribute specifies a list of dangers
     /// that the user must accept using the `#[clippy::accept_danger(reason_1, reason_2, ...)]`
-    /// attribute before using the dangerous item.
+    /// attribute before using the dangerous item to avoid triggering this lint.
     ///
     /// ### Why is this bad?
     ///
@@ -51,7 +52,7 @@ declare_clippy_lint! {
     ///
     /// use unsuspecting_module {
     ///    fn do_something() {
-    ///        // This method call causes clippy to issue a warning
+    ///        // This function call causes clippy to issue a warning
     ///        dangerous_module::do_something_innocuous_looking();
     ///    }
     /// }
@@ -265,7 +266,7 @@ fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted
         DANGER_NOT_ACCEPTED,
         expr.span,
         &format!(
-            "called a method marked with `#[clippy::dangerous(...)]` without blessing the calling \
+            "called a function marked with `#[clippy::dangerous(...)]` without blessing the calling \
              module with `#![clippy::accept_danger({})]`",
             fmt_inline(|f| {
                 let mut is_subsequent = false;
