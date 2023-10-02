@@ -63,26 +63,32 @@ impl LateLintPass<'_> for DangerNotAccepted {
     }
 
     fn enter_lint_attrs(&mut self, cx: &LateContext<'_>, attrs: &'_ [rustc_ast::Attribute]) {
-        for attr in get_attr(cx.sess(), attrs, "accept_danger") {
-            let dangers = parse_dangers_attr(cx, attr);
-            for danger in dangers {
-                *self.accepted_dangers.entry(danger).or_default() += 1;
+        // Both `accept_danger` and `dangerous` contribute to the accepted danger map.
+        for attr_name in ["accept_danger", "dangerous"] {
+            for attr in get_attr(cx.sess(), attrs, attr_name) {
+                let dangers = parse_dangers_attr(cx, attr);
+                for danger in dangers {
+                    *self.accepted_dangers.entry(danger).or_default() += 1;
+                }
             }
         }
     }
 
     fn exit_lint_attrs(&mut self, cx: &LateContext<'_>, attrs: &'_ [rustc_ast::Attribute]) {
-        for attr in get_attr(cx.sess(), attrs, "accept_danger") {
-            let dangers = parse_dangers_attr(cx, attr);
-            for danger in dangers {
-                match self.accepted_dangers.entry(danger) {
-                    StdEntry::Occupied(mut entry) => {
-                        *entry.get_mut() -= 1;
-                        if *entry.get() == 0 {
-                            entry.remove();
-                        }
-                    },
-                    StdEntry::Vacant(_) => unreachable!(),
+        // Both `accept_danger` and `dangerous` contribute to the accepted danger map.
+        for attr_name in ["accept_danger", "dangerous"] {
+            for attr in get_attr(cx.sess(), attrs, attr_name) {
+                let dangers = parse_dangers_attr(cx, attr);
+                for danger in dangers {
+                    match self.accepted_dangers.entry(danger) {
+                        StdEntry::Occupied(mut entry) => {
+                            *entry.get_mut() -= 1;
+                            if *entry.get() == 0 {
+                                entry.remove();
+                            }
+                        },
+                        StdEntry::Vacant(_) => unreachable!(),
+                    }
                 }
             }
         }
