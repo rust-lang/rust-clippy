@@ -4,13 +4,20 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::get_attr;
 use rustc_ast::{ast, token, tokenstream};
 use rustc_data_structures::fx::{FxHashMap, FxHashSet, StdEntry};
-use rustc_hir::*;
+use rustc_hir::{def, def_id, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
 use rustc_span::{Span, Symbol};
 
-// TODO: Safety override
-// TODO: Config
+// Future improvements:
+//
+// - Allow users to override modules as *not* having a specific danger.
+// - Allow users to specify additional dangerous items in the clippy config.
+// - Devise a scheme (maybe path compression?) to reduce the amount of ancestry tracing we have to
+//   do to determine the dangers posed by a method?
+// - Implement a way to forbid `accept_danger` in a given module.
+// - Allow `accept_danger` and `dangerous` as internal attributes on stable Rust?
+//
 
 declare_clippy_lint! {
     /// ### What it does
@@ -84,6 +91,7 @@ pub struct DangerNotAccepted {
 impl_lint_pass!(DangerNotAccepted => [DANGER_NOT_ACCEPTED]);
 
 impl LateLintPass<'_> for DangerNotAccepted {
+    #[allow(clippy::needless_return, reason = "unified syntax improves readability")]
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         // If we're calling a method...
         if let ExprKind::MethodCall(_path, _, _self_arg, ..) = &expr.kind
