@@ -41,8 +41,9 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust
+    /// # fn main() {}  // Ensures that doc-test doesn't automatically wrap us in a main function.
     /// #[clippy::dangerous(use_of_lib_1_dangerous_module)]
-    /// mod dangerous_module {
+    /// pub mod dangerous_module {
     ///     # fn break_the_program() {}
     ///     #[clippy::dangerous(may_break_program)]
     ///     pub fn do_something_innocuous_looking() {
@@ -50,17 +51,18 @@ declare_clippy_lint! {
     ///     }
     /// }
     ///
-    /// use unsuspecting_module {
+    /// pub mod unsuspecting_module {
     ///    fn do_something() {
     ///        // This function call causes clippy to issue a warning
-    ///        dangerous_module::do_something_innocuous_looking();
+    ///        crate::dangerous_module::do_something_innocuous_looking();
     ///    }
     /// }
     /// ```
     /// Use instead:
     /// ```rust
+    /// # fn main() {}  // Ensures that doc-test doesn't automatically wrap us in a main function.
     /// #[clippy::dangerous(use_of_lib_1_dangerous_module)]
-    /// mod dangerous_module {
+    /// pub mod dangerous_module {
     ///     # fn break_the_program() {}
     ///     #[clippy::dangerous(may_break_program)]
     ///     pub fn do_something_innocuous_looking() {
@@ -70,11 +72,11 @@ declare_clippy_lint! {
     ///
     /// // This entire module can use functions with the danger `use_of_lib_1_dangerous_module`.
     /// #[clippy::accept_danger(use_of_lib_1_dangerous_module)]
-    /// use unsuspecting_module {
+    /// pub mod unsuspecting_module {
     ///    fn do_something() {
     ///        // Only this statement can call functions with the danger `may_break_program`.
     ///        #[clippy::accept_danger(may_break_program)]
-    ///        dangerous_module::do_something_innocuous_looking();
+    ///        crate::dangerous_module::do_something_innocuous_looking();
     ///    }
     /// }
     /// ```
