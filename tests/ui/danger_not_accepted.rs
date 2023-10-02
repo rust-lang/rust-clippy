@@ -22,6 +22,11 @@ fn main() {
 
     #[clippy::accept_danger(may_deadlock, may_delete_system)]
     Maz.faz2();
+
+    waz::woo2();
+
+    #[clippy::accept_danger(may_deadlock)]
+    waz::woo2();
 }
 
 fn wee() {}
@@ -31,6 +36,9 @@ struct Maz;
 #[clippy::dangerous(may_deadlock)]
 mod waz {
     pub fn woo() {}
+
+    #[clippy::dangerous(may_deadlock)]
+    pub fn woo2() {}
 
     impl super::Maz {
         #[clippy::dangerous(may_delete_system)]

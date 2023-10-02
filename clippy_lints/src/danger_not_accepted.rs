@@ -1,32 +1,79 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use std::fmt;
+
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::get_attr;
 use rustc_ast::{ast, token, tokenstream};
-use rustc_data_structures::fx::{FxHashMap, StdEntry};
+use rustc_data_structures::fx::{FxHashMap, FxHashSet, StdEntry};
 use rustc_hir::*;
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
-use rustc_span::Symbol;
+use rustc_span::{Span, Symbol};
 
-// TODO: Ensure that our attributes are being used properly
-// TODO: Improve lint messages
+// TODO: Safety override
+// TODO: Config
 
 declare_clippy_lint! {
     /// ### What it does
     ///
+    /// Checks for uses of functions, inherent methods, and trait methods which have been marked as
+    /// dangerous with the `#[clippy::dangerous(...)]` attribute.
+    ///
+    /// Each `#[clippy::dangerous(reason_1, reason_2, ...)]` attribute specifies a list of dangers
+    /// that the user must accept using the `#[clippy::accept_danger(reason_1, reason_2, ...)]`
+    /// attribute before using the dangerous item.
+    ///
     /// ### Why is this bad?
+    ///
+    /// Some functionality in a project may be dangerous to use without giving it the appropriate
+    /// caution, even if its misuse does not cause undefined behavior—for example, the method could
+    /// be the source of tricky logic bugs. Other functionality may be dangerous in some contexts
+    /// but not others. This lint helps ensure that users do not unknowingly call into these
+    /// dangerous functions while still allowing users who know what they're doing to call these
+    /// functions without issue.
     ///
     /// ### Example
     /// ```rust
-    /// // example code where clippy issues a warning
+    /// #[clippy::dangerous(use_of_lib_1_dangerous_module)]
+    /// mod dangerous_module {
+    ///     # fn break_the_program() {}
+    ///     #[clippy::dangerous(may_break_program)]
+    ///     pub fn do_something_innocuous_looking() {
+    ///         break_the_program();
+    ///     }
+    /// }
+    ///
+    /// use unsuspecting_module {
+    ///    fn do_something() {
+    ///        // This method call causes clippy to issue a warning
+    ///        dangerous_module::do_something_innocuous_looking();
+    ///    }
+    /// }
     /// ```
     /// Use instead:
     /// ```rust
-    /// // example code which does not raise clippy warning
+    /// #[clippy::dangerous(use_of_lib_1_dangerous_module)]
+    /// mod dangerous_module {
+    ///     # fn break_the_program() {}
+    ///     #[clippy::dangerous(may_break_program)]
+    ///     pub fn do_something_innocuous_looking() {
+    ///         break_the_program();
+    ///     }
+    /// }
+    ///
+    /// // This entire module can use functions with the danger `use_of_lib_1_dangerous_module`.
+    /// #[clippy::accept_danger(use_of_lib_1_dangerous_module)]
+    /// use unsuspecting_module {
+    ///    fn do_something() {
+    ///        // Only this statement can call functions with the danger `may_break_program`.
+    ///        #[clippy::accept_danger(may_break_program)]
+    ///        dangerous_module::do_something_innocuous_looking();
+    ///    }
+    /// }
     /// ```
     #[clippy::version = "1.74.0"]
     pub DANGER_NOT_ACCEPTED,
     nursery,
-    "default lint description"
+    "checks for use of functions marked as dangerous"
 }
 
 #[derive(Default)]
@@ -40,7 +87,7 @@ impl LateLintPass<'_> for DangerNotAccepted {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {
         // If we're calling a method...
         if let ExprKind::MethodCall(_path, _, _self_arg, ..) = &expr.kind
-			&& let Some(fn_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+            && let Some(fn_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
             // And that function is dangerous to us...
             && let Some(dangers) = self.get_unaccepted_dangers(cx, fn_id)
         {
@@ -67,7 +114,7 @@ impl LateLintPass<'_> for DangerNotAccepted {
         for attr_name in ["accept_danger", "dangerous"] {
             for attr in get_attr(cx.sess(), attrs, attr_name) {
                 let dangers = parse_dangers_attr(cx, attr);
-                for danger in dangers {
+                for (_span, danger) in dangers {
                     *self.accepted_dangers.entry(danger).or_default() += 1;
                 }
             }
@@ -79,7 +126,7 @@ impl LateLintPass<'_> for DangerNotAccepted {
         for attr_name in ["accept_danger", "dangerous"] {
             for attr in get_attr(cx.sess(), attrs, attr_name) {
                 let dangers = parse_dangers_attr(cx, attr);
-                for danger in dangers {
+                for (_span, danger) in dangers {
                     match self.accepted_dangers.entry(danger) {
                         StdEntry::Occupied(mut entry) => {
                             *entry.get_mut() -= 1;
@@ -96,7 +143,7 @@ impl LateLintPass<'_> for DangerNotAccepted {
 }
 
 impl DangerNotAccepted {
-    fn get_unaccepted_dangers(&self, cx: &LateContext<'_>, item_id: def_id::DefId) -> Option<Vec<Symbol>> {
+    fn get_unaccepted_dangers(&self, cx: &LateContext<'_>, item_id: def_id::DefId) -> Option<Vec<(Span, Symbol)>> {
         let mut unaccepted_dangers = Vec::new();
         let mut item_iter = Some(item_id);
 
@@ -111,7 +158,7 @@ impl DangerNotAccepted {
 
             for attr in get_attr(cx.sess(), cx.tcx.get_attrs_unchecked(item_id), "dangerous") {
                 for danger in parse_dangers_attr(cx, attr) {
-                    if self.accepted_dangers.contains_key(&danger) {
+                    if self.accepted_dangers.contains_key(&danger.1) {
                         continue;
                     }
 
@@ -124,18 +171,7 @@ impl DangerNotAccepted {
     }
 }
 
-fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, dangers: &[Symbol]) {
-    span_lint_and_help(
-        cx,
-        DANGER_NOT_ACCEPTED,
-        expr.span,
-        "Called a method marked with `#[clippy::dangerous]` without blessing the calling module with `#![clippy::accept_danger]`.",
-        None,
-        format!("This method poses the following unaccepted dangers: {dangers:?}").as_str(),
-    );
-}
-
-fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> Vec<Symbol> {
+fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> Vec<(Span, Symbol)> {
     const EXPECTATION: &str = "Expected a delimited attribute with a list of danger identifiers.";
 
     let span = attr.span;
@@ -173,7 +209,7 @@ fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> Vec<Symbol
             return Vec::new();
         };
 
-        dangers.push(sym.name);
+        dangers.push((sym.span, sym.name));
 
         match stream.next() {
             Some(tokenstream::TokenTree::Token(sym, _)) if sym.kind == token::TokenKind::Comma => {
@@ -190,4 +226,55 @@ fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> Vec<Symbol
     }
 
     dangers
+}
+
+fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted_dangers: &[(Span, Symbol)]) {
+    // Define formatting helpers
+    struct FmtInline<F>(F);
+
+    impl<F> fmt::Display for FmtInline<F>
+    where
+        F: Fn(&mut fmt::Formatter<'_>) -> fmt::Result,
+    {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            self.0(f)
+        }
+    }
+
+    fn fmt_inline<F>(f: F) -> FmtInline<F>
+    where
+        F: Fn(&mut fmt::Formatter<'_>) -> fmt::Result,
+    {
+        FmtInline(f)
+    }
+
+    // Collect all unique dangers
+    let unique_dangers = unaccepted_dangers.iter().map(|(_, sym)| sym).collect::<FxHashSet<_>>();
+
+    // Create a lint
+    span_lint_and_then(
+        cx,
+        DANGER_NOT_ACCEPTED,
+        expr.span,
+        &format!(
+            "Called a method marked with `#[clippy::dangerous(...)]` without blessing the calling \
+             module with `#![clippy::accept_danger({})]`.",
+            fmt_inline(|f| {
+                let mut is_subsequent = false;
+                for danger in &unique_dangers {
+                    if is_subsequent {
+                        f.write_str(", ")?;
+                    }
+                    is_subsequent = true;
+                    f.write_str(danger.as_str())?;
+                }
+                Ok(())
+            }),
+        ),
+        |diag| {
+            for (danger_span, danger_name) in unaccepted_dangers {
+                diag.span_note(*danger_span, format!("Danger `{danger_name}` declared here."));
+            }
+        },
+    );
 }
