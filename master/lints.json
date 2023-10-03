@@ -33,7 +33,7 @@
     "id": "alloc_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 83
+      "line": 85
     },
     "group": "restriction",
     "level": "allow",
@@ -8239,7 +8239,7 @@
     "id": "std_instead_of_alloc",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 57
+      "line": 59
     },
     "group": "restriction",
     "level": "allow",
@@ -8254,7 +8254,7 @@
     "id": "std_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 31
+      "line": 33
     },
     "group": "restriction",
     "level": "allow",
