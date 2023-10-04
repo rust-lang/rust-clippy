@@ -1899,7 +1899,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for types named `Error` that implement `Error`.\n\n### Why is this bad?\nIt can become confusing when a codebase has 20 types all named `Error`, requiring either\naliasing them in the `use` statement or qualifying them like `my_module::Error`. This\nhinders comprehension, as it requires you to memorize every variation of importing `Error`\nused across a codebase.\n\n### Example\n```rust\n#[derive(Debug)]\npub enum Error { ... }\n\nimpl std::fmt::Display for Error { ... }\n\nimpl std::error::Error for Error { ... }\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2248,7 +2248,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for usage of `bool::then` in `Iterator::filter_map`.\n\n### Why is this bad?\nThis can be written with `filter` then `map` instead, which would reduce nesting and\nseparates the filtering from the transformation phase. This comes with no cost to\nperformance and is just cleaner.\n\n### Limitations\nDoes not lint `bool::then_some`, as it eagerly evaluates its arguments rather than lazily.\nThis can create differing behavior, so better safe than sorry.\n\n### Example\n```rust\n_ = v.into_iter().filter_map(|i| (i % 2 == 0).then(|| really_expensive_fn(i)));\n```\nUse instead:\n```rust\n_ = v.into_iter().filter(|i| i % 2 == 0).map(|i| really_expensive_fn(i));\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -2518,7 +2518,7 @@
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nChecks for usage of `.map(|_| format!(..)).collect::<String>()`.\n\n### Why is this bad?\nThis allocates a new string for every element in the iterator.\nThis can be done more efficiently by creating the `String` once and appending to it in `Iterator::fold`,\nusing either the `write!` macro which supports exactly the same syntax as the `format!` macro,\nor concatenating with `+` in case the iterator yields `&str`/`String`.\n\nNote also that `write!`-ing into a `String` can never fail, despite the return type of `write!` being `std::fmt::Result`,\nso it can be safely ignored or unwrapped.\n\n### Example\n```rust\nfn hex_encode(bytes: &[u8]) -> String {\n    bytes.iter().map(|b| format!(\"{b:02X}\")).collect()\n}\n```\nUse instead:\n```rust\nuse std::fmt::Write;\nfn hex_encode(bytes: &[u8]) -> String {\n    bytes.iter().fold(String::new(), |mut output, b| {\n        let _ = write!(output, \"{b:02X}\");\n        output\n    })\n}\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2563,7 +2563,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for outer doc comments written with 4 forward slashes (`////`).\n\n### Why is this bad?\nThis is (probably) a typo, and results in it not being a doc comment; just a regular\ncomment.\n\n### Example\n```rust\n//// My amazing data structure\npub struct Foo {\n    // ...\n}\n```\n\nUse instead:\n```rust\n/// My amazing data structure\npub struct Foo {\n    // ...\n}\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -2938,7 +2938,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for double comparisons that can never succeed\n\n### Why is this bad?\nThe whole expression can be replaced by `false`,\nwhich is probably not the programmer's intention\n\n### Example\n```rust\nif status_code <= 400 && status_code > 500 {}\n```",
-    "version": "1.71.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3571,7 +3571,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for usage of `.skip(0)` on iterators.\n\n### Why is this bad?\nThis was likely intended to be `.skip(1)` to skip the first element, as `.skip(0)` does\nnothing. If not, the call should be removed.\n\n### Example\n```rust\nlet v = vec![1, 2, 3];\nlet x = v.iter().skip(0).collect::<Vec<_>>();\nlet y = v.iter().collect::<Vec<_>>();\nassert_eq!(x, y);\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -4171,7 +4171,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for manual `is_finite` reimplementations\n(i.e., `x != <float>::INFINITY && x != <float>::NEG_INFINITY`).\n\n### Why is this bad?\nThe method `is_finite` is shorter and more readable.\n\n### Example\n```rust\nif x != f32::INFINITY && x != f32::NEG_INFINITY {}\nif x.abs() < f32::INFINITY {}\n```\nUse instead:\n```rust\nif x.is_finite() {}\nif x.is_finite() {}\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4186,7 +4186,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for manual `is_infinite` reimplementations\n(i.e., `x == <float>::INFINITY || x == <float>::NEG_INFINITY`).\n\n### Why is this bad?\nThe method `is_infinite` is shorter and more readable.\n\n### Example\n```rust\nif x == f32::INFINITY || x == f32::NEG_INFINITY {}\n```\nUse instead:\n```rust\nif x.is_infinite() {}\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5823,7 +5823,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nCheck if a `&mut` function argument is actually used mutably.\n\nBe careful if the function is publicly reexported as it would break compatibility with\nusers of this function.\n\n### Why is this bad?\nLess `mut` means less fights with the borrow checker. It can also lead to more\nopportunities for parallelization.\n\n### Example\n```rust\nfn foo(y: &mut i32) -> i32 {\n    12 + *y\n}\n```\nUse instead:\n```rust\nfn foo(y: &i32) -> i32 {\n    12 + *y\n}\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
@@ -6174,7 +6174,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for non-canonical implementations of `PartialOrd` when `Ord` is already implemented.\n\n### Why is this bad?\nIf both `PartialOrd` and `Ord` are implemented, they must agree. This is commonly done by\nwrapping the result of `cmp` in `Some` for `partial_cmp`. Not doing this may silently\nintroduce an error upon refactoring.\n\n### Known issues\nCode that calls the `.into()` method instead will be flagged, despite `.into()` wrapping it\nin `Some`.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        // ...\n    }\n}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        Some(self.cmp(other))\n    }\n}\n```\n### Past names\n\n* `incorrect_partial_ord_impl_on_ord_type`\n\n",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
@@ -7095,7 +7095,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nLooks for calls to [`Stdin::read_line`] to read a line from the standard input\ninto a string, then later attempting to parse this string into a type without first trimming it, which will\nalways fail because the string has a trailing newline in it.\n\n### Why is this bad?\nThe `.parse()` call will always fail.\n\n### Example\n```rust\nlet mut input = String::new();\nstd::io::stdin().read_line(&mut input).expect(\"Failed to read a line\");\nlet num: i32 = input.parse().expect(\"Not a number!\");\nassert_eq!(num, 42); // we never even get here!\n```\nUse instead:\n```rust\nlet mut input = String::new();\nstd::io::stdin().read_line(&mut input).expect(\"Failed to read a line\");\nlet num: i32 = input.trim_end().parse().expect(\"Not a number!\");\n//                  ^^^^^^^^^^^ remove the trailing newline\nassert_eq!(num, 42);\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -7278,7 +7278,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for ineffective double comparisons against constants.\n\n### Why is this bad?\nOnly one of the comparisons has any effect on the result, the programmer\nprobably intended to flip one of the comparison operators, or compare a\ndifferent value entirely.\n\n### Example\n```rust\nif status_code <= 400 && status_code < 500 {}\n```",
-    "version": "1.71.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7338,7 +7338,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for unnecessary guards in match expressions.\n\n### Why is this bad?\nIt's more complex and much less readable. Making it part of the pattern can improve\nexhaustiveness checking as well.\n\n### Example\n```rust\nmatch x {\n    Some(x) if matches!(x, Some(1)) => ..,\n    Some(x) if x == Some(2) => ..,\n    _ => todo!(),\n}\n```\nUse instead:\n```rust\nmatch x {\n    Some(Some(1)) => ..,\n    Some(Some(2)) => ..,\n    _ => todo!(),\n}\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -7353,7 +7353,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for redundant redefinitions of local bindings.\n\n### Why is this bad?\nRedundant redefinitions of local bindings do not change behavior and are likely to be unintended.\n\nNote that although these bindings do not affect your code's meaning, they _may_ affect `rustc`'s stack allocation.\n\n### Example\n```rust\nlet a = 0;\nlet a = a;\n\nfn foo(b: i32) {\n   let b = b;\n}\n```\nUse instead:\n```rust\nlet a = 0;\n// no redefinition with the same name\n\nfn foo(b: i32) {\n  // no redefinition with the same name\n}\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -8364,7 +8364,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for `<string_lit>.chars().any(|i| i == c)`.\n\n### Why is this bad?\nIt's significantly slower than using a pattern instead, like\n`matches!(c, '\\\\' | '.' | '+')`.\n\nDespite this being faster, this is not `perf` as this is pretty common, and is a rather nice\nway to check if a `char` is any in a set. In any case, this `restriction` lint is available\nfor situations where that additional performance is absolutely necessary.\n\n### Example\n```rust\n\"\\\\.+*?()|[]{}^$#&-~\".chars().any(|x| x == c);\n```\nUse instead:\n```rust\nmatches!(c, '\\\\' | '.' | '+' | '*' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$' | '#' | '&' | '-' | '~');\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -9099,7 +9099,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nLooks for calls to `<Box<dyn Any> as Any>::type_id`.\n\n### Why is this bad?\nThis most certainly does not do what the user expects and is very easy to miss.\nCalling `type_id` on a `Box<dyn Any>` calls `type_id` on the `Box<..>` itself,\nso this will return the `TypeId` of the `Box<dyn Any>` type (not the type id\nof the value referenced by the box!).\n\n### Example\n```rust\nuse std::any::{Any, TypeId};\n\nlet any_box: Box<dyn Any> = Box::new(42_i32);\nassert_eq!(any_box.type_id(), TypeId::of::<i32>()); // ⚠️ this fails!\n```\nUse instead:\n```rust\nuse std::any::{Any, TypeId};\n\nlet any_box: Box<dyn Any> = Box::new(42_i32);\nassert_eq!((*any_box).type_id(), TypeId::of::<i32>());\n//          ^ dereference first, to call `type_id` on `dyn Any`\n```",
-    "version": "1.72.0",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
