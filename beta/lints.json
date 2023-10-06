@@ -33,7 +33,7 @@
     "id": "alloc_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 82
+      "line": 83
     },
     "group": "restriction",
     "level": "allow",
@@ -41,7 +41,7 @@
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -63,7 +63,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 337
+      "line": 341
     },
     "group": "restriction",
     "level": "allow",
@@ -174,7 +174,7 @@
     "id": "as_ptr_cast_mut",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 641
+      "line": 642
     },
     "group": "nursery",
     "level": "allow",
@@ -189,7 +189,7 @@
     "id": "as_underscore",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 555
+      "line": 556
     },
     "group": "restriction",
     "level": "allow",
@@ -344,7 +344,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for the usage of the `to_be_bytes` method and/or the function `from_be_bytes`.\n\n### Why is this bad?\nIt's not, but some may wish to lint usage of this method, either to suggest using the host\nendianness or little endian.\n\n### Example\n```rust\nlet _x = 2i32.to_be_bytes();\nlet _y = 2i64.to_be_bytes();\n```",
-    "version": "1.71.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -354,7 +354,7 @@
     "id": "bind_instead_of_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 633
+      "line": 637
     },
     "group": "complexity",
     "level": "warn",
@@ -372,7 +372,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 244
+      "line": 248
     },
     "group": "suspicious",
     "level": "warn",
@@ -451,7 +451,7 @@
     "id": "borrow_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 588
+      "line": 589
     },
     "group": "pedantic",
     "level": "allow",
@@ -481,7 +481,7 @@
     "id": "borrow_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 125
+      "line": 124
     },
     "group": "style",
     "level": "warn",
@@ -589,7 +589,7 @@
     "id": "bytes_count_to_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2546
+      "line": 2550
     },
     "group": "complexity",
     "level": "warn",
@@ -604,7 +604,7 @@
     "id": "bytes_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2025
+      "line": 2029
     },
     "group": "style",
     "level": "warn",
@@ -634,7 +634,7 @@
     "id": "case_sensitive_file_extension_comparisons",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2574
+      "line": 2578
     },
     "group": "pedantic",
     "level": "allow",
@@ -649,7 +649,7 @@
     "id": "cast_abs_to_unsigned",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 527
+      "line": 528
     },
     "group": "suspicious",
     "level": "warn",
@@ -664,7 +664,7 @@
     "id": "cast_enum_constructor",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 504
+      "line": 505
     },
     "group": "suspicious",
     "level": "warn",
@@ -679,7 +679,7 @@
     "id": "cast_enum_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 441
+      "line": 442
     },
     "group": "suspicious",
     "level": "warn",
@@ -694,7 +694,7 @@
     "id": "cast_lossless",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 171
+      "line": 172
     },
     "group": "pedantic",
     "level": "allow",
@@ -709,7 +709,7 @@
     "id": "cast_nan_to_int",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 663
+      "line": 664
     },
     "group": "suspicious",
     "level": "warn",
@@ -724,7 +724,7 @@
     "id": "cast_possible_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 113
+      "line": 114
     },
     "group": "pedantic",
     "level": "allow",
@@ -739,7 +739,7 @@
     "id": "cast_possible_wrap",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 138
+      "line": 139
     },
     "group": "pedantic",
     "level": "allow",
@@ -754,7 +754,7 @@
     "id": "cast_precision_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 52
+      "line": 53
     },
     "group": "pedantic",
     "level": "allow",
@@ -769,7 +769,7 @@
     "id": "cast_ptr_alignment",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 233
+      "line": 234
     },
     "group": "pedantic",
     "level": "allow",
@@ -784,7 +784,7 @@
     "id": "cast_sign_loss",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 74
+      "line": 75
     },
     "group": "pedantic",
     "level": "allow",
@@ -799,7 +799,7 @@
     "id": "cast_slice_different_sizes",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 486
+      "line": 487
     },
     "group": "correctness",
     "level": "deny",
@@ -814,7 +814,7 @@
     "id": "cast_slice_from_raw_parts",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 615
+      "line": 616
     },
     "group": "suspicious",
     "level": "warn",
@@ -829,7 +829,7 @@
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 365
+      "line": 366
     },
     "group": "complexity",
     "level": "warn",
@@ -844,7 +844,7 @@
     "id": "chars_last_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1470
+      "line": 1474
     },
     "group": "style",
     "level": "warn",
@@ -859,7 +859,7 @@
     "id": "chars_next_cmp",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 872
+      "line": 876
     },
     "group": "style",
     "level": "warn",
@@ -889,7 +889,7 @@
     "id": "clear_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3273
+      "line": 3277
     },
     "group": "nursery",
     "level": "allow",
@@ -904,7 +904,7 @@
     "id": "clone_on_copy",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 999
+      "line": 1003
     },
     "group": "complexity",
     "level": "warn",
@@ -919,7 +919,7 @@
     "id": "clone_on_ref_ptr",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1030
+      "line": 1034
     },
     "group": "restriction",
     "level": "allow",
@@ -934,7 +934,7 @@
     "id": "cloned_instead_of_copied",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 149
+      "line": 153
     },
     "group": "pedantic",
     "level": "allow",
@@ -949,7 +949,7 @@
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 95
+      "line": 94
     },
     "group": "style",
     "level": "warn",
@@ -1042,7 +1042,7 @@
     "id": "collapsible_str_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 175
+      "line": 179
     },
     "group": "perf",
     "level": "warn",
@@ -1207,7 +1207,7 @@
     "id": "declare_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 76
+      "line": 75
     },
     "group": "style",
     "level": "warn",
@@ -1297,7 +1297,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 275
+      "line": 279
     },
     "group": "complexity",
     "level": "warn",
@@ -1312,7 +1312,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 133
+      "line": 137
     },
     "group": "correctness",
     "level": "deny",
@@ -1420,7 +1420,7 @@
     "id": "disallowed_macros",
     "id_span": {
       "path": "src/disallowed_macros.rs",
-      "line": 51
+      "line": 52
     },
     "group": "style",
     "level": "warn",
@@ -1519,7 +1519,7 @@
     "id": "doc_link_with_quotes",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 222
+      "line": 223
     },
     "group": "pedantic",
     "level": "allow",
@@ -1534,7 +1534,7 @@
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 75
+      "line": 76
     },
     "group": "pedantic",
     "level": "allow",
@@ -1609,12 +1609,12 @@
     "id": "drain_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3332
+      "line": 3336
     },
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nChecks for calls to `.drain()` that clear the collection, immediately followed by a call to `.collect()`.\n\n> \"Collection\" in this context refers to any type with a `drain` method:\n> `Vec`, `VecDeque`, `BinaryHeap`, `HashSet`,`HashMap`, `String`\n\n### Why is this bad?\nUsing `mem::take` is faster as it avoids the allocation.\nWhen using `mem::take`, the old collection is replaced with an empty one and ownership of\nthe old collection is returned.\n\n### Known issues\n`mem::take(&mut vec)` is almost equivalent to `vec.drain(..).collect()`, except that\nit also moves the **capacity**. The user might have explicitly written it this way\nto keep the capacity on the original `Vec`.\n\n### Example\n```rust\nfn remove_all(v: &mut Vec<i32>) -> Vec<i32> {\n    v.drain(..).collect()\n}\n```\nUse instead:\n```rust\nuse std::mem;\nfn remove_all(v: &mut Vec<i32>) -> Vec<i32> {\n    mem::take(v)\n}\n```",
-    "version": "1.71.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -1729,7 +1729,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 221
+      "line": 225
     },
     "group": "nursery",
     "level": "allow",
@@ -1744,7 +1744,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 175
+      "line": 179
     },
     "group": "nursery",
     "level": "allow",
@@ -1879,7 +1879,7 @@
     "id": "err_expect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 472
+      "line": 476
     },
     "group": "style",
     "level": "warn",
@@ -1894,7 +1894,7 @@
     "id": "error_impl_error",
     "id_span": {
       "path": "src/error_impl_error.rs",
-      "line": 32
+      "line": 31
     },
     "group": "restriction",
     "level": "allow",
@@ -1914,7 +1914,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for blocks which are nested beyond a certain threshold.\n\nNote: Even though this lint is warn-by-default, it will only trigger if a maximum nesting level is defined in the clippy.toml file.\n\n### Why is this bad?\nIt can severely hinder readability.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\nexcessive-nesting-threshold = 3\n```\n```rust\n// lib.rs\npub mod a {\n    pub struct X;\n    impl X {\n        pub fn run(&self) {\n            if true {\n                // etc...\n            }\n        }\n    }\n}\n```\nUse instead:\n```rust\n// a.rs\nfn private_run(x: &X) {\n    if true {\n        // etc...\n    }\n}\n\npub struct X;\nimpl X {\n    pub fn run(&self) {\n        private_run(self);\n    }\n}\n```\n```rust\n// lib.rs\npub mod a;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `excessive-nesting-threshold`: `u64`(defaults to `0`): The maximum amount of nesting a block can reside in\n",
-    "version": "1.70.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -1984,7 +1984,7 @@
     "id": "expect_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 981
+      "line": 985
     },
     "group": "perf",
     "level": "warn",
@@ -1999,7 +1999,7 @@
     "id": "expect_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 342
+      "line": 346
     },
     "group": "restriction",
     "level": "allow",
@@ -2033,7 +2033,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 154
+      "line": 136
     },
     "group": "complexity",
     "level": "warn",
@@ -2063,7 +2063,7 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 69
+      "line": 51
     },
     "group": "pedantic",
     "level": "allow",
@@ -2138,7 +2138,7 @@
     "id": "extend_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1390
+      "line": 1394
     },
     "group": "perf",
     "level": "warn",
@@ -2213,7 +2213,7 @@
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1752
+      "line": 1756
     },
     "group": "restriction",
     "level": "allow",
@@ -2243,7 +2243,7 @@
     "id": "filter_map_bool_then",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3505
+      "line": 3509
     },
     "group": "style",
     "level": "warn",
@@ -2258,7 +2258,7 @@
     "id": "filter_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1977
+      "line": 1981
     },
     "group": "complexity",
     "level": "warn",
@@ -2273,7 +2273,7 @@
     "id": "filter_map_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 790
+      "line": 794
     },
     "group": "pedantic",
     "level": "allow",
@@ -2288,7 +2288,7 @@
     "id": "filter_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 658
+      "line": 662
     },
     "group": "complexity",
     "level": "warn",
@@ -2318,7 +2318,7 @@
     "id": "flat_map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 813
+      "line": 817
     },
     "group": "complexity",
     "level": "warn",
@@ -2333,7 +2333,7 @@
     "id": "flat_map_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 229
+      "line": 233
     },
     "group": "pedantic",
     "level": "allow",
@@ -2438,7 +2438,7 @@
     "id": "fn_to_numeric_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 262
+      "line": 263
     },
     "group": "style",
     "level": "warn",
@@ -2453,7 +2453,7 @@
     "id": "fn_to_numeric_cast_any",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 337
+      "line": 338
     },
     "group": "restriction",
     "level": "allow",
@@ -2468,7 +2468,7 @@
     "id": "fn_to_numeric_cast_with_truncation",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 295
+      "line": 296
     },
     "group": "style",
     "level": "warn",
@@ -2513,7 +2513,7 @@
     "id": "format_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3453
+      "line": 3457
     },
     "group": "perf",
     "level": "warn",
@@ -2573,7 +2573,7 @@
     "id": "from_iter_instead_of_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1924
+      "line": 1928
     },
     "group": "pedantic",
     "level": "allow",
@@ -2648,7 +2648,7 @@
     "id": "get_first",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2600
+      "line": 2604
     },
     "group": "style",
     "level": "warn",
@@ -2663,7 +2663,7 @@
     "id": "get_last_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1325
+      "line": 1329
     },
     "group": "complexity",
     "level": "warn",
@@ -2678,7 +2678,7 @@
     "id": "get_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1362
+      "line": 1366
     },
     "group": "restriction",
     "level": "allow",
@@ -2698,7 +2698,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for the usage of the `to_ne_bytes` method and/or the function `from_ne_bytes`.\n\n### Why is this bad?\nIt's not, but some may prefer to specify the target endianness explicitly.\n\n### Example\n```rust\nlet _x = 2i32.to_ne_bytes();\nlet _y = 2i64.to_ne_bytes();\n```",
-    "version": "1.71.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -2843,7 +2843,7 @@
     "id": "implicit_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2051
+      "line": 2055
     },
     "group": "pedantic",
     "level": "allow",
@@ -2915,6 +2915,21 @@
     }
   },
   {
+    "id": "implied_bounds_in_impls",
+    "id_span": {
+      "path": "src/implied_bounds_in_impls.rs",
+      "line": 47
+    },
+    "group": "nursery",
+    "level": "allow",
+    "docs": "\n### What it does\nLooks for bounds in `impl Trait` in return position that are implied by other bounds.\nThis can happen when a trait is specified that another trait already has as a supertrait\n(e.g. `fn() -> impl Deref + DerefMut<Target = i32>` has an unnecessary `Deref` bound,\nbecause `Deref` is a supertrait of `DerefMut`)\n\n### Why is this bad?\nSpecifying more bounds than necessary adds needless complexity for the reader.\n\n### Limitations\nThis lint does not check for implied bounds transitively. Meaning that\nit does't check for implied bounds from supertraits of supertraits\n(e.g. `trait A {} trait B: A {} trait C: B {}`, then having an `fn() -> impl A + C`)\n\n### Example\n```rust\nfn f() -> impl Deref<Target = i32> + DerefMut<Target = i32> {\n//             ^^^^^^^^^^^^^^^^^^^ unnecessary bound, already implied by the `DerefMut` trait bound\n    Box::new(123)\n}\n```\nUse instead:\n```rust\nfn f() -> impl DerefMut<Target = i32> {\n    Box::new(123)\n}\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "impossible_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
@@ -2975,36 +2990,6 @@
     }
   },
   {
-    "id": "incorrect_clone_impl_on_copy_type",
-    "id_span": {
-      "path": "src/incorrect_impls.rs",
-      "line": 50
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for manual implementations of `Clone` when `Copy` is already implemented.\n\n### Why is this bad?\nIf both `Clone` and `Copy` are implemented, they must agree. This is done by dereferencing\n`self` in `Clone`'s implementation. Anything else is incorrect.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        Self(self.0)\n    }\n}\n\nimpl Copy for A {}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        *self\n    }\n}\n\nimpl Copy for A {}\n```",
-    "version": "1.72.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "MaybeIncorrect"
-    }
-  },
-  {
-    "id": "incorrect_partial_ord_impl_on_ord_type",
-    "id_span": {
-      "path": "src/incorrect_impls.rs",
-      "line": 111
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for manual implementations of both `PartialOrd` and `Ord` when only `Ord` is\nnecessary.\n\n### Why is this bad?\nIf both `PartialOrd` and `Ord` are implemented, they must agree. This is commonly done by\nwrapping the result of `cmp` in `Some` for `partial_cmp`. Not doing this may silently\nintroduce an error upon refactoring.\n\n### Known issues\nCode that calls the `.into()` method instead will be flagged as incorrect, despite `.into()`\nwrapping it in `Some`.\n\n### Limitations\nWill not lint if `Self` and `Rhs` do not have the same type.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        // ...\n    }\n}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        Some(self.cmp(other))\n    }\n}\n```",
-    "version": "1.72.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unspecified"
-    }
-  },
-  {
     "id": "index_refutable_slice",
     "id_span": {
       "path": "src/index_refutable_slice.rs",
@@ -3053,7 +3038,7 @@
     "id": "inefficient_to_string",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1054
+      "line": 1058
     },
     "group": "pedantic",
     "level": "allow",
@@ -3143,7 +3128,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 70
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
@@ -3203,7 +3188,7 @@
     "id": "inspect_for_each",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1954
+      "line": 1958
     },
     "group": "complexity",
     "level": "warn",
@@ -3248,7 +3233,7 @@
     "id": "into_iter_on_ref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1608
+      "line": 1612
     },
     "group": "style",
     "level": "warn",
@@ -3263,7 +3248,7 @@
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 151
+      "line": 150
     },
     "group": "correctness",
     "level": "deny",
@@ -3326,7 +3311,7 @@
     "id": "is_digit_ascii_radix",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2356
+      "line": 2360
     },
     "group": "style",
     "level": "warn",
@@ -3371,7 +3356,7 @@
     "id": "iter_cloned_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1444
+      "line": 1448
     },
     "group": "style",
     "level": "warn",
@@ -3386,7 +3371,7 @@
     "id": "iter_count",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2081
+      "line": 2085
     },
     "group": "complexity",
     "level": "warn",
@@ -3401,7 +3386,7 @@
     "id": "iter_kv_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3123
+      "line": 3127
     },
     "group": "complexity",
     "level": "warn",
@@ -3431,7 +3416,7 @@
     "id": "iter_next_slice",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1805
+      "line": 1809
     },
     "group": "style",
     "level": "warn",
@@ -3461,7 +3446,7 @@
     "id": "iter_nth",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1242
+      "line": 1246
     },
     "group": "perf",
     "level": "warn",
@@ -3476,7 +3461,7 @@
     "id": "iter_nth_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1215
+      "line": 1219
     },
     "group": "style",
     "level": "warn",
@@ -3491,7 +3476,7 @@
     "id": "iter_on_empty_collections",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2490
+      "line": 2494
     },
     "group": "nursery",
     "level": "allow",
@@ -3506,7 +3491,7 @@
     "id": "iter_on_single_items",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2458
+      "line": 2462
     },
     "group": "nursery",
     "level": "allow",
@@ -3518,10 +3503,25 @@
     }
   },
   {
+    "id": "iter_out_of_bounds",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 3564
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nLooks for iterator combinator calls such as `.take(x)` or `.skip(x)`\nwhere `x` is greater than the amount of items that an iterator will produce.\n\n### Why is this bad?\nTaking or skipping more items than there are in an iterator either creates an iterator\nwith all items from the original iterator or an iterator with no items at all.\nThis is most likely not what the user intended to do.\n\n### Example\n```rust\nfor _ in [1, 2, 3].iter().take(4) {}\n```\nUse instead:\n```rust\nfor _ in [1, 2, 3].iter() {}\n```",
+    "version": "1.74.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "iter_overeager_cloned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 206
+      "line": 210
     },
     "group": "perf",
     "level": "warn",
@@ -3536,7 +3536,7 @@
     "id": "iter_skip_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1267
+      "line": 1271
     },
     "group": "style",
     "level": "warn",
@@ -3551,7 +3551,7 @@
     "id": "iter_skip_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3474
+      "line": 3478
     },
     "group": "correctness",
     "level": "deny",
@@ -3566,7 +3566,7 @@
     "id": "iter_with_drain",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1292
+      "line": 1296
     },
     "group": "nursery",
     "level": "allow",
@@ -3581,7 +3581,7 @@
     "id": "iterator_step_by_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1163
+      "line": 1167
     },
     "group": "correctness",
     "level": "deny",
@@ -3611,7 +3611,7 @@
     "id": "large_const_arrays",
     "id_span": {
       "path": "src/large_const_arrays.rs",
-      "line": 31
+      "line": 30
     },
     "group": "perf",
     "level": "warn",
@@ -3656,11 +3656,11 @@
     "id": "large_futures",
     "id_span": {
       "path": "src/large_futures.rs",
-      "line": 43
+      "line": 37
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = big_fut([0u8; 1024]);\n    wait(fut).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn wait(f: impl std::future::Future<Output = ()>) {}\n\nasync fn big_fut(arg: [u8; 1024]) {}\n\npub async fn test() {\n    let fut = Box::pin(big_fut([0u8; 1024]));\n    wait(fut).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
+    "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    large_future([0u8; 16 * 1024]).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    Box::pin(large_future([0u8; 16 * 1024])).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3706,7 +3706,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nChecks for functions that use a lot of stack space.\n\nThis often happens when constructing a large type, such as an array with a lot of elements,\nor constructing *many* smaller-but-still-large structs, or copying around a lot of large types.\n\nThis lint is a more general version of [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/master/#large_stack_arrays)\nthat is intended to look at functions as a whole instead of only individual array expressions inside of a function.\n\n### Why is this bad?\nThe stack region of memory is very limited in size (usually *much* smaller than the heap) and attempting to\nuse too much will result in a stack overflow and crash the program.\nTo avoid this, you should consider allocating large types on the heap instead (e.g. by boxing them).\n\nKeep in mind that the code path to construction of large types does not even need to be reachable;\nit purely needs to *exist* inside of the function to contribute to the stack size.\nFor example, this causes a stack overflow even though the branch is unreachable:\n```rust\nfn main() {\n    if false {\n        let x = [0u8; 10000000]; // 10 MB stack array\n        black_box(&x);\n    }\n}\n```\n\n### Known issues\nFalse positives. The stack size that clippy sees is an estimated value and can be vastly different\nfrom the actual stack usage after optimizations passes have run (especially true in release mode).\nModern compilers are very smart and are able to optimize away a lot of unnecessary stack allocations.\nIn debug mode however, it is usually more accurate.\n\nThis lint works by summing up the size of all variables that the user typed, variables that were\nimplicitly introduced by the compiler for temporaries, function arguments and the return value,\nand comparing them against a (configurable, but high-by-default).\n\n### Example\nThis function creates four 500 KB arrays on the stack. Quite big but just small enough to not trigger `large_stack_arrays`.\nHowever, looking at the function as a whole, it's clear that this uses a lot of stack space.\n```rust\nstruct QuiteLargeType([u8; 500_000]);\nfn foo() {\n    // ... some function that uses a lot of stack space ...\n    let _x1 = QuiteLargeType([0; 500_000]);\n    let _x2 = QuiteLargeType([0; 500_000]);\n    let _x3 = QuiteLargeType([0; 500_000]);\n    let _x4 = QuiteLargeType([0; 500_000]);\n}\n```\n\nInstead of doing this, allocate the arrays on the heap.\nThis currently requires going through a `Vec` first and then converting it to a `Box`:\n```rust\nstruct NotSoLargeType(Box<[u8]>);\n\nfn foo() {\n    let _x1 = NotSoLargeType(vec![0; 500_000].into_boxed_slice());\n//                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  Now heap allocated.\n//                                                                The size of `NotSoLargeType` is 16 bytes.\n//  ...\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `stack-size-threshold`: `u64`(defaults to `512000`): The maximum allowed stack size for functions in bytes\n",
-    "version": "1.71.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -3901,7 +3901,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for the usage of the `to_le_bytes` method and/or the function `from_le_bytes`.\n\n### Why is this bad?\nIt's not, but some may wish to lint usage of this method, either to suggest using the host\nendianness or big endian.\n\n### Example\n```rust\nlet _x = 2i32.to_le_bytes();\nlet _y = 2i64.to_le_bytes();\n```",
-    "version": "1.71.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -4031,7 +4031,7 @@
     "id": "manual_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 741
+      "line": 745
     },
     "group": "complexity",
     "level": "warn",
@@ -4061,7 +4061,7 @@
     "id": "manual_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 767
+      "line": 771
     },
     "group": "complexity",
     "level": "warn",
@@ -4211,7 +4211,7 @@
     "id": "manual_next_back",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3296
+      "line": 3300
     },
     "group": "style",
     "level": "warn",
@@ -4241,7 +4241,7 @@
     "id": "manual_ok_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2626
+      "line": 2630
     },
     "group": "pedantic",
     "level": "allow",
@@ -4271,7 +4271,7 @@
     "id": "manual_range_patterns",
     "id_span": {
       "path": "src/manual_range_patterns.rs",
-      "line": 33
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
@@ -4301,7 +4301,7 @@
     "id": "manual_retain",
     "id_span": {
       "path": "src/manual_retain.rs",
-      "line": 47
+      "line": 49
     },
     "group": "perf",
     "level": "warn",
@@ -4316,7 +4316,7 @@
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1692
+      "line": 1696
     },
     "group": "style",
     "level": "warn",
@@ -4346,7 +4346,7 @@
     "id": "manual_split_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2218
+      "line": 2222
     },
     "group": "complexity",
     "level": "warn",
@@ -4361,7 +4361,7 @@
     "id": "manual_str_repeat",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2182
+      "line": 2186
     },
     "group": "perf",
     "level": "warn",
@@ -4421,7 +4421,7 @@
     "id": "manual_try_fold",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3361
+      "line": 3365
     },
     "group": "perf",
     "level": "warn",
@@ -4481,7 +4481,7 @@
     "id": "map_clone",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2655
+      "line": 2659
     },
     "group": "style",
     "level": "warn",
@@ -4496,7 +4496,7 @@
     "id": "map_collect_result_unit",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1893
+      "line": 1897
     },
     "group": "style",
     "level": "warn",
@@ -4526,7 +4526,7 @@
     "id": "map_err_ignore",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2755
+      "line": 2759
     },
     "group": "restriction",
     "level": "allow",
@@ -4541,7 +4541,7 @@
     "id": "map_flatten",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 713
+      "line": 717
     },
     "group": "complexity",
     "level": "warn",
@@ -4556,7 +4556,7 @@
     "id": "map_identity",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2000
+      "line": 2004
     },
     "group": "complexity",
     "level": "warn",
@@ -4571,7 +4571,7 @@
     "id": "map_unwrap_or",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 547
+      "line": 551
     },
     "group": "pedantic",
     "level": "allow",
@@ -4789,7 +4789,7 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 387
+      "line": 426
     },
     "group": "suspicious",
     "level": "warn",
@@ -4909,7 +4909,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 308
+      "line": 312
     },
     "group": "correctness",
     "level": "deny",
@@ -4981,10 +4981,25 @@
     }
   },
   {
+    "id": "missing_asserts_for_indexing",
+    "id_span": {
+      "path": "src/missing_asserts_for_indexing.rs",
+      "line": 61
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for repeated slice indexing without asserting beforehand that the length\nis greater than the largest index used to index into the slice.\n\n### Why is this bad?\nIn the general case where the compiler does not have a lot of information\nabout the length of a slice, indexing it repeatedly will generate a bounds check\nfor every single index.\n\nAsserting that the length of the slice is at least as large as the largest value\nto index beforehand gives the compiler enough information to elide the bounds checks,\neffectively reducing the number of bounds checks from however many times\nthe slice was indexed to just one (the assert).\n\n### Drawbacks\nFalse positives. It is, in general, very difficult to predict how well\nthe optimizer will be able to elide bounds checks and it very much depends on\nthe surrounding code. For example, indexing into the slice yielded by the\n[`slice::chunks_exact`](https://doc.rust-lang.org/stable/std/primitive.slice.html#method.chunks_exact)\niterator will likely have all of the bounds checks elided even without an assert\nif the `chunk_size` is a constant.\n\nAsserts are not tracked across function calls. Asserting the length of a slice\nin a different function likely gives the optimizer enough information\nabout the length of a slice, but this lint will not detect that.\n\n### Example\n```rust\nfn sum(v: &[u8]) -> u8 {\n    // 4 bounds checks\n    v[0] + v[1] + v[2] + v[3]\n}\n```\nUse instead:\n```rust\nfn sum(v: &[u8]) -> u8 {\n    assert!(v.len() > 4);\n    // no bounds checks\n    v[0] + v[1] + v[2] + v[3]\n}\n```",
+    "version": "1.70.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "missing_const_for_fn",
     "id_span": {
       "path": "src/missing_const_for_fn.rs",
-      "line": 70
+      "line": 69
     },
     "group": "nursery",
     "level": "allow",
@@ -5029,7 +5044,7 @@
     "id": "missing_errors_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 139
+      "line": 140
     },
     "group": "pedantic",
     "level": "allow",
@@ -5074,7 +5089,7 @@
     "id": "missing_panics_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 170
+      "line": 171
     },
     "group": "pedantic",
     "level": "allow",
@@ -5089,7 +5104,7 @@
     "id": "missing_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 110
+      "line": 111
     },
     "group": "style",
     "level": "warn",
@@ -5350,7 +5365,7 @@
     "id": "mut_from_ref",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 128
+      "line": 127
     },
     "group": "correctness",
     "level": "deny",
@@ -5380,7 +5395,7 @@
     "id": "mut_mutex_lock",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2791
+      "line": 2795
     },
     "group": "style",
     "level": "warn",
@@ -5455,7 +5470,7 @@
     "id": "naive_bytecount",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2521
+      "line": 2525
     },
     "group": "pedantic",
     "level": "allow",
@@ -5530,7 +5545,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 103
+      "line": 85
     },
     "group": "style",
     "level": "warn",
@@ -5560,10 +5575,25 @@
     }
   },
   {
+    "id": "needless_borrows_for_generic_args",
+    "id_span": {
+      "path": "src/needless_borrows_for_generic_args.rs",
+      "line": 54
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for borrow operations (`&`) that used as a generic argument to a\nfunction when the borrowed value could be used.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Known problems\nThe lint cannot tell when the implementation of a trait\nfor `&T` and `T` do different things. Removing a borrow\nin such a case can change the semantics of the code.\n\n### Example\n```rust\nfn f(_: impl AsRef<str>) {}\n\nlet x = \"foo\";\nf(&x);\n```\n\nUse instead:\n```rust\nfn f(_: impl AsRef<str>) {}\n\nlet x = \"foo\";\nf(x);\n```",
+    "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "needless_collect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3222
+      "line": 3226
     },
     "group": "nursery",
     "level": "allow",
@@ -5593,7 +5623,7 @@
     "id": "needless_doctest_main",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 199
+      "line": 200
     },
     "group": "style",
     "level": "warn",
@@ -5613,7 +5643,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for empty `else` branches.\n\n### Why is this bad?\nAn empty else branch does nothing and can be removed.\n\n### Example\n```rust\nif check() {\n    println!(\"Check successful!\");\n} else {\n}\n```\nUse instead:\n```rust\nif check() {\n    println!(\"Check successful!\");\n}\n```",
-    "version": "1.71.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -5698,7 +5728,7 @@
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2329
+      "line": 2333
     },
     "group": "complexity",
     "level": "warn",
@@ -5713,7 +5743,7 @@
     "id": "needless_option_take",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2380
+      "line": 2384
     },
     "group": "complexity",
     "level": "warn",
@@ -5743,7 +5773,7 @@
     "id": "needless_pass_by_ref_mut",
     "id_span": {
       "path": "src/needless_pass_by_ref_mut.rs",
-      "line": 46
+      "line": 51
     },
     "group": "suspicious",
     "level": "warn",
@@ -5818,7 +5848,7 @@
     "id": "needless_raw_string_hashes",
     "id_span": {
       "path": "src/raw_strings.rs",
-      "line": 51
+      "line": 52
     },
     "group": "style",
     "level": "warn",
@@ -5833,7 +5863,7 @@
     "id": "needless_raw_strings",
     "id_span": {
       "path": "src/raw_strings.rs",
-      "line": 30
+      "line": 31
     },
     "group": "restriction",
     "level": "allow",
@@ -5878,7 +5908,7 @@
     "id": "needless_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2241
+      "line": 2245
     },
     "group": "complexity",
     "level": "warn",
@@ -5968,7 +5998,7 @@
     "id": "new_ret_no_self",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1116
+      "line": 1120
     },
     "group": "style",
     "level": "warn",
@@ -5991,7 +6021,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MaybeIncorrect"
+      "applicability": "MachineApplicable"
     },
     "former_ids": [
       "new_without_default_derive"
@@ -6001,7 +6031,7 @@
     "id": "no_effect",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 32
+      "line": 30
     },
     "group": "complexity",
     "level": "warn",
@@ -6016,7 +6046,7 @@
     "id": "no_effect_replace",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2398
+      "line": 2402
     },
     "group": "suspicious",
     "level": "warn",
@@ -6031,7 +6061,7 @@
     "id": "no_effect_underscore_binding",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 55
+      "line": 53
     },
     "group": "pedantic",
     "level": "allow",
@@ -6073,10 +6103,46 @@
     }
   },
   {
+    "id": "non_canonical_clone_impl",
+    "id_span": {
+      "path": "src/non_canonical_impls.rs",
+      "line": 50
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for non-canonical implementations of `Clone` when `Copy` is already implemented.\n\n### Why is this bad?\nIf both `Clone` and `Copy` are implemented, they must agree. This can done by dereferencing\n`self` in `Clone`'s implementation, which will avoid any possibility of the implementations\nbecoming out of sync.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        Self(self.0)\n    }\n}\n\nimpl Copy for A {}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Clone for A {\n    fn clone(&self) -> Self {\n        *self\n    }\n}\n\nimpl Copy for A {}\n```\n### Past names\n\n* `incorrect_clone_impl_on_copy_type`\n\n",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    },
+    "former_ids": [
+      "incorrect_clone_impl_on_copy_type"
+    ]
+  },
+  {
+    "id": "non_canonical_partial_ord_impl",
+    "id_span": {
+      "path": "src/non_canonical_impls.rs",
+      "line": 107
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for non-canonical implementations of `PartialOrd` when `Ord` is already implemented.\n\n### Why is this bad?\nIf both `PartialOrd` and `Ord` are implemented, they must agree. This is commonly done by\nwrapping the result of `cmp` in `Some` for `partial_cmp`. Not doing this may silently\nintroduce an error upon refactoring.\n\n### Known issues\nCode that calls the `.into()` method instead will be flagged, despite `.into()` wrapping it\nin `Some`.\n\n### Example\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        // ...\n    }\n}\n```\nUse instead:\n```rust\n#[derive(Eq, PartialEq)]\nstruct A(u32);\n\nimpl Ord for A {\n    fn cmp(&self, other: &Self) -> Ordering {\n        // ...\n    }\n}\n\nimpl PartialOrd for A {\n    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {\n        Some(self.cmp(other))\n    }\n}\n```\n### Past names\n\n* `incorrect_partial_ord_impl_on_ord_type`\n\n",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unspecified"
+    },
+    "former_ids": [
+      "incorrect_partial_ord_impl_on_ord_type"
+    ]
+  },
+  {
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 361
+      "line": 400
     },
     "group": "style",
     "level": "warn",
@@ -6136,7 +6202,7 @@
     "id": "nonsensical_open_options",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2812
+      "line": 2816
     },
     "group": "correctness",
     "level": "deny",
@@ -6181,7 +6247,7 @@
     "id": "obfuscated_if_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2426
+      "line": 2430
     },
     "group": "style",
     "level": "warn",
@@ -6211,7 +6277,7 @@
     "id": "ok_expect",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 449
+      "line": 453
     },
     "group": "style",
     "level": "warn",
@@ -6256,7 +6322,7 @@
     "id": "option_as_ref_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1778
+      "line": 1782
     },
     "group": "complexity",
     "level": "warn",
@@ -6286,7 +6352,7 @@
     "id": "option_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1185
+      "line": 1189
     },
     "group": "complexity",
     "level": "warn",
@@ -6316,7 +6382,7 @@
     "id": "option_map_or_none",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 575
+      "line": 579
     },
     "group": "style",
     "level": "warn",
@@ -6361,7 +6427,7 @@
     "id": "or_fun_call",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 907
+      "line": 911
     },
     "group": "nursery",
     "level": "allow",
@@ -6376,7 +6442,7 @@
     "id": "or_then_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 943
+      "line": 947
     },
     "group": "complexity",
     "level": "warn",
@@ -6469,7 +6535,7 @@
     "id": "panicking_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 71
+      "line": 74
     },
     "group": "correctness",
     "level": "deny",
@@ -6529,7 +6595,7 @@
     "id": "path_buf_push_overwrite",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2844
+      "line": 2848
     },
     "group": "nursery",
     "level": "allow",
@@ -6538,6 +6604,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "path_ends_with_ext",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 3603
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nLooks for calls to `Path::ends_with` calls where the argument looks like a file extension.\n\nBy default, Clippy has a short list of known filenames that start with a dot\nbut aren't necessarily file extensions (e.g. the `.git` folder), which are allowed by default.\nThe `allowed-dotfiles` configuration can be used to allow additional\nfile extensions that Clippy should not lint.\n\n### Why is this bad?\nThis doesn't actually compare file extensions. Rather, `ends_with` compares the given argument\nto the last **component** of the path and checks if it matches exactly.\n\n### Known issues\nFile extensions are often at most three characters long, so this only lints in those cases\nin an attempt to avoid false positives.\nAny extension names longer than that are assumed to likely be real path components and are\ntherefore ignored.\n\n### Example\n```rust\nfn is_markdown(path: &Path) -> bool {\n    path.ends_with(\".md\")\n}\n```\nUse instead:\n```rust\nfn is_markdown(path: &Path) -> bool {\n    path.extension().is_some_and(|ext| ext == \"md\")\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `allowed-dotfiles`: `rustc_data_structures::fx::FxHashSet<String>`(defaults to `{}`): Additional dotfiles (files or directories starting with a dot) to allow\n",
+    "version": "1.74.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
     }
   },
   {
@@ -6694,7 +6775,7 @@
     "id": "ptr_arg",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 65
+      "line": 64
     },
     "group": "style",
     "level": "warn",
@@ -6709,7 +6790,7 @@
     "id": "ptr_as_ptr",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 394
+      "line": 395
     },
     "group": "pedantic",
     "level": "allow",
@@ -6724,12 +6805,12 @@
     "id": "ptr_cast_constness",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 422
+      "line": 423
     },
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for `as` casts between raw pointers which change its constness, namely `*const T` to\n`*mut T` and `*mut T` to `*const T`.\n\n### Why is this bad?\nThough `as` casts between raw pointers are not terrible, `pointer::cast_mut` and\n`pointer::cast_const` are safer because they cannot accidentally cast the pointer to another\ntype.\n\n### Example\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr as *mut u32;\nlet ptr = mut_ptr as *const u32;\n```\nUse instead:\n```rust\nlet ptr: *const u32 = &42_u32;\nlet mut_ptr = ptr.cast_mut();\nlet ptr = mut_ptr.cast_const();\n```",
-    "version": "1.71.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -6904,7 +6985,7 @@
     "id": "range_zip_with_len",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2869
+      "line": 2873
     },
     "group": "complexity",
     "level": "warn",
@@ -6964,7 +7045,7 @@
     "id": "read_line_without_trim",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3390
+      "line": 3394
     },
     "group": "correctness",
     "level": "deny",
@@ -6994,7 +7075,7 @@
     "id": "readonly_write_lock",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3536
+      "line": 3540
     },
     "group": "nursery",
     "level": "allow",
@@ -7036,6 +7117,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "redundant_as_str",
+    "id_span": {
+      "path": "src/methods/mod.rs",
+      "line": 3629
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for usage of `as_str()` on a `String`` chained with a method available on the `String` itself.\n\n### Why is this bad?\nThe `as_str()` conversion is pointless and can be removed for simplicity and cleanliness.\n\n### Example\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_str().as_bytes();\n```\n\nUse instead:\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_bytes();\n```",
+    "version": "1.74.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -7102,7 +7198,7 @@
     "id": "redundant_closure_call",
     "id_span": {
       "path": "src/redundant_closure_call.rs",
-      "line": 34
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
@@ -7305,7 +7401,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nWarns about needless / redundant type annotations.\n\n### Why is this bad?\nCode without type annotations is shorter and in most cases\nmore idiomatic and easier to modify.\n\n### Limitations\nThis lint doesn't support:\n\n- Generics\n- Refs returned from anything else than a `MethodCall`\n- Complex types (tuples, arrays, etc...)\n- `Path` to anything else than a primitive type.\n\n### Example\n```rust\nlet foo: String = String::new();\n```\nUse instead:\n```rust\nlet foo = String::new();\n```",
-    "version": "1.70.0",
+    "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7315,7 +7411,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 131
+      "line": 113
     },
     "group": "pedantic",
     "level": "allow",
@@ -7375,7 +7471,7 @@
     "id": "repeat_once",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2901
+      "line": 2905
     },
     "group": "complexity",
     "level": "warn",
@@ -7399,6 +7495,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "reserve_after_initialization",
+    "id_span": {
+      "path": "src/reserve_after_initialization.rs",
+      "line": 30
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nInforms the user about a more concise way to create a vector with a known capacity.\n\n### Why is this bad?\nThe `Vec::with_capacity` constructor is less complex.\n\n### Example\n```rust\nlet mut v: Vec<usize> = vec![];\nv.reserve(10);\n```\nUse instead:\n```rust\nlet mut v: Vec<usize> = Vec::with_capacity(10);\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "HasPlaceholders"
     }
   },
   {
@@ -7435,7 +7546,7 @@
     "id": "result_map_or_into_option",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 600
+      "line": 604
     },
     "group": "style",
     "level": "warn",
@@ -7555,7 +7666,7 @@
     "id": "search_is_some",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 846
+      "line": 850
     },
     "group": "complexity",
     "level": "warn",
@@ -7570,7 +7681,7 @@
     "id": "seek_from_current",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3166
+      "line": 3170
     },
     "group": "complexity",
     "level": "warn",
@@ -7585,7 +7696,7 @@
     "id": "seek_to_start_instead_of_rewind",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3197
+      "line": 3201
     },
     "group": "complexity",
     "level": "warn",
@@ -7765,7 +7876,7 @@
     "id": "short_circuit_statement",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 101
+      "line": 100
     },
     "group": "complexity",
     "level": "warn",
@@ -7795,7 +7906,7 @@
     "id": "should_implement_trait",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 372
+      "line": 376
     },
     "group": "style",
     "level": "warn",
@@ -7804,6 +7915,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "should_panic_without_expect",
+    "id_span": {
+      "path": "src/attrs.rs",
+      "line": 376
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for `#[should_panic]` attributes without specifying the expected panic message.\n\n### Why is this bad?\nThe expected panic message should be specified to ensure that the test is actually\npanicking with the expected message, and not another unrelated panic.\n\n### Example\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```\n\nUse instead:\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic = \"attempt to divide by zero\"]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "HasPlaceholders"
     }
   },
   {
@@ -7870,7 +7996,7 @@
     "id": "single_char_add_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1832
+      "line": 1836
     },
     "group": "style",
     "level": "warn",
@@ -7903,7 +8029,7 @@
     "id": "single_char_pattern",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1143
+      "line": 1147
     },
     "group": "perf",
     "level": "warn",
@@ -8023,7 +8149,7 @@
     "id": "skip_while_next",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 683
+      "line": 687
     },
     "group": "complexity",
     "level": "warn",
@@ -8038,7 +8164,7 @@
     "id": "slow_vector_initialization",
     "id_span": {
       "path": "src/slow_vector_initialization.rs",
-      "line": 54
+      "line": 55
     },
     "group": "perf",
     "level": "warn",
@@ -8053,7 +8179,7 @@
     "id": "stable_sort_primitive",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2939
+      "line": 2943
     },
     "group": "pedantic",
     "level": "allow",
@@ -8068,7 +8194,7 @@
     "id": "std_instead_of_alloc",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 56
+      "line": 57
     },
     "group": "restriction",
     "level": "allow",
@@ -8076,14 +8202,14 @@
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
     "id": "std_instead_of_core",
     "id_span": {
       "path": "src/std_instead_of_core.rs",
-      "line": 30
+      "line": 31
     },
     "group": "restriction",
     "level": "allow",
@@ -8091,7 +8217,7 @@
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -8143,7 +8269,7 @@
     "id": "string_extend_chars",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1420
+      "line": 1424
     },
     "group": "style",
     "level": "warn",
@@ -8188,7 +8314,7 @@
     "id": "string_lit_chars_any",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3418
+      "line": 3422
     },
     "group": "restriction",
     "level": "allow",
@@ -8308,7 +8434,7 @@
     "id": "suspicious_command_arg_space",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3248
+      "line": 3252
     },
     "group": "suspicious",
     "level": "warn",
@@ -8353,7 +8479,7 @@
     "id": "suspicious_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1628
+      "line": 1632
     },
     "group": "suspicious",
     "level": "warn",
@@ -8398,7 +8524,7 @@
     "id": "suspicious_splitn",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2160
+      "line": 2164
     },
     "group": "correctness",
     "level": "deny",
@@ -8413,7 +8539,7 @@
     "id": "suspicious_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2129
+      "line": 2133
     },
     "group": "suspicious",
     "level": "warn",
@@ -8593,7 +8719,7 @@
     "id": "toplevel_ref_arg",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 55
+      "line": 53
     },
     "group": "style",
     "level": "warn",
@@ -8923,7 +9049,7 @@
     "id": "type_id_on_box",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2970
+      "line": 2974
     },
     "group": "suspicious",
     "level": "warn",
@@ -8972,7 +9098,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for `unsafe` blocks and impls without a `// SAFETY: ` comment\nexplaining why the unsafe operations performed inside\nthe block are safe.\n\nNote the comment must appear on the line(s) preceding the unsafe block\nwith nothing appearing in between. The following is ok:\n```rust\nfoo(\n    // SAFETY:\n    // This is a valid safety comment\n    unsafe { *x }\n)\n```\nBut neither of these are:\n```rust\n// SAFETY:\n// This is not a valid safety comment\nfoo(\n    /* SAFETY: Neither is this */ unsafe { *x },\n);\n```\n\n### Why is this bad?\nUndocumented unsafe blocks and impls can make it difficult to\nread and maintain code, as well as uncover unsoundness\nand bugs.\n\n### Example\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\nUse instead:\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\n// SAFETY: references are guaranteed to be non-null.\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `accept-comment-above-statement`: `bool`(defaults to `false`): Whether to accept a safety comment to be placed above the statement containing the `unsafe` block\n* `accept-comment-above-attributes`: `bool`(defaults to `false`): Whether to accept a safety comment to be placed above the attributes for the `unsafe` block\n",
+    "docs": "\n### What it does\nChecks for `unsafe` blocks and impls without a `// SAFETY: ` comment\nexplaining why the unsafe operations performed inside\nthe block are safe.\n\nNote the comment must appear on the line(s) preceding the unsafe block\nwith nothing appearing in between. The following is ok:\n```rust\nfoo(\n    // SAFETY:\n    // This is a valid safety comment\n    unsafe { *x }\n)\n```\nBut neither of these are:\n```rust\n// SAFETY:\n// This is not a valid safety comment\nfoo(\n    /* SAFETY: Neither is this */ unsafe { *x },\n);\n```\n\n### Why is this bad?\nUndocumented unsafe blocks and impls can make it difficult to\nread and maintain code, as well as uncover unsoundness\nand bugs.\n\n### Example\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\nUse instead:\n```rust\nuse std::ptr::NonNull;\nlet a = &mut 42;\n\n// SAFETY: references are guaranteed to be non-null.\nlet ptr = unsafe { NonNull::new_unchecked(a) };\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `accept-comment-above-statement`: `bool`(defaults to `true`): Whether to accept a safety comment to be placed above the statement containing the `unsafe` block\n* `accept-comment-above-attributes`: `bool`(defaults to `true`): Whether to accept a safety comment to be placed above the attributes for the `unsafe` block\n",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9013,7 +9139,7 @@
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1663
+      "line": 1667
     },
     "group": "correctness",
     "level": "deny",
@@ -9088,7 +9214,7 @@
     "id": "unit_hash",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3009
+      "line": 3013
     },
     "group": "correctness",
     "level": "deny",
@@ -9107,7 +9233,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for functions that expect closures of type\nFn(...) -> Ord where the implemented closure returns the unit type.\nThe lint also suggests to remove the semi-colon at the end of the statement if present.\n\n### Why is this bad?\nLikely, returning the unit type is unintentional, and\ncould simply be caused by an extra semi-colon. Since () implements Ord\nit doesn't cause a compilation error.\nThis is the same reasoning behind the unit_cmp lint.\n\n### Known problems\nIf returning unit is intentional, then there is no\nway of specifying this without triggering needless_return lint\n\n### Example\n```rust\nlet mut twins = vec!((1, 1), (2, 2));\ntwins.sort_by_key(|x| { x.1; });\n```",
+    "docs": "\n### What it does\nChecks for functions that expect closures of type\nFn(...) -> Ord where the implemented closure returns the unit type.\nThe lint also suggests to remove the semi-colon at the end of the statement if present.\n\n### Why is this bad?\nLikely, returning the unit type is unintentional, and\ncould simply be caused by an extra semi-colon. Since () implements Ord\nit doesn't cause a compilation error.\nThis is the same reasoning behind the unit_cmp lint.\n\n### Known problems\nIf returning unit is intentional, then there is no\nway of specifying this without triggering needless_return lint\n\n### Example\n```rust\nlet mut twins = vec![(1, 1), (2, 2)];\ntwins.sort_by_key(|x| { x.1; });\n```",
     "version": "1.47.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9133,7 +9259,7 @@
     "id": "unnecessary_cast",
     "id_span": {
       "path": "src/casts/mod.rs",
-      "line": 205
+      "line": 206
     },
     "group": "complexity",
     "level": "warn",
@@ -9148,7 +9274,7 @@
     "id": "unnecessary_filter_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1551
+      "line": 1555
     },
     "group": "complexity",
     "level": "warn",
@@ -9163,7 +9289,7 @@
     "id": "unnecessary_find_map",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1581
+      "line": 1585
     },
     "group": "complexity",
     "level": "warn",
@@ -9178,7 +9304,7 @@
     "id": "unnecessary_fold",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1521
+      "line": 1525
     },
     "group": "style",
     "level": "warn",
@@ -9193,7 +9319,7 @@
     "id": "unnecessary_join",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2304
+      "line": 2308
     },
     "group": "pedantic",
     "level": "allow",
@@ -9208,7 +9334,7 @@
     "id": "unnecessary_lazy_evaluations",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1872
+      "line": 1876
     },
     "group": "style",
     "level": "warn",
@@ -9223,12 +9349,27 @@
     "id": "unnecessary_literal_unwrap",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 305
+      "line": 309
     },
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `.unwrap()` related calls on `Result`s and `Option`s that are constructed.\n\n### Why is this bad?\nIt is better to write the value directly without the indirection.\n\n### Examples\n```rust\nlet val1 = Some(1).unwrap();\nlet val2 = Ok::<_, ()>(1).unwrap();\nlet val3 = Err::<(), _>(1).unwrap_err();\n```\n\nUse instead:\n```rust\nlet val1 = 1;\nlet val2 = 1;\nlet val3 = 1;\n```",
-    "version": "1.69.0",
+    "version": "1.72.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "unnecessary_map_on_constructor",
+    "id_span": {
+      "path": "src/unnecessary_map_on_constructor.rs",
+      "line": 27
+    },
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nSuggest removing the use of a may (or map_err) method when an Option or Result is being construted.\n\n### Why is this bad?\nIt introduces unnecessary complexity. In this case the function can be used directly and\nconstruct the Option or Result from the output.\n\n### Example\n```rust\nSome(4).map(i32::swap_bytes);\n```\nUse instead:\n```rust\nSome(i32::swap_bytes(4));\n```",
+    "version": "1.73.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -9253,7 +9394,7 @@
     "id": "unnecessary_operation",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 74
+      "line": 72
     },
     "group": "complexity",
     "level": "warn",
@@ -9298,7 +9439,7 @@
     "id": "unnecessary_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 258
+      "line": 259
     },
     "group": "restriction",
     "level": "allow",
@@ -9328,7 +9469,7 @@
     "id": "unnecessary_sort_by",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3043
+      "line": 3047
     },
     "group": "complexity",
     "level": "warn",
@@ -9358,7 +9499,7 @@
     "id": "unnecessary_to_owned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 2272
+      "line": 2276
     },
     "group": "perf",
     "level": "warn",
@@ -9373,7 +9514,7 @@
     "id": "unnecessary_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 44
+      "line": 47
     },
     "group": "complexity",
     "level": "warn",
@@ -9733,7 +9874,7 @@
     "id": "unwrap_or_default",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 510
+      "line": 514
     },
     "group": "style",
     "level": "warn",
@@ -9751,7 +9892,7 @@
     "id": "unwrap_used",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 279
+      "line": 283
     },
     "group": "restriction",
     "level": "allow",
@@ -9815,7 +9956,7 @@
     "id": "used_underscore_binding",
     "id_span": {
       "path": "src/misc.rs",
-      "line": 80
+      "line": 79
     },
     "group": "pedantic",
     "level": "allow",
@@ -9830,7 +9971,7 @@
     "id": "useless_asref",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1496
+      "line": 1500
     },
     "group": "complexity",
     "level": "warn",
@@ -9845,7 +9986,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 113
+      "line": 117
     },
     "group": "correctness",
     "level": "deny",
@@ -9860,7 +10001,7 @@
     "id": "useless_conversion",
     "id_span": {
       "path": "src/useless_conversion.rs",
-      "line": 34
+      "line": 39
     },
     "group": "complexity",
     "level": "warn",
@@ -9968,11 +10109,11 @@
     "id": "vec_resize_to_zero",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3065
+      "line": 3069
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nFinds occurrences of `Vec::resize(0, an_int)`\n\n### Why is this bad?\nThis is probably an argument inversion mistake.\n\n### Example\n```rust\nvec!(1, 2, 3, 4, 5).resize(0, 5)\n```\n\nUse instead:\n```rust\nvec!(1, 2, 3, 4, 5).clear()\n```",
+    "docs": "\n### What it does\nFinds occurrences of `Vec::resize(0, an_int)`\n\n### Why is this bad?\nThis is probably an argument inversion mistake.\n\n### Example\n```rust\nvec![1, 2, 3, 4, 5].resize(0, 5)\n```\n\nUse instead:\n```rust\nvec![1, 2, 3, 4, 5].clear()\n```",
     "version": "1.46.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9998,7 +10139,7 @@
     "id": "verbose_file_reads",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3092
+      "line": 3096
     },
     "group": "restriction",
     "level": "allow",
@@ -10193,7 +10334,7 @@
     "id": "wrong_self_convention",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 421
+      "line": 425
     },
     "group": "style",
     "level": "warn",
@@ -10252,8 +10393,8 @@
   {
     "id": "zero_ptr",
     "id_span": {
-      "path": "src/misc.rs",
-      "line": 124
+      "path": "src/casts/mod.rs",
+      "line": 687
     },
     "group": "style",
     "level": "warn",
@@ -10283,7 +10424,7 @@
     "id": "zst_offset",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 1710
+      "line": 1714
     },
     "group": "correctness",
     "level": "deny",
