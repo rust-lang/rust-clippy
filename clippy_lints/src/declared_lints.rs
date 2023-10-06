@@ -146,6 +146,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::drop_forget_ref::MEM_FORGET_INFO,
     crate::duplicate_mod::DUPLICATE_MOD_INFO,
     crate::else_if_without_else::ELSE_IF_WITHOUT_ELSE_INFO,
+    crate::empty_docs::EMPTY_DOCS_INFO,
     crate::empty_drop::EMPTY_DROP_INFO,
     crate::empty_enum::EMPTY_ENUM_INFO,
     crate::empty_structs_with_brackets::EMPTY_STRUCTS_WITH_BRACKETS_INFO,
