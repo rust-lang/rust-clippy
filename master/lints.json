@@ -3356,7 +3356,7 @@
     "id": "items_after_test_module",
     "id_span": {
       "path": "src/items_after_test_module.rs",
-      "line": 37
+      "line": 39
     },
     "group": "style",
     "level": "warn",
@@ -3364,7 +3364,7 @@
     "version": "1.71.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
