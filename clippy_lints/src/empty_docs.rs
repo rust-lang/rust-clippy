@@ -18,7 +18,7 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```rust
-    /// fn returns_true() {
+    /// fn returns_true() -> bool {
     ///     true
     /// }
     /// ```
