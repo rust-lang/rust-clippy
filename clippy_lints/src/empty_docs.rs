@@ -41,20 +41,17 @@ fn trim_comment(comment: &str) -> String {
 
 impl EarlyLintPass for EmptyDocs {
     fn check_attribute(&mut self, cx: &EarlyContext<'_>, attribute: &Attribute) {
-        match attribute.kind {
-            AttrKind::DocComment(_line, comment) => {
-                if trim_comment(comment.as_str()).len() == 0 {
-                    span_lint_and_help(
-                        cx,
-                        EMPTY_DOCS,
-                        attribute.span,
-                        "empty doc comment",
-                        None,
-                        "consider removing or fill it",
-                    );
-                }
-            },
-            _ => {},
+        if let AttrKind::DocComment(_line, comment) = attribute.kind {
+            if trim_comment(comment.as_str()).len() == 0 {
+                span_lint_and_help(
+                    cx,
+                    EMPTY_DOCS,
+                    attribute.span,
+                    "empty doc comment",
+                    None,
+                    "consider removing or fill it",
+                );
+            }
         }
     }
 }
