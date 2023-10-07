@@ -12,7 +12,7 @@ declare_clippy_lint! {
     /// ### Example
     /// ```rust
     /// ///
-    /// fn returns_true() {
+    /// fn returns_true() -> bool {
     ///     true
     /// }
     /// ```
