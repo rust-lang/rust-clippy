@@ -7,7 +7,7 @@ declare_clippy_lint! {
     /// ### What it does
     /// Detects documentation that is empty.
     /// ### Why is this bad?
-    /// It is unlikely there is any reason to have empty documentation for an entity
+    /// It is unlikely that there is any reason to have empty documentation for an item
     ///
     /// ### Example
     /// ```rust
