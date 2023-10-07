@@ -6,7 +6,6 @@ use rustc_session::{declare_lint_pass, declare_tool_lint};
 declare_clippy_lint! {
     /// ### What it does
     /// Detects documentation that is empty.
-
     /// ### Why is this bad?
     /// It is unlikely there is any reason to have empty documentation for an entity
     ///
