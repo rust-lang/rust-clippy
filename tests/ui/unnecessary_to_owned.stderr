@@ -477,8 +477,44 @@ error: unnecessary use of `to_owned`
 LL |     let _ = IntoIterator::into_iter([std::path::PathBuf::new()][..].to_owned());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `[std::path::PathBuf::new()][..].iter().cloned()`
 
+error: allocating a new `String` only to create a temporary `&str` from it
+  --> $DIR/unnecessary_to_owned.rs:155:26
+   |
+LL |     let _ref_str: &str = &String::from_utf8(slice.to_vec()).expect("not UTF-8");
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: convert from `&[u8]` to `&str` directly
+   |
+LL -     let _ref_str: &str = &String::from_utf8(slice.to_vec()).expect("not UTF-8");
+LL +     let _ref_str: &str = core::str::from_utf8(&slice).expect("not UTF-8");
+   |
+
+error: allocating a new `String` only to create a temporary `&str` from it
+  --> $DIR/unnecessary_to_owned.rs:156:26
+   |
+LL |     let _ref_str: &str = &String::from_utf8(b"foo".to_vec()).unwrap();
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: convert from `&[u8]` to `&str` directly
+   |
+LL -     let _ref_str: &str = &String::from_utf8(b"foo".to_vec()).unwrap();
+LL +     let _ref_str: &str = core::str::from_utf8(b"foo").unwrap();
+   |
+
+error: allocating a new `String` only to create a temporary `&str` from it
+  --> $DIR/unnecessary_to_owned.rs:157:26
+   |
+LL |     let _ref_str: &str = &String::from_utf8(b"foo".as_slice().to_owned()).unwrap();
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: convert from `&[u8]` to `&str` directly
+   |
+LL -     let _ref_str: &str = &String::from_utf8(b"foo".as_slice().to_owned()).unwrap();
+LL +     let _ref_str: &str = core::str::from_utf8(b"foo".as_slice()).unwrap();
+   |
+
 error: unnecessary use of `to_vec`
-  --> $DIR/unnecessary_to_owned.rs:195:14
+  --> $DIR/unnecessary_to_owned.rs:214:14
    |
 LL |     for t in file_types.to_vec() {
    |              ^^^^^^^^^^^^^^^^^^^
@@ -494,28 +530,28 @@ LL +         let path = match get_file_path(t) {
    |
 
 error: unnecessary use of `to_vec`
-  --> $DIR/unnecessary_to_owned.rs:218:14
+  --> $DIR/unnecessary_to_owned.rs:237:14
    |
 LL |     let _ = &["x"][..].to_vec().into_iter();
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `["x"][..].iter().cloned()`
 
 error: unnecessary use of `to_vec`
-  --> $DIR/unnecessary_to_owned.rs:223:14
+  --> $DIR/unnecessary_to_owned.rs:242:14
    |
 LL |     let _ = &["x"][..].to_vec().into_iter();
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `["x"][..].iter().copied()`
 
 error: unnecessary use of `to_string`
-  --> $DIR/unnecessary_to_owned.rs:270:24
+  --> $DIR/unnecessary_to_owned.rs:289:24
    |
 LL |         Box::new(build(y.to_string()))
    |                        ^^^^^^^^^^^^^ help: use: `y`
 
 error: unnecessary use of `to_string`
-  --> $DIR/unnecessary_to_owned.rs:378:12
+  --> $DIR/unnecessary_to_owned.rs:397:12
    |
 LL |         id("abc".to_string())
    |            ^^^^^^^^^^^^^^^^^ help: use: `"abc"`
 
-error: aborting due to 79 previous errors
+error: aborting due to 82 previous errors
 
