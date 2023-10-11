@@ -7,7 +7,7 @@ use rustc_data_structures::fx::{FxHashMap, FxHashSet, StdEntry};
 use rustc_hir::{def, def_id, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
-use rustc_span::{Span, Symbol};
+use rustc_span::{sym, Span, Symbol};
 
 // Future improvements:
 //
@@ -203,7 +203,6 @@ fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> (Vec<(Span
     const NOTHING_AFTER_ERR: &str = "nothing should come after the reason attribute besides an optional comma";
 
     let span = attr.span;
-    let reason_sym = sym!(reason);
 
     // Expect a normal non doc-comment attribute.
     let rustc_ast::AttrKind::Normal(attr) = &attr.kind else {
@@ -248,7 +247,7 @@ fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> (Vec<(Span
 
         // If the identifier is not "reason", add it as a danger
         #[allow(clippy::if_not_else, reason = "it is clearer to put the common path first")]
-        if sym.name != reason_sym {
+        if sym.name != sym::reason {
             // Push it to the danger list
             dangers.push((sym.span, sym.name));
 
