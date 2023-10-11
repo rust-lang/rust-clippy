@@ -18,11 +18,11 @@ error: called a function marked with `#[clippy::dangerous(...)]` without blessin
 LL |     Maz.faz();
    |     ^^^^^^^^^
    |
-note: danger `may_delete_system` declared here
-  --> $DIR/danger_not_accepted.rs:44:29
+note: danger `may_delete_system` declared here with the justification `calling this has a very strong chance of just deleting your computer`
+  --> $DIR/danger_not_accepted.rs:45:13
    |
-LL |         #[clippy::dangerous(may_delete_system)]
-   |                             ^^^^^^^^^^^^^^^^^
+LL |             may_delete_system,
+   |             ^^^^^^^^^^^^^^^^^
 note: danger `may_deadlock` declared here
   --> $DIR/danger_not_accepted.rs:36:21
    |
@@ -35,11 +35,11 @@ error: called a function marked with `#[clippy::dangerous(...)]` without blessin
 LL |     Maz.faz();
    |     ^^^^^^^^^
    |
-note: danger `may_delete_system` declared here
-  --> $DIR/danger_not_accepted.rs:44:29
+note: danger `may_delete_system` declared here with the justification `calling this has a very strong chance of just deleting your computer`
+  --> $DIR/danger_not_accepted.rs:45:13
    |
-LL |         #[clippy::dangerous(may_delete_system)]
-   |                             ^^^^^^^^^^^^^^^^^
+LL |             may_delete_system,
+   |             ^^^^^^^^^^^^^^^^^
 
 error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system)]`
   --> $DIR/danger_not_accepted.rs:18:5
@@ -48,7 +48,7 @@ LL |     Maz.faz2();
    |     ^^^^^^^^^^
    |
 note: danger `may_delete_system` declared here
-  --> $DIR/danger_not_accepted.rs:54:25
+  --> $DIR/danger_not_accepted.rs:57:25
    |
 LL |     #[clippy::dangerous(may_delete_system)]
    |                         ^^^^^^^^^^^^^^^^^
@@ -60,7 +60,7 @@ LL |     Maz.faz2();
    |     ^^^^^^^^^^
    |
 note: danger `may_delete_system` declared here
-  --> $DIR/danger_not_accepted.rs:54:25
+  --> $DIR/danger_not_accepted.rs:57:25
    |
 LL |     #[clippy::dangerous(may_delete_system)]
    |                         ^^^^^^^^^^^^^^^^^
@@ -71,10 +71,10 @@ error: called a function marked with `#[clippy::dangerous(...)]` without blessin
 LL |     waz::woo2();
    |     ^^^^^^^^^
    |
-note: danger `may_deadlock` declared here
+note: danger `may_deadlock` declared here with the justification `your program may deadlock in calling this function`
   --> $DIR/danger_not_accepted.rs:40:25
    |
-LL |     #[clippy::dangerous(may_deadlock)]
+LL |     #[clippy::dangerous(may_deadlock, reason = "your program may deadlock in calling this function")]
    |                         ^^^^^^^^^^^^
 note: danger `may_deadlock` declared here
   --> $DIR/danger_not_accepted.rs:36:21
@@ -82,5 +82,65 @@ note: danger `may_deadlock` declared here
 LL | #[clippy::dangerous(may_deadlock)]
    |                     ^^^^^^^^^^^^
 
-error: aborting due to 6 previous errors
+error: expected a delimited attribute with a list of danger identifiers
+  --> $DIR/danger_not_accepted.rs:68:1
+   |
+LL | #[clippy::dangerous{}]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected a delimited attribute with a list of danger identifiers
+  --> $DIR/danger_not_accepted.rs:69:1
+   |
+LL | #[clippy::dangerous[]]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected a delimited attribute with a list of danger identifiers; this was not an identifier
+  --> $DIR/danger_not_accepted.rs:70:21
+   |
+LL | #[clippy::dangerous(,)]
+   |                     ^
+
+error: expected = after a reason attribute
+  --> $DIR/danger_not_accepted.rs:71:27
+   |
+LL | #[clippy::dangerous(whee, reason)]
+   |                           ^^^^^^
+
+error: expected = after a reason attribute
+  --> $DIR/danger_not_accepted.rs:72:33
+   |
+LL | #[clippy::dangerous(whee, reason, abc)]
+   |                                 ^
+
+error: expected a string literal after a reason attribute
+  --> $DIR/danger_not_accepted.rs:73:34
+   |
+LL | #[clippy::dangerous(whee, reason =)]
+   |                                  ^
+
+error: expected a string literal after a reason attribute
+  --> $DIR/danger_not_accepted.rs:74:35
+   |
+LL | #[clippy::dangerous(whee, reason =, weh)]
+   |                                   ^
+
+error: nothing should come after the reason attribute besides an optional comma
+  --> $DIR/danger_not_accepted.rs:75:38
+   |
+LL | #[clippy::dangerous(whee, reason = "", weh)]
+   |                                      ^
+
+error: nothing should come after the reason attribute besides an optional comma
+  --> $DIR/danger_not_accepted.rs:76:39
+   |
+LL | #[clippy::dangerous(whee, reason = "" weh)]
+   |                                       ^^^
+
+error: expected a string literal after a reason attribute
+  --> $DIR/danger_not_accepted.rs:77:36
+   |
+LL | #[clippy::dangerous(whee, reason = 4)]
+   |                                    ^
+
+error: aborting due to 16 previous errors
 
