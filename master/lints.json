@@ -4151,11 +4151,11 @@
     "id": "manual_is_ascii_check",
     "id_span": {
       "path": "src/manual_is_ascii_check.rs",
-      "line": 51
+      "line": 54
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nSuggests to use dedicated built-in methods,\n`is_ascii_(lowercase|uppercase|digit)` for checking on corresponding ascii range\n\n### Why is this bad?\nUsing the built-in functions is more readable and makes it\nclear that it's not a specific subset of characters, but all\nASCII (lowercase|uppercase|digit) characters.\n### Example\n```rust\nfn main() {\n    assert!(matches!('x', 'a'..='z'));\n    assert!(matches!(b'X', b'A'..=b'Z'));\n    assert!(matches!('2', '0'..='9'));\n    assert!(matches!('x', 'A'..='Z' | 'a'..='z'));\n\n    ('0'..='9').contains(&'0');\n    ('a'..='z').contains(&'a');\n    ('A'..='Z').contains(&'A');\n}\n```\nUse instead:\n```rust\nfn main() {\n    assert!('x'.is_ascii_lowercase());\n    assert!(b'X'.is_ascii_uppercase());\n    assert!('2'.is_ascii_digit());\n    assert!('x'.is_ascii_alphabetic());\n\n    '0'.is_ascii_digit();\n    'a'.is_ascii_lowercase();\n    'A'.is_ascii_uppercase();\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
+    "docs": "\n### What it does\nSuggests to use dedicated built-in methods,\n`is_ascii_(lowercase|uppercase|digit|hexdigit)` for checking on corresponding\nascii range\n\n### Why is this bad?\nUsing the built-in functions is more readable and makes it\nclear that it's not a specific subset of characters, but all\nASCII (lowercase|uppercase|digit|hexdigit) characters.\n### Example\n```rust\nfn main() {\n    assert!(matches!('x', 'a'..='z'));\n    assert!(matches!(b'X', b'A'..=b'Z'));\n    assert!(matches!('2', '0'..='9'));\n    assert!(matches!('x', 'A'..='Z' | 'a'..='z'));\n    assert!(matches!('C', '0'..='9' | 'a'..='f' | 'A'..='F'));\n\n    ('0'..='9').contains(&'0');\n    ('a'..='z').contains(&'a');\n    ('A'..='Z').contains(&'A');\n}\n```\nUse instead:\n```rust\nfn main() {\n    assert!('x'.is_ascii_lowercase());\n    assert!(b'X'.is_ascii_uppercase());\n    assert!('2'.is_ascii_digit());\n    assert!('x'.is_ascii_alphabetic());\n    assert!('C'.is_ascii_hexdigit());\n\n    '0'.is_ascii_digit();\n    'a'.is_ascii_lowercase();\n    'A'.is_ascii_uppercase();\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `msrv`: `Option<String>`(defaults to `None`): The minimum rust version that the project supports\n",
     "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
