@@ -997,7 +997,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.75.0"]
     pub UNUSABLE_MATCHES_BINDING,
     correctness,
-    "default lint description"
+    "checks for unused bindings in `matches!` macro"
 }
 
 pub struct Matches {
