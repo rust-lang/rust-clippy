@@ -1818,8 +1818,8 @@
   {
     "id": "enum_variant_names",
     "id_span": {
-      "path": "src/enum_variants.rs",
-      "line": 44
+      "path": "src/item_name_repetitions.rs",
+      "line": 45
     },
     "group": "style",
     "level": "warn",
@@ -5256,8 +5256,8 @@
   {
     "id": "module_inception",
     "id_span": {
-      "path": "src/enum_variants.rs",
-      "line": 102
+      "path": "src/item_name_repetitions.rs",
+      "line": 103
     },
     "group": "style",
     "level": "warn",
@@ -5271,8 +5271,8 @@
   {
     "id": "module_name_repetitions",
     "id_span": {
-      "path": "src/enum_variants.rs",
-      "line": 71
+      "path": "src/item_name_repetitions.rs",
+      "line": 72
     },
     "group": "pedantic",
     "level": "allow",
@@ -8425,6 +8425,21 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for excessive\nuse of bools in structs.\n\n### Why is this bad?\nExcessive bools in a struct\nis often a sign that it's used as a state machine,\nwhich is much better implemented as an enum.\nIf it's not the case, excessive bools usually benefit\nfrom refactoring into two-variant enums for better\nreadability and API.\n\n### Example\n```rust\nstruct S {\n    is_pending: bool,\n    is_processing: bool,\n    is_finished: bool,\n}\n```\n\nUse instead:\n```rust\nenum S {\n    Pending,\n    Processing,\n    Finished,\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `max-struct-bools`: `u64`(defaults to `3`): The maximum number of bool fields a struct can have\n",
     "version": "1.43.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "struct_field_names",
+    "id_span": {
+      "path": "src/item_name_repetitions.rs",
+      "line": 138
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nDetects struct fields that are prefixed or suffixed\nby the same characters or the name of the struct itself.\n\n### Why is this bad?\nInformation common to all struct fields is better represented in the struct name.\n\n### Limitations\nCharacters with no casing will be considered when comparing prefixes/suffixes\nThis applies to numbers and non-ascii characters without casing\ne.g. `foo1` and `foo2` is considered to have different prefixes\n(the prefixes are `foo1` and `foo2` respectively), as also `bar螃`, `bar蟹`\n\n### Example\n```rust\nstruct Cake {\n    cake_sugar: u8,\n    cake_flour: u8,\n    cake_eggs: u8\n}\n```\nUse instead:\n```rust\nstruct Cake {\n    sugar: u8,\n    flour: u8,\n    eggs: u8\n}\n```",
+    "version": "1.75.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
