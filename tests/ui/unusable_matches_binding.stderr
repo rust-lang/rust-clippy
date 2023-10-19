@@ -1,42 +1,29 @@
-error: using identificator (`unusable_binding`) as matches! pattern argument without guard matches all cases
+error: identifier pattern in `matches!` macro always evaluates to true
   --> $DIR/unusable_matches_binding.rs:18:44
    |
 LL |     let _ = matches!(matching_data_source, unusable_binding);
    |                                            ^^^^^^^^^^^^^^^^
    |
-note: matches! invocation always evaluates to `true`
-  --> $DIR/unusable_matches_binding.rs:18:13
-   |
-LL |     let _ = matches!(matching_data_source, unusable_binding);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: the identifier pattern matches any value and creates an unusable binding in the process
+   = help: if you meant to compare two values, use `x == y` or `discriminant(x) == discriminant(y)`
    = note: `-D clippy::unusable-matches-binding` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unusable_matches_binding)]`
-   = note: this error originates in the macro `matches` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: using identificator (`used_binding`) as matches! pattern argument matches all cases
-  --> $DIR/unusable_matches_binding.rs:19:44
+error: identifier pattern in `matches!` macro always evaluates to the value of the guard
+  --> $DIR/unusable_matches_binding.rs:19:60
    |
 LL |     let _ = matches!(matching_data_source, used_binding if used_binding.is_valid());
-   |                                            ^^^^^^^^^^^^
+   |                                                            ^^^^^^^^^^^^^^^^^^^^^^^
    |
-note: matches! invocation always evaluates to guard where `used_binding` was replaced by `matching_data_source`
-  --> $DIR/unusable_matches_binding.rs:19:13
-   |
-LL |     let _ = matches!(matching_data_source, used_binding if used_binding.is_valid());
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = note: this error originates in the macro `matches` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: if you meant to check predicate, then try changing `matches!` macro into predicate the guard's checking
 
-error: using identificator (`unusable_binding`) as matches! pattern argument without usage in guard has the same effect as evaluating guard
-  --> $DIR/unusable_matches_binding.rs:21:44
-   |
-LL |     let _ = matches!(matching_data_source, unusable_binding if unrelated_data < 4);
-   |                                            ^^^^^^^^^^^^^^^^
-   |
-note: try replacing matches! expression with the content of the guard's body
+error: identifier pattern in `matches!` macro always evaluates to the value of the guard
   --> $DIR/unusable_matches_binding.rs:21:64
    |
 LL |     let _ = matches!(matching_data_source, unusable_binding if unrelated_data < 4);
    |                                                                ^^^^^^^^^^^^^^^^^^
+   |
+   = help: if you meant to check predicate, then try changing `matches!` macro into predicate the guard's checking
 
 error: aborting due to 3 previous errors
 
