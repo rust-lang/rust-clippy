@@ -22,6 +22,7 @@ mod rest_pat_in_fully_bound_struct;
 mod significant_drop_in_scrutinee;
 mod single_match;
 mod try_err;
+mod unusable_matches_binding;
 mod wild_in_or_pats;
 
 use clippy_config::msrvs::{self, Msrv};
@@ -975,6 +976,38 @@ declare_clippy_lint! {
     "checks for unnecessary guards in match expressions"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for redundant and error prone bindings inside `matches!` macro.
+    ///
+    /// ### Why is this bad?
+    /// It could be hard to determine why the compiler complains about an unused variable,
+    /// also it could introduce behavior that was not intened by the programmer.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let data_source = Some(5);
+    /// let unrelated_data_source = 5;
+    ///
+    /// let x = matches!(data_source, unused_binding);
+    /// let y = matches!(data_source, used_binding if used_binding.is_some());
+    /// let z = matches!(data_source, unused_binding if unrelated_data_source > 6);
+    /// ```
+    /// Use instead:
+    /// ```rust
+    /// let data_source = Some(5);
+    /// let unrelated_data_source = 5;
+    ///
+    /// let x = true;
+    /// let y = data_source.is_some();
+    /// let z = unrelated_data_source > 6;
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub UNUSABLE_MATCHES_BINDING,
+    correctness,
+    "default lint description"
+}
+
 pub struct Matches {
     msrv: Msrv,
     infallible_destructuring_match_linted: bool,
@@ -1017,6 +1050,7 @@ impl_lint_pass!(Matches => [
     MANUAL_MAP,
     MANUAL_FILTER,
     REDUNDANT_GUARDS,
+    UNUSABLE_MATCHES_BINDING,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Matches {
@@ -1032,6 +1066,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
+                unusable_matches_binding::check_matches(cx, ex, arms, expr);
             }
 
             if source == MatchSource::Normal && !is_span_match(cx, expr.span) {

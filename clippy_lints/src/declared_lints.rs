@@ -338,6 +338,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::matches::SINGLE_MATCH_INFO,
     crate::matches::SINGLE_MATCH_ELSE_INFO,
     crate::matches::TRY_ERR_INFO,
+    crate::matches::UNUSABLE_MATCHES_BINDING_INFO,
     crate::matches::WILDCARD_ENUM_MATCH_ARM_INFO,
     crate::matches::WILDCARD_IN_OR_PATTERNS_INFO,
     crate::mem_replace::MEM_REPLACE_OPTION_WITH_NONE_INFO,
