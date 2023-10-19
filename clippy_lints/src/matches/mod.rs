@@ -974,7 +974,8 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// It could be hard to determine why the compiler complains about an unused variable,
-    /// also it could introduce behavior that was not intened by the programmer.
+    /// which was introduced by the `matches!` macro expansion, also, it could introduce
+    /// behavior that was not intended by the programmer.
     ///
     /// ### Example
     /// ```rust
@@ -1055,7 +1056,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
         if let ExprKind::Match(ex, arms, source) = expr.kind {
             if is_direct_expn_of(expr.span, "matches").is_some() {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
-                unusable_matches_binding::check_matches(cx, ex, arms, expr);
+                unusable_matches_binding::check_matches(cx, arms);
             }
 
             if source == MatchSource::Normal && !is_span_match(cx, expr.span) {

@@ -1,58 +1,33 @@
-use clippy_utils::diagnostics::span_lint_and_note;
-use clippy_utils::source::snippet_block;
+use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_then};
 use clippy_utils::visitors::is_local_used;
-use rustc_hir::{Arm, Expr, PatKind};
+use rustc_hir::{Arm, PatKind};
 use rustc_lint::LateContext;
 
 use super::UNUSABLE_MATCHES_BINDING;
 
-pub(crate) fn check_matches<'tcx>(cx: &LateContext<'tcx>, ex: &Expr<'tcx>, arms: &'tcx [Arm<'tcx>], expr: &Expr<'tcx>) {
+pub(crate) fn check_matches<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'tcx>]) {
     for arm in arms {
-        if let PatKind::Binding(_, id, ident, None) = arm.pat.kind {
-            let is_used_in_guard = arm.guard.is_some_and(|guard| is_local_used(cx, guard.body(), id));
-
+        if let PatKind::Binding(_, id, _, None) = arm.pat.kind {
             if !is_local_used(cx, arm.body, id) {
                 if let Some(guard) = arm.guard {
-                    if is_used_in_guard {
-                        let first_matches_argument = snippet_block(cx, ex.span, "..", None);
-                        span_lint_and_note(
-                            cx,
-                            UNUSABLE_MATCHES_BINDING,
-                            arm.pat.span,
-                            &format!(
-                                "using identificator (`{}`) as matches! pattern argument matches all cases",
-                                ident.name
-                            ),
-                            Some(expr.span),
-                            &format!(
-                                "matches! invocation always evaluates to guard where `{}` was replaced by `{}`",
-                                ident.name, first_matches_argument
-                            ),
-                        );
-                    } else {
-                        span_lint_and_note(
-                            cx,
-                            UNUSABLE_MATCHES_BINDING,
-                            arm.pat.span,
-                            &format!(
-                                "using identificator (`{}`) as matches! pattern argument without usage in guard has the same effect as evaluating guard",
-                                ident.name
-                            ),
-                            Some(guard.body().span),
-                            "try replacing matches! expression with the content of the guard's body",
-                        );
-                    }
+                    span_lint_and_help(
+                        cx,
+                        UNUSABLE_MATCHES_BINDING,
+                        guard.body().span,
+                        "identifier pattern in `matches!` macro always evaluates to the value of the guard",
+                        None,
+                        "if you meant to check predicate, then try changing `matches!` macro into predicate the guard's checking",
+                    );
                 } else {
-                    span_lint_and_note(
+                    span_lint_and_then(
                         cx,
                         UNUSABLE_MATCHES_BINDING,
                         arm.pat.span,
-                        &format!(
-                            "using identificator (`{}`) as matches! pattern argument without guard matches all cases",
-                            ident.name
-                        ),
-                        Some(expr.span),
-                        "matches! invocation always evaluates to `true`",
+                        "identifier pattern in `matches!` macro always evaluates to true",
+                        |diag| {
+                            diag.note("the identifier pattern matches any value and creates an unusable binding in the process")
+                                .help("if you meant to compare two values, use `x == y` or `discriminant(x) == discriminant(y)`");
+                        },
                     );
                 }
             }
