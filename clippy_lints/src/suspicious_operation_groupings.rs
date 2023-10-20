@@ -617,7 +617,7 @@ fn ident_difference_expr_with_base_location(
     }
 
     let (new_difference, new_base) = ident_difference_via_ident_iter_with_base_location(left, right, base);
-    base = new_base;
+    let base = new_base;
     difference += new_difference;
 
     (difference, base)

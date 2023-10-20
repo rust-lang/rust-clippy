@@ -185,7 +185,7 @@ fn fmt_stmts_and_call(
         .map(|it| it.as_ref().to_owned())
         .collect::<Vec<_>>();
     stmts_and_call.push(call_snippet_with_replacements);
-    stmts_and_call = stmts_and_call
+    let stmts_and_call: Vec<_> = stmts_and_call
         .into_iter()
         .map(|v| reindent_multiline(v.into(), true, Some(call_expr_indent)).into_owned())
         .collect();

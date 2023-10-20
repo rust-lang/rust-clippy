@@ -450,7 +450,7 @@ fn remove_lint_declaration(name: &str, path: &Path, lints: &mut Vec<Lint>) -> io
 
                 // Remove the module declaration (mod xyz;)
                 let mod_decl = format!("\nmod {name};");
-                content = content.replacen(&mod_decl, "", 1);
+                let mut content = content.replacen(&mod_decl, "", 1);
 
                 remove_impl_lint_pass(&lint.name.to_uppercase(), &mut content);
                 fs::write(path, content).unwrap_or_else(|_| panic!("failed to write to `{}`", path.to_string_lossy()));

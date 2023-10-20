@@ -178,10 +178,10 @@ impl ArithmeticSideEffects {
         ) {
             return;
         };
-        let (mut actual_lhs, lhs_ref_counter) = peel_hir_expr_refs(lhs);
-        let (mut actual_rhs, rhs_ref_counter) = peel_hir_expr_refs(rhs);
-        actual_lhs = expr_or_init(cx, actual_lhs);
-        actual_rhs = expr_or_init(cx, actual_rhs);
+        let (actual_lhs, lhs_ref_counter) = peel_hir_expr_refs(lhs);
+        let (actual_rhs, rhs_ref_counter) = peel_hir_expr_refs(rhs);
+        let actual_lhs = expr_or_init(cx, actual_lhs);
+        let actual_rhs = expr_or_init(cx, actual_rhs);
         let lhs_ty = cx.typeck_results().expr_ty(actual_lhs).peel_refs();
         let rhs_ty = cx.typeck_results().expr_ty(actual_rhs).peel_refs();
         if self.has_allowed_binary(lhs_ty, rhs_ty) {

@@ -801,11 +801,11 @@ impl TyCoercionStability {
     }
 
     fn for_mir_ty<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>, ty: Ty<'tcx>, for_return: bool) -> Self {
-        let ty::Ref(_, mut ty, _) = *ty.kind() else {
+        let ty::Ref(_, ty, _) = *ty.kind() else {
             return Self::None;
         };
 
-        ty = tcx.try_normalize_erasing_regions(param_env, ty).unwrap_or(ty);
+        let mut ty = tcx.try_normalize_erasing_regions(param_env, ty).unwrap_or(ty);
         loop {
             break match *ty.kind() {
                 ty::Ref(_, ref_ty, _) => {
