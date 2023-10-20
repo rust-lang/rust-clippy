@@ -481,7 +481,7 @@
     "id": "borrow_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 124
+      "line": 126
     },
     "group": "style",
     "level": "warn",
@@ -1207,7 +1207,7 @@
     "id": "declare_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 75
+      "line": 77
     },
     "group": "style",
     "level": "warn",
