@@ -529,7 +529,7 @@
     "id": "box_default",
     "id_span": {
       "path": "src/box_default.rs",
-      "line": 34
+      "line": 35
     },
     "group": "perf",
     "level": "warn",
@@ -949,7 +949,7 @@
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 94
+      "line": 93
     },
     "group": "style",
     "level": "warn",
@@ -1222,7 +1222,7 @@
     "id": "default_constructed_unit_structs",
     "id_span": {
       "path": "src/default_constructed_unit_structs.rs",
-      "line": 42
+      "line": 43
     },
     "group": "complexity",
     "level": "warn",
@@ -1267,7 +1267,7 @@
     "id": "default_trait_access",
     "id_span": {
       "path": "src/default.rs",
-      "line": 37
+      "line": 35
     },
     "group": "pedantic",
     "level": "allow",
@@ -1733,7 +1733,7 @@
     },
     "group": "nursery",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for empty lines after documenation comments.\n\n### Why is this bad?\nThe documentation comment was most likely meant to be an inner attribute or regular comment.\nIf it was intended to be a documentation comment, then the empty line should be removed to\nbe more idiomatic.\n\n### Known problems\nOnly detects empty lines immediately following the documentation. If the doc comment is followed\nby an attribute and then an empty line, this lint will not trigger. Use `empty_line_after_outer_attr`\nin combination with this lint to detect both cases.\n\nDoes not detect empty lines after doc attributes (e.g. `#[doc = \"\"]`).\n\n### Example\n```rust\n/// Some doc comment with a blank line after it.\n\nfn not_quite_good_code() { }\n```\n\nUse instead:\n```rust\n/// Good (no blank line)\nfn this_is_fine() { }\n```\n\n```rust\n// Good (convert to a regular comment)\n\nfn this_is_fine_too() { }\n```\n\n```rust\n//! Good (convert to a comment on an inner attribute)\n\nfn this_is_fine_as_well() { }\n```",
+    "docs": "\n### What it does\nChecks for empty lines after documentation comments.\n\n### Why is this bad?\nThe documentation comment was most likely meant to be an inner attribute or regular comment.\nIf it was intended to be a documentation comment, then the empty line should be removed to\nbe more idiomatic.\n\n### Known problems\nOnly detects empty lines immediately following the documentation. If the doc comment is followed\nby an attribute and then an empty line, this lint will not trigger. Use `empty_line_after_outer_attr`\nin combination with this lint to detect both cases.\n\nDoes not detect empty lines after doc attributes (e.g. `#[doc = \"\"]`).\n\n### Example\n```rust\n/// Some doc comment with a blank line after it.\n\nfn not_quite_good_code() { }\n```\n\nUse instead:\n```rust\n/// Good (no blank line)\nfn this_is_fine() { }\n```\n\n```rust\n// Good (convert to a regular comment)\n\nfn this_is_fine_too() { }\n```\n\n```rust\n//! Good (convert to a comment on an inner attribute)\n\nfn this_is_fine_as_well() { }\n```",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1969,7 +1969,7 @@
     "id": "exit",
     "id_span": {
       "path": "src/exit.rs",
-      "line": 35
+      "line": 36
     },
     "group": "restriction",
     "level": "allow",
@@ -2198,7 +2198,7 @@
     "id": "field_reassign_with_default",
     "id_span": {
       "path": "src/default.rs",
-      "line": 71
+      "line": 69
     },
     "group": "style",
     "level": "warn",
@@ -3263,7 +3263,7 @@
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 150
+      "line": 149
     },
     "group": "correctness",
     "level": "deny",
@@ -3690,7 +3690,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    large_future([0u8; 16 * 1024]).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    Box::pin(large_future([0u8; 16 * 1024])).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
+    "docs": "\n### What it does\nIt checks for the size of a `Future` created by `async fn` or `async {}`.\n\n### Why is this bad?\nDue to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Coroutine`,\nlarge size of a `Future` may cause stack overflows.\n\n### Example\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    large_future([0u8; 16 * 1024]).await;\n}\n```\n\n`Box::pin` the big future instead.\n\n```rust\nasync fn large_future(_x: [u8; 16 * 1024]) {}\n\npub async fn trigger() {\n    Box::pin(large_future([0u8; 16 * 1024])).await;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `future-size-threshold`: `u64`(defaults to `16384`): The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5410,7 +5410,7 @@
     "id": "mut_from_ref",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 127
+      "line": 126
     },
     "group": "correctness",
     "level": "deny",
@@ -6151,7 +6151,7 @@
     "id": "non_canonical_clone_impl",
     "id_span": {
       "path": "src/non_canonical_impls.rs",
-      "line": 50
+      "line": 49
     },
     "group": "suspicious",
     "level": "warn",
@@ -6169,7 +6169,7 @@
     "id": "non_canonical_partial_ord_impl",
     "id_span": {
       "path": "src/non_canonical_impls.rs",
-      "line": 107
+      "line": 106
     },
     "group": "suspicious",
     "level": "warn",
@@ -6202,7 +6202,7 @@
     "id": "non_octal_unix_permissions",
     "id_span": {
       "path": "src/non_octal_unix_permissions.rs",
-      "line": 37
+      "line": 36
     },
     "group": "correctness",
     "level": "deny",
@@ -6820,7 +6820,7 @@
     "id": "ptr_arg",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 64
+      "line": 63
     },
     "group": "style",
     "level": "warn",
@@ -8164,7 +8164,7 @@
     "id": "size_of_in_element_count",
     "id_span": {
       "path": "src/size_of_in_element_count.rs",
-      "line": 33
+      "line": 32
     },
     "group": "correctness",
     "level": "deny",
