@@ -1,28 +1,27 @@
 use clippy_utils::diagnostics::{span_lint_hir, span_lint_hir_and_then};
-use clippy_utils::mir::{visit_local_usage, LocalUsage, PossibleBorrowerMap};
+use clippy_utils::mir::PossibleBorrowerMap;
 use clippy_utils::source::snippet_opt;
-use clippy_utils::ty::{has_drop, is_copy, is_type_diagnostic_item, is_type_lang_item, walk_ptrs_ty_depth};
+use clippy_utils::ty::{is_type_diagnostic_item, is_type_lang_item};
 use clippy_utils::{fn_has_unsatisfiable_preds, match_def_path, paths};
-use if_chain::if_chain;
+use core::mem::take;
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
-use rustc_hir::{def_id, Body, FnDecl, LangItem};
+use rustc_hir::{self as hir, def_id, FnDecl, LangItem, Mutability};
+use rustc_index::bit_set::{BitSet, HybridBitSet};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir;
-use rustc_middle::ty::{self, Ty};
+use rustc_middle::mir::{
+    BasicBlock, BasicBlockData, Body, BorrowKind, CallReturnPlaces, InlineAsmOperand, Local, Location,
+    NonDivergingIntrinsic, Operand, Rvalue, Statement, StatementKind, Terminator, TerminatorEdges, TerminatorKind,
+};
+use rustc_middle::ty::{self, ParamEnv, TyCtxt};
+use rustc_mir_dataflow::fmt::DebugWithContext;
+use rustc_mir_dataflow::{Analysis, AnalysisDomain, JoinSemiLattice};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::source_map::{BytePos, Span};
 use rustc_span::sym;
-
-macro_rules! unwrap_or_continue {
-    ($x:expr) => {
-        match $x {
-            Some(x) => x,
-            None => continue,
-        }
-    };
-}
+use std::collections::hash_map::Entry;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -70,7 +69,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
         cx: &LateContext<'tcx>,
         _: FnKind<'tcx>,
         _: &'tcx FnDecl<'_>,
-        _: &'tcx Body<'_>,
+        _: &'tcx hir::Body<'_>,
         _: Span,
         def_id: LocalDefId,
     ) {
@@ -78,309 +77,721 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
         if fn_has_unsatisfiable_preds(cx, def_id.to_def_id()) {
             return;
         }
+        let body = cx.tcx.optimized_mir(def_id.to_def_id());
 
-        let mir = cx.tcx.optimized_mir(def_id.to_def_id());
-
-        let mut possible_borrower = PossibleBorrowerMap::new(cx, mir);
-
-        for (bb, bbdata) in mir.basic_blocks.iter_enumerated() {
-            let terminator = bbdata.terminator();
-
-            if terminator.source_info.span.from_expansion() {
-                continue;
+        let mut has_clone = false;
+        let mut clone_calls = BitSet::new_empty(body.basic_blocks.len());
+        for (block, data) in body.basic_blocks.iter_enumerated() {
+            if let TerminatorKind::Call { func, args, destination, .. } = &data.terminator().kind
+                && let [Operand::Move(arg) | Operand::Copy(arg)] = &**args
+                && let Some(arg) = arg.as_local()
+                && destination.as_local().is_some()
+                && let ty::Ref(_, arg_ty, Mutability::Not) = *body.local_decls[arg].ty.kind()
+                && let ty::FnDef(fn_id, _) = *func.ty(body, cx.tcx).kind()
+                && arg_ty.needs_drop(cx.tcx, cx.param_env)
+                && arg_ty.is_freeze(cx.tcx, cx.param_env)
+                && (match_def_path(cx, fn_id, &paths::CLONE_TRAIT_METHOD)
+                    || match_def_path(cx, fn_id, &paths::TO_OWNED_METHOD)
+                    || (match_def_path(cx, fn_id, &paths::TO_STRING_METHOD)
+                        && is_type_lang_item(cx, arg_ty, LangItem::String)))
+            {
+                has_clone = true;
+                clone_calls.insert(block);
             }
+        }
+        if !has_clone {
+            return;
+        }
 
-            // Give up on loops
-            if terminator.successors().any(|s| s == bb) {
-                continue;
+        let mut raw_ptr_taken = BitSet::new_empty(body.local_decls.len());
+        for stmt in body.basic_blocks.iter().flat_map(|data| &*data.statements) {
+            if let StatementKind::Assign(a) = &stmt.kind
+                && let Rvalue::AddressOf(_, place) = a.1
+                && !place.is_indirect()
+            {
+                raw_ptr_taken.insert(place.local);
             }
+        }
 
-            let (fn_def_id, arg, arg_ty, clone_ret) =
-                unwrap_or_continue!(is_call_with_ref_arg(cx, mir, &terminator.kind));
-
-            let from_borrow = match_def_path(cx, fn_def_id, &paths::CLONE_TRAIT_METHOD)
-                || match_def_path(cx, fn_def_id, &paths::TO_OWNED_METHOD)
-                || (match_def_path(cx, fn_def_id, &paths::TO_STRING_METHOD)
-                    && is_type_lang_item(cx, arg_ty, LangItem::String));
-
-            let from_deref = !from_borrow
-                && (match_def_path(cx, fn_def_id, &paths::PATH_TO_PATH_BUF)
-                    || match_def_path(cx, fn_def_id, &paths::OS_STR_TO_OS_STRING));
-
-            if !from_borrow && !from_deref {
-                continue;
-            }
-
-            if let ty::Adt(def, _) = arg_ty.kind() {
-                if def.is_manually_drop() {
-                    continue;
+        let mut ref_target_results = RefTargetAnalysis::new(cx.tcx, cx.param_env, body, &raw_ptr_taken)
+            .into_engine(cx.tcx, body)
+            .iterate_to_fixpoint()
+            .into_results_cursor(body);
+        let clone_sources = clone_calls
+            .iter()
+            .filter_map(|block| {
+                let data = &body.basic_blocks[block];
+                ref_target_results.seek_before_primary_effect(Location {
+                    block,
+                    statement_index: data.statements.len(),
+                });
+                if let TerminatorKind::Call { args, .. } = &data.terminator().kind
+                    && let [Operand::Move(arg), ..] = &**args
+                    && let Some(Some(targets)) = ref_target_results.get().targets.get(&arg.local)
+                {
+                    Some((block, (arg.local, targets.clone())))
+                } else {
+                    None
                 }
-            }
+            })
+            .collect::<FxHashMap<_, _>>();
+        if clone_sources.is_empty() {
+            return;
+        }
 
-            // `{ arg = &cloned; clone(move arg); }` or `{ arg = &cloned; to_path_buf(arg); }`
-            let (cloned, cannot_move_out) = unwrap_or_continue!(find_stmt_assigns_to(cx, mir, arg, from_borrow, bb));
+        let mut results = CloneAnalysis::new(cx, body, &raw_ptr_taken, &clone_sources)
+            .into_engine(cx.tcx, body)
+            .iterate_to_fixpoint();
 
-            let loc = mir::Location {
-                block: bb,
-                statement_index: bbdata.statements.len(),
-            };
-
-            // `Local` to be cloned, and a local of `clone` call's destination
-            let (local, ret_local) = if from_borrow {
-                // `res = clone(arg)` can be turned into `res = move arg;`
-                // if `arg` is the only borrow of `cloned` at this point.
-
-                if cannot_move_out || !possible_borrower.only_borrowers(&[arg], cloned, loc) {
-                    continue;
-                }
-
-                (cloned, clone_ret)
-            } else {
-                // `arg` is a reference as it is `.deref()`ed in the previous block.
-                // Look into the predecessor block and find out the source of deref.
-
-                let ps = &mir.basic_blocks.predecessors()[bb];
-                if ps.len() != 1 {
-                    continue;
-                }
-                let pred_terminator = mir[ps[0]].terminator();
-
-                // receiver of the `deref()` call
-                let (pred_arg, deref_clone_ret) = if_chain! {
-                    if let Some((pred_fn_def_id, pred_arg, pred_arg_ty, res)) =
-                        is_call_with_ref_arg(cx, mir, &pred_terminator.kind);
-                    if res == cloned;
-                    if cx.tcx.is_diagnostic_item(sym::deref_method, pred_fn_def_id);
-                    if is_type_diagnostic_item(cx, pred_arg_ty, sym::PathBuf)
-                        || is_type_diagnostic_item(cx, pred_arg_ty, sym::OsString);
-                    then {
-                        (pred_arg, res)
+        // Check if a merged values are borrowed at the start of each block.
+        // Workaround for `join` not having access to the analysis.
+        let mut required_clones = take(&mut results.analysis.required_clones);
+        let mut borrowers = PossibleBorrowerMap::new(cx, body);
+        for block in (0..body.basic_blocks.len()).map(BasicBlock::from_usize) {
+            let state = results.entry_set_for_block(block);
+            let loc = block.start_location();
+            for (&local, _) in state.values.iter().filter(|(_, v)| v.last_modified.is_none()) {
+                for &(l1, l2, block) in &state.links {
+                    let local = if l1 == local {
+                        l2
+                    } else if l2 == local {
+                        l1
                     } else {
                         continue;
-                    }
-                };
+                    };
 
-                let (local, cannot_move_out) =
-                    unwrap_or_continue!(find_stmt_assigns_to(cx, mir, pred_arg, true, ps[0]));
-                let loc = mir::Location {
-                    block: bb,
-                    statement_index: mir.basic_blocks[bb].statements.len(),
-                };
-
-                // This can be turned into `res = move local` if `arg` and `cloned` are not borrowed
-                // at the last statement:
-                //
-                // ```
-                // pred_arg = &local;
-                // cloned = deref(pred_arg);
-                // arg = &cloned;
-                // StorageDead(pred_arg);
-                // res = to_path_buf(cloned);
-                // ```
-                if cannot_move_out || !possible_borrower.only_borrowers(&[arg, cloned], local, loc) {
-                    continue;
-                }
-
-                (local, deref_clone_ret)
-            };
-
-            let clone_usage = if local == ret_local {
-                CloneUsage {
-                    cloned_used: false,
-                    cloned_consume_or_mutate_loc: None,
-                    clone_consumed_or_mutated: true,
-                }
-            } else {
-                let clone_usage = visit_clone_usage(local, ret_local, mir, bb);
-                if clone_usage.cloned_used && clone_usage.clone_consumed_or_mutated {
-                    // cloned value is used, and the clone is modified or moved
-                    continue;
-                } else if let Some(loc) = clone_usage.cloned_consume_or_mutate_loc {
-                    // cloned value is mutated, and the clone is alive.
-                    if possible_borrower.local_is_alive_at(ret_local, loc) {
-                        continue;
+                    if !borrowers.bounded_borrowers(&[], &[], local, loc) {
+                        required_clones.insert(block);
                     }
                 }
-                clone_usage
-            };
+            }
+        }
 
-            let span = terminator.source_info.span;
-            let scope = terminator.source_info.scope;
-            let node = mir.source_scopes[scope]
+        let mut infos: Vec<_> = clone_sources
+            .keys()
+            .filter(|b| !required_clones.contains(b))
+            .map(|&b| &body.basic_blocks[b].terminator().source_info)
+            .collect();
+        infos.sort_by_key(|i| i.span);
+        for info in infos {
+            let node = body.source_scopes[info.scope]
                 .local_data
                 .as_ref()
                 .assert_crate_local()
                 .lint_root;
+            span_lint_hir(cx, REDUNDANT_CLONE, node, info.span, "redundant clone");
+        }
+    }
+}
 
-            if_chain! {
-                if let Some(snip) = snippet_opt(cx, span);
-                if let Some(dot) = snip.rfind('.');
-                then {
-                    let sugg_span = span.with_lo(
-                        span.lo() + BytePos(u32::try_from(dot).unwrap())
-                    );
-                    let mut app = Applicability::MaybeIncorrect;
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Value {
+    // Two values which were last modified at different locations may contain different values.
+    // Joining two such values needs to be treated as a modification.
+    last_modified: Option<Location>,
+}
 
-                    let call_snip = &snip[dot + 1..];
-                    // Machine applicable when `call_snip` looks like `foobar()`
-                    if let Some(call_snip) = call_snip.strip_suffix("()").map(str::trim) {
-                        if call_snip.as_bytes().iter().all(|b| b.is_ascii_alphabetic() || *b == b'_') {
-                            app = Applicability::MachineApplicable;
-                        }
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+struct CloneDomain {
+    // Values which are clones of each other and may still contain the same value.
+    links: FxHashSet<(Local, Local, BasicBlock)>,
+    // Values which had their linked value modified.
+    // Reading one of these values means the clone call is required.
+    diverged_clones: FxHashSet<(Local, BasicBlock)>,
+    values: FxHashMap<Local, Value>,
+}
+impl CloneDomain {
+    fn mark_modified(&mut self, local: Local) -> bool {
+        let mut changed = false;
+        for &(l1, l2, block) in &self.links {
+            let local = if l1 == local {
+                l2
+            } else if l2 == local {
+                l1
+            } else {
+                continue;
+            };
+            changed |= self.diverged_clones.insert((local, block));
+        }
+        changed
+    }
+}
+impl JoinSemiLattice for CloneDomain {
+    fn join(&mut self, other: &Self) -> bool {
+        let prev_len = self.links.len();
+        self.links.extend(&other.links);
+        let mut changed = prev_len != self.links.len();
+
+        let prev_len = self.diverged_clones.len();
+        self.diverged_clones.extend(&other.diverged_clones);
+        changed |= prev_len != self.diverged_clones.len();
+
+        for (&local, value) in &other.values {
+            match self.values.entry(local) {
+                Entry::Vacant(e) => {
+                    changed = true;
+                    e.insert(value.clone());
+                },
+                Entry::Occupied(mut e) => {
+                    if e.get().last_modified.is_some() && e.get().last_modified != value.last_modified {
+                        e.get_mut().last_modified = None;
+                        changed = true;
                     }
+                    if e.get().last_modified.is_none() {
+                        changed |= self.mark_modified(local);
+                    }
+                },
+            }
+        }
+        changed
+    }
+}
+impl DebugWithContext<CloneAnalysis<'_, '_, '_>> for CloneDomain {}
 
-                    span_lint_hir_and_then(cx, REDUNDANT_CLONE, node, sugg_span, "redundant clone", |diag| {
-                        diag.span_suggestion(
-                            sugg_span,
-                            "remove this",
-                            "",
-                            app,
-                        );
-                        if clone_usage.cloned_used {
-                            diag.span_note(
-                                span,
-                                "cloned value is neither consumed nor mutated",
-                            );
-                        } else {
-                            diag.span_note(
-                                span.with_hi(span.lo() + BytePos(u32::try_from(dot).unwrap())),
-                                "this value is dropped without further use",
-                            );
-                        }
+struct CloneAnalysis<'a, 'mir, 'tcx> {
+    body: &'mir Body<'tcx>,
+    tracked: BitSet<Local>,
+    clone_sources: &'a FxHashMap<BasicBlock, (Local, HybridBitSet<Local>)>,
+    link_buf: Vec<(Local, Local, BasicBlock)>,
+    borrowers: PossibleBorrowerMap<'mir, 'tcx>,
+    required_clones: FxHashSet<BasicBlock>,
+}
+impl<'a, 'mir, 'tcx> CloneAnalysis<'a, 'mir, 'tcx> {
+    fn new(
+        cx: &LateContext<'tcx>,
+        body: &'mir Body<'tcx>,
+        raw_ptr_taken: &BitSet<Local>,
+        clone_sources: &'a FxHashMap<BasicBlock, (Local, HybridBitSet<Local>)>,
+    ) -> Self {
+        let mut tracked = BitSet::new_empty(body.local_decls.len());
+        for (local, decl) in body.local_decls.iter_enumerated() {
+            if !raw_ptr_taken.contains(local)
+                && decl.ty.needs_drop(cx.tcx, cx.param_env)
+                && decl.ty.is_freeze(cx.tcx, cx.param_env)
+            {
+                tracked.insert(local);
+            }
+        }
+        Self {
+            body,
+            tracked,
+            clone_sources,
+            link_buf: Vec::new(),
+            borrowers: PossibleBorrowerMap::new(cx, body),
+            required_clones: FxHashSet::default(),
+        }
+    }
+
+    fn mark_modified(&mut self, state: &mut CloneDomain, local: Local, loc: Location) {
+        for &(l1, l2, block) in &state.links {
+            let local = if l1 == local {
+                l2
+            } else if l2 == local {
+                l1
+            } else {
+                continue;
+            };
+
+            if self.borrowers.bounded_borrowers(&[], &[], local, loc) {
+                state.diverged_clones.insert((local, block));
+            } else {
+                self.required_clones.insert(block);
+            }
+        }
+    }
+
+    fn mutate(&mut self, state: &mut CloneDomain, local: Local, loc: Location) {
+        if self.tracked.contains(local) {
+            self.mark_modified(state, local, loc);
+            match state.values.entry(local) {
+                Entry::Vacant(e) => {
+                    e.insert(Value {
+                        last_modified: Some(loc),
                     });
-                } else {
-                    span_lint_hir(cx, REDUNDANT_CLONE, node, span, "redundant clone");
+                },
+                Entry::Occupied(mut e) => {
+                    e.get_mut().last_modified = Some(loc);
+                },
+            }
+        }
+    }
+
+    fn replace_unknown(&mut self, state: &mut CloneDomain, local: Local, loc: Location) {
+        if self.tracked.contains(local) {
+            match state.values.entry(local) {
+                Entry::Vacant(e) => {
+                    e.insert(Value {
+                        last_modified: Some(loc),
+                    });
+                },
+                Entry::Occupied(mut e) => {
+                    e.get_mut().last_modified = Some(loc);
+                    state.diverged_clones.retain(|&(l, _)| local != l);
+                    state.links.retain(|&(l1, l2, _)| local != l1 && local != l2);
+                },
+            }
+        }
+    }
+
+    fn consume(&mut self, state: &mut CloneDomain, local: Local, loc: Location) {
+        if state.values.remove(&local).is_some() {
+            self.required_clones
+                .extend(state.diverged_clones.extract_if(|&(l, _)| l == local).map(|(_, b)| b));
+            self.mark_modified(state, local, loc);
+            state.links.retain(|&(l1, l2, _)| local != l1 && local != l2);
+        }
+    }
+
+    fn drop(&mut self, state: &mut CloneDomain, local: Local) {
+        if state.values.remove(&local).is_some() {
+            state.links.retain(|&(l1, l2, _)| local != l1 && local != l2);
+        }
+    }
+
+    fn read(&mut self, state: &mut CloneDomain, local: Local) {
+        if self.tracked.contains(local) {
+            self.required_clones
+                .extend(state.diverged_clones.extract_if(|&(l, _)| l == local).map(|(_, b)| b));
+        }
+    }
+
+    fn read_op(&mut self, state: &mut CloneDomain, op: &Operand<'tcx>, loc: Location) {
+        match op {
+            Operand::Move(p) if let Some(local) = p.as_local() => {
+                self.consume(state, local, loc);
+            }
+            Operand::Move(p) | Operand::Copy(p) => self.read(state, p.local),
+            Operand::Constant(_) => {}
+        }
+    }
+
+    fn check_rvalue(&mut self, state: &mut CloneDomain, value: &Rvalue<'tcx>, loc: Location) {
+        match value {
+            Rvalue::Use(value) => match value {
+                Operand::Copy(p) | Operand::Move(p) if !p.projection.is_empty() => self.read(state, p.local),
+                _ => {},
+            },
+            Rvalue::Aggregate(_, ops) => {
+                for op in ops {
+                    self.read_op(state, op, loc);
+                }
+            },
+            Rvalue::BinaryOp(_, ops) | Rvalue::CheckedBinaryOp(_, ops) => {
+                self.read_op(state, &ops.0, loc);
+                self.read_op(state, &ops.1, loc);
+            },
+            Rvalue::Cast(_, op, _) | Rvalue::Repeat(op, _) | Rvalue::UnaryOp(_, op) => self.read_op(state, op, loc),
+            Rvalue::Ref(_, BorrowKind::Shared | BorrowKind::Shallow, p) => {
+                self.read(state, p.local);
+            },
+            Rvalue::Ref(_, BorrowKind::Mut { .. }, p) => {
+                self.read(state, p.local);
+                self.mutate(state, p.local, loc);
+            },
+            _ => {},
+        }
+    }
+}
+impl<'tcx> AnalysisDomain<'tcx> for CloneAnalysis<'_, '_, 'tcx> {
+    type Domain = CloneDomain;
+
+    const NAME: &'static str = "redundant clone";
+
+    fn bottom_value(&self, _: &Body<'tcx>) -> Self::Domain {
+        CloneDomain::default()
+    }
+
+    fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
+        for i in 1..1 + body.arg_count {
+            let l = Local::from_usize(i);
+            if self.tracked.contains(l) {
+                state.values.insert(l, Value { last_modified: None });
+            }
+        }
+    }
+}
+impl<'tcx> Analysis<'tcx> for CloneAnalysis<'_, '_, 'tcx> {
+    fn apply_statement_effect(&mut self, state: &mut Self::Domain, stmt: &Statement<'tcx>, loc: Location) {
+        match &stmt.kind {
+            StatementKind::Assign(a) => {
+                let Some(dst) = a.0.as_local() else {
+                    if !a.0.is_indirect() {
+                        self.mutate(state, a.0.local, loc);
+                    } else {
+                        self.read(state, a.0.local);
+                    }
+                    if let Rvalue::Use(Operand::Move(src)) = a.1 {
+                        if let Some(src) = src.as_local() {
+                            self.consume(state, src, loc);
+                        } else if !src.is_indirect() {
+                            self.mutate(state, src.local, loc);
+                        }
+                    } else {
+                        self.check_rvalue(state, &a.1, loc);
+                    }
+                    return;
+                };
+                let Rvalue::Use(Operand::Move(src)) = a.1 else {
+                    self.replace_unknown(state, dst, loc);
+                    self.check_rvalue(state, &a.1, loc);
+                    return;
+                };
+                let Some(src) = src.as_local() else {
+                    self.replace_unknown(state, dst, loc);
+                    if !src.is_indirect() {
+                        self.mutate(state, src.local, loc);
+                    }
+                    return;
+                };
+                if !self.tracked.contains(dst) {
+                    self.consume(state, src, loc);
+                    return;
+                }
+                let Some(src_value) = state.values.remove(&src) else {
+                    self.replace_unknown(state, dst, loc);
+                    return;
+                };
+                self.link_buf
+                    .extend(state.links.extract_if(|&(l1, l2, _)| l1 == src || l2 == src));
+                self.drop(state, dst);
+                state.values.insert(dst, src_value);
+                state.links.extend(self.link_buf.drain(..).map(
+                    |(l1, l2, b)| {
+                        if l1 == src { (dst, l2, b) } else { (l1, dst, b) }
+                    },
+                ));
+            },
+            StatementKind::SetDiscriminant { place, .. } if !place.is_indirect() => {
+                self.mutate(state, place.local, loc);
+            },
+            StatementKind::Intrinsic(i)
+                if let NonDivergingIntrinsic::CopyNonOverlapping(copy) = &**i =>
+            {
+                self.read_op(state, &copy.src, loc);
+                if let Operand::Copy(dst) | Operand::Move(dst) = copy.dst
+                    && dst.is_indirect()
+                {
+                    self.read(state, dst.local);
                 }
             }
+            &StatementKind::StorageDead(l) => {
+                self.drop(state, l);
+            },
+            StatementKind::Deinit(p) => {
+                if let Some(l) = p.as_local() {
+                    self.drop(state, l);
+                } else if !p.is_indirect() {
+                    self.mutate(state, p.local, loc);
+                }
+            },
+            _ => {},
         }
+    }
+
+    fn apply_call_return_effect(
+        &mut self,
+        state: &mut Self::Domain,
+        block: BasicBlock,
+        return_places: CallReturnPlaces<'_, 'tcx>,
+    ) {
+        let loc = self.body.terminator_loc(block);
+        match return_places {
+            CallReturnPlaces::Call(dst) => {
+                let Some(dst) = dst.as_local() else {
+                    if !dst.is_indirect() {
+                        self.mutate(state, dst.local, loc);
+                    } else {
+                        self.read(state, dst.local);
+                    };
+                    return;
+                };
+                if self.tracked.contains(dst) {
+                    self.drop(state, dst);
+                    if let Some(&(arg, ref sources)) = self.clone_sources.get(&block) {
+                        if sources
+                            .iter()
+                            .all(|src| self.borrowers.bounded_borrowers(&[arg], &[arg, dst], src, loc))
+                        {
+                            state.links.extend(sources.iter().map(|src| (src, dst, block)));
+                        } else {
+                            self.required_clones.insert(block);
+                        }
+                    }
+                    state.values.insert(
+                        dst,
+                        Value {
+                            last_modified: Some(loc),
+                        },
+                    );
+                }
+            },
+            CallReturnPlaces::InlineAsm(ops) => {
+                for op in ops {
+                    if let InlineAsmOperand::Out { place: Some(dst), .. }
+                    | InlineAsmOperand::InOut {
+                        out_place: Some(dst), ..
+                    } = op
+                    {
+                        if let Some(dst) = dst.as_local() {
+                            if self.tracked.contains(dst) {
+                                self.drop(state, dst);
+                                state.values.insert(
+                                    dst,
+                                    Value {
+                                        last_modified: Some(loc),
+                                    },
+                                );
+                            }
+                        } else if !dst.is_indirect() {
+                            self.mutate(state, dst.local, loc);
+                        } else {
+                            self.read(state, dst.local);
+                        };
+                    }
+                }
+            },
+            CallReturnPlaces::Yield(dst) => {
+                if let Some(dst) = dst.as_local() {
+                    if self.tracked.contains(dst) {
+                        self.drop(state, dst);
+                        state.values.insert(
+                            dst,
+                            Value {
+                                last_modified: Some(loc),
+                            },
+                        );
+                    }
+                } else if !dst.is_indirect() {
+                    self.mutate(state, dst.local, loc);
+                } else {
+                    self.read(state, dst.local);
+                };
+            },
+        }
+    }
+
+    fn apply_terminator_effect<'mir>(
+        &mut self,
+        state: &mut Self::Domain,
+        term: &'mir Terminator<'tcx>,
+        loc: Location,
+    ) -> TerminatorEdges<'mir, 'tcx> {
+        match &term.kind {
+            TerminatorKind::Call { args, .. } => {
+                for arg in args {
+                    if let Operand::Move(arg) = arg {
+                        if let Some(arg) = arg.as_local() {
+                            self.consume(state, arg, loc);
+                        }
+                    }
+                }
+            },
+            TerminatorKind::InlineAsm { operands, .. } => {
+                for op in operands {
+                    if let InlineAsmOperand::In {
+                        value: Operand::Move(arg),
+                        ..
+                    }
+                    | InlineAsmOperand::InOut {
+                        in_value: Operand::Move(arg),
+                        ..
+                    } = op
+                    {
+                        if let Some(arg) = arg.as_local() {
+                            self.consume(state, arg, loc);
+                        }
+                    }
+                }
+            },
+            TerminatorKind::Drop { place, .. } => {
+                if let Some(l) = place.as_local() {
+                    self.drop(state, l);
+                }
+            },
+            _ => {},
+        }
+        term.edges()
     }
 }
 
-/// If `kind` is `y = func(x: &T)` where `T: !Copy`, returns `(DefId of func, x, T, y)`.
-fn is_call_with_ref_arg<'tcx>(
-    cx: &LateContext<'tcx>,
-    mir: &'tcx mir::Body<'tcx>,
-    kind: &'tcx mir::TerminatorKind<'tcx>,
-) -> Option<(def_id::DefId, mir::Local, Ty<'tcx>, mir::Local)> {
-    if_chain! {
-        if let mir::TerminatorKind::Call { func, args, destination, .. } = kind;
-        if args.len() == 1;
-        if let mir::Operand::Move(mir::Place { local, .. }) = &args[0];
-        if let ty::FnDef(def_id, _) = *func.ty(mir, cx.tcx).kind();
-        if let (inner_ty, 1) = walk_ptrs_ty_depth(args[0].ty(mir, cx.tcx));
-        if !is_copy(cx, inner_ty);
-        then {
-            Some((def_id, *local, inner_ty, destination.as_local()?))
-        } else {
-            None
-        }
-    }
+#[derive(Default, Debug, Clone)]
+struct RefTargetDomain {
+    targets: FxHashMap<Local, Option<HybridBitSet<Local>>>,
 }
-
-type CannotMoveOut = bool;
-
-/// Finds the first `to = (&)from`, and returns
-/// ``Some((from, whether `from` cannot be moved out))``.
-fn find_stmt_assigns_to<'tcx>(
-    cx: &LateContext<'tcx>,
-    mir: &mir::Body<'tcx>,
-    to_local: mir::Local,
-    by_ref: bool,
-    bb: mir::BasicBlock,
-) -> Option<(mir::Local, CannotMoveOut)> {
-    let rvalue = mir.basic_blocks[bb].statements.iter().rev().find_map(|stmt| {
-        if let mir::StatementKind::Assign(box (mir::Place { local, .. }, v)) = &stmt.kind {
-            return if *local == to_local { Some(v) } else { None };
-        }
-
-        None
-    })?;
-
-    match (by_ref, rvalue) {
-        (true, mir::Rvalue::Ref(_, _, place)) | (false, mir::Rvalue::Use(mir::Operand::Copy(place))) => {
-            Some(base_local_and_movability(cx, mir, *place))
-        },
-        (false, mir::Rvalue::Ref(_, _, place)) => {
-            if let [mir::ProjectionElem::Deref] = place.as_ref().projection {
-                Some(base_local_and_movability(cx, mir, *place))
-            } else {
-                None
+impl JoinSemiLattice for RefTargetDomain {
+    fn join(&mut self, other: &Self) -> bool {
+        let mut changed = false;
+        for (&src, target) in &other.targets {
+            match self.targets.entry(src) {
+                Entry::Vacant(e) => {
+                    e.insert(target.clone());
+                    changed = true;
+                },
+                Entry::Occupied(mut e) => match (e.get_mut(), target) {
+                    (Some(x), Some(y)) => {
+                        changed |= x.union(y);
+                    },
+                    (None, _) => {},
+                    (x @ Some(_), None) => {
+                        *x = None;
+                        changed = true;
+                    },
+                },
             }
-        },
-        _ => None,
+        }
+        changed
     }
 }
+impl DebugWithContext<RefTargetAnalysis<'_>> for RefTargetDomain {}
+impl PartialEq for RefTargetDomain {
+    fn eq(&self, _: &Self) -> bool {
+        panic!();
+    }
+}
+impl Eq for RefTargetDomain {}
 
-/// Extracts and returns the undermost base `Local` of given `place`. Returns `place` itself
-/// if it is already a `Local`.
-///
-/// Also reports whether given `place` cannot be moved out.
-fn base_local_and_movability<'tcx>(
-    cx: &LateContext<'tcx>,
-    mir: &mir::Body<'tcx>,
-    place: mir::Place<'tcx>,
-) -> (mir::Local, CannotMoveOut) {
-    // Dereference. You cannot move things out from a borrowed value.
-    let mut deref = false;
-    // Accessing a field of an ADT that has `Drop`. Moving the field out will cause E0509.
-    let mut field = false;
-    // If projection is a slice index then clone can be removed only if the
-    // underlying type implements Copy
-    let mut slice = false;
+struct RefTargetAnalysis<'a> {
+    tracked: BitSet<Local>,
+    raw_ptr_taken: &'a BitSet<Local>,
+}
+impl<'tcx> AnalysisDomain<'tcx> for RefTargetAnalysis<'_> {
+    type Domain = RefTargetDomain;
 
-    for (base, elem) in place.as_ref().iter_projections() {
-        let base_ty = base.ty(&mir.local_decls, cx.tcx).ty;
-        deref |= matches!(elem, mir::ProjectionElem::Deref);
-        field |= matches!(elem, mir::ProjectionElem::Field(..)) && has_drop(cx, base_ty);
-        slice |= matches!(elem, mir::ProjectionElem::Index(..)) && !is_copy(cx, base_ty);
+    const NAME: &'static str = "redundant clone refs";
+
+    fn bottom_value(&self, _: &Body<'tcx>) -> Self::Domain {
+        RefTargetDomain::default()
     }
 
-    (place.local, deref || field || slice)
-}
-
-#[derive(Default)]
-struct CloneUsage {
-    /// Whether the cloned value is used after the clone.
-    cloned_used: bool,
-    /// The first location where the cloned value is consumed or mutated, if any.
-    cloned_consume_or_mutate_loc: Option<mir::Location>,
-    /// Whether the clone value is mutated.
-    clone_consumed_or_mutated: bool,
-}
-
-fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>, bb: mir::BasicBlock) -> CloneUsage {
-    if let Some((
-        LocalUsage {
-            local_use_locs: cloned_use_locs,
-            local_consume_or_mutate_locs: cloned_consume_or_mutate_locs,
-        },
-        LocalUsage {
-            local_use_locs: _,
-            local_consume_or_mutate_locs: clone_consume_or_mutate_locs,
-        },
-    )) = visit_local_usage(
-        &[cloned, clone],
-        mir,
-        mir::Location {
-            block: bb,
-            statement_index: mir.basic_blocks[bb].statements.len(),
-        },
-    )
-    .map(|mut vec| (vec.remove(0), vec.remove(0)))
-    {
-        CloneUsage {
-            cloned_used: !cloned_use_locs.is_empty(),
-            cloned_consume_or_mutate_loc: cloned_consume_or_mutate_locs.first().copied(),
-            // Consider non-temporary clones consumed.
-            // TODO: Actually check for mutation of non-temporaries.
-            clone_consumed_or_mutated: mir.local_kind(clone) != mir::LocalKind::Temp
-                || !clone_consume_or_mutate_locs.is_empty(),
+    fn initialize_start_block(&self, body: &Body<'tcx>, state: &mut Self::Domain) {
+        for i in 1..1 + body.arg_count {
+            let l = Local::from_usize(i);
+            if self.tracked.contains(l) {
+                state.targets.insert(l, None);
+            }
         }
-    } else {
-        CloneUsage {
-            cloned_used: true,
-            cloned_consume_or_mutate_loc: None,
-            clone_consumed_or_mutated: true,
+    }
+}
+impl<'a> RefTargetAnalysis<'a> {
+    fn new<'tcx>(
+        tcx: TyCtxt<'tcx>,
+        param_env: ParamEnv<'tcx>,
+        body: &Body<'tcx>,
+        raw_ptr_taken: &'a BitSet<Local>,
+    ) -> Self {
+        let mut tracked = BitSet::new_empty(body.local_decls.len());
+        for (local, decl) in body.local_decls.iter_enumerated() {
+            if let ty::Ref(_, ty, Mutability::Not) = *decl.ty.kind()
+                && !raw_ptr_taken.contains(local)
+                && ty.needs_drop(tcx, param_env)
+                && ty.is_freeze(tcx, param_env)
+            {
+                tracked.insert(local);
+            }
         }
+        Self { tracked, raw_ptr_taken }
+    }
+}
+impl<'tcx> Analysis<'tcx> for RefTargetAnalysis<'_> {
+    fn apply_statement_effect(&mut self, state: &mut Self::Domain, stmt: &Statement<'tcx>, _: Location) {
+        match &stmt.kind {
+            StatementKind::Assign(a) => {
+                if let Some(dst) = a.0.as_local()
+                    && self.tracked.contains(dst)
+                {
+                    let targets = match a.1 {
+                        Rvalue::Ref(_, BorrowKind::Shallow | BorrowKind::Shared, target) => {
+                            if let Some(target) = target.as_local()
+                                && !self.raw_ptr_taken.contains(target)
+                            {
+                                let mut targets = HybridBitSet::new_empty(self.tracked.domain_size());
+                                targets.insert(target);
+                                Some(targets)
+                            } else {
+                                None
+                            }
+                        }
+                        Rvalue::Use(Operand::Copy(src)) if let Some(src) = src.as_local() => {
+                            state.targets.get(&src).cloned().flatten()
+                        }
+                        Rvalue::Use(Operand::Move(src)) if let Some(src) = src.as_local() => {
+                            state.targets.remove(&src).flatten()
+                        }
+                        _ => None,
+                    };
+                    state.targets.insert(dst, targets);
+                } else if let Rvalue::Use(Operand::Move(src))
+                    | Rvalue::Ref(_, BorrowKind::Mut { .. }, src) = a.1
+                    && let Some(src) = src.as_local()
+                {
+                    state.targets.remove(&src);
+                }
+            },
+            StatementKind::StorageDead(l) => {
+                state.targets.remove(l);
+            },
+            StatementKind::Deinit(p) => {
+                if let Some(l) = p.as_local() {
+                    state.targets.remove(&l);
+                }
+            },
+            _ => {},
+        }
+    }
+
+    fn apply_call_return_effect(
+        &mut self,
+        state: &mut Self::Domain,
+        _: BasicBlock,
+        return_places: CallReturnPlaces<'_, 'tcx>,
+    ) {
+        match return_places {
+            CallReturnPlaces::Call(dst) | CallReturnPlaces::Yield(dst) => {
+                if let Some(dst) = dst.as_local() {
+                    state.targets.remove(&dst);
+                }
+            },
+            CallReturnPlaces::InlineAsm(ops) => {
+                for op in ops {
+                    if let InlineAsmOperand::Out { place: Some(dst), .. }
+                        | InlineAsmOperand::InOut { out_place: Some(dst), .. } = op
+                        && let Some(dst) = dst.as_local()
+                    {
+                        state.targets.remove(&dst);
+                    }
+                }
+            },
+        }
+    }
+
+    fn apply_terminator_effect<'mir>(
+        &mut self,
+        state: &mut Self::Domain,
+        term: &'mir Terminator<'tcx>,
+        _: Location,
+    ) -> TerminatorEdges<'mir, 'tcx> {
+        match &term.kind {
+            TerminatorKind::Call { args, .. } => {
+                for arg in args {
+                    if let Operand::Move(arg) = arg
+                        && let Some(arg) = arg.as_local()
+                    {
+                        state.targets.remove(&arg);
+                    }
+                }
+            },
+            TerminatorKind::InlineAsm { operands, .. } => {
+                for op in operands {
+                    if let InlineAsmOperand::In { value: Operand::Move(arg), .. }
+                        | InlineAsmOperand::InOut { in_value: Operand::Move(arg), .. } = op
+                        && let Some(arg) = arg.as_local()
+                    {
+                        state.targets.remove(&arg);
+                    }
+                }
+            },
+            _ => {},
+        }
+        term.edges()
     }
 }
