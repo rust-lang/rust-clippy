@@ -5074,11 +5074,11 @@
     "id": "missing_enforced_import_renames",
     "id_span": {
       "path": "src/missing_enforced_import_rename.rs",
-      "line": 40
+      "line": 43
     },
-    "group": "restriction",
-    "level": "allow",
-    "docs": "\n### What it does\nChecks for imports that do not rename the item as specified\nin the `enforce-import-renames` config option.\n\n### Why is this bad?\nConsistency is important, if a project has defined import\nrenames they should be followed. More practically, some item names are too\nvague outside of their defining scope this can enforce a more meaningful naming.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\nenforced-import-renames = [ { path = \"serde_json::Value\", rename = \"JsonValue\" }]\n```\n\n```rust\nuse serde_json::Value;\n```\nUse instead:\n```rust\nuse serde_json::Value as JsonValue;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `enforced-import-renames`: `Vec<crate::utils::conf::Rename>`(defaults to `[]`): The list of imports to always rename, a fully qualified path followed by the rename.\n",
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for imports that do not rename the item as specified\nin the `enforce-import-renames` config option.\n\nNote: Even though this lint is warn-by-default, it will only trigger if\nimport renames are defined in the clippy.toml file.\n\n### Why is this bad?\nConsistency is important, if a project has defined import\nrenames they should be followed. More practically, some item names are too\nvague outside of their defining scope this can enforce a more meaningful naming.\n\n### Example\nAn example clippy.toml configuration:\n```toml\n# clippy.toml\nenforced-import-renames = [ { path = \"serde_json::Value\", rename = \"JsonValue\" }]\n```\n\n```rust\nuse serde_json::Value;\n```\nUse instead:\n```rust\nuse serde_json::Value as JsonValue;\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n* `enforced-import-renames`: `Vec<crate::utils::conf::Rename>`(defaults to `[]`): The list of imports to always rename, a fully qualified path followed by the rename.\n",
     "version": "1.55.0",
     "applicability": {
       "is_multi_part_suggestion": false,
