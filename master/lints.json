@@ -2753,7 +2753,7 @@
     "id": "if_not_else",
     "id_span": {
       "path": "src/if_not_else.rs",
-      "line": 43
+      "line": 44
     },
     "group": "pedantic",
     "level": "allow",
