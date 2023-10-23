@@ -7,6 +7,7 @@
     clippy::ifs_same_cond,
     clippy::needless_if,
     clippy::needless_return,
+    clippy::borrowed_option,
     clippy::single_element_loop,
     clippy::branches_sharing_code
 )]

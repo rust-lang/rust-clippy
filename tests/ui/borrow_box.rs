@@ -9,7 +9,7 @@
 
 use std::fmt::Display;
 
-pub fn test1(foo: &mut Box<bool>) {
+pub fn test1(foo: &mut Box<bool>, bar: &mut Option<bool>) {
     // Although this function could be changed to "&mut bool",
     // avoiding the Box, mutable references to boxes are not
     // flagged by this lint.
@@ -18,26 +18,33 @@ pub fn test1(foo: &mut Box<bool>) {
     // the memory location of the pointed-to object could be
     // modified. By passing a mutable reference, the contents
     // could change, but not the location.
-    println!("{:?}", foo)
+    //
+    // The same reasoning applies to ignoring &mut Option
+    println!("{:?} {:?}", foo, bar)
 }
 
 pub fn test2() {
     let foo: &Box<bool>;
     //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
+    let bar: &Option<bool>;
+    //~^ ERROR: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
 }
 
 struct Test3<'a> {
     foo: &'a Box<bool>,
     //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
+    bar: &'a Option<bool>,
+    //~^ ERROR: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
 }
 
 trait Test4 {
-    fn test4(a: &Box<bool>);
+    fn test4(a: &Box<bool>, b: &Option<bool>);
     //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
+    //~| ERROR: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
 }
 
 impl<'a> Test4 for Test3<'a> {
-    fn test4(a: &Box<bool>) {
+    fn test4(a: &Box<bool>, b: &Option<bool>) {
         unimplemented!();
     }
 }
@@ -106,12 +113,15 @@ pub fn test15(_display: &Box<dyn Display + Send>) {}
 pub fn test16<'a>(_display: &'a Box<dyn Display + 'a>) {}
 //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
 
-pub fn test17(_display: &Box<impl Display>) {}
+pub fn test17(_display: &Box<impl Display>, _display2: &Option<impl Display>) {}
 //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
-pub fn test18(_display: &Box<impl Display + Send>) {}
+//~| ERROR: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+pub fn test18(_display: &Box<impl Display + Send>, _display2: &Option<impl Display + Send>) {}
 //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
-pub fn test19<'a>(_display: &'a Box<impl Display + 'a>) {}
+//~| ERROR: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
+pub fn test19<'a>(_display: &'a Box<impl Display + 'a>, _display2: &'a Option<impl Display + 'a>) {}
 //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
+//~| ERROR: you seem to be trying to use `&Option<T>`. Consider using `Option<&T>` instead
 
 // This exists only to check what happens when parentheses are already present.
 // Even though the current implementation doesn't put extra parentheses,
@@ -120,7 +130,7 @@ pub fn test20(_display: &Box<(dyn Display + Send)>) {}
 //~^ ERROR: you seem to be trying to use `&Box<T>`. Consider using just `&T`
 
 fn main() {
-    test1(&mut Box::new(false));
+    test1(&mut Box::new(false), &mut Some(false));
     test2();
     test5(&mut (Box::new(false) as Box<dyn Any>));
     test6();
