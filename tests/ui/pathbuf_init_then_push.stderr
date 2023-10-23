@@ -1,0 +1,12 @@
+error: calls to `push` immediately after creation
+  --> $DIR/pathbuf_init_then_push.rs:6:5
+   |
+LL | /     let mut path_buf = PathBuf::new();
+LL | |     path_buf.push("foo");
+   | |_________________________^ help: consider using the `.join()`: `let mut path_buf = PathBuf::new().join("foo");`
+   |
+   = note: `-D clippy::pathbuf-init-then-push` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::pathbuf_init_then_push)]`
+
+error: aborting due to previous error
+
