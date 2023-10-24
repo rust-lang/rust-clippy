@@ -247,8 +247,8 @@ impl {self_ty_without_ref} {{
 "
 impl IntoIterator for {self_ty_snippet} {{
     type IntoIter = {ret_ty};
-    type Iter = {iter_ty};
-    fn into_iter() -> Self::IntoIter {{
+    type Item = {iter_ty};
+    fn into_iter(self) -> Self::IntoIter {{
         self.iter()
     }}
 }}
