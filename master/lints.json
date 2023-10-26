@@ -3791,7 +3791,7 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 50
+      "line": 51
     },
     "group": "style",
     "level": "warn",
@@ -5923,7 +5923,7 @@
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 76
+      "line": 77
     },
     "group": "style",
     "level": "warn",
@@ -5938,7 +5938,7 @@
     "id": "needless_return_with_question_mark",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 116
+      "line": 117
     },
     "group": "style",
     "level": "warn",
