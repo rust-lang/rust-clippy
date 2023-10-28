@@ -1,0 +1,41 @@
+error: create a fresh variable is more explicit
+  --> $DIR/explicit_reinitialization.rs:7:5
+   |
+LL |     x = 2;
+   |     ^^^^^^ help: create a fresh variable instead of reinitialization: `let mut x = 2;`
+   |
+   = note: `-D clippy::explicit-reinitialization` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::explicit_reinitialization)]`
+
+error: create a fresh variable is more explicit
+  --> $DIR/explicit_reinitialization.rs:14:5
+   |
+LL |     x = String::new();
+   |     ^^^^^^^^^^^^^^^^^^ help: create a fresh variable instead of reinitialization: `let mut x = String::new();`
+
+error: create a fresh variable is more explicit
+  --> $DIR/explicit_reinitialization.rs:21:5
+   |
+LL |     a = a * a * a;
+   |     ^^^^^^^^^^^^^^ help: create a fresh variable instead of reinitialization: `let mut a = a * a * a;`
+
+error: create a fresh variable is more explicit
+  --> $DIR/explicit_reinitialization.rs:28:5
+   |
+LL |     s = s.replacen('o', "a", 3);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: create a fresh variable instead of reinitialization: `let mut s = s.replacen('o', "a", 3);`
+
+error: create a fresh variable is more explicit
+  --> $DIR/explicit_reinitialization.rs:40:9
+   |
+LL |         s = s.replacen(&mod_decl, "a", 3);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: create a fresh variable instead of reinitialization: `let mut s = s.replacen(&mod_decl, "a", 3);`
+
+error: create a fresh variable is more explicit
+  --> $DIR/explicit_reinitialization.rs:94:9
+   |
+LL |         x = 2;
+   |         ^^^^^^ help: create a fresh variable instead of reinitialization: `let mut x = 2;`
+
+error: aborting due to 6 previous errors
+
