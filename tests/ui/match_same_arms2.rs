@@ -2,7 +2,8 @@
 #![allow(
     clippy::disallowed_names,
     clippy::diverging_sub_expression,
-    clippy::uninlined_format_args
+    clippy::uninlined_format_args,
+    clippy::explicit_reinitialization
 )]
 //@no-rustfix
 fn bar<T>(_: T) {}

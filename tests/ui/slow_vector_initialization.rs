@@ -1,4 +1,5 @@
 //@no-rustfix
+#![allow(clippy::explicit_reinitialization)]
 use std::iter::repeat;
 fn main() {
     resize_vector();

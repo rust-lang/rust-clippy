@@ -1,5 +1,10 @@
 #![warn(clippy::manual_split_once)]
-#![allow(unused, clippy::iter_skip_next, clippy::iter_nth_zero)]
+#![allow(
+    unused,
+    clippy::iter_skip_next,
+    clippy::iter_nth_zero,
+    clippy::explicit_reinitialization
+)]
 
 extern crate itertools;
 

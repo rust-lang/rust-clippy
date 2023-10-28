@@ -1,7 +1,12 @@
 //@aux-build:proc_macro_derive.rs
 #![feature(rustc_private, lint_reasons)]
 #![warn(clippy::used_underscore_binding)]
-#![allow(clippy::disallowed_names, clippy::eq_op, clippy::uninlined_format_args)]
+#![allow(
+    clippy::disallowed_names,
+    clippy::eq_op,
+    clippy::uninlined_format_args,
+    clippy::explicit_reinitialization
+)]
 
 #[macro_use]
 extern crate proc_macro_derive;

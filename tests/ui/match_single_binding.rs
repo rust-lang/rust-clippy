@@ -1,6 +1,7 @@
 #![warn(clippy::match_single_binding)]
 #![allow(
     unused,
+    clippy::explicit_reinitialization,
     clippy::let_unit_value,
     clippy::no_effect,
     clippy::toplevel_ref_arg,

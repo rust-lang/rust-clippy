@@ -1,4 +1,6 @@
 #![warn(clippy::multi_assignments)]
+#![allow(clippy::explicit_reinitialization)]
+
 fn main() {
     let (mut a, mut b, mut c, mut d) = ((), (), (), ());
     a = b = c;

@@ -3,6 +3,7 @@
 #![allow(unused_assignments)]
 #![allow(clippy::if_same_then_else)]
 #![allow(clippy::deref_addrof)]
+#![allow(clippy::explicit_reinitialization)]
 #![allow(clippy::nonminimal_bool)]
 
 fn foo() -> bool {

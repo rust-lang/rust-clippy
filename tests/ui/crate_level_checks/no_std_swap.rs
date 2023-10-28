@@ -5,6 +5,7 @@
 use core::panic::PanicInfo;
 
 #[warn(clippy::all)]
+#[allow(clippy::explicit_reinitialization)]
 fn main() {
     let mut a = 42;
     let mut b = 1337;

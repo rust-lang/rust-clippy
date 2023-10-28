@@ -1,10 +1,11 @@
 #![allow(
     unused_variables,
     unused_assignments,
-    clippy::similar_names,
-    clippy::disallowed_names,
     clippy::branches_sharing_code,
-    clippy::needless_late_init
+    clippy::disallowed_names,
+    clippy::explicit_reinitialization,
+    clippy::needless_late_init,
+    clippy::similar_names
 )]
 #![warn(clippy::useless_let_if_seq)]
 //@no-rustfix

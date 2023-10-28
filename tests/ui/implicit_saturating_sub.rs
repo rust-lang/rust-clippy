@@ -1,4 +1,9 @@
-#![allow(unused_assignments, unused_mut, clippy::assign_op_pattern)]
+#![allow(
+    unused_assignments,
+    unused_mut,
+    clippy::assign_op_pattern,
+    clippy::explicit_reinitialization
+)]
 #![warn(clippy::implicit_saturating_sub)]
 
 use std::cmp::PartialEq;

@@ -1,6 +1,10 @@
 #![warn(clippy::unwrap_or_default)]
 #![allow(dead_code)]
-#![allow(clippy::unnecessary_wraps, clippy::unnecessary_literal_unwrap)]
+#![allow(
+    clippy::unnecessary_wraps,
+    clippy::unnecessary_literal_unwrap,
+    clippy::explicit_reinitialization
+)]
 
 /// Checks implementation of the `UNWRAP_OR_DEFAULT` lint.
 fn unwrap_or_else_default() {

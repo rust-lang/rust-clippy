@@ -4,7 +4,7 @@ extern crate proc_macros;
 use proc_macros::external;
 
 #[warn(clippy::string_add)]
-#[allow(clippy::string_add_assign, unused)]
+#[allow(clippy::string_add_assign, unused, clippy::explicit_reinitialization)]
 fn main() {
     // ignores assignment distinction
     let mut x = String::new();
