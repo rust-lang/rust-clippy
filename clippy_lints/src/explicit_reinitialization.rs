@@ -1,15 +1,17 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_opt;
-use clippy_utils::{fn_has_unsatisfiable_preds, is_from_proc_macro};
+use clippy_utils::visitors::for_each_local_use_after_expr;
+use clippy_utils::{fn_has_unsatisfiable_preds, get_parent_expr, is_from_proc_macro};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_data_structures::graph::dominators::Dominators;
 use rustc_data_structures::graph::iterate::DepthFirstSearch;
 use rustc_data_structures::graph::WithSuccessors;
 use rustc_errors::Applicability;
+use rustc_hir::def::Res;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{
-    Closure, Expr, ExprKind, HirId, ImplItem, ImplItemKind, Item, ItemKind, Node, Path, PathSegment, QPath, StmtKind,
-    TraitFn, TraitItem, TraitItemKind,
+    Closure, Expr, ExprKind, HirId, ImplItem, ImplItemKind, Item, ItemKind, Mutability, Node, Path, PathSegment, QPath,
+    StmtKind, TraitFn, TraitItem, TraitItemKind, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::lint::in_external_macro;
@@ -18,6 +20,7 @@ use rustc_middle::mir::{self, BasicBlock, Body, Local, Location, Place, Statemen
 use rustc_session::{declare_lint_pass, declare_tool_lint, Session};
 use rustc_span::Span;
 use std::collections::BTreeSet;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -81,6 +84,7 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitReinitialization {
                                     None,
                                     Path {
                                         segments: [PathSegment { args: None, .. }],
+                                        res: Res::Local(local_id),
                                         ..
                                     },
                                 )),
@@ -90,6 +94,7 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitReinitialization {
                         right,
                         _,
                     ),
+                hir_id: expr_id,
                 ..
             },
         ) = stmt.kind
@@ -123,13 +128,64 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitReinitialization {
         assert!(start_location.dominates(location, dominators));
 
         if dominate_all_usage(mir, dominators, local, start_location) {
+            // copy from `vec_init_then_push.rs`
+            let mut needs_mut = false;
+            let _ = for_each_local_use_after_expr(cx, *local_id, *expr_id, |e| {
+                let Some(parent) = get_parent_expr(cx, e) else {
+                    return ControlFlow::Continue(());
+                };
+                let adjusted_ty = cx.typeck_results().expr_ty_adjusted(e);
+                let adjusted_mut = adjusted_ty.ref_mutability().unwrap_or(Mutability::Not);
+                needs_mut |= adjusted_mut == Mutability::Mut;
+                match parent.kind {
+                    ExprKind::AddrOf(_, Mutability::Mut, _) => {
+                        needs_mut = true;
+                        return ControlFlow::Break(true);
+                    },
+                    ExprKind::Unary(UnOp::Deref, _) | ExprKind::Index(..) if !needs_mut => {
+                        let mut last_place = parent;
+                        while let Some(parent) = get_parent_expr(cx, last_place) {
+                            if matches!(parent.kind, ExprKind::Unary(UnOp::Deref, _) | ExprKind::Field(..))
+                                || matches!(parent.kind, ExprKind::Index(e, _, _) if e.hir_id == last_place.hir_id)
+                            {
+                                last_place = parent;
+                            } else {
+                                break;
+                            }
+                        }
+                        needs_mut |= cx.typeck_results().expr_ty_adjusted(last_place).ref_mutability()
+                            == Some(Mutability::Mut)
+                            || get_parent_expr(cx, last_place)
+                                .map_or(false, |e| matches!(e.kind, ExprKind::AddrOf(_, Mutability::Mut, _)));
+                    },
+                    ExprKind::MethodCall(_, recv, ..)
+                        if recv.hir_id == e.hir_id
+                            && adjusted_mut == Mutability::Mut
+                            && !adjusted_ty.peel_refs().is_slice() =>
+                    {
+                        // No need to set `needs_mut` to true. The receiver will be either explicitly borrowed, or it
+                        // will be implicitly borrowed via an adjustment. Both of these cases
+                        // are already handled by this point.
+                        return ControlFlow::Break(true);
+                    },
+                    ExprKind::Assign(lhs, ..) if e.hir_id == lhs.hir_id => {
+                        needs_mut = true;
+                        return ControlFlow::Break(false);
+                    },
+                    _ => (),
+                }
+                ControlFlow::Continue(())
+            });
+
+            let mut_str = if needs_mut { "mut " } else { "" };
+
             span_lint_and_sugg(
                 cx,
                 EXPLICIT_REINITIALIZATION,
                 stmt.span,
                 "create a fresh variable is more explicit",
                 "create a fresh variable instead of reinitialization",
-                format!("let mut {snip}"),
+                format!("let {mut_str}{snip}"),
                 Applicability::MachineApplicable,
             );
         }

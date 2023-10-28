@@ -4,21 +4,21 @@
 fn test_copy() {
     let mut x = 1;
     println!("{x}");
-    let mut x = 2;
+    let x = 2;
     println!("{x}");
 }
 
 fn test_move() {
     let mut x = String::new();
     println!("{x}");
-    let mut x = String::new();
+    let x = String::new();
     println!("{x}");
 }
 
 #[allow(unused_assignments, clippy::misrefactored_assign_op)]
 fn should_lint() {
     let mut a = 1;
-    let mut a = a * a * a;
+    let a = a * a * a;
 }
 
 #[allow(clippy::ptr_arg)]
@@ -91,7 +91,7 @@ fn known_false_negative() {
     let mut x = 1;
     println!("{x}");
     {
-        let mut x = 2;
+        let x = 2;
     }
     println!("{x}");
 }
