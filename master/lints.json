@@ -3248,11 +3248,11 @@
     "id": "into_iter_without_iter",
     "id_span": {
       "path": "src/iter_without_into_iter.rs",
-      "line": 92
+      "line": 105
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nThis is the opposite of the `iter_without_into_iter` lint.\nIt looks for `IntoIterator for (&|&mut) Type` implementations without an inherent `iter` or `iter_mut` method\non the type or on any of the types in its `Deref` chain.\n\n### Why is this bad?\nIt's not bad, but having them is idiomatic and allows the type to be used in iterator chains\nby just calling `.iter()`, instead of the more awkward `<&Type>::into_iter` or `(&val).into_iter()` syntax\nin case of ambiguity with another `IntoIterator` impl.\n\n### Example\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.0.iter()\n    }\n}\n```\nUse instead:\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> MySlice<'a> {\n    pub fn iter(&self) -> std::slice::Iter<'a, u8> {\n        self.into_iter()\n    }\n}\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.0.iter()\n    }\n}\n```",
+    "docs": "\n### What it does\nThis is the opposite of the `iter_without_into_iter` lint.\nIt looks for `IntoIterator for (&|&mut) Type` implementations without an inherent `iter` or `iter_mut` method\non the type or on any of the types in its `Deref` chain.\n\n### Why is this bad?\nIt's not bad, but having them is idiomatic and allows the type to be used in iterator chains\nby just calling `.iter()`, instead of the more awkward `<&Type>::into_iter` or `(&val).into_iter()` syntax\nin case of ambiguity with another `IntoIterator` impl.\n\n### Limitations\nThis lint focuses on providing an idiomatic API. Therefore, it will only\nlint on types which are accessible outside of the crate. For internal types,\nthese methods can be added on demand if they are actually needed. Otherwise,\nit would trigger the [`dead_code`] lint for the unused method.\n\n[`dead_code`]: https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html#dead-code\n\n### Example\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.0.iter()\n    }\n}\n```\nUse instead:\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> MySlice<'a> {\n    pub fn iter(&self) -> std::slice::Iter<'a, u8> {\n        self.into_iter()\n    }\n}\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.0.iter()\n    }\n}\n```",
     "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3596,11 +3596,11 @@
     "id": "iter_without_into_iter",
     "id_span": {
       "path": "src/iter_without_into_iter.rs",
-      "line": 48
+      "line": 53
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nLooks for `iter` and `iter_mut` methods without an associated `IntoIterator for (&|&mut) Type` implementation.\n\n### Why is this bad?\nIt's not bad, but having them is idiomatic and allows the type to be used in for loops directly\n(`for val in &iter {}`), without having to first call `iter()` or `iter_mut()`.\n\n### Example\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> MySlice<'a> {\n    pub fn iter(&self) -> std::slice::Iter<'a, u8> {\n        self.0.iter()\n    }\n}\n```\nUse instead:\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> MySlice<'a> {\n    pub fn iter(&self) -> std::slice::Iter<'a, u8> {\n        self.0.iter()\n    }\n}\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.iter()\n    }\n}\n```",
+    "docs": "\n### What it does\nLooks for `iter` and `iter_mut` methods without an associated `IntoIterator for (&|&mut) Type` implementation.\n\n### Why is this bad?\nIt's not bad, but having them is idiomatic and allows the type to be used in for loops directly\n(`for val in &iter {}`), without having to first call `iter()` or `iter_mut()`.\n\n### Limitations\nThis lint focuses on providing an idiomatic API. Therefore, it will only\nlint on types which are accessible outside of the crate. For internal types,\nthe `IntoIterator` trait can be implemented on demand if it is actually needed.\n\n### Example\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> MySlice<'a> {\n    pub fn iter(&self) -> std::slice::Iter<'a, u8> {\n        self.0.iter()\n    }\n}\n```\nUse instead:\n```rust\nstruct MySlice<'a>(&'a [u8]);\nimpl<'a> MySlice<'a> {\n    pub fn iter(&self) -> std::slice::Iter<'a, u8> {\n        self.0.iter()\n    }\n}\nimpl<'a> IntoIterator for &MySlice<'a> {\n    type Item = &'a u8;\n    type IntoIter = std::slice::Iter<'a, u8>;\n    fn into_iter(self) -> Self::IntoIter {\n        self.iter()\n    }\n}\n```",
     "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
