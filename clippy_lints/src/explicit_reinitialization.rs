@@ -360,18 +360,15 @@ fn dominate_all_usage(
     for (location, mutability) in find_usage(mir, local)
         .into_iter()
         .filter(|(location, _)| !mir.basic_blocks[location.block].is_cleanup)
+        .filter(|(location, _)| {
+            reachable_bb.contains(&location.block)
+                || (location.block == start_location.block && location.statement_index > start_location.statement_index)
+        })
     {
-        if reachable_bb.contains(&location.block) {
-            if !start_location.dominates(location, dominators) {
-                return None;
-            }
-            if location != start_location && mutability == Mutability::Mut {
-                res = Mutability::Mut;
-            }
-        } else if location.block == start_location.block
-            && location.statement_index > start_location.statement_index
-            && mutability == Mutability::Mut
-        {
+        if !start_location.dominates(location, dominators) {
+            return None;
+        }
+        if mutability == Mutability::Mut {
             res = Mutability::Mut;
         }
     }
