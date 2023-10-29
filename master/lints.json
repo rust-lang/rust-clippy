@@ -7107,8 +7107,8 @@
       "path": "src/read_zero_byte_vec.rs",
       "line": 44
     },
-    "group": "correctness",
-    "level": "deny",
+    "group": "nursery",
+    "level": "allow",
     "docs": "\n### What it does\nThis lint catches reads into a zero-length `Vec`.\nEspecially in the case of a call to `with_capacity`, this lint warns that read\ngets the number of bytes from the `Vec`'s length, not its capacity.\n\n### Why is this bad?\nReading zero bytes is almost certainly not the intended behavior.\n\n### Known problems\nIn theory, a very unusual read implementation could assign some semantic meaning\nto zero-byte reads. But it seems exceptionally unlikely that code intending to do\na zero-byte read would allocate a `Vec` for it.\n\n### Example\n```rust\nuse std::io;\nfn foo<F: io::Read>(mut f: F) {\n    let mut data = Vec::with_capacity(100);\n    f.read(&mut data).unwrap();\n}\n```\nUse instead:\n```rust\nuse std::io;\nfn foo<F: io::Read>(mut f: F) {\n    let mut data = Vec::with_capacity(100);\n    data.resize(100, 0);\n    f.read(&mut data).unwrap();\n}\n```",
     "version": "1.63.0",
     "applicability": {
