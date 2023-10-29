@@ -117,11 +117,11 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitReinitialization {
             return;
         };
         let dominators = mir.basic_blocks.dominators();
-        let Some((_span, start_location)) = search_mir_by_span(mir, right.span, dominators, cx.tcx.sess) else {
+        let Some((_span, reinit_location)) = search_mir_by_span(mir, right.span, dominators, cx.tcx.sess) else {
             return;
         };
 
-        assert!(start_location.dominates(location, dominators));
+        assert!(reinit_location.dominates(location, dominators));
 
         if let Some(mutability) = dominate_all_usage(mir, dominators, local, location) {
             span_lint_and_sugg(
@@ -347,10 +347,10 @@ fn dominate_all_usage(
     mir: &mir::Body<'_>,
     dominators: &Dominators<BasicBlock>,
     local: Local,
-    start_location: Location,
+    reinit_location: Location,
 ) -> Option<Mutability> {
     let mut dfs = DepthFirstSearch::new(&mir.basic_blocks);
-    for successor in mir.basic_blocks.successors(start_location.block) {
+    for successor in mir.basic_blocks.successors(reinit_location.block) {
         dfs.push_start_node(successor);
     }
     let reachable_bb: FxHashSet<BasicBlock> = dfs.collect();
@@ -362,10 +362,10 @@ fn dominate_all_usage(
         .filter(|(location, _)| !mir.basic_blocks[location.block].is_cleanup)
         .filter(|(location, _)| {
             reachable_bb.contains(&location.block)
-                || (location.block == start_location.block && location.statement_index > start_location.statement_index)
+                || (location.block == reinit_location.block && location.statement_index > reinit_location.statement_index)
         })
     {
-        if !start_location.dominates(location, dominators) {
+        if !reinit_location.dominates(location, dominators) {
             return None;
         }
         if mutability == Mutability::Mut {
