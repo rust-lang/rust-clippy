@@ -6554,7 +6554,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `panic!`.\n\n### Why is this bad?\n`panic!` will stop the execution of the executable\n\n### Example\n```rust\npanic!(\"even with a good reason\");\n```",
+    "docs": "\n### What it does\nChecks for usage of `panic!`.\n\n### Why is this bad?\n`panic!` will stop the execution of the executable.\n\n### Example\n```rust\npanic!(\"even with a good reason\");\n```",
     "version": "1.40.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8734,11 +8734,11 @@
     "id": "todo",
     "id_span": {
       "path": "src/panic_unimplemented.rs",
-      "line": 53
+      "line": 58
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `todo!`.\n\n### Why is this bad?\nThis macro should not be present in production code\n\n### Example\n```rust\ntodo!();\n```",
+    "docs": "\n### What it does\nChecks for usage of `todo!`.\n\n### Why is this bad?\nThe `todo!` macro is often used for unfinished code, and it causes\ncode to panic. It should not be present in production code.\n\n### Example\n```rust\ntodo!();\n```\nFinish the implementation, or consider marking it as explicitly unimplemented.\n```rust\nunimplemented!();\n```",
     "version": "1.40.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9188,7 +9188,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `unimplemented!`.\n\n### Why is this bad?\nThis macro should not be present in production code\n\n### Example\n```rust\nunimplemented!();\n```",
+    "docs": "\n### What it does\nChecks for usage of `unimplemented!`.\n\n### Why is this bad?\nThis macro should not be present in production code.\n\n### Example\n```rust\nunimplemented!();\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9649,11 +9649,11 @@
     "id": "unreachable",
     "id_span": {
       "path": "src/panic_unimplemented.rs",
-      "line": 70
+      "line": 75
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `unreachable!`.\n\n### Why is this bad?\nThis macro can cause code to panic\n\n### Example\n```rust\nunreachable!();\n```",
+    "docs": "\n### What it does\nChecks for usage of `unreachable!`.\n\n### Why is this bad?\nThis macro can cause code to panic.\n\n### Example\n```rust\nunreachable!();\n```",
     "version": "1.40.0",
     "applicability": {
       "is_multi_part_suggestion": false,
