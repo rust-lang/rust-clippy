@@ -10154,11 +10154,11 @@
     "id": "vec_init_then_push",
     "id_span": {
       "path": "src/vec_init_then_push.rs",
-      "line": 42
+      "line": 44
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for calls to `push` immediately after creating a new `Vec`.\n\nIf the `Vec` is created using `with_capacity` this will only lint if the capacity is a\nconstant and the number of pushes is greater than or equal to the initial capacity.\n\nIf the `Vec` is extended after the initial sequence of pushes and it was default initialized\nthen this will only lint after there were at least four pushes. This number may change in\nthe future.\n\n### Why is this bad?\nThe `vec![]` macro is both more performant and easier to read than\nmultiple `push` calls.\n\n### Example\n```rust\nlet mut v = Vec::new();\nv.push(0);\n```\nUse instead:\n```rust\nlet v = vec![0];\n```",
+    "docs": "\n### What it does\nChecks for calls to `push` immediately after creating a new `Vec`.\n\nIf the `Vec` is created using `with_capacity` this will only lint if the capacity is a\nconstant and the number of pushes is greater than or equal to the initial capacity.\n\nIf the `Vec` is extended after the initial sequence of pushes and it was default initialized\nthen this will only lint after there were at least four pushes. This number may change in\nthe future.\n\n### Why is this bad?\nThe `vec![]` macro is both more performant and easier to read than\nmultiple `push` calls.\n\n### Example\n```rust\nlet mut v = Vec::new();\nv.push(0);\nv.push(1);\nv.push(2);\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\n```",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
