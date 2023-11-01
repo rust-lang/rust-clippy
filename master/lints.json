@@ -1759,7 +1759,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 271
+      "line": 272
     },
     "group": "suspicious",
     "level": "warn",
@@ -2048,7 +2048,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 237
+      "line": 238
     },
     "group": "complexity",
     "level": "warn",
@@ -2078,7 +2078,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 148
+      "line": 149
     },
     "group": "pedantic",
     "level": "allow",
@@ -2093,7 +2093,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 119
+      "line": 120
     },
     "group": "pedantic",
     "level": "allow",
@@ -2483,7 +2483,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 327
+      "line": 328
     },
     "group": "style",
     "level": "warn",
@@ -3416,7 +3416,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 172
+      "line": 173
     },
     "group": "correctness",
     "level": "deny",
@@ -4076,7 +4076,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 575
+      "line": 576
     },
     "group": "complexity",
     "level": "warn",
@@ -4106,7 +4106,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 508
+      "line": 509
     },
     "group": "complexity",
     "level": "warn",
@@ -4241,7 +4241,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 54
+      "line": 55
     },
     "group": "perf",
     "level": "warn",
@@ -4496,7 +4496,7 @@
     "id": "manual_while_let_some",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 605
+      "line": 633
     },
     "group": "style",
     "level": "warn",
@@ -5164,7 +5164,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 544
+      "line": 545
     },
     "group": "perf",
     "level": "warn",
@@ -5455,7 +5455,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 385
+      "line": 386
     },
     "group": "suspicious",
     "level": "warn",
@@ -5878,7 +5878,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 85
+      "line": 86
     },
     "group": "style",
     "level": "warn",
@@ -6028,7 +6028,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 349
+      "line": 350
     },
     "group": "correctness",
     "level": "deny",
@@ -7681,7 +7681,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 448
+      "line": 449
     },
     "group": "style",
     "level": "warn",
@@ -8104,7 +8104,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 476
+      "line": 477
     },
     "group": "complexity",
     "level": "warn",
@@ -9826,6 +9826,21 @@
     }
   },
   {
+    "id": "unused_enumerate_index",
+    "id_span": {
+      "path": "src/loops/mod.rs",
+      "line": 603
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for uses of the `enumerate` method where the index is unused (`_`)\n\n### Why is this bad?\nThe index from `.enumerate()` is immediately dropped.\n\n### Example\n```rust\nlet v = vec![1, 2, 3, 4];\nfor (_, x) in v.iter().enumerate() {\n    println!(\"{x}\");\n}\n```\nUse instead:\n```rust\nlet v = vec![1, 2, 3, 4];\nfor x in v.iter() {\n    println!(\"{x}\");\n}\n```",
+    "version": "1.75.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "unused_format_specs",
     "id_span": {
       "path": "src/format_args.rs",
@@ -10259,7 +10274,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 412
+      "line": 413
     },
     "group": "correctness",
     "level": "deny",
@@ -10274,7 +10289,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 205
+      "line": 206
     },
     "group": "complexity",
     "level": "warn",
@@ -10289,7 +10304,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 298
+      "line": 299
     },
     "group": "style",
     "level": "warn",
