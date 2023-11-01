@@ -1,5 +1,3 @@
-use std::fmt;
-
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::get_attr;
 use rustc_ast::{ast, token, tokenstream};
@@ -337,25 +335,6 @@ fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> (Vec<(Span
 }
 
 fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted_dangers: &[UnacceptedDanger]) {
-    // Define formatting helpers
-    struct FmtInline<F>(F);
-
-    impl<F> fmt::Display for FmtInline<F>
-    where
-        F: Fn(&mut fmt::Formatter<'_>) -> fmt::Result,
-    {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            self.0(f)
-        }
-    }
-
-    fn fmt_inline<F>(f: F) -> FmtInline<F>
-    where
-        F: Fn(&mut fmt::Formatter<'_>) -> fmt::Result,
-    {
-        FmtInline(f)
-    }
-
     // Collect all unique dangers
     let unique_dangers = unaccepted_dangers
         .iter()
@@ -370,17 +349,8 @@ fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted
         &format!(
             "called a function marked with `#[clippy::dangerous(...)]` without blessing the calling \
              module with `#![clippy::accept_danger({})]`",
-            fmt_inline(|f| {
-                let mut is_subsequent = false;
-                for danger in &unique_dangers {
-                    if is_subsequent {
-                        f.write_str(", ")?;
-                    }
-                    is_subsequent = true;
-                    f.write_str(danger.as_str())?;
-                }
-                Ok(())
-            }),
+            // This redundant allocation is okay because it's on the cold path.
+            unique_dangers.iter().map(Symbol::as_str).collect::<Vec<_>>().join(", "),
         ),
         |diag| {
             for danger in unaccepted_dangers {
