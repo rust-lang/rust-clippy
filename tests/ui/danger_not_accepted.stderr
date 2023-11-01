@@ -12,7 +12,7 @@ LL | #[clippy::dangerous(may_deadlock)]
    = note: `-D clippy::danger-not-accepted` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::danger_not_accepted)]`
 
-error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_delete_system, may_deadlock)]`
+error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock, may_delete_system)]`
   --> $DIR/danger_not_accepted.rs:10:5
    |
 LL |     Maz.faz();

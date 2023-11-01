@@ -349,8 +349,11 @@ fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted
         &format!(
             "called a function marked with `#[clippy::dangerous(...)]` without blessing the calling \
              module with `#![clippy::accept_danger({})]`",
-            // This redundant allocation is okay because it's on the cold path.
-            unique_dangers.iter().map(Symbol::as_str).collect::<Vec<_>>().join(", "),
+            {
+                let mut danger_list = unique_dangers.iter().map(Symbol::as_str).collect::<Vec<_>>();
+                danger_list.sort_unstable();
+                danger_list.join(", ")
+            },
         ),
         |diag| {
             for danger in unaccepted_dangers {
