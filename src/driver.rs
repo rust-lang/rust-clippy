@@ -186,7 +186,7 @@ pub fn main() {
         handler.note_without_error(format!("Clippy version: {version_info}"));
     });
 
-    exit(rustc_driver::catch_with_exit_code(move || {
+    exit(rustc_driver::catch_with_exit_code(|| {
         let mut orig_args: Vec<String> = env::args().collect();
         let has_sysroot_arg = arg_value(&orig_args, "--sysroot", |_| true).is_some();
 

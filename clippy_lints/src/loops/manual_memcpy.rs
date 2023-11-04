@@ -408,7 +408,7 @@ fn get_assignments<'a, 'tcx>(
     // just increases complexity. (cc #3188 and #4193)
     stmts
         .iter()
-        .filter_map(move |stmt| match stmt.kind {
+        .filter_map(|stmt| match stmt.kind {
             StmtKind::Local(..) | StmtKind::Item(..) => None,
             StmtKind::Expr(e) | StmtKind::Semi(e) => Some(e),
         })
