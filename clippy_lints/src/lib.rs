@@ -254,6 +254,7 @@ mod needless_else;
 mod needless_for_each;
 mod needless_if;
 mod needless_late_init;
+mod needless_move;
 mod needless_parens_on_range_literals;
 mod needless_pass_by_ref_mut;
 mod needless_pass_by_value;
@@ -716,7 +717,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(from_over_into::FromOverInto::new(msrv())));
     store.register_late_pass(move |_| Box::new(use_self::UseSelf::new(msrv())));
     store.register_late_pass(move |_| Box::new(missing_const_for_fn::MissingConstForFn::new(msrv())));
-    store.register_late_pass(move |_| Box::new(needless_question_mark::NeedlessQuestionMark));
+    store.register_late_pass(|_| Box::new(needless_question_mark::NeedlessQuestionMark));
     store.register_late_pass(move |_| Box::new(casts::Casts::new(msrv())));
     store.register_early_pass(move || Box::new(unnested_or_patterns::UnnestedOrPatterns::new(msrv())));
     store.register_late_pass(|_| Box::new(size_of_in_element_count::SizeOfInElementCount));
@@ -784,7 +785,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(mixed_read_write_in_expression::EvalOrderDependence));
     store.register_late_pass(move |_| Box::new(missing_doc::MissingDoc::new(missing_docs_in_crate_items)));
     store.register_late_pass(|_| Box::new(missing_inline::MissingInline));
-    store.register_late_pass(move |_| Box::new(exhaustive_items::ExhaustiveItems));
+    store.register_late_pass(|_| Box::new(exhaustive_items::ExhaustiveItems));
     store.register_late_pass(|_| Box::new(match_result_ok::MatchResultOk));
     store.register_late_pass(|_| Box::new(partialeq_ne_impl::PartialEqNeImpl));
     store.register_late_pass(|_| Box::new(unused_io_amount::UnusedIoAmount));
@@ -932,7 +933,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(from_str_radix_10::FromStrRadix10));
     store.register_late_pass(move |_| Box::new(if_then_some_else_none::IfThenSomeElseNone::new(msrv())));
     store.register_late_pass(|_| Box::new(bool_assert_comparison::BoolAssertComparison));
-    store.register_early_pass(move || Box::new(module_style::ModStyle));
+    store.register_early_pass(|| Box::new(module_style::ModStyle));
     store.register_late_pass(|_| Box::<unused_async::UnusedAsync>::default());
     store.register_late_pass(move |_| Box::new(disallowed_types::DisallowedTypes::new(disallowed_types.clone())));
     store.register_late_pass(move |_| {
@@ -942,9 +943,9 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_early_pass(move || Box::new(disallowed_script_idents::DisallowedScriptIdents::new(allowed_scripts)));
     store.register_late_pass(|_| Box::new(strlen_on_c_strings::StrlenOnCStrings));
-    store.register_late_pass(move |_| Box::new(self_named_constructors::SelfNamedConstructors));
-    store.register_late_pass(move |_| Box::new(iter_not_returning_iterator::IterNotReturningIterator));
-    store.register_late_pass(move |_| Box::new(manual_assert::ManualAssert));
+    store.register_late_pass(|_| Box::new(self_named_constructors::SelfNamedConstructors));
+    store.register_late_pass(|_| Box::new(iter_not_returning_iterator::IterNotReturningIterator));
+    store.register_late_pass(|_| Box::new(manual_assert::ManualAssert));
     store.register_late_pass(move |_| {
         Box::new(non_send_fields_in_send_ty::NonSendFieldInSendTy::new(
             enable_raw_pointer_heuristic_for_send,
@@ -1131,6 +1132,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
     store.register_late_pass(|_| Box::new(integer_division_remainder_used::IntegerDivisionRemainderUsed));
+    store.register_late_pass(|_| Box::new(needless_move::NeedlessMove));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
