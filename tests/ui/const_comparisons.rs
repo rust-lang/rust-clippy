@@ -4,6 +4,7 @@
 #![allow(clippy::no_effect)]
 #![allow(clippy::short_circuit_statement)]
 #![allow(clippy::manual_range_contains)]
+#![allow(clippy::identity_op)]
 
 const STATUS_BAD_REQUEST: u16 = 400;
 const STATUS_SERVER_ERROR: u16 = 500;
