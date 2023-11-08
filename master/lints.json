@@ -126,11 +126,11 @@
     "id": "arc_with_non_send_sync",
     "id_span": {
       "path": "src/arc_with_non_send_sync.rs",
-      "line": 35
+      "line": 37
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does.\nThis lint warns when you use `Arc` with a type that does not implement `Send` or `Sync`.\n\n### Why is this bad?\n`Arc<T>` is only `Send`/`Sync` when `T` is [both `Send` and `Sync`](https://doc.rust-lang.org/std/sync/struct.Arc.html#impl-Send-for-Arc%3CT%3E),\neither `T` should be made `Send + Sync` or an `Rc` should be used instead of an `Arc`\n\n### Example\n```rust\n\nfn main() {\n    // This is fine, as `i32` implements `Send` and `Sync`.\n    let a = Arc::new(42);\n\n    // `RefCell` is `!Sync`, so either the `Arc` should be replaced with an `Rc`\n    // or the `RefCell` replaced with something like a `RwLock`\n    let b = Arc::new(RefCell::new(42));\n}\n```",
+    "docs": "\n### What it does.\nThis lint warns when you use `Arc` with a type that does not implement `Send` or `Sync`.\n\n### Why is this bad?\n`Arc<T>` is an Atomic `RC<T>` and guarantees that updates to the reference counter are\nAtomic. This is useful in multiprocessing scenarios. To send an `Arc<T>` across processes\nand make use of the atomic ref counter, `T` must be [both `Send` and `Sync`](https://doc.rust-lang.org/std/sync/struct.Arc.html#impl-Send-for-Arc%3CT%3E),\neither `T` should be made `Send + Sync` or an `Rc` should be used instead of an `Arc`\n\n### Example\n```rust\n\nfn main() {\n    // This is fine, as `i32` implements `Send` and `Sync`.\n    let a = Arc::new(42);\n\n    // `RefCell` is `!Sync`, so either the `Arc` should be replaced with an `Rc`\n    // or the `RefCell` replaced with something like a `RwLock`\n    let b = Arc::new(RefCell::new(42));\n}\n```",
     "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
