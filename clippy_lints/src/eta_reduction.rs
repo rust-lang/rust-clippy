@@ -174,9 +174,9 @@ impl<'tcx> LateLintPass<'tcx> for EtaReduction {
                                 cx.param_env,
                                 Binder::bind_with_vars(callee_ty_adjusted, List::empty()),
                                 ImplPolarity::Positive,
-                            ) && path_to_local(callee).map_or(false, |l| {
-                                local_used_in(cx, l, args) || local_used_after_expr(cx, l, expr)
-                            }) {
+                            ) && path_to_local(callee)
+                                .is_some_and(|l| local_used_in(cx, l, args) || local_used_after_expr(cx, l, expr))
+                            {
                                 // Mutable closure is used after current expr; we cannot consume it.
                                 snippet = format!("&mut {snippet}");
                             }

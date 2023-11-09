@@ -16,7 +16,7 @@ pub(super) fn check(cx: &LateContext<'_>, item: &Item<'_>, attrs: &[Attribute]) 
             return;
         }
         if let Some(lint_list) = &attr.meta_item_list() {
-            if attr.ident().map_or(false, |ident| is_lint_level(ident.name, attr.id)) {
+            if attr.ident().is_some_and(|ident| is_lint_level(ident.name, attr.id)) {
                 for lint in lint_list {
                     match item.kind {
                         ItemKind::Use(..) => {
@@ -25,7 +25,7 @@ pub(super) fn check(cx: &LateContext<'_>, item: &Item<'_>, attrs: &[Attribute]) 
                                 || is_word(lint, sym!(unreachable_pub))
                                 || is_word(lint, sym!(unused))
                                 || is_word(lint, sym!(unused_import_braces))
-                                || extract_clippy_lint(lint).map_or(false, |s| {
+                                || extract_clippy_lint(lint).is_some_and(|s| {
                                     matches!(
                                         s.as_str(),
                                         "wildcard_imports"

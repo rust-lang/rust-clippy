@@ -157,7 +157,7 @@ fn is_stable(cx: &LateContext<'_>, mut def_id: DefId) -> bool {
         if cx
             .tcx
             .lookup_stability(def_id)
-            .map_or(false, |stability| stability.is_unstable())
+            .is_some_and(|stability| stability.is_unstable())
         {
             return false;
         }
