@@ -9,6 +9,7 @@ mod transmute_num_to_bytes;
 mod transmute_ptr_to_ptr;
 mod transmute_ptr_to_ref;
 mod transmute_ref_to_ref;
+mod transmute_slice_to_larger_element_type;
 mod transmute_undefined_repr;
 mod transmutes_expressible_as_ptr_casts;
 mod transmuting_null;
@@ -464,6 +465,38 @@ declare_clippy_lint! {
     "transmute results in a null function pointer, which is undefined behavior"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for slice creation which has larger element before transmute.
+    ///
+    /// ### Why is this bad?
+    /// Creating those slices leads to out-of-bounds read, considered Undefined Behavior.
+    ///
+    /// ### Example
+    /// ```rust
+    /// let i8_slice: &[i8] = &[1i8, 2, 3, 4];
+    /// let i32_slice: &[i32] = unsafe { std::mem::transmute(i8_slice) };
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```rust
+    /// let i8_slice: &[i8] = &[1i8, 2, 3, 4];
+    /// let i32_slice: &[i32] = i8_slice.iter().map(|item| unsafe { std::mem::transmute(item) }).collect::<Vec<_>>().to_slice();
+    /// ```
+    ///
+    /// or, alternatively:
+    ///
+    /// ```rust
+    /// let i8_slice: &[i8] = &[1i8, 2, 3, 4];
+    /// let i32_slice: &[i32] = unsafe { i8_slice.align_to::<i32>().1 };
+    /// ```
+    #[clippy::version = "1.69.0"]
+    pub TRANSMUTE_SLICE_TO_LARGER_ELEMENT_TYPE,
+    correctness,
+    "transmute leads out-of-bounds read, which is undefined behavior"
+}
+
 pub struct Transmute {
     msrv: Msrv,
 }
@@ -485,6 +518,7 @@ impl_lint_pass!(Transmute => [
     TRANSMUTE_UNDEFINED_REPR,
     TRANSMUTING_NULL,
     TRANSMUTE_NULL_TO_FN,
+    TRANSMUTE_SLICE_TO_LARGER_ELEMENT_TYPE,
 ]);
 impl Transmute {
     #[must_use]
@@ -531,6 +565,7 @@ impl<'tcx> LateLintPass<'tcx> for Transmute {
                     | transmute_int_to_non_zero::check(cx, e, from_ty, to_ty, arg)
                     | transmute_float_to_int::check(cx, e, from_ty, to_ty, arg, const_context)
                     | transmute_num_to_bytes::check(cx, e, from_ty, to_ty, arg, const_context)
+                    | transmute_slice_to_larger_element_type::check(cx, e, from_ty, to_ty, arg)
                     | (
                         unsound_collection_transmute::check(cx, e, from_ty, to_ty)
                         || transmute_undefined_repr::check(cx, e, from_ty, to_ty)
