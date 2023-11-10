@@ -35,7 +35,7 @@
 //! This lint is **warn** by default.
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::{indent_of, snippet, snippet_block};
-use rustc_ast::ast;
+use rustc_ast::{ast, Block, Label};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::Span;
@@ -46,6 +46,7 @@ declare_clippy_lint! {
     /// that contain a `continue` statement in either their main blocks or their
     /// `else`-blocks, when omitting the `else`-block possibly with some
     /// rearrangement of code can make the code easier to understand.
+    /// The lint also checks if the last statement in the loop is a `continue`
     ///
     /// ### Why is this bad?
     /// Having explicit `else` blocks for `if` statements
@@ -108,6 +109,45 @@ declare_clippy_lint! {
     ///     }
     ///     // Do something useful
     ///     # break;
+    /// }
+    /// ```
+    ///
+    /// ```rust
+    /// fn foo() -> std::io::ErrorKind { std::io::ErrorKind::NotFound }
+    /// for _ in 0..10 {
+    ///     match foo() {
+    ///         std::io::ErrorKind::NotFound => {
+    ///             eprintln!("not found");
+    ///             continue
+    ///         }
+    ///         std::io::ErrorKind::TimedOut => {
+    ///             eprintln!("timeout");
+    ///             continue
+    ///         }
+    ///         _ => {
+    ///             eprintln!("other error");
+    ///             continue
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    /// Could be rewritten as
+    ///
+    ///
+    /// ```rust
+    /// fn foo() -> std::io::ErrorKind { std::io::ErrorKind::NotFound }
+    /// for _ in 0..10 {
+    ///     match foo() {
+    ///         std::io::ErrorKind::NotFound => {
+    ///             eprintln!("not found");
+    ///         }
+    ///         std::io::ErrorKind::TimedOut => {
+    ///             eprintln!("timeout");
+    ///         }
+    ///         _ => {
+    ///             eprintln!("other error");
+    ///         }
+    ///     }
     /// }
     /// ```
     #[clippy::version = "pre 1.29.0"]
@@ -361,24 +401,58 @@ fn suggestion_snippet_for_continue_inside_else(cx: &EarlyContext<'_>, data: &Lin
     )
 }
 
-fn check_and_warn(cx: &EarlyContext<'_>, expr: &ast::Expr) {
-    if_chain! {
-        if let ast::ExprKind::Loop(loop_block, ..) = &expr.kind;
-        if let Some(last_stmt) = loop_block.stmts.last();
-        if let ast::StmtKind::Expr(inner_expr) | ast::StmtKind::Semi(inner_expr) = &last_stmt.kind;
-        if let ast::ExprKind::Continue(_) = inner_expr.kind;
-        then {
-            span_lint_and_help(
-                cx,
-                NEEDLESS_CONTINUE,
-                last_stmt.span,
-                MSG_REDUNDANT_CONTINUE_EXPRESSION,
-                None,
-                DROP_CONTINUE_EXPRESSION_MSG,
-            );
-        }
+fn check_last_stmt_in_expr<F>(inner_expr: &ast::Expr, func: &F)
+where
+    F: Fn(Option<&ast::Label>, Span),
+{
+    match &inner_expr.kind {
+        ast::ExprKind::Continue(continue_label) => {
+            func(continue_label.as_ref(), inner_expr.span);
+        },
+        ast::ExprKind::If(_, then_block, else_block) => {
+            check_last_stmt_in_block(then_block, func);
+            if let Some(else_block) = else_block {
+                check_last_stmt_in_expr(else_block, func);
+            }
+        },
+        ast::ExprKind::Match(_, arms) => {
+            for arm in arms {
+                check_last_stmt_in_expr(&arm.body, func);
+            }
+        },
+        ast::ExprKind::Block(b, _) => {
+            check_last_stmt_in_block(b, func);
+        },
+        _ => {},
     }
+}
+
+fn check_last_stmt_in_block<F>(b: &Block, func: &F)
+where
+    F: Fn(Option<&ast::Label>, Span),
+{
+    if let Some(last_stmt) = b.stmts.last() &&
+       let ast::StmtKind::Expr(inner_expr) | ast::StmtKind::Semi(inner_expr) = &last_stmt.kind {
+        check_last_stmt_in_expr(inner_expr, func);
+    }
+}
+
+fn check_and_warn(cx: &EarlyContext<'_>, expr: &ast::Expr) {
     with_loop_block(expr, |loop_block, label| {
+        let p = |continue_label: Option<&Label>, span: Span| {
+            if compare_labels(label, continue_label) {
+                span_lint_and_help(
+                    cx,
+                    NEEDLESS_CONTINUE,
+                    span,
+                    MSG_REDUNDANT_CONTINUE_EXPRESSION,
+                    None,
+                    DROP_CONTINUE_EXPRESSION_MSG,
+                );
+            }
+        };
+        check_last_stmt_in_block(loop_block, &p);
+
         for (i, stmt) in loop_block.stmts.iter().enumerate() {
             with_if_expr(stmt, |if_expr, cond, then_block, else_expr| {
                 let data = &LintData {
