@@ -3746,7 +3746,7 @@
     "id": "large_types_passed_by_value",
     "id_span": {
       "path": "src/pass_by_ref_or_value.rs",
-      "line": 102
+      "line": 101
     },
     "group": "pedantic",
     "level": "allow",
@@ -9049,7 +9049,7 @@
     "id": "trivially_copy_pass_by_ref",
     "id_span": {
       "path": "src/pass_by_ref_or_value.rs",
-      "line": 69
+      "line": 68
     },
     "group": "pedantic",
     "level": "allow",
