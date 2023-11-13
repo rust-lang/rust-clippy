@@ -1519,7 +1519,7 @@
     "id": "doc_link_with_quotes",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 222
+      "line": 224
     },
     "group": "pedantic",
     "level": "allow",
@@ -1534,7 +1534,7 @@
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 75
+      "line": 77
     },
     "group": "pedantic",
     "level": "allow",
@@ -5089,7 +5089,7 @@
     "id": "missing_errors_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 139
+      "line": 141
     },
     "group": "pedantic",
     "level": "allow",
@@ -5134,7 +5134,7 @@
     "id": "missing_panics_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 170
+      "line": 172
     },
     "group": "pedantic",
     "level": "allow",
@@ -5149,7 +5149,7 @@
     "id": "missing_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 110
+      "line": 112
     },
     "group": "style",
     "level": "warn",
@@ -5668,7 +5668,7 @@
     "id": "needless_doctest_main",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 199
+      "line": 201
     },
     "group": "style",
     "level": "warn",
@@ -8508,8 +8508,8 @@
   {
     "id": "suspicious_doc_comments",
     "id_span": {
-      "path": "src/suspicious_doc_comments.rs",
-      "line": 51
+      "path": "src/doc.rs",
+      "line": 307
     },
     "group": "suspicious",
     "level": "warn",
@@ -9514,7 +9514,7 @@
     "id": "unnecessary_safety_doc",
     "id_span": {
       "path": "src/doc.rs",
-      "line": 258
+      "line": 260
     },
     "group": "restriction",
     "level": "allow",
