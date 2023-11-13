@@ -81,6 +81,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::casts::CAST_ABS_TO_UNSIGNED_INFO,
     crate::casts::CAST_ENUM_CONSTRUCTOR_INFO,
     crate::casts::CAST_ENUM_TRUNCATION_INFO,
+    crate::casts::CAST_INTEGER_INFO,
     crate::casts::CAST_LOSSLESS_INFO,
     crate::casts::CAST_NAN_TO_INT_INFO,
     crate::casts::CAST_POSSIBLE_TRUNCATION_INFO,

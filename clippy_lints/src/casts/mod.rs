@@ -3,6 +3,7 @@ mod as_underscore;
 mod borrow_as_ptr;
 mod cast_abs_to_unsigned;
 mod cast_enum_constructor;
+mod cast_integer;
 mod cast_lossless;
 mod cast_nan_to_int;
 mod cast_possible_truncation;
@@ -689,6 +690,25 @@ declare_clippy_lint! {
     "using `0 as *{const, mut} T`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// ### Why is this bad?
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub CAST_INTEGER,
+    pedantic,
+    "default lint description"
+}
+
 pub struct Casts {
     msrv: Msrv,
 }
@@ -724,6 +744,7 @@ impl_lint_pass!(Casts => [
     AS_PTR_CAST_MUT,
     CAST_NAN_TO_INT,
     ZERO_PTR,
+    CAST_INTEGER,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Casts {
