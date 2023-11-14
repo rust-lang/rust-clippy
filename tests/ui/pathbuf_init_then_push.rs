@@ -1,0 +1,8 @@
+#![warn(clippy::pathbuf_init_then_push)]
+
+use std::path::PathBuf;
+
+fn main() {
+    let mut path_buf = PathBuf::new();
+    path_buf.push("foo");
+}

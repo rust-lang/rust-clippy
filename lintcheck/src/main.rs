@@ -216,10 +216,8 @@ impl CrateSource {
                 options,
             } => {
                 let repo_path = {
-                    let mut repo_path = PathBuf::from(LINTCHECK_SOURCES);
                     // add a -git suffix in case we have the same crate from crates.io and a git repo
-                    repo_path.push(format!("{name}-git"));
-                    repo_path
+                    PathBuf::from(LINTCHECK_SOURCES).join(format!("{name}-git"))
                 };
                 // clone the repo if we have not done so
                 if !repo_path.is_dir() {

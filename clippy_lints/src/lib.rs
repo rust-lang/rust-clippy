@@ -261,6 +261,7 @@ mod partial_pub_fields;
 mod partialeq_ne_impl;
 mod partialeq_to_none;
 mod pass_by_ref_or_value;
+mod pathbuf_init_then_push;
 mod pattern_type_mismatch;
 mod permissions_set_readonly_false;
 mod precedence;
@@ -1064,6 +1065,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(manual_hash_one::ManualHashOne::new(msrv())));
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
+    store.register_late_pass(|_| Box::<pathbuf_init_then_push::PathbufThenPush>::default());
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
