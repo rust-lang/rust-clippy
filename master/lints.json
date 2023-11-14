@@ -3533,6 +3533,21 @@
     }
   },
   {
+    "id": "iter_over_hash_type",
+    "id_span": {
+      "path": "src/iter_over_hash_type.rs",
+      "line": 38
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nThis is a restriction lint which prevents the use of hash types (i.e., `HashSet` and `HashMap`) in for loops.\n\n### Why is this bad?\nBecause hash types are unordered, when iterated through such as in a for loop, the values are returned in\nan undefined order. As a result, on redundant systems this may cause inconsistencies and anomalies.\nIn addition, the unknown order of the elements may reduce readability or introduce other undesired\nside effects.\n\n### Example\n```rust\n    let my_map = std::collections::HashMap::<i32, String>::new();\n    for (key, value) in my_map { /* ... */ }\n```\nUse instead:\n```rust\n    let my_map = std::collections::HashMap::<i32, String>::new();\n    let mut keys = my_map.keys().clone().collect::<Vec<_>>();\n    keys.sort();\n    for key in keys {\n        let value = &my_map[key];\n    }\n```",
+    "version": "1.75.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "iter_overeager_cloned",
     "id_span": {
       "path": "src/methods/mod.rs",
