@@ -1,0 +1,46 @@
+error: empty doc comment
+  --> $DIR/empty_docs.rs:11:5
+   |
+LL |     ///
+   |     ^^^
+   |
+   = help: consider removing or fill it
+   = note: `-D clippy::empty-docs` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::empty_docs)]`
+
+error: empty doc comment
+  --> $DIR/empty_docs.rs:13:5
+   |
+LL |     ///
+   |     ^^^
+   |
+   = help: consider removing or fill it
+
+error: empty doc comment
+  --> $DIR/empty_docs.rs:16:5
+   |
+LL | /     /**
+LL | |      *
+LL | |      */
+   | |_______^
+   |
+   = help: consider removing or fill it
+
+error: empty doc comment
+  --> $DIR/empty_docs.rs:6:5
+   |
+LL |     //!
+   |     ^^^
+   |
+   = help: consider removing or fill it
+
+error: empty doc comment
+  --> $DIR/empty_docs.rs:8:5
+   |
+LL |     //!!
+   |     ^^^^
+   |
+   = help: consider removing or fill it
+
+error: aborting due to 5 previous errors
+

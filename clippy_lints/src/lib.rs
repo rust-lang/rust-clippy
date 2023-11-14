@@ -110,6 +110,7 @@ mod double_parens;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod else_if_without_else;
+mod empty_docs;
 mod empty_drop;
 mod empty_enum;
 mod empty_structs_with_brackets;
@@ -1064,6 +1065,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(manual_hash_one::ManualHashOne::new(msrv())));
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
+    store.register_early_pass(|| Box::new(empty_docs::EmptyDocs));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
