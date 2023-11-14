@@ -3,6 +3,7 @@
 #![allow(
     clippy::assign_op_pattern,
     clippy::erasing_op,
+    clippy::explicit_reinitialization,
     clippy::identity_op,
     clippy::no_effect,
     clippy::op_ref,

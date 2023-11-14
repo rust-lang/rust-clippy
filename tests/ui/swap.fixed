@@ -11,7 +11,8 @@
     unused_variables,
     clippy::let_and_return,
     clippy::useless_vec,
-    clippy::redundant_locals
+    clippy::redundant_locals,
+    clippy::explicit_reinitialization
 )]
 
 struct Foo(u32);

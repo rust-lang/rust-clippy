@@ -1,5 +1,9 @@
 #![warn(clippy::self_assignment)]
-#![allow(clippy::useless_vec, clippy::needless_pass_by_ref_mut)]
+#![allow(
+    clippy::useless_vec,
+    clippy::needless_pass_by_ref_mut,
+    clippy::explicit_reinitialization
+)]
 
 pub struct S<'a> {
     a: i32,

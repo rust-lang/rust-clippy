@@ -1,5 +1,10 @@
 //@aux-build:proc_macros.rs
-#![allow(unused, clippy::no_effect, clippy::needless_pass_by_ref_mut)]
+#![allow(
+    unused,
+    clippy::no_effect,
+    clippy::needless_pass_by_ref_mut,
+    clippy::explicit_reinitialization
+)]
 #![warn(clippy::redundant_locals)]
 
 extern crate proc_macros;

@@ -1,9 +1,10 @@
 #![warn(clippy::option_if_let_else)]
 #![allow(
     unused_tuple_struct_fields,
-    clippy::ref_option_ref,
     clippy::equatable_if_let,
+    clippy::explicit_reinitialization,
     clippy::let_unit_value,
+    clippy::ref_option_ref,
     clippy::redundant_locals
 )]
 

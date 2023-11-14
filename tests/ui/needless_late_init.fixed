@@ -4,6 +4,7 @@
 #![allow(
     clippy::assign_op_pattern,
     clippy::blocks_in_if_conditions,
+    clippy::explicit_reinitialization,
     clippy::let_and_return,
     clippy::let_unit_value,
     clippy::nonminimal_bool,

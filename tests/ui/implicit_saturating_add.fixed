@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::explicit_reinitialization)]
 #![warn(clippy::implicit_saturating_add)]
 
 fn main() {

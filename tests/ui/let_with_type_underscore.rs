@@ -1,7 +1,11 @@
 //@aux-build: proc_macros.rs
 #![allow(unused)]
 #![warn(clippy::let_with_type_underscore)]
-#![allow(clippy::let_unit_value, clippy::needless_late_init)]
+#![allow(
+    clippy::let_unit_value,
+    clippy::needless_late_init,
+    clippy::explicit_reinitialization
+)]
 
 extern crate proc_macros;
 
@@ -35,7 +39,7 @@ fn main() {
         let x : _ = 1;
         let x
 : _ = 1;
-        let                   x :              
+        let                   x :
         _;
         x = ();
     };

@@ -90,7 +90,7 @@ fn parse_config_field_doc(doc_comment: &str) -> Option<(Vec<String>, String)> {
         && let Some(split_pos) = doc_comment.find('.')
     {
         let mut doc_comment = doc_comment.to_string();
-        let mut documentation = doc_comment.split_off(split_pos);
+        let documentation = doc_comment.split_off(split_pos);
 
         // Extract lints
         doc_comment.make_ascii_lowercase();
@@ -102,7 +102,7 @@ fn parse_config_field_doc(doc_comment: &str) -> Option<(Vec<String>, String)> {
 
         // Format documentation correctly
         // split off leading `.` from lint name list and indent for correct formatting
-        documentation = documentation.trim_start_matches('.').trim().replace("\n ", "\n    ");
+        let documentation = documentation.trim_start_matches('.').trim().replace("\n ", "\n    ");
 
         Some((lints, documentation))
     } else {

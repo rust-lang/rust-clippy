@@ -1,5 +1,5 @@
 //@no-rustfix: overlapping suggestions
-#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::uninlined_format_args, clippy::explicit_reinitialization)]
 
 #[allow(unused_assignments)]
 #[warn(clippy::misrefactored_assign_op, clippy::assign_op_pattern)]

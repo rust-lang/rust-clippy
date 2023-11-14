@@ -124,6 +124,7 @@ mod excessive_bools;
 mod excessive_nesting;
 mod exhaustive_items;
 mod exit;
+mod explicit_reinitialization;
 mod explicit_write;
 mod extra_unused_type_parameters;
 mod fallible_impl_from;
@@ -1064,6 +1065,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(manual_hash_one::ManualHashOne::new(msrv())));
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
+    store.register_late_pass(|_| Box::new(explicit_reinitialization::ExplicitReinitialization));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

@@ -1,4 +1,4 @@
-#![allow(unused, clippy::useless_vec)]
+#![allow(unused, clippy::useless_vec, clippy::explicit_reinitialization)]
 #![warn(clippy::collection_is_never_read)]
 
 use std::collections::{HashMap, HashSet};

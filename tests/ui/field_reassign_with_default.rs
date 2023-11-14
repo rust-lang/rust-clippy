@@ -1,6 +1,7 @@
 //@aux-build:proc_macro_derive.rs
 //@aux-build:proc_macros.rs
 
+#![allow(clippy::explicit_reinitialization)]
 #![warn(clippy::field_reassign_with_default)]
 
 #[macro_use]
