@@ -582,4 +582,42 @@ mod issue_11246 {
 // Safety: Another safety comment
 const FOO: () = unsafe {};
 
+// trait items and impl items
+mod issue_11709 {
+    trait MyTrait {
+        const SAFE_CONST: u8 = 0;
+        // SAFETY: unnecessary, lint
+        const SAFE_CONST_IN_TRAIT: u8 = 1;
+        //~^ ERROR: associated constant has unnecessary safety comment
+        const MAYBE_NO_SAFETY: u8 = unsafe { 0 };
+        //~^ ERROR: unsafe block missing a safety comment
+        // SAFETY: safe, trust me
+        const HAS_SAFETY_IN_TRAIT: i32 = unsafe { 1 };
+        const NO_SAFETY_IN_TRAIT: i32 = unsafe { 1 };
+        //~^ ERROR: unsafe block missing a safety comment
+    }
+
+    struct UnsafeStruct;
+
+    impl MyTrait for UnsafeStruct {
+        // SAFETY: unnecessary, lint
+        const SAFE_CONST: u8 = 0;
+        //~^ ERROR: associated constant has unnecessary safety comment
+        // SAFETY: safe in this impl
+        const MAYBE_NO_SAFETY: u8 = unsafe { 2 };
+        const HAS_SAFETY_IN_TRAIT: i32 = unsafe { 3 };
+        //~^ ERROR: unsafe block missing a safety comment
+    }
+
+    impl UnsafeStruct {
+        // SAFETY: safe
+        const HAS_SAFETY: u8 = unsafe { 4 };
+        const NO_SAFETY: u8 = unsafe { 5 };
+        //~^ ERROR: unsafe block missing a safety comment
+        // SAFETY: unnecessary, lint
+        const SAFE: u8 = 1;
+        //~^ ERROR: associated constant has unnecessary safety comment
+    }
+}
+
 fn main() {}
