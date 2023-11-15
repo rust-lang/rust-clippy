@@ -5257,7 +5257,7 @@
     "id": "mod_module_files",
     "id_span": {
       "path": "src/module_style.rs",
-      "line": 34
+      "line": 35
     },
     "group": "restriction",
     "level": "allow",
@@ -7801,7 +7801,7 @@
     "id": "self_named_module_files",
     "id_span": {
       "path": "src/module_style.rs",
-      "line": 64
+      "line": 65
     },
     "group": "restriction",
     "level": "allow",
