@@ -2770,8 +2770,8 @@
       "path": "src/copies.rs",
       "line": 119
     },
-    "group": "correctness",
-    "level": "deny",
+    "group": "style",
+    "level": "warn",
     "docs": "\n### What it does\nChecks for `if/else` with the same body as the *then* part\nand the *else* part.\n\n### Why is this bad?\nThis is probably a copy & paste error.\n\n### Example\n```rust\nlet foo = if … {\n    42\n} else {\n    42\n};\n```",
     "version": "pre 1.29.0",
     "applicability": {
