@@ -2923,7 +2923,7 @@
     "group": "nursery",
     "level": "allow",
     "docs": "\n### What it does\nLooks for bounds in `impl Trait` in return position that are implied by other bounds.\nThis can happen when a trait is specified that another trait already has as a supertrait\n(e.g. `fn() -> impl Deref + DerefMut<Target = i32>` has an unnecessary `Deref` bound,\nbecause `Deref` is a supertrait of `DerefMut`)\n\n### Why is this bad?\nSpecifying more bounds than necessary adds needless complexity for the reader.\n\n### Limitations\nThis lint does not check for implied bounds transitively. Meaning that\nit does't check for implied bounds from supertraits of supertraits\n(e.g. `trait A {} trait B: A {} trait C: B {}`, then having an `fn() -> impl A + C`)\n\n### Example\n```rust\nfn f() -> impl Deref<Target = i32> + DerefMut<Target = i32> {\n//             ^^^^^^^^^^^^^^^^^^^ unnecessary bound, already implied by the `DerefMut` trait bound\n    Box::new(123)\n}\n```\nUse instead:\n```rust\nfn f() -> impl DerefMut<Target = i32> {\n    Box::new(123)\n}\n```",
-    "version": "1.73.0",
+    "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -5049,7 +5049,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for repeated slice indexing without asserting beforehand that the length\nis greater than the largest index used to index into the slice.\n\n### Why is this bad?\nIn the general case where the compiler does not have a lot of information\nabout the length of a slice, indexing it repeatedly will generate a bounds check\nfor every single index.\n\nAsserting that the length of the slice is at least as large as the largest value\nto index beforehand gives the compiler enough information to elide the bounds checks,\neffectively reducing the number of bounds checks from however many times\nthe slice was indexed to just one (the assert).\n\n### Drawbacks\nFalse positives. It is, in general, very difficult to predict how well\nthe optimizer will be able to elide bounds checks and it very much depends on\nthe surrounding code. For example, indexing into the slice yielded by the\n[`slice::chunks_exact`](https://doc.rust-lang.org/stable/std/primitive.slice.html#method.chunks_exact)\niterator will likely have all of the bounds checks elided even without an assert\nif the `chunk_size` is a constant.\n\nAsserts are not tracked across function calls. Asserting the length of a slice\nin a different function likely gives the optimizer enough information\nabout the length of a slice, but this lint will not detect that.\n\n### Example\n```rust\nfn sum(v: &[u8]) -> u8 {\n    // 4 bounds checks\n    v[0] + v[1] + v[2] + v[3]\n}\n```\nUse instead:\n```rust\nfn sum(v: &[u8]) -> u8 {\n    assert!(v.len() > 4);\n    // no bounds checks\n    v[0] + v[1] + v[2] + v[3]\n}\n```",
-    "version": "1.70.0",
+    "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5643,7 +5643,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for borrow operations (`&`) that used as a generic argument to a\nfunction when the borrowed value could be used.\n\n### Why is this bad?\nSuggests that the receiver of the expression borrows\nthe expression.\n\n### Known problems\nThe lint cannot tell when the implementation of a trait\nfor `&T` and `T` do different things. Removing a borrow\nin such a case can change the semantics of the code.\n\n### Example\n```rust\nfn f(_: impl AsRef<str>) {}\n\nlet x = \"foo\";\nf(&x);\n```\n\nUse instead:\n```rust\nfn f(_: impl AsRef<str>) {}\n\nlet x = \"foo\";\nf(x);\n```",
-    "version": "pre 1.29.0",
+    "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -7566,7 +7566,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nInforms the user about a more concise way to create a vector with a known capacity.\n\n### Why is this bad?\nThe `Vec::with_capacity` constructor is less complex.\n\n### Example\n```rust\nlet mut v: Vec<usize> = vec![];\nv.reserve(10);\n```\nUse instead:\n```rust\nlet mut v: Vec<usize> = Vec::with_capacity(10);\n```",
-    "version": "1.73.0",
+    "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "HasPlaceholders"
@@ -7986,7 +7986,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for `#[should_panic]` attributes without specifying the expected panic message.\n\n### Why is this bad?\nThe expected panic message should be specified to ensure that the test is actually\npanicking with the expected message, and not another unrelated panic.\n\n### Example\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```\n\nUse instead:\n```rust\nfn random() -> i32 { 0 }\n\n#[should_panic = \"attempt to divide by zero\"]\n#[test]\nfn my_test() {\n    let _ = 1 / random();\n}\n```",
-    "version": "1.73.0",
+    "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "HasPlaceholders"
@@ -9459,7 +9459,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nSuggest removing the use of a may (or map_err) method when an Option or Result is being constructed.\n\n### Why is this bad?\nIt introduces unnecessary complexity. In this case the function can be used directly and\nconstruct the Option or Result from the output.\n\n### Example\n```rust\nSome(4).map(i32::swap_bytes);\n```\nUse instead:\n```rust\nSome(i32::swap_bytes(4));\n```",
-    "version": "1.73.0",
+    "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
