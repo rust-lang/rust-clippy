@@ -4849,11 +4849,11 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 424
+      "line": 430
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for `#[cfg(features = \"...\")]` and suggests to replace it with\n`#[cfg(feature = \"...\")]`.\n\n### Why is this bad?\nMisspelling `feature` as `features` can be sometimes hard to spot. It\nmay cause conditional compilation not work quietly.\n\n### Example\n```rust\n#[cfg(features = \"some-feature\")]\nfn conditional() { }\n```\n\nUse instead:\n```rust\n#[cfg(feature = \"some-feature\")]\nfn conditional() { }\n```",
+    "docs": "\n### What it does\nChecks for `#[cfg(features = \"...\")]` and suggests to replace it with\n`#[cfg(feature = \"...\")]`.\n\nIt also checks if `cfg(test)` was misspelled.\n\n### Why is this bad?\nMisspelling `feature` as `features` or `test` as `tests` can be sometimes hard to spot. It\nmay cause conditional compilation not work quietly.\n\n### Example\n```rust\n#[cfg(features = \"some-feature\")]\nfn conditional() { }\n#[cfg(tests)]\nmod tests { }\n```\n\nUse instead:\n```rust\n#[cfg(feature = \"some-feature\")]\nfn conditional() { }\n#[cfg(test)]\nmod tests { }\n```",
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
