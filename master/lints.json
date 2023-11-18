@@ -7183,11 +7183,11 @@
     "id": "redundant_as_str",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3631
+      "line": 3633
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `as_str()` on a `String`` chained with a method available on the `String` itself.\n\n### Why is this bad?\nThe `as_str()` conversion is pointless and can be removed for simplicity and cleanliness.\n\n### Example\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_str().as_bytes();\n```\n\nUse instead:\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_bytes();\n```",
+    "docs": "\n### What it does\nChecks for usage of `as_str()` on a `String` chained with a method available on the `String` itself.\n\n### Why is this bad?\nThe `as_str()` conversion is pointless and can be removed for simplicity and cleanliness.\n\n### Example\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_str().as_bytes()\n```\n\nUse instead:\n```rust\nlet owned_string = \"This is a string\".to_owned();\nowned_string.as_bytes()\n```",
     "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9349,7 +9349,7 @@
     "id": "unnecessary_fallible_conversions",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3680
+      "line": 3682
     },
     "group": "style",
     "level": "warn",
@@ -9454,11 +9454,11 @@
     "id": "unnecessary_map_on_constructor",
     "id_span": {
       "path": "src/unnecessary_map_on_constructor.rs",
-      "line": 27
+      "line": 30
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nSuggest removing the use of a map (or map_err) method when an Option or Result is being constructed.\n\n### Why is this bad?\nIt introduces unnecessary complexity. In this case the function can be used directly and\nconstruct the Option or Result from the output.\n\n### Example\n```rust\nSome(4).map(i32::swap_bytes);\n```\nUse instead:\n```rust\nSome(i32::swap_bytes(4));\n```",
+    "docs": "\n### What it does\nSuggests removing the use of a `map()` (or `map_err()`) method when an `Option` or `Result`\nis being constructed.\n\n### Why is this bad?\nIt introduces unnecessary complexity. Instead, the function can be called before\nconstructing the `Option` or `Result` from its return value.\n\n### Example\n```rust\nSome(4).map(i32::swap_bytes)\n```\nUse instead:\n```rust\nSome(i32::swap_bytes(4))\n```",
     "version": "1.74.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -10274,7 +10274,7 @@
     "id": "waker_clone_wake",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3653
+      "line": 3655
     },
     "group": "perf",
     "level": "warn",
