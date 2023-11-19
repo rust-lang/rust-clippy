@@ -3971,7 +3971,7 @@
     "id": "macro_use_imports",
     "id_span": {
       "path": "src/macro_use.rs",
-      "line": 27
+      "line": 28
     },
     "group": "pedantic",
     "level": "allow",
