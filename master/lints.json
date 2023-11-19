@@ -2825,6 +2825,21 @@
     }
   },
   {
+    "id": "impl_hash_borrow_with_str_and_bytes",
+    "id_span": {
+      "path": "src/impl_hash_with_borrow_str_and_bytes.rs",
+      "line": 67
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\n\nThis lint is concerned with the semantics of `Borrow` and `Hash` for a\ntype that implements all three of `Hash`, `Borrow<str>` and `Borrow<[u8]>`\nas it is impossible to satisfy the semantics of Borrow and `Hash` for\nboth `Borrow<str>` and `Borrow<[u8]>`.\n\n### Why is this bad?\n\nWhen providing implementations for `Borrow<T>`, one should consider whether the different\nimplementations should act as facets or representations of the underlying type. Generic code\ntypically uses `Borrow<T>` when it relies on the identical behavior of these additional trait\nimplementations. These traits will likely appear as additional trait bounds.\n\nIn particular `Eq`, `Ord` and `Hash` must be equivalent for borrowed and owned values:\n`x.borrow() == y.borrow()` should give the same result as `x == y`.\nIt follows then that the following equivalence must hold:\n`hash(x) == hash((x as Borrow<[u8]>).borrow()) == hash((x as Borrow<str>).borrow())`\n\nUnfortunately it doesn't hold as `hash(\"abc\") != hash(\"abc\".as_bytes())`.\nThis happens because the `Hash` impl for str passes an additional `0xFF` byte to\nthe hasher to avoid collisions. For example, given the tuples `(\"a\", \"bc\")`, and `(\"ab\", \"c\")`,\nthe two tuples would have the same hash value if the `0xFF` byte was not added.\n\n### Example\n\n```rust\nuse std::borrow::Borrow;\nuse std::hash::{Hash, Hasher};\n\nstruct ExampleType {\n    data: String\n}\n\nimpl Hash for ExampleType {\n    fn hash<H: Hasher>(&self, state: &mut H) {\n        self.data.hash(state);\n    }\n}\n\nimpl Borrow<str> for ExampleType {\n    fn borrow(&self) -> &str {\n        &self.data\n    }\n}\n\nimpl Borrow<[u8]> for ExampleType {\n    fn borrow(&self) -> &[u8] {\n        self.data.as_bytes()\n    }\n}\n```\nAs a consequence, hashing a `&ExampleType` and hashing the result of the two\nborrows will result in different values.\n",
+    "version": "1.76.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "impl_trait_in_params",
     "id_span": {
       "path": "src/functions/mod.rs",
