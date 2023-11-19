@@ -519,7 +519,7 @@ impl<'a, 'tcx> ConstEvalLateContext<'a, 'tcx> {
     fn fetch_path(&mut self, qpath: &QPath<'_>, id: HirId, ty: Ty<'tcx>) -> Option<Constant<'tcx>> {
         let res = self.typeck_results.qpath_res(qpath, id);
         match res {
-            Res::Def(DefKind::Const | DefKind::AssocConst, def_id) => {
+            Res::Def(def_kind @ (DefKind::Const | DefKind::AssocConst), def_id) => {
                 // Check if this constant is based on `cfg!(..)`,
                 // which is NOT constant for our purposes.
                 if let Some(node) = self.lcx.tcx.hir().get_if_local(def_id)
@@ -550,7 +550,25 @@ impl<'a, 'tcx> ConstEvalLateContext<'a, 'tcx> {
                     .ok()
                     .map(|val| rustc_middle::mir::Const::from_value(val, ty))?;
                 let result = mir_to_const(self.lcx, result)?;
-                self.source = ConstantSource::Constant;
+
+                if matches!(def_kind, DefKind::AssocConst)
+                    && let impl_id = self.lcx.tcx.parent(def_id)
+                    && matches!(
+                        self.lcx.tcx.opt_def_kind(impl_id),
+                        Some(DefKind::Impl { of_trait: false })
+                    )
+                    && matches!(
+                        self.lcx.tcx.type_of(impl_id).instantiate_identity().kind(),
+                        ty::Uint(UintTy::U8 | UintTy::U16 | UintTy::U32 | UintTy::U64 | UintTy::U128)
+                            | ty::Int(IntTy::I8 | IntTy::I16 | IntTy::I32 | IntTy::I64 | IntTy::I128)
+                            | ty::Char
+                            | ty::Float(_)
+                    )
+                {
+                    // The associated constants of these types will never change.
+                } else {
+                    self.source = ConstantSource::Constant;
+                }
                 Some(result)
             },
             _ => None,

@@ -189,6 +189,16 @@ pub fn first_node_in_macro(cx: &LateContext<'_>, node: &impl HirNode) -> Option<
     Some(parent_macro_call.expn)
 }
 
+pub fn expn_at_ctxt(span: Span, ctxt: SyntaxContext) -> Option<ExpnData> {
+    expn_backtrace(span).find_map(|(_, expn)| {
+        if expn.call_site.ctxt() == ctxt {
+            Some(expn)
+        } else {
+            None
+        }
+    })
+}
+
 /* Specific Macro Utils */
 
 /// Is `def_id` of `std::panic`, `core::panic` or any inner implementation macros
@@ -253,7 +263,18 @@ impl<'a> PanicExpn<'a> {
                 };
                 Self::Display(e)
             },
-            "panic_fmt" => Self::Format(arg),
+            "panic_fmt" => {
+                if let ExprKind::Call(callee, [arg]) = arg.kind
+                    && let ExprKind::Path(QPath::TypeRelative(_, path)) = callee.kind
+                    && path.ident.as_str() == "new_const"
+                    && let ExprKind::AddrOf(_, _, arg) = arg.kind
+                    && let ExprKind::Array([arg]) = arg.kind
+                {
+                    Self::Str(arg)
+                } else {
+                    Self::Format(arg)
+                }
+            },
             // Since Rust 1.52, `assert_{eq,ne}` macros expand to use:
             // `core::panicking::assert_failed(.., left_val, right_val, None | Some(format_args!(..)));`
             "assert_failed" => {
@@ -272,6 +293,23 @@ impl<'a> PanicExpn<'a> {
             _ => return None,
         };
         Some(result)
+    }
+
+    pub fn parse_at_ctxt(cx: &LateContext<'a>, e: &'a Expr<'_>, ctxt: SyntaxContext) -> Option<Self> {
+        if let Some(expn) = expn_at_ctxt(e.span, ctxt)
+            && let Some(did) = expn.macro_def_id
+            && is_panic(cx, did)
+        {
+            for_each_expr(e, |e| {
+                if let Some(x) = PanicExpn::parse(e) {
+                    ControlFlow::Break(x)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            })
+        } else {
+            None
+        }
     }
 }
 

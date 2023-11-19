@@ -185,6 +185,7 @@ mod main_recursion;
 mod manual_assert;
 mod manual_async_fn;
 mod manual_bits;
+mod manual_checked_op;
 mod manual_clamp;
 mod manual_float_methods;
 mod manual_hash_one;
@@ -1066,6 +1067,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(manual_hash_one::ManualHashOne::new(msrv())));
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
     store.register_late_pass(|_| Box::new(iter_over_hash_type::IterOverHashType));
+    store.register_late_pass(|_| Box::new(manual_checked_op::ManualCheckedOp));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
