@@ -1518,8 +1518,8 @@
   {
     "id": "doc_link_with_quotes",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 224
+      "path": "src/doc/mod.rs",
+      "line": 220
     },
     "group": "pedantic",
     "level": "allow",
@@ -1533,8 +1533,8 @@
   {
     "id": "doc_markdown",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 77
+      "path": "src/doc/mod.rs",
+      "line": 73
     },
     "group": "pedantic",
     "level": "allow",
@@ -1542,7 +1542,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
@@ -5133,8 +5133,8 @@
   {
     "id": "missing_errors_doc",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 141
+      "path": "src/doc/mod.rs",
+      "line": 137
     },
     "group": "pedantic",
     "level": "allow",
@@ -5178,8 +5178,8 @@
   {
     "id": "missing_panics_doc",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 172
+      "path": "src/doc/mod.rs",
+      "line": 168
     },
     "group": "pedantic",
     "level": "allow",
@@ -5193,8 +5193,8 @@
   {
     "id": "missing_safety_doc",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 112
+      "path": "src/doc/mod.rs",
+      "line": 108
     },
     "group": "style",
     "level": "warn",
@@ -5712,8 +5712,8 @@
   {
     "id": "needless_doctest_main",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 201
+      "path": "src/doc/mod.rs",
+      "line": 197
     },
     "group": "style",
     "level": "warn",
@@ -8553,8 +8553,8 @@
   {
     "id": "suspicious_doc_comments",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 307
+      "path": "src/doc/mod.rs",
+      "line": 303
     },
     "group": "suspicious",
     "level": "warn",
@@ -9558,8 +9558,8 @@
   {
     "id": "unnecessary_safety_doc",
     "id_span": {
-      "path": "src/doc.rs",
-      "line": 260
+      "path": "src/doc/mod.rs",
+      "line": 256
     },
     "group": "restriction",
     "level": "allow",
