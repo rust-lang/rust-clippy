@@ -7,11 +7,12 @@ use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
-    Block, Body, Expr, ExprKind, FnDecl, ItemKind, LangItem, MatchSource, OwnerNode, PatKind, QPath, Stmt, StmtKind,
+    Block, Body, Expr, ExprKind, FnDecl, FnRetTy, ItemKind, LangItem, MatchSource, OwnerNode, PatKind, QPath, Stmt,
+    StmtKind,
 };
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_middle::ty::{self, GenericArgKind, Ty};
+use rustc_middle::ty::{self, GenericArgKind};
 use rustc_session::{declare_lint_pass, declare_tool_lint};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{BytePos, Pos, Span};
@@ -234,7 +235,7 @@ impl<'tcx> LateLintPass<'tcx> for Return {
         &mut self,
         cx: &LateContext<'tcx>,
         kind: FnKind<'tcx>,
-        _: &'tcx FnDecl<'tcx>,
+        fn_decl: &'tcx FnDecl<'tcx>,
         body: &'tcx Body<'tcx>,
         sp: Span,
         _: LocalDefId,
@@ -242,6 +243,8 @@ impl<'tcx> LateLintPass<'tcx> for Return {
         if sp.from_expansion() {
             return;
         }
+
+        let fn_return_type = fn_decl.output;
 
         match kind {
             FnKind::Closure => {
@@ -252,24 +255,44 @@ impl<'tcx> LateLintPass<'tcx> for Return {
                 } else {
                     RetReplacement::Empty
                 };
-                check_final_expr(cx, body.value, vec![], replacement, None);
+                check_final_expr(cx, body.value, vec![], replacement, None, Some(fn_return_type));
             },
             FnKind::ItemFn(..) | FnKind::Method(..) => {
-                check_block_return(cx, &body.value.kind, sp, vec![]);
+                check_block_return(cx, &body.value.kind, sp, vec![], Some(fn_return_type));
             },
         }
     }
 }
 
 // if `expr` is a block, check if there are needless returns in it
-fn check_block_return<'tcx>(cx: &LateContext<'tcx>, expr_kind: &ExprKind<'tcx>, sp: Span, mut semi_spans: Vec<Span>) {
+fn check_block_return<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr_kind: &ExprKind<'tcx>,
+    sp: Span,
+    mut semi_spans: Vec<Span>,
+    parent_fn_return_type: Option<FnRetTy<'_>>,
+) {
     if let ExprKind::Block(block, _) = expr_kind {
         if let Some(block_expr) = block.expr {
-            check_final_expr(cx, block_expr, semi_spans, RetReplacement::Empty, None);
+            check_final_expr(
+                cx,
+                block_expr,
+                semi_spans,
+                RetReplacement::Empty,
+                None,
+                parent_fn_return_type,
+            );
         } else if let Some(stmt) = block.stmts.iter().last() {
             match stmt.kind {
                 StmtKind::Expr(expr) => {
-                    check_final_expr(cx, expr, semi_spans, RetReplacement::Empty, None);
+                    check_final_expr(
+                        cx,
+                        expr,
+                        semi_spans,
+                        RetReplacement::Empty,
+                        Some(stmt.kind),
+                        parent_fn_return_type,
+                    );
                 },
                 StmtKind::Semi(semi_expr) => {
                     // Remove ending semicolons and any whitespace ' ' in between.
@@ -279,7 +302,14 @@ fn check_block_return<'tcx>(cx: &LateContext<'tcx>, expr_kind: &ExprKind<'tcx>, 
                             span_find_starting_semi(cx.sess().source_map(), semi_span.with_hi(sp.hi()));
                         semi_spans.push(semi_span_to_remove);
                     }
-                    check_final_expr(cx, semi_expr, semi_spans, RetReplacement::Empty, None);
+                    check_final_expr(
+                        cx,
+                        semi_expr,
+                        semi_spans,
+                        RetReplacement::Empty,
+                        Some(stmt.kind),
+                        parent_fn_return_type,
+                    );
                 },
                 _ => (),
             }
@@ -293,7 +323,8 @@ fn check_final_expr<'tcx>(
     semi_spans: Vec<Span>, /* containing all the places where we would need to remove semicolons if finding an
                             * needless return */
     replacement: RetReplacement<'tcx>,
-    match_ty_opt: Option<Ty<'_>>,
+    parent_stmt_kind_opt: Option<StmtKind<'_>>,
+    parent_fn_return_type: Option<FnRetTy<'_>>,
 ) {
     let peeled_drop_expr = expr.peel_drop_temps();
     match &peeled_drop_expr.kind {
@@ -322,22 +353,7 @@ fn check_final_expr<'tcx>(
                     RetReplacement::Expr(snippet, applicability)
                 }
             } else {
-                match match_ty_opt {
-                    Some(match_ty) => {
-                        match match_ty.kind() {
-                            // If the code got till here with
-                            // tuple not getting detected before it,
-                            // then we are sure it's going to be Unit
-                            // type
-                            ty::Tuple(_) => RetReplacement::Unit,
-                            // We don't want to anything in this case
-                            // cause we can't predict what the user would
-                            // want here
-                            _ => return,
-                        }
-                    },
-                    None => replacement,
-                }
+                replacement
             };
 
             if !cx.tcx.hir().attrs(expr.hir_id).is_empty() {
@@ -351,23 +367,68 @@ fn check_final_expr<'tcx>(
             emit_return_lint(cx, ret_span, semi_spans, &replacement);
         },
         ExprKind::If(_, then, else_clause_opt) => {
-            check_block_return(cx, &then.kind, peeled_drop_expr.span, semi_spans.clone());
+            check_block_return(
+                cx,
+                &then.kind,
+                peeled_drop_expr.span,
+                semi_spans.clone(),
+                parent_fn_return_type,
+            );
             if let Some(else_clause) = else_clause_opt {
-                check_block_return(cx, &else_clause.kind, peeled_drop_expr.span, semi_spans);
+                check_block_return(
+                    cx,
+                    &else_clause.kind,
+                    peeled_drop_expr.span,
+                    semi_spans,
+                    parent_fn_return_type,
+                );
             }
         },
         // a match expr, check all arms
         // an if/if let expr, check both exprs
         // note, if without else is going to be a type checking error anyways
         // (except for unit type functions) so we don't match it
-        ExprKind::Match(_, arms, MatchSource::Normal) => {
-            let match_ty = cx.typeck_results().expr_ty(peeled_drop_expr);
-            for arm in *arms {
-                check_final_expr(cx, arm.body, semi_spans.clone(), RetReplacement::Unit, Some(match_ty));
+        ExprKind::Match(match_expr, arms, MatchSource::Normal) => {
+            // need some special checks for cases where we would try to convert
+            // match statement to match expression
+            let check_arms = if parent_stmt_kind_opt.is_some_and(|x| matches!(x, StmtKind::Semi(_))) {
+                let match_expr_ret_type = cx.typeck_results().expr_ty(match_expr);
+
+                // check if function return type is equal to match return type
+                // if yes then we want can convert this match stmt to match expr
+                // otherwise dont do it
+                match parent_fn_return_type {
+                    Some(FnRetTy::DefaultReturn(_)) if let ty::Tuple(tuple) = match_expr_ret_type.kind() =>
+                        tuple.len() == 0,
+                    Some(FnRetTy::Return(_ret_ty)) => matches!(match_expr_ret_type.kind(), _ret_ty),
+                    _ => false,
+                }
+            } else {
+                // we always want to check arms in case match is already an expression
+                true
+            };
+
+            if check_arms {
+                arms.iter().for_each(|arm| {
+                    check_final_expr(
+                        cx,
+                        arm.body,
+                        semi_spans.clone(),
+                        RetReplacement::Unit,
+                        None,
+                        parent_fn_return_type,
+                    );
+                });
             }
         },
         // if it's a whole block, check it
-        other_expr_kind => check_block_return(cx, other_expr_kind, peeled_drop_expr.span, semi_spans),
+        other_expr_kind => check_block_return(
+            cx,
+            other_expr_kind,
+            peeled_drop_expr.span,
+            semi_spans,
+            parent_fn_return_type,
+        ),
     }
 }
 

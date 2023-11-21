@@ -307,12 +307,29 @@ mod issue10049 {
     }
 }
 
-fn test_match_as_stmt() {
+fn issue10546() {
     let x = 9;
     match x {
         1 => 2,
         2 => return,
         _ => 0,
+    };
+}
+
+fn issue10390_same_arm_return_typs_diff_func_ret_typ(input: u8) {
+    match input {
+        3 => 4.1,
+        _ => 5.1,
+    };
+}
+
+fn issue10390_different_arm_return_types(input: u8) {
+    match input {
+        _ => {
+            // side effect ...
+            return;
+        },
+        3 => 4,
     };
 }
 
