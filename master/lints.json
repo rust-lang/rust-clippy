@@ -5183,7 +5183,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks the doc comments of publicly visible functions that\nmay panic and warns if there is no `# Panics` section.\n\n### Why is this bad?\nDocumenting the scenarios in which panicking occurs\ncan help callers who do not want to panic to avoid those situations.\n\n### Examples\nSince the following function may panic it has a `# Panics` section in\nits doc comment:\n\n```rust\n/// # Panics\n///\n/// Will panic if y is 0\npub fn divide_by(x: i32, y: i32) -> i32 {\n    if y == 0 {\n        panic!(\"Cannot divide by 0\")\n    } else {\n        x / y\n    }\n}\n```",
+    "docs": "\n### What it does\nChecks the doc comments of publicly visible functions that\nmay panic and warns if there is no `# Panics` section.\n\n### Why is this bad?\nDocumenting the scenarios in which panicking occurs\ncan help callers who do not want to panic to avoid those situations.\n\n### Examples\nSince the following function may panic it has a `# Panics` section in\nits doc comment:\n\n```rust\n/// # Panics\n///\n/// Will panic if y is 0\npub fn divide_by(x: i32, y: i32) -> i32 {\n    if y == 0 {\n        panic!(\"Cannot divide by 0\")\n    } else {\n        x / y\n    }\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `check-private-items`:  (default: `false`)",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -5198,7 +5198,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for the doc comments of publicly visible\nunsafe functions and warns if there is no `# Safety` section.\n\n### Why is this bad?\nUnsafe functions should document their safety\npreconditions, so that users can be sure they are using them safely.\n\n### Examples\n```rust\n/// This function should really be documented\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nAt least write a line about safety:\n\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```",
+    "docs": "\n### What it does\nChecks for the doc comments of publicly visible\nunsafe functions and warns if there is no `# Safety` section.\n\n### Why is this bad?\nUnsafe functions should document their safety\npreconditions, so that users can be sure they are using them safely.\n\n### Examples\n```rust\n/// This function should really be documented\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nAt least write a line about safety:\n\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub unsafe fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `check-private-items`:  (default: `false`)",
     "version": "1.39.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9563,7 +9563,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for the doc comments of publicly visible\nsafe functions and traits and warns if there is a `# Safety` section.\n\n### Why is this bad?\nSafe functions and traits are safe to implement and therefore do not\nneed to describe safety preconditions that users are required to uphold.\n\n### Examples\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub fn start_apocalypse_but_safely(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nThe function is safe, so there shouldn't be any preconditions\nthat have to be explained for safety reasons.\n\n```rust\n/// This function should really be documented\npub fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```",
+    "docs": "\n### What it does\nChecks for the doc comments of publicly visible\nsafe functions and traits and warns if there is a `# Safety` section.\n\n### Why is this bad?\nSafe functions and traits are safe to implement and therefore do not\nneed to describe safety preconditions that users are required to uphold.\n\n### Examples\n```rust\n/// # Safety\n///\n/// This function should not be called before the horsemen are ready.\npub fn start_apocalypse_but_safely(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\nThe function is safe, so there shouldn't be any preconditions\nthat have to be explained for safety reasons.\n\n```rust\n/// This function should really be documented\npub fn start_apocalypse(u: &mut Universe) {\n    unimplemented!();\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `check-private-items`:  (default: `false`)",
     "version": "1.67.0",
     "applicability": {
       "is_multi_part_suggestion": false,
