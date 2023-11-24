@@ -63,7 +63,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 339
+      "line": 340
     },
     "group": "restriction",
     "level": "allow",
@@ -372,7 +372,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 246
+      "line": 247
     },
     "group": "suspicious",
     "level": "warn",
@@ -1297,7 +1297,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 277
+      "line": 278
     },
     "group": "complexity",
     "level": "warn",
@@ -1312,11 +1312,11 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 135
+      "line": 136
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for `#[deprecated]` annotations with a `since`\nfield that is not a valid semantic version.\n\n### Why is this bad?\nFor checking the version of the deprecation, it must be\na valid semver. Failing that, the contained information is useless.\n\n### Example\n```rust\n#[deprecated(since = \"forever\")]\nfn something_else() { /* ... */ }\n```",
+    "docs": "\n### What it does\nChecks for `#[deprecated]` annotations with a `since`\nfield that is not a valid semantic version. Also allows \"TBD\" to signal\nfuture deprecation.\n\n### Why is this bad?\nFor checking the version of the deprecation, it must be\na valid semver. Failing that, the contained information is useless.\n\n### Example\n```rust\n#[deprecated(since = \"forever\")]\nfn something_else() { /* ... */ }\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1729,7 +1729,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 223
+      "line": 224
     },
     "group": "nursery",
     "level": "allow",
@@ -1744,7 +1744,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 177
+      "line": 178
     },
     "group": "nursery",
     "level": "allow",
@@ -4879,7 +4879,7 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 430
+      "line": 431
     },
     "group": "suspicious",
     "level": "warn",
@@ -4999,7 +4999,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 310
+      "line": 311
     },
     "group": "correctness",
     "level": "deny",
@@ -6232,7 +6232,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 398
+      "line": 399
     },
     "group": "style",
     "level": "warn",
@@ -8011,7 +8011,7 @@
     "id": "should_panic_without_expect",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 374
+      "line": 375
     },
     "group": "pedantic",
     "level": "allow",
