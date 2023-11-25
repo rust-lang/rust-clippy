@@ -67,7 +67,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.76.0"]
     pub NEEDLESS_MOVE,
-    pedantic,
+    restriction,
     "checks for needless `move`s on closures / `async` blocks"
 }
 
