@@ -173,7 +173,9 @@ macro_rules! define_Conf {
                             }
                         })*
                         // ignore contents of the third_party key
-                        Ok(Field::third_party) => drop(map.next_value::<IgnoredAny>())
+                        Ok(Field::third_party) => {
+                            let _ = map.next_value::<IgnoredAny>();
+                        }
                     }
                 }
                 let conf = Conf { $($name: $name.unwrap_or_else(defaults::$name),)* };

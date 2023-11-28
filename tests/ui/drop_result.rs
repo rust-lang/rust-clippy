@@ -1,4 +1,4 @@
-#[warn(clippy::drop_result)]
+#![warn(clippy::drop_result)]
 
 fn make_result<T>(t: T) -> Result<T, ()> {
     Ok(t)

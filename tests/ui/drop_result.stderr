@@ -1,5 +1,5 @@
 error: using `drop()` on a `Result` type
-  --> $DIR/drop_result.rs:6:5
+  --> $DIR/drop_result.rs:8:5
    |
 LL |     drop(Ok::<String, ()>("a".to_string()));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -8,13 +8,13 @@ LL |     drop(Ok::<String, ()>("a".to_string()));
    = help: to override `-D warnings` add `#[allow(clippy::drop_result)]`
 
 error: using `drop()` on a `Result` type
-  --> $DIR/drop_result.rs:8:5
+  --> $DIR/drop_result.rs:10:5
    |
 LL |     drop(x);
    |     ^^^^^^^
 
 error: using `drop()` on a `Result` type
-  --> $DIR/drop_result.rs:9:5
+  --> $DIR/drop_result.rs:11:5
    |
 LL |     drop(make_result("a".to_string()));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

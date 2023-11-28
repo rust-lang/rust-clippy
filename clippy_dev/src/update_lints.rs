@@ -999,7 +999,7 @@ fn try_rename_file(old_name: &Path, new_name: &Path) -> bool {
     match fs::rename(old_name, new_name) {
         Ok(()) => true,
         Err(e) => {
-            drop(fs::remove_file(new_name));
+            let _ = fs::remove_file(new_name);
             if e.kind() == io::ErrorKind::NotFound {
                 false
             } else {
