@@ -1,4 +1,5 @@
 #![warn(clippy::drop_non_drop)]
+#![allow(clippy::drop_result)]
 
 use core::mem::drop;
 

@@ -1,0 +1,23 @@
+error: using `drop()` on a `Result` type
+  --> $DIR/drop_result.rs:6:5
+   |
+LL |     drop(Ok::<String, ()>("a".to_string()));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::drop-result` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::drop_result)]`
+
+error: using `drop()` on a `Result` type
+  --> $DIR/drop_result.rs:8:5
+   |
+LL |     drop(x);
+   |     ^^^^^^^
+
+error: using `drop()` on a `Result` type
+  --> $DIR/drop_result.rs:9:5
+   |
+LL |     drop(make_result("a".to_string()));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 3 previous errors
+
