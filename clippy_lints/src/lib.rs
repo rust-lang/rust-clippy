@@ -108,6 +108,7 @@ mod disallowed_types;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
+mod drop_result;
 mod duplicate_mod;
 mod else_if_without_else;
 mod empty_drop;
@@ -1069,6 +1070,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
     store.register_late_pass(|_| Box::new(iter_over_hash_type::IterOverHashType));
     store.register_late_pass(|_| Box::new(impl_hash_with_borrow_str_and_bytes::ImplHashWithBorrowStrBytes));
+    store.register_late_pass(|_| Box::new(drop_result::DropResult));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
