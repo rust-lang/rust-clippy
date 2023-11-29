@@ -42,7 +42,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
 use rustc_middle::ty::UpvarCapture;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -55,24 +55,25 @@ declare_clippy_lint! {
     /// the programmer adds the `move` keyword to move the variables into the closure, but
     /// then later decides that he no longer needs the variables in question, so he removes them
     /// from the body of the closure, but forgets to also remove the `move` keyword.
-    /// 
+    ///
     /// This is really just a strict coding style issue.
-    /// 
+    ///
     /// ### Caveats
     /// There are some cases where this lint will suggest removing the `move` keyword,
     /// but it would be considered idiomatic to keep it.
-    /// 
+    ///
     /// For example, the closure passed to `std::thread::spawn` is usually always written
     /// with the `move` keyword, even if it's not necessary:
-    /// 
+    ///
     /// ```no_run
+    /// # fn function_that_does_something_with(_: String) {}
     /// let a = String::new();
     /// std::thread::spawn(move || {
     ///    // ...
     ///   function_that_does_something_with(a); // a is moved into the closure
     /// });
     /// ```
-    /// 
+    ///
     /// ### Example
     /// ```no_run
     /// let a = String::new();
@@ -139,9 +140,7 @@ impl NeedlessMove {
         }
 
         let note_msg = match lint_result {
-            LintResult::NothingCaptured => {
-                "there were no captured variables, so the `move` is unnecessary"
-            },
+            LintResult::NothingCaptured => "there were no captured variables, so the `move` is unnecessary",
             LintResult::Consumed => {
                 "there were consumed variables, but no borrowed variables, so the `move` is unnecessary"
             },
