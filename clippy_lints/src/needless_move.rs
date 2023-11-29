@@ -50,7 +50,29 @@ declare_clippy_lint! {
     /// E.g. all the values are captured by value into the closure / `async` block.
     ///
     /// ### Why is this bad?
-    /// Pedantry
+    /// This pattern is not necessarily bad, but sometimes the `move` keyword is unnecessary,
+    /// for example when there's a closure which captures some variables by reference, so
+    /// the programmer adds the `move` keyword to move the variables into the closure, but
+    /// then later decides that he no longer needs the variables in question, so he removes them
+    /// from the body of the closure, but forgets to also remove the `move` keyword.
+    /// 
+    /// This is really just a strict coding style issue.
+    /// 
+    /// ### Caveats
+    /// There are some cases where this lint will suggest removing the `move` keyword,
+    /// but it would be considered idiomatic to keep it.
+    /// 
+    /// For example, the closure passed to `std::thread::spawn` is usually always written
+    /// with the `move` keyword, even if it's not necessary:
+    /// 
+    /// ```no_run
+    /// let a = String::new();
+    /// std::thread::spawn(move || {
+    ///    // ...
+    ///   function_that_does_something_with(a); // a is moved into the closure
+    /// });
+    /// ```
+    /// 
     /// ### Example
     /// ```no_run
     /// let a = String::new();
@@ -116,31 +138,30 @@ impl NeedlessMove {
             }
         }
 
-        let lint = |note_msg: &'static str| {
-            span_lint_and_then(
-                cx,
-                NEEDLESS_MOVE,
-                expr.span,
-                "you seem to use `move`, but the `move` is unnecessary",
-                |diag| {
-                    diag.suggest_remove_item(cx, move_kw, "remove the `move`", Applicability::MachineApplicable);
-                    diag.note(note_msg);
-                },
-            );
-        };
-
-        match lint_result {
+        let note_msg = match lint_result {
             LintResult::NothingCaptured => {
-                lint("there were no captured variables, so the `move` is unnecessary");
+                "there were no captured variables, so the `move` is unnecessary"
             },
             LintResult::Consumed => {
-                lint("there were consumed variables, but no borrowed variables, so the `move` is unnecessary");
+                "there were consumed variables, but no borrowed variables, so the `move` is unnecessary"
             },
             LintResult::NeedMove => {
                 // there was a value which would be borrowed if it weren't for the move keyword,
                 // so we should keep it, as removing it would change semantics.
+                return;
             },
-        }
+        };
+
+        span_lint_and_then(
+            cx,
+            NEEDLESS_MOVE,
+            expr.span,
+            "you seem to use `move`, but the `move` is unnecessary",
+            |diag| {
+                diag.suggest_remove_item(cx, move_kw, "remove the `move`", Applicability::MachineApplicable);
+                diag.note(note_msg);
+            },
+        );
     }
 }
 
@@ -150,11 +171,9 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessMove {
             return;
         }
 
-        let ExprKind::Closure(closure) = &expr.kind else {
-            return;
-        };
-
-        Self::check_closure(cx, expr, closure);
+        if let ExprKind::Closure(closure) = &expr.kind {
+            Self::check_closure(cx, expr, closure);
+        }
     }
 }
 
@@ -175,18 +194,6 @@ struct MovedVariablesCtxt<'tcx> {
 }
 
 impl<'tcx> MovedVariablesCtxt<'tcx> {
-    fn move_common(&mut self, cmt: &euv::PlaceWithHirId<'tcx>, hir_id: HirId) {
-        if let euv::PlaceBase::Upvar(_) = cmt.place.base {
-            self.moved.push((cmt.place.clone(), hir_id));
-        }
-    }
-
-    fn borrow_common(&mut self, cmt: &euv::PlaceWithHirId<'tcx>, borrow_hir_id: HirId, bk: ty::BorrowKind) {
-        if let euv::PlaceBase::Upvar(_) = cmt.place.base {
-            self.captured.push((cmt.place.clone(), borrow_hir_id, bk));
-        }
-    }
-
     fn get_required_kind(&self, place: &euv::Place<'tcx>, ref_hir_id: HirId) -> UpvarCapture {
         if self
             .moved
@@ -207,11 +214,15 @@ impl<'tcx> MovedVariablesCtxt<'tcx> {
 
 impl<'tcx> euv::Delegate<'tcx> for MovedVariablesCtxt<'tcx> {
     fn consume(&mut self, cmt: &euv::PlaceWithHirId<'tcx>, hir_id: HirId) {
-        self.move_common(cmt, hir_id);
+        if let euv::PlaceBase::Upvar(_) = cmt.place.base {
+            self.moved.push((cmt.place.clone(), hir_id));
+        }
     }
 
     fn borrow(&mut self, cmt: &euv::PlaceWithHirId<'tcx>, hir_id: HirId, bk: ty::BorrowKind) {
-        self.borrow_common(cmt, hir_id, bk);
+        if let euv::PlaceBase::Upvar(_) = cmt.place.base {
+            self.captured.push((cmt.place.clone(), hir_id, bk));
+        }
     }
 
     fn mutate(&mut self, cmt: &euv::PlaceWithHirId<'tcx>, hir_id: HirId) {
