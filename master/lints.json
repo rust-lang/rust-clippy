@@ -1519,7 +1519,7 @@
     "id": "doc_link_with_quotes",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 220
+      "line": 253
     },
     "group": "pedantic",
     "level": "allow",
@@ -8569,7 +8569,7 @@
     "id": "suspicious_doc_comments",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 303
+      "line": 336
     },
     "group": "suspicious",
     "level": "warn",
@@ -8740,6 +8740,21 @@
     "level": "warn",
     "docs": "\n### What it does\nChecks for construction of a structure or tuple just to\nassign a value in it.\n\n### Why is this bad?\nReadability. If the structure is only created to be\nupdated, why not write the structure you want in the first place?\n\n### Example\n```rust\n(0, 0).0 = 1\n```",
     "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "test_attr_in_doctest",
+    "id_span": {
+      "path": "src/doc/mod.rs",
+      "line": 230
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `#[test]` in doctests unless they are marked with\neither `ignore`, `no_run` or `compile_fail`.\n\n### Why is this bad?\nCode in examples marked as `#[test]` will somewhat\nsurprisingly not be run by `cargo test`. If you really want\nto show how to test stuff in an example, mark it `no_run` to\nmake the intent clear.\n\n### Examples\n```rust\n/// An example of a doctest with a `main()` function\n///\n/// # Examples\n///\n/// ```\n/// #[test]\n/// fn equality_works() {\n///     assert_eq!(1_u8, 1);\n/// }\n/// ```\nfn test_attr_in_doctest() {\n    unimplemented!();\n}\n```",
+    "version": "1.40.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -9574,7 +9589,7 @@
     "id": "unnecessary_safety_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 256
+      "line": 289
     },
     "group": "restriction",
     "level": "allow",
