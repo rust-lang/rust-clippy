@@ -193,6 +193,7 @@ mod manual_is_ascii_check;
 mod manual_let_else;
 mod manual_main_separator_str;
 mod manual_non_exhaustive;
+mod manual_option_folding;
 mod manual_range_patterns;
 mod manual_rem_euclid;
 mod manual_retain;
@@ -1069,6 +1070,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
     store.register_late_pass(|_| Box::new(iter_over_hash_type::IterOverHashType));
     store.register_late_pass(|_| Box::new(impl_hash_with_borrow_str_and_bytes::ImplHashWithBorrowStrBytes));
+    store.register_late_pass(|_| Box::new(manual_option_folding::ManualOptionFolding::new()));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

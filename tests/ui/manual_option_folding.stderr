@@ -1,0 +1,69 @@
+error: `unwrap_unchecked` used after `get_or_insert_with`
+  --> $DIR/manual_option_folding.rs:14:30
+   |
+LL |     let _res: i32 = unsafe { opt.unwrap_unchecked() };
+   |                              ^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: `get_or_insert_with` used here
+  --> $DIR/manual_option_folding.rs:13:5
+   |
+LL |     opt.get_or_insert_with(|| 21);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: try using `unwrap_or_else` instead
+   = note: `-D clippy::manual-option-folding` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_option_folding)]`
+
+error: `unwrap` used after `get_or_insert_with`
+  --> $DIR/manual_option_folding.rs:18:21
+   |
+LL |     let _res: i32 = opt.unwrap();
+   |                     ^^^^^^^^^^^^
+   |
+note: `get_or_insert_with` used here
+  --> $DIR/manual_option_folding.rs:17:5
+   |
+LL |     opt.get_or_insert_with(|| 21);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: try using `unwrap_or_else` instead
+
+error: `expect` used after `get_or_insert_with`
+  --> $DIR/manual_option_folding.rs:22:21
+   |
+LL |     let _res: i32 = opt.expect("msg");
+   |                     ^^^^^^^^^^^^^^^^^
+   |
+note: `get_or_insert_with` used here
+  --> $DIR/manual_option_folding.rs:21:5
+   |
+LL |     opt.get_or_insert_with(|| 21);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: try using `unwrap_or_else` instead
+
+error: `unwrap` used after `get_or_insert`
+  --> $DIR/manual_option_folding.rs:26:21
+   |
+LL |     let _res: i32 = opt.unwrap();
+   |                     ^^^^^^^^^^^^
+   |
+note: `get_or_insert` used here
+  --> $DIR/manual_option_folding.rs:25:5
+   |
+LL |     opt.get_or_insert(21);
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   = help: try using `unwrap_or` instead
+
+error: `unwrap` used after `get_or_insert_default`
+  --> $DIR/manual_option_folding.rs:30:21
+   |
+LL |     let _res: i32 = opt.unwrap();
+   |                     ^^^^^^^^^^^^
+   |
+note: `get_or_insert_default` used here
+  --> $DIR/manual_option_folding.rs:29:5
+   |
+LL |     opt.get_or_insert_default();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: try using `unwrap_or_default` instead
+
+error: aborting due to 5 previous errors
+
