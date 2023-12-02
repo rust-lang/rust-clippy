@@ -3,7 +3,7 @@ use clippy_utils::get_attr;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet, StdEntry};
 use rustc_hir::{def, def_id, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol};
 
 // Future improvements:
