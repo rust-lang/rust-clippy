@@ -11,9 +11,10 @@
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
 #![warn(rust_2018_idioms, unused_lifetimes)]
 
-use std::env;
 use std::ffi::OsStr;
+use std::path::PathBuf;
 use std::process::Command;
+use std::{env, fs};
 
 #[cfg(not(windows))]
 const CARGO_CLIPPY: &str = "cargo-clippy";
@@ -23,6 +24,11 @@ const CARGO_CLIPPY: &str = "cargo-clippy.exe";
 #[cfg_attr(feature = "integration", test)]
 fn integration_test() {
     let repo_name = env::var("INTEGRATION").expect("`INTEGRATION` var not set");
+
+    if repo_name == "rust-lang/rust" {
+        return;
+    }
+
     let repo_url = format!("https://github.com/{repo_name}");
     let crate_name = repo_name
         .split('/')
@@ -88,6 +94,169 @@ fn integration_test() {
 
         panic!("panic caused by delay_span_bug was NOT detected! Something is broken!");
     }
+
+    if let Some(backtrace_start) = stderr.find("error: internal compiler error") {
+        static BACKTRACE_END_MSG: &str = "end of query stack";
+        let backtrace_end = stderr[backtrace_start..]
+            .find(BACKTRACE_END_MSG)
+            .expect("end of backtrace not found");
+
+        panic!(
+            "internal compiler error\nBacktrace:\n\n{}",
+            &stderr[backtrace_start..backtrace_start + backtrace_end + BACKTRACE_END_MSG.len()]
+        );
+    } else if stderr.contains("query stack during panic") {
+        panic!("query stack during panic in the output");
+    } else if stderr.contains("E0463") {
+        // Encountering E0463 (can't find crate for `x`) did _not_ cause the build to fail in the
+        // past. Even though it should have. That's why we explicitly panic here.
+        // See PR #3552 and issue #3523 for more background.
+        panic!("error: E0463");
+    } else if stderr.contains("E0514") {
+        panic!("incompatible crate versions");
+    } else if stderr.contains("failed to run `rustc` to learn about target-specific information") {
+        panic!("couldn't find librustc_driver, consider setting `LD_LIBRARY_PATH`");
+    } else {
+        assert!(
+            !stderr.contains("toolchain") || !stderr.contains("is not installed"),
+            "missing required toolchain"
+        );
+    }
+
+    match output.status.code() {
+        Some(0) => println!("Compilation successful"),
+        Some(code) => eprintln!("Compilation failed. Exit code: {code}"),
+        None => panic!("Process terminated by signal"),
+    }
+}
+
+#[allow(clippy::too_many_lines)]
+#[cfg_attr(feature = "integration", test)]
+fn integration_test_rustc() {
+    let repo_name = env::var("INTEGRATION").expect("`INTEGRATION` var not set");
+
+    // try to avoid running this test locally
+    if !(repo_name == "rust-lang/rust" && env::var("GITHUB_ACTIONS") == Ok(String::from("true"))) {
+        return;
+    }
+
+    println!("getting rustc version");
+    // clippy is pinned to a specific nightly version
+    // check out the commit of that nightly to ensure compatibility
+    let rustc_output = Command::new("rustc")
+        .arg("--version")
+        .arg("--verbose")
+        .output()
+        .expect("failed to run rustc --version");
+
+    let rustc_output_string = String::from_utf8_lossy(&rustc_output.stdout);
+    let commit_line = rustc_output_string
+        .lines()
+        .find(|line| line.starts_with("commit-hash: "))
+        .expect("did not find 'commit-hash: ' in --version output");
+
+    let commit = commit_line
+        .strip_prefix("commit-hash: ")
+        .expect("failed parsing commit line");
+
+    let repo_url = format!("https://github.com/{repo_name}");
+    let crate_name = repo_name
+        .split('/')
+        .nth(1)
+        .expect("repo name should have format `<org>/<name>`");
+
+    let mut repo_dir = tempfile::tempdir().expect("couldn't create temp dir").into_path();
+    repo_dir.push(crate_name);
+
+    println!("cloning git repo");
+    let st_git_cl = Command::new("git")
+        .args([
+            OsStr::new("clone"),
+            // we can't use depth=x because we don't know how far away the master branc tip is from our nightly commit
+            // that we need.
+            // however, we can still gain a lot by using --filter=tree:0 which is still ~10x faster than a full clone
+
+            // https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
+            OsStr::new("--filter=tree:0"),
+            OsStr::new(&repo_url),
+            OsStr::new(&repo_dir),
+        ])
+        .status()
+        .expect("unable to run git clone");
+    assert!(st_git_cl.success());
+
+    // check out the commit in the rustc repo to ensure clippy is compatible with std/core and the
+    // compiler internals
+
+    println!("checking out commit '{commit}' in rustc repo");
+    let st_git_checkout = Command::new("git")
+        .current_dir(&repo_dir)
+        .arg("checkout")
+        .arg(commit)
+        .status()
+        .expect("git failed to check out commit '{commit}' in rustc repo");
+    assert!(st_git_checkout.success());
+
+    let root_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let target_dir = std::path::Path::new(&root_dir).join("target");
+    // the clippy binary is in there
+    let clippy_exec_dir = target_dir.join(env!("PROFILE"));
+
+    // we want that `x.py clippy` picks up our self-built clippy for testing!
+    // copy the clippy we built earlier into the toolchain directory of the nightly
+    // that clippy is pinned, so that x.py can pick it up and use it
+
+    // copy our own clippy binary into the rustc toolchain dir so that x.py finds them:
+    // get the sysroot path from nightly and put our binaries into ${sysroot}/bin/
+    let sysroot_output = Command::new("rustc")
+        .arg("--print")
+        .arg("sysroot")
+        .output()
+        .expect("rustc failed to print sysroot");
+    // trim away the "\n" at the end because we don't want this in our Path :D
+    let untrimmed = String::from_utf8_lossy(&sysroot_output.stdout).to_string();
+    let sysroot_trimmed = untrimmed.trim();
+    let mut sysroot = sysroot_trimmed.to_string();
+    sysroot.push('/');
+    let sysroot_path = PathBuf::from(sysroot);
+
+    assert!(
+        sysroot_path.exists(),
+        "{}",
+        format!("sysroot path '{}' not found!", sysroot_path.display())
+    );
+
+    let sysroot_bin_dir = sysroot_path.join("bin");
+    eprintln!("clippy binaries will be put int {}", sysroot_bin_dir.display());
+
+    // copy files from target dir into our $sysroot/bin
+    std::fs::read_dir(clippy_exec_dir)
+        .expect("failed to read clippys target/ dir that we downloaded from previous ci step")
+        .map(|entry| entry.expect("DirEntry not ok"))
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file())
+        .for_each(|clippy_binary| {
+            let new_base: PathBuf = sysroot_bin_dir.join("willbeoverwritten"); // file_name() will overwrite this
+            // set the path from /foo/dir/willbeoverwritten to /foo/dir/cargo-clippy
+            let bin_file_name: &std::ffi::OsStr = clippy_binary.file_name().unwrap();
+            let new_path: PathBuf = new_base.with_file_name(bin_file_name);
+
+            fs::copy(dbg!(clippy_binary), dbg!(new_path))
+                .expect("could not copy file from '{clippy_binary}' to '{new_path}'");
+        });
+
+    // some notes: x.py will set --cap-lints warn by default
+    let output = Command::new("python")
+        .arg("./x.py")
+        .current_dir(&repo_dir)
+        .env("RUST_BACKTRACE", "full")
+        .args(["clippy", "-Wclippy::pedantic" /* "-Wclippy::cargo" */])
+        .output()
+        .expect("unable to run x.py clippy");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    eprintln!("{stderr}");
 
     if let Some(backtrace_start) = stderr.find("error: internal compiler error") {
         static BACKTRACE_END_MSG: &str = "end of query stack";
