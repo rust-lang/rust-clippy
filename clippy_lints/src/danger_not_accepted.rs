@@ -1,11 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::get_attr;
-use rustc_ast::{ast, token, tokenstream};
 use rustc_data_structures::fx::{FxHashMap, FxHashSet, StdEntry};
 use rustc_hir::{def, def_id, Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::{declare_tool_lint, impl_lint_pass};
-use rustc_span::{sym, Span, Symbol};
+use rustc_span::{Span, Symbol};
 
 // Future improvements:
 //
@@ -122,35 +121,42 @@ impl LateLintPass<'_> for DangerNotAccepted {
 
     fn enter_lint_attrs(&mut self, cx: &LateContext<'_>, attrs: &'_ [rustc_ast::Attribute]) {
         // Both `accept_danger` and `dangerous` contribute to the accepted danger map.
-        for attr_name in ["accept_danger", "dangerous"] {
-            for attr in get_attr(cx.sess(), attrs, attr_name) {
-                // We don't really care about why a user might have accepted a danger or marked a
-                // section as dangerous.
-                let (dangers, _ignored_reason) = parse_dangers_attr(cx, attr);
+        let mut inc = |id| *self.accepted_dangers.entry(id).or_default() += 1;
 
-                for (_span, danger) in dangers {
-                    *self.accepted_dangers.entry(danger).or_default() += 1;
-                }
+        for attr in get_attr(cx.sess(), attrs, "accept_danger") {
+            for (_span, danger) in parsing::parse_single_reason_danger_list_attr(cx, attr).0 {
+                inc(danger);
+            }
+        }
+
+        for attr in get_attr(cx.sess(), attrs, "dangerous") {
+            for (_span, danger, _ignored_reason) in parsing::parse_individually_reasoned_danger_list_attr(cx, attr) {
+                inc(danger);
             }
         }
     }
 
     fn exit_lint_attrs(&mut self, cx: &LateContext<'_>, attrs: &'_ [rustc_ast::Attribute]) {
         // Both `accept_danger` and `dangerous` contribute to the accepted danger map.
-        for attr_name in ["accept_danger", "dangerous"] {
-            for attr in get_attr(cx.sess(), attrs, attr_name) {
-                let (dangers, _ignored_reason) = parse_dangers_attr(cx, attr);
-                for (_span, danger) in dangers {
-                    match self.accepted_dangers.entry(danger) {
-                        StdEntry::Occupied(mut entry) => {
-                            *entry.get_mut() -= 1;
-                            if *entry.get() == 0 {
-                                entry.remove();
-                            }
-                        },
-                        StdEntry::Vacant(_) => unreachable!(),
-                    }
+        let mut dec = |id| match self.accepted_dangers.entry(id) {
+            StdEntry::Occupied(mut entry) => {
+                *entry.get_mut() -= 1;
+                if *entry.get() == 0 {
+                    entry.remove();
                 }
+            },
+            StdEntry::Vacant(_) => unreachable!(),
+        };
+
+        for attr in get_attr(cx.sess(), attrs, "accept_danger") {
+            for (_span, danger) in parsing::parse_single_reason_danger_list_attr(cx, attr).0 {
+                dec(danger);
+            }
+        }
+
+        for attr in get_attr(cx.sess(), attrs, "dangerous") {
+            for (_span, danger, _ignored_reason) in parsing::parse_individually_reasoned_danger_list_attr(cx, attr) {
+                dec(danger);
             }
         }
     }
@@ -159,7 +165,7 @@ impl LateLintPass<'_> for DangerNotAccepted {
 struct UnacceptedDanger {
     span: Span,
     id: Symbol,
-    reason: Option<token::Lit>,
+    reason: Symbol,
 }
 
 impl DangerNotAccepted {
@@ -177,8 +183,9 @@ impl DangerNotAccepted {
             }
 
             for attr in get_attr(cx.sess(), cx.tcx.get_attrs_unchecked(item_id), "dangerous") {
-                let (dangers, danger_reason) = parse_dangers_attr(cx, attr);
-                for (danger_span, danger_id) in dangers {
+                for (danger_span, danger_id, danger_reason) in
+                    parsing::parse_individually_reasoned_danger_list_attr(cx, attr)
+                {
                     if self.accepted_dangers.contains_key(&danger_id) {
                         continue;
                     }
@@ -194,144 +201,6 @@ impl DangerNotAccepted {
 
         (!unaccepted_dangers.is_empty()).then_some(unaccepted_dangers)
     }
-}
-
-fn parse_dangers_attr(cx: &LateContext<'_>, attr: &ast::Attribute) -> (Vec<(Span, Symbol)>, Option<token::Lit>) {
-    const EXPECTATION: &str = "expected a delimited attribute with a list of danger identifiers";
-    const NOTHING_AFTER_ERR: &str = "nothing should come after the reason attribute besides an optional comma";
-
-    let span = attr.span;
-
-    // Expect a normal non doc-comment attribute.
-    let rustc_ast::AttrKind::Normal(attr) = &attr.kind else {
-        cx.sess().span_err(span, EXPECTATION);
-        return (Vec::new(), None);
-    };
-
-    // Expect it to be a delimited attribute of the form #[attr(...)] and not #[attr {...}]
-    let ast::AttrArgs::Delimited(attr) = &attr.item.args else {
-        cx.sess().span_err(span, EXPECTATION);
-        return (Vec::new(), None);
-    };
-
-    if attr.delim != token::Delimiter::Parenthesis {
-        cx.sess().span_err(span, EXPECTATION);
-        return (Vec::new(), None);
-    }
-
-    // Parse the attribute arguments
-    let mut stream = attr.tokens.trees();
-    let mut dangers = Vec::new();
-    let mut specified_reason = None;
-
-    loop {
-        // Expect an identifier
-        let sym = match stream.next() {
-            Some(tokenstream::TokenTree::Token(sym, _)) if let Some((sym, _)) = sym.ident() => sym,
-            // An EOS is also valid here.
-            None => break,
-
-            // Otherwise, raise an error.
-            Some(tokenstream::TokenTree::Token(sym, _)) => {
-                cx.sess().span_err(sym.span, format!("{EXPECTATION}; this was not an identifier"));
-
-                return (Vec::new(), None);
-            },
-            _ => {
-                cx.sess().span_err(span, EXPECTATION);
-                return (Vec::new(), None);
-            },
-        };
-
-        // If the identifier is not "reason", add it as a danger
-        #[allow(clippy::if_not_else, reason = "it is clearer to put the common path first")]
-        if sym.name != sym::reason {
-            // Push it to the danger list
-            dangers.push((sym.span, sym.name));
-
-            // If we find a comma, continue. If we find an EOS for the inner stream, break.
-            match stream.next() {
-                // If we find an equality sign, continue.
-                Some(tokenstream::TokenTree::Token(sym, _)) if sym.kind == token::TokenKind::Comma => {
-                    continue;
-                },
-                None => break,
-                // Otherwise, raise an error.
-                Some(tokenstream::TokenTree::Token(sym, _)) => {
-                    cx.sess()
-                        .span_err(sym.span, format!("{EXPECTATION}; this was not a comma delimiter"));
-                },
-                _ => {
-                    cx.sess().span_err(span, EXPECTATION);
-                    return (Vec::new(), None);
-                },
-            }
-        } else {
-            // If the identifier was "reason", expect an equality sign.
-            let eq_tok = match stream.next() {
-                // If we find a comma, continue.
-                Some(tokenstream::TokenTree::Token(tok, _)) if tok.kind == token::TokenKind::Eq => tok,
-                // Otherwise, raise an error.
-                Some(tokenstream::TokenTree::Token(tok, _)) => {
-                    cx.sess().span_err(tok.span, "expected = after a reason attribute");
-                    return (Vec::new(), None);
-                },
-                _ => {
-                    cx.sess().span_err(sym.span, "expected = after a reason attribute");
-                    return (Vec::new(), None);
-                },
-            };
-
-            // ...then, expect a string literal.
-            let (reason_tok, reason_lit) = match stream.next() {
-                // If we find a string literal, continue.
-                Some(tokenstream::TokenTree::Token(tok, _))
-                if
-                    let token::TokenKind::Literal(lit) = tok.kind &&
-                    // We don't admit byte string literals because they wouldn't be `&str`s in regular
-                    // scenarios so why treat them as strings here?
-                    let token::LitKind::Str | token::LitKind::StrRaw(_) |
-                        token::LitKind::CStr | token::LitKind::CStrRaw(_) = lit.kind
-                => (tok, lit),
-                // Otherwise, raise an error.
-                Some(tokenstream::TokenTree::Token(tok, _)) => {
-                    cx.sess().span_err(tok.span, "expected a string literal after a reason attribute");
-                    return (Vec::new(), None);
-                },
-                _ => {
-                    cx.sess().span_err(eq_tok.span, "expected a string literal after a reason attribute");
-                    return (Vec::new(), None);
-                },
-            };
-
-            specified_reason = Some(reason_lit);
-
-            // Finally, because the reason must be specified as the last attribute, expect either an
-            // optional comma or an EOS and break.
-            match stream.next() {
-                Some(tokenstream::TokenTree::Token(tok, _)) if tok.kind == token::TokenKind::Comma => {
-                    // The token after the comma must be an EOS
-                    if stream.next().is_some() {
-                        cx.sess().span_err(tok.span, NOTHING_AFTER_ERR);
-                    }
-                },
-                None => {},
-                // Otherwise, raise an error.
-                Some(tokenstream::TokenTree::Token(tok, _)) => {
-                    cx.sess().span_err(tok.span, NOTHING_AFTER_ERR);
-                    return (Vec::new(), None);
-                },
-                _ => {
-                    cx.sess().span_err(reason_tok.span, NOTHING_AFTER_ERR);
-                    return (Vec::new(), None);
-                },
-            }
-
-            break;
-        }
-    }
-
-    (dangers, specified_reason)
 }
 
 fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted_dangers: &[UnacceptedDanger]) {
@@ -357,19 +226,563 @@ fn emit_dangerous_call_lint(cx: &LateContext<'_>, expr: &'_ Expr<'_>, unaccepted
         ),
         |diag| {
             for danger in unaccepted_dangers {
-                if let Some(reason) = danger.reason {
-                    diag.span_note(
-                        danger.span,
-                        format!(
-                            "danger `{}` declared here with the justification `{}`",
-                            danger.id,
-                            reason.symbol.as_str(),
-                        ),
-                    );
-                } else {
-                    diag.span_note(danger.span, format!("danger `{}` declared here", danger.id));
-                }
+                diag.span_note(
+                    danger.span,
+                    format!(
+                        "danger `{}` declared here with the justification `{}`",
+                        danger.id,
+                        danger.reason.as_str(),
+                    ),
+                );
             }
         },
     );
+}
+
+// === Parsing === //
+
+// I had a feeling this is going to change a lot so I built some actual parser infrastructure...
+mod parsing {
+    use rustc_ast::ast::Attribute;
+    use rustc_ast::token::{Delimiter, Lit, LitKind, Token, TokenKind};
+    use rustc_ast::tokenstream::{DelimSpan, RefTokenTreeCursor, TokenStream, TokenTree};
+    use rustc_ast::{AttrArgs, AttrKind};
+    use rustc_data_structures::fx::FxHashSet;
+    use rustc_errors::DiagnosticMessage;
+    use rustc_lint::{LateContext, LintContext};
+    use rustc_session::Session;
+    use rustc_span::{sym, Span, Symbol};
+    use std::cell::{Cell, RefCell};
+
+    const RESERVED_PREFIXES: [&str; 9] = [
+        "rust", "rustc", "clippy", "core", "std", "common", "mem", "race", "sync",
+    ];
+
+    const RESERVED_DANGERS: [&str; 9] = [
+        "reason",
+        "justification",
+        "cfg",
+        "edition",
+        "version",
+        "since",
+        "author",
+        "history",
+        "panics",
+    ];
+
+    // === Core === //
+
+    // LookaheadResult
+    trait LookaheadResult {
+        fn is_truthy(&self) -> bool;
+    }
+
+    impl LookaheadResult for bool {
+        fn is_truthy(&self) -> bool {
+            *self
+        }
+    }
+
+    impl<T> LookaheadResult for Option<T> {
+        fn is_truthy(&self) -> bool {
+            self.is_some()
+        }
+    }
+
+    impl<T, E> LookaheadResult for Result<T, E> {
+        fn is_truthy(&self) -> bool {
+            self.is_ok()
+        }
+    }
+
+    // ParseContext
+    struct ParseContext<'s> {
+        rustc_session: &'s Session,
+        while_parsing: RefCell<Vec<Symbol>>,
+        got_stuck: Cell<bool>,
+    }
+
+    #[must_use]
+    struct WhileParsingGuard<'c> {
+        cx: &'c ParseContext<'c>,
+        top: Symbol,
+    }
+
+    impl Drop for WhileParsingGuard<'_> {
+        fn drop(&mut self) {
+            let popped = self.cx.while_parsing.borrow_mut().pop();
+            debug_assert_eq!(popped, Some(self.top));
+        }
+    }
+
+    impl<'s> ParseContext<'s> {
+        fn new(rustc_session: &'s Session) -> Self {
+            Self {
+                rustc_session,
+                while_parsing: RefCell::new(Vec::new()),
+                got_stuck: Cell::new(false),
+            }
+        }
+
+        fn enter<'c, 't>(&'c self, span: DelimSpan, stream: &'t TokenStream) -> ParseSequence<'c, 't> {
+            ParseSequence {
+                context: self,
+                cursor: ParseCursor {
+                    raw: stream.trees(),
+                    span,
+                },
+                expectations: Vec::new(),
+            }
+        }
+
+        fn while_parsing(&self, what: Symbol) -> WhileParsingGuard<'_> {
+            self.while_parsing.borrow_mut().push(what);
+
+            WhileParsingGuard { cx: self, top: what }
+        }
+
+        fn got_stuck(&self) -> bool {
+            self.got_stuck.get()
+        }
+    }
+
+    // ParseSequence
+    struct ParseSequence<'c, 't> {
+        context: &'c ParseContext<'c>,
+        cursor: ParseCursor<'t>,
+        expectations: Vec<Symbol>,
+    }
+
+    impl<'c, 't> ParseSequence<'c, 't> {
+        // fn enter<'t2>(&self, span: DelimSpan, stream: &'t2 TokenStream) -> ParseSequence<'c, 't2> {
+        //     self.context.enter(span, stream)
+        // }
+
+        fn while_parsing(&self, what: Symbol) -> WhileParsingGuard<'c> {
+            self.context.while_parsing(what)
+        }
+
+        fn expect<R: LookaheadResult>(&mut self, expectation: Symbol, f: impl FnOnce(&mut ParseCursor<'t>) -> R) -> R {
+            let res = self.cursor.lookahead(|c| f(c));
+            if res.is_truthy() {
+                self.expectations.clear();
+            } else {
+                self.expectations.push(expectation);
+            }
+            res
+        }
+
+        fn stuck(&mut self, recover: impl FnOnce(&mut ParseCursor<'t>)) {
+            // Mark that we got stuck
+            self.context.got_stuck.set(true);
+
+            // Emit the error message
+            let span = self.cursor.next_span();
+
+            let expectations = self.expectations.iter().copied().collect::<FxHashSet<_>>();
+            let mut expectations = expectations.iter().map(Symbol::as_str).collect::<Vec<_>>();
+            expectations.sort_unstable();
+
+            let expectations = expectations.join(", ");
+
+            let while_parsing = {
+                let stack = self.context.while_parsing.borrow();
+                if stack.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        " while parsing {}",
+                        stack.iter().rev().map(Symbol::as_str).collect::<Vec<_>>().join(" in ")
+                    )
+                }
+            };
+
+            self.rustc_session()
+                .span_err(span, format!("expected {expectations}{while_parsing}"));
+
+            // Attempt to get unstuck
+            recover(&mut self.cursor);
+        }
+
+        fn error(&mut self, sp: Span, msg: impl Into<DiagnosticMessage>, recover: impl FnOnce(&mut ParseCursor<'t>)) {
+            self.context.got_stuck.set(true);
+            self.rustc_session().span_err(sp, msg);
+            recover(&mut self.cursor);
+        }
+
+        fn next_span(&self) -> Span {
+            self.cursor.next_span()
+        }
+
+        fn rustc_session(&self) -> &'c Session {
+            self.context.rustc_session
+        }
+    }
+
+    // ParseCursor
+    #[derive(Clone)]
+    struct ParseCursor<'t> {
+        raw: RefTokenTreeCursor<'t>,
+        span: DelimSpan,
+    }
+
+    impl<'t> ParseCursor<'t> {
+        fn lookahead<R: LookaheadResult>(&mut self, f: impl FnOnce(&mut Self) -> R) -> R {
+            let mut fork = self.clone();
+            let res = f(&mut fork);
+            if res.is_truthy() {
+                *self = fork;
+            }
+            res
+        }
+
+        fn consume(&mut self) -> Option<&'t TokenTree> {
+            self.raw.next()
+        }
+
+        fn peek(&self) -> Option<&'t TokenTree> {
+            self.raw.clone().next()
+        }
+
+        fn next_span(&self) -> Span {
+            self.peek().map_or(self.span.close, TokenTree::span)
+        }
+    }
+
+    // === Helpers === //
+
+    fn parse_eos(c: &mut ParseCursor<'_>) -> bool {
+        c.lookahead(|c| c.consume().is_none())
+    }
+
+    fn parse_turbo(c: &mut ParseCursor<'_>) -> Option<Span> {
+        c.lookahead(|c| {
+            if let Some(TokenTree::Token(
+                Token {
+                    kind: TokenKind::ModSep,
+                    span,
+                },
+                _,
+            )) = c.consume()
+            {
+                Some(*span)
+            } else {
+                None
+            }
+        })
+    }
+
+    fn parse_ident(c: &mut ParseCursor<'_>) -> Option<(Symbol, bool)> {
+        c.lookahead(|c| {
+            if let Some(TokenTree::Token(
+                Token {
+                    kind: TokenKind::Ident(sym, raw),
+                    ..
+                },
+                _,
+            )) = c.consume()
+            {
+                Some((*sym, *raw))
+            } else {
+                None
+            }
+        })
+    }
+
+    fn parse_comma(c: &mut ParseCursor<'_>) -> Option<Span> {
+        c.lookahead(|c| {
+            if let Some(TokenTree::Token(
+                Token {
+                    kind: TokenKind::Comma,
+                    span,
+                },
+                _,
+            )) = c.consume()
+            {
+                Some(*span)
+            } else {
+                None
+            }
+        })
+    }
+
+    fn parse_equals(c: &mut ParseCursor<'_>) -> Option<Span> {
+        c.lookahead(|c| {
+            if let Some(TokenTree::Token(
+                Token {
+                    kind: TokenKind::Eq,
+                    span,
+                },
+                _,
+            )) = c.consume()
+            {
+                Some(*span)
+            } else {
+                None
+            }
+        })
+    }
+
+    fn parse_str_lit(c: &mut ParseCursor<'_>) -> Option<Symbol> {
+        c.lookahead(|c| {
+            if let Some(TokenTree::Token(
+                Token {
+                    kind:
+                        TokenKind::Literal(Lit {
+                            symbol,
+                            kind: LitKind::Str | LitKind::StrRaw(_),
+                            ..
+                        }),
+                    ..
+                },
+                _,
+            )) = c.consume()
+            {
+                Some(*symbol)
+            } else {
+                None
+            }
+        })
+    }
+
+    fn skip_until_before_next_comma_or_eos(c: &mut ParseCursor<'_>) {
+        while !parse_eos(c) && parse_comma(&mut c.clone()).is_none() {
+            c.consume();
+        }
+    }
+
+    // === Grammar === //
+
+    fn parse_path(s: &mut ParseSequence<'_, '_>) -> Option<Symbol> {
+        let _guard = s.while_parsing(Symbol::intern("a path"));
+        let mut is_subsequent = false;
+        let mut builder = String::new();
+        let start = s.next_span();
+
+        loop {
+            // Parse turbo delimiter
+            if is_subsequent {
+                if s.expect(Symbol::intern("`::`"), parse_turbo).is_none() {
+                    // If we don't have one, assume that the path is done.
+
+                    // ...but first, we need to validate the identifier.
+                    if let Some(reserved) = RESERVED_DANGERS.iter().find(|v| **v == builder) {
+                        s.error(
+                            start.until(s.next_span()),
+                            format!("`{reserved}` cannot be the name of a danger"),
+                            skip_until_before_next_comma_or_eos,
+                        );
+                        return None;
+                    }
+
+                    // N.B. the fact that this can only happen if we attempt to parse a subsequent
+                    // identifier ensures that we can't just build a path out of nothing.
+                    return Some(Symbol::intern(&builder));
+                }
+
+                builder.push_str("::");
+            }
+
+            // Parse identifier
+            let sess = s.rustc_session();
+            let Some((ident, _)) = s.expect(Symbol::intern("<identifier>"), |c| {
+                parse_ident(c).filter(|(ident, _)| !ident.is_reserved(|| sess.edition()))
+            }) else {
+                // Whoops! This is malformed.
+                s.stuck(skip_until_before_next_comma_or_eos);
+                return None;
+            };
+
+            // Ensure that this isn't a reserved prefix
+            if !is_subsequent {
+                if let Some(reserved) = RESERVED_PREFIXES.iter().find(|v| &***v == ident.as_str()) {
+                    s.error(
+                        start.until(s.next_span()),
+                        format!("`{reserved}` is a reserved danger prefix"),
+                        skip_until_before_next_comma_or_eos,
+                    );
+                }
+            }
+
+            builder.push_str(ident.as_str());
+
+            is_subsequent = true;
+        }
+    }
+
+    fn parse_individually_reasoned_danger_list(s: &mut ParseSequence<'_, '_>) -> Vec<(Span, Symbol, Symbol)> {
+        let _guard = s.while_parsing(Symbol::intern("the dangers list"));
+
+        let mut dangers = Vec::new();
+        let mut is_subsequent = false;
+
+        loop {
+            // Handle EOS
+            if s.expect(Symbol::intern("`)`"), parse_eos) {
+                break;
+            }
+
+            // Handle comma if necessary
+            if is_subsequent && s.expect(Symbol::intern("`,`"), parse_comma).is_none() {
+                s.stuck(skip_until_before_next_comma_or_eos);
+                continue;
+            }
+
+            // Handle another EOS because we don't want to get stuck in `parse_path`, which treats
+            // empty paths as errors.
+            if s.expect(Symbol::intern("`)`"), parse_eos) {
+                break;
+            }
+
+            let danger_start = s.next_span();
+
+            // Handle a non-empty path.
+            let Some(danger) = parse_path(s) else {
+                // Our recovery routine has already put us into the position of parsing the next
+                // danger.
+                is_subsequent = true;
+                continue;
+            };
+
+            // Handle the reason.
+            let reason = {
+                let _guard = s.while_parsing(Symbol::intern("the danger's reason string"));
+
+                if s.expect(Symbol::intern("`=`"), parse_equals).is_none() {
+                    s.stuck(skip_until_before_next_comma_or_eos);
+                    continue;
+                }
+
+                let Some(reason) = s.expect(Symbol::intern("a reason string"), parse_str_lit) else {
+                    s.stuck(skip_until_before_next_comma_or_eos);
+                    continue;
+                };
+                reason
+            };
+
+            dangers.push((danger_start.until(s.next_span()), danger, reason));
+            is_subsequent = true;
+        }
+
+        dangers
+    }
+
+    fn parse_single_reason_danger_list(s: &mut ParseSequence<'_, '_>) -> (Vec<(Span, Symbol)>, Option<Symbol>) {
+        let _guard = s.while_parsing(Symbol::intern("the dangers list"));
+
+        let mut dangers = Vec::new();
+        let mut is_subsequent = false;
+
+        loop {
+            // Handle EOS
+            if s.expect(Symbol::intern("`)`"), parse_eos) {
+                return (dangers, None);
+            }
+
+            // Handle comma if necessary
+            if is_subsequent && s.expect(Symbol::intern("`,`"), parse_comma).is_none() {
+                s.stuck(skip_until_before_next_comma_or_eos);
+                continue;
+            }
+
+            // Handle another EOS because we don't want to get stuck in `parse_path`, which treats
+            // empty paths as errors.
+            if s.expect(Symbol::intern("`)`"), parse_eos) {
+                return (dangers, None);
+            }
+
+            // Handle `reason = "text"` syntax
+            if s.expect(Symbol::intern("`reason`"), |c| {
+                parse_ident(c).filter(|(s, _)| *s == sym::reason)
+            })
+            .is_some()
+            {
+                let _guard = s.while_parsing(Symbol::intern("the reason attribute"));
+
+                // Expect `=`
+                if s.expect(Symbol::intern("`=`"), parse_equals).is_none() {
+                    s.stuck(skip_until_before_next_comma_or_eos);
+                    continue;
+                }
+
+                // Expect a reason literal
+                let Some(reason) = s.expect(Symbol::intern("<reason string>"), parse_str_lit) else {
+                    s.stuck(skip_until_before_next_comma_or_eos);
+                    continue;
+                };
+
+                // Allow an optional `,`
+                let _guard = s.expect(Symbol::intern("`,`"), parse_comma);
+
+                // Expect an EOS
+                if !s.expect(Symbol::intern("`)`"), parse_eos) {
+                    s.stuck(skip_until_before_next_comma_or_eos);
+                    continue;
+                }
+
+                return (dangers, Some(reason));
+            };
+
+            let danger_start = s.next_span();
+
+            // Handle a non-empty path.
+            let Some(danger) = parse_path(s) else {
+                // Our recovery routine has already put us into the position of parsing the next
+                // danger.
+                is_subsequent = true;
+                continue;
+            };
+
+            dangers.push((danger_start.until(s.next_span()), danger));
+            is_subsequent = true;
+        }
+    }
+
+    // === Drivers === //
+
+    fn parse_paren_attr<R: Default>(
+        cx: &LateContext<'_>,
+        attr: &Attribute,
+        f: impl FnOnce(&mut ParseSequence<'_, '_>) -> R,
+    ) -> R {
+        const EXPECTATION: &str = "expected a delimited attribute with a list of danger identifiers";
+
+        let span = attr.span;
+
+        // Expect a normal non doc-comment attribute.
+        let AttrKind::Normal(attr) = &attr.kind else {
+            cx.sess().span_err(span, EXPECTATION);
+            return R::default();
+        };
+
+        // Expect it to be a delimited attribute of the form #[attr(...)] and not #[attr {...}]
+        let AttrArgs::Delimited(attr) = &attr.item.args else {
+            cx.sess().span_err(span, EXPECTATION);
+            return R::default();
+        };
+
+        if attr.delim != Delimiter::Parenthesis {
+            cx.sess().span_err(span, EXPECTATION);
+            return R::default();
+        }
+
+        // Parse the attribute arguments
+        let cx = ParseContext::new(cx.sess());
+        let res = f(&mut cx.enter(attr.dspan, &attr.tokens));
+        if cx.got_stuck() { R::default() } else { res }
+    }
+
+    pub fn parse_individually_reasoned_danger_list_attr(
+        cx: &LateContext<'_>,
+        attr: &Attribute,
+    ) -> Vec<(Span, Symbol, Symbol)> {
+        parse_paren_attr(cx, attr, parse_individually_reasoned_danger_list)
+    }
+
+    pub fn parse_single_reason_danger_list_attr(
+        cx: &LateContext<'_>,
+        attr: &Attribute,
+    ) -> (Vec<(Span, Symbol)>, Option<Symbol>) {
+        parse_paren_attr(cx, attr, parse_single_reason_danger_list)
+    }
 }
