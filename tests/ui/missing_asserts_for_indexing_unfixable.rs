@@ -1,5 +1,6 @@
 #![allow(unused)]
 #![warn(clippy::missing_asserts_for_indexing)]
+#![allow(clippy::might_panic)]
 
 fn sum(v: &[u8]) -> u8 {
     v[0] + v[1] + v[2] + v[3] + v[4]

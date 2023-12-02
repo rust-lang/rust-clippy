@@ -452,6 +452,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::methods::WAKER_CLONE_WAKE_INFO,
     crate::methods::WRONG_SELF_CONVENTION_INFO,
     crate::methods::ZST_OFFSET_INFO,
+    crate::might_panic::MIGHT_PANIC_INFO,
     crate::min_ident_chars::MIN_IDENT_CHARS_INFO,
     crate::minmax::MIN_MAX_INFO,
     crate::misc::SHORT_CIRCUIT_STATEMENT_INFO,

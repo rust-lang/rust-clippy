@@ -204,6 +204,7 @@ mod match_result_ok;
 mod matches;
 mod mem_replace;
 mod methods;
+mod might_panic;
 mod min_ident_chars;
 mod minmax;
 mod misc;
@@ -1070,6 +1071,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
     store.register_late_pass(|_| Box::new(iter_over_hash_type::IterOverHashType));
     store.register_late_pass(|_| Box::new(impl_hash_with_borrow_str_and_bytes::ImplHashWithBorrowStrBytes));
+    store.register_late_pass(|_| Box::new(might_panic::MightPanic));
     store.register_late_pass(|_| Box::new(repeat_vec_with_capacity::RepeatVecWithCapacity));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
