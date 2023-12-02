@@ -13,7 +13,7 @@ use rustc_middle::ty::{
     self, Binder, ClosureArgs, ClosureKind, EarlyBinder, FnSig, GenericArg, GenericArgKind, GenericArgsRef,
     ImplPolarity, List, Region, RegionKind, Ty, TypeVisitableExt, TypeckResults,
 };
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::sym;
 use rustc_target::spec::abi::Abi;
 use rustc_trait_selection::traits::error_reporting::InferCtxtExt as _;
@@ -119,19 +119,21 @@ impl<'tcx> LateLintPass<'tcx> for EtaReduction {
 
         match body.value.kind {
             ExprKind::Call(callee, args)
-                if matches!(callee.kind, ExprKind::Path(QPath::Resolved(..) | QPath::TypeRelative(..))) =>
+                if matches!(
+                    callee.kind,
+                    ExprKind::Path(QPath::Resolved(..) | QPath::TypeRelative(..))
+                ) =>
             {
                 let callee_ty = typeck.expr_ty(callee).peel_refs();
-                if matches!(
-                    type_diagnostic_name(cx, callee_ty),
-                    Some(sym::Arc | sym::Rc)
-                ) || !check_inputs(typeck, body.params, None, args) {
+                if matches!(type_diagnostic_name(cx, callee_ty), Some(sym::Arc | sym::Rc))
+                    || !check_inputs(typeck, body.params, None, args)
+                {
                     return;
                 }
-                let callee_ty_adjusted = typeck.expr_adjustments(callee).last().map_or(
-                    callee_ty,
-                    |a| a.target.peel_refs(),
-                );
+                let callee_ty_adjusted = typeck
+                    .expr_adjustments(callee)
+                    .last()
+                    .map_or(callee_ty, |a| a.target.peel_refs());
 
                 let sig = match callee_ty_adjusted.kind() {
                     ty::FnDef(def, _) => cx.tcx.fn_sig(def).skip_binder().skip_binder(),
@@ -160,36 +162,26 @@ impl<'tcx> LateLintPass<'tcx> for EtaReduction {
                     // For now ignore all callee types which reference a type parameter.
                     && !generic_args.types().any(|t| matches!(t.kind(), ty::Param(_)))
                 {
-                    span_lint_and_then(
-                        cx,
-                        REDUNDANT_CLOSURE,
-                        expr.span,
-                        "redundant closure",
-                        |diag| {
-                            if let Some(mut snippet) = snippet_opt(cx, callee.span) {
-                                if let Ok((ClosureKind::FnMut, _))
-                                    = cx.tcx.infer_ctxt().build().type_implements_fn_trait(
-                                        cx.param_env,
-                                        Binder::bind_with_vars(callee_ty_adjusted, List::empty()),
-                                        ImplPolarity::Positive,
-                                    ) && path_to_local(callee)
-                                        .map_or(
-                                            false,
-                                            |l| local_used_in(cx, l, args) || local_used_after_expr(cx, l, expr),
-                                        )
-                                {
-                                    // Mutable closure is used after current expr; we cannot consume it.
-                                    snippet = format!("&mut {snippet}");
-                                }
-                                diag.span_suggestion(
-                                    expr.span,
-                                    "replace the closure with the function itself",
-                                    snippet,
-                                    Applicability::MachineApplicable,
-                                );
+                    span_lint_and_then(cx, REDUNDANT_CLOSURE, expr.span, "redundant closure", |diag| {
+                        if let Some(mut snippet) = snippet_opt(cx, callee.span) {
+                            if let Ok((ClosureKind::FnMut, _)) = cx.tcx.infer_ctxt().build().type_implements_fn_trait(
+                                cx.param_env,
+                                Binder::bind_with_vars(callee_ty_adjusted, List::empty()),
+                                ImplPolarity::Positive,
+                            ) && path_to_local(callee).map_or(false, |l| {
+                                local_used_in(cx, l, args) || local_used_after_expr(cx, l, expr)
+                            }) {
+                                // Mutable closure is used after current expr; we cannot consume it.
+                                snippet = format!("&mut {snippet}");
                             }
+                            diag.span_suggestion(
+                                expr.span,
+                                "replace the closure with the function itself",
+                                snippet,
+                                Applicability::MachineApplicable,
+                            );
                         }
-                    );
+                    });
                 }
             },
             ExprKind::MethodCall(path, self_, args, _) if check_inputs(typeck, body.params, Some(self_), args) => {
@@ -228,7 +220,8 @@ fn check_inputs(
     params.len() == self_arg.map_or(0, |_| 1) + args.len()
         && params.iter().zip(self_arg.into_iter().chain(args)).all(|(p, arg)| {
             matches!(
-                p.pat.kind,PatKind::Binding(BindingAnnotation::NONE, id, _, None)
+                p.pat.kind,
+                PatKind::Binding(BindingAnnotation::NONE, id, _, None)
                 if path_to_local_id(arg, id)
             )
             // Only allow adjustments which change regions (i.e. re-borrowing).
@@ -255,8 +248,7 @@ fn check_sig<'tcx>(cx: &LateContext<'tcx>, closure: ClosureArgs<'tcx>, call_sig:
 /// This is needed because rustc is unable to late bind early-bound regions in a function signature.
 fn has_late_bound_to_non_late_bound_regions(from_sig: FnSig<'_>, to_sig: FnSig<'_>) -> bool {
     fn check_region(from_region: Region<'_>, to_region: Region<'_>) -> bool {
-        matches!(from_region.kind(), RegionKind::ReLateBound(..))
-            && !matches!(to_region.kind(), RegionKind::ReLateBound(..))
+        matches!(from_region.kind(), RegionKind::ReBound(..)) && !matches!(to_region.kind(), RegionKind::ReBound(..))
     }
 
     fn check_subs(from_subs: &[GenericArg<'_>], to_subs: &[GenericArg<'_>]) -> bool {
@@ -298,7 +290,7 @@ fn has_late_bound_to_non_late_bound_regions(from_sig: FnSig<'_>, to_sig: FnSig<'
                         .zip(to_tys)
                         .any(|(from_ty, to_ty)| check_ty(from_ty, to_ty))
             },
-            _ => from_ty.has_late_bound_regions(),
+            _ => from_ty.has_bound_regions(),
         }
     }
 

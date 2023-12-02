@@ -5,7 +5,7 @@ use rustc_hir::intravisit::{walk_body, walk_expr, walk_fn, FnKind, Visitor};
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, Node, YieldSource};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::def_id::{LocalDefId, LocalDefIdSet};
 use rustc_span::Span;
 
@@ -19,7 +19,7 @@ declare_clippy_lint! {
     /// causes runtime overhead and hassle for the caller.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// async fn get_random_number() -> i64 {
     ///     4 // Chosen by fair dice roll. Guaranteed to be random.
     /// }
@@ -27,7 +27,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// fn get_random_number_improved() -> i64 {
     ///     4 // Chosen by fair dice roll. Guaranteed to be random.
     /// }
@@ -86,7 +86,7 @@ impl<'a, 'tcx> Visitor<'tcx> for AsyncFnVisitor<'a, 'tcx> {
     }
 
     fn visit_body(&mut self, b: &'tcx Body<'tcx>) {
-        let is_async_block = matches!(b.generator_kind, Some(rustc_hir::GeneratorKind::Async(_)));
+        let is_async_block = matches!(b.coroutine_kind, Some(rustc_hir::CoroutineKind::Async(_)));
 
         if is_async_block {
             self.async_depth += 1;
@@ -148,7 +148,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
         // statements, so don't lint at all if there are any such paths.
         if let Some(def_id) = path.res.opt_def_id()
             && let Some(local_def_id) = def_id.as_local()
-            && let Some(DefKind::Fn) = cx.tcx.opt_def_kind(def_id)
+            && cx.tcx.def_kind(def_id) == DefKind::Fn
             && cx.tcx.asyncness(def_id).is_async()
             && !is_node_func_call(cx.tcx.hir().get_parent(hir_id), path.span)
         {

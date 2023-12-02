@@ -8,7 +8,7 @@ use rustc_ast::{LitIntType, LitKind, UintTy};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use std::fmt::{self, Display, Formatter};
 
 declare_clippy_lint! {
@@ -21,11 +21,11 @@ declare_clippy_lint! {
     /// the end of the range to be the length instead.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let x = [0..200];
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// // If it was intended to include every element in the range...
     /// let x = (0..200).collect::<Vec<i32>>();
     /// // ...Or if 200 was meant to be the len

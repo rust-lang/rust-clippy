@@ -5,7 +5,7 @@ use rustc_hir::intravisit;
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -17,7 +17,7 @@ declare_clippy_lint! {
     /// misunderstanding of references.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # let mut y = 1;
     /// let x = &mut &mut y;
     /// ```

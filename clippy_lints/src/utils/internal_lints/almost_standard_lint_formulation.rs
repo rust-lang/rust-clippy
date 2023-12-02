@@ -4,14 +4,14 @@ use regex::Regex;
 use rustc_ast as ast;
 use rustc_hir::{Item, ItemKind, Mutability};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
     /// Checks if lint formulations have a standardized format.
     ///
     /// ### Why is this bad?
-    /// It's not neccessarily bad, but we try to enforce a standard in Clippy.
+    /// It's not necessarily bad, but we try to enforce a standard in Clippy.
     ///
     /// ### Example
     /// `Checks for use...` can be written as `Checks for usage...` .

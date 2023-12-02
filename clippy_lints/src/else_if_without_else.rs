@@ -4,7 +4,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -15,7 +15,7 @@ declare_clippy_lint! {
     /// Some coding guidelines require this (e.g., MISRA-C:2004 Rule 14.10).
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # fn a() {}
     /// # fn b() {}
     /// # let x: i32 = 1;
@@ -28,7 +28,7 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     ///
-    /// ```rust
+    /// ```no_run
     /// # fn a() {}
     /// # fn b() {}
     /// # let x: i32 = 1;

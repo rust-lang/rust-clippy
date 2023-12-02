@@ -7,7 +7,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Lit};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{self, Ty};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::Ident;
 
 declare_clippy_lint! {
@@ -18,13 +18,13 @@ declare_clippy_lint! {
     /// It is shorter to use the equivalent.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// assert_eq!("a".is_empty(), false);
     /// assert_ne!("a".is_empty(), true);
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// assert!(!"a".is_empty());
     /// ```
     #[clippy::version = "1.53.0"]

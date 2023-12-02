@@ -1,10 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_from_proc_macro;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{HirId, Path, PathSegment};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::lint::in_external_macro;
+use rustc_session::impl_lint_pass;
 use rustc_span::symbol::kw;
 use rustc_span::{sym, Span};
 
@@ -20,11 +22,11 @@ declare_clippy_lint! {
     /// migrating to become `no_std` compatible.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// use std::hash::Hasher;
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// use core::hash::Hasher;
     /// ```
     #[clippy::version = "1.64.0"]
@@ -45,11 +47,11 @@ declare_clippy_lint! {
     /// for crates migrating to become `no_std` compatible.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// use std::vec::Vec;
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # extern crate alloc;
     /// use alloc::vec::Vec;
     /// ```
@@ -71,12 +73,12 @@ declare_clippy_lint! {
     /// is also useful for crates migrating to become `no_std` compatible.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # extern crate alloc;
     /// use alloc::slice::from_ref;
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// use core::slice::from_ref;
     /// ```
     #[clippy::version = "1.64.0"]
@@ -99,19 +101,13 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
         if let Res::Def(_, def_id) = path.res
             && let Some(first_segment) = get_first_segment(path)
             && is_stable(cx, def_id)
+            && !in_external_macro(cx.sess(), path.span)
+            && !is_from_proc_macro(cx, &first_segment.ident)
         {
             let (lint, used_mod, replace_with) = match first_segment.ident.name {
                 sym::std => match cx.tcx.crate_name(def_id.krate) {
-                    sym::core => (
-                        STD_INSTEAD_OF_CORE,
-                        "std",
-                        "core",
-                    ),
-                    sym::alloc => (
-                        STD_INSTEAD_OF_ALLOC,
-                        "std",
-                        "alloc",
-                    ),
+                    sym::core => (STD_INSTEAD_OF_CORE, "std", "core"),
+                    sym::alloc => (STD_INSTEAD_OF_ALLOC, "std", "alloc"),
                     _ => {
                         self.prev_span = path.span;
                         return;
@@ -119,11 +115,7 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                 },
                 sym::alloc => {
                     if cx.tcx.crate_name(def_id.krate) == sym::core {
-                        (
-                            ALLOC_INSTEAD_OF_CORE,
-                            "alloc",
-                            "core",
-                        )
+                        (ALLOC_INSTEAD_OF_CORE, "alloc", "core")
                     } else {
                         self.prev_span = path.span;
                         return;
@@ -139,7 +131,8 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                     &format!("used import from `{used_mod}` instead of `{replace_with}`"),
                     &format!("consider importing the item from `{replace_with}`"),
                     replace_with.to_string(),
-                    Applicability::MachineApplicable);
+                    Applicability::MachineApplicable,
+                );
                 self.prev_span = path.span;
             }
         }

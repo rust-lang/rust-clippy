@@ -1,5 +1,5 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_copy, is_type_diagnostic_item};
 use rustc_data_structures::fx::FxHashSet;
@@ -9,8 +9,7 @@ use rustc_hir::intravisit::{walk_path, Visitor};
 use rustc_hir::{self, ExprKind, HirId, Node, PatKind, Path, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
-use rustc_span::source_map::Span;
-use rustc_span::sym;
+use rustc_span::{sym, Span};
 
 use super::MAP_UNWRAP_OR;
 
@@ -98,10 +97,7 @@ pub(super) fn check<'tcx>(
         } else {
             "map_or(<a>, <f>)"
         };
-        let msg = &format!(
-            "called `map(<f>).unwrap_or({arg})` on an `Option` value. \
-            This can be done more directly by calling `{suggest}` instead"
-        );
+        let msg = &format!("called `map(<f>).unwrap_or({arg})` on an `Option` value");
 
         span_lint_and_then(cx, MAP_UNWRAP_OR, expr.span, msg, |diag| {
             let map_arg_span = map_arg.span;

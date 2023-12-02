@@ -1,14 +1,13 @@
+use clippy_config::types::DisallowedPath;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{match_def_path, paths};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{AsyncGeneratorKind, Body, GeneratorKind};
+use rustc_hir::{Body, CoroutineKind, CoroutineSource};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir::GeneratorLayout;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_middle::mir::CoroutineLayout;
+use rustc_session::impl_lint_pass;
 use rustc_span::{sym, Span};
-
-use crate::utils::conf::DisallowedPath;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -29,7 +28,7 @@ declare_clippy_lint! {
     /// to wrap the `.lock()` call in a block instead of explicitly dropping the guard.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # use std::sync::Mutex;
     /// # async fn baz() {}
     /// async fn foo(x: &Mutex<u32>) {
@@ -47,7 +46,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # use std::sync::Mutex;
     /// # async fn baz() {}
     /// async fn foo(x: &Mutex<u32>) {
@@ -87,7 +86,7 @@ declare_clippy_lint! {
     /// to wrap the `.borrow[_mut]()` call in a block instead of explicitly dropping the ref.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # use std::cell::RefCell;
     /// # async fn baz() {}
     /// async fn foo(x: &RefCell<u32>) {
@@ -105,7 +104,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # use std::cell::RefCell;
     /// # async fn baz() {}
     /// async fn foo(x: &RefCell<u32>) {
@@ -151,7 +150,7 @@ declare_clippy_lint! {
     /// ]
     /// ```
     ///
-    /// ```rust
+    /// ```no_run
     /// # async fn baz() {}
     /// struct CustomLockType;
     /// struct OtherCustomLockType;
@@ -195,26 +194,26 @@ impl LateLintPass<'_> for AwaitHolding {
     }
 
     fn check_body(&mut self, cx: &LateContext<'_>, body: &'_ Body<'_>) {
-        use AsyncGeneratorKind::{Block, Closure, Fn};
-        if let Some(GeneratorKind::Async(Block | Closure | Fn)) = body.generator_kind {
+        use CoroutineSource::{Block, Closure, Fn};
+        if let Some(CoroutineKind::Async(Block | Closure | Fn)) = body.coroutine_kind {
             let def_id = cx.tcx.hir().body_owner_def_id(body.id());
-            if let Some(generator_layout) = cx.tcx.mir_generator_witnesses(def_id) {
-                self.check_interior_types(cx, generator_layout);
+            if let Some(coroutine_layout) = cx.tcx.mir_coroutine_witnesses(def_id) {
+                self.check_interior_types(cx, coroutine_layout);
             }
         }
     }
 }
 
 impl AwaitHolding {
-    fn check_interior_types(&self, cx: &LateContext<'_>, generator: &GeneratorLayout<'_>) {
-        for (ty_index, ty_cause) in generator.field_tys.iter_enumerated() {
+    fn check_interior_types(&self, cx: &LateContext<'_>, coroutine: &CoroutineLayout<'_>) {
+        for (ty_index, ty_cause) in coroutine.field_tys.iter_enumerated() {
             if let rustc_middle::ty::Adt(adt, _) = ty_cause.ty.kind() {
                 let await_points = || {
-                    generator
+                    coroutine
                         .variant_source_info
                         .iter_enumerated()
                         .filter_map(|(variant, source_info)| {
-                            generator.variant_fields[variant]
+                            coroutine.variant_fields[variant]
                                 .raw
                                 .contains(&ty_index)
                                 .then_some(source_info.span)
@@ -287,5 +286,8 @@ fn is_mutex_guard(cx: &LateContext<'_>, def_id: DefId) -> bool {
 }
 
 fn is_refcell_ref(cx: &LateContext<'_>, def_id: DefId) -> bool {
-    match_def_path(cx, def_id, &paths::REFCELL_REF) || match_def_path(cx, def_id, &paths::REFCELL_REFMUT)
+    matches!(
+        cx.tcx.get_diagnostic_name(def_id),
+        Some(sym::RefCellRef | sym::RefCellRefMut)
+    )
 }

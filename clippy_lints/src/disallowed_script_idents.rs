@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint;
 use rustc_ast::ast;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{EarlyContext, EarlyLintPass, Level, LintContext};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use unicode_script::{Script, UnicodeScript};
 
 declare_clippy_lint! {
@@ -30,7 +30,7 @@ declare_clippy_lint! {
     /// [`non_ascii_idents`]: https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#non-ascii-idents
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// // Assuming that `clippy.toml` contains the following line:
     /// // allowed-scripts = ["Latin", "Cyrillic"]
     /// let counter = 10; // OK, latin is allowed.

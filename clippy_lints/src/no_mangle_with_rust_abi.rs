@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_with_applicability;
 use rustc_errors::Applicability;
 use rustc_hir::{Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{BytePos, Pos};
 use rustc_target::spec::abi::Abi;
 
@@ -18,13 +18,13 @@ declare_clippy_lint! {
     /// Rust ABI can break this at any point.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     ///  #[no_mangle]
     ///  fn example(arg_one: u32, arg_two: usize) {}
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     ///  #[no_mangle]
     ///  extern "C" fn example(arg_one: u32, arg_two: usize) {}
     /// ```
@@ -48,7 +48,8 @@ impl<'tcx> LateLintPass<'tcx> for NoMangleWithRustAbi {
                     && let Some((fn_attrs, _)) = snippet.split_once("fn")
                     && !fn_attrs.contains("extern")
                 {
-                    let sugg_span = fn_sig.span
+                    let sugg_span = fn_sig
+                        .span
                         .with_lo(fn_sig.span.lo() + BytePos::from_usize(fn_attrs.len()))
                         .shrink_to_lo();
 

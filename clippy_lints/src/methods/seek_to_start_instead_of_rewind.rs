@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{get_trait_def_id, is_expr_used_or_unified, match_def_path, paths};
+use clippy_utils::{is_expr_used_or_unified, match_def_path, paths};
 use rustc_ast::ast::{LitIntType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
-use rustc_span::Span;
+use rustc_span::{sym, Span};
 
 use super::SEEK_TO_START_INSTEAD_OF_REWIND;
 
@@ -23,15 +23,15 @@ pub(super) fn check<'tcx>(
         return;
     }
 
-    if let Some(seek_trait_id) = get_trait_def_id(cx, &paths::STD_IO_SEEK) &&
-        implements_trait(cx, ty, seek_trait_id, &[]) &&
-        let ExprKind::Call(func, args1) = arg.kind &&
-        let ExprKind::Path(ref path) = func.kind &&
-        let Some(def_id) = cx.qpath_res(path, func.hir_id).opt_def_id() &&
-        match_def_path(cx, def_id, &paths::STD_IO_SEEKFROM_START) &&
-        args1.len() == 1 &&
-        let ExprKind::Lit(lit) = args1[0].kind &&
-        let LitKind::Int(0, LitIntType::Unsuffixed) = lit.node
+    if let Some(seek_trait_id) = cx.tcx.get_diagnostic_item(sym::IoSeek)
+        && implements_trait(cx, ty, seek_trait_id, &[])
+        && let ExprKind::Call(func, args1) = arg.kind
+        && let ExprKind::Path(ref path) = func.kind
+        && let Some(def_id) = cx.qpath_res(path, func.hir_id).opt_def_id()
+        && match_def_path(cx, def_id, &paths::STD_IO_SEEKFROM_START)
+        && args1.len() == 1
+        && let ExprKind::Lit(lit) = args1[0].kind
+        && let LitKind::Int(0, LitIntType::Unsuffixed) = lit.node
     {
         let method_call_span = expr.span.with_lo(name_span.lo());
         span_lint_and_then(

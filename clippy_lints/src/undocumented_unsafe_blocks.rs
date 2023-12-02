@@ -11,7 +11,7 @@ use rustc_hir::{Block, BlockCheckMode, ItemKind, Node, UnsafeSource};
 use rustc_lexer::{tokenize, TokenKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::{BytePos, Pos, RelativeBytePos, Span, SyntaxContext};
 
 declare_clippy_lint! {
@@ -44,14 +44,14 @@ declare_clippy_lint! {
     /// and bugs.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// use std::ptr::NonNull;
     /// let a = &mut 42;
     ///
     /// let ptr = unsafe { NonNull::new_unchecked(a) };
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// use std::ptr::NonNull;
     /// let a = &mut 42;
     ///
@@ -72,7 +72,7 @@ declare_clippy_lint! {
     /// describe safety invariants.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// use std::ptr::NonNull;
     /// let a = &mut 42;
     ///
@@ -80,7 +80,7 @@ declare_clippy_lint! {
     /// let ptr = NonNull::new(a).unwrap();
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// use std::ptr::NonNull;
     /// let a = &mut 42;
     ///
@@ -349,7 +349,7 @@ fn block_parents_have_safety_comment(
                     span,
                     owner_id,
                     ..
-                })) => (*span, cx.tcx.hir().local_def_id_to_hir_id(owner_id.def_id)),
+                })) => (*span, cx.tcx.local_def_id_to_hir_id(owner_id.def_id)),
                 _ => {
                     if is_branchy(expr) {
                         return false;
@@ -370,7 +370,7 @@ fn block_parents_have_safety_comment(
                 span,
                 owner_id,
                 ..
-            }) => (*span, cx.tcx.hir().local_def_id_to_hir_id(owner_id.def_id)),
+            }) => (*span, cx.tcx.local_def_id_to_hir_id(owner_id.def_id)),
             _ => return false,
         };
         // if unsafe block is part of a let/const/static statement,
@@ -638,7 +638,9 @@ fn get_body_search_span(cx: &LateContext<'_>) -> Option<Span> {
 fn span_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
     let source_map = cx.sess().source_map();
     let ctxt = span.ctxt();
-    if ctxt.is_root() && let Some(search_span) = get_body_search_span(cx) {
+    if ctxt.is_root()
+        && let Some(search_span) = get_body_search_span(cx)
+    {
         if let Ok(unsafe_line) = source_map.lookup_line(span.lo())
             && let Some(body_span) = walk_span_to_context(search_span, SyntaxContext::root())
             && let Ok(body_line) = source_map.lookup_line(body_span.lo())
@@ -648,11 +650,13 @@ fn span_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
             // Get the text from the start of function body to the unsafe block.
             //     fn foo() { some_stuff; unsafe { stuff }; other_stuff; }
             //              ^-------------^
-            body_line.line < unsafe_line.line && text_has_safety_comment(
-                src,
-                &unsafe_line.sf.lines()[body_line.line + 1..=unsafe_line.line],
-                unsafe_line.sf.start_pos,
-            ).is_some()
+            body_line.line < unsafe_line.line
+                && text_has_safety_comment(
+                    src,
+                    &unsafe_line.sf.lines()[body_line.line + 1..=unsafe_line.line],
+                    unsafe_line.sf.start_pos,
+                )
+                .is_some()
         } else {
             // Problem getting source text. Pretend a comment was found.
             true

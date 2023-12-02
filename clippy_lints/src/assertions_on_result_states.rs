@@ -9,7 +9,7 @@ use rustc_hir::def::Res;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -58,7 +58,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
                     return;
                 }
             }
-            let semicolon = if is_expr_final_block_expr(cx.tcx, e) {";"} else {""};
+            let semicolon = if is_expr_final_block_expr(cx.tcx, e) { ";" } else { "" };
             let mut app = Applicability::MachineApplicable;
             match method_segment.ident.as_str() {
                 "is_ok" if type_suitable_to_unwrap(cx, args.type_at(1)) => {
@@ -74,7 +74,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
                         ),
                         app,
                     );
-                }
+                },
                 "is_err" if type_suitable_to_unwrap(cx, args.type_at(0)) => {
                     span_lint_and_sugg(
                         cx,
@@ -88,7 +88,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
                         ),
                         app,
                     );
-                }
+                },
                 _ => (),
             };
         }

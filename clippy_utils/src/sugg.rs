@@ -16,7 +16,7 @@ use rustc_lint::{EarlyContext, LateContext, LintContext};
 use rustc_middle::hir::place::ProjectionKind;
 use rustc_middle::mir::{FakeReadCause, Mutability};
 use rustc_middle::ty;
-use rustc_span::source_map::{BytePos, CharPos, Pos, Span, SyntaxContext};
+use rustc_span::{BytePos, CharPos, Pos, Span, SyntaxContext};
 use std::borrow::Cow;
 use std::fmt::{self, Display, Write as _};
 use std::ops::{Add, Neg, Not, Sub};
@@ -159,7 +159,7 @@ impl<'a> Sugg<'a> {
                 Sugg::BinOp(hirbinop2assignop(op), get_snippet(lhs.span), get_snippet(rhs.span))
             },
             hir::ExprKind::Binary(op, lhs, rhs) => Sugg::BinOp(
-                AssocOp::from_ast_binop(op.node.into()),
+                AssocOp::from_ast_binop(op.node),
                 get_snippet(lhs.span),
                 get_snippet(rhs.span),
             ),
@@ -190,7 +190,7 @@ impl<'a> Sugg<'a> {
                 (snip, false) => Sugg::MaybeParen(snip),
                 (snip, true) => Sugg::NonParen(snip),
             },
-            ast::ExprKind::Async(..)
+            ast::ExprKind::Gen(..)
             | ast::ExprKind::Block(..)
             | ast::ExprKind::Break(..)
             | ast::ExprKind::Call(..)
@@ -380,10 +380,7 @@ fn binop_to_string(op: AssocOp, lhs: &str, rhs: &str) -> String {
         | AssocOp::NotEqual
         | AssocOp::Greater
         | AssocOp::GreaterEqual => {
-            format!(
-                "{lhs} {} {rhs}",
-                op.to_ast_binop().expect("Those are AST ops").to_string()
-            )
+            format!("{lhs} {} {rhs}", op.to_ast_binop().expect("Those are AST ops").as_str())
         },
         AssocOp::Assign => format!("{lhs} = {rhs}"),
         AssocOp::AssignOp(op) => {
@@ -465,7 +462,10 @@ forward_binop_impls_to_ref!(impl Sub, sub for Sugg<'_>, type Output = Sugg<'stat
 impl Neg for Sugg<'_> {
     type Output = Sugg<'static>;
     fn neg(self) -> Sugg<'static> {
-        make_unop("-", self)
+        match &self {
+            Self::BinOp(AssocOp::As, ..) => Sugg::MaybeParen(format!("-({self})").into()),
+            _ => make_unop("-", self),
+        }
     }
 }
 

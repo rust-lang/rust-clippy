@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_lint::{EarlyContext, EarlyLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -12,7 +12,7 @@ declare_clippy_lint! {
     /// mistake.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// fn simple_double_parens() -> i32 {
     ///     ((0))
     /// }
@@ -22,7 +22,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// fn simple_no_parens() -> i32 {
     ///     0
     /// }

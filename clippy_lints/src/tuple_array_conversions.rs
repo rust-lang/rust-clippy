@@ -1,5 +1,5 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::visitors::for_each_local_use_after_expr;
 use clippy_utils::{is_from_proc_macro, path_to_local};
 use itertools::Itertools;
@@ -8,7 +8,7 @@ use rustc_hir::{Expr, ExprKind, Node, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::{self, Ty};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use std::iter::once;
 use std::ops::ControlFlow;
 

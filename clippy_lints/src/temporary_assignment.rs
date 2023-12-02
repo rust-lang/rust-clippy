@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_adjusted;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -14,7 +14,7 @@ declare_clippy_lint! {
     /// updated, why not write the structure you want in the first place?
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// (0, 0).0 = 1
     /// ```
     #[clippy::version = "pre 1.29.0"]

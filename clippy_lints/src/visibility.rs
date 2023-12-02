@@ -4,7 +4,7 @@ use rustc_ast::ast::{Item, VisibilityKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::kw;
 use rustc_span::Span;
 
@@ -82,7 +82,9 @@ impl EarlyLintPass for Visibility {
         if !in_external_macro(cx.sess(), item.span)
             && let VisibilityKind::Restricted { path, shorthand, .. } = &item.vis.kind
         {
-            if **path == kw::SelfLower && let Some(false) = is_from_proc_macro(cx, item.vis.span) {
+            if **path == kw::SelfLower
+                && let Some(false) = is_from_proc_macro(cx, item.vis.span)
+            {
                 span_lint_and_sugg(
                     cx,
                     NEEDLESS_PUB_SELF,

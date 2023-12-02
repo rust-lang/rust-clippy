@@ -1,5 +1,5 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::qualify_min_const_fn::is_min_const_fn;
 use clippy_utils::ty::has_drop;
 use clippy_utils::{fn_has_unsatisfiable_preds, is_entrypoint_fn, is_from_proc_macro, trait_ref_of_method};
@@ -9,7 +9,7 @@ use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Constness, FnDecl, GenericParamKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::Span;
 
@@ -27,7 +27,7 @@ declare_clippy_lint! {
     ///
     /// Also, the lint only runs one pass over the code. Consider these two non-const functions:
     ///
-    /// ```rust
+    /// ```no_run
     /// fn a() -> i32 {
     ///     0
     /// }
@@ -42,7 +42,7 @@ declare_clippy_lint! {
     ///
     /// If you are marking a public function with `const`, removing it again will break API compatibility.
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # struct Foo {
     /// #     random_number: usize,
     /// # }
@@ -55,7 +55,7 @@ declare_clippy_lint! {
     ///
     /// Could be a const fn:
     ///
-    /// ```rust
+    /// ```no_run
     /// # struct Foo {
     /// #     random_number: usize,
     /// # }
@@ -131,7 +131,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingConstForFn {
             FnKind::Closure => return,
         }
 
-        let hir_id = cx.tcx.hir().local_def_id_to_hir_id(def_id);
+        let hir_id = cx.tcx.local_def_id_to_hir_id(def_id);
 
         // Const fns are not allowed as methods in a trait.
         {

@@ -1,6 +1,6 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::is_doc_hidden;
-use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_opt;
 use rustc_ast::ast::{self, VisibilityKind};
 use rustc_ast::attr;
@@ -9,7 +9,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::{self as hir, Expr, ExprKind, QPath};
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::def_id::{DefId, LocalDefId};
 use rustc_span::{sym, Span};
 
@@ -22,7 +22,7 @@ declare_clippy_lint! {
     /// and allows possible optimizations when applied to enums.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// struct S {
     ///     pub a: i32,
     ///     pub b: i32,
@@ -39,7 +39,7 @@ declare_clippy_lint! {
     /// struct T(pub i32, pub i32, ());
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// #[non_exhaustive]
     /// struct S {
     ///     pub a: i32,
@@ -118,7 +118,6 @@ impl EarlyLintPass for ManualNonExhaustiveStruct {
             if let Some(Ok(field)) = iter.next()
                 && iter.next().is_none()
                 && field.ty.kind.is_unit()
-                && field.ident.map_or(true, |name| name.as_str().starts_with('_'))
             {
                 span_lint_and_then(
                     cx,
@@ -138,7 +137,7 @@ impl EarlyLintPass for ManualNonExhaustiveStruct {
                             );
                         }
                         diag.span_help(field.span, "remove this field");
-                    }
+                    },
                 );
             }
         }
@@ -158,7 +157,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualNonExhaustiveEnum {
         {
             let mut iter = def.variants.iter().filter_map(|v| {
                 (matches!(v.data, hir::VariantData::Unit(_, _))
-                    && v.ident.as_str().starts_with('_')
                     && is_doc_hidden(cx.tcx.hir().attrs(v.hir_id))
                     && !attr::contains_name(cx.tcx.hir().attrs(item.hir_id()), sym::non_exhaustive))
                 .then_some((v.def_id, v.span))
@@ -173,9 +171,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualNonExhaustiveEnum {
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         if let ExprKind::Path(QPath::Resolved(None, p)) = &e.kind
-            && let [.., name] = p.segments
             && let Res::Def(DefKind::Ctor(CtorOf::Variant, CtorKind::Const), id) = p.res
-            && name.ident.as_str().starts_with('_')
         {
             let variant_id = cx.tcx.parent(id);
             let enum_id = cx.tcx.parent(variant_id);
@@ -192,7 +188,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualNonExhaustiveEnum {
                     .contains(&(enum_id.to_def_id(), variant_id.to_def_id()))
             })
         {
-            let hir_id = cx.tcx.hir().local_def_id_to_hir_id(enum_id);
+            let hir_id = cx.tcx.local_def_id_to_hir_id(enum_id);
             span_lint_hir_and_then(
                 cx,
                 MANUAL_NON_EXHAUSTIVE,

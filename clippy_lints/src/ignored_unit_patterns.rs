@@ -3,7 +3,7 @@ use hir::{Node, PatKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -15,14 +15,14 @@ declare_clippy_lint! {
     /// would detect a type change that `_` would ignore.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// match std::fs::create_dir("tmp-work-dir") {
     ///    Ok(_) => println!("Working directory created"),
     ///    Err(s) => eprintln!("Could not create directory: {s}"),
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// match std::fs::create_dir("tmp-work-dir") {
     ///    Ok(()) => println!("Working directory created"),
     ///    Err(s) => eprintln!("Could not create directory: {s}"),
@@ -37,6 +37,10 @@ declare_lint_pass!(IgnoredUnitPatterns => [IGNORED_UNIT_PATTERNS]);
 
 impl<'tcx> LateLintPass<'tcx> for IgnoredUnitPatterns {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx hir::Pat<'tcx>) {
+        if pat.span.from_expansion() {
+            return;
+        }
+
         match cx.tcx.hir().get_parent(pat.hir_id) {
             Node::Param(param) if matches!(cx.tcx.hir().get_parent(param.hir_id), Node::Item(_)) => {
                 // Ignore function parameters
@@ -48,7 +52,7 @@ impl<'tcx> LateLintPass<'tcx> for IgnoredUnitPatterns {
             },
             _ => {},
         }
-        if matches!(pat.kind, PatKind::Wild) && cx.typeck_results().pat_ty(pat).is_unit() {
+        if matches!(pat.kind, PatKind::Wild) && cx.typeck_results().pat_ty(pat).peel_refs().is_unit() {
             span_lint_and_sugg(
                 cx,
                 IGNORED_UNIT_PATTERNS,

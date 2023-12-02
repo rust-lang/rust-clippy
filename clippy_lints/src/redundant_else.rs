@@ -3,7 +3,7 @@ use rustc_ast::ast::{Block, Expr, ExprKind, Stmt, StmtKind};
 use rustc_ast::visit::{walk_expr, Visitor};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -16,7 +16,7 @@ declare_clippy_lint! {
     /// Some may prefer to keep the `else` block for clarity.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// fn my_func(count: u32) {
     ///     if count == 0 {
     ///         print!("Nothing to do");
@@ -27,7 +27,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// fn my_func(count: u32) {
     ///     if count == 0 {
     ///         print!("Nothing to do");

@@ -3,7 +3,7 @@ use clippy_utils::is_test_module_or_function;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{Item, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -15,7 +15,7 @@ declare_clippy_lint! {
     /// avoided.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let foo = 3.14;
     /// ```
     #[clippy::version = "pre 1.29.0"]
@@ -31,9 +31,9 @@ pub struct DisallowedNames {
 }
 
 impl DisallowedNames {
-    pub fn new(disallow: FxHashSet<String>) -> Self {
+    pub fn new(disallowed_names: &[String]) -> Self {
         Self {
-            disallow,
+            disallow: disallowed_names.iter().cloned().collect(),
             test_modules_deep: 0,
         }
     }

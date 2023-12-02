@@ -4,7 +4,7 @@ use rustc_ast::token::{Lit, LitKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 use std::fmt::Write;
 
@@ -32,13 +32,13 @@ declare_clippy_lint! {
     /// can see it.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let one = "\033[1m Bold? \033[0m";  // \033 intended as escape
     /// let two = "\033\0";                 // \033 intended as null-3-3
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// let one = "\x1b[1mWill this be bold?\x1b[0m";
     /// let two = "\x0033\x00";
     /// ```

@@ -170,19 +170,18 @@ fn qpath_certainty(cx: &LateContext<'_>, qpath: &QPath<'_>, resolves_to_type: bo
             path_segment_certainty(cx, type_certainty(cx, ty), path_segment, resolves_to_type)
         },
 
-        QPath::LangItem(lang_item, _, _) => {
-            cx.tcx
-                .lang_items()
-                .get(*lang_item)
-                .map_or(Certainty::Uncertain, |def_id| {
-                    let generics = cx.tcx.generics_of(def_id);
-                    if generics.parent_count == 0 && generics.params.is_empty() {
-                        Certainty::Certain(if resolves_to_type { Some(def_id) } else { None })
-                    } else {
-                        Certainty::Uncertain
-                    }
-                })
-        },
+        QPath::LangItem(lang_item, ..) => cx
+            .tcx
+            .lang_items()
+            .get(*lang_item)
+            .map_or(Certainty::Uncertain, |def_id| {
+                let generics = cx.tcx.generics_of(def_id);
+                if generics.parent_count == 0 && generics.params.is_empty() {
+                    Certainty::Certain(if resolves_to_type { Some(def_id) } else { None })
+                } else {
+                    Certainty::Uncertain
+                }
+            }),
     };
     debug_assert!(resolves_to_type || certainty.to_def_id().is_none());
     certainty
@@ -219,7 +218,7 @@ fn path_segment_certainty(
                 // See the comment preceding `qpath_certainty`. `def_id` could refer to a type or a value.
                 let certainty = lhs.join_clearing_def_ids(rhs);
                 if resolves_to_type {
-                    if let DefKind::TyAlias { .. } = cx.tcx.def_kind(def_id) {
+                    if let DefKind::TyAlias = cx.tcx.def_kind(def_id) {
                         adt_def_id(cx.tcx.type_of(def_id).instantiate_identity())
                             .map_or(certainty, |def_id| certainty.with_def_id(def_id))
                     } else {
@@ -267,7 +266,9 @@ fn path_segment_certainty(
 /// For at least some `QPath::TypeRelative`, the path segment's `res` can be `Res::Err`.
 /// `update_res` tries to fix the resolution when `parent_certainty` is `Certain(Some(..))`.
 fn update_res(cx: &LateContext<'_>, parent_certainty: Certainty, path_segment: &PathSegment<'_>) -> Option<Res> {
-    if path_segment.res == Res::Err && let Some(def_id) = parent_certainty.to_def_id() {
+    if path_segment.res == Res::Err
+        && let Some(def_id) = parent_certainty.to_def_id()
+    {
         let mut def_path = cx.get_def_path(def_id);
         def_path.push(path_segment.ident.name);
         let reses = def_path_res(cx, &def_path.iter().map(Symbol::as_str).collect::<Vec<_>>());

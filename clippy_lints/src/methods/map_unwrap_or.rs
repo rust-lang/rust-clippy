@@ -1,5 +1,5 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg};
-use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::usage::mutated_variables;
@@ -44,11 +44,9 @@ pub(super) fn check<'tcx>(
 
         // lint message
         let msg = if is_option {
-            "called `map(<f>).unwrap_or_else(<g>)` on an `Option` value. This can be done more directly by calling \
-            `map_or_else(<g>, <f>)` instead"
+            "called `map(<f>).unwrap_or_else(<g>)` on an `Option` value"
         } else {
-            "called `map(<f>).unwrap_or_else(<g>)` on a `Result` value. This can be done more directly by calling \
-            `.map_or_else(<g>, <f>)` instead"
+            "called `map(<f>).unwrap_or_else(<g>)` on a `Result` value"
         };
         // get snippets for args to map() and unwrap_or_else()
         let map_snippet = snippet(cx, map_arg.span, "..");
@@ -56,7 +54,7 @@ pub(super) fn check<'tcx>(
         // lint, with note if neither arg is > 1 line and both map() and
         // unwrap_or_else() have the same span
         let multiline = map_snippet.lines().count() > 1 || unwrap_snippet.lines().count() > 1;
-        let same_span = map_arg.span.ctxt() == unwrap_arg.span.ctxt();
+        let same_span = map_arg.span.eq_ctxt(unwrap_arg.span);
         if same_span && !multiline {
             let var_snippet = snippet(cx, recv.span, "..");
             span_lint_and_sugg(

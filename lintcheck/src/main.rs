@@ -309,7 +309,7 @@ impl Crate {
         target_dir_index: &AtomicUsize,
         total_crates_to_lint: usize,
         config: &LintcheckConfig,
-        lint_filter: &Vec<String>,
+        lint_filter: &[String],
         server: &Option<LintcheckServer>,
     ) -> Vec<ClippyWarning> {
         // advance the atomic index by one
@@ -523,7 +523,7 @@ fn gather_stats(clippy_warnings: &[ClippyWarning]) -> (String, HashMap<&String, 
         .for_each(|wrn| *counter.entry(&wrn.lint_type).or_insert(0) += 1);
 
     // collect into a tupled list for sorting
-    let mut stats: Vec<(&&String, &usize)> = counter.iter().map(|(lint, count)| (lint, count)).collect();
+    let mut stats: Vec<(&&String, &usize)> = counter.iter().collect();
     // sort by "000{count} {clippy::lintname}"
     // to not have a lint with 200 and 2 warnings take the same spot
     stats.sort_by_key(|(lint, count)| format!("{count:0>4}, {lint}"));
@@ -728,7 +728,7 @@ fn read_stats_from_file(file_path: &Path) -> HashMap<String, usize> {
 }
 
 /// print how lint counts changed between runs
-fn print_stats(old_stats: HashMap<String, usize>, new_stats: HashMap<&String, usize>, lint_filter: &Vec<String>) {
+fn print_stats(old_stats: HashMap<String, usize>, new_stats: HashMap<&String, usize>, lint_filter: &[String]) {
     let same_in_both_hashmaps = old_stats
         .iter()
         .filter(|(old_key, old_val)| new_stats.get::<&String>(old_key) == Some(old_val))

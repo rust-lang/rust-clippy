@@ -5,7 +5,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::sym;
 
 declare_clippy_lint! {
@@ -22,12 +22,12 @@ declare_clippy_lint! {
     /// * Less turbofishing
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # let data : &[i32] = &[1, 2, 3];
     /// let newlen = data.len() * std::mem::size_of::<i32>();
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # let data : &[i32] = &[1, 2, 3];
     /// let newlen = std::mem::size_of_val(data);
     /// ```

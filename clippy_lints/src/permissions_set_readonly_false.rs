@@ -1,10 +1,10 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::paths;
-use clippy_utils::ty::match_type;
+use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_ast::ast::LitKind;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -14,7 +14,7 @@ declare_clippy_lint! {
     /// On Unix platforms this results in the file being world writable,
     /// equivalent to `chmod a+w <file>`.
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// use std::fs::File;
     /// let f = File::create("foo.txt").unwrap();
     /// let metadata = f.metadata().unwrap();
@@ -31,7 +31,7 @@ declare_lint_pass!(PermissionsSetReadonlyFalse => [PERMISSIONS_SET_READONLY_FALS
 impl<'tcx> LateLintPass<'tcx> for PermissionsSetReadonlyFalse {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let ExprKind::MethodCall(path, receiver, [arg], _) = &expr.kind
-            && match_type(cx, cx.typeck_results().expr_ty(receiver), &paths::PERMISSIONS)
+            && is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(receiver), sym::FsPermissions)
             && path.ident.name == sym!(set_readonly)
             && let ExprKind::Lit(lit) = &arg.kind
             && LitKind::Bool(false) == lit.node
@@ -43,9 +43,11 @@ impl<'tcx> LateLintPass<'tcx> for PermissionsSetReadonlyFalse {
                 "call to `set_readonly` with argument `false`",
                 |diag| {
                     diag.note("on Unix platforms this results in the file being world writable");
-                    diag.help("you can set the desired permissions using `PermissionsExt`. For more information, see\n\
-                        https://doc.rust-lang.org/std/os/unix/fs/trait.PermissionsExt.html");
-                }
+                    diag.help(
+                        "you can set the desired permissions using `PermissionsExt`. For more information, see\n\
+                        https://doc.rust-lang.org/std/os/unix/fs/trait.PermissionsExt.html",
+                    );
+                },
             );
         }
     }

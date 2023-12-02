@@ -1,11 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::path_def_id;
 use clippy_utils::ty::is_c_void;
-use clippy_utils::{match_def_path, path_def_id, paths};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{RawPtr, TypeAndMut};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -18,13 +18,13 @@ declare_clippy_lint! {
     /// For this to be safe, `c_void` would need to have the same memory layout as the original type, which is often not the case.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # use std::ffi::c_void;
     /// let ptr = Box::into_raw(Box::new(42usize)) as *mut c_void;
     /// let _ = unsafe { Box::from_raw(ptr) };
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # use std::ffi::c_void;
     /// # let ptr = Box::into_raw(Box::new(42usize)) as *mut c_void;
     /// let _ = unsafe { Box::from_raw(ptr as *mut usize) };
@@ -40,14 +40,22 @@ declare_lint_pass!(FromRawWithVoidPtr => [FROM_RAW_WITH_VOID_PTR]);
 impl LateLintPass<'_> for FromRawWithVoidPtr {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
         if let ExprKind::Call(box_from_raw, [arg]) = expr.kind
-        && let ExprKind::Path(QPath::TypeRelative(ty, seg)) = box_from_raw.kind
-        && seg.ident.name == sym!(from_raw)
-        && let Some(type_str) = path_def_id(cx, ty).and_then(|id| def_id_matches_type(cx, id))
-        && let arg_kind = cx.typeck_results().expr_ty(arg).kind()
-        && let RawPtr(TypeAndMut { ty, .. }) = arg_kind
-        && is_c_void(cx, *ty) {
+            && let ExprKind::Path(QPath::TypeRelative(ty, seg)) = box_from_raw.kind
+            && seg.ident.name == sym!(from_raw)
+            && let Some(type_str) = path_def_id(cx, ty).and_then(|id| def_id_matches_type(cx, id))
+            && let arg_kind = cx.typeck_results().expr_ty(arg).kind()
+            && let RawPtr(TypeAndMut { ty, .. }) = arg_kind
+            && is_c_void(cx, *ty)
+        {
             let msg = format!("creating a `{type_str}` from a void raw pointer");
-            span_lint_and_help(cx, FROM_RAW_WITH_VOID_PTR, expr.span, &msg, Some(arg.span), "cast this to a pointer of the appropriate type");
+            span_lint_and_help(
+                cx,
+                FROM_RAW_WITH_VOID_PTR,
+                expr.span,
+                &msg,
+                Some(arg.span),
+                "cast this to a pointer of the appropriate type",
+            );
         }
     }
 }
@@ -68,7 +76,7 @@ fn def_id_matches_type(cx: &LateContext<'_>, def_id: DefId) -> Option<&'static s
         }
     }
 
-    if match_def_path(cx, def_id, &paths::WEAK_RC) || match_def_path(cx, def_id, &paths::WEAK_ARC) {
+    if matches!(cx.tcx.get_diagnostic_name(def_id), Some(sym::RcWeak | sym::ArcWeak)) {
         Some("Weak")
     } else {
         None

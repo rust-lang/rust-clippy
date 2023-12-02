@@ -26,7 +26,7 @@ arithmetic-side-effects-allowed = ["SomeType", "AnotherType"]
 A type, say `SomeType`, listed in this configuration has the same behavior of
 `["SomeType" , "*"], ["*", "SomeType"]` in `arithmetic_side_effects_allowed_binary`.
 
-**Default Value:** `{}` (`rustc_data_structures::fx::FxHashSet<String>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -49,7 +49,7 @@ Pairs are asymmetric, which means that `["SomeType", "AnotherType"]` is not the 
 arithmetic-side-effects-allowed-binary = [["SomeType" , "f32"], ["AnotherType", "*"]]
 ```
 
-**Default Value:** `[]` (`Vec<[String; 2]>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -65,7 +65,7 @@ Suppress checking of the passed type names in unary operations like "negation" (
 arithmetic-side-effects-allowed-unary = ["SomeType", "AnotherType"]
 ```
 
-**Default Value:** `{}` (`rustc_data_structures::fx::FxHashSet<String>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -75,7 +75,7 @@ arithmetic-side-effects-allowed-unary = ["SomeType", "AnotherType"]
 ## `avoid-breaking-exported-api`
 Suppress lints whenever the suggested change would cause breakage for other crates.
 
-**Default Value:** `true` (`bool`)
+**Default Value:** `true`
 
 ---
 **Affected lints:**
@@ -98,9 +98,7 @@ Suppress lints whenever the suggested change would cause breakage for other crat
 
 
 ## `msrv`
-The minimum rust version that the project supports
-
-**Default Value:** `None` (`Option<String>`)
+The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
 
 ---
 **Affected lints:**
@@ -152,12 +150,13 @@ The minimum rust version that the project supports
 * [`tuple_array_conversions`](https://rust-lang.github.io/rust-clippy/master/index.html#tuple_array_conversions)
 * [`manual_try_fold`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_try_fold)
 * [`manual_hash_one`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_hash_one)
+* [`iter_kv_map`](https://rust-lang.github.io/rust-clippy/master/index.html#iter_kv_map)
 
 
 ## `cognitive-complexity-threshold`
 The maximum cognitive complexity a function can have
 
-**Default Value:** `25` (`u64`)
+**Default Value:** `25`
 
 ---
 **Affected lints:**
@@ -167,7 +166,7 @@ The maximum cognitive complexity a function can have
 ## `excessive-nesting-threshold`
 The maximum amount of nesting a block can reside in
 
-**Default Value:** `0` (`u64`)
+**Default Value:** `0`
 
 ---
 **Affected lints:**
@@ -179,7 +178,7 @@ The list of disallowed names to lint about. NB: `bar` is not here since it has l
 `".."` can be used as part of the list to indicate that the configured values should be appended to the
 default configuration of Clippy. By default, any configuration will replace the default value.
 
-**Default Value:** `["foo", "baz", "quux"]` (`Vec<String>`)
+**Default Value:** `["foo", "baz", "quux"]`
 
 ---
 **Affected lints:**
@@ -189,7 +188,7 @@ default configuration of Clippy. By default, any configuration will replace the 
 ## `semicolon-inside-block-ignore-singleline`
 Whether to lint only if it's multiline.
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -199,7 +198,7 @@ Whether to lint only if it's multiline.
 ## `semicolon-outside-block-ignore-multiline`
 Whether to lint only if it's singleline.
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -213,9 +212,7 @@ default configuration of Clippy. By default, any configuration will replace the 
 * `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
 * `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
 
-Default list:
-
-**Default Value:** `["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "DirectX", "ECMAScript", "GPLv2", "GPLv3", "GitHub", "GitLab", "IPv4", "IPv6", "ClojureScript", "CoffeeScript", "JavaScript", "PureScript", "TypeScript", "WebAssembly", "NaN", "NaNs", "OAuth", "GraphQL", "OCaml", "OpenGL", "OpenMP", "OpenSSH", "OpenSSL", "OpenStreetMap", "OpenDNS", "WebGL", "TensorFlow", "TrueType", "iOS", "macOS", "FreeBSD", "TeX", "LaTeX", "BibTeX", "BibLaTeX", "MinGW", "CamelCase"]` (`Vec<String>`)
+**Default Value:** `["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "DirectX", "ECMAScript", "GPLv2", "GPLv3", "GitHub", "GitLab", "IPv4", "IPv6", "ClojureScript", "CoffeeScript", "JavaScript", "PureScript", "TypeScript", "WebAssembly", "NaN", "NaNs", "OAuth", "GraphQL", "OCaml", "OpenGL", "OpenMP", "OpenSSH", "OpenSSL", "OpenStreetMap", "OpenDNS", "WebGL", "TensorFlow", "TrueType", "iOS", "macOS", "FreeBSD", "TeX", "LaTeX", "BibTeX", "BibLaTeX", "MinGW", "CamelCase"]`
 
 ---
 **Affected lints:**
@@ -225,7 +222,7 @@ Default list:
 ## `too-many-arguments-threshold`
 The maximum number of argument a function or method can have
 
-**Default Value:** `7` (`u64`)
+**Default Value:** `7`
 
 ---
 **Affected lints:**
@@ -235,7 +232,7 @@ The maximum number of argument a function or method can have
 ## `type-complexity-threshold`
 The maximum complexity a type can have
 
-**Default Value:** `250` (`u64`)
+**Default Value:** `250`
 
 ---
 **Affected lints:**
@@ -245,7 +242,7 @@ The maximum complexity a type can have
 ## `single-char-binding-names-threshold`
 The maximum number of single char bindings a scope may have
 
-**Default Value:** `4` (`u64`)
+**Default Value:** `4`
 
 ---
 **Affected lints:**
@@ -255,7 +252,7 @@ The maximum number of single char bindings a scope may have
 ## `too-large-for-stack`
 The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap
 
-**Default Value:** `200` (`u64`)
+**Default Value:** `200`
 
 ---
 **Affected lints:**
@@ -266,17 +263,27 @@ The maximum size of objects (in bytes) that will be linted. Larger objects are o
 ## `enum-variant-name-threshold`
 The minimum number of enum variants for the lints about variant names to trigger
 
-**Default Value:** `3` (`u64`)
+**Default Value:** `3`
 
 ---
 **Affected lints:**
 * [`enum_variant_names`](https://rust-lang.github.io/rust-clippy/master/index.html#enum_variant_names)
 
 
+## `struct-field-name-threshold`
+The minimum number of struct fields for the lints about field names to trigger
+
+**Default Value:** `3`
+
+---
+**Affected lints:**
+* [`struct_variant_names`](https://rust-lang.github.io/rust-clippy/master/index.html#struct_variant_names)
+
+
 ## `enum-variant-size-threshold`
 The maximum size of an enum's variant to avoid box suggestion
 
-**Default Value:** `200` (`u64`)
+**Default Value:** `200`
 
 ---
 **Affected lints:**
@@ -286,7 +293,7 @@ The maximum size of an enum's variant to avoid box suggestion
 ## `verbose-bit-mask-threshold`
 The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros'
 
-**Default Value:** `1` (`u64`)
+**Default Value:** `1`
 
 ---
 **Affected lints:**
@@ -296,7 +303,7 @@ The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros'
 ## `literal-representation-threshold`
 The lower bound for linting decimal literals
 
-**Default Value:** `16384` (`u64`)
+**Default Value:** `16384`
 
 ---
 **Affected lints:**
@@ -304,9 +311,8 @@ The lower bound for linting decimal literals
 
 
 ## `trivial-copy-size-limit`
-The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by reference.
-
-**Default Value:** `None` (`Option<u64>`)
+The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by
+reference. By default there is no limit
 
 ---
 **Affected lints:**
@@ -316,7 +322,7 @@ The maximum size (in bytes) to consider a `Copy` type for passing by value inste
 ## `pass-by-value-size-limit`
 The minimum size (in bytes) to consider a type for passing by reference instead of by value.
 
-**Default Value:** `256` (`u64`)
+**Default Value:** `256`
 
 ---
 **Affected lints:**
@@ -326,7 +332,7 @@ The minimum size (in bytes) to consider a type for passing by reference instead 
 ## `too-many-lines-threshold`
 The maximum number of lines a function or method can have
 
-**Default Value:** `100` (`u64`)
+**Default Value:** `100`
 
 ---
 **Affected lints:**
@@ -336,7 +342,7 @@ The maximum number of lines a function or method can have
 ## `array-size-threshold`
 The maximum allowed size for arrays on the stack
 
-**Default Value:** `512000` (`u64`)
+**Default Value:** `512000`
 
 ---
 **Affected lints:**
@@ -347,7 +353,7 @@ The maximum allowed size for arrays on the stack
 ## `stack-size-threshold`
 The maximum allowed stack size for functions in bytes
 
-**Default Value:** `512000` (`u64`)
+**Default Value:** `512000`
 
 ---
 **Affected lints:**
@@ -357,7 +363,7 @@ The maximum allowed stack size for functions in bytes
 ## `vec-box-size-threshold`
 The size of the boxed type in bytes, where boxing in a `Vec` is allowed
 
-**Default Value:** `4096` (`u64`)
+**Default Value:** `4096`
 
 ---
 **Affected lints:**
@@ -367,7 +373,7 @@ The size of the boxed type in bytes, where boxing in a `Vec` is allowed
 ## `max-trait-bounds`
 The maximum number of bounds a trait can have to be linted
 
-**Default Value:** `3` (`u64`)
+**Default Value:** `3`
 
 ---
 **Affected lints:**
@@ -377,7 +383,7 @@ The maximum number of bounds a trait can have to be linted
 ## `max-struct-bools`
 The maximum number of bool fields a struct can have
 
-**Default Value:** `3` (`u64`)
+**Default Value:** `3`
 
 ---
 **Affected lints:**
@@ -387,7 +393,7 @@ The maximum number of bool fields a struct can have
 ## `max-fn-params-bools`
 The maximum number of bool parameters a function can have
 
-**Default Value:** `3` (`u64`)
+**Default Value:** `3`
 
 ---
 **Affected lints:**
@@ -397,7 +403,7 @@ The maximum number of bool parameters a function can have
 ## `warn-on-all-wildcard-imports`
 Whether to allow certain wildcard imports (prelude, super in tests).
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -407,7 +413,7 @@ Whether to allow certain wildcard imports (prelude, super in tests).
 ## `disallowed-macros`
 The list of disallowed macros, written as fully qualified paths.
 
-**Default Value:** `[]` (`Vec<crate::utils::conf::DisallowedPath>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -417,7 +423,7 @@ The list of disallowed macros, written as fully qualified paths.
 ## `disallowed-methods`
 The list of disallowed methods, written as fully qualified paths.
 
-**Default Value:** `[]` (`Vec<crate::utils::conf::DisallowedPath>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -427,7 +433,7 @@ The list of disallowed methods, written as fully qualified paths.
 ## `disallowed-types`
 The list of disallowed types, written as fully qualified paths.
 
-**Default Value:** `[]` (`Vec<crate::utils::conf::DisallowedPath>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -437,7 +443,7 @@ The list of disallowed types, written as fully qualified paths.
 ## `unreadable-literal-lint-fractions`
 Should the fraction of a decimal be linted to include separators.
 
-**Default Value:** `true` (`bool`)
+**Default Value:** `true`
 
 ---
 **Affected lints:**
@@ -447,7 +453,7 @@ Should the fraction of a decimal be linted to include separators.
 ## `upper-case-acronyms-aggressive`
 Enables verbose mode. Triggers if there is more than one uppercase char next to each other
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -458,7 +464,7 @@ Enables verbose mode. Triggers if there is more than one uppercase char next to 
 Whether the matches should be considered by the lint, and whether there should
 be filtering for common types.
 
-**Default Value:** `WellKnownTypes` (`crate::manual_let_else::MatchLintBehaviour`)
+**Default Value:** `"WellKnownTypes"`
 
 ---
 **Affected lints:**
@@ -468,11 +474,11 @@ be filtering for common types.
 ## `cargo-ignore-publish`
 For internal testing only, ignores the current `publish` settings in the Cargo manifest.
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
-* [`_cargo_common_metadata`](https://rust-lang.github.io/rust-clippy/master/index.html#_cargo_common_metadata)
+* [`cargo_common_metadata`](https://rust-lang.github.io/rust-clippy/master/index.html#cargo_common_metadata)
 
 
 ## `standard-macro-braces`
@@ -482,7 +488,7 @@ A `MacroMatcher` can be added like so `{ name = "macro_name", brace = "(" }`. If
 could be used with a full path two `MacroMatcher`s have to be added one with the full path
 `crate_name::macro_name` and one with just the macro name.
 
-**Default Value:** `[]` (`Vec<crate::nonstandard_macro_braces::MacroMatcher>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -492,7 +498,7 @@ could be used with a full path two `MacroMatcher`s have to be added one with the
 ## `enforced-import-renames`
 The list of imports to always rename, a fully qualified path followed by the rename.
 
-**Default Value:** `[]` (`Vec<crate::utils::conf::Rename>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -502,7 +508,7 @@ The list of imports to always rename, a fully qualified path followed by the ren
 ## `allowed-scripts`
 The list of unicode scripts allowed to be used in the scope.
 
-**Default Value:** `["Latin"]` (`Vec<String>`)
+**Default Value:** `["Latin"]`
 
 ---
 **Affected lints:**
@@ -512,7 +518,7 @@ The list of unicode scripts allowed to be used in the scope.
 ## `enable-raw-pointer-heuristic-for-send`
 Whether to apply the raw pointer heuristic to determine if a type is `Send`.
 
-**Default Value:** `true` (`bool`)
+**Default Value:** `true`
 
 ---
 **Affected lints:**
@@ -524,7 +530,7 @@ When Clippy suggests using a slice pattern, this is the maximum number of elemen
 the slice pattern that is suggested. If more elements are necessary, the lint is suppressed.
 For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.
 
-**Default Value:** `3` (`u64`)
+**Default Value:** `3`
 
 ---
 **Affected lints:**
@@ -534,7 +540,7 @@ For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.
 ## `await-holding-invalid-types`
 
 
-**Default Value:** `[]` (`Vec<crate::utils::conf::DisallowedPath>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -544,7 +550,7 @@ For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.
 ## `max-include-file-size`
 The maximum size of a file included via `include_bytes!()` or `include_str!()`, in bytes
 
-**Default Value:** `1000000` (`u64`)
+**Default Value:** `1000000`
 
 ---
 **Affected lints:**
@@ -554,7 +560,7 @@ The maximum size of a file included via `include_bytes!()` or `include_str!()`, 
 ## `allow-expect-in-tests`
 Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -564,7 +570,7 @@ Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 ## `allow-unwrap-in-tests`
 Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -574,7 +580,7 @@ Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
 ## `allow-dbg-in-tests`
 Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -584,7 +590,7 @@ Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`
 ## `allow-print-in-tests`
 Whether print macros (ex. `println!`) should be allowed in test functions or `#[cfg(test)]`
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -595,7 +601,7 @@ Whether print macros (ex. `println!`) should be allowed in test functions or `#[
 ## `large-error-threshold`
 The maximum size of the `Err`-variant in a `Result` returned from a function
 
-**Default Value:** `128` (`u64`)
+**Default Value:** `128`
 
 ---
 **Affected lints:**
@@ -606,7 +612,7 @@ The maximum size of the `Err`-variant in a `Result` returned from a function
 A list of paths to types that should be treated like `Arc`, i.e. ignored but
 for the generic parameters for determining interior mutability
 
-**Default Value:** `["bytes::Bytes"]` (`Vec<String>`)
+**Default Value:** `["bytes::Bytes"]`
 
 ---
 **Affected lints:**
@@ -617,7 +623,7 @@ for the generic parameters for determining interior mutability
 ## `allow-mixed-uninlined-format-args`
 Whether to allow mixed uninlined format args, e.g. `format!("{} {}", a, foo.bar)`
 
-**Default Value:** `true` (`bool`)
+**Default Value:** `true`
 
 ---
 **Affected lints:**
@@ -631,7 +637,7 @@ suggested counterparts are unavailable in constant code. This
 configuration will cause restriction lints to trigger even
 if no suggestion can be made.
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -642,7 +648,7 @@ if no suggestion can be made.
 Whether to **only** check for missing documentation in items visible within the current
 crate. For example, `pub(crate)` items.
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -652,7 +658,7 @@ crate. For example, `pub(crate)` items.
 ## `future-size-threshold`
 The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint
 
-**Default Value:** `16384` (`u64`)
+**Default Value:** `16384`
 
 ---
 **Affected lints:**
@@ -662,7 +668,7 @@ The maximum byte size a `Future` can have, before it triggers the `clippy::large
 ## `unnecessary-box-size`
 The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint
 
-**Default Value:** `128` (`u64`)
+**Default Value:** `128`
 
 ---
 **Affected lints:**
@@ -672,7 +678,7 @@ The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::u
 ## `allow-private-module-inception`
 Whether to allow module inception if it's not public.
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -684,7 +690,7 @@ Allowed names below the minimum allowed characters. The value `".."` can be used
 the list to indicate, that the configured values should be appended to the default
 configuration of Clippy. By default, any configuration will replace the default value.
 
-**Default Value:** `{"j", "z", "i", "y", "n", "x", "w"}` (`rustc_data_structures::fx::FxHashSet<String>`)
+**Default Value:** `["j", "z", "i", "y", "n", "x", "w"]`
 
 ---
 **Affected lints:**
@@ -694,7 +700,7 @@ configuration of Clippy. By default, any configuration will replace the default 
 ## `min-ident-chars-threshold`
 Minimum chars an ident can have, anything below or equal to this will be linted.
 
-**Default Value:** `1` (`u64`)
+**Default Value:** `1`
 
 ---
 **Affected lints:**
@@ -704,7 +710,7 @@ Minimum chars an ident can have, anything below or equal to this will be linted.
 ## `accept-comment-above-statement`
 Whether to accept a safety comment to be placed above the statement containing the `unsafe` block
 
-**Default Value:** `true` (`bool`)
+**Default Value:** `true`
 
 ---
 **Affected lints:**
@@ -714,7 +720,7 @@ Whether to accept a safety comment to be placed above the statement containing t
 ## `accept-comment-above-attributes`
 Whether to accept a safety comment to be placed above the attributes for the `unsafe` block
 
-**Default Value:** `true` (`bool`)
+**Default Value:** `true`
 
 ---
 **Affected lints:**
@@ -724,7 +730,7 @@ Whether to accept a safety comment to be placed above the attributes for the `un
 ## `allow-one-hash-in-raw-strings`
 Whether to allow `r#""#` when `r""` can be used
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
@@ -735,7 +741,7 @@ Whether to allow `r#""#` when `r""` can be used
 The maximum number of segments a path can have before being linted, anything above this will
 be linted.
 
-**Default Value:** `2` (`u64`)
+**Default Value:** `2`
 
 ---
 **Affected lints:**
@@ -745,7 +751,7 @@ be linted.
 ## `absolute-paths-allowed-crates`
 Which crates to allow absolute paths from
 
-**Default Value:** `{}` (`rustc_data_structures::fx::FxHashSet<String>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -755,7 +761,7 @@ Which crates to allow absolute paths from
 ## `allowed-dotfiles`
 Additional dotfiles (files or directories starting with a dot) to allow
 
-**Default Value:** `{}` (`rustc_data_structures::fx::FxHashSet<String>`)
+**Default Value:** `[]`
 
 ---
 **Affected lints:**
@@ -764,7 +770,7 @@ Additional dotfiles (files or directories starting with a dot) to allow
 
 ## `enforce-iter-loop-reborrow`
 #### Example
-```
+```no_run
 let mut vec = vec![1, 2, 3];
 let rmvec = &mut vec;
 for _ in rmvec.iter() {}
@@ -772,17 +778,30 @@ for _ in rmvec.iter_mut() {}
 ```
 
 Use instead:
-```
+```no_run
 let mut vec = vec![1, 2, 3];
 let rmvec = &mut vec;
 for _ in &*rmvec {}
 for _ in &mut *rmvec {}
 ```
 
-**Default Value:** `false` (`bool`)
+**Default Value:** `false`
 
 ---
 **Affected lints:**
 * [`explicit_iter_loop`](https://rust-lang.github.io/rust-clippy/master/index.html#explicit_iter_loop)
+
+
+## `check-private-items`
+
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`missing_safety_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_safety_doc)
+* [`unnecessary_safety_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#unnecessary_safety_doc)
+* [`missing_panics_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_panics_doc)
+* [`missing_errors_doc`](https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc)
 
 

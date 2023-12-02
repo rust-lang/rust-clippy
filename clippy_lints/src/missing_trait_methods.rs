@@ -5,7 +5,7 @@ use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Impl, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::AssocItem;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -21,7 +21,7 @@ declare_clippy_lint! {
     /// Indicates that a method is missing.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// trait Trait {
     ///     fn required();
     ///
@@ -35,7 +35,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// trait Trait {
     ///     fn required();
     ///

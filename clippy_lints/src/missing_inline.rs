@@ -2,9 +2,8 @@ use clippy_utils::diagnostics::span_lint;
 use rustc_ast::ast;
 use rustc_hir as hir;
 use rustc_lint::{self, LateContext, LateLintPass, LintContext};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::source_map::Span;
-use rustc_span::sym;
+use rustc_session::declare_lint_pass;
+use rustc_span::{sym, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -21,7 +20,7 @@ declare_clippy_lint! {
     /// then opt out for specific methods where this might not make sense.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// pub fn foo() {} // missing #[inline]
     /// fn ok() {} // ok
     /// #[inline] pub fn bar() {} // ok

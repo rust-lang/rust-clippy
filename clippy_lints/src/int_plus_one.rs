@@ -6,7 +6,7 @@ use rustc_ast::ast::{BinOpKind, Expr, ExprKind, LitKind};
 use rustc_ast::token;
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -16,14 +16,14 @@ declare_clippy_lint! {
     /// Readability -- better to use `> y` instead of `>= y + 1`.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # let x = 1;
     /// # let y = 1;
     /// if x >= y + 1 {}
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # let x = 1;
     /// # let y = 1;
     /// if x > y {}

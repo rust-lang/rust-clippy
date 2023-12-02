@@ -3,7 +3,7 @@ use clippy_utils::higher;
 use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
 use rustc_hir::{BorrowKind, Closure, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::{sym, Symbol};
 
 declare_clippy_lint! {
@@ -39,7 +39,7 @@ declare_clippy_lint! {
     /// this lint is not clever enough to analyze it.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let infinite_iter = 0..;
     /// # #[allow(unused)]
     /// [0..].iter().zip(infinite_iter.take_while(|x| *x > 5));

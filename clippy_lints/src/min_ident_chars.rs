@@ -6,7 +6,7 @@ use rustc_hir::intravisit::{walk_item, Visitor};
 use rustc_hir::{GenericParamKind, HirId, Item, ItemKind, ItemLocalId, Node, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 use std::borrow::Cow;
 
@@ -107,13 +107,17 @@ impl Visitor<'_> for IdentVisitor<'_, '_> {
 
         let str = ident.as_str();
         if conf.is_ident_too_short(cx, str, ident.span) {
-            if let Node::Item(item) = node && let ItemKind::Use(..) = item.kind {
+            if let Node::Item(item) = node
+                && let ItemKind::Use(..) = item.kind
+            {
                 return;
             }
             // `struct Awa<T>(T)`
             //                ^
             if let Node::PathSegment(path) = node {
-                if let Res::Def(def_kind, ..) = path.res && let DefKind::TyParam = def_kind {
+                if let Res::Def(def_kind, ..) = path.res
+                    && let DefKind::TyParam = def_kind
+                {
                     return;
                 }
                 if matches!(path.res, Res::PrimTy(..)) || path.res.opt_def_id().is_some_and(|def_id| !def_id.is_local())

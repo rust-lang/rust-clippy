@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Constness, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, Lint, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -17,16 +17,16 @@ declare_clippy_lint! {
     /// The method `is_infinite` is shorter and more readable.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # let x = 1.0f32;
     /// if x == f32::INFINITY || x == f32::NEG_INFINITY {}
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # let x = 1.0f32;
     /// if x.is_infinite() {}
     /// ```
-    #[clippy::version = "1.72.0"]
+    #[clippy::version = "1.73.0"]
     pub MANUAL_IS_INFINITE,
     style,
     "use dedicated method to check if a float is infinite"
@@ -40,18 +40,18 @@ declare_clippy_lint! {
     /// The method `is_finite` is shorter and more readable.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # let x = 1.0f32;
     /// if x != f32::INFINITY && x != f32::NEG_INFINITY {}
     /// if x.abs() < f32::INFINITY {}
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # let x = 1.0f32;
     /// if x.is_finite() {}
     /// if x.is_finite() {}
     /// ```
-    #[clippy::version = "1.72.0"]
+    #[clippy::version = "1.73.0"]
     pub MANUAL_IS_FINITE,
     style,
     "use dedicated method to check if a float is finite"
@@ -85,7 +85,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualFloatMethods {
         if !in_external_macro(cx.sess(), expr.span)
             && (
                 matches!(cx.tcx.constness(cx.tcx.hir().enclosing_body_owner(expr.hir_id)), Constness::NotConst)
-                    || cx.tcx.features().active(sym!(const_float_classify))
+                    || cx.tcx.features().declared(sym!(const_float_classify))
             ) && let ExprKind::Binary(kind, lhs, rhs) = expr.kind
             && let ExprKind::Binary(lhs_kind, lhs_lhs, lhs_rhs) = lhs.kind
             && let ExprKind::Binary(rhs_kind, rhs_lhs, rhs_rhs) = rhs.kind
@@ -114,46 +114,40 @@ impl<'tcx> LateLintPass<'tcx> for ManualFloatMethods {
                 _ => return,
             };
 
-            span_lint_and_then(
-                cx,
-                variant.lint(),
-                expr.span,
-                variant.msg(),
-                |diag| {
-                    match variant {
-                        Variant::ManualIsInfinite => {
-                            diag.span_suggestion(
-                                expr.span,
-                                "use the dedicated method instead",
-                                format!("{local_snippet}.is_infinite()"),
-                                Applicability::MachineApplicable,
-                            );
-                        },
-                        Variant::ManualIsFinite => {
-                            // TODO: There's probably some better way to do this, i.e., create
-                            // multiple suggestions with notes between each of them
-                            diag.span_suggestion_verbose(
-                                expr.span,
-                                "use the dedicated method instead",
-                                format!("{local_snippet}.is_finite()"),
-                                Applicability::MaybeIncorrect,
-                            )
-                            .span_suggestion_verbose(
-                                expr.span,
-                                "this will alter how it handles NaN; if that is a problem, use instead",
-                                format!("{local_snippet}.is_finite() || {local_snippet}.is_nan()"),
-                                Applicability::MaybeIncorrect,
-                            )
-                            .span_suggestion_verbose(
-                                expr.span,
-                                "or, for conciseness",
-                                format!("!{local_snippet}.is_infinite()"),
-                                Applicability::MaybeIncorrect,
-                            );
-                        },
-                    }
-                },
-            );
+            span_lint_and_then(cx, variant.lint(), expr.span, variant.msg(), |diag| {
+                match variant {
+                    Variant::ManualIsInfinite => {
+                        diag.span_suggestion(
+                            expr.span,
+                            "use the dedicated method instead",
+                            format!("{local_snippet}.is_infinite()"),
+                            Applicability::MachineApplicable,
+                        );
+                    },
+                    Variant::ManualIsFinite => {
+                        // TODO: There's probably some better way to do this, i.e., create
+                        // multiple suggestions with notes between each of them
+                        diag.span_suggestion_verbose(
+                            expr.span,
+                            "use the dedicated method instead",
+                            format!("{local_snippet}.is_finite()"),
+                            Applicability::MaybeIncorrect,
+                        )
+                        .span_suggestion_verbose(
+                            expr.span,
+                            "this will alter how it handles NaN; if that is a problem, use instead",
+                            format!("{local_snippet}.is_finite() || {local_snippet}.is_nan()"),
+                            Applicability::MaybeIncorrect,
+                        )
+                        .span_suggestion_verbose(
+                            expr.span,
+                            "or, for conciseness",
+                            format!("!{local_snippet}.is_infinite()"),
+                            Applicability::MaybeIncorrect,
+                        );
+                    },
+                }
+            });
         }
     }
 }

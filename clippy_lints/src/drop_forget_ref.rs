@@ -3,7 +3,7 @@ use clippy_utils::ty::{is_copy, is_must_use_ty, is_type_lang_item};
 use clippy_utils::{get_parent_node, is_must_use_func_call};
 use rustc_hir::{Arm, Expr, ExprKind, LangItem, Node};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use std::borrow::Cow;
 
@@ -16,7 +16,7 @@ declare_clippy_lint! {
     /// have been intended.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// struct Foo;
     /// let x = Foo;
     /// std::mem::drop(x);
@@ -36,7 +36,7 @@ declare_clippy_lint! {
     /// have been intended.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// struct Foo;
     /// let x = Foo;
     /// std::mem::forget(x);
@@ -57,7 +57,7 @@ declare_clippy_lint! {
     /// destructor, possibly causing leaks.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # use std::mem;
     /// # use std::rc::Rc;
     /// mem::forget(Rc::new(55))
@@ -90,7 +90,8 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
             let is_copy = is_copy(cx, arg_ty);
             let drop_is_single_call_in_arm = is_single_call_in_arm(cx, arg, expr);
             let (lint, msg, note_span) = match fn_name {
-                // early return for uplifted lints: dropping_references, dropping_copy_types, forgetting_references, forgetting_copy_types
+                // early return for uplifted lints: dropping_references, dropping_copy_types, forgetting_references,
+                // forgetting_copy_types
                 sym::mem_drop if arg_ty.is_ref() && !drop_is_single_call_in_arm => return,
                 sym::mem_forget if arg_ty.is_ref() => return,
                 sym::mem_drop if is_copy && !drop_is_single_call_in_arm => return,
@@ -100,8 +101,7 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                     if !(arg_ty.needs_drop(cx.tcx, cx.param_env)
                         || is_must_use_func_call(cx, arg)
                         || is_must_use_ty(cx, arg_ty)
-                        || drop_is_single_call_in_arm
-                        ) =>
+                        || drop_is_single_call_in_arm) =>
                 {
                     (DROP_NON_DROP, DROP_NON_DROP_SUMMARY.into(), Some(arg.span))
                 },
@@ -122,7 +122,7 @@ impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
                     } else {
                         (FORGET_NON_DROP, FORGET_NON_DROP_SUMMARY.into(), Some(arg.span))
                     }
-                }
+                },
                 _ => return,
             };
             span_lint_and_note(

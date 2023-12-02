@@ -119,7 +119,7 @@ where
     // it's being passed by value.
     let scrutinee = peel_hir_expr_refs(scrutinee).0;
     let (scrutinee_str, _) = snippet_with_context(cx, scrutinee.span, expr_ctxt, "..", &mut app);
-    let scrutinee_str = if scrutinee.span.ctxt() == expr.span.ctxt() && scrutinee.precedence().order() < PREC_POSTFIX {
+    let scrutinee_str = if scrutinee.span.eq_ctxt(expr.span) && scrutinee.precedence().order() < PREC_POSTFIX {
         format!("({scrutinee_str})")
     } else {
         scrutinee_str.into()
@@ -127,32 +127,30 @@ where
 
     let closure_expr_snip = some_expr.to_snippet_with_context(cx, expr_ctxt, &mut app);
     let body_str = if let PatKind::Binding(annotation, id, some_binding, None) = some_pat.kind {
-        if_chain! {
-            if !some_expr.needs_unsafe_block;
-            if let Some(func) = can_pass_as_func(cx, id, some_expr.expr);
-            if func.span.ctxt() == some_expr.expr.span.ctxt();
-            then {
-                snippet_with_applicability(cx, func.span, "..", &mut app).into_owned()
+        if !some_expr.needs_unsafe_block
+            && let Some(func) = can_pass_as_func(cx, id, some_expr.expr)
+            && func.span.eq_ctxt(some_expr.expr.span)
+        {
+            snippet_with_applicability(cx, func.span, "..", &mut app).into_owned()
+        } else {
+            if path_to_local_id(some_expr.expr, id)
+                && !is_lint_allowed(cx, MATCH_AS_REF, expr.hir_id)
+                && binding_ref.is_some()
+            {
+                return None;
+            }
+
+            // `ref` and `ref mut` annotations were handled earlier.
+            let annotation = if matches!(annotation, BindingAnnotation::MUT) {
+                "mut "
             } else {
-                if path_to_local_id(some_expr.expr, id)
-                    && !is_lint_allowed(cx, MATCH_AS_REF, expr.hir_id)
-                    && binding_ref.is_some()
-                {
-                    return None;
-                }
+                ""
+            };
 
-                // `ref` and `ref mut` annotations were handled earlier.
-                let annotation = if matches!(annotation, BindingAnnotation::MUT) {
-                    "mut "
-                } else {
-                    ""
-                };
-
-                if some_expr.needs_unsafe_block {
-                    format!("|{annotation}{some_binding}| unsafe {{ {closure_expr_snip} }}")
-                } else {
-                    format!("|{annotation}{some_binding}| {closure_expr_snip}")
-                }
+            if some_expr.needs_unsafe_block {
+                format!("|{annotation}{some_binding}| unsafe {{ {closure_expr_snip} }}")
+            } else {
+                format!("|{annotation}{some_binding}| {closure_expr_snip}")
             }
         }
     } else if !is_wild_none && explicit_ref.is_none() {

@@ -7,7 +7,7 @@ use core::ops::ControlFlow;
 use rustc_hir as hir;
 use rustc_hir::intravisit::FnKind;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{sym, Span};
 
@@ -22,14 +22,14 @@ declare_clippy_lint! {
     /// Functions called from a function returning a `Result` may invoke a panicking macro. This is not checked.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// fn result_with_panic() -> Result<bool, String>
     /// {
     ///     panic!("error");
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// fn result_without_panic() -> Result<bool, String> {
     ///     Err(String::from("error"))
     /// }
@@ -55,7 +55,7 @@ impl<'tcx> LateLintPass<'tcx> for PanicInResultFn {
         if matches!(fn_kind, FnKind::Closure) {
             return;
         }
-        let owner = cx.tcx.hir().local_def_id_to_hir_id(def_id).expect_owner();
+        let owner = cx.tcx.local_def_id_to_hir_id(def_id).expect_owner();
         if is_type_diagnostic_item(cx, return_ty(cx, owner), sym::Result) {
             lint_impl_body(cx, span, body);
         }

@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::ty::{match_type, peel_mid_ty_refs_is_mutable};
-use clippy_utils::{fn_def_id, is_trait_method, path_to_local_id, paths, peel_ref_operators};
+use clippy_utils::ty::{is_type_diagnostic_item, peel_mid_ty_refs_is_mutable};
+use clippy_utils::{fn_def_id, is_trait_method, path_to_local_id, peel_ref_operators};
 use rustc_ast::Mutability;
 use rustc_hir::intravisit::{walk_expr, Visitor};
 use rustc_hir::{Block, Expr, ExprKind, HirId, Local, Node, PatKind, PathSegment, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter::OnlyBodies;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -18,7 +18,7 @@ declare_clippy_lint! {
     /// or just a leftover after a refactor.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let collection = vec![1, 2, 3];
     /// let iter = collection.iter().peekable();
     ///
@@ -28,7 +28,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// let collection = vec![1, 2, 3];
     /// let iter = collection.iter();
     ///
@@ -49,7 +49,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedPeekable {
         // Don't lint `Peekable`s returned from a block
         if let Some(expr) = block.expr
             && let Some(ty) = cx.typeck_results().expr_ty_opt(peel_ref_operators(cx, expr))
-            && match_type(cx, ty, &paths::PEEKABLE)
+            && is_type_diagnostic_item(cx, ty, sym::IterPeekable)
         {
             return;
         }
@@ -62,7 +62,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedPeekable {
                 && !init.span.from_expansion()
                 && let Some(ty) = cx.typeck_results().expr_ty_opt(init)
                 && let (ty, _, Mutability::Mut) = peel_mid_ty_refs_is_mutable(ty)
-                && match_type(cx, ty, &paths::PEEKABLE)
+                && is_type_diagnostic_item(cx, ty, sym::IterPeekable)
             {
                 let mut vis = PeekableVisitor::new(cx, binding);
 
@@ -85,8 +85,8 @@ impl<'tcx> LateLintPass<'tcx> for UnusedPeekable {
                         ident.span,
                         "`peek` never called on `Peekable` iterator",
                         None,
-                        "consider removing the call to `peekable`"
-                   );
+                        "consider removing the call to `peekable`",
+                    );
                 }
             }
         }
@@ -131,11 +131,7 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                             // If the Peekable is passed to a function, stop
                             ExprKind::Call(_, args) => {
                                 if let Some(func_did) = fn_def_id(self.cx, expr)
-                                    && let Some(into_iter_did) = self
-                                        .cx
-                                        .tcx
-                                        .lang_items()
-                                        .into_iter_fn()
+                                    && let Some(into_iter_did) = self.cx.tcx.lang_items().into_iter_fn()
                                     && func_did == into_iter_did
                                 {
                                     // Probably a for loop desugar, stop searching
@@ -222,7 +218,7 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
 fn arg_is_mut_peekable(cx: &LateContext<'_>, arg: &Expr<'_>) -> bool {
     if let Some(ty) = cx.typeck_results().expr_ty_opt(arg)
         && let (ty, _, Mutability::Mut) = peel_mid_ty_refs_is_mutable(ty)
-        && match_type(cx, ty, &paths::PEEKABLE)
+        && is_type_diagnostic_item(cx, ty, sym::IterPeekable)
     {
         true
     } else {

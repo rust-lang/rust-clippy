@@ -1,10 +1,10 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::msrvs::{self, Msrv};
 use rustc_ast::ast::{FloatTy, LitFloatType, LitKind};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_semver::RustcVersion;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::symbol;
 use std::f64::consts as f64;
 
@@ -24,12 +24,12 @@ declare_clippy_lint! {
     /// issue](https://github.com/rust-lang/rust/issues).
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let x = 3.14;
     /// let y = 1_f64 / x;
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// let x = std::f32::consts::PI;
     /// let y = std::f64::consts::FRAC_1_PI;
     /// ```

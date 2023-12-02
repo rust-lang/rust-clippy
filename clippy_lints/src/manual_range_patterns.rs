@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, PatKind, RangeEnd, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{Span, DUMMY_SP};
 
 declare_clippy_lint! {
@@ -22,12 +22,12 @@ declare_clippy_lint! {
     /// in order to support negative numbers.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let x = 6;
     /// let foo = matches!(x, 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10);
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// let x = 6;
     /// let foo = matches!(x, 1..=10);
     /// ```

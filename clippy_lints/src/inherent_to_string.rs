@@ -3,7 +3,7 @@ use clippy_utils::ty::{implements_trait, is_type_lang_item};
 use clippy_utils::{return_ty, trait_ref_of_method};
 use rustc_hir::{GenericParamKind, ImplItem, ImplItemKind, LangItem, Unsafety};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use rustc_target::spec::abi::Abi;
 
@@ -15,7 +15,7 @@ declare_clippy_lint! {
     /// This method is also implicitly defined if a type implements the `Display` trait. As the functionality of `Display` is much more versatile, it should be preferred.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// pub struct A;
     ///
     /// impl A {
@@ -26,7 +26,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// use std::fmt;
     ///
     /// pub struct A;
@@ -51,7 +51,7 @@ declare_clippy_lint! {
     /// This method is also implicitly defined if a type implements the `Display` trait. The less versatile inherent method will then shadow the implementation introduced by `Display`.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// use std::fmt;
     ///
     /// pub struct A;
@@ -70,7 +70,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// use std::fmt;
     ///
     /// pub struct A;

@@ -1,7 +1,6 @@
 #![warn(clippy::option_if_let_else)]
 #![allow(
     unused_tuple_struct_fields,
-    clippy::redundant_closure,
     clippy::ref_option_ref,
     clippy::equatable_if_let,
     clippy::let_unit_value,
@@ -116,11 +115,13 @@ fn pattern_to_vec(pattern: &str) -> Vec<String> {
 }
 
 // #10335
-fn test_result_impure_else(variable: Result<u32, &str>) {
+fn test_result_impure_else(variable: Result<u32, &str>) -> bool {
     if let Ok(binding) = variable {
         println!("Ok {binding}");
+        true
     } else {
         println!("Err");
+        false
     }
 }
 
@@ -255,19 +256,51 @@ mod issue10729 {
 
     pub fn reproduce(initial: &Option<String>) {
         // 👇 needs `.as_ref()` because initial is an `&Option<_>`
-        match initial {
+        let _ = match initial {
             Some(value) => do_something(value),
-            None => {},
-        }
+            None => 42,
+        };
     }
 
     pub fn reproduce2(initial: &mut Option<String>) {
-        match initial {
+        let _ = match initial {
             Some(value) => do_something2(value),
-            None => {},
-        }
+            None => 42,
+        };
     }
 
-    fn do_something(_value: &str) {}
-    fn do_something2(_value: &mut str) {}
+    fn do_something(_value: &str) -> u32 {
+        todo!()
+    }
+    fn do_something2(_value: &mut str) -> u32 {
+        todo!()
+    }
+}
+
+fn issue11429() {
+    use std::collections::HashMap;
+
+    macro_rules! new_map {
+        () => {{ HashMap::new() }};
+    }
+
+    let opt: Option<HashMap<u8, u8>> = None;
+
+    let mut _hashmap = if let Some(hm) = &opt {
+        hm.clone()
+    } else {
+        HashMap::new()
+    };
+
+    let mut _hm = if let Some(hm) = &opt { hm.clone() } else { new_map!() };
+}
+
+fn issue11893() {
+    use std::io::Write;
+    let mut output = std::io::stdout().lock();
+    if let Some(name) = Some("stuff") {
+        writeln!(output, "{name:?}").unwrap();
+    } else {
+        panic!("Haven't thought about this condition.");
+    }
 }

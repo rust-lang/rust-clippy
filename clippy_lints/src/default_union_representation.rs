@@ -3,7 +3,7 @@ use rustc_hir::{HirId, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf;
 use rustc_middle::ty::{self, FieldDef, GenericArg, List};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -17,7 +17,7 @@ declare_clippy_lint! {
     /// specified layout. These cases may lead to undefined behavior in unsafe blocks.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// union Foo {
     ///     a: i32,
     ///     b: u32,
@@ -30,7 +30,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// #[repr(C)]
     /// union Foo {
     ///     a: i32,

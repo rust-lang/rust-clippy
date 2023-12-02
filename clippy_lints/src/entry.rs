@@ -10,7 +10,7 @@ use rustc_hir::hir_id::HirIdSet;
 use rustc_hir::intravisit::{walk_expr, Visitor};
 use rustc_hir::{Block, Expr, ExprKind, Guard, HirId, Let, Pat, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::{Span, SyntaxContext, DUMMY_SP};
 
 declare_clippy_lint! {
@@ -23,7 +23,7 @@ declare_clippy_lint! {
     ///
     /// ### Known problems
     /// The suggestion may have type inference errors in some cases. e.g.
-    /// ```rust
+    /// ```no_run
     /// let mut map = std::collections::HashMap::new();
     /// let _ = if !map.contains_key(&0) {
     ///     map.insert(0, 0)
@@ -33,7 +33,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # use std::collections::HashMap;
     /// # let mut map = HashMap::new();
     /// # let k = 1;
@@ -43,7 +43,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # use std::collections::HashMap;
     /// # let mut map = HashMap::new();
     /// # let k = 1;
@@ -241,7 +241,7 @@ fn try_parse_contains<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'_>) -> Optio
                 },
             ],
             _,
-        ) if key_span.ctxt() == expr.span.ctxt() => {
+        ) if key_span.eq_ctxt(expr.span) => {
             let id = cx.typeck_results().type_dependent_def_id(expr.hir_id)?;
             let expr = ContainsExpr {
                 negated,

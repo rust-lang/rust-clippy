@@ -1,13 +1,12 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::paths::ORD_CMP;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{get_parent_node, is_res_lang_ctor, last_path_segment, match_def_path, path_res, std_or_core};
+use clippy_utils::{get_parent_node, is_res_lang_ctor, last_path_segment, path_res, std_or_core};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{Expr, ExprKind, ImplItem, ImplItemKind, LangItem, Node, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::EarlyBinder;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use rustc_span::symbol::kw;
 
@@ -65,7 +64,7 @@ declare_clippy_lint! {
     /// in `Some`.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// # use std::cmp::Ordering;
     /// #[derive(Eq, PartialEq)]
     /// struct A(u32);
@@ -85,7 +84,7 @@ declare_clippy_lint! {
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// # use std::cmp::Ordering;
     /// #[derive(Eq, PartialEq)]
     /// struct A(u32);
@@ -103,7 +102,7 @@ declare_clippy_lint! {
     ///     }
     /// }
     /// ```
-    #[clippy::version = "1.72.0"]
+    #[clippy::version = "1.73.0"]
     pub NON_CANONICAL_PARTIAL_ORD_IMPL,
     suspicious,
     "non-canonical implementation of `PartialOrd` on an `Ord` type"
@@ -132,12 +131,7 @@ impl LateLintPass<'_> for NonCanonicalImpls {
 
         if cx.tcx.is_diagnostic_item(sym::Clone, trait_impl.def_id)
             && let Some(copy_def_id) = cx.tcx.get_diagnostic_item(sym::Copy)
-            && implements_trait(
-                    cx,
-                    trait_impl.self_ty(),
-                    copy_def_id,
-                    &[],
-                )
+            && implements_trait(cx, trait_impl.self_ty(), copy_def_id, &[])
         {
             if impl_item.ident.name == sym::clone {
                 if block.stmts.is_empty()
@@ -145,7 +139,8 @@ impl LateLintPass<'_> for NonCanonicalImpls {
                     && let ExprKind::Unary(UnOp::Deref, deref) = expr.kind
                     && let ExprKind::Path(qpath) = deref.kind
                     && last_path_segment(&qpath).ident.name == kw::SelfLower
-                {} else {
+                {
+                } else {
                     span_lint_and_sugg(
                         cx,
                         NON_CANONICAL_CLONE_IMPL,
@@ -198,10 +193,13 @@ impl LateLintPass<'_> for NonCanonicalImpls {
                 && is_res_lang_ctor(cx, cx.qpath_res(some_path, *some_hir_id), LangItem::OptionSome)
                 // Fix #11178, allow `Self::cmp(self, ..)` too
                 && self_cmp_call(cx, cmp_expr, impl_item.owner_id.def_id, &mut needs_fully_qualified)
-            {} else {
+            {
+            } else {
                 // If `Self` and `Rhs` are not the same type, bail. This makes creating a valid
                 // suggestion tons more complex.
-                if let [lhs, rhs, ..] = trait_impl.args.as_slice() && lhs != rhs {
+                if let [lhs, rhs, ..] = trait_impl.args.as_slice()
+                    && lhs != rhs
+                {
                     return;
                 }
 
@@ -239,12 +237,8 @@ impl LateLintPass<'_> for NonCanonicalImpls {
                             ],
                         };
 
-                        diag.multipart_suggestion(
-                            "change this to",
-                            suggs,
-                            Applicability::Unspecified,
-                        );
-                    }
+                        diag.multipart_suggestion("change this to", suggs, Applicability::Unspecified);
+                    },
                 );
             }
         }
@@ -261,7 +255,7 @@ fn self_cmp_call<'tcx>(
     match cmp_expr.kind {
         ExprKind::Call(path, [_self, _other]) => path_res(cx, path)
             .opt_def_id()
-            .is_some_and(|def_id| match_def_path(cx, def_id, &ORD_CMP)),
+            .is_some_and(|def_id| cx.tcx.is_diagnostic_item(sym::ord_cmp_method, def_id)),
         ExprKind::MethodCall(_, _, [_other], ..) => {
             // We can set this to true here no matter what as if it's a `MethodCall` and goes to the
             // `else` branch, it must be a method named `cmp` that isn't `Ord::cmp`
@@ -273,7 +267,7 @@ fn self_cmp_call<'tcx>(
             cx.tcx
                 .typeck(def_id)
                 .type_dependent_def_id(cmp_expr.hir_id)
-                .is_some_and(|def_id| match_def_path(cx, def_id, &ORD_CMP))
+                .is_some_and(|def_id| cx.tcx.is_diagnostic_item(sym::ord_cmp_method, def_id))
         },
         _ => false,
     }

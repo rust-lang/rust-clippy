@@ -2,7 +2,6 @@ use crate::utils::internal_lints::metadata_collector::is_deprecated_lint;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
 use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::{is_lint_allowed, match_def_path, paths};
-use if_chain::if_chain;
 use rustc_ast::ast::LitKind;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_hir::def::{DefKind, Res};
@@ -12,7 +11,7 @@ use rustc_hir::{ExprKind, HirId, Item, MutTy, Mutability, Path, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_semver::RustcVersion;
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_span::source_map::Spanned;
 use rustc_span::symbol::Symbol;
 use rustc_span::{sym, Span};
@@ -28,8 +27,8 @@ declare_clippy_lint! {
     /// know the name of the lint.
     ///
     /// ### Known problems
-    /// Only checks for lints associated using the
-    /// `declare_lint_pass!`, `impl_lint_pass!`, and `lint_array!` macros.
+    /// Only checks for lints associated using the `declare_lint_pass!` and
+    /// `impl_lint_pass!` macros.
     ///
     /// ### Example
     /// ```rust,ignore
@@ -153,8 +152,9 @@ impl<'tcx> LateLintPass<'tcx> for LintWithoutLintPass {
                 let fields;
                 if is_lint_ref_ty {
                     if let ExprKind::AddrOf(_, _, inner_exp) = expr.kind
-                        && let ExprKind::Struct(_, struct_fields, _) = inner_exp.kind {
-                            fields = struct_fields;
+                        && let ExprKind::Struct(_, struct_fields, _) = inner_exp.kind
+                    {
+                        fields = struct_fields;
                     } else {
                         return;
                     }
@@ -308,14 +308,16 @@ fn check_invalid_clippy_version_attribute(cx: &LateContext<'_>, item: &'_ Item<'
 pub(super) fn extract_clippy_version_value(cx: &LateContext<'_>, item: &'_ Item<'_>) -> Option<Symbol> {
     let attrs = cx.tcx.hir().attrs(item.hir_id());
     attrs.iter().find_map(|attr| {
-        if_chain! {
+        if let ast::AttrKind::Normal(ref attr_kind) = &attr.kind
             // Identify attribute
-            if let ast::AttrKind::Normal(ref attr_kind) = &attr.kind;
-            if let [tool_name, attr_name] = &attr_kind.item.path.segments[..];
-            if tool_name.ident.name == sym::clippy;
-            if attr_name.ident.name == sym::version;
-            if let Some(version) = attr.value_str();
-            then { Some(version) } else { None }
+            && let [tool_name, attr_name] = &attr_kind.item.path.segments[..]
+            && tool_name.ident.name == sym::clippy
+            && attr_name.ident.name == sym::version
+            && let Some(version) = attr.value_str()
+        {
+            Some(version)
+        } else {
+            None
         }
     })
 }

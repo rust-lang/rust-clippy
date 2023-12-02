@@ -4,7 +4,7 @@ use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem, MatchSource, QPath};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_tool_lint, impl_lint_pass};
+use rustc_session::impl_lint_pass;
 use rustc_target::abi::Size;
 
 declare_clippy_lint! {
@@ -12,11 +12,11 @@ declare_clippy_lint! {
     /// It checks for the size of a `Future` created by `async fn` or `async {}`.
     ///
     /// ### Why is this bad?
-    /// Due to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Generator`,
+    /// Due to the current [unideal implementation](https://github.com/rust-lang/rust/issues/69826) of `Coroutine`,
     /// large size of a `Future` may cause stack overflows.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// async fn large_future(_x: [u8; 16 * 1024]) {}
     ///
     /// pub async fn trigger() {
@@ -26,7 +26,7 @@ declare_clippy_lint! {
     ///
     /// `Box::pin` the big future instead.
     ///
-    /// ```rust
+    /// ```no_run
     /// async fn large_future(_x: [u8; 16 * 1024]) {}
     ///
     /// pub async fn trigger() {

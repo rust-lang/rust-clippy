@@ -3,7 +3,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -23,12 +23,12 @@ declare_clippy_lint! {
     ///
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// enum Test {}
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// #![feature(never_type)]
     ///
     /// struct Test(!);

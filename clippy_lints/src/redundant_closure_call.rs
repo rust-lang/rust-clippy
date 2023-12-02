@@ -2,16 +2,15 @@ use crate::rustc_lint::LintContext;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::get_parent_expr;
 use clippy_utils::sugg::Sugg;
-use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_hir::intravisit as hir_visit;
 use rustc_hir::intravisit::{Visitor as HirVisitor, Visitor};
+use rustc_hir::{intravisit as hir_visit, CoroutineKind, CoroutineSource, Node};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty;
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -23,12 +22,12 @@ declare_clippy_lint! {
     /// complexity.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// let a = (|| 42)();
     /// ```
     ///
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// let a = 42;
     /// ```
     #[clippy::version = "pre 1.29.0"]
@@ -61,11 +60,14 @@ impl<'tcx> Visitor<'tcx> for ReturnVisitor {
     }
 }
 
-/// Checks if the body is owned by an async closure
-fn is_async_closure(body: &hir::Body<'_>) -> bool {
-    if let hir::ExprKind::Closure(closure) = body.value.kind
-        && let [resume_ty] = closure.fn_decl.inputs
-        && let hir::TyKind::Path(hir::QPath::LangItem(hir::LangItem::ResumeTy, ..)) = resume_ty.kind
+/// Checks if the body is owned by an async closure.
+/// Returns true for `async || whatever_expression`, but false for `|| async { whatever_expression
+/// }`.
+fn is_async_closure(cx: &LateContext<'_>, body: &hir::Body<'_>) -> bool {
+    if let hir::ExprKind::Closure(innermost_closure_generated_by_desugar) = body.value.kind
+        && let desugared_inner_closure_body = cx.tcx.hir().body(innermost_closure_generated_by_desugar.body)
+        // checks whether it is `async || whatever_expression`
+        && let Some(CoroutineKind::Async(CoroutineSource::Closure)) = desugared_inner_closure_body.coroutine_kind
     {
         true
     } else {
@@ -98,11 +100,15 @@ fn find_innermost_closure<'tcx>(
         && steps > 0
     {
         expr = body.value;
-        data = Some((body.value, closure.fn_decl, if is_async_closure(body) {
-            ty::Asyncness::Yes
-        } else {
-            ty::Asyncness::No
-        }));
+        data = Some((
+            body.value,
+            closure.fn_decl,
+            if is_async_closure(cx, body) {
+                ty::Asyncness::Yes
+            } else {
+                ty::Asyncness::No
+            },
+        ));
         steps -= 1;
     }
 
@@ -137,14 +143,14 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
         }
 
         if let hir::ExprKind::Call(recv, _) = expr.kind
-            // don't lint if the receiver is a call, too. 
+            // don't lint if the receiver is a call, too.
             // we do this in order to prevent linting multiple times; consider:
             // `(|| || 1)()()`
             //           ^^  we only want to lint for this call (but we walk up the calls to consider both calls).
             // without this check, we'd end up linting twice.
             && !matches!(recv.kind, hir::ExprKind::Call(..))
             && let (full_expr, call_depth) = get_parent_call_exprs(cx, expr)
-            && let Some((body, fn_decl, generator_kind)) = find_innermost_closure(cx, recv, call_depth)
+            && let Some((body, fn_decl, coroutine_kind)) = find_innermost_closure(cx, recv, call_depth)
         {
             span_lint_and_then(
                 cx,
@@ -154,9 +160,10 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
                 |diag| {
                     if fn_decl.inputs.is_empty() {
                         let mut applicability = Applicability::MachineApplicable;
-                        let mut hint = Sugg::hir_with_context(cx, body, full_expr.span.ctxt(), "..", &mut applicability);
+                        let mut hint =
+                            Sugg::hir_with_context(cx, body, full_expr.span.ctxt(), "..", &mut applicability);
 
-                        if generator_kind.is_async()
+                        if coroutine_kind.is_async()
                             && let hir::ExprKind::Closure(closure) = body.kind
                         {
                             let async_closure_body = cx.tcx.hir().body(closure.body);
@@ -169,14 +176,20 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
                             hint = hint.asyncify();
                         }
 
-                        diag.span_suggestion(
-                            full_expr.span,
-                            "try doing something like",
-                            hint.maybe_par(),
-                            applicability
-                        );
+                        let is_in_fn_call_arg =
+                            clippy_utils::get_parent_node(cx.tcx, expr.hir_id).is_some_and(|x| match x {
+                                Node::Expr(expr) => matches!(expr.kind, hir::ExprKind::Call(_, _)),
+                                _ => false,
+                            });
+
+                        // avoid clippy::double_parens
+                        if !is_in_fn_call_arg {
+                            hint = hint.maybe_par();
+                        };
+
+                        diag.span_suggestion(full_expr.span, "try doing something like", hint, applicability);
                     }
-                }
+                },
             );
         }
     }
@@ -196,14 +209,12 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
                 type NestedFilter = nested_filter::OnlyBodies;
 
                 fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
-                    if_chain! {
-                        if let hir::ExprKind::Call(closure, _) = expr.kind;
-                        if let hir::ExprKind::Path(hir::QPath::Resolved(_, path)) = closure.kind;
-                        if self.path.segments[0].ident == path.segments[0].ident;
-                        if self.path.res == path.res;
-                        then {
-                            self.count += 1;
-                        }
+                    if let hir::ExprKind::Call(closure, _) = expr.kind
+                        && let hir::ExprKind::Path(hir::QPath::Resolved(_, path)) = closure.kind
+                        && self.path.segments[0].ident == path.segments[0].ident
+                        && self.path.res == path.res
+                    {
+                        self.count += 1;
                     }
                     hir_visit::walk_expr(self, expr);
                 }
@@ -218,25 +229,23 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
         }
 
         for w in block.stmts.windows(2) {
-            if_chain! {
-                if let hir::StmtKind::Local(local) = w[0].kind;
-                if let Option::Some(t) = local.init;
-                if let hir::ExprKind::Closure { .. } = t.kind;
-                if let hir::PatKind::Binding(_, _, ident, _) = local.pat.kind;
-                if let hir::StmtKind::Semi(second) = w[1].kind;
-                if let hir::ExprKind::Assign(_, call, _) = second.kind;
-                if let hir::ExprKind::Call(closure, _) = call.kind;
-                if let hir::ExprKind::Path(hir::QPath::Resolved(_, path)) = closure.kind;
-                if ident == path.segments[0].ident;
-                if count_closure_usage(cx, block, path) == 1;
-                then {
-                    span_lint(
-                        cx,
-                        REDUNDANT_CLOSURE_CALL,
-                        second.span,
-                        "closure called just once immediately after it was declared",
-                    );
-                }
+            if let hir::StmtKind::Local(local) = w[0].kind
+                && let Option::Some(t) = local.init
+                && let hir::ExprKind::Closure { .. } = t.kind
+                && let hir::PatKind::Binding(_, _, ident, _) = local.pat.kind
+                && let hir::StmtKind::Semi(second) = w[1].kind
+                && let hir::ExprKind::Assign(_, call, _) = second.kind
+                && let hir::ExprKind::Call(closure, _) = call.kind
+                && let hir::ExprKind::Path(hir::QPath::Resolved(_, path)) = closure.kind
+                && ident == path.segments[0].ident
+                && count_closure_usage(cx, block, path) == 1
+            {
+                span_lint(
+                    cx,
+                    REDUNDANT_CLOSURE_CALL,
+                    second.span,
+                    "closure called just once immediately after it was declared",
+                );
             }
         }
     }

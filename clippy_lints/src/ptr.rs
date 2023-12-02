@@ -4,9 +4,8 @@ use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_the
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::expr_sig;
 use clippy_utils::visitors::contains_unsafe_block;
-use clippy_utils::{get_expr_use_or_unification_node, is_lint_allowed, path_def_id, path_to_local, paths};
+use clippy_utils::{get_expr_use_or_unification_node, is_lint_allowed, path_def_id, path_to_local};
 use hir::LifetimeName;
-use if_chain::if_chain;
 use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::def_id::DefId;
 use rustc_hir::hir_id::HirIdMap;
@@ -21,14 +20,15 @@ use rustc_infer::traits::{Obligation, ObligationCause};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty::{self, Binder, ClauseKind, ExistentialPredicate, List, PredicateKind, Ty};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::source_map::Span;
-use rustc_span::sym;
+use rustc_session::declare_lint_pass;
 use rustc_span::symbol::Symbol;
+use rustc_span::{sym, Span};
 use rustc_target::spec::abi::Abi;
 use rustc_trait_selection::infer::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use std::{fmt, iter};
+
+use crate::vec::is_allowed_vec_method;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -271,60 +271,40 @@ impl<'tcx> LateLintPass<'tcx> for Ptr {
 }
 
 fn check_invalid_ptr_usage<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-    // (fn_path, arg_indices) - `arg_indices` are the `arg` positions where null would cause U.B.
-    const INVALID_NULL_PTR_USAGE_TABLE: [(&[&str], &[usize]); 13] = [
-        (&paths::SLICE_FROM_RAW_PARTS, &[0]),
-        (&paths::SLICE_FROM_RAW_PARTS_MUT, &[0]),
-        (&paths::PTR_COPY, &[0, 1]),
-        (&paths::PTR_COPY_NONOVERLAPPING, &[0, 1]),
-        (&paths::PTR_READ, &[0]),
-        (&paths::PTR_READ_UNALIGNED, &[0]),
-        (&paths::PTR_READ_VOLATILE, &[0]),
-        (&paths::PTR_REPLACE, &[0]),
-        (&paths::PTR_SLICE_FROM_RAW_PARTS, &[0]),
-        (&paths::PTR_SLICE_FROM_RAW_PARTS_MUT, &[0]),
-        (&paths::PTR_SWAP, &[0, 1]),
-        (&paths::PTR_SWAP_NONOVERLAPPING, &[0, 1]),
-        (&paths::PTR_WRITE_BYTES, &[0]),
-    ];
-    let invalid_null_ptr_usage_table_diag_items: [(Option<DefId>, &[usize]); 3] = [
-        (cx.tcx.get_diagnostic_item(sym::ptr_write), &[0]),
-        (cx.tcx.get_diagnostic_item(sym::ptr_write_unaligned), &[0]),
-        (cx.tcx.get_diagnostic_item(sym::ptr_write_volatile), &[0]),
-    ];
+    if let ExprKind::Call(fun, args) = expr.kind
+        && let ExprKind::Path(ref qpath) = fun.kind
+        && let Some(fun_def_id) = cx.qpath_res(qpath, fun.hir_id).opt_def_id()
+        && let Some(name) = cx.tcx.get_diagnostic_name(fun_def_id)
+    {
+        // `arg` positions where null would cause U.B.
+        let arg_indices: &[_] = match name {
+            sym::ptr_read
+            | sym::ptr_read_unaligned
+            | sym::ptr_read_volatile
+            | sym::ptr_replace
+            | sym::ptr_slice_from_raw_parts
+            | sym::ptr_slice_from_raw_parts_mut
+            | sym::ptr_write
+            | sym::ptr_write_bytes
+            | sym::ptr_write_unaligned
+            | sym::ptr_write_volatile
+            | sym::slice_from_raw_parts
+            | sym::slice_from_raw_parts_mut => &[0],
+            sym::ptr_copy | sym::ptr_copy_nonoverlapping | sym::ptr_swap | sym::ptr_swap_nonoverlapping => &[0, 1],
+            _ => return,
+        };
 
-    if_chain! {
-        if let ExprKind::Call(fun, args) = expr.kind;
-        if let ExprKind::Path(ref qpath) = fun.kind;
-        if let Some(fun_def_id) = cx.qpath_res(qpath, fun.hir_id).opt_def_id();
-        let fun_def_path = cx.get_def_path(fun_def_id).into_iter().map(Symbol::to_ident_string).collect::<Vec<_>>();
-        if let Some(arg_indices) = INVALID_NULL_PTR_USAGE_TABLE
-            .iter()
-            .find_map(|&(fn_path, indices)| if fn_path == fun_def_path { Some(indices) } else { None })
-            .or_else(|| {
-                invalid_null_ptr_usage_table_diag_items
-                    .iter()
-                    .find_map(|&(def_id, indices)| {
-                        if def_id == Some(fun_def_id) {
-                            Some(indices)
-                        } else {
-                            None
-                        }
-                    })
-            });
-        then {
-            for &arg_idx in arg_indices {
-                if let Some(arg) = args.get(arg_idx).filter(|arg| is_null_path(cx, arg)) {
-                    span_lint_and_sugg(
-                        cx,
-                        INVALID_NULL_PTR_USAGE,
-                        arg.span,
-                        "pointer must be non-null",
-                        "change this to",
-                        "core::ptr::NonNull::dangling().as_ptr()".to_string(),
-                        Applicability::MachineApplicable,
-                    );
-                }
+        for &arg_idx in arg_indices {
+            if let Some(arg) = args.get(arg_idx).filter(|arg| is_null_path(cx, arg)) {
+                span_lint_and_sugg(
+                    cx,
+                    INVALID_NULL_PTR_USAGE,
+                    arg.span,
+                    "pointer must be non-null",
+                    "change this to",
+                    "core::ptr::NonNull::dangling().as_ptr()".to_string(),
+                    Applicability::MachineApplicable,
+                );
             }
         }
     }
@@ -434,7 +414,6 @@ impl<'tcx> DerefTy<'tcx> {
     }
 }
 
-#[expect(clippy::too_many_lines)]
 fn check_fn_args<'cx, 'tcx: 'cx>(
     cx: &'cx LateContext<'tcx>,
     fn_sig: ty::FnSig<'tcx>,
@@ -456,104 +435,93 @@ fn check_fn_args<'cx, 'tcx: 'cx>(
                 && let [.., name] = path.segments
                 && cx.tcx.item_name(adt.did()) == name.ident.name
             {
-                    let emission_id = params.get(i).map_or(hir_ty.hir_id, |param| param.hir_id);
-                    let (method_renames, deref_ty) = match cx.tcx.get_diagnostic_name(adt.did()) {
-                        Some(sym::Vec) => (
-                            [("clone", ".to_owned()")].as_slice(),
-                            DerefTy::Slice(
-                                name.args
-                                    .and_then(|args| args.args.first())
-                                    .and_then(|arg| if let GenericArg::Type(ty) = arg {
-                                        Some(ty.span)
-                                    } else {
-                                        None
-                                    }),
-                                args.type_at(0),
-                            ),
-                        ),
-                        _ if Some(adt.did()) == cx.tcx.lang_items().string() => (
-                            [("clone", ".to_owned()"), ("as_str", "")].as_slice(),
-                            DerefTy::Str,
-                        ),
-                        Some(sym::PathBuf) => (
-                            [("clone", ".to_path_buf()"), ("as_path", "")].as_slice(),
-                            DerefTy::Path,
-                        ),
-                        Some(sym::Cow) if mutability == Mutability::Not => {
-                            if let Some((lifetime, ty)) = name.args
-                                .and_then(|args| {
-                                    if let [GenericArg::Lifetime(lifetime), ty] = args.args {
-                                        return Some((lifetime, ty));
-                                    }
+                let emission_id = params.get(i).map_or(hir_ty.hir_id, |param| param.hir_id);
+                let (method_renames, deref_ty) = match cx.tcx.get_diagnostic_name(adt.did()) {
+                    Some(sym::Vec) => (
+                        [("clone", ".to_owned()")].as_slice(),
+                        DerefTy::Slice(
+                            name.args.and_then(|args| args.args.first()).and_then(|arg| {
+                                if let GenericArg::Type(ty) = arg {
+                                    Some(ty.span)
+                                } else {
                                     None
-                                })
-                            {
-                                if !lifetime.is_anonymous()
-                                    && fn_sig.output()
-                                        .walk()
-                                        .filter_map(|arg| {
-                                            arg.as_region().and_then(|lifetime| {
-                                                match lifetime.kind() {
-                                                    ty::ReEarlyBound(r) => Some(r.def_id),
-                                                    ty::ReLateBound(_, r) => r.kind.get_id(),
-                                                    ty::ReFree(r) => r.bound_region.get_id(),
-                                                    ty::ReStatic
-                                                    | ty::ReVar(_)
-                                                    | ty::RePlaceholder(_)
-                                                    | ty::ReErased
-                                                    | ty::ReError(_) => None,
-                                                }
-                                            })
-                                        })
-                                        .any(|def_id| {
-                                            matches!(
-                                                lifetime.res,
-                                                LifetimeName::Param(param_def_id) if def_id
-                                                    .as_local()
-                                                    .is_some_and(|def_id| def_id == param_def_id),
-                                            )
-                                        })
-                                {
-                                    // `&Cow<'a, T>` when the return type uses 'a is okay
-                                    return None;
                                 }
-
-                                let ty_name =
-                                    snippet_opt(cx, ty.span()).unwrap_or_else(|| args.type_at(1).to_string());
-
-                                span_lint_hir_and_then(
-                                    cx,
-                                    PTR_ARG,
-                                    emission_id,
-                                    hir_ty.span,
-                                    "using a reference to `Cow` is not recommended",
-                                    |diag| {
-                                        diag.span_suggestion(
-                                            hir_ty.span,
-                                            "change this to",
-                                            format!("&{}{ty_name}", mutability.prefix_str()),
-                                            Applicability::Unspecified,
-                                        );
-                                    }
-                                );
+                            }),
+                            args.type_at(0),
+                        ),
+                    ),
+                    _ if Some(adt.did()) == cx.tcx.lang_items().string() => {
+                        ([("clone", ".to_owned()"), ("as_str", "")].as_slice(), DerefTy::Str)
+                    },
+                    Some(sym::PathBuf) => ([("clone", ".to_path_buf()"), ("as_path", "")].as_slice(), DerefTy::Path),
+                    Some(sym::Cow) if mutability == Mutability::Not => {
+                        if let Some((lifetime, ty)) = name.args.and_then(|args| {
+                            if let [GenericArg::Lifetime(lifetime), ty] = args.args {
+                                return Some((lifetime, ty));
                             }
-                            return None;
-                        },
-                        _ => return None,
-                    };
-                    return Some(PtrArg {
-                        idx: i,
-                        emission_id,
-                        span: hir_ty.span,
-                        ty_did: adt.did(),
-                        ty_name: name.ident.name,
-                        method_renames,
-                        ref_prefix: RefPrefix {
-                            lt: *lt,
-                            mutability,
-                        },
-                        deref_ty,
-                    });
+                            None
+                        }) {
+                            if !lifetime.is_anonymous()
+                                && fn_sig
+                                    .output()
+                                    .walk()
+                                    .filter_map(|arg| {
+                                        arg.as_region().and_then(|lifetime| match lifetime.kind() {
+                                            ty::ReEarlyParam(r) => Some(r.def_id),
+                                            ty::ReBound(_, r) => r.kind.get_id(),
+                                            ty::ReLateParam(r) => r.bound_region.get_id(),
+                                            ty::ReStatic
+                                            | ty::ReVar(_)
+                                            | ty::RePlaceholder(_)
+                                            | ty::ReErased
+                                            | ty::ReError(_) => None,
+                                        })
+                                    })
+                                    .any(|def_id| {
+                                        matches!(
+                                            lifetime.res,
+                                            LifetimeName::Param(param_def_id) if def_id
+                                                .as_local()
+                                                .is_some_and(|def_id| def_id == param_def_id),
+                                        )
+                                    })
+                            {
+                                // `&Cow<'a, T>` when the return type uses 'a is okay
+                                return None;
+                            }
+
+                            let ty_name = snippet_opt(cx, ty.span()).unwrap_or_else(|| args.type_at(1).to_string());
+
+                            span_lint_hir_and_then(
+                                cx,
+                                PTR_ARG,
+                                emission_id,
+                                hir_ty.span,
+                                "using a reference to `Cow` is not recommended",
+                                |diag| {
+                                    diag.span_suggestion(
+                                        hir_ty.span,
+                                        "change this to",
+                                        format!("&{}{ty_name}", mutability.prefix_str()),
+                                        Applicability::Unspecified,
+                                    );
+                                },
+                            );
+                        }
+                        return None;
+                    },
+                    _ => return None,
+                };
+                return Some(PtrArg {
+                    idx: i,
+                    emission_id,
+                    span: hir_ty.span,
+                    ty_did: adt.did(),
+                    ty_name: name.ident.name,
+                    method_renames,
+                    ref_prefix: RefPrefix { lt: *lt, mutability },
+                    deref_ty,
+                });
             }
             None
         })
@@ -694,7 +662,7 @@ fn check_ptr_arg_usage<'tcx>(cx: &LateContext<'tcx>, body: &'tcx Body<'_>, args:
                             },
                             // If the types match check for methods which exist on both types. e.g. `Vec::len` and
                             // `slice::len`
-                            ty::Adt(def, _) if def.did() == args.ty_did => {
+                            ty::Adt(def, _) if def.did() == args.ty_did && !is_allowed_vec_method(self.cx, e) => {
                                 set_skip_flag();
                             },
                             _ => (),
@@ -746,23 +714,25 @@ fn matches_preds<'tcx>(
     preds: &'tcx [ty::PolyExistentialPredicate<'tcx>],
 ) -> bool {
     let infcx = cx.tcx.infer_ctxt().build();
-    preds.iter().all(|&p| match cx.tcx.erase_late_bound_regions(p) {
-        ExistentialPredicate::Trait(p) => infcx
-            .type_implements_trait(p.def_id, [ty.into()].into_iter().chain(p.args.iter()), cx.param_env)
-            .must_apply_modulo_regions(),
-        ExistentialPredicate::Projection(p) => infcx.predicate_must_hold_modulo_regions(&Obligation::new(
-            cx.tcx,
-            ObligationCause::dummy(),
-            cx.param_env,
-            cx.tcx
-                .mk_predicate(Binder::dummy(PredicateKind::Clause(ClauseKind::Projection(
-                    p.with_self_ty(cx.tcx, ty),
-                )))),
-        )),
-        ExistentialPredicate::AutoTrait(p) => infcx
-            .type_implements_trait(p, [ty], cx.param_env)
-            .must_apply_modulo_regions(),
-    })
+    preds
+        .iter()
+        .all(|&p| match cx.tcx.instantiate_bound_regions_with_erased(p) {
+            ExistentialPredicate::Trait(p) => infcx
+                .type_implements_trait(p.def_id, [ty.into()].into_iter().chain(p.args.iter()), cx.param_env)
+                .must_apply_modulo_regions(),
+            ExistentialPredicate::Projection(p) => infcx.predicate_must_hold_modulo_regions(&Obligation::new(
+                cx.tcx,
+                ObligationCause::dummy(),
+                cx.param_env,
+                cx.tcx
+                    .mk_predicate(Binder::dummy(PredicateKind::Clause(ClauseKind::Projection(
+                        p.with_self_ty(cx.tcx, ty),
+                    )))),
+            )),
+            ExistentialPredicate::AutoTrait(p) => infcx
+                .type_implements_trait(p, [ty], cx.param_env)
+                .must_apply_modulo_regions(),
+        })
 }
 
 fn get_ref_lm<'tcx>(ty: &'tcx hir::Ty<'tcx>) -> Option<(&'tcx Lifetime, Mutability, Span)> {

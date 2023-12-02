@@ -9,9 +9,9 @@ use clippy_utils::{eq_expr_value, hash_expr, higher};
 use rustc_ast::{LitKind, RangeLimits};
 use rustc_data_structures::unhash::UnhashMap;
 use rustc_errors::{Applicability, Diagnostic};
-use rustc_hir::{BinOp, Block, Expr, ExprKind, UnOp};
+use rustc_hir::{BinOp, Block, Body, Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
+use rustc_session::declare_lint_pass;
 use rustc_span::source_map::Spanned;
 use rustc_span::{sym, Span};
 
@@ -43,21 +43,21 @@ declare_clippy_lint! {
     /// about the length of a slice, but this lint will not detect that.
     ///
     /// ### Example
-    /// ```rust
+    /// ```no_run
     /// fn sum(v: &[u8]) -> u8 {
     ///     // 4 bounds checks
     ///     v[0] + v[1] + v[2] + v[3]
     /// }
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```no_run
     /// fn sum(v: &[u8]) -> u8 {
-    ///     assert!(v.len() > 4);
+    ///     assert!(v.len() > 3);
     ///     // no bounds checks
     ///     v[0] + v[1] + v[2] + v[3]
     /// }
     /// ```
-    #[clippy::version = "1.70.0"]
+    #[clippy::version = "1.74.0"]
     pub MISSING_ASSERTS_FOR_INDEXING,
     restriction,
     "indexing into a slice multiple times without an `assert`"
@@ -87,6 +87,9 @@ enum LengthComparison {
     LengthLessThanOrEqualInt,
     /// `5 <= v.len()`
     IntLessThanOrEqualLength,
+    /// `5 == v.len()`
+    /// `v.len() == 5`
+    LengthEqualInt,
 }
 
 /// Extracts parts out of a length comparison expression.
@@ -114,6 +117,8 @@ fn len_comparison<'hir>(
         (Rel::Lt, _, int_lit_pat!(right)) => Some((LengthComparison::LengthLessThanInt, *right as usize, left)),
         (Rel::Le, int_lit_pat!(left), _) => Some((LengthComparison::IntLessThanOrEqualLength, *left as usize, right)),
         (Rel::Le, _, int_lit_pat!(right)) => Some((LengthComparison::LengthLessThanOrEqualInt, *right as usize, left)),
+        (Rel::Eq, int_lit_pat!(left), _) => Some((LengthComparison::LengthEqualInt, *left as usize, right)),
+        (Rel::Eq, _, int_lit_pat!(right)) => Some((LengthComparison::LengthEqualInt, *right as usize, left)),
         _ => None,
     }
 }
@@ -200,9 +205,13 @@ impl<'hir> IndexEntry<'hir> {
 /// E.g. for `5` this returns `Some(5)`, for `..5` this returns `Some(4)`,
 /// for `..=5` this returns `Some(5)`
 fn upper_index_expr(expr: &Expr<'_>) -> Option<usize> {
-    if let ExprKind::Lit(lit) = &expr.kind && let LitKind::Int(index, _) = lit.node {
+    if let ExprKind::Lit(lit) = &expr.kind
+        && let LitKind::Int(index, _) = lit.node
+    {
         Some(index as usize)
-    } else if let Some(higher::Range { end: Some(end), limits, .. }) = higher::Range::hir(expr)
+    } else if let Some(higher::Range {
+        end: Some(end), limits, ..
+    }) = higher::Range::hir(expr)
         && let ExprKind::Lit(lit) = &end.kind
         && let LitKind::Int(index @ 1.., _) = lit.node
     {
@@ -228,7 +237,12 @@ fn check_index<'hir>(cx: &LateContext<'_>, expr: &'hir Expr<'hir>, map: &mut Unh
 
         if let Some(entry) = entry {
             match entry {
-                IndexEntry::StrayAssert { asserted_len, comparison, assert_span, slice } => {
+                IndexEntry::StrayAssert {
+                    asserted_len,
+                    comparison,
+                    assert_span,
+                    slice,
+                } => {
                     *entry = IndexEntry::AssertWithIndex {
                         highest_index: index,
                         asserted_len: *asserted_len,
@@ -238,8 +252,12 @@ fn check_index<'hir>(cx: &LateContext<'_>, expr: &'hir Expr<'hir>, map: &mut Unh
                         comparison: *comparison,
                     };
                 },
-                IndexEntry::IndexWithoutAssert { highest_index, indexes, .. }
-                | IndexEntry::AssertWithIndex { highest_index, indexes, .. } => {
+                IndexEntry::IndexWithoutAssert {
+                    highest_index, indexes, ..
+                }
+                | IndexEntry::AssertWithIndex {
+                    highest_index, indexes, ..
+                } => {
                     indexes.push(expr.span);
                     *highest_index = (*highest_index).max(index);
                 },
@@ -303,11 +321,11 @@ fn report_indexes(cx: &LateContext<'_>, map: &UnhashMap<u64, Vec<IndexEntry<'_>>
                 continue;
             };
 
-            match entry {
+            match *entry {
                 IndexEntry::AssertWithIndex {
                     highest_index,
                     asserted_len,
-                    indexes,
+                    ref indexes,
                     comparison,
                     assert_span,
                     slice,
@@ -330,6 +348,12 @@ fn report_indexes(cx: &LateContext<'_>, map: &UnhashMap<u64, Vec<IndexEntry<'_>>
                             "assert!({}.len() > {highest_index})",
                             snippet(cx, slice.span, "..")
                         )),
+                        // `highest_index` here is rather a length, so we need to add 1 to it
+                        LengthComparison::LengthEqualInt if asserted_len < highest_index + 1 => Some(format!(
+                            "assert!({}.len() == {})",
+                            snippet(cx, slice.span, ".."),
+                            highest_index + 1
+                        )),
                         _ => None,
                     };
 
@@ -341,7 +365,7 @@ fn report_indexes(cx: &LateContext<'_>, map: &UnhashMap<u64, Vec<IndexEntry<'_>>
                             indexes,
                             |diag| {
                                 diag.span_suggestion(
-                                    *assert_span,
+                                    assert_span,
                                     "provide the highest index that is indexed with",
                                     sugg,
                                     Applicability::MachineApplicable,
@@ -351,7 +375,7 @@ fn report_indexes(cx: &LateContext<'_>, map: &UnhashMap<u64, Vec<IndexEntry<'_>>
                     }
                 },
                 IndexEntry::IndexWithoutAssert {
-                    indexes,
+                    ref indexes,
                     highest_index,
                     slice,
                 } if indexes.len() > 1 => {
@@ -377,10 +401,10 @@ fn report_indexes(cx: &LateContext<'_>, map: &UnhashMap<u64, Vec<IndexEntry<'_>>
 }
 
 impl LateLintPass<'_> for MissingAssertsForIndexing {
-    fn check_block(&mut self, cx: &LateContext<'_>, block: &Block<'_>) {
+    fn check_body(&mut self, cx: &LateContext<'_>, body: &Body<'_>) {
         let mut map = UnhashMap::default();
 
-        for_each_expr(block, |expr| {
+        for_each_expr(body.value, |expr| {
             check_index(cx, expr, &mut map);
             check_assert(cx, expr, &mut map);
             ControlFlow::<!, ()>::Continue(())
