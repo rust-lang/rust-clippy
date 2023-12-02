@@ -119,7 +119,13 @@ pub(super) fn check<'tcx>(
         }
 
         match lit.node {
-            LitKind::Int(_, LitIntType::Unsuffixed) if cast_to.is_integral() => {
+            LitKind::Int(val, LitIntType::Unsuffixed) if cast_to.is_integral() => {
+                // append literal suffix
+                let mut literal_str = val.to_string();
+                literal_str.push('_');
+                let suffix: &str = todo!("plaese fill this hole");
+                literal_str.push_str(suffix);
+
                 lint_unnecessary_cast(cx, expr, literal_str, cast_from, cast_to);
                 return false;
             },
@@ -190,6 +196,13 @@ fn lint_unnecessary_cast(
         && let ExprKind::MethodCall(..) = parent_expr.kind
         && literal_str.starts_with('-')
     {
+        format!("({literal_str}_{cast_to})")
+    } else if let Some(parent_expr) = get_parent_expr(cx, expr)
+        && let ExprKind::MethodCall(..) = parent_expr
+        && let ExprKind::Cast(src, _cast_to) = expr
+        && let ExprKind::Unary(..) = src.kind {
+        // parent_expr is `(unary(src) as _cast_to).foo(...)`, so the receiver still needs to
+        // be parenthesised
         format!("({literal_str}_{cast_to})")
     } else {
         format!("{literal_str}_{cast_to}")
