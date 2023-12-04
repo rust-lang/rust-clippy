@@ -109,6 +109,7 @@ mod unnecessary_iter_cloned;
 mod unnecessary_join;
 mod unnecessary_lazy_eval;
 mod unnecessary_literal_unwrap;
+mod unnecessary_min;
 mod unnecessary_sort_by;
 mod unnecessary_to_owned;
 mod unwrap_expect_used;
@@ -3752,6 +3753,29 @@ declare_clippy_lint! {
     "using `Option.map_or(Err(_), Ok)`, which is more succinctly expressed as `Option.ok_or(_)`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for unnecessary calls to min()
+    ///
+    /// ### Why is this bad?
+    ///
+    /// In these cases it is not necessary to call min()
+    /// ### Example
+    /// ```no_run
+    /// // example code where clippy issues a warning
+    /// let _ = 0.min(7_u32);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// // example code which does not raise clippy warning
+    /// let _ = 7;
+    /// ```
+    #[clippy::version = "1.76.0"]
+    pub UNNECESSARY_MIN,
+    complexity,
+    "default lint description"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3903,6 +3927,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_FALLIBLE_CONVERSIONS,
     JOIN_ABSOLUTE_PATHS,
     OPTION_MAP_OR_ERR_OK,
+    UNNECESSARY_MIN,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4184,6 +4209,7 @@ impl Methods {
                     Some(("bytes", recv2, [], _, _)) => bytes_count_to_len::check(cx, expr, recv, recv2),
                     _ => {},
                 },
+                ("min", [arg]) => unnecessary_min::check(cx, expr, arg),
                 ("drain", ..) => {
                     if let Node::Stmt(Stmt { hir_id: _, kind, .. }) = cx.tcx.hir().get_parent(expr.hir_id)
                         && matches!(kind, StmtKind::Semi(_))
