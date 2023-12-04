@@ -1,29 +1,35 @@
-error: this operation has no effect
-  --> $DIR/unnecessary_min.rs:11:13
+error: (A * B) is never greater than B and has therefore no effect
+  --> $DIR/unnecessary_min.rs:10:13
    |
-LL |     let _ = 0.min(7_u8); // unsigned with zero
-   |             ^^^^^^^^^^^ help: try: : `0`
+LL |     let _ = (A * B).min(B); // Both are constants
+   |             ^^^^^^^^^^^^^^ help: try: `(A * B)`
    |
    = note: `-D clippy::unnecessary-min` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_min)]`
 
-error: this operation has no effect
+error: B is never greater than C and has therefore no effect
+  --> $DIR/unnecessary_min.rs:11:13
+   |
+LL |     let _ = C.min(B); // Both are constants
+   |             ^^^^^^^^ help: try: `B`
+
+error: B is never greater than C and has therefore no effect
   --> $DIR/unnecessary_min.rs:12:13
    |
-LL |     let _ = 7.min(0_u32); // unsigned with zero
-   |             ^^^^^^^^^^^^ help: try: : `0`
+LL |     let _ = B.min(C); // Both are constants
+   |             ^^^^^^^^ help: try: `B`
 
-error: this operation has no effect
-  --> $DIR/unnecessary_min.rs:20:13
+error: (-6_i32) is never greater than 9 and has therefore no effect
+  --> $DIR/unnecessary_min.rs:14:13
    |
-LL |     let _ = 0.min(test_usize()); // unsigned with zero and function
-   |             ^^^^^^^^^^^^^^^^^^^ help: try: : `0`
+LL |     let _ = (-6_i32).min(9); // Both are Literals
+   |             ^^^^^^^^^^^^^^^ help: try: `(-6_i32)`
 
-error: this operation has no effect
-  --> $DIR/unnecessary_min.rs:21:13
+error: 6 is never greater than 9_u32 and has therefore no effect
+  --> $DIR/unnecessary_min.rs:15:13
    |
-LL |     let _ = test_usize().min(0); // unsigned with zero and function
-   |             ^^^^^^^^^^^^^^^^^^^ help: try: : `0`
+LL |     let _ = 9_u32.min(6); // Both are Literals
+   |             ^^^^^^^^^^^^ help: try: `6`
 
-error: aborting due to 4 previous errors
+error: aborting due to 5 previous errors
 
