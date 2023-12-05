@@ -1,136 +1,275 @@
+//@no-rustfix
+
 // FIXME(f16_f128): const casting is not yet supported for these types. Add when available.
 
 #![warn(clippy::float_cmp)]
-#![allow(
-    unused,
-    clippy::no_effect,
-    clippy::op_ref,
-    clippy::unnecessary_operation,
-    clippy::cast_lossless
-)]
-//@no-rustfix
-use std::ops::Add;
-
-const ZERO: f32 = 0.0;
-const ONE: f32 = ZERO + 1.0;
-
-fn twice<T>(x: T) -> T
-where
-    T: Add<T, Output = T> + Copy,
-{
-    x + x
-}
-
-fn eq_fl(x: f32, y: f32) -> bool {
-    if x.is_nan() { y.is_nan() } else { x == y } // no error, inside "eq" fn
-}
-
-fn fl_eq(x: f32, y: f32) -> bool {
-    if x.is_nan() { y.is_nan() } else { x == y } // no error, inside "eq" fn
-}
-
-struct X {
-    val: f32,
-}
-
-impl PartialEq for X {
-    fn eq(&self, o: &X) -> bool {
-        if self.val.is_nan() {
-            o.val.is_nan()
-        } else {
-            self.val == o.val // no error, inside "eq" fn
-        }
-    }
-}
-
-impl PartialEq<f32> for X {
-    fn eq(&self, o: &f32) -> bool {
-        if self.val.is_nan() {
-            o.is_nan()
-        } else {
-            self.val == *o // no error, inside "eq" fn
-        }
-    }
-}
+#![allow(clippy::op_ref)]
 
 fn main() {
-    ZERO == 0f32; //no error, comparison with zero is ok
-    1.0f32 != f32::INFINITY; // also comparison with infinity
-    1.0f32 != f32::NEG_INFINITY; // and negative infinity
-    ZERO == 0.0; //no error, comparison with zero is ok
-    ZERO + ZERO != 1.0; //no error, comparison with zero is ok
+    {
+        fn _f(x: f32, y: f32) {
+            let _ = x == y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x != y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == 5.5;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = 5.5 == x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
 
-    let x = X { val: 1.0 };
-    x == 1.0; // no error, custom type that implement PartialOrder for float is not checked
+            let _ = x < 5.5;
+            let _ = x <= 5.5;
+            let _ = x > 5.5;
+            let _ = x >= 5.5;
+            let _ = 5.5 < x;
+            let _ = 5.5 <= x;
+            let _ = 5.5 > x;
+            let _ = 5.5 >= x;
 
-    ONE == 1f32;
-    ONE == 1.0 + 0.0;
-    ONE + ONE == ZERO + ONE + ONE;
-    ONE != 2.0;
-    ONE != 0.0; // no error, comparison with zero is ok
-    twice(ONE) != ONE;
-    ONE as f64 != 2.0;
-    //~^ ERROR: strict comparison of `f32` or `f64`
-    ONE as f64 != 0.0; // no error, comparison with zero is ok
+            let _ = 0.0 == x;
+            let _ = -0.0 == x;
+            let _ = 1.0 / 0.0 == x;
+            let _ = -1.0 / 0.0 == x;
+            let _ = x == 0.0;
+            let _ = x == -0.0;
+            let _ = x == 1.0 / 0.0;
+            let _ = x == -1.0 / 0.0;
+        }
+    }
+    {
+        fn _f(x: f64, y: f64) {
+            let _ = x == y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x != y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == 5.5;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = 5.5 == x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
 
-    let x: f64 = 1.0;
+            let _ = x < 5.5;
+            let _ = x <= 5.5;
+            let _ = x > 5.5;
+            let _ = x >= 5.5;
+            let _ = 5.5 < x;
+            let _ = 5.5 <= x;
+            let _ = 5.5 > x;
+            let _ = 5.5 >= x;
 
-    x == 1.0;
-    //~^ ERROR: strict comparison of `f32` or `f64`
-    x != 0f64; // no error, comparison with zero is ok
+            let _ = 0.0 == x;
+            let _ = -0.0 == x;
+            let _ = 1.0 / 0.0 == x;
+            let _ = -1.0 / 0.0 == x;
+            let _ = x == 0.0;
+            let _ = x == -0.0;
+            let _ = x == 1.0 / 0.0;
+            let _ = x == -1.0 / 0.0;
+        }
+    }
+    {
+        fn _f(x: [f32; 4], y: [f32; 4]) {
+            let _ = x == y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == [5.5; 4];
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = [5.5; 4] == x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = [0.0, 0.0, 0.0, 5.5] == x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == [0.0, 0.0, 0.0, 5.5];
+            //~^ ERROR: strict comparison of `f32` or `f64`
 
-    twice(x) != twice(ONE as f64);
-    //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = [0.0; 4] == x;
+            let _ = [-0.0; 4] == x;
+            let _ = [1.0 / 0.0; 4] == x;
+            let _ = [-1.0 / 0.0; 4] == x;
+            let _ = [0.0, -0.0, 1.0 / 0.0, -1.0 / 0.0] == x;
+            let _ = x == [0.0; 4];
+            let _ = x == [-0.0; 4];
+            let _ = x == [1.0 / 0.0; 4];
+            let _ = x == [-1.0 / 0.0; 4];
+            let _ = x == [0.0, -0.0, 1.0 / 0.0, -1.0 / 0.0];
+        }
+    }
+    {
+        fn _f(x: [f64; 4], y: [f64; 4]) {
+            let _ = x == y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == [5.5; 4];
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = [5.5; 4] == x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = [0.0, 0.0, 0.0, 5.5] == x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x == [0.0, 0.0, 0.0, 5.5];
+            //~^ ERROR: strict comparison of `f32` or `f64`
 
-    x < 0.0; // no errors, lower or greater comparisons need no fuzzyness
-    x > 0.0;
-    x <= 0.0;
-    x >= 0.0;
+            let _ = [0.0; 4] == x;
+            let _ = [-0.0; 4] == x;
+            let _ = [1.0 / 0.0; 4] == x;
+            let _ = [-1.0 / 0.0; 4] == x;
+            let _ = [0.0, -0.0, 1.0 / 0.0, -1.0 / 0.0] == x;
+            let _ = x == [0.0; 4];
+            let _ = x == [-0.0; 4];
+            let _ = x == [1.0 / 0.0; 4];
+            let _ = x == [-1.0 / 0.0; 4];
+            let _ = x == [0.0, -0.0, 1.0 / 0.0, -1.0 / 0.0];
+        }
+    }
 
-    let xs: [f32; 1] = [0.0];
-    let a: *const f32 = xs.as_ptr();
-    let b: *const f32 = xs.as_ptr();
+    // Reference comparisons
+    {
+        fn _f(x: &&&f32, y: &&&f32) {
+            let _ = x == y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
 
-    assert_eq!(a, b); // no errors
+            let _ = x == &&&0.0;
+        }
+    }
+    {
+        fn _f(x: &&&[f32; 2], y: &&&[f32; 2]) {
+            let _ = x == y;
+            //~^ ERROR: strict comparison of `f32` or `f64`
 
-    const ZERO_ARRAY: [f32; 2] = [0.0, 0.0];
-    const NON_ZERO_ARRAY: [f32; 2] = [0.0, 0.1];
+            let _ = x == &&&[0.0, -0.0];
+        }
+    }
 
-    let i = 0;
-    let j = 1;
+    // Comparisons to named constant
+    {
+        const C: f32 = 5.5;
+        fn _f(x: f32, y: f64) {
+            let _ = x == C;
+            let _ = C == x;
+            let _ = &&x == &&C;
+            let _ = &&C == &&x;
+            let _ = y == C as f64;
+            let _ = C as f64 == y;
 
-    ZERO_ARRAY[i] == NON_ZERO_ARRAY[j]; // ok, because lhs is zero regardless of i
-    NON_ZERO_ARRAY[i] == NON_ZERO_ARRAY[j];
-    //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = C * x == x * x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x * x == C * x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+        }
+    }
+    {
+        const C: [f32; 2] = [5.5, 5.5];
+        fn _f(x: [f32; 2]) {
+            let _ = x == C;
+            let _ = C == x;
+            let _ = &&x == &&C;
+            let _ = &&C == &&x;
+        }
+    }
 
-    let a1: [f32; 1] = [0.0];
-    let a2: [f32; 1] = [1.1];
+    // Constant comparisons
+    {
+        const fn f(x: f32) -> f32 {
+            todo!()
+        }
+        let _ = f(1.0) == f(5.0);
+        let _ = 1.0 == f(5.0);
+        let _ = f(1.0) + 1.0 != 5.0;
+    }
+    {
+        fn f(x: f32) -> f32 {
+            todo!()
+        }
+        let _ = f(1.0) == f(5.0);
+        //~^ ERROR: strict comparison of `f32` or `f64`
+        let _ = 1.0 == f(5.0);
+        //~^ ERROR: strict comparison of `f32` or `f64`
+        let _ = f(1.0) + 1.0 != 5.0;
+        //~^ ERROR: strict comparison of `f32` or `f64`
+    }
 
-    a1 == a2;
-    //~^ ERROR: strict comparison of `f32` or `f64` arrays
-    a1[0] == a2[0];
-    //~^ ERROR: strict comparison of `f32` or `f64`
+    // Pointer equality
+    {
+        fn _f(x: *const f32, y: *const f32) {
+            let _ = x == y;
+        }
+    }
+    {
+        fn _f(x: *const [f32; 2], y: *const [f32; 2]) {
+            let _ = x == y;
+        }
+    }
 
-    // no errors - comparing signums is ok
-    let x32 = 3.21f32;
-    1.23f32.signum() == x32.signum();
-    1.23f32.signum() == -(x32.signum());
-    1.23f32.signum() == 3.21f32.signum();
+    // `signum`
+    {
+        fn _f(x: f32, y: f32) {
+            let _ = x.signum() == y.signum();
+            let _ = x.signum() == -y.signum();
+            let _ = -x.signum() == y.signum();
+            let _ = -x.signum() == -y.signum();
+        }
+    }
+    {
+        fn _f(x: f64, y: f64) {
+            let _ = x.signum() == y.signum();
+            let _ = x.signum() == -y.signum();
+            let _ = -x.signum() == y.signum();
+            let _ = -x.signum() == -y.signum();
+        }
+    }
 
-    1.23f32.signum() != x32.signum();
-    1.23f32.signum() != -(x32.signum());
-    1.23f32.signum() != 3.21f32.signum();
+    // Index constant array
+    {
+        const C: [f32; 3] = [0.0, 5.5, -0.0];
+        fn _f(x: f32) {
+            let _ = x == C[0];
+            let _ = x == C[2];
+            let _ = C[0] == x;
+            let _ = C[2] == x;
 
-    let x64 = 3.21f64;
-    1.23f64.signum() == x64.signum();
-    1.23f64.signum() == -(x64.signum());
-    1.23f64.signum() == 3.21f64.signum();
+            let _ = x == C[1];
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = C[1] == x;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+        }
+    }
 
-    1.23f64.signum() != x64.signum();
-    1.23f64.signum() != -(x64.signum());
-    1.23f64.signum() != 3.21f64.signum();
+    // `eq` functions
+    {
+        fn eq(x: f32, y: f32) -> bool {
+            x == y
+        }
 
-    // the comparison should also look through references
-    &0.0 == &ZERO;
-    &&&&0.0 == &&&&ZERO;
+        fn ne(x: f32, y: f32) -> bool {
+            x != y
+        }
+
+        fn is_eq(x: f32, y: f32) -> bool {
+            x == y
+        }
+
+        struct _X(f32);
+        impl PartialEq for _X {
+            fn eq(&self, other: &Self) -> bool {
+                self.0 == other.0
+            }
+        }
+
+        fn eq_fl(x: f32, y: f32) -> bool {
+            if x.is_nan() { y.is_nan() } else { x == y }
+        }
+
+        fn fl_eq(x: f32, y: f32) -> bool {
+            if x.is_nan() { y.is_nan() } else { x == y }
+        }
+    }
+
+    // Custom types
+    {
+        struct S;
+        impl PartialEq<f32> for S {
+            fn eq(&self, _: &f32) -> bool {
+                false
+            }
+        }
+
+        fn _f(x: S, y: f32) {
+            let _ = x == y;
+        }
+    }
 }

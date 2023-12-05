@@ -1,41 +1,167 @@
 error: strict comparison of `f32` or `f64`
-  --> tests/ui/float_cmp.rs:72:5
+  --> tests/ui/float_cmp.rs:11:21
    |
-LL |     ONE as f64 != 2.0;
-   |     ^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(ONE as f64 - 2.0).abs() > error_margin`
+LL |             let _ = x == y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() < error_margin`
    |
    = note: `-D clippy::float-cmp` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::float_cmp)]`
 
 error: strict comparison of `f32` or `f64`
-  --> tests/ui/float_cmp.rs:78:5
+  --> tests/ui/float_cmp.rs:13:21
    |
-LL |     x == 1.0;
-   |     ^^^^^^^^ help: consider comparing them within some margin of error: `(x - 1.0).abs() < error_margin`
+LL |             let _ = x != y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() > error_margin`
 
 error: strict comparison of `f32` or `f64`
-  --> tests/ui/float_cmp.rs:82:5
+  --> tests/ui/float_cmp.rs:15:21
    |
-LL |     twice(x) != twice(ONE as f64);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(twice(x) - twice(ONE as f64)).abs() > error_margin`
+LL |             let _ = x == 5.5;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(x - 5.5).abs() < error_margin`
 
 error: strict comparison of `f32` or `f64`
-  --> tests/ui/float_cmp.rs:103:5
+  --> tests/ui/float_cmp.rs:17:21
    |
-LL |     NON_ZERO_ARRAY[i] == NON_ZERO_ARRAY[j];
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(NON_ZERO_ARRAY[i] - NON_ZERO_ARRAY[j]).abs() < error_margin`
+LL |             let _ = 5.5 == x;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(5.5 - x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:41:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:43:21
+   |
+LL |             let _ = x != y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:45:21
+   |
+LL |             let _ = x == 5.5;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(x - 5.5).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:47:21
+   |
+LL |             let _ = 5.5 == x;
+   |                     ^^^^^^^^ help: consider comparing them within some margin of error: `(5.5 - x).abs() < error_margin`
 
 error: strict comparison of `f32` or `f64` arrays
-  --> tests/ui/float_cmp.rs:109:5
+  --> tests/ui/float_cmp.rs:71:21
    |
-LL |     a1 == a2;
-   |     ^^^^^^^^
+LL |             let _ = x == y;
+   |                     ^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:73:21
+   |
+LL |             let _ = x == [5.5; 4];
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:75:21
+   |
+LL |             let _ = [5.5; 4] == x;
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:77:21
+   |
+LL |             let _ = [0.0, 0.0, 0.0, 5.5] == x;
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:79:21
+   |
+LL |             let _ = x == [0.0, 0.0, 0.0, 5.5];
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:96:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:98:21
+   |
+LL |             let _ = x == [5.5; 4];
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:100:21
+   |
+LL |             let _ = [5.5; 4] == x;
+   |                     ^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:102:21
+   |
+LL |             let _ = [0.0, 0.0, 0.0, 5.5] == x;
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:104:21
+   |
+LL |             let _ = x == [0.0, 0.0, 0.0, 5.5];
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: strict comparison of `f32` or `f64`
-  --> tests/ui/float_cmp.rs:111:5
+  --> tests/ui/float_cmp.rs:123:21
    |
-LL |     a1[0] == a2[0];
-   |     ^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(a1[0] - a2[0]).abs() < error_margin`
+LL |             let _ = x == y;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - y).abs() < error_margin`
 
-error: aborting due to 6 previous errors
+error: strict comparison of `f32` or `f64` arrays
+  --> tests/ui/float_cmp.rs:131:21
+   |
+LL |             let _ = x == y;
+   |                     ^^^^^^
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:149:21
+   |
+LL |             let _ = C * x == x * x;
+   |                     ^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(C * x - x * x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:151:21
+   |
+LL |             let _ = x * x == C * x;
+   |                     ^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(x * x - C * x).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:178:17
+   |
+LL |         let _ = f(1.0) == f(5.0);
+   |                 ^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f(1.0) - f(5.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:180:17
+   |
+LL |         let _ = 1.0 == f(5.0);
+   |                 ^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(1.0 - f(5.0)).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:182:17
+   |
+LL |         let _ = f(1.0) + 1.0 != 5.0;
+   |                 ^^^^^^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(f(1.0) + 1.0 - 5.0).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:225:21
+   |
+LL |             let _ = x == C[1];
+   |                     ^^^^^^^^^ help: consider comparing them within some margin of error: `(x - C[1]).abs() < error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:227:21
+   |
+LL |             let _ = C[1] == x;
+   |                     ^^^^^^^^^ help: consider comparing them within some margin of error: `(C[1] - x).abs() < error_margin`
+
+error: aborting due to 27 previous errors
 

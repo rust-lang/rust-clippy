@@ -1,35 +1,54 @@
-use clippy_utils::consts::{constant_with_source, Constant};
+use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::get_item_name;
 use clippy_utils::sugg::Sugg;
+use clippy_utils::visitors::is_const_evaluatable;
+use clippy_utils::{get_item_name, is_expr_named_const, peel_hir_expr_while};
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
+use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
 
-use super::{FLOAT_CMP, FLOAT_CMP_CONST};
+use super::{FloatCmpConfig, FLOAT_CMP};
 
 pub(crate) fn check<'tcx>(
     cx: &LateContext<'tcx>,
+    config: FloatCmpConfig,
     expr: &'tcx Expr<'_>,
     op: BinOpKind,
     left: &'tcx Expr<'_>,
     right: &'tcx Expr<'_>,
 ) {
-    if (op == BinOpKind::Eq || op == BinOpKind::Ne) && is_float(cx, left) {
-        let left_is_local = match constant_with_source(cx, cx.typeck_results(), left) {
-            Some((c, s)) if !is_allowed(&c) => s.is_local(),
-            Some(_) => return,
-            None => true,
-        };
-        let right_is_local = match constant_with_source(cx, cx.typeck_results(), right) {
-            Some((c, s)) if !is_allowed(&c) => s.is_local(),
-            Some(_) => return,
-            None => true,
-        };
-
+    if (op == BinOpKind::Eq || op == BinOpKind::Ne)
+        && is_float(cx, left)
         // Allow comparing the results of signum()
-        if is_signum(cx, left) && is_signum(cx, right) {
+        && !(is_signum(cx, left) && is_signum(cx, right))
+    {
+        let left_c = constant(cx, cx.typeck_results(), left);
+        let is_left_const = left_c.is_some();
+        if left_c.is_some_and(|c| is_allowed(&c)) {
+            return;
+        }
+        let right_c = constant(cx, cx.typeck_results(), right);
+        let is_right_const = right_c.is_some();
+        if right_c.is_some_and(|c| is_allowed(&c)) {
+            return;
+        }
+
+        if config.ignore_constant_comparisons
+            && (is_left_const || is_const_evaluatable(cx, left))
+            && (is_right_const || is_const_evaluatable(cx, right))
+        {
+            return;
+        }
+
+        let peel_expr = |e: &'tcx Expr<'tcx>| match e.kind {
+            ExprKind::Cast(e, _) | ExprKind::AddrOf(BorrowKind::Ref, _, e) => Some(e),
+            _ => None,
+        };
+        if config.ignore_named_constants
+            && (is_expr_named_const(cx, peel_hir_expr_while(left, peel_expr))
+                || is_expr_named_const(cx, peel_hir_expr_while(right, peel_expr)))
+        {
             return;
         }
 
@@ -40,8 +59,12 @@ pub(crate) fn check<'tcx>(
             }
         }
         let is_comparing_arrays = is_array(cx, left) || is_array(cx, right);
-        let (lint, msg) = get_lint_and_message(left_is_local && right_is_local, is_comparing_arrays);
-        span_lint_and_then(cx, lint, expr.span, msg, |diag| {
+        let msg = if is_comparing_arrays {
+            "strict comparison of `f32` or `f64` arrays"
+        } else {
+            "strict comparison of `f32` or `f64`"
+        };
+        span_lint_and_then(cx, FLOAT_CMP, expr.span, msg, |diag| {
             let lhs = Sugg::hir(cx, left, "..");
             let rhs = Sugg::hir(cx, right, "..");
 
@@ -58,28 +81,6 @@ pub(crate) fn check<'tcx>(
                 );
             }
         });
-    }
-}
-
-fn get_lint_and_message(is_local: bool, is_comparing_arrays: bool) -> (&'static rustc_lint::Lint, &'static str) {
-    if is_local {
-        (
-            FLOAT_CMP,
-            if is_comparing_arrays {
-                "strict comparison of `f32` or `f64` arrays"
-            } else {
-                "strict comparison of `f32` or `f64`"
-            },
-        )
-    } else {
-        (
-            FLOAT_CMP_CONST,
-            if is_comparing_arrays {
-                "strict comparison of `f32` or `f64` constant arrays"
-            } else {
-                "strict comparison of `f32` or `f64` constant"
-            },
-        )
     }
 }
 

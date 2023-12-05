@@ -645,6 +645,35 @@ define_Conf! {
     ///
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     (warn_unsafe_macro_metavars_in_private_macros: bool = false),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons to a named constnat
+    ///
+    /// #### Example
+    /// ```no_run
+    /// const VALUE: f64 = 1.0;
+    /// fn is_value(x: f64) -> bool {
+    ///     // Will warn if the config is `false`
+    ///     x == VALUE
+    /// }
+    /// ```
+    (float_cmp_ignore_named_constants: bool = true),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons which have a constant result.
+    ///
+    /// #### Example
+    /// ```no_run
+    /// const fn f(x: f64) -> f64 {
+    ///     todo!()
+    /// }
+    ///
+    /// // Will warn if the config is `false`
+    /// if f(1.0) == f(2.0) {
+    ///     // ...
+    /// }
+    /// ```
+    (float_cmp_ignore_constant_comparisons: bool = true),
 }
 
 /// Search for the configuration file.

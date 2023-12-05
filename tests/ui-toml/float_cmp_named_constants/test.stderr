@@ -1,0 +1,14 @@
+error: strict comparison of `f32` or `f64`
+  --> tests/ui-toml/float_cmp_named_constants/test.rs:9:21
+   |
+LL |             let _ = x == C;
+   |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - C).abs() < error_margin`
+   |
+note: the lint level is defined here
+  --> tests/ui-toml/float_cmp_named_constants/test.rs:3:9
+   |
+LL | #![deny(clippy::float_cmp)]
+   |         ^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
