@@ -768,10 +768,17 @@ declare_clippy_lint! {
     "explicit self-assignment"
 }
 
+#[derive(Clone, Copy)]
+pub struct FloatCmpConfig {
+    pub ignore_named_constants: bool,
+    pub ignore_constant_comparisons: bool,
+}
+
 pub struct Operators {
     arithmetic_context: numeric_arithmetic::Context,
     verbose_bit_mask_threshold: u64,
     modulo_arithmetic_allow_comparison_to_zero: bool,
+    float_cmp_config: FloatCmpConfig,
 }
 impl_lint_pass!(Operators => [
     ABSURD_EXTREME_COMPARISONS,
@@ -802,11 +809,20 @@ impl_lint_pass!(Operators => [
     SELF_ASSIGNMENT,
 ]);
 impl Operators {
-    pub fn new(verbose_bit_mask_threshold: u64, modulo_arithmetic_allow_comparison_to_zero: bool) -> Self {
+    pub fn new(
+        verbose_bit_mask_threshold: u64,
+        modulo_arithmetic_allow_comparison_to_zero: bool,
+        ignore_named_constants: bool,
+        ignore_constant_comparisons: bool,
+    ) -> Self {
         Self {
             arithmetic_context: numeric_arithmetic::Context::default(),
             verbose_bit_mask_threshold,
             modulo_arithmetic_allow_comparison_to_zero,
+            float_cmp_config: FloatCmpConfig {
+                ignore_named_constants,
+                ignore_constant_comparisons,
+            },
         }
     }
 }
@@ -835,7 +851,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 float_equality_without_abs::check(cx, e, op.node, lhs, rhs);
                 integer_division::check(cx, e, op.node, lhs, rhs);
                 cmp_owned::check(cx, op.node, lhs, rhs);
-                float_cmp::check(cx, e, op.node, lhs, rhs);
+                float_cmp::check(cx, self.float_cmp_config, e, op.node, lhs, rhs);
                 modulo_one::check(cx, e, op.node, rhs);
                 modulo_arithmetic::check(
                     cx,

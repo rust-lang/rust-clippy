@@ -200,6 +200,16 @@ pub fn in_constant(cx: &LateContext<'_>, id: HirId) -> bool {
     cx.tcx.hir().is_inside_const_context(id)
 }
 
+/// Checks if the expression is path to either a constant or an associated constant.
+pub fn is_expr_named_const<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
+    matches!(&e.kind, ExprKind::Path(p)
+        if matches!(
+            cx.qpath_res(p, e.hir_id),
+            Res::Def(DefKind::Const | DefKind::AssocConst, _)
+        )
+    )
+}
+
 /// Checks if a `Res` refers to a constructor of a `LangItem`
 /// For example, use this to check whether a function call or a pattern is `Some(..)`.
 pub fn is_res_lang_ctor(cx: &LateContext<'_>, res: Res, lang_item: LangItem) -> bool {
