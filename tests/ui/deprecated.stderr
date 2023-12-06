@@ -109,5 +109,11 @@ error: lint `clippy::mismatched_target_os` has been removed: this lint has been 
 LL | #![warn(clippy::mismatched_target_os)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 18 previous errors
+error: lint `clippy::float_cmp_const` has been removed: `float_cmp` handles this via config options
+  --> tests/ui/deprecated.rs:23:9
+   |
+LL | #![warn(clippy::float_cmp_const)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 19 previous errors
 

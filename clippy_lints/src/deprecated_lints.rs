@@ -241,3 +241,14 @@ declare_deprecated_lint! {
     pub MISMATCHED_TARGET_OS,
     "this lint has been replaced by `unexpected_cfgs`"
 }
+
+declare_deprecated_lint! {
+    /// ### What it does
+    /// Nothing. This lint has been deprecated.
+    ///
+    /// ### Deprecation reason
+    /// `float_cmp` handles this via config options
+    #[clippy::version = "1.76.0"]
+    pub FLOAT_CMP_CONST,
+    "`float_cmp` handles this via config options"
+}
