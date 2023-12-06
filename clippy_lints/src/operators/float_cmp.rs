@@ -18,8 +18,17 @@ pub(crate) fn check<'tcx>(
     left: &'tcx Expr<'_>,
     right: &'tcx Expr<'_>,
 ) {
-    if (op == BinOpKind::Eq || op == BinOpKind::Ne)
+    let peel_expr = |e: &'tcx Expr<'tcx>| match e.kind {
+        ExprKind::Cast(e, _) | ExprKind::AddrOf(BorrowKind::Ref, _, e) | ExprKind::Unary(UnOp::Neg, e) => Some(e),
+        _ => None,
+    };
+
+    if matches!(op, BinOpKind::Eq | BinOpKind::Ne)
+        && let left = peel_hir_expr_while(left, peel_expr)
+        && let right = peel_hir_expr_while(right, peel_expr)
         && is_float(cx, left)
+        // Don't lint literal comparisons
+        && !(matches!(left.kind, ExprKind::Lit(_)) && matches!(right.kind, ExprKind::Lit(_)))
         // Allow comparing the results of signum()
         && !(is_signum(cx, left) && is_signum(cx, right))
     {
@@ -41,14 +50,7 @@ pub(crate) fn check<'tcx>(
             return;
         }
 
-        let peel_expr = |e: &'tcx Expr<'tcx>| match e.kind {
-            ExprKind::Cast(e, _) | ExprKind::AddrOf(BorrowKind::Ref, _, e) => Some(e),
-            _ => None,
-        };
-        if config.ignore_named_constants
-            && (is_expr_named_const(cx, peel_hir_expr_while(left, peel_expr))
-                || is_expr_named_const(cx, peel_hir_expr_while(right, peel_expr)))
-        {
+        if config.ignore_named_constants && (is_expr_named_const(cx, left) || is_expr_named_const(cx, right)) {
             return;
         }
 
@@ -106,16 +108,10 @@ fn is_allowed(val: &Constant<'_>) -> bool {
 
 // Return true if `expr` is the result of `signum()` invoked on a float value.
 fn is_signum(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    // The negation of a signum is still a signum
-    if let ExprKind::Unary(UnOp::Neg, child_expr) = expr.kind {
-        return is_signum(cx, child_expr);
-    }
-
     if let ExprKind::MethodCall(method_name, self_arg, ..) = expr.kind
         && sym!(signum) == method_name.ident.name
-    // Check that the receiver of the signum() is a float (expressions[0] is the receiver of
-    // the method call)
     {
+        // Check that the receiver of the signum() is a float
         return is_float(cx, self_arg);
     }
     false
