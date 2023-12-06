@@ -570,7 +570,6 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::operators::ERASING_OP_INFO,
     crate::operators::FLOAT_ARITHMETIC_INFO,
     crate::operators::FLOAT_CMP_INFO,
-    crate::operators::FLOAT_CMP_CONST_INFO,
     crate::operators::FLOAT_EQUALITY_WITHOUT_ABS_INFO,
     crate::operators::IDENTITY_OP_INFO,
     crate::operators::IMPOSSIBLE_COMPARISONS_INFO,
