@@ -592,41 +592,6 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for (in-)equality comparisons on floating-point
-    /// value and constant, except in functions called `*eq*` (which probably
-    /// implement equality for a type involving floats).
-    ///
-    /// ### Why is this bad?
-    /// Floating point calculations are usually imprecise, so
-    /// asking if two values are *exactly* equal is asking for trouble. For a good
-    /// guide on what to do, see [the floating point
-    /// guide](http://www.floating-point-gui.de/errors/comparison).
-    ///
-    /// ### Example
-    /// ```no_run
-    /// let x: f64 = 1.0;
-    /// const ONE: f64 = 1.00;
-    ///
-    /// if x == ONE { } // where both are floats
-    /// ```
-    ///
-    /// Use instead:
-    /// ```no_run
-    /// # let x: f64 = 1.0;
-    /// # const ONE: f64 = 1.00;
-    /// let error_margin = f64::EPSILON; // Use an epsilon for comparison
-    /// // Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.
-    /// // let error_margin = std::f64::EPSILON;
-    /// if (x - ONE).abs() < error_margin { }
-    /// ```
-    #[clippy::version = "pre 1.29.0"]
-    pub FLOAT_CMP_CONST,
-    restriction,
-    "using `==` or `!=` on float constants instead of comparing difference with an epsilon"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
     /// Checks for getting the remainder of a division by one or minus
     /// one.
     ///
@@ -801,7 +766,6 @@ impl_lint_pass!(Operators => [
     INTEGER_DIVISION,
     CMP_OWNED,
     FLOAT_CMP,
-    FLOAT_CMP_CONST,
     MODULO_ONE,
     MODULO_ARITHMETIC,
     NEEDLESS_BITWISE_BOOL,
