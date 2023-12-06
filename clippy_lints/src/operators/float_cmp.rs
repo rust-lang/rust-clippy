@@ -82,7 +82,6 @@ pub(crate) fn check<'tcx>(
                     Applicability::HasPlaceholders, // snippet
                 );
             }
-            diag.note("`f32::EPSILON` and `f64::EPSILON` are available for the `error_margin`");
         });
     }
 }
