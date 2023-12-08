@@ -19,6 +19,9 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, _: &'tcx Expr<'
     if both_are_constant(cx, expr) {
         return;
     }
+    if one_extrema(cx, expr) {
+        return;
+    }
     let (left, right) = extract_both(expr);
     let ty = cx.typeck_results().expr_ty(expr);
 
@@ -175,5 +178,24 @@ fn both_are_constant<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool
         lint(cx, expr, sugg, other);
         return true;
     }
+    false
+}
+fn one_extrema<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool {
+    //let ty = cx.typeck_results().expr_ty(expr);
+    let (left, right) = get_both_as_expr(expr);
+    if let Some(extrema) = detect_extrema(cx, left) {
+        match extrema {
+            Extrema::Minimum => lint(cx, expr, left.span, right.span),
+            Extrema::Maximum => lint(cx, expr, right.span, left.span),
+        }
+        return true;
+    } else if let Some(extrema) = detect_extrema(cx, right) {
+        match extrema {
+            Extrema::Minimum => lint(cx, expr, right.span, left.span),
+            Extrema::Maximum => lint(cx, expr, left.span, right.span),
+        }
+        return true;
+    }
+
     false
 }
