@@ -734,9 +734,10 @@ declare_clippy_lint! {
 }
 
 #[derive(Clone, Copy)]
-pub struct FloatCmpConfig {
-    pub ignore_named_constants: bool,
-    pub ignore_constant_comparisons: bool,
+struct FloatCmpConfig {
+    ignore_named_constants: bool,
+    ignore_constant_comparisons: bool,
+    ignore_change_detection: bool,
 }
 
 pub struct Operators {
@@ -773,11 +774,13 @@ impl_lint_pass!(Operators => [
     SELF_ASSIGNMENT,
 ]);
 impl Operators {
+    #[expect(clippy::fn_params_excessive_bools)]
     pub fn new(
         verbose_bit_mask_threshold: u64,
         modulo_arithmetic_allow_comparison_to_zero: bool,
         ignore_named_constants: bool,
         ignore_constant_comparisons: bool,
+        ignore_change_detection: bool,
     ) -> Self {
         Self {
             arithmetic_context: numeric_arithmetic::Context::default(),
@@ -786,6 +789,7 @@ impl Operators {
             float_cmp_config: FloatCmpConfig {
                 ignore_named_constants,
                 ignore_constant_comparisons,
+                ignore_change_detection,
             },
         }
     }
