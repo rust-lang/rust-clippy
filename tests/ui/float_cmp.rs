@@ -272,4 +272,72 @@ fn main() {
             let _ = x == y;
         }
     }
+
+    // modified operands
+    {
+        fn f1(x: f32) -> f32 {
+            x + 1.0
+        }
+
+        fn f2(x: f32, y: f32) -> f32 {
+            x + y
+        }
+
+        fn _f(x: f32, y: f32) {
+            let _ = x == x + 1.0;
+            let _ = x + 1.0 == x;
+            let _ = -x == -x + 1.0;
+            let _ = -x + 1.0 == -x;
+            let _ = x == f1(x);
+            let _ = f1(x) == x;
+            let _ = x == f2(x, y);
+            let _ = f2(x, y) == x;
+            let _ = f1(f1(x)) == f1(x);
+            let _ = f1(x) == f1(f1(x));
+
+            let z = (x, y);
+            let _ = z.0 == z.0 + 1.0;
+            let _ = z.0 + 1.0 == z.0;
+        }
+
+        fn _f2(x: &f32) {
+            let _ = *x + 1.0 == *x;
+            let _ = *x == *x + 1.0;
+            let _ = *x == f1(*x);
+            let _ = f1(*x) == *x;
+        }
+    }
+    {
+        fn _f(mut x: impl Iterator<Item = f32>) {
+            let _ = x.next().unwrap() == x.next().unwrap() + 1.0;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+        }
+    }
+    {
+        use core::cell::RefCell;
+
+        struct S(RefCell<f32>);
+        impl S {
+            fn f(&self) -> f32 {
+                let x = *self.0.borrow();
+                *self.0.borrow_mut() *= 2.0;
+                x
+            }
+        }
+
+        fn _f(x: S) {
+            let _ = x.f() + 1.0 == x.f();
+            //~^ ERROR: strict comparison of `f32` or `f64`
+            let _ = x.f() == x.f() + 1.0;
+            //~^ ERROR: strict comparison of `f32` or `f64`
+        }
+    }
+    {
+        let f = |x: f32| -> f32 { x };
+        let _ = f(1.0) == f(1.0) + 1.0;
+
+        let mut x = 1.0;
+        let mut f = |y: f32| -> f32 { core::mem::replace(&mut x, y) };
+        let _ = f(1.0) == f(1.0) + 1.0; //~ float_cmp
+    }
 }

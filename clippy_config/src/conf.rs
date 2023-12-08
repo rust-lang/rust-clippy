@@ -674,6 +674,18 @@ define_Conf! {
     /// }
     /// ```
     (float_cmp_ignore_constant_comparisons: bool = true),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons which check if an operation changes the value of it's operand.
+    ///
+    /// #### Example
+    /// ```no_run
+    /// fn f(x: f64) -> bool {
+    ///     // Will warn if the config is `false`
+    ///     x == x + 1.0
+    /// }
+    /// ```
+    (float_cmp_ignore_change_detection: bool = true),
 }
 
 /// Search for the configuration file.

@@ -778,6 +778,7 @@ declare_clippy_lint! {
 struct FloatCmpConfig {
     ignore_named_constants: bool,
     ignore_constant_comparisons: bool,
+    ignore_change_detection: bool,
 }
 
 pub struct Operators {
@@ -795,6 +796,7 @@ impl Operators {
             float_cmp_config: FloatCmpConfig {
                 ignore_named_constants: conf.float_cmp_ignore_named_constants,
                 ignore_constant_comparisons: conf.float_cmp_ignore_constant_comparisons,
+                ignore_change_detection: conf.float_cmp_ignore_change_detection,
             },
         }
     }
@@ -827,7 +829,6 @@ impl_lint_pass!(Operators => [
     PTR_EQ,
     SELF_ASSIGNMENT,
 ]);
-
 impl<'tcx> LateLintPass<'tcx> for Operators {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         eq_op::check_assert(cx, e);

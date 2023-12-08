@@ -1,12 +1,13 @@
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::visitors::is_const_evaluatable;
-use clippy_utils::{get_item_name, is_expr_named_const, peel_hir_expr_while};
+use clippy_utils::visitors::{for_each_expr_without_closures, is_const_evaluatable};
+use clippy_utils::{get_item_name, is_expr_named_const, peel_hir_expr_while, SpanlessEq};
+use core::ops::ControlFlow;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, UnOp};
+use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, Safety, UnOp};
 use rustc_lint::LateContext;
-use rustc_middle::ty;
+use rustc_middle::ty::{self, Ty, TypeFlags, TypeVisitableExt};
 
 use super::{FloatCmpConfig, FLOAT_CMP};
 
@@ -24,33 +25,40 @@ pub(crate) fn check<'tcx>(
     };
 
     if matches!(op, BinOpKind::Eq | BinOpKind::Ne)
-        && let left = peel_hir_expr_while(left, peel_expr)
-        && let right = peel_hir_expr_while(right, peel_expr)
-        && is_float(cx, left)
+        && let left_reduced = peel_hir_expr_while(left, peel_expr)
+        && let right_reduced = peel_hir_expr_while(right, peel_expr)
+        && is_float(cx, left_reduced)
         // Don't lint literal comparisons
-        && !(matches!(left.kind, ExprKind::Lit(_)) && matches!(right.kind, ExprKind::Lit(_)))
+        && !(matches!(left_reduced.kind, ExprKind::Lit(_)) && matches!(right_reduced.kind, ExprKind::Lit(_)))
         // Allow comparing the results of signum()
-        && !(is_signum(cx, left) && is_signum(cx, right))
+        && !(is_signum(cx, left_reduced) && is_signum(cx, right_reduced))
     {
-        let left_c = constant(cx, cx.typeck_results(), left);
+        let left_c = constant(cx, cx.typeck_results(), left_reduced);
         let is_left_const = left_c.is_some();
         if left_c.is_some_and(|c| is_allowed(&c)) {
             return;
         }
-        let right_c = constant(cx, cx.typeck_results(), right);
+        let right_c = constant(cx, cx.typeck_results(), right_reduced);
         let is_right_const = right_c.is_some();
         if right_c.is_some_and(|c| is_allowed(&c)) {
             return;
         }
 
         if config.ignore_constant_comparisons
-            && (is_left_const || is_const_evaluatable(cx, left))
-            && (is_right_const || is_const_evaluatable(cx, right))
+            && (is_left_const || is_const_evaluatable(cx, left_reduced))
+            && (is_right_const || is_const_evaluatable(cx, right_reduced))
         {
             return;
         }
 
-        if config.ignore_named_constants && (is_expr_named_const(cx, left) || is_expr_named_const(cx, right)) {
+        if config.ignore_named_constants && (is_expr_named_const(cx, left_reduced) || is_expr_named_const(cx, right_reduced)) {
+            return;
+        }
+
+        if config.ignore_change_detection
+            && ((is_pure_expr(cx, left_reduced) && contains_expr(cx, right, left))
+                || (is_pure_expr(cx, right_reduced) && contains_expr(cx, left, right)))
+        {
             return;
         }
 
@@ -60,7 +68,7 @@ pub(crate) fn check<'tcx>(
                 return;
             }
         }
-        let is_comparing_arrays = is_array(cx, left) || is_array(cx, right);
+        let is_comparing_arrays = is_array(cx, left_reduced) || is_array(cx, right_reduced);
         let msg = if is_comparing_arrays {
             "strict comparison of `f32` or `f64` arrays"
         } else {
@@ -104,6 +112,79 @@ fn is_allowed(val: &Constant<'_>) -> bool {
         },
         _ => false,
     }
+}
+
+// This is a best effort guess and may have false positives and negatives.
+fn is_pure_expr<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> bool {
+    match e.kind {
+        ExprKind::Path(_) | ExprKind::Lit(_) => true,
+        ExprKind::Field(e, _) | ExprKind::Cast(e, _) | ExprKind::Repeat(e, _) => is_pure_expr(cx, e),
+        ExprKind::Tup(args) => args.iter().all(|arg| is_pure_expr(cx, arg)),
+        ExprKind::Struct(_, fields, base) => {
+            base.map_or(true, |base| is_pure_expr(cx, base)) && fields.iter().all(|f| is_pure_expr(cx, f.expr))
+        },
+
+        // Since rust doesn't actually have the concept of a pure function we
+        // have to guess whether it's likely pure from the signature of the
+        // function.
+        ExprKind::Unary(_, e) => is_pure_arg_ty(cx, cx.typeck_results().expr_ty_adjusted(e)) && is_pure_expr(cx, e),
+        ExprKind::Binary(_, x, y) | ExprKind::Index(x, y, _) => {
+            is_pure_arg_ty(cx, cx.typeck_results().expr_ty_adjusted(x))
+                && is_pure_arg_ty(cx, cx.typeck_results().expr_ty_adjusted(y))
+                && is_pure_expr(cx, x)
+                && is_pure_expr(cx, y)
+        },
+        ExprKind::MethodCall(_, recv, args, _) => {
+            is_pure_arg_ty(cx, cx.typeck_results().expr_ty_adjusted(recv))
+                && is_pure_expr(cx, recv)
+                && cx
+                    .typeck_results()
+                    .type_dependent_def_id(e.hir_id)
+                    .is_some_and(|did| matches!(cx.tcx.fn_sig(did).skip_binder().skip_binder().safety, Safety::Safe))
+                && args
+                    .iter()
+                    .all(|arg| is_pure_arg_ty(cx, cx.typeck_results().expr_ty_adjusted(arg)) && is_pure_expr(cx, arg))
+        },
+        ExprKind::Call(f, args @ [_, ..]) => {
+            is_pure_expr(cx, f)
+                && is_pure_fn_ty(cx, cx.typeck_results().expr_ty_adjusted(f))
+                && args
+                    .iter()
+                    .all(|arg| is_pure_arg_ty(cx, cx.typeck_results().expr_ty_adjusted(arg)) && is_pure_expr(cx, arg))
+        },
+
+        _ => false,
+    }
+}
+
+fn is_pure_fn_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    let sig = match *ty.peel_refs().kind() {
+        ty::FnDef(did, _) => cx.tcx.fn_sig(did).skip_binder(),
+        ty::FnPtr(sig) => sig,
+        ty::Closure(_, args) => {
+            return args.as_closure().upvar_tys().iter().all(|ty| is_pure_arg_ty(cx, ty));
+        },
+        _ => return false,
+    };
+    matches!(sig.skip_binder().safety, Safety::Safe)
+}
+
+fn is_pure_arg_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    !ty.is_mutable_ptr()
+        && ty.is_copy_modulo_regions(cx.tcx, cx.param_env)
+        && (ty.peel_refs().is_freeze(cx.tcx, cx.param_env)
+            || !ty.has_type_flags(TypeFlags::HAS_FREE_REGIONS | TypeFlags::HAS_RE_ERASED | TypeFlags::HAS_RE_BOUND))
+}
+
+fn contains_expr<'tcx>(cx: &LateContext<'tcx>, corpus: &'tcx Expr<'tcx>, e: &'tcx Expr<'tcx>) -> bool {
+    for_each_expr_without_closures(corpus, |corpus| {
+        if SpanlessEq::new(cx).eq_expr(corpus, e) {
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
+        }
+    })
+    .is_some()
 }
 
 // Return true if `expr` is the result of `signum()` invoked on a float value.
