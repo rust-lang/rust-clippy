@@ -1,7 +1,7 @@
 //@no-rustfix
 
 #![warn(clippy::float_cmp)]
-#![allow(clippy::op_ref)]
+#![allow(clippy::op_ref, clippy::eq_op)]
 
 fn main() {
     {
@@ -328,6 +328,18 @@ fn main() {
             //~^ ERROR: strict comparison of `f32` or `f64`
             let _ = x.f() == x.f() + 1.0;
             //~^ ERROR: strict comparison of `f32` or `f64`
+        }
+    }
+
+    // Self comparisons
+    {
+        fn _f(x: f32) {
+            let _ = x == x;
+            let _ = x != x;
+            let _ = x == -x;
+            let _ = -x == x;
+            let _ = x as f64 == x as f64;
+            let _ = &&x == &&x;
         }
     }
 }

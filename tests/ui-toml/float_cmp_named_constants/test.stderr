@@ -1,5 +1,5 @@
 error: strict comparison of `f32` or `f64`
-  --> $DIR/test.rs:9:21
+  --> $DIR/test.rs:10:21
    |
 LL |             let _ = x == C;
    |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - C).abs() < error_margin`
