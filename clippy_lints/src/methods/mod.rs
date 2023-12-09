@@ -52,6 +52,7 @@ mod iterator_step_by_zero;
 mod join_absolute_paths;
 mod manual_next_back;
 mod manual_ok_or;
+mod manual_rfold;
 mod manual_saturating_arithmetic;
 mod manual_str_repeat;
 mod manual_try_fold;
@@ -3752,6 +3753,27 @@ declare_clippy_lint! {
     "using `Option.map_or(Err(_), Ok)`, which is more succinctly expressed as `Option.ok_or(_)`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for the use of `.rev().fold()` and sug.gests .rfold(). instead
+    ///
+    /// ### Why is this bad?
+    /// One function is better than two.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // let _ = (0..10).rev().fold(50, |acc, x| acc - x);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// // let _ = (0..10).rfold(50, |acc, x| acc - x);
+    /// ```
+    #[clippy::version = "1.76.0"]
+    pub MANUAL_RFOLD,
+    nursery,
+    "`.rfold()` is implemented manually"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3903,6 +3925,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_FALLIBLE_CONVERSIONS,
     JOIN_ABSOLUTE_PATHS,
     OPTION_MAP_OR_ERR_OK,
+    MANUAL_RFOLD,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4274,6 +4297,12 @@ impl Methods {
                 ("fold", [init, acc]) => {
                     manual_try_fold::check(cx, expr, init, acc, call_span, &self.msrv);
                     unnecessary_fold::check(cx, expr, init, acc, span);
+                    if let Some((name2, recv2, args2, _, _)) = method_call(recv) {
+                        match (name2, args2) {
+                            ("rev", []) => manual_rfold::check(cx, expr, recv, recv2),
+                            _ => {},
+                        }
+                    }
                 },
                 ("for_each", [arg]) => match method_call(recv) {
                     Some(("inspect", _, [_], span2, _)) => inspect_for_each::check(cx, expr, span2),
