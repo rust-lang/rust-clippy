@@ -9287,6 +9287,21 @@
     }
   },
   {
+    "id": "uninhabited_references",
+    "id_span": {
+      "path": "src/uninhabited_references.rs",
+      "line": 34
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nIt detects references to uninhabited types, such as `!` and\nwarns when those are either dereferenced or returned from a function.\n\n### Why is this bad?\nDereferencing a reference to an uninhabited type would create\nan instance of such a type, which cannot exist. This constitutes\nundefined behaviour. Such a reference could have been created\nby `unsafe` code.\n\n### Example\nThe following function can return a reference to an uninhabited type\n(`Infallible`) because it uses `unsafe` code to create it. However,\nthe user of such a function could dereference the return value and\ntrigger an undefined behavior from safe code.\n\n```rust\nfn create_ref() -> &'static std::convert::Infallible {\n    unsafe { std::mem::transmute(&()) }\n}\n```",
+    "version": "1.76.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "uninit_assumed_init",
     "id_span": {
       "path": "src/methods/mod.rs",
