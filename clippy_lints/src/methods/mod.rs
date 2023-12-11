@@ -3755,25 +3755,23 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for unnecessary calls to min()
+    /// Checks for unnecessary calls to `min()`
     ///
     /// ### Why is this bad?
     ///
-    /// In these cases it is not necessary to call min()
+    /// In these cases it is not necessary to call `min()`
     /// ### Example
     /// ```no_run
-    /// // example code where clippy issues a warning
     /// let _ = 0.min(7_u32);
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // example code which does not raise clippy warning
     /// let _ = 7;
     /// ```
     #[clippy::version = "1.76.0"]
     pub UNNECESSARY_MIN,
     complexity,
-    "default lint description"
+    "using 'min()' when there is no need for it"
 }
 
 pub struct Methods {

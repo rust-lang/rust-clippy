@@ -100,12 +100,13 @@ enum Sign {
 }
 impl From<(u128, &LateContext<'_>, IntTy)> for Sign {
     fn from(value: (u128, &LateContext<'_>, IntTy)) -> Self {
-        // The MSB decides wether the value has a negative sign in front of it or not
+        // The MSB decides whether the value has a negative sign in front of it or not
         // the value 0 is counting as positive (or as non-negative)
         let (value, cx, ity) = value;
         // shifting the MSB from a iX (i32, i64, etc) to the MSB from a i128
         let value = value << (128 - int_bits(cx.tcx, ity));
-        match (value.reverse_bits()) & 1_u128 {
+        let msb = (value.reverse_bits()) & 1_u128; // single out the MSB
+        match msb {
             0 => Self::Positive,
             1 => Self::Negative,
             _ => unreachable!("Bit can only be 0 or 1"),
