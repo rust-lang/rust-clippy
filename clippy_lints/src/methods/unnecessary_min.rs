@@ -22,10 +22,9 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, _: &'tcx Expr<'
     if one_extrema(cx, expr) {
         return;
     }
+
     let (left, right) = extract_both(expr);
     let ty = cx.typeck_results().expr_ty(expr);
-
-    //-------
     if !matches!(ty.kind(), ty::Uint(_)) {
         return;
     }
@@ -57,9 +56,9 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, _: &'tcx Expr<'
         }
     }
 }
-fn lint<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'_>, sugg: Span, other: Span) {
+fn lint(cx: &LateContext<'_>, expr: &Expr<'_>, sugg: Span, other: Span) {
     let msg = format!(
-        "{} is never greater than {} and has therefore no effect",
+        "`{}` is never greater than `{}` and has therefore no effect",
         snippet(cx, sugg, "Not yet implemented"),
         snippet(cx, other, "Not yet implemented")
     );
@@ -79,7 +78,7 @@ fn extract_both<'tcx>(expr: &'tcx Expr<'_>) -> (ExprKind<'tcx>, ExprKind<'tcx>) 
         hir::ExprKind::MethodCall(_, left1, right1, _) => {
             let left = left1.kind;
             let right = right1[0].kind;
-            return (left, right);
+            (left, right)
         },
         _ => unreachable!("this function gets only called on methods"),
     }
@@ -97,7 +96,7 @@ fn get_both_as_expr<'tcx>(expr: &'tcx Expr<'_>) -> (&'tcx Expr<'tcx>, &'tcx Expr
         hir::ExprKind::MethodCall(_, left1, right1, _) => {
             let left = left1;
             let right = &right1[0];
-            return (left, right);
+            (left, right)
         },
         _ => unreachable!("this function gets only called on methods"),
     }
@@ -135,10 +134,9 @@ fn cmp_for_signed(a: u128, b: u128, cx: &LateContext<'_>, ty: IntTy) -> Ordering
     // iX::MAX  b0111...
     // 0        b0000...    uX::MIN
     match (a_sign, b_sign) {
-        (Sign::Positive, Sign::Positive) => a.cmp(&b),
+        (Sign::Positive, Sign::Positive) | (Sign::Negative, Sign::Negative) => a.cmp(&b),
         (Sign::Positive, Sign::Negative) => Ordering::Greater,
         (Sign::Negative, Sign::Positive) => Ordering::Less,
-        (Sign::Negative, Sign::Negative) => a.cmp(&b),
     }
 }
 #[derive(Debug)]
@@ -171,8 +169,7 @@ fn both_are_constant<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool
 
         let (sugg, other) = match ord {
             Ordering::Less => (get_both_as_expr(expr).0.span, get_both_as_expr(expr).1.span),
-            Ordering::Equal => (get_both_as_expr(expr).1.span, get_both_as_expr(expr).0.span),
-            Ordering::Greater => (get_both_as_expr(expr).1.span, get_both_as_expr(expr).0.span),
+            Ordering::Equal | Ordering::Greater => (get_both_as_expr(expr).1.span, get_both_as_expr(expr).0.span),
         };
 
         lint(cx, expr, sugg, other);
