@@ -6,8 +6,8 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::source::snippet;
 use clippy_utils::{clip, int_bits, unsext};
-use hir::{Expr, ExprKind};
-use rustc_ast::LitKind;
+use hir::Expr;
+
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
@@ -19,42 +19,7 @@ pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, _: &'tcx Expr<'
     if both_are_constant(cx, expr) {
         return;
     }
-    if one_extrema(cx, expr) {
-        return;
-    }
-
-    let (left, right) = extract_both(expr);
-    let ty = cx.typeck_results().expr_ty(expr);
-    if !matches!(ty.kind(), ty::Uint(_)) {
-        return;
-    }
-    if let ExprKind::Lit(test) = left {
-        if let LitKind::Int(0, _) = test.node {
-            span_lint_and_sugg(
-                cx,
-                UNNECESSARY_MIN,
-                expr.span,
-                "this operation has no effect",
-                "try: ",
-                "0".to_string(),
-                Applicability::MachineApplicable,
-            );
-        }
-    }
-
-    if let ExprKind::Lit(test) = right {
-        if let LitKind::Int(0, _) = test.node {
-            span_lint_and_sugg(
-                cx,
-                UNNECESSARY_MIN,
-                expr.span,
-                "this operation has no effect",
-                "try: ",
-                "0".to_string(),
-                Applicability::MachineApplicable,
-            );
-        }
-    }
+    one_extrema(cx, expr);
 }
 fn lint(cx: &LateContext<'_>, expr: &Expr<'_>, sugg: Span, other: Span) {
     let msg = format!(
@@ -73,19 +38,8 @@ fn lint(cx: &LateContext<'_>, expr: &Expr<'_>, sugg: Span, other: Span) {
     );
 }
 
-fn extract_both<'tcx>(expr: &'tcx Expr<'_>) -> (ExprKind<'tcx>, ExprKind<'tcx>) {
-    match expr.kind {
-        hir::ExprKind::MethodCall(_, left1, right1, _) => {
-            let left = left1.kind;
-            let right = right1[0].kind;
-            (left, right)
-        },
-        _ => unreachable!("this function gets only called on methods"),
-    }
-}
 fn try_to_eval<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> (Option<Constant<'tcx>>, Option<Constant<'tcx>>) {
     let (left, right) = get_both_as_expr(expr);
-
     (
         (constant(cx, cx.typeck_results(), left)),
         (constant(cx, cx.typeck_results(), right)),
@@ -128,7 +82,7 @@ fn detect_extrema<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> Option<
 fn cmp_for_signed(a: u128, b: u128, cx: &LateContext<'_>, ty: IntTy) -> Ordering {
     let a_sign = Sign::from((a, cx, ty));
     let b_sign = Sign::from((b, cx, ty));
-    // The Ordering of a signed integer interpreted as a unsigned is as follows:
+    // The Ordering of a signed integer interpreted as a unsigned integer is as follows:
     // -1       b1111...    uX::MAX
     // iX::MIN  b1000...
     // iX::MAX  b0111...
