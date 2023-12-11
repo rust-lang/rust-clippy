@@ -116,7 +116,7 @@ fn lint_impl_body(cx: &LateContext<'_>, impl_span: Span, impl_items: &[hir::Impl
                     FALLIBLE_IMPL_FROM,
                     impl_span,
                     "consider implementing `TryFrom` instead",
-                    move |diag| {
+                    |diag| {
                         diag.help(
                             "`From` is intended for infallible conversions only. \
                             Use `TryFrom` if there's a possibility for the conversion to fail",

@@ -84,7 +84,7 @@ fn lint_impl_body<'tcx>(cx: &LateContext<'tcx>, impl_span: Span, body: &'tcx hir
             PANIC_IN_RESULT_FN,
             impl_span,
             "used `panic!()` or assertion in a function that returns `Result`",
-            move |diag| {
+            |diag| {
                 diag.help(
                     "`panic!()` or assertions should not be used in a function that returns `Result` as `Result` is expected to return an error instead of crashing",
                 );

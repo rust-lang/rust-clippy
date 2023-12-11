@@ -203,7 +203,7 @@ fn maybe_lint_endian_bytes(cx: &LateContext<'_>, expr: &Expr<'_>, prefix: Prefix
             lint.as_name(prefix),
             if prefix == Prefix::To { " method" } else { "" },
         ),
-        move |diag| {
+        |diag| {
             if let Some(help) = help {
                 diag.help(help);
             }

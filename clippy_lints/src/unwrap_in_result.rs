@@ -106,7 +106,7 @@ fn lint_impl_body<'tcx>(cx: &LateContext<'tcx>, impl_span: Span, impl_item: &'tc
                 UNWRAP_IN_RESULT,
                 impl_span,
                 "used unwrap or expect in a function that returns result or option",
-                move |diag| {
+                |diag| {
                     diag.help("unwrap and expect should not be used in a function that returns result or option");
                     diag.span_note(result, "potential non-recoverable error(s)");
                 },
