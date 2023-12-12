@@ -1,0 +1,17 @@
+error: manual backwards folding
+  --> $DIR/manual_rfold.rs:31:20
+   |
+LL |     let _ = (1..10).rev().fold(50, |acc, x| acc / x);
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `.rfold`
+   |
+   = note: `-D clippy::manual-rfold` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_rfold)]`
+
+error: manual backwards folding
+  --> $DIR/manual_rfold.rs:32:32
+   |
+LL |     let _ = "something".bytes().rev().fold(50, |acc, x| acc / x);
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `.rfold`
+
+error: aborting due to 2 previous errors
+
