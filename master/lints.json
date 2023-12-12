@@ -10290,7 +10290,7 @@
     "id": "useless_vec",
     "id_span": {
       "path": "src/vec.rs",
-      "line": 46
+      "line": 48
     },
     "group": "perf",
     "level": "warn",
@@ -10298,7 +10298,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
