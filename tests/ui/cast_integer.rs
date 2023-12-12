@@ -68,3 +68,21 @@ fn main() {
     let _ = i8 as i16;
     let _ = i16::from(i8);
 }
+
+// The lint would suggest using `u32::from(input)` here but the `XX::from` function is not const,
+// so we skip the lint if the expression is in a const fn.
+// See #3656
+const fn const_function(input: u32) -> u64 {
+    input as u64
+}
+
+// Same as the above issue. We can't suggest `::from` in const fns in impls
+mod cast_integer_in_impl {
+    struct A;
+
+    impl A {
+        pub const fn convert(x: u32) -> u64 {
+            x as u64
+        }
+    }
+}
