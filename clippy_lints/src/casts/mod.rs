@@ -692,21 +692,25 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Trigger on every integer cast using `as`, recommending From/TryFrom instead
     ///
     /// ### Why is this bad?
+    /// Because integer casts might introduce subtle unintended changes
     ///
     /// ### Example
     /// ```no_run
-    /// // example code where clippy issues a warning
+    /// let u = 1usize;
+    /// let _ = u as u64;
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // example code which does not raise clippy warning
+    /// let u = 1usize;
+    /// let _ = u64::try_from(u);
     /// ```
     #[clippy::version = "1.75.0"]
     pub CAST_INTEGER,
     pedantic,
-    "default lint description"
+    "casting integer types using `as` instead of From/TryFrom"
 }
 
 pub struct Casts {
