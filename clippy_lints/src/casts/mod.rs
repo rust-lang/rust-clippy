@@ -785,6 +785,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
                     cast_sign_loss::check(cx, expr, cast_expr, cast_from, cast_to);
                     cast_abs_to_unsigned::check(cx, expr, cast_expr, cast_from, cast_to, &self.msrv);
                     cast_nan_to_int::check(cx, expr, cast_expr, cast_from, cast_to);
+                    cast_integer::check(cx, expr, cast_from, cast_to);
                 }
                 cast_lossless::check(cx, expr, cast_expr, cast_from, cast_to, &self.msrv);
                 cast_enum_constructor::check(cx, expr, cast_expr, cast_from);

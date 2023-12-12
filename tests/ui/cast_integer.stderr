@@ -1,0 +1,180 @@
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:5:13
+   |
+LL |     let _ = u as u64;
+   |             ^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+   = note: `-D clippy::cast-integer` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::cast_integer)]`
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:10:13
+   |
+LL |     let _ = u64 as u128;
+   |             ^^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:14:13
+   |
+LL |     let _ = u32 as u128;
+   |             ^^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:16:13
+   |
+LL |     let _ = u32 as u64;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:20:13
+   |
+LL |     let _ = u16 as u128;
+   |             ^^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:22:13
+   |
+LL |     let _ = u16 as u64;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:24:13
+   |
+LL |     let _ = u16 as u32;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:28:13
+   |
+LL |     let _ = u8 as u128;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:30:13
+   |
+LL |     let _ = u8 as u64;
+   |             ^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:32:13
+   |
+LL |     let _ = u8 as u32;
+   |             ^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:34:13
+   |
+LL |     let _ = u8 as u16;
+   |             ^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:40:13
+   |
+LL |     let _ = isize as i64;
+   |             ^^^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:44:13
+   |
+LL |     let _ = i64 as i128;
+   |             ^^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:48:13
+   |
+LL |     let _ = i32 as i128;
+   |             ^^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:50:13
+   |
+LL |     let _ = i32 as i64;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:54:13
+   |
+LL |     let _ = i16 as i128;
+   |             ^^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:56:13
+   |
+LL |     let _ = i16 as i64;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:58:13
+   |
+LL |     let _ = i16 as i32;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:62:13
+   |
+LL |     let _ = i8 as i128;
+   |             ^^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:64:13
+   |
+LL |     let _ = i8 as i64;
+   |             ^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:66:13
+   |
+LL |     let _ = i8 as i32;
+   |             ^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:68:13
+   |
+LL |     let _ = i8 as i16;
+   |             ^^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: aborting due to 22 previous errors
+
