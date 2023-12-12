@@ -3051,6 +3051,21 @@
     }
   },
   {
+    "id": "ineffective_open_options",
+    "id_span": {
+      "path": "src/ineffective_open_options.rs",
+      "line": 39
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks if both `.write(true)` and `.append(true)` methods are called\non a same `OpenOptions`.\n\n### Why is this bad?\n`.append(true)` already enables `write(true)`, making this one\nsuperflous.\n\n### Example\n```rust\nlet _ = OpenOptions::new()\n           .write(true)\n           .append(true)\n           .create(true)\n           .open(\"file.json\");\n```\nUse instead:\n```rust\nlet _ = OpenOptions::new()\n           .append(true)\n           .create(true)\n           .open(\"file.json\");\n```",
+    "version": "1.76.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "inefficient_to_string",
     "id_span": {
       "path": "src/methods/mod.rs",
