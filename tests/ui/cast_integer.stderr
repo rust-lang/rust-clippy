@@ -176,5 +176,13 @@ LL |     let _ = i8 as i16;
    |
    = help: Try T::from(_) or T::try_from(_) instead
 
-error: aborting due to 22 previous errors
+error: Integer casts can introduce subtle surprises and should be done with From/TryFrom.
+  --> $DIR/cast_integer.rs:72:46
+   |
+LL | pub fn non_const_function(x: usize) -> u64 { x as u64 }
+   |                                              ^^^^^^^^
+   |
+   = help: Try T::from(_) or T::try_from(_) instead
+
+error: aborting due to 23 previous errors
 

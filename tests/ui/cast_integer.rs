@@ -69,6 +69,8 @@ fn main() {
     let _ = i16::from(i8);
 }
 
+pub fn non_const_function(x: usize) -> u64 { x as u64 }
+
 // The lint would suggest using `u32::from(input)` here but the `XX::from` function is not const,
 // so we skip the lint if the expression is in a const fn.
 // See #3656
