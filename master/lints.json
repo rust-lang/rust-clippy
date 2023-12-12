@@ -1760,7 +1760,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 272
+      "line": 273
     },
     "group": "suspicious",
     "level": "warn",
@@ -2049,7 +2049,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 238
+      "line": 239
     },
     "group": "complexity",
     "level": "warn",
@@ -2079,7 +2079,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 149
+      "line": 150
     },
     "group": "pedantic",
     "level": "allow",
@@ -2094,7 +2094,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 120
+      "line": 121
     },
     "group": "pedantic",
     "level": "allow",
@@ -2484,7 +2484,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 328
+      "line": 329
     },
     "group": "style",
     "level": "warn",
@@ -3111,6 +3111,21 @@
     }
   },
   {
+    "id": "infinite_loop",
+    "id_span": {
+      "path": "src/loops/mod.rs",
+      "line": 676
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for infinite loops in a function where the return type is not `!`\nand lint accordingly.\n\n### Why is this bad?\nA loop should be gently exited somewhere, or at least mark its parent function as\nnever return (`!`).\n\n### Example\n```rust\nfn run_forever() {\n    loop {\n        // do something\n    }\n}\n```\nIf infinite loops are as intended:\n```rust\nfn run_forever() -> ! {\n    loop {\n        // do something\n    }\n}\n```\nOtherwise add a `break` or `return` condition:\n```rust\nfn run_forever() {\n    loop {\n        // do something\n        if condition {\n            break;\n        }\n    }\n}\n```",
+    "version": "1.75.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "inherent_to_string",
     "id_span": {
       "path": "src/inherent_to_string.rs",
@@ -3447,7 +3462,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 173
+      "line": 174
     },
     "group": "correctness",
     "level": "deny",
@@ -4137,7 +4152,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 576
+      "line": 577
     },
     "group": "complexity",
     "level": "warn",
@@ -4167,7 +4182,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 509
+      "line": 510
     },
     "group": "complexity",
     "level": "warn",
@@ -4302,7 +4317,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 55
+      "line": 56
     },
     "group": "perf",
     "level": "warn",
@@ -4557,7 +4572,7 @@
     "id": "manual_while_let_some",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 633
+      "line": 634
     },
     "group": "style",
     "level": "warn",
@@ -5225,7 +5240,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 545
+      "line": 546
     },
     "group": "perf",
     "level": "warn",
@@ -5516,7 +5531,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 386
+      "line": 387
     },
     "group": "suspicious",
     "level": "warn",
@@ -5939,7 +5954,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 86
+      "line": 87
     },
     "group": "style",
     "level": "warn",
@@ -6089,7 +6104,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 350
+      "line": 351
     },
     "group": "correctness",
     "level": "deny",
@@ -7772,7 +7787,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 449
+      "line": 450
     },
     "group": "style",
     "level": "warn",
@@ -8195,7 +8210,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 477
+      "line": 478
     },
     "group": "complexity",
     "level": "warn",
@@ -9950,7 +9965,7 @@
     "id": "unused_enumerate_index",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 603
+      "line": 604
     },
     "group": "style",
     "level": "warn",
@@ -10395,7 +10410,7 @@
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 413
+      "line": 414
     },
     "group": "correctness",
     "level": "deny",
@@ -10410,7 +10425,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 206
+      "line": 207
     },
     "group": "complexity",
     "level": "warn",
@@ -10425,7 +10440,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 299
+      "line": 300
     },
     "group": "style",
     "level": "warn",
