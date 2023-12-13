@@ -35,9 +35,6 @@ fn main() {
 
     let _ = i64::MAX.min(test_i64()); // signed with MAX and function
     let _ = test_i64().min(i64::MAX); // signed with MAX and function
-    //
-    /*
-     */
 }
 fn test_usize() -> usize {
     42
