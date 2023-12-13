@@ -4,9 +4,10 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::walk_span_to_context;
 use clippy_utils::visitors::{for_each_expr_with_closures, Descend};
 use clippy_utils::{get_parent_node, is_lint_allowed};
+use hir::OwnerId;
 use rustc_data_structures::sync::Lrc;
 use rustc_hir as hir;
-use rustc_hir::{Block, BlockCheckMode, HirId, ItemKind, Node, OwnerNode, UnsafeSource};
+use rustc_hir::{Block, BlockCheckMode, HirId, ItemKind, Node, UnsafeSource};
 use rustc_lexer::{tokenize, TokenKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
@@ -263,59 +264,43 @@ impl<'tcx> LateLintPass<'tcx> for UndocumentedUnsafeBlocks {
     // NB: This does not check undocumented unsafe block as they are handled
     // by `check_block` and `block_parents_have_safety_comment`
     fn check_trait_item(&mut self, cx: &LateContext<'_>, trait_item: &hir::TraitItem<'_>) {
-        if in_external_macro(cx.tcx.sess, trait_item.span)
-            || is_lint_allowed(cx, UNNECESSARY_SAFETY_COMMENT, trait_item.hir_id())
-        {
-            return;
-        }
-
-        let hir::TraitItemKind::Const(_, Some(body_id)) = trait_item.kind else {
+        let hir::TraitItemKind::Const(..) = trait_item.kind else {
             return;
         };
-        if body_is_unsafe_block(cx, body_id) {
-            return;
-        }
-
-        if let HasSafetyComment::Yes(pos) = item_has_safety_comment(cx, trait_item.hir_id(), trait_item.into()) {
-            let (span, help_span) = mk_spans(cx, trait_item.span, pos);
-            span_lint_and_help(
-                cx,
-                UNNECESSARY_SAFETY_COMMENT,
-                span,
-                "associated constant has unnecessary safety comment",
-                Some(help_span),
-                "consider removing the safety comment",
-            );
-        }
+        lint_usc_on_associated_consts(cx, trait_item, trait_item.hir_id());
     }
 
     // Check unnecessary unsafe comment above impl items.
     // NB: Same as [`check_trait_item`] above, this does not check undocumented unsafe block.
     fn check_impl_item(&mut self, cx: &LateContext<'_>, impl_item: &hir::ImplItem<'_>) {
-        if in_external_macro(cx.tcx.sess, impl_item.span)
-            || is_lint_allowed(cx, UNNECESSARY_SAFETY_COMMENT, impl_item.hir_id())
-        {
-            return;
-        }
-
-        let hir::ImplItemKind::Const(_, body_id) = impl_item.kind else {
+        let hir::ImplItemKind::Const(..) = impl_item.kind else {
             return;
         };
-        if body_is_unsafe_block(cx, body_id) {
-            return;
-        }
+        lint_usc_on_associated_consts(cx, impl_item, impl_item.hir_id());
+    }
+}
 
-        if let HasSafetyComment::Yes(pos) = item_has_safety_comment(cx, impl_item.hir_id(), impl_item.into()) {
-            let (span, help_span) = mk_spans(cx, impl_item.span, pos);
-            span_lint_and_help(
-                cx,
-                UNNECESSARY_SAFETY_COMMENT,
-                span,
-                "associated constant has unnecessary safety comment",
-                Some(help_span),
-                "consider removing the safety comment",
-            );
-        }
+fn lint_usc_on_associated_consts<'hir, T: Into<hir::OwnerNode<'hir>>>(cx: &LateContext<'_>, item: T, hir_id: HirId) {
+    let owner_node = item.into();
+    let span = owner_node.span();
+    let Some(body_id) = owner_node.body_id() else { return };
+    if in_external_macro(cx.tcx.sess, span)
+        || is_lint_allowed(cx, UNNECESSARY_SAFETY_COMMENT, hir_id)
+        || body_is_unsafe_block(cx, body_id)
+    {
+        return;
+    }
+
+    if let HasSafetyComment::Yes(pos) = item_has_safety_comment(cx, hir_id, owner_node) {
+        let (span, help_span) = mk_spans(cx, span, pos);
+        span_lint_and_help(
+            cx,
+            UNNECESSARY_SAFETY_COMMENT,
+            span,
+            "associated constant has unnecessary safety comment",
+            Some(help_span),
+            "consider removing the safety comment",
+        );
     }
 }
 
@@ -524,25 +509,34 @@ fn item_has_safety_comment(cx: &LateContext<'_>, hir_id: HirId, owner: hir::Owne
         has_safety_comment => return has_safety_comment,
     }
 
-    if owner.span().ctxt() != SyntaxContext::root() {
+    if owner.span().from_expansion() {
         return HasSafetyComment::No;
     }
     if let Some(parent_node) = get_parent_node(cx.tcx, hir_id) {
         let comment_start = match parent_node {
-            Node::Crate(parent_mod) => {
-                comment_start_pos_in_parent_context(cx, parent_mod.item_ids, parent_mod.spans.inner_span, owner)
-            },
+            Node::Crate(parent_mod) => comment_start_pos(
+                cx,
+                parent_mod.item_ids.iter().map(|id| id.owner_id),
+                parent_mod.spans.inner_span,
+                owner.def_id(),
+            ),
             Node::Item(parent_item) => {
                 match parent_item.kind {
-                    ItemKind::Mod(parent_mod) => {
-                        comment_start_pos_in_parent_context(cx, parent_mod.item_ids, parent_item.span, owner)
-                    },
+                    ItemKind::Mod(parent_mod) => comment_start_pos(
+                        cx,
+                        parent_mod.item_ids.iter().map(|id| id.owner_id),
+                        parent_item.span,
+                        owner.def_id(),
+                    ),
                     ItemKind::Trait(_, _, _, _, refs) => {
-                        comment_start_pos_in_parent_context(cx, refs, parent_item.span, owner)
+                        comment_start_pos(cx, refs.iter().map(|r| r.id.owner_id), parent_item.span, owner.def_id())
                     },
-                    ItemKind::Impl(hir::Impl { items, .. }) => {
-                        comment_start_pos_in_parent_context(cx, items, parent_item.span, owner)
-                    },
+                    ItemKind::Impl(hir::Impl { items, .. }) => comment_start_pos(
+                        cx,
+                        items.iter().map(|r| r.id.owner_id),
+                        parent_item.span,
+                        owner.def_id(),
+                    ),
                     // Doesn't support impls in this position. Pretend a comment was found.
                     _ => return HasSafetyComment::Maybe,
                 }
@@ -627,71 +621,20 @@ fn stmt_has_safety_comment(cx: &LateContext<'_>, span: Span, hir_id: HirId) -> H
     HasSafetyComment::Maybe
 }
 
-trait CheckableItemId {
-    fn owner_id(&self) -> hir::OwnerId;
-}
-
-impl CheckableItemId for hir::ItemId {
-    fn owner_id(&self) -> hir::OwnerId {
-        self.owner_id
-    }
-}
-impl CheckableItemId for hir::ImplItemRef {
-    fn owner_id(&self) -> hir::OwnerId {
-        self.id.owner_id
-    }
-}
-impl CheckableItemId for hir::TraitItemRef {
-    fn owner_id(&self) -> hir::OwnerId {
-        self.id.owner_id
-    }
-}
-
 /// Search and return the starting [`BytePos`] of the comment above an 'item' in its context.
-fn comment_start_pos_in_parent_context<T: CheckableItemId>(
+fn comment_start_pos<I: Iterator<Item = OwnerId> + DoubleEndedIterator>(
     cx: &LateContext<'_>,
-    ids: &[T],
+    mut siblings: I,
     search_span: Span,
-    owner: OwnerNode<'_>,
+    owner_id: OwnerId,
 ) -> Option<BytePos> {
-    let map = cx.tcx.hir();
-    ids.iter().enumerate().find_map(|(idx, id)| {
-        if id.owner_id() == owner.def_id() {
-            if idx == 0 {
-                // mod A { /* comment */ unsafe impl T {} ... }
-                // ^------------------------------------------^ returns the start of this span
-                // ^---------------------^ finally checks comments in this range
-                walk_span_to_context(search_span, SyntaxContext::root()).map(Span::lo)
-            } else {
-                // some_item /* comment */ unsafe impl T {}
-                // ^-------^ returns the end of this span
-                //         ^---------------^ finally checks comments in this range
-                match owner {
-                    OwnerNode::Item(_) => {
-                        let prev_item = map.item(hir::ItemId {
-                            owner_id: ids[idx - 1].owner_id(),
-                        });
-                        walk_span_to_context(prev_item.span, SyntaxContext::root()).map(Span::lo)
-                    },
-                    OwnerNode::ImplItem(_) => {
-                        let prev_impl_item = map.impl_item(hir::ImplItemId {
-                            owner_id: ids[idx - 1].owner_id(),
-                        });
-                        walk_span_to_context(prev_impl_item.span, SyntaxContext::root()).map(Span::lo)
-                    },
-                    OwnerNode::TraitItem(_) => {
-                        let prev_trait_item = map.trait_item(hir::TraitItemId {
-                            owner_id: ids[idx - 1].owner_id(),
-                        });
-                        walk_span_to_context(prev_trait_item.span, SyntaxContext::root()).map(Span::lo)
-                    },
-                    _ => None,
-                }
-            }
-        } else {
-            None
-        }
-    })
+    let _ = siblings.rfind(|id| *id == owner_id);
+    if let Some(prev_sibling_id) = siblings.next_back() {
+        let prev_sibling_span = cx.tcx.hir().span(prev_sibling_id.into());
+        walk_span_to_context(prev_sibling_span, SyntaxContext::root()).map(Span::lo)
+    } else {
+        walk_span_to_context(search_span, SyntaxContext::root()).map(Span::lo)
+    }
 }
 
 fn span_from_macro_expansion_has_safety_comment(cx: &LateContext<'_>, span: Span) -> HasSafetyComment {
@@ -730,13 +673,8 @@ fn span_from_macro_expansion_has_safety_comment(cx: &LateContext<'_>, span: Span
 
 fn get_body_search_span(cx: &LateContext<'_>) -> Option<Span> {
     let body = cx.enclosing_body?;
-    let map = cx.tcx.hir();
-    let mut span = map.body(body).value.span;
-    let mut is_const_or_static = false;
-    for (_, parent_node) in map.parent_iter(body.hir_id) {
+    for (_, parent_node) in cx.tcx.hir().parent_iter(body.hir_id) {
         match parent_node {
-            Node::Expr(e) => span = e.span,
-            Node::Block(_) | Node::Arm(_) | Node::Stmt(_) | Node::Local(_) => (),
             Node::Item(hir::Item {
                 kind: hir::ItemKind::Const(..) | ItemKind::Static(..),
                 ..
@@ -748,22 +686,13 @@ fn get_body_search_span(cx: &LateContext<'_>) -> Option<Span> {
             | Node::TraitItem(hir::TraitItem {
                 kind: hir::TraitItemKind::Const(..),
                 ..
-            }) => is_const_or_static = true,
-            // Parent is a `mod xxx { .. }``
-            Node::Item(item) => {
-                match item.kind {
-                    ItemKind::Mod(_) | ItemKind::Trait(..) | ItemKind::Impl(..) => span = item.span,
-                    _ => (),
-                }
-                break;
-            },
-            Node::Crate(mod_) if is_const_or_static => {
-                span = mod_.spans.inner_span;
-            },
-            _ => break,
+            }) => {},
+            Node::Item(item) => return Some(item.span),
+            Node::Crate(mod_) => return Some(mod_.spans.inner_span),
+            _ => {},
         }
     }
-    Some(span)
+    None
 }
 
 fn span_has_safety_comment(cx: &LateContext<'_>, span: Span) -> bool {
