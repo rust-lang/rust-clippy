@@ -2,8 +2,6 @@
 #![warn(clippy::unnecessary_min)]
 
 fn main() {
-    /*
-     */
     const A: i64 = 45;
     const B: i64 = -1;
     const C: i64 = const_fn(B);
