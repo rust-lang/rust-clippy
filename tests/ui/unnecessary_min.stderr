@@ -1,5 +1,5 @@
 error: `(A * B)` is never greater than `B` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:10:13
+  --> $DIR/unnecessary_min.rs:8:13
    |
 LL |     let _ = (A * B).min(B); // Both are constants
    |             ^^^^^^^^^^^^^^ help: try: `(A * B)`
@@ -8,103 +8,103 @@ LL |     let _ = (A * B).min(B); // Both are constants
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_min)]`
 
 error: `B` is never greater than `C` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:11:13
+  --> $DIR/unnecessary_min.rs:9:13
    |
 LL |     let _ = C.min(B); // Both are constants
    |             ^^^^^^^^ help: try: `B`
 
 error: `B` is never greater than `C` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:12:13
+  --> $DIR/unnecessary_min.rs:10:13
    |
 LL |     let _ = B.min(C); // Both are constants
    |             ^^^^^^^^ help: try: `B`
 
 error: `(-6_i32)` is never greater than `9` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:14:13
+  --> $DIR/unnecessary_min.rs:12:13
    |
 LL |     let _ = (-6_i32).min(9); // Both are Literals
    |             ^^^^^^^^^^^^^^^ help: try: `(-6_i32)`
 
 error: `6` is never greater than `9_u32` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:15:13
+  --> $DIR/unnecessary_min.rs:13:13
    |
 LL |     let _ = 9_u32.min(6); // Both are Literals
    |             ^^^^^^^^^^^^ help: try: `6`
 
 error: `6` is never greater than `7_u8` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:17:13
+  --> $DIR/unnecessary_min.rs:15:13
    |
 LL |     let _ = 6.min(7_u8); // Both are Literals
    |             ^^^^^^^^^^^ help: try: `6`
 
 error: `0` is never greater than `7_u8` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:19:13
+  --> $DIR/unnecessary_min.rs:17:13
    |
 LL |     let _ = 0.min(7_u8); // unsigned with zero
    |             ^^^^^^^^^^^ help: try: `0`
 
 error: `0_u32` is never greater than `7` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:20:13
+  --> $DIR/unnecessary_min.rs:18:13
    |
 LL |     let _ = 7.min(0_u32); // unsigned with zero
    |             ^^^^^^^^^^^^ help: try: `0_u32`
 
 error: `i32::MIN` is never greater than `42` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:22:13
+  --> $DIR/unnecessary_min.rs:20:13
    |
 LL |     let _ = i32::MIN.min(42); // singed MIN
    |             ^^^^^^^^^^^^^^^^ help: try: `i32::MIN`
 
 error: `i32::MIN` is never greater than `42` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:23:13
+  --> $DIR/unnecessary_min.rs:21:13
    |
 LL |     let _ = 42.min(i32::MIN); // singed MIN
    |             ^^^^^^^^^^^^^^^^ help: try: `i32::MIN`
 
 error: `42` is never greater than `i32::MAX` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:25:13
+  --> $DIR/unnecessary_min.rs:23:13
    |
 LL |     let _ = i32::MAX.min(42); // singed MAX
    |             ^^^^^^^^^^^^^^^^ help: try: `42`
 
 error: `42` is never greater than `i32::MAX` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:26:13
+  --> $DIR/unnecessary_min.rs:24:13
    |
 LL |     let _ = 42.min(i32::MAX); // singed MAX
    |             ^^^^^^^^^^^^^^^^ help: try: `42`
 
 error: `0` is never greater than `test_usize()` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:28:13
+  --> $DIR/unnecessary_min.rs:26:13
    |
 LL |     let _ = 0.min(test_usize()); // unsigned with zero and function
    |             ^^^^^^^^^^^^^^^^^^^ help: try: `0`
 
 error: `0` is never greater than `test_usize()` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:30:13
+  --> $DIR/unnecessary_min.rs:28:13
    |
 LL |     let _ = test_usize().min(0); // unsigned with zero and function
    |             ^^^^^^^^^^^^^^^^^^^ help: try: `0`
 
 error: `i64::MIN` is never greater than `test_i64()` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:32:13
+  --> $DIR/unnecessary_min.rs:30:13
    |
 LL |     let _ = i64::MIN.min(test_i64()); // signed with MIN and function
    |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `i64::MIN`
 
 error: `i64::MIN` is never greater than `test_i64()` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:34:13
+  --> $DIR/unnecessary_min.rs:32:13
    |
 LL |     let _ = test_i64().min(i64::MIN); // signed with MIN and function
    |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `i64::MIN`
 
 error: `test_i64()` is never greater than `i64::MAX` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:36:13
+  --> $DIR/unnecessary_min.rs:34:13
    |
 LL |     let _ = i64::MAX.min(test_i64()); // signed with MAX and function
    |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `test_i64()`
 
 error: `test_i64()` is never greater than `i64::MAX` and has therefore no effect
-  --> $DIR/unnecessary_min.rs:37:13
+  --> $DIR/unnecessary_min.rs:35:13
    |
 LL |     let _ = test_i64().min(i64::MAX); // signed with MAX and function
    |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `test_i64()`
