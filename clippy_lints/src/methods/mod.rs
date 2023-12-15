@@ -4207,7 +4207,7 @@ impl Methods {
                     Some(("bytes", recv2, [], _, _)) => bytes_count_to_len::check(cx, expr, recv, recv2),
                     _ => {},
                 },
-                ("min", [arg]) => unnecessary_min::check(cx, expr, arg),
+                ("min", [arg]) => unnecessary_min::check(cx, expr, recv, arg),
                 ("drain", ..) => {
                     if let Node::Stmt(Stmt { hir_id: _, kind, .. }) = cx.tcx.hir().get_parent(expr.hir_id)
                         && matches!(kind, StmtKind::Semi(_))

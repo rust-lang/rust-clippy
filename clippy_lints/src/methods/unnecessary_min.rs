@@ -15,11 +15,11 @@ use rustc_lint::LateContext;
 use rustc_middle::ty::{self, IntTy};
 use rustc_span::Span;
 
-pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, _: &'tcx Expr<'_>) {
-    if both_are_constant(cx, expr) {
+pub fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>, arg: &'tcx Expr<'_>) {
+    if both_are_constant(cx, expr, recv, arg) {
         return;
     }
-    one_extrema(cx, expr);
+    one_extrema(cx, expr, recv, arg);
 }
 fn lint(cx: &LateContext<'_>, expr: &Expr<'_>, sugg: Span, other: Span) {
     let msg = format!(
@@ -38,22 +38,15 @@ fn lint(cx: &LateContext<'_>, expr: &Expr<'_>, sugg: Span, other: Span) {
     );
 }
 
-fn try_to_eval<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> (Option<Constant<'tcx>>, Option<Constant<'tcx>>) {
-    let (left, right) = get_both_as_expr(expr);
+fn try_to_eval<'tcx>(
+    cx: &LateContext<'tcx>,
+    recv: &'tcx Expr<'_>,
+    arg: &'tcx Expr<'_>,
+) -> (Option<Constant<'tcx>>, Option<Constant<'tcx>>) {
     (
-        (constant(cx, cx.typeck_results(), left)),
-        (constant(cx, cx.typeck_results(), right)),
+        (constant(cx, cx.typeck_results(), recv)),
+        (constant(cx, cx.typeck_results(), arg)),
     )
-}
-fn get_both_as_expr<'tcx>(expr: &'tcx Expr<'_>) -> (&'tcx Expr<'tcx>, &'tcx Expr<'tcx>) {
-    match expr.kind {
-        hir::ExprKind::MethodCall(_, left1, right1, _) => {
-            let left = left1;
-            let right = &right1[0];
-            (left, right)
-        },
-        _ => unreachable!("this function gets only called on methods"),
-    }
 }
 #[derive(Debug)]
 enum Extrema {
@@ -113,9 +106,14 @@ impl From<(u128, &LateContext<'_>, IntTy)> for Sign {
         }
     }
 }
-fn both_are_constant<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool {
-    let ty = cx.typeck_results().expr_ty(expr);
-    if let (Some(left), Some(right)) = try_to_eval(cx, expr) {
+fn both_are_constant<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'_>,
+    recv: &'tcx Expr<'_>,
+    arg: &'tcx Expr<'_>,
+) -> bool {
+    let ty = cx.typeck_results().expr_ty(recv);
+    if let (Some(left), Some(right)) = try_to_eval(cx, recv, arg) {
         let ord = match (ty.kind(), left, right) {
             (ty::Int(ty), Constant::Int(left), Constant::Int(right)) => cmp_for_signed(left, right, cx, *ty),
             (ty::Uint(_), Constant::Int(left), Constant::Int(right)) => left.cmp(&right),
@@ -123,8 +121,8 @@ fn both_are_constant<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool
         };
 
         let (sugg, other) = match ord {
-            Ordering::Less => (get_both_as_expr(expr).0.span, get_both_as_expr(expr).1.span),
-            Ordering::Equal | Ordering::Greater => (get_both_as_expr(expr).1.span, get_both_as_expr(expr).0.span),
+            Ordering::Less => (recv.span, arg.span),
+            Ordering::Equal | Ordering::Greater => (arg.span, recv.span),
         };
 
         lint(cx, expr, sugg, other);
@@ -132,19 +130,17 @@ fn both_are_constant<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool
     }
     false
 }
-fn one_extrema<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) -> bool {
-    //let ty = cx.typeck_results().expr_ty(expr);
-    let (left, right) = get_both_as_expr(expr);
-    if let Some(extrema) = detect_extrema(cx, left) {
+fn one_extrema<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, recv: &'tcx Expr<'_>, arg: &'tcx Expr<'_>) -> bool {
+    if let Some(extrema) = detect_extrema(cx, recv) {
         match extrema {
-            Extrema::Minimum => lint(cx, expr, left.span, right.span),
-            Extrema::Maximum => lint(cx, expr, right.span, left.span),
+            Extrema::Minimum => lint(cx, expr, recv.span, arg.span),
+            Extrema::Maximum => lint(cx, expr, arg.span, recv.span),
         }
         return true;
-    } else if let Some(extrema) = detect_extrema(cx, right) {
+    } else if let Some(extrema) = detect_extrema(cx, arg) {
         match extrema {
-            Extrema::Minimum => lint(cx, expr, right.span, left.span),
-            Extrema::Maximum => lint(cx, expr, left.span, right.span),
+            Extrema::Minimum => lint(cx, expr, arg.span, recv.span),
+            Extrema::Maximum => lint(cx, expr, recv.span, arg.span),
         }
         return true;
     }
