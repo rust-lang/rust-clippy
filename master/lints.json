@@ -2409,7 +2409,7 @@
     "id": "fn_address_comparisons",
     "id_span": {
       "path": "src/unnamed_address.rs",
-      "line": 27
+      "line": 26
     },
     "group": "correctness",
     "level": "deny",
@@ -10370,21 +10370,6 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of File::read_to_end and File::read_to_string.\n\n### Why is this bad?\n`fs::{read, read_to_string}` provide the same functionality when `buf` is empty with fewer imports and no intermediate values.\nSee also: [fs::read docs](https://doc.rust-lang.org/std/fs/fn.read.html), [fs::read_to_string docs](https://doc.rust-lang.org/std/fs/fn.read_to_string.html)\n\n### Example\n```rust\nlet mut f = File::open(\"foo.txt\").unwrap();\nlet mut bytes = Vec::new();\nf.read_to_end(&mut bytes).unwrap();\n```\nCan be written more concisely as\n```rust\nlet mut bytes = fs::read(\"foo.txt\").unwrap();\n```",
-    "version": "1.44.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "vtable_address_comparisons",
-    "id_span": {
-      "path": "src/unnamed_address.rs",
-      "line": 51
-    },
-    "group": "correctness",
-    "level": "deny",
-    "docs": "\n### What it does\nChecks for comparisons with an address of a trait vtable.\n\n### Why is this bad?\nComparing trait objects pointers compares an vtable addresses which\nare not guaranteed to be unique and could vary between different code generation units.\nFurthermore vtables for different types could have the same address after being merged\ntogether.\n\n### Example\n```rust\nlet a: Rc<dyn Trait> = ...\nlet b: Rc<dyn Trait> = ...\nif Rc::ptr_eq(&a, &b) {\n    ...\n}\n```",
     "version": "1.44.0",
     "applicability": {
       "is_multi_part_suggestion": false,
