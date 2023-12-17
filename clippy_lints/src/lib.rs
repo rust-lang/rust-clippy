@@ -50,6 +50,8 @@ extern crate clippy_utils;
 #[macro_use]
 extern crate declare_clippy_lint;
 
+use std::collections::BTreeMap;
+
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{Lint, LintId};
 
@@ -153,6 +155,7 @@ mod implied_bounds_in_impls;
 mod inconsistent_struct_constructor;
 mod index_refutable_slice;
 mod indexing_slicing;
+mod ineffective_open_options;
 mod infinite_iter;
 mod inherent_impl;
 mod inherent_to_string;
@@ -324,8 +327,10 @@ mod trait_bounds;
 mod transmute;
 mod tuple_array_conversions;
 mod types;
+mod unconditional_recursion;
 mod undocumented_unsafe_blocks;
 mod unicode;
+mod uninhabited_references;
 mod uninit_vec;
 mod unit_return_expecting_ord;
 mod unit_types;
@@ -723,6 +728,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         Box::new(vec::UselessVec {
             too_large_for_stack,
             msrv: msrv(),
+            span_to_lint_map: BTreeMap::new(),
         })
     });
     store.register_late_pass(|_| Box::new(panic_unimplemented::PanicUnimplemented));
@@ -1071,6 +1077,9 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(iter_over_hash_type::IterOverHashType));
     store.register_late_pass(|_| Box::new(impl_hash_with_borrow_str_and_bytes::ImplHashWithBorrowStrBytes));
     store.register_late_pass(|_| Box::new(repeat_vec_with_capacity::RepeatVecWithCapacity));
+    store.register_late_pass(|_| Box::new(uninhabited_references::UninhabitedReferences));
+    store.register_late_pass(|_| Box::new(ineffective_open_options::IneffectiveOpenOptions));
+    store.register_late_pass(|_| Box::new(unconditional_recursion::UnconditionalRecursion));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

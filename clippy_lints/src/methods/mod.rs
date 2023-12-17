@@ -1176,7 +1176,8 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for indirect collection of populated `Option`
+    /// Checks for iterators of `Option`s using ``.filter(Option::is_some).map(Option::unwrap)` that may
+    /// be replaced with a `.flatten()` call.
     ///
     /// ### Why is this bad?
     /// `Option` is like a collection of 0-1 things, so `flatten`
@@ -3774,6 +3775,28 @@ declare_clippy_lint! {
     "using 'min()' when there is no need for it"
 }
 
+declare_clippy_lint! {
+    /// Checks for iterators of `Result`s using ``.filter(Result::is_ok).map(Result::unwrap)` that may
+    /// be replaced with a `.flatten()` call.
+    ///
+    /// ### Why is this bad?
+    /// `Result` implements `IntoIterator<Item = T>`. This means that `Result` can be flattened
+    /// automatically without suspicious-looking `unwrap` calls.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = std::iter::empty::<Result<i32, ()>>().filter(Result::is_ok).map(Result::unwrap);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = std::iter::empty::<Result<i32, ()>>().flatten();
+    /// ```
+    #[clippy::version = "1.76.0"]
+    pub RESULT_FILTER_MAP,
+    complexity,
+    "filtering `Result` for `Ok` then force-unwrapping, which can be one type-safe operation"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -3926,10 +3949,11 @@ impl_lint_pass!(Methods => [
     JOIN_ABSOLUTE_PATHS,
     OPTION_MAP_OR_ERR_OK,
     UNNECESSARY_MIN,
+    RESULT_FILTER_MAP,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
-fn method_call<'tcx>(
+pub fn method_call<'tcx>(
     recv: &'tcx hir::Expr<'tcx>,
 ) -> Option<(&'tcx str, &'tcx hir::Expr<'tcx>, &'tcx [hir::Expr<'tcx>], Span, Span)> {
     if let ExprKind::MethodCall(path, receiver, args, call_span) = recv.kind {
