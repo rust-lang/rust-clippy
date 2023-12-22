@@ -188,23 +188,10 @@ fn lint_unnecessary_cast(
     // (-1).foo() instead of -1.foo())
     let sugg = if let Some(parent_expr) = get_parent_expr(cx, cast_expr)
         && let ExprKind::MethodCall(..) = parent_expr.kind
-        && literal_str.starts_with('-')
+        // TODO: this should be handled by typed ExprKind
+        && literal_str.starts_with(&['-', '!'])
     {
-        format!("({literal_str}_{cast_to})")
-    } else if let ExprKind::Cast(inner, _) = cast_expr.kind
-        && let ExprKind::Unary(..) = inner.kind
-    {
-        // (unary(_) as cast_to).foo(...)
-        //  ^~~~~~~~ inner    ^
-        //  ^~~~~~~~~~~~~~~~~~/ cast_source
-
-        // target is `(unary(src) as _cast_to).foo(...)`, so the receiver still needs to
-        // be parenthesised
-
-        // TODO: somehow this yields None, unable to determine
-        //       whether parent is a method call.
-        let _cast_source_parent = get_parent_expr(cx, cast_expr);
-
+        // TODO: issue 11882 should reach this path
         format!("({literal_str}_{cast_to})")
     } else {
         format!("{literal_str}_{cast_to}")

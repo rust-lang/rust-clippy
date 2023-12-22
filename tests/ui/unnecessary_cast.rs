@@ -220,4 +220,8 @@ mod fixable {
     fn issue_9603() {
         let _: f32 = -0x400 as f32;
     }
+
+    fn issue_11882() -> u64 {
+        (!0 as u64).overflowing_shr(1_u32).0
+    }
 }
