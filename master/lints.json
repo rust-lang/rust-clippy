@@ -7274,7 +7274,7 @@
     "id": "redundant_async_block",
     "id_span": {
       "path": "src/redundant_async_block.rs",
-      "line": 38
+      "line": 39
     },
     "group": "complexity",
     "level": "warn",
