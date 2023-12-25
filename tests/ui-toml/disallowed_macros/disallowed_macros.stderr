@@ -1,0 +1,99 @@
+error: use of a disallowed macro `std::println`
+  --> $DIR/disallowed_macros.rs:10:5
+   |
+LL |     println!("one");
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::disallowed-macros` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::disallowed_macros)]`
+
+error: use of a disallowed macro `std::println`
+  --> $DIR/disallowed_macros.rs:11:5
+   |
+LL |     println!("two");
+   |     ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::cfg`
+  --> $DIR/disallowed_macros.rs:12:5
+   |
+LL |     cfg!(unix);
+   |     ^^^^^^^^^^
+
+error: use of a disallowed macro `std::vec`
+  --> $DIR/disallowed_macros.rs:13:5
+   |
+LL |     vec![1, 2, 3];
+   |     ^^^^^^^^^^^^^
+
+error: use of a disallowed macro `serde::Serialize`
+  --> $DIR/disallowed_macros.rs:15:14
+   |
+LL |     #[derive(Serialize)]
+   |              ^^^^^^^^^
+   |
+   = note: no serializing (from clippy.toml)
+
+error: use of a disallowed macro `macros::expr`
+  --> $DIR/disallowed_macros.rs:18:13
+   |
+LL |     let _ = macros::expr!();
+   |             ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::stmt`
+  --> $DIR/disallowed_macros.rs:19:5
+   |
+LL |     macros::stmt!();
+   |     ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::pat`
+  --> $DIR/disallowed_macros.rs:20:9
+   |
+LL |     let macros::pat!() = 1;
+   |         ^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::ty`
+  --> $DIR/disallowed_macros.rs:21:12
+   |
+LL |     let _: macros::ty!() = "";
+   |            ^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::item`
+  --> $DIR/disallowed_macros.rs:22:5
+   |
+LL |     macros::item!();
+   |     ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::binop`
+  --> $DIR/disallowed_macros.rs:23:13
+   |
+LL |     let _ = macros::binop!(1);
+   |             ^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::attr`
+  --> $DIR/disallowed_macros.rs:28:1
+   |
+LL | / macros::attr! {
+LL | |     struct S;
+LL | | }
+   | |_^
+
+error: use of a disallowed macro `macros::item`
+  --> $DIR/disallowed_macros.rs:33:5
+   |
+LL |     macros::item!();
+   |     ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::item`
+  --> $DIR/disallowed_macros.rs:37:5
+   |
+LL |     macros::item!();
+   |     ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::item`
+  --> $DIR/disallowed_macros.rs:41:5
+   |
+LL |     macros::item!();
+   |     ^^^^^^^^^^^^^^^
+
+error: aborting due to 15 previous errors
+
