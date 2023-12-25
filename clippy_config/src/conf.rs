@@ -561,17 +561,7 @@ define_Conf! {
     /// ```toml
     /// blocking-ops = ["my_crate::some_blocking_fn"]
     /// ```
-    (blocking_ops: Vec<String> = <_>::default()),
-    /// Lint: UNNECESSARY_BLOCKING_OPS.
-    ///
-    /// List of additional blocking function paths to check, with replacement suggestion function paths.
-    ///
-    /// #### Example
-    ///
-    /// ```toml
-    /// blocking-ops-with-suggestions = [["my_crate::some_blocking_fn" , "my_crate::use_this_instead"]]
-    /// ```
-    (blocking_ops_with_suggestions: Vec<[String; 2]> = <_>::default()),
+    (blocking_ops: Vec<DisallowedPath> = <_>::default()),
 }
 
 /// Search for the configuration file.

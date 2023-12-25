@@ -1,4 +1,3 @@
-#![feature(async_fn_in_trait)]
 #![feature(async_closure)]
 #![allow(incomplete_features)]
 #![warn(clippy::unnecessary_blocking_ops)]
