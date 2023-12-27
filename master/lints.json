@@ -1148,7 +1148,7 @@
     "id": "crosspointer_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 109
+      "line": 110
     },
     "group": "complexity",
     "level": "warn",
@@ -1679,6 +1679,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "eager_transmute",
+    "id_span": {
+      "path": "src/transmute/mod.rs",
+      "line": 518
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for integer validity checks, followed by a transmute that is (incorrectly) evaluated\neagerly (e.g. using `bool::then_some`).\n\n### Why is this bad?\nEager evaluation means that the `transmute` call is executed regardless of whether the condition is true or false.\nThis can introduce unsoundness and other subtle bugs.\n\n### Example\nConsider the following function which is meant to convert an unsigned integer to its enum equivalent via transmute.\n\n```rust\n#[repr(u8)]\nenum Opcode {\n    Add = 0,\n    Sub = 1,\n    Mul = 2,\n    Div = 3\n}\n\nfn int_to_opcode(op: u8) -> Option<Opcode> {\n    (op < 4).then_some(unsafe { std::mem::transmute(op) })\n}\n```\nThis may appear fine at first given that it checks that the `u8` is within the validity range of the enum,\n*however* the transmute is evaluated eagerly, meaning that it executes even if `op >= 4`!\n\nThis makes the function unsound, because it is possible for the caller to cause undefined behavior\n(creating an enum with an invalid bitpattern) entirely in safe code only by passing an incorrect value,\nwhich is normally only a bug that is possible in unsafe code.\n\nOne possible way in which this can go wrong practically is that the compiler sees it as:\n```rust\nlet temp: Foo = unsafe { std::mem::transmute(op) };\n(0 < 4).then_some(temp)\n```\nand optimizes away the `(0 < 4)` check based on the assumption that since a `Foo` was created from `op` with the validity range `0..3`,\nit is **impossible** for this condition to be false.\n\nIn short, it is possible for this function to be optimized in a way that makes it [never return `None`](https://godbolt.org/z/ocrcenevq),\neven if passed the value `4`.\n\nThis can be avoided by instead using lazy evaluation. For the example above, this should be written:\n```rust\nfn int_to_opcode(op: u8) -> Option<Opcode> {\n    (op < 4).then(|| unsafe { std::mem::transmute(op) })\n             ^^^^ ^^ `bool::then` only executes the closure if the condition is true!\n}\n```",
+    "version": "1.76.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
     }
   },
   {
@@ -8990,7 +9005,7 @@
     "id": "transmute_bytes_to_str",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 205
+      "line": 206
     },
     "group": "complexity",
     "level": "warn",
@@ -9005,7 +9020,7 @@
     "id": "transmute_float_to_int",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 299
+      "line": 300
     },
     "group": "complexity",
     "level": "warn",
@@ -9020,7 +9035,7 @@
     "id": "transmute_int_to_bool",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 228
+      "line": 229
     },
     "group": "complexity",
     "level": "warn",
@@ -9035,7 +9050,7 @@
     "id": "transmute_int_to_char",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 171
+      "line": 172
     },
     "group": "complexity",
     "level": "warn",
@@ -9050,7 +9065,7 @@
     "id": "transmute_int_to_float",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 251
+      "line": 252
     },
     "group": "complexity",
     "level": "warn",
@@ -9065,7 +9080,7 @@
     "id": "transmute_int_to_non_zero",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 276
+      "line": 277
     },
     "group": "complexity",
     "level": "warn",
@@ -9080,7 +9095,7 @@
     "id": "transmute_null_to_fn",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 461
+      "line": 462
     },
     "group": "correctness",
     "level": "deny",
@@ -9095,7 +9110,7 @@
     "id": "transmute_num_to_bytes",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 322
+      "line": 323
     },
     "group": "complexity",
     "level": "warn",
@@ -9110,7 +9125,7 @@
     "id": "transmute_ptr_to_ptr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 350
+      "line": 351
     },
     "group": "pedantic",
     "level": "allow",
@@ -9125,7 +9140,7 @@
     "id": "transmute_ptr_to_ref",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 137
+      "line": 138
     },
     "group": "complexity",
     "level": "warn",
@@ -9140,7 +9155,7 @@
     "id": "transmute_undefined_repr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 411
+      "line": 412
     },
     "group": "nursery",
     "level": "allow",
@@ -9155,7 +9170,7 @@
     "id": "transmutes_expressible_as_ptr_casts",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 90
+      "line": 91
     },
     "group": "complexity",
     "level": "warn",
@@ -9170,7 +9185,7 @@
     "id": "transmuting_null",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 433
+      "line": 434
     },
     "group": "correctness",
     "level": "deny",
@@ -9950,7 +9965,7 @@
     "id": "unsound_collection_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 382
+      "line": 383
     },
     "group": "correctness",
     "level": "deny",
@@ -10335,7 +10350,7 @@
     "id": "useless_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 64
+      "line": 65
     },
     "group": "complexity",
     "level": "warn",
@@ -10635,7 +10650,7 @@
     "id": "wrong_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 44
+      "line": 45
     },
     "group": "correctness",
     "level": "deny",
