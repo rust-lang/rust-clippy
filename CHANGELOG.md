@@ -5593,6 +5593,7 @@ Released 2018-09-13
 [`struct_field_names`]: https://rust-lang.github.io/rust-clippy/master/index.html#struct_field_names
 [`stutter`]: https://rust-lang.github.io/rust-clippy/master/index.html#stutter
 [`suboptimal_flops`]: https://rust-lang.github.io/rust-clippy/master/index.html#suboptimal_flops
+[`suggest_const_thread_local`]: https://rust-lang.github.io/rust-clippy/master/index.html#suggest_const_thread_local
 [`suspicious_arithmetic_impl`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_arithmetic_impl
 [`suspicious_assignment_formatting`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_assignment_formatting
 [`suspicious_command_arg_space`]: https://rust-lang.github.io/rust-clippy/master/index.html#suspicious_command_arg_space

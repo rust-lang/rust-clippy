@@ -313,6 +313,7 @@ mod slow_vector_initialization;
 mod std_instead_of_core;
 mod strings;
 mod strlen_on_c_strings;
+mod suggest_const_thread_local;
 mod suspicious_operation_groupings;
 mod suspicious_trait_impl;
 mod suspicious_xor_used_as_pow;
@@ -1080,6 +1081,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(uninhabited_references::UninhabitedReferences));
     store.register_late_pass(|_| Box::new(ineffective_open_options::IneffectiveOpenOptions));
     store.register_late_pass(|_| Box::new(unconditional_recursion::UnconditionalRecursion));
+    store.register_late_pass(|_| Box::new(suggest_const_thread_local::SuggestConstThreadLocal));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
