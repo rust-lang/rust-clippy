@@ -1081,7 +1081,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(uninhabited_references::UninhabitedReferences));
     store.register_late_pass(|_| Box::new(ineffective_open_options::IneffectiveOpenOptions));
     store.register_late_pass(|_| Box::new(unconditional_recursion::UnconditionalRecursion));
-    store.register_late_pass(|_| Box::new(suggest_const_thread_local::SuggestConstThreadLocal));
+    store.register_late_pass(move |_| Box::new(suggest_const_thread_local::SuggestConstThreadLocal::new(msrv())));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
