@@ -1,0 +1,20 @@
+error: enum variant with brackets has empty body
+  --> $DIR/empty_enum_variants_with_brackets.rs:9:15
+   |
+LL |     EmptyBrace {},
+   |               ^^^
+   |
+   = note: `-D clippy::empty-enum-variants-with-brackets` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::empty_enum_variants_with_brackets)]`
+   = help: remove the brackets
+
+error: enum variant with brackets has empty body
+  --> $DIR/empty_enum_variants_with_brackets.rs:12:21
+   |
+LL |     EmptyParentheses(),
+   |                     ^^
+   |
+   = help: remove the brackets
+
+error: aborting due to 2 previous errors
+

@@ -115,6 +115,7 @@ mod duplicate_mod;
 mod else_if_without_else;
 mod empty_drop;
 mod empty_enum;
+mod empty_enum_variants_with_brackets;
 mod empty_structs_with_brackets;
 mod endian_bytes;
 mod entry;
@@ -1081,6 +1082,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(uninhabited_references::UninhabitedReferences));
     store.register_late_pass(|_| Box::new(ineffective_open_options::IneffectiveOpenOptions));
     store.register_late_pass(|_| Box::new(unconditional_recursion::UnconditionalRecursion));
+    store.register_early_pass(|| Box::new(empty_enum_variants_with_brackets::EmptyEnumVariantsWithBrackets));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
