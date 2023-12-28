@@ -4122,7 +4122,7 @@
     "id": "manual_async_fn",
     "id_span": {
       "path": "src/manual_async_fn.rs",
-      "line": 32
+      "line": 33
     },
     "group": "style",
     "level": "warn",
@@ -7319,7 +7319,7 @@
     "id": "redundant_async_block",
     "id_span": {
       "path": "src/redundant_async_block.rs",
-      "line": 39
+      "line": 41
     },
     "group": "complexity",
     "level": "warn",
