@@ -171,7 +171,6 @@ fn captures_all_lifetimes(inputs: &[Ty<'_>], output_lifetimes: &[LifetimeName]) 
             .iter()
             .all(|in_lt| output_lifetimes.iter().any(|out_lt| in_lt == out_lt))
 }
-
 fn desugared_async_block<'tcx>(
     cx: &LateContext<'tcx>,
     block: &'tcx Block<'tcx>,

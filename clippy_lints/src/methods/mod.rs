@@ -3777,6 +3777,7 @@ declare_clippy_lint! {
 }
 
 declare_clippy_lint! {
+    /// ### What it does
     /// Checks for iterators of `Result`s using `.filter(Result::is_ok).map(Result::unwrap)` that may
     /// be replaced with a `.flatten()` call.
     ///

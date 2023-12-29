@@ -5,6 +5,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{
     Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, Expr, ExprKind, QPath,
 };
+
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 
