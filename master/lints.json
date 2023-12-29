@@ -7043,6 +7043,21 @@
     }
   },
   {
+    "id": "pub_underscore_fields",
+    "id_span": {
+      "path": "src/pub_underscore_fields.rs",
+      "line": 39
+    },
+    "group": "pedantic",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks whether any field of the struct is prefixed with an `_` (underscore) and also marked\n`pub` (public)\n\n### Why is this bad?\nFields prefixed with an `_` are inferred as unused, which suggests it should not be marked\nas `pub`, because marking it as `pub` infers it will be used.\n\n### Example\n```rust\nstruct FileHandle {\n    pub _descriptor: usize,\n}\n```\nUse instead:\n```rust\nstruct FileHandle {\n    _descriptor: usize,\n}\n```\n\nOR\n\n```rust\nstruct FileHandle {\n    pub descriptor: usize,\n}\n```",
+    "version": "1.77.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "pub_use",
     "id_span": {
       "path": "src/pub_use.rs",
