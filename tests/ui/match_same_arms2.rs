@@ -13,7 +13,6 @@ fn foo() -> bool {
 fn match_same_arms() {
     let _ = match 42 {
         42 => {
-            //~^ ERROR: this match arm has an identical body to the `_` wildcard arm
             foo();
             let mut a = 42 + [23].len() as i32;
             if true {
@@ -32,6 +31,7 @@ fn match_same_arms() {
             a
         },
     };
+    //~^^^^^^^^^^^^^^^^^^^ ERROR: this match arm has an identical body to the `_` wildcard arm
 
     let _ = match 42 {
         42 => foo(),

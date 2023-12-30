@@ -56,6 +56,37 @@ mod issue4244 {
     }
 }
 
+mod issue12044 {
+    enum Sky {
+        Clear,
+        Cloudy,
+    }
+
+    impl Sky {
+        fn text(&self) -> String {
+            // Should not trigger the lint as the comments are different.
+            match self {
+                Sky::Clear => {
+                    // The sky is clear.
+                    "Fine weather".to_string()
+                },
+                Sky::Cloudy => {
+                    // The sky is cloudy.
+                    "Fine weather".to_string()
+                },
+            }
+        }
+
+        fn text_without_comments(&self) -> String {
+            match self {
+                Sky::Clear => "Fine weather".to_string(),
+                Sky::Cloudy => "Fine weather".to_string(),
+            }
+            //~^^ ERROR: this match arm has an identical body to another arm
+        }
+    }
+}
+
 macro_rules! m {
     (foo) => {};
     (bar) => {};
