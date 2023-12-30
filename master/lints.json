@@ -1742,6 +1742,21 @@
     }
   },
   {
+    "id": "empty_enum_variants_with_brackets",
+    "id_span": {
+      "path": "src/empty_with_brackets.rs",
+      "line": 54
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nFinds enum variants without fields that are declared with empty brackets.\n\n### Why is this bad?\nEmpty brackets while defining enum variants are redundant and can be omitted.\n\n### Example\n```rust\nenum MyEnum {\n    HasData(u8),\n    HasNoData(), // redundant parentheses\n}\n```\n\nUse instead:\n```rust\nenum MyEnum {\n    HasData(u8),\n    HasNoData,\n}\n```",
+    "version": "1.77.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs.rs",
@@ -1789,7 +1804,7 @@
   {
     "id": "empty_structs_with_brackets",
     "id_span": {
-      "path": "src/empty_structs_with_brackets.rs",
+      "path": "src/empty_with_brackets.rs",
       "line": 26
     },
     "group": "restriction",
