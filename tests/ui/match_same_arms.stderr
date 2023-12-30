@@ -118,5 +118,20 @@ note: other arm here
 LL |                 CommandInfo::BuiltIn { name, .. } => name.to_string(),
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 8 previous errors
+error: this match arm has an identical body to another arm
+  --> $DIR/match_same_arms.rs:83:17
+   |
+LL |                 Sky::Cloudy => "Fine weather".to_string(),
+   |                 -----------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                 |
+   |                 help: try merging the arm patterns: `Sky::Cloudy | Sky::Clear`
+   |
+   = help: or try changing either arm body
+note: other arm here
+  --> $DIR/match_same_arms.rs:82:17
+   |
+LL |                 Sky::Clear => "Fine weather".to_string(),
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 9 previous errors
 
