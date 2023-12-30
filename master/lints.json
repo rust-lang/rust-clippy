@@ -3309,7 +3309,7 @@
     "id": "into_iter_without_iter",
     "id_span": {
       "path": "src/iter_without_into_iter.rs",
-      "line": 105
+      "line": 106
     },
     "group": "pedantic",
     "level": "allow",
@@ -3702,7 +3702,7 @@
     "id": "iter_without_into_iter",
     "id_span": {
       "path": "src/iter_without_into_iter.rs",
-      "line": 53
+      "line": 54
     },
     "group": "pedantic",
     "level": "allow",
