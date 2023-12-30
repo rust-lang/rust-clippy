@@ -1,0 +1,45 @@
+#![allow(unused)]
+#![warn(clippy::unnecessary_min)]
+
+fn main() {
+    const A: i64 = 45;
+    const B: i64 = -1;
+    const C: i64 = const_fn(B);
+    let _ = (A * B); // Both are constants
+    let _ = B; // Both are constants
+    let _ = B; // Both are constants
+
+    let _ = (-6_i32); // Both are Literals
+    let _ = 6; // Both are Literals
+
+    let _ = 6; // Both are Literals
+
+    let _ = 0; // unsigned with zero
+    let _ = 0_u32; // unsigned with zero
+
+    let _ = i32::MIN; // singed MIN
+    let _ = i32::MIN; // singed MIN
+
+    let _ = 42; // singed MAX
+    let _ = 42; // singed MAX
+
+    let _ = 0; // unsigned with zero and function
+
+    let _ = 0; // unsigned with zero and function
+
+    let _ = i64::MIN; // signed with MIN and function
+
+    let _ = i64::MIN; // signed with MIN and function
+
+    let _ = test_i64(); // signed with MAX and function
+    let _ = test_i64(); // signed with MAX and function
+}
+fn test_usize() -> usize {
+    42
+}
+fn test_i64() -> i64 {
+    42
+}
+const fn const_fn(input: i64) -> i64 {
+    -2 * input
+}
