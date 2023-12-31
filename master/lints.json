@@ -9380,7 +9380,7 @@
     "id": "unconditional_recursion",
     "id_span": {
       "path": "src/unconditional_recursion.rs",
-      "line": 39
+      "line": 40
     },
     "group": "suspicious",
     "level": "warn",
