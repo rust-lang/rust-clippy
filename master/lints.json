@@ -2683,7 +2683,7 @@
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for usage of `x.get(0)` instead of\n`x.first()`.\n\n### Why is this bad?\nUsing `x.first()` is easier to read and has the same\nresult.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.get(0);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.first();\n```",
+    "docs": "\n### What it does\nChecks for usage of `x.get(0)` instead of\n`x.first()` or `x.front()`.\n\n### Why is this bad?\nUsing `x.first()` for `Vec`s and slices or `x.front()`\nfor `VecDeque`s is easier to read and has the same result.\n\n### Example\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.get(0);\n```\n\nUse instead:\n```rust\nlet x = vec![2, 3, 5];\nlet first_element = x.first();\n```",
     "version": "1.63.0",
     "applicability": {
       "is_multi_part_suggestion": false,
