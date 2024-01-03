@@ -3481,7 +3481,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `.filter(Result::is_ok)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it appects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of `Result`. The simplification\nresults in more readable and succint code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Ok::<i32, String>(1)].into_iter().filter(Result::is_ok);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Ok::<i32, String>(1)].into_iter().flatten();\n```",
+    "docs": "\n### What it does\nChecks for usage of `.filter(Result::is_ok)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it appects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of `Result`. The simplification\nresults in more readable and succinct code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Ok::<i32, String>(1)].into_iter().filter(Result::is_ok);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Ok::<i32, String>(1)].into_iter().flatten();\n```",
     "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3496,7 +3496,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `.filter(Option::is_some)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it appects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of the `Option`. The simplification\nresults in more readable and succint code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Some(1)].into_iter().filter(Option::is_some);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Some(1)].into_iter().flatten();\n```",
+    "docs": "\n### What it does\nChecks for usage of `.filter(Option::is_some)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it appects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of the `Option`. The simplification\nresults in more readable and succinct code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Some(1)].into_iter().filter(Option::is_some);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Some(1)].into_iter().flatten();\n```",
     "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8076,7 +8076,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for mis-uses of the serde API.\n\n### Why is this bad?\nSerde is very finnicky about how its API should be\nused, but the type system can't be used to enforce it (yet?).\n\n### Example\nImplementing `Visitor::visit_string` but not\n`Visitor::visit_str`.",
+    "docs": "\n### What it does\nChecks for misuses of the serde API.\n\n### Why is this bad?\nSerde is very finnicky about how its API should be\nused, but the type system can't be used to enforce it (yet?).\n\n### Example\nImplementing `Visitor::visit_string` but not\n`Visitor::visit_str`.",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
