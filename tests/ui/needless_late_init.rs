@@ -8,7 +8,8 @@
     clippy::let_unit_value,
     clippy::nonminimal_bool,
     clippy::uninlined_format_args,
-    clippy::useless_vec
+    clippy::useless_vec,
+    clippy::collection_is_never_read
 )]
 
 extern crate proc_macros;

@@ -1,4 +1,5 @@
 #![warn(clippy::vec_resize_to_zero)]
+#![allow(clippy::collection_is_never_read)]
 
 fn main() {
     let mut v = vec![1, 2, 3, 4, 5];

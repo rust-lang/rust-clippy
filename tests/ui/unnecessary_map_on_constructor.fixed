@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::collection_is_never_read)]
 #![warn(clippy::unnecessary_map_on_constructor)]
 
 use std::ffi::OsStr;

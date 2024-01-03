@@ -39,7 +39,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.70.0"]
     pub COLLECTION_IS_NEVER_READ,
-    nursery,
+    suspicious,
     "a collection is never queried"
 }
 declare_lint_pass!(CollectionIsNeverRead => [COLLECTION_IS_NEVER_READ]);

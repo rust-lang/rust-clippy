@@ -1,4 +1,4 @@
-#![allow(clippy::stable_sort_primitive, clippy::useless_vec)]
+#![allow(clippy::stable_sort_primitive, clippy::useless_vec, clippy::collection_is_never_read)]
 
 use std::cell::Ref;
 

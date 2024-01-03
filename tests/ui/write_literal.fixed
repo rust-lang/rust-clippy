@@ -1,5 +1,5 @@
 #![warn(clippy::write_literal)]
-#![allow(clippy::uninlined_format_args, unused_must_use)]
+#![allow(clippy::uninlined_format_args, unused_must_use, clippy::collection_is_never_read)]
 
 use std::io::Write;
 

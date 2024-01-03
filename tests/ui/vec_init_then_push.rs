@@ -1,4 +1,4 @@
-#![allow(unused_variables)]
+#![allow(unused_variables, clippy::collection_is_never_read)]
 #![warn(clippy::vec_init_then_push)]
 //@no-rustfix
 fn main() {

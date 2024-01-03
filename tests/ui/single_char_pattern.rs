@@ -1,4 +1,9 @@
-#![allow(clippy::needless_raw_strings, clippy::needless_raw_string_hashes, unused_must_use)]
+#![allow(
+    unused_must_use,
+    clippy::needless_raw_strings,
+    clippy::needless_raw_string_hashes,
+    clippy::collection_is_never_read
+)]
 
 use std::collections::HashSet;
 

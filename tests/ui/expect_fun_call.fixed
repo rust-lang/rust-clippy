@@ -2,7 +2,8 @@
 #![allow(
     clippy::to_string_in_format_args,
     clippy::uninlined_format_args,
-    clippy::unnecessary_literal_unwrap
+    clippy::unnecessary_literal_unwrap,
+    clippy::collection_is_never_read
 )]
 
 /// Checks implementation of the `EXPECT_FUN_CALL` lint

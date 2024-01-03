@@ -1,5 +1,5 @@
 #![allow(unused_parens)]
-#![allow(clippy::iter_with_drain)]
+#![allow(clippy::iter_with_drain, clippy::collection_is_never_read)]
 fn f() -> usize {
     42
 }

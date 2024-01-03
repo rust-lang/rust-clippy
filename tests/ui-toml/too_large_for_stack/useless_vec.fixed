@@ -1,4 +1,5 @@
 #![warn(clippy::useless_vec)]
+#![allow(clippy::collection_is_never_read)]
 
 fn main() {
     let x = [0u8; 500];

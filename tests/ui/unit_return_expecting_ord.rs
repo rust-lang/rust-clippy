@@ -2,6 +2,7 @@
 #![allow(clippy::needless_return)]
 #![allow(clippy::unused_unit)]
 #![allow(clippy::useless_vec)]
+#![allow(clippy::collection_is_never_read)]
 #![feature(is_sorted)]
 
 struct Struct {
