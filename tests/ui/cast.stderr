@@ -333,6 +333,15 @@ help: ... or use `try_from` and handle the error accordingly
 LL |     i8::try_from((-99999999999i64).min(1));
    |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+error: `(-99999999999i64)` is never greater than `1` and has therefore no effect
+  --> $DIR/cast.rs:179:5
+   |
+LL |     (-99999999999i64).min(1) as i8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(-99999999999i64)`
+   |
+   = note: `-D clippy::unnecessary-min` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_min)]`
+
 error: casting `u64` to `u8` may truncate the value
   --> $DIR/cast.rs:193:5
    |
@@ -444,5 +453,5 @@ help: ... or use `try_from` and handle the error accordingly
 LL |     let c = u8::try_from(q / 1000);
    |             ~~~~~~~~~~~~~~~~~~~~~~
 
-error: aborting due to 51 previous errors
+error: aborting due to 52 previous errors
 
