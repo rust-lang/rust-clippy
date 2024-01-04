@@ -3901,7 +3901,7 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
-    /// let _ = 7;
+    /// let _ = 0;
     /// ```
     #[clippy::version = "1.77.0"]
     pub UNNECESSARY_MIN,
