@@ -1,6 +1,5 @@
 #![allow(unused)]
 #![warn(clippy::unnecessary_min)]
-
 fn main() {
     const A: i64 = 45;
     const B: i64 = -1;
@@ -33,6 +32,11 @@ fn main() {
 
     let _ = i64::MAX.min(test_i64()); // signed with MAX and function
     let _ = test_i64().min(i64::MAX); // signed with MAX and function
+
+    let mut min = u32::MAX;
+    for _ in 0..1000 {
+        min = min.min(random_u32()); // shouldn't lint
+    }
 }
 fn test_usize() -> usize {
     42
@@ -42,4 +46,8 @@ fn test_i64() -> i64 {
 }
 const fn const_fn(input: i64) -> i64 {
     -2 * input
+}
+fn random_u32() -> u32 {
+    // random number generator
+    0
 }
