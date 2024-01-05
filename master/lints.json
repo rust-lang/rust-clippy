@@ -1850,7 +1850,7 @@
     "id": "enum_variant_names",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 45
+      "line": 46
     },
     "group": "style",
     "level": "warn",
@@ -5408,7 +5408,7 @@
     "id": "module_inception",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 103
+      "line": 104
     },
     "group": "style",
     "level": "warn",
@@ -5423,7 +5423,7 @@
     "id": "module_name_repetitions",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 72
+      "line": 73
     },
     "group": "pedantic",
     "level": "allow",
@@ -8675,7 +8675,7 @@
     "id": "struct_field_names",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 138
+      "line": 139
     },
     "group": "pedantic",
     "level": "allow",
