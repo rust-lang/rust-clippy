@@ -128,6 +128,7 @@ mod excessive_nesting;
 mod exhaustive_items;
 mod exit;
 mod explicit_write;
+mod expr_metavars_in_unsafe;
 mod extra_unused_type_parameters;
 mod fallible_impl_from;
 mod float_literal;
@@ -1092,6 +1093,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| {
         Box::new(thread_local_initializer_can_be_made_const::ThreadLocalInitializerCanBeMadeConst::new(msrv()))
     });
+    store.register_late_pass(|_| Box::<expr_metavars_in_unsafe::ExprMetavarsInUnsafe>::default());
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
