@@ -482,7 +482,7 @@
     "id": "borrow_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 125
+      "line": 124
     },
     "group": "style",
     "level": "warn",
@@ -560,7 +560,7 @@
     "id": "branches_sharing_code",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 158
+      "line": 157
     },
     "group": "nursery",
     "level": "allow",
@@ -1208,7 +1208,7 @@
     "id": "declare_interior_mutable_const",
     "id_span": {
       "path": "src/non_copy_const.rs",
-      "line": 76
+      "line": 75
     },
     "group": "style",
     "level": "warn",
@@ -2799,7 +2799,7 @@
     "id": "if_same_then_else",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 119
+      "line": 118
     },
     "group": "style",
     "level": "warn",
@@ -2829,7 +2829,7 @@
     "id": "ifs_same_cond",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 49
+      "line": 48
     },
     "group": "correctness",
     "level": "deny",
@@ -5621,7 +5621,7 @@
     "id": "mutable_key_type",
     "id_span": {
       "path": "src/mut_key.rs",
-      "line": 79
+      "line": 78
     },
     "group": "suspicious",
     "level": "warn",
@@ -7892,7 +7892,7 @@
     "id": "same_functions_in_if_condition",
     "id_span": {
       "path": "src/copies.rs",
-      "line": 97
+      "line": 96
     },
     "group": "pedantic",
     "level": "allow",
