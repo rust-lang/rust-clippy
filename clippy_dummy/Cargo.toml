@@ -1,15 +1,15 @@
 [package]
-name = "clippy_dummy" # rename to clippy before publishing
-version = "0.0.303"
-edition = "2018"
+name = "clippy_utils" # rename to clippy before publishing
+version = "0.0.1"
+edition = "2021"
 readme = "crates-readme.md"
-description = "A bunch of helpful lints to avoid common pitfalls in Rust."
-build = 'build.rs'
+description = "Helpful utils to write Clippy lints"
+build = "build.rs"
 
 repository = "https://github.com/rust-lang/rust-clippy"
 
 license = "MIT OR Apache-2.0"
-keywords = ["clippy", "lint", "plugin"]
+keywords = ["clippy", "lint", "utils"]
 categories = ["development-tools", "development-tools::cargo-plugins"]
 
 [build-dependencies]

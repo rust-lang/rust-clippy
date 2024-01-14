@@ -4,8 +4,8 @@ use term::{Attr, Error, Result};
 fn main() {
     if foo().is_err() {
         eprintln!(
-            "error: Clippy is no longer available via crates.io\n\n\
-             help: please run `rustup component add clippy` instead"
+            "error: `clippy_utils` is not available through crates.io\n\n\
+             help: please use it as a git dependency"
         );
     }
     std::process::exit(1);
@@ -20,7 +20,7 @@ fn foo() -> Result<()> {
 
     t.reset()?;
     t.fg(WHITE)?;
-    writeln!(t, "Clippy is no longer available via crates.io\n")?;
+    writeln!(t, "`clippy_utils` is not available through crates.io\n")?;
 
     t.attr(Attr::Bold)?;
     t.fg(GREEN)?;
@@ -28,14 +28,7 @@ fn foo() -> Result<()> {
 
     t.reset()?;
     t.fg(WHITE)?;
-    write!(t, "please run `")?;
-
-    t.attr(Attr::Bold)?;
-    write!(t, "rustup component add clippy")?;
-
-    t.reset()?;
-    t.fg(WHITE)?;
-    writeln!(t, "` instead")?;
+    write!(t, "please use it as a git dependency")?;
 
     t.reset()?;
     Ok(())
