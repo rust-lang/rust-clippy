@@ -212,6 +212,7 @@ mod min_ident_chars;
 mod minmax;
 mod misc;
 mod misc_early;
+mod misleading_use_of_ok;
 mod mismatching_type_param_order;
 mod missing_assert_message;
 mod missing_asserts_for_indexing;
@@ -765,6 +766,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(missing_doc::MissingDoc::new(missing_docs_in_crate_items)));
     store.register_late_pass(|_| Box::new(missing_inline::MissingInline));
     store.register_late_pass(move |_| Box::new(exhaustive_items::ExhaustiveItems));
+    store.register_late_pass(|_| Box::new(misleading_use_of_ok::MisleadingUseOfOk));
     store.register_late_pass(|_| Box::new(match_result_ok::MatchResultOk));
     store.register_late_pass(|_| Box::new(partialeq_ne_impl::PartialEqNeImpl));
     store.register_late_pass(|_| Box::new(unused_io_amount::UnusedIoAmount));
