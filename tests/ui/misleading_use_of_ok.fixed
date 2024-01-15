@@ -1,0 +1,17 @@
+#![warn(clippy::misleading_use_of_ok)]
+#![allow(dead_code)]
+
+fn bad_style(x: &str) {
+    let _ = x.parse::<u32>();
+}
+
+fn good_style(x: &str) -> Option<u32> {
+    x.parse::<u32>().ok()
+}
+
+#[rustfmt::skip]
+fn strange_parse(x: &str) {
+    let _ = x   .   parse::<i32>();
+}
+
+fn main() {}

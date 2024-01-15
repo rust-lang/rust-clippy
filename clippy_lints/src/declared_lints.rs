@@ -498,6 +498,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::misc_early::UNNEEDED_WILDCARD_PATTERN_INFO,
     crate::misc_early::UNSEPARATED_LITERAL_SUFFIX_INFO,
     crate::misc_early::ZERO_PREFIXED_LITERAL_INFO,
+    crate::misleading_use_of_ok::MISLEADING_USE_OF_OK_INFO,
     crate::mismatching_type_param_order::MISMATCHING_TYPE_PARAM_ORDER_INFO,
     crate::missing_assert_message::MISSING_ASSERT_MESSAGE_INFO,
     crate::missing_asserts_for_indexing::MISSING_ASSERTS_FOR_INDEXING_INFO,
