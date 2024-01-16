@@ -3,7 +3,8 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
 use rustc_hir::{ExprKind, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_middle::lint::in_external_macro;
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
@@ -38,6 +39,7 @@ impl LateLintPass<'_> for MisleadingUseOfOk {
             let ExprKind::MethodCall(ok_path, recv, [], ..) = expr.kind //check is expr.ok() has type Result<T,E>.ok(, _)
             && ok_path.ident.as_str() == "ok"
             && is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::Result)
+            && !in_external_macro(cx.sess(), stmt.span)
         {
             let ctxt = expr.span.ctxt();
             let mut applicability = Applicability::MachineApplicable;
