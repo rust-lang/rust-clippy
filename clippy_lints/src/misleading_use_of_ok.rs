@@ -43,8 +43,8 @@ impl LateLintPass<'_> for MisleadingUseOfOk {
         {
             let ctxt = expr.span.ctxt();
             let mut applicability = Applicability::MachineApplicable;
-            let trimmed_ok = snippet_with_context(cx, recv.span, ctxt, "", &mut applicability).0;
-            let sugg = format!("let _ = {}", trimmed_ok.trim().trim_end_matches('.'),);
+            let snippet = snippet_with_context(cx, recv.span, ctxt, "", &mut applicability).0;
+            let sugg = format!("let _ = {snippet}");
             span_lint_and_sugg(
                 cx,
                 MISLEADING_USE_OF_OK,
