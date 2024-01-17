@@ -7301,7 +7301,7 @@
     "id": "read_zero_byte_vec",
     "id_span": {
       "path": "src/read_zero_byte_vec.rs",
-      "line": 44
+      "line": 46
     },
     "group": "nursery",
     "level": "allow",
