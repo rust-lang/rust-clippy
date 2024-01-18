@@ -8027,7 +8027,7 @@
     "id": "semicolon_if_nothing_returned",
     "id_span": {
       "path": "src/semicolon_if_nothing_returned.rs",
-      "line": 31
+      "line": 32
     },
     "group": "pedantic",
     "level": "allow",
