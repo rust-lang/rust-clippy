@@ -414,20 +414,25 @@ impl LiteralDigitGrouping {
         radix: Radix,
         lint_unreadable: bool,
     ) -> Result<Option<usize>, WarningType> {
-        let mut groups = groups.map(str::len);
+        let groups = groups.map(str::len).collect::<Vec<_>>();
+        let Some(first) = groups.first().copied() else {
+            return Ok(None);
+        };
 
-        let first = groups.next().expect("At least one group");
-
-        if radix == Radix::Binary || radix == Radix::Octal || radix == Radix::Hexadecimal {
-            if let Some(second_size) = groups.next() {
-                if !groups.all(|i| i == second_size) || first > second_size {
-                    return Err(WarningType::UnusualByteGroupings);
-                }
+        if groups.len() > 1 && (radix == Radix::Binary || radix == Radix::Octal || radix == Radix::Hexadecimal) {
+            if matches!(groups.as_slice(), &[3, 2, 2, 1] | &[1, 2, 2, 3]) {
+                // All good!
+                return Ok(None);
+            }
+            let second_size = groups[1];
+            if !groups.iter().skip(2).all(|i| *i == second_size) || first > second_size {
+                return Err(WarningType::UnusualByteGroupings);
             }
         }
 
-        if let Some(second) = groups.next() {
-            if !groups.all(|x| x == second) || first > second {
+        if groups.len() > 1 {
+            let second = groups[1];
+            if !groups.iter().skip(2).all(|x| *x == second) || first > second {
                 Err(WarningType::InconsistentDigitGrouping)
             } else if second > 4 {
                 Err(WarningType::LargeDigitGroups)
