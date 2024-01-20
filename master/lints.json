@@ -5969,7 +5969,7 @@
     "id": "needless_pass_by_ref_mut",
     "id_span": {
       "path": "src/needless_pass_by_ref_mut.rs",
-      "line": 52
+      "line": 51
     },
     "group": "nursery",
     "level": "allow",
