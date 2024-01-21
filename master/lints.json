@@ -10175,7 +10175,7 @@
     "id": "unused_io_amount",
     "id_span": {
       "path": "src/unused_io_amount.rs",
-      "line": 41
+      "line": 42
     },
     "group": "correctness",
     "level": "deny",
