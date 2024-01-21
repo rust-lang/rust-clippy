@@ -72,6 +72,15 @@ impl<'tcx> LateLintPass<'tcx> for ThreadLocalInitializerCanBeMadeConst {
             && let Some(macro_def_id) = callee.macro_def_id
             && cx.tcx.is_diagnostic_item(thread_local_macro, macro_def_id)
             && let intravisit::FnKind::ItemFn(..) = fn_kind
+            // check that the initializer function is not already `const`.
+            // this done for `os_local` fallback as that implementation includes an `__init()`
+            // function regardless of whether the `const` keyword is used.
+            // For const-qualified `thread_local!`s, the `__init` function is a const fn.
+            // For non-const-qualified `thread_local!`s, the `__init` function is not a const fn.
+            // we are going to check that we are in a non-const-qualified `thread_local!` and
+            // then that the `__init` contents are const-qualifiable. If they are,
+            // we can suggest to make the `__init` function const.
+            && !cx.tcx.is_const_fn(defid.to_def_id())
             // Building MIR for `fn`s with unsatisfiable preds results in ICE.
             && !fn_has_unsatisfiable_preds(cx, defid.to_def_id())
             && let mir = cx.tcx.optimized_mir(defid.to_def_id())
