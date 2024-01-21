@@ -6227,7 +6227,7 @@
     "id": "no_effect",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 30
+      "line": 32
     },
     "group": "complexity",
     "level": "warn",
@@ -6257,7 +6257,7 @@
     "id": "no_effect_underscore_binding",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 53
+      "line": 55
     },
     "group": "pedantic",
     "level": "allow",
@@ -9785,7 +9785,7 @@
     "id": "unnecessary_operation",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 72
+      "line": 74
     },
     "group": "complexity",
     "level": "warn",
