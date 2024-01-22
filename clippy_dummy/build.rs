@@ -4,7 +4,7 @@ use term::{Attr, Error, Result};
 fn main() {
     if foo().is_err() {
         eprintln!(
-            "error: `clippy_utils` is not available through crates.io\n\n\
+            "error: `clippy_config` is not available through crates.io\n\n\
              help: please use it as a git dependency"
         );
     }
@@ -20,7 +20,7 @@ fn foo() -> Result<()> {
 
     t.reset()?;
     t.fg(WHITE)?;
-    writeln!(t, "`clippy_utils` is not available through crates.io\n")?;
+    writeln!(t, "`clippy_config` is not available through crates.io\n")?;
 
     t.attr(Attr::Bold)?;
     t.fg(GREEN)?;

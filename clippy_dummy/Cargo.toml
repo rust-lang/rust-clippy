@@ -1,5 +1,5 @@
 [package]
-name = "clippy_utils" # rename to clippy before publishing
+name = "clippy_config" # rename to clippy before publishing
 version = "0.0.1"
 edition = "2021"
 readme = "crates-readme.md"
@@ -9,7 +9,7 @@ build = "build.rs"
 repository = "https://github.com/rust-lang/rust-clippy"
 
 license = "MIT OR Apache-2.0"
-keywords = ["clippy", "lint", "utils"]
+keywords = ["clippy", "lint", "config"]
 categories = ["development-tools", "development-tools::cargo-plugins"]
 
 [build-dependencies]
