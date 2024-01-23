@@ -1,13 +1,14 @@
 //! lint on enum variants that are prefixed or suffixed by the same characters
 
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_hir};
-use clippy_utils::is_bool;
 use clippy_utils::macros::span_is_local;
 use clippy_utils::source::is_present_in_source;
 use clippy_utils::str_utils::{camel_case_split, count_match_end, count_match_start, to_camel_case, to_snake_case};
+use clippy_utils::{any_impl_has_lint_allowed, is_bool};
 use rustc_hir::{EnumDef, FieldDef, Item, ItemKind, OwnerId, Variant, VariantData};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
+use rustc_span::def_id::DefId;
 use rustc_span::symbol::Symbol;
 use rustc_span::Span;
 
@@ -180,7 +181,8 @@ fn have_no_extra_prefix(prefixes: &[&str]) -> bool {
 }
 
 fn check_fields(cx: &LateContext<'_>, threshold: u64, item: &Item<'_>, fields: &[FieldDef<'_>]) {
-    if (fields.len() as u64) < threshold {
+    if (fields.len() as u64) < threshold || any_impl_has_lint_allowed(cx, STRUCT_FIELD_NAMES, item.owner_id.to_def_id())
+    {
         return;
     }
 
@@ -320,8 +322,15 @@ fn check_enum_end(cx: &LateContext<'_>, item_name: &str, variant: &Variant<'_>) 
     }
 }
 
-fn check_variant(cx: &LateContext<'_>, threshold: u64, def: &EnumDef<'_>, item_name: &str, span: Span) {
-    if (def.variants.len() as u64) < threshold {
+fn check_variant(
+    cx: &LateContext<'_>,
+    threshold: u64,
+    def: &EnumDef<'_>,
+    item_name: &str,
+    item_did: DefId,
+    span: Span,
+) {
+    if (def.variants.len() as u64) < threshold || any_impl_has_lint_allowed(cx, ENUM_VARIANT_NAMES, item_did) {
         return;
     }
 
@@ -388,6 +397,7 @@ impl LateLintPass<'_> for ItemNameRepetitions {
     #[expect(clippy::similar_names)]
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         let item_name = item.ident.name.as_str();
+
         let item_camel = to_camel_case(item_name);
         if !item.span.from_expansion() && is_present_in_source(cx, item.span) {
             if let [.., (mod_name, mod_camel, owner_id)] = &*self.modules {
@@ -440,7 +450,14 @@ impl LateLintPass<'_> for ItemNameRepetitions {
             && span_is_local(item.span)
         {
             match item.kind {
-                ItemKind::Enum(def, _) => check_variant(cx, self.enum_threshold, &def, item_name, item.span),
+                ItemKind::Enum(def, _) => check_variant(
+                    cx,
+                    self.enum_threshold,
+                    &def,
+                    item_name,
+                    item.owner_id.to_def_id(),
+                    item.span,
+                ),
                 ItemKind::Struct(VariantData::Struct { fields, .. }, _) => {
                     check_fields(cx, self.struct_threshold, item, fields);
                 },
