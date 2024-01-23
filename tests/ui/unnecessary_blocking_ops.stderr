@@ -55,5 +55,11 @@ error: blocking function call detected in an async body
 LL |         sleep(Duration::from_secs(1));
    |         ^^^^^
 
-error: aborting due to 9 previous errors
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:75:33
+   |
+LL |     std::thread::spawn(async || sleep(Duration::from_secs(1)));
+   |                                 ^^^^^
+
+error: aborting due to 10 previous errors
 

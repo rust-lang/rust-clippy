@@ -30,6 +30,8 @@ pub async fn async_fn() {
     //~^ ERROR: blocking function call detected in an async body
     fs::create_dir("").unwrap();
     //~^ ERROR: blocking function call detected in an async body
+    blocking_mod::sleep(Duration::from_secs(1));
+    //~^ ERROR: blocking function call detected in an async body
 }
 
 fn main() {}

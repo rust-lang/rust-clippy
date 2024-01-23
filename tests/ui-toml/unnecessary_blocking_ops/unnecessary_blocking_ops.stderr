@@ -47,5 +47,11 @@ error: blocking function call detected in an async body
 LL |     fs::create_dir("").unwrap();
    |     ^^^^^^^^^^^^^^
 
-error: aborting due to 6 previous errors
+error: blocking function call detected in an async body
+  --> $DIR/unnecessary_blocking_ops.rs:33:5
+   |
+LL |     blocking_mod::sleep(Duration::from_secs(1));
+   |     ^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 7 previous errors
 

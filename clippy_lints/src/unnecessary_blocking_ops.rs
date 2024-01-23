@@ -5,7 +5,10 @@ use clippy_utils::{def_path_def_ids, fn_def_id, is_lint_allowed};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::{Applicability, Diagnostic};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Body, CoroutineKind, Expr, ExprKind};
+use rustc_hir::{
+    Body, BodyId, Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, Expr, ExprKind, ImplItem, ImplItemKind,
+    Item, ItemKind, Node, TraitItem, TraitItemKind,
+};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
@@ -40,7 +43,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.74.0"]
     pub UNNECESSARY_BLOCKING_OPS,
-    nursery,
+    pedantic,
     "blocking operations in an async context"
 }
 
@@ -48,7 +51,8 @@ pub(crate) struct UnnecessaryBlockingOps {
     blocking_ops: Vec<DisallowedPath>,
     /// Map of resolved funtion def_id with suggestion string after checking crate
     id_with_suggs: FxHashMap<DefId, Option<String>>,
-    is_in_async: bool,
+    /// Tracking whether a body is async after entering it.
+    body_asyncness: Vec<bool>,
 }
 
 impl UnnecessaryBlockingOps {
@@ -56,7 +60,7 @@ impl UnnecessaryBlockingOps {
         Self {
             blocking_ops,
             id_with_suggs: FxHashMap::default(),
-            is_in_async: false,
+            body_asyncness: vec![],
         }
     }
 }
@@ -108,14 +112,11 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryBlockingOps {
         if is_lint_allowed(cx, UNNECESSARY_BLOCKING_OPS, body.value.hir_id) {
             return;
         }
-
-        if let Some(CoroutineKind::Async(_)) = body.coroutine_kind() {
-            self.is_in_async = true;
-        }
+        self.body_asyncness.push(in_async_body(cx, body.id()));
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        if self.is_in_async
+        if matches!(self.body_asyncness.last(), Some(true))
             && let ExprKind::Call(call, _) = &expr.kind
             && let Some(call_did) = fn_def_id(cx, expr)
             && let Some(maybe_sugg) = self.id_with_suggs.get(&call_did)
@@ -134,10 +135,8 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryBlockingOps {
         }
     }
 
-    fn check_body_post(&mut self, _: &LateContext<'tcx>, body: &'tcx Body<'tcx>) {
-        if !matches!(body.coroutine_kind(), Some(CoroutineKind::Async(_))) {
-            self.is_in_async = false;
-        }
+    fn check_body_post(&mut self, _: &LateContext<'tcx>, _: &'tcx Body<'tcx>) {
+        self.body_asyncness.pop();
     }
 }
 
@@ -152,4 +151,36 @@ fn make_suggestion(diag: &mut Diagnostic, cx: &LateContext<'_>, expr: &Expr<'_>,
         suggestion,
         Applicability::Unspecified,
     );
+}
+
+/// Check whether a body is from an async function/closure.
+fn in_async_body(cx: &LateContext<'_>, body_id: BodyId) -> bool {
+    let Some(parent_node) = cx.tcx.hir().find_parent(body_id.hir_id) else {
+        return false;
+    };
+    match parent_node {
+        Node::Expr(expr) => matches!(
+            expr.kind,
+            ExprKind::Closure(Closure {
+                kind: ClosureKind::Coroutine(CoroutineKind::Desugared(
+                    CoroutineDesugaring::Async | CoroutineDesugaring::AsyncGen,
+                    _
+                )),
+                ..
+            })
+        ),
+        Node::Item(Item {
+            kind: ItemKind::Fn(fn_sig, ..),
+            ..
+        })
+        | Node::ImplItem(ImplItem {
+            kind: ImplItemKind::Fn(fn_sig, _),
+            ..
+        })
+        | Node::TraitItem(TraitItem {
+            kind: TraitItemKind::Fn(fn_sig, _),
+            ..
+        }) => fn_sig.header.is_async(),
+        _ => false,
+    }
 }

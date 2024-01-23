@@ -69,4 +69,11 @@ fn closures() {
     };
 }
 
+fn thread_spawn() {
+    std::thread::spawn(|| sleep(Duration::from_secs(1)));
+    std::thread::spawn(async || {});
+    std::thread::spawn(async || sleep(Duration::from_secs(1)));
+    //~^ ERROR: blocking function call detected in an async body
+}
+
 fn main() {}
