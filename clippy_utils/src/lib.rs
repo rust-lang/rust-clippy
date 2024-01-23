@@ -1846,6 +1846,14 @@ pub fn is_lint_allowed(cx: &LateContext<'_>, lint: &'static Lint, id: HirId) -> 
     cx.tcx.lint_level_at_node(lint, id).0 == Level::Allow
 }
 
+/// Returns `true` if any of the `impl`s for the given `item` has the lint allowed
+pub fn any_impl_has_lint_allowed(cx: &LateContext<'_>, lint: &'static Lint, id: DefId) -> bool {
+    cx.tcx
+        .inherent_impls(id)
+        .iter()
+        .any(|imp| is_lint_allowed(cx, lint, cx.tcx.hir().expect_item(imp.expect_local()).hir_id()))
+}
+
 pub fn strip_pat_refs<'hir>(mut pat: &'hir Pat<'hir>) -> &'hir Pat<'hir> {
     while let PatKind::Ref(subpat, _) = pat.kind {
         pat = subpat;
