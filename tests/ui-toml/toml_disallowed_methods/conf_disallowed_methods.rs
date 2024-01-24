@@ -22,7 +22,6 @@ impl Struct {
 trait Trait {
     fn provided_method(&self) {}
     fn implemented_method(&self);
-    fn provided_bad_method(&self) {}
 }
 
 impl Trait for Struct {
@@ -64,8 +63,7 @@ fn main() {
     s.method();
     s.provided_method();
     s.implemented_method();
-    _ = String::default();
-    s.provided_bad_method();
+
     let s_bad = StructBad;
-    s_bad.provided_bad_method();
+    s_bad.provided_method();
 }
