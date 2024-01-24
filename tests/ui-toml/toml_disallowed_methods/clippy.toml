@@ -14,4 +14,5 @@ disallowed-methods = [
     "conf_disallowed_methods::Struct::method",
     "conf_disallowed_methods::Trait::provided_method",
     "conf_disallowed_methods::Trait::implemented_method",
+    "<conf_disallowed_methods::StructBad as conf_disallowed_methods::Trait>::provided_bad_method",
 ]
