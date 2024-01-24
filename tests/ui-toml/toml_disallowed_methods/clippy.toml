@@ -14,5 +14,6 @@ disallowed-methods = [
     "conf_disallowed_methods::Struct::method",
     "conf_disallowed_methods::Trait::provided_method",
     "conf_disallowed_methods::Trait::implemented_method",
+    "<std::string::String as std::default::Default>::default",
     "<conf_disallowed_methods::StructBad as conf_disallowed_methods::Trait>::provided_method",
 ]

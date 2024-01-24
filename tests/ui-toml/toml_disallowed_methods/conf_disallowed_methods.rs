@@ -64,6 +64,7 @@ fn main() {
     s.provided_method();
     s.implemented_method();
 
+    _ = String::default();
     let s_bad = StructBad;
     s_bad.provided_method();
 }

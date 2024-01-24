@@ -33,6 +33,8 @@ declare_clippy_lint! {
     ///     # When using an inline table, can add a `reason` for why the method
     ///     # is disallowed.
     ///     { path = "std::vec::Vec::leak", reason = "no leaking memory" },
+    ///     # Can also use a qualified path to disallow a method on a specific type.
+    ///     "<std::string::String as std::default::Default>::default",
     /// ]
     /// ```
     ///
@@ -125,34 +127,42 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedMethods {
         };
         let conf = match self.disallowed.get(&def_id) {
             Some(&index) => &self.conf_disallowed[index],
-            None => match expr.kind {
-                ExprKind::MethodCall(_, self_arg, _, _) if !self.disallowed_qualified_trait.is_empty() => {
-                    let typeck = cx.typeck_results();
-                    let trait_method_def_id = typeck.type_dependent_def_id(expr.hir_id).unwrap();
-                    let self_ty = typeck.expr_ty(self_arg);
-                    let self_res: Res<rustc_hir::HirId> = match self_ty.kind() {
-                        ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) => {
-                            Res::PrimTy(PrimTy::from_name(self_ty.primitive_symbol().unwrap()).unwrap())
+            None if self.disallowed_qualified_trait.is_empty() => return,
+            None => {
+                let self_ty = match expr.kind {
+                    ExprKind::Call(_, _) => {
+                        let typeck = cx.typeck_results();
+                        typeck.expr_ty(expr)
+                    },
+                    ExprKind::MethodCall(_, self_arg, _, _) => {
+                        let typeck = cx.typeck_results();
+                        typeck.expr_ty(self_arg)
+                    },
+                    _ => return,
+                };
+
+                let self_res: Res<rustc_hir::HirId> = match self_ty.kind() {
+                    ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) => {
+                        Res::PrimTy(PrimTy::from_name(self_ty.primitive_symbol().unwrap()).unwrap())
+                    },
+                    ty::Str => Res::PrimTy(PrimTy::Str),
+                    ty::Adt(adt, _) => Res::Def(
+                        match adt.adt_kind() {
+                            AdtKind::Struct => rustc_hir::def::DefKind::Struct,
+                            AdtKind::Union => rustc_hir::def::DefKind::Union,
+                            AdtKind::Enum => rustc_hir::def::DefKind::Enum,
                         },
-                        ty::Str => Res::PrimTy(PrimTy::Str),
-                        ty::Adt(adt, _) => Res::Def(
-                            match adt.adt_kind() {
-                                AdtKind::Struct => rustc_hir::def::DefKind::Struct,
-                                AdtKind::Union => rustc_hir::def::DefKind::Union,
-                                AdtKind::Enum => rustc_hir::def::DefKind::Enum,
-                            },
-                            adt.did(),
-                        ),
-                        // FIXME: these other kinds are not currently supported by disallowed_methods due to how
-                        // def_path_ref is implemented
-                        _ => return,
-                    };
-                    match self.disallowed_qualified_trait.get(&(self_res, trait_method_def_id)) {
-                        Some(&index) => &self.conf_disallowed[index],
-                        None => return,
-                    }
-                },
-                _ => return,
+                        adt.did(),
+                    ),
+                    // FIXME: these other kinds are not currently supported by disallowed_methods due to how
+                    // def_path_ref is implemented
+                    _ => return,
+                };
+
+                match self.disallowed_qualified_trait.get(&(self_res, def_id)) {
+                    Some(&index) => &self.conf_disallowed[index],
+                    None => return,
+                }
             },
         };
         let msg = format!("use of a disallowed method `{}`", conf.path());
