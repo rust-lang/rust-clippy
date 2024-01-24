@@ -620,7 +620,7 @@
     "id": "cargo_common_metadata",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 51
+      "line": 52
     },
     "group": "cargo",
     "level": "allow",
@@ -5486,11 +5486,11 @@
     "id": "multiple_crate_versions",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 140
+      "line": 143
     },
     "group": "cargo",
     "level": "allow",
-    "docs": "\n### What it does\nChecks to see if multiple versions of a crate are being\nused.\n\n### Why is this bad?\nThis bloats the size of targets, and can lead to\nconfusing error messages when structs or traits are used interchangeably\nbetween different versions of a crate.\n\n### Known problems\nBecause this can be caused purely by the dependencies\nthemselves, it's not always possible to fix this issue.\n\n### Example\n```toml\n# This will pull in both winapi v0.3.x and v0.2.x, triggering a warning.\n[dependencies]\nctrlc = \"=3.1.0\"\nansi_term = \"=0.11.0\"\n```",
+    "docs": "\n### What it does\nChecks to see if multiple versions of a crate are being\nused.\n\n### Why is this bad?\nThis bloats the size of targets, and can lead to\nconfusing error messages when structs or traits are used interchangeably\nbetween different versions of a crate.\n\n### Known problems\nBecause this can be caused purely by the dependencies\nthemselves, it's not always possible to fix this issue.\nIn those cases, you can allow that specific crate using\nthe `allowed_duplicate_crates` configuration option.\n\n### Example\n```toml\n# This will pull in both winapi v0.3.x and v0.2.x, triggering a warning.\n[dependencies]\nctrlc = \"=3.1.0\"\nansi_term = \"=0.11.0\"\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `allowed-duplicate-crates`: A list of crate names to allow duplicates of (default: `[]`)",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6164,7 +6164,7 @@
     "id": "negative_feature_names",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 113
+      "line": 114
     },
     "group": "cargo",
     "level": "allow",
@@ -7499,7 +7499,7 @@
     "id": "redundant_feature_names",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 83
+      "line": 84
     },
     "group": "cargo",
     "level": "allow",
@@ -10620,7 +10620,7 @@
     "id": "wildcard_dependencies",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 160
+      "line": 163
     },
     "group": "cargo",
     "level": "allow",
