@@ -2934,7 +2934,7 @@
     "id": "implicit_saturating_add",
     "id_span": {
       "path": "src/implicit_saturating_add.rs",
-      "line": 34
+      "line": 35
     },
     "group": "style",
     "level": "warn",
@@ -2949,7 +2949,7 @@
     "id": "implicit_saturating_sub",
     "id_span": {
       "path": "src/implicit_saturating_sub.rs",
-      "line": 36
+      "line": 37
     },
     "group": "style",
     "level": "warn",
@@ -4152,7 +4152,7 @@
     "id": "manual_bits",
     "id_span": {
       "path": "src/manual_bits.rs",
-      "line": 31
+      "line": 32
     },
     "group": "style",
     "level": "warn",
@@ -5180,7 +5180,7 @@
     "id": "missing_asserts_for_indexing",
     "id_span": {
       "path": "src/missing_asserts_for_indexing.rs",
-      "line": 61
+      "line": 62
     },
     "group": "restriction",
     "level": "allow",
@@ -7439,7 +7439,7 @@
     "id": "redundant_closure_call",
     "id_span": {
       "path": "src/redundant_closure_call.rs",
-      "line": 34
+      "line": 36
     },
     "group": "complexity",
     "level": "warn",
