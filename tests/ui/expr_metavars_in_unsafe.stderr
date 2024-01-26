@@ -1,0 +1,160 @@
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:18:9
+   |
+LL | /         unsafe {
+LL | |
+LL | |             dbg!($v);
+LL | |         }
+   | |_________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+   = note: `-D clippy::expr-metavars-in-unsafe` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::expr_metavars_in_unsafe)]`
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:29:9
+   |
+LL | /         unsafe {
+LL | |
+LL | |             $r#mod;
+LL | |         }
+   | |_________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:41:13
+   |
+LL | /             unsafe {
+LL | |
+LL | |                 $v;
+LL | |             }
+   | |_____________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:66:17
+   |
+LL | /                 unsafe {
+LL | |
+LL | |                     $v;
+LL | |                 }
+   | |_________________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:94:21
+   |
+LL |                     unsafe { $inside_unsafe }
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:109:17
+   |
+LL | /                 unsafe {
+LL | |
+LL | |                     $inside_unsafe;
+LL | |                 }
+   | |_________________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:121:9
+   |
+LL | /         unsafe {
+LL | |
+LL | |             $inside_unsafe;
+LL | |             let inside_unsafe = 1;
+LL | |             inside_unsafe;
+LL | |         }
+   | |_________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:136:9
+   |
+LL | /         unsafe {
+LL | |
+LL | |             $inside_unsafe;
+LL | |         }
+   | |_________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:145:13
+   |
+LL | /             unsafe {
+LL | |
+LL | |                 $x;
+LL | |             }
+   | |_____________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:170:5
+   |
+LL | /     unsafe {
+LL | |
+LL | |         $v;
+LL | |     }
+   | |_____^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:157:9
+   |
+LL | /         unsafe {
+LL | |
+LL | |             $x;
+LL | |         }
+   | |_________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: this unsafe block in a macro expands `expr` metavariables
+  --> $DIR/expr_metavars_in_unsafe.rs:161:9
+   |
+LL | /         unsafe {
+LL | |
+LL | |             $x;
+LL | |             $y;
+LL | |         }
+   | |_________^
+   |
+   = note: this allows the user of the macro to write unsafe code outside of an unsafe block
+   = help: consider expanding any metavariables outside of this block, e.g. by storing them in a variable
+   = help: ... or also expand referenced metavariables in a safe context to require an unsafe block at callsite
+
+error: aborting due to 12 previous errors
+

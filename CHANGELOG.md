@@ -5133,6 +5133,7 @@ Released 2018-09-13
 [`explicit_into_iter_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_into_iter_loop
 [`explicit_iter_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_iter_loop
 [`explicit_write`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_write
+[`expr_metavars_in_unsafe`]: https://rust-lang.github.io/rust-clippy/master/index.html#expr_metavars_in_unsafe
 [`extend_from_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_from_slice
 [`extend_with_drain`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_with_drain
 [`extra_unused_lifetimes`]: https://rust-lang.github.io/rust-clippy/master/index.html#extra_unused_lifetimes
