@@ -13,11 +13,12 @@ pub struct Rename {
 pub enum DisallowedPath {
     Simple(String),
     WithReason { path: String, reason: Option<String> },
+    WithSuggestion(String, String),
 }
 
 impl DisallowedPath {
     pub fn path(&self) -> &str {
-        let (Self::Simple(path) | Self::WithReason { path, .. }) = self;
+        let (Self::Simple(path) | Self::WithReason { path, .. } | Self::WithSuggestion(path, _)) = self;
 
         path
     }
@@ -28,6 +29,14 @@ impl DisallowedPath {
                 reason: Some(reason), ..
             } => Some(format!("{reason} (from clippy.toml)")),
             _ => None,
+        }
+    }
+
+    pub fn suggestion(&self) -> Option<&str> {
+        if let Self::WithSuggestion(_, sugg) = self {
+            Some(sugg)
+        } else {
+            None
         }
     }
 }
