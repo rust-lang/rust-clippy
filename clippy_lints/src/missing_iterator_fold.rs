@@ -1,6 +1,8 @@
-use rustc_hir::*;
+use clippy_utils::diagnostics::span_lint;
+use rustc_hir::{AssocItemKind, Impl, Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
+use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -49,4 +51,30 @@ declare_clippy_lint! {
 
 declare_lint_pass!(MissingIteratorFold => [MISSING_ITERATOR_FOLD]);
 
-impl LateLintPass<'_> for MissingIteratorFold {}
+impl LateLintPass<'_> for MissingIteratorFold {
+    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        if let ItemKind::Impl(Impl {
+            of_trait: Some(trait_ref),
+            ..
+        }) = &item.kind
+            && let Some(trait_id) = trait_ref.trait_def_id()
+            && cx.tcx.is_diagnostic_item(sym::Iterator, trait_id)
+        {
+            let has_fold = item
+                .expect_impl()
+                .items
+                .iter()
+                .filter(|assoc| matches!(assoc.kind, AssocItemKind::Fn { .. }))
+                .map(|assoc| assoc.ident.name.as_str())
+                .any(|name| name == "fold");
+            if !has_fold {
+                span_lint(
+                    cx,
+                    MISSING_ITERATOR_FOLD,
+                    item.span,
+                    "you are implementing `Iterator` without specializing its `fold` method",
+                );
+            }
+        }
+    }
+}
