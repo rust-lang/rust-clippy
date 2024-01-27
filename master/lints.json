@@ -7454,7 +7454,7 @@
     "id": "redundant_closure_call",
     "id_span": {
       "path": "src/redundant_closure_call.rs",
-      "line": 36
+      "line": 38
     },
     "group": "complexity",
     "level": "warn",
