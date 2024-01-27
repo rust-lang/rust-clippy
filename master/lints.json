@@ -4512,11 +4512,11 @@
     "id": "manual_retain",
     "id_span": {
       "path": "src/manual_retain.rs",
-      "line": 49
+      "line": 52
     },
     "group": "perf",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for code to be replaced by `.retain()`.\n### Why is this bad?\n`.retain()` is simpler and avoids needless allocation.\n### Example\n```rust\nlet mut vec = vec![0, 1, 2];\nvec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();\nvec = vec.into_iter().filter(|x| x % 2 == 0).collect();\n```\nUse instead:\n```rust\nlet mut vec = vec![0, 1, 2];\nvec.retain(|x| x % 2 == 0);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
+    "docs": "\n### What it does\nChecks for code to be replaced by `.retain()`.\n### Why is this bad?\n`.retain()` is simpler and avoids needless allocation.\n### Example\n```rust\nlet mut vec = vec![0, 1, 2];\nvec = vec.iter().filter(|&x| x % 2 == 0).copied().collect();\nvec = vec.into_iter().filter(|x| x % 2 == 0).collect();\n```\nUse instead:\n```rust\nlet mut vec = vec![0, 1, 2];\nvec.retain(|x| x % 2 == 0);\nvec.retain(|x| x % 2 == 0);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.64.0",
     "applicability": {
       "is_multi_part_suggestion": false,
