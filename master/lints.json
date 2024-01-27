@@ -3942,7 +3942,7 @@
     "id": "let_and_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 51
+      "line": 52
     },
     "group": "style",
     "level": "warn",
@@ -6089,7 +6089,7 @@
     "id": "needless_return",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 77
+      "line": 78
     },
     "group": "style",
     "level": "warn",
@@ -6104,7 +6104,7 @@
     "id": "needless_return_with_question_mark",
     "id_span": {
       "path": "src/returns.rs",
-      "line": 117
+      "line": 118
     },
     "group": "style",
     "level": "warn",
@@ -9029,6 +9029,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
+    }
+  },
+  {
+    "id": "to_string_trait_impl",
+    "id_span": {
+      "path": "src/to_string_trait_impl.rs",
+      "line": 41
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for direct implementations of `ToString`.\n### Why is this bad?\nThis trait is automatically implemented for any type which implements the `Display` trait.\nAs such, `ToString` shouldn’t be implemented directly: `Display` should be implemented instead,\nand you get the `ToString` implementation for free.\n### Example\n```rust\nstruct Point {\n  x: usize,\n  y: usize,\n}\n\nimpl ToString for Point {\n  fn to_string(&self) -> String {\n    format!(\"({}, {})\", self.x, self.y)\n  }\n}\n```\nUse instead:\n```rust\nstruct Point {\n  x: usize,\n  y: usize,\n}\n\nimpl std::fmt::Display for Point {\n  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n    write!(f, \"({}, {})\", self.x, self.y)\n  }\n}\n```",
+    "version": "1.77.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
     }
   },
   {
