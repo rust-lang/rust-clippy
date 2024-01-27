@@ -222,6 +222,7 @@ mod missing_doc;
 mod missing_enforced_import_rename;
 mod missing_fields_in_debug;
 mod missing_inline;
+mod missing_iterator_fold;
 mod missing_trait_methods;
 mod mixed_read_write_in_expression;
 mod module_style;
@@ -1105,6 +1106,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(incompatible_msrv::IncompatibleMsrv::new(msrv())));
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));
+    store.register_late_pass(|_| Box::new(missing_iterator_fold::MissingIteratorFold));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
