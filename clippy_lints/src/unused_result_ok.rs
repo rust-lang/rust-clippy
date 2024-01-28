@@ -27,13 +27,13 @@ declare_clippy_lint! {
     /// let _ = some_function();
     /// ```
     #[clippy::version = "1.70.0"]
-    pub MISLEADING_USE_OF_OK,
+    pub UNUSED_RESULT_OK,
     style,
     "Use of `.ok()` to silence `Result`'s `#[must_use]` is misleading. Use `let _ =` instead."
 }
-declare_lint_pass!(MisleadingUseOfOk => [MISLEADING_USE_OF_OK]);
+declare_lint_pass!(UnusedResultOk => [UNUSED_RESULT_OK]);
 
-impl LateLintPass<'_> for MisleadingUseOfOk {
+impl LateLintPass<'_> for UnusedResultOk {
     fn check_stmt(&mut self, cx: &LateContext<'_>, stmt: &Stmt<'_>) {
         if let StmtKind::Semi(expr) = stmt.kind &&
             let ExprKind::MethodCall(ok_path, recv, [], ..) = expr.kind //check is expr.ok() has type Result<T,E>.ok(, _)
@@ -47,7 +47,7 @@ impl LateLintPass<'_> for MisleadingUseOfOk {
             let sugg = format!("let _ = {snippet}");
             span_lint_and_sugg(
                 cx,
-                MISLEADING_USE_OF_OK,
+                UNUSED_RESULT_OK,
                 expr.span,
                 "ignoring a result with `.ok()` is misleading",
                 "consider using `let _ =` and removing the call to `.ok()` instead",
