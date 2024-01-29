@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_hir::{AssocItemKind, Impl, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
@@ -53,6 +53,9 @@ declare_lint_pass!(MissingIteratorFold => [MISSING_ITERATOR_FOLD]);
 
 impl LateLintPass<'_> for MissingIteratorFold {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
+        if rustc_middle::lint::in_external_macro(cx.sess(), item.span) {
+            return;
+        }
         if let ItemKind::Impl(Impl {
             of_trait: Some(trait_ref),
             ..
