@@ -2,12 +2,12 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::visitors::for_each_local_use_after_expr;
 use clippy_utils::{fn_def_id, get_enclosing_block, match_any_def_paths, match_def_path, paths};
 use rustc_ast::Mutability;
-use rustc_hir::def::DefKind;
+use rustc_errors::Applicability;
 use rustc_hir::intravisit::{walk_expr, Visitor};
 use rustc_hir::{Expr, ExprKind, HirId, Local, Node, PatKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::{declare_lint_pass, declare_tool_lint};
-use rustc_span::{sym, Span};
+use rustc_session::declare_lint_pass;
+use rustc_span::sym;
 use std::ops::ControlFlow;
 
 declare_clippy_lint! {
@@ -41,19 +41,6 @@ declare_clippy_lint! {
 }
 declare_lint_pass!(ZombieProcesses => [ZOMBIE_PROCESSES]);
 
-fn emit_lint(cx: &LateContext<'_>, span: Span) {
-    span_lint_and_then(
-        cx,
-        ZOMBIE_PROCESSES,
-        span,
-        "spawned process is never `wait()`-ed on and leaves behind a zombie process",
-        |diag| {
-            diag.help("consider calling `.wait()`")
-                .note("also see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning");
-        },
-    );
-}
-
 impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let ExprKind::Call(..) | ExprKind::MethodCall(..) = expr.kind
@@ -62,7 +49,6 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
         {
             match cx.tcx.hir().get_parent(expr.hir_id) {
                 Node::Local(local) if let PatKind::Binding(_, local_id, ..) = local.pat.kind => {
-
                     // If the `Child` is assigned to a variable, we want to check if the code never calls `.wait()`
                     // on the variable, and lint if not.
                     // This is difficult to do because expressions can be arbitrarily complex
@@ -73,46 +59,53 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
                     // - calling `id` or `kill`
                     // - no use at all (e.g. `let _x = child;`)
                     // - taking a shared reference (`&`), `wait()` can't go through that
-                    // Neither of these is sufficient to prevent zombie processes
+                    // None of these are sufficient to prevent zombie processes
                     // Doing it like this means more FNs, but FNs are better than FPs.
                     let has_no_wait = for_each_local_use_after_expr(cx, local_id, expr.hir_id, |expr| {
                         match cx.tcx.hir().get_parent(expr.hir_id) {
-                            Node::Stmt(Stmt { kind: StmtKind::Semi(_), .. }) => ControlFlow::Continue(()),
+                            Node::Stmt(Stmt {
+                                kind: StmtKind::Semi(_),
+                                ..
+                            }) => ControlFlow::Continue(()),
                             Node::Expr(expr) if let ExprKind::Field(..) = expr.kind => ControlFlow::Continue(()),
                             Node::Expr(expr) if let ExprKind::AddrOf(_, Mutability::Not, _) = expr.kind => {
                                 ControlFlow::Continue(())
-                            }
+                            },
                             Node::Expr(expr)
                                 if let Some(fn_did) = fn_def_id(cx, expr)
-                                    && match_any_def_paths(cx, fn_did, &[
-                                        &paths::CHILD_ID,
-                                        &paths::CHILD_KILL,
-                                    ]).is_some() =>
+                                    && match_any_def_paths(cx, fn_did, &[&paths::CHILD_ID, &paths::CHILD_KILL])
+                                        .is_some() =>
                             {
                                 ControlFlow::Continue(())
-                            }
+                            },
 
                             // Conservatively assume that all other kinds of nodes call `.wait()` somehow.
                             _ => ControlFlow::Break(()),
                         }
-                    }).is_continue();
+                    })
+                    .is_continue();
 
                     // If it does have a `wait()` call, we're done. Don't lint.
                     if !has_no_wait {
                         return;
                     }
 
-                    check(cx, expr, local.hir_id);
+                    // Don't emit a suggestion since the binding is used later
+                    check(cx, expr, local.hir_id, false);
                 },
                 Node::Local(&Local { pat, hir_id, .. }) if let PatKind::Wild = pat.kind => {
                     // `let _ = child;`, also dropped immediately without `wait()`ing
-                    check(cx, expr, hir_id);
-                }
-                Node::Stmt(&Stmt { kind: StmtKind::Semi(_), hir_id, .. }) => {
+                    check(cx, expr, hir_id, true);
+                },
+                Node::Stmt(&Stmt {
+                    kind: StmtKind::Semi(_),
+                    hir_id,
+                    ..
+                }) => {
                     // Immediately dropped. E.g. `std::process::Command::new("echo").spawn().unwrap();`
-                    check(cx, expr, hir_id);
-                }
-                _ => {}
+                    check(cx, expr, hir_id, true);
+                },
+                _ => {},
             }
         }
     }
@@ -126,7 +119,7 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
 ///
 /// This checks if the program doesn't unconditionally exit after the spawn expression and that it
 /// isn't the last statement of the program.
-fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: HirId) {
+fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: HirId, emit_suggestion: bool) {
     let Some(block) = get_enclosing_block(cx, spawn_expr.hir_id) else {
         return;
     };
@@ -148,7 +141,27 @@ fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: Hi
         return;
     }
 
-    emit_lint(cx, spawn_expr.span);
+    span_lint_and_then(
+        cx,
+        ZOMBIE_PROCESSES,
+        spawn_expr.span,
+        "spawned process is never `wait()`ed on",
+        |diag| {
+            if emit_suggestion {
+                diag.span_suggestion(
+                    spawn_expr.span.shrink_to_hi(),
+                    "try",
+                    ".wait()",
+                    Applicability::MaybeIncorrect,
+                );
+            } else {
+                diag.note("consider calling `.wait()`");
+            }
+
+            diag.note("not doing so might leave behind zombie processes")
+                .note("see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning");
+        },
+    );
 }
 
 /// The hir id id may either correspond to a `Local` or `Stmt`, depending on how we got here.
@@ -159,8 +172,8 @@ fn is_last_node_in_main(cx: &LateContext<'_>, id: HirId) -> bool {
     let body_owner = hir.enclosing_body_owner(id);
     let enclosing_body = hir.body(hir.body_owned_by(body_owner));
 
-    if cx.tcx.opt_def_kind(body_owner) == Some(DefKind::Fn)
-        && cx.tcx.opt_item_name(body_owner.to_def_id()) == Some(sym::main)
+    if let Some((main_def_id, _)) = cx.tcx.entry_fn(())
+        && main_def_id == body_owner.to_def_id()
         && let ExprKind::Block(block, _) = &enclosing_body.value.peel_blocks().kind
         && let [.., stmt] = block.stmts
     {
@@ -173,11 +186,9 @@ fn is_last_node_in_main(cx: &LateContext<'_>, id: HirId) -> bool {
 
 /// Checks if the given expression exits the process.
 fn is_exit_expression(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    if let Some(fn_did) = fn_def_id(cx, expr) {
-        match_any_def_paths(cx, fn_did, &[&paths::EXIT, &paths::ABORT]).is_some()
-    } else {
-        false
-    }
+    fn_def_id(cx, expr).is_some_and(|fn_did| {
+        cx.tcx.is_diagnostic_item(sym::process_exit, fn_did) || match_def_path(cx, fn_did, &paths::ABORT)
+    })
 }
 
 #[derive(Debug)]

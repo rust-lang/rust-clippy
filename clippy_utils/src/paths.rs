@@ -25,7 +25,6 @@ pub const CORE_RESULT_OK_METHOD: [&str; 4] = ["core", "result", "Result", "ok"];
 pub const CSTRING_AS_C_STR: [&str; 5] = ["alloc", "ffi", "c_str", "CString", "as_c_str"];
 pub const EARLY_CONTEXT: [&str; 2] = ["rustc_lint", "EarlyContext"];
 pub const EARLY_LINT_PASS: [&str; 3] = ["rustc_lint", "passes", "EarlyLintPass"];
-pub const EXIT: [&str; 3] = ["std", "process", "exit"];
 pub const CHILD: [&str; 3] = ["std", "process", "Child"];
 pub const CHILD_ID: [&str; 4] = ["std", "process", "Child", "id"];
 pub const CHILD_KILL: [&str; 4] = ["std", "process", "Child", "kill"];

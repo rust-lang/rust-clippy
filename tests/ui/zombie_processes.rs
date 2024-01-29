@@ -3,17 +3,9 @@
 use std::process::{Child, Command};
 
 fn main() {
-    let _ = Command::new("").spawn().unwrap();
-    //~^ ERROR: spawned process is never `wait()`-ed on
-    Command::new("").spawn().unwrap();
-    //~^ ERROR: spawned process is never `wait()`-ed on
-    spawn_proc();
-    //~^ ERROR: spawned process is never `wait()`-ed on
-    spawn_proc().wait().unwrap(); // OK
-
     {
         let mut x = Command::new("").spawn().unwrap();
-        //~^ ERROR: spawned process is never `wait()`-ed on
+        //~^ ERROR: spawned process is never `wait()`ed on
         x.kill();
         x.id();
     }
@@ -40,7 +32,7 @@ fn main() {
     }
     {
         let mut x = Command::new("").spawn().unwrap();
-        //~^ ERROR: spawned process is never `wait()`-ed on
+        //~^ ERROR: spawned process is never `wait()`ed on
         let v = &x;
         // (allow shared refs is fine because one cannot call `.wait()` through that)
     }
@@ -65,14 +57,14 @@ fn main() {
     // It should assume that it might not exit and still lint
     {
         let mut x = Command::new("").spawn().unwrap();
-        //~^ ERROR: spawned process is never `wait()`-ed on
+        //~^ ERROR: spawned process is never `wait()`ed on
         if true {
             std::process::exit(0);
         }
     }
     {
         let mut x = Command::new("").spawn().unwrap();
-        //~^ ERROR: spawned process is never `wait()`-ed on
+        //~^ ERROR: spawned process is never `wait()`ed on
         if true {
             while false {}
             // Calling `exit()` after leaving a while loop should still be linted.
@@ -88,10 +80,6 @@ fn main() {
             Command::new("").spawn().unwrap();
         }
     }
-}
-
-fn spawn_proc() -> Child {
-    todo!()
 }
 
 fn process_child(c: Child) {
