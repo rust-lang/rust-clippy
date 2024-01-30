@@ -46,7 +46,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.77.0"]
     pub MISSING_ITERATOR_FOLD,
-    nursery,
+    restriction,
     "a missing `Iterator::fold` specialization"
 }
 
