@@ -69,8 +69,7 @@ impl LateLintPass<'_> for MissingIteratorFold {
                 .items
                 .iter()
                 .filter(|assoc| matches!(assoc.kind, AssocItemKind::Fn { .. }))
-                .map(|assoc| assoc.ident.name.as_str())
-                .any(|name| name == "fold");
+                .any(|assoc| assoc.ident.name.as_str() == "fold");
             if !has_fold {
                 span_lint(
                     cx,
