@@ -620,7 +620,7 @@
     "id": "cargo_common_metadata",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 52
+      "line": 53
     },
     "group": "cargo",
     "level": "allow",
@@ -4074,6 +4074,21 @@
     }
   },
   {
+    "id": "lint_groups_priority",
+    "id_span": {
+      "path": "src/cargo/mod.rs",
+      "line": 201
+    },
+    "group": "correctness",
+    "level": "deny",
+    "docs": "\n### What it does\nChecks for lint groups with the same priority as lints in the `Cargo.toml`\n[`[lints]` table](https://doc.rust-lang.org/cargo/reference/manifest.html#the-lints-section).\n\nThis lint will be removed once [cargo#12918](https://github.com/rust-lang/cargo/issues/12918)\nis resolved.\n\n### Why is this bad?\nThe order of lints in the `[lints]` is ignored, to have a lint override a group the\n`priority` field needs to be used, otherwise the sort order is undefined.\n\n### Known problems\nDoes not check lints inherited using `lints.workspace = true`\n\n### Example\n```toml\n# Passed as `--allow=clippy::similar_names --warn=clippy::pedantic`\n# which results in `similar_names` being `warn`\n[lints.clippy]\npedantic = \"warn\"\nsimilar_names = \"allow\"\n```\nUse instead:\n```toml\n# Passed as `--warn=clippy::pedantic --allow=clippy::similar_names`\n# which results in `similar_names` being `allow`\n[lints.clippy]\npedantic = { level = \"warn\", priority = -1 }\nsimilar_names = \"allow\"\n```",
+    "version": "1.76.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "little_endian_bytes",
     "id_span": {
       "path": "src/endian_bytes.rs",
@@ -5501,7 +5516,7 @@
     "id": "multiple_crate_versions",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 143
+      "line": 144
     },
     "group": "cargo",
     "level": "allow",
@@ -6179,7 +6194,7 @@
     "id": "negative_feature_names",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 114
+      "line": 115
     },
     "group": "cargo",
     "level": "allow",
@@ -7514,7 +7529,7 @@
     "id": "redundant_feature_names",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 84
+      "line": 85
     },
     "group": "cargo",
     "level": "allow",
@@ -10665,7 +10680,7 @@
     "id": "wildcard_dependencies",
     "id_span": {
       "path": "src/cargo/mod.rs",
-      "line": 163
+      "line": 164
     },
     "group": "cargo",
     "level": "allow",
