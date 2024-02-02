@@ -1835,7 +1835,7 @@
     "id": "enum_glob_use",
     "id_span": {
       "path": "src/wildcard_imports.rs",
-      "line": 41
+      "line": 42
     },
     "group": "pedantic",
     "level": "allow",
@@ -10710,11 +10710,11 @@
     "id": "wildcard_imports",
     "id_span": {
       "path": "src/wildcard_imports.rs",
-      "line": 94
+      "line": 95
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for wildcard imports `use _::*`.\n\n### Why is this bad?\nwildcard imports can pollute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.\n\n### Exceptions\nWildcard imports are allowed from modules that their name contains `prelude`. Many crates\n(including the standard library) provide modules named \"prelude\" specifically designed\nfor wildcard import.\n\n`use super::*` is allowed in test modules. This is defined as any module with \"test\" in the name.\n\nThese exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.\n\n### Known problems\nIf macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.\n\n### Example\n```rust\nuse crate1::*;\n\nfoo();\n```\n\nUse instead:\n```rust\nuse crate1::foo;\n\nfoo();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `warn-on-all-wildcard-imports`: Whether to allow certain wildcard imports (prelude, super in tests). (default: `false`)",
+    "docs": "\n### What it does\nChecks for wildcard imports `use _::*`.\n\n### Why is this bad?\nwildcard imports can pollute the namespace. This is especially bad if\nyou try to import something through a wildcard, that already has been imported by name from\na different source:\n\n```rust\nuse crate1::foo; // Imports a function named foo\nuse crate2::*; // Has a function named foo\n\nfoo(); // Calls crate1::foo\n```\n\nThis can lead to confusing error messages at best and to unexpected behavior at worst.\n\n### Exceptions\nWildcard imports are allowed from modules that their name contains `prelude`. Many crates\n(including the standard library) provide modules named \"prelude\" specifically designed\nfor wildcard import.\n\n`use super::*` is allowed in test modules. This is defined as any module with \"test\" in the name.\n\nThese exceptions can be disabled using the `warn-on-all-wildcard-imports` configuration flag.\n\n### Known problems\nIf macros are imported through the wildcard, this macro is not included\nby the suggestion and has to be added by hand.\n\nApplying the suggestion when explicit imports of the things imported with a glob import\nexist, may result in `unused_imports` warnings.\n\n### Example\n```rust\nuse crate1::*;\n\nfoo();\n```\n\nUse instead:\n```rust\nuse crate1::foo;\n\nfoo();\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `warn-on-all-wildcard-imports`: Whether to allow certain wildcard imports (prelude, super in tests). (default: `false`)- `allowed-wildcard-imports`: List of path segments allowed to have wildcard imports.\n\n   #### Example\n\n```toml\n   allowed-wildcard-imports = [ \"utils\", \"common\" ]\n   ```\n\n   #### Noteworthy\n\n   1. This configuration has no effects if used with `warn_on_all_wildcard_imports = true`.\n   2. Paths with any segment that containing the word 'prelude'\n   are already allowed by default. (default: `[]`)",
     "version": "1.43.0",
     "applicability": {
       "is_multi_part_suggestion": false,
