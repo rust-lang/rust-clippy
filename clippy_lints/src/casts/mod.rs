@@ -3,6 +3,7 @@ mod as_underscore;
 mod borrow_as_ptr;
 mod cast_abs_to_unsigned;
 mod cast_enum_constructor;
+mod cast_integer;
 mod cast_lossless;
 mod cast_nan_to_int;
 mod cast_possible_truncation;
@@ -689,6 +690,29 @@ declare_clippy_lint! {
     "using `0 as *{const, mut} T`"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Trigger on every integer cast using `as`, recommending From/TryFrom instead
+    ///
+    /// ### Why is this bad?
+    /// Because integer casts might introduce subtle unintended changes
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let u = 1usize;
+    /// let _ = u as u64;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let u = 1usize;
+    /// let _ = u64::try_from(u);
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub CAST_INTEGER,
+    pedantic,
+    "casting integer types using `as` instead of From/TryFrom"
+}
+
 pub struct Casts {
     msrv: Msrv,
 }
@@ -724,6 +748,7 @@ impl_lint_pass!(Casts => [
     AS_PTR_CAST_MUT,
     CAST_NAN_TO_INT,
     ZERO_PTR,
+    CAST_INTEGER,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Casts {
@@ -764,6 +789,7 @@ impl<'tcx> LateLintPass<'tcx> for Casts {
                     cast_sign_loss::check(cx, expr, cast_expr, cast_from, cast_to);
                     cast_abs_to_unsigned::check(cx, expr, cast_expr, cast_from, cast_to, &self.msrv);
                     cast_nan_to_int::check(cx, expr, cast_expr, cast_from, cast_to);
+                    cast_integer::check(cx, expr, cast_from, cast_to);
                 }
                 cast_lossless::check(cx, expr, cast_expr, cast_from, cast_to, &self.msrv);
                 cast_enum_constructor::check(cx, expr, cast_expr, cast_from);
