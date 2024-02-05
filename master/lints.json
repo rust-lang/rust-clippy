@@ -3164,7 +3164,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nChecks for infinite loops in a function where the return type is not `!`\nand lint accordingly.\n\n### Why is this bad?\nA loop should be gently exited somewhere, or at least mark its parent function as\nnever return (`!`).\n\n### Example\n```rust\nfn run_forever() {\n    loop {\n        // do something\n    }\n}\n```\nIf infinite loops are as intended:\n```rust\nfn run_forever() -> ! {\n    loop {\n        // do something\n    }\n}\n```\nOtherwise add a `break` or `return` condition:\n```rust\nfn run_forever() {\n    loop {\n        // do something\n        if condition {\n            break;\n        }\n    }\n}\n```",
-    "version": "1.75.0",
+    "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -3662,7 +3662,7 @@
     "group": "restriction",
     "level": "allow",
     "docs": "\n### What it does\nThis is a restriction lint which prevents the use of hash types (i.e., `HashSet` and `HashMap`) in for loops.\n\n### Why is this bad?\nBecause hash types are unordered, when iterated through such as in a for loop, the values are returned in\nan undefined order. As a result, on redundant systems this may cause inconsistencies and anomalies.\nIn addition, the unknown order of the elements may reduce readability or introduce other undesired\nside effects.\n\n### Example\n```rust\n    let my_map = std::collections::HashMap::<i32, String>::new();\n    for (key, value) in my_map { /* ... */ }\n```\nUse instead:\n```rust\n    let my_map = std::collections::HashMap::<i32, String>::new();\n    let mut keys = my_map.keys().clone().collect::<Vec<_>>();\n    keys.sort();\n    for key in keys {\n        let value = &my_map[key];\n    }\n```",
-    "version": "1.75.0",
+    "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7777,7 +7777,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nLooks for patterns such as `vec![Vec::with_capacity(x); n]` or `iter::repeat(Vec::with_capacity(x))`.\n\n### Why is this bad?\nThese constructs work by cloning the element, but cloning a `Vec<_>` does not\nrespect the old vector's capacity and effectively discards it.\n\nThis makes `iter::repeat(Vec::with_capacity(x))` especially suspicious because the user most certainly\nexpected that the yielded `Vec<_>` will have the requested capacity, otherwise one can simply write\n`iter::repeat(Vec::new())` instead and it will have the same effect.\n\nSimilarly for `vec![x; n]`, the element `x` is cloned to fill the vec.\nUnlike `iter::repeat` however, the vec repeat macro does not have to clone the value `n` times\nbut just `n - 1` times, because it can reuse the passed value for the last slot.\nThat means that the last `Vec<_>` gets the requested capacity but all other ones do not.\n\n### Example\n```rust\n\nlet _: Vec<Vec<u8>> = vec![Vec::with_capacity(42); 123];\nlet _: Vec<Vec<u8>> = iter::repeat(Vec::with_capacity(42)).take(123).collect();\n```\nUse instead:\n```rust\n\nlet _: Vec<Vec<u8>> = iter::repeat_with(|| Vec::with_capacity(42)).take(123).collect();\n//                                      ^^^ this closure executes 123 times\n//                                          and the vecs will have the expected capacity\n```",
-    "version": "1.74.0",
+    "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -8995,7 +8995,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for `#[test]` in doctests unless they are marked with\neither `ignore`, `no_run` or `compile_fail`.\n\n### Why is this bad?\nCode in examples marked as `#[test]` will somewhat\nsurprisingly not be run by `cargo test`. If you really want\nto show how to test stuff in an example, mark it `no_run` to\nmake the intent clear.\n\n### Examples\n```rust\n/// An example of a doctest with a `main()` function\n///\n/// # Examples\n///\n/// ```\n/// #[test]\n/// fn equality_works() {\n///     assert_eq!(1_u8, 1);\n/// }\n/// ```\nfn test_attr_in_doctest() {\n    unimplemented!();\n}\n```",
-    "version": "1.40.0",
+    "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
