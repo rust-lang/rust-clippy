@@ -9733,7 +9733,7 @@
     "version": "1.75.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
+      "applicability": "Unresolved"
     }
   },
   {
