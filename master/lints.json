@@ -9080,7 +9080,7 @@
     "id": "to_string_trait_impl",
     "id_span": {
       "path": "src/to_string_trait_impl.rs",
-      "line": 41
+      "line": 42
     },
     "group": "style",
     "level": "warn",
