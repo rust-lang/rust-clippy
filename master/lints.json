@@ -3009,7 +3009,7 @@
     "id": "incompatible_msrv",
     "id_span": {
       "path": "src/incompatible_msrv.rs",
-      "line": 36
+      "line": 37
     },
     "group": "suspicious",
     "level": "warn",
