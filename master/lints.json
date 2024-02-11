@@ -2964,7 +2964,7 @@
     "id": "implied_bounds_in_impls",
     "id_span": {
       "path": "src/implied_bounds_in_impls.rs",
-      "line": 47
+      "line": 48
     },
     "group": "complexity",
     "level": "warn",
