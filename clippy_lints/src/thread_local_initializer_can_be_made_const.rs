@@ -113,11 +113,8 @@ impl<'tcx> LateLintPass<'tcx> for ThreadLocalInitializerCanBeMadeConst {
         if is_thread_local_macro(cx, fn_kind, span)
             && !initializer_fn_is_const(cx, defid)
             && initializer_can_be_made_const(cx, defid, &self.msrv)
-            // this is the `__init` function emitted by the `thread_local!` macro
-            // when the `const` keyword is not used. We avoid checking the `__init` directly
-            // as that is not a public API.
-            // we know that the function is const-qualifiable, so now we need only to get the
-            // initializer expression to span-lint it.
+            // we know that the function is const-qualifiable, so now
+            // we need only to get the initializer expression to span-lint it.
             && let ExprKind::Block(block, _) = body.value.kind
             && let Some(ret_expr) = block.expr
             && let initializer_snippet = snippet(cx, ret_expr.span, "thread_local! { ... }")
