@@ -57,6 +57,48 @@ impl ThreadLocalInitializerCanBeMadeConst {
 
 impl_lint_pass!(ThreadLocalInitializerCanBeMadeConst => [THREAD_LOCAL_INITIALIZER_CAN_BE_MADE_CONST]);
 
+#[inline]
+fn is_thread_local_macro(
+    cx: &LateContext<'_>,
+    fn_kind: rustc_hir::intravisit::FnKind<'_>,
+    span: rustc_span::Span,
+) -> bool {
+    if in_external_macro(cx.sess(), span)
+        && let Some(callee) = span.source_callee()
+        && let Some(macro_def_id) = callee.macro_def_id
+        && cx.tcx.is_diagnostic_item(thread_local_macro, macro_def_id)
+        && let intravisit::FnKind::ItemFn(..) = fn_kind
+    {
+        return true;
+    }
+    false
+}
+
+#[inline]
+fn initializer_fn_is_const(cx: &LateContext<'_>, defid: rustc_span::def_id::DefId) -> bool {
+    // check that the initializer function is not already `const`.
+    // this done for `os_local` fallback as that implementation includes an `__init()`
+    // function regardless of whether the `const` keyword is used.
+    // For const-qualified `thread_local!`s, the `__init` function is a const fn.
+    // For non-const-qualified `thread_local!`s, the `__init` function is not a const fn.
+    // we are going to check that we are in a non-const-qualified `thread_local!` and
+    // then that the `__init` contents are const-qualifiable. If they are,
+    // we can suggest to make the `__init` function const.
+    cx.tcx.is_const_fn(defid)
+}
+
+#[inline]
+fn initializer_can_be_made_const(cx: &LateContext<'_>, defid: rustc_span::def_id::DefId, msrv: &Msrv) -> bool {
+    // Building MIR for `fn`s with unsatisfiable preds results in ICE.
+    if !fn_has_unsatisfiable_preds(cx, defid)
+        && let mir = cx.tcx.optimized_mir(defid)
+        && let Ok(()) = is_min_const_fn(cx.tcx, mir, msrv)
+    {
+        return true;
+    }
+    false
+}
+
 impl<'tcx> LateLintPass<'tcx> for ThreadLocalInitializerCanBeMadeConst {
     fn check_fn(
         &mut self,
@@ -65,26 +107,12 @@ impl<'tcx> LateLintPass<'tcx> for ThreadLocalInitializerCanBeMadeConst {
         _: &'tcx rustc_hir::FnDecl<'tcx>,
         body: &'tcx rustc_hir::Body<'tcx>,
         span: rustc_span::Span,
-        defid: rustc_span::def_id::LocalDefId,
+        local_defid: rustc_span::def_id::LocalDefId,
     ) {
-        if in_external_macro(cx.sess(), span)
-            && let Some(callee) = span.source_callee()
-            && let Some(macro_def_id) = callee.macro_def_id
-            && cx.tcx.is_diagnostic_item(thread_local_macro, macro_def_id)
-            && let intravisit::FnKind::ItemFn(..) = fn_kind
-            // check that the initializer function is not already `const`.
-            // this done for `os_local` fallback as that implementation includes an `__init()`
-            // function regardless of whether the `const` keyword is used.
-            // For const-qualified `thread_local!`s, the `__init` function is a const fn.
-            // For non-const-qualified `thread_local!`s, the `__init` function is not a const fn.
-            // we are going to check that we are in a non-const-qualified `thread_local!` and
-            // then that the `__init` contents are const-qualifiable. If they are,
-            // we can suggest to make the `__init` function const.
-            && !cx.tcx.is_const_fn(defid.to_def_id())
-            // Building MIR for `fn`s with unsatisfiable preds results in ICE.
-            && !fn_has_unsatisfiable_preds(cx, defid.to_def_id())
-            && let mir = cx.tcx.optimized_mir(defid.to_def_id())
-            && let Ok(()) = is_min_const_fn(cx.tcx, mir, &self.msrv)
+        let defid = local_defid.to_def_id();
+        if is_thread_local_macro(cx, fn_kind, span)
+            && !initializer_fn_is_const(cx, defid)
+            && initializer_can_be_made_const(cx, defid, &self.msrv)
             // this is the `__init` function emitted by the `thread_local!` macro
             // when the `const` keyword is not used. We avoid checking the `__init` directly
             // as that is not a public API.
