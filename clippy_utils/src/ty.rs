@@ -1280,3 +1280,17 @@ pub fn normalize_with_regions<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>
 pub fn is_manually_drop(ty: Ty<'_>) -> bool {
     ty.ty_adt_def().map_or(false, AdtDef::is_manually_drop)
 }
+
+/// Get's the type of a field by name.
+pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) -> Option<Ty<'tcx>> {
+    match *ty.kind() {
+        ty::Adt(def, args) if def.is_union() || def.is_struct() => def
+            .non_enum_variant()
+            .fields
+            .iter()
+            .find(|f| f.name == name)
+            .map(|f| f.ty(tcx, args)),
+        ty::Tuple(args) => name.as_str().parse::<usize>().ok().and_then(|i| args.get(i).copied()),
+        _ => None,
+    }
+}
