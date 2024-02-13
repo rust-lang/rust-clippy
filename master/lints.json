@@ -5060,7 +5060,7 @@
     "id": "mem_replace_option_with_none",
     "id_span": {
       "path": "src/mem_replace.rs",
-      "line": 39
+      "line": 41
     },
     "group": "style",
     "level": "warn",
@@ -5075,7 +5075,7 @@
     "id": "mem_replace_with_default",
     "id_span": {
       "path": "src/mem_replace.rs",
-      "line": 96
+      "line": 98
     },
     "group": "style",
     "level": "warn",
@@ -5090,7 +5090,7 @@
     "id": "mem_replace_with_uninit",
     "id_span": {
       "path": "src/mem_replace.rs",
-      "line": 71
+      "line": 73
     },
     "group": "correctness",
     "level": "deny",
