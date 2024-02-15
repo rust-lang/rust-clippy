@@ -387,11 +387,11 @@
     "id": "blocks_in_conditions",
     "id_span": {
       "path": "src/blocks_in_conditions.rs",
-      "line": 39
+      "line": 50
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for `if` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.\n\n### Why is this bad?\nStyle, using blocks in the condition makes it hard to read.\n\n### Examples\n```rust\nif { true } { /* ... */ }\n\nif { let x = somefunc(); x } { /* ... */ }\n```\n\nUse instead:\n```rust\nif true { /* ... */ }\n\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n```\n### Past names\n\n* `block_in_if_condition_expr`\n* `block_in_if_condition_stmt`\n* `blocks_in_if_conditions`\n\n",
+    "docs": "\n### What it does\nChecks for `if` and `match` conditions that use blocks containing an\nexpression, statements or conditions that use closures with blocks.\n\n### Why is this bad?\nStyle, using blocks in the condition makes it hard to read.\n\n### Examples\n```rust\nif { true } { /* ... */ }\n\nif { let x = somefunc(); x } { /* ... */ }\n\nmatch { let e = somefunc(); e } {\n    // ...\n}\n```\n\nUse instead:\n```rust\nif true { /* ... */ }\n\nlet res = { let x = somefunc(); x };\nif res { /* ... */ }\n\nlet res = { let e = somefunc(); e };\nmatch res {\n    // ...\n}\n```\n### Past names\n\n* `block_in_if_condition_expr`\n* `block_in_if_condition_stmt`\n* `blocks_in_if_conditions`\n\n",
     "version": "1.45.0",
     "applicability": {
       "is_multi_part_suggestion": false,
