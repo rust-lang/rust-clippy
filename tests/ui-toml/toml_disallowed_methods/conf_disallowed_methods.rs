@@ -13,6 +13,7 @@ use regex::Regex;
 fn local_fn() {}
 
 struct Struct;
+struct StructBad;
 
 impl Struct {
     fn method(&self) {}
@@ -24,6 +25,10 @@ trait Trait {
 }
 
 impl Trait for Struct {
+    fn implemented_method(&self) {}
+}
+
+impl Trait for StructBad {
     fn implemented_method(&self) {}
 }
 
@@ -58,4 +63,8 @@ fn main() {
     s.method();
     s.provided_method();
     s.implemented_method();
+
+    _ = String::default();
+    let s_bad = StructBad;
+    s_bad.provided_method();
 }
