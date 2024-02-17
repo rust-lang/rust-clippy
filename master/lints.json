@@ -3249,7 +3249,7 @@
     "id": "inline_asm_x86_att_syntax",
     "id_span": {
       "path": "src/asm_syntax.rs",
-      "line": 124
+      "line": 141
     },
     "group": "restriction",
     "level": "allow",
@@ -3264,7 +3264,7 @@
     "id": "inline_asm_x86_intel_syntax",
     "id_span": {
       "path": "src/asm_syntax.rs",
-      "line": 83
+      "line": 92
     },
     "group": "restriction",
     "level": "allow",
