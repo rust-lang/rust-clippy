@@ -349,6 +349,7 @@ mod unnecessary_struct_initialization;
 mod unnecessary_wraps;
 mod unnested_or_patterns;
 mod unsafe_removed_from_name;
+mod unstable_intrinsics_with_stable_wrapper;
 mod unused_async;
 mod unused_io_amount;
 mod unused_peekable;
@@ -1111,6 +1112,8 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(incompatible_msrv::IncompatibleMsrv::new(msrv())));
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));
+    store
+        .register_late_pass(|_| Box::new(unstable_intrinsics_with_stable_wrapper::UnstableIntrinsicsWithStableWrapper));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

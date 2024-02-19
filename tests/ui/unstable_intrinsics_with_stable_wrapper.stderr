@@ -1,0 +1,17 @@
+error: consider using the stable counterpart mentioned in the documentation (https://doc.rust-lang.org/stable/core/intrinsics/fn.add_with_overflow.html)
+  --> $DIR/unstable_intrinsics_with_stable_wrapper.rs:5:24
+   |
+LL | use core::intrinsics::{add_with_overflow, assert_inhabited};
+   |                        ^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::unstable-intrinsics-with-stable-wrapper` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unstable_intrinsics_with_stable_wrapper)]`
+
+error: consider using the stable counterpart mentioned in the documentation (https://doc.rust-lang.org/stable/core/intrinsics/fn.add_with_overflow.html)
+  --> $DIR/unstable_intrinsics_with_stable_wrapper.rs:13:5
+   |
+LL |     core::intrinsics::add_with_overflow(12, 14);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
