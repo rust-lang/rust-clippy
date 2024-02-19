@@ -587,6 +587,47 @@ define_Conf! {
     /// 2. Paths with any segment that containing the word 'prelude'
     /// are already allowed by default.
     (allowed_wildcard_imports: FxHashSet<String> = FxHashSet::default()),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons to a named constnat
+    ///
+    /// #### Example
+    /// ```no_run
+    /// const VALUE: f64 = 1.0;
+    /// fn is_value(x: f64) -> bool {
+    ///     // Will warn if the config is `false`
+    ///     x == VALUE
+    /// }
+    /// ```
+    (float_cmp_ignore_named_constants: bool = true),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons which have a constant result.
+    ///
+    /// #### Example
+    /// ```no_run
+    /// const fn f(x: f64) -> f64 {
+    ///     todo!()
+    /// }
+    ///
+    /// // Will warn if the config is `false`
+    /// if f(1.0) == f(2.0) {
+    ///     // ...
+    /// }
+    /// ```
+    (float_cmp_ignore_constant_comparisons: bool = true),
+    /// Lint: FLOAT_CMP
+    ///
+    /// Whether to ignore comparisons which check if an operation changes the value of it's operand.
+    ///
+    /// #### Example
+    /// ```no_run
+    /// fn f(x: f64) -> bool {
+    ///     // Will warn if the config is `false`
+    ///     x == x + 1.0
+    /// }
+    /// ```
+    (float_cmp_ignore_change_detection: bool = true),
 }
 
 /// Search for the configuration file.

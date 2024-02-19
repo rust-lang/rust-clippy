@@ -97,5 +97,11 @@ error: lint `clippy::wrong_pub_self_convention` has been removed: set the `avoid
 LL | #![warn(clippy::wrong_pub_self_convention)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 16 previous errors
+error: lint `clippy::float_cmp_const` has been removed: `float_cmp` handles this via config options
+  --> $DIR/deprecated.rs:21:9
+   |
+LL | #![warn(clippy::float_cmp_const)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 17 previous errors
 

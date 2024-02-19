@@ -38,6 +38,9 @@ error: error reading Clippy's configuration file: unknown field `foobar`, expect
            enum-variant-name-threshold
            enum-variant-size-threshold
            excessive-nesting-threshold
+           float-cmp-ignore-change-detection
+           float-cmp-ignore-constant-comparisons
+           float-cmp-ignore-named-constants
            future-size-threshold
            ignore-interior-mutability
            large-error-threshold
@@ -117,6 +120,9 @@ error: error reading Clippy's configuration file: unknown field `barfoo`, expect
            enum-variant-name-threshold
            enum-variant-size-threshold
            excessive-nesting-threshold
+           float-cmp-ignore-change-detection
+           float-cmp-ignore-constant-comparisons
+           float-cmp-ignore-named-constants
            future-size-threshold
            ignore-interior-mutability
            large-error-threshold
@@ -196,6 +202,9 @@ error: error reading Clippy's configuration file: unknown field `allow_mixed_uni
            enum-variant-name-threshold
            enum-variant-size-threshold
            excessive-nesting-threshold
+           float-cmp-ignore-change-detection
+           float-cmp-ignore-constant-comparisons
+           float-cmp-ignore-named-constants
            future-size-threshold
            ignore-interior-mutability
            large-error-threshold

@@ -592,41 +592,6 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for (in-)equality comparisons on floating-point
-    /// value and constant, except in functions called `*eq*` (which probably
-    /// implement equality for a type involving floats).
-    ///
-    /// ### Why is this bad?
-    /// Floating point calculations are usually imprecise, so
-    /// asking if two values are *exactly* equal is asking for trouble. For a good
-    /// guide on what to do, see [the floating point
-    /// guide](http://www.floating-point-gui.de/errors/comparison).
-    ///
-    /// ### Example
-    /// ```no_run
-    /// let x: f64 = 1.0;
-    /// const ONE: f64 = 1.00;
-    ///
-    /// if x == ONE { } // where both are floats
-    /// ```
-    ///
-    /// Use instead:
-    /// ```no_run
-    /// # let x: f64 = 1.0;
-    /// # const ONE: f64 = 1.00;
-    /// let error_margin = f64::EPSILON; // Use an epsilon for comparison
-    /// // Or, if Rust <= 1.42, use `std::f64::EPSILON` constant instead.
-    /// // let error_margin = std::f64::EPSILON;
-    /// if (x - ONE).abs() < error_margin { }
-    /// ```
-    #[clippy::version = "pre 1.29.0"]
-    pub FLOAT_CMP_CONST,
-    restriction,
-    "using `==` or `!=` on float constants instead of comparing difference with an epsilon"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
     /// Checks for getting the remainder of a division by one or minus
     /// one.
     ///
@@ -768,10 +733,18 @@ declare_clippy_lint! {
     "explicit self-assignment"
 }
 
+#[derive(Clone, Copy)]
+struct FloatCmpConfig {
+    ignore_named_constants: bool,
+    ignore_constant_comparisons: bool,
+    ignore_change_detection: bool,
+}
+
 pub struct Operators {
     arithmetic_context: numeric_arithmetic::Context,
     verbose_bit_mask_threshold: u64,
     modulo_arithmetic_allow_comparison_to_zero: bool,
+    float_cmp_config: FloatCmpConfig,
 }
 impl_lint_pass!(Operators => [
     ABSURD_EXTREME_COMPARISONS,
@@ -794,7 +767,6 @@ impl_lint_pass!(Operators => [
     INTEGER_DIVISION,
     CMP_OWNED,
     FLOAT_CMP,
-    FLOAT_CMP_CONST,
     MODULO_ONE,
     MODULO_ARITHMETIC,
     NEEDLESS_BITWISE_BOOL,
@@ -802,11 +774,23 @@ impl_lint_pass!(Operators => [
     SELF_ASSIGNMENT,
 ]);
 impl Operators {
-    pub fn new(verbose_bit_mask_threshold: u64, modulo_arithmetic_allow_comparison_to_zero: bool) -> Self {
+    #[expect(clippy::fn_params_excessive_bools)]
+    pub fn new(
+        verbose_bit_mask_threshold: u64,
+        modulo_arithmetic_allow_comparison_to_zero: bool,
+        ignore_named_constants: bool,
+        ignore_constant_comparisons: bool,
+        ignore_change_detection: bool,
+    ) -> Self {
         Self {
             arithmetic_context: numeric_arithmetic::Context::default(),
             verbose_bit_mask_threshold,
             modulo_arithmetic_allow_comparison_to_zero,
+            float_cmp_config: FloatCmpConfig {
+                ignore_named_constants,
+                ignore_constant_comparisons,
+                ignore_change_detection,
+            },
         }
     }
 }
@@ -835,7 +819,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 float_equality_without_abs::check(cx, e, op.node, lhs, rhs);
                 integer_division::check(cx, e, op.node, lhs, rhs);
                 cmp_owned::check(cx, op.node, lhs, rhs);
-                float_cmp::check(cx, e, op.node, lhs, rhs);
+                float_cmp::check(cx, self.float_cmp_config, e, op.node, lhs, rhs);
                 modulo_one::check(cx, e, op.node, rhs);
                 modulo_arithmetic::check(
                     cx,
