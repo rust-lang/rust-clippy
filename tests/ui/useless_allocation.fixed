@@ -1,0 +1,18 @@
+#![warn(clippy::useless_allocation)]
+
+use std::collections::HashSet;
+
+fn main() {
+    let mut s = HashSet::from(["a".to_string()]);
+    s.remove("b"); //~ ERROR: unneeded allocation
+    s.remove("b"); //~ ERROR: unneeded allocation
+    // Should not warn.
+    s.remove("b");
+
+    let mut s = HashSet::from([vec!["a"]]);
+    s.remove(["b"].as_slice()); //~ ERROR: unneeded allocation
+
+    // Should not warn.
+    s.remove(&["b"].to_vec().clone());
+    s.remove(["a"].as_slice());
+}

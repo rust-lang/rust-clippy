@@ -1,0 +1,23 @@
+error: unneeded allocation
+  --> tests/ui/useless_allocation.rs:7:14
+   |
+LL |     s.remove(&"b".to_owned());
+   |              ^^^^^^^^^^^^^^^ help: replace it with: `"b"`
+   |
+   = note: `-D clippy::useless-allocation` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::useless_allocation)]`
+
+error: unneeded allocation
+  --> tests/ui/useless_allocation.rs:8:14
+   |
+LL |     s.remove(&"b".to_string());
+   |              ^^^^^^^^^^^^^^^^ help: replace it with: `"b"`
+
+error: unneeded allocation
+  --> tests/ui/useless_allocation.rs:13:14
+   |
+LL |     s.remove(&["b"].to_vec());
+   |              ^^^^^^^^^^^^^^^ help: replace it with: `["b"].as_slice()`
+
+error: aborting due to 3 previous errors
+
