@@ -1,3 +1,4 @@
+use crate::write::extract_str_literal;
 use arrayvec::ArrayVec;
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
@@ -9,6 +10,7 @@ use clippy_utils::macros::{
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::{implements_trait, is_type_lang_item};
 use itertools::Itertools;
+use rustc_ast::token::LitKind;
 use rustc_ast::{
     FormatArgPosition, FormatArgPositionKind, FormatArgsPiece, FormatArgumentKind, FormatCount, FormatOptions,
     FormatPlaceholder, FormatTrait,
@@ -324,8 +326,8 @@ impl<'a, 'tcx> FormatArgsExpr<'a, 'tcx> {
         // we cannot remove any other arguments in the format string,
         // because the index numbers might be wrong after inlining.
         // Example of an un-inlinable format:  print!("{}{1}", foo, 2)
-        for (pos, usage) in self.format_arg_positions() {
-            if !self.check_one_arg(pos, usage, &mut fixes) {
+        for (pos, usage, pl) in self.format_arg_positions() {
+            if !self.check_one_arg(pos, usage, pl, &mut fixes) {
                 return;
             }
         }
@@ -360,9 +362,19 @@ impl<'a, 'tcx> FormatArgsExpr<'a, 'tcx> {
         );
     }
 
-    fn check_one_arg(&self, pos: &FormatArgPosition, usage: FormatParamUsage, fixes: &mut Vec<(Span, String)>) -> bool {
+    fn check_one_arg(
+        &self,
+        pos: &FormatArgPosition,
+        usage: FormatParamUsage,
+        placeholder: Option<&FormatPlaceholder>,
+        fixes: &mut Vec<(Span, String)>,
+    ) -> bool {
         let index = pos.index.unwrap();
-        let arg = &self.format_args.arguments.all_args()[index];
+        // If the argument is not found by its index, something is weird, ignore and stop processing this
+        // case.
+        let Some(arg) = &self.format_args.arguments.by_index(index) else {
+            return false;
+        };
 
         if !matches!(arg.kind, FormatArgumentKind::Captured(_))
             && let rustc_ast::ExprKind::Path(None, path) = &arg.expr.kind
@@ -377,6 +389,21 @@ impl<'a, 'tcx> FormatArgsExpr<'a, 'tcx> {
                 FormatParamUsage::Precision => format!(".{}$", segment.ident.name),
             };
             fixes.push((pos_span, replacement));
+            fixes.push((arg_span, String::new()));
+            true // successful inlining, continue checking
+        } else if !matches!(arg.kind, FormatArgumentKind::Captured(_))
+            && let Some(FormatPlaceholder{span: Some(placeholder_span), ..}) = placeholder
+            && let rustc_ast::ExprKind::Lit(lit) = &arg.expr.kind
+            && lit.kind == LitKind::Str // FIXME: lit.kind must match the format string kind
+            && !arg.expr.span.from_expansion()
+            && let Some(value_string) = snippet_opt(self.cx, arg.expr.span)
+            && let Some((value_string, false)) = extract_str_literal(&value_string) // FIXME: handle raw strings
+            // && let rustc_ast::ExprKind::Path(None, path) = &arg.expr.kind
+            // && let [segment] = path.segments.as_slice()
+            // && segment.args.is_none()
+            && let Some(arg_span) = format_arg_removal_span(self.format_args, index)
+        {
+            fixes.push((*placeholder_span, value_string));
             fixes.push((arg_span, String::new()));
             true // successful inlining, continue checking
         } else {
@@ -454,17 +481,19 @@ impl<'a, 'tcx> FormatArgsExpr<'a, 'tcx> {
         }
     }
 
-    fn format_arg_positions(&self) -> impl Iterator<Item = (&FormatArgPosition, FormatParamUsage)> {
+    fn format_arg_positions(
+        &self,
+    ) -> impl Iterator<Item = (&FormatArgPosition, FormatParamUsage, Option<&FormatPlaceholder>)> {
         self.format_args.template.iter().flat_map(|piece| match piece {
             FormatArgsPiece::Placeholder(placeholder) => {
                 let mut positions = ArrayVec::<_, 3>::new();
 
-                positions.push((&placeholder.argument, FormatParamUsage::Argument));
+                positions.push((&placeholder.argument, FormatParamUsage::Argument, Some(placeholder)));
                 if let Some(FormatCount::Argument(position)) = &placeholder.format_options.width {
-                    positions.push((position, FormatParamUsage::Width));
+                    positions.push((position, FormatParamUsage::Width, None));
                 }
                 if let Some(FormatCount::Argument(position)) = &placeholder.format_options.precision {
-                    positions.push((position, FormatParamUsage::Precision));
+                    positions.push((position, FormatParamUsage::Precision, None));
                 }
 
                 positions
@@ -476,7 +505,7 @@ impl<'a, 'tcx> FormatArgsExpr<'a, 'tcx> {
     /// Returns true if the format argument at `index` is referred to by multiple format params
     fn is_aliased(&self, index: usize) -> bool {
         self.format_arg_positions()
-            .filter(|(position, _)| position.index == Ok(index))
+            .filter(|(position, ..)| position.index == Ok(index))
             .at_most_one()
             .is_err()
     }

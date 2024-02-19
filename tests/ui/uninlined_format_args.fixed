@@ -59,7 +59,7 @@ fn tester(fn_arg: i32) {
     println!("{local_i32:<3}");
     println!("{local_i32:#010x}");
     println!("{local_f64:.1}");
-    println!("Hello {} is {:.*}", "x", local_i32, local_f64);
+    println!("Hello x is {local_f64:.local_i32$}");
     println!("Hello {} is {:.*}", local_i32, 5, local_f64);
     println!("Hello {} is {2:.*}", local_i32, 5, local_f64);
     println!("{local_i32} {local_f64}");
@@ -83,12 +83,12 @@ fn tester(fn_arg: i32) {
     println!("{local_i32} {local_f64}");
     println!("{local_f64} {local_i32}");
     println!("{local_f64} {local_i32} {local_f64} {local_i32}");
-    println!("{1} {0}", "str", local_i32);
+    println!("{local_i32} str");
     println!("{local_i32}");
-    println!("{local_i32:width$}");
-    println!("{local_i32:width$}");
-    println!("{local_i32:.prec$}");
-    println!("{local_i32:.prec$}");
+    println!("{local_i32:0$}", width);
+    println!("{local_i32:w$}", w = width);
+    println!("{local_i32:.0$}", prec);
+    println!("{local_i32:.p$}", p = prec);
     println!("{val:val$}");
     println!("{val:val$}");
     println!("{val:val$.val$}");
@@ -266,4 +266,18 @@ fn tester2() {
         small = "small value: {}",
         local_i32,
     };
+}
+
+fn literals() {
+    let var = 5;
+    println!("foo");
+    println!("foo");
+    println!("{:var$}", "foo");
+    println!("foo");
+    println!("{0:1$}", "foo", 5);
+    println!("var {var} lit foo");
+    println!("var {var} lit foo");
+    println!("var foo lit foo");
+    println!("var foo lit foo {var},");
+    println!("var {0} lit {} {},", "foo", 5);
 }

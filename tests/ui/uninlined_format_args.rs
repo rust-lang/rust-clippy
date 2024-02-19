@@ -272,3 +272,17 @@ fn tester2() {
         local_i32,
     };
 }
+
+fn literals() {
+    let var = 5;
+    println!("{}", "foo");
+    println!("{:5}", "foo");
+    println!("{:var$}", "foo");
+    println!("{:-5}", "foo");
+    println!("{0:1$}", "foo", 5);
+    println!("var {} lit {}", var, "foo");
+    println!("var {1} lit {0}", "foo", var);
+    println!("var {} lit {0}", "foo");
+    println!("var {0} lit {} {},", "foo", var);
+    println!("var {0} lit {} {},", "foo", 5);
+}
