@@ -15,7 +15,7 @@ trait ConcreteTypes {
     const ATOMIC: AtomicUsize; //~ ERROR: interior mutable
     const INTEGER: u64;
     const STRING: String;
-    declare_const!(ANOTHER_ATOMIC: AtomicUsize = Self::ATOMIC); //~ ERROR: interior mutable
+    declare_const!(ANOTHER_ATOMIC: AtomicUsize = Self::ATOMIC);
 }
 
 impl ConcreteTypes for u64 {

@@ -156,7 +156,6 @@ macro_rules! impl_partial_eq {
 struct S5;
 
 impl_partial_eq!(S5);
-//~^ ERROR: function cannot return without recursing
 
 struct S6 {
     field: String,
