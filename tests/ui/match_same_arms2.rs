@@ -164,6 +164,7 @@ fn match_expr_like_matches_macro_priority() {
         C,
     }
     let x = E::A;
+    //~v match_like_matches_macro
     let _ans = match x {
         E::A => false,
         E::B => false,
@@ -243,7 +244,7 @@ fn main() {
 
     let _ = match 0 {
         0 => cfg!(not_enable),
-        1 => cfg!(not_enable),
+        1 => cfg!(not_enable), //~ match_same_arms
         _ => false,
     };
 }

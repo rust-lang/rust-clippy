@@ -2,16 +2,16 @@
 
 fn main() {
     println!();
-    println!("");
+    println!(""); //~ println_empty_string
 
     match "a" {
-        _ => println!(""),
+        _ => println!(""), //~ println_empty_string
     }
 
     eprintln!();
-    eprintln!("");
+    eprintln!(""); //~ println_empty_string
 
     match "a" {
-        _ => eprintln!(""),
+        _ => eprintln!(""), //~ println_empty_string
     }
 }

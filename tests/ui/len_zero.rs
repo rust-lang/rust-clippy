@@ -79,11 +79,12 @@ impl Deref for DerefToString {
 
 fn main() {
     let x = [1, 2];
+    //~v len_zero
     if x.len() == 0 {
         println!("This should not happen!");
     }
 
-    if "".len() == 0 {}
+    if "".len() == 0 {} //~ len_zero
 
     let s = "Hello, world!";
     let s1 = &s;
@@ -92,15 +93,15 @@ fn main() {
     let s4 = &s3;
     let s5 = &s4;
     let s6 = &s5;
-    println!("{}", *s1 == "");
-    println!("{}", **s2 == "");
-    println!("{}", ***s3 == "");
-    println!("{}", ****s4 == "");
-    println!("{}", *****s5 == "");
-    println!("{}", ******(s6) == "");
+    println!("{}", *s1 == ""); //~ comparison_to_empty
+    println!("{}", **s2 == ""); //~ comparison_to_empty
+    println!("{}", ***s3 == ""); //~ comparison_to_empty
+    println!("{}", ****s4 == ""); //~ comparison_to_empty
+    println!("{}", *****s5 == ""); //~ comparison_to_empty
+    println!("{}", ******(s6) == ""); //~ comparison_to_empty
 
     let d2s = DerefToDerefToString {};
-    println!("{}", &**d2s == "");
+    println!("{}", &**d2s == ""); //~ comparison_to_empty
 
     let y = One;
     if y.len() == 0 {
@@ -115,18 +116,23 @@ fn main() {
     }
 
     let has_is_empty = HasIsEmpty;
+    //~v len_zero
     if has_is_empty.len() == 0 {
         println!("Or this!");
     }
+    //~v len_zero
     if has_is_empty.len() != 0 {
         println!("Or this!");
     }
+    //~v len_zero
     if has_is_empty.len() > 0 {
         println!("Or this!");
     }
+    //~v len_zero
     if has_is_empty.len() < 1 {
         println!("Or this!");
     }
+    //~v len_zero
     if has_is_empty.len() >= 1 {
         println!("Or this!");
     }
@@ -138,18 +144,23 @@ fn main() {
         // No error.
         println!("This can happen.");
     }
+    //~v len_zero
     if 0 == has_is_empty.len() {
         println!("Or this!");
     }
+    //~v len_zero
     if 0 != has_is_empty.len() {
         println!("Or this!");
     }
+    //~v len_zero
     if 0 < has_is_empty.len() {
         println!("Or this!");
     }
+    //~v len_zero
     if 1 <= has_is_empty.len() {
         println!("Or this!");
     }
+    //~v len_zero
     if 1 > has_is_empty.len() {
         println!("Or this!");
     }
@@ -164,6 +175,7 @@ fn main() {
     assert!(!has_is_empty.is_empty());
 
     let with_is_empty: &dyn WithIsEmpty = &Wither;
+    //~v len_zero
     if with_is_empty.len() == 0 {
         println!("Or this!");
     }
@@ -177,9 +189,11 @@ fn main() {
 
     // issue #10529
     (has_is_empty.len() > 0).then(|| println!("This can happen."));
+    //~^ len_zero
     (has_is_empty.len() == 0).then(|| println!("Or this!"));
+    //~^ len_zero
 }
 
 fn test_slice(b: &[u8]) {
-    if b.len() != 0 {}
+    if b.len() != 0 {} //~ len_zero
 }

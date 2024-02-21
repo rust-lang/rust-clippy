@@ -6,19 +6,19 @@ use std::hash::{BuildHasher, Hash, Hasher};
 fn returned(b: impl BuildHasher) -> u64 {
     let mut hasher = b.build_hasher();
     true.hash(&mut hasher);
-    hasher.finish()
+    hasher.finish() //~ manual_hash_one
 }
 
 fn unsized_receiver(b: impl BuildHasher, s: &str) {
     let mut hasher = b.build_hasher();
     s[4..10].hash(&mut hasher);
-    let _ = hasher.finish();
+    let _ = hasher.finish(); //~ manual_hash_one
 }
 
 fn owned_value(b: impl BuildHasher, v: Vec<u32>) -> Vec<u32> {
     let mut hasher = b.build_hasher();
     v.hash(&mut hasher);
-    let _ = hasher.finish();
+    let _ = hasher.finish(); //~ manual_hash_one
     v
 }
 
@@ -85,5 +85,5 @@ fn msrv_1_70(b: impl BuildHasher, v: impl Hash) {
 fn msrv_1_71(b: impl BuildHasher, v: impl Hash) {
     let mut hasher = b.build_hasher();
     v.hash(&mut hasher);
-    let _ = hasher.finish();
+    let _ = hasher.finish(); //~ manual_hash_one
 }

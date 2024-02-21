@@ -1,5 +1,5 @@
 error: this function is only used once
-  --> $DIR/single_call_fn.rs:34:1
+  --> $DIR/single_call_fn.rs:35:1
    |
 LL | / fn c() {
 LL | |     println!("really");
@@ -9,7 +9,7 @@ LL | | }
    | |_^
    |
 help: used here
-  --> $DIR/single_call_fn.rs:41:5
+  --> $DIR/single_call_fn.rs:42:5
    |
 LL |     c();
    |     ^
@@ -29,13 +29,13 @@ LL |     let a = i;
    |             ^
 
 error: this function is only used once
-  --> $DIR/single_call_fn.rs:44:1
+  --> $DIR/single_call_fn.rs:45:1
    |
 LL | fn a() {}
    | ^^^^^^^^^
    |
 help: used here
-  --> $DIR/single_call_fn.rs:47:5
+  --> $DIR/single_call_fn.rs:48:5
    |
 LL |     a();
    |     ^

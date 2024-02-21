@@ -33,6 +33,7 @@ fn lint_cases(opt_opt: Option<Option<u32>>, res_opt: Result<Option<u32>, String>
         macro_rules! mac {
             ($outer:expr => $pat:pat, $e:expr => $inner_pat:pat, $then:expr) => {
                 match $outer {
+                    //~v collapsible_match
                     $pat => match $e {
                         $inner_pat => $then,
                         _ => return,

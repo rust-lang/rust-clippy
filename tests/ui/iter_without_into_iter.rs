@@ -66,6 +66,7 @@ impl<T> S7<T> {
 
 pub struct S8<T>(T);
 impl<T> S8<T> {
+    //~v iter_without_into_iter
     pub fn iter(&self) -> std::slice::Iter<'static, T> {
         todo!()
     }
@@ -127,6 +128,7 @@ pub struct Issue12037;
 macro_rules! generate_impl {
     () => {
         impl Issue12037 {
+            //~v iter_without_into_iter
             fn iter(&self) -> std::slice::Iter<'_, u8> {
                 todo!()
             }

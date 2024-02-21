@@ -14,31 +14,31 @@ LL |     let _ = some_vec.iter().cycle().skip(42).next();
    |                                    ^^^^^^^^^^^^^^^^ help: use `nth` instead: `.nth(42)`
 
 error: called `skip(..).next()` on an iterator
-  --> $DIR/iter_skip_next.rs:19:20
+  --> $DIR/iter_skip_next.rs:20:20
    |
 LL |     let _ = (1..10).skip(10).next();
    |                    ^^^^^^^^^^^^^^^^ help: use `nth` instead: `.nth(10)`
 
 error: called `skip(..).next()` on an iterator
-  --> $DIR/iter_skip_next.rs:20:33
+  --> $DIR/iter_skip_next.rs:21:33
    |
 LL |     let _ = &some_vec[..].iter().skip(3).next();
    |                                 ^^^^^^^^^^^^^^^ help: use `nth` instead: `.nth(3)`
 
 error: called `skip(..).next()` on an iterator
-  --> $DIR/iter_skip_next.rs:28:26
+  --> $DIR/iter_skip_next.rs:29:26
    |
 LL |     let _: Vec<&str> = sp.skip(1).next().unwrap().split(' ').collect();
    |                          ^^^^^^^^^^^^^^^ help: use `nth` instead: `.nth(1)`
 
 error: called `skip(..).next()` on an iterator
-  --> $DIR/iter_skip_next.rs:30:29
+  --> $DIR/iter_skip_next.rs:32:29
    |
 LL |         let _: Vec<&str> = s.skip(1).next().unwrap().split(' ').collect();
    |                             ^^^^^^^^^^^^^^^ help: use `nth` instead: `.nth(1)`
 
 error: called `skip(..).next()` on an iterator
-  --> $DIR/iter_skip_next.rs:36:29
+  --> $DIR/iter_skip_next.rs:39:29
    |
 LL |         let _: Vec<&str> = s.skip(1).next().unwrap().split(' ').collect();
    |                             ^^^^^^^^^^^^^^^ help: use `nth` instead: `.nth(1)`

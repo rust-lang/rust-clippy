@@ -4,6 +4,7 @@
 #![allow(clippy::unnecessary_wraps)]
 
 fn some_func(a: Option<u32>) -> Option<u32> {
+    //~v question_mark
     if a.is_none() {
         return None;
     }
@@ -49,20 +50,24 @@ pub struct CopyStruct {
 impl CopyStruct {
     #[rustfmt::skip]
     pub fn func(&self) -> Option<u32> {
+        //~v question_mark
         if (self.opt).is_none() {
             return None;
         }
 
+        //~v question_mark
         if self.opt.is_none() {
             return None
         }
 
+        //~v question_mark
         let _ = if self.opt.is_none() {
             return None;
         } else {
             self.opt
         };
 
+        //~v question_mark
         let _ = if let Some(x) = self.opt {
             x
         } else {
@@ -80,6 +85,7 @@ pub struct MoveStruct {
 
 impl MoveStruct {
     pub fn ref_func(&self) -> Option<Vec<u32>> {
+        //~v question_mark
         if self.opt.is_none() {
             return None;
         }
@@ -88,6 +94,7 @@ impl MoveStruct {
     }
 
     pub fn mov_func_reuse(self) -> Option<Vec<u32>> {
+        //~v question_mark
         if self.opt.is_none() {
             return None;
         }
@@ -96,6 +103,7 @@ impl MoveStruct {
     }
 
     pub fn mov_func_no_use(self) -> Option<Vec<u32>> {
+        //~v question_mark
         if self.opt.is_none() {
             return None;
         }
@@ -103,6 +111,7 @@ impl MoveStruct {
     }
 
     pub fn if_let_ref_func(self) -> Option<Vec<u32>> {
+        //~v question_mark
         let v: &Vec<_> = if let Some(ref v) = self.opt {
             v
         } else {
@@ -113,6 +122,7 @@ impl MoveStruct {
     }
 
     pub fn if_let_mov_func(self) -> Option<Vec<u32>> {
+        //~v question_mark
         let v = if let Some(v) = self.opt {
             v
         } else {
@@ -128,6 +138,7 @@ fn func() -> Option<i32> {
         Some(String::new())
     }
 
+    //~v question_mark
     if f().is_none() {
         return None;
     }
@@ -141,7 +152,9 @@ fn func_returning_result() -> Result<i32, i32> {
 
 fn result_func(x: Result<i32, i32>) -> Result<i32, i32> {
     let _ = if let Ok(x) = x { x } else { return x };
+    //~^ question_mark
 
+    //~v question_mark
     if x.is_err() {
         return x;
     }
@@ -210,6 +223,7 @@ fn f() -> NotOption {
 fn do_something() {}
 
 fn err_immediate_return() -> Result<i32, i32> {
+    //~v question_mark
     if let Err(err) = func_returning_result() {
         return Err(err);
     }
@@ -217,6 +231,7 @@ fn err_immediate_return() -> Result<i32, i32> {
 }
 
 fn err_immediate_return_and_do_something() -> Result<i32, i32> {
+    //~v question_mark
     if let Err(err) = func_returning_result() {
         return Err(err);
     }
@@ -294,6 +309,7 @@ fn issue8628(a: Option<u32>) -> Option<u32> {
 fn issue6828_nested_body() -> Option<u32> {
     try {
         fn f2(a: Option<i32>) -> Option<i32> {
+            //~v question_mark
             if a.is_none() {
                 return None;
                 // do lint here, the outer `try` is not relevant here

@@ -4,72 +4,86 @@
 
 fn main() {
     let x = true;
+    //~v bool_comparison
     if x == true {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if x == false {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if true == x {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if false == x {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if x != true {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if x != false {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if true != x {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if false != x {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if x < true {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if false < x {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if x > false {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if true > x {
         "yes"
     } else {
         "no"
     };
     let y = true;
+    //~v bool_comparison
     if x < y {
         "yes"
     } else {
         "no"
     };
+    //~v bool_comparison
     if x > y {
         "yes"
     } else {
@@ -118,13 +132,13 @@ fn issue4983() {
     let a = true;
     let b = false;
 
-    if a == !b {};
-    if !a == b {};
+    if a == !b {}; //~ bool_comparison
+    if !a == b {}; //~ bool_comparison
     if a == b {};
     if !a == !b {};
 
-    if b == !a {};
-    if !b == a {};
+    if b == !a {}; //~ bool_comparison
+    if !b == a {}; //~ bool_comparison
     if b == a {};
     if !b == !a {};
 }
@@ -148,10 +162,10 @@ fn issue3973() {
     if cfg!(feature = "debugging") == true {}
 
     // lint, could be simplified
-    if false == m!(func) {}
-    if m!(func) == false {}
-    if true == m!(func) {}
-    if m!(func) == true {}
+    if false == m!(func) {} //~ bool_comparison
+    if m!(func) == false {} //~ bool_comparison
+    if true == m!(func) {} //~ bool_comparison
+    if m!(func) == true {} //~ bool_comparison
 
     // no lint with a variable
     let is_debug = false;
@@ -168,9 +182,9 @@ fn issue3973() {
 
 #[allow(clippy::unnecessary_cast)]
 fn issue9907() {
-    let _ = ((1 < 2) == false) as usize;
-    let _ = (false == m!(func)) as usize;
+    let _ = ((1 < 2) == false) as usize; //~ bool_comparison
+    let _ = (false == m!(func)) as usize; //~ bool_comparison
     // This is not part of the issue, but an unexpected found when fixing the issue,
     // the provided span was inside of macro rather than the macro callsite.
-    let _ = ((1 < 2) == !m!(func)) as usize;
+    let _ = ((1 < 2) == !m!(func)) as usize; //~ bool_comparison
 }

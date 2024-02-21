@@ -17,7 +17,7 @@ struct TR {
 
 fn simple_option_bad1(to: TO) -> Option<usize> {
     // return as a statement
-    return Some(to.magic?);
+    return Some(to.magic?); //~ needless_question_mark
 }
 
 // formatting will add a semi-colon, which would make
@@ -25,17 +25,17 @@ fn simple_option_bad1(to: TO) -> Option<usize> {
 #[rustfmt::skip]
 fn simple_option_bad2(to: TO) -> Option<usize> {
     // return as an expression
-    return Some(to.magic?)
+    return Some(to.magic?) //~ needless_question_mark
 }
 
 fn simple_option_bad3(to: TO) -> Option<usize> {
     // block value "return"
-    Some(to.magic?)
+    Some(to.magic?) //~ needless_question_mark
 }
 
 fn simple_option_bad4(to: Option<TO>) -> Option<usize> {
     // single line closure
-    to.and_then(|t| Some(t.magic?))
+    to.and_then(|t| Some(t.magic?)) //~ needless_question_mark
 }
 
 // formatting this will remove the block brackets, making
@@ -44,27 +44,27 @@ fn simple_option_bad4(to: Option<TO>) -> Option<usize> {
 fn simple_option_bad5(to: Option<TO>) -> Option<usize> {
     // closure with body
     to.and_then(|t| {
-        Some(t.magic?)
+        Some(t.magic?) //~ needless_question_mark
     })
 }
 
 fn simple_result_bad1(tr: TR) -> Result<usize, bool> {
-    return Ok(tr.magic?);
+    return Ok(tr.magic?); //~ needless_question_mark
 }
 
 // formatting will add a semi-colon, which would make
 // this identical to the test case above
 #[rustfmt::skip]
 fn simple_result_bad2(tr: TR) -> Result<usize, bool> {
-    return Ok(tr.magic?)
+    return Ok(tr.magic?) //~ needless_question_mark
 }
 
 fn simple_result_bad3(tr: TR) -> Result<usize, bool> {
-    Ok(tr.magic?)
+    Ok(tr.magic?) //~ needless_question_mark
 }
 
 fn simple_result_bad4(tr: Result<TR, bool>) -> Result<usize, bool> {
-    tr.and_then(|t| Ok(t.magic?))
+    tr.and_then(|t| Ok(t.magic?)) //~ needless_question_mark
 }
 
 // formatting this will remove the block brackets, making
@@ -72,14 +72,14 @@ fn simple_result_bad4(tr: Result<TR, bool>) -> Result<usize, bool> {
 #[rustfmt::skip]
 fn simple_result_bad5(tr: Result<TR, bool>) -> Result<usize, bool> {
     tr.and_then(|t| {
-        Ok(t.magic?)
+        Ok(t.magic?) //~ needless_question_mark
     })
 }
 
 fn also_bad(tr: Result<TR, bool>) -> Result<usize, bool> {
     if tr.is_ok() {
         let t = tr.unwrap();
-        return Ok(t.magic?);
+        return Ok(t.magic?); //~ needless_question_mark
     }
     Err(false)
 }
@@ -115,6 +115,7 @@ pub fn test1() {
 macro_rules! some_and_qmark_in_macro {
     ($expr:expr) => {
         || -> Option<_> { Some(Some($expr)?) }()
+        //~^ needless_question_mark
     };
 }
 
@@ -125,7 +126,7 @@ pub fn test2() {
 
 async fn async_option_bad(to: TO) -> Option<usize> {
     let _ = Some(3);
-    Some(to.magic?)
+    Some(to.magic?) //~ needless_question_mark
 }
 
 async fn async_deref_ref(s: Option<&String>) -> Option<&str> {
@@ -133,9 +134,9 @@ async fn async_deref_ref(s: Option<&String>) -> Option<&str> {
 }
 
 async fn async_result_bad(s: TR) -> Result<usize, bool> {
-    Ok(s.magic?)
+    Ok(s.magic?) //~ needless_question_mark
 }
 
 async fn async_wrapped<T>(a: Option<T>) -> Option<T> {
-    { Some(a?) }
+    { Some(a?) } //~ needless_question_mark
 }

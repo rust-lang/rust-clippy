@@ -20,25 +20,25 @@ LL |     if let (true) = k > 1 {}
    |        ^^^^^^^^^^^^^^^^^^ help: consider using the condition directly: `k > 1`
 
 error: using `if let` to pattern match a bool
-  --> $DIR/redundant_pattern_matching_if_let_true.rs:26:11
+  --> $DIR/redundant_pattern_matching_if_let_true.rs:27:11
    |
 LL |     while let true = k > 1 {
    |           ^^^^^^^^^^^^^^^^ help: consider using the condition directly: `k > 1`
 
 error: using `if let` to pattern match a bool
-  --> $DIR/redundant_pattern_matching_if_let_true.rs:29:11
+  --> $DIR/redundant_pattern_matching_if_let_true.rs:31:11
    |
 LL |     while let true = condition!() {
    |           ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using the condition directly: `condition!()`
 
 error: using `matches!` to pattern match a bool
-  --> $DIR/redundant_pattern_matching_if_let_true.rs:33:5
+  --> $DIR/redundant_pattern_matching_if_let_true.rs:35:5
    |
 LL |     matches!(k > 5, true);
    |     ^^^^^^^^^^^^^^^^^^^^^ help: consider using the condition directly: `k > 5`
 
 error: using `matches!` to pattern match a bool
-  --> $DIR/redundant_pattern_matching_if_let_true.rs:34:5
+  --> $DIR/redundant_pattern_matching_if_let_true.rs:36:5
    |
 LL |     matches!(k > 5, false);
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: consider using the condition directly: `!(k > 5)`

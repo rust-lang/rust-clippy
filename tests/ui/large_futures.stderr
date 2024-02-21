@@ -59,7 +59,7 @@ LL +     })
    |
 
 error: large future with a size of 65540 bytes
-  --> $DIR/large_futures.rs:60:13
+  --> $DIR/large_futures.rs:61:13
    |
 LL | /             async {
 LL | |                 let x = [0i32; 1024 * 16];

@@ -4,11 +4,13 @@
 
 fn main() {
     // yay
-    let _ = [1].iter().cloned();
-    let _ = vec!["hi"].iter().cloned();
-    let _ = Some(&1).cloned();
+    let _ = [1].iter().cloned(); //~ cloned_instead_of_copied
+    let _ = vec!["hi"].iter().cloned(); //~ cloned_instead_of_copied
+    let _ = Some(&1).cloned(); //~ cloned_instead_of_copied
     let _ = Box::new([1].iter()).cloned();
+    //~^ cloned_instead_of_copied
     let _ = Box::new(Some(&1)).cloned();
+    //~^ cloned_instead_of_copied
 
     // nay
     let _ = [String::new()].iter().cloned();
@@ -24,11 +26,13 @@ fn msrv_1_34() {
 #[clippy::msrv = "1.35"]
 fn msrv_1_35() {
     let _ = [1].iter().cloned();
+    //~v cloned_instead_of_copied
     let _ = Some(&1).cloned(); // Option::copied needs 1.35
 }
 
 #[clippy::msrv = "1.36"]
 fn msrv_1_36() {
+    //~v cloned_instead_of_copied
     let _ = [1].iter().cloned(); // Iterator::copied needs 1.36
-    let _ = Some(&1).cloned();
+    let _ = Some(&1).cloned(); //~ cloned_instead_of_copied
 }

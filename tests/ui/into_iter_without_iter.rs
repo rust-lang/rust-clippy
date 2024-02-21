@@ -117,6 +117,7 @@ impl IntoIterator for &Alias {
 pub struct Issue12037;
 macro_rules! generate_impl {
     () => {
+        //~v into_iter_without_iter
         impl<'a> IntoIterator for &'a Issue12037 {
             type IntoIter = std::slice::Iter<'a, u8>;
             type Item = &'a u8;

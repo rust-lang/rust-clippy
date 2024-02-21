@@ -29,4 +29,5 @@ fn main() {
 fn issue11672() {
     // Return type annotation helps type inference and removing it can break code
     let _ = true.then(|| -> &[u8] { &[] });
+    //~^ unnecessary_lazy_evaluations
 }

@@ -14,11 +14,11 @@ use std::collections::*;
 fn main() {
     let mut vec = vec![1, 2, 3, 4];
 
-    for _ in vec.iter() {}
-    for _ in vec.iter_mut() {}
+    for _ in vec.iter() {} //~ explicit_iter_loop
+    for _ in vec.iter_mut() {} //~ explicit_iter_loop
 
     let rvec = &vec;
-    for _ in rvec.iter() {}
+    for _ in rvec.iter() {} //~ explicit_iter_loop
 
     let rmvec = &mut vec;
     for _ in rmvec.iter() {}
@@ -27,37 +27,37 @@ fn main() {
     for _ in &vec {} // these are fine
     for _ in &mut vec {} // these are fine
 
-    for _ in [1, 2, 3].iter() {}
+    for _ in [1, 2, 3].iter() {} //~ explicit_iter_loop
 
     for _ in (&mut [1, 2, 3]).iter() {}
 
-    for _ in [0; 32].iter() {}
-    for _ in [0; 33].iter() {}
+    for _ in [0; 32].iter() {} //~ explicit_iter_loop
+    for _ in [0; 33].iter() {} //~ explicit_iter_loop
 
     let ll: LinkedList<()> = LinkedList::new();
-    for _ in ll.iter() {}
+    for _ in ll.iter() {} //~ explicit_iter_loop
     let rll = &ll;
-    for _ in rll.iter() {}
+    for _ in rll.iter() {} //~ explicit_iter_loop
 
     let vd: VecDeque<()> = VecDeque::new();
-    for _ in vd.iter() {}
+    for _ in vd.iter() {} //~ explicit_iter_loop
     let rvd = &vd;
-    for _ in rvd.iter() {}
+    for _ in rvd.iter() {} //~ explicit_iter_loop
 
     let bh: BinaryHeap<()> = BinaryHeap::new();
-    for _ in bh.iter() {}
+    for _ in bh.iter() {} //~ explicit_iter_loop
 
     let hm: HashMap<(), ()> = HashMap::new();
-    for _ in hm.iter() {}
+    for _ in hm.iter() {} //~ explicit_iter_loop
 
     let bt: BTreeMap<(), ()> = BTreeMap::new();
-    for _ in bt.iter() {}
+    for _ in bt.iter() {} //~ explicit_iter_loop
 
     let hs: HashSet<()> = HashSet::new();
-    for _ in hs.iter() {}
+    for _ in hs.iter() {} //~ explicit_iter_loop
 
     let bs: BTreeSet<()> = BTreeSet::new();
-    for _ in bs.iter() {}
+    for _ in bs.iter() {} //~ explicit_iter_loop
 
     struct NoIntoIter();
     impl NoIntoIter {
@@ -146,9 +146,9 @@ fn main() {
         }
     }
     let mut x = CustomType;
-    for _ in x.iter() {}
-    for _ in x.iter_mut() {}
+    for _ in x.iter() {} //~ explicit_iter_loop
+    for _ in x.iter_mut() {} //~ explicit_iter_loop
 
     let r = &x;
-    for _ in r.iter() {}
+    for _ in r.iter() {} //~ explicit_iter_loop
 }

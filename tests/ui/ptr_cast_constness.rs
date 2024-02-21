@@ -8,7 +8,8 @@ use proc_macros::{external, inline_macros};
 
 unsafe fn ptr_to_ref<T, U>(p: *const T, om: *mut U) {
     let _: &mut T = std::mem::transmute(p as *mut T);
-    let _ = &mut *(p as *mut T);
+    //~^ ptr_cast_constness
+    let _ = &mut *(p as *mut T); //~ ptr_cast_constness
     let _: &T = &*(om as *const T);
 }
 
@@ -23,11 +24,11 @@ fn main() {
     // Make sure the lint can handle the difference in their operator precedences.
     unsafe {
         let ptr_ptr: *const *const u32 = &ptr;
-        let _ = *ptr_ptr as *mut u32;
+        let _ = *ptr_ptr as *mut u32; //~ ptr_cast_constness
     }
 
-    let _ = ptr as *mut u32;
-    let _ = mut_ptr as *const u32;
+    let _ = ptr as *mut u32; //~ ptr_cast_constness
+    let _ = mut_ptr as *const u32; //~ ptr_cast_constness
 
     // Lint this, since pointer::cast_mut and pointer::cast_const have ?Sized
     let ptr_of_array: *const [u32; 4] = &[1, 2, 3, 4];
@@ -56,6 +57,6 @@ fn _msrv_1_65() {
     let ptr: *const u32 = &42_u32;
     let mut_ptr: *mut u32 = &mut 42_u32;
 
-    let _ = ptr as *mut u32;
-    let _ = mut_ptr as *const u32;
+    let _ = ptr as *mut u32; //~ ptr_cast_constness
+    let _ = mut_ptr as *const u32; //~ ptr_cast_constness
 }

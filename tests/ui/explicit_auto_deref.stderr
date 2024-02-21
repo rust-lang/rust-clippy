@@ -26,247 +26,247 @@ LL |     f_str(&*s);
    |           ^^^ help: try: `&s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:78:13
+  --> $DIR/explicit_auto_deref.rs:79:13
    |
 LL |     f_str_t(&*s, &*s); // Don't lint second param.
    |             ^^^ help: try: `&s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:81:24
+  --> $DIR/explicit_auto_deref.rs:82:24
    |
 LL |     let _: &Box<i32> = &**b;
    |                        ^^^^ help: try: `&b`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:87:7
+  --> $DIR/explicit_auto_deref.rs:88:7
    |
 LL |     c(&*s);
    |       ^^^ help: try: `&s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:93:9
+  --> $DIR/explicit_auto_deref.rs:94:9
    |
 LL |         &**x
    |         ^^^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:97:11
+  --> $DIR/explicit_auto_deref.rs:98:11
    |
 LL |         { &**x }
    |           ^^^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:101:9
+  --> $DIR/explicit_auto_deref.rs:102:9
    |
 LL |         &**{ x }
    |         ^^^^^^^^ help: try: `{ x }`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:105:9
+  --> $DIR/explicit_auto_deref.rs:106:9
    |
 LL |         &***x
    |         ^^^^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:122:12
+  --> $DIR/explicit_auto_deref.rs:123:12
    |
 LL |         f1(&*x);
    |            ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:123:12
+  --> $DIR/explicit_auto_deref.rs:124:12
    |
 LL |         f2(&*x);
    |            ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:124:12
+  --> $DIR/explicit_auto_deref.rs:125:12
    |
 LL |         f3(&*x);
    |            ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:125:27
+  --> $DIR/explicit_auto_deref.rs:126:27
    |
 LL |         f4.callable_str()(&*x);
    |                           ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:126:12
+  --> $DIR/explicit_auto_deref.rs:127:12
    |
 LL |         f5(&*x);
    |            ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:127:12
+  --> $DIR/explicit_auto_deref.rs:128:12
    |
 LL |         f6(&*x);
    |            ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:128:27
+  --> $DIR/explicit_auto_deref.rs:129:27
    |
 LL |         f7.callable_str()(&*x);
    |                           ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:129:25
+  --> $DIR/explicit_auto_deref.rs:130:25
    |
 LL |         f8.callable_t()(&*x);
    |                         ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:130:12
+  --> $DIR/explicit_auto_deref.rs:131:12
    |
 LL |         f9(&*x);
    |            ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:131:13
+  --> $DIR/explicit_auto_deref.rs:132:13
    |
 LL |         f10(&*x);
    |             ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:132:26
+  --> $DIR/explicit_auto_deref.rs:133:26
    |
 LL |         f11.callable_t()(&*x);
    |                          ^^^ help: try: `&x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:136:16
+  --> $DIR/explicit_auto_deref.rs:137:16
    |
 LL |     let _ = S1(&*s);
    |                ^^^ help: try: `&s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:141:21
+  --> $DIR/explicit_auto_deref.rs:142:21
    |
 LL |     let _ = S2 { s: &*s };
    |                     ^^^ help: try: `&s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:157:30
+  --> $DIR/explicit_auto_deref.rs:158:30
    |
 LL |             let _ = Self::S1(&**s);
    |                              ^^^^ help: try: `s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:158:35
+  --> $DIR/explicit_auto_deref.rs:159:35
    |
 LL |             let _ = Self::S2 { s: &**s };
    |                                   ^^^^ help: try: `s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:161:20
+  --> $DIR/explicit_auto_deref.rs:162:20
    |
 LL |     let _ = E1::S1(&*s);
    |                    ^^^ help: try: `&s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:162:25
+  --> $DIR/explicit_auto_deref.rs:163:25
    |
 LL |     let _ = E1::S2 { s: &*s };
    |                         ^^^ help: try: `&s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:180:13
+  --> $DIR/explicit_auto_deref.rs:181:13
    |
 LL |     let _ = (*b).foo;
    |             ^^^^ help: try: `b`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:181:13
+  --> $DIR/explicit_auto_deref.rs:182:13
    |
 LL |     let _ = (**b).foo;
    |             ^^^^^ help: try: `b`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:196:19
+  --> $DIR/explicit_auto_deref.rs:197:19
    |
 LL |     let _ = f_str(*ref_str);
    |                   ^^^^^^^^ help: try: `ref_str`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:198:19
+  --> $DIR/explicit_auto_deref.rs:199:19
    |
 LL |     let _ = f_str(**ref_ref_str);
    |                   ^^^^^^^^^^^^^ help: try: `ref_ref_str`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:208:12
+  --> $DIR/explicit_auto_deref.rs:210:12
    |
 LL |     f_str(&&*ref_str); // `needless_borrow` will suggest removing both references
    |            ^^^^^^^^^ help: try: `ref_str`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:209:12
+  --> $DIR/explicit_auto_deref.rs:213:12
    |
 LL |     f_str(&&**ref_str); // `needless_borrow` will suggest removing only one reference
    |            ^^^^^^^^^^ help: try: `ref_str`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:218:41
+  --> $DIR/explicit_auto_deref.rs:222:41
    |
 LL |     let _ = || -> &'static str { return *s };
    |                                         ^^ help: try: `s`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:237:9
+  --> $DIR/explicit_auto_deref.rs:242:9
    |
 LL |         &**x
    |         ^^^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:260:8
+  --> $DIR/explicit_auto_deref.rs:265:8
    |
 LL |     c1(*x);
    |        ^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:263:20
+  --> $DIR/explicit_auto_deref.rs:268:20
    |
 LL |             return *x;
    |                    ^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:265:9
+  --> $DIR/explicit_auto_deref.rs:270:9
    |
 LL |         *x
    |         ^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:299:20
+  --> $DIR/explicit_auto_deref.rs:304:20
    |
 LL |         Some(x) => &mut *x,
    |                    ^^^^^^^ help: try: `x`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:332:22
+  --> $DIR/explicit_auto_deref.rs:337:22
    |
 LL |         let _ = &mut (*{ x.u }).x;
    |                      ^^^^^^^^^^ help: try: `{ x.u }`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:338:22
+  --> $DIR/explicit_auto_deref.rs:343:22
    |
 LL |         let _ = &mut (**x.u).x;
    |                      ^^^^^^^ help: try: `(*x.u)`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:339:22
+  --> $DIR/explicit_auto_deref.rs:344:22
    |
 LL |         let _ = &mut (**{ x.u }).x;
    |                      ^^^^^^^^^^^ help: try: `{ x.u }`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:343:22
+  --> $DIR/explicit_auto_deref.rs:348:22
    |
 LL |         let _ = &mut (*x.u).x;
    |                      ^^^^^^ help: try: `x.u`
 
 error: deref which would be done by auto-deref
-  --> $DIR/explicit_auto_deref.rs:344:22
+  --> $DIR/explicit_auto_deref.rs:349:22
    |
 LL |         let _ = &mut (*{ x.u }).x;
    |                      ^^^^^^^^^^ help: try: `{ x.u }`

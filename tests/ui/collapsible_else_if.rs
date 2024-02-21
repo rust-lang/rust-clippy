@@ -10,6 +10,7 @@ fn main() {
     // Collapse `else { if .. }` to `else if ..`
     if x == "hello" {
         print!("Hello ");
+    //~v collapsible_else_if
     } else {
         if y == "world" {
             println!("world!")
@@ -18,6 +19,7 @@ fn main() {
 
     if x == "hello" {
         print!("Hello ");
+    //~v collapsible_else_if
     } else {
         if let Some(42) = Some(42) {
             println!("world!")
@@ -26,6 +28,7 @@ fn main() {
 
     if x == "hello" {
         print!("Hello ");
+    //~v collapsible_else_if
     } else {
         if y == "world" {
             println!("world")
@@ -37,6 +40,7 @@ fn main() {
 
     if x == "hello" {
         print!("Hello ");
+    //~v collapsible_else_if
     } else {
         if let Some(42) = Some(42) {
             println!("world")
@@ -48,6 +52,7 @@ fn main() {
 
     if let Some(42) = Some(42) {
         print!("Hello ");
+    //~v collapsible_else_if
     } else {
         if let Some(42) = Some(42) {
             println!("world")
@@ -59,6 +64,7 @@ fn main() {
 
     if let Some(42) = Some(42) {
         print!("Hello ");
+    //~v collapsible_else_if
     } else {
         if x == "hello" {
             println!("world")
@@ -70,6 +76,7 @@ fn main() {
 
     if let Some(42) = Some(42) {
         print!("Hello ");
+    //~v collapsible_else_if
     } else {
         if let Some(42) = Some(42) {
             println!("world")
@@ -93,6 +100,7 @@ fn main() {
 #[allow(dead_code)]
 fn issue_7318() {
     if true { println!("I've been resolved!")
+    //~v collapsible_else_if
     }else{
         if false {}
     }

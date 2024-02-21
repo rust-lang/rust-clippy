@@ -23,22 +23,25 @@ unsafe impl Allocator for DummyAllocator {
 /// The following should trigger the lint
 mod should_trigger {
     use super::{DummyAllocator, SizedStruct};
-    const C: Vec<Box<i32>> = Vec::new();
-    static S: Vec<Box<i32>> = Vec::new();
+    const C: Vec<Box<i32>> = Vec::new(); //~ vec_box
+    static S: Vec<Box<i32>> = Vec::new(); //~ vec_box
 
     struct StructWithVecBox {
-        sized_type: Vec<Box<SizedStruct>>,
+        sized_type: Vec<Box<SizedStruct>>, //~ vec_box
     }
 
-    struct A(Vec<Box<SizedStruct>>);
-    struct B(Vec<Vec<Box<(u32)>>>);
+    struct A(Vec<Box<SizedStruct>>); //~ vec_box
+    struct B(Vec<Vec<Box<(u32)>>>); //~ vec_box
 
+    //~v vec_box
     fn allocator_global_defined_vec() -> Vec<Box<i32>, std::alloc::Global> {
         Vec::new()
     }
+    //~v vec_box
     fn allocator_global_defined_box() -> Vec<Box<i32, std::alloc::Global>> {
         Vec::new()
     }
+    //~v vec_box
     fn allocator_match() -> Vec<Box<i32, DummyAllocator>, DummyAllocator> {
         Vec::new_in(DummyAllocator)
     }
@@ -76,6 +79,7 @@ mod inner_mod {
     mod inner2 {
         use super::inner::S;
 
+        //~v vec_box
         pub fn f() -> Vec<Box<S>> {
             vec![]
         }

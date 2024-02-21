@@ -210,6 +210,7 @@ fn fire() {
     macro_rules! create_binding_if_some {
         ($n:ident, $e:expr) => {
             let $n = if let Some(v) = $e { v } else { return };
+            //~^ manual_let_else
         };
     }
     create_binding_if_some!(w, g());

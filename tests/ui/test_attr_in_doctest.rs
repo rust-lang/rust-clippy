@@ -3,6 +3,7 @@
 /// # Examples
 ///
 /// ```
+//~v test_attr_in_doctest
 /// #[test]
 /// fn should_be_linted() {
 ///     assert_eq!(1, 1);
@@ -13,12 +14,14 @@
 /// and show that we really parse the attr:
 ///
 /// ```
+//~v test_attr_in_doctest
 /// #[test]
 /// fn should_also_be_linted() {
 ///     #[cfg(test)]
 ///     assert!(true);
 /// }
 ///
+//~v test_attr_in_doctest
 /// #[test]
 /// fn should_be_linted_too() {
 ///     assert_eq!("#[test]", "

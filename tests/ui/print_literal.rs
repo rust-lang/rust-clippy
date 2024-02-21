@@ -54,15 +54,16 @@ fn main() {
 
     // Braces in unicode escapes should not be escaped
     println!("{}", "{} \x00 \u{ab123} \\\u{ab123} {:?}");
-    println!("{}", "\\\u{1234}");
+    //~^ print_literal
+    println!("{}", "\\\u{1234}"); //~ print_literal
     // This does not lint because it would have to suggest unescaping the character
     println!(r"{}", "\u{ab123}");
     // These are not unicode escapes
-    println!("{}", r"\u{ab123} \u{{");
-    println!(r"{}", r"\u{ab123} \u{{");
-    println!("{}", r"\{ab123} \u{{");
-    println!("{}", "\\u{ab123}");
-    println!("{}", "\\\\u{1234}");
+    println!("{}", r"\u{ab123} \u{{"); //~ print_literal
+    println!(r"{}", r"\u{ab123} \u{{"); //~ print_literal
+    println!("{}", r"\{ab123} \u{{"); //~ print_literal
+    println!("{}", "\\u{ab123}"); //~ print_literal
+    println!("{}", "\\\\u{1234}"); //~ print_literal
 
-    println!("mixed: {} {world}", "{hello}");
+    println!("mixed: {} {world}", "{hello}"); //~ print_literal
 }

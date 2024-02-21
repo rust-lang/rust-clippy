@@ -687,7 +687,7 @@ LL | fn host_encourage_little() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_ne_bytes`
-  --> $DIR/endian_bytes.rs:71:9
+  --> $DIR/endian_bytes.rs:76:9
    |
 LL |         u8::from_ne_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -699,7 +699,7 @@ LL | fn host_encourage_little() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_be_bytes` method
-  --> $DIR/endian_bytes.rs:76:9
+  --> $DIR/endian_bytes.rs:96:9
    |
 LL |         2u8.to_be_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -713,7 +713,7 @@ LL | fn host_encourage_little() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_be_bytes`
-  --> $DIR/endian_bytes.rs:77:9
+  --> $DIR/endian_bytes.rs:102:9
    |
 LL |         u8::from_be_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -737,7 +737,7 @@ LL | fn host_encourage_big() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_ne_bytes`
-  --> $DIR/endian_bytes.rs:71:9
+  --> $DIR/endian_bytes.rs:76:9
    |
 LL |         u8::from_ne_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -749,7 +749,7 @@ LL | fn host_encourage_big() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_le_bytes` method
-  --> $DIR/endian_bytes.rs:73:9
+  --> $DIR/endian_bytes.rs:83:9
    |
 LL |         2u8.to_le_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -761,7 +761,7 @@ LL | fn host_encourage_big() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_le_bytes`
-  --> $DIR/endian_bytes.rs:74:9
+  --> $DIR/endian_bytes.rs:89:9
    |
 LL |         u8::from_le_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -784,7 +784,7 @@ LL | fn no_help() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_ne_bytes`
-  --> $DIR/endian_bytes.rs:71:9
+  --> $DIR/endian_bytes.rs:76:9
    |
 LL |         u8::from_ne_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -795,7 +795,7 @@ LL | fn no_help() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_le_bytes` method
-  --> $DIR/endian_bytes.rs:73:9
+  --> $DIR/endian_bytes.rs:83:9
    |
 LL |         2u8.to_le_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -806,7 +806,7 @@ LL | fn no_help() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_le_bytes`
-  --> $DIR/endian_bytes.rs:74:9
+  --> $DIR/endian_bytes.rs:89:9
    |
 LL |         u8::from_le_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -817,7 +817,7 @@ LL | fn no_help() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_be_bytes` method
-  --> $DIR/endian_bytes.rs:76:9
+  --> $DIR/endian_bytes.rs:96:9
    |
 LL |         2u8.to_be_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -828,7 +828,7 @@ LL | fn no_help() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_be_bytes`
-  --> $DIR/endian_bytes.rs:77:9
+  --> $DIR/endian_bytes.rs:102:9
    |
 LL |         u8::from_be_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -839,7 +839,7 @@ LL | fn no_help() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_le_bytes` method
-  --> $DIR/endian_bytes.rs:73:9
+  --> $DIR/endian_bytes.rs:83:9
    |
 LL |         2u8.to_le_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -851,7 +851,7 @@ LL | fn little_encourage_host() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_le_bytes`
-  --> $DIR/endian_bytes.rs:74:9
+  --> $DIR/endian_bytes.rs:89:9
    |
 LL |         u8::from_le_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -863,7 +863,7 @@ LL | fn little_encourage_host() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_be_bytes` method
-  --> $DIR/endian_bytes.rs:76:9
+  --> $DIR/endian_bytes.rs:96:9
    |
 LL |         2u8.to_be_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -875,7 +875,7 @@ LL | fn little_encourage_host() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_be_bytes`
-  --> $DIR/endian_bytes.rs:77:9
+  --> $DIR/endian_bytes.rs:102:9
    |
 LL |         u8::from_be_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -899,7 +899,7 @@ LL | fn little_encourage_big() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_ne_bytes`
-  --> $DIR/endian_bytes.rs:71:9
+  --> $DIR/endian_bytes.rs:76:9
    |
 LL |         u8::from_ne_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -911,7 +911,7 @@ LL | fn little_encourage_big() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_le_bytes` method
-  --> $DIR/endian_bytes.rs:73:9
+  --> $DIR/endian_bytes.rs:83:9
    |
 LL |         2u8.to_le_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -923,7 +923,7 @@ LL | fn little_encourage_big() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_le_bytes`
-  --> $DIR/endian_bytes.rs:74:9
+  --> $DIR/endian_bytes.rs:89:9
    |
 LL |         u8::from_le_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -935,7 +935,7 @@ LL | fn little_encourage_big() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_le_bytes` method
-  --> $DIR/endian_bytes.rs:73:9
+  --> $DIR/endian_bytes.rs:83:9
    |
 LL |         2u8.to_le_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -947,7 +947,7 @@ LL | fn big_encourage_host() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_le_bytes`
-  --> $DIR/endian_bytes.rs:74:9
+  --> $DIR/endian_bytes.rs:89:9
    |
 LL |         u8::from_le_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -959,7 +959,7 @@ LL | fn big_encourage_host() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_be_bytes` method
-  --> $DIR/endian_bytes.rs:76:9
+  --> $DIR/endian_bytes.rs:96:9
    |
 LL |         2u8.to_be_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -971,7 +971,7 @@ LL | fn big_encourage_host() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_be_bytes`
-  --> $DIR/endian_bytes.rs:77:9
+  --> $DIR/endian_bytes.rs:102:9
    |
 LL |         u8::from_be_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -995,7 +995,7 @@ LL | fn big_encourage_little() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_ne_bytes`
-  --> $DIR/endian_bytes.rs:71:9
+  --> $DIR/endian_bytes.rs:76:9
    |
 LL |         u8::from_ne_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1007,7 +1007,7 @@ LL | fn big_encourage_little() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the `u8::to_be_bytes` method
-  --> $DIR/endian_bytes.rs:76:9
+  --> $DIR/endian_bytes.rs:96:9
    |
 LL |         2u8.to_be_bytes();
    |         ^^^^^^^^^^^^^^^^^
@@ -1019,7 +1019,7 @@ LL | fn big_encourage_little() { fn_body_smol!(); }
    = note: this error originates in the macro `fn_body_smol` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: usage of the function `u8::from_be_bytes`
-  --> $DIR/endian_bytes.rs:77:9
+  --> $DIR/endian_bytes.rs:102:9
    |
 LL |         u8::from_be_bytes(todo!());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^

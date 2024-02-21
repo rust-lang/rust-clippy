@@ -6,6 +6,7 @@ extern crate proc_macros;
 use proc_macros::external;
 
 /// This is not sufficiently documented
+//~v missing_safety_doc
 pub unsafe fn destroy_the_planet() {
     unimplemented!();
 }
@@ -29,6 +30,7 @@ mod private_mod {
         unimplemented!();
     }
 
+    //~v missing_safety_doc
     pub unsafe fn republished() {
         unimplemented!();
     }
@@ -37,12 +39,13 @@ mod private_mod {
 pub use private_mod::republished;
 
 pub trait SafeTraitUnsafeMethods {
-    unsafe fn woefully_underdocumented(self);
+    unsafe fn woefully_underdocumented(self); //~ missing_safety_doc
 
     /// # Safety
     unsafe fn at_least_somewhat_documented(self);
 }
 
+//~v missing_safety_doc
 pub unsafe trait UnsafeTrait {
     fn method();
 }
@@ -73,6 +76,7 @@ unsafe impl DocumentedUnsafeTrait for Struct {
 }
 
 impl Struct {
+    //~v missing_safety_doc
     pub unsafe fn more_undocumented_unsafe() -> Self {
         unimplemented!();
     }
@@ -89,6 +93,7 @@ impl Struct {
 
 macro_rules! very_unsafe {
     () => {
+        //~v missing_safety_doc
         pub unsafe fn whee() {
             unimplemented!()
         }

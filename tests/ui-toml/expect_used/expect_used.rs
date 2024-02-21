@@ -4,12 +4,12 @@
 
 fn expect_option() {
     let opt = Some(0);
-    let _ = opt.expect("");
+    let _ = opt.expect(""); //~ expect_used
 }
 
 fn expect_result() {
     let res: Result<u8, ()> = Ok(0);
-    let _ = res.expect("");
+    let _ = res.expect(""); //~ expect_used
 }
 
 fn main() {

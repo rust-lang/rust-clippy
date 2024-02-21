@@ -16,7 +16,7 @@ fn _msrv_1_50() -> io::Result<()> {
 fn _msrv_1_51() -> io::Result<()> {
     let mut f = File::create("foo.txt")?;
     f.write_all(b"Hi!")?;
-    f.seek(SeekFrom::Current(0))?;
+    f.seek(SeekFrom::Current(0))?; //~ seek_from_current
     f.seek(SeekFrom::Current(1))?;
     Ok(())
 }

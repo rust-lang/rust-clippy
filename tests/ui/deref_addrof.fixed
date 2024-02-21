@@ -20,27 +20,27 @@ fn main() {
     let a = 10;
     let aref = &a;
 
-    let b = a;
+    let b = a; //~ deref_addrof
 
-    let b = get_number();
+    let b = get_number(); //~ deref_addrof
 
     let b = *get_reference(&a);
 
     let bytes: Vec<usize> = vec![1, 2, 3, 4];
-    let b = bytes[1..2][0];
+    let b = bytes[1..2][0]; //~ deref_addrof
 
     //This produces a suggestion of 'let b = (a);' which
     //will trigger the 'unused_parens' lint
-    let b = (a);
+    let b = (a); //~ deref_addrof
 
-    let b = a;
+    let b = a; //~ deref_addrof
 
     #[rustfmt::skip]
-    let b = a;
+    let b = a; //~ deref_addrof
 
-    let b = &a;
+    let b = &a; //~ deref_addrof
 
-    let b = *aref;
+    let b = *aref; //~ deref_addrof
 
     let _ = unsafe { *core::ptr::addr_of!(a) };
 }
@@ -50,10 +50,10 @@ pub struct S;
 #[inline_macros]
 impl S {
     pub fn f(&self) -> &Self {
-        inline!($(@expr self))
+        inline!($(@expr self)) //~ deref_addrof
     }
     #[allow(unused_mut)] // mut will be unused, once the macro is fixed
     pub fn f_mut(mut self) -> Self {
-        inline!($(@expr self))
+        inline!($(@expr self)) //~ deref_addrof
     }
 }

@@ -10,15 +10,15 @@
 #[macro_use]
 extern crate proc_macros;
 
-pub(self) fn a() {}
+pub(self) fn a() {} //~ pub_with_shorthand
 pub(in self) fn b() {}
 
 pub fn c() {}
 mod a {
     pub(in super) fn d() {}
-    pub(super) fn e() {}
-    pub(self) fn f() {}
-    pub(crate) fn k() {}
+    pub(super) fn e() {} //~ pub_with_shorthand
+    pub(self) fn f() {} //~ pub_with_shorthand
+    pub(crate) fn k() {} //~ pub_with_shorthand
     pub(in crate) fn m() {}
     mod b {
         pub(in crate::a) fn l() {}

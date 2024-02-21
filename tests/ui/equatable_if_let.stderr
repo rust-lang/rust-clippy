@@ -38,49 +38,49 @@ LL |     if let Enum::RecordVariant { a: 64, b: 32 } = e {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `e == (Enum::RecordVariant { a: 64, b: 32 })`
 
 error: this pattern matching can be expressed using equality
-  --> $DIR/equatable_if_let.rs:70:8
+  --> $DIR/equatable_if_let.rs:71:8
    |
 LL |     if let Enum::UnitVariant = e {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `e == Enum::UnitVariant`
 
 error: this pattern matching can be expressed using equality
-  --> $DIR/equatable_if_let.rs:71:8
+  --> $DIR/equatable_if_let.rs:72:8
    |
 LL |     if let (Enum::UnitVariant, &Struct { a: 2, b: false }) = (e, &d) {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(e, &d) == (Enum::UnitVariant, &Struct { a: 2, b: false })`
 
 error: this pattern matching can be expressed using `matches!`
-  --> $DIR/equatable_if_let.rs:80:8
+  --> $DIR/equatable_if_let.rs:82:8
    |
 LL |     if let NotPartialEq::A = f {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(f, NotPartialEq::A)`
 
 error: this pattern matching can be expressed using equality
-  --> $DIR/equatable_if_let.rs:81:8
+  --> $DIR/equatable_if_let.rs:83:8
    |
 LL |     if let NotStructuralEq::A = g {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `g == NotStructuralEq::A`
 
 error: this pattern matching can be expressed using `matches!`
-  --> $DIR/equatable_if_let.rs:82:8
+  --> $DIR/equatable_if_let.rs:84:8
    |
 LL |     if let Some(NotPartialEq::A) = Some(f) {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(Some(f), Some(NotPartialEq::A))`
 
 error: this pattern matching can be expressed using equality
-  --> $DIR/equatable_if_let.rs:83:8
+  --> $DIR/equatable_if_let.rs:85:8
    |
 LL |     if let Some(NotStructuralEq::A) = Some(g) {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Some(g) == Some(NotStructuralEq::A)`
 
 error: this pattern matching can be expressed using `matches!`
-  --> $DIR/equatable_if_let.rs:84:8
+  --> $DIR/equatable_if_let.rs:87:8
    |
 LL |     if let NoPartialEqStruct { a: 2, b: false } = h {}
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `matches!(h, NoPartialEqStruct { a: 2, b: false })`
 
 error: this pattern matching can be expressed using equality
-  --> $DIR/equatable_if_let.rs:86:8
+  --> $DIR/equatable_if_let.rs:91:8
    |
 LL |     if let inline!("abc") = "abc" {
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `"abc" == inline!("abc")`

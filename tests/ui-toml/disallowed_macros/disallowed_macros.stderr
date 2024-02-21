@@ -70,7 +70,7 @@ LL |     let _ = macros::binop!(1);
    |             ^^^^^^^^^^^^^^^^^
 
 error: use of a disallowed macro `macros::attr`
-  --> $DIR/disallowed_macros/disallowed_macros.rs:31:1
+  --> $DIR/disallowed_macros/disallowed_macros.rs:32:1
    |
 LL | / macros::attr! {
 LL | |     struct S;
@@ -78,25 +78,25 @@ LL | | }
    | |_^
 
 error: use of a disallowed macro `macros::item`
-  --> $DIR/disallowed_macros/disallowed_macros.rs:36:5
+  --> $DIR/disallowed_macros/disallowed_macros.rs:37:5
    |
 LL |     macros::item!();
    |     ^^^^^^^^^^^^^^^
 
 error: use of a disallowed macro `macros::item`
-  --> $DIR/disallowed_macros/disallowed_macros.rs:40:5
+  --> $DIR/disallowed_macros/disallowed_macros.rs:41:5
    |
 LL |     macros::item!();
    |     ^^^^^^^^^^^^^^^
 
 error: use of a disallowed macro `macros::item`
-  --> $DIR/disallowed_macros/disallowed_macros.rs:44:5
+  --> $DIR/disallowed_macros/disallowed_macros.rs:45:5
    |
 LL |     macros::item!();
    |     ^^^^^^^^^^^^^^^
 
 error: use of a disallowed macro `proc_macros::Derive`
-  --> $DIR/disallowed_macros/disallowed_macros.rs:47:10
+  --> $DIR/disallowed_macros/disallowed_macros.rs:48:10
    |
 LL | #[derive(Derive)]
    |          ^^^^^^

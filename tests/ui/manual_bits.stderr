@@ -164,13 +164,13 @@ LL |     let _: u32 = (size_of::<u128>() * 8).try_into().unwrap();
    |                  ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `u128::BITS`
 
 error: usage of `mem::size_of::<T>()` to obtain the size of `T` in bits
-  --> $DIR/manual_bits.rs:56:13
+  --> $DIR/manual_bits.rs:57:13
    |
 LL |     let _ = (size_of::<u128>() * 8).pow(5);
    |             ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `(u128::BITS as usize)`
 
 error: usage of `mem::size_of::<T>()` to obtain the size of `T` in bits
-  --> $DIR/manual_bits.rs:57:14
+  --> $DIR/manual_bits.rs:58:14
    |
 LL |     let _ = &(size_of::<u128>() * 8);
    |              ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `(u128::BITS as usize)`

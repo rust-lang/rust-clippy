@@ -5,26 +5,32 @@
 #[warn(clippy::single_element_loop)]
 fn main() {
     let item1 = 2;
+    //~v single_element_loop
     for item in &[item1] {
         dbg!(item);
     }
 
+    //~v single_element_loop
     for item in [item1].iter() {
         dbg!(item);
     }
 
+    //~v single_element_loop
     for item in &[0..5] {
         dbg!(item);
     }
 
+    //~v single_element_loop
     for item in [0..5].iter_mut() {
         dbg!(item);
     }
 
+    //~v single_element_loop
     for item in [0..5] {
         dbg!(item);
     }
 
+    //~v single_element_loop
     for item in [0..5].into_iter() {
         dbg!(item);
     }
@@ -44,6 +50,7 @@ fn main() {
     }
 
     // should lint (issue #10018)
+    //~v single_element_loop
     for _ in [42] {
         let _f = |n: u32| {
             for i in 0..n {

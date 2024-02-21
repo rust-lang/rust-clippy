@@ -1,5 +1,5 @@
 #![warn(clippy::obfuscated_if_else)]
 
 fn main() {
-    if true { "a" } else { "b" };
+    if true { "a" } else { "b" }; //~ obfuscated_if_else
 }

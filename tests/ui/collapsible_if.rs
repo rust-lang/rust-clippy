@@ -12,36 +12,42 @@
 fn main() {
     let x = "hello";
     let y = "world";
+    //~v collapsible_if
     if x == "hello" {
         if y == "world" {
             println!("Hello world!");
         }
     }
 
+    //~v collapsible_if
     if x == "hello" || x == "world" {
         if y == "world" || y == "hello" {
             println!("Hello world!");
         }
     }
 
+    //~v collapsible_if
     if x == "hello" && x == "world" {
         if y == "world" || y == "hello" {
             println!("Hello world!");
         }
     }
 
+    //~v collapsible_if
     if x == "hello" || x == "world" {
         if y == "world" && y == "hello" {
             println!("Hello world!");
         }
     }
 
+    //~v collapsible_if
     if x == "hello" && x == "world" {
         if y == "world" && y == "hello" {
             println!("Hello world!");
         }
     }
 
+    //~v collapsible_if
     if 42 == 1337 {
         if 'a' != 'A' {
             println!("world!")
@@ -98,6 +104,7 @@ fn main() {
         }
     }
 
+    //~v collapsible_if
     if x == "hello" {
         if y == "world" { // Collapsible
             println!("Hello world!");
@@ -157,11 +164,13 @@ fn main() {
     }
 
     // Fix #5962
+    //~v collapsible_if
     if matches!(true, true) {
         if matches!(true, true) {}
     }
 
     // Issue #9375
+    //~v collapsible_if
     if matches!(true, true) && truth() {
         if matches!(true, true) {}
     }

@@ -16,18 +16,21 @@ fn many_comments_but_one_line_of_code() {
 }
 
 // This should be considered two and a fail.
+//~v too_many_lines
 fn too_many_lines() {
     println!("This is bad.");
     println!("This is bad.");
 }
 
 // This should only fail once (#7517).
+//~v too_many_lines
 async fn async_too_many_lines() {
     println!("This is bad.");
     println!("This is bad.");
 }
 
 // This should fail only once, without failing on the closure.
+//~v too_many_lines
 fn closure_too_many_lines() {
     let _ = {
         println!("This is bad.");
@@ -50,6 +53,7 @@ fn comment_after_code() {
 
 // This should fail since it is technically two lines.
 #[rustfmt::skip]
+//~v too_many_lines
 fn comment_before_code() {
     let _ = "test";
     /* This comment extends to the front of

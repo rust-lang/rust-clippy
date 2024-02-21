@@ -3,9 +3,12 @@
 /// This is a special interface for ClipPy which doesn't require backticks
 fn allowed_name() {}
 
+//~| doc_markdown
+//~v doc_markdown
 /// OAuth and LaTeX are inside Clippy's default list.
 fn default_name() {}
 
+//~v doc_markdown
 /// TestItemThingyOfCoolness might sound cool but is not on the list and should be linted.
 fn unknown_name() {}
 

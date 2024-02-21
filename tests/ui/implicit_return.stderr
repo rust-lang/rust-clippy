@@ -20,73 +20,73 @@ LL |     if true { true } else { false }
    |                             ^^^^^ help: add `return` as shown: `return false`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:21:17
+  --> $DIR/implicit_return.rs:23:17
    |
 LL |         true => false,
    |                 ^^^^^ help: add `return` as shown: `return false`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:22:20
+  --> $DIR/implicit_return.rs:24:20
    |
 LL |         false => { true },
    |                    ^^^^ help: add `return` as shown: `return true`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:35:9
+  --> $DIR/implicit_return.rs:37:9
    |
 LL |         break true;
    |         ^^^^^^^^^^ help: change `break` to `return` as shown: `return true`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:42:13
+  --> $DIR/implicit_return.rs:44:13
    |
 LL |             break true;
    |             ^^^^^^^^^^ help: change `break` to `return` as shown: `return true`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:50:13
+  --> $DIR/implicit_return.rs:52:13
    |
 LL |             break true;
    |             ^^^^^^^^^^ help: change `break` to `return` as shown: `return true`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:68:18
+  --> $DIR/implicit_return.rs:70:18
    |
 LL |     let _ = || { true };
    |                  ^^^^ help: add `return` as shown: `return true`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:69:16
+  --> $DIR/implicit_return.rs:71:16
    |
 LL |     let _ = || true;
    |                ^^^^ help: add `return` as shown: `return true`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:77:5
+  --> $DIR/implicit_return.rs:79:5
    |
 LL |     format!("test {}", "test")
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add `return` as shown: `return format!("test {}", "test")`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:86:5
+  --> $DIR/implicit_return.rs:88:5
    |
 LL |     m!(true, false)
    |     ^^^^^^^^^^^^^^^ help: add `return` as shown: `return m!(true, false)`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:92:13
+  --> $DIR/implicit_return.rs:94:13
    |
 LL |             break true;
    |             ^^^^^^^^^^ help: change `break` to `return` as shown: `return true`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:97:17
+  --> $DIR/implicit_return.rs:99:17
    |
 LL |                 break 'outer false;
    |                 ^^^^^^^^^^^^^^^^^^ help: change `break` to `return` as shown: `return false`
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:112:5
+  --> $DIR/implicit_return.rs:115:5
    |
 LL | /     loop {
 LL | |         m!(true);
@@ -101,7 +101,7 @@ LL +     }
    |
 
 error: missing `return` statement
-  --> $DIR/implicit_return.rs:126:5
+  --> $DIR/implicit_return.rs:129:5
    |
 LL |     true
    |     ^^^^ help: add `return` as shown: `return true`

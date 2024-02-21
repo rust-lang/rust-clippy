@@ -223,6 +223,7 @@ pub struct RegexT {
 mod macro_tests {
     macro_rules! mk_struct {
         () => {
+            //~v struct_field_names
             struct MacroStruct {
                 some_a: i32,
                 some_b: i32,
@@ -235,7 +236,7 @@ mod macro_tests {
     macro_rules! mk_struct2 {
         () => {
             struct Macrobaz {
-                macrobaz_a: i32,
+                macrobaz_a: i32, //~ struct_field_names
                 some_b: i32,
                 some_c: i32,
             }
@@ -246,7 +247,7 @@ mod macro_tests {
     macro_rules! mk_struct_with_names {
         ($struct_name:ident, $field:ident) => {
             struct $struct_name {
-                $field: i32,
+                $field: i32, //~ struct_field_names
                 other_something: i32,
                 other_field: i32,
             }
@@ -285,6 +286,7 @@ mod macro_tests {
 
     macro_rules! mk_struct_full_def {
         ($struct_name:ident, $field1:ident, $field2:ident, $field3:ident) => {
+            //~v struct_field_names
             struct $struct_name {
                 $field1: i32,
                 $field2: i32,
@@ -334,8 +336,8 @@ struct Config {
 struct Use {
     use_foo: bool,
     //~^ ERROR: field name starts with the struct's name
-    use_bar: bool,
-    use_baz: bool,
+    use_bar: bool, //~ struct_field_names
+    use_baz: bool, //~ struct_field_names
 }
 
 fn main() {}

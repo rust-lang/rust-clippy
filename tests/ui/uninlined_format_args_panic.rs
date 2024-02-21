@@ -7,16 +7,17 @@
 fn main() {
     let var = 1;
 
-    println!("val='{}'", var);
+    println!("val='{}'", var); //~ uninlined_format_args
 
     if var > 0 {
-        panic!("p1 {}", var);
+        panic!("p1 {}", var); //~[edition2021] uninlined_format_args
     }
     if var > 0 {
-        panic!("p2 {0}", var);
+        panic!("p2 {0}", var); //~[edition2021] uninlined_format_args
     }
     if var > 0 {
         panic!("p3 {var}", var = var);
+        //~[edition2021]^ uninlined_format_args
     }
 
     #[allow(non_fmt_panics)]
@@ -27,5 +28,7 @@ fn main() {
     }
 
     assert!(var == 1, "p5 {}", var);
+    //~[edition2021]^ uninlined_format_args
     debug_assert!(var == 1, "p6 {}", var);
+    //~[edition2021]^ uninlined_format_args
 }

@@ -23,13 +23,13 @@ LL |     foo.map_or(Err("error"), Ok);
    = help: to override `-D warnings` add `#[allow(clippy::option_map_or_err_ok)]`
 
 error: this pattern reimplements `Option::ok_or`
-  --> $DIR/manual_ok_or.rs:17:5
+  --> $DIR/manual_ok_or.rs:19:5
    |
 LL |     None::<i32>.map_or(Err("error"), |v| Ok(v));
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `None::<i32>.ok_or("error")`
 
 error: this pattern reimplements `Option::ok_or`
-  --> $DIR/manual_ok_or.rs:21:5
+  --> $DIR/manual_ok_or.rs:24:5
    |
 LL | /     foo.map_or(Err::<i32, &str>(
 LL | |         &format!(

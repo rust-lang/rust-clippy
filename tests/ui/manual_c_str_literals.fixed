@@ -28,30 +28,35 @@ fn pre_stabilization() {
 
 #[clippy::msrv = "1.77.0"]
 fn post_stabilization() {
-    c"foo";
+    c"foo"; //~ manual_c_str_literals
 }
 
 fn main() {
+    c"foo"; //~ manual_c_str_literals
+    c"foo"; //~ manual_c_str_literals
     c"foo";
-    c"foo";
-    c"foo";
+    //~^ manual_c_str_literals
     c"foo\\0sdsd";
+    //~^ manual_c_str_literals
     CStr::from_bytes_with_nul(br"foo\\0sdsd\0").unwrap();
     CStr::from_bytes_with_nul(br"foo\x00").unwrap();
     CStr::from_bytes_with_nul(br##"foo#a\0"##).unwrap();
 
     unsafe { c"foo" };
+    //~^ manual_c_str_literals
     unsafe { c"foo" };
-    let _: *const _ = c"foo".as_ptr();
-    let _: *const _ = c"foo".as_ptr();
+    //~^ manual_c_str_literals
+    let _: *const _ = c"foo".as_ptr(); //~ manual_c_str_literals
+    let _: *const _ = c"foo".as_ptr(); //~ manual_c_str_literals
     let _: *const _ = "foo".as_ptr(); // not a C-string
     let _: *const _ = "".as_ptr();
     let _: *const _ = c"foo".as_ptr().cast::<i8>();
+    //~^ manual_c_str_literals
     let _ = "电脑".as_ptr();
     let _ = "电脑\\".as_ptr();
-    let _ = c"电脑\\".as_ptr();
-    let _ = c"电脑".as_ptr();
-    let _ = c"电脑".as_ptr();
+    let _ = c"电脑\\".as_ptr(); //~ manual_c_str_literals
+    let _ = c"电脑".as_ptr(); //~ manual_c_str_literals
+    let _ = c"电脑".as_ptr(); //~ manual_c_str_literals
 
     // Macro cases, don't lint:
     cstr!("foo");

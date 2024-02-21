@@ -14,9 +14,11 @@ fn main() {
     let tuple_struct = TupleStruct::default();
 
     // This should lint
+    //~v init_numbered_fields
     let _ = TupleStruct(1u32, 42, 23u8);
 
     // This should also lint and order the fields correctly
+    //~v init_numbered_fields
     let _ = TupleStruct(1u32, 3u32, 2u8);
 
     // Ok because of default initializer

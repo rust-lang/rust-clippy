@@ -18,54 +18,77 @@ fn main() {
         i_8 += 1;
     }
 
+    //~v implicit_saturating_add
     u_8 = u_8.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_8 = u_8.saturating_add(1);
 
     if u_8 < 15 {
         u_8 += 1;
     }
 
+    //~v implicit_saturating_add
     u_16 = u_16.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_16 = u_16.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_16 = u_16.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_32 = u_32.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_32 = u_32.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_32 = u_32.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_64 = u_64.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_64 = u_64.saturating_add(1);
 
+    //~v implicit_saturating_add
     u_64 = u_64.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_8 = i_8.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_8 = i_8.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_8 = i_8.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_16 = i_16.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_16 = i_16.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_16 = i_16.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_32 = i_32.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_32 = i_32.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_32 = i_32.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_64 = i_64.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_64 = i_64.saturating_add(1);
 
+    //~v implicit_saturating_add
     i_64 = i_64.saturating_add(1);
 
     if i_64 < 42 {
@@ -100,5 +123,6 @@ fn main() {
 
     if u_32 < 42 {
         println!("brace yourself!");
+    //~v implicit_saturating_add
     } else {u_32 = u_32.saturating_add(1); }
 }

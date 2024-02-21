@@ -3,10 +3,12 @@ use std::fmt::{self, Display};
 fn main() {
     let a = Foo;
 
+    //~v cmp_owned
     if a != "bar" {
         println!("foo");
     }
 
+    //~v cmp_owned
     if a != "bar" {
         println!("foo");
     }

@@ -25,6 +25,7 @@ fn infallible_destructuring_match_enum() {
     let wrapper = SingleVariantEnum::Variant(0);
 
     // This should lint!
+    //~v infallible_destructuring_match
     let SingleVariantEnum::Variant(data) = wrapper;
 
     // This shouldn't (inside macro)
@@ -55,6 +56,7 @@ fn infallible_destructuring_match_struct() {
     let wrapper = TupleStruct(0);
 
     // This should lint!
+    //~v infallible_destructuring_match
     let TupleStruct(data) = wrapper;
 
     // This shouldn't (inside macro)
@@ -77,6 +79,7 @@ fn infallible_destructuring_match_struct_with_noncopy() {
     let wrapper = TupleStructWithNonCopy(NonCopy);
 
     // This should lint! (keeping `ref` in the suggestion)
+    //~v infallible_destructuring_match
     let TupleStructWithNonCopy(ref data) = wrapper;
 
     let TupleStructWithNonCopy(ref data) = wrapper;
@@ -94,6 +97,7 @@ fn never_enum() {
     let wrapper: Result<i32, !> = Ok(23);
 
     // This should lint!
+    //~v infallible_destructuring_match
     let Ok(data) = wrapper;
 
     // This shouldn't (inside macro)

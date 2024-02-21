@@ -7,6 +7,7 @@
 )]
 
 fn bad1(string: Option<&str>) -> (bool, &str) {
+    //~v option_if_let_else
     string.map_or((false, "hello"), |x| (true, x))
 }
 
@@ -22,16 +23,24 @@ fn else_if_option(string: Option<&str>) -> Option<(bool, &str)> {
 
 fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
     let _ = string.map_or(0, |s| s.len());
+    //~^ option_if_let_else
     let _ = num.as_ref().map_or(&0, |s| s);
+    //~^ option_if_let_else
+
+    //~v option_if_let_else
     let _ = num.as_mut().map_or(&0, |s| {
         *s += 1;
         s
     });
     let _ = num.as_ref().map_or(&0, |s| s);
+    //~^ option_if_let_else
+
+    //~v option_if_let_else
     let _ = num.map_or(0, |mut s| {
         s += 1;
         s
     });
+    //~v option_if_let_else
     let _ = num.as_mut().map_or(&0, |s| {
         *s += 1;
         s
@@ -39,6 +48,7 @@ fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
 }
 
 fn longer_body(arg: Option<u32>) -> u32 {
+    //~v option_if_let_else
     arg.map_or(13, |x| {
         let y = x * x;
         y * y
@@ -50,10 +60,12 @@ fn impure_else(arg: Option<i32>) {
         println!("return 1");
         1
     };
+    //~v option_if_let_else
     let _ = arg.map_or_else(side_effect, |x| x);
 }
 
 fn test_map_or_else(arg: Option<u32>) {
+    //~v option_if_let_else
     let _ = arg.map_or_else(|| {
         let mut y = 1;
         y = (y + 2 / y) / 2;
@@ -85,6 +97,7 @@ fn pattern_to_vec(pattern: &str) -> Vec<String> {
         .trim_matches('/')
         .split('/')
         .flat_map(|s| {
+            //~v option_if_let_else
             s.find('.').map_or_else(|| vec![s.to_string()], |idx| vec![s[..idx].to_string(), s[idx..].to_string()])
         })
         .collect::<Vec<_>>()
@@ -92,6 +105,7 @@ fn pattern_to_vec(pattern: &str) -> Vec<String> {
 
 // #10335
 fn test_result_impure_else(variable: Result<u32, &str>) -> bool {
+    //~v option_if_let_else
     variable.map_or_else(|_| {
         println!("Err");
         false
@@ -117,6 +131,7 @@ fn complex_subpat() -> DummyEnum {
 fn main() {
     let optional = Some(5);
     let _ = optional.map_or(5, |x| x + 2);
+    //~^ option_if_let_else
     let _ = bad1(None);
     let _ = else_if_option(None);
     unop_bad(&None, None);
@@ -126,6 +141,7 @@ fn main() {
     let _ = negative_tests(None);
     let _ = impure_else(None);
 
+    //~v option_if_let_else
     let _ = Some(0).map_or(0, |x| loop {
             if x == 0 {
                 break x;
@@ -151,9 +167,11 @@ fn main() {
     let s = String::new();
     // Lint, both branches immutably borrow `s`.
     let _ = Some(0).map_or(s.len(), |x| s.len() + x);
+    //~^ option_if_let_else
 
     let s = String::new();
     // Lint, `Some` branch consumes `s`, but else branch doesn't use `s`.
+    //~v option_if_let_else
     let _ = Some(0).map_or(1, |x| {
         let s = s;
         s.len() + x
@@ -191,13 +209,18 @@ fn main() {
     let _ = complex_subpat();
 
     // issue #8492
+    //~v option_if_let_else
     let _ = s.map_or(1, |string| string.len());
+    //~v option_if_let_else
     let _ = Some(10).map_or(5, |a| a + 1);
 
     let res: Result<i32, i32> = Ok(5);
+    //~v option_if_let_else
     let _ = res.map_or(1, |a| a + 1);
+    //~v option_if_let_else
     let _ = res.map_or(1, |a| a + 1);
     let _ = res.map_or(5, |a| a + 1);
+    //~^ option_if_let_else
 }
 
 #[allow(dead_code)]
@@ -214,10 +237,12 @@ mod issue10729 {
 
     pub fn reproduce(initial: &Option<String>) {
         // 👇 needs `.as_ref()` because initial is an `&Option<_>`
+        //~v option_if_let_else
         let _ = initial.as_ref().map_or(42, |value| do_something(value));
     }
 
     pub fn reproduce2(initial: &mut Option<String>) {
+        //~v option_if_let_else
         let _ = initial.as_mut().map_or(42, |value| do_something2(value));
     }
 
@@ -238,9 +263,11 @@ fn issue11429() {
 
     let opt: Option<HashMap<u8, u8>> = None;
 
+    //~v option_if_let_else
     let mut _hashmap = opt.as_ref().map_or_else(HashMap::new, |hm| hm.clone());
 
     let mut _hm = opt.as_ref().map_or_else(|| new_map!(), |hm| hm.clone());
+    //~^ option_if_let_else
 }
 
 fn issue11893() {

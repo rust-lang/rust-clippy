@@ -1,5 +1,5 @@
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:13:12
+  --> $DIR/collapsible_else_if.rs:14:12
    |
 LL |       } else {
    |  ____________^
@@ -19,7 +19,7 @@ LL +     }
    |
 
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:21:12
+  --> $DIR/collapsible_else_if.rs:23:12
    |
 LL |       } else {
    |  ____________^
@@ -37,7 +37,7 @@ LL +     }
    |
 
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:29:12
+  --> $DIR/collapsible_else_if.rs:32:12
    |
 LL |       } else {
    |  ____________^
@@ -60,7 +60,7 @@ LL +     }
    |
 
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:40:12
+  --> $DIR/collapsible_else_if.rs:44:12
    |
 LL |       } else {
    |  ____________^
@@ -83,7 +83,7 @@ LL +     }
    |
 
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:51:12
+  --> $DIR/collapsible_else_if.rs:56:12
    |
 LL |       } else {
    |  ____________^
@@ -106,7 +106,7 @@ LL +     }
    |
 
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:62:12
+  --> $DIR/collapsible_else_if.rs:68:12
    |
 LL |       } else {
    |  ____________^
@@ -129,7 +129,7 @@ LL +     }
    |
 
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:73:12
+  --> $DIR/collapsible_else_if.rs:80:12
    |
 LL |       } else {
    |  ____________^
@@ -152,7 +152,7 @@ LL +     }
    |
 
 error: this `else { if .. }` block can be collapsed
-  --> $DIR/collapsible_else_if.rs:96:10
+  --> $DIR/collapsible_else_if.rs:104:10
    |
 LL |       }else{
    |  __________^

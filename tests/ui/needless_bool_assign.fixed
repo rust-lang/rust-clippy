@@ -10,7 +10,9 @@ fn main() {
         field: bool,
     };
     let mut a = Data { field: false };
+    //~v needless_bool_assign
     a.field = random() && random();
+    //~v needless_bool_assign
     a.field = !(random() && random());
     // Do not lint…
     if random() {
@@ -21,6 +23,8 @@ fn main() {
     }
     // This one also triggers lint `clippy::if_same_then_else`
     // which does not suggest a rewrite.
+    //~| needless_bool_assign
+    //~v if_same_then_else
     random(); a.field = true;
     let mut b = false;
     if random() {

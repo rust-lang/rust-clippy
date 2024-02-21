@@ -23,58 +23,61 @@ fn test_end_of_fn() -> bool {
         // no error!
         return true;
     }
-    return true;
+    return true; //~ needless_return
 }
 
 fn test_no_semicolon() -> bool {
-    return true;
+    return true; //~ needless_return
 }
 
 #[rustfmt::skip]
 fn test_multiple_semicolon() -> bool {
-    return true;;;
+    return true;;; //~ needless_return
 }
 
 #[rustfmt::skip]
 fn test_multiple_semicolon_with_spaces() -> bool {
-    return true;; ; ;
+    return true;; ; ; //~ needless_return
 }
 
 fn test_if_block() -> bool {
     if true {
-        return true;
+        return true; //~ needless_return
     } else {
-        return false;
+        return false; //~ needless_return
     }
 }
 
 fn test_match(x: bool) -> bool {
     match x {
-        true => return false,
+        true => return false, //~ needless_return
         false => {
-            return true;
+            return true; //~ needless_return
         },
     }
 }
 
 fn test_closure() {
     let _ = || {
-        return true;
+        return true; //~ needless_return
     };
-    let _ = || return true;
+    let _ = || return true; //~ needless_return
 }
 
 fn test_macro_call() -> i32 {
-    return the_answer!();
+    return the_answer!(); //~ needless_return
 }
 
+//~v needless_return
 fn test_void_fun() {
     return;
 }
 
 fn test_void_if_fun(b: bool) {
+    //~v needless_return
     if b {
         return;
+    //~v needless_return
     } else {
         return;
     }
@@ -83,7 +86,7 @@ fn test_void_if_fun(b: bool) {
 fn test_void_match(x: u32) {
     match x {
         0 => (),
-        _ => return,
+        _ => return, //~ needless_return
     }
 }
 
@@ -91,10 +94,11 @@ fn test_nested_match(x: u32) {
     match x {
         0 => (),
         1 => {
+            //~v needless_return
             let _ = 42;
             return;
         },
-        _ => return,
+        _ => return, //~ needless_return
     }
 }
 
@@ -107,9 +111,9 @@ fn borrows_but_not_last(value: bool) -> String {
     if value {
         let x = RefCell::<String>::default();
         let _a = x.borrow().clone();
-        return String::from("test");
+        return String::from("test"); //~ needless_return
     } else {
-        return String::new();
+        return String::new(); //~ needless_return
     }
 }
 
@@ -131,20 +135,21 @@ fn test_return_in_macro() {
 mod issue6501 {
     #[allow(clippy::unnecessary_lazy_evaluations)]
     fn foo(bar: Result<(), ()>) {
-        bar.unwrap_or_else(|_| return)
+        bar.unwrap_or_else(|_| return) //~ needless_return
     }
 
     fn test_closure() {
+        //~v needless_return
         let _ = || {
             return;
         };
-        let _ = || return;
+        let _ = || return; //~ needless_return
     }
 
     struct Foo;
     #[allow(clippy::unnecessary_lazy_evaluations)]
     fn bar(res: Result<Foo, u8>) -> Foo {
-        res.unwrap_or_else(|_| return Foo)
+        res.unwrap_or_else(|_| return Foo) //~ needless_return
     }
 }
 
@@ -153,48 +158,51 @@ async fn async_test_end_of_fn() -> bool {
         // no error!
         return true;
     }
-    return true;
+    return true; //~ needless_return
 }
 
 async fn async_test_no_semicolon() -> bool {
-    return true;
+    return true; //~ needless_return
 }
 
 async fn async_test_if_block() -> bool {
     if true {
-        return true;
+        return true; //~ needless_return
     } else {
-        return false;
+        return false; //~ needless_return
     }
 }
 
 async fn async_test_match(x: bool) -> bool {
     match x {
-        true => return false,
+        true => return false, //~ needless_return
         false => {
-            return true;
+            return true; //~ needless_return
         },
     }
 }
 
 async fn async_test_closure() {
     let _ = || {
-        return true;
+        return true; //~ needless_return
     };
-    let _ = || return true;
+    let _ = || return true; //~ needless_return
 }
 
 async fn async_test_macro_call() -> i32 {
-    return the_answer!();
+    return the_answer!(); //~ needless_return
 }
 
+//~v needless_return
 async fn async_test_void_fun() {
     return;
 }
 
 async fn async_test_void_if_fun(b: bool) {
+    //~v needless_return
     if b {
         return;
+    //~v needless_return
     } else {
         return;
     }
@@ -203,7 +211,7 @@ async fn async_test_void_if_fun(b: bool) {
 async fn async_test_void_match(x: u32) {
     match x {
         0 => (),
-        _ => return,
+        _ => return, //~ needless_return
     }
 }
 
@@ -216,9 +224,9 @@ async fn async_borrows_but_not_last(value: bool) -> String {
     if value {
         let x = RefCell::<String>::default();
         let _a = x.borrow().clone();
-        return String::from("test");
+        return String::from("test"); //~ needless_return
     } else {
-        return String::new();
+        return String::new(); //~ needless_return
     }
 }
 
@@ -234,7 +242,7 @@ fn let_else() {
 fn needless_return_macro() -> String {
     let _ = "foo";
     let _ = "bar";
-    return format!("Hello {}", "world!");
+    return format!("Hello {}", "world!"); //~ needless_return
 }
 
 fn issue_9361() -> i32 {
@@ -246,19 +254,19 @@ fn issue_9361() -> i32 {
 fn issue8336(x: i32) -> bool {
     if x > 0 {
         println!("something");
-        return true;
+        return true; //~ needless_return
     } else {
-        return false;
+        return false; //~ needless_return
     };
 }
 
 fn issue8156(x: u8) -> u64 {
     match x {
         80 => {
-            return 10;
+            return 10; //~ needless_return
         },
         _ => {
-            return 100;
+            return 100; //~ needless_return
         },
     };
 }
@@ -266,22 +274,23 @@ fn issue8156(x: u8) -> u64 {
 // Ideally the compiler should throw `unused_braces` in this case
 fn issue9192() -> i32 {
     {
-        return 0;
+        return 0; //~ needless_return
     };
 }
 
 fn issue9503(x: usize) -> isize {
     unsafe {
         if x > 12 {
-            return *(x as *const isize);
+            return *(x as *const isize); //~ needless_return
         } else {
-            return !*(x as *const isize);
+            return !*(x as *const isize); //~ needless_return
         };
     };
 }
 
 mod issue9416 {
     pub fn with_newline() {
+        //~v needless_return
         let _ = 42;
 
         return;
@@ -289,7 +298,7 @@ mod issue9416 {
 
     #[rustfmt::skip]
     pub fn oneline() {
-        let _ = 42; return;
+        let _ = 42; return; //~ needless_return
     }
 }
 
@@ -301,19 +310,20 @@ fn issue9947() -> Result<(), String> {
 #[expect(clippy::useless_format)]
 fn issue10051() -> Result<String, String> {
     if true {
-        return Ok(format!("ok!"));
+        return Ok(format!("ok!")); //~ needless_return
     } else {
-        return Err(format!("err!"));
+        return Err(format!("err!")); //~ needless_return
     }
 }
 
 mod issue10049 {
     fn single() -> u32 {
-        return if true { 1 } else { 2 };
+        return if true { 1 } else { 2 }; //~ needless_return
     }
 
     fn multiple(b1: bool, b2: bool, b3: bool) -> u32 {
         return if b1 { 0 } else { 1 } | if b2 { 2 } else { 3 } | if b3 { 4 } else { 5 };
+        //~^ needless_return
     }
 }
 

@@ -32,30 +32,33 @@ mod local_mod {
 }
 
 fn main() {
-    let re = Regex::new(r"ab.*c").unwrap();
-    re.is_match("abc");
+    let re = Regex::new(r"ab.*c").unwrap(); //~ disallowed_methods
+    re.is_match("abc"); //~ disallowed_methods
 
     let mut a = vec![1, 2, 3, 4];
-    a.iter().sum::<i32>();
+    a.iter().sum::<i32>(); //~ disallowed_methods
 
-    a.sort_unstable();
+    a.sort_unstable(); //~ disallowed_methods
 
-    let _ = 2.0f32.clamp(3.0f32, 4.0f32);
+    let _ = 2.0f32.clamp(3.0f32, 4.0f32); //~ disallowed_methods
     let _ = 2.0f64.clamp(3.0f64, 4.0f64);
 
     let indirect: fn(&str) -> Result<Regex, regex::Error> = Regex::new;
+    //~^ disallowed_methods
     let re = indirect(".").unwrap();
 
-    let in_call = Box::new(f32::clamp);
+    let in_call = Box::new(f32::clamp); //~ disallowed_methods
     let in_method_call = ["^", "$"].into_iter().map(Regex::new);
+    //~^ disallowed_methods
 
     // resolve ambiguity between `futures::stream::select_all` the module and the function
     let same_name_as_module = select_all(vec![empty::<()>()]);
+    //~^ disallowed_methods
 
-    local_fn();
-    local_mod::f();
+    local_fn(); //~ disallowed_methods
+    local_mod::f(); //~ disallowed_methods
     let s = Struct;
-    s.method();
-    s.provided_method();
-    s.implemented_method();
+    s.method(); //~ disallowed_methods
+    s.provided_method(); //~ disallowed_methods
+    s.implemented_method(); //~ disallowed_methods
 }

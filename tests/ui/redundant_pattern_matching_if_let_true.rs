@@ -19,19 +19,21 @@ macro_rules! lettrue {
 fn main() {
     let mut k = 5;
 
-    if let true = k > 1 {}
-    if let false = k > 5 {}
-    if let (true) = k > 1 {}
+    if let true = k > 1 {} //~ redundant_pattern_matching
+    if let false = k > 5 {} //~ redundant_pattern_matching
+    if let (true) = k > 1 {} //~ redundant_pattern_matching
     if let (true, true) = (k > 1, k > 2) {}
+    //~v redundant_pattern_matching
     while let true = k > 1 {
         k += 1;
     }
+    //~v redundant_pattern_matching
     while let true = condition!() {
         k += 1;
     }
 
-    matches!(k > 5, true);
-    matches!(k > 5, false);
+    matches!(k > 5, true); //~ redundant_pattern_matching
+    matches!(k > 5, false); //~ redundant_pattern_matching
     // Whole loop is from a macro expansion, don't lint:
     lettrue!(if);
     lettrue!(while);

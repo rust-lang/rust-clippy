@@ -10,39 +10,40 @@ use proc_macros::Derive;
 use serde::Serialize;
 
 fn main() {
-    println!("one");
-    println!("two");
-    cfg!(unix);
-    vec![1, 2, 3];
+    println!("one"); //~ disallowed_macros
+    println!("two"); //~ disallowed_macros
+    cfg!(unix); //~ disallowed_macros
+    vec![1, 2, 3]; //~ disallowed_macros
 
-    #[derive(Serialize)]
+    #[derive(Serialize)] //~ disallowed_macros
     struct Derive;
 
-    let _ = macros::expr!();
-    macros::stmt!();
-    let macros::pat!() = 1;
-    let _: macros::ty!() = "";
-    macros::item!();
-    let _ = macros::binop!(1);
+    let _ = macros::expr!(); //~ disallowed_macros
+    macros::stmt!(); //~ disallowed_macros
+    let macros::pat!() = 1; //~ disallowed_macros
+    let _: macros::ty!() = ""; //~ disallowed_macros
+    macros::item!(); //~ disallowed_macros
+    let _ = macros::binop!(1); //~ disallowed_macros
 
     eprintln!("allowed");
 }
 
+//~v disallowed_macros
 macros::attr! {
     struct S;
 }
 
 impl S {
-    macros::item!();
+    macros::item!(); //~ disallowed_macros
 }
 
 trait Y {
-    macros::item!();
+    macros::item!(); //~ disallowed_macros
 }
 
 impl Y for S {
-    macros::item!();
+    macros::item!(); //~ disallowed_macros
 }
 
-#[derive(Derive)]
+#[derive(Derive)] //~ disallowed_macros
 struct Foo;

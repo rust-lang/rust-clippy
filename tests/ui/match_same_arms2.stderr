@@ -136,7 +136,7 @@ LL | |         },
    | |_________^
 
 error: match expression looks like `matches!` macro
-  --> $DIR/match_same_arms2.rs:167:16
+  --> $DIR/match_same_arms2.rs:168:16
    |
 LL |       let _ans = match x {
    |  ________________^
@@ -150,7 +150,7 @@ LL | |     };
    = help: to override `-D warnings` add `#[allow(clippy::match_like_matches_macro)]`
 
 error: this match arm has an identical body to another arm
-  --> $DIR/match_same_arms2.rs:199:9
+  --> $DIR/match_same_arms2.rs:200:9
    |
 LL |         Foo::X(0) => 1,
    |         ---------^^^^^
@@ -159,13 +159,13 @@ LL |         Foo::X(0) => 1,
    |
    = help: or try changing either arm body
 note: other arm here
-  --> $DIR/match_same_arms2.rs:201:9
+  --> $DIR/match_same_arms2.rs:202:9
    |
 LL |         Foo::Z(_) => 1,
    |         ^^^^^^^^^^^^^^
 
 error: this match arm has an identical body to another arm
-  --> $DIR/match_same_arms2.rs:209:9
+  --> $DIR/match_same_arms2.rs:210:9
    |
 LL |         Foo::Z(_) => 1,
    |         ---------^^^^^
@@ -174,13 +174,13 @@ LL |         Foo::Z(_) => 1,
    |
    = help: or try changing either arm body
 note: other arm here
-  --> $DIR/match_same_arms2.rs:207:9
+  --> $DIR/match_same_arms2.rs:208:9
    |
 LL |         Foo::X(0) => 1,
    |         ^^^^^^^^^^^^^^
 
 error: this match arm has an identical body to another arm
-  --> $DIR/match_same_arms2.rs:232:9
+  --> $DIR/match_same_arms2.rs:233:9
    |
 LL |         Some(Bar { y: 0, x: 5, .. }) => 1,
    |         ----------------------------^^^^^
@@ -189,13 +189,13 @@ LL |         Some(Bar { y: 0, x: 5, .. }) => 1,
    |
    = help: or try changing either arm body
 note: other arm here
-  --> $DIR/match_same_arms2.rs:229:9
+  --> $DIR/match_same_arms2.rs:230:9
    |
 LL |         Some(Bar { x: 0, y: 5, .. }) => 1,
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: this match arm has an identical body to another arm
-  --> $DIR/match_same_arms2.rs:246:9
+  --> $DIR/match_same_arms2.rs:247:9
    |
 LL |         1 => cfg!(not_enable),
    |         -^^^^^^^^^^^^^^^^^^^^
@@ -204,7 +204,7 @@ LL |         1 => cfg!(not_enable),
    |
    = help: or try changing either arm body
 note: other arm here
-  --> $DIR/match_same_arms2.rs:245:9
+  --> $DIR/match_same_arms2.rs:246:9
    |
 LL |         0 => cfg!(not_enable),
    |         ^^^^^^^^^^^^^^^^^^^^^

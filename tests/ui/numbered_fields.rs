@@ -14,6 +14,7 @@ fn main() {
     let tuple_struct = TupleStruct::default();
 
     // This should lint
+    //~v init_numbered_fields
     let _ = TupleStruct {
         0: 1u32,
         1: 42,
@@ -21,6 +22,7 @@ fn main() {
     };
 
     // This should also lint and order the fields correctly
+    //~v init_numbered_fields
     let _ = TupleStruct {
         0: 1u32,
         2: 2u8,

@@ -104,7 +104,7 @@ LL |     [42; 55][get_usize()];
    |     ^^^^^^^^^^^^^^^^^^^^^^ help: statement can be written as: `assert!([42; 55].len() > get_usize());`
 
 error: unnecessary operation
-  --> $DIR/unnecessary_operation.rs:87:5
+  --> $DIR/unnecessary_operation.rs:89:5
    |
 LL | /     {
 LL | |         get_number()
@@ -112,7 +112,7 @@ LL | |     };
    | |______^ help: statement can be reduced to: `get_number();`
 
 error: unnecessary operation
-  --> $DIR/unnecessary_operation.rs:90:5
+  --> $DIR/unnecessary_operation.rs:93:5
    |
 LL | /     FooString {
 LL | |         s: String::from("blah"),

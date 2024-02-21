@@ -12,18 +12,21 @@ fn main() {
 
 
     // Check `find().is_some()`, multi-line case.
+    //~v search_is_some
     let _ = v.iter().find(|&x| {
                               *x < 0
                           }
                    ).is_some();
 
     // Check `position().is_some()`, multi-line case.
+    //~v search_is_some
     let _ = v.iter().position(|&x| {
                                   x < 0
                               }
                    ).is_some();
 
     // Check `rposition().is_some()`, multi-line case.
+    //~v search_is_some
     let _ = v.iter().rposition(|&x| {
                                    x < 0
                                }
@@ -39,7 +42,7 @@ fn main() {
     let _ = "hello world".find(|c: char| c == 'o' || c == 'l').is_some();
 
     let some_closure = |x: &u32| *x == 0;
-    let _ = (0..1).find(some_closure).is_some();
+    let _ = (0..1).find(some_closure).is_some(); //~ search_is_some
 }
 
 #[rustfmt::skip]
@@ -49,18 +52,21 @@ fn is_none() {
 
 
     // Check `find().is_none()`, multi-line case.
+    //~v search_is_some
     let _ = v.iter().find(|&x| {
                               *x < 0
                           }
                    ).is_none();
 
     // Check `position().is_none()`, multi-line case.
+    //~v search_is_some
     let _ = v.iter().position(|&x| {
                                   x < 0
                               }
                    ).is_none();
 
     // Check `rposition().is_none()`, multi-line case.
+    //~v search_is_some
     let _ = v.iter().rposition(|&x| {
                                    x < 0
                                }
@@ -76,5 +82,5 @@ fn is_none() {
     let _ = "hello world".find(|c: char| c == 'o' || c == 'l').is_none();
 
     let some_closure = |x: &u32| *x == 0;
-    let _ = (0..1).find(some_closure).is_none();
+    let _ = (0..1).find(some_closure).is_none(); //~ search_is_some
 }

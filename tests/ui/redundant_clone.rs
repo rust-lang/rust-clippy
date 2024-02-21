@@ -13,23 +13,26 @@ use std::path::Path;
 
 fn main() {
     let _s = ["lorem", "ipsum"].join(" ").to_string();
+    //~^ redundant_clone
 
     let s = String::from("foo");
-    let _s = s.clone();
+    let _s = s.clone(); //~ redundant_clone
 
     let s = String::from("foo");
-    let _s = s.to_string();
+    let _s = s.to_string(); //~ redundant_clone
 
     let s = String::from("foo");
-    let _s = s.to_owned();
+    let _s = s.to_owned(); //~ redundant_clone
 
     let _s = Path::new("/a/b/").join("c").to_owned();
+    //~^ redundant_clone
 
     let _s = Path::new("/a/b/").join("c").to_path_buf();
+    //~^ redundant_clone
 
-    let _s = OsString::new().to_owned();
+    let _s = OsString::new().to_owned(); //~ redundant_clone
 
-    let _s = OsString::new().to_os_string();
+    let _s = OsString::new().to_os_string(); //~ redundant_clone
 
     // Check that lint level works
     #[allow(clippy::redundant_clone)]
@@ -40,7 +43,7 @@ fn main() {
     let _s = String::new().to_string();
 
     let tup = (String::from("foo"),);
-    let _t = tup.0.clone();
+    let _t = tup.0.clone(); //~ redundant_clone
 
     let tup_ref = &(String::from("foo"),);
     let _s = tup_ref.0.clone(); // this `.clone()` cannot be removed
@@ -73,6 +76,7 @@ fn main() {
 struct Alpha;
 fn with_branch(a: Alpha, b: bool) -> (Alpha, Alpha) {
     if b { (a.clone(), a.clone()) } else { (Alpha, a) }
+    //~^ redundant_clone
 }
 
 fn cannot_double_move(a: Alpha) -> (Alpha, Alpha) {
@@ -129,8 +133,8 @@ fn borrower_propagation() {
         let _s = s.clone(); // ok, `u` borrows `s`
     }
 
-    let _s = s.clone();
-    let _t = t.clone();
+    let _s = s.clone(); //~ redundant_clone
+    let _t = t.clone(); //~ redundant_clone
 
     #[derive(Clone)]
     struct Foo {
@@ -140,7 +144,7 @@ fn borrower_propagation() {
     {
         let f = Foo { x: 123 };
         let _x = Some(f.x);
-        let _f = f.clone();
+        let _f = f.clone(); //~ redundant_clone
     }
 
     {
@@ -152,7 +156,7 @@ fn borrower_propagation() {
 
 fn not_consumed() {
     let x = std::path::PathBuf::from("home");
-    let y = x.clone().join("matthias");
+    let y = x.clone().join("matthias"); //~ redundant_clone
     // join() creates a new owned PathBuf, does not take a &mut to x variable, thus the .clone() is
     // redundant. (It also does not consume the PathBuf)
 
@@ -206,6 +210,7 @@ fn clone_then_move_cloned() {
     fn foo<F: Fn()>(_: &Alpha, _: F) {}
     let x = Alpha;
     // ok, data is moved while the clone is in use.
+    //~v redundant_clone
     foo(&x.clone(), move || {
         let _ = x;
     });

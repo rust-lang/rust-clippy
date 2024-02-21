@@ -11,17 +11,23 @@
 )]
 
 fn main() {
+    //~v manual_map
     Some(0).map(|_| 2);
 
+    //~v manual_map
     Some(0).map(|x| x + 1);
 
+    //~v manual_map
     Some("").map(|x| x.is_empty());
 
+    //~v manual_map
     Some(0).map(|x| !x);
 
     #[rustfmt::skip]
+    //~v manual_map
     Some(0).map(std::convert::identity);
 
+    //~v manual_map
     Some(&String::new()).map(|x| str::len(x));
 
     match Some(0) {
@@ -29,14 +35,19 @@ fn main() {
         _ => None,
     };
 
+    //~v manual_map
     Some([0, 1]).as_ref().map(|x| x[0]);
 
+    //~v manual_map
     Some(0).map(|x| x * 2);
 
+    //~v manual_map
     Some(String::new()).as_ref().map(|x| x.is_empty());
 
+    //~v manual_map
     Some(String::new()).as_ref().map(|x| x.len());
 
+    //~v manual_map
     Some(0).map(|x| x + x);
 
     #[warn(clippy::option_map_unit_fn)]
@@ -47,17 +58,23 @@ fn main() {
 
     #[allow(clippy::option_map_unit_fn)]
     {
+        //~v manual_map
         Some(String::new()).as_mut().map(|x| x.push_str(""));
     }
 
+    //~v manual_map
     Some(String::new()).as_ref().map(|x| x.len());
 
+    //~v manual_map
     Some(String::new()).as_ref().map(|x| x.is_empty());
 
+    //~v manual_map
     Some((0, 1, 2)).map(|(x, y, z)| x + y + z);
 
+    //~v manual_map
     Some([1, 2, 3]).map(|[first, ..]| first);
 
+    //~v manual_map
     Some((String::new(), "test")).as_ref().map(|(x, y)| (y, x));
 
     match Some((String::new(), 0)) {
@@ -113,8 +130,10 @@ fn main() {
     }
 
     // #6811
+    //~v manual_map
     Some(0).map(|x| vec![x]);
 
+    //~v manual_map
     option_env!("").map(String::from);
 
     // #6819
@@ -132,10 +151,12 @@ fn main() {
     // #6847
     if let Some(_) = Some(0) {
         Some(0)
+    //~v manual_map
     } else { Some(0).map(|x| x + 1) };
 
     if true {
         Some(0)
+    //~v manual_map
     } else { Some(0).map(|x| x + 1) };
 
     // #6967

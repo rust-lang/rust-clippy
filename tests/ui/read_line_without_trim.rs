@@ -9,23 +9,27 @@ fn main() {
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
-    let _x: i32 = input.parse().unwrap();
+    let _x: i32 = input.parse().unwrap(); //~ read_line_without_trim
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<i32>().unwrap();
+    //~^ read_line_without_trim
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<u32>().unwrap();
+    //~^ read_line_without_trim
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<f32>().unwrap();
+    //~^ read_line_without_trim
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();
     let _x = input.parse::<bool>().unwrap();
+    //~^ read_line_without_trim
 
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).unwrap();

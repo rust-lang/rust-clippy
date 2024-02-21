@@ -3,6 +3,7 @@
 
 fn main() {
     // Lint. `y` is declared within the arm, so it isn't captured by the map closure
+    //~v manual_map
     let _ = match Some(0) {
         Some(x) => Some({
             let y = (String::new(), String::new());
@@ -45,6 +46,7 @@ fn main() {
 
     // Lint. `s` is captured by reference, so no lifetime issues.
     let s = Some(String::new());
+    //~v manual_map
     let _ = match &s {
         Some(x) => Some({ if let Some(ref s) = s { (x.clone(), s) } else { panic!() } }),
         None => None,
@@ -55,15 +57,18 @@ fn main() {
         x
     }
     unsafe {
+        //~v manual_map
         let _ = match Some(0) {
             Some(x) => Some(f(x)),
             None => None,
         };
     }
+    //~v manual_map
     let _ = match Some(0) {
         Some(x) => unsafe { Some(f(x)) },
         None => None,
     };
+    //~v manual_map
     let _ = match Some(0) {
         Some(x) => Some(unsafe { f(x) }),
         None => None,

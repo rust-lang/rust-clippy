@@ -166,9 +166,18 @@ fn issue_5794() {
 
     let b = true;
     let c = false;
+    //~| bool_comparison
+    //~v bool_comparison
     if !b == true {} //~ ERROR: this boolean expression can be simplified
+
+    //~v bool_comparison
     if !b != true {} //~ ERROR: this boolean expression can be simplified
+
+    //~| bool_comparison
+    //~v bool_comparison
     if true == !b {} //~ ERROR: this boolean expression can be simplified
+
+    //~v bool_comparison
     if true != !b {} //~ ERROR: this boolean expression can be simplified
     if !b == !c {} //~ ERROR: this boolean expression can be simplified
     if !b != !c {} //~ ERROR: this boolean expression can be simplified

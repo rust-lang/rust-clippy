@@ -3,8 +3,8 @@
 #![warn(clippy::print_stderr)]
 
 fn foo(n: u32) {
-    print!("{n}");
-    eprint!("{n}");
+    print!("{n}"); //~ print_stdout
+    eprint!("{n}"); //~ print_stderr
 }
 
 #[test]

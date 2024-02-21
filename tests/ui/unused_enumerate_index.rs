@@ -5,6 +5,7 @@ use std::iter::Enumerate;
 
 fn main() {
     let v = [1, 2, 3];
+    //~v unused_enumerate_index
     for (_, x) in v.iter().enumerate() {
         println!("{x}");
     }
@@ -52,6 +53,7 @@ fn main() {
     }
 
     let dummy = Dummy3(vec![1, 2, 3].into_iter());
+    //~v unused_enumerate_index
     for (_, x) in dummy.enumerate() {
         println!("{x}");
     }

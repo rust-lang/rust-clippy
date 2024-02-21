@@ -36,31 +36,33 @@ fn main() {
         3
     };
     let _h = async {
+        //~v async_yields_async
         async {
             3
         }
     };
     let _i = async {
-        CustomFutureType
+        CustomFutureType //~ async_yields_async
     };
     let _i = async || {
         3
     };
     let _j = async || {
+        //~v async_yields_async
         async {
             3
         }
     };
     let _k = async || {
-        CustomFutureType
+        CustomFutureType //~ async_yields_async
     };
-    let _l = async || CustomFutureType;
+    let _l = async || CustomFutureType; //~ async_yields_async
     let _m = async || {
         println!("I'm bored");
         // Some more stuff
 
         // Finally something to await
-        CustomFutureType
+        CustomFutureType //~ async_yields_async
     };
     let _n = async || custom_future_type_ctor();
     let _o = async || f();

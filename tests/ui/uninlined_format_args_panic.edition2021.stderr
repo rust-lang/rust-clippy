@@ -49,7 +49,7 @@ LL +         panic!("p3 {var}");
    |
 
 error: variables can be used directly in the `format!` string
-  --> $DIR/uninlined_format_args_panic.rs:29:5
+  --> $DIR/uninlined_format_args_panic.rs:30:5
    |
 LL |     assert!(var == 1, "p5 {}", var);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,7 +61,7 @@ LL +     assert!(var == 1, "p5 {var}");
    |
 
 error: variables can be used directly in the `format!` string
-  --> $DIR/uninlined_format_args_panic.rs:30:5
+  --> $DIR/uninlined_format_args_panic.rs:32:5
    |
 LL |     debug_assert!(var == 1, "p6 {}", var);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

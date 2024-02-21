@@ -20,19 +20,27 @@ macro_rules! outer {
 
 fn main() {
     let _string: Box<String> = Box::new(Default::default());
-    let _byte = Box::new(u8::default());
-    let _vec = Box::new(Vec::<u8>::new());
+    //~^ box_default
+    let _byte = Box::new(u8::default()); //~ box_default
+    let _vec = Box::new(Vec::<u8>::new()); //~ box_default
     let _impl = Box::new(ImplementsDefault::default());
+    //~^ box_default
     let _impl2 = Box::new(<ImplementsDefault as Default>::default());
+    //~^ box_default
     let _impl3: Box<ImplementsDefault> = Box::new(Default::default());
+    //~^ box_default
     let _own = Box::new(OwnDefault::default()); // should not lint
-    let _in_macro = outer!(Box::new(String::new()));
+    let _in_macro = outer!(Box::new(String::new())); //~ box_default
     let _string_default = outer!(Box::new(String::from("")));
+    //~^ box_default
     let _vec2: Box<Vec<ImplementsDefault>> = Box::new(vec![]);
+    //~^ box_default
     let _vec3: Box<Vec<bool>> = Box::new(Vec::from([]));
+    //~^ box_default
     let _vec4: Box<_> = Box::new(Vec::from([false; 0]));
+    //~^ box_default
     let _more = ret_ty_fn();
-    call_ty_fn(Box::new(u8::default()));
+    call_ty_fn(Box::new(u8::default())); //~ box_default
     issue_10381();
 
     // `Box::<Option<_>>::default()` would be valid here, but not `Box::default()` or
@@ -44,7 +52,7 @@ fn main() {
 }
 
 fn ret_ty_fn() -> Box<bool> {
-    Box::new(bool::default())
+    Box::new(bool::default()) //~ box_default
 }
 
 #[allow(clippy::boxed_local)]
@@ -62,6 +70,7 @@ impl Read for ImplementsDefault {
 
 fn issue_9621_dyn_trait() {
     let _: Box<dyn Read> = Box::new(ImplementsDefault::default());
+    //~^ box_default
     issue_10089();
 }
 
@@ -70,7 +79,7 @@ fn issue_10089() {
         #[derive(Default)]
         struct WeirdPathed;
 
-        let _ = Box::new(WeirdPathed::default());
+        let _ = Box::new(WeirdPathed::default()); //~ box_default
     };
 }
 
@@ -82,7 +91,7 @@ fn issue_10381() {
 
     fn maybe_get_bar(i: u32) -> Option<Box<dyn Bar>> {
         if i % 2 == 0 {
-            Some(Box::new(Foo::default()))
+            Some(Box::new(Foo::default())) //~ box_default
         } else {
             None
         }

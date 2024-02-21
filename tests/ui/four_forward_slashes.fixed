@@ -9,13 +9,16 @@
 #[macro_use]
 extern crate proc_macros;
 
+//~v four_forward_slashes
 /// whoops
 fn a() {}
 
+//~v four_forward_slashes
 /// whoops
 #[allow(dead_code)]
 fn b() {}
 
+//~v four_forward_slashes
 /// whoops
 /// two borked comments!
 #[track_caller]
@@ -24,10 +27,12 @@ fn c() {}
 fn d() {}
 
 #[test]
+//~v four_forward_slashes
 /// between attributes
 #[allow(dead_code)]
 fn g() {}
 
+    //~v four_forward_slashes
 /// not very start of contents
 fn h() {}
 

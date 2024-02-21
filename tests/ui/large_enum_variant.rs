@@ -8,6 +8,7 @@
 extern crate proc_macros;
 use proc_macros::external;
 
+//~v large_enum_variant
 enum LargeEnum {
     A(i32),
     B([i32; 8000]),
@@ -32,22 +33,26 @@ enum LargeEnumGeneric<A: SomeTrait> {
     Var(A::Item),
 }
 
+//~v large_enum_variant
 enum LargeEnum2 {
     VariantOk(i32, u32),
     ContainingLargeEnum(LargeEnum),
 }
 
+//~v large_enum_variant
 enum LargeEnum3 {
     ContainingMoreThanOneField(i32, [i32; 8000], [i32; 9500]),
     VoidVariant,
     StructLikeLittle { x: i32, y: i32 },
 }
 
+//~v large_enum_variant
 enum LargeEnum4 {
     VariantOk(i32, u32),
     StructLikeLarge { x: [i32; 8000], y: i32 },
 }
 
+//~v large_enum_variant
 enum LargeEnum5 {
     VariantOk(i32, u32),
     StructLikeLarge2 { x: [i32; 8000] },
@@ -64,27 +69,32 @@ enum LargeEnum6 {
     C([u8; 200]),
 }
 
+//~v large_enum_variant
 enum LargeEnum7 {
     A,
     B([u8; 1255]),
     C([u8; 200]),
 }
 
+//~v large_enum_variant
 enum LargeEnum8 {
     VariantOk(i32, u32),
     ContainingMoreThanOneField([i32; 8000], [i32; 2], [i32; 9500], [i32; 30]),
 }
 
+//~v large_enum_variant
 enum LargeEnum9 {
     A(Struct<()>),
     B(Struct2),
 }
 
+//~v large_enum_variant
 enum LargeEnumOk2<T> {
     A(T),
     B(Struct2),
 }
 
+//~v large_enum_variant
 enum LargeEnumOk3<T> {
     A(Struct<T>),
     B(Struct2),
@@ -100,11 +110,13 @@ struct Struct2 {
 }
 
 #[derive(Copy, Clone)]
+//~v large_enum_variant
 enum CopyableLargeEnum {
     A(bool),
     B([u64; 8000]),
 }
 
+//~v large_enum_variant
 enum ManuallyCopyLargeEnum {
     A(bool),
     B([u64; 8000]),
@@ -118,6 +130,7 @@ impl Clone for ManuallyCopyLargeEnum {
 
 impl Copy for ManuallyCopyLargeEnum {}
 
+//~v large_enum_variant
 enum SomeGenericPossiblyCopyEnum<T> {
     A(bool, std::marker::PhantomData<T>),
     B([u64; 4000]),
@@ -131,6 +144,7 @@ impl<T: Copy> Clone for SomeGenericPossiblyCopyEnum<T> {
 
 impl<T: Copy> Copy for SomeGenericPossiblyCopyEnum<T> {}
 
+//~v large_enum_variant
 enum LargeEnumWithGenerics<T> {
     Small,
     Large((T, [u8; 512])),
@@ -140,6 +154,7 @@ struct Foo<T> {
     foo: T,
 }
 
+//~v large_enum_variant
 enum WithGenerics {
     Large([Foo<u64>; 64]),
     Small(u8),
@@ -150,6 +165,7 @@ enum PossiblyLargeEnumWithConst<const U: usize> {
     MightyBuffer([u16; U]),
 }
 
+//~v large_enum_variant
 enum LargeEnumOfConst {
     Ok,
     Error(PossiblyLargeEnumWithConst<256>),

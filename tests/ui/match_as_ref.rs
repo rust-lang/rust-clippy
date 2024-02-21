@@ -3,12 +3,14 @@
 
 fn match_as_ref() {
     let owned: Option<()> = None;
+    //~v match_as_ref
     let borrowed: Option<&()> = match owned {
         None => None,
         Some(ref v) => Some(v),
     };
 
     let mut mut_owned: Option<()> = None;
+    //~v match_as_ref
     let borrow_mut: Option<&mut ()> = match mut_owned {
         None => None,
         Some(ref mut v) => Some(v),
@@ -27,6 +29,7 @@ mod issue4437 {
 
     impl Error for E {
         fn source(&self) -> Option<&(dyn Error + 'static)> {
+            //~v match_as_ref
             match self.source {
                 Some(ref s) => Some(s),
                 None => None,

@@ -3,34 +3,41 @@
 
 use std::future::Future;
 
+//~v manual_async_fn
 fn fut() -> impl Future<Output = i32> {
     async { 42 }
 }
 
 #[rustfmt::skip]
+//~v manual_async_fn
 fn fut2() ->impl Future<Output = i32> {
     async { 42 }
 }
 
 #[rustfmt::skip]
+//~v manual_async_fn
 fn fut3()-> impl Future<Output = i32> {
     async { 42 }
 }
 
+//~v manual_async_fn
 fn empty_fut() -> impl Future<Output = ()> {
     async {}
 }
 
 #[rustfmt::skip]
+//~v manual_async_fn
 fn empty_fut2() ->impl Future<Output = ()> {
     async {}
 }
 
 #[rustfmt::skip]
+//~v manual_async_fn
 fn empty_fut3()-> impl Future<Output = ()> {
     async {}
 }
 
+//~v manual_async_fn
 fn core_fut() -> impl core::future::Future<Output = i32> {
     async move { 42 }
 }
@@ -53,6 +60,7 @@ async fn already_async() -> impl Future<Output = i32> {
 
 struct S;
 impl S {
+    //~v manual_async_fn
     fn inh_fut() -> impl Future<Output = i32> {
         async {
             // NOTE: this code is here just to check that the indentation is correct in the suggested fix
@@ -88,6 +96,7 @@ impl S {
 
 // Tests related to lifetime capture
 
+//~v manual_async_fn
 fn elided(_: &i32) -> impl Future<Output = i32> + '_ {
     async { 42 }
 }
@@ -97,6 +106,7 @@ fn elided_not_bound(_: &i32) -> impl Future<Output = i32> {
     async { 42 }
 }
 
+//~v manual_async_fn
 fn explicit<'a, 'b>(_: &'a i32, _: &'b i32) -> impl Future<Output = i32> + 'a + 'b {
     async { 42 }
 }
@@ -126,14 +136,17 @@ mod issue_5765 {
     }
 }
 
+//~v manual_async_fn
 pub fn issue_10450() -> impl Future<Output = i32> {
     async { 42 }
 }
 
+//~v manual_async_fn
 pub(crate) fn issue_10450_2() -> impl Future<Output = i32> {
     async { 42 }
 }
 
+//~v manual_async_fn
 pub(self) fn issue_10450_3() -> impl Future<Output = i32> {
     async { 42 }
 }

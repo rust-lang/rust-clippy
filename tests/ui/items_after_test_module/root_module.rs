@@ -9,6 +9,7 @@ fn should_not_lint() {}
 #[allow(unused)] // Some attributes to check that span replacement is good enough
 #[allow(clippy::allow_attributes)]
 #[cfg(test)]
+//~v items_after_test_module
 mod tests {
     #[test]
     fn hi() {}

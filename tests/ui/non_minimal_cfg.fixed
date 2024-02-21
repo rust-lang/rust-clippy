@@ -1,12 +1,14 @@
 #![allow(unused)]
 
-#[cfg(windows)]
+#[cfg(windows)] //~ non_minimal_cfg
 fn hermit() {}
 
-#[cfg(windows)]
+#[cfg(windows)] //~ non_minimal_cfg
 fn wasi() {}
 
 #[cfg(all(unix, not(windows)))]
+//~^ non_minimal_cfg
+//~| non_minimal_cfg
 fn the_end() {}
 
 #[cfg(any())]

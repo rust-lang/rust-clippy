@@ -19,6 +19,7 @@ fn main() {
     if !returns_bool() & returns_bool() {
         println!("true")
     }
+    //~v needless_bitwise_bool
     if y & !x {
         println!("true")
     }

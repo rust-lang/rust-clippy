@@ -56,7 +56,7 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `Const`
-  --> $DIR/new_without_default.rs:120:5
+  --> $DIR/new_without_default.rs:121:5
    |
 LL | /     pub const fn new() -> Const {
 LL | |         Const
@@ -73,7 +73,7 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `NewNotEqualToDerive`
-  --> $DIR/new_without_default.rs:180:5
+  --> $DIR/new_without_default.rs:181:5
    |
 LL | /     pub fn new() -> Self {
 LL | |
@@ -91,7 +91,7 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `FooGenerics<T>`
-  --> $DIR/new_without_default.rs:189:5
+  --> $DIR/new_without_default.rs:190:5
    |
 LL | /     pub fn new() -> Self {
 LL | |
@@ -109,7 +109,7 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `BarGenerics<T>`
-  --> $DIR/new_without_default.rs:197:5
+  --> $DIR/new_without_default.rs:198:5
    |
 LL | /     pub fn new() -> Self {
 LL | |
@@ -127,7 +127,7 @@ LL + }
    |
 
 error: you should consider adding a `Default` implementation for `Foo<T>`
-  --> $DIR/new_without_default.rs:209:9
+  --> $DIR/new_without_default.rs:210:9
    |
 LL | /         pub fn new() -> Self {
 LL | |
@@ -147,7 +147,7 @@ LL ~     impl<T> Foo<T> {
    |
 
 error: you should consider adding a `Default` implementation for `MyStruct<K, V>`
-  --> $DIR/new_without_default.rs:255:5
+  --> $DIR/new_without_default.rs:257:5
    |
 LL | /     pub fn new() -> Self {
 LL | |         Self { _kv: None }

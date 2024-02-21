@@ -24,11 +24,13 @@ fn main() {
     let mut u_8: u8 = end_8 - start_8;
 
     // Lint
+    //~v implicit_saturating_sub
     u_8 = u_8.saturating_sub(1);
 
     match end_8 {
         10 => {
             // Lint
+            //~v implicit_saturating_sub
             u_8 = u_8.saturating_sub(1);
         },
         11 => u_8 += 1,
@@ -41,6 +43,7 @@ fn main() {
     let mut u_16: u16 = end_16 - start_16;
 
     // Lint
+    //~v implicit_saturating_sub
     u_16 = u_16.saturating_sub(1);
 
     let mut end_32: u32 = 7010;
@@ -49,6 +52,7 @@ fn main() {
     let mut u_32: u32 = end_32 - start_32;
 
     // Lint
+    //~v implicit_saturating_sub
     u_32 = u_32.saturating_sub(1);
 
     // No Lint
@@ -68,12 +72,15 @@ fn main() {
     let mut u_64: u64 = end_64 - start_64;
 
     // Lint
+    //~v implicit_saturating_sub
     u_64 = u_64.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     u_64 = u_64.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     u_64 = u_64.saturating_sub(1);
 
     // No Lint
@@ -93,6 +100,7 @@ fn main() {
     let mut u_usize: usize = end_usize - start_usize;
 
     // Lint
+    //~v implicit_saturating_sub
     u_usize = u_usize.saturating_sub(1);
 
     // Tests for signed integers
@@ -103,15 +111,19 @@ fn main() {
     let mut i_8: i8 = endi_8 - starti_8;
 
     // Lint
+    //~v implicit_saturating_sub
     i_8 = i_8.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_8 = i_8.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_8 = i_8.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_8 = i_8.saturating_sub(1);
 
     let endi_16: i16 = 45;
@@ -120,15 +132,19 @@ fn main() {
     let mut i_16: i16 = endi_16 - starti_16;
 
     // Lint
+    //~v implicit_saturating_sub
     i_16 = i_16.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_16 = i_16.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_16 = i_16.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_16 = i_16.saturating_sub(1);
 
     let endi_32: i32 = 45;
@@ -137,15 +153,19 @@ fn main() {
     let mut i_32: i32 = endi_32 - starti_32;
 
     // Lint
+    //~v implicit_saturating_sub
     i_32 = i_32.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_32 = i_32.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_32 = i_32.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_32 = i_32.saturating_sub(1);
 
     let endi_64: i64 = 45;
@@ -154,12 +174,15 @@ fn main() {
     let mut i_64: i64 = endi_64 - starti_64;
 
     // Lint
+    //~v implicit_saturating_sub
     i_64 = i_64.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_64 = i_64.saturating_sub(1);
 
     // Lint
+    //~v implicit_saturating_sub
     i_64 = i_64.saturating_sub(1);
 
     // No Lint

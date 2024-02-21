@@ -1,7 +1,10 @@
 #![warn(clippy::empty_structs_with_brackets)]
 #![allow(dead_code)]
 
+//~v empty_structs_with_brackets
 pub struct MyEmptyStruct {} // should trigger lint
+
+//~v empty_structs_with_brackets
 struct MyEmptyTupleStruct(); // should trigger lint
 
 // should not trigger lint

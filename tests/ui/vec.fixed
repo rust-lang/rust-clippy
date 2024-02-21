@@ -27,25 +27,25 @@ impl Line {
 }
 
 fn main() {
+    on_slice(&[]); //~ useless_vec
     on_slice(&[]);
-    on_slice(&[]);
-    on_mut_slice(&mut []);
+    on_mut_slice(&mut []); //~ useless_vec
 
+    on_slice(&[1, 2]); //~ useless_vec
     on_slice(&[1, 2]);
-    on_slice(&[1, 2]);
-    on_mut_slice(&mut [1, 2]);
+    on_mut_slice(&mut [1, 2]); //~ useless_vec
 
+    on_slice(&[1, 2]); //~ useless_vec
     on_slice(&[1, 2]);
-    on_slice(&[1, 2]);
-    on_mut_slice(&mut [1, 2]);
+    on_mut_slice(&mut [1, 2]); //~ useless_vec
     #[rustfmt::skip]
+    on_slice(&[1, 2]); //~ useless_vec
     on_slice(&[1, 2]);
-    on_slice(&[1, 2]);
-    on_mut_slice(&mut [1, 2]);
+    on_mut_slice(&mut [1, 2]); //~ useless_vec
 
+    on_slice(&[1; 2]); //~ useless_vec
     on_slice(&[1; 2]);
-    on_slice(&[1; 2]);
-    on_mut_slice(&mut [1; 2]);
+    on_mut_slice(&mut [1; 2]); //~ useless_vec
 
     on_vec(&vec![]);
     on_vec(&vec![1, 2]);
@@ -71,18 +71,18 @@ fn main() {
     }
 
     // https://github.com/rust-lang/rust-clippy/issues/2262#issuecomment-783979246
-    let _x: i32 = [1, 2, 3].iter().sum();
+    let _x: i32 = [1, 2, 3].iter().sum(); //~ useless_vec
 
     // Do lint
-    let mut x = [1, 2, 3];
+    let mut x = [1, 2, 3]; //~ useless_vec
     x.fill(123);
     dbg!(x[0]);
     dbg!(x.len());
     dbg!(x.iter().sum::<i32>());
 
-    let _x: &[i32] = &[1, 2, 3];
+    let _x: &[i32] = &[1, 2, 3]; //~ useless_vec
 
-    for _ in [1, 2, 3] {}
+    for _ in [1, 2, 3] {} //~ useless_vec
 
     // Don't lint
     let x = vec![1, 2, 3];
@@ -121,6 +121,7 @@ fn issue11075() {
         };
     }
     #[allow(clippy::never_loop)]
+    //~v useless_vec
     for _string in [repro!(true), repro!(null)] {
         unimplemented!();
     }
@@ -139,6 +140,8 @@ fn issue11075() {
     }
 
     in_macro!(1, [1, 2], [1; 2]);
+    //~^ useless_vec
+    //~| useless_vec
 
     macro_rules! from_macro {
         () => {
@@ -157,10 +160,12 @@ fn issue11075() {
 
 #[clippy::msrv = "1.53"]
 fn above() {
+    //~v useless_vec
     for a in [1, 2, 3] {
         let _: usize = a;
     }
 
+    //~v useless_vec
     for a in [String::new(), String::new()] {
         let _: String = a;
     }

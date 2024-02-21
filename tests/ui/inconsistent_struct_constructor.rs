@@ -25,7 +25,7 @@ mod without_base {
         let z = 1;
 
         // Should lint.
-        Foo { y, x, z };
+        Foo { y, x, z }; //~ inconsistent_struct_constructor
 
         // Should NOT lint.
         // issue #7069.
@@ -52,6 +52,7 @@ mod with_base {
         let z = 1;
 
         // Should lint.
+        //~v inconsistent_struct_constructor
         Foo {
             z,
             x,

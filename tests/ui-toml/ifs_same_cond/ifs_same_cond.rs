@@ -12,6 +12,7 @@ fn issue10272() {
     let x = Cell::new(true);
     if x.get() {
     } else if !x.take() {
+        //~v ifs_same_cond
     } else if x.get() {
     } else {
     }

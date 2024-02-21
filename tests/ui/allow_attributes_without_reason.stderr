@@ -12,7 +12,7 @@ LL | #![deny(clippy::allow_attributes_without_reason)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: `allow` attribute without specifying a reason
-  --> $DIR/allow_attributes_without_reason.rs:10:1
+  --> $DIR/allow_attributes_without_reason.rs:11:1
    |
 LL | #[allow(dead_code)]
    | ^^^^^^^^^^^^^^^^^^^
@@ -20,7 +20,7 @@ LL | #[allow(dead_code)]
    = help: try adding a reason at the end with `, reason = ".."`
 
 error: `allow` attribute without specifying a reason
-  --> $DIR/allow_attributes_without_reason.rs:11:1
+  --> $DIR/allow_attributes_without_reason.rs:12:1
    |
 LL | #[allow(dead_code, deprecated)]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -28,7 +28,7 @@ LL | #[allow(dead_code, deprecated)]
    = help: try adding a reason at the end with `, reason = ".."`
 
 error: `expect` attribute without specifying a reason
-  --> $DIR/allow_attributes_without_reason.rs:12:1
+  --> $DIR/allow_attributes_without_reason.rs:13:1
    |
 LL | #[expect(dead_code)]
    | ^^^^^^^^^^^^^^^^^^^^

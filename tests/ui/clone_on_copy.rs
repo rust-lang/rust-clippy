@@ -20,17 +20,17 @@ fn is_ascii(ch: char) -> bool {
 }
 
 fn clone_on_copy() -> Option<(i32)> {
-    42.clone();
+    42.clone(); //~ clone_on_copy
 
     vec![1].clone(); // ok, not a Copy type
     Some(vec![1]).clone(); // ok, not a Copy type
-    (&42).clone();
+    (&42).clone(); //~ clone_on_copy
 
     let rc = RefCell::new(0);
-    rc.borrow().clone();
+    rc.borrow().clone(); //~ clone_on_copy
 
     let x = 0u32;
-    x.clone().rotate_left(1);
+    x.clone().rotate_left(1); //~ clone_on_copy
 
     #[derive(Clone, Copy)]
     struct Foo;
@@ -44,7 +44,7 @@ fn clone_on_copy() -> Option<(i32)> {
     macro_rules! m {
         ($e:expr) => {{ $e }};
     }
-    m!(42).clone();
+    m!(42).clone(); //~ clone_on_copy
 
     struct Wrap([u32; 2]);
     impl core::ops::Deref for Wrap {
@@ -54,7 +54,7 @@ fn clone_on_copy() -> Option<(i32)> {
         }
     }
     let x = Wrap([0, 0]);
-    x.clone()[0];
+    x.clone()[0]; //~ clone_on_copy
 
     let x = 42;
     let ref y = x.clone(); // ok, binds by reference
@@ -64,14 +64,15 @@ fn clone_on_copy() -> Option<(i32)> {
     let mut x = 43;
     let _ = &x.clone(); // ok, getting a ref
     'a'.clone().make_ascii_uppercase(); // ok, clone and then mutate
-    is_ascii('z'.clone());
+    is_ascii('z'.clone()); //~ clone_on_copy
 
     // Issue #5436
     let mut vec = Vec::new();
-    vec.push(42.clone());
+    vec.push(42.clone()); //~ clone_on_copy
 
     //  Issue #9277
     let opt: &Option<i32> = &None;
+    //~v clone_on_copy
     let value = opt.clone()?; // operator precedence needed (*opt)?
     None
 }

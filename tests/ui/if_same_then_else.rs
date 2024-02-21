@@ -235,6 +235,7 @@ mod issue_11213 {
 
     fn do_lint(x: bool) -> bool {
         // but do lint if the type of the literal is the same
+        //~v if_same_then_else
         if x {
             0_u8.is_power_of_two()
         } else {

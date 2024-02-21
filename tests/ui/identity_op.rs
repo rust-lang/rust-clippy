@@ -162,6 +162,7 @@ fn main() {
 
 pub fn decide(a: bool, b: bool) -> u32 {
     0 + if a { 1 } else { 2 } + if b { 3 } else { 5 }
+    //~^ identity_op
 }
 
 /// The following tests are from / for issue #12050

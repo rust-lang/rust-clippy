@@ -4,36 +4,42 @@ fn main() {}
 
 #[allow(clippy::unnecessary_operation)]
 fn starts_with() {
-    "".starts_with(' ');
-    !"".starts_with(' ');
+    "".starts_with(' '); //~ chars_next_cmp
+    !"".starts_with(' '); //~ chars_next_cmp
 
     // Ensure that suggestion is escaped correctly
-    "".starts_with('\n');
-    !"".starts_with('\n');
+    "".starts_with('\n'); //~ chars_next_cmp
+    !"".starts_with('\n'); //~ chars_next_cmp
 }
 
 fn chars_cmp_with_unwrap() {
     let s = String::from("foo");
+    //~v chars_next_cmp
     if s.starts_with('f') {
         // s.starts_with('f')
         // Nothing here
     }
+    //~v chars_last_cmp
     if s.ends_with('o') {
         // s.ends_with('o')
         // Nothing here
     }
+    //~v chars_last_cmp
     if s.ends_with('o') {
         // s.ends_with('o')
         // Nothing here
     }
+    //~v chars_next_cmp
     if !s.starts_with('f') {
         // !s.starts_with('f')
         // Nothing here
     }
+    //~v chars_last_cmp
     if !s.ends_with('o') {
         // !s.ends_with('o')
         // Nothing here
     }
+    //~v chars_last_cmp
     if !s.ends_with('\n') {
         // !s.ends_with('o')
         // Nothing here
@@ -42,12 +48,12 @@ fn chars_cmp_with_unwrap() {
 
 #[allow(clippy::unnecessary_operation)]
 fn ends_with() {
-    "".ends_with(' ');
-    !"".ends_with(' ');
-    "".ends_with(' ');
-    !"".ends_with(' ');
+    "".ends_with(' '); //~ chars_last_cmp
+    !"".ends_with(' '); //~ chars_last_cmp
+    "".ends_with(' '); //~ chars_last_cmp
+    !"".ends_with(' '); //~ chars_last_cmp
 
     // Ensure that suggestion is escaped correctly
-    "".ends_with('\n');
-    !"".ends_with('\n');
+    "".ends_with('\n'); //~ chars_last_cmp
+    !"".ends_with('\n'); //~ chars_last_cmp
 }

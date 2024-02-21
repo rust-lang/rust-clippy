@@ -10,6 +10,7 @@ macro_rules! macro_test {
 
 macro_rules! macro_test_inside {
     () => {
+        //~v suspicious_xor_used_as_pow
         1 ^ 2 // should warn even if inside macro
     };
 }

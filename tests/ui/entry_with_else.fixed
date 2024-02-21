@@ -11,6 +11,7 @@ macro_rules! m {
 fn foo() {}
 
 fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, v: V, v2: V) {
+    //~v map_entry
     match m.entry(k) {
         std::collections::hash_map::Entry::Vacant(e) => {
             e.insert(v);
@@ -20,6 +21,7 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
         }
     }
 
+    //~v map_entry
     match m.entry(k) {
         std::collections::hash_map::Entry::Occupied(mut e) => {
             e.insert(v);
@@ -29,18 +31,21 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
         }
     }
 
+    //~v map_entry
     if let std::collections::hash_map::Entry::Vacant(e) = m.entry(k) {
         e.insert(v);
     } else {
         foo();
     }
 
+    //~v map_entry
     if let std::collections::hash_map::Entry::Occupied(mut e) = m.entry(k) {
         e.insert(v);
     } else {
         foo();
     }
 
+    //~v map_entry
     match m.entry(k) {
         std::collections::hash_map::Entry::Vacant(e) => {
             e.insert(v);
@@ -50,6 +55,7 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
         }
     }
 
+    //~v map_entry
     match m.entry(k) {
         std::collections::hash_map::Entry::Occupied(mut e) => {
             if true { Some(e.insert(v)) } else { Some(e.insert(v2)) }
@@ -60,6 +66,7 @@ fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, 
         }
     };
 
+    //~v map_entry
     if let std::collections::hash_map::Entry::Occupied(mut e) = m.entry(k) {
         foo();
         Some(e.insert(v))

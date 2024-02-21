@@ -30,8 +30,8 @@ fn main() {
     let name: u8 = 0;
 
     let me = Person {
-        gender: gender,
-        age: age,
+        gender: gender, //~ redundant_field_names
+        age: age,       //~ redundant_field_names
 
         name,          //should be ok
         buzz: fizz,    //should be ok
@@ -52,11 +52,13 @@ fn main() {
     let _: Vec<_> = (start..end).collect();
 
     // hand-written Range family structs are linted
-    let _ = RangeFrom { start: start };
-    let _ = RangeTo { end: end };
+    let _ = RangeFrom { start: start }; //~ redundant_field_names
+    let _ = RangeTo { end: end }; //~ redundant_field_names
     let _ = Range { start: start, end: end };
+    //~^ redundant_field_names
+    //~| redundant_field_names
     let _ = RangeInclusive::new(start, end);
-    let _ = RangeToInclusive { end: end };
+    let _ = RangeToInclusive { end: end }; //~ redundant_field_names
 
     external! {
         let v = String::new();
@@ -85,5 +87,5 @@ fn msrv_1_16() {
 #[clippy::msrv = "1.17"]
 fn msrv_1_17() {
     let start = 0;
-    let _ = RangeFrom { start: start };
+    let _ = RangeFrom { start: start }; //~ redundant_field_names
 }

@@ -8,6 +8,7 @@ struct Point {
     y: usize,
 }
 
+//~v to_string_trait_impl
 impl ToString for Point {
     fn to_string(&self) -> String {
         format!("({}, {})", self.x, self.y)
@@ -53,6 +54,7 @@ mod issue12263 {
         }
     }
     // no specialization if the generics differ, so lint
+    //~v to_string_trait_impl
     impl ToString for S<i32> {
         fn to_string(&self) -> String {
             todo!()

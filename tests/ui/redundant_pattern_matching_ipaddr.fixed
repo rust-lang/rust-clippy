@@ -12,21 +12,27 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 
 fn main() {
     let ipaddr: IpAddr = V4(Ipv4Addr::LOCALHOST);
-    if ipaddr.is_ipv4() {}
+    if ipaddr.is_ipv4() {} //~ redundant_pattern_matching
 
     if V4(Ipv4Addr::LOCALHOST).is_ipv4() {}
+    //~^ redundant_pattern_matching
 
     if V6(Ipv6Addr::LOCALHOST).is_ipv6() {}
+    //~^ redundant_pattern_matching
 
     // Issue 6459
     if V4(Ipv4Addr::LOCALHOST).is_ipv4() {}
+    //~^ redundant_pattern_matching
 
     // Issue 6459
     if V6(Ipv6Addr::LOCALHOST).is_ipv6() {}
+    //~^ redundant_pattern_matching
 
     while V4(Ipv4Addr::LOCALHOST).is_ipv4() {}
+    //~^ redundant_pattern_matching
 
     while V6(Ipv6Addr::LOCALHOST).is_ipv6() {}
+    //~^ redundant_pattern_matching
 
     if V4(Ipv4Addr::LOCALHOST).is_ipv4() {}
 
@@ -36,14 +42,19 @@ fn main() {
         println!("{}", ipaddr);
     }
 
+    //~v redundant_pattern_matching
     V4(Ipv4Addr::LOCALHOST).is_ipv4();
 
+    //~v redundant_pattern_matching
     V4(Ipv4Addr::LOCALHOST).is_ipv6();
 
+    //~v redundant_pattern_matching
     V6(Ipv6Addr::LOCALHOST).is_ipv6();
 
+    //~v redundant_pattern_matching
     V6(Ipv6Addr::LOCALHOST).is_ipv4();
 
+    //~v redundant_pattern_matching
     let _ = if V4(Ipv4Addr::LOCALHOST).is_ipv4() {
         true
     } else {
@@ -52,8 +63,10 @@ fn main() {
 
     ipaddr_const();
 
+    //~v redundant_pattern_matching
     let _ = if gen_ipaddr().is_ipv4() {
         1
+    //~v redundant_pattern_matching
     } else if gen_ipaddr().is_ipv6() {
         2
     } else {
@@ -67,14 +80,20 @@ fn gen_ipaddr() -> IpAddr {
 
 const fn ipaddr_const() {
     if V4(Ipv4Addr::LOCALHOST).is_ipv4() {}
+    //~^ redundant_pattern_matching
 
     if V6(Ipv6Addr::LOCALHOST).is_ipv6() {}
+    //~^ redundant_pattern_matching
 
     while V4(Ipv4Addr::LOCALHOST).is_ipv4() {}
+    //~^ redundant_pattern_matching
 
     while V6(Ipv6Addr::LOCALHOST).is_ipv6() {}
+    //~^ redundant_pattern_matching
 
+    //~v redundant_pattern_matching
     V4(Ipv4Addr::LOCALHOST).is_ipv4();
 
+    //~v redundant_pattern_matching
     V6(Ipv6Addr::LOCALHOST).is_ipv6();
 }

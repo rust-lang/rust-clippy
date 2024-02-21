@@ -33,6 +33,7 @@ fn mac() {
     macro_rules! b {
         () => {{
             a = 6;
+            //~v items_after_statements
             fn say_something() {
                 println!("something");
             }

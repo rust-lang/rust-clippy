@@ -16,7 +16,7 @@ fn empty() {}
 
 fn used_lt<'a>(x: &'a u8) {}
 
-fn unused_lt<'a>(x: u8) {}
+fn unused_lt<'a>(x: u8) {} //~ extra_unused_lifetimes
 
 fn unused_lt_transitive<'a, 'b: 'a>(x: &'b u8) {
     // 'a is useless here since it's not directly bound
@@ -43,7 +43,7 @@ impl<'a> Foo<'a> for u8 {
 struct Bar;
 
 impl Bar {
-    fn x<'a>(&self) {}
+    fn x<'a>(&self) {} //~ extra_unused_lifetimes
 }
 
 // test for #489 (used lifetimes in bounds)
@@ -69,7 +69,7 @@ impl X {
 // Methods implementing traits must have matching lifetimes
 mod issue4291 {
     trait BadTrait {
-        fn unused_lt<'a>(x: u8) {}
+        fn unused_lt<'a>(x: u8) {} //~ extra_unused_lifetimes
     }
 
     impl BadTrait for () {
@@ -80,13 +80,16 @@ mod issue4291 {
 mod issue6437 {
     pub struct Scalar;
 
+    //~v extra_unused_lifetimes
     impl<'a> std::ops::AddAssign<&Scalar> for &mut Scalar {
         fn add_assign(&mut self, _rhs: &Scalar) {
             unimplemented!();
         }
     }
 
+    //~v extra_unused_lifetimes
     impl<'b> Scalar {
+        //~v extra_unused_lifetimes
         pub fn something<'c>() -> Self {
             Self
         }

@@ -12,17 +12,28 @@ fn main() {
     let s_i32 = v_i32.as_slice();
 
     // True positives:
+    //~v manual_slice_size_calculation
     let _ = s_i32.len() * size_of::<i32>(); // WARNING
+
+    //~v manual_slice_size_calculation
     let _ = size_of::<i32>() * s_i32.len(); // WARNING
+
+    //~v manual_slice_size_calculation
     let _ = size_of::<i32>() * s_i32.len() * 5; // WARNING
 
     let len = s_i32.len();
     let size = size_of::<i32>();
+    //~v manual_slice_size_calculation
     let _ = len * size_of::<i32>(); // WARNING
+
+    //~v manual_slice_size_calculation
     let _ = s_i32.len() * size; // WARNING
+
+    //~v manual_slice_size_calculation
     let _ = len * size; // WARNING
 
     let _ = external!(&[1u64][..]).len() * size_of::<u64>();
+    //~^ manual_slice_size_calculation
 
     // True negatives:
     let _ = size_of::<i32>() + s_i32.len(); // Ok, not a multiplication

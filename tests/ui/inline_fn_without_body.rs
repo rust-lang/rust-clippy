@@ -2,13 +2,13 @@
 #![allow(clippy::inline_always)]
 
 trait Foo {
-    #[inline]
+    #[inline] //~ inline_fn_without_body
     fn default_inline();
 
-    #[inline(always)]
+    #[inline(always)] //~ inline_fn_without_body
     fn always_inline();
 
-    #[inline(never)]
+    #[inline(never)] //~ inline_fn_without_body
     fn never_inline();
 
     #[inline]

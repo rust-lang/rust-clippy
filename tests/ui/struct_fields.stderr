@@ -208,7 +208,7 @@ LL |     proxy: i32,
    |     ^^^^^^^^^^
 
 error: all fields have the same prefix: `some`
-  --> $DIR/struct_fields.rs:226:13
+  --> $DIR/struct_fields.rs:227:13
    |
 LL | /             struct MacroStruct {
 LL | |                 some_a: i32,
@@ -235,7 +235,7 @@ LL |     mk_struct2!();
    = note: this error originates in the macro `mk_struct2` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: field name starts with the struct's name
-  --> $DIR/struct_fields.rs:251:17
+  --> $DIR/struct_fields.rs:250:17
    |
 LL |                 $field: i32,
    |                 ^^^^^^^^^^^
@@ -246,7 +246,7 @@ LL |     mk_struct_with_names!(Foo, foo);
    = note: this error originates in the macro `mk_struct_with_names` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: all fields have the same prefix: `some`
-  --> $DIR/struct_fields.rs:291:13
+  --> $DIR/struct_fields.rs:290:13
    |
 LL | /             struct $struct_name {
 LL | |                 $field1: i32,
@@ -262,19 +262,19 @@ LL |       mk_struct_full_def!(PrefixData, some_data, some_meta, some_other);
    = note: this error originates in the macro `mk_struct_full_def` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: field name starts with the struct's name
-  --> $DIR/struct_fields.rs:339:5
+  --> $DIR/struct_fields.rs:337:5
    |
 LL |     use_foo: bool,
    |     ^^^^^^^^^^^^^
 
 error: field name starts with the struct's name
-  --> $DIR/struct_fields.rs:341:5
+  --> $DIR/struct_fields.rs:339:5
    |
 LL |     use_bar: bool,
    |     ^^^^^^^^^^^^^
 
 error: field name starts with the struct's name
-  --> $DIR/struct_fields.rs:342:5
+  --> $DIR/struct_fields.rs:340:5
    |
 LL |     use_baz: bool,
    |     ^^^^^^^^^^^^^

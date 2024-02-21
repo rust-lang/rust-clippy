@@ -67,24 +67,27 @@ where
 }
 
 fn main() {
+    get_number(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    get_struct(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    5;get_number(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    5;6;get_number(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    5;get_number(); //~ unnecessary_operation
+    42;get_number(); //~ unnecessary_operation
+    assert!([42, 55].len() > get_usize()); //~ unnecessary_operation
+    42;get_number(); //~ unnecessary_operation
+    get_number(); //~ unnecessary_operation
+    assert!([42; 55].len() > get_usize()); //~ unnecessary_operation
+
+    //~v unnecessary_operation
     get_number();
-    get_number();
-    get_struct();
-    get_number();
-    get_number();
-    5;get_number();
-    get_number();
-    get_number();
-    5;6;get_number();
-    get_number();
-    get_number();
-    5;get_number();
-    42;get_number();
-    assert!([42, 55].len() > get_usize());
-    42;get_number();
-    get_number();
-    assert!([42; 55].len() > get_usize());
-    get_number();
+    //~v unnecessary_operation
     String::from("blah");
 
     // Do not warn

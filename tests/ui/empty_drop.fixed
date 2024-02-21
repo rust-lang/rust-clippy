@@ -4,6 +4,7 @@
 // should cause an error
 struct Foo;
 
+//~v empty_drop
 
 
 // shouldn't cause an error
@@ -18,6 +19,7 @@ impl Drop for Bar {
 // should error
 struct Baz;
 
+//~v empty_drop
 
 
 fn main() {}

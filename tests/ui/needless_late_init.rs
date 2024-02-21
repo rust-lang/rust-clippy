@@ -24,23 +24,23 @@ impl std::ops::Drop for SignificantDrop {
 }
 
 fn simple() {
-    let a;
+    let a; //~ needless_late_init
     a = "zero";
 
-    let b;
-    let c;
+    let b; //~ needless_late_init
+    let c; //~ needless_late_init
     b = 1;
     c = 2;
 
-    let d: usize;
+    let d: usize; //~ needless_late_init
     d = 1;
 
-    let e;
+    let e; //~ needless_late_init
     e = format!("{}", d);
 }
 
 fn main() {
-    let a;
+    let a; //~ needless_late_init
     let n = 1;
     match n {
         1 => a = "one",
@@ -49,14 +49,14 @@ fn main() {
         },
     }
 
-    let b;
+    let b; //~ needless_late_init
     if n == 3 {
         b = "four";
     } else {
         b = "five"
     }
 
-    let d;
+    let d; //~ needless_late_init
     if true {
         let temp = 5;
         d = temp;
@@ -64,20 +64,20 @@ fn main() {
         d = 15;
     }
 
-    let e;
+    let e; //~ needless_late_init
     if true {
         e = format!("{} {}", a, b);
     } else {
         e = format!("{}", n);
     }
 
-    let f;
+    let f; //~ needless_late_init
     match 1 {
         1 => f = "three",
         _ => return,
     }; // has semi
 
-    let g: usize;
+    let g: usize; //~ needless_late_init
     if true {
         g = 5;
     } else {
@@ -85,15 +85,15 @@ fn main() {
     }
 
     // Drop order only matters if both are significant
-    let x;
+    let x; //~ needless_late_init
     let y = SignificantDrop;
     x = 1;
 
-    let x;
+    let x; //~ needless_late_init
     let y = 1;
     x = SignificantDrop;
 
-    let x;
+    let x; //~ needless_late_init
     // types that should be considered insignificant
     let y = 1;
     let y = "2";
@@ -112,7 +112,7 @@ async fn in_async() -> &'static str {
         "one"
     }
 
-    let a;
+    let a; //~ needless_late_init
     let n = 1;
     match n {
         1 => a = f().await,
@@ -129,7 +129,7 @@ const fn in_const() -> &'static str {
         "one"
     }
 
-    let a;
+    let a; //~ needless_late_init
     let n = 1;
     match n {
         1 => a = f(),

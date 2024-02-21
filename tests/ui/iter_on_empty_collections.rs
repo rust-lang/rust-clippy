@@ -3,11 +3,17 @@
 
 fn array() {
     assert_eq!([].into_iter().next(), Option::<i32>::None);
+    //~^ iter_on_empty_collections
     assert_eq!([].iter_mut().next(), Option::<&mut i32>::None);
+    //~^ iter_on_empty_collections
     assert_eq!([].iter().next(), Option::<&i32>::None);
+    //~^ iter_on_empty_collections
     assert_eq!(None.into_iter().next(), Option::<i32>::None);
+    //~^ iter_on_empty_collections
     assert_eq!(None.iter_mut().next(), Option::<&mut i32>::None);
+    //~^ iter_on_empty_collections
     assert_eq!(None.iter().next(), Option::<&i32>::None);
+    //~^ iter_on_empty_collections
 
     // Don't trigger on non-iter methods
     let _: Option<String> = None.clone();

@@ -10,12 +10,12 @@ fn main() {}
 
 fn immutable() {
     let x = 1;
-    let x = x;
+    let x = x; //~ redundant_locals
 }
 
 fn mutable() {
     let mut x = 1;
-    let mut x = x;
+    let mut x = x; //~ redundant_locals
 }
 
 fn upgraded_mutability() {
@@ -45,38 +45,38 @@ fn coercion(par: &mut i32) {
 }
 
 fn parameter(x: i32) {
-    let x = x;
+    let x = x; //~ redundant_locals
 }
 
 fn many() {
     let x = 1;
-    let x = x;
-    let x = x;
-    let x = x;
-    let x = x;
+    let x = x; //~ redundant_locals
+    let x = x; //~ redundant_locals
+    let x = x; //~ redundant_locals
+    let x = x; //~ redundant_locals
 }
 
 fn interleaved() {
     let a = 1;
     let b = 2;
-    let a = a;
-    let b = b;
+    let a = a; //~ redundant_locals
+    let b = b; //~ redundant_locals
 }
 
 fn block() {
     {
         let x = 1;
-        let x = x;
+        let x = x; //~ redundant_locals
     }
 }
 
 fn closure() {
     || {
         let x = 1;
-        let x = x;
+        let x = x; //~ redundant_locals
     };
     |x: i32| {
-        let x = x;
+        let x = x; //~ redundant_locals
     };
 }
 
@@ -95,7 +95,7 @@ fn inconsequential_drop_order() {
     let x = 1;
 
     {
-        let x = x;
+        let x = x; //~ redundant_locals
     }
 }
 
@@ -150,7 +150,7 @@ fn drop_trait() {
 fn without_drop() {
     let a = WithoutDrop(1);
     let b = WithoutDrop(2);
-    let a = a;
+    let a = a; //~ redundant_locals
 }
 
 fn drop_inner() {

@@ -20,6 +20,7 @@ impl cmp::Ord for A {
     }
 }
 
+//~v non_canonical_partial_ord_impl
 impl PartialOrd for A {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         // NOTE: This suggestion is wrong, as `Ord` is not in scope. But this should be fine as it isn't
@@ -43,6 +44,7 @@ impl cmp::Ord for B {
     }
 }
 
+//~v non_canonical_partial_ord_impl
 impl PartialOrd for B {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         // This calls `B.cmp`, not `Ord::cmp`!

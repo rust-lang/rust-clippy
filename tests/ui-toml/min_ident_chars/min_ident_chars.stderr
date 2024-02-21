@@ -44,7 +44,7 @@ LL |     let (mut a, mut b) = (1, 2);
    |                     ^
 
 error: this ident is too short (1 <= 3)
-  --> $DIR/min_ident_chars/min_ident_chars.rs:21:9
+  --> $DIR/min_ident_chars/min_ident_chars.rs:23:9
    |
 LL |     for i in 0..1000 {}
    |         ^

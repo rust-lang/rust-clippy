@@ -27,9 +27,11 @@ fn main() {
     {
         panic!("qaqaq{:?}", a);
     }
+    //~v manual_assert
     if !a.is_empty() {
         panic!("qaqaq{:?}", a);
     }
+    //~v manual_assert
     if !a.is_empty() {
         panic!("qwqwq");
     }
@@ -47,21 +49,27 @@ fn main() {
         println!("qwq");
     }
     let b = vec![1, 2, 3];
+    //~v manual_assert
     if b.is_empty() {
         panic!("panic1");
     }
+    //~v manual_assert
     if b.is_empty() && a.is_empty() {
         panic!("panic2");
     }
+    //~v manual_assert
     if a.is_empty() && !b.is_empty() {
         panic!("panic3");
     }
+    //~v manual_assert
     if b.is_empty() || a.is_empty() {
         panic!("panic4");
     }
+    //~v manual_assert
     if a.is_empty() || !b.is_empty() {
         panic!("panic5");
     }
+    //~v manual_assert
     if a.is_empty() {
         panic!("with expansion {}", one!())
     }
@@ -74,6 +82,7 @@ fn main() {
 
 fn issue7730(a: u8) {
     // Suggestion should preserve comment
+    //~v manual_assert
     if a > 2 {
         // comment
         /* this is a

@@ -10,9 +10,9 @@ fn main() {}
 mod should_lint {
     fn one_help() {
         let a = &12;
-        let b = &*a;
+        let b = &*a; //~ borrow_deref_ref
 
-        let b = &mut &*bar(&12);
+        let b = &mut &*bar(&12); //~ borrow_deref_ref
     }
 
     fn bar(x: &u32) -> &u32 {
@@ -66,6 +66,7 @@ mod false_negative {
     fn foo() {
         let x = &12;
         let addr_x = &x as *const _ as usize;
+        //~v borrow_deref_ref
         let addr_y = &&*x as *const _ as usize; // assert ok
         // let addr_y = &x as *const _ as usize; // assert fail
         assert_ne!(addr_x, addr_y);

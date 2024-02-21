@@ -6,25 +6,28 @@
 extern crate proc_macros;
 use proc_macros::{external, with_span};
 
+//~v min_ident_chars
 struct A {
-    a: u32,
+    a: u32, //~ min_ident_chars
     i: u32,
-    A: u32,
-    I: u32,
+    A: u32, //~ min_ident_chars
+    I: u32, //~ min_ident_chars
 }
 
-struct B(u32);
+struct B(u32); //~ min_ident_chars
 
+//~v min_ident_chars
 struct O {
-    o: u32,
+    o: u32, //~ min_ident_chars
 }
 
 struct i;
 
+//~v min_ident_chars
 enum C {
-    D,
-    E,
-    F,
+    D, //~ min_ident_chars
+    E, //~ min_ident_chars
+    F, //~ min_ident_chars
     j,
 }
 
@@ -38,9 +41,9 @@ struct Vec4 {
 struct AA<T, E>(T, E);
 
 trait Trait {
-    const A: u32 = 0;
-    type A;
-    fn a() {}
+    const A: u32 = 0; //~ min_ident_chars
+    type A; //~ min_ident_chars
+    fn a() {} //~ min_ident_chars
 }
 
 fn main() {
@@ -54,23 +57,31 @@ fn main() {
     let y = 1;
     let z = 1;
     // Implicitly disallowed idents
-    let h = 1;
-    let e = 2;
-    let l = 3;
-    let l = 4;
-    let o = 6;
+    let h = 1; //~ min_ident_chars
+    let e = 2; //~ min_ident_chars
+    let l = 3; //~ min_ident_chars
+    let l = 4; //~ min_ident_chars
+    let o = 6; //~ min_ident_chars
     // 2 len does not lint
     let hi = 0;
     // Lint
     let (h, o, w) = (1, 2, 3);
+    //~^ min_ident_chars
+    //~| min_ident_chars
     for (a, (r, e)) in (0..1000).enumerate().enumerate() {}
+    //~^ min_ident_chars
+    //~| min_ident_chars
+    //~| min_ident_chars
     let you = Vec4 { x: 1, y: 2, z: 3, w: 4 };
     while let (d, o, _i, n, g) = (true, true, false, false, true) {}
+    //~^ min_ident_chars
+    //~| min_ident_chars
+    //~| min_ident_chars
     let today = true;
     // Ideally this wouldn't lint, but this would (likely) require global analysis, outta scope
     // of this lint regardless
-    let o = 1;
-    let o = O { o };
+    let o = 1; //~ min_ident_chars
+    let o = O { o }; //~ min_ident_chars
 
     for j in 0..1000 {}
     for _ in 0..10 {}
@@ -84,7 +95,10 @@ fn main() {
     }
 }
 
-fn b() {}
+fn b() {} //~ min_ident_chars
+
+//~| min_ident_chars
+//~v min_ident_chars
 fn wrong_pythagoras(a: f32, b: f32) -> f32 {
     a * a + a * b
 }

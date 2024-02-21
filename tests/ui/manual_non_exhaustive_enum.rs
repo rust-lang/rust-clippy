@@ -27,6 +27,7 @@ enum NoDocHidden {
 }
 
 // name of variant with doc hidden does not start with underscore
+//~v manual_non_exhaustive
 enum NoUnderscore {
     A,
     B,

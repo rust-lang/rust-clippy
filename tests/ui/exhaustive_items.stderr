@@ -1,5 +1,5 @@
 error: exported enums should not be exhaustive
-  --> $DIR/exhaustive_items.rs:9:5
+  --> $DIR/exhaustive_items.rs:10:5
    |
 LL | /     pub enum Exhaustive {
 LL | |         Foo,
@@ -21,7 +21,7 @@ LL ~     pub enum Exhaustive {
    |
 
 error: exported enums should not be exhaustive
-  --> $DIR/exhaustive_items.rs:18:5
+  --> $DIR/exhaustive_items.rs:20:5
    |
 LL | /     pub enum ExhaustiveWithAttrs {
 LL | |         Foo,
@@ -38,7 +38,7 @@ LL ~     pub enum ExhaustiveWithAttrs {
    |
 
 error: exported structs should not be exhaustive
-  --> $DIR/exhaustive_items.rs:53:5
+  --> $DIR/exhaustive_items.rs:56:5
    |
 LL | /     pub struct Exhaustive {
 LL | |         pub foo: u8,

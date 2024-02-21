@@ -3,7 +3,7 @@
 
 use core;
 
-
+ //~ single_component_path_imports
 
 use serde as edres;
 
@@ -29,7 +29,7 @@ fn main() {
 }
 
 mod hello_mod {
-    
+     //~ single_component_path_imports
     #[allow(dead_code)]
     fn hello_mod() {}
 }

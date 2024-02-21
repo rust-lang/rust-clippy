@@ -43,6 +43,7 @@ fn no_break_never_ret() -> ! {
 }
 
 fn no_break_never_ret_noise() {
+    //~v infinite_loop
     loop {
         fn inner_fn() -> ! {
             std::process::exit(0);
@@ -358,6 +359,7 @@ fn inf_loop_in_closure() {
 }
 
 fn inf_loop_in_res() -> Result<(), i32> {
+    //~v infinite_loop
     Ok(loop {
         do_something()
     })

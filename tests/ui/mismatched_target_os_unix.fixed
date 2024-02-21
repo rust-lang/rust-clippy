@@ -1,56 +1,57 @@
 #![warn(clippy::mismatched_target_os)]
 #![allow(unused)]
 
-#[cfg(target_os = "linux")]
+#[cfg(target_os = "linux")] //~ mismatched_target_os
 fn linux() {}
 
-#[cfg(target_os = "freebsd")]
+#[cfg(target_os = "freebsd")] //~ mismatched_target_os
 fn freebsd() {}
 
-#[cfg(target_os = "dragonfly")]
+#[cfg(target_os = "dragonfly")] //~ mismatched_target_os
 fn dragonfly() {}
 
-#[cfg(target_os = "openbsd")]
+#[cfg(target_os = "openbsd")] //~ mismatched_target_os
 fn openbsd() {}
 
-#[cfg(target_os = "netbsd")]
+#[cfg(target_os = "netbsd")] //~ mismatched_target_os
 fn netbsd() {}
 
-#[cfg(target_os = "macos")]
+#[cfg(target_os = "macos")] //~ mismatched_target_os
 fn macos() {}
 
-#[cfg(target_os = "ios")]
+#[cfg(target_os = "ios")] //~ mismatched_target_os
 fn ios() {}
 
-#[cfg(target_os = "android")]
+#[cfg(target_os = "android")] //~ mismatched_target_os
 fn android() {}
 
-#[cfg(target_os = "emscripten")]
+#[cfg(target_os = "emscripten")] //~ mismatched_target_os
 fn emscripten() {}
 
-#[cfg(target_os = "fuchsia")]
+#[cfg(target_os = "fuchsia")] //~ mismatched_target_os
 fn fuchsia() {}
 
-#[cfg(target_os = "haiku")]
+#[cfg(target_os = "haiku")] //~ mismatched_target_os
 fn haiku() {}
 
-#[cfg(target_os = "illumos")]
+#[cfg(target_os = "illumos")] //~ mismatched_target_os
 fn illumos() {}
 
-#[cfg(target_os = "l4re")]
+#[cfg(target_os = "l4re")] //~ mismatched_target_os
 fn l4re() {}
 
-#[cfg(target_os = "redox")]
+#[cfg(target_os = "redox")] //~ mismatched_target_os
 fn redox() {}
 
-#[cfg(target_os = "solaris")]
+#[cfg(target_os = "solaris")] //~ mismatched_target_os
 fn solaris() {}
 
-#[cfg(target_os = "vxworks")]
+#[cfg(target_os = "vxworks")] //~ mismatched_target_os
 fn vxworks() {}
 
 // list with conditions
 #[cfg(all(not(any(target_os = "solaris", target_os = "linux")), target_os = "freebsd"))]
+//~^ mismatched_target_os
 fn list() {}
 
 // correct use, should be ignored

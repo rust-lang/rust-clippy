@@ -3,24 +3,29 @@
 
 mod m1 {
     fn f() {}
+    //~v redundant_pub_crate
     pub fn g() {} // private due to m1
     pub fn h() {}
 
     mod m1_1 {
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // private due to m1_1 and m1
         pub fn h() {}
     }
 
+    //~v redundant_pub_crate
     pub mod m1_2 {
         //:^ private due to m1
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // private due to m1_2 and m1
         pub fn h() {}
     }
 
     pub mod m1_3 {
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // private due to m1
         pub fn h() {}
     }
@@ -28,24 +33,29 @@ mod m1 {
 
 pub(crate) mod m2 {
     fn f() {}
+    //~v redundant_pub_crate
     pub fn g() {} // already crate visible due to m2
     pub fn h() {}
 
     mod m2_1 {
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // private due to m2_1
         pub fn h() {}
     }
 
+    //~v redundant_pub_crate
     pub mod m2_2 {
         //:^ already crate visible due to m2
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // already crate visible due to m2_2 and m2
         pub fn h() {}
     }
 
     pub mod m2_3 {
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // already crate visible due to m2
         pub fn h() {}
     }
@@ -58,6 +68,7 @@ pub mod m3 {
 
     mod m3_1 {
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // private due to m3_1
         pub fn h() {}
     }
@@ -65,6 +76,7 @@ pub mod m3 {
     pub(crate) mod m3_2 {
         //:^ ok
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // already crate visible due to m3_2
         pub fn h() {}
     }
@@ -78,18 +90,22 @@ pub mod m3 {
 
 mod m4 {
     fn f() {}
+    //~v redundant_pub_crate
     pub fn g() {} // private: not re-exported by `pub use m4::*`
     pub fn h() {}
 
     mod m4_1 {
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // private due to m4_1
         pub fn h() {}
     }
 
+    //~v redundant_pub_crate
     pub mod m4_2 {
         //:^ private: not re-exported by `pub use m4::*`
         fn f() {}
+        //~v redundant_pub_crate
         pub fn g() {} // private due to m4_2
         pub fn h() {}
     }

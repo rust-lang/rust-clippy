@@ -4,6 +4,7 @@
 // should cause an error
 struct Foo;
 
+//~v empty_drop
 impl Drop for Foo {
     fn drop(&mut self) {}
 }
@@ -20,6 +21,7 @@ impl Drop for Bar {
 // should error
 struct Baz;
 
+//~v empty_drop
 impl Drop for Baz {
     fn drop(&mut self) {
         {}

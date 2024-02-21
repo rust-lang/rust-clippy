@@ -10,22 +10,22 @@ fn get_unit() {}
 
 // the functions below trigger the lint
 fn main() {
-    println!("Hello")
+    println!("Hello") //~ semicolon_if_nothing_returned
 }
 
 fn hello() {
-    get_unit()
+    get_unit() //~ semicolon_if_nothing_returned
 }
 
 fn basic101(x: i32) {
     let y: i32;
-    y = x + 1
+    y = x + 1 //~ semicolon_if_nothing_returned
 }
 
 #[rustfmt::skip]
 fn closure_error() {
     let _d = || {
-        hello()
+        hello() //~ semicolon_if_nothing_returned
     };
 }
 
@@ -37,6 +37,7 @@ fn unsafe_checks_error() {
     let mut s = MaybeUninit::<String>::uninit();
     let _d = || unsafe {
         ptr::drop_in_place(s.as_mut_ptr())
+        //~^ semicolon_if_nothing_returned
     };
 }
 

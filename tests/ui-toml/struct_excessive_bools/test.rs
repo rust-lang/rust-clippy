@@ -1,5 +1,6 @@
 #![warn(clippy::struct_excessive_bools)]
 
+//~v struct_excessive_bools
 struct S {
     a: bool,
 }

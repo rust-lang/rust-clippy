@@ -43,8 +43,8 @@ mod borrowed_eq_owned {
         let owned = Owned {};
         let borrowed = Borrowed {};
 
-        if borrowed.to_owned() == owned {}
-        if owned == borrowed.to_owned() {}
+        if borrowed.to_owned() == owned {} //~ cmp_owned
+        if owned == borrowed.to_owned() {} //~ cmp_owned
     }
 }
 
@@ -62,8 +62,8 @@ mod owned_eq_borrowed {
         let owned = Owned {};
         let borrowed = Borrowed {};
 
-        if owned == borrowed.to_owned() {}
-        if borrowed.to_owned() == owned {}
+        if owned == borrowed.to_owned() {} //~ cmp_owned
+        if borrowed.to_owned() == owned {} //~ cmp_owned
     }
 }
 
@@ -89,8 +89,8 @@ mod issue_4874 {
     fn compare() {
         let borrowed = Borrowed {};
 
-        if "Hi" == borrowed.to_string() {}
-        if borrowed.to_string() == "Hi" {}
+        if "Hi" == borrowed.to_string() {} //~ cmp_owned
+        if borrowed.to_string() == "Hi" {} //~ cmp_owned
     }
 }
 

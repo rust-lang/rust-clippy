@@ -3,16 +3,20 @@
 
 fn option_unwrap_or() {
     // int case
+    //~v manual_unwrap_or
     Some(1).unwrap_or(42);
 
     // int case reversed
+    //~v manual_unwrap_or
     Some(1).unwrap_or(42);
 
     // richer none expr
+    //~v manual_unwrap_or
     Some(1).unwrap_or(1 + 42);
 
     // multiline case
     #[rustfmt::skip]
+    //~v manual_unwrap_or
     Some(1).unwrap_or({
         42 + 42
             + 42 + 42 + 42
@@ -20,6 +24,7 @@ fn option_unwrap_or() {
     });
 
     // string case
+    //~v manual_unwrap_or
     Some("Bob").unwrap_or("Alice");
 
     // don't lint
@@ -67,13 +72,16 @@ fn option_unwrap_or() {
 
 fn result_unwrap_or() {
     // int case
+    //~v manual_unwrap_or
     Ok::<i32, &str>(1).unwrap_or(42);
 
     // int case, scrutinee is a binding
     let a = Ok::<i32, &str>(1);
+    //~v manual_unwrap_or
     a.unwrap_or(42);
 
     // int case, suggestion must surround Result expr with parentheses
+    //~v manual_unwrap_or
     (Ok(1) as Result<i32, &str>).unwrap_or(42);
 
     // method call case, suggestion must not surround Result expr `s.method()` with parentheses
@@ -84,16 +92,20 @@ fn result_unwrap_or() {
         }
     }
     let s = S {};
+    //~v manual_unwrap_or
     s.method().unwrap_or(42);
 
     // int case reversed
+    //~v manual_unwrap_or
     Ok::<i32, &str>(1).unwrap_or(42);
 
     // richer none expr
+    //~v manual_unwrap_or
     Ok::<i32, &str>(1).unwrap_or(1 + 42);
 
     // multiline case
     #[rustfmt::skip]
+    //~v manual_unwrap_or
     Ok::<i32, &str>(1).unwrap_or({
         42 + 42
             + 42 + 42 + 42
@@ -101,6 +113,7 @@ fn result_unwrap_or() {
     });
 
     // string case
+    //~v manual_unwrap_or
     Ok::<&str, &str>("Bob").unwrap_or("Alice");
 
     // don't lint
@@ -158,6 +171,7 @@ mod issue6965 {
     }
 
     fn test() {
+        //~v manual_unwrap_or
         let _ = some_macro!().unwrap_or(0);
     }
 }

@@ -3,18 +3,21 @@
 
 fn option_unwrap_or() {
     // int case
+    //~v manual_unwrap_or
     match Some(1) {
         Some(i) => i,
         None => 42,
     };
 
     // int case reversed
+    //~v manual_unwrap_or
     match Some(1) {
         None => 42,
         Some(i) => i,
     };
 
     // richer none expr
+    //~v manual_unwrap_or
     match Some(1) {
         Some(i) => i,
         None => 1 + 42,
@@ -22,6 +25,7 @@ fn option_unwrap_or() {
 
     // multiline case
     #[rustfmt::skip]
+    //~v manual_unwrap_or
     match Some(1) {
         Some(i) => i,
         None => {
@@ -32,6 +36,7 @@ fn option_unwrap_or() {
     };
 
     // string case
+    //~v manual_unwrap_or
     match Some("Bob") {
         Some(i) => i,
         None => "Alice",
@@ -82,6 +87,7 @@ fn option_unwrap_or() {
 
 fn result_unwrap_or() {
     // int case
+    //~v manual_unwrap_or
     match Ok::<i32, &str>(1) {
         Ok(i) => i,
         Err(_) => 42,
@@ -89,12 +95,14 @@ fn result_unwrap_or() {
 
     // int case, scrutinee is a binding
     let a = Ok::<i32, &str>(1);
+    //~v manual_unwrap_or
     match a {
         Ok(i) => i,
         Err(_) => 42,
     };
 
     // int case, suggestion must surround Result expr with parentheses
+    //~v manual_unwrap_or
     match Ok(1) as Result<i32, &str> {
         Ok(i) => i,
         Err(_) => 42,
@@ -108,18 +116,21 @@ fn result_unwrap_or() {
         }
     }
     let s = S {};
+    //~v manual_unwrap_or
     match s.method() {
         Some(i) => i,
         None => 42,
     };
 
     // int case reversed
+    //~v manual_unwrap_or
     match Ok::<i32, &str>(1) {
         Err(_) => 42,
         Ok(i) => i,
     };
 
     // richer none expr
+    //~v manual_unwrap_or
     match Ok::<i32, &str>(1) {
         Ok(i) => i,
         Err(_) => 1 + 42,
@@ -127,6 +138,7 @@ fn result_unwrap_or() {
 
     // multiline case
     #[rustfmt::skip]
+    //~v manual_unwrap_or
     match Ok::<i32, &str>(1) {
         Ok(i) => i,
         Err(_) => {
@@ -137,6 +149,7 @@ fn result_unwrap_or() {
     };
 
     // string case
+    //~v manual_unwrap_or
     match Ok::<&str, &str>("Bob") {
         Ok(i) => i,
         Err(_) => "Alice",
@@ -197,6 +210,7 @@ mod issue6965 {
     }
 
     fn test() {
+        //~v manual_unwrap_or
         let _ = match some_macro!() {
             Some(val) => val,
             None => 0,

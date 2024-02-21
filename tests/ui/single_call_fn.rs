@@ -10,8 +10,8 @@ extern crate proc_macros;
 // Do not lint since it's public
 pub fn f() {}
 
-fn i() {}
-fn j() {}
+fn i() {} //~ single_call_fn
+fn j() {} //~ single_call_fn
 
 fn h() {
     // Linted
@@ -31,6 +31,7 @@ fn g() {
     f();
 }
 
+//~v single_call_fn
 fn c() {
     println!("really");
     println!("long");
@@ -41,7 +42,7 @@ fn d() {
     c();
 }
 
-fn a() {}
+fn a() {} //~ single_call_fn
 
 fn b() {
     a();

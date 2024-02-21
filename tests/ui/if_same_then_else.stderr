@@ -89,7 +89,7 @@ LL | |     }
    | |_____^
 
 error: this `if` has identical blocks
-  --> $DIR/if_same_then_else.rs:238:14
+  --> $DIR/if_same_then_else.rs:239:14
    |
 LL |           if x {
    |  ______________^
@@ -98,7 +98,7 @@ LL | |         } else {
    | |_________^
    |
 note: same as this
-  --> $DIR/if_same_then_else.rs:240:16
+  --> $DIR/if_same_then_else.rs:241:16
    |
 LL |           } else {
    |  ________________^

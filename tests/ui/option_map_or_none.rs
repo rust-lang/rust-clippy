@@ -8,13 +8,18 @@ fn main() {
     // Check `OPTION_MAP_OR_NONE`.
     // Single line case.
     let _: Option<i32> = opt.map_or(None, |x| Some(x + 1));
+    //~^ option_map_or_none
     // Multi-line case.
     #[rustfmt::skip]
+    //~v option_map_or_none
     let _: Option<i32> = opt.map_or(None, |x| {
                         Some(x + 1)
                        });
     // function returning `Option`
     let _: Option<i32> = opt.map_or(None, bar);
+    //~^ option_map_or_none
+
+    //~v option_map_or_none
     let _: Option<i32> = opt.map_or(None, |x| {
         let offset = 0;
         let height = x;
@@ -23,4 +28,5 @@ fn main() {
 
     // Check `RESULT_MAP_OR_INTO_OPTION`.
     let _: Option<i32> = r.map_or(None, Some);
+    //~^ result_map_or_into_option
 }

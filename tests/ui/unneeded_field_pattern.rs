@@ -15,9 +15,9 @@ fn main() {
     let f = Foo { a: 0, b: 0, c: 0 };
 
     match f {
-        Foo { a: _, b: 0, .. } => {},
+        Foo { a: _, b: 0, .. } => {}, //~ unneeded_field_pattern
 
-        Foo { a: _, b: _, c: _ } => {},
+        Foo { a: _, b: _, c: _ } => {}, //~ unneeded_field_pattern
     }
     match f {
         Foo { b: 0, .. } => {}, // should be OK

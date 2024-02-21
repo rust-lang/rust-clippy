@@ -11,21 +11,29 @@ fn main() {
 
     // Should lint
     // precedence
+    //~v bool_to_int_with_if
     i32::from(a);
+    //~v bool_to_int_with_if
     i32::from(!a);
+    //~v bool_to_int_with_if
     i32::from(!a);
+    //~v bool_to_int_with_if
     i32::from(a || b);
+    //~v bool_to_int_with_if
     i32::from(cond(a, b));
+    //~v bool_to_int_with_if
     i32::from(x + y < 4);
 
     // if else if
     if a {
         123
+    //~v bool_to_int_with_if
     } else { i32::from(b) };
 
     // if else if inverted
     if a {
         123
+    //~v bool_to_int_with_if
     } else { i32::from(!b) };
 
     // Shouldn't lint
@@ -87,7 +95,7 @@ fn main() {
 
 // Lint returns and type inference
 fn some_fn(a: bool) -> u8 {
-    u8::from(a)
+    u8::from(a) //~ bool_to_int_with_if
 }
 
 fn side_effect() {}

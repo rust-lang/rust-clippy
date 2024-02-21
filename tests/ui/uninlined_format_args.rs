@@ -42,77 +42,100 @@ fn tester(fn_arg: i32) {
     // let _ = '	';  // <- this is a single tab character
     let _: &[u8; 3] = b"	 	"; // <- <tab><space><tab>
 
-    println!("val='{}'", local_i32);
+    println!("val='{}'", local_i32); //~ uninlined_format_args
+
+    //~v uninlined_format_args
     println!("val='{   }'", local_i32); // 3 spaces
+
+    //~v uninlined_format_args
     println!("val='{	}'", local_i32); // tab
+
+    //~v uninlined_format_args
     println!("val='{ 	}'", local_i32); // space+tab
+
+    //~v uninlined_format_args
     println!("val='{	 }'", local_i32); // tab+space
+
+    //~v uninlined_format_args
     println!(
         "val='{
     }'",
         local_i32
     );
-    println!("{}", local_i32);
-    println!("{}", fn_arg);
-    println!("{:?}", local_i32);
-    println!("{:#?}", local_i32);
-    println!("{:4}", local_i32);
-    println!("{:04}", local_i32);
-    println!("{:<3}", local_i32);
-    println!("{:#010x}", local_i32);
-    println!("{:.1}", local_f64);
+    println!("{}", local_i32); //~ uninlined_format_args
+    println!("{}", fn_arg); //~ uninlined_format_args
+    println!("{:?}", local_i32); //~ uninlined_format_args
+    println!("{:#?}", local_i32); //~ uninlined_format_args
+    println!("{:4}", local_i32); //~ uninlined_format_args
+    println!("{:04}", local_i32); //~ uninlined_format_args
+    println!("{:<3}", local_i32); //~ uninlined_format_args
+    println!("{:#010x}", local_i32); //~ uninlined_format_args
+    println!("{:.1}", local_f64); //~ uninlined_format_args
     println!("Hello {} is {:.*}", "x", local_i32, local_f64);
     println!("Hello {} is {:.*}", local_i32, 5, local_f64);
     println!("Hello {} is {2:.*}", local_i32, 5, local_f64);
     println!("{} {}", local_i32, local_f64);
+    //~^ uninlined_format_args
     println!("{}, {}", local_i32, local_opt.unwrap());
-    println!("{}", val);
-    println!("{}", v = val);
+    println!("{}", val); //~ uninlined_format_args
+    println!("{}", v = val); //~ uninlined_format_args
     println!("{} {1}", local_i32, 42);
-    println!("val='{\t }'", local_i32);
-    println!("val='{\n }'", local_i32);
+    println!("val='{\t }'", local_i32); //~ uninlined_format_args
+    println!("val='{\n }'", local_i32); //~ uninlined_format_args
     println!("val='{local_i32}'", local_i32 = local_i32);
+    //~^ uninlined_format_args
     println!("val='{local_i32}'", local_i32 = fn_arg);
-    println!("{0}", local_i32);
-    println!("{0:?}", local_i32);
-    println!("{0:#?}", local_i32);
-    println!("{0:04}", local_i32);
-    println!("{0:<3}", local_i32);
-    println!("{0:#010x}", local_i32);
-    println!("{0:.1}", local_f64);
-    println!("{0} {0}", local_i32);
+    //~^ uninlined_format_args
+    println!("{0}", local_i32); //~ uninlined_format_args
+    println!("{0:?}", local_i32); //~ uninlined_format_args
+    println!("{0:#?}", local_i32); //~ uninlined_format_args
+    println!("{0:04}", local_i32); //~ uninlined_format_args
+    println!("{0:<3}", local_i32); //~ uninlined_format_args
+    println!("{0:#010x}", local_i32); //~ uninlined_format_args
+    println!("{0:.1}", local_f64); //~ uninlined_format_args
+    println!("{0} {0}", local_i32); //~ uninlined_format_args
     println!("{1} {} {0} {}", local_i32, local_f64);
+    //~^ uninlined_format_args
     println!("{0} {1}", local_i32, local_f64);
+    //~^ uninlined_format_args
     println!("{1} {0}", local_i32, local_f64);
+    //~^ uninlined_format_args
     println!("{1} {0} {1} {0}", local_i32, local_f64);
+    //~^ uninlined_format_args
     println!("{1} {0}", "str", local_i32);
-    println!("{v}", v = local_i32);
-    println!("{local_i32:0$}", width);
-    println!("{local_i32:w$}", w = width);
-    println!("{local_i32:.0$}", prec);
-    println!("{local_i32:.p$}", p = prec);
-    println!("{:0$}", v = val);
-    println!("{0:0$}", v = val);
-    println!("{:0$.0$}", v = val);
-    println!("{0:0$.0$}", v = val);
-    println!("{0:0$.v$}", v = val);
-    println!("{0:v$.0$}", v = val);
-    println!("{v:0$.0$}", v = val);
-    println!("{v:v$.0$}", v = val);
-    println!("{v:0$.v$}", v = val);
-    println!("{v:v$.v$}", v = val);
-    println!("{:0$}", width);
-    println!("{:1$}", local_i32, width);
-    println!("{:w$}", w = width);
+    println!("{v}", v = local_i32); //~ uninlined_format_args
+    println!("{local_i32:0$}", width); //~ uninlined_format_args
+    println!("{local_i32:w$}", w = width); //~ uninlined_format_args
+    println!("{local_i32:.0$}", prec); //~ uninlined_format_args
+    println!("{local_i32:.p$}", p = prec); //~ uninlined_format_args
+    println!("{:0$}", v = val); //~ uninlined_format_args
+    println!("{0:0$}", v = val); //~ uninlined_format_args
+    println!("{:0$.0$}", v = val); //~ uninlined_format_args
+    println!("{0:0$.0$}", v = val); //~ uninlined_format_args
+    println!("{0:0$.v$}", v = val); //~ uninlined_format_args
+    println!("{0:v$.0$}", v = val); //~ uninlined_format_args
+    println!("{v:0$.0$}", v = val); //~ uninlined_format_args
+    println!("{v:v$.0$}", v = val); //~ uninlined_format_args
+    println!("{v:0$.v$}", v = val); //~ uninlined_format_args
+    println!("{v:v$.v$}", v = val); //~ uninlined_format_args
+    println!("{:0$}", width); //~ uninlined_format_args
+    println!("{:1$}", local_i32, width); //~ uninlined_format_args
+    println!("{:w$}", w = width); //~ uninlined_format_args
     println!("{:w$}", local_i32, w = width);
-    println!("{:.0$}", prec);
-    println!("{:.1$}", local_i32, prec);
-    println!("{:.p$}", p = prec);
+    //~^ uninlined_format_args
+    println!("{:.0$}", prec); //~ uninlined_format_args
+    println!("{:.1$}", local_i32, prec); //~ uninlined_format_args
+    println!("{:.p$}", p = prec); //~ uninlined_format_args
     println!("{:.p$}", local_i32, p = prec);
-    println!("{:0$.1$}", width, prec);
-    println!("{:0$.w$}", width, w = prec);
+    //~^ uninlined_format_args
+    println!("{:0$.1$}", width, prec); //~ uninlined_format_args
+    println!("{:0$.w$}", width, w = prec); //~ uninlined_format_args
     println!("{:1$.2$}", local_f64, width, prec);
+    //~^ uninlined_format_args
     println!("{:1$.2$} {0} {1} {2}", local_f64, width, prec);
+    //~^ uninlined_format_args
+
+    //~v uninlined_format_args
     println!(
         "{0:1$.2$} {0:2$.1$} {1:0$.2$} {1:2$.0$} {2:0$.1$} {2:1$.0$}",
         local_i32, width, prec,
@@ -125,8 +148,11 @@ fn tester(fn_arg: i32) {
         1 + 2
     );
     println!("Width = {}, value with width = {:0$}", local_i32, local_f64);
+    //~^ uninlined_format_args
     println!("{:w$.p$}", local_i32, w = width, p = prec);
+    //~^ uninlined_format_args
     println!("{:w$.p$}", w = width, p = prec);
+    //~^ uninlined_format_args
     println!("{}", format!("{}", local_i32));
     my_println!("{}", local_i32);
     my_println_args!("{}", local_i32);
@@ -145,24 +171,27 @@ fn tester(fn_arg: i32) {
     );
     println!(no_param_str!(), local_i32);
 
+    //~v uninlined_format_args
     println!(
         "{}",
         // comment with a comma , in it
         val,
     );
     println!("{}", /* comment with a comma , in it */ val);
+    //~^ uninlined_format_args
 
     println!(with_span!("{0} {1}" "{1} {0}"), local_i32, local_f64);
     println!("{}", with_span!(span val));
 
     if local_i32 > 0 {
-        panic!("p1 {}", local_i32);
+        panic!("p1 {}", local_i32); //~ uninlined_format_args
     }
     if local_i32 > 0 {
-        panic!("p2 {0}", local_i32);
+        panic!("p2 {0}", local_i32); //~ uninlined_format_args
     }
     if local_i32 > 0 {
         panic!("p3 {local_i32}", local_i32 = local_i32);
+        //~^ uninlined_format_args
     }
     if local_i32 > 0 {
         panic!("p4 {local_i32}");
@@ -182,7 +211,7 @@ fn _under_msrv() {
 #[clippy::msrv = "1.58"]
 fn _meets_msrv() {
     let local_i32 = 1;
-    println!("expand='{}'", local_i32);
+    println!("expand='{}'", local_i32); //~ uninlined_format_args
 }
 
 fn _do_not_fire() {

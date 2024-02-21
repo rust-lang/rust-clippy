@@ -30,12 +30,14 @@ fn main() {
     let b = 2;
     let c = 3;
     // Lint
+    //~v match_single_binding
     match (a, b, c) {
         (x, y, z) => {
             println!("{} {} {}", x, y, z);
         },
     }
     // Lint
+    //~v match_single_binding
     match (a, b, c) {
         (x, y, z) => println!("{} {} {}", x, y, z),
     }
@@ -53,10 +55,12 @@ fn main() {
         _ => println!("None"),
     }
     // Lint
+    //~v match_single_binding
     match a {
         _ => println!("whatever"),
     }
     // Lint
+    //~v match_single_binding
     match a {
         _ => {
             let x = 29;
@@ -64,6 +68,7 @@ fn main() {
         },
     }
     // Lint
+    //~v match_single_binding
     match a {
         _ => {
             let e = 5 * a;
@@ -74,24 +79,29 @@ fn main() {
     }
     // Lint
     let p = Point { x: 0, y: 7 };
+    //~v match_single_binding
     match p {
         Point { x, y } => println!("Coords: ({}, {})", x, y),
     }
     // Lint
+    //~v match_single_binding
     match p {
         Point { x: x1, y: y1 } => println!("Coords: ({}, {})", x1, y1),
     }
     // Lint
     let x = 5;
+    //~v match_single_binding
     match x {
         ref r => println!("Got a reference to {}", r),
     }
     // Lint
     let mut x = 5;
+    //~v match_single_binding
     match x {
         ref mut mr => println!("Got a mutable reference to {}", mr),
     }
     // Lint
+    //~v match_single_binding
     let product = match coords() {
         Point { x, y } => x * y,
     };
@@ -100,6 +110,7 @@ fn main() {
     #[allow(clippy::let_and_return)]
     let _ = v
         .iter()
+        //~v match_single_binding
         .map(|i| match i.unwrap() {
             unwrapped => unwrapped,
         })
@@ -126,6 +137,7 @@ fn main() {
 
     // Lint
     let x = 1;
+    //~v match_single_binding
     match x {
         // =>
         _ => println!("Not an array index start"),
@@ -135,6 +147,7 @@ fn main() {
 fn issue_8723() {
     let (mut val, idx) = ("a b", 1);
 
+    //~v match_single_binding
     val = match val.split_at(idx) {
         (pre, suf) => {
             println!("{}", pre);
@@ -148,12 +161,14 @@ fn issue_8723() {
 fn side_effects() {}
 
 fn issue_9575() {
+    //~v match_single_binding
     let _ = || match side_effects() {
         _ => println!("Needs curlies"),
     };
 }
 
 fn issue_9725(r: Option<u32>) {
+    //~v match_single_binding
     match r {
         x => match x {
             Some(_) => {
@@ -167,37 +182,46 @@ fn issue_9725(r: Option<u32>) {
 }
 
 fn issue_10447() -> usize {
+    //~v match_single_binding
     match 1 {
         _ => (),
     }
 
+    //~v match_single_binding
     let a = match 1 {
         _ => (),
     };
 
+    //~v match_single_binding
     match 1 {
         _ => side_effects(),
     }
 
+    //~v match_single_binding
     let b = match 1 {
         _ => side_effects(),
     };
 
+    //~v match_single_binding
     match 1 {
         _ => println!("1"),
     }
 
+    //~v match_single_binding
     let c = match 1 {
         _ => println!("1"),
     };
 
     let in_expr = [
+        //~v match_single_binding
         match 1 {
             _ => (),
         },
+        //~v match_single_binding
         match 1 {
             _ => side_effects(),
         },
+        //~v match_single_binding
         match 1 {
             _ => println!("1"),
         },

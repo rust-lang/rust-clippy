@@ -57,6 +57,7 @@ pub async fn lines() {
 pub async fn macro_expn() {
     macro_rules! macro_ {
         () => {
+            //~v large_futures
             async {
                 let x = [0i32; 1024 * 16];
                 async {}.await;

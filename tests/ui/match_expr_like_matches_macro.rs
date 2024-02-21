@@ -11,24 +11,28 @@ fn main() {
     let x = Some(5);
 
     // Lint
+    //~v match_like_matches_macro
     let _y = match x {
         Some(0) => true,
         _ => false,
     };
 
     // Lint
+    //~v redundant_pattern_matching
     let _w = match x {
         Some(_) => true,
         _ => false,
     };
 
     // Turn into is_none
+    //~v redundant_pattern_matching
     let _z = match x {
         Some(_) => false,
         None => true,
     };
 
     // Lint
+    //~v match_like_matches_macro
     let _zz = match x {
         Some(r) if r == 0 => false,
         _ => true,
@@ -36,6 +40,7 @@ fn main() {
 
     // Lint
     let _zzz = if let Some(5) = x { true } else { false };
+    //~^ match_like_matches_macro
 
     // No lint
     let _a = match x {
@@ -59,6 +64,7 @@ fn main() {
     let x = E::A(2);
     {
         // lint
+        //~v match_like_matches_macro
         let _ans = match x {
             E::A(_) => true,
             E::B(_) => true,
@@ -69,6 +75,7 @@ fn main() {
         // lint
         // skip rustfmt to prevent removing block for first pattern
         #[rustfmt::skip]
+        //~v match_like_matches_macro
         let _ans = match x {
             E::A(_) => {
                 true
@@ -79,6 +86,7 @@ fn main() {
     }
     {
         // lint
+        //~v match_like_matches_macro
         let _ans = match x {
             E::B(_) => false,
             E::C => false,
@@ -139,6 +147,7 @@ fn main() {
     {
         // should print "z" in suggestion (#6503)
         let z = &Some(3);
+        //~v match_like_matches_macro
         let _z = match &z {
             Some(3) => true,
             _ => false,
@@ -148,6 +157,7 @@ fn main() {
     {
         // this could also print "z" in suggestion..?
         let z = Some(3);
+        //~v match_like_matches_macro
         let _z = match &z {
             Some(3) => true,
             _ => false,
@@ -165,6 +175,7 @@ fn main() {
         fn main() {
             let z = AnEnum::X;
             // we can't remove the reference here!
+            //~v match_like_matches_macro
             let _ = match &z {
                 AnEnum::X => true,
                 _ => false,
@@ -179,6 +190,7 @@ fn main() {
         fn fun(_val: Option<S>) {}
         let val = Some(S(42));
         // we need the reference here because later val is consumed by fun()
+        //~v match_like_matches_macro
         let _res = match &val {
             &Some(ref _a) => true,
             _ => false,
@@ -191,6 +203,7 @@ fn main() {
 
         fn fun(_val: Option<S>) {}
         let val = Some(S(42));
+        //~v match_like_matches_macro
         let _res = match &val {
             &Some(ref _a) => true,
             _ => false,
@@ -249,6 +262,7 @@ fn msrv_1_41() {
 
 #[clippy::msrv = "1.42"]
 fn msrv_1_42() {
+    //~v match_like_matches_macro
     let _y = match Some(5) {
         Some(0) => true,
         _ => false,

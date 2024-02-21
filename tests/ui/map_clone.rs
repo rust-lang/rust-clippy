@@ -11,11 +11,14 @@
 
 fn main() {
     let _: Vec<i8> = vec![5_i8; 6].iter().map(|x| *x).collect();
+    //~^ map_clone
     let _: Vec<String> = vec![String::new()].iter().map(|x| x.clone()).collect();
+    //~^ map_clone
     let _: Vec<u32> = vec![42, 43].iter().map(|&x| x).collect();
+    //~^ map_clone
     let _: Option<u64> = Some(Box::new(16)).map(|b| *b);
-    let _: Option<u64> = Some(&16).map(|b| *b);
-    let _: Option<u8> = Some(&1).map(|x| x.clone());
+    let _: Option<u64> = Some(&16).map(|b| *b); //~ map_clone
+    let _: Option<u8> = Some(&1).map(|x| x.clone()); //~ map_clone
 
     // Don't lint these
     let v = vec![5_i8; 6];
@@ -26,7 +29,7 @@ fn main() {
     let _ = v.iter().map(|&_x| a);
 
     // Issue #498
-    let _ = std::env::args().map(|v| v.clone());
+    let _ = std::env::args().map(|v| v.clone()); //~ map_clone
 
     // Issue #4824 item types that aren't references
     {

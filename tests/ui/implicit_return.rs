@@ -8,18 +8,20 @@ fn test_end_of_fn() -> bool {
         return true;
     }
 
-    true
+    true //~ implicit_return
 }
 
 fn test_if_block() -> bool {
     if true { true } else { false }
+    //~^ implicit_return
+    //~| implicit_return
 }
 
 #[rustfmt::skip]
 fn test_match(x: bool) -> bool {
     match x {
-        true => false,
-        false => { true },
+        true => false, //~ implicit_return
+        false => { true }, //~ implicit_return
     }
 }
 
@@ -32,14 +34,14 @@ fn test_match_with_unreachable(x: bool) -> bool {
 
 fn test_loop() -> bool {
     loop {
-        break true;
+        break true; //~ implicit_return
     }
 }
 
 fn test_loop_with_block() -> bool {
     loop {
         {
-            break true;
+            break true; //~ implicit_return
         }
     }
 }
@@ -47,7 +49,7 @@ fn test_loop_with_block() -> bool {
 fn test_loop_with_nests() -> bool {
     loop {
         if true {
-            break true;
+            break true; //~ implicit_return
         } else {
             let _ = true;
         }
@@ -65,8 +67,8 @@ fn test_loop_with_if_let() -> bool {
 
 fn test_closure() {
     #[rustfmt::skip]
-    let _ = || { true };
-    let _ = || true;
+    let _ = || { true }; //~ implicit_return
+    let _ = || true; //~ implicit_return
 }
 
 fn test_panic() -> bool {
@@ -74,7 +76,7 @@ fn test_panic() -> bool {
 }
 
 fn test_return_macro() -> String {
-    format!("test {}", "test")
+    format!("test {}", "test") //~ implicit_return
 }
 
 fn macro_branch_test() -> bool {
@@ -83,18 +85,18 @@ fn macro_branch_test() -> bool {
             if true { $t } else { $f }
         };
     }
-    m!(true, false)
+    m!(true, false) //~ implicit_return
 }
 
 fn loop_test() -> bool {
     'outer: loop {
         if true {
-            break true;
+            break true; //~ implicit_return
         }
 
         let _ = loop {
             if false {
-                break 'outer false;
+                break 'outer false; //~ implicit_return
             }
             if true {
                 break true;
@@ -109,6 +111,7 @@ fn loop_macro_test() -> bool {
             break $e
         };
     }
+    //~v implicit_return
     loop {
         m!(true);
     }
@@ -123,7 +126,7 @@ fn divergent_test() -> bool {
 
 // issue #6940
 async fn foo() -> bool {
-    true
+    true //~ implicit_return
 }
 
 fn main() {}

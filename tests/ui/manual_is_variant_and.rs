@@ -10,16 +10,20 @@ fn option_methods() {
 
     // Check for `option.map(_).unwrap_or_default()` use.
     // Single line case.
+    //~v manual_is_variant_and
     let _ = opt.map(|x| x > 1)
         // Should lint even though this call is on a separate line.
         .unwrap_or_default();
     // Multi-line cases.
+    //~v manual_is_variant_and
     let _ = opt.map(|x| {
         x > 1
     }
     ).unwrap_or_default();
     let _ = opt.map(|x| x > 1).unwrap_or_default();
+    //~^ manual_is_variant_and
     let _ = opt
+        //~v manual_is_variant_and
         .map(|x| x > 1)
         .unwrap_or_default();
 
@@ -27,6 +31,7 @@ fn option_methods() {
     let _ = opt.map(|x| x + 1).unwrap_or_default();
 
     let opt2 = Some('a');
+    //~v manual_is_variant_and
     let _ = opt2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
     let _ = opt_map!(opt2, |x| x == 'a').unwrap_or_default(); // should not lint
 }
@@ -36,10 +41,12 @@ fn result_methods() {
     let res: Result<i32, ()> = Ok(1);
 
     // multi line cases
+    //~v manual_is_variant_and
     let _ = res.map(|x| {
         x > 1
     }
     ).unwrap_or_default();
+    //~v manual_is_variant_and
     let _ = res.map(|x| x > 1)
         .unwrap_or_default();
 
@@ -47,6 +54,7 @@ fn result_methods() {
     let _ = res.map(|x| x + 1).unwrap_or_default();
 
     let res2: Result<char, ()> = Ok('a');
+    //~v manual_is_variant_and
     let _ = res2.map(char::is_alphanumeric).unwrap_or_default(); // should lint
     let _ = opt_map!(res2, |x| x == 'a').unwrap_or_default(); // should not lint
 }

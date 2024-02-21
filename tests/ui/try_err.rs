@@ -19,7 +19,7 @@ pub fn basic_test() -> Result<i32, i32> {
     let err: i32 = 1;
     // To avoid warnings during rustfix
     if true {
-        Err(err)?;
+        Err(err)?; //~ try_err
     }
     Ok(0)
 }
@@ -29,7 +29,7 @@ pub fn into_test() -> Result<i32, i32> {
     let err: u8 = 1;
     // To avoid warnings during rustfix
     if true {
-        Err(err)?;
+        Err(err)?; //~ try_err
     }
     Ok(0)
 }
@@ -49,7 +49,7 @@ pub fn closure_matches_test() -> Result<i32, i32> {
             let err: i8 = 1;
             // To avoid warnings during rustfix
             if true {
-                Err(err)?;
+                Err(err)?; //~ try_err
             }
             Ok(i)
         })
@@ -68,7 +68,7 @@ pub fn closure_into_test() -> Result<i32, i32> {
             let err: i8 = 1;
             // To avoid warnings during rustfix
             if true {
-                Err(err)?;
+                Err(err)?; //~ try_err
             }
             Ok(i)
         })
@@ -88,14 +88,14 @@ fn calling_macro() -> Result<i32, i32> {
     inline!(
         match $(Ok::<_, i32>(5)) {
             Ok(_) => 0,
-            Err(_) => Err(1)?,
+            Err(_) => Err(1)?, //~ try_err
         }
     );
     // `Err` arg is another macro
     inline!(
         match $(Ok::<_, i32>(5)) {
             Ok(_) => 0,
-            Err(_) => Err(inline!(1))?,
+            Err(_) => Err(inline!(1))?, //~ try_err
         }
     );
     Ok(5)
@@ -123,15 +123,17 @@ fn main() {
 pub fn macro_inside(fail: bool) -> Result<i32, String> {
     if fail {
         Err(inline!(inline!(String::from("aasdfasdfasdfa"))))?;
+        //~^ try_err
     }
     Ok(0)
 }
 
 pub fn poll_write(n: usize) -> Poll<io::Result<usize>> {
     if n == 0 {
-        Err(io::ErrorKind::WriteZero)?
+        Err(io::ErrorKind::WriteZero)? //~ try_err
     } else if n == 1 {
         Err(io::Error::new(io::ErrorKind::InvalidInput, "error"))?
+        //~^ try_err
     };
 
     Poll::Ready(Ok(n))
@@ -139,7 +141,7 @@ pub fn poll_write(n: usize) -> Poll<io::Result<usize>> {
 
 pub fn poll_next(ready: bool) -> Poll<Option<io::Result<()>>> {
     if !ready {
-        Err(io::ErrorKind::NotFound)?
+        Err(io::ErrorKind::NotFound)? //~ try_err
     }
 
     Poll::Ready(None)
@@ -148,7 +150,7 @@ pub fn poll_next(ready: bool) -> Poll<Option<io::Result<()>>> {
 // Tests that `return` is not duplicated
 pub fn try_return(x: bool) -> Result<i32, i32> {
     if x {
-        return Err(42)?;
+        return Err(42)?; //~ try_err
     }
     Ok(0)
 }

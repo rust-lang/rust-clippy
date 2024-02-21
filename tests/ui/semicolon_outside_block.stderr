@@ -25,7 +25,7 @@ LL +     unsafe { unit_fn_block() };
    |
 
 error: consider moving the `;` outside the block for consistent formatting
-  --> $DIR/semicolon_outside_block.rs:51:5
+  --> $DIR/semicolon_outside_block.rs:52:5
    |
 LL | /     {
 LL | |         unit_fn_block();
@@ -40,7 +40,7 @@ LL ~     };
    |
 
 error: consider moving the `;` outside the block for consistent formatting
-  --> $DIR/semicolon_outside_block.rs:61:5
+  --> $DIR/semicolon_outside_block.rs:62:5
    |
 LL |     { m!(()); }
    |     ^^^^^^^^^^^

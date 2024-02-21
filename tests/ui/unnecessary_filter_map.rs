@@ -158,4 +158,5 @@ fn issue11260() {
     // #11260 is about unnecessary_find_map, but the fix also kind of applies to
     // unnecessary_filter_map
     let _x = std::iter::once(1).filter_map(|n| (n > 1).then_some(n));
+    //~^ unnecessary_filter_map
 }

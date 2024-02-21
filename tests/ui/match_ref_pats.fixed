@@ -5,6 +5,7 @@
 fn ref_pats() {
     {
         let v = &Some(0);
+        //~v match_ref_pats
         match *v {
             Some(v) => println!("{:?}", v),
             None => println!("none"),
@@ -22,6 +23,7 @@ fn ref_pats() {
     }
     // Special case: using `&` both in expr and pats.
     let w = Some(0);
+    //~v match_ref_pats
     match w {
         Some(v) => println!("{:?}", v),
         None => println!("none"),
@@ -34,11 +36,13 @@ fn ref_pats() {
     }
 
     let a = &Some(0);
+    //~v redundant_pattern_matching
     if a.is_none() {
         println!("none");
     }
 
     let b = Some(0);
+    //~v redundant_pattern_matching
     if b.is_none() {
         println!("none");
     }
@@ -99,6 +103,7 @@ mod issue_7740 {
 
     fn issue_7740() {
         // Issue #7740
+        //~v match_ref_pats
         match *foobar_variant!(0) {
             FooBar::Foo => println!("Foo"),
             FooBar::Bar => println!("Bar"),

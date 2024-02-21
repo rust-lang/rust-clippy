@@ -26,55 +26,55 @@ LL |     CStr::from_bytes_with_nul(b"foo\0").unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use a `c""` literal: `c"foo"`
 
 error: calling `CStr::new` with a byte string literal
-  --> $DIR/manual_c_str_literals.rs:38:5
+  --> $DIR/manual_c_str_literals.rs:39:5
    |
 LL |     CStr::from_bytes_with_nul(b"foo\\0sdsd\0").unwrap();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use a `c""` literal: `c"foo\\0sdsd"`
 
 error: calling `CStr::from_ptr` with a byte string literal
-  --> $DIR/manual_c_str_literals.rs:43:14
+  --> $DIR/manual_c_str_literals.rs:45:14
    |
 LL |     unsafe { CStr::from_ptr(b"foo\0".as_ptr().cast()) };
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use a `c""` literal: `c"foo"`
 
 error: calling `CStr::from_ptr` with a byte string literal
-  --> $DIR/manual_c_str_literals.rs:44:14
+  --> $DIR/manual_c_str_literals.rs:47:14
    |
 LL |     unsafe { CStr::from_ptr(b"foo\0".as_ptr() as *const _) };
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use a `c""` literal: `c"foo"`
 
 error: manually constructing a nul-terminated string
-  --> $DIR/manual_c_str_literals.rs:45:23
+  --> $DIR/manual_c_str_literals.rs:49:23
    |
 LL |     let _: *const _ = b"foo\0".as_ptr();
    |                       ^^^^^^^^ help: use a `c""` literal: `c"foo"`
 
 error: manually constructing a nul-terminated string
-  --> $DIR/manual_c_str_literals.rs:46:23
+  --> $DIR/manual_c_str_literals.rs:50:23
    |
 LL |     let _: *const _ = "foo\0".as_ptr();
    |                       ^^^^^^^ help: use a `c""` literal: `c"foo"`
 
 error: manually constructing a nul-terminated string
-  --> $DIR/manual_c_str_literals.rs:49:23
+  --> $DIR/manual_c_str_literals.rs:53:23
    |
 LL |     let _: *const _ = b"foo\0".as_ptr().cast::<i8>();
    |                       ^^^^^^^^ help: use a `c""` literal: `c"foo"`
 
 error: manually constructing a nul-terminated string
-  --> $DIR/manual_c_str_literals.rs:52:13
+  --> $DIR/manual_c_str_literals.rs:57:13
    |
 LL |     let _ = "电脑\\\0".as_ptr();
    |             ^^^^^^^^^^ help: use a `c""` literal: `c"电脑\\"`
 
 error: manually constructing a nul-terminated string
-  --> $DIR/manual_c_str_literals.rs:53:13
+  --> $DIR/manual_c_str_literals.rs:58:13
    |
 LL |     let _ = "电脑\0".as_ptr();
    |             ^^^^^^^^ help: use a `c""` literal: `c"电脑"`
 
 error: manually constructing a nul-terminated string
-  --> $DIR/manual_c_str_literals.rs:54:13
+  --> $DIR/manual_c_str_literals.rs:59:13
    |
 LL |     let _ = "电脑\x00".as_ptr();
    |             ^^^^^^^^^^ help: use a `c""` literal: `c"电脑"`

@@ -6,7 +6,7 @@ fn main() {
     where
         for<'a> &'a T: IntoIterator<Item = &'a String>,
     {
-        for _ in iterator.into_iter() {}
+        for _ in iterator.into_iter() {} //~ explicit_into_iter_loop
     }
 
     struct T;
@@ -19,10 +19,10 @@ fn main() {
     }
 
     let mut t = T;
-    for _ in t.into_iter() {}
+    for _ in t.into_iter() {} //~ explicit_into_iter_loop
 
     let r = &t;
-    for _ in r.into_iter() {}
+    for _ in r.into_iter() {} //~ explicit_into_iter_loop
 
     // No suggestion for this.
     // We'd have to suggest `for _ in *rr {}` which is less clear.
@@ -30,7 +30,7 @@ fn main() {
     for _ in rr.into_iter() {}
 
     let mr = &mut t;
-    for _ in mr.into_iter() {}
+    for _ in mr.into_iter() {} //~ explicit_into_iter_loop
 
     struct U;
     impl IntoIterator for &mut U {
@@ -42,10 +42,10 @@ fn main() {
     }
 
     let mut u = U;
-    for _ in u.into_iter() {}
+    for _ in u.into_iter() {} //~ explicit_into_iter_loop
 
     let mr = &mut u;
-    for _ in mr.into_iter() {}
+    for _ in mr.into_iter() {} //~ explicit_into_iter_loop
 
     // Issue #6900
     struct S;

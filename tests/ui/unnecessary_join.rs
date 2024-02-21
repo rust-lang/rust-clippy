@@ -7,6 +7,7 @@ fn main() {
     let output = vector
         .iter()
         .map(|item| item.to_uppercase())
+        //~v unnecessary_join
         .collect::<Vec<String>>()
         .join("");
     println!("{}", output);
@@ -16,6 +17,7 @@ fn main() {
     let output = vector
         .iter()
         .map(|item| item.to_uppercase())
+        //~v unnecessary_join
         .collect::<Vec<_>>()
         .join("");
     println!("{}", output);

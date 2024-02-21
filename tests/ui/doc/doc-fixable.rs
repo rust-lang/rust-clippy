@@ -6,13 +6,22 @@
 #![feature(custom_inner_attributes, generic_const_exprs, const_option)]
 #![rustfmt::skip]
 
+//~| doc_markdown
+//~v doc_markdown
 /// The foo_bar function does _nothing_. See also foo::bar. (note the dot there)
+//~v doc_markdown
 /// Markdown is _weird_. I mean _really weird_. This \_ is ok. So is `_`. But not Foo::some_fun
 /// which should be reported only once despite being __doubly bad__.
+//~| doc_markdown
+//~v doc_markdown
 /// Here be ::a::global:path, and _::another::global::path_.  :: is not a path though.
+//~v doc_markdown
 /// Import an item from ::awesome::global::blob:: (Intended postfix)
+//~v doc_markdown
 /// These are the options for ::Cat: (Intended trailing single colon, shouldn't be linted)
+//~v doc_markdown
 /// That's not code ~NotInCodeBlock~.
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn foo_bar() {
 }
@@ -27,6 +36,7 @@ fn foo_bar() {
 /// foo_bar FOO_BAR
 /// _foo bar_
 /// ~~~
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn multiline_codeblock() {
 }
@@ -34,6 +44,7 @@ fn multiline_codeblock() {
 /// This _is a test for
 /// multiline
 /// emphasis_.
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn test_emphasis() {
 }
@@ -48,6 +59,7 @@ fn test_emphasis() {
 /// 32kB 32MB 32GB 32TB 32PB 32EB
 /// 32kb 32Mb 32Gb 32Tb 32Pb 32Eb
 /// NaN
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn test_units() {
 }
@@ -72,6 +84,7 @@ fn test_units() {
 /// TeX LaTeX BibTeX BibLaTeX
 /// MinGW
 /// CamelCase (see also #2395)
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn test_allowed() {
 }
@@ -89,6 +102,7 @@ fn test_allowed() {
 ///
 /// expression of the type  `_ <bit_op> m <cmp_op> c` (where `<bit_op>`
 /// is one of {`&`, '|'} and `<cmp_op>` is one of {`!=`, `>=`, `>` ,
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn main() {
     foo_bar();
@@ -97,12 +111,16 @@ fn main() {
     test_units();
 }
 
+//~v doc_markdown
 /// ## CamelCaseThing
 /// Talks about `CamelCaseThing`. Titles should be ignored; see issue #897.
 ///
+//~v doc_markdown
 /// # CamelCaseThing
 ///
+//~v doc_markdown
 /// Not a title #897 CamelCaseThing
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn issue897() {
 }
@@ -110,6 +128,7 @@ fn issue897() {
 /// I am confused by brackets? (`x_y`)
 /// I am confused by brackets? (foo `x_y`)
 /// I am confused by brackets? (`x_y` foo)
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn issue900() {
 }
@@ -123,6 +142,7 @@ fn issue900() {
 ///
 /// [iterator]: https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html
 /// [helper_types]: ../helper_types/index.html
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn issue883() {
 }
@@ -134,23 +154,31 @@ fn issue883() {
 fn multiline() {
 }
 
+//~vvvvvvvvvv doc_markdown
+//~vvvvvvv doc_markdown
+//~v doc_markdown
 /** E.g., serialization of an empty list: FooBar
 ```
 That's in a code block: `PackedNode`
 ```
 
 And BarQuz too.
+
 be_sure_we_got_to_the_end_of_it
 */
 fn issue1073() {
 }
 
+//~vvvvvvvvvv doc_markdown
+//~vvvvvvv doc_markdown
+//~v doc_markdown
 /** E.g., serialization of an empty list: FooBar
 ```
 That's in a code block: PackedNode
 ```
 
 And BarQuz too.
+
 be_sure_we_got_to_the_end_of_it
 */
 fn issue1073_alt() {
@@ -162,6 +190,7 @@ fn issue1073_alt() {
 /// ```
 /// StillDont
 /// ````
+//~v doc_markdown
 /// be_sure_we_got_to_the_end_of_it
 fn four_quotes() {
 }
@@ -181,6 +210,7 @@ fn issue_1469() {}
  */
 fn issue_1920() {}
 
+//~v doc_markdown
 /// An iterator over mycrate::Collection's values.
 /// It should not lint a `'static` lifetime in ticks.
 fn issue_2210() {}
@@ -205,6 +235,7 @@ fn intra_doc_link() {}
 /// \\]
 fn issue_2581() {}
 
+//~v doc_markdown
 /// Foo \[bar\] \[baz\] \[qux\]. DocMarkdownLint
 fn lint_after_escaped_chars() {}
 
@@ -228,5 +259,7 @@ where [(); N.checked_next_power_of_two().unwrap()]: {
 /// this checks if the lowerCamelCase issue is fixed
 fn issue_11568() {}
 
+//~| doc_markdown
+//~v doc_markdown
 /// There is no try (do() or do_not()).
 fn parenthesized_word() {}

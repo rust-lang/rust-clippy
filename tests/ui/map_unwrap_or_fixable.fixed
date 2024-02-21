@@ -13,6 +13,7 @@ fn option_methods() {
 
     // Check for `option.map(_).unwrap_or_else(_)` use.
     // single line case
+    //~v map_unwrap_or
     let _ = opt.map_or_else(|| 0, |x| x + 1);
 
     // Macro case.
@@ -41,6 +42,7 @@ fn result_methods() {
 
     // Check for `result.map(_).unwrap_or_else(_)` use.
     // single line case
+    //~v map_unwrap_or
     let _ = res.map_or_else(|_e| 0, |x| x + 1);
 
     // macro case

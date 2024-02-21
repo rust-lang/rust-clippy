@@ -79,19 +79,19 @@ LL |     let _x = some_and_qmark_in_macro!(x?);
    = note: this error originates in the macro `some_and_qmark_in_macro` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: question mark operator is useless here
-  --> $DIR/needless_question_mark.rs:128:5
+  --> $DIR/needless_question_mark.rs:129:5
    |
 LL |     Some(to.magic?)
    |     ^^^^^^^^^^^^^^^ help: try removing question mark and `Some()`: `to.magic`
 
 error: question mark operator is useless here
-  --> $DIR/needless_question_mark.rs:136:5
+  --> $DIR/needless_question_mark.rs:137:5
    |
 LL |     Ok(s.magic?)
    |     ^^^^^^^^^^^^ help: try removing question mark and `Ok()`: `s.magic`
 
 error: question mark operator is useless here
-  --> $DIR/needless_question_mark.rs:140:7
+  --> $DIR/needless_question_mark.rs:141:7
    |
 LL |     { Some(a?) }
    |       ^^^^^^^^ help: try removing question mark and `Some()`: `a`

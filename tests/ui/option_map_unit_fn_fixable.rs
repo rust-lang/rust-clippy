@@ -34,53 +34,68 @@ fn option_map_unit_fn() {
     x.field.map(plus_one);
     let _ : Option<()> = x.field.map(do_nothing);
 
-    x.field.map(do_nothing);
+    x.field.map(do_nothing); //~ option_map_unit_fn
 
-    x.field.map(do_nothing);
+    x.field.map(do_nothing); //~ option_map_unit_fn
 
-    x.field.map(diverge);
+    x.field.map(diverge); //~ option_map_unit_fn
 
     let captured = 10;
     if let Some(value) = x.field { do_nothing(value + captured) };
     let _ : Option<()> = x.field.map(|value| do_nothing(value + captured));
 
     x.field.map(|value| x.do_option_nothing(value + captured));
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { x.do_option_plus_one(value + captured); });
+    //~^ option_map_unit_fn
 
 
     x.field.map(|value| do_nothing(value + captured));
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { do_nothing(value + captured) });
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { do_nothing(value + captured); });
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { { do_nothing(value + captured); } });
+    //~^ option_map_unit_fn
 
 
     x.field.map(|value| diverge(value + captured));
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { diverge(value + captured) });
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { diverge(value + captured); });
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { { diverge(value + captured); } });
+    //~^ option_map_unit_fn
 
 
     x.field.map(|value| plus_one(value + captured));
     x.field.map(|value| { plus_one(value + captured) });
     x.field.map(|value| { let y = plus_one(value + captured); });
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { plus_one(value + captured); });
+    //~^ option_map_unit_fn
 
     x.field.map(|value| { { plus_one(value + captured); } });
+    //~^ option_map_unit_fn
 
 
     x.field.map(|ref value| { do_nothing(value + captured) });
+    //~^ option_map_unit_fn
 
-    option().map(do_nothing);
+    option().map(do_nothing); //~ option_map_unit_fn
 
     option().map(|value| println!("{:?}", value));
+    //~^ option_map_unit_fn
 }
 
 fn main() {}

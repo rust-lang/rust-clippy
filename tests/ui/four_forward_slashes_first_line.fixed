@@ -1,3 +1,4 @@
+//~v four_forward_slashes
 /// borked doc comment on the first line. doesn't combust!
 fn a() {}
 

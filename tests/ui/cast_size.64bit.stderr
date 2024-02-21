@@ -97,7 +97,7 @@ LL |     1usize as i32;
    = help: to override `-D warnings` add `#[allow(clippy::cast_possible_wrap)]`
 
 error: casting `i64` to `isize` may truncate the value on targets with 32-bit wide pointers
-  --> $DIR/cast_size.rs:26:5
+  --> $DIR/cast_size.rs:28:5
    |
 LL |     1i64 as isize;
    |     ^^^^^^^^^^^^^
@@ -109,7 +109,7 @@ LL |     isize::try_from(1i64);
    |     ~~~~~~~~~~~~~~~~~~~~~
 
 error: casting `i64` to `usize` may truncate the value on targets with 32-bit wide pointers
-  --> $DIR/cast_size.rs:27:5
+  --> $DIR/cast_size.rs:29:5
    |
 LL |     1i64 as usize;
    |     ^^^^^^^^^^^^^
@@ -121,7 +121,7 @@ LL |     usize::try_from(1i64);
    |     ~~~~~~~~~~~~~~~~~~~~~
 
 error: casting `u64` to `isize` may truncate the value on targets with 32-bit wide pointers
-  --> $DIR/cast_size.rs:28:5
+  --> $DIR/cast_size.rs:30:5
    |
 LL |     1u64 as isize;
    |     ^^^^^^^^^^^^^
@@ -133,13 +133,13 @@ LL |     isize::try_from(1u64);
    |     ~~~~~~~~~~~~~~~~~~~~~
 
 error: casting `u64` to `isize` may wrap around the value on targets with 64-bit wide pointers
-  --> $DIR/cast_size.rs:28:5
+  --> $DIR/cast_size.rs:30:5
    |
 LL |     1u64 as isize;
    |     ^^^^^^^^^^^^^
 
 error: casting `u64` to `usize` may truncate the value on targets with 32-bit wide pointers
-  --> $DIR/cast_size.rs:29:5
+  --> $DIR/cast_size.rs:33:5
    |
 LL |     1u64 as usize;
    |     ^^^^^^^^^^^^^
@@ -151,19 +151,19 @@ LL |     usize::try_from(1u64);
    |     ~~~~~~~~~~~~~~~~~~~~~
 
 error: casting `u32` to `isize` may wrap around the value on targets with 32-bit wide pointers
-  --> $DIR/cast_size.rs:30:5
+  --> $DIR/cast_size.rs:34:5
    |
 LL |     1u32 as isize;
    |     ^^^^^^^^^^^^^
 
 error: casting `i32` to `f32` causes a loss of precision (`i32` is 32 bits wide, but `f32`'s mantissa is only 23 bits wide)
-  --> $DIR/cast_size.rs:35:5
+  --> $DIR/cast_size.rs:39:5
    |
 LL |     999_999_999 as f32;
    |     ^^^^^^^^^^^^^^^^^^
 
 error: casting `usize` to `f64` causes a loss of precision on targets with 64-bit wide pointers (`usize` is 64 bits wide, but `f64`'s mantissa is only 52 bits wide)
-  --> $DIR/cast_size.rs:36:5
+  --> $DIR/cast_size.rs:40:5
    |
 LL |     9_999_999_999_999_999usize as f64;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

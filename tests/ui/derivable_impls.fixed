@@ -18,11 +18,13 @@ struct FooDefault<'a> {
     l: &'a [i32],
 }
 
+//~v derivable_impls
 
 
 #[derive(Default)]
 struct TupleDefault(bool, i32, u64);
 
+//~v derivable_impls
 
 
 struct FooND1 {
@@ -72,6 +74,7 @@ impl Default for FooNDVec {
 #[derive(Default)]
 struct StrDefault<'a>(&'a str);
 
+//~v derivable_impls
 
 
 #[derive(Default)]
@@ -95,6 +98,7 @@ mac!(0);
 
 #[derive(Default)]
 struct Y(u32);
+//~v derivable_impls
 
 
 struct RustIssue26925<T> {
@@ -131,11 +135,13 @@ struct WithoutSelfCurly {
     a: bool,
 }
 
+//~v derivable_impls
 
 
 #[derive(Default)]
 struct WithoutSelfParan(bool);
 
+//~v derivable_impls
 
 
 // https://github.com/rust-lang/rust-clippy/issues/7655
@@ -183,6 +189,7 @@ pub struct RepeatDefault1 {
     a: [i8; 32],
 }
 
+//~v derivable_impls
 
 
 pub struct RepeatDefault2 {
@@ -215,6 +222,7 @@ pub enum SimpleEnum {
     Bar,
 }
 
+//~v derivable_impls
 
 
 pub enum NonExhaustiveEnum {

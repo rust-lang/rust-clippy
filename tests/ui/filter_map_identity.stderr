@@ -14,13 +14,13 @@ LL |     let _ = iterator.filter_map(std::convert::identity);
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `flatten()`
 
 error: use of `filter_map` with an identity function
-  --> $DIR/filter_map_identity.rs:13:22
+  --> $DIR/filter_map_identity.rs:14:22
    |
 LL |     let _ = iterator.filter_map(identity);
    |                      ^^^^^^^^^^^^^^^^^^^^ help: try: `flatten()`
 
 error: use of `filter_map` with an identity function
-  --> $DIR/filter_map_identity.rs:16:22
+  --> $DIR/filter_map_identity.rs:17:22
    |
 LL |     let _ = iterator.filter_map(|x| return x);
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `flatten()`

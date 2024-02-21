@@ -51,33 +51,33 @@ fn main() {
     linked_list.push_back(1);
     binary_heap.push(1);
 
-    &vec[..].iter().count();
-    vec.iter().count();
-    boxed_slice.iter().count();
-    vec_deque.iter().count();
-    hash_set.iter().count();
-    hash_map.iter().count();
-    b_tree_map.iter().count();
-    b_tree_set.iter().count();
-    linked_list.iter().count();
-    binary_heap.iter().count();
+    &vec[..].iter().count(); //~ iter_count
+    vec.iter().count(); //~ iter_count
+    boxed_slice.iter().count(); //~ iter_count
+    vec_deque.iter().count(); //~ iter_count
+    hash_set.iter().count(); //~ iter_count
+    hash_map.iter().count(); //~ iter_count
+    b_tree_map.iter().count(); //~ iter_count
+    b_tree_set.iter().count(); //~ iter_count
+    linked_list.iter().count(); //~ iter_count
+    binary_heap.iter().count(); //~ iter_count
 
-    vec.iter_mut().count();
-    &vec[..].iter_mut().count();
-    vec_deque.iter_mut().count();
-    hash_map.iter_mut().count();
-    b_tree_map.iter_mut().count();
-    linked_list.iter_mut().count();
+    vec.iter_mut().count(); //~ iter_count
+    &vec[..].iter_mut().count(); //~ iter_count
+    vec_deque.iter_mut().count(); //~ iter_count
+    hash_map.iter_mut().count(); //~ iter_count
+    b_tree_map.iter_mut().count(); //~ iter_count
+    linked_list.iter_mut().count(); //~ iter_count
 
-    &vec[..].into_iter().count();
-    vec.into_iter().count();
-    vec_deque.into_iter().count();
-    hash_set.into_iter().count();
-    hash_map.into_iter().count();
-    b_tree_map.into_iter().count();
-    b_tree_set.into_iter().count();
-    linked_list.into_iter().count();
-    binary_heap.into_iter().count();
+    &vec[..].into_iter().count(); //~ iter_count
+    vec.into_iter().count(); //~ iter_count
+    vec_deque.into_iter().count(); //~ iter_count
+    hash_set.into_iter().count(); //~ iter_count
+    hash_map.into_iter().count(); //~ iter_count
+    b_tree_map.into_iter().count(); //~ iter_count
+    b_tree_set.into_iter().count(); //~ iter_count
+    linked_list.into_iter().count(); //~ iter_count
+    binary_heap.into_iter().count(); //~ iter_count
 
     // Make sure we don't lint for non-relevant types.
     let false_positive = HasIter;

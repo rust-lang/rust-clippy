@@ -62,13 +62,13 @@ mod weird {
 fn main() {
     let vec = vec![5];
     let _ = return_owned_from_slice(&vec);
-    let _ = vec.clone();
-    let _ = vec.clone();
+    let _ = vec.clone(); //~ implicit_clone
+    let _ = vec.clone(); //~ implicit_clone
 
     let vec_ref = &vec;
     let _ = return_owned_from_slice(vec_ref);
     let _ = vec_ref.to_owned();
-    let _ = vec_ref.clone();
+    let _ = vec_ref.clone(); //~ implicit_clone
 
     // we expect no lint for this
     let _ = weird::to_vec(&vec);
@@ -80,11 +80,11 @@ fn main() {
     let _ = slice.to_vec();
 
     let str = "hello world".to_string();
-    let _ = str.clone();
+    let _ = str.clone(); //~ implicit_clone
 
     // testing w/ an arbitrary type
     let kitten = Kitten {};
-    let _ = kitten.clone();
+    let _ = kitten.clone(); //~ implicit_clone
     let _ = own_same_from_ref(&kitten);
     // this shouldn't lint
     let _ = kitten.to_vec();
@@ -94,12 +94,12 @@ fn main() {
     let _ = borrowed.to_owned();
 
     let pathbuf = PathBuf::new();
-    let _ = pathbuf.clone();
-    let _ = pathbuf.clone();
+    let _ = pathbuf.clone(); //~ implicit_clone
+    let _ = pathbuf.clone(); //~ implicit_clone
 
     let os_string = OsString::from("foo");
-    let _ = os_string.clone();
-    let _ = os_string.clone();
+    let _ = os_string.clone(); //~ implicit_clone
+    let _ = os_string.clone(); //~ implicit_clone
 
     // we expect no lints for this
     let os_str = OsStr::new("foo");
@@ -110,10 +110,10 @@ fn main() {
     let pathbuf_ref = &pathbuf;
     let pathbuf_ref = &pathbuf_ref;
     let _ = pathbuf_ref.to_owned(); // Don't lint. Returns `&PathBuf`
-    let _ = (*pathbuf_ref).clone();
+    let _ = (*pathbuf_ref).clone(); //~ implicit_clone
     let pathbuf_ref = &pathbuf_ref;
     let _ = pathbuf_ref.to_owned(); // Don't lint. Returns `&&PathBuf`
-    let _ = (**pathbuf_ref).clone();
+    let _ = (**pathbuf_ref).clone(); //~ implicit_clone
 
     struct NoClone;
     impl ToOwned for NoClone {

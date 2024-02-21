@@ -12,17 +12,26 @@ fn main() {
     let map: HashMap<u32, u32> = HashMap::new();
 
     let _ = map.iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(_, value)| value).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(_, v)| v + 2).collect::<Vec<_>>();
+    //~^ iter_kv_map
 
     let _ = map.clone().into_iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.clone().into_iter().map(|(key, _)| key + 2).collect::<Vec<_>>();
+    //~^ iter_kv_map
 
     let _ = map.clone().into_iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.clone().into_iter().map(|(_, val)| val + 2).collect::<Vec<_>>();
+    //~^ iter_kv_map
 
     let _ = map.clone().iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(key, _)| key).filter(|x| *x % 2 == 0).count();
+    //~^ iter_kv_map
 
     // Don't lint
     let _ = map.iter().filter(|(_, val)| *val % 2 == 0).map(|(key, _)| key).count();
@@ -33,12 +42,16 @@ fn main() {
 
     // Lint
     let _ = map.iter().map(|(key, _value)| key * 9).count();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(_key, value)| value * 17).count();
+    //~^ iter_kv_map
 
     // Preserve the ref in the fix.
     let _ = map.clone().into_iter().map(|(_, ref val)| ref_acceptor(val)).count();
+    //~^ iter_kv_map
 
     // Preserve the mut in the fix.
+    //~v iter_kv_map
     let _ = map
         .clone()
         .into_iter()
@@ -50,21 +63,31 @@ fn main() {
 
     // Don't let a mut interfere.
     let _ = map.clone().into_iter().map(|(_, mut val)| val).count();
+    //~^ iter_kv_map
 
     let map: BTreeMap<u32, u32> = BTreeMap::new();
 
     let _ = map.iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(_, value)| value).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(_, v)| v + 2).collect::<Vec<_>>();
+    //~^ iter_kv_map
 
     let _ = map.clone().into_iter().map(|(key, _)| key).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.clone().into_iter().map(|(key, _)| key + 2).collect::<Vec<_>>();
+    //~^ iter_kv_map
 
     let _ = map.clone().into_iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.clone().into_iter().map(|(_, val)| val + 2).collect::<Vec<_>>();
+    //~^ iter_kv_map
 
     let _ = map.clone().iter().map(|(_, val)| val).collect::<Vec<_>>();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(key, _)| key).filter(|x| *x % 2 == 0).count();
+    //~^ iter_kv_map
 
     // Don't lint
     let _ = map.iter().filter(|(_, val)| *val % 2 == 0).map(|(key, _)| key).count();
@@ -75,12 +98,16 @@ fn main() {
 
     // Lint
     let _ = map.iter().map(|(key, _value)| key * 9).count();
+    //~^ iter_kv_map
     let _ = map.iter().map(|(_key, value)| value * 17).count();
+    //~^ iter_kv_map
 
     // Preserve the ref in the fix.
     let _ = map.clone().into_iter().map(|(_, ref val)| ref_acceptor(val)).count();
+    //~^ iter_kv_map
 
     // Preserve the mut in the fix.
+    //~v iter_kv_map
     let _ = map
         .clone()
         .into_iter()
@@ -92,6 +119,7 @@ fn main() {
 
     // Don't let a mut interfere.
     let _ = map.clone().into_iter().map(|(_, mut val)| val).count();
+    //~^ iter_kv_map
 }
 
 #[clippy::msrv = "1.53"]

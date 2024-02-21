@@ -2,28 +2,39 @@
 #![allow(unused_variables, dead_code, clippy::useless_vec)]
 
 fn main() {
+    //~v manual_filter
     Some(0).filter(|&x| x <= 0);
 
+    //~v manual_filter
     Some(1).filter(|&x| x <= 0);
 
+    //~v manual_filter
     Some(2).filter(|&x| x <= 0);
 
+    //~v manual_filter
     Some(3).filter(|&x| x > 0);
 
     let y = Some(4);
+    //~v manual_filter
     y.filter(|&x| x <= 0);
 
+    //~v manual_filter
     Some(5).filter(|&x| x > 0);
 
+    //~v manual_filter
     Some(6).as_ref().filter(|&x| x > &0);
 
     let external_cond = true;
+    //~v manual_filter
     Some(String::new()).filter(|x| external_cond);
 
+    //~v manual_filter
     Some(7).filter(|&x| external_cond);
 
+    //~v manual_filter
     Some(8).filter(|&x| x != 0);
 
+    //~v manual_filter
     Some(9).filter(|&x| x > 10 && x < 100);
 
     const fn f1() {
@@ -41,6 +52,7 @@ fn main() {
     }
 
     #[allow(clippy::blocks_in_conditions)]
+    //~v manual_filter
     Some(11).filter(|&x| {
                 println!("foo");
                 x > 10 && x < 100
@@ -75,12 +87,15 @@ fn main() {
     unsafe fn f(x: u32) -> bool {
         true
     }
+    //~v manual_filter
     let _ = Some(14).filter(|&x| unsafe { f(x) });
+    //~v manual_filter
     let _ = Some(15).filter(|&x| unsafe { f(x) });
 
     #[allow(clippy::redundant_pattern_matching)]
     if let Some(_) = Some(16) {
         Some(16)
+    //~v manual_filter
     } else { Some(16).filter(|&x| x % 2 == 0) };
 
     match Some((17, 17)) {

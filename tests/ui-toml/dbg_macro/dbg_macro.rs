@@ -3,22 +3,24 @@
 //@no-rustfix
 fn foo(n: u32) -> u32 {
     if let Some(n) = dbg!(n.checked_sub(4)) { n } else { n }
+    //~^ dbg_macro
 }
 
 fn factorial(n: u32) -> u32 {
+    //~v dbg_macro
     if dbg!(n <= 1) {
-        dbg!(1)
+        dbg!(1) //~ dbg_macro
     } else {
-        dbg!(n * factorial(n - 1))
+        dbg!(n * factorial(n - 1)) //~ dbg_macro
     }
 }
 
 fn main() {
-    dbg!(42);
-    dbg!(dbg!(dbg!(42)));
-    foo(3) + dbg!(factorial(4));
-    dbg!(1, 2, dbg!(3, 4));
-    dbg!(1, 2, 3, 4, 5);
+    dbg!(42); //~ dbg_macro
+    dbg!(dbg!(dbg!(42))); //~ dbg_macro
+    foo(3) + dbg!(factorial(4)); //~ dbg_macro
+    dbg!(1, 2, dbg!(3, 4)); //~ dbg_macro
+    dbg!(1, 2, 3, 4, 5); //~ dbg_macro
 }
 
 #[test]

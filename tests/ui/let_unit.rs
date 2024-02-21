@@ -9,7 +9,7 @@ macro_rules! let_and_return {
 }
 
 fn main() {
-    let _x = println!("x");
+    let _x = println!("x"); //~ let_unit_value
     let _y = 1; // this is fine
     let _z = ((), 1); // this as well
     if true {
@@ -57,6 +57,7 @@ fn consume_units_with_for_loop() {
 fn multiline_sugg() {
     let v: Vec<u8> = vec![2];
 
+    //~v let_unit_value
     let _ = v
         .into_iter()
         .map(|i| i * 2)
@@ -106,6 +107,7 @@ fn _returns_generic() {
     let _: () = if true { f() } else { f2(0) };
     let x: () = if true { f() } else { f2(0) };
 
+    //~v let_unit_value
     let x = match Some(0) {
         None => f2(1),
         Some(0) => f(),

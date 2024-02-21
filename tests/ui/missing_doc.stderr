@@ -20,52 +20,55 @@ LL | fn foo3() {}
    | ^^^^^^^^^^^^
 
 error: missing documentation for an enum
-  --> $DIR/missing_doc.rs:39:1
+  --> $DIR/missing_doc.rs:40:1
    |
 LL | / enum Baz {
 LL | |     BazA { a: isize, b: isize },
+LL | |
+LL | |
+LL | |
 LL | |     BarB,
 LL | | }
    | |_^
 
 error: missing documentation for a variant
-  --> $DIR/missing_doc.rs:40:5
+  --> $DIR/missing_doc.rs:41:5
    |
 LL |     BazA { a: isize, b: isize },
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: missing documentation for a struct field
-  --> $DIR/missing_doc.rs:40:12
+  --> $DIR/missing_doc.rs:41:12
    |
 LL |     BazA { a: isize, b: isize },
    |            ^^^^^^^^
 
 error: missing documentation for a struct field
-  --> $DIR/missing_doc.rs:40:22
+  --> $DIR/missing_doc.rs:41:22
    |
 LL |     BazA { a: isize, b: isize },
    |                      ^^^^^^^^
 
 error: missing documentation for a variant
-  --> $DIR/missing_doc.rs:41:5
+  --> $DIR/missing_doc.rs:45:5
    |
 LL |     BarB,
    |     ^^^^
 
 error: missing documentation for a constant
-  --> $DIR/missing_doc.rs:65:1
+  --> $DIR/missing_doc.rs:69:1
    |
 LL | const FOO: u32 = 0;
    | ^^^^^^^^^^^^^^^^^^^
 
 error: missing documentation for a static
-  --> $DIR/missing_doc.rs:74:1
+  --> $DIR/missing_doc.rs:78:1
    |
 LL | static BAR: u32 = 0;
    | ^^^^^^^^^^^^^^^^^^^^
 
 error: missing documentation for a module
-  --> $DIR/missing_doc.rs:83:1
+  --> $DIR/missing_doc.rs:88:1
    |
 LL | / mod internal_impl {
 LL | |     /// dox
@@ -77,13 +80,13 @@ LL | | }
    | |_^
 
 error: missing documentation for a function
-  --> $DIR/missing_doc.rs:88:5
+  --> $DIR/missing_doc.rs:93:5
    |
 LL |     fn undocumented3() {}
    |     ^^^^^^^^^^^^^^^^^^^^^
 
 error: missing documentation for a function
-  --> $DIR/missing_doc.rs:94:9
+  --> $DIR/missing_doc.rs:99:9
    |
 LL |         fn also_undocumented2() {}
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^

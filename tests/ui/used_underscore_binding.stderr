@@ -49,25 +49,25 @@ LL | fn in_macro_or_desugar(_foo: u32) {
    |                        ^^^^
 
 error: used binding `_underscore_field` which is prefixed with an underscore. A leading underscore signals that a binding will not be used
-  --> $DIR/used_underscore_binding.rs:42:5
+  --> $DIR/used_underscore_binding.rs:44:5
    |
 LL |     s._underscore_field += 1;
    |     ^^^^^^^^^^^^^^^^^^^
    |
 note: `_underscore_field` is defined here
-  --> $DIR/used_underscore_binding.rs:36:5
+  --> $DIR/used_underscore_binding.rs:38:5
    |
 LL |     _underscore_field: u32,
    |     ^^^^^^^^^^^^^^^^^^^^^^
 
 error: used binding `_i` which is prefixed with an underscore. A leading underscore signals that a binding will not be used
-  --> $DIR/used_underscore_binding.rs:103:16
+  --> $DIR/used_underscore_binding.rs:105:16
    |
 LL |         uses_i(_i);
    |                ^^
    |
 note: `_i` is defined here
-  --> $DIR/used_underscore_binding.rs:102:13
+  --> $DIR/used_underscore_binding.rs:104:13
    |
 LL |         let _i = 5;
    |             ^^

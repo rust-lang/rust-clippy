@@ -62,19 +62,19 @@ LL |     let _ = a.mul_add(b, c) * a.mul_add(b, c) + a.mul_add(b, c) + c;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `a.mul_add(b, c).mul_add(a.mul_add(b, c), a.mul_add(b, c))`
 
 error: multiply and add expressions can be calculated more efficiently and accurately
-  --> $DIR/floating_point_mul_add.rs:32:13
+  --> $DIR/floating_point_mul_add.rs:33:13
    |
 LL |     let _ = 1234.567_f64 * 45.67834_f64 + 0.0004_f64;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `1234.567_f64.mul_add(45.67834_f64, 0.0004_f64)`
 
 error: multiply and add expressions can be calculated more efficiently and accurately
-  --> $DIR/floating_point_mul_add.rs:34:13
+  --> $DIR/floating_point_mul_add.rs:36:13
    |
 LL |     let _ = (a * a + b).sqrt();
    |             ^^^^^^^^^^^ help: consider using: `a.mul_add(a, b)`
 
 error: multiply and add expressions can be calculated more efficiently and accurately
-  --> $DIR/floating_point_mul_add.rs:37:13
+  --> $DIR/floating_point_mul_add.rs:39:13
    |
 LL |     let _ = a - (b * u as f64);
    |             ^^^^^^^^^^^^^^^^^^ help: consider using: `b.mul_add(-(u as f64), a)`

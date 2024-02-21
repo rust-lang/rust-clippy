@@ -1,17 +1,17 @@
 #![warn(clippy::mismatched_target_os)]
 #![allow(unused)]
 
-#[cfg(hermit)]
+#[cfg(hermit)] //~ mismatched_target_os
 fn hermit() {}
 
-#[cfg(wasi)]
+#[cfg(wasi)] //~ mismatched_target_os
 fn wasi() {}
 
-#[cfg(none)]
+#[cfg(none)] //~ mismatched_target_os
 fn none() {}
 
 // list with conditions
-#[cfg(all(not(windows), wasi))]
+#[cfg(all(not(windows), wasi))] //~ mismatched_target_os
 fn list() {}
 
 // windows is a valid target family, should be ignored

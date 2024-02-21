@@ -12,27 +12,34 @@ use std::collections::HashMap;
 fn should_lint() {
     let v: Vec<i32> = Vec::new();
     let mut acc = 0;
+    //~v needless_for_each
     for elem in v.iter() {
         acc += elem;
     }
+    //~v needless_for_each
     for elem in v.into_iter() {
         acc += elem;
     }
 
+    //~v needless_for_each
     for elem in [1, 2, 3].iter() {
         acc += elem;
     }
 
     let mut hash_map: HashMap<i32, i32> = HashMap::new();
+    //~v needless_for_each
     for (k, v) in hash_map.iter() {
         acc += k + v;
     }
+    //~v needless_for_each
     for (k, v) in hash_map.iter_mut() {
         acc += *k + *v;
     }
+    //~v needless_for_each
     for k in hash_map.keys() {
         acc += k;
     }
+    //~v needless_for_each
     for v in hash_map.values() {
         acc += v;
     }
@@ -40,6 +47,7 @@ fn should_lint() {
     fn my_vec() -> Vec<i32> {
         Vec::new()
     }
+    //~v needless_for_each
     for elem in my_vec().iter() {
         acc += elem;
     }

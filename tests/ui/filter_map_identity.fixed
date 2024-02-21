@@ -3,15 +3,17 @@
 
 fn main() {
     let iterator = vec![Some(1), None, Some(2)].into_iter();
-    let _ = iterator.flatten();
+    let _ = iterator.flatten(); //~ filter_map_identity
 
     let iterator = vec![Some(1), None, Some(2)].into_iter();
     let _ = iterator.flatten();
+    //~^ filter_map_identity
 
     use std::convert::identity;
     let iterator = vec![Some(1), None, Some(2)].into_iter();
-    let _ = iterator.flatten();
+    let _ = iterator.flatten(); //~ filter_map_identity
 
     let iterator = vec![Some(1), None, Some(2)].into_iter();
     let _ = iterator.flatten();
+    //~^ filter_map_identity
 }

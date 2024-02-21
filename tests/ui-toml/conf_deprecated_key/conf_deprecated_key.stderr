@@ -11,7 +11,7 @@ LL | blacklisted-names = [ "..", "wibble" ]
    | ^^^^^^^^^^^^^^^^^
 
 error: the function has a cognitive complexity of (3/2)
-  --> $DIR/conf_deprecated_key/conf_deprecated_key.rs:6:4
+  --> $DIR/conf_deprecated_key/conf_deprecated_key.rs:7:4
    |
 LL | fn cognitive_complexity() {
    |    ^^^^^^^^^^^^^^^^^^^^

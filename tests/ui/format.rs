@@ -16,17 +16,19 @@ macro_rules! foo {
 }
 
 fn main() {
-    format!("foo");
-    format!("{{}}");
-    format!("{{}} abc {{}}");
+    format!("foo"); //~ useless_format
+    format!("{{}}"); //~ useless_format
+    format!("{{}} abc {{}}"); //~ useless_format
+
+    //~v useless_format
     format!(
         r##"foo {{}}
 " bar"##
     );
 
-    let _ = format!("");
+    let _ = format!(""); //~ useless_format
 
-    format!("{}", "foo");
+    format!("{}", "foo"); //~ useless_format
     format!("{:?}", "foo"); // Don't warn about `Debug`.
     format!("{:8}", "foo");
     format!("{:width$}", "foo", width = 8);
@@ -34,7 +36,7 @@ fn main() {
     format!("{} bar", "foo");
 
     let arg = String::new();
-    format!("{}", arg);
+    format!("{}", arg); //~ useless_format
     format!("{:?}", arg); // Don't warn about debug.
     format!("{:8}", arg);
     format!("{:width$}", arg, width = 8);
@@ -64,29 +66,30 @@ fn main() {
     format!("{:.prec$}", "foo", prec = 1);
     format!("{:.prec$}", "foo", prec = 10);
 
-    format!("{}", 42.to_string());
+    format!("{}", 42.to_string()); //~ useless_format
     let x = std::path::PathBuf::from("/bar/foo/qux");
-    format!("{}", x.display().to_string());
+    format!("{}", x.display().to_string()); //~ useless_format
 
     // False positive
     let a = "foo".to_string();
-    let _ = Some(format!("{}", a + "bar"));
+    let _ = Some(format!("{}", a + "bar")); //~ useless_format
 
     // Wrap it with braces
     let v: Vec<String> = vec!["foo".to_string(), "bar".to_string()];
     let _s: String = format!("{}", &*v.join("\n"));
+    //~^ useless_format
 
     format!("prepend {:+}", "s");
 
     // Issue #8290
     let x = "foo";
-    let _ = format!("{x}");
+    let _ = format!("{x}"); //~ useless_format
     let _ = format!("{x:?}"); // Don't lint on debug
-    let _ = format!("{y}", y = x);
+    let _ = format!("{y}", y = x); //~ useless_format
 
     // Issue #9234
     let abc = "abc";
-    let _ = format!("{abc}");
+    let _ = format!("{abc}"); //~ useless_format
     let xx = "xx";
-    let _ = format!("{xx}");
+    let _ = format!("{xx}"); //~ useless_format
 }

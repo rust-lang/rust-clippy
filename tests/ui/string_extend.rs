@@ -13,13 +13,13 @@ fn main() {
     let mut s = String::new();
 
     s.push_str(abc);
-    s.extend(abc.chars());
+    s.extend(abc.chars()); //~ string_extend_chars
 
     s.push_str("abc");
-    s.extend("abc".chars());
+    s.extend("abc".chars()); //~ string_extend_chars
 
     s.push_str(&def);
-    s.extend(def.chars());
+    s.extend(def.chars()); //~ string_extend_chars
 
     s.extend(abc.chars().skip(1));
     s.extend("abc".chars().skip(1));
@@ -29,5 +29,5 @@ fn main() {
     s.extend(f.chars());
 
     // issue #9735
-    s.extend(abc[0..2].chars());
+    s.extend(abc[0..2].chars()); //~ string_extend_chars
 }

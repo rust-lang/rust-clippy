@@ -16,28 +16,40 @@ trait SelfTrait {
 struct Bad;
 
 impl SelfTrait for Bad {
+    //~| use_self
+    //~v use_self
     fn refs(p1: &Self) -> &Self {
         p1
     }
 
+    //~| use_self
+    //~v use_self
     fn ref_refs<'a>(p1: &'a &'a Self) -> &'a &'a Self {
         p1
     }
 
+    //~| use_self
+    //~v use_self
     fn mut_refs(p1: &mut Self) -> &mut Self {
         p1
     }
 
     fn nested(_p1: Box<Self>, _p2: (&u8, &Self)) {}
+    //~^ use_self
+    //~| use_self
 
+    //~| use_self
+    //~v use_self
     fn vals(_: Self) -> Self {
-        Self
+        Self //~ use_self
     }
 }
 
 impl Mul for Bad {
-    type Output = Self;
+    type Output = Self; //~ use_self
 
+    //~| use_self
+    //~v use_self
     fn mul(self, rhs: Self) -> Self {
         rhs
     }
@@ -45,7 +57,7 @@ impl Mul for Bad {
 
 impl Clone for Bad {
     fn clone(&self) -> Self {
-        Self
+        Self //~ use_self
     }
 }
 
@@ -142,6 +154,7 @@ mod full_path_replacement {
 
     impl Error for std::fmt::Error {
         fn custom<T: std::fmt::Display>(_msg: T) -> Self {
+            //~v use_self
             Self // Should lint
         }
     }

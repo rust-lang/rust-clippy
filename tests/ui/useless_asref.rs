@@ -45,35 +45,35 @@ fn not_ok() {
 
     {
         let rslice: &[i32] = &*mrslice;
-        foo_rstr(rstr.as_ref());
+        foo_rstr(rstr.as_ref()); //~ useless_asref
         foo_rstr(rstr);
-        foo_rslice(rslice.as_ref());
+        foo_rslice(rslice.as_ref()); //~ useless_asref
         foo_rslice(rslice);
     }
     {
-        foo_mrslice(mrslice.as_mut());
+        foo_mrslice(mrslice.as_mut()); //~ useless_asref
         foo_mrslice(mrslice);
-        foo_rslice(mrslice.as_ref());
+        foo_rslice(mrslice.as_ref()); //~ useless_asref
         foo_rslice(mrslice);
     }
 
     {
         let rrrrrstr = &&&&rstr;
         let rrrrrslice = &&&&&*mrslice;
-        foo_rslice(rrrrrslice.as_ref());
+        foo_rslice(rrrrrslice.as_ref()); //~ useless_asref
         foo_rslice(rrrrrslice);
-        foo_rstr(rrrrrstr.as_ref());
+        foo_rstr(rrrrrstr.as_ref()); //~ useless_asref
         foo_rstr(rrrrrstr);
     }
     {
         let mrrrrrslice = &mut &mut &mut &mut mrslice;
-        foo_mrslice(mrrrrrslice.as_mut());
+        foo_mrslice(mrrrrrslice.as_mut()); //~ useless_asref
         foo_mrslice(mrrrrrslice);
-        foo_rslice(mrrrrrslice.as_ref());
+        foo_rslice(mrrrrrslice.as_ref()); //~ useless_asref
         foo_rslice(mrrrrrslice);
     }
     #[allow(unused_parens, clippy::double_parens, clippy::needless_borrow)]
-    foo_rrrrmr((&&&&MoreRef).as_ref());
+    foo_rrrrmr((&&&&MoreRef).as_ref()); //~ useless_asref
 
     generic_not_ok(mrslice);
     generic_ok(mrslice);
@@ -123,9 +123,9 @@ fn foo_rt<T: Debug + ?Sized>(t: &T) {
 }
 
 fn generic_not_ok<T: AsMut<T> + AsRef<T> + Debug + ?Sized>(mrt: &mut T) {
-    foo_mrt(mrt.as_mut());
+    foo_mrt(mrt.as_mut()); //~ useless_asref
     foo_mrt(mrt);
-    foo_rt(mrt.as_ref());
+    foo_rt(mrt.as_ref()); //~ useless_asref
     foo_rt(mrt);
 }
 

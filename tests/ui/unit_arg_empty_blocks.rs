@@ -13,10 +13,10 @@ fn foo3<T1: Debug, T2: Debug, T3: Debug>(t1: T1, t2: T2, t3: T3) {
 }
 
 fn bad() {
-    foo({});
-    foo3({}, 2, 2);
-    taking_two_units({}, foo(0));
-    taking_three_units({}, foo(0), foo(1));
+    foo({}); //~ unit_arg
+    foo3({}, 2, 2); //~ unit_arg
+    taking_two_units({}, foo(0)); //~ unit_arg
+    taking_three_units({}, foo(0), foo(1)); //~ unit_arg
 }
 
 fn taking_two_units(a: (), b: ()) {}

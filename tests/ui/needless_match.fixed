@@ -12,13 +12,16 @@ enum Simple {
 
 fn useless_match() {
     let i = 10;
+    //~v needless_match
     let _: i32 = i;
     let s = "test";
+    //~v needless_match
     let _: &str = s;
 }
 
 fn custom_type_match() {
     let se = Simple::A;
+    //~v needless_match
     let _: Simple = se;
     // Don't trigger
     let _: Simple = match se {
@@ -36,6 +39,7 @@ fn custom_type_match() {
 }
 
 fn option_match(x: Option<i32>) {
+    //~v needless_match
     let _: Option<i32> = x;
     // Don't trigger, this is the case for manual_map_option
     let _: Option<i32> = match x {
@@ -49,7 +53,9 @@ fn func_ret_err<T>(err: T) -> Result<i32, T> {
 }
 
 fn result_match() {
+    //~v needless_match
     let _: Result<i32, i32> = Ok(1);
+    //~v needless_match
     let _: Result<i32, i32> = func_ret_err(0_i32);
     // as ref, don't trigger
     let res = &func_ret_err(0_i32);
@@ -61,6 +67,7 @@ fn result_match() {
 
 fn if_let_option() {
     let _ = Some(1);
+    //~^ needless_match
 
     fn do_something() {}
 
@@ -96,13 +103,16 @@ fn if_let_option_result() -> Result<(), ()> {
 fn if_let_result() {
     let x: Result<i32, i32> = Ok(1);
     let _: Result<i32, i32> = x;
+    //~^ needless_match
     let _: Result<i32, i32> = x;
+    //~^ needless_match
     // Input type mismatch, don't trigger
     #[allow(clippy::question_mark)]
     let _: Result<i32, i32> = if let Err(e) = Ok(1) { Err(e) } else { x };
 }
 
 fn if_let_custom_enum(x: Simple) {
+    //~v needless_match
     let _: Simple = x;
 
     // Don't trigger
@@ -134,6 +144,7 @@ mod issue8542 {
         let aa = 0_u8;
         let bb = false;
 
+        //~v needless_match
         let _: Complex = ce;
 
         // Don't trigger
@@ -212,9 +223,11 @@ mod issue9084 {
         let e = Some(1);
 
         // should lint
+        //~v needless_match
         let _ = e;
 
         // should lint
+        //~v needless_match
         let _ = e;
 
         // should not lint

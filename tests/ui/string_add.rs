@@ -11,15 +11,17 @@ fn main() {
 
     for _ in 1..3 {
         x = x + ".";
+        //~^ assign_op_pattern
+        //~| string_add
     }
 
     let y = String::new();
-    let z = y + "...";
+    let z = y + "..."; //~ string_add
 
     assert_eq!(&x, &z);
 
     let mut x = 1;
-    x = x + 1;
+    x = x + 1; //~ assign_op_pattern
     assert_eq!(2, x);
 
     external!({

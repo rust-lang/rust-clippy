@@ -157,6 +157,7 @@ async fn a7(x: i32, y: i32, z: &mut i32) {
     //~^ ERROR: this argument is a mutable reference, but not used mutably
     println!("{:?}", z);
 }
+//~v needless_pass_by_ref_mut
 async fn a8(x: i32, a: &mut i32, y: i32, z: &mut i32) {
     //~^ ERROR: this argument is a mutable reference, but not used mutably
     println!("{:?}", z);
@@ -238,6 +239,7 @@ async fn async_vec2(b: &mut Vec<bool>) {
 }
 fn non_mut(n: &str) {}
 //Should warn
+//~v needless_pass_by_ref_mut
 pub async fn call_in_closure1(n: &mut str) {
     (|| non_mut(n))()
 }
@@ -250,6 +252,7 @@ pub async fn call_in_closure2(str: &mut String) {
 }
 
 // Should not warn.
+//~v needless_pass_by_ref_mut
 pub async fn closure(n: &mut usize) -> impl '_ + FnMut() {
     || {
         *n += 1;
@@ -308,17 +311,22 @@ fn filter_copy<T: Copy>(predicate: &mut impl FnMut(T) -> bool) -> impl FnMut(&T)
 }
 
 // `is_from_proc_macro` stress tests
-fn _empty_tup(x: &mut (())) {}
-fn _single_tup(x: &mut ((i32,))) {}
-fn _multi_tup(x: &mut ((i32, u32))) {}
-fn _fn(x: &mut (fn())) {}
+fn _empty_tup(x: &mut (())) {} //~ needless_pass_by_ref_mut
+fn _single_tup(x: &mut ((i32,))) {} //~ needless_pass_by_ref_mut
+fn _multi_tup(x: &mut ((i32, u32))) {} //~ needless_pass_by_ref_mut
+fn _fn(x: &mut (fn())) {} //~ needless_pass_by_ref_mut
 #[rustfmt::skip]
 fn _extern_rust_fn(x: &mut extern "Rust" fn()) {}
+//~^ needless_pass_by_ref_mut
 fn _extern_c_fn(x: &mut extern "C" fn()) {}
-fn _unsafe_fn(x: &mut unsafe fn()) {}
+//~^ needless_pass_by_ref_mut
+fn _unsafe_fn(x: &mut unsafe fn()) {} //~ needless_pass_by_ref_mut
 fn _unsafe_extern_fn(x: &mut unsafe extern "C" fn()) {}
+//~^ needless_pass_by_ref_mut
 fn _fn_with_arg(x: &mut unsafe extern "C" fn(i32)) {}
+//~^ needless_pass_by_ref_mut
 fn _fn_with_ret(x: &mut unsafe extern "C" fn() -> (i32)) {}
+//~^ needless_pass_by_ref_mut
 
 fn main() {
     let mut u = 0;

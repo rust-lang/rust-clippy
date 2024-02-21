@@ -21,22 +21,23 @@ macro_rules! reuse {
 
 fn shadow_same() {
     let x = 1;
-    let x = x;
-    let mut x = &x;
-    let x = &mut x;
-    let x = *x;
+    let x = x; //~ shadow_same
+    let mut x = &x; //~ shadow_same
+    let x = &mut x; //~ shadow_same
+    let x = *x; //~ shadow_same
 }
 
 fn shadow_reuse() -> Option<()> {
     let x = ([[0]], ());
-    let x = x.0;
-    let x = x[0];
-    let [x] = x;
-    let x = Some(x);
-    let x = foo(x);
-    let x = || x;
-    let x = Some(1).map(|_| x)?;
+    let x = x.0; //~ shadow_reuse
+    let x = x[0]; //~ shadow_reuse
+    let [x] = x; //~ shadow_reuse
+    let x = Some(x); //~ shadow_reuse
+    let x = foo(x); //~ shadow_reuse
+    let x = || x; //~ shadow_reuse
+    let x = Some(1).map(|_| x)?; //~ shadow_reuse
     let y = 1;
+    //~v shadow_reuse
     let y = match y {
         1 => 2,
         _ => 3,
@@ -52,28 +53,31 @@ fn shadow_reuse_macro() {
 
 fn shadow_unrelated() {
     let x = 1;
-    let x = 2;
+    let x = 2; //~ shadow_unrelated
 }
 
 fn syntax() {
     fn f(x: u32) {
-        let x = 1;
+        let x = 1; //~ shadow_unrelated
     }
     let x = 1;
     match Some(1) {
         Some(1) => {},
+        //~v shadow_unrelated
         Some(x) => {
-            let x = 1;
+            let x = 1; //~ shadow_unrelated
         },
         _ => {},
     }
-    if let Some(x) = Some(1) {}
-    while let Some(x) = Some(1) {}
+    if let Some(x) = Some(1) {} //~ shadow_unrelated
+    while let Some(x) = Some(1) {} //~ shadow_unrelated
+
+    //~v shadow_unrelated
     let _ = |[x]: [u32; 1]| {
-        let x = 1;
+        let x = 1; //~ shadow_unrelated
     };
     let y = Some(1);
-    if let Some(y) = y {}
+    if let Some(y) = y {} //~ shadow_reuse
 }
 
 fn negative() {
@@ -109,13 +113,14 @@ fn question_mark() -> Option<()> {
 pub async fn foo1(_a: i32) {}
 
 pub async fn foo2(_a: i32, _b: i64) {
-    let _b = _a;
+    let _b = _a; //~ shadow_unrelated
 }
 
 fn ice_8748() {
     let _ = [0; {
         let x = 1;
         if let Some(x) = Some(1) { x } else { 1 }
+        //~^ shadow_unrelated
     }];
 }
 

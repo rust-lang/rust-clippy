@@ -29,17 +29,17 @@ struct V {
 impl Clone for V {
     fn clone(&self) -> Self {
         // Lint: `Self` implements `Copy`
-        Self { ..*self }
+        Self { ..*self } //~ unnecessary_struct_initialization
     }
 }
 
 fn main() {
     // Should lint: `a` would be consumed anyway
     let a = S { f: String::from("foo") };
-    let mut b = S { ..a };
+    let mut b = S { ..a }; //~ unnecessary_struct_initialization
 
     // Should lint: `b` would be consumed, and is mutable
-    let c = &mut S { ..b };
+    let c = &mut S { ..b }; //~ unnecessary_struct_initialization
 
     // Should not lint as `d` is not mutable
     let d = S { f: String::from("foo") };
@@ -47,9 +47,10 @@ fn main() {
 
     // Should lint as `f` would be consumed anyway
     let f = S { f: String::from("foo") };
-    let g = &S { ..f };
+    let g = &S { ..f }; //~ unnecessary_struct_initialization
 
     // Should lint: the result of an expression is mutable
+    //~v unnecessary_struct_initialization
     let h = &mut S {
         ..*Box::new(S { f: String::from("foo") })
     };
@@ -69,6 +70,7 @@ fn main() {
     assert_eq!(m.f, 17);
 
     // Should lint: the result of an expression is mutable and temporary
+    //~v unnecessary_struct_initialization
     let p = &mut T {
         ..*Box::new(T { f: 5 })
     };

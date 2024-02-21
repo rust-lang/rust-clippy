@@ -1,5 +1,5 @@
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:9:8
+  --> $DIR/min_ident_chars.rs:10:8
    |
 LL | struct A {
    |        ^
@@ -8,187 +8,187 @@ LL | struct A {
    = help: to override `-D warnings` add `#[allow(clippy::min_ident_chars)]`
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:10:5
+  --> $DIR/min_ident_chars.rs:11:5
    |
 LL |     a: u32,
    |     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:12:5
+  --> $DIR/min_ident_chars.rs:13:5
    |
 LL |     A: u32,
    |     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:13:5
+  --> $DIR/min_ident_chars.rs:14:5
    |
 LL |     I: u32,
    |     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:16:8
+  --> $DIR/min_ident_chars.rs:17:8
    |
 LL | struct B(u32);
    |        ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:18:8
+  --> $DIR/min_ident_chars.rs:20:8
    |
 LL | struct O {
    |        ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:19:5
+  --> $DIR/min_ident_chars.rs:21:5
    |
 LL |     o: u32,
    |     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:24:6
+  --> $DIR/min_ident_chars.rs:27:6
    |
 LL | enum C {
    |      ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:25:5
+  --> $DIR/min_ident_chars.rs:28:5
    |
 LL |     D,
    |     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:26:5
+  --> $DIR/min_ident_chars.rs:29:5
    |
 LL |     E,
    |     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:27:5
+  --> $DIR/min_ident_chars.rs:30:5
    |
 LL |     F,
    |     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:41:11
+  --> $DIR/min_ident_chars.rs:44:11
    |
 LL |     const A: u32 = 0;
    |           ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:42:10
+  --> $DIR/min_ident_chars.rs:45:10
    |
 LL |     type A;
    |          ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:43:8
+  --> $DIR/min_ident_chars.rs:46:8
    |
 LL |     fn a() {}
    |        ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:57:9
+  --> $DIR/min_ident_chars.rs:60:9
    |
 LL |     let h = 1;
    |         ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:58:9
+  --> $DIR/min_ident_chars.rs:61:9
    |
 LL |     let e = 2;
    |         ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:59:9
+  --> $DIR/min_ident_chars.rs:62:9
    |
 LL |     let l = 3;
    |         ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:60:9
+  --> $DIR/min_ident_chars.rs:63:9
    |
 LL |     let l = 4;
    |         ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:61:9
+  --> $DIR/min_ident_chars.rs:64:9
    |
 LL |     let o = 6;
    |         ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:65:10
+  --> $DIR/min_ident_chars.rs:68:10
    |
 LL |     let (h, o, w) = (1, 2, 3);
    |          ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:65:13
+  --> $DIR/min_ident_chars.rs:68:13
    |
 LL |     let (h, o, w) = (1, 2, 3);
    |             ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:66:10
+  --> $DIR/min_ident_chars.rs:71:10
    |
 LL |     for (a, (r, e)) in (0..1000).enumerate().enumerate() {}
    |          ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:66:14
+  --> $DIR/min_ident_chars.rs:71:14
    |
 LL |     for (a, (r, e)) in (0..1000).enumerate().enumerate() {}
    |              ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:66:17
+  --> $DIR/min_ident_chars.rs:71:17
    |
 LL |     for (a, (r, e)) in (0..1000).enumerate().enumerate() {}
    |                 ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:68:16
+  --> $DIR/min_ident_chars.rs:76:16
    |
 LL |     while let (d, o, _i, n, g) = (true, true, false, false, true) {}
    |                ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:68:19
+  --> $DIR/min_ident_chars.rs:76:19
    |
 LL |     while let (d, o, _i, n, g) = (true, true, false, false, true) {}
    |                   ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:68:29
+  --> $DIR/min_ident_chars.rs:76:29
    |
 LL |     while let (d, o, _i, n, g) = (true, true, false, false, true) {}
    |                             ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:72:9
+  --> $DIR/min_ident_chars.rs:83:9
    |
 LL |     let o = 1;
    |         ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:73:9
+  --> $DIR/min_ident_chars.rs:84:9
    |
 LL |     let o = O { o };
    |         ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:87:4
+  --> $DIR/min_ident_chars.rs:98:4
    |
 LL | fn b() {}
    |    ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:88:21
+  --> $DIR/min_ident_chars.rs:102:21
    |
 LL | fn wrong_pythagoras(a: f32, b: f32) -> f32 {
    |                     ^
 
 error: this ident consists of a single char
-  --> $DIR/min_ident_chars.rs:88:29
+  --> $DIR/min_ident_chars.rs:102:29
    |
 LL | fn wrong_pythagoras(a: f32, b: f32) -> f32 {
    |                             ^

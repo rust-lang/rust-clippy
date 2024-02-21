@@ -31,7 +31,10 @@ fn main() {
         v,
         "some {}\
         {} \\ {}",
-        "1", "2", "3",
+        //~v write_literal
+        "1",
+        "2",
+        "3",
     );
     writeln!(v, "{}", "\\");
     //~^ ERROR: literal with an empty format string

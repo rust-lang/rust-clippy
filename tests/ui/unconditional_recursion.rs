@@ -25,9 +25,11 @@ enum Foo2 {
 }
 
 impl PartialEq for Foo2 {
+    //~v unconditional_recursion
     fn ne(&self, other: &Self) -> bool {
         self != &Foo2::B // no error here
     }
+    //~v unconditional_recursion
     fn eq(&self, other: &Self) -> bool {
         self == &Foo2::B // no error here
     }
@@ -39,10 +41,14 @@ enum Foo3 {
 }
 
 impl PartialEq for Foo3 {
+    //~| unconditional_recursion
+    //~v only_used_in_recursion
     fn ne(&self, other: &Self) -> bool {
         //~^ ERROR: function cannot return without recursing
         self.ne(other)
     }
+    //~| unconditional_recursion
+    //~v only_used_in_recursion
     fn eq(&self, other: &Self) -> bool {
         //~^ ERROR: function cannot return without recursing
         self.eq(other)
@@ -103,11 +109,11 @@ struct S2;
 impl PartialEq for S2 {
     fn ne(&self, other: &Self) -> bool {
         //~^ ERROR: function cannot return without recursing
-        other != other
+        other != other //~ eq_op
     }
     fn eq(&self, other: &Self) -> bool {
         //~^ ERROR: function cannot return without recursing
-        other == other
+        other == other //~ eq_op
     }
 }
 
@@ -116,11 +122,11 @@ struct S3;
 impl PartialEq for S3 {
     fn ne(&self, _other: &Self) -> bool {
         //~^ ERROR: function cannot return without recursing
-        self != self
+        self != self //~ eq_op
     }
     fn eq(&self, _other: &Self) -> bool {
         //~^ ERROR: function cannot return without recursing
-        self == self
+        self == self //~ eq_op
     }
 }
 
@@ -146,6 +152,7 @@ impl PartialEq for S4 {
 macro_rules! impl_partial_eq {
     ($ty:ident) => {
         impl PartialEq for $ty {
+            //~v unconditional_recursion
             fn eq(&self, other: &Self) -> bool {
                 self == other
             }

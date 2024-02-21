@@ -117,6 +117,7 @@ impl PrivateItem {
 pub struct Const;
 
 impl Const {
+    //~v new_without_default
     pub const fn new() -> Const {
         Const
     } // While Default is not const, it can still call const functions, so we should lint this
@@ -252,6 +253,7 @@ impl<K, V> MyStruct<K, V>
 where
     K: std::hash::Hash + Eq + PartialEq,
 {
+    //~v new_without_default
     pub fn new() -> Self {
         Self { _kv: None }
     }

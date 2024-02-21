@@ -301,115 +301,115 @@ pub fn unknown_ops_or_runtime_ops_that_can_overflow() {
     let mut _custom = Custom;
 
     // Assign
-    _n += 1;
-    _n += &1;
-    _n -= 1;
-    _n -= &1;
-    _n /= 0;
-    _n /= &0;
-    _n %= 0;
-    _n %= &0;
-    _n *= 2;
-    _n *= &2;
-    _n += -1;
-    _n += &-1;
-    _n -= -1;
-    _n -= &-1;
-    _n /= -0;
-    _n /= &-0;
-    _n %= -0;
-    _n %= &-0;
-    _n *= -2;
-    _n *= &-2;
-    _custom += Custom;
-    _custom += &Custom;
-    _custom -= Custom;
-    _custom -= &Custom;
-    _custom /= Custom;
-    _custom /= &Custom;
-    _custom %= Custom;
-    _custom %= &Custom;
-    _custom *= Custom;
-    _custom *= &Custom;
-    _custom >>= Custom;
-    _custom >>= &Custom;
-    _custom <<= Custom;
-    _custom <<= &Custom;
-    _custom += -Custom;
-    _custom += &-Custom;
-    _custom -= -Custom;
-    _custom -= &-Custom;
-    _custom /= -Custom;
-    _custom /= &-Custom;
-    _custom %= -Custom;
-    _custom %= &-Custom;
-    _custom *= -Custom;
-    _custom *= &-Custom;
-    _custom >>= -Custom;
-    _custom >>= &-Custom;
-    _custom <<= -Custom;
-    _custom <<= &-Custom;
+    _n += 1; //~ arithmetic_side_effects
+    _n += &1; //~ arithmetic_side_effects
+    _n -= 1; //~ arithmetic_side_effects
+    _n -= &1; //~ arithmetic_side_effects
+    _n /= 0; //~ arithmetic_side_effects
+    _n /= &0; //~ arithmetic_side_effects
+    _n %= 0; //~ arithmetic_side_effects
+    _n %= &0; //~ arithmetic_side_effects
+    _n *= 2; //~ arithmetic_side_effects
+    _n *= &2; //~ arithmetic_side_effects
+    _n += -1; //~ arithmetic_side_effects
+    _n += &-1; //~ arithmetic_side_effects
+    _n -= -1; //~ arithmetic_side_effects
+    _n -= &-1; //~ arithmetic_side_effects
+    _n /= -0; //~ arithmetic_side_effects
+    _n /= &-0; //~ arithmetic_side_effects
+    _n %= -0; //~ arithmetic_side_effects
+    _n %= &-0; //~ arithmetic_side_effects
+    _n *= -2; //~ arithmetic_side_effects
+    _n *= &-2; //~ arithmetic_side_effects
+    _custom += Custom; //~ arithmetic_side_effects
+    _custom += &Custom; //~ arithmetic_side_effects
+    _custom -= Custom; //~ arithmetic_side_effects
+    _custom -= &Custom; //~ arithmetic_side_effects
+    _custom /= Custom; //~ arithmetic_side_effects
+    _custom /= &Custom; //~ arithmetic_side_effects
+    _custom %= Custom; //~ arithmetic_side_effects
+    _custom %= &Custom; //~ arithmetic_side_effects
+    _custom *= Custom; //~ arithmetic_side_effects
+    _custom *= &Custom; //~ arithmetic_side_effects
+    _custom >>= Custom; //~ arithmetic_side_effects
+    _custom >>= &Custom; //~ arithmetic_side_effects
+    _custom <<= Custom; //~ arithmetic_side_effects
+    _custom <<= &Custom; //~ arithmetic_side_effects
+    _custom += -Custom; //~ arithmetic_side_effects
+    _custom += &-Custom; //~ arithmetic_side_effects
+    _custom -= -Custom; //~ arithmetic_side_effects
+    _custom -= &-Custom; //~ arithmetic_side_effects
+    _custom /= -Custom; //~ arithmetic_side_effects
+    _custom /= &-Custom; //~ arithmetic_side_effects
+    _custom %= -Custom; //~ arithmetic_side_effects
+    _custom %= &-Custom; //~ arithmetic_side_effects
+    _custom *= -Custom; //~ arithmetic_side_effects
+    _custom *= &-Custom; //~ arithmetic_side_effects
+    _custom >>= -Custom; //~ arithmetic_side_effects
+    _custom >>= &-Custom; //~ arithmetic_side_effects
+    _custom <<= -Custom; //~ arithmetic_side_effects
+    _custom <<= &-Custom; //~ arithmetic_side_effects
 
     // Binary
-    _n = _n + 1;
-    _n = _n + &1;
-    _n = 1 + _n;
-    _n = &1 + _n;
-    _n = _n - 1;
-    _n = _n - &1;
-    _n = 1 - _n;
-    _n = &1 - _n;
-    _n = _n / 0;
-    _n = _n / &0;
-    _n = _n % 0;
-    _n = _n % &0;
-    _n = _n * 2;
-    _n = _n * &2;
-    _n = 2 * _n;
-    _n = &2 * _n;
-    _n = 23 + &85;
-    _n = &23 + 85;
-    _n = &23 + &85;
-    _custom = _custom + _custom;
-    _custom = _custom + &_custom;
-    _custom = Custom + _custom;
-    _custom = &Custom + _custom;
-    _custom = _custom - Custom;
-    _custom = _custom - &Custom;
-    _custom = Custom - _custom;
-    _custom = &Custom - _custom;
-    _custom = _custom / Custom;
-    _custom = _custom / &Custom;
-    _custom = _custom % Custom;
-    _custom = _custom % &Custom;
-    _custom = _custom * Custom;
-    _custom = _custom * &Custom;
-    _custom = Custom * _custom;
-    _custom = &Custom * _custom;
-    _custom = Custom + &Custom;
-    _custom = &Custom + Custom;
-    _custom = &Custom + &Custom;
-    _custom = _custom >> _custom;
-    _custom = _custom >> &_custom;
-    _custom = Custom << _custom;
-    _custom = &Custom << _custom;
+    _n = _n + 1; //~ arithmetic_side_effects
+    _n = _n + &1; //~ arithmetic_side_effects
+    _n = 1 + _n; //~ arithmetic_side_effects
+    _n = &1 + _n; //~ arithmetic_side_effects
+    _n = _n - 1; //~ arithmetic_side_effects
+    _n = _n - &1; //~ arithmetic_side_effects
+    _n = 1 - _n; //~ arithmetic_side_effects
+    _n = &1 - _n; //~ arithmetic_side_effects
+    _n = _n / 0; //~ arithmetic_side_effects
+    _n = _n / &0; //~ arithmetic_side_effects
+    _n = _n % 0; //~ arithmetic_side_effects
+    _n = _n % &0; //~ arithmetic_side_effects
+    _n = _n * 2; //~ arithmetic_side_effects
+    _n = _n * &2; //~ arithmetic_side_effects
+    _n = 2 * _n; //~ arithmetic_side_effects
+    _n = &2 * _n; //~ arithmetic_side_effects
+    _n = 23 + &85; //~ arithmetic_side_effects
+    _n = &23 + 85; //~ arithmetic_side_effects
+    _n = &23 + &85; //~ arithmetic_side_effects
+    _custom = _custom + _custom; //~ arithmetic_side_effects
+    _custom = _custom + &_custom; //~ arithmetic_side_effects
+    _custom = Custom + _custom; //~ arithmetic_side_effects
+    _custom = &Custom + _custom; //~ arithmetic_side_effects
+    _custom = _custom - Custom; //~ arithmetic_side_effects
+    _custom = _custom - &Custom; //~ arithmetic_side_effects
+    _custom = Custom - _custom; //~ arithmetic_side_effects
+    _custom = &Custom - _custom; //~ arithmetic_side_effects
+    _custom = _custom / Custom; //~ arithmetic_side_effects
+    _custom = _custom / &Custom; //~ arithmetic_side_effects
+    _custom = _custom % Custom; //~ arithmetic_side_effects
+    _custom = _custom % &Custom; //~ arithmetic_side_effects
+    _custom = _custom * Custom; //~ arithmetic_side_effects
+    _custom = _custom * &Custom; //~ arithmetic_side_effects
+    _custom = Custom * _custom; //~ arithmetic_side_effects
+    _custom = &Custom * _custom; //~ arithmetic_side_effects
+    _custom = Custom + &Custom; //~ arithmetic_side_effects
+    _custom = &Custom + Custom; //~ arithmetic_side_effects
+    _custom = &Custom + &Custom; //~ arithmetic_side_effects
+    _custom = _custom >> _custom; //~ arithmetic_side_effects
+    _custom = _custom >> &_custom; //~ arithmetic_side_effects
+    _custom = Custom << _custom; //~ arithmetic_side_effects
+    _custom = &Custom << _custom; //~ arithmetic_side_effects
 
     // Method
-    _n.saturating_div(0);
-    _n.wrapping_div(0);
-    _n.wrapping_rem(0);
-    _n.wrapping_rem_euclid(0);
+    _n.saturating_div(0); //~ arithmetic_side_effects
+    _n.wrapping_div(0); //~ arithmetic_side_effects
+    _n.wrapping_rem(0); //~ arithmetic_side_effects
+    _n.wrapping_rem_euclid(0); //~ arithmetic_side_effects
 
-    _n.saturating_div(_n);
-    _n.wrapping_div(_n);
-    _n.wrapping_rem(_n);
-    _n.wrapping_rem_euclid(_n);
+    _n.saturating_div(_n); //~ arithmetic_side_effects
+    _n.wrapping_div(_n); //~ arithmetic_side_effects
+    _n.wrapping_rem(_n); //~ arithmetic_side_effects
+    _n.wrapping_rem_euclid(_n); //~ arithmetic_side_effects
 
     // Unary
-    _n = -_n;
-    _n = -&_n;
-    _custom = -_custom;
-    _custom = -&_custom;
+    _n = -_n; //~ arithmetic_side_effects
+    _n = -&_n; //~ arithmetic_side_effects
+    _custom = -_custom; //~ arithmetic_side_effects
+    _custom = -&_custom; //~ arithmetic_side_effects
 }
 
 // Copied and pasted from the `integer_arithmetic` lint for comparison.
@@ -418,11 +418,11 @@ pub fn integer_arithmetic() {
     let mut var1 = 0i32;
     let mut var2 = -1i32;
 
-    1 + i;
-    i * 2;
-    1 % i / 2;
-    i - 2 + 2 - i;
-    -i;
+    1 + i; //~ arithmetic_side_effects
+    i * 2; //~ arithmetic_side_effects
+    1 % i / 2; //~ arithmetic_side_effects
+    i - 2 + 2 - i; //~ arithmetic_side_effects
+    -i; //~ arithmetic_side_effects
     i >> 1;
     i << 1;
 
@@ -433,19 +433,19 @@ pub fn integer_arithmetic() {
     i | 1;
     i ^ 1;
 
-    i += 1;
-    i -= 1;
-    i *= 2;
+    i += 1; //~ arithmetic_side_effects
+    i -= 1; //~ arithmetic_side_effects
+    i *= 2; //~ arithmetic_side_effects
     i /= 2;
-    i /= 0;
+    i /= 0; //~ arithmetic_side_effects
     i /= -1;
-    i /= var1;
-    i /= var2;
+    i /= var1; //~ arithmetic_side_effects
+    i /= var2; //~ arithmetic_side_effects
     i %= 2;
-    i %= 0;
+    i %= 0; //~ arithmetic_side_effects
     i %= -1;
-    i %= var1;
-    i %= var2;
+    i %= var1; //~ arithmetic_side_effects
+    i %= var2; //~ arithmetic_side_effects
     i <<= 3;
     i >>= 2;
 
@@ -455,7 +455,7 @@ pub fn integer_arithmetic() {
 }
 
 pub fn issue_10583(a: u16) -> u16 {
-    10 / a
+    10 / a //~ arithmetic_side_effects
 }
 
 pub fn issue_10767() {
@@ -509,11 +509,11 @@ pub fn issue_11392() {
 
 pub fn issue_11393() {
     fn example_div(x: Wrapping<i32>, maybe_zero: Wrapping<i32>) -> Wrapping<i32> {
-        x / maybe_zero
+        x / maybe_zero //~ arithmetic_side_effects
     }
 
     fn example_rem(x: Wrapping<i32>, maybe_zero: Wrapping<i32>) -> Wrapping<i32> {
-        x % maybe_zero
+        x % maybe_zero //~ arithmetic_side_effects
     }
 
     let [x, maybe_zero] = [1, 0].map(Wrapping);

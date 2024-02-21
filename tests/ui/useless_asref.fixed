@@ -45,35 +45,35 @@ fn not_ok() {
 
     {
         let rslice: &[i32] = &*mrslice;
+        foo_rstr(rstr); //~ useless_asref
         foo_rstr(rstr);
-        foo_rstr(rstr);
-        foo_rslice(rslice);
+        foo_rslice(rslice); //~ useless_asref
         foo_rslice(rslice);
     }
     {
+        foo_mrslice(mrslice); //~ useless_asref
         foo_mrslice(mrslice);
-        foo_mrslice(mrslice);
-        foo_rslice(mrslice);
+        foo_rslice(mrslice); //~ useless_asref
         foo_rslice(mrslice);
     }
 
     {
         let rrrrrstr = &&&&rstr;
         let rrrrrslice = &&&&&*mrslice;
+        foo_rslice(rrrrrslice); //~ useless_asref
         foo_rslice(rrrrrslice);
-        foo_rslice(rrrrrslice);
-        foo_rstr(rrrrrstr);
+        foo_rstr(rrrrrstr); //~ useless_asref
         foo_rstr(rrrrrstr);
     }
     {
         let mrrrrrslice = &mut &mut &mut &mut mrslice;
+        foo_mrslice(mrrrrrslice); //~ useless_asref
         foo_mrslice(mrrrrrslice);
-        foo_mrslice(mrrrrrslice);
-        foo_rslice(mrrrrrslice);
+        foo_rslice(mrrrrrslice); //~ useless_asref
         foo_rslice(mrrrrrslice);
     }
     #[allow(unused_parens, clippy::double_parens, clippy::needless_borrow)]
-    foo_rrrrmr((&&&&MoreRef));
+    foo_rrrrmr((&&&&MoreRef)); //~ useless_asref
 
     generic_not_ok(mrslice);
     generic_ok(mrslice);
@@ -123,9 +123,9 @@ fn foo_rt<T: Debug + ?Sized>(t: &T) {
 }
 
 fn generic_not_ok<T: AsMut<T> + AsRef<T> + Debug + ?Sized>(mrt: &mut T) {
+    foo_mrt(mrt); //~ useless_asref
     foo_mrt(mrt);
-    foo_mrt(mrt);
-    foo_rt(mrt);
+    foo_rt(mrt); //~ useless_asref
     foo_rt(mrt);
 }
 

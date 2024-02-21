@@ -3,22 +3,29 @@
 
 use std::future::Future;
 
+//~v manual_async_fn
 async fn fut() -> i32 { 42 }
 
 #[rustfmt::skip]
+//~v manual_async_fn
 async fn fut2() -> i32 { 42 }
 
 #[rustfmt::skip]
+//~v manual_async_fn
 async fn fut3() -> i32 { 42 }
 
+//~v manual_async_fn
 async fn empty_fut() {}
 
 #[rustfmt::skip]
+//~v manual_async_fn
 async fn empty_fut2() {}
 
 #[rustfmt::skip]
+//~v manual_async_fn
 async fn empty_fut3() {}
 
+//~v manual_async_fn
 async fn core_fut() -> i32 { 42 }
 
 // should be ignored
@@ -39,6 +46,7 @@ async fn already_async() -> impl Future<Output = i32> {
 
 struct S;
 impl S {
+    //~v manual_async_fn
     async fn inh_fut() -> i32 {
         // NOTE: this code is here just to check that the indentation is correct in the suggested fix
         let a = 42;
@@ -72,6 +80,7 @@ impl S {
 
 // Tests related to lifetime capture
 
+//~v manual_async_fn
 async fn elided(_: &i32) -> i32 { 42 }
 
 // should be ignored
@@ -79,6 +88,7 @@ fn elided_not_bound(_: &i32) -> impl Future<Output = i32> {
     async { 42 }
 }
 
+//~v manual_async_fn
 async fn explicit<'a, 'b>(_: &'a i32, _: &'b i32) -> i32 { 42 }
 
 // should be ignored
@@ -106,10 +116,13 @@ mod issue_5765 {
     }
 }
 
+//~v manual_async_fn
 pub async fn issue_10450() -> i32 { 42 }
 
+//~v manual_async_fn
 pub(crate) async fn issue_10450_2() -> i32 { 42 }
 
+//~v manual_async_fn
 pub(self) async fn issue_10450_3() -> i32 { 42 }
 
 fn main() {}

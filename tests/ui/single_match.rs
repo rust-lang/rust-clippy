@@ -11,6 +11,7 @@ fn dummy() {}
 fn single_match() {
     let x = Some(1u8);
 
+    //~v single_match
     match x {
         Some(y) => {
             println!("{:?}", y);
@@ -19,6 +20,7 @@ fn single_match() {
     };
 
     let x = Some(1u8);
+    //~v single_match
     match x {
         // Note the missing block braces.
         // We suggest `if let Some(y) = x { .. }` because the macro
@@ -28,6 +30,7 @@ fn single_match() {
     }
 
     let z = (1u8, 1u8);
+    //~v single_match
     match z {
         (2..=3, 7..=9) => dummy(),
         _ => {},
@@ -57,11 +60,13 @@ fn single_match_know_enum() {
     let x = Some(1u8);
     let y: Result<_, i8> = Ok(1i8);
 
+    //~v single_match
     match x {
         Some(y) => dummy(),
         None => (),
     };
 
+    //~v single_match
     match y {
         Ok(y) => dummy(),
         Err(..) => (),
@@ -69,6 +74,7 @@ fn single_match_know_enum() {
 
     let c = Cow::Borrowed("");
 
+    //~v single_match
     match c {
         Cow::Borrowed(..) => dummy(),
         Cow::Owned(..) => (),
@@ -90,6 +96,7 @@ fn single_match_know_enum() {
 // issue #173
 fn if_suggestion() {
     let x = "test";
+    //~v single_match
     match x {
         "test" => println!(),
         _ => (),
@@ -103,23 +110,27 @@ fn if_suggestion() {
     }
 
     let x = Foo::A;
+    //~v single_match
     match x {
         Foo::A => println!(),
         _ => (),
     }
 
     const FOO_C: Foo = Foo::C(0);
+    //~v single_match
     match x {
         FOO_C => println!(),
         _ => (),
     }
 
+    //~v single_match
     match &&x {
         Foo::A => println!(),
         _ => (),
     }
 
     let x = &x;
+    //~v single_match
     match &x {
         Foo::A => println!(),
         _ => (),
@@ -137,6 +148,7 @@ fn if_suggestion() {
     impl Eq for Bar {}
 
     let x = Bar::A;
+    //~v single_match
     match x {
         Bar::A => println!(),
         _ => (),
@@ -145,6 +157,7 @@ fn if_suggestion() {
     // issue #7038
     struct X;
     let x = Some(X);
+    //~v single_match
     match x {
         None => println!(),
         _ => (),
@@ -167,18 +180,21 @@ fn ranges() {
     }
 
     // lint
+    //~v single_match
     match x {
         (Some(_), _) => {},
         (None, _) => {},
     }
 
     // lint
+    //~v single_match
     match x {
         (Some(E::V), _) => todo!(),
         (_, _) => {},
     }
 
     // lint
+    //~v single_match
     match (Some(42), Some(E::V), Some(42)) {
         (.., Some(E::V), _) => {},
         (..) => {},
@@ -251,6 +267,7 @@ fn main() {
 }
 
 fn issue_10808(bar: Option<i32>) {
+    //~v single_match
     match bar {
         Some(v) => unsafe {
             let r = &v as *const i32;
@@ -259,6 +276,7 @@ fn issue_10808(bar: Option<i32>) {
         _ => {},
     }
 
+    //~v single_match
     match bar {
         #[rustfmt::skip]
         Some(v) => {

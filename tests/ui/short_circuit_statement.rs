@@ -2,9 +2,9 @@
 #![allow(clippy::nonminimal_bool)]
 
 fn main() {
-    f() && g();
-    f() || g();
-    1 == 2 || g();
+    f() && g(); //~ short_circuit_statement
+    f() || g(); //~ short_circuit_statement
+    1 == 2 || g(); //~ short_circuit_statement
 }
 
 fn f() -> bool {

@@ -2,10 +2,12 @@
 #![warn(clippy::suspicious_doc_comments)]
 
 //! Real module documentation.
+//~v suspicious_doc_comments
 //! Fake module documentation.
 fn baz() {}
 
 pub mod singleline_outer_doc {
+    //~v suspicious_doc_comments
     //! This module contains useful functions.
 
     pub fn bar() {}
@@ -18,6 +20,7 @@ pub mod singleline_inner_doc {
 }
 
 pub mod multiline_outer_doc {
+    //~v suspicious_doc_comments
     /*! This module contains useful functions.
      */
 
@@ -32,6 +35,7 @@ pub mod multiline_inner_doc {
 }
 
 pub mod multiline_outer_doc2 {
+    //~v suspicious_doc_comments
     //! This module
     //! contains
     //! useful functions.
@@ -40,6 +44,7 @@ pub mod multiline_outer_doc2 {
 }
 
 pub mod multiline_outer_doc3 {
+    //~v suspicious_doc_comments
     //! a
     //! b
 
@@ -48,12 +53,14 @@ pub mod multiline_outer_doc3 {
 }
 
 pub mod multiline_outer_doc4 {
+    //~v suspicious_doc_comments
     //! a
     /// b
     pub fn bar() {}
 }
 
 pub mod multiline_outer_doc_gap {
+    //~v suspicious_doc_comments
     //! a
 
     //! b
@@ -66,6 +73,7 @@ pub mod multiline_outer_doc_commented {
 }
 
 pub mod outer_doc_macro {
+    //~v suspicious_doc_comments
     //! Very cool macro
     macro_rules! x {
         () => {};
@@ -73,6 +81,7 @@ pub mod outer_doc_macro {
 }
 
 pub mod useless_outer_doc {
+    //~v suspicious_doc_comments
     //! Huh.
     use std::mem;
 }

@@ -43,8 +43,8 @@ mod borrowed_eq_owned {
         let owned = Owned {};
         let borrowed = Borrowed {};
 
-        if borrowed == owned {}
-        if borrowed == owned {}
+        if borrowed == owned {} //~ cmp_owned
+        if borrowed == owned {} //~ cmp_owned
     }
 }
 
@@ -62,8 +62,8 @@ mod owned_eq_borrowed {
         let owned = Owned {};
         let borrowed = Borrowed {};
 
-        if owned == borrowed {}
-        if owned == borrowed {}
+        if owned == borrowed {} //~ cmp_owned
+        if owned == borrowed {} //~ cmp_owned
     }
 }
 
@@ -89,8 +89,8 @@ mod issue_4874 {
     fn compare() {
         let borrowed = Borrowed {};
 
-        if borrowed == "Hi" {}
-        if borrowed == "Hi" {}
+        if borrowed == "Hi" {} //~ cmp_owned
+        if borrowed == "Hi" {} //~ cmp_owned
     }
 }
 

@@ -39,7 +39,7 @@ LL +     println!("Hello x is {:.*}", local_i32, local_f64);
    |
 
 error: variables can be used directly in the `format!` string
-  --> $DIR/allow_mixed_uninlined_format_args/uninlined_format_args.rs:11:5
+  --> $DIR/allow_mixed_uninlined_format_args/uninlined_format_args.rs:13:5
    |
 LL |     println!("Hello {} is {:.*}", local_i32, 5, local_f64);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -51,7 +51,7 @@ LL +     println!("Hello {local_i32} is {local_f64:.*}", 5);
    |
 
 error: variables can be used directly in the `format!` string
-  --> $DIR/allow_mixed_uninlined_format_args/uninlined_format_args.rs:12:5
+  --> $DIR/allow_mixed_uninlined_format_args/uninlined_format_args.rs:15:5
    |
 LL |     println!("Hello {} is {2:.*}", local_i32, 5, local_f64);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -63,7 +63,7 @@ LL +     println!("Hello {local_i32} is {local_f64:.*}", 5);
    |
 
 error: variables can be used directly in the `format!` string
-  --> $DIR/allow_mixed_uninlined_format_args/uninlined_format_args.rs:13:5
+  --> $DIR/allow_mixed_uninlined_format_args/uninlined_format_args.rs:17:5
    |
 LL |     println!("{}, {}", local_i32, local_opt.unwrap());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

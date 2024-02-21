@@ -21,14 +21,14 @@ fn variables(v: &[u8]) -> u8 {
 }
 
 fn index_different_slices(v1: &[u8], v2: &[u8]) {
-    let _ = v1[0] + v1[12];
-    let _ = v2[5] + v2[15];
+    let _ = v1[0] + v1[12]; //~ missing_asserts_for_indexing
+    let _ = v2[5] + v2[15]; //~ missing_asserts_for_indexing
 }
 
 fn index_different_slices2(v1: &[u8], v2: &[u8]) {
     assert!(v1.len() > 12);
     let _ = v1[0] + v1[12];
-    let _ = v2[5] + v2[15];
+    let _ = v2[5] + v2[15]; //~ missing_asserts_for_indexing
 }
 
 struct Foo<'a> {

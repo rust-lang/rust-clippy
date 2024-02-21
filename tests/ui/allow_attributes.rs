@@ -10,7 +10,7 @@ use proc_macros::{external, with_span};
 // Using clippy::needless_borrow just as a placeholder, it isn't relevant.
 
 // Should lint
-#[allow(dead_code)]
+#[allow(dead_code)] //~ allow_attributes
 struct T1;
 
 struct T2; // Should not lint
@@ -19,7 +19,7 @@ struct T3;
 #[warn(clippy::needless_borrow)] // Should not lint
 struct T4;
 // `panic = "unwind"` should always be true
-#[cfg_attr(panic = "unwind", allow(dead_code))]
+#[cfg_attr(panic = "unwind", allow(dead_code))] //~ allow_attributes
 struct CfgT;
 
 #[allow(clippy::allow_attributes, unused)]

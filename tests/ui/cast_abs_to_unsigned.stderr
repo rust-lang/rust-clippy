@@ -104,7 +104,7 @@ LL |     let _ = (x as i64 - y as i64).abs() as u32;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `(x as i64 - y as i64).unsigned_abs()`
 
 error: casting the result of `i32::abs()` to u32
-  --> $DIR/cast_abs_to_unsigned.rs:42:23
+  --> $DIR/cast_abs_to_unsigned.rs:43:23
    |
 LL |     assert_eq!(10u32, x.abs() as u32);
    |                       ^^^^^^^^^^^^^^ help: replace with: `x.unsigned_abs()`

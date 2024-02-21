@@ -18,7 +18,7 @@ static X: u32 = {
     let x = {
         let y = {
             let z = {
-                let w = { 3 };
+                let w = { 3 }; //~ excessive_nesting
                 w
             };
             z
@@ -64,6 +64,7 @@ impl A {
             pub fn b() {
                 struct C;
 
+                //~v excessive_nesting
                 impl C {
                     pub fn c() {}
                 }
@@ -78,6 +79,7 @@ trait Lol {
     fn lmao() {
         fn bb() {
             fn cc() {
+                //~v excessive_nesting
                 let x = { 1 }; // not a warning, but cc is
             }
 
@@ -95,6 +97,7 @@ pub mod a {
     pub mod b {
         pub mod c {
             pub mod d {
+                //~v excessive_nesting
                 pub mod e {
                     pub mod f {}
                 } // not here
@@ -108,13 +111,14 @@ fn a_but_not(v: u32) {}
 fn main() {
     let a = A;
 
-    a_but_not({{{{{{{{0}}}}}}}});
-    a.a({{{{{{{{{0}}}}}}}}});
-    (0, {{{{{{{1}}}}}}});
+    a_but_not({{{{{{{{0}}}}}}}}); //~ excessive_nesting
+    a.a({{{{{{{{{0}}}}}}}}}); //~ excessive_nesting
+    (0, {{{{{{{1}}}}}}}); //~ excessive_nesting
 
     if true {
         if true {
             if true {
+                //~v excessive_nesting
                 if true {
                     if true {
 
@@ -127,6 +131,7 @@ fn main() {
     let y = (|| {
         let x = (|| {
             let y = (|| {
+                //~v excessive_nesting
                 let z = (|| {
                     let w = { 3 };
                     w
@@ -146,38 +151,52 @@ fn main() {
 
     // this is a mess, but that's intentional
     let mut y = 1;
-    y += {{{{{5}}}}};
-    let z = y + {{{{{{{{{5}}}}}}}}};
-    [0, {{{{{{{{{{0}}}}}}}}}}];
-    let mut xx = [0; {{{{{{{{100}}}}}}}}];
+    y += {{{{{5}}}}}; //~ excessive_nesting
+    let z = y + {{{{{{{{{5}}}}}}}}}; //~ excessive_nesting
+    [0, {{{{{{{{{{0}}}}}}}}}}]; //~ excessive_nesting
+    let mut xx = [0; {{{{{{{{100}}}}}}}}]; //~ excessive_nesting
     xx[{{{{{{{{{{{{{{{{{{{{{{{{3}}}}}}}}}}}}}}}}}}}}}}}}];
-    &mut {{{{{{{{{{y}}}}}}}}}};
+    //~^ excessive_nesting
+    &mut {{{{{{{{{{y}}}}}}}}}}; //~ excessive_nesting
 
     for i in {{{{xx}}}} {{{{{{{{}}}}}}}}
+    //~^ excessive_nesting
+    //~| excessive_nesting
 
     while let Some(i) = {{{{{{Some(1)}}}}}} {{{{{{{}}}}}}}
+    //~^ excessive_nesting
+    //~| excessive_nesting
 
     while {{{{{{{{true}}}}}}}} {{{{{{{{{}}}}}}}}}
+    //~^ excessive_nesting
+    //~| excessive_nesting
 
     let d = D { d: {{{{{{{{{{{{{{{{{{{{{{{3}}}}}}}}}}}}}}}}}}}}}}} };
+    //~^ excessive_nesting
 
     {{{{1;}}}}..{{{{{{3}}}}}};
+    //~^ excessive_nesting
+    //~| excessive_nesting
     {{{{1;}}}}..={{{{{{{{{{{{{{{{{{{{{{{{{{6}}}}}}}}}}}}}}}}}}}}}}}}}};
-    ..{{{{{{{5}}}}}}};
-    ..={{{{{3}}}}};
-    {{{{{1;}}}}}..;
+    //~^ excessive_nesting
+    //~| excessive_nesting
+    ..{{{{{{{5}}}}}}}; //~ excessive_nesting
+    ..={{{{{3}}}}}; //~ excessive_nesting
+    {{{{{1;}}}}}..; //~ excessive_nesting
 
-    loop { break {{{{1}}}} };
-    loop {{{{{{}}}}}}
+    loop { break {{{{1}}}} }; //~ excessive_nesting
+    loop {{{{{{}}}}}} //~ excessive_nesting
 
+    //~v excessive_nesting
     match {{{{{{true}}}}}} {
-        true => {{{{}}}},
-        false => {{{{}}}},
+        true => {{{{}}}}, //~ excessive_nesting
+        false => {{{{}}}}, //~ excessive_nesting
     }
 
     {
         {
             {
+                //~v excessive_nesting
                 {
                     println!("warning! :)");
                 }
@@ -187,11 +206,11 @@ fn main() {
 }
 
 async fn b() -> u32 {
-    async fn c() -> u32 {{{{{{{0}}}}}}}
+    async fn c() -> u32 {{{{{{{0}}}}}}} //~ excessive_nesting
 
     c().await
 }
 
 async fn a() {
-    {{{{b().await}}}};
+    {{{{b().await}}}}; //~ excessive_nesting
 }

@@ -6,8 +6,10 @@
 struct A(u32);
 
 impl Clone for A {
+    //~v non_canonical_clone_impl
     fn clone(&self) -> Self { *self }
 
+    //~v non_canonical_clone_impl
     
 }
 
@@ -72,8 +74,10 @@ impl Copy for E {}
 struct F(u32);
 
 impl Clone for F {
+    //~v non_canonical_clone_impl
     fn clone(&self) -> Self { *self }
 
+    //~v non_canonical_clone_impl
     
 }
 

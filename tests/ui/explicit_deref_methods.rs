@@ -51,30 +51,34 @@ fn main() {
 
     // these should require linting
 
-    let b: &str = a.deref();
+    let b: &str = a.deref(); //~ explicit_deref_methods
 
-    let b: &mut str = a.deref_mut();
+    let b: &mut str = a.deref_mut(); //~ explicit_deref_methods
 
     // both derefs should get linted here
     let b: String = format!("{}, {}", a.deref(), a.deref());
+    //~^ explicit_deref_methods
+    //~| explicit_deref_methods
 
-    println!("{}", a.deref());
+    println!("{}", a.deref()); //~ explicit_deref_methods
 
     #[allow(clippy::match_single_binding)]
+    //~v explicit_deref_methods
     match a.deref() {
         _ => (),
     }
 
-    let b: String = concat(a.deref());
+    let b: String = concat(a.deref()); //~ explicit_deref_methods
 
-    let b = just_return(a).deref();
+    let b = just_return(a).deref(); //~ explicit_deref_methods
 
     let b: String = concat(just_return(a).deref());
+    //~^ explicit_deref_methods
 
-    let b: &str = a.deref().deref();
+    let b: &str = a.deref().deref(); //~ explicit_deref_methods
 
     let opt_a = Some(a.clone());
-    let b = opt_a.unwrap().deref();
+    let b = opt_a.unwrap().deref(); //~ explicit_deref_methods
 
     // make sure `Aaa::deref` instead of `aaa.deref()` is not linted, as well as fully qualified
     // syntax
@@ -111,7 +115,7 @@ fn main() {
     }
     let b: &str = expr_deref!(a);
 
-    let b: &str = expr_deref!(a.deref());
+    let b: &str = expr_deref!(a.deref()); //~ explicit_deref_methods
 
     // The struct does not implement Deref trait
     #[derive(Copy, Clone)]

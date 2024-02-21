@@ -11,7 +11,7 @@ macro_rules! m {
     ($a:expr) => {
         if $a.is_some() {
             // unnecessary
-            $a.unwrap();
+            $a.unwrap(); //~ unnecessary_unwrap
         }
     };
 }

@@ -5,10 +5,13 @@ use std::io::Read;
 
 fn main() {
     let slice: &[u32] = &[0];
+    //~v redundant_slicing
     let _ = &slice[..]; // Redundant slice
 
     let v = vec![0];
     let _ = &v[..]; // Ok, results in `&[_]`
+
+    //~v redundant_slicing
     let _ = &(&*v)[..]; // Outer borrow is redundant
 
     static S: &[u8] = &[0, 1, 2];
@@ -26,7 +29,7 @@ fn main() {
             $e
         };
     }
-    let _ = &m!(slice)[..];
+    let _ = &m!(slice)[..]; //~ redundant_slicing
 
     macro_rules! m2 {
         ($e:expr) => {

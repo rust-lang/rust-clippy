@@ -20,7 +20,7 @@ LL |     let v = if let Some(v_some) = g() { v_some } else { return None };
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `g()?`
 
 error: this could be rewritten as `let...else`
-  --> $DIR/manual_let_else_question_mark.rs:42:5
+  --> $DIR/manual_let_else_question_mark.rs:44:5
    |
 LL | /     let v = if let Some(v_some) = g() {
 LL | |         v_some
@@ -39,7 +39,7 @@ LL +     };
    |
 
 error: this could be rewritten as `let...else`
-  --> $DIR/manual_let_else_question_mark.rs:53:9
+  --> $DIR/manual_let_else_question_mark.rs:56:9
    |
 LL | /         let v = match g() {
 LL | |             Some(v_some) => v_some,
@@ -48,13 +48,13 @@ LL | |         };
    | |__________^ help: consider writing: `let Some(v) = g() else { return None };`
 
 error: this could be rewritten as `let...else`
-  --> $DIR/manual_let_else_question_mark.rs:63:9
+  --> $DIR/manual_let_else_question_mark.rs:66:9
    |
 LL |         let v = if let Some(v_some) = g() { v_some } else { return None };
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider writing: `let Some(v) = g() else { return None };`
 
 error: this `let...else` may be rewritten with the `?` operator
-  --> $DIR/manual_let_else_question_mark.rs:71:5
+  --> $DIR/manual_let_else_question_mark.rs:76:5
    |
 LL | /     let Some(x) = y else {
 LL | |         return None;

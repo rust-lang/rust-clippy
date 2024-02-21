@@ -80,10 +80,12 @@ LL ~         world!",
    |
 
 error: literal with an empty format string
-  --> $DIR/write_literal_2.rs:34:9
+  --> $DIR/write_literal_2.rs:35:9
    |
-LL |         "1", "2", "3",
-   |         ^^^^^^^^^^^^^
+LL | /         "1",
+LL | |         "2",
+LL | |         "3",
+   | |___________^
    |
 help: try
    |
@@ -92,7 +94,7 @@ LL ~         2 \\ 3",
    |
 
 error: literal with an empty format string
-  --> $DIR/write_literal_2.rs:36:23
+  --> $DIR/write_literal_2.rs:39:23
    |
 LL |     writeln!(v, "{}", "\\");
    |                       ^^^^
@@ -104,7 +106,7 @@ LL +     writeln!(v, "\\");
    |
 
 error: literal with an empty format string
-  --> $DIR/write_literal_2.rs:38:24
+  --> $DIR/write_literal_2.rs:41:24
    |
 LL |     writeln!(v, r"{}", "\\");
    |                        ^^^^
@@ -116,7 +118,7 @@ LL +     writeln!(v, r"\");
    |
 
 error: literal with an empty format string
-  --> $DIR/write_literal_2.rs:40:26
+  --> $DIR/write_literal_2.rs:43:26
    |
 LL |     writeln!(v, r#"{}"#, "\\");
    |                          ^^^^
@@ -128,7 +130,7 @@ LL +     writeln!(v, r#"\"#);
    |
 
 error: literal with an empty format string
-  --> $DIR/write_literal_2.rs:42:23
+  --> $DIR/write_literal_2.rs:45:23
    |
 LL |     writeln!(v, "{}", r"\");
    |                       ^^^^
@@ -140,7 +142,7 @@ LL +     writeln!(v, "\\");
    |
 
 error: literal with an empty format string
-  --> $DIR/write_literal_2.rs:44:23
+  --> $DIR/write_literal_2.rs:47:23
    |
 LL |     writeln!(v, "{}", "\r");
    |                       ^^^^
@@ -152,7 +154,7 @@ LL +     writeln!(v, "\r");
    |
 
 error: literal with an empty format string
-  --> $DIR/write_literal_2.rs:47:28
+  --> $DIR/write_literal_2.rs:50:28
    |
 LL |     writeln!(v, r#"{}{}"#, '#', '"');
    |                            ^^^^^^^^

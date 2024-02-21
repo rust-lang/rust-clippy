@@ -3,27 +3,27 @@
 
 fn main() {
     // Test clippy::cast_lossless with casts to integer types
-    let _ = i16::from(1i8);
-    let _ = i32::from(1i8);
-    let _ = i64::from(1i8);
-    let _ = i16::from(1u8);
-    let _ = i32::from(1u8);
-    let _ = i64::from(1u8);
-    let _ = u16::from(1u8);
-    let _ = u32::from(1u8);
-    let _ = u64::from(1u8);
-    let _ = i32::from(1i16);
-    let _ = i64::from(1i16);
-    let _ = i32::from(1u16);
-    let _ = i64::from(1u16);
-    let _ = u32::from(1u16);
-    let _ = u64::from(1u16);
-    let _ = i64::from(1i32);
-    let _ = i64::from(1u32);
-    let _ = u64::from(1u32);
+    let _ = i16::from(1i8); //~ cast_lossless
+    let _ = i32::from(1i8); //~ cast_lossless
+    let _ = i64::from(1i8); //~ cast_lossless
+    let _ = i16::from(1u8); //~ cast_lossless
+    let _ = i32::from(1u8); //~ cast_lossless
+    let _ = i64::from(1u8); //~ cast_lossless
+    let _ = u16::from(1u8); //~ cast_lossless
+    let _ = u32::from(1u8); //~ cast_lossless
+    let _ = u64::from(1u8); //~ cast_lossless
+    let _ = i32::from(1i16); //~ cast_lossless
+    let _ = i64::from(1i16); //~ cast_lossless
+    let _ = i32::from(1u16); //~ cast_lossless
+    let _ = i64::from(1u16); //~ cast_lossless
+    let _ = u32::from(1u16); //~ cast_lossless
+    let _ = u64::from(1u16); //~ cast_lossless
+    let _ = i64::from(1i32); //~ cast_lossless
+    let _ = i64::from(1u32); //~ cast_lossless
+    let _ = u64::from(1u32); //~ cast_lossless
 
     // Test with an expression wrapped in parens
-    let _ = u16::from(1u8 + 1u8);
+    let _ = u16::from(1u8 + 1u8); //~ cast_lossless
 }
 
 // The lint would suggest using `f64::from(input)` here but the `XX::from` function is not const,
@@ -57,6 +57,6 @@ fn issue11458() {
         };
     }
     let x = 10_u128;
-    let _ = i32::from(sign_cast!(x, u8, i8));
-    let _ = i32::from(sign_cast!(x, u8, i8) + 1);
+    let _ = i32::from(sign_cast!(x, u8, i8)); //~ cast_lossless
+    let _ = i32::from(sign_cast!(x, u8, i8) + 1); //~ cast_lossless
 }

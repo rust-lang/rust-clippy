@@ -6,6 +6,7 @@ fn allowed_name() {}
 /// OAuth and LaTeX are inside Clippy's default list.
 fn default_name() {}
 
+//~v doc_markdown
 /// `TestItemThingyOfCoolness` might sound cool but is not on the list and should be linted.
 fn unknown_name() {}
 

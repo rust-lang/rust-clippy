@@ -15,46 +15,59 @@ fn main() {
     let vec = Vec::<i32>::new();
 
     // test hashset
+    //~v iter_over_hash_type
     for x in &hash_set {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in hash_set.iter() {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in hash_set.clone() {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in hash_set.drain() {
         let _ = x;
     }
 
     // test hashmap
+    //~v iter_over_hash_type
     for (x, y) in &hash_map {
         let _ = (x, y);
     }
+    //~v iter_over_hash_type
     for x in hash_map.keys() {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in hash_map.values() {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in hash_map.values_mut() {
         *x += 1;
     }
+    //~v iter_over_hash_type
     for x in hash_map.iter() {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in hash_map.clone() {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in hash_map.drain() {
         let _ = x;
     }
 
     // test type-aliased hashers
+    //~v iter_over_hash_type
     for x in fx_hash_set {
         let _ = x;
     }
+    //~v iter_over_hash_type
     for x in fx_hash_map {
         let _ = x;
     }

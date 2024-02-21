@@ -109,7 +109,7 @@ LL +     println!("{{}} \x00 \u{ab123} \\\u{ab123} {{:?}}");
    |
 
 error: literal with an empty format string
-  --> $DIR/print_literal.rs:57:20
+  --> $DIR/print_literal.rs:58:20
    |
 LL |     println!("{}", "\\\u{1234}");
    |                    ^^^^^^^^^^^^
@@ -121,7 +121,7 @@ LL +     println!("\\\u{1234}");
    |
 
 error: literal with an empty format string
-  --> $DIR/print_literal.rs:61:20
+  --> $DIR/print_literal.rs:62:20
    |
 LL |     println!("{}", r"\u{ab123} \u{{");
    |                    ^^^^^^^^^^^^^^^^^
@@ -133,7 +133,7 @@ LL +     println!("\\u{{ab123}} \\u{{{{");
    |
 
 error: literal with an empty format string
-  --> $DIR/print_literal.rs:62:21
+  --> $DIR/print_literal.rs:63:21
    |
 LL |     println!(r"{}", r"\u{ab123} \u{{");
    |                     ^^^^^^^^^^^^^^^^^
@@ -145,7 +145,7 @@ LL +     println!(r"\u{{ab123}} \u{{{{");
    |
 
 error: literal with an empty format string
-  --> $DIR/print_literal.rs:63:20
+  --> $DIR/print_literal.rs:64:20
    |
 LL |     println!("{}", r"\{ab123} \u{{");
    |                    ^^^^^^^^^^^^^^^^
@@ -157,7 +157,7 @@ LL +     println!("\\{{ab123}} \\u{{{{");
    |
 
 error: literal with an empty format string
-  --> $DIR/print_literal.rs:64:20
+  --> $DIR/print_literal.rs:65:20
    |
 LL |     println!("{}", "\\u{ab123}");
    |                    ^^^^^^^^^^^^
@@ -169,7 +169,7 @@ LL +     println!("\\u{{ab123}}");
    |
 
 error: literal with an empty format string
-  --> $DIR/print_literal.rs:65:20
+  --> $DIR/print_literal.rs:66:20
    |
 LL |     println!("{}", "\\\\u{1234}");
    |                    ^^^^^^^^^^^^^
@@ -181,7 +181,7 @@ LL +     println!("\\\\u{{1234}}");
    |
 
 error: literal with an empty format string
-  --> $DIR/print_literal.rs:67:35
+  --> $DIR/print_literal.rs:68:35
    |
 LL |     println!("mixed: {} {world}", "{hello}");
    |                                   ^^^^^^^^^

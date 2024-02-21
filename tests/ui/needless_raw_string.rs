@@ -2,23 +2,24 @@
 #![warn(clippy::needless_raw_strings)]
 
 fn main() {
-    r#"aaa"#;
+    r#"aaa"#; //~ needless_raw_strings
     r#""aaa""#;
     r#"\s"#;
-    br#"aaa"#;
+    br#"aaa"#; //~ needless_raw_strings
     br#""aaa""#;
     br#"\s"#;
-    cr#"aaa"#;
+    cr#"aaa"#; //~ needless_raw_strings
     cr#""aaa""#;
     cr#"\s"#;
 
+    //~v needless_raw_strings
     r#"
         a
         multiline
         string
     "#;
 
-    r"no hashes";
-    br"no hashes";
-    cr"no hashes";
+    r"no hashes"; //~ needless_raw_strings
+    br"no hashes"; //~ needless_raw_strings
+    cr"no hashes"; //~ needless_raw_strings
 }

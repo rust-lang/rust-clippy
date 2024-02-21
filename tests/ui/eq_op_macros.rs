@@ -5,10 +5,10 @@
 macro_rules! assert_in_macro_def {
     () => {
         let a = 42;
-        assert_eq!(a, a);
-        assert_ne!(a, a);
-        debug_assert_eq!(a, a);
-        debug_assert_ne!(a, a);
+        assert_eq!(a, a); //~ eq_op
+        assert_ne!(a, a); //~ eq_op
+        debug_assert_eq!(a, a); //~ eq_op
+        debug_assert_ne!(a, a); //~ eq_op
     };
 }
 

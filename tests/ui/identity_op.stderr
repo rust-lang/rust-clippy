@@ -242,73 +242,73 @@ LL |     0 + if a { 1 } else { 2 } + if b { 3 } else { 5 }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider reducing it to: `(if a { 1 } else { 2 })`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:175:22
+  --> $DIR/identity_op.rs:176:22
    |
 LL |         let _: i32 = *x + 0;
    |                      ^^^^^^ help: consider reducing it to: `*x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:177:22
+  --> $DIR/identity_op.rs:178:22
    |
 LL |         let _: i32 = x + 0;
    |                      ^^^^^ help: consider reducing it to: `*x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:182:22
+  --> $DIR/identity_op.rs:183:22
    |
 LL |         let _: i32 = **x + 0;
    |                      ^^^^^^^ help: consider reducing it to: `**x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:185:22
+  --> $DIR/identity_op.rs:186:22
    |
 LL |         let _: i32 = *x + 0;
    |                      ^^^^^^ help: consider reducing it to: `**x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:191:22
+  --> $DIR/identity_op.rs:192:22
    |
 LL |         let _: i32 = ***x + 0;
    |                      ^^^^^^^^ help: consider reducing it to: `***x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:193:22
+  --> $DIR/identity_op.rs:194:22
    |
 LL |         let _: i32 = **x + 0;
    |                      ^^^^^^^ help: consider reducing it to: `***x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:196:22
+  --> $DIR/identity_op.rs:197:22
    |
 LL |         let _: i32 = *&x + 0;
    |                      ^^^^^^^ help: consider reducing it to: `*&x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:198:22
+  --> $DIR/identity_op.rs:199:22
    |
 LL |         let _: i32 = **&&x + 0;
    |                      ^^^^^^^^^ help: consider reducing it to: `**&&x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:200:22
+  --> $DIR/identity_op.rs:201:22
    |
 LL |         let _: i32 = *&*&x + 0;
    |                      ^^^^^^^^^ help: consider reducing it to: `*&*&x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:202:22
+  --> $DIR/identity_op.rs:203:22
    |
 LL |         let _: i32 = **&&*&x + 0;
    |                      ^^^^^^^^^^^ help: consider reducing it to: `**&&*&x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:209:22
+  --> $DIR/identity_op.rs:210:22
    |
 LL |         let _: i32 = **&&*&x + 0;
    |                      ^^^^^^^^^^^ help: consider reducing it to: `***&&*&x`
 
 error: this operation has no effect
-  --> $DIR/identity_op.rs:211:22
+  --> $DIR/identity_op.rs:212:22
    |
 LL |         let _: i32 = **&&*&x + 0;
    |                      ^^^^^^^^^^^ help: consider reducing it to: `***&&*&x`

@@ -18,17 +18,20 @@ mod use_self {
     struct Foo;
 
     impl Foo {
+        //~v use_self
         fn new() -> Self {
-            Self {}
+            Self {} //~ use_self
         }
+        //~v use_self
         fn test() -> Self {
-            Self::new()
+            Self::new() //~ use_self
         }
     }
 
     impl Default for Foo {
+        //~v use_self
         fn default() -> Self {
-            Self::new()
+            Self::new() //~ use_self
         }
     }
 }
@@ -93,6 +96,8 @@ mod existential {
     struct Foo;
 
     impl Foo {
+        //~| use_self
+        //~v use_self
         fn bad(foos: &[Self]) -> impl Iterator<Item = &Self> {
             foos.iter()
         }
@@ -108,7 +113,7 @@ mod tuple_structs {
 
     impl TS {
         pub fn ts() -> Self {
-            Self(0)
+            Self(0) //~ use_self
         }
     }
 }
@@ -143,8 +148,9 @@ mod nesting {
             }
 
             impl Bar {
+                //~v use_self
                 fn bar() -> Self {
-                    Self { foo: Foo {} }
+                    Self { foo: Foo {} } //~ use_self
                 }
             }
 
@@ -155,8 +161,9 @@ mod nesting {
         }
 
         // Should lint here
+        //~v use_self
         fn baz() -> Self {
-            Self {}
+            Self {} //~ use_self
         }
     }
 
@@ -173,9 +180,9 @@ mod nesting {
         }
 
         fn method2() {
-            let _ = Self::B(42);
-            let _ = Self::C { field: true };
-            let _ = Self::A;
+            let _ = Self::B(42); //~ use_self
+            let _ = Self::C { field: true }; //~ use_self
+            let _ = Self::A; //~ use_self
         }
     }
 }
@@ -217,10 +224,10 @@ mod rustfix {
         fn fun_1() {}
 
         fn fun_2() {
-            Self::fun_1();
-            Self::A;
+            Self::fun_1(); //~ use_self
+            Self::A; //~ use_self
 
-            Self {};
+            Self {}; //~ use_self
         }
     }
 }
@@ -239,7 +246,7 @@ mod issue3567 {
 
     impl Test for TestStruct {
         fn test() -> TestStruct {
-            Self::from_something()
+            Self::from_something() //~ use_self
         }
     }
 }
@@ -253,12 +260,15 @@ mod paths_created_by_lowering {
         const A: usize = 0;
         const B: usize = 1;
 
+        //~v use_self
         async fn g() -> Self {
-            Self {}
+            Self {} //~ use_self
         }
 
         fn f<'a>(&self, p: &'a [u8]) -> &'a [u8] {
             &p[Self::A..Self::B]
+            //~^ use_self
+            //~| use_self
         }
     }
 
@@ -281,8 +291,9 @@ mod generics {
 
     impl<T> Foo<T> {
         // `Self` is applicable here
+        //~v use_self
         fn foo(value: T) -> Self {
-            Self { value }
+            Self { value } //~ use_self
         }
 
         // `Cannot` use `Self` as a return type as the generic types are different
@@ -454,7 +465,7 @@ mod nested_paths {
 
     impl A<submod::C> {
         fn test() -> Self {
-            Self::new::<submod::B>(submod::B {})
+            Self::new::<submod::B>(submod::B {}) //~ use_self
         }
     }
 }
@@ -491,7 +502,7 @@ mod issue7206 {
 
     impl<'a> S2<S<'a>> {
         fn new_again() -> Self {
-            Self::new()
+            Self::new() //~ use_self
         }
     }
 }
@@ -528,13 +539,14 @@ mod use_self_in_pat {
     impl Foo {
         fn do_stuff(self) {
             match self {
-                Self::Bar => unimplemented!(),
-                Self::Baz => unimplemented!(),
+                Self::Bar => unimplemented!(), //~ use_self
+                Self::Baz => unimplemented!(), //~ use_self
             }
             match Some(1) {
                 Some(_) => unimplemented!(),
                 None => unimplemented!(),
             }
+            //~v use_self
             if let Self::Bar = self {
                 unimplemented!()
             }
@@ -559,17 +571,21 @@ mod issue8845 {
     impl Something {
         fn get_value(&self) -> u8 {
             match self {
-                Self::Num(n) => *n,
-                Self::TupleNums(n, _m) => *n,
+                Self::Num(n) => *n,           //~ use_self
+                Self::TupleNums(n, _m) => *n, //~ use_self
                 Self::StructNums { one, two: _ } => *one,
+                //~^ use_self
             }
         }
 
         fn use_crate(&self) -> u8 {
             match self {
                 Self::Num(n) => *n,
+                //~^ use_self
                 Self::TupleNums(n, _m) => *n,
+                //~^ use_self
                 Self::StructNums { one, two: _ } => *one,
+                //~^ use_self
             }
         }
 
@@ -585,24 +601,24 @@ mod issue8845 {
 
     impl Foo {
         fn get_value(&self) -> u8 {
-            let Self(x) = self;
+            let Self(x) = self; //~ use_self
             *x
         }
 
         fn use_crate(&self) -> u8 {
-            let Self(x) = self;
+            let Self(x) = self; //~ use_self
             *x
         }
     }
 
     impl Bar {
         fn get_value(&self) -> u8 {
-            let Self { x, .. } = self;
+            let Self { x, .. } = self; //~ use_self
             *x
         }
 
         fn use_crate(&self) -> u8 {
-            let Self { x, .. } = self;
+            let Self { x, .. } = self; //~ use_self
             *x
         }
     }
@@ -641,7 +657,7 @@ fn msrv_1_37() {
     impl E {
         fn foo(self) {
             match self {
-                Self::A => {},
+                Self::A => {}, //~ use_self
             }
         }
     }

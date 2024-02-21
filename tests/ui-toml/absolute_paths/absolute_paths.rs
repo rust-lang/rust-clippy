@@ -37,16 +37,16 @@ pub mod a {
 
 fn main() {
     f32::max(1.0, 2.0);
-    std::f32::MAX;
-    core::f32::MAX;
-    ::core::f32::MAX;
-    crate::a::b::c::C;
-    crate::a::b::c::d::e::f::F;
-    crate::a::A;
-    crate::a::b::B;
-    crate::a::b::c::C::ZERO;
-    helper::b::c::d::e::f();
-    ::helper::b::c::d::e::f();
+    std::f32::MAX; //~ absolute_paths
+    core::f32::MAX; //~ absolute_paths
+    ::core::f32::MAX; //~ absolute_paths
+    crate::a::b::c::C; //~[disallow_crates] absolute_paths
+    crate::a::b::c::d::e::f::F; //~[disallow_crates] absolute_paths
+    crate::a::A; //~[disallow_crates] absolute_paths
+    crate::a::b::B; //~[disallow_crates] absolute_paths
+    crate::a::b::c::C::ZERO; //~[disallow_crates] absolute_paths
+    helper::b::c::d::e::f(); //~[disallow_crates] absolute_paths
+    ::helper::b::c::d::e::f(); //~[disallow_crates] absolute_paths
     fn b() -> a::b::B {
         todo!()
     }
@@ -55,7 +55,7 @@ fn main() {
     std::ptr::addr_of!(x);
     // Test we handle max segments with `PathRoot` properly; this has 4 segments but we should say it
     // has 3
-    ::std::f32::MAX;
+    ::std::f32::MAX; //~ absolute_paths
     // Do not lint due to the above
     ::helper::a();
     // Do not lint

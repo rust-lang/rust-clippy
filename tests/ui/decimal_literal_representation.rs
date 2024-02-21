@@ -13,13 +13,26 @@ fn main() {
         2_131_750_925, // 0x7F0F_F00D
     );
     let bad = (        // Hex:
+
+        //~v decimal_literal_representation
         32_773,        // 0x8005
+
+        //~v decimal_literal_representation
         65_280,        // 0xFF00
+
+        //~v decimal_literal_representation
         2_131_750_927, // 0x7F0F_F00F
+
+        //~v decimal_literal_representation
         2_147_483_647, // 0x7FFF_FFFF
         #[allow(overflowing_literals)]
+        //~v decimal_literal_representation
         4_042_322_160, // 0xF0F0_F0F0
+
+        //~v decimal_literal_representation
         32_773usize,   // 0x8005_usize
+
+        //~v decimal_literal_representation
         2_131_750_927isize, // 0x7F0F_F00F_isize
     );
 }

@@ -13,6 +13,7 @@ fn option_methods() {
 
     // Check for `option.map(_).unwrap_or_else(_)` use.
     // single line case
+    //~v map_unwrap_or
     let _ = opt.map(|x| x + 1)
         // Should lint even though this call is on a separate line.
         .unwrap_or_else(|| 0);
@@ -43,6 +44,7 @@ fn result_methods() {
 
     // Check for `result.map(_).unwrap_or_else(_)` use.
     // single line case
+    //~v map_unwrap_or
     let _ = res.map(|x| x + 1)
         // should lint even though this call is on a separate line
         .unwrap_or_else(|_e| 0);

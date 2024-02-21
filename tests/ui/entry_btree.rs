@@ -7,6 +7,7 @@ fn foo() {}
 
 fn btree_map<K: Eq + Ord + Copy, V: Copy>(m: &mut BTreeMap<K, V>, k: K, v: V) {
     // insert then do something, use if let
+    //~v map_entry
     if !m.contains_key(&k) {
         m.insert(k, v);
         foo();

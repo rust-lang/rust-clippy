@@ -44,6 +44,7 @@ fn main() {
     { unit_fn_block(); };
     unsafe { unit_fn_block(); };
 
+    //~v semicolon_inside_block
     {
         unit_fn_block();
         unit_fn_block();

@@ -17,6 +17,7 @@ struct FooDefault<'a> {
     l: &'a [i32],
 }
 
+//~v derivable_impls
 impl std::default::Default for FooDefault<'_> {
     fn default() -> Self {
         Self {
@@ -38,6 +39,7 @@ impl std::default::Default for FooDefault<'_> {
 
 struct TupleDefault(bool, i32, u64);
 
+//~v derivable_impls
 impl std::default::Default for TupleDefault {
     fn default() -> Self {
         Self(false, 0, 0u64)
@@ -90,6 +92,7 @@ impl Default for FooNDVec {
 
 struct StrDefault<'a>(&'a str);
 
+//~v derivable_impls
 impl Default for StrDefault<'_> {
     fn default() -> Self {
         Self("")
@@ -116,6 +119,7 @@ macro_rules! mac {
 mac!(0);
 
 struct Y(u32);
+//~v derivable_impls
 impl Default for Y {
     fn default() -> Self {
         Self(mac!())
@@ -155,6 +159,7 @@ struct WithoutSelfCurly {
     a: bool,
 }
 
+//~v derivable_impls
 impl Default for WithoutSelfCurly {
     fn default() -> Self {
         WithoutSelfCurly { a: false }
@@ -163,6 +168,7 @@ impl Default for WithoutSelfCurly {
 
 struct WithoutSelfParan(bool);
 
+//~v derivable_impls
 impl Default for WithoutSelfParan {
     fn default() -> Self {
         WithoutSelfParan(false)
@@ -213,6 +219,7 @@ pub struct RepeatDefault1 {
     a: [i8; 32],
 }
 
+//~v derivable_impls
 impl Default for RepeatDefault1 {
     fn default() -> Self {
         RepeatDefault1 { a: [0; 32] }
@@ -247,6 +254,7 @@ pub enum SimpleEnum {
     Bar,
 }
 
+//~v derivable_impls
 impl Default for SimpleEnum {
     fn default() -> Self {
         SimpleEnum::Bar

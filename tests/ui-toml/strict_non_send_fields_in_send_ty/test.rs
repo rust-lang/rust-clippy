@@ -8,7 +8,7 @@ pub struct NoGeneric {
     rc_is_not_send: Rc<String>,
 }
 
-unsafe impl Send for NoGeneric {}
+unsafe impl Send for NoGeneric {} //~ non_send_fields_in_send_ty
 
 pub struct MultiField<T> {
     field1: T,
@@ -17,6 +17,7 @@ pub struct MultiField<T> {
 }
 
 unsafe impl<T> Send for MultiField<T> {}
+//~^ non_send_fields_in_send_ty
 
 pub enum MyOption<T> {
     MySome(T),
@@ -24,6 +25,7 @@ pub enum MyOption<T> {
 }
 
 unsafe impl<T> Send for MyOption<T> {}
+//~^ non_send_fields_in_send_ty
 
 // All fields are disallowed when raw pointer heuristic is off
 extern "C" {
@@ -38,6 +40,6 @@ pub struct HeuristicTest {
     field5: Vec<Vec<*const NonSend>>,
 }
 
-unsafe impl Send for HeuristicTest {}
+unsafe impl Send for HeuristicTest {} //~ non_send_fields_in_send_ty
 
 fn main() {}

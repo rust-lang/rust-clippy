@@ -6,7 +6,7 @@ use std::sync::atomic::AtomicUsize;
 
 macro_rules! declare_const {
     ($name:ident: $ty:ty = $e:expr) => {
-        const $name: $ty = $e;
+        const $name: $ty = $e; //~ declare_interior_mutable_const
     };
 }
 

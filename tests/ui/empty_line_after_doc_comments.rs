@@ -15,6 +15,7 @@ mod some_mod {
     }
 }
 
+//~v empty_line_after_doc_comments
 /// This should produce a warning
 
 fn with_doc_and_newline() { assert!(true)}
@@ -65,8 +66,10 @@ struct Foo {
 mod foo {
 }
 
+//~v empty_line_after_doc_comments
 /// This doc comment should produce a warning
 
+//~v empty_line_after_doc_comments
 /** This is also a doc comment and should produce a warning
  */
 

@@ -26,6 +26,7 @@ mod structs {
     }
 
     // private field name does not start with underscore, should be ignored
+    //~v manual_non_exhaustive
     struct NoUnderscore {
         pub a: i32,
         pub b: i32,

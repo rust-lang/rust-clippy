@@ -10,14 +10,15 @@
 extern crate proc_macros;
 use proc_macros::with_span;
 
+//~v missing_docs_in_private_items
 struct Foo {
-    a: isize,
-    b: isize,
+    a: isize, //~ missing_docs_in_private_items
+    b: isize, //~ missing_docs_in_private_items
 }
 
 pub struct PubFoo {
     pub a: isize,
-    b: isize,
+    b: isize, //~ missing_docs_in_private_items
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
@@ -64,10 +65,11 @@ pub trait E: Sized {
 }
 
 impl Foo {
+    //~v missing_docs_in_private_items
     pub fn new() -> Self {
         Foo { a: 0, b: 0 }
     }
-    fn bar() {}
+    fn bar() {} //~ missing_docs_in_private_items
 }
 
 impl PubFoo {
@@ -75,6 +77,7 @@ impl PubFoo {
     /// dox
     pub fn foo1() {}
     #[must_use = "yep"]
+    //~v missing_docs_in_private_items
     fn foo2() -> u32 {
         1
     }

@@ -15,11 +15,11 @@ fn foo(
 }
 
 fn skip_on_statements() {
-    #[cfg_attr(rustfmt, rustfmt::skip)]
+    #[cfg_attr(rustfmt, rustfmt::skip)] //~ deprecated_cfg_attr
     5+3;
 }
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
+#[cfg_attr(rustfmt, rustfmt_skip)] //~ deprecated_cfg_attr
 fn main() {
     foo::f();
 }
@@ -38,6 +38,6 @@ fn msrv_1_29() {
 
 #[clippy::msrv = "1.30"]
 fn msrv_1_30() {
-    #[cfg_attr(rustfmt, rustfmt::skip)]
+    #[cfg_attr(rustfmt, rustfmt::skip)] //~ deprecated_cfg_attr
     1+30;
 }

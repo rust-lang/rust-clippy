@@ -39,50 +39,50 @@ LL |     field3: T,
    = help: add `T: Send` bound in `Send` impl
 
 error: some fields in `MyOption<T>` are not safe to be sent to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:26:1
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:27:1
    |
 LL | unsafe impl<T> Send for MyOption<T> {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: it is not safe to send field `0` to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:22:12
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:23:12
    |
 LL |     MySome(T),
    |            ^
    = help: add `T: Send` bound in `Send` impl
 
 error: some fields in `HeuristicTest` are not safe to be sent to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:41:1
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:43:1
    |
 LL | unsafe impl Send for HeuristicTest {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: it is not safe to send field `field1` to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:34:5
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:36:5
    |
 LL |     field1: Vec<*const NonSend>,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: use a thread-safe type that implements `Send`
 note: it is not safe to send field `field2` to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:35:5
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:37:5
    |
 LL |     field2: [*const NonSend; 3],
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: use a thread-safe type that implements `Send`
 note: it is not safe to send field `field3` to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:36:5
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:38:5
    |
 LL |     field3: (*const NonSend, *const NonSend, *const NonSend),
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: use a thread-safe type that implements `Send`
 note: it is not safe to send field `field4` to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:37:5
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:39:5
    |
 LL |     field4: (*const NonSend, Rc<u8>),
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: use a thread-safe type that implements `Send`
 note: it is not safe to send field `field5` to another thread
-  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:38:5
+  --> $DIR/strict_non_send_fields_in_send_ty/test.rs:40:5
    |
 LL |     field5: Vec<Vec<*const NonSend>>,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

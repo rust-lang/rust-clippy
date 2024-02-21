@@ -133,7 +133,7 @@ fn macro_expansion() {
         ($e:expr) => {
             // not ok
             match $e {
-                Some(_) => (),
+                Some(_) => (), //~ pattern_type_mismatch
                 _ => (),
             }
 

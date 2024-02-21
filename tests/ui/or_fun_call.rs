@@ -49,52 +49,57 @@ fn or_fun_call() {
     with_const_fn.unwrap_or(Duration::from_secs(5));
 
     let with_constructor = Some(vec![1]);
-    with_constructor.unwrap_or(make());
+    with_constructor.unwrap_or(make()); //~ or_fun_call
 
     let with_new = Some(vec![1]);
-    with_new.unwrap_or(Vec::new());
+    with_new.unwrap_or(Vec::new()); //~ unwrap_or_default
 
     let with_const_args = Some(vec![1]);
     with_const_args.unwrap_or(Vec::with_capacity(12));
+    //~^ or_fun_call
 
     let with_err: Result<_, ()> = Ok(vec![1]);
-    with_err.unwrap_or(make());
+    with_err.unwrap_or(make()); //~ or_fun_call
 
     let with_err_args: Result<_, ()> = Ok(vec![1]);
-    with_err_args.unwrap_or(Vec::with_capacity(12));
+    with_err_args.unwrap_or(Vec::with_capacity(12)); //~ or_fun_call
 
     let with_default_trait = Some(1);
     with_default_trait.unwrap_or(Default::default());
+    //~^ unwrap_or_default
 
     let with_default_type = Some(1);
     with_default_type.unwrap_or(u64::default());
+    //~^ unwrap_or_default
 
     let self_default = None::<FakeDefault>;
     self_default.unwrap_or(<FakeDefault>::default());
+    //~^ or_fun_call
 
     let real_default = None::<FakeDefault>;
     real_default.unwrap_or(<FakeDefault as Default>::default());
+    //~^ unwrap_or_default
 
     let with_vec = Some(vec![1]);
-    with_vec.unwrap_or(vec![]);
+    with_vec.unwrap_or(vec![]); //~ unwrap_or_default
 
     let without_default = Some(Foo);
-    without_default.unwrap_or(Foo::new());
+    without_default.unwrap_or(Foo::new()); //~ or_fun_call
 
     let mut map = HashMap::<u64, String>::new();
-    map.entry(42).or_insert(String::new());
+    map.entry(42).or_insert(String::new()); //~ unwrap_or_default
 
     let mut map_vec = HashMap::<u64, Vec<i32>>::new();
-    map_vec.entry(42).or_insert(vec![]);
+    map_vec.entry(42).or_insert(vec![]); //~ unwrap_or_default
 
     let mut btree = BTreeMap::<u64, String>::new();
-    btree.entry(42).or_insert(String::new());
+    btree.entry(42).or_insert(String::new()); //~ unwrap_or_default
 
     let mut btree_vec = BTreeMap::<u64, Vec<i32>>::new();
-    btree_vec.entry(42).or_insert(vec![]);
+    btree_vec.entry(42).or_insert(vec![]); //~ unwrap_or_default
 
     let stringy = Some(String::new());
-    let _ = stringy.unwrap_or(String::new());
+    let _ = stringy.unwrap_or(String::new()); //~ unwrap_or_default
 
     let opt = Some(1);
     let hello = "Hello";
@@ -102,9 +107,9 @@ fn or_fun_call() {
 
     // index
     let map = HashMap::<u64, u64>::new();
-    let _ = Some(1).unwrap_or(map[&1]);
+    let _ = Some(1).unwrap_or(map[&1]); //~ or_fun_call
     let map = BTreeMap::<u64, u64>::new();
-    let _ = Some(1).unwrap_or(map[&1]);
+    let _ = Some(1).unwrap_or(map[&1]); //~ or_fun_call
     // don't lint index vec
     let vec = vec![1];
     let _ = Some(1).unwrap_or(vec[1]);
@@ -129,6 +134,7 @@ fn test_or_with_ctors() {
     let _ = opt.or(Some(two));
 
     let _ = Some("a".to_string()).or(Some("b".to_string()));
+    //~^ or_fun_call
 
     let b = "b".to_string();
     let _ = Some(Bar("a".to_string(), Duration::from_secs(1)))
@@ -167,15 +173,16 @@ mod issue6675 {
     unsafe fn foo() {
         let s = "test".to_owned();
         let s = &s as *const _;
-        None.unwrap_or(ptr_to_ref(s));
+        None.unwrap_or(ptr_to_ref(s)); //~ or_fun_call
     }
 
     fn bar() {
         let s = "test".to_owned();
         let s = &s as *const _;
-        None.unwrap_or(unsafe { ptr_to_ref(s) });
+        None.unwrap_or(unsafe { ptr_to_ref(s) }); //~ or_fun_call
         #[rustfmt::skip]
         None.unwrap_or( unsafe { ptr_to_ref(s) }    );
+        //~^ or_fun_call
     }
 }
 
@@ -250,8 +257,8 @@ mod issue8993 {
     }
 
     fn test_map_or() {
-        let _ = Some(4).map_or(g(), |v| v);
-        let _ = Some(4).map_or(g(), f);
+        let _ = Some(4).map_or(g(), |v| v); //~ or_fun_call
+        let _ = Some(4).map_or(g(), f); //~ or_fun_call
         let _ = Some(4).map_or(0, f);
     }
 }
@@ -282,25 +289,31 @@ mod lazy {
         }
 
         let with_new = Some(vec![1]);
-        with_new.unwrap_or_else(Vec::new);
+        with_new.unwrap_or_else(Vec::new); //~ unwrap_or_default
 
         let with_default_trait = Some(1);
         with_default_trait.unwrap_or_else(Default::default);
+        //~^ unwrap_or_default
 
         let with_default_type = Some(1);
         with_default_type.unwrap_or_else(u64::default);
+        //~^ unwrap_or_default
 
         let real_default = None::<FakeDefault>;
         real_default.unwrap_or_else(<FakeDefault as Default>::default);
+        //~^ unwrap_or_default
 
         let mut map = HashMap::<u64, String>::new();
         map.entry(42).or_insert_with(String::new);
+        //~^ unwrap_or_default
 
         let mut btree = BTreeMap::<u64, String>::new();
         btree.entry(42).or_insert_with(String::new);
+        //~^ unwrap_or_default
 
         let stringy = Some(String::new());
         let _ = stringy.unwrap_or_else(String::new);
+        //~^ unwrap_or_default
 
         // negative tests
         let self_default = None::<FakeDefault>;

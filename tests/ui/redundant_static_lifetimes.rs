@@ -3,41 +3,57 @@
 #[derive(Debug)]
 struct Foo;
 
+//~v redundant_static_lifetimes
 const VAR_ONE: &'static str = "Test constant #1"; // ERROR: Consider removing 'static.
 
 const VAR_TWO: &str = "Test constant #2"; // This line should not raise a warning.
 
+//~v redundant_static_lifetimes
 const VAR_THREE: &[&'static str] = &["one", "two"]; // ERROR: Consider removing 'static
 
+//~| redundant_static_lifetimes
+//~v redundant_static_lifetimes
 const VAR_FOUR: (&str, (&str, &'static str), &'static str) = ("on", ("th", "th"), "on"); // ERROR: Consider removing 'static
 
-const VAR_SIX: &'static u8 = &5;
+const VAR_SIX: &'static u8 = &5; //~ redundant_static_lifetimes
 
 const VAR_HEIGHT: &'static Foo = &Foo {};
+//~^ redundant_static_lifetimes
 
+//~v redundant_static_lifetimes
 const VAR_SLICE: &'static [u8] = b"Test constant #1"; // ERROR: Consider removing 'static.
 
+//~v redundant_static_lifetimes
 const VAR_TUPLE: &'static (u8, u8) = &(1, 2); // ERROR: Consider removing 'static.
 
+//~v redundant_static_lifetimes
 const VAR_ARRAY: &'static [u8; 1] = b"T"; // ERROR: Consider removing 'static.
 
+//~v redundant_static_lifetimes
 static STATIC_VAR_ONE: &'static str = "Test static #1"; // ERROR: Consider removing 'static.
 
 static STATIC_VAR_TWO: &str = "Test static #2"; // This line should not raise a warning.
 
+//~v redundant_static_lifetimes
 static STATIC_VAR_THREE: &[&'static str] = &["one", "two"]; // ERROR: Consider removing 'static
 
 static STATIC_VAR_SIX: &'static u8 = &5;
+//~^ redundant_static_lifetimes
 
 static STATIC_VAR_HEIGHT: &'static Foo = &Foo {};
+//~^ redundant_static_lifetimes
 
+//~v redundant_static_lifetimes
 static STATIC_VAR_SLICE: &'static [u8] = b"Test static #3"; // ERROR: Consider removing 'static.
 
+//~v redundant_static_lifetimes
 static STATIC_VAR_TUPLE: &'static (u8, u8) = &(1, 2); // ERROR: Consider removing 'static.
 
+//~v redundant_static_lifetimes
 static STATIC_VAR_ARRAY: &'static [u8; 1] = b"T"; // ERROR: Consider removing 'static.
 
 static mut STATIC_MUT_SLICE: &'static mut [u32] = &mut [0];
+//~^ redundant_static_lifetimes
 
 fn main() {
     let false_positive: &'static str = "test";
@@ -66,5 +82,5 @@ fn msrv_1_16() {
 
 #[clippy::msrv = "1.17"]
 fn msrv_1_17() {
-    static V: &'static u8 = &17;
+    static V: &'static u8 = &17; //~ redundant_static_lifetimes
 }

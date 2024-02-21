@@ -15,8 +15,10 @@ extern crate proc_macros;
 use proc_macros::inline_macros;
 
 fn distinct_lifetimes<'a, 'b>(_x: &'a u8, _y: &'b u8, _z: u8) {}
+//~^ needless_lifetimes
 
 fn distinct_and_static<'a, 'b>(_x: &'a u8, _y: &'b u8, _z: &'static u8) {}
+//~^ needless_lifetimes
 
 // No error; same lifetime on two params.
 fn same_lifetime_on_input<'a>(_x: &'a u8, _y: &'a u8) {}
@@ -26,6 +28,7 @@ fn only_static_on_input(_x: &u8, _y: &u8, _z: &'static u8) {}
 
 fn mut_and_static_input(_x: &mut u8, _y: &'static str) {}
 
+//~v needless_lifetimes
 fn in_and_out<'a>(x: &'a u8, _y: u8) -> &'a u8 {
     x
 }
@@ -38,6 +41,7 @@ fn multiple_in_and_out_1<'a>(x: &'a u8, _y: &'a u8) -> &'a u8 {
 // Error; multiple input refs, but the output lifetime is not elided, i.e., the following is valid:
 //   fn multiple_in_and_out_2a<'a>(x: &'a u8, _y: &u8) -> &'a u8
 //                                                ^^^
+//~v needless_lifetimes
 fn multiple_in_and_out_2a<'a, 'b>(x: &'a u8, _y: &'b u8) -> &'a u8 {
     x
 }
@@ -45,6 +49,7 @@ fn multiple_in_and_out_2a<'a, 'b>(x: &'a u8, _y: &'b u8) -> &'a u8 {
 // Error; multiple input refs, but the output lifetime is not elided, i.e., the following is valid:
 //   fn multiple_in_and_out_2b<'b>(_x: &u8, y: &'b u8) -> &'b u8
 //                                     ^^^
+//~v needless_lifetimes
 fn multiple_in_and_out_2b<'a, 'b>(_x: &'a u8, y: &'b u8) -> &'b u8 {
     y
 }
@@ -62,6 +67,7 @@ fn in_static_and_out<'a>(x: &'a u8, _y: &'static u8) -> &'a u8 {
 // Error; multiple input refs, but the output lifetime is not elided, i.e., the following is valid:
 //   fn deep_reference_1a<'a>(x: &'a u8, _y: &u8) -> Result<&'a u8, ()>
 //                                           ^^^
+//~v needless_lifetimes
 fn deep_reference_1a<'a, 'b>(x: &'a u8, _y: &'b u8) -> Result<&'a u8, ()> {
     Ok(x)
 }
@@ -69,6 +75,7 @@ fn deep_reference_1a<'a, 'b>(x: &'a u8, _y: &'b u8) -> Result<&'a u8, ()> {
 // Error; multiple input refs, but the output lifetime is not elided, i.e., the following is valid:
 //   fn deep_reference_1b<'b>(_x: &u8, y: &'b u8) -> Result<&'b u8, ()>
 //                                ^^^
+//~v needless_lifetimes
 fn deep_reference_1b<'a, 'b>(_x: &'a u8, y: &'b u8) -> Result<&'b u8, ()> {
     Ok(y)
 }
@@ -78,12 +85,14 @@ fn deep_reference_2<'a>(x: Result<&'a u8, &'a u8>) -> &'a u8 {
     x.unwrap()
 }
 
+//~v needless_lifetimes
 fn deep_reference_3<'a>(x: &'a u8, _y: u8) -> Result<&'a u8, ()> {
     Ok(x)
 }
 
 // Where-clause, but without lifetimes.
 fn where_clause_without_lt<'a, T>(x: &'a u8, _y: u8) -> Result<&'a u8, ()>
+//~^ needless_lifetimes
 where
     T: Copy,
 {
@@ -96,6 +105,7 @@ type Ref<'r> = &'r u8;
 fn lifetime_param_1<'a>(_x: Ref<'a>, _y: &'a u8) {}
 
 fn lifetime_param_2<'a, 'b>(_x: Ref<'a>, _y: &'b u8) {}
+//~^ needless_lifetimes
 
 // No error; bounded lifetime.
 fn lifetime_param_3<'a, 'b: 'a>(_x: Ref<'a>, _y: &'b u8) {}
@@ -120,6 +130,7 @@ where
 }
 
 fn fn_bound_2<'a, F, I>(_m: Lt<'a, I>, _f: F) -> Lt<'a, I>
+//~^ needless_lifetimes
 where
     for<'x> F: Fn(Lt<'x, I>) -> Lt<'x, I>,
 {
@@ -149,6 +160,7 @@ struct X {
 }
 
 impl X {
+    //~v needless_lifetimes
     fn self_and_out<'s>(&'s self) -> &'s u8 {
         &self.x
     }
@@ -156,6 +168,7 @@ impl X {
     // Error; multiple input refs, but the output lifetime is not elided, i.e., the following is valid:
     //   fn self_and_in_out_1<'s>(&'s self, _x: &u8) -> &'s u8
     //                                          ^^^
+    //~v needless_lifetimes
     fn self_and_in_out_1<'s, 't>(&'s self, _x: &'t u8) -> &'s u8 {
         &self.x
     }
@@ -163,11 +176,13 @@ impl X {
     // Error; multiple input refs, but the output lifetime is not elided, i.e., the following is valid:
     //   fn self_and_in_out_2<'t>(&self, x: &'t u8) -> &'t u8
     //                            ^^^^^
+    //~v needless_lifetimes
     fn self_and_in_out_2<'s, 't>(&'s self, x: &'t u8) -> &'t u8 {
         x
     }
 
     fn distinct_self_and_in<'s, 't>(&'s self, _x: &'t u8) {}
+    //~^ needless_lifetimes
 
     // No error; same lifetimes on two params.
     fn self_and_same_in<'s>(&'s self, _x: &'s u8) {}
@@ -186,6 +201,7 @@ fn already_elided<'a>(_: &u8, _: &'a u8) -> &'a u8 {
     unimplemented!()
 }
 
+//~v needless_lifetimes
 fn struct_with_lt<'a>(_foo: Foo<'a>) -> &'a str {
     unimplemented!()
 }
@@ -204,6 +220,7 @@ fn struct_with_lt3<'a>(_foo: &Foo<'a>) -> &'a str {
 // valid:
 //   fn struct_with_lt4a<'a>(_foo: &'a Foo<'_>) -> &'a str
 //                                         ^^
+//~v needless_lifetimes
 fn struct_with_lt4a<'a, 'b>(_foo: &'a Foo<'b>) -> &'a str {
     unimplemented!()
 }
@@ -212,6 +229,7 @@ fn struct_with_lt4a<'a, 'b>(_foo: &'a Foo<'b>) -> &'a str {
 // valid:
 //   fn struct_with_lt4b<'b>(_foo: &Foo<'b>) -> &'b str
 //                                 ^^^^
+//~v needless_lifetimes
 fn struct_with_lt4b<'a, 'b>(_foo: &'a Foo<'b>) -> &'b str {
     unimplemented!()
 }
@@ -227,12 +245,14 @@ fn trait_obj_elided<'a>(_arg: &'a dyn WithLifetime) -> &'a str {
 
 // Should warn because there is no lifetime on `Drop`, so this would be
 // unambiguous if we elided the lifetime.
+//~v needless_lifetimes
 fn trait_obj_elided2<'a>(_arg: &'a dyn Drop) -> &'a str {
     unimplemented!()
 }
 
 type FooAlias<'a> = Foo<'a>;
 
+//~v needless_lifetimes
 fn alias_with_lt<'a>(_foo: FooAlias<'a>) -> &'a str {
     unimplemented!()
 }
@@ -251,6 +271,7 @@ fn alias_with_lt3<'a>(_foo: &FooAlias<'a>) -> &'a str {
 // valid:
 //   fn alias_with_lt4a<'a>(_foo: &'a FooAlias<'_>) -> &'a str
 //                                             ^^
+//~v needless_lifetimes
 fn alias_with_lt4a<'a, 'b>(_foo: &'a FooAlias<'b>) -> &'a str {
     unimplemented!()
 }
@@ -259,10 +280,12 @@ fn alias_with_lt4a<'a, 'b>(_foo: &'a FooAlias<'b>) -> &'a str {
 // valid:
 //   fn alias_with_lt4b<'b>(_foo: &FooAlias<'b>) -> &'b str
 //                                ^^^^^^^^^
+//~v needless_lifetimes
 fn alias_with_lt4b<'a, 'b>(_foo: &'a FooAlias<'b>) -> &'b str {
     unimplemented!()
 }
 
+//~v needless_lifetimes
 fn named_input_elided_output<'a>(_arg: &'a str) -> &str {
     unimplemented!()
 }
@@ -271,6 +294,7 @@ fn elided_input_named_output<'a>(_arg: &str) -> &'a str {
     unimplemented!()
 }
 
+//~v needless_lifetimes
 fn trait_bound_ok<'a, T: WithLifetime<'static>>(_: &'a u8, _: T) {
     unimplemented!()
 }
@@ -307,6 +331,7 @@ fn test<'a>(x: &'a [u8]) -> u8 {
 struct Cow<'a> {
     x: &'a str,
 }
+//~v needless_lifetimes
 fn out_return_type_lts<'a>(e: &'a str) -> Cow<'a> {
     unimplemented!()
 }
@@ -314,11 +339,11 @@ fn out_return_type_lts<'a>(e: &'a str) -> Cow<'a> {
 // Make sure we still warn on implementations
 mod issue4291 {
     trait BadTrait {
-        fn needless_lt<'a>(x: &'a u8) {}
+        fn needless_lt<'a>(x: &'a u8) {} //~ needless_lifetimes
     }
 
     impl BadTrait for () {
-        fn needless_lt<'a>(_x: &'a u8) {}
+        fn needless_lt<'a>(_x: &'a u8) {} //~ needless_lifetimes
     }
 }
 
@@ -331,6 +356,7 @@ mod issue2944 {
 
     impl<'a> Foo for Baz<'a> {}
     impl Bar {
+        //~v needless_lifetimes
         fn baz<'a>(&'a self) -> impl Foo + 'a {
             Baz { bar: self }
         }
@@ -363,6 +389,7 @@ mod nested_elision_sites {
     fn impl_trait_elidable_nested_named_lifetimes<'a>(i: &'a i32, f: impl for<'b> Fn(&'b i32) -> &'b i32) -> &'a i32 {
         f(i)
     }
+    //~v needless_lifetimes
     fn impl_trait_elidable_nested_anonymous_lifetimes<'a>(i: &'a i32, f: impl Fn(&i32) -> &i32) -> &'a i32 {
         f(i)
     }
@@ -372,6 +399,7 @@ mod nested_elision_sites {
         f()
     }
     // lint
+    //~v needless_lifetimes
     fn generics_elidable<'a, T: Fn(&i32) -> &i32>(i: &'a i32, f: T) -> &'a i32 {
         f(i)
     }
@@ -385,6 +413,7 @@ mod nested_elision_sites {
     }
     // lint
     fn where_clause_elidadable<'a, T>(i: &'a i32, f: T) -> &'a i32
+    //~^ needless_lifetimes
     where
         T: Fn(&i32) -> &i32,
     {
@@ -399,6 +428,7 @@ mod nested_elision_sites {
         |i| i
     }
     // lint
+    //~v needless_lifetimes
     fn pointer_fn_elidable<'a>(i: &'a i32, f: fn(&i32) -> &i32) -> &'a i32 {
         f(i)
     }
@@ -412,9 +442,11 @@ mod nested_elision_sites {
     }
 
     // lint
+    //~v needless_lifetimes
     fn nested_fn_pointer_3<'a>(_: &'a i32) -> fn(fn(&i32) -> &i32) -> i32 {
         |f| 42
     }
+    //~v needless_lifetimes
     fn nested_fn_pointer_4<'a>(_: &'a i32) -> impl Fn(fn(&i32)) {
         |f| ()
     }
@@ -437,9 +469,11 @@ mod issue7296 {
 
     struct Foo;
     impl Foo {
+        //~v needless_lifetimes
         fn implicit<'a>(&'a self) -> &'a () {
             &()
         }
+        //~v needless_lifetimes
         fn implicit_mut<'a>(&'a mut self) -> &'a () {
             &()
         }
@@ -451,13 +485,16 @@ mod issue7296 {
             &()
         }
 
+        //~v needless_lifetimes
         fn lifetime_elsewhere<'a>(self: Box<Self>, here: &'a ()) -> &'a () {
             &()
         }
     }
 
     trait Bar {
-        fn implicit<'a>(&'a self) -> &'a ();
+        fn implicit<'a>(&'a self) -> &'a (); //~ needless_lifetimes
+
+        //~v needless_lifetimes
         fn implicit_provided<'a>(&'a self) -> &'a () {
             &()
         }
@@ -468,6 +505,9 @@ mod issue7296 {
         }
 
         fn lifetime_elsewhere<'a>(self: Box<Self>, here: &'a ()) -> &'a ();
+        //~^ needless_lifetimes
+
+        //~v needless_lifetimes
         fn lifetime_elsewhere_provided<'a>(self: Box<Self>, here: &'a ()) -> &'a () {
             &()
         }
@@ -477,20 +517,23 @@ mod issue7296 {
 mod pr_9743_false_negative_fix {
     #![allow(unused)]
 
-    fn foo<'a>(x: &'a u8, y: &'_ u8) {}
+    fn foo<'a>(x: &'a u8, y: &'_ u8) {} //~ needless_lifetimes
 
     fn bar<'a>(x: &'a u8, y: &'_ u8, z: &'_ u8) {}
+    //~^ needless_lifetimes
 }
 
 mod pr_9743_output_lifetime_checks {
     #![allow(unused)]
 
     // lint: only one input
+    //~v needless_lifetimes
     fn one_input<'a>(x: &'a u8) -> &'a u8 {
         unimplemented!()
     }
 
     // lint: multiple inputs, output would not be elided
+    //~v needless_lifetimes
     fn multiple_inputs_output_not_elided<'a, 'b>(x: &'a u8, y: &'b u8, z: &'b u8) -> &'b u8 {
         unimplemented!()
     }
@@ -507,6 +550,7 @@ mod in_macro {
 
     // lint local macro expands to function with needless lifetimes
     inline! {
+        //~v needless_lifetimes
         fn one_input<'a>(x: &'a u8) -> &'a u8 {
             unimplemented!()
         }

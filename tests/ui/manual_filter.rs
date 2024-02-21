@@ -2,6 +2,7 @@
 #![allow(unused_variables, dead_code, clippy::useless_vec)]
 
 fn main() {
+    //~v manual_filter
     match Some(0) {
         None => None,
         Some(x) => {
@@ -13,6 +14,7 @@ fn main() {
         },
     };
 
+    //~v manual_filter
     match Some(1) {
         Some(x) => {
             if x > 0 {
@@ -24,6 +26,7 @@ fn main() {
         None => None,
     };
 
+    //~v manual_filter
     match Some(2) {
         Some(x) => {
             if x > 0 {
@@ -35,6 +38,7 @@ fn main() {
         _ => None,
     };
 
+    //~v manual_filter
     match Some(3) {
         Some(x) => {
             if x > 0 {
@@ -47,6 +51,7 @@ fn main() {
     };
 
     let y = Some(4);
+    //~v manual_filter
     match y {
         // Some(4)
         None => None,
@@ -59,6 +64,7 @@ fn main() {
         },
     };
 
+    //~v manual_filter
     match Some(5) {
         Some(x) => {
             if x > 0 {
@@ -70,6 +76,7 @@ fn main() {
         _ => None,
     };
 
+    //~v manual_filter
     match Some(6) {
         Some(ref x) => {
             if x > &0 {
@@ -82,6 +89,7 @@ fn main() {
     };
 
     let external_cond = true;
+    //~v manual_filter
     match Some(String::new()) {
         Some(x) => {
             if external_cond {
@@ -93,12 +101,14 @@ fn main() {
         _ => None,
     };
 
+    //~v manual_filter
     if let Some(x) = Some(7) {
         if external_cond { Some(x) } else { None }
     } else {
         None
     };
 
+    //~v manual_filter
     match &Some(8) {
         &Some(x) => {
             if x != 0 {
@@ -110,6 +120,7 @@ fn main() {
         _ => None,
     };
 
+    //~v manual_filter
     match Some(9) {
         Some(x) => {
             if x > 10 && x < 100 {
@@ -136,6 +147,7 @@ fn main() {
     }
 
     #[allow(clippy::blocks_in_conditions)]
+    //~v manual_filter
     match Some(11) {
         // Lint, statement is preserved by `.filter`
         Some(x) => {
@@ -180,6 +192,7 @@ fn main() {
     unsafe fn f(x: u32) -> bool {
         true
     }
+    //~v manual_filter
     let _ = match Some(14) {
         Some(x) => {
             if unsafe { f(x) } {
@@ -190,6 +203,7 @@ fn main() {
         },
         None => None,
     };
+    //~v manual_filter
     let _ = match Some(15) {
         Some(x) => unsafe { if f(x) { Some(x) } else { None } },
         None => None,
@@ -198,6 +212,7 @@ fn main() {
     #[allow(clippy::redundant_pattern_matching)]
     if let Some(_) = Some(16) {
         Some(16)
+    //~v manual_filter
     } else if let Some(x) = Some(16) {
         // Lint starting from here
         if x % 2 == 0 { Some(x) } else { None }

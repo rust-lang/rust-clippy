@@ -13,7 +13,7 @@ const ATOMIC_TUPLE: ([AtomicUsize; 1], Vec<AtomicUsize>, u8) = ([ATOMIC], Vec::n
 
 macro_rules! declare_const {
     ($name:ident: $ty:ty = $e:expr) => {
-        const $name: $ty = $e;
+        const $name: $ty = $e; //~ declare_interior_mutable_const
     };
 }
 declare_const!(_ONCE: Once = Once::new());
@@ -41,6 +41,7 @@ mod issue_8493 {
     macro_rules! issue_8493 {
         () => {
             const _BAZ: Cell<usize> = Cell::new(0);
+            //~^ declare_interior_mutable_const
             static _FOOBAR: () = {
                 thread_local! {
                     static _VAR: Cell<i32> = const { Cell::new(0) };

@@ -30,11 +30,13 @@ fn main() {
     let b = 2;
     let c = 3;
     // Lint
+    //~v match_single_binding
     let (x, y, z) = (a, b, c);
     {
         println!("{} {} {}", x, y, z);
     }
     // Lint
+    //~v match_single_binding
     let (x, y, z) = (a, b, c);
     println!("{} {} {}", x, y, z);
     // Ok
@@ -51,13 +53,16 @@ fn main() {
         _ => println!("None"),
     }
     // Lint
+    //~v match_single_binding
     println!("whatever");
     // Lint
+    //~v match_single_binding
     {
         let x = 29;
         println!("x has a value of {}", x);
     }
     // Lint
+    //~v match_single_binding
     {
         let e = 5 * a;
         if e >= 5 {
@@ -66,20 +71,25 @@ fn main() {
     }
     // Lint
     let p = Point { x: 0, y: 7 };
+    //~v match_single_binding
     let Point { x, y } = p;
     println!("Coords: ({}, {})", x, y);
     // Lint
+    //~v match_single_binding
     let Point { x: x1, y: y1 } = p;
     println!("Coords: ({}, {})", x1, y1);
     // Lint
     let x = 5;
+    //~v match_single_binding
     let ref r = x;
     println!("Got a reference to {}", r);
     // Lint
     let mut x = 5;
+    //~v match_single_binding
     let ref mut mr = x;
     println!("Got a mutable reference to {}", mr);
     // Lint
+    //~v match_single_binding
     let Point { x, y } = coords();
     let product = x * y;
     // Lint
@@ -87,6 +97,7 @@ fn main() {
     #[allow(clippy::let_and_return)]
     let _ = v
         .iter()
+        //~v match_single_binding
         .map(|i| {
             let unwrapped = i.unwrap();
             unwrapped
@@ -114,12 +125,14 @@ fn main() {
 
     // Lint
     let x = 1;
+    //~v match_single_binding
     println!("Not an array index start")
 }
 
 fn issue_8723() {
     let (mut val, idx) = ("a b", 1);
 
+    //~v match_single_binding
     let (pre, suf) = val.split_at(idx);
     val = {
         println!("{}", pre);
@@ -132,6 +145,7 @@ fn issue_8723() {
 fn side_effects() {}
 
 fn issue_9575() {
+    //~v match_single_binding
     let _ = || {
         side_effects();
         println!("Needs curlies")
@@ -139,6 +153,7 @@ fn issue_9575() {
 }
 
 fn issue_9725(r: Option<u32>) {
+    //~v match_single_binding
     let x = r;
     match x {
         Some(_) => {
@@ -151,21 +166,30 @@ fn issue_9725(r: Option<u32>) {
 }
 
 fn issue_10447() -> usize {
+    //~v match_single_binding
     ();
 
+    //~v match_single_binding
     let a = ();
 
+    //~v match_single_binding
     side_effects();
 
+    //~v match_single_binding
     let b = side_effects();
 
+    //~v match_single_binding
     println!("1");
 
+    //~v match_single_binding
     let c = println!("1");
 
     let in_expr = [
+        //~v match_single_binding
         (),
+        //~v match_single_binding
         side_effects(),
+        //~v match_single_binding
         println!("1"),
     ];
 

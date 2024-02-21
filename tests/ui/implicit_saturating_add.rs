@@ -18,10 +18,12 @@ fn main() {
         i_8 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_8 != u8::MAX {
         u_8 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_8 < u8::MAX {
         u_8 += 1;
     }
@@ -30,86 +32,107 @@ fn main() {
         u_8 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_16 != u16::MAX {
         u_16 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_16 < u16::MAX {
         u_16 += 1;
     }
 
+    //~v implicit_saturating_add
     if u16::MAX > u_16 {
         u_16 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_32 != u32::MAX {
         u_32 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_32 < u32::MAX {
         u_32 += 1;
     }
 
+    //~v implicit_saturating_add
     if u32::MAX > u_32 {
         u_32 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_64 != u64::MAX {
         u_64 += 1;
     }
 
+    //~v implicit_saturating_add
     if u_64 < u64::MAX {
         u_64 += 1;
     }
 
+    //~v implicit_saturating_add
     if u64::MAX > u_64 {
         u_64 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_8 != i8::MAX {
         i_8 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_8 < i8::MAX {
         i_8 += 1;
     }
 
+    //~v implicit_saturating_add
     if i8::MAX > i_8 {
         i_8 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_16 != i16::MAX {
         i_16 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_16 < i16::MAX {
         i_16 += 1;
     }
 
+    //~v implicit_saturating_add
     if i16::MAX > i_16 {
         i_16 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_32 != i32::MAX {
         i_32 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_32 < i32::MAX {
         i_32 += 1;
     }
 
+    //~v implicit_saturating_add
     if i32::MAX > i_32 {
         i_32 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_64 != i64::MAX {
         i_64 += 1;
     }
 
+    //~v implicit_saturating_add
     if i_64 < i64::MAX {
         i_64 += 1;
     }
 
+    //~v implicit_saturating_add
     if i64::MAX > i_64 {
         i_64 += 1;
     }
@@ -146,6 +169,7 @@ fn main() {
 
     if u_32 < 42 {
         println!("brace yourself!");
+    //~v implicit_saturating_add
     } else if u_32 < u32::MAX {
         u_32 += 1;
     }

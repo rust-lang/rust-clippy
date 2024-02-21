@@ -188,55 +188,55 @@ LL |     x.split("\"");
    |             ^^^^ help: consider using a `char`: `'"'`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:51:31
+  --> $DIR/single_char_pattern.rs:52:31
    |
 LL |     x.replace(';', ",").split(","); // issue #2978
    |                               ^^^ help: consider using a `char`: `','`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:52:19
+  --> $DIR/single_char_pattern.rs:55:19
    |
 LL |     x.starts_with("\x03"); // issue #2996
    |                   ^^^^^^ help: consider using a `char`: `'\x03'`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:59:13
+  --> $DIR/single_char_pattern.rs:62:13
    |
 LL |     x.split(r"a");
    |             ^^^^ help: consider using a `char`: `'a'`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:60:13
+  --> $DIR/single_char_pattern.rs:63:13
    |
 LL |     x.split(r#"a"#);
    |             ^^^^^^ help: consider using a `char`: `'a'`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:61:13
+  --> $DIR/single_char_pattern.rs:64:13
    |
 LL |     x.split(r###"a"###);
    |             ^^^^^^^^^^ help: consider using a `char`: `'a'`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:62:13
+  --> $DIR/single_char_pattern.rs:65:13
    |
 LL |     x.split(r###"'"###);
    |             ^^^^^^^^^^ help: consider using a `char`: `'\''`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:63:13
+  --> $DIR/single_char_pattern.rs:66:13
    |
 LL |     x.split(r###"#"###);
    |             ^^^^^^^^^^ help: consider using a `char`: `'#'`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:65:13
+  --> $DIR/single_char_pattern.rs:68:13
    |
 LL |     x.split(r#"\"#);
    |             ^^^^^^ help: consider using a `char`: `'\\'`
 
 error: single-character string constant used as pattern
-  --> $DIR/single_char_pattern.rs:66:13
+  --> $DIR/single_char_pattern.rs:69:13
    |
 LL |     x.split(r"\");
    |             ^^^^ help: consider using a `char`: `'\\'`

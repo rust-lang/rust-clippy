@@ -23,7 +23,7 @@ LL |     _C,
    = help: to override `-D warnings` add `#[allow(clippy::manual_non_exhaustive)]`
 
 error: this seems like a manual implementation of the non-exhaustive pattern
-  --> $DIR/manual_non_exhaustive_enum.rs:30:1
+  --> $DIR/manual_non_exhaustive_enum.rs:31:1
    |
 LL |   enum NoUnderscore {
    |   ^----------------
@@ -38,7 +38,7 @@ LL | | }
    | |_^
    |
 help: remove this variant
-  --> $DIR/manual_non_exhaustive_enum.rs:34:5
+  --> $DIR/manual_non_exhaustive_enum.rs:35:5
    |
 LL |     C,
    |     ^

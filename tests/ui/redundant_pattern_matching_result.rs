@@ -12,15 +12,19 @@
 
 fn main() {
     let result: Result<usize, usize> = Err(5);
-    if let Ok(_) = &result {}
+    if let Ok(_) = &result {} //~ redundant_pattern_matching
 
     if let Ok(_) = Ok::<i32, i32>(42) {}
+    //~^ redundant_pattern_matching
 
     if let Err(_) = Err::<i32, i32>(42) {}
+    //~^ redundant_pattern_matching
 
     while let Ok(_) = Ok::<i32, i32>(10) {}
+    //~^ redundant_pattern_matching
 
     while let Err(_) = Ok::<i32, i32>(10) {}
+    //~^ redundant_pattern_matching
 
     if Ok::<i32, i32>(42).is_ok() {}
 
@@ -30,27 +34,32 @@ fn main() {
         println!("{}", x);
     }
 
+    //~v redundant_pattern_matching
     match Ok::<i32, i32>(42) {
         Ok(_) => true,
         Err(_) => false,
     };
 
+    //~v redundant_pattern_matching
     match Ok::<i32, i32>(42) {
         Ok(_) => false,
         Err(_) => true,
     };
 
+    //~v redundant_pattern_matching
     match Err::<i32, i32>(42) {
         Ok(_) => false,
         Err(_) => true,
     };
 
+    //~v redundant_pattern_matching
     match Err::<i32, i32>(42) {
         Ok(_) => true,
         Err(_) => false,
     };
 
     let _ = if let Ok(_) = Ok::<usize, ()>(4) { true } else { false };
+    //~^ redundant_pattern_matching
 
     issue5504();
     issue6067();
@@ -58,8 +67,10 @@ fn main() {
     issue10726();
     issue10803();
 
+    //~v redundant_pattern_matching
     let _ = if let Ok(_) = gen_res() {
         1
+    //~v redundant_pattern_matching
     } else if let Err(_) = gen_res() {
         2
     } else {
@@ -84,14 +95,16 @@ fn issue5504() {
 
     fn try_result_opt() -> Result<i32, i32> {
         while let Some(_) = r#try!(result_opt()) {}
+        //~^ redundant_pattern_matching
         if let Some(_) = r#try!(result_opt()) {}
+        //~^ redundant_pattern_matching
         Ok(42)
     }
 
     try_result_opt();
 
-    if let Some(_) = m!() {}
-    while let Some(_) = m!() {}
+    if let Some(_) = m!() {} //~ redundant_pattern_matching
+    while let Some(_) = m!() {} //~ redundant_pattern_matching
 }
 
 fn issue6065() {
@@ -110,18 +123,24 @@ fn issue6065() {
 // so the following should be linted.
 const fn issue6067() {
     if let Ok(_) = Ok::<i32, i32>(42) {}
+    //~^ redundant_pattern_matching
 
     if let Err(_) = Err::<i32, i32>(42) {}
+    //~^ redundant_pattern_matching
 
     while let Ok(_) = Ok::<i32, i32>(10) {}
+    //~^ redundant_pattern_matching
 
     while let Err(_) = Ok::<i32, i32>(10) {}
+    //~^ redundant_pattern_matching
 
+    //~v redundant_pattern_matching
     match Ok::<i32, i32>(42) {
         Ok(_) => true,
         Err(_) => false,
     };
 
+    //~v redundant_pattern_matching
     match Err::<i32, i32>(42) {
         Ok(_) => false,
         Err(_) => true,
@@ -132,21 +151,25 @@ fn issue10726() {
     // This is optional, but it makes the examples easier
     let x: Result<i32, i32> = Ok(42);
 
+    //~v redundant_pattern_matching
     match x {
         Ok(_) => true,
         _ => false,
     };
 
+    //~v redundant_pattern_matching
     match x {
         Ok(_) => false,
         _ => true,
     };
 
+    //~v redundant_pattern_matching
     match x {
         Err(_) => true,
         _ => false,
     };
 
+    //~v redundant_pattern_matching
     match x {
         Err(_) => false,
         _ => true,
@@ -168,9 +191,9 @@ fn issue10726() {
 fn issue10803() {
     let x: Result<i32, i32> = Ok(42);
 
-    let _ = matches!(x, Ok(_));
+    let _ = matches!(x, Ok(_)); //~ redundant_pattern_matching
 
-    let _ = matches!(x, Err(_));
+    let _ = matches!(x, Err(_)); //~ redundant_pattern_matching
 
     // Don't lint
     let _ = matches!(x, Ok(16));

@@ -11,11 +11,13 @@
 fn main() {
     let x = true;
     let y = false;
+    //~v needless_bool
     if x {
         true
     } else {
         true
     };
+    //~v needless_bool
     if x {
         false
     } else {
@@ -31,6 +33,7 @@ fn main() {
 }
 
 fn bool_ret(x: bool) -> bool {
+    //~v needless_bool
     if x {
         return true;
     } else {
@@ -39,6 +42,7 @@ fn bool_ret(x: bool) -> bool {
 }
 
 fn bool_ret2(x: bool) -> bool {
+    //~v needless_bool
     if x {
         return false;
     } else {

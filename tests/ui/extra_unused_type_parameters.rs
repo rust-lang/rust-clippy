@@ -6,14 +6,17 @@
 extern crate proc_macros;
 use proc_macros::with_span;
 
+//~v extra_unused_type_parameters
 fn unused_ty<T>(x: u8) {
     unimplemented!()
 }
 
+//~v extra_unused_type_parameters
 fn unused_multi<T, U>(x: u8) {
     unimplemented!()
 }
 
+//~v extra_unused_type_parameters
 fn unused_with_lt<'a, T>(x: &'a u8) {
     unimplemented!()
 }
@@ -26,10 +29,12 @@ fn used_ret<T: Default>(x: u8) -> T {
     T::default()
 }
 
+//~v extra_unused_type_parameters
 fn unused_bounded<T: Default, U, V: Default>(x: U) {
     unimplemented!();
 }
 
+//~v extra_unused_type_parameters
 fn some_unused<A, B, C, D: Iterator<Item = (B, C)>, E>(b: B, c: C) {
     unimplemented!();
 }
@@ -55,6 +60,7 @@ fn used_closure<T: Default + ToString>() -> impl Fn() {
 struct S;
 
 impl S {
+    //~v extra_unused_type_parameters
     fn unused_ty_impl<T>(&self) {
         unimplemented!()
     }
@@ -77,6 +83,7 @@ where
         .filter_map(move |(i, a)| if i == index { None } else { Some(a) })
 }
 
+//~v extra_unused_type_parameters
 fn unused_opaque<A, B>(dummy: impl Default) {
     unimplemented!()
 }
@@ -90,6 +97,7 @@ mod unexported_trait_bounds {
         unimplemented!();
     }
 
+    //~v extra_unused_type_parameters
     fn unused_with_priv_trait_bound<T: private::Private, U>() {
         unimplemented!();
     }

@@ -10,19 +10,24 @@ fn option_methods() {
 
     // Check for `option.map(_).unwrap_or_default()` use.
     // Single line case.
+    //~v manual_is_variant_and
     let _ = opt.is_some_and(|x| x > 1);
     // Multi-line cases.
+    //~v manual_is_variant_and
     let _ = opt.is_some_and(|x| {
         x > 1
     });
     let _ = opt.is_some_and(|x| x > 1);
+    //~^ manual_is_variant_and
     let _ = opt
+        //~v manual_is_variant_and
         .is_some_and(|x| x > 1);
 
     // won't fix because the return type of the closure is not `bool`
     let _ = opt.map(|x| x + 1).unwrap_or_default();
 
     let opt2 = Some('a');
+    //~v manual_is_variant_and
     let _ = opt2.is_some_and(char::is_alphanumeric); // should lint
     let _ = opt_map!(opt2, |x| x == 'a').unwrap_or_default(); // should not lint
 }
@@ -32,15 +37,18 @@ fn result_methods() {
     let res: Result<i32, ()> = Ok(1);
 
     // multi line cases
+    //~v manual_is_variant_and
     let _ = res.is_ok_and(|x| {
         x > 1
     });
+    //~v manual_is_variant_and
     let _ = res.is_ok_and(|x| x > 1);
 
     // won't fix because the return type of the closure is not `bool`
     let _ = res.map(|x| x + 1).unwrap_or_default();
 
     let res2: Result<char, ()> = Ok('a');
+    //~v manual_is_variant_and
     let _ = res2.is_ok_and(char::is_alphanumeric); // should lint
     let _ = opt_map!(res2, |x| x == 'a').unwrap_or_default(); // should not lint
 }

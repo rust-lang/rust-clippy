@@ -29,6 +29,6 @@ fn main() {
     FakeIter(0..10).rev().next();
 
     // should lint
-    let _ = (0..10).next_back().unwrap();
-    let _ = "something".bytes().next_back();
+    let _ = (0..10).next_back().unwrap(); //~ manual_next_back
+    let _ = "something".bytes().next_back(); //~ manual_next_back
 }

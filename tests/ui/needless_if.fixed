@@ -24,13 +24,14 @@ fn maybe_side_effect() -> bool {
 
 fn main() {
     // Lint
-    
+     //~ needless_if
     // Do not remove the condition
-    maybe_side_effect();
+    maybe_side_effect(); //~ needless_if
     // Do not lint
     if (true) {
     } else {
     }
+    //~v needless_if
     ({
         return;
     });
@@ -47,6 +48,7 @@ fn main() {
         && let true = true
     {}
     // Can lint nested `if let`s
+    //~v needless_if
     ({
         if let true = true
             && true
@@ -90,13 +92,13 @@ fn main() {
     empty_repetition!();
 
     // Must be placed into an expression context to not be interpreted as a block
-    ({ maybe_side_effect() });
+    ({ maybe_side_effect() }); //~ needless_if
     // Would be a block followed by `&&true` - a double reference to `true`
-    ({ maybe_side_effect() } && true);
+    ({ maybe_side_effect() } && true); //~ needless_if
 
     // Don't leave trailing attributes
     #[allow(unused)]
-    true;
+    true; //~ needless_if
 
     let () = if maybe_side_effect() {};
 }

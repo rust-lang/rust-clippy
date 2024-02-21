@@ -19,13 +19,16 @@ impl SomeOtherStruct {
 
 fn main() {
     let option: Option<&str> = None;
+    //~v or_then_unwrap
     let _ = option.unwrap_or("fallback"); // should trigger lint
 
     let result: Result<&str, &str> = Err("Error");
+    //~v or_then_unwrap
     let _ = result.unwrap_or("fallback"); // should trigger lint
 
     // as part of a method chain
     let option: Option<&str> = None;
+    //~v or_then_unwrap
     let _ = option.map(|v| v).unwrap_or("fallback").to_string().chars(); // should trigger lint
 
     // Not Option/Result

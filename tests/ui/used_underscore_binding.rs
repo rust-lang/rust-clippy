@@ -20,13 +20,15 @@ macro_rules! test_macro {
 
 /// Tests that we lint if we use a binding with a single leading underscore
 fn prefix_underscore(_foo: u32) -> u32 {
-    _foo + 1
+    _foo + 1 //~ used_underscore_binding
 }
 
 /// Tests that we lint if we use a `_`-variable defined outside within a macro expansion
 fn in_macro_or_desugar(_foo: u32) {
-    println!("{}", _foo);
+    println!("{}", _foo); //~ used_underscore_binding
     assert_eq!(_foo, _foo);
+    //~^ used_underscore_binding
+    //~| used_underscore_binding
 
     test_macro!() + 1;
 }
@@ -39,7 +41,7 @@ struct StructFieldTest {
 /// Tests that we lint the use of a struct field which is prefixed with an underscore
 fn in_struct_field() {
     let mut s = StructFieldTest { _underscore_field: 0 };
-    s._underscore_field += 1;
+    s._underscore_field += 1; //~ used_underscore_binding
 }
 
 /// Tests that we do not lint if the struct field is used in code created with derive.
@@ -100,7 +102,7 @@ async fn await_desugaring() {
     foo().await;
     ({
         let _i = 5;
-        uses_i(_i);
+        uses_i(_i); //~ used_underscore_binding
         foo()
     })
     .await

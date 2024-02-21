@@ -7,24 +7,31 @@
 fn main() {
     // is_some(), unwrap()
     let _ = (0..).find(|n| to_opt(*n).is_some()).map(|a| to_opt(a).unwrap());
+    //~^ manual_find_map
 
     // ref pattern, expect()
     let _ = (0..).find(|&n| to_opt(n).is_some()).map(|a| to_opt(a).expect("hi"));
+    //~^ manual_find_map
 
     // is_ok(), unwrap_or()
     let _ = (0..).find(|&n| to_res(n).is_ok()).map(|a| to_res(a).unwrap_or(1));
+    //~^ manual_find_map
 
     let _ = (1..5)
+        //~v manual_find_map
         .find(|&x| to_ref(to_opt(x)).is_some())
         .map(|y| to_ref(to_opt(y)).unwrap());
     let _ = (1..5)
+        //~v manual_find_map
         .find(|x| to_ref(to_opt(*x)).is_some())
         .map(|y| to_ref(to_opt(y)).unwrap());
 
     let _ = (1..5)
+        //~v manual_find_map
         .find(|&x| to_ref(to_res(x)).is_ok())
         .map(|y| to_ref(to_res(y)).unwrap());
     let _ = (1..5)
+        //~v manual_find_map
         .find(|x| to_ref(to_res(*x)).is_ok())
         .map(|y| to_ref(to_res(y)).unwrap());
 }
@@ -32,20 +39,34 @@ fn main() {
 #[rustfmt::skip]
 fn simple_equal() {
     iter::<Option<u8>>().find(|x| x.is_some()).map(|x| x.unwrap());
+    //~^ manual_find_map
     iter::<&Option<u8>>().find(|x| x.is_some()).map(|x| x.unwrap());
+    //~^ manual_find_map
     iter::<&&Option<u8>>().find(|x| x.is_some()).map(|x| x.unwrap());
+    //~^ manual_find_map
     iter::<Option<&u8>>().find(|x| x.is_some()).map(|x| x.cloned().unwrap());
+    //~^ manual_find_map
     iter::<&Option<&u8>>().find(|x| x.is_some()).map(|x| x.cloned().unwrap());
+    //~^ manual_find_map
     iter::<&Option<String>>().find(|x| x.is_some()).map(|x| x.as_deref().unwrap());
+    //~^ manual_find_map
     iter::<Option<&String>>().find(|&x| to_ref(x).is_some()).map(|y| to_ref(y).cloned().unwrap());
+    //~^ manual_find_map
 
     iter::<Result<u8, ()>>().find(|x| x.is_ok()).map(|x| x.unwrap());
+    //~^ manual_find_map
     iter::<&Result<u8, ()>>().find(|x| x.is_ok()).map(|x| x.unwrap());
+    //~^ manual_find_map
     iter::<&&Result<u8, ()>>().find(|x| x.is_ok()).map(|x| x.unwrap());
+    //~^ manual_find_map
     iter::<Result<&u8, ()>>().find(|x| x.is_ok()).map(|x| x.cloned().unwrap());
+    //~^ manual_find_map
     iter::<&Result<&u8, ()>>().find(|x| x.is_ok()).map(|x| x.cloned().unwrap());
+    //~^ manual_find_map
     iter::<&Result<String, ()>>().find(|x| x.is_ok()).map(|x| x.as_deref().unwrap());
+    //~^ manual_find_map
     iter::<Result<&String, ()>>().find(|&x| to_ref(x).is_ok()).map(|y| to_ref(y).cloned().unwrap());
+    //~^ manual_find_map
 }
 
 fn no_lint() {
@@ -93,46 +114,55 @@ fn issue_8920() {
 
     let _ = vec
         .iter()
+        //~v manual_find_map
         .find(|f| f.option_field.is_some())
         .map(|f| f.option_field.clone().unwrap());
 
     let _ = vec
         .iter()
+        //~v manual_find_map
         .find(|f| f.ref_field.is_some())
         .map(|f| f.ref_field.cloned().unwrap());
 
     let _ = vec
         .iter()
+        //~v manual_find_map
         .find(|f| f.ref_field.is_some())
         .map(|f| f.ref_field.copied().unwrap());
 
     let _ = vec
         .iter()
+        //~v manual_find_map
         .find(|f| f.result_field.is_ok())
         .map(|f| f.result_field.clone().unwrap());
 
     let _ = vec
         .iter()
+        //~v manual_find_map
         .find(|f| f.result_field.is_ok())
         .map(|f| f.result_field.as_ref().unwrap());
 
     let _ = vec
         .iter()
+        //~v manual_find_map
         .find(|f| f.result_field.is_ok())
         .map(|f| f.result_field.as_deref().unwrap());
 
     let _ = vec
         .iter_mut()
+        //~v manual_find_map
         .find(|f| f.result_field.is_ok())
         .map(|f| f.result_field.as_mut().unwrap());
 
     let _ = vec
         .iter_mut()
+        //~v manual_find_map
         .find(|f| f.result_field.is_ok())
         .map(|f| f.result_field.as_deref_mut().unwrap());
 
     let _ = vec
         .iter()
+        //~v manual_find_map
         .find(|f| f.result_field.is_ok())
         .map(|f| f.result_field.to_owned().unwrap());
 }

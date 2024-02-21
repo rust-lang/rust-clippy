@@ -30,20 +30,23 @@ fn issue11304() {
 fn main() {
     let c = C(1, 2);
     match c {
-        C(x, 1) => ..,
+        C(x, 1) => .., //~ redundant_guards
         _ => todo!(),
     };
 
     let x = Some(Some(1));
     match x {
         Some(Some(1)) if true => ..,
+        //~^ redundant_guards
+
+        //~v redundant_guards
         Some(Some(1)) => {
             println!("a");
             ..
         },
-        Some(Some(1)) => ..,
-        Some(Some(2)) => ..,
-        Some(Some(2)) => ..,
+        Some(Some(1)) => .., //~ redundant_guards
+        Some(Some(2)) => ..,    //~ redundant_guards
+        Some(Some(2)) => ..,    //~ redundant_guards
         // Don't lint, since x is used in the body
         Some(x) if let Some(1) = x => {
             x;
@@ -69,6 +72,7 @@ fn main() {
     let b = B { e: Some(A(0)) };
     match b {
         B { e: Some(A(2)) } => ..,
+        //~^ redundant_guards
         _ => todo!(),
     };
     // Do not lint, since we cannot represent this as a pattern (at least, without a conversion)
@@ -106,21 +110,22 @@ fn i() {
         // Do not lint
         E::A(x) | E::B(x) | E::C(x) if x == "from an or pattern" => {},
         E::A("not from an or pattern") => {},
+        //~^ redundant_guards
         _ => {},
     };
 }
 
 fn h(v: Option<u32>) {
     match v {
-        Some(0) => ..,
+        Some(0) => .., //~ redundant_guards
         _ => ..,
     };
 }
 
 fn negative_literal(i: i32) {
     match i {
-        -1 => {},
-        1 => {},
+        -1 => {}, //~ redundant_guards
+        1 => {},  //~ redundant_guards
         _ => {},
     }
 }
@@ -170,10 +175,11 @@ mod issue11465 {
     fn issue11465() {
         let c = Some(1);
         match c {
-            Some(1) => {},
-            Some(1) => {},
-            Some(2) => {},
+            Some(1) => {},    //~ redundant_guards
+            Some(1) => {},    //~ redundant_guards
+            Some(2) => {}, //~ redundant_guards
             Some(3) => {},
+            //~^ redundant_guards
             _ => {},
         };
 
@@ -193,10 +199,12 @@ mod issue11465 {
         match struct_b {
             B { ref b, .. } if b == "bar" => {},
             B { ref b, .. } if "bar" == b => {},
+            B { c: 1, .. } => {}, //~ redundant_guards
+            B { c: 1, .. } => {}, //~ redundant_guards
             B { c: 1, .. } => {},
+            //~^ redundant_guards
             B { c: 1, .. } => {},
-            B { c: 1, .. } => {},
-            B { c: 1, .. } => {},
+            //~^ redundant_guards
             _ => {},
         }
     }
@@ -206,7 +214,7 @@ fn issue11807() {
     #![allow(clippy::single_match)]
 
     match Some(Some("")) {
-        Some(Some("")) => {},
+        Some(Some("")) => {}, //~ redundant_guards
         _ => {},
     }
 
@@ -217,12 +225,12 @@ fn issue11807() {
     }
 
     match Some(Some(&[] as &[i32])) {
-        Some(Some([])) => {},
+        Some(Some([])) => {}, //~ redundant_guards
         _ => {},
     }
 
     match Some(Some([] as [i32; 0])) {
-        Some(Some([])) => {},
+        Some(Some([])) => {}, //~ redundant_guards
         _ => {},
     }
 
@@ -234,21 +242,25 @@ fn issue11807() {
 
     match Some(Some(&[] as &[i32])) {
         Some(Some([..])) => {},
+        //~^ redundant_guards
         _ => {},
     }
 
     match Some(Some(&[] as &[i32])) {
         Some(Some([1, ..])) => {},
+        //~^ redundant_guards
         _ => {},
     }
 
     match Some(Some(&[] as &[i32])) {
         Some(Some([1, 2, ..])) => {},
+        //~^ redundant_guards
         _ => {},
     }
 
     match Some(Some(&[] as &[i32])) {
         Some(Some([.., 1, 2])) => {},
+        //~^ redundant_guards
         _ => {},
     }
 

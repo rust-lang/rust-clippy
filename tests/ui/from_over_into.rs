@@ -5,6 +5,7 @@
 // this should throw an error
 struct StringWrapper(String);
 
+//~v from_over_into
 impl Into<StringWrapper> for String {
     fn into(self) -> StringWrapper {
         StringWrapper(self)
@@ -13,6 +14,7 @@ impl Into<StringWrapper> for String {
 
 struct SelfType(String);
 
+//~v from_over_into
 impl Into<SelfType> for String {
     fn into(self) -> SelfType {
         SelfType(Self::new())
@@ -28,6 +30,7 @@ impl X {
 
 struct SelfKeywords;
 
+//~v from_over_into
 impl Into<SelfKeywords> for X {
     fn into(self) -> SelfKeywords {
         let _ = Self;
@@ -40,6 +43,7 @@ impl Into<SelfKeywords> for X {
 
 struct ExplicitPaths(bool);
 
+//~v from_over_into
 impl core::convert::Into<bool> for crate::ExplicitPaths {
     fn into(mut self) -> bool {
         let in_closure = || self.0;
@@ -60,6 +64,7 @@ impl From<String> for A {
 
 struct PathInExpansion;
 
+//~v from_over_into
 impl Into<String> for PathInExpansion {
     fn into(self) -> String {
         // non self/Self paths in expansions are fine
@@ -82,6 +87,7 @@ fn msrv_1_40() {
 fn msrv_1_41() {
     struct FromOverInto<T>(Vec<T>);
 
+    //~v from_over_into
     impl<T> Into<FromOverInto<T>> for Vec<T> {
         fn into(self) -> FromOverInto<T> {
             FromOverInto(self)
@@ -92,6 +98,7 @@ fn msrv_1_41() {
 fn issue_12138() {
     struct Hello;
 
+    //~v from_over_into
     impl Into<()> for Hello {
         fn into(self) {}
     }

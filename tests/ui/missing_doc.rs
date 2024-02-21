@@ -13,16 +13,16 @@ extern crate proc_macros;
 use proc_macros::with_span;
 use std::arch::global_asm;
 
-type Typedef = String;
+type Typedef = String; //~ missing_docs_in_private_items
 pub type PubTypedef = String;
 
-mod module_no_dox {}
+mod module_no_dox {} //~ missing_docs_in_private_items
 pub mod pub_module_no_dox {}
 
 /// dox
 pub fn foo() {}
 pub fn foo2() {}
-fn foo3() {}
+fn foo3() {} //~ missing_docs_in_private_items
 #[allow(clippy::missing_docs_in_private_items)]
 pub fn foo4() {}
 
@@ -36,9 +36,13 @@ mod a {
     }
 }
 
+//~v missing_docs_in_private_items
 enum Baz {
     BazA { a: isize, b: isize },
-    BarB,
+    //~^ missing_docs_in_private_items
+    //~| missing_docs_in_private_items
+    //~| missing_docs_in_private_items
+    BarB, //~ missing_docs_in_private_items
 }
 
 pub enum PubBaz {
@@ -62,7 +66,7 @@ pub enum PubBaz3 {
 #[doc(hidden)]
 pub fn baz() {}
 
-const FOO: u32 = 0;
+const FOO: u32 = 0; //~ missing_docs_in_private_items
 /// dox
 pub const FOO1: u32 = 0;
 #[allow(clippy::missing_docs_in_private_items)]
@@ -71,7 +75,7 @@ pub const FOO2: u32 = 0;
 pub const FOO3: u32 = 0;
 pub const FOO4: u32 = 0;
 
-static BAR: u32 = 0;
+static BAR: u32 = 0; //~ missing_docs_in_private_items
 /// dox
 pub static BAR1: u32 = 0;
 #[allow(clippy::missing_docs_in_private_items)]
@@ -80,18 +84,19 @@ pub static BAR2: u32 = 0;
 pub static BAR3: u32 = 0;
 pub static BAR4: u32 = 0;
 
+//~v missing_docs_in_private_items
 mod internal_impl {
     /// dox
     pub fn documented() {}
     pub fn undocumented1() {}
     pub fn undocumented2() {}
-    fn undocumented3() {}
+    fn undocumented3() {} //~ missing_docs_in_private_items
     /// dox
     pub mod globbed {
         /// dox
         pub fn also_documented() {}
         pub fn also_undocumented1() {}
-        fn also_undocumented2() {}
+        fn also_undocumented2() {} //~ missing_docs_in_private_items
     }
 }
 /// dox

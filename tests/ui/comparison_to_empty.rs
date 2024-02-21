@@ -5,18 +5,19 @@
 fn main() {
     // Disallow comparisons to empty
     let s = String::new();
-    let _ = s == "";
-    let _ = s != "";
+    let _ = s == ""; //~ comparison_to_empty
+    let _ = s != ""; //~ comparison_to_empty
 
     let v = vec![0];
-    let _ = v == [];
-    let _ = v != [];
-    if let [] = &*v {}
+    let _ = v == []; //~ comparison_to_empty
+    let _ = v != []; //~ comparison_to_empty
+    if let [] = &*v {} //~ comparison_to_empty
     let s = [0].as_slice();
-    if let [] = s {}
-    if let [] = &*s {}
-    if let [] = &*s
+    if let [] = s {} //~ comparison_to_empty
+    if let [] = &*s {} //~ comparison_to_empty
+    if let [] = &*s //~ comparison_to_empty
         && s == []
+    //~^ comparison_to_empty
     {}
 
     // Allow comparisons to non-empty

@@ -13,6 +13,7 @@ enum ExprNode {
 static NODE: ExprNode = ExprNode::Unicorns;
 
 fn unwrap_addr() -> Option<&'static ExprNode> {
+    //~v single_match_else
     let _ = if let ExprNode::ExprAddrOf = ExprNode::Butterflies { Some(&NODE) } else {
         let x = 5;
         None
@@ -75,12 +76,14 @@ fn main() {
     //
 
     // lint here
+    //~v single_match_else
     if let Some(a) = Some(1) { println!("${:?}", a) } else {
         println!("else block");
         return
     }
 
     // lint here
+    //~v single_match_else
     if let Some(a) = Some(1) { println!("${:?}", a) } else {
         println!("else block");
         return;
@@ -88,12 +91,14 @@ fn main() {
 
     // lint here
     use std::convert::Infallible;
+    //~v single_match_else
     if let Ok(a) = Result::<i32, Infallible>::Ok(1) { println!("${:?}", a) } else {
         println!("else block");
         return;
     }
 
     use std::borrow::Cow;
+    //~v single_match_else
     if let Cow::Owned(a) = Cow::from("moo") { println!("${:?}", a) } else {
         println!("else block");
         return;
@@ -101,6 +106,7 @@ fn main() {
 }
 
 fn issue_10808(bar: Option<i32>) {
+    //~v single_match_else
     if let Some(v) = bar { unsafe {
         let r = &v as *const i32;
         println!("{}", *r);
@@ -109,6 +115,7 @@ fn issue_10808(bar: Option<i32>) {
         println!("None2");
     }
 
+    //~v single_match_else
     if let Some(v) = bar {
         println!("Some");
         println!("{v}");
@@ -118,6 +125,7 @@ fn issue_10808(bar: Option<i32>) {
         println!("{}", *r);
     } }
 
+    //~v single_match_else
     if let Some(v) = bar { unsafe {
         let r = &v as *const i32;
         println!("{}", *r);
@@ -127,6 +135,7 @@ fn issue_10808(bar: Option<i32>) {
         println!("{}", *r);
     } }
 
+    //~v single_match_else
     if let Some(v) = bar {
         unsafe {
             let r = &v as *const i32;

@@ -35,7 +35,7 @@ mod unnecessary_from_macro {
     macro_rules! with_safety_comment {
         ($t:ty) => {
             // Safety: unnecessary
-            impl T for $t {}
+            impl T for $t {} //~ unnecessary_safety_comment
         };
     }
 

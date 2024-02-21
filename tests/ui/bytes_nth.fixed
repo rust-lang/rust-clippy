@@ -3,7 +3,7 @@
 
 fn main() {
     let s = String::from("String");
-    let _ = s.as_bytes().get(3).copied();
-    let _ = &s.as_bytes()[3];
-    let _ = s[..].as_bytes().get(3).copied();
+    let _ = s.as_bytes().get(3).copied(); //~ bytes_nth
+    let _ = &s.as_bytes()[3]; //~ bytes_nth
+    let _ = s[..].as_bytes().get(3).copied(); //~ bytes_nth
 }

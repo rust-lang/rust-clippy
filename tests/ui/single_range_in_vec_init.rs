@@ -23,17 +23,17 @@ fn awa_vec<T: PartialOrd>(start: T, end: T) {
 
 fn main() {
     // Lint
-    [0..200];
-    vec![0..200];
-    [0u8..200];
-    [0usize..200];
-    [0..200usize];
-    vec![0u8..200];
-    vec![0usize..200];
-    vec![0..200usize];
+    [0..200]; //~ single_range_in_vec_init
+    vec![0..200]; //~ single_range_in_vec_init
+    [0u8..200]; //~ single_range_in_vec_init
+    [0usize..200]; //~ single_range_in_vec_init
+    [0..200usize]; //~ single_range_in_vec_init
+    vec![0u8..200]; //~ single_range_in_vec_init
+    vec![0usize..200]; //~ single_range_in_vec_init
+    vec![0..200usize]; //~ single_range_in_vec_init
     // Only suggest collect
-    [0..200isize];
-    vec![0..200isize];
+    [0..200isize]; //~ single_range_in_vec_init
+    vec![0..200isize]; //~ single_range_in_vec_init
     // Do not lint
     [0..200, 0..100];
     vec![0..200, 0..100];

@@ -14,6 +14,7 @@ fn main() {
     #[allow(dead_code)]
     fn size_hint<I: Iterator>(iter: &AppendIter<I>) -> (usize, Option<usize>) {
         match &iter.inner {
+            //~v match_single_binding
             Some((iter, _item)) => match iter.size_hint() {
                 (min, max) => (min.saturating_add(1), max.and_then(|max| max.checked_add(1))),
             },
@@ -27,6 +28,7 @@ fn main() {
     match opt {
         #[rustfmt::skip]
         Some((first, _second)) => {
+            //~v match_single_binding
             match get_tup() {
                 (a, b) => println!("a {:?} and b {:?}", a, b),
             }
@@ -38,6 +40,7 @@ fn main() {
 
     // Lint (scrutinee has side effects)
     // issue #7094
+    //~v match_single_binding
     match side_effects() {
         _ => println!("Side effects"),
     }
@@ -45,6 +48,7 @@ fn main() {
     // Lint (scrutinee has side effects)
     // issue #7094
     let x = 1;
+    //~v match_single_binding
     match match x {
         0 => 1,
         _ => 2,

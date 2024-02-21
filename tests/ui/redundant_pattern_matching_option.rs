@@ -12,9 +12,11 @@
 
 fn issue_11174<T>(boolean: bool, maybe_some: Option<T>) -> bool {
     matches!(maybe_some, None if !boolean)
+    //~^ redundant_pattern_matching
 }
 
 fn issue_11174_edge_cases<T>(boolean: bool, boolean2: bool, maybe_some: Option<T>) {
+    //~v redundant_pattern_matching
     let _ = matches!(maybe_some, None if boolean || boolean2); // guard needs parentheses
     let _ = match maybe_some {
         // can't use `matches!` here
@@ -29,23 +31,25 @@ fn issue_11174_edge_cases<T>(boolean: bool, boolean2: bool, maybe_some: Option<T
 }
 
 fn main() {
-    if let None = None::<()> {}
+    if let None = None::<()> {} //~ redundant_pattern_matching
 
-    if let Some(_) = Some(42) {}
+    if let Some(_) = Some(42) {} //~ redundant_pattern_matching
 
+    //~v redundant_pattern_matching
     if let Some(_) = Some(42) {
         foo();
     } else {
         bar();
     }
 
-    while let Some(_) = Some(42) {}
+    while let Some(_) = Some(42) {} //~ redundant_pattern_matching
 
-    while let None = Some(42) {}
+    while let None = Some(42) {} //~ redundant_pattern_matching
 
-    while let None = None::<()> {}
+    while let None = None::<()> {} //~ redundant_pattern_matching
 
     let mut v = vec![1, 2, 3];
+    //~v redundant_pattern_matching
     while let Some(_) = v.pop() {
         foo();
     }
@@ -54,16 +58,19 @@ fn main() {
 
     if Some(42).is_some() {}
 
+    //~v redundant_pattern_matching
     match Some(42) {
         Some(_) => true,
         None => false,
     };
 
+    //~v redundant_pattern_matching
     match None::<()> {
         Some(_) => false,
         None => true,
     };
 
+    //~v redundant_pattern_matching
     let _ = match None::<()> {
         Some(_) => false,
         None => true,
@@ -71,20 +78,23 @@ fn main() {
 
     let opt = Some(false);
     let _ = if let Some(_) = opt { true } else { false };
+    //~^ redundant_pattern_matching
 
     issue6067();
     issue10726();
     issue10803();
 
+    //~v redundant_pattern_matching
     let _ = if let Some(_) = gen_opt() {
         1
+    //~v redundant_pattern_matching
     } else if let None = gen_opt() {
         2
     } else {
         3
     };
 
-    if let Some(..) = gen_opt() {}
+    if let Some(..) = gen_opt() {} //~ redundant_pattern_matching
 }
 
 fn gen_opt() -> Option<()> {
@@ -99,19 +109,21 @@ fn bar() {}
 // However, in Rust 1.48.0 the methods `is_some` and `is_none` of `Option` were stabilized as const,
 // so the following should be linted.
 const fn issue6067() {
-    if let Some(_) = Some(42) {}
+    if let Some(_) = Some(42) {} //~ redundant_pattern_matching
 
-    if let None = None::<()> {}
+    if let None = None::<()> {} //~ redundant_pattern_matching
 
-    while let Some(_) = Some(42) {}
+    while let Some(_) = Some(42) {} //~ redundant_pattern_matching
 
-    while let None = None::<()> {}
+    while let None = None::<()> {} //~ redundant_pattern_matching
 
+    //~v redundant_pattern_matching
     match Some(42) {
         Some(_) => true,
         None => false,
     };
 
+    //~v redundant_pattern_matching
     match None::<()> {
         Some(_) => false,
         None => true,
@@ -120,28 +132,32 @@ const fn issue6067() {
 
 #[allow(clippy::deref_addrof, dead_code, clippy::needless_borrow)]
 fn issue7921() {
-    if let None = *(&None::<()>) {}
-    if let None = *&None::<()> {}
+    if let None = *(&None::<()>) {} //~ redundant_pattern_matching
+    if let None = *&None::<()> {} //~ redundant_pattern_matching
 }
 
 fn issue10726() {
     let x = Some(42);
 
+    //~v redundant_pattern_matching
     match x {
         Some(_) => true,
         _ => false,
     };
 
+    //~v redundant_pattern_matching
     match x {
         None => true,
         _ => false,
     };
 
+    //~v redundant_pattern_matching
     match x {
         Some(_) => false,
         _ => true,
     };
 
+    //~v redundant_pattern_matching
     match x {
         None => false,
         _ => true,
@@ -157,9 +173,9 @@ fn issue10726() {
 fn issue10803() {
     let x = Some(42);
 
-    let _ = matches!(x, Some(_));
+    let _ = matches!(x, Some(_)); //~ redundant_pattern_matching
 
-    let _ = matches!(x, None);
+    let _ = matches!(x, None); //~ redundant_pattern_matching
 
     // Don't lint
     let _ = matches!(x, Some(16));

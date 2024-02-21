@@ -49,7 +49,7 @@ fn good_return_explicit_lt_struct<'a>(foo: &'a Foo) -> FooRef<'a> {
     FooRef { foo }
 }
 
-fn bad(x: &u32, y: &Foo, z: &Baz) {}
+fn bad(x: &u32, y: &Foo, z: &Baz) {} //~ trivially_copy_pass_by_ref
 //~^ ERROR: this argument (4 byte) is passed by reference, but would be more efficient if passed by
 //~| ERROR: this argument (4 byte) is passed by reference, but would be more efficient if passed by
 

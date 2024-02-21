@@ -21,7 +21,7 @@ fn main() {
     // test ok
     let r: Result<Foo, DebugFoo> = Ok(Foo);
     debug_assert!(r.is_ok());
-    assert!(r.is_ok());
+    assert!(r.is_ok()); //~ assertions_on_result_states
 
     // test ok with non-debug error type
     let r: Result<Foo, Foo> = Ok(Foo);
@@ -39,10 +39,11 @@ fn main() {
     fn get_ok() -> Result<Foo, DebugFoo> {
         Ok(Foo)
     }
-    assert!(get_ok().is_ok());
+    assert!(get_ok().is_ok()); //~ assertions_on_result_states
 
     // test macro ok
     assert!(get_ok_macro!().is_ok());
+    //~^ assertions_on_result_states
 
     // test ok that shouldn't be moved
     let r: Result<CopyFoo, DebugFoo> = Ok(CopyFoo);
@@ -55,13 +56,13 @@ fn main() {
 
     // test ok that is copied
     let r: Result<CopyFoo, CopyFoo> = Ok(CopyFoo);
-    assert!(r.is_ok());
+    assert!(r.is_ok()); //~ assertions_on_result_states
     r.unwrap();
 
     // test reference to ok
     let r: Result<CopyFoo, CopyFoo> = Ok(CopyFoo);
     fn test_ref_copy_ok(r: &Result<CopyFoo, CopyFoo>) {
-        assert!(r.is_ok());
+        assert!(r.is_ok()); //~ assertions_on_result_states
     }
     test_ref_copy_ok(&r);
     r.unwrap();
@@ -69,7 +70,7 @@ fn main() {
     // test err
     let r: Result<DebugFoo, Foo> = Err(Foo);
     debug_assert!(r.is_err());
-    assert!(r.is_err());
+    assert!(r.is_err()); //~ assertions_on_result_states
 
     // test err with non-debug value type
     let r: Result<Foo, Foo> = Err(Foo);
@@ -79,5 +80,5 @@ fn main() {
 #[allow(dead_code)]
 fn issue9450() {
     let res: Result<i32, i32> = Ok(1);
-    assert!(res.is_err())
+    assert!(res.is_err()) //~ assertions_on_result_states
 }

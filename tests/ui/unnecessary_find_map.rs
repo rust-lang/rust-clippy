@@ -30,5 +30,6 @@ fn find_map_none_changes_item_type() -> Option<bool> {
 fn issue11260() {
     let y = Some(1);
     let _x = std::iter::once(1).find_map(|n| (n > 1).then_some(n));
+    //~^ unnecessary_find_map
     let _x = std::iter::once(1).find_map(|n| (n > 1).then_some(y)); // different option, so can't be just `.find()`
 }

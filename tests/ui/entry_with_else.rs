@@ -11,42 +11,49 @@ macro_rules! m {
 fn foo() {}
 
 fn insert_if_absent0<K: Eq + Hash + Copy, V: Copy>(m: &mut HashMap<K, V>, k: K, v: V, v2: V) {
+    //~v map_entry
     if !m.contains_key(&k) {
         m.insert(k, v);
     } else {
         m.insert(k, v2);
     }
 
+    //~v map_entry
     if m.contains_key(&k) {
         m.insert(k, v);
     } else {
         m.insert(k, v2);
     }
 
+    //~v map_entry
     if !m.contains_key(&k) {
         m.insert(k, v);
     } else {
         foo();
     }
 
+    //~v map_entry
     if !m.contains_key(&k) {
         foo();
     } else {
         m.insert(k, v);
     }
 
+    //~v map_entry
     if !m.contains_key(&k) {
         m.insert(k, v);
     } else {
         m.insert(k, v2);
     }
 
+    //~v map_entry
     if m.contains_key(&k) {
         if true { m.insert(k, v) } else { m.insert(k, v2) }
     } else {
         m.insert(k, v)
     };
 
+    //~v map_entry
     if m.contains_key(&k) {
         foo();
         m.insert(k, v)

@@ -11,7 +11,7 @@ impl PartialEq<Option<()>> for Foobar {
 
 #[allow(dead_code)]
 fn foo(f: Option<u32>) -> &'static str {
-    if f != None { "yay" } else { "nay" }
+    if f != None { "yay" } else { "nay" } //~ partialeq_to_none
 }
 
 fn foobar() -> Option<()> {
@@ -41,19 +41,20 @@ pub fn macro_expansion() {
 fn main() {
     let x = Some(0);
 
-    let _ = x == None;
-    let _ = x != None;
-    let _ = None == x;
-    let _ = None != x;
+    let _ = x == None; //~ partialeq_to_none
+    let _ = x != None; //~ partialeq_to_none
+    let _ = None == x; //~ partialeq_to_none
+    let _ = None != x; //~ partialeq_to_none
 
-    if foobar() == None {}
+    if foobar() == None {} //~ partialeq_to_none
 
-    if bar().ok() != None {}
+    if bar().ok() != None {} //~ partialeq_to_none
 
-    let _ = Some(1 + 2) != None;
+    let _ = Some(1 + 2) != None; //~ partialeq_to_none
 
-    let _ = { Some(0) } == None;
+    let _ = { Some(0) } == None; //~ partialeq_to_none
 
+    //~v partialeq_to_none
     let _ = {
         /*
           This comment runs long
@@ -64,11 +65,11 @@ fn main() {
     // Should not trigger, as `Foobar` is not an `Option` and has no `is_none`
     let _ = Foobar == None;
 
-    let _ = optref() == &&None;
-    let _ = &&None != optref();
-    let _ = **optref() == None;
-    let _ = &None != *optref();
+    let _ = optref() == &&None; //~ partialeq_to_none
+    let _ = &&None != optref(); //~ partialeq_to_none
+    let _ = **optref() == None; //~ partialeq_to_none
+    let _ = &None != *optref(); //~ partialeq_to_none
 
     let x = Box::new(Option::<()>::None);
-    let _ = None != *x;
+    let _ = None != *x; //~ partialeq_to_none
 }

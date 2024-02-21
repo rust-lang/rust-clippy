@@ -6,10 +6,10 @@ fn main() {
     let string = "String".to_string();
     let slice = [1; 5];
 
-    let a = [1; 5].repeat(1);
-    let b = slice.repeat(1);
-    let c = "hello".repeat(N);
-    let d = "hi".repeat(1);
-    let e = s.repeat(1);
-    let f = string.repeat(1);
+    let a = [1; 5].repeat(1); //~ repeat_once
+    let b = slice.repeat(1); //~ repeat_once
+    let c = "hello".repeat(N); //~ repeat_once
+    let d = "hi".repeat(1); //~ repeat_once
+    let e = s.repeat(1); //~ repeat_once
+    let f = string.repeat(1); //~ repeat_once
 }

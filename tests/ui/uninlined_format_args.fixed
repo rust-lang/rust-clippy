@@ -42,75 +42,98 @@ fn tester(fn_arg: i32) {
     // let _ = '	';  // <- this is a single tab character
     let _: &[u8; 3] = b"	 	"; // <- <tab><space><tab>
 
-    println!("val='{local_i32}'");
+    println!("val='{local_i32}'"); //~ uninlined_format_args
+
+    //~v uninlined_format_args
     println!("val='{local_i32}'"); // 3 spaces
+
+    //~v uninlined_format_args
     println!("val='{local_i32}'"); // tab
+
+    //~v uninlined_format_args
     println!("val='{local_i32}'"); // space+tab
+
+    //~v uninlined_format_args
     println!("val='{local_i32}'"); // tab+space
+
+    //~v uninlined_format_args
     println!(
         "val='{local_i32}'"
     );
-    println!("{local_i32}");
-    println!("{fn_arg}");
-    println!("{local_i32:?}");
-    println!("{local_i32:#?}");
-    println!("{local_i32:4}");
-    println!("{local_i32:04}");
-    println!("{local_i32:<3}");
-    println!("{local_i32:#010x}");
-    println!("{local_f64:.1}");
+    println!("{local_i32}"); //~ uninlined_format_args
+    println!("{fn_arg}"); //~ uninlined_format_args
+    println!("{local_i32:?}"); //~ uninlined_format_args
+    println!("{local_i32:#?}"); //~ uninlined_format_args
+    println!("{local_i32:4}"); //~ uninlined_format_args
+    println!("{local_i32:04}"); //~ uninlined_format_args
+    println!("{local_i32:<3}"); //~ uninlined_format_args
+    println!("{local_i32:#010x}"); //~ uninlined_format_args
+    println!("{local_f64:.1}"); //~ uninlined_format_args
     println!("Hello {} is {:.*}", "x", local_i32, local_f64);
     println!("Hello {} is {:.*}", local_i32, 5, local_f64);
     println!("Hello {} is {2:.*}", local_i32, 5, local_f64);
     println!("{local_i32} {local_f64}");
+    //~^ uninlined_format_args
     println!("{}, {}", local_i32, local_opt.unwrap());
-    println!("{val}");
-    println!("{val}");
+    println!("{val}"); //~ uninlined_format_args
+    println!("{val}"); //~ uninlined_format_args
     println!("{} {1}", local_i32, 42);
+    println!("val='{local_i32}'"); //~ uninlined_format_args
+    println!("val='{local_i32}'"); //~ uninlined_format_args
     println!("val='{local_i32}'");
-    println!("val='{local_i32}'");
-    println!("val='{local_i32}'");
+    //~^ uninlined_format_args
     println!("val='{fn_arg}'");
-    println!("{local_i32}");
-    println!("{local_i32:?}");
-    println!("{local_i32:#?}");
-    println!("{local_i32:04}");
-    println!("{local_i32:<3}");
-    println!("{local_i32:#010x}");
-    println!("{local_f64:.1}");
-    println!("{local_i32} {local_i32}");
+    //~^ uninlined_format_args
+    println!("{local_i32}"); //~ uninlined_format_args
+    println!("{local_i32:?}"); //~ uninlined_format_args
+    println!("{local_i32:#?}"); //~ uninlined_format_args
+    println!("{local_i32:04}"); //~ uninlined_format_args
+    println!("{local_i32:<3}"); //~ uninlined_format_args
+    println!("{local_i32:#010x}"); //~ uninlined_format_args
+    println!("{local_f64:.1}"); //~ uninlined_format_args
+    println!("{local_i32} {local_i32}"); //~ uninlined_format_args
     println!("{local_f64} {local_i32} {local_i32} {local_f64}");
+    //~^ uninlined_format_args
     println!("{local_i32} {local_f64}");
+    //~^ uninlined_format_args
     println!("{local_f64} {local_i32}");
+    //~^ uninlined_format_args
     println!("{local_f64} {local_i32} {local_f64} {local_i32}");
+    //~^ uninlined_format_args
     println!("{1} {0}", "str", local_i32);
-    println!("{local_i32}");
+    println!("{local_i32}"); //~ uninlined_format_args
+    println!("{local_i32:width$}"); //~ uninlined_format_args
+    println!("{local_i32:width$}"); //~ uninlined_format_args
+    println!("{local_i32:.prec$}"); //~ uninlined_format_args
+    println!("{local_i32:.prec$}"); //~ uninlined_format_args
+    println!("{val:val$}"); //~ uninlined_format_args
+    println!("{val:val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{val:val$.val$}"); //~ uninlined_format_args
+    println!("{width:width$}"); //~ uninlined_format_args
+    println!("{local_i32:width$}"); //~ uninlined_format_args
+    println!("{width:width$}"); //~ uninlined_format_args
     println!("{local_i32:width$}");
-    println!("{local_i32:width$}");
+    //~^ uninlined_format_args
+    println!("{prec:.prec$}"); //~ uninlined_format_args
+    println!("{local_i32:.prec$}"); //~ uninlined_format_args
+    println!("{prec:.prec$}"); //~ uninlined_format_args
     println!("{local_i32:.prec$}");
-    println!("{local_i32:.prec$}");
-    println!("{val:val$}");
-    println!("{val:val$}");
-    println!("{val:val$.val$}");
-    println!("{val:val$.val$}");
-    println!("{val:val$.val$}");
-    println!("{val:val$.val$}");
-    println!("{val:val$.val$}");
-    println!("{val:val$.val$}");
-    println!("{val:val$.val$}");
-    println!("{val:val$.val$}");
-    println!("{width:width$}");
-    println!("{local_i32:width$}");
-    println!("{width:width$}");
-    println!("{local_i32:width$}");
-    println!("{prec:.prec$}");
-    println!("{local_i32:.prec$}");
-    println!("{prec:.prec$}");
-    println!("{local_i32:.prec$}");
-    println!("{width:width$.prec$}");
-    println!("{width:width$.prec$}");
+    //~^ uninlined_format_args
+    println!("{width:width$.prec$}"); //~ uninlined_format_args
+    println!("{width:width$.prec$}"); //~ uninlined_format_args
     println!("{local_f64:width$.prec$}");
+    //~^ uninlined_format_args
     println!("{local_f64:width$.prec$} {local_f64} {width} {prec}");
+    //~^ uninlined_format_args
+
+    //~v uninlined_format_args
     println!(
         "{local_i32:width$.prec$} {local_i32:prec$.width$} {width:local_i32$.prec$} {width:prec$.local_i32$} {prec:local_i32$.width$} {prec:width$.local_i32$}",
     );
@@ -122,8 +145,11 @@ fn tester(fn_arg: i32) {
         1 + 2
     );
     println!("Width = {local_i32}, value with width = {local_f64:local_i32$}");
+    //~^ uninlined_format_args
     println!("{local_i32:width$.prec$}");
+    //~^ uninlined_format_args
     println!("{width:width$.prec$}");
+    //~^ uninlined_format_args
     println!("{}", format!("{}", local_i32));
     my_println!("{}", local_i32);
     my_println_args!("{}", local_i32);
@@ -142,22 +168,25 @@ fn tester(fn_arg: i32) {
     );
     println!(no_param_str!(), local_i32);
 
+    //~v uninlined_format_args
     println!(
         "{val}",
     );
     println!("{val}");
+    //~^ uninlined_format_args
 
     println!(with_span!("{0} {1}" "{1} {0}"), local_i32, local_f64);
     println!("{}", with_span!(span val));
 
     if local_i32 > 0 {
-        panic!("p1 {local_i32}");
+        panic!("p1 {local_i32}"); //~ uninlined_format_args
     }
     if local_i32 > 0 {
-        panic!("p2 {local_i32}");
+        panic!("p2 {local_i32}"); //~ uninlined_format_args
     }
     if local_i32 > 0 {
         panic!("p3 {local_i32}");
+        //~^ uninlined_format_args
     }
     if local_i32 > 0 {
         panic!("p4 {local_i32}");
@@ -177,7 +206,7 @@ fn _under_msrv() {
 #[clippy::msrv = "1.58"]
 fn _meets_msrv() {
     let local_i32 = 1;
-    println!("expand='{local_i32}'");
+    println!("expand='{local_i32}'"); //~ uninlined_format_args
 }
 
 fn _do_not_fire() {

@@ -19,11 +19,11 @@ fn vec_range() {
 
     // Do lint
     let mut v = vec![1, 2, 3];
-    v.drain(0..v.len());
+    v.drain(0..v.len()); //~ clear_with_drain
 
     // Do lint
     let mut v = vec![1, 2, 3];
-    v.drain(usize::MIN..v.len());
+    v.drain(usize::MIN..v.len()); //~ clear_with_drain
 }
 
 fn vec_range_from() {
@@ -42,11 +42,11 @@ fn vec_range_from() {
 
     // Do lint
     let mut v = vec![1, 2, 3];
-    v.drain(0..);
+    v.drain(0..); //~ clear_with_drain
 
     // Do lint
     let mut v = vec![1, 2, 3];
-    v.drain(usize::MIN..);
+    v.drain(usize::MIN..); //~ clear_with_drain
 }
 
 fn vec_range_full() {
@@ -62,7 +62,7 @@ fn vec_range_full() {
 
     // Do lint
     let mut v = vec![1, 2, 3];
-    v.drain(..);
+    v.drain(..); //~ clear_with_drain
 }
 
 fn vec_range_to() {
@@ -79,7 +79,7 @@ fn vec_range_to() {
 
     // Do lint
     let mut v = vec![1, 2, 3];
-    v.drain(..v.len());
+    v.drain(..v.len()); //~ clear_with_drain
 }
 
 fn vec_partial_drains() {
@@ -117,11 +117,11 @@ fn vec_deque_range() {
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
-    deque.drain(0..deque.len());
+    deque.drain(0..deque.len()); //~ clear_with_drain
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
-    deque.drain(usize::MIN..deque.len());
+    deque.drain(usize::MIN..deque.len()); //~ clear_with_drain
 }
 
 fn vec_deque_range_from() {
@@ -140,11 +140,11 @@ fn vec_deque_range_from() {
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
-    deque.drain(0..);
+    deque.drain(0..); //~ clear_with_drain
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
-    deque.drain(usize::MIN..);
+    deque.drain(usize::MIN..); //~ clear_with_drain
 }
 
 fn vec_deque_range_full() {
@@ -160,7 +160,7 @@ fn vec_deque_range_full() {
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
-    deque.drain(..);
+    deque.drain(..); //~ clear_with_drain
 }
 
 fn vec_deque_range_to() {
@@ -177,7 +177,7 @@ fn vec_deque_range_to() {
 
     // Do lint
     let mut deque = VecDeque::from([1, 2, 3]);
-    deque.drain(..deque.len());
+    deque.drain(..deque.len()); //~ clear_with_drain
 }
 
 fn vec_deque_partial_drains() {
@@ -215,11 +215,11 @@ fn string_range() {
 
     // Do lint
     let mut s = String::from("Hello, world!");
-    s.drain(0..s.len());
+    s.drain(0..s.len()); //~ clear_with_drain
 
     // Do lint
     let mut s = String::from("Hello, world!");
-    s.drain(usize::MIN..s.len());
+    s.drain(usize::MIN..s.len()); //~ clear_with_drain
 }
 
 fn string_range_from() {
@@ -238,11 +238,11 @@ fn string_range_from() {
 
     // Do lint
     let mut s = String::from("Hello, world!");
-    s.drain(0..);
+    s.drain(0..); //~ clear_with_drain
 
     // Do lint
     let mut s = String::from("Hello, world!");
-    s.drain(usize::MIN..);
+    s.drain(usize::MIN..); //~ clear_with_drain
 }
 
 fn string_range_full() {
@@ -258,7 +258,7 @@ fn string_range_full() {
 
     // Do lint
     let mut s = String::from("Hello, world!");
-    s.drain(..);
+    s.drain(..); //~ clear_with_drain
 }
 
 fn string_range_to() {
@@ -275,7 +275,7 @@ fn string_range_to() {
 
     // Do lint
     let mut s = String::from("Hello, world!");
-    s.drain(..s.len());
+    s.drain(..s.len()); //~ clear_with_drain
 }
 
 fn string_partial_drains() {
@@ -313,7 +313,7 @@ fn hash_set() {
 
     // Do lint
     let mut set = HashSet::from([1, 2, 3]);
-    set.drain();
+    set.drain(); //~ clear_with_drain
 }
 
 fn hash_map() {
@@ -332,7 +332,7 @@ fn hash_map() {
 
     // Do lint
     let mut map = HashMap::from([(1, "a"), (2, "b")]);
-    map.drain();
+    map.drain(); //~ clear_with_drain
 }
 
 fn binary_heap() {
@@ -351,7 +351,7 @@ fn binary_heap() {
 
     // Do lint
     let mut heap = BinaryHeap::from([1, 2]);
-    heap.drain();
+    heap.drain(); //~ clear_with_drain
 }
 
 fn main() {}

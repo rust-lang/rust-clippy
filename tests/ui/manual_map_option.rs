@@ -11,21 +11,25 @@
 )]
 
 fn main() {
+    //~v manual_map
     match Some(0) {
         Some(_) => Some(2),
         None::<u32> => None,
     };
 
+    //~v manual_map
     match Some(0) {
         Some(x) => Some(x + 1),
         _ => None,
     };
 
+    //~v manual_map
     match Some("") {
         Some(x) => Some(x.is_empty()),
         None => None,
     };
 
+    //~v manual_map
     if let Some(x) = Some(0) {
         Some(!x)
     } else {
@@ -33,11 +37,13 @@ fn main() {
     };
 
     #[rustfmt::skip]
+    //~v manual_map
     match Some(0) {
         Some(x) => { Some(std::convert::identity(x)) }
         None => { None }
     };
 
+    //~v manual_map
     match Some(&String::new()) {
         Some(x) => Some(str::len(x)),
         None => None,
@@ -48,26 +54,31 @@ fn main() {
         _ => None,
     };
 
+    //~v manual_map
     match &Some([0, 1]) {
         Some(x) => Some(x[0]),
         &None => None,
     };
 
+    //~v manual_map
     match &Some(0) {
         &Some(x) => Some(x * 2),
         None => None,
     };
 
+    //~v manual_map
     match Some(String::new()) {
         Some(ref x) => Some(x.is_empty()),
         _ => None,
     };
 
+    //~v manual_map
     match &&Some(String::new()) {
         Some(x) => Some(x.len()),
         _ => None,
     };
 
+    //~v manual_map
     match &&Some(0) {
         &&Some(x) => Some(x + x),
         &&_ => None,
@@ -81,32 +92,38 @@ fn main() {
 
     #[allow(clippy::option_map_unit_fn)]
     {
+        //~v manual_map
         match &mut Some(String::new()) {
             Some(x) => Some(x.push_str("")),
             None => None,
         };
     }
 
+    //~v manual_map
     match &mut Some(String::new()) {
         Some(ref x) => Some(x.len()),
         None => None,
     };
 
+    //~v manual_map
     match &mut &Some(String::new()) {
         Some(x) => Some(x.is_empty()),
         &mut _ => None,
     };
 
+    //~v manual_map
     match Some((0, 1, 2)) {
         Some((x, y, z)) => Some(x + y + z),
         None => None,
     };
 
+    //~v manual_map
     match Some([1, 2, 3]) {
         Some([first, ..]) => Some(first),
         None => None,
     };
 
+    //~v manual_map
     match &Some((String::new(), "test")) {
         Some((x, y)) => Some((y, x)),
         None => None,
@@ -165,11 +182,13 @@ fn main() {
     }
 
     // #6811
+    //~v manual_map
     match Some(0) {
         Some(x) => Some(vec![x]),
         None => None,
     };
 
+    //~v manual_map
     match option_env!("") {
         Some(x) => Some(String::from(x)),
         None => None,
@@ -190,6 +209,7 @@ fn main() {
     // #6847
     if let Some(_) = Some(0) {
         Some(0)
+    //~v manual_map
     } else if let Some(x) = Some(0) {
         Some(x + 1)
     } else {
@@ -198,6 +218,7 @@ fn main() {
 
     if true {
         Some(0)
+    //~v manual_map
     } else if let Some(x) = Some(0) {
         Some(x + 1)
     } else {

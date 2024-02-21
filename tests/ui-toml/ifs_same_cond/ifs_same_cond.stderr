@@ -1,5 +1,5 @@
 error: this `if` has the same condition as a previous `if`
-  --> $DIR/ifs_same_cond/ifs_same_cond.rs:15:15
+  --> $DIR/ifs_same_cond/ifs_same_cond.rs:16:15
    |
 LL |     } else if x.get() {
    |               ^^^^^^^

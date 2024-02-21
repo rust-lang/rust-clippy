@@ -145,7 +145,7 @@ LL +     cr###" "aa" "# "## "###;
    |
 
 error: unnecessary hashes around raw string literal
-  --> $DIR/needless_raw_string_hashes.rs:18:5
+  --> $DIR/needless_raw_string_hashes.rs:19:5
    |
 LL | /     r#"
 LL | |         \a
@@ -164,7 +164,7 @@ LL ~     ";
    |
 
 error: unnecessary hashes around raw string literal
-  --> $DIR/needless_raw_string_hashes.rs:24:5
+  --> $DIR/needless_raw_string_hashes.rs:25:5
    |
 LL |     r###"rust"###;
    |     ^^^^^^^^^^^^^
@@ -176,7 +176,7 @@ LL +     r"rust";
    |
 
 error: unnecessary hashes around raw string literal
-  --> $DIR/needless_raw_string_hashes.rs:25:5
+  --> $DIR/needless_raw_string_hashes.rs:26:5
    |
 LL |     r#"hello world"#;
    |     ^^^^^^^^^^^^^^^^

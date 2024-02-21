@@ -7,6 +7,7 @@
 )]
 
 fn bad1(string: Option<&str>) -> (bool, &str) {
+    //~v option_if_let_else
     if let Some(x) = string {
         (true, x)
     } else {
@@ -26,7 +27,11 @@ fn else_if_option(string: Option<&str>) -> Option<(bool, &str)> {
 
 fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
     let _ = if let Some(s) = *string { s.len() } else { 0 };
+    //~^ option_if_let_else
     let _ = if let Some(s) = &num { s } else { &0 };
+    //~^ option_if_let_else
+
+    //~v option_if_let_else
     let _ = if let Some(s) = &mut num {
         *s += 1;
         s
@@ -34,12 +39,16 @@ fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
         &0
     };
     let _ = if let Some(ref s) = num { s } else { &0 };
+    //~^ option_if_let_else
+
+    //~v option_if_let_else
     let _ = if let Some(mut s) = num {
         s += 1;
         s
     } else {
         0
     };
+    //~v option_if_let_else
     let _ = if let Some(ref mut s) = num {
         *s += 1;
         s
@@ -49,6 +58,7 @@ fn unop_bad(string: &Option<&str>, mut num: Option<i32>) {
 }
 
 fn longer_body(arg: Option<u32>) -> u32 {
+    //~v option_if_let_else
     if let Some(x) = arg {
         let y = x * x;
         y * y
@@ -62,6 +72,7 @@ fn impure_else(arg: Option<i32>) {
         println!("return 1");
         1
     };
+    //~v option_if_let_else
     let _ = if let Some(x) = arg {
         x
     } else {
@@ -71,6 +82,7 @@ fn impure_else(arg: Option<i32>) {
 }
 
 fn test_map_or_else(arg: Option<u32>) {
+    //~v option_if_let_else
     let _ = if let Some(x) = arg {
         x * x * x * x
     } else {
@@ -104,6 +116,7 @@ fn pattern_to_vec(pattern: &str) -> Vec<String> {
         .trim_matches('/')
         .split('/')
         .flat_map(|s| {
+            //~v option_if_let_else
             if let Some(idx) = s.find('.') {
                 vec![s[..idx].to_string(), s[idx..].to_string()]
             } else {
@@ -115,6 +128,7 @@ fn pattern_to_vec(pattern: &str) -> Vec<String> {
 
 // #10335
 fn test_result_impure_else(variable: Result<u32, &str>) -> bool {
+    //~v option_if_let_else
     if let Ok(binding) = variable {
         println!("Ok {binding}");
         true
@@ -140,6 +154,7 @@ fn complex_subpat() -> DummyEnum {
 fn main() {
     let optional = Some(5);
     let _ = if let Some(x) = optional { x + 2 } else { 5 };
+    //~^ option_if_let_else
     let _ = bad1(None);
     let _ = else_if_option(None);
     unop_bad(&None, None);
@@ -149,6 +164,7 @@ fn main() {
     let _ = negative_tests(None);
     let _ = impure_else(None);
 
+    //~v option_if_let_else
     let _ = if let Some(x) = Some(0) {
         loop {
             if x == 0 {
@@ -178,9 +194,11 @@ fn main() {
     let s = String::new();
     // Lint, both branches immutably borrow `s`.
     let _ = if let Some(x) = Some(0) { s.len() + x } else { s.len() };
+    //~^ option_if_let_else
 
     let s = String::new();
     // Lint, `Some` branch consumes `s`, but else branch doesn't use `s`.
+    //~v option_if_let_else
     let _ = if let Some(x) = Some(0) {
         let s = s;
         s.len() + x
@@ -220,25 +238,30 @@ fn main() {
     let _ = complex_subpat();
 
     // issue #8492
+    //~v option_if_let_else
     let _ = match s {
         Some(string) => string.len(),
         None => 1,
     };
+    //~v option_if_let_else
     let _ = match Some(10) {
         Some(a) => a + 1,
         None => 5,
     };
 
     let res: Result<i32, i32> = Ok(5);
+    //~v option_if_let_else
     let _ = match res {
         Ok(a) => a + 1,
         _ => 1,
     };
+    //~v option_if_let_else
     let _ = match res {
         Err(_) => 1,
         Ok(a) => a + 1,
     };
     let _ = if let Ok(a) = res { a + 1 } else { 5 };
+    //~^ option_if_let_else
 }
 
 #[allow(dead_code)]
@@ -255,6 +278,7 @@ mod issue10729 {
 
     pub fn reproduce(initial: &Option<String>) {
         // 👇 needs `.as_ref()` because initial is an `&Option<_>`
+        //~v option_if_let_else
         let _ = match initial {
             Some(value) => do_something(value),
             None => 42,
@@ -262,6 +286,7 @@ mod issue10729 {
     }
 
     pub fn reproduce2(initial: &mut Option<String>) {
+        //~v option_if_let_else
         let _ = match initial {
             Some(value) => do_something2(value),
             None => 42,
@@ -285,6 +310,7 @@ fn issue11429() {
 
     let opt: Option<HashMap<u8, u8>> = None;
 
+    //~v option_if_let_else
     let mut _hashmap = if let Some(hm) = &opt {
         hm.clone()
     } else {
@@ -292,6 +318,7 @@ fn issue11429() {
     };
 
     let mut _hm = if let Some(hm) = &opt { hm.clone() } else { new_map!() };
+    //~^ option_if_let_else
 }
 
 fn issue11893() {

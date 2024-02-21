@@ -25,6 +25,7 @@ struct Bar {
 fn field() {
     let mut bar = Bar { a: 1, b: 2 };
 
+    //~v manual_swap
     let temp = bar.a;
     bar.a = bar.b;
     bar.b = temp;
@@ -37,6 +38,7 @@ fn field() {
 
 fn array() {
     let mut foo = [1, 2];
+    //~v manual_swap
     let temp = foo[0];
     foo[0] = foo[1];
     foo[1] = temp;
@@ -46,6 +48,7 @@ fn array() {
 
 fn slice() {
     let foo = &mut [1, 2];
+    //~v manual_swap
     let temp = foo[0];
     foo[0] = foo[1];
     foo[1] = temp;
@@ -65,6 +68,7 @@ fn unswappable_slice() {
 
 fn vec() {
     let mut foo = vec![1, 2];
+    //~v manual_swap
     let temp = foo[0];
     foo[0] = foo[1];
     foo[1] = temp;
@@ -76,6 +80,7 @@ fn xor_swap_locals() {
     // This is an xor-based swap of local variables.
     let mut a = 0;
     let mut b = 1;
+    //~v manual_swap
     a ^= b;
     b ^= a;
     a ^= b;
@@ -84,6 +89,7 @@ fn xor_swap_locals() {
 fn xor_field_swap() {
     // This is an xor-based swap of fields in a struct.
     let mut bar = Bar { a: 0, b: 1 };
+    //~v manual_swap
     bar.a ^= bar.b;
     bar.b ^= bar.a;
     bar.a ^= bar.b;
@@ -92,6 +98,7 @@ fn xor_field_swap() {
 fn xor_slice_swap() {
     // This is an xor-based swap of a slice
     let foo = &mut [1, 2];
+    //~v manual_swap
     foo[0] ^= foo[1];
     foo[1] ^= foo[0];
     foo[0] ^= foo[1];
@@ -121,6 +128,7 @@ fn xor_unswappable_slice() {
 fn distinct_slice() {
     let foo = &mut [vec![1, 2], vec![3, 4]];
     let bar = &mut [vec![1, 2], vec![3, 4]];
+    //~v manual_swap
     let temp = foo[0][1];
     foo[0][1] = bar[1][0];
     bar[1][0] = temp;
@@ -132,31 +140,38 @@ fn main() {
     let mut a = 42;
     let mut b = 1337;
 
+    //~v almost_swapped
     a = b;
     b = a;
 
+    //~v manual_swap
     ; let t = a;
     a = b;
     b = t;
 
     let mut c = Foo(42);
 
+    //~v almost_swapped
     c.0 = a;
     a = c.0;
 
+    //~v manual_swap
     ; let t = c.0;
     c.0 = a;
     a = t;
 
+    //~v almost_swapped
     let a = b;
     let b = a;
 
     let mut c = 1;
     let mut d = 2;
+    //~v almost_swapped
     d = c;
     c = d;
 
     let mut b = 1;
+    //~v almost_swapped
     let a = b;
     b = a;
 
@@ -170,6 +185,7 @@ fn main() {
     let mut b = 1;
     let mut a = 2;
 
+    //~v manual_swap
     let t = b;
     b = a;
     a = t;
@@ -205,6 +221,7 @@ fn issue_8154() {
     let mut s = S1 { x: 0, y: 0 };
     let mut s = &mut s;
     let s = S3(&mut s);
+    //~v manual_swap
     let t = s.0.x;
     s.0.x = s.0.y;
     s.0.y = t;

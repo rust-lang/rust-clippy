@@ -19,7 +19,7 @@ impl Color {
             Self::Red => (),
             Self::Green => (),
             Self::Blue => (),
-            Self::Rgb(..) => (),
+            Self::Rgb(..) => (), //~ match_wildcard_for_single_variants
         };
     }
 }
@@ -29,7 +29,7 @@ fn main() {
     match f {
         Foo::A => {},
         Foo::B => {},
-        Foo::C => {},
+        Foo::C => {}, //~ match_wildcard_for_single_variants
     }
 
     let color = Color::Red;
@@ -39,7 +39,7 @@ fn main() {
         Color::Red => {},
         Color::Green => {},
         Color::Rgb(_r, _g, _b) => {},
-        Color::Blue => {},
+        Color::Blue => {}, //~ match_wildcard_for_single_variants
     }
 
     // check exhaustive wild
@@ -47,13 +47,13 @@ fn main() {
         Color::Red => {},
         Color::Green => {},
         Color::Rgb(..) => {},
-        Color::Blue => {},
+        Color::Blue => {}, //~ match_wildcard_for_single_variants
     }
     match color {
         Color::Red => {},
         Color::Green => {},
         Color::Rgb(_, _, _) => {},
-        Color::Blue => {},
+        Color::Blue => {}, //~ match_wildcard_for_single_variants
     }
 
     // shouldn't lint as there is one missing variant
@@ -70,7 +70,7 @@ fn main() {
         &Color::Red => (),
         Color::Green => (),
         &Color::Rgb(..) => (),
-        Color::Blue => (),
+        Color::Blue => (), //~ match_wildcard_for_single_variants
     }
 
     use self::Color as C;
@@ -79,14 +79,14 @@ fn main() {
         C::Red => (),
         C::Green => (),
         C::Rgb(..) => (),
-        C::Blue => (),
+        C::Blue => (), //~ match_wildcard_for_single_variants
     }
 
     match color {
         C::Red => (),
         Color::Green => (),
         Color::Rgb(..) => (),
-        Color::Blue => (),
+        Color::Blue => (), //~ match_wildcard_for_single_variants
     }
 
     match Some(0) {
@@ -121,7 +121,7 @@ fn main() {
             Enum::A => (),
             Enum::B => (),
             Enum::C => (),
-            Enum::__Private => (),
+            Enum::__Private => (), //~ match_wildcard_for_single_variants
         }
         match Enum::A {
             Enum::A => (),
@@ -148,7 +148,7 @@ mod issue9993 {
         let _ = match Foo::B {
             _ if false => 0,
             Foo::A(_) => 1,
-            Foo::B => 2,
+            Foo::B => 2, //~ match_wildcard_for_single_variants
         };
     }
 }

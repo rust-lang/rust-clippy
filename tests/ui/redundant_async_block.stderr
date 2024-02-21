@@ -26,31 +26,31 @@ LL |     let fut = async { async { 42 }.await };
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: you can reduce it to: `async { 42 }`
 
 error: this async expression only awaits a single future
-  --> $DIR/redundant_async_block.rs:43:5
+  --> $DIR/redundant_async_block.rs:44:5
    |
 LL |     async move { fut.await }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^ help: you can reduce it to: `fut`
 
 error: this async expression only awaits a single future
-  --> $DIR/redundant_async_block.rs:56:5
+  --> $DIR/redundant_async_block.rs:57:5
    |
 LL |     async move { fut.await }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^ help: you can reduce it to: `fut`
 
 error: this async expression only awaits a single future
-  --> $DIR/redundant_async_block.rs:61:5
+  --> $DIR/redundant_async_block.rs:62:5
    |
 LL |     async { f.await }
    |     ^^^^^^^^^^^^^^^^^ help: you can reduce it to: `f`
 
 error: this async expression only awaits a single future
-  --> $DIR/redundant_async_block.rs:84:5
+  --> $DIR/redundant_async_block.rs:85:5
    |
 LL |     async { async { f().await + 1 }.await }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: you can reduce it to: `async { f().await + 1 }`
 
 error: this async expression only awaits a single future
-  --> $DIR/redundant_async_block.rs:147:13
+  --> $DIR/redundant_async_block.rs:149:13
    |
 LL |             async { async { 42 }.await }
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: you can reduce it to: `async { 42 }`
@@ -61,7 +61,7 @@ LL |     mac!()
    = note: this error originates in the macro `mac` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this async expression only awaits a single future
-  --> $DIR/redundant_async_block.rs:167:13
+  --> $DIR/redundant_async_block.rs:169:13
    |
 LL |             async { async { $e }.await }
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: you can reduce it to: `async { $e }`

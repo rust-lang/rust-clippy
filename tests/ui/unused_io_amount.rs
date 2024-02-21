@@ -101,7 +101,7 @@ async fn io_not_ignored_async_write<W: AsyncWrite + Unpin>(mut w: W) {
     // Here we're forgetting to await the future, so we should get a
     // warning about _that_ (or we would, if it were enabled), but we
     // won't get one about ignoring the return value.
-    w.write(b"hello world");
+    w.write(b"hello world"); //~ unused_io_amount
 }
 
 fn bad_async_write_closure<W: AsyncWrite + Unpin + 'static>(w: W) -> impl futures::Future<Output = io::Result<()>> {

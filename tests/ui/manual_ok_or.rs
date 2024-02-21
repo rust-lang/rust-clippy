@@ -8,16 +8,19 @@
 fn main() {
     // basic case
     let foo: Option<i32> = None;
-    foo.map_or(Err("error"), |v| Ok(v));
+    foo.map_or(Err("error"), |v| Ok(v)); //~ manual_ok_or
 
     // eta expansion case
     foo.map_or(Err("error"), Ok);
+    //~^ manual_ok_or
+    //~| option_map_or_err_ok
 
     // turbo fish syntax
-    None::<i32>.map_or(Err("error"), |v| Ok(v));
+    None::<i32>.map_or(Err("error"), |v| Ok(v)); //~ manual_ok_or
 
     // multiline case
     #[rustfmt::skip]
+    //~v manual_ok_or
     foo.map_or(Err::<i32, &str>(
         &format!(
             "{}{}{}{}{}{}{}",

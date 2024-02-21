@@ -4,6 +4,7 @@
 #![allow(clippy::unnecessary_wraps)]
 
 fn some_func(a: Option<u32>) -> Option<u32> {
+    //~v question_mark
     a?;
 
     a
@@ -47,12 +48,16 @@ pub struct CopyStruct {
 impl CopyStruct {
     #[rustfmt::skip]
     pub fn func(&self) -> Option<u32> {
+        //~v question_mark
         (self.opt)?;
 
+        //~v question_mark
         self.opt?;
 
+        //~v question_mark
         let _ = Some(self.opt?);
 
+        //~v question_mark
         let _ = self.opt?;
 
         self.opt
@@ -66,29 +71,34 @@ pub struct MoveStruct {
 
 impl MoveStruct {
     pub fn ref_func(&self) -> Option<Vec<u32>> {
+        //~v question_mark
         self.opt.as_ref()?;
 
         self.opt.clone()
     }
 
     pub fn mov_func_reuse(self) -> Option<Vec<u32>> {
+        //~v question_mark
         self.opt.as_ref()?;
 
         self.opt
     }
 
     pub fn mov_func_no_use(self) -> Option<Vec<u32>> {
+        //~v question_mark
         self.opt.as_ref()?;
         Some(Vec::new())
     }
 
     pub fn if_let_ref_func(self) -> Option<Vec<u32>> {
+        //~v question_mark
         let v: &Vec<_> = self.opt.as_ref()?;
 
         Some(v.clone())
     }
 
     pub fn if_let_mov_func(self) -> Option<Vec<u32>> {
+        //~v question_mark
         let v = self.opt?;
 
         Some(v)
@@ -100,6 +110,7 @@ fn func() -> Option<i32> {
         Some(String::new())
     }
 
+    //~v question_mark
     f()?;
 
     Some(0)
@@ -111,7 +122,9 @@ fn func_returning_result() -> Result<i32, i32> {
 
 fn result_func(x: Result<i32, i32>) -> Result<i32, i32> {
     let _ = x?;
+    //~^ question_mark
 
+    //~v question_mark
     x?;
 
     // No warning
@@ -178,11 +191,13 @@ fn f() -> NotOption {
 fn do_something() {}
 
 fn err_immediate_return() -> Result<i32, i32> {
+    //~v question_mark
     func_returning_result()?;
     Ok(1)
 }
 
 fn err_immediate_return_and_do_something() -> Result<i32, i32> {
+    //~v question_mark
     func_returning_result()?;
     do_something();
     Ok(1)
@@ -258,6 +273,7 @@ fn issue8628(a: Option<u32>) -> Option<u32> {
 fn issue6828_nested_body() -> Option<u32> {
     try {
         fn f2(a: Option<i32>) -> Option<i32> {
+            //~v question_mark
             a?;
             Some(32)
         }
