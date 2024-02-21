@@ -6317,11 +6317,11 @@
     "id": "no_effect_underscore_binding",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 55
+      "line": 51
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for binding to underscore prefixed variable without side-effects.\n\n### Why is this bad?\nUnlike dead code, these bindings are actually\nexecuted. However, as they have no effect and shouldn't be used further on, all they\ndo is make the code less readable.\n\n### Known problems\nFurther usage of this variable is not checked, which can lead to false positives if it is\nused later in the code.\n\n### Example\n```rust\nlet _i_serve_no_purpose = 1;\n```",
+    "docs": "\n### What it does\nChecks for binding to underscore prefixed variable without side-effects.\n\n### Why is this bad?\nUnlike dead code, these bindings are actually\nexecuted. However, as they have no effect and shouldn't be used further on, all they\ndo is make the code less readable.\n\n### Example\n```rust\nlet _i_serve_no_purpose = 1;\n```",
     "version": "1.58.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9875,7 +9875,7 @@
     "id": "unnecessary_operation",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 74
+      "line": 70
     },
     "group": "complexity",
     "level": "warn",
