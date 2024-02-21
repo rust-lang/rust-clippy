@@ -864,7 +864,7 @@ fn check_empty_line_after_outer_attr(cx: &EarlyContext<'_>, item: &rustc_ast::It
                 let lines = snippet.split('\n').collect::<Vec<_>>();
                 let lines = without_block_comments(lines);
 
-                if lines.iter().filter(|l| l.trim().is_empty()).count() > 2 {
+                if lines.iter().skip(1).filter(|l| l.trim().is_empty()).count() > 1 {
                     let (lint_msg, lint_type) = match attr.kind {
                         AttrKind::DocComment(..) => (
                             "found an empty line after a doc comment. \
