@@ -63,7 +63,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 340
+      "line": 342
     },
     "group": "restriction",
     "level": "allow",
@@ -372,7 +372,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 247
+      "line": 249
     },
     "group": "suspicious",
     "level": "warn",
@@ -1298,7 +1298,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 278
+      "line": 280
     },
     "group": "complexity",
     "level": "warn",
@@ -1313,7 +1313,7 @@
     "id": "deprecated_clippy_cfg_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 457
+      "line": 459
     },
     "group": "suspicious",
     "level": "warn",
@@ -1328,7 +1328,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 136
+      "line": 138
     },
     "group": "correctness",
     "level": "deny",
@@ -1775,7 +1775,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 224
+      "line": 226
     },
     "group": "nursery",
     "level": "allow",
@@ -1790,7 +1790,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 178
+      "line": 180
     },
     "group": "nursery",
     "level": "allow",
@@ -3234,7 +3234,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 72
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
@@ -5045,7 +5045,7 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 431
+      "line": 433
     },
     "group": "suspicious",
     "level": "warn",
@@ -5165,7 +5165,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 311
+      "line": 313
     },
     "group": "correctness",
     "level": "deny",
@@ -6398,7 +6398,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 399
+      "line": 401
     },
     "group": "style",
     "level": "warn",
@@ -8267,7 +8267,7 @@
     "id": "should_panic_without_expect",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 375
+      "line": 377
     },
     "group": "pedantic",
     "level": "allow",
@@ -9737,6 +9737,21 @@
     }
   },
   {
+    "id": "unnecessary_clippy_cfg",
+    "id_span": {
+      "path": "src/attrs.rs",
+      "line": 483
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for `#[cfg_attr(clippy, allow(clippy::lint))]`\nand suggests to replace it with `#[allow(clippy::lint)]`.\n\n### Why is this bad?\nThere is no reason to put clippy attributes behind a clippy `cfg` as they are not\nrun by anything else than clippy.\n\n### Example\n```rust\n#![cfg_attr(clippy, allow(clippy::deprecated_cfg_attr))]\n```\n\nUse instead:\n```rust\n#![allow(clippy::deprecated_cfg_attr)]\n```",
+    "version": "1.78.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "unnecessary_fallible_conversions",
     "id_span": {
       "path": "src/methods/mod.rs",
@@ -10497,7 +10512,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs.rs",
-      "line": 115
+      "line": 117
     },
     "group": "correctness",
     "level": "deny",
