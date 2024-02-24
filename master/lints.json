@@ -5543,6 +5543,21 @@
     }
   },
   {
+    "id": "multiple_bound_locations",
+    "id_span": {
+      "path": "src/multiple_bound_locations.rs",
+      "line": 33
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nCheck if a generic is defined both in the bound predicate and in the `where` clause.\n\n### Why is this bad?\nIt can be confusing for developers when seeing bounds for a generic in multiple places.\n\n### Example\n```rust\nfn ty<F: std::fmt::Debug>(a: F)\nwhere\n    F: Sized,\n{}\n```\nUse instead:\n```rust\nfn ty<F>(a: F)\nwhere\n    F: Sized + std::fmt::Debug,\n{}\n```",
+    "version": "1.77.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "multiple_crate_versions",
     "id_span": {
       "path": "src/cargo/mod.rs",
