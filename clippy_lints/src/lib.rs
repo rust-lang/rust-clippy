@@ -98,6 +98,7 @@ mod collection_is_never_read;
 mod comparison_chain;
 mod copies;
 mod copy_iterator;
+mod could_be_unsized;
 mod crate_in_macro_def;
 mod create_dir;
 mod dbg_macro;
@@ -1116,6 +1117,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(incompatible_msrv::IncompatibleMsrv::new(msrv())));
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));
+    store.register_late_pass(|_| Box::new(could_be_unsized::CouldBeUnsized::default()));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
