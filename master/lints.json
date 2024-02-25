@@ -8342,7 +8342,7 @@
     "id": "single_call_fn",
     "id_span": {
       "path": "src/single_call_fn.rs",
-      "line": 51
+      "line": 50
     },
     "group": "restriction",
     "level": "allow",
