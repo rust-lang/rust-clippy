@@ -5784,6 +5784,7 @@ Released 2018-09-13
 [`useless_let_if_seq`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_let_if_seq
 [`useless_transmute`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_transmute
 [`useless_vec`]: https://rust-lang.github.io/rust-clippy/master/index.html#useless_vec
+[`usize_unportable_32_bit_literal`]: https://rust-lang.github.io/rust-clippy/master/index.html#usize_unportable_32_bit_literal
 [`vec_box`]: https://rust-lang.github.io/rust-clippy/master/index.html#vec_box
 [`vec_init_then_push`]: https://rust-lang.github.io/rust-clippy/master/index.html#vec_init_then_push
 [`vec_resize_to_zero`]: https://rust-lang.github.io/rust-clippy/master/index.html#vec_resize_to_zero

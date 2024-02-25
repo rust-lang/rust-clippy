@@ -360,6 +360,7 @@ mod unwrap_in_result;
 mod upper_case_acronyms;
 mod use_self;
 mod useless_conversion;
+mod usize_unportable_32_bit_literal;
 mod vec;
 mod vec_init_then_push;
 mod visibility;
@@ -1111,6 +1112,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(incompatible_msrv::IncompatibleMsrv::new(msrv())));
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));
+    store.register_late_pass(|_| Box::new(usize_unportable_32_bit_literal::UsizeUnportable32BitLiteral));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
