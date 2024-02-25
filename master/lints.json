@@ -422,7 +422,7 @@
     "id": "bool_comparison",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 77
+      "line": 76
     },
     "group": "complexity",
     "level": "warn",
@@ -2079,7 +2079,7 @@
     "id": "explicit_auto_deref",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 137
+      "line": 135
     },
     "group": "complexity",
     "level": "warn",
@@ -2109,7 +2109,7 @@
     "id": "explicit_deref_methods",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 52
+      "line": 50
     },
     "group": "pedantic",
     "level": "allow",
@@ -3582,7 +3582,7 @@
     "id": "iter_not_returning_iterator",
     "id_span": {
       "path": "src/iter_not_returning_iterator.rs",
-      "line": 38
+      "line": 37
     },
     "group": "pedantic",
     "level": "allow",
@@ -5786,7 +5786,7 @@
     "id": "needless_bool",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 52
+      "line": 51
     },
     "group": "complexity",
     "level": "warn",
@@ -5801,7 +5801,7 @@
     "id": "needless_bool_assign",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 110
+      "line": 109
     },
     "group": "complexity",
     "level": "warn",
@@ -5816,7 +5816,7 @@
     "id": "needless_borrow",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 86
+      "line": 84
     },
     "group": "style",
     "level": "warn",
@@ -7742,7 +7742,7 @@
     "id": "ref_binding_to_reference",
     "id_span": {
       "path": "src/dereference.rs",
-      "line": 114
+      "line": 112
     },
     "group": "pedantic",
     "level": "allow",
