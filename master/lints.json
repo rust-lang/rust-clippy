@@ -2979,7 +2979,7 @@
     "id": "implied_bounds_in_impls",
     "id_span": {
       "path": "src/implied_bounds_in_impls.rs",
-      "line": 48
+      "line": 46
     },
     "group": "complexity",
     "level": "warn",
