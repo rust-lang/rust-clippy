@@ -1535,7 +1535,7 @@
     "id": "doc_link_with_quotes",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 253
+      "line": 254
     },
     "group": "pedantic",
     "level": "allow",
@@ -1550,7 +1550,7 @@
     "id": "doc_markdown",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 73
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
@@ -1721,6 +1721,21 @@
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of if expressions with an `else if` branch,\nbut without a final `else` branch.\n\n### Why is this bad?\nSome coding guidelines require this (e.g., MISRA-C:2004 Rule 14.10).\n\n### Example\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n}\n```\n\nUse instead:\n\n```rust\nif x.is_positive() {\n    a();\n} else if x.is_negative() {\n    b();\n} else {\n    // We don't care about zero.\n}\n```",
     "version": "pre 1.29.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "empty_docs",
+    "id_span": {
+      "path": "src/doc/mod.rs",
+      "line": 361
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nDetects documentation that is empty.\n### Why is this bad?\nEmpty docs clutter code without adding value, reducing readability and maintainability.\n### Example\n```rust\n///\nfn returns_true() -> bool {\n    true\n}\n```\nUse instead:\n```rust\nfn returns_true() -> bool {\n    true\n}\n```",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -5300,7 +5315,7 @@
     "id": "missing_errors_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 137
+      "line": 138
     },
     "group": "pedantic",
     "level": "allow",
@@ -5345,7 +5360,7 @@
     "id": "missing_panics_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 168
+      "line": 169
     },
     "group": "pedantic",
     "level": "allow",
@@ -5360,7 +5375,7 @@
     "id": "missing_safety_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 108
+      "line": 109
     },
     "group": "style",
     "level": "warn",
@@ -5894,7 +5909,7 @@
     "id": "needless_doctest_main",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 197
+      "line": 198
     },
     "group": "style",
     "level": "warn",
@@ -8840,7 +8855,7 @@
     "id": "suspicious_doc_comments",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 336
+      "line": 337
     },
     "group": "suspicious",
     "level": "warn",
@@ -9035,7 +9050,7 @@
     "id": "test_attr_in_doctest",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 230
+      "line": 231
     },
     "group": "suspicious",
     "level": "warn",
@@ -9980,7 +9995,7 @@
     "id": "unnecessary_safety_doc",
     "id_span": {
       "path": "src/doc/mod.rs",
-      "line": 289
+      "line": 290
     },
     "group": "restriction",
     "level": "allow",
