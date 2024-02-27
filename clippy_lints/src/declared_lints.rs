@@ -394,6 +394,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::methods::MANUAL_IS_VARIANT_AND_INFO,
     crate::methods::MANUAL_NEXT_BACK_INFO,
     crate::methods::MANUAL_OK_OR_INFO,
+    crate::methods::MANUAL_POSITION_INFO,
     crate::methods::MANUAL_SATURATING_ARITHMETIC_INFO,
     crate::methods::MANUAL_SPLIT_ONCE_INFO,
     crate::methods::MANUAL_STR_REPEAT_INFO,

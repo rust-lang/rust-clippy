@@ -55,6 +55,7 @@ mod manual_c_str_literals;
 mod manual_is_variant_and;
 mod manual_next_back;
 mod manual_ok_or;
+mod manual_position;
 mod manual_saturating_arithmetic;
 mod manual_str_repeat;
 mod manual_try_fold;
@@ -4011,6 +4012,27 @@ declare_clippy_lint! {
     r#"creating a `CStr` through functions when `c""` literals can be used"#
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Check for manual implementations of position(_) using enumerate(_).find(_)
+    ///
+    /// ### Why is this bad?
+    /// This can be written more concisely by using `position(_)`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// (10usize..=20).enumerate().find(|&(_, ch)|ch == 15).map(|c| c.0)
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// (10usize..=20).position(|ch|ch == 15)
+    /// ```
+    #[clippy::version = "1.78.0"]
+    pub MANUAL_POSITION,
+    complexity,
+    "using `_.enumerate(_).find(_)` in a way that can be written more simply as `filter_map(_)`"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -4171,6 +4193,7 @@ impl_lint_pass!(Methods => [
     OPTION_AS_REF_CLONED,
     UNNECESSARY_RESULT_MAP_OR_ELSE,
     MANUAL_C_STR_LITERALS,
+    MANUAL_POSITION,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4523,16 +4546,27 @@ impl Methods {
                     }
                 },
                 ("find", [arg]) => {
-                    if let Some(("cloned", recv2, [], _span2, _)) = method_call(recv) {
-                        // if `arg` has side-effect, the semantic will change
-                        iter_overeager_cloned::check(
-                            cx,
-                            expr,
-                            recv,
-                            recv2,
-                            iter_overeager_cloned::Op::FixClosure(name, arg),
-                            false,
-                        );
+                    match method_call(recv) {
+                        Some(("cloned", recv2, [], _span2, _)) => {
+                            // if `arg` has side-effect, the semantic will change
+                            iter_overeager_cloned::check(
+                                cx,
+                                expr,
+                                recv,
+                                recv2,
+                                iter_overeager_cloned::Op::FixClosure(name, arg),
+                                false,
+                            );
+                        },
+                        Some(("enumerate", _, [], _, span2)) => {
+                            manual_position::check(cx, expr, arg, span2, false);
+                        },
+                        Some(("rev", recv2, [], _, _)) => {
+                            if let Some(("enumerate", _, [], _, span2)) = method_call(recv2) {
+                                manual_position::check(cx, expr, arg, span2, true);
+                            }
+                        },
+                        _ => {},
                     }
                 },
                 ("filter_map", [arg]) => {
