@@ -1,0 +1,80 @@
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:16:22
+   |
+LL |     let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3).expect("").0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3).expect("")`
+   |
+   = note: `-D clippy::manual-position` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_position)]`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:22:22
+   |
+LL |     let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3).unwrap().0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3).unwrap()`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:28:22
+   |
+LL |     let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3)?.0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3)?`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:35:22
+   |
+LL |     let _ = v.iter().enumerate().find(|&(_, &ch)| ch == 3).map(|c| c.0);
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3)`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:37:22
+   |
+LL |     let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3).map(|c| { return c.0  });
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3)`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:38:22
+   |
+LL |     let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3).map(|(p, _)| p);
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3)`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:39:22
+   |
+LL |       let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3).map(|(p, ..)| {
+   |  ______________________^
+LL | |         return p;
+LL | |     });
+   | |______^ help: replace with: `position(|&ch|ch == 3)`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:50:22
+   |
+LL |     let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3).unwrap().0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3).unwrap()`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:58:22
+   |
+LL |     let _ = v.iter().enumerate().find(|(_, &ch)| ch == 3).unwrap().0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3).unwrap()`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:59:22
+   |
+LL |     let _ = v.iter().enumerate().find(|&(_, &ch)| ch == 3).unwrap().0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|&ch|ch == 3).unwrap()`
+
+error: manual implementation of position
+  --> tests/ui/manual_position.rs:60:22
+   |
+LL |     let _ = v.iter().enumerate().find(|&(_, ch)| *ch == 3).unwrap().0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `position(|ch|*ch == 3).unwrap()`
+
+error: manual implementation of rposition
+  --> tests/ui/manual_position.rs:72:22
+   |
+LL |     let _ = v.iter().enumerate().rev().find(|(_, &ch)| ch == 3).unwrap().0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `rposition(|&ch|ch == 3).unwrap()`
+
+error: aborting due to 12 previous errors
+
