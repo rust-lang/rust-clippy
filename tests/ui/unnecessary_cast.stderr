@@ -241,5 +241,11 @@ error: casting to the same type is unnecessary (`f32` -> `f32`)
 LL |         let _num = foo() as f32;
    |                    ^^^^^^^^^^^^ help: try: `foo()`
 
-error: aborting due to 40 previous errors
+error: casting to the same type is unnecessary (`u64` -> `u64`)
+  --> $DIR/unnecessary_cast.rs:225:9
+   |
+LL |         (!0 as u64).overflowing_shr(1_u32).0
+   |         ^^^^^^^^^^^ help: try: `!0`
+
+error: aborting due to 41 previous errors
 

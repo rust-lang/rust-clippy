@@ -9,7 +9,7 @@ use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, Lit, Node, Path, QPath, TyKind, UnOp};
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::lint::in_external_macro;
-use rustc_middle::ty::{self, FloatTy, InferTy, Ty};
+use rustc_middle::ty::{self, FloatTy, InferTy, Ty, TyKind as MidTyKind};
 use std::ops::ControlFlow;
 
 use super::UNNECESSARY_CAST;
@@ -119,7 +119,7 @@ pub(super) fn check<'tcx>(
         }
 
         match lit.node {
-            LitKind::Int(_, LitIntType::Unsuffixed) if cast_to.is_integral() => {
+            LitKind::Int(val, LitIntType::Unsuffixed) if cast_to.is_integral() => {
                 lint_unnecessary_cast(cx, expr, literal_str, cast_from, cast_to);
                 return false;
             },
@@ -172,23 +172,25 @@ pub(super) fn check<'tcx>(
 
 fn lint_unnecessary_cast(
     cx: &LateContext<'_>,
-    expr: &Expr<'_>,
-    raw_literal_str: &str,
+    cast_expr: &Expr<'_>,
+    unsuffixed_literal: &str,
     cast_from: Ty<'_>,
     cast_to: Ty<'_>,
 ) {
     let literal_kind_name = if cast_from.is_integral() { "integer" } else { "float" };
     // first we remove all matches so `-(1)` become `-1`, and remove trailing dots, so `1.` become `1`
-    let literal_str = raw_literal_str
+    let literal_str = unsuffixed_literal
         .replace(['(', ')'], "")
         .trim_end_matches('.')
         .to_string();
     // we know need to check if the parent is a method call, to add parenthesis accordingly (eg:
     // (-1).foo() instead of -1.foo())
-    let sugg = if let Some(parent_expr) = get_parent_expr(cx, expr)
+    let sugg = if let Some(parent_expr) = get_parent_expr(cx, cast_expr)
         && let ExprKind::MethodCall(..) = parent_expr.kind
-        && literal_str.starts_with('-')
+        // TODO: this should be handled by typed ExprKind
+        && literal_str.starts_with(&['-', '!'])
     {
+        // TODO: issue 11882 should reach this path
         format!("({literal_str}_{cast_to})")
     } else {
         format!("{literal_str}_{cast_to}")
@@ -197,7 +199,7 @@ fn lint_unnecessary_cast(
     span_lint_and_sugg(
         cx,
         UNNECESSARY_CAST,
-        expr.span,
+        cast_expr.span,
         &format!("casting {literal_kind_name} literal to `{cast_to}` is unnecessary"),
         "try",
         sugg,
