@@ -4,9 +4,9 @@ use rustc_ast::token::{Ident, TokenKind};
 use rustc_ast::tokenstream::TokenTree::Token;
 use rustc_ast::AttrKind::Normal;
 use rustc_ast::UintTy::Usize;
-use rustc_ast::{Attribute, LitKind};
+use rustc_ast::{Attribute, LitIntType, LitKind, UintTy};
 use rustc_hir::PrimTy::Uint;
-use rustc_hir::{ExprKind, HirId, QPath, Stmt, StmtKind, TyKind};
+use rustc_hir::{Expr, ExprKind, HirId, QPath, Stmt, StmtKind, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::declare_lint_pass;
@@ -63,6 +63,17 @@ fn is_larger_than_32bit<'tcx>(stmt: &'tcx Stmt<'tcx>) -> bool {
                 LitKind::Int(v, _) => v.0 > u32::MAX.into(),
                 _ => false,
             },
+            _ => false,
+        }
+    } else {
+        false
+    }
+}
+
+fn is_larger_than_32bit_literal(expr: &Expr<'_>) -> bool {
+    if let ExprKind::Lit(lit) = expr.kind {
+        match lit.node {
+            LitKind::Int(v, LitIntType::Unsigned(ty)) => v.0 > u32::MAX.into() && ty == UintTy::Usize,
             _ => false,
         }
     } else {
@@ -128,6 +139,22 @@ impl<'tcx> LateLintPass<'tcx> for UsizeUnportable32BitLiteral {
                 USIZE_UNPORTABLE_32_BIT_LITERAL,
                 stmt.span,
                 "assignement to usize not portable to 32bit architectures",
+                None,
+                "use u64 as the data type if you need values larger than 32 bit",
+            );
+        }
+    }
+
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
+        if any_parent_has_64_pointer_width(cx.tcx, expr.hir_id) {
+            return;
+        }
+        if is_larger_than_32bit_literal(expr) {
+            span_lint_and_help(
+                cx,
+                USIZE_UNPORTABLE_32_BIT_LITERAL,
+                expr.span,
+                "usize literals larger than u32::MAX is not portable to 32bit architectures",
                 None,
                 "use u64 as the data type if you need values larger than 32 bit",
             );

@@ -168,5 +168,14 @@ help: if you mean to use a decimal constant, remove the `0` to avoid confusion
 LL |     let _ = 89;
    |             ~~
 
-error: aborting due to 20 previous errors
+error: usize literals larger than u32::MAX is not portable to 32bit architectures
+  --> tests/ui/literals.rs:48:16
+   |
+LL |     let ok17 = 0x123_4567_8901_usize;
+   |                ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use u64 as the data type if you need values larger than 32 bit
+   = note: `#[deny(clippy::usize_unportable_32_bit_literal)]` on by default
+
+error: aborting due to 21 previous errors
 

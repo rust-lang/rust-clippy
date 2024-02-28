@@ -1,5 +1,5 @@
 error: assignement to usize not portable to 32bit architectures
-  --> tests/ui/usize_unportable_32_bit_literal.rs:5:5
+  --> tests/ui/usize_unportable_32_bit_literal.rs:6:5
    |
 LL |     let _: usize = 4294967296;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -8,5 +8,13 @@ LL |     let _: usize = 4294967296;
    = note: `-D clippy::usize-unportable-32-bit-literal` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::usize_unportable_32_bit_literal)]`
 
-error: aborting due to 1 previous error
+error: usize literals larger than u32::MAX is not portable to 32bit architectures
+  --> tests/ui/usize_unportable_32_bit_literal.rs:9:5
+   |
+LL |     4294967297usize;
+   |     ^^^^^^^^^^^^^^^
+   |
+   = help: use u64 as the data type if you need values larger than 32 bit
+
+error: aborting due to 2 previous errors
 

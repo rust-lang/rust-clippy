@@ -168,5 +168,14 @@ error: casting `usize` to `f64` causes a loss of precision on targets with 64-bi
 LL |     9_999_999_999_999_999usize as f64;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 18 previous errors
+error: usize literals larger than u32::MAX is not portable to 32bit architectures
+  --> tests/ui/cast_size.rs:36:5
+   |
+LL |     9_999_999_999_999_999usize as f64;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use u64 as the data type if you need values larger than 32 bit
+   = note: `#[deny(clippy::usize_unportable_32_bit_literal)]` on by default
+
+error: aborting due to 19 previous errors
 
