@@ -116,6 +116,7 @@ mod unnecessary_iter_cloned;
 mod unnecessary_join;
 mod unnecessary_lazy_eval;
 mod unnecessary_literal_unwrap;
+mod unnecessary_min_max;
 mod unnecessary_result_map_or_else;
 mod unnecessary_sort_by;
 mod unnecessary_to_owned;
@@ -3963,6 +3964,27 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for unnecessary calls to `min()` or `max()`
+    ///
+    /// ### Why is this bad?
+    ///
+    /// In these cases it is not necessary to call `min()`
+    /// ### Example
+    /// ```no_run
+    /// let _ = 0.min(7_u32);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let _ = 0;
+    /// ```
+    #[clippy::version = "1.78.0"]
+    pub UNNECESSARY_MIN_MAX,
+    complexity,
+    "using 'min()/max()' when there is no need for it"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for usage of `.map_or_else()` "map closure" for `Result` type.
     ///
     /// ### Why is this bad?
@@ -4236,6 +4258,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_RESULT_MAP_OR_ELSE,
     MANUAL_C_STR_LITERALS,
     UNNECESSARY_GET_THEN_CHECK,
+    UNNECESSARY_MIN_MAX,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4526,6 +4549,7 @@ impl Methods {
                     Some(("bytes", recv2, [], _, _)) => bytes_count_to_len::check(cx, expr, recv, recv2),
                     _ => {},
                 },
+                ("min" | "max", [arg]) => unnecessary_min_max::check(cx, expr, name, recv, arg),
                 ("drain", ..) => {
                     if let Node::Stmt(Stmt { hir_id: _, kind, .. }) = cx.tcx.parent_hir_node(expr.hir_id)
                         && matches!(kind, StmtKind::Semi(_))
