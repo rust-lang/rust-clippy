@@ -55,5 +55,14 @@ LL |     fn ty_pred<F: Sized>()
 LL |         for<'a> F: Send + 'a,
    |                 ^
 
-error: aborting due to 6 previous errors
+error: bound is defined in more than one place
+  --> tests/ui/multiple_bound_locations.rs:75:10
+   |
+LL |     fn f<T: ?Sized>()
+   |          ^
+LL |     where
+LL |         T: Trait,
+   |         ^
+
+error: aborting due to 7 previous errors
 

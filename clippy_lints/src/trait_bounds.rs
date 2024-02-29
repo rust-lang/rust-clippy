@@ -1,5 +1,5 @@
 use clippy_config::msrvs::{self, Msrv};
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
+use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_sugg};
 use clippy_utils::source::{snippet, snippet_opt, snippet_with_applicability};
 use clippy_utils::{is_from_proc_macro, SpanlessEq, SpanlessHash};
 use core::hash::{Hash, Hasher};
@@ -86,6 +86,33 @@ declare_clippy_lint! {
     "check if the same trait bounds are specified more than once during a generic declaration"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Check if a generic is defined both in the bound predicate and in the `where` clause.
+    ///
+    /// ### Why is this bad?
+    /// It can be confusing for developers when seeing bounds for a generic in multiple places.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn ty<F: std::fmt::Debug>(a: F)
+    /// where
+    ///     F: Sized,
+    /// {}
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn ty<F>(a: F)
+    /// where
+    ///     F: Sized + std::fmt::Debug,
+    /// {}
+    /// ```
+    #[clippy::version = "1.77.0"]
+    pub MULTIPLE_BOUND_LOCATIONS,
+    suspicious,
+    "defining generic bounds in multiple locations"
+}
+
 #[derive(Clone)]
 pub struct TraitBounds {
     max_trait_bounds: u64,
@@ -99,10 +126,11 @@ impl TraitBounds {
     }
 }
 
-impl_lint_pass!(TraitBounds => [TYPE_REPETITION_IN_BOUNDS, TRAIT_DUPLICATION_IN_BOUNDS]);
+impl_lint_pass!(TraitBounds => [TYPE_REPETITION_IN_BOUNDS, TRAIT_DUPLICATION_IN_BOUNDS, MULTIPLE_BOUND_LOCATIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for TraitBounds {
     fn check_generics(&mut self, cx: &LateContext<'tcx>, gen: &'tcx Generics<'_>) {
+        self.check_multiple_bound_location(cx, gen);
         self.check_type_repetition(cx, gen);
         check_trait_bound_duplication(cx, gen);
     }
@@ -234,6 +262,60 @@ impl TraitBounds {
             cx.tcx.lang_items().get(LangItem::Sized) == tr.trait_ref.path.res.opt_def_id()
         } else {
             false
+        }
+    }
+
+    fn check_multiple_bound_location<'tcx>(&self, cx: &LateContext<'tcx>, gen: &'tcx Generics<'_>) {
+        let mut generic_params_with_bounds = FxHashMap::default();
+
+        for bound in gen.predicates {
+            if let WherePredicate::BoundPredicate(p) = bound
+                && p.origin == PredicateOrigin::GenericParam
+                && let bounds = p
+                    .bounds
+                    .iter()
+                    .filter(|b| !self.cannot_combine_maybe_bound(cx, b))
+                    .collect::<Vec<_>>()
+                && !bounds.is_empty()
+                && let Some((_, ident)) = p.bounded_ty.as_generic_param()
+            {
+                generic_params_with_bounds.insert(ident.name.as_str().to_owned(), ident.span);
+            } else if let WherePredicate::RegionPredicate(p) = bound
+                && !p.in_where_clause
+                && !p.bounds.is_empty()
+            {
+                let ident = p.lifetime.ident;
+                generic_params_with_bounds.insert(ident.name.as_str().to_owned(), ident.span);
+            }
+        }
+        for bound in gen.predicates {
+            if let WherePredicate::BoundPredicate(p) = bound
+                && p.origin == PredicateOrigin::WhereClause
+                && !p.bounds.is_empty()
+                && let Some((_, ident)) = p.bounded_ty.as_generic_param()
+                && let Some(bound_span) = generic_params_with_bounds.get(ident.name.as_str())
+            {
+                let where_span = ident.span;
+                span_lint(
+                    cx,
+                    MULTIPLE_BOUND_LOCATIONS,
+                    vec![*bound_span, where_span],
+                    "bound is defined in more than one place",
+                );
+            } else if let WherePredicate::RegionPredicate(p) = bound
+                && p.in_where_clause
+                && !p.bounds.is_empty()
+                && let ident = p.lifetime.ident
+                && let Some(bound_span) = generic_params_with_bounds.get(ident.name.as_str())
+            {
+                let where_span = ident.span;
+                span_lint(
+                    cx,
+                    MULTIPLE_BOUND_LOCATIONS,
+                    vec![*bound_span, where_span],
+                    "bound is defined in more than one place",
+                );
+            }
         }
     }
 
