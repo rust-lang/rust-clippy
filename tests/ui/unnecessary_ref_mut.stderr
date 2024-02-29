@@ -1,0 +1,59 @@
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:19:18
+   |
+LL |         let Some(ref mut s_ref) = s else {
+   |                  ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+   |
+   = note: `-D clippy::unnecessary-ref-mut` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_ref_mut)]`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:40:21
+   |
+LL |         if let Some(ref mut s_ref) = s {
+   |                     ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:58:18
+   |
+LL |             Some(ref mut s_ref) => {
+   |                  ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:82:22
+   |
+LL |         let Config { ref mut name } = config;
+   |                      ^^^^^^^^^^^^ help: replace with: `ref name`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:99:18
+   |
+LL |         let Some(ref mut s_ref) = s else {
+   |                  ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:122:18
+   |
+LL |         let Some(ref mut s_ref) = s else {
+   |                  ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:146:21
+   |
+LL |         if let Some(ref mut s_ref) = s {
+   |                     ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:155:21
+   |
+LL |         if let Some(ref mut s_ref) = s {
+   |                     ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+
+error: unnecessary ref mut
+  --> tests/ui/unnecessary_ref_mut.rs:192:25
+   |
+LL |         if let Some((_, ref mut s_ref)) = Some(((), s)) {
+   |                         ^^^^^^^^^^^^^ help: replace with: `ref s_ref`
+
+error: aborting due to 9 previous errors
+

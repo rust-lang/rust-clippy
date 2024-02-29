@@ -351,6 +351,7 @@ mod unnamed_address;
 mod unnecessary_box_returns;
 mod unnecessary_map_on_constructor;
 mod unnecessary_owned_empty_strings;
+mod unnecessary_ref_mut;
 mod unnecessary_self_imports;
 mod unnecessary_struct_initialization;
 mod unnecessary_wraps;
@@ -1120,6 +1121,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));
     store.register_early_pass(|| Box::new(multiple_bound_locations::MultipleBoundLocations));
     store.register_late_pass(|_| Box::new(assigning_clones::AssigningClones));
+    store.register_late_pass(|_| Box::new(unnecessary_ref_mut::UnnecessaryRefMut));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
