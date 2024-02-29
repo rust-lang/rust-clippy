@@ -271,50 +271,45 @@ impl TraitBounds {
         for bound in gen.predicates {
             if let WherePredicate::BoundPredicate(p) = bound
                 && p.origin == PredicateOrigin::GenericParam
-                && let bounds = p
-                    .bounds
+                && p.bounds
                     .iter()
-                    .filter(|b| !self.cannot_combine_maybe_bound(cx, b))
-                    .collect::<Vec<_>>()
-                && !bounds.is_empty()
+                    .any(|b| !self.cannot_combine_maybe_bound(cx, b))
                 && let Some((_, ident)) = p.bounded_ty.as_generic_param()
             {
-                generic_params_with_bounds.insert(ident.name.as_str().to_owned(), ident.span);
+                generic_params_with_bounds.insert(ident.name, ident.span);
             } else if let WherePredicate::RegionPredicate(p) = bound
                 && !p.in_where_clause
                 && !p.bounds.is_empty()
             {
                 let ident = p.lifetime.ident;
-                generic_params_with_bounds.insert(ident.name.as_str().to_owned(), ident.span);
+                generic_params_with_bounds.insert(ident.name, ident.span);
             }
         }
+
+        fn emit_lint(cx: &LateContext<'_>, bound_span: Span, where_span: Span) {
+            span_lint(
+                cx,
+                MULTIPLE_BOUND_LOCATIONS,
+                vec![bound_span, where_span],
+                "bound is defined in more than one place",
+            );
+        }
+
         for bound in gen.predicates {
             if let WherePredicate::BoundPredicate(p) = bound
                 && p.origin == PredicateOrigin::WhereClause
                 && !p.bounds.is_empty()
                 && let Some((_, ident)) = p.bounded_ty.as_generic_param()
-                && let Some(bound_span) = generic_params_with_bounds.get(ident.name.as_str())
+                && let Some(bound_span) = generic_params_with_bounds.get(&ident.name)
             {
-                let where_span = ident.span;
-                span_lint(
-                    cx,
-                    MULTIPLE_BOUND_LOCATIONS,
-                    vec![*bound_span, where_span],
-                    "bound is defined in more than one place",
-                );
+                emit_lint(cx, *bound_span, ident.span);
             } else if let WherePredicate::RegionPredicate(p) = bound
                 && p.in_where_clause
                 && !p.bounds.is_empty()
                 && let ident = p.lifetime.ident
-                && let Some(bound_span) = generic_params_with_bounds.get(ident.name.as_str())
+                && let Some(bound_span) = generic_params_with_bounds.get(&ident.name)
             {
-                let where_span = ident.span;
-                span_lint(
-                    cx,
-                    MULTIPLE_BOUND_LOCATIONS,
-                    vec![*bound_span, where_span],
-                    "bound is defined in more than one place",
-                );
+                emit_lint(cx, *bound_span, ident.span);
             }
         }
     }
