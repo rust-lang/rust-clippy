@@ -9095,7 +9095,7 @@
     "id": "thread_local_initializer_can_be_made_const",
     "id_span": {
       "path": "src/thread_local_initializer_can_be_made_const.rs",
-      "line": 42
+      "line": 41
     },
     "group": "perf",
     "level": "warn",
