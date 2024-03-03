@@ -62,8 +62,8 @@
   {
     "id": "allow_attributes_without_reason",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 342
+      "path": "src/attrs/mod.rs",
+      "line": 319
     },
     "group": "restriction",
     "level": "allow",
@@ -371,8 +371,8 @@
   {
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 249
+      "path": "src/attrs/mod.rs",
+      "line": 226
     },
     "group": "suspicious",
     "level": "warn",
@@ -1297,8 +1297,8 @@
   {
     "id": "deprecated_cfg_attr",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 280
+      "path": "src/attrs/mod.rs",
+      "line": 257
     },
     "group": "complexity",
     "level": "warn",
@@ -1312,8 +1312,8 @@
   {
     "id": "deprecated_clippy_cfg_attr",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 459
+      "path": "src/attrs/mod.rs",
+      "line": 436
     },
     "group": "suspicious",
     "level": "warn",
@@ -1327,8 +1327,8 @@
   {
     "id": "deprecated_semver",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 138
+      "path": "src/attrs/mod.rs",
+      "line": 115
     },
     "group": "correctness",
     "level": "deny",
@@ -1789,8 +1789,8 @@
   {
     "id": "empty_line_after_doc_comments",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 226
+      "path": "src/attrs/mod.rs",
+      "line": 203
     },
     "group": "nursery",
     "level": "allow",
@@ -1804,8 +1804,8 @@
   {
     "id": "empty_line_after_outer_attr",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 180
+      "path": "src/attrs/mod.rs",
+      "line": 157
     },
     "group": "nursery",
     "level": "allow",
@@ -3248,8 +3248,8 @@
   {
     "id": "inline_always",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 74
+      "path": "src/attrs/mod.rs",
+      "line": 51
     },
     "group": "pedantic",
     "level": "allow",
@@ -5059,8 +5059,8 @@
   {
     "id": "maybe_misused_cfg",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 433
+      "path": "src/attrs/mod.rs",
+      "line": 410
     },
     "group": "suspicious",
     "level": "warn",
@@ -5179,8 +5179,8 @@
   {
     "id": "mismatched_target_os",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 313
+      "path": "src/attrs/mod.rs",
+      "line": 290
     },
     "group": "correctness",
     "level": "deny",
@@ -5434,8 +5434,8 @@
   {
     "id": "mixed_attributes_style",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 510
+      "path": "src/attrs/mod.rs",
+      "line": 487
     },
     "group": "suspicious",
     "level": "warn",
@@ -6442,8 +6442,8 @@
   {
     "id": "non_minimal_cfg",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 401
+      "path": "src/attrs/mod.rs",
+      "line": 378
     },
     "group": "style",
     "level": "warn",
@@ -8311,8 +8311,8 @@
   {
     "id": "should_panic_without_expect",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 377
+      "path": "src/attrs/mod.rs",
+      "line": 354
     },
     "group": "pedantic",
     "level": "allow",
@@ -9784,8 +9784,8 @@
   {
     "id": "unnecessary_clippy_cfg",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 483
+      "path": "src/attrs/mod.rs",
+      "line": 460
     },
     "group": "suspicious",
     "level": "warn",
@@ -10571,8 +10571,8 @@
   {
     "id": "useless_attribute",
     "id_span": {
-      "path": "src/attrs.rs",
-      "line": 117
+      "path": "src/attrs/mod.rs",
+      "line": 94
     },
     "group": "correctness",
     "level": "deny",
