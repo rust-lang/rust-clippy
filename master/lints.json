@@ -4227,7 +4227,7 @@
     "id": "manual_c_str_literals",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4012
+      "line": 4013
     },
     "group": "pedantic",
     "level": "allow",
@@ -4407,11 +4407,11 @@
     "id": "manual_is_variant_and",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3898
+      "line": 3899
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\nChecks for usage of `option.map(f).unwrap_or_default()` and `result.map(f).unwrap_or_default()` where f is a function or closure that returns the `bool` type.\n\n### Why is this bad?\nReadability. These can be written more concisely as `option.is_some_and(f)` and `result.is_ok_and(f)`.\n\n### Example\n```rust\noption.map(|a| a > 10).unwrap_or_default();\nresult.map(|a| a > 10).unwrap_or_default();\n```\nUse instead:\n```rust\noption.is_some_and(|a| a > 10);\nresult.is_ok_and(|a| a > 10);\n```",
+    "docs": "\n### What it does\nChecks for usage of `option.map(f).unwrap_or_default()` and `result.map(f).unwrap_or_default()` where f is a function or closure that returns the `bool` type.\n\n### Why is this bad?\nReadability. These can be written more concisely as `option.is_some_and(f)` and `result.is_ok_and(f)`.\n\n### Example\n```rust\noption.map(|a| a > 10).unwrap_or_default();\nresult.map(|a| a > 10).unwrap_or_default();\n```\nUse instead:\n```rust\noption.is_some_and(|a| a > 10);\nresult.is_ok_and(|a| a > 10);\n```",
     "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6623,7 +6623,7 @@
     "id": "option_as_ref_cloned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3953
+      "line": 3954
     },
     "group": "pedantic",
     "level": "allow",
@@ -8615,7 +8615,7 @@
     "id": "str_split_at_newline",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3928
+      "line": 3929
     },
     "group": "pedantic",
     "level": "allow",
@@ -9860,7 +9860,7 @@
     "id": "unnecessary_get_then_check",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4041
+      "line": 4042
     },
     "group": "suspicious",
     "level": "warn",
@@ -9980,7 +9980,7 @@
     "id": "unnecessary_result_map_or_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3978
+      "line": 3979
     },
     "group": "suspicious",
     "level": "warn",
