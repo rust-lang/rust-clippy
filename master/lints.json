@@ -4227,11 +4227,11 @@
     "id": "manual_c_str_literals",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4011
+      "line": 4012
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\nChecks for the manual creation of C strings (a string with a `NUL` byte at the end), either\nthrough one of the `CStr` constructor functions, or more plainly by calling `.as_ptr()`\non a (byte) string literal with a hardcoded `\\0` byte at the end.\n\n### Why is this bad?\nThis can be written more concisely using `c\"str\"` literals and is also less error-prone,\nbecause the compiler checks for interior `NUL` bytes and the terminating `NUL` byte is inserted automatically.\n\n### Example\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(CStr::from_bytes_with_nul(b\"Hello\\0\").unwrap());\nunsafe { libc::puts(\"World\\0\".as_ptr().cast()) }\n```\nUse instead:\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(c\"Hello\");\nunsafe { libc::puts(c\"World\".as_ptr()) }\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
+    "docs": "\n### What it does\nChecks for the manual creation of C strings (a string with a `NUL` byte at the end), either\nthrough one of the `CStr` constructor functions, or more plainly by calling `.as_ptr()`\non a (byte) string literal with a hardcoded `\\0` byte at the end.\n\n### Why is this bad?\nThis can be written more concisely using `c\"str\"` literals and is also less error-prone,\nbecause the compiler checks for interior `NUL` bytes and the terminating `NUL` byte is inserted automatically.\n\n### Example\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(CStr::from_bytes_with_nul(b\"Hello\\0\").unwrap());\nunsafe { libc::puts(\"World\\0\".as_ptr().cast()) }\n```\nUse instead:\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(c\"Hello\");\nunsafe { libc::puts(c\"World\".as_ptr()) }\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.76.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9860,7 +9860,7 @@
     "id": "unnecessary_get_then_check",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4040
+      "line": 4041
     },
     "group": "suspicious",
     "level": "warn",
