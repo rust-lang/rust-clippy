@@ -42,10 +42,22 @@ pub(super) fn check<'tcx>(
     if !is_finite_loop {
         span_lint_and_then(cx, INFINITE_LOOP, expr.span, "infinite loop detected", |diag| {
             if let Some(span) = parent_fn_ret.sugg_span() {
+                // Check if the type span is after a `->` or not.
+                let suggestion = if cx
+                    .tcx
+                    .sess
+                    .source_map()
+                    .span_extend_to_prev_str(span, "->", false, true)
+                    .is_none()
+                {
+                    " -> !"
+                } else {
+                    "!"
+                };
                 diag.span_suggestion(
                     span,
                     "if this is intentional, consider specifying `!` as function return",
-                    " -> !",
+                    suggestion,
                     Applicability::MaybeIncorrect,
                 );
             } else {
