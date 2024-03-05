@@ -57,4 +57,26 @@ impl<F> C<F> {
     }
 }
 
+#[clippy::msrv = "1.14.0"]
+mod issue12370_fail {
+    trait Trait {}
+
+    fn f<T: ?Sized>()
+    where
+        T: Trait,
+    {
+    }
+}
+
+#[clippy::msrv = "1.15.0"]
+mod issue12370_pass {
+    trait Trait {}
+
+    fn f<T: ?Sized>()
+    where
+        T: Trait,
+    {
+    }
+}
+
 fn main() {}
