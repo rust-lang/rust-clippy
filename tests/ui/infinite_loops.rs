@@ -390,4 +390,21 @@ fn span_inside_fn() {
     }
 }
 
+// loop in async functions
+mod issue_12338 {
+    use super::do_something;
+
+    async fn foo() -> ! {
+        loop {
+            do_something();
+        }
+    }
+    async fn bar() {
+        loop {
+            //~^ ERROR: infinite loop detected
+            do_something();
+        }
+    }
+}
+
 fn main() {}

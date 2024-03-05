@@ -255,5 +255,19 @@ LL | |     })
    |
    = help: if this is not intended, try adding a `break` or `return` condition in the loop
 
-error: aborting due to 17 previous errors
+error: infinite loop detected
+  --> tests/ui/infinite_loops.rs:403:9
+   |
+LL | /         loop {
+LL | |
+LL | |             do_something();
+LL | |         }
+   | |_________^
+   |
+help: if this is intentional, consider specifying `!` as function return
+   |
+LL |     async fn bar() -> ! {
+   |                    ++++
+
+error: aborting due to 18 previous errors
 

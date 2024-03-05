@@ -1,12 +1,13 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{fn_def_id, is_from_proc_macro, is_lint_allowed};
 use hir::intravisit::{walk_expr, Visitor};
-use hir::{Expr, ExprKind, FnRetTy, FnSig, Node};
+use hir::{ClosureKind, Expr, ExprKind, FnRetTy, FnSig, ItemKind, Node, Ty, TyKind};
 use rustc_ast::Label;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::lint::in_external_macro;
+use rustc_span::Span;
 
 use super::INFINITE_LOOP;
 
@@ -24,18 +25,7 @@ pub(super) fn check<'tcx>(
     let Some(parent_fn_ret) = get_parent_fn_ret_ty(cx, expr) else {
         return;
     };
-    // Or, its parent function is already returning `Never`
-    if matches!(
-        parent_fn_ret,
-        FnRetTy::Return(hir::Ty {
-            kind: hir::TyKind::Never,
-            ..
-        })
-    ) {
-        return;
-    }
-
-    if in_external_macro(cx.sess(), expr.span) || is_from_proc_macro(cx, expr) {
+    if parent_fn_ret.is_never() || in_external_macro(cx.sess(), expr.span) || is_from_proc_macro(cx, expr) {
         return;
     }
 
@@ -51,9 +41,9 @@ pub(super) fn check<'tcx>(
 
     if !is_finite_loop {
         span_lint_and_then(cx, INFINITE_LOOP, expr.span, "infinite loop detected", |diag| {
-            if let FnRetTy::DefaultReturn(ret_span) = parent_fn_ret {
+            if let Some(span) = parent_fn_ret.sugg_span() {
                 diag.span_suggestion(
-                    ret_span,
+                    span,
                     "if this is intentional, consider specifying `!` as function return",
                     " -> !",
                     Applicability::MaybeIncorrect,
@@ -65,11 +55,21 @@ pub(super) fn check<'tcx>(
     }
 }
 
-fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option<FnRetTy<'tcx>> {
+fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option<RetTy<'tcx>> {
     for (_, parent_node) in cx.tcx.hir().parent_iter(expr.hir_id) {
         match parent_node {
+            // Skip `Coroutine`, these are the body of `async fn`, not the async closures.
+            // This is because we still need to backtrack one parent node to get the `OpaqueDef` ty.
+            Node::Expr(Expr {
+                kind:
+                    ExprKind::Closure(hir::Closure {
+                        kind: ClosureKind::Coroutine(_),
+                        ..
+                    }),
+                ..
+            }) => (),
             Node::Item(hir::Item {
-                kind: hir::ItemKind::Fn(FnSig { decl, .. }, _, _),
+                kind: ItemKind::Fn(FnSig { decl, .. }, _, _),
                 ..
             })
             | Node::TraitItem(hir::TraitItem {
@@ -83,7 +83,7 @@ fn get_parent_fn_ret_ty<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option
             | Node::Expr(Expr {
                 kind: ExprKind::Closure(hir::Closure { fn_decl: decl, .. }),
                 ..
-            }) => return Some(decl.output),
+            }) => return Some(RetTy::from_fn_ret_ty(cx, decl.output)),
             _ => (),
         }
     }
@@ -126,5 +126,67 @@ impl<'hir> Visitor<'hir> for LoopVisitor<'hir, '_> {
                 walk_expr(self, ex);
             },
         }
+    }
+}
+
+/// Similar to [`FnRetTy`], but reveals the actual type of an `OpaqueDef`.
+enum RetTy<'hir> {
+    DefaultReturn(Span),
+    Return(Ty<'hir>),
+}
+
+impl<'hir> RetTy<'hir> {
+    fn from_fn_ret_ty(cx: &LateContext<'hir>, fn_ret_ty: FnRetTy<'hir>) -> Self {
+        /// Reveal and return the related type of an `opaque`, return `None` if the
+        /// given `ty` is not an `OpaqueDef`.
+        fn inner_<'tcx>(cx: &LateContext<'tcx>, ty: &Ty<'tcx>) -> Option<Ty<'tcx>> {
+            /// Visitor to find the type binding.
+            struct BindingVisitor<'tcx> {
+                res: Option<Ty<'tcx>>,
+            }
+            impl<'tcx> Visitor<'tcx> for BindingVisitor<'tcx> {
+                fn visit_assoc_type_binding(&mut self, type_binding: &'tcx hir::TypeBinding<'tcx>) {
+                    if self.res.is_some() {
+                        return;
+                    }
+                    if let hir::TypeBindingKind::Equality {
+                        term: hir::Term::Ty(ty),
+                    } = type_binding.kind
+                    {
+                        self.res = Some(*ty);
+                    }
+                }
+            }
+
+            let TyKind::OpaqueDef(item_id, ..) = ty.kind else {
+                return None;
+            };
+            let opaque_ty_item = cx.tcx.hir().item(item_id);
+
+            // Sinces the `item_id` is from a `TyKind::OpaqueDef`,
+            // therefore the `Item` related to it should always be `OpaqueTy`.
+            assert!(matches!(opaque_ty_item.kind, ItemKind::OpaqueTy(_)));
+
+            let mut vis = BindingVisitor { res: None };
+            vis.visit_item(opaque_ty_item);
+            vis.res
+        }
+
+        match fn_ret_ty {
+            FnRetTy::DefaultReturn(span) => Self::DefaultReturn(span),
+            FnRetTy::Return(ty) => Self::Return(inner_(cx, ty).unwrap_or(*ty)),
+        }
+    }
+    /// Returns the span to where the suggestion should be.
+    fn sugg_span(&self) -> Option<Span> {
+        match self {
+            Self::DefaultReturn(span) => Some(*span),
+            Self::Return(ty) if matches!(ty.kind, TyKind::Tup(&[])) => Some(ty.span),
+            Self::Return(_) => None,
+        }
+    }
+    fn is_never(&self) -> bool {
+        let Self::Return(ty) = self else { return false };
+        matches!(ty.kind, TyKind::Never)
     }
 }
