@@ -1,7 +1,7 @@
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;
-use clippy_utils::source::snippet;
+use clippy_utils::source::{snippet, snippet_opt};
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{get_parent_expr, path_to_local_id};
@@ -13,6 +13,26 @@ use rustc_lint::LateContext;
 use rustc_span::sym;
 
 use super::UNNECESSARY_MAP_OR;
+
+pub(super) enum Variant {
+    Ok,
+    Some,
+}
+impl Variant {
+    pub fn variant_name(&self) -> &'static str {
+        match self {
+            Variant::Ok => "Ok",
+            Variant::Some => "Some",
+        }
+    }
+
+    pub fn method_name(&self) -> &'static str {
+        match self {
+            Variant::Ok => "is_ok_and",
+            Variant::Some => "is_some_and",
+        }
+    }
+}
 
 // Only checking map_or for now
 pub(super) fn check(
@@ -29,14 +49,23 @@ pub(super) fn check(
         && (is_type_diagnostic_item(cx, recv_ty, sym::Option) || is_type_diagnostic_item(cx, recv_ty, sym::Result))
         && let Bool(def_bool) = def_kind.node
     {
+        let variant = if is_type_diagnostic_item(cx, recv_ty, sym::Option) {
+            Variant::Some
+        } else {
+            Variant::Ok
+        };
+
         let (sugg, method) = if let ExprKind::Closure(map_closure) = map.kind
         && let closure_body = cx.tcx.hir().body(map_closure.body)
         && let closure_body_value = closure_body.value.peel_blocks()
         && let ExprKind::Binary(op, l, r) = closure_body_value.kind
         && let Some(param) = closure_body.params.first()
         && let PatKind::Binding(_, hir_id, _, _) = param.pat.kind
-        // checking that map_or is either:
-        // .map_or(false, |x| x == y) OR .map_or(true, |x| x != y)
+        // checking that map_or is one of the following:
+        // .map_or(false, |x| x == y)
+        // .map_or(false, |x| y == x) - swapped comparison
+        // .map_or(true, |x| x != y)
+        // .map_or(true, |x| y != x) - swapped comparison
         && ((BinOpKind::Eq == op.node && !def_bool) || (BinOpKind::Ne == op.node && def_bool))
         && let non_binding_location = if path_to_local_id(l, hir_id) { r } else { l }
         && switch_to_eager_eval(cx, non_binding_location)
@@ -46,12 +75,8 @@ pub(super) fn check(
         && !is_local_used(cx, non_binding_location, hir_id)
         && typeck_results.expr_ty(l) == typeck_results.expr_ty(r)
         {
-            let wrap = if is_type_diagnostic_item(cx, recv_ty, sym::Option) {
-                "Some"
-            } else {
-                "Ok"
-            };
-            let comparator = if BinOpKind::Eq == op.node { "==" } else { "!=" };
+            let wrap = variant.variant_name();
+            let comparator = op.node.as_str();
 
             // we may need to add parens around the suggestion
             // in case the parent expression has additional method calls,
@@ -62,32 +87,21 @@ pub(super) fn check(
                 .is_some_and(|expr| expr.precedence().order() > i8::try_from(AssocOp::Equal.precedence()).unwrap_or(0));
             (
                 format!(
-                    "{}{} {} {}({}){}",
+                    "{}{} {comparator} {wrap}({}){}",
                     if should_add_parens { "(" } else { "" },
                     snippet(cx, recv.span, ".."),
-                    comparator,
-                    wrap,
                     snippet(cx, non_binding_location.span.source_callsite(), ".."),
                     if should_add_parens { ")" } else { "" }
                 ),
                 "standard comparison",
             )
-        } else if !def_bool && msrv.meets(msrvs::OPTION_RESULT_IS_VARIANT_AND) {
-            let sugg = if is_type_diagnostic_item(cx, recv_ty, sym::Option) {
-                "is_some_and"
-            } else {
-                "is_ok_and"
-            };
-
-            (
-                format!(
-                    "{}.{}({})",
-                    snippet(cx, recv.span.source_callsite(), ".."),
-                    sugg,
-                    snippet(cx, map.span.source_callsite(), "..")
-                ),
-                sugg,
-            )
+        } else if !def_bool
+            && msrv.meets(msrvs::OPTION_RESULT_IS_VARIANT_AND)
+            && let Some(recv_callsite) = snippet_opt(cx, recv.span.source_callsite())
+            && let Some(span_callsite) = snippet_opt(cx, map.span.source_callsite())
+        {
+            let sugg = variant.method_name();
+            (format!("{recv_callsite}.{sugg}({span_callsite})",), sugg)
         } else {
             return;
         };
