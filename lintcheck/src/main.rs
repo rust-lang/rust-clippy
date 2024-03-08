@@ -24,7 +24,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 use std::{env, fs, thread};
 
-use cargo_metadata::diagnostic::{Diagnostic, DiagnosticLevel};
+use cargo_metadata::diagnostic::Diagnostic;
 use cargo_metadata::Message;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -90,16 +90,71 @@ struct Crate {
     options: Option<Vec<String>>,
 }
 
+/// A single emitted output from clippy being executed on a crate. It may either be a
+/// `ClippyWarning`, or a `RustcIce` caused by a panic within clippy. A crate may have many
+/// `ClippyWarning`s but a maximum of one `RustcIce` (at which point clippy halts execution).
+#[derive(Debug)]
+enum ClippyCheckOutput {
+    ClippyWarning(ClippyWarning),
+    RustcIce(RustcIce),
+}
+
+#[derive(Debug)]
+struct RustcIce {
+    pub crate_name: String,
+    pub message: String,
+    pub backtrace: String,
+}
+impl RustcIce {
+    pub fn from_stderr(crate_name: &str, stderr: &str) -> Option<Self> {
+        if stderr.contains("panicked at") {
+            let lines = stderr.split('\n');
+
+            let mut reading_message = false;
+            let mut message_lines = vec![];
+
+            let mut reading_backtrace = false;
+            let mut backtrace_lines = vec![];
+
+            for line in lines {
+                if line.contains("panicked at") {
+                    reading_message = true;
+                    message_lines.push(line.to_owned());
+                } else if line.contains("stack backtrace:") {
+                    reading_message = false;
+                    reading_backtrace = true;
+                    backtrace_lines.push(line.to_owned());
+                } else if line.contains("the compiler unexpectedly panicked") {
+                    reading_backtrace = false;
+                } else if reading_message {
+                    message_lines.push(line.to_owned());
+                } else if reading_backtrace {
+                    backtrace_lines.push(line.to_owned());
+                }
+            }
+
+            let message = message_lines.join("\n");
+            let backtrace = backtrace_lines.join("\n");
+
+            Some(Self {
+                crate_name: crate_name.to_owned(),
+                message,
+                backtrace,
+            })
+        } else {
+            None
+        }
+    }
+}
+
 /// A single warning that clippy issued while checking a `Crate`
 #[derive(Debug)]
 struct ClippyWarning {
-    crate_name: String,
     file: String,
     line: usize,
     column: usize,
     lint_type: String,
     message: String,
-    is_ice: bool,
 }
 
 #[allow(unused)]
@@ -124,13 +179,11 @@ impl ClippyWarning {
         };
 
         Some(Self {
-            crate_name: crate_name.to_owned(),
             file,
             line: span.line_start,
             column: span.column_start,
             lint_type,
             message: diag.message,
-            is_ice: diag.level == DiagnosticLevel::Ice,
         })
     }
 
@@ -311,7 +364,7 @@ impl Crate {
         config: &LintcheckConfig,
         lint_filter: &[String],
         server: &Option<LintcheckServer>,
-    ) -> Vec<ClippyWarning> {
+    ) -> Vec<ClippyCheckOutput> {
         // advance the atomic index by one
         let index = target_dir_index.fetch_add(1, Ordering::SeqCst);
         // "loop" the index within 0..thread_limit
@@ -428,14 +481,21 @@ impl Crate {
         }
 
         // get all clippy warnings and ICEs
-        let warnings: Vec<ClippyWarning> = Message::parse_stream(stdout.as_bytes())
+        let mut entries: Vec<ClippyCheckOutput> = Message::parse_stream(stdout.as_bytes())
             .filter_map(|msg| match msg {
                 Ok(Message::CompilerMessage(message)) => ClippyWarning::new(message.message, &self.name, &self.version),
                 _ => None,
             })
+            .map(ClippyCheckOutput::ClippyWarning)
             .collect();
 
-        warnings
+        if let Some(ice) = RustcIce::from_stderr(&self.name, &stderr) {
+            entries.push(ClippyCheckOutput::RustcIce(ice))
+        } else if !status.success() {
+            println!("non-ICE bad exit status for {} {}: {}", self.name, self.version, stderr);
+        }
+
+        entries
     }
 }
 
@@ -635,7 +695,7 @@ fn main() {
         LintcheckServer::spawn(recursive_options)
     });
 
-    let mut clippy_warnings: Vec<ClippyWarning> = crates
+    let mut clippy_entries: Vec<ClippyCheckOutput> = crates
         .par_iter()
         .flat_map(|krate| {
             krate.run_clippy_lints(
@@ -651,7 +711,9 @@ fn main() {
         .collect();
 
     if let Some(server) = server {
-        clippy_warnings.extend(server.warnings());
+        let server_clippy_entries = server.warnings().map(ClippyCheckOutput::ClippyWarning);
+
+        clippy_entries.extend(server_clippy_entries);
     }
 
     // if we are in --fix mode, don't change the log files, terminate here
@@ -659,20 +721,27 @@ fn main() {
         return;
     }
 
+    // split up warnings and ices
+    let mut warnings: Vec<ClippyWarning> = vec![];
+    let mut raw_ices: Vec<RustcIce> = vec![];
+    for entry in clippy_entries {
+        if let ClippyCheckOutput::ClippyWarning(x) = entry {
+            warnings.push(x);
+        } else if let ClippyCheckOutput::RustcIce(x) = entry {
+            raw_ices.push(x);
+        }
+    }
+
     // generate some stats
-    let (stats_formatted, new_stats) = gather_stats(&clippy_warnings);
+    let (stats_formatted, new_stats) = gather_stats(&warnings);
 
     // grab crashes/ICEs, save the crate name and the ice message
-    let ices: Vec<(&String, &String)> = clippy_warnings
+    let ices: Vec<(&String, &String, &String)> = raw_ices
         .iter()
-        .filter(|warning| warning.is_ice)
-        .map(|w| (&w.crate_name, &w.message))
+        .map(|w| (&w.crate_name, &w.message, &w.backtrace))
         .collect();
 
-    let mut all_msgs: Vec<String> = clippy_warnings
-        .iter()
-        .map(|warn| warn.to_output(config.markdown))
-        .collect();
+    let mut all_msgs: Vec<String> = warnings.iter().map(|warn| warn.to_output(config.markdown)).collect();
     all_msgs.sort();
     all_msgs.push("\n\n### Stats:\n\n".into());
     all_msgs.push(stats_formatted);
@@ -686,11 +755,14 @@ fn main() {
     }
     write!(text, "{}", all_msgs.join("")).unwrap();
     text.push_str("\n\n### ICEs:\n");
-    for (cratename, msg) in &ices {
-        let _: fmt::Result = write!(text, "{cratename}: '{msg}'");
+    for (cratename, msg, backtrace) in &ices {
+        let _: fmt::Result = write!(text, "{cratename}: '{msg}'\n{backtrace}\n\n");
     }
 
     println!("Writing logs to {}", config.lintcheck_results_path.display());
+    if !ices.is_empty() {
+        println!("WARNING: at least one ICE reported, check log file");
+    }
     fs::create_dir_all(config.lintcheck_results_path.parent().unwrap()).unwrap();
     fs::write(&config.lintcheck_results_path, text).unwrap();
 
