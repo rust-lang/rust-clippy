@@ -5300,7 +5300,7 @@
     "id": "missing_docs_in_private_items",
     "id_span": {
       "path": "src/missing_doc.rs",
-      "line": 30
+      "line": 31
     },
     "group": "restriction",
     "level": "allow",
