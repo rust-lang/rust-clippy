@@ -490,7 +490,7 @@ impl Crate {
             .collect();
 
         if let Some(ice) = RustcIce::from_stderr(&self.name, &stderr) {
-            entries.push(ClippyCheckOutput::RustcIce(ice))
+            entries.push(ClippyCheckOutput::RustcIce(ice));
         } else if !status.success() {
             println!("non-ICE bad exit status for {} {}: {}", self.name, self.version, stderr);
         }
