@@ -551,8 +551,16 @@ mod issue11291 {
     pub struct MyContainer(HashMap<u8, u32>);
     impl MyContainer {
         pub fn iter<'a>(&'a self) -> impl Iterator<Item = (&'a u8, &'a u32)> + 'a {
-            //~^ ERROR: the following explicit lifetimes could be elided: 'a
             self.0.iter()
+        }
+
+        pub fn iter2<'a>(
+            &'a self,
+        ) -> (
+            impl Iterator<Item = (&'a u8, &'a u32)> + 'a,
+            impl Iterator<Item = (&'a u8, &'a u32)> + 'a,
+        ) {
+            (self.0.iter(), self.0.iter())
         }
     }
 }
