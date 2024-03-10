@@ -4749,6 +4749,21 @@
     }
   },
   {
+    "id": "manual_unwrap_or_default",
+    "id_span": {
+      "path": "src/manual_unwrap_or_default.rs",
+      "line": 45
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks if a `match` or `if let` expression can be simplified using\n`.unwrap_or_default()`.\n\n### Why is this bad?\nIt can be done in one call with `.unwrap_or_default()`.\n\n### Example\n```rust\nlet x: Option<String> = Some(String::new());\nlet y: String = match x {\n    Some(v) => v,\n    None => String::new(),\n};\n\nlet x: Option<Vec<String>> = Some(Vec::new());\nlet y: Vec<String> = if let Some(v) = x {\n    v\n} else {\n    Vec::new()\n};\n```\nUse instead:\n```rust\nlet x: Option<String> = Some(String::new());\nlet y: String = x.unwrap_or_default();\n\nlet x: Option<Vec<String>> = Some(Vec::new());\nlet y: Vec<String> = x.unwrap_or_default();\n```",
+    "version": "1.78.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_while_let_some",
     "id_span": {
       "path": "src/loops/mod.rs",
