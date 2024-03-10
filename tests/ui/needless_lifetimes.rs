@@ -332,6 +332,7 @@ mod issue2944 {
     impl<'a> Foo for Baz<'a> {}
     impl Bar {
         fn baz<'a>(&'a self) -> impl Foo + 'a {
+            //~^ ERROR: the following explicit lifetimes could be elided: 'a
             Baz { bar: self }
         }
     }
@@ -544,3 +545,14 @@ mod issue5787 {
 }
 
 fn main() {}
+
+mod issue11291 {
+    use std::collections::HashMap;
+    pub struct MyContainer(HashMap<u8, u32>);
+    impl MyContainer {
+        pub fn iter<'a>(&'a self) -> impl Iterator<Item = (&'a u8, &'a u32)> + 'a {
+            //~^ ERROR: the following explicit lifetimes could be elided: 'a
+            self.0.iter()
+        }
+    }
+}
