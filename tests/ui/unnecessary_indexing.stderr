@@ -1,0 +1,160 @@
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:23:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         let b = c(a[0]);
+LL | |     }
+   | |_____^
+   |
+   = note: `-D clippy::unnecessary-indexing` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_indexing)]`
+help: consider using if..let syntax
+   |
+LL ~     if let Some(&element) = a.first() {
+LL ~         let b = c(element);
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:29:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         let b = Struct::a(a[0]);
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax
+   |
+LL ~     if let Some(&element) = a.first() {
+LL ~         let b = Struct::a(element);
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:35:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         let b = c(a[0]);
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax
+   |
+LL ~     if let Some(&element) = a.first() {
+LL ~         let b = c(element);
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:41:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         let b = Struct::a(a[0]);
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax
+   |
+LL ~     if let Some(&element) = a.first() {
+LL ~         let b = Struct::a(element);
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:47:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         let b = a[0];
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax (variable may need to be dereferenced)
+   |
+LL |     if let Some(&b) = a.first() {
+   |        ~~~~~~~~~~~~~~~~~~~~~~~~
+help: remove this line
+   |
+LL -         let b = a[0];
+LL +         
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:53:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         let b = a[0];
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax (variable may need to be dereferenced)
+   |
+LL |     if let Some(&b) = a.first() {
+   |        ~~~~~~~~~~~~~~~~~~~~~~~~
+help: remove this line
+   |
+LL -         let b = a[0];
+LL +         
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:59:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         dbg!(a);
+LL | |         let b = a[0];
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax (variable may need to be dereferenced)
+   |
+LL |     if let Some(&b) = a.first() {
+   |        ~~~~~~~~~~~~~~~~~~~~~~~~
+help: remove this line
+   |
+LL -         let b = a[0];
+LL +         
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:66:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         dbg!(a);
+LL | |         let b = &a[0];
+LL | |         let c = a[0];
+LL | |         drop(a[0]);
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax (variable may need to be dereferenced)
+   |
+LL |     if let Some(c) = a.first() {
+   |        ~~~~~~~~~~~~~~~~~~~~~~~
+help: remove this line
+   |
+LL -         let c = a[0];
+LL +         
+   |
+help: set this indexing to be the `Some` variant (may need dereferencing)
+   |
+LL ~         let b = c;
+LL |         let c = a[0];
+LL ~         drop(c);
+   |
+
+error: condition can be simplified with if..let syntax
+  --> tests/ui/unnecessary_indexing.rs:75:5
+   |
+LL | /     if !a.is_empty() {
+LL | |         dbg!(a);
+LL | |         drop(a[0]);
+LL | |         drop(a[0]);
+LL | |     }
+   | |_____^
+   |
+help: consider using if..let syntax
+   |
+LL ~     if let Some(&element) = a.first() {
+LL |         dbg!(a);
+LL ~         drop(element);
+LL ~         drop(element);
+   |
+
+error: aborting due to 9 previous errors
+

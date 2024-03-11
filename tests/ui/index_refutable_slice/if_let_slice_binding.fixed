@@ -1,5 +1,5 @@
 #![deny(clippy::index_refutable_slice)]
-#![allow(clippy::needless_lifetimes, clippy::collapsible_if)]
+#![allow(clippy::needless_lifetimes, clippy::collapsible_if, clippy::unnecessary_indexing)]
 
 enum SomeEnum<T> {
     One(T),
