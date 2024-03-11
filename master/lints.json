@@ -63,7 +63,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 319
+      "line": 320
     },
     "group": "restriction",
     "level": "allow",
@@ -387,7 +387,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 226
+      "line": 227
     },
     "group": "suspicious",
     "level": "warn",
@@ -1328,7 +1328,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 257
+      "line": 258
     },
     "group": "complexity",
     "level": "warn",
@@ -1343,7 +1343,7 @@
     "id": "deprecated_clippy_cfg_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 436
+      "line": 437
     },
     "group": "suspicious",
     "level": "warn",
@@ -1358,7 +1358,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 115
+      "line": 116
     },
     "group": "correctness",
     "level": "deny",
@@ -1712,6 +1712,21 @@
     }
   },
   {
+    "id": "duplicated_attributes",
+    "id_span": {
+      "path": "src/attrs/mod.rs",
+      "line": 514
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for attributes that appear two or more times.\n\n### Why is this bad?\nRepeating an attribute on the same item (or globally on the same crate)\nis unnecessary and doesn't have an effect.\n\n### Example\n```rust\n#[allow(dead_code)]\n#[allow(dead_code)]\nfn foo() {}\n```\n\nUse instead:\n```rust\n#[allow(dead_code)]\nfn foo() {}\n```",
+    "version": "1.78.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
@@ -1820,7 +1835,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 203
+      "line": 204
     },
     "group": "nursery",
     "level": "allow",
@@ -1835,7 +1850,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 157
+      "line": 158
     },
     "group": "nursery",
     "level": "allow",
@@ -3279,7 +3294,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 51
+      "line": 52
     },
     "group": "pedantic",
     "level": "allow",
@@ -5105,7 +5120,7 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 410
+      "line": 411
     },
     "group": "suspicious",
     "level": "warn",
@@ -5225,7 +5240,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 290
+      "line": 291
     },
     "group": "correctness",
     "level": "deny",
@@ -5480,7 +5495,7 @@
     "id": "mixed_attributes_style",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 487
+      "line": 488
     },
     "group": "suspicious",
     "level": "warn",
@@ -6488,7 +6503,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 378
+      "line": 379
     },
     "group": "style",
     "level": "warn",
@@ -8357,7 +8372,7 @@
     "id": "should_panic_without_expect",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 354
+      "line": 355
     },
     "group": "pedantic",
     "level": "allow",
@@ -9830,7 +9845,7 @@
     "id": "unnecessary_clippy_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 460
+      "line": 461
     },
     "group": "suspicious",
     "level": "warn",
@@ -10617,7 +10632,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 94
+      "line": 95
     },
     "group": "correctness",
     "level": "deny",
