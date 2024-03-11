@@ -350,6 +350,7 @@ mod unit_return_expecting_ord;
 mod unit_types;
 mod unnamed_address;
 mod unnecessary_box_returns;
+mod unnecessary_indexing;
 mod unnecessary_map_on_constructor;
 mod unnecessary_owned_empty_strings;
 mod unnecessary_self_imports;
@@ -1124,6 +1125,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(assigning_clones::AssigningClones));
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
+    store.register_late_pass(|_| Box::new(unnecessary_indexing::UnnecessaryIndexing));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
