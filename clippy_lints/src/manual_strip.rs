@@ -95,7 +95,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualStrip {
             }
 
             let strippings = find_stripping(cx, strip_kind, target_res, pattern, then);
-            if !strippings.is_empty() {
+            if let Some(first_stripping) = strippings.first() {
                 let kind_word = match strip_kind {
                     StripKind::Prefix => "prefix",
                     StripKind::Suffix => "suffix",
@@ -105,8 +105,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualStrip {
                 span_lint_and_then(
                     cx,
                     MANUAL_STRIP,
-                    strippings[0],
-                    format!("stripping a {kind_word} manually"),
+                    *first_stripping,
+                    &format!("stripping a {kind_word} manually"),
                     |diag| {
                         diag.span_note(test_span, format!("the {kind_word} was tested here"));
                         multispan_sugg(

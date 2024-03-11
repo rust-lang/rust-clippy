@@ -355,6 +355,7 @@ mod unit_return_expecting_ord;
 mod unit_types;
 mod unnamed_address;
 mod unnecessary_box_returns;
+mod unnecessary_indexing;
 mod unnecessary_map_on_constructor;
 mod unnecessary_owned_empty_strings;
 mod unnecessary_self_imports;
@@ -1171,6 +1172,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(string_patterns::StringPatterns::new(msrv())));
     store.register_early_pass(|| Box::new(field_scoped_visibility_modifiers::FieldScopedVisibilityModifiers));
+    store.register_late_pass(|_| Box::new(unnecessary_indexing::UnnecessaryIndexing));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
