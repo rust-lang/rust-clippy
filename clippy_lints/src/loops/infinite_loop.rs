@@ -175,8 +175,8 @@ impl<'hir> RetTy<'hir> {
             };
             let opaque_ty_item = cx.tcx.hir().item(item_id);
 
-            // Sinces the `item_id` is from a `TyKind::OpaqueDef`,
-            // therefore the `Item` related to it should always be `OpaqueTy`.
+            // Since `item_id` is from a `TyKind::OpaqueDef`,
+            // the `Item` related to it should always be `OpaqueTy`.
             assert!(matches!(opaque_ty_item.kind, ItemKind::OpaqueTy(_)));
 
             let mut vis = BindingVisitor { res: None };
