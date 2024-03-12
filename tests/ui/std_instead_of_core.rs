@@ -1,4 +1,5 @@
 //@aux-build:proc_macro_derive.rs
+//@no-rustfix
 
 #![warn(clippy::std_instead_of_core)]
 #![allow(unused_imports)]
@@ -29,6 +30,42 @@ fn std_instead_of_core() {
         //~^ ERROR: used import from `std` instead of `core`
         fmt::Write as _,
         ptr::read_unaligned,
+    };
+
+    // Multiple import, some not in core/alloc, first pos
+    use std::{io::Write as _, fmt::Debug as _, fmt::Alignment as _};
+    //~^ ERROR: used import from `std` instead of `core`
+
+    // Second pos
+    use std::{fmt::Alignment as _, io::Write as _, fmt::Debug as _};
+    //~^ ERROR: used import from `std` instead of `core`
+
+    // Third pos
+    use std::{fmt::Debug as _, fmt::Alignment as _, io::Write as _};
+    //~^ ERROR: used import from `std` instead of `core`
+
+    // Multiple import, multi-line, same procedure as above
+    #[rustfmt::skip]
+    use std::{
+        io::Write as _,
+        fmt::Debug as _,
+        fmt::Alignment as _,
+    };
+
+    // Second pos
+    #[rustfmt::skip]
+    use std::{
+        fmt::Alignment as _,
+        io::Write as _,
+        fmt::Debug as _,
+    };
+
+    // Third pos
+    #[rustfmt::skip]
+    use std::{
+        fmt::Alignment as _,
+        fmt::Debug as _,
+        io::Write as _,
     };
 
     // Function calls
