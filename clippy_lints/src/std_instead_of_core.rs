@@ -1,6 +1,5 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::is_from_proc_macro;
-use rustc_ast::Attribute;
 use rustc_data_structures::fx::FxIndexSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
@@ -108,8 +107,8 @@ pub struct StdReexports {
 
 impl_lint_pass!(StdReexports => [STD_INSTEAD_OF_CORE, STD_INSTEAD_OF_ALLOC, ALLOC_INSTEAD_OF_CORE]);
 
-/// Save all members of a UseKind::ListStem `use std::fmt::{Debug, Result};`
-/// Lint when the ListStem closes. However, since there's no look-ahead (that I know of).
+/// Save all members of a `UseKind::ListStem` `use std::fmt::{Debug, Result};`
+/// Lint when the `ListStem` closes. However, since there's no look-ahead (that I know of).
 /// Close whenever something is encountered that's outside of the container `Span`.
 #[derive(Debug)]
 struct OpenUseSpan {
@@ -154,7 +153,7 @@ struct ReplaceLintData {
 }
 
 impl StdReexports {
-    fn suggest_for_open_use_item_if_after<'tcx>(&mut self, cx: &LateContext<'tcx>, span: Span) {
+    fn suggest_for_open_use_item_if_after(&mut self, cx: &LateContext<'_>, span: Span) {
         if let Some(collected_use) = self.open_use.take() {
             // Still contains other span, throw it back
             if collected_use.container.contains(span) {
@@ -169,7 +168,7 @@ impl StdReexports {
             // If true after checking all members, the lint is 'fixable'.
             // Otherwise, just warn
             let mut all_same_valid_lint = true;
-            for member in collected_use.members.iter() {
+            for member in &collected_use.members {
                 match &member.lint_data {
                     LintData::CanReplace(lint_data) => {
                         if let Some((_span, prev_lint_data)) = place_holder_unique_check.take() {
@@ -234,7 +233,7 @@ impl StdReexports {
                             |diag| {
                                 diag.help(format!("consider importing the item from `{replace_with}`"));
                             },
-                        )
+                        );
                     }
                 }
             }
@@ -319,7 +318,7 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
             self.open_use = Some(OpenUseSpan {
                 container: item.span,
                 members: FxIndexSet::default(),
-            })
+            });
         }
     }
 
