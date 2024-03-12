@@ -26,7 +26,7 @@ LL |     use std::{
    |         ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:36:31
+  --> tests/ui/std_instead_of_core.rs:37:31
    |
 LL |     use std::{io::Write as _, fmt::Debug as _, fmt::Alignment as _};
    |                               ^^^^^^^^^^
@@ -34,7 +34,7 @@ LL |     use std::{io::Write as _, fmt::Debug as _, fmt::Alignment as _};
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:36:48
+  --> tests/ui/std_instead_of_core.rs:37:48
    |
 LL |     use std::{io::Write as _, fmt::Debug as _, fmt::Alignment as _};
    |                                                ^^^^^^^^^^^^^^
@@ -42,7 +42,7 @@ LL |     use std::{io::Write as _, fmt::Debug as _, fmt::Alignment as _};
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:40:15
+  --> tests/ui/std_instead_of_core.rs:42:15
    |
 LL |     use std::{fmt::Alignment as _, io::Write as _, fmt::Debug as _};
    |               ^^^^^^^^^^^^^^
@@ -50,7 +50,7 @@ LL |     use std::{fmt::Alignment as _, io::Write as _, fmt::Debug as _};
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:40:52
+  --> tests/ui/std_instead_of_core.rs:42:52
    |
 LL |     use std::{fmt::Alignment as _, io::Write as _, fmt::Debug as _};
    |                                                    ^^^^^^^^^^
@@ -58,7 +58,7 @@ LL |     use std::{fmt::Alignment as _, io::Write as _, fmt::Debug as _};
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:44:15
+  --> tests/ui/std_instead_of_core.rs:47:15
    |
 LL |     use std::{fmt::Debug as _, fmt::Alignment as _, io::Write as _};
    |               ^^^^^^^^^^
@@ -66,7 +66,7 @@ LL |     use std::{fmt::Debug as _, fmt::Alignment as _, io::Write as _};
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:44:32
+  --> tests/ui/std_instead_of_core.rs:47:32
    |
 LL |     use std::{fmt::Debug as _, fmt::Alignment as _, io::Write as _};
    |                                ^^^^^^^^^^^^^^
@@ -74,7 +74,7 @@ LL |     use std::{fmt::Debug as _, fmt::Alignment as _, io::Write as _};
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:51:9
+  --> tests/ui/std_instead_of_core.rs:54:9
    |
 LL |         fmt::Debug as _,
    |         ^^^^^^^^^^
@@ -82,7 +82,7 @@ LL |         fmt::Debug as _,
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:52:9
+  --> tests/ui/std_instead_of_core.rs:55:9
    |
 LL |         fmt::Alignment as _,
    |         ^^^^^^^^^^^^^^
@@ -90,7 +90,7 @@ LL |         fmt::Alignment as _,
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:58:9
+  --> tests/ui/std_instead_of_core.rs:61:9
    |
 LL |         fmt::Alignment as _,
    |         ^^^^^^^^^^^^^^
@@ -98,7 +98,7 @@ LL |         fmt::Alignment as _,
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:60:9
+  --> tests/ui/std_instead_of_core.rs:63:9
    |
 LL |         fmt::Debug as _,
    |         ^^^^^^^^^^
@@ -106,7 +106,7 @@ LL |         fmt::Debug as _,
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:66:9
+  --> tests/ui/std_instead_of_core.rs:69:9
    |
 LL |         fmt::Alignment as _,
    |         ^^^^^^^^^^^^^^
@@ -114,7 +114,7 @@ LL |         fmt::Alignment as _,
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:67:9
+  --> tests/ui/std_instead_of_core.rs:70:9
    |
 LL |         fmt::Debug as _,
    |         ^^^^^^^^^^
@@ -122,37 +122,37 @@ LL |         fmt::Debug as _,
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:72:15
+  --> tests/ui/std_instead_of_core.rs:75:15
    |
 LL |     let ptr = std::ptr::null::<u32>();
    |               ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:74:21
+  --> tests/ui/std_instead_of_core.rs:77:21
    |
 LL |     let ptr_mut = ::std::ptr::null_mut::<usize>();
    |                     ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:78:16
+  --> tests/ui/std_instead_of_core.rs:81:16
    |
 LL |     let cell = std::cell::Cell::new(8u32);
    |                ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:80:27
+  --> tests/ui/std_instead_of_core.rs:83:27
    |
 LL |     let cell_absolute = ::std::cell::Cell::new(8u32);
    |                           ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:89:9
+  --> tests/ui/std_instead_of_core.rs:92:9
    |
 LL |     use std::iter::Iterator;
    |         ^^^ help: consider importing the item from `core`: `core`
 
 error: used import from `std` instead of `alloc`
-  --> tests/ui/std_instead_of_core.rs:96:9
+  --> tests/ui/std_instead_of_core.rs:99:9
    |
 LL |     use std::vec;
    |         ^^^ help: consider importing the item from `alloc`: `alloc`
@@ -161,13 +161,13 @@ LL |     use std::vec;
    = help: to override `-D warnings` add `#[allow(clippy::std_instead_of_alloc)]`
 
 error: used import from `std` instead of `alloc`
-  --> tests/ui/std_instead_of_core.rs:98:9
+  --> tests/ui/std_instead_of_core.rs:101:9
    |
 LL |     use std::vec::Vec;
    |         ^^^ help: consider importing the item from `alloc`: `alloc`
 
 error: used import from `alloc` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:104:9
+  --> tests/ui/std_instead_of_core.rs:107:9
    |
 LL |     use alloc::slice::from_ref;
    |         ^^^^^ help: consider importing the item from `core`: `core`
@@ -176,7 +176,7 @@ LL |     use alloc::slice::from_ref;
    = help: to override `-D warnings` add `#[allow(clippy::alloc_instead_of_core)]`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:121:5
+  --> tests/ui/std_instead_of_core.rs:124:5
    |
 LL | use std::fmt::{Debug as _, Result as _};
    |     ^^^ help: consider importing the item from `core`: `core`
