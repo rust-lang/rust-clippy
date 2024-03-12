@@ -283,10 +283,9 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
 
     }
 
-    #[inline]
-    fn check_item_post(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        self.suggest_for_open_use_item_if_after(cx, item.span);
-    }
+    // Essentially, check every other parsable thing's start (except for attributes),
+    // If it starts, wrap up the last path lint. Lookahead would be nice but I don't
+    // know if that's possible.
 
     #[inline]
     fn check_body(&mut self, cx: &LateContext<'tcx>, body: &'tcx Body<'tcx>) {

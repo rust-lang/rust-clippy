@@ -175,5 +175,11 @@ LL |     use alloc::slice::from_ref;
    = note: `-D clippy::alloc-instead-of-core` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::alloc_instead_of_core)]`
 
-error: aborting due to 24 previous errors
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:121:5
+   |
+LL | use std::fmt::{Debug as _, Result as _};
+   |     ^^^ help: consider importing the item from `core`: `core`
+
+error: aborting due to 25 previous errors
 

@@ -117,3 +117,6 @@ fn main() {
     std_instead_of_alloc();
     alloc_instead_of_core();
 }
+
+use std::fmt::{Debug as _, Result as _};
+//~^ ERROR: used import from `std` instead of `core`
