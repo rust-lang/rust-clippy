@@ -74,16 +74,52 @@ LL |     use std::{fmt::Debug as _, fmt::Alignment as _, io::Write as _};
    = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:57:9
+  --> tests/ui/std_instead_of_core.rs:51:9
    |
-LL |     use std::{
-   |         ^^^ help: consider importing the item from `core`: `core`
+LL |         fmt::Debug as _,
+   |         ^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
-  --> tests/ui/std_instead_of_core.rs:65:9
+  --> tests/ui/std_instead_of_core.rs:52:9
    |
-LL |     use std::{
-   |         ^^^ help: consider importing the item from `core`: `core`
+LL |         fmt::Alignment as _,
+   |         ^^^^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:58:9
+   |
+LL |         fmt::Alignment as _,
+   |         ^^^^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:60:9
+   |
+LL |         fmt::Debug as _,
+   |         ^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:66:9
+   |
+LL |         fmt::Alignment as _,
+   |         ^^^^^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:67:9
+   |
+LL |         fmt::Debug as _,
+   |         ^^^^^^^^^^
+   |
+   = help: consider importing the item from `core`
 
 error: used import from `std` instead of `core`
   --> tests/ui/std_instead_of_core.rs:72:15
@@ -139,5 +175,5 @@ LL |     use alloc::slice::from_ref;
    = note: `-D clippy::alloc-instead-of-core` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::alloc_instead_of_core)]`
 
-error: aborting due to 20 previous errors
+error: aborting due to 24 previous errors
 

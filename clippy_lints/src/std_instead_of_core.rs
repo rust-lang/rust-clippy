@@ -152,6 +152,9 @@ impl StdReexports {
                 self.open_use = Some(collected_use);
                 return;
             }
+            if collected_use.members.is_empty() {
+                return;
+            }
             let mut place_holder_unique_check: Option<(Span, ReplaceLintData)> = None;
             let mut can_chunk = true;
             for member in collected_use.members.iter() {
@@ -383,11 +386,6 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
     #[inline]
     fn check_variant(&mut self, cx: &LateContext<'tcx>, v: &'tcx Variant<'tcx>) {
         self.suggest_for_open_use_item_if_after(cx, v.span);
-    }
-
-    #[inline]
-    fn check_attribute(&mut self, cx: &LateContext<'tcx>, attr: &'tcx Attribute) {
-        self.suggest_for_open_use_item_if_after(cx, attr.span);
     }
 }
 
