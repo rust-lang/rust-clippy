@@ -1,4 +1,3 @@
-use std::hash::{Hash, Hasher};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_hir_and_then};
 use clippy_utils::is_from_proc_macro;
 use rustc_ast::Attribute;
@@ -6,14 +5,18 @@ use rustc_data_structures::fx::FxIndexSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Arm, Block, Body, Expr, FieldDef, FnDecl, ForeignItem, GenericParam, Generics, HirId, ImplItem, Item, ItemKind, Local, Mod, Pat, Path, PathSegment, PolyTraitRef, Stmt, TraitItem, Ty, UseKind, Variant, VariantData};
 use rustc_hir::intravisit::FnKind;
+use rustc_hir::{
+    Arm, Block, Body, Expr, FieldDef, FnDecl, ForeignItem, GenericParam, Generics, HirId, ImplItem, Item, ItemKind,
+    Local, Mod, Pat, Path, PathSegment, PolyTraitRef, Stmt, TraitItem, Ty, UseKind, Variant, VariantData,
+};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_session::impl_lint_pass;
+use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::kw;
 use rustc_span::{sym, Span};
-use rustc_span::def_id::LocalDefId;
+use std::hash::{Hash, Hasher};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -98,15 +101,21 @@ pub struct StdReexports {
     // twice. First for the mod, second for the macro. This is used to avoid the lint reporting for the macro
     // when the path could be also be used to access the module.
     prev_span: Span,
-    open_use: Option<OpenUseSpan>
+    // When inside of a UseKind::ListStem the previous check
+    // isn't enough to ensure correct parsing
+    open_use: Option<OpenUseSpan>,
 }
 
 impl_lint_pass!(StdReexports => [STD_INSTEAD_OF_CORE, STD_INSTEAD_OF_ALLOC, ALLOC_INSTEAD_OF_CORE]);
 
+/// Save all members of a UseKind::ListStem `use std::fmt::{Debug, Result};`
+/// Lint when the ListStem closes. However, since there's no look-ahead (that I know of).
+/// Close whenever something is encountered that's outside of the container `Span`.
 #[derive(Debug)]
 struct OpenUseSpan {
     container: Span,
-    members: FxIndexSet<UseSpanMember>
+    // Preserve insert order on iteration, so that lints come out in 'source order'
+    members: FxIndexSet<UseSpanMember>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -152,37 +161,51 @@ impl StdReexports {
                 self.open_use = Some(collected_use);
                 return;
             }
+            // Short circuit
             if collected_use.members.is_empty() {
                 return;
             }
             let mut place_holder_unique_check: Option<(Span, ReplaceLintData)> = None;
-            let mut can_chunk = true;
+            // If true after checking all members, the lint is 'fixable'.
+            // Otherwise, just warn
+            let mut all_same_valid_lint = true;
             for member in collected_use.members.iter() {
                 match &member.lint_data {
                     LintData::CanReplace(lint_data) => {
                         if let Some((_span, prev_lint_data)) = place_holder_unique_check.take() {
-                            if prev_lint_data.lint.name == lint_data.lint.name && prev_lint_data.used_mod == lint_data.used_mod && prev_lint_data.replace_with == lint_data.replace_with {
+                            if prev_lint_data.lint.name == lint_data.lint.name
+                                && prev_lint_data.used_mod == lint_data.used_mod
+                                && prev_lint_data.replace_with == lint_data.replace_with
+                            {
                                 place_holder_unique_check = Some((member.first_seg_ident_span, *lint_data));
                             } else {
                                 // Will have to warn for individual entries
-                                can_chunk = false;
+                                all_same_valid_lint = false;
                                 break;
                             }
                         } else {
                             place_holder_unique_check = Some((member.first_seg_ident_span, *lint_data));
                         }
-                    }
+                    },
                     LintData::NoReplace => {
                         // Will have to warn for individual entries
-                        can_chunk = false;
+                        all_same_valid_lint = false;
                         break;
-                    }
+                    },
                 }
             }
             // If they can all be replaced with the same thing, just lint and suggest, then
             // clippy-fix works as well
-            if can_chunk {
-                if let Some((first_segment_ident_span, ReplaceLintData { lint, used_mod, replace_with })) = place_holder_unique_check {
+            if all_same_valid_lint {
+                if let Some((
+                    first_segment_ident_span,
+                    ReplaceLintData {
+                        lint,
+                        used_mod,
+                        replace_with,
+                    },
+                )) = place_holder_unique_check
+                {
                     span_lint_and_sugg(
                         cx,
                         lint,
@@ -195,10 +218,23 @@ impl StdReexports {
                 }
             } else {
                 for member in collected_use.members {
-                    if let LintData::CanReplace(ReplaceLintData { lint, used_mod, replace_with }) = member.lint_data {
-                        span_lint_hir_and_then(cx, lint, member.hir_id, member.inner, &format!("used import from `{used_mod}` instead of `{replace_with}`"), |diag| {
-                            diag.help(format!("consider importing the item from `{replace_with}`"));
-                        })
+                    if let LintData::CanReplace(ReplaceLintData {
+                        lint,
+                        used_mod,
+                        replace_with,
+                    }) = member.lint_data
+                    {
+                        // Just lint, don't suggest a change
+                        span_lint_hir_and_then(
+                            cx,
+                            lint,
+                            member.hir_id,
+                            member.inner,
+                            &format!("used import from `{used_mod}` instead of `{replace_with}`"),
+                            |diag| {
+                                diag.help(format!("consider importing the item from `{replace_with}`"));
+                            },
+                        )
                     }
                 }
             }
@@ -217,12 +253,12 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
         {
             let lint_data = match first_segment.ident.name {
                 sym::std => match cx.tcx.crate_name(def_id.krate) {
-                    sym::core => LintData::CanReplace(ReplaceLintData{
+                    sym::core => LintData::CanReplace(ReplaceLintData {
                         lint: STD_INSTEAD_OF_CORE,
                         used_mod: "std",
                         replace_with: "core",
                     }),
-                    sym::alloc => LintData::CanReplace(ReplaceLintData{
+                    sym::alloc => LintData::CanReplace(ReplaceLintData {
                         lint: STD_INSTEAD_OF_ALLOC,
                         used_mod: "std",
                         replace_with: "alloc",
@@ -234,7 +270,7 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                 },
                 sym::alloc => {
                     if cx.tcx.crate_name(def_id.krate) == sym::core {
-                        LintData::CanReplace(ReplaceLintData{
+                        LintData::CanReplace(ReplaceLintData {
                             lint: ALLOC_INSTEAD_OF_CORE,
                             used_mod: "alloc",
                             replace_with: "core",
@@ -255,7 +291,12 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                 });
                 return;
             }
-            if let LintData::CanReplace(ReplaceLintData { lint, used_mod, replace_with }) = lint_data {
+            if let LintData::CanReplace(ReplaceLintData {
+                lint,
+                used_mod,
+                replace_with,
+            }) = lint_data
+            {
                 if first_segment.ident.span != self.prev_span {
                     span_lint_and_sugg(
                         cx,
@@ -280,7 +321,6 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                 members: FxIndexSet::default(),
             })
         }
-
     }
 
     // Essentially, check every other parsable thing's start (except for attributes),
@@ -358,7 +398,15 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
     }
 
     #[inline]
-    fn check_fn(&mut self, cx: &LateContext<'tcx>, _: FnKind<'tcx>, _: &'tcx FnDecl<'tcx>, _: &'tcx Body<'tcx>, s: Span, _: LocalDefId) {
+    fn check_fn(
+        &mut self,
+        cx: &LateContext<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        _: &'tcx Body<'tcx>,
+        s: Span,
+        _: LocalDefId,
+    ) {
         self.suggest_for_open_use_item_if_after(cx, s);
     }
 

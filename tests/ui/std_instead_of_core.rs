@@ -33,14 +33,17 @@ fn std_instead_of_core() {
     };
 
     // Multiple import, some not in core/alloc, first pos
+    #[rustfmt::skip]
     use std::{io::Write as _, fmt::Debug as _, fmt::Alignment as _};
     //~^ ERROR: used import from `std` instead of `core`
 
     // Second pos
+    #[rustfmt::skip]
     use std::{fmt::Alignment as _, io::Write as _, fmt::Debug as _};
     //~^ ERROR: used import from `std` instead of `core`
 
     // Third pos
+    #[rustfmt::skip]
     use std::{fmt::Debug as _, fmt::Alignment as _, io::Write as _};
     //~^ ERROR: used import from `std` instead of `core`
 
