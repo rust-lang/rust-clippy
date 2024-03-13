@@ -981,9 +981,22 @@ declare_clippy_lint! {
     /// Checks for redundant and error prone bindings inside `matches!` macro.
     ///
     /// ### Why is this bad?
-    /// It could be hard to determine why the compiler complains about an unused variable,
-    /// which was introduced by the `matches!` macro expansion, also, it could introduce
-    /// behavior that was not intended by the programmer.
+    /// Contrary to the `==` operator, which compares two values, the `matches!`
+    /// macro compares a value to a pattern. An invocation such as `matches!(5, x)`
+    /// expands to the following code:
+    ///
+    /// ```rust
+    /// match 5 {
+    ///   x => true,
+    ///   _ => false
+    /// }
+    /// ```
+    ///
+    /// The identifier pattern `x` matches any value and creates a binding that stores its value.
+    ///
+    /// This makes identifier patterns in `matches!` without any use in guards useless: the macro
+    /// always evaluates to `true` as no equality checking actually takes place and the binding that
+    /// is created is unusable outside of the macro.
     ///
     /// ### Example
     /// ```rust
@@ -1006,7 +1019,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.75.0"]
     pub UNUSABLE_MATCHES_BINDINGS,
     correctness,
-    "checks for unused bindings in `matches!` macro"
+    "checks for unusable bindings in `matches!` macro"
 }
 
 pub struct Matches {
