@@ -3,7 +3,7 @@ use clippy_utils::visitors::is_local_used;
 use rustc_hir::{Arm, PatKind};
 use rustc_lint::LateContext;
 
-use super::UNUSABLE_MATCHES_BINDING;
+use super::UNUSABLE_MATCHES_BINDINGS;
 
 pub(crate) fn check_matches<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'tcx>]) {
     for arm in arms {
@@ -12,8 +12,8 @@ pub(crate) fn check_matches<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'tcx>
                 if let Some(guard) = arm.guard {
                     span_lint_and_help(
                         cx,
-                        UNUSABLE_MATCHES_BINDING,
-                        guard.body().span,
+                        UNUSABLE_MATCHES_BINDINGS,
+                        guard.peel_blocks().span,
                         "identifier pattern in `matches!` macro always evaluates to the value of the guard",
                         None,
                         "if you meant to check predicate, then try changing `matches!` macro into predicate the guard's checking",
@@ -21,7 +21,7 @@ pub(crate) fn check_matches<'tcx>(cx: &LateContext<'tcx>, arms: &'tcx [Arm<'tcx>
                 } else {
                     span_lint_and_then(
                         cx,
-                        UNUSABLE_MATCHES_BINDING,
+                        UNUSABLE_MATCHES_BINDINGS,
                         arm.pat.span,
                         "identifier pattern in `matches!` macro always evaluates to true",
                         |diag| {

@@ -1,16 +1,24 @@
+error: unknown lint: `clippy::unusable_matches_binding`
+  --> tests/ui/unusable_matches_bindings.rs:2:9
+   |
+LL | #![warn(clippy::unusable_matches_binding)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: did you mean: `clippy::unusable_matches_bindings`
+   |
+   = note: `-D unknown-lints` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unknown_lints)]`
+
 error: identifier pattern in `matches!` macro always evaluates to true
-  --> $DIR/unusable_matches_binding.rs:18:44
+  --> tests/ui/unusable_matches_bindings.rs:19:44
    |
 LL |     let _ = matches!(matching_data_source, unusable_binding);
    |                                            ^^^^^^^^^^^^^^^^
    |
    = note: the identifier pattern matches any value and creates an unusable binding in the process
    = help: if you meant to compare two values, use `x == y` or `discriminant(x) == discriminant(y)`
-   = note: `-D clippy::unusable-matches-binding` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::unusable_matches_binding)]`
+   = note: `#[deny(clippy::unusable_matches_bindings)]` on by default
 
 error: identifier pattern in `matches!` macro always evaluates to the value of the guard
-  --> $DIR/unusable_matches_binding.rs:19:60
+  --> tests/ui/unusable_matches_bindings.rs:20:60
    |
 LL |     let _ = matches!(matching_data_source, used_binding if used_binding.is_valid());
    |                                                            ^^^^^^^^^^^^^^^^^^^^^^^
@@ -18,12 +26,12 @@ LL |     let _ = matches!(matching_data_source, used_binding if used_binding.is_
    = help: if you meant to check predicate, then try changing `matches!` macro into predicate the guard's checking
 
 error: identifier pattern in `matches!` macro always evaluates to the value of the guard
-  --> $DIR/unusable_matches_binding.rs:21:64
+  --> tests/ui/unusable_matches_bindings.rs:22:64
    |
 LL |     let _ = matches!(matching_data_source, unusable_binding if unrelated_data < 4);
    |                                                                ^^^^^^^^^^^^^^^^^^
    |
    = help: if you meant to check predicate, then try changing `matches!` macro into predicate the guard's checking
 
-error: aborting due to 3 previous errors
+error: aborting due to 4 previous errors
 

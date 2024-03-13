@@ -22,7 +22,7 @@ mod rest_pat_in_fully_bound_struct;
 mod significant_drop_in_scrutinee;
 mod single_match;
 mod try_err;
-mod unusable_matches_binding;
+mod unusable_matches_bindings;
 mod wild_in_or_pats;
 
 use clippy_config::msrvs::{self, Msrv};
@@ -1004,7 +1004,7 @@ declare_clippy_lint! {
     /// let z = unrelated_data_source > 6;
     /// ```
     #[clippy::version = "1.75.0"]
-    pub UNUSABLE_MATCHES_BINDING,
+    pub UNUSABLE_MATCHES_BINDINGS,
     correctness,
     "checks for unused bindings in `matches!` macro"
 }
@@ -1051,7 +1051,7 @@ impl_lint_pass!(Matches => [
     MANUAL_MAP,
     MANUAL_FILTER,
     REDUNDANT_GUARDS,
-    UNUSABLE_MATCHES_BINDING,
+    UNUSABLE_MATCHES_BINDINGS,
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Matches {
@@ -1067,7 +1067,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
-                unusable_matches_binding::check_matches(cx, arms);
+                unusable_matches_bindings::check_matches(cx, arms);
             }
 
             if source == MatchSource::Normal && !is_span_match(cx, expr.span) {

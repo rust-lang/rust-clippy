@@ -1,3 +1,4 @@
+//@no-rustfix
 #![warn(clippy::unusable_matches_binding)]
 
 #[derive(Clone, Copy)]
