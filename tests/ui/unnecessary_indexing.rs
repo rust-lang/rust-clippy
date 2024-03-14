@@ -1,6 +1,7 @@
 //@no-rustfix
 #![allow(unused)]
 #![allow(dropping_copy_types)]
+#![allow(dropping_references)]
 #![warn(clippy::unnecessary_indexing)]
 
 fn c(x: i32) -> i32 {
@@ -94,6 +95,13 @@ fn main() {
     // dont lint without unary
     let a: &[i32] = &[1];
     if a.is_empty() {
+        let b = a[0];
+    }
+
+    // dont lint if we have mutable reference
+    let mut a: &[i32] = &[1];
+    if !a.is_empty() {
+        drop(&mut a);
         let b = a[0];
     }
 }
