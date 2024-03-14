@@ -10587,7 +10587,7 @@
     "id": "use_self",
     "id_span": {
       "path": "src/use_self.rs",
-      "line": 51
+      "line": 52
     },
     "group": "nursery",
     "level": "allow",
