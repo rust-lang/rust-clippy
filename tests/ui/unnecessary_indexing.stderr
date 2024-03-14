@@ -1,5 +1,5 @@
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:22:5
+  --> tests/ui/unnecessary_indexing.rs:23:5
    |
 LL | /     if !a.is_empty() {
 LL | |         let b = c(a[0]);
@@ -15,7 +15,7 @@ LL ~         let b = c(element);
    |
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:28:5
+  --> tests/ui/unnecessary_indexing.rs:29:5
    |
 LL | /     if !a.is_empty() {
 LL | |         let b = Struct::a(a[0]);
@@ -29,7 +29,7 @@ LL ~         let b = Struct::a(element);
    |
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:34:5
+  --> tests/ui/unnecessary_indexing.rs:35:5
    |
 LL | /     if !a.is_empty() {
 LL | |         let b = c(a[0]);
@@ -43,7 +43,7 @@ LL ~         let b = c(element);
    |
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:40:5
+  --> tests/ui/unnecessary_indexing.rs:41:5
    |
 LL | /     if !a.is_empty() {
 LL | |         let b = Struct::a(a[0]);
@@ -57,7 +57,7 @@ LL ~         let b = Struct::a(element);
    |
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:46:5
+  --> tests/ui/unnecessary_indexing.rs:47:5
    |
 LL | /     if !a.is_empty() {
 LL | |         let b = a[0];
@@ -75,7 +75,7 @@ LL +
    |
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:52:5
+  --> tests/ui/unnecessary_indexing.rs:53:5
    |
 LL | /     if !a.is_empty() {
 LL | |         let b = a[0];
@@ -93,7 +93,7 @@ LL +
    |
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:58:5
+  --> tests/ui/unnecessary_indexing.rs:59:5
    |
 LL | /     if !a.is_empty() {
 LL | |         dbg!(a);
@@ -112,7 +112,7 @@ LL +
    |
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:65:5
+  --> tests/ui/unnecessary_indexing.rs:66:5
    |
 LL | /     if !a.is_empty() {
 LL | |         dbg!(a);
@@ -141,7 +141,7 @@ LL |         drop(b);
    |              ~
 
 error: condition can be simplified with if..let syntax
-  --> tests/ui/unnecessary_indexing.rs:74:5
+  --> tests/ui/unnecessary_indexing.rs:75:5
    |
 LL | /     if !a.is_empty() {
 LL | |         dbg!(a);

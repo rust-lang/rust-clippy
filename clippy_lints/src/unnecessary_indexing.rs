@@ -5,7 +5,7 @@ use clippy_utils::eq_expr_value;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::for_each_expr;
-use rustc_ast::LitKind;
+use rustc_ast::{BorrowKind, LitKind, Mutability};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Local, Node, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
@@ -47,8 +47,7 @@ impl LateLintPass<'_> for UnnecessaryIndexing {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ rustc_hir::Expr<'_>) {
         if let Some(if_expr) = clippy_utils::higher::If::hir(expr)
             // check for negation
-            && let ExprKind::Unary(op, unary_inner) = if_expr.cond.kind
-            && UnOp::Not == op
+            && let ExprKind::Unary(UnOp::Not, unary_inner) = if_expr.cond.kind
             // check for call of is_empty
             && let ExprKind::MethodCall(method, conditional_receiver, _, _) = unary_inner.kind
             && method.ident.as_str() == "is_empty"
@@ -82,6 +81,10 @@ impl LateLintPass<'_> for UnnecessaryIndexing {
                     } else {
                         extra_exprs.push(x);
                     };
+                } else if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, val) = x.kind
+                    && eq_expr_value(cx, conditional_receiver, val)
+                {
+                    return ControlFlow::Break(());
                 };
 
                 ControlFlow::Continue::<()>(())
@@ -105,12 +108,7 @@ impl LateLintPass<'_> for UnnecessaryIndexing {
                                 ),
                                 Applicability::Unspecified,
                             );
-                            x.span_suggestion(
-                                first_local.span,
-                                "remove this line",
-                                "",
-                                Applicability::MachineApplicable,
-                            );
+                            x.span_suggestion(first_local.span, "remove this line", "", Applicability::Unspecified);
                             if !extra_locals.is_empty() {
                                 let extra_local_suggestions = extra_locals
                                     .iter()
