@@ -1193,7 +1193,7 @@
     "id": "dbg_macro",
     "id_span": {
       "path": "src/dbg_macro.rs",
-      "line": 29
+      "line": 31
     },
     "group": "restriction",
     "level": "allow",
