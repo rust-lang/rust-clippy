@@ -7483,8 +7483,8 @@
       "path": "src/methods/mod.rs",
       "line": 3593
     },
-    "group": "nursery",
-    "level": "allow",
+    "group": "perf",
+    "level": "warn",
     "docs": "\n### What it does\nLooks for calls to `RwLock::write` where the lock is only used for reading.\n\n### Why is this bad?\nThe write portion of `RwLock` is exclusive, meaning that no other thread\ncan access the lock while this writer is active.\n\n### Example\n```rust\nuse std::sync::RwLock;\nfn assert_is_zero(lock: &RwLock<i32>) {\n    let num = lock.write().unwrap();\n    assert_eq!(*num, 0);\n}\n```\n\nUse instead:\n```rust\nuse std::sync::RwLock;\nfn assert_is_zero(lock: &RwLock<i32>) {\n    let num = lock.read().unwrap();\n    assert_eq!(*num, 0);\n}\n```",
     "version": "1.73.0",
     "applicability": {
