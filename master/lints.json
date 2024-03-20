@@ -1750,7 +1750,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for integer validity checks, followed by a transmute that is (incorrectly) evaluated\neagerly (e.g. using `bool::then_some`).\n\n### Why is this bad?\nEager evaluation means that the `transmute` call is executed regardless of whether the condition is true or false.\nThis can introduce unsoundness and other subtle bugs.\n\n### Example\nConsider the following function which is meant to convert an unsigned integer to its enum equivalent via transmute.\n\n```rust\n#[repr(u8)]\nenum Opcode {\n    Add = 0,\n    Sub = 1,\n    Mul = 2,\n    Div = 3\n}\n\nfn int_to_opcode(op: u8) -> Option<Opcode> {\n    (op < 4).then_some(unsafe { std::mem::transmute(op) })\n}\n```\nThis may appear fine at first given that it checks that the `u8` is within the validity range of the enum,\n*however* the transmute is evaluated eagerly, meaning that it executes even if `op >= 4`!\n\nThis makes the function unsound, because it is possible for the caller to cause undefined behavior\n(creating an enum with an invalid bitpattern) entirely in safe code only by passing an incorrect value,\nwhich is normally only a bug that is possible in unsafe code.\n\nOne possible way in which this can go wrong practically is that the compiler sees it as:\n```rust\nlet temp: Foo = unsafe { std::mem::transmute(op) };\n(0 < 4).then_some(temp)\n```\nand optimizes away the `(0 < 4)` check based on the assumption that since a `Foo` was created from `op` with the validity range `0..3`,\nit is **impossible** for this condition to be false.\n\nIn short, it is possible for this function to be optimized in a way that makes it [never return `None`](https://godbolt.org/z/ocrcenevq),\neven if passed the value `4`.\n\nThis can be avoided by instead using lazy evaluation. For the example above, this should be written:\n```rust\nfn int_to_opcode(op: u8) -> Option<Opcode> {\n    (op < 4).then(|| unsafe { std::mem::transmute(op) })\n             ^^^^ ^^ `bool::then` only executes the closure if the condition is true!\n}\n```",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -3587,7 +3587,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of `.filter(Result::is_ok)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it appects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of `Result`. The simplification\nresults in more readable and succinct code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Ok::<i32, String>(1)].into_iter().filter(Result::is_ok);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Ok::<i32, String>(1)].into_iter().flatten();\n```",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "HasPlaceholders"
@@ -3602,7 +3602,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of `.filter(Option::is_some)` that may be replaced with a `.flatten()` call.\nThis lint will require additional changes to the follow-up calls as it appects the type.\n\n### Why is this bad?\nThis pattern is often followed by manual unwrapping of the `Option`. The simplification\nresults in more readable and succinct code without the need for manual unwrapping.\n\n### Example\n```rust\n// example code where clippy issues a warning\nvec![Some(1)].into_iter().filter(Option::is_some);\n\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nvec![Some(1)].into_iter().flatten();\n```",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "HasPlaceholders"
@@ -4472,7 +4472,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for usage of `option.map(f).unwrap_or_default()` and `result.map(f).unwrap_or_default()` where f is a function or closure that returns the `bool` type.\n\n### Why is this bad?\nReadability. These can be written more concisely as `option.is_some_and(f)` and `result.is_ok_and(f)`.\n\n### Example\n```rust\noption.map(|a| a > 10).unwrap_or_default();\nresult.map(|a| a > 10).unwrap_or_default();\n```\nUse instead:\n```rust\noption.is_some_and(|a| a > 10);\nresult.is_ok_and(|a| a > 10);\n```",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -7987,7 +7987,7 @@
     "group": "complexity",
     "level": "warn",
     "docs": "\n### What it does\nChecks for iterators of `Result`s using `.filter(Result::is_ok).map(Result::unwrap)` that may\nbe replaced with a `.flatten()` call.\n\n### Why is this bad?\n`Result` implements `IntoIterator<Item = T>`. This means that `Result` can be flattened\nautomatically without suspicious-looking `unwrap` calls.\n\n### Example\n```rust\nlet _ = std::iter::empty::<Result<i32, ()>>().filter(Result::is_ok).map(Result::unwrap);\n```\nUse instead:\n```rust\nlet _ = std::iter::empty::<Result<i32, ()>>().flatten();\n```",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -8695,7 +8695,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\n\nChecks for usages of `str.trim().split(\"\\n\")` and `str.trim().split(\"\\r\\n\")`.\n\n### Why is this bad?\n\nHard-coding the line endings makes the code less compatible. `str.lines` should be used instead.\n\n### Example\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".trim().split('\\n');\n```\nUse instead:\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".lines();\n```\n\n### Known Problems\n\nThis lint cannot detect if the split is intentionally restricted to a single type of newline (`\"\\n\"` or\n`\"\\r\\n\"`), for example during the parsing of a specific file format in which precisely one newline type is\nvalid.\n```rust",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -9010,7 +9010,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for the suspicious use of `OpenOptions::create()`\nwithout an explicit `OpenOptions::truncate()`.\n\n### Why is this bad?\n`create()` alone will either create a new file or open an\nexisting file. If the file already exists, it will be\noverwritten when written to, but the file will not be\ntruncated by default.\nIf less data is written to the file\nthan it already contains, the remainder of the file will\nremain unchanged, and the end of the file will contain old\ndata.\nIn most cases, one should either use `create_new` to ensure\nthe file is created from scratch, or ensure `truncate` is\ncalled so that the truncation behaviour is explicit. `truncate(true)`\nwill ensure the file is entirely overwritten with new data, whereas\n`truncate(false)` will explicitly keep the default behavior.\n\n### Example\n```rust\nuse std::fs::OpenOptions;\n\nOpenOptions::new().create(true);\n```\nUse instead:\n```rust\nuse std::fs::OpenOptions;\n\nOpenOptions::new().create(true).truncate(true);\n```",
-    "version": "1.75.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -9175,7 +9175,7 @@
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nSuggests to use `const` in `thread_local!` macro if possible.\n### Why is this bad?\n\nThe `thread_local!` macro wraps static declarations and makes them thread-local.\nIt supports using a `const` keyword that may be used for declarations that can\nbe evaluated as a constant expression. This can enable a more efficient thread\nlocal implementation that can avoid lazy initialization. For types that do not\nneed to be dropped, this can enable an even more efficient implementation that\ndoes not need to track any additional state.\n\nhttps://doc.rust-lang.org/std/macro.thread_local.html\n\n### Example\n```rust\n// example code where clippy issues a warning\nthread_local! {\n    static BUF: String = String::new();\n}\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nthread_local! {\n    static BUF: String = const { String::new() };\n}\n```",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -9655,7 +9655,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks that there isn't an infinite recursion in trait\nimplementations.\n\n### Why is this bad?\nThis is a hard to find infinite recursion that will crash any code.\nusing it.\n\n### Example\n```rust\nenum Foo {\n    A,\n    B,\n}\n\nimpl PartialEq for Foo {\n    fn eq(&self, other: &Self) -> bool {\n        self == other // bad!\n    }\n}\n```\nUse instead:\n\nIn such cases, either use `#[derive(PartialEq)]` or don't implement it.",
-    "version": "1.76.0",
+    "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
