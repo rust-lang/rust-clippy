@@ -3,6 +3,7 @@
 #![allow(clippy::ptr_arg)] // https://github.com/rust-lang/rust-clippy/issues/10612
 #![allow(clippy::needless_late_init)]
 #![allow(clippy::box_collection)]
+#![allow(clippy::boxed_local)]
 #![warn(clippy::assigning_clones)]
 
 use std::borrow::ToOwned;
@@ -153,6 +154,23 @@ fn clone_inside_macro() {
     clone_inside!(a, b);
 }
 
+// Deref handling
+fn clone_into_deref_method(mut a: DerefWrapper<HasCloneFrom>, b: HasCloneFrom) {
+    *a = b.clone();
+}
+
+fn clone_into_deref_with_clone_method(mut a: DerefWrapperWithClone<HasCloneFrom>, b: HasCloneFrom) {
+    *a = b.clone();
+}
+
+fn clone_into_box_method(mut a: Box<HasCloneFrom>, b: HasCloneFrom) {
+    *a = b.clone();
+}
+
+fn clone_into_self_deref_method(a: &mut DerefWrapperWithClone<HasCloneFrom>, b: DerefWrapperWithClone<HasCloneFrom>) {
+    *a = b.clone();
+}
+
 // ToOwned
 fn owned_method_mut_ref(mut_string: &mut String, ref_str: &str) {
     *mut_string = ref_str.to_owned();
@@ -231,5 +249,47 @@ impl<'a> Add for &'a mut HasCloneFrom {
     type Output = Self;
     fn add(self, _: &'a mut HasCloneFrom) -> Self {
         self
+    }
+}
+
+struct DerefWrapper<T>(T);
+
+impl<T> Deref for DerefWrapper<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for DerefWrapper<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+struct DerefWrapperWithClone<T>(T);
+
+impl<T> Deref for DerefWrapperWithClone<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for DerefWrapperWithClone<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<T: Clone> Clone for DerefWrapperWithClone<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+
+    fn clone_from(&mut self, source: &Self) {
+        *self = Self(source.0.clone());
     }
 }

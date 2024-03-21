@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::HirNode;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{is_trait_method, path_to_local};
+use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Expr, ExprKind, Node};
 use rustc_lint::{LateContext, LateLintPass};
@@ -271,8 +272,20 @@ impl<'tcx> CallCandidate<'tcx> {
                 match self.kind {
                     CallKind::MethodCall { receiver } => {
                         let receiver_sugg = if let ExprKind::Unary(hir::UnOp::Deref, ref_expr) = lhs.kind {
-                            // `*lhs = self_expr.clone();` -> `lhs.clone_from(self_expr)`
-                            Sugg::hir_with_applicability(cx, ref_expr, "_", applicability)
+                            // If `ref_expr` implements both Deref(Mut) and Clone, we cannot remove the dereference.
+                            // Because in that case we would be calling `clone_from` on the type of `lhs` directly, but
+                            // we would also be passing it a value of type `self_expr`, which has type of `*lhs`.
+                            let ty = cx.typeck_results().expr_ty(ref_expr);
+                            let impls_clone = cx.tcx.lang_items().clone_trait().map_or(false, |id| implements_trait(cx, ty, id, &[]));
+                            let impls_deref = cx.tcx.lang_items().deref_mut_trait().map_or(false, |id| implements_trait(cx, ty, id, &[]));
+
+                            if impls_clone && impls_deref {
+                                // `*lhs = self_expr.clone();` -> `(*lhs).clone_from(self_expr)`
+                                Sugg::hir_with_applicability(cx, lhs, "_", applicability)
+                            } else {
+                                // `*lhs = self_expr.clone();` -> `lhs.clone_from(self_expr)`
+                                Sugg::hir_with_applicability(cx, ref_expr, "_", applicability)
+                            }
                         } else {
                             // `lhs = self_expr.clone();` -> `lhs.clone_from(self_expr)`
                             Sugg::hir_with_applicability(cx, lhs, "_", applicability)
