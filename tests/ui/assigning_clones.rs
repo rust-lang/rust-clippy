@@ -171,6 +171,14 @@ fn clone_into_self_deref_method(a: &mut DerefWrapperWithClone<HasCloneFrom>, b: 
     *a = b.clone();
 }
 
+fn clone_into_deref_function(mut a: DerefWrapper<HasCloneFrom>, b: HasCloneFrom) {
+    *a = Clone::clone(&b);
+}
+
+fn clone_into_box_function(mut a: Box<HasCloneFrom>, b: HasCloneFrom) {
+    *a = Clone::clone(&b);
+}
+
 // ToOwned
 fn owned_method_mut_ref(mut_string: &mut String, ref_str: &str) {
     *mut_string = ref_str.to_owned();

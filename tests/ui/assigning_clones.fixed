@@ -34,7 +34,7 @@ fn clone_method_lhs_val(mut mut_thing: HasCloneFrom, ref_thing: &HasCloneFrom) {
 }
 
 fn clone_function_lhs_mut_ref(mut_thing: &mut HasCloneFrom, ref_thing: &HasCloneFrom) {
-    Clone::clone_from(mut_thing, ref_thing);
+    Clone::clone_from(&mut *mut_thing, ref_thing);
 }
 
 fn clone_function_lhs_val(mut mut_thing: HasCloneFrom, ref_thing: &HasCloneFrom) {
@@ -42,15 +42,15 @@ fn clone_function_lhs_val(mut mut_thing: HasCloneFrom, ref_thing: &HasCloneFrom)
 }
 
 fn clone_function_through_trait(mut_thing: &mut HasCloneFrom, ref_thing: &HasCloneFrom) {
-    Clone::clone_from(mut_thing, ref_thing);
+    Clone::clone_from(&mut *mut_thing, ref_thing);
 }
 
 fn clone_function_through_type(mut_thing: &mut HasCloneFrom, ref_thing: &HasCloneFrom) {
-    Clone::clone_from(mut_thing, ref_thing);
+    Clone::clone_from(&mut *mut_thing, ref_thing);
 }
 
 fn clone_function_fully_qualified(mut_thing: &mut HasCloneFrom, ref_thing: &HasCloneFrom) {
-    Clone::clone_from(mut_thing, ref_thing);
+    Clone::clone_from(&mut *mut_thing, ref_thing);
 }
 
 fn clone_method_lhs_complex(mut_thing: &mut HasCloneFrom, ref_thing: &HasCloneFrom) {
@@ -169,6 +169,14 @@ fn clone_into_box_method(mut a: Box<HasCloneFrom>, b: HasCloneFrom) {
 
 fn clone_into_self_deref_method(a: &mut DerefWrapperWithClone<HasCloneFrom>, b: DerefWrapperWithClone<HasCloneFrom>) {
     a.clone_from(&b);
+}
+
+fn clone_into_deref_function(mut a: DerefWrapper<HasCloneFrom>, b: HasCloneFrom) {
+    Clone::clone_from(&mut *a, &b);
+}
+
+fn clone_into_box_function(mut a: Box<HasCloneFrom>, b: HasCloneFrom) {
+    Clone::clone_from(&mut *a, &b);
 }
 
 // ToOwned
