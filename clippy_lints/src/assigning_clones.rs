@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::HirNode;
 use clippy_utils::mir::{enclosing_mir, PossibleBorrowerMap};
 use clippy_utils::sugg::Sugg;
+use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_trait_method, local_is_initialized, path_to_local};
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Expr, ExprKind};
@@ -366,8 +367,20 @@ impl<'tcx> CallCandidate<'tcx> {
                 match self.kind {
                     CallKind::MethodCall { receiver } => {
                         let receiver_sugg = if let ExprKind::Unary(hir::UnOp::Deref, ref_expr) = lhs.kind {
-                            // `*lhs = self_expr.clone();` -> `lhs.clone_from(self_expr)`
-                            Sugg::hir_with_applicability(cx, ref_expr, "_", applicability)
+                            // If `ref_expr` implements both Deref(Mut) and Clone, we cannot remove the dereference.
+                            // Because in that case we would be calling `clone_from` on the type of `lhs` directly, but
+                            // we would also be passing it a value of type `self_expr`, which has type of `*lhs`.
+                            let ty = cx.typeck_results().expr_ty(ref_expr);
+                            let impls_clone = cx.tcx.lang_items().clone_trait().map_or(false, |id| implements_trait(cx, ty, id, &[]));
+                            let impls_deref = cx.tcx.lang_items().deref_mut_trait().map_or(false, |id| implements_trait(cx, ty, id, &[]));
+
+                            if impls_clone && impls_deref {
+                                // `*lhs = self_expr.clone();` -> `(*lhs).clone_from(self_expr)`
+                                Sugg::hir_with_applicability(cx, lhs, "_", applicability)
+                            } else {
+                                // `*lhs = self_expr.clone();` -> `lhs.clone_from(self_expr)`
+                                Sugg::hir_with_applicability(cx, ref_expr, "_", applicability)
+                            }
                         } else {
                             // `lhs = self_expr.clone();` -> `lhs.clone_from(self_expr)`
                             Sugg::hir_with_applicability(cx, lhs, "_", applicability)
@@ -388,8 +401,27 @@ impl<'tcx> CallCandidate<'tcx> {
                     },
                     CallKind::FunctionCall { self_arg, .. } => {
                         let self_sugg = if let ExprKind::Unary(hir::UnOp::Deref, ref_expr) = lhs.kind {
-                            // `*lhs = Clone::clone(self_expr);` -> `Clone::clone_from(lhs, self_expr)`
-                            Sugg::hir_with_applicability(cx, ref_expr, "_", applicability)
+                            // If `ref_expr` implements `Deref(Mut)`, we have to keep the dereference, and add `&mut`,
+                            // otherwise the first argument to `clone_from` would apply to the wrapper type, rather
+                            // than the target type.
+                            let ty = cx.typeck_results().expr_ty(ref_expr);
+                            // let ty2 = cx.typeck_results().expr_ty(lhs);
+                            // cx.typeck_results().expr_adjustments(lhs);
+                            let impls_deref = cx.tcx.lang_items().deref_mut_trait().map_or(false, |id| implements_trait(cx, ty, id, &[]));
+                            // let adjusted = cx.typeck_results().expr_ty_adjusted(ref_expr);
+                            // let adjusted2 = cx.typeck_results().expr_ty_adjusted(lhs);
+                            // eprintln!("{ty:?}, {ty2:?}, {}, {adjusted:?}, {adjusted2:?} impls_deref: {impls_deref}", ty == ty2);
+                            // eprintln!("{:?}", cx.typeck_results().expr_adjustments(lhs));
+                            // eprintln!("{:?}", cx.typeck_results().expr_adjustments(ref_expr));
+
+                            if impls_deref {
+                                // `*lhs = Clone::clone(self_expr);` -> `Clone::clone_from(&mut *lhs, self_expr)`
+                                // mut_addr_deref is used to avoid unnecessary parentheses around `*lhs`
+                                Sugg::hir_with_applicability(cx, ref_expr, "_", applicability).mut_addr_deref()
+                            } else {
+                                // `*lhs = Clone::clone(self_expr);` -> `Clone::clone_from(lhs, self_expr)`
+                                Sugg::hir_with_applicability(cx, ref_expr, "_", applicability)
+                            }
                         } else {
                             // `lhs = Clone::clone(self_expr);` -> `Clone::clone_from(&mut lhs, self_expr)`
                             Sugg::hir_with_applicability(cx, lhs, "_", applicability).mut_addr()
