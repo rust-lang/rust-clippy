@@ -2064,7 +2064,7 @@
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nWarns on any exported `structs`s that are not tagged `#[non_exhaustive]`\n\n### Why is this bad?\nExhaustive structs are typically fine, but a project which does\nnot wish to make a stability commitment around exported structs may wish to\ndisable them by default.\n\n### Example\n```rust\nstruct Foo {\n    bar: u8,\n    baz: String,\n}\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct Foo {\n    bar: u8,\n    baz: String,\n}\n```",
+    "docs": "\n### What it does\nWarns on any exported `struct`s that are not tagged `#[non_exhaustive]`\n\n### Why is this bad?\nExhaustive structs are typically fine, but a project which does\nnot wish to make a stability commitment around exported structs may wish to\ndisable them by default.\n\n### Example\n```rust\nstruct Foo {\n    bar: u8,\n    baz: String,\n}\n```\nUse instead:\n```rust\n#[non_exhaustive]\nstruct Foo {\n    bar: u8,\n    baz: String,\n}\n```",
     "version": "1.51.0",
     "applicability": {
       "is_multi_part_suggestion": false,
