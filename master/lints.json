@@ -3089,7 +3089,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\n\nThis lint checks that no function newer than the defined MSRV (minimum\nsupported rust version) is used in the crate.\n\n### Why is this bad?\n\nIt would prevent the crate to be actually used with the specified MSRV.\n\n### Example\n```rust\n// MSRV of 1.3.0\nuse std::thread::sleep;\nuse std::time::Duration;\n\n// Sleep was defined in `1.4.0`.\nsleep(Duration::new(1, 0));\n```\n\nTo fix this problem, either increase your MSRV or use another item\navailable in your current MSRV.",
-    "version": "1.77.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
