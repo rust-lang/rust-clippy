@@ -4782,7 +4782,7 @@
     "id": "manual_unwrap_or_default",
     "id_span": {
       "path": "src/manual_unwrap_or_default.rs",
-      "line": 45
+      "line": 46
     },
     "group": "suspicious",
     "level": "warn",
