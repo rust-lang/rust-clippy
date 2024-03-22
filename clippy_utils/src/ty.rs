@@ -45,7 +45,7 @@ pub fn is_copy<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
 pub fn has_debug_impl<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     cx.tcx
         .get_diagnostic_item(sym::Debug)
-        .map_or(false, |debug| implements_trait(cx, ty, debug, &[]))
+        .is_some_and(|debug| implements_trait(cx, ty, debug, &[]))
 }
 
 /// Checks whether a type can be partially moved.
@@ -502,7 +502,7 @@ pub fn needs_ordered_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
             .tcx
             .lang_items()
             .drop_trait()
-            .map_or(false, |id| implements_trait(cx, ty, id, &[]))
+            .is_some_and(|id| implements_trait(cx, ty, id, &[]))
         {
             // This type doesn't implement drop, so no side effects here.
             // Check if any component type has any.
@@ -743,7 +743,7 @@ pub fn ty_sig<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<ExprFnSig<'t
                 {
                     let output = bounds
                         .projection_bounds()
-                        .find(|p| lang_items.fn_once_output().map_or(false, |id| id == p.item_def_id()))
+                        .find(|p| lang_items.fn_once_output().is_some_and(|id| id == p.item_def_id()))
                         .map(|p| p.map_bound(|p| p.term.ty().unwrap()));
                     Some(ExprFnSig::Trait(bound.map_bound(|b| b.args.type_at(0)), output, None))
                 },
@@ -778,7 +778,7 @@ fn sig_from_bounds<'tcx>(
                     && p.self_ty() == ty =>
             {
                 let i = pred.kind().rebind(p.trait_ref.args.type_at(1));
-                if inputs.map_or(false, |inputs| i != inputs) {
+                if inputs.is_some_and(|inputs| i != inputs) {
                     // Multiple different fn trait impls. Is this even allowed?
                     return None;
                 }
@@ -818,7 +818,7 @@ fn sig_for_projection<'tcx>(cx: &LateContext<'tcx>, ty: AliasTy<'tcx>) -> Option
             {
                 let i = pred.kind().rebind(p.trait_ref.args.type_at(1));
 
-                if inputs.map_or(false, |inputs| inputs != i) {
+                if inputs.is_some_and(|inputs| inputs != i) {
                     // Multiple different fn trait impls. Is this even allowed?
                     return None;
                 }
@@ -1191,9 +1191,7 @@ pub fn is_interior_mut_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
         ty::Ref(_, inner_ty, mutbl) => mutbl == Mutability::Mut || is_interior_mut_ty(cx, inner_ty),
         ty::Slice(inner_ty) => is_interior_mut_ty(cx, inner_ty),
         ty::Array(inner_ty, size) => {
-            size.try_eval_target_usize(cx.tcx, cx.param_env)
-                .map_or(true, |u| u != 0)
-                && is_interior_mut_ty(cx, inner_ty)
+            size.try_eval_target_usize(cx.tcx, cx.param_env) != Some(0) && is_interior_mut_ty(cx, inner_ty)
         },
         ty::Tuple(fields) => fields.iter().any(|ty| is_interior_mut_ty(cx, ty)),
         ty::Adt(def, args) => {
@@ -1278,5 +1276,5 @@ pub fn normalize_with_regions<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>
 
 /// Checks if the type is `core::mem::ManuallyDrop<_>`
 pub fn is_manually_drop(ty: Ty<'_>) -> bool {
-    ty.ty_adt_def().map_or(false, AdtDef::is_manually_drop)
+    ty.ty_adt_def().is_some_and(AdtDef::is_manually_drop)
 }

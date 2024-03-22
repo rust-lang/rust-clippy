@@ -50,7 +50,7 @@ impl LateLintPass<'_> for BoxDefault {
             // And that method is `new`
             && seg.ident.name == sym::new
             // And the call is that of a `Box` method
-            && path_def_id(cx, ty).map_or(false, |id| Some(id) == cx.tcx.lang_items().owned_box())
+            && path_def_id(cx, ty).is_some_and(|id| Some(id) == cx.tcx.lang_items().owned_box())
             // And the single argument to the call is another function call
             // This is the `T::default()` of `Box::new(T::default())`
             && let ExprKind::Call(arg_path, inner_call_args) = arg.kind
@@ -60,6 +60,7 @@ impl LateLintPass<'_> for BoxDefault {
             // or that we are inside a `vec!` macro expansion
             && (expr.span.eq_ctxt(arg.span) || is_local_vec_expn(cx, arg, expr))
             // And the argument is equivalent to `Default::default()`
+            && path_def_id(cx, ty).is_some_and(|id| Some(id) == cx.tcx.lang_items().owned_box())
             && is_default_equivalent(cx, arg)
         {
             span_lint_and_sugg(
@@ -118,9 +119,9 @@ fn explicit_default_type<'a>(arg_path: &'a Expr<'_>) -> Option<&'a Ty<'a>> {
 }
 
 fn is_local_vec_expn(cx: &LateContext<'_>, expr: &Expr<'_>, ref_expr: &Expr<'_>) -> bool {
-    macro_backtrace(expr.span).next().map_or(false, |call| {
-        cx.tcx.is_diagnostic_item(sym::vec_macro, call.def_id) && call.span.eq_ctxt(ref_expr.span)
-    })
+    macro_backtrace(expr.span)
+        .next()
+        .is_some_and(|call| cx.tcx.is_diagnostic_item(sym::vec_macro, call.def_id) && call.span.eq_ctxt(ref_expr.span))
 }
 
 #[derive(Default)]

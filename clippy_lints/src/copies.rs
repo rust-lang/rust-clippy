@@ -272,7 +272,7 @@ fn lint_branches_sharing_code<'tcx>(
         let span = span.with_hi(last_block.span.hi());
         // Improve formatting if the inner block has indention (i.e. normal Rust formatting)
         let test_span = Span::new(span.lo() - BytePos(4), span.lo(), span.ctxt(), span.parent());
-        let span = if snippet_opt(cx, test_span).map_or(false, |snip| snip == "    ") {
+        let span = if snippet_opt(cx, test_span).is_some_and(|snip| snip == "    ") {
             span.with_lo(test_span.lo())
         } else {
             span
@@ -353,7 +353,7 @@ fn eq_binding_names(s: &Stmt<'_>, names: &[(HirId, Symbol)]) -> bool {
         let mut i = 0usize;
         let mut res = true;
         l.pat.each_binding_or_first(&mut |_, _, _, name| {
-            if names.get(i).map_or(false, |&(_, n)| n == name.name) {
+            if names.get(i).is_some_and(|&(_, n)| n == name.name) {
                 i += 1;
             } else {
                 res = false;
@@ -397,12 +397,10 @@ fn eq_stmts(
         let new_bindings = &moved_bindings[old_count..];
         blocks
             .iter()
-            .all(|b| get_stmt(b).map_or(false, |s| eq_binding_names(s, new_bindings)))
+            .all(|b| get_stmt(b).is_some_and(|s| eq_binding_names(s, new_bindings)))
     } else {
         true
-    }) && blocks
-        .iter()
-        .all(|b| get_stmt(b).map_or(false, |s| eq.eq_stmt(s, stmt)))
+    }) && blocks.iter().all(|b| get_stmt(b).is_some_and(|s| eq.eq_stmt(s, stmt)))
 }
 
 #[expect(clippy::too_many_lines)]
@@ -459,9 +457,7 @@ fn scan_block_for_eq<'tcx>(
     //     x + 50
     let expr_hash_eq = if let Some(e) = block.expr {
         let hash = hash_expr(cx, e);
-        blocks
-            .iter()
-            .all(|b| b.expr.map_or(false, |e| hash_expr(cx, e) == hash))
+        blocks.iter().all(|b| b.expr.is_some_and(|e| hash_expr(cx, e) == hash))
     } else {
         blocks.iter().all(|b| b.expr.is_none())
     };
@@ -522,7 +518,7 @@ fn scan_block_for_eq<'tcx>(
         });
     if let Some(e) = block.expr {
         for block in blocks {
-            if block.expr.map_or(false, |expr| !eq.eq_expr(expr, e)) {
+            if block.expr.is_some_and(|expr| !eq.eq_expr(expr, e)) {
                 moved_locals.truncate(moved_locals_at_start);
                 return BlockEq {
                     start_end_eq,
@@ -541,7 +537,7 @@ fn scan_block_for_eq<'tcx>(
 }
 
 fn check_for_warn_of_moved_symbol(cx: &LateContext<'_>, symbols: &[(HirId, Symbol)], if_expr: &Expr<'_>) -> bool {
-    get_enclosing_block(cx, if_expr.hir_id).map_or(false, |block| {
+    get_enclosing_block(cx, if_expr.hir_id).is_some_and(|block| {
         let ignore_span = block.span.shrink_to_lo().to(if_expr.span);
 
         symbols

@@ -290,7 +290,7 @@ impl<'tcx> LateLintPass<'tcx> for Write {
             .opts
             .crate_name
             .as_ref()
-            .map_or(false, |crate_name| crate_name == "build_script_build");
+            .is_some_and(|crate_name| crate_name == "build_script_build");
 
         let allowed_in_tests = self.allow_print_in_tests
             && (is_in_test_function(cx.tcx, expr.hir_id) || is_in_cfg_test(cx.tcx, expr.hir_id));

@@ -116,6 +116,7 @@ mod unnecessary_iter_cloned;
 mod unnecessary_join;
 mod unnecessary_lazy_eval;
 mod unnecessary_literal_unwrap;
+mod unnecessary_map_or;
 mod unnecessary_result_map_or_else;
 mod unnecessary_sort_by;
 mod unnecessary_to_owned;
@@ -4074,6 +4075,34 @@ declare_clippy_lint! {
     suspicious,
     "is_empty() called on strings known at compile time"
 }
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Converts some constructs mapping an Enum value for equality comparison.
+    ///
+    /// ### Why is this bad?
+    /// Calls such as `opt.map_or(false, |val| val == 5)` are needlessly long and cumbersome,
+    /// and can be reduced to, for example, `opt == Some(5)` assuming `opt` implements `PartialEq`.
+    /// This lint offers readability and conciseness improvements.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// pub fn a(x: Option<i32>) -> bool {
+    ///     x.map_or(false, |n| n == 5)
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// pub fn a(x: Option<i32>) -> bool {
+    ///     x == Some(5)
+    /// }
+    /// ```
+    #[clippy::version = "1.75.0"]
+    pub UNNECESSARY_MAP_OR,
+    style,
+    "reduce unnecessary pattern matching for constructs that implement `PartialEq`"
+}
+
 pub struct Methods {
     avoid_breaking_exported_api: bool,
     msrv: Msrv,
@@ -4236,6 +4265,7 @@ impl_lint_pass!(Methods => [
     UNNECESSARY_RESULT_MAP_OR_ELSE,
     MANUAL_C_STR_LITERALS,
     UNNECESSARY_GET_THEN_CHECK,
+    UNNECESSARY_MAP_OR,
 ]);
 
 /// Extracts a method call name, args, and `Span` of the method name.
@@ -4735,6 +4765,7 @@ impl Methods {
                     option_map_or_none::check(cx, expr, recv, def, map);
                     manual_ok_or::check(cx, expr, recv, def, map);
                     option_map_or_err_ok::check(cx, expr, recv, def, map);
+                    unnecessary_map_or::check(cx, expr, recv, def, map, &self.msrv);
                 },
                 ("map_or_else", [def, map]) => {
                     result_map_or_else_none::check(cx, expr, recv, def, map);
@@ -5128,7 +5159,7 @@ impl SelfKind {
                 ty.boxed_ty() == parent_ty
             } else if is_type_diagnostic_item(cx, ty, sym::Rc) || is_type_diagnostic_item(cx, ty, sym::Arc) {
                 if let ty::Adt(_, args) = ty.kind() {
-                    args.types().next().map_or(false, |t| t == parent_ty)
+                    args.types().next() == Some(parent_ty)
                 } else {
                     false
                 }
