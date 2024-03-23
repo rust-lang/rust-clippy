@@ -1715,7 +1715,7 @@
     "id": "duplicated_attributes",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 514
+      "line": 524
     },
     "group": "suspicious",
     "level": "warn",
@@ -5510,11 +5510,11 @@
     "id": "mixed_attributes_style",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 488
+      "line": 498
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks that an item has only one kind of attributes.\n\n### Why is this bad?\nHaving both kinds of attributes makes it more complicated to read code.\n\n### Example\n```rust\n#[cfg(linux)]\npub fn foo() {\n    #![cfg(windows)]\n}\n```\nUse instead:\n```rust\n#[cfg(linux)]\n#[cfg(windows)]\npub fn foo() {\n}\n```",
+    "docs": "\n### What it does\nChecks for items that have the same kind of attributes with mixed styles (inner/outer).\n\n### Why is this bad?\nHaving both style of said attributes makes it more complicated to read code.\n\n### Known problems\nThis lint currently has false-negatives when mixing same attributes\nbut they have different path symbols, for example:\n```rust\n#[custom_attribute]\npub fn foo() {\n    #![my_crate::custom_attribute]\n}\n```\n\n### Example\n```rust\n#[cfg(linux)]\npub fn foo() {\n    #![cfg(windows)]\n}\n```\nUse instead:\n```rust\n#[cfg(linux)]\n#[cfg(windows)]\npub fn foo() {\n}\n```",
     "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
