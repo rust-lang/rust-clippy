@@ -1,0 +1,59 @@
+error: calling `as_secs_f64()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:8:22
+   |
+LL |     let float_secs = DURATION.as_secs() as f64;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64()`
+   |
+   = note: `-D clippy::duration-to-float-precision-loss` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::duration_to_float_precision_loss)]`
+
+error: calling `as_secs_f32()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:18:22
+   |
+LL |     let float_secs = DURATION.as_secs() as f32;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f32()`
+
+error: calling `as_secs_f64()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:20:22
+   |
+LL |     let float_secs = DURATION.as_millis() as f64 / 1_000.0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64()`
+
+error: calling `as_secs_f64()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:22:22
+   |
+LL |     let float_secs = DURATION.as_micros() as f64 / 1_000_000.0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64()`
+
+error: calling `as_secs_f64()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:24:22
+   |
+LL |     let float_secs = DURATION.as_micros() as f64 * 1e-6;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64()`
+
+error: calling `as_secs_f64()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:26:22
+   |
+LL |     let float_secs = DURATION.as_nanos() as f64 / 1_000_000_000.0;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64()`
+
+error: calling `as_secs_f64() * 1e3` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:28:24
+   |
+LL |     let float_millis = DURATION.as_millis() as f64;
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64() * 1e3`
+
+error: calling `as_secs_f64() * 1e6` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:30:24
+   |
+LL |     let float_micros = DURATION.as_micros() as f64;
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64() * 1e6`
+
+error: calling `as_secs_f64()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:47:22
+   |
+LL |     let float_secs = DURATION.as_secs() as f64; // should trigger lint because MSRV is satisfied
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64()`
+
+error: aborting due to 9 previous errors
+

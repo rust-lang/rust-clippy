@@ -5265,6 +5265,7 @@ Released 2018-09-13
 [`duplicate_underscore_argument`]: https://rust-lang.github.io/rust-clippy/master/index.html#duplicate_underscore_argument
 [`duplicated_attributes`]: https://rust-lang.github.io/rust-clippy/master/index.html#duplicated_attributes
 [`duration_subsec`]: https://rust-lang.github.io/rust-clippy/master/index.html#duration_subsec
+[`duration_to_float_precision_loss`]: https://rust-lang.github.io/rust-clippy/master/index.html#duration_to_float_precision_loss
 [`eager_transmute`]: https://rust-lang.github.io/rust-clippy/master/index.html#eager_transmute
 [`else_if_without_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#else_if_without_else
 [`empty_docs`]: https://rust-lang.github.io/rust-clippy/master/index.html#empty_docs
