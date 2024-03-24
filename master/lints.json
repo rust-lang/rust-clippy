@@ -1178,7 +1178,7 @@
     "id": "crosspointer_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 110
+      "line": 111
     },
     "group": "complexity",
     "level": "warn",
@@ -1745,7 +1745,7 @@
     "id": "eager_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 518
+      "line": 519
     },
     "group": "correctness",
     "level": "deny",
@@ -5489,6 +5489,21 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
+    }
+  },
+  {
+    "id": "missing_transmute_annotations",
+    "id_span": {
+      "path": "src/transmute/mod.rs",
+      "line": 550
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks if transmute calls have all generics specified.\n\n### Why is this bad?\nIf not set, some unexpected output type could be retrieved instead of the expected one,\npotentially leading to invalid code.\n\nThis is particularly dangerous in case a seemingly innocent/unrelated change can cause type\ninference to start inferring a different type. E.g. the transmute is the tail expression of\nan `if` branch, and a different branches type changes, causing the transmute to silently\nhave a different type, instead of a proper error.\n\n### Example\n```rust\nlet x: i32 = std::mem::transmute([1u16, 2u16]);\n```\nUse instead:\n```rust\nlet x = std::mem::transmute::<[u16; 2], i32>([1u16, 2u16]);\n```",
+    "version": "1.77.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
     }
   },
   {
@@ -9320,7 +9335,7 @@
     "id": "transmute_bytes_to_str",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 206
+      "line": 207
     },
     "group": "complexity",
     "level": "warn",
@@ -9335,7 +9350,7 @@
     "id": "transmute_float_to_int",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 300
+      "line": 301
     },
     "group": "complexity",
     "level": "warn",
@@ -9350,7 +9365,7 @@
     "id": "transmute_int_to_bool",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 229
+      "line": 230
     },
     "group": "complexity",
     "level": "warn",
@@ -9365,7 +9380,7 @@
     "id": "transmute_int_to_char",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 172
+      "line": 173
     },
     "group": "complexity",
     "level": "warn",
@@ -9380,7 +9395,7 @@
     "id": "transmute_int_to_float",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 252
+      "line": 253
     },
     "group": "complexity",
     "level": "warn",
@@ -9395,7 +9410,7 @@
     "id": "transmute_int_to_non_zero",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 277
+      "line": 278
     },
     "group": "complexity",
     "level": "warn",
@@ -9410,7 +9425,7 @@
     "id": "transmute_null_to_fn",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 462
+      "line": 463
     },
     "group": "correctness",
     "level": "deny",
@@ -9425,7 +9440,7 @@
     "id": "transmute_num_to_bytes",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 323
+      "line": 324
     },
     "group": "complexity",
     "level": "warn",
@@ -9440,7 +9455,7 @@
     "id": "transmute_ptr_to_ptr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 351
+      "line": 352
     },
     "group": "pedantic",
     "level": "allow",
@@ -9455,7 +9470,7 @@
     "id": "transmute_ptr_to_ref",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 138
+      "line": 139
     },
     "group": "complexity",
     "level": "warn",
@@ -9470,7 +9485,7 @@
     "id": "transmute_undefined_repr",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 412
+      "line": 413
     },
     "group": "nursery",
     "level": "allow",
@@ -9485,7 +9500,7 @@
     "id": "transmutes_expressible_as_ptr_casts",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 91
+      "line": 92
     },
     "group": "complexity",
     "level": "warn",
@@ -9500,7 +9515,7 @@
     "id": "transmuting_null",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 434
+      "line": 435
     },
     "group": "correctness",
     "level": "deny",
@@ -10325,7 +10340,7 @@
     "id": "unsound_collection_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 383
+      "line": 384
     },
     "group": "correctness",
     "level": "deny",
@@ -10710,7 +10725,7 @@
     "id": "useless_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 65
+      "line": 66
     },
     "group": "complexity",
     "level": "warn",
@@ -11010,7 +11025,7 @@
     "id": "wrong_transmute",
     "id_span": {
       "path": "src/transmute/mod.rs",
-      "line": 45
+      "line": 46
     },
     "group": "correctness",
     "level": "deny",
