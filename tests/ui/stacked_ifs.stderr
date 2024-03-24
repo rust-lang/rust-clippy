@@ -1,0 +1,61 @@
+error: Stacked `if` found
+  --> tests/ui/stacked_ifs.rs:12:5
+   |
+LL | /     if if a % 2 == 0 {
+LL | |
+LL | |         a - 1
+LL | |     } else {
+...  |
+LL | |         // Do something.
+LL | |     }
+   | |_____^
+   |
+   = help: Avoid using an `if` statement as a condition for another `if` statement.
+   = note: `-D clippy::stacked-ifs` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::stacked_ifs)]`
+
+error: Stacked `if` found
+  --> tests/ui/stacked_ifs.rs:22:5
+   |
+LL | /     if if a % 2 == 0 {
+LL | |
+LL | |         a - 1
+LL | |     } else {
+...  |
+LL | |         // Do something else.
+LL | |     }
+   | |_____^
+   |
+   = help: Avoid using an `if` statement as a condition for another `if` statement.
+
+error: Stacked `if` found
+  --> tests/ui/stacked_ifs.rs:38:5
+   |
+LL | /     if if if a == b {
+LL | |
+LL | |
+LL | |         b == c
+...  |
+LL | |         println!("False!");
+LL | |     }
+   | |_____^
+   |
+   = help: Avoid using an `if` statement as a condition for another `if` statement.
+
+error: Stacked `if` found
+  --> tests/ui/stacked_ifs.rs:38:8
+   |
+LL |       if if if a == b {
+   |  ________^
+LL | |
+LL | |
+LL | |         b == c
+...  |
+LL | |         c == d
+LL | |     } {
+   | |_____^
+   |
+   = help: Avoid using an `if` statement as a condition for another `if` statement.
+
+error: aborting due to 4 previous errors
+
