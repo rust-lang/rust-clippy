@@ -326,6 +326,7 @@ mod single_range_in_vec_init;
 mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
+mod stacked_ifs;
 mod std_instead_of_core;
 mod strings;
 mod strlen_on_c_strings;
@@ -1129,6 +1130,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
     store.register_late_pass(|_| Box::new(integer_division_remainder_used::IntegerDivisionRemainderUsed));
+    store.register_late_pass(|_| Box::new(stacked_ifs::StackedIfs));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
