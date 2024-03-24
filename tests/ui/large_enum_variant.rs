@@ -163,3 +163,8 @@ fn main() {
         }
     );
 }
+
+enum SelfRef<'a> {
+    Small,
+    Large([&'a SelfRef<'a>; 1024]),
+}

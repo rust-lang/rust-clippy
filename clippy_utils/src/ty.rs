@@ -15,7 +15,7 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::mir::ConstValue;
 use rustc_middle::traits::EvaluationResult;
-use rustc_middle::ty::layout::ValidityRequirement;
+use rustc_middle::ty::layout::{LayoutOf, ValidityRequirement};
 use rustc_middle::ty::{
     self, AdtDef, AliasTy, AssocItem, AssocKind, Binder, BoundRegion, FnSig, GenericArg, GenericArgKind,
     GenericArgsRef, GenericParamDefKind, IntTy, ParamEnv, Region, RegionKind, TraitRef, Ty, TyCtxt, TypeSuperVisitable,
@@ -351,50 +351,6 @@ pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
         },
         _ => false,
     }
-}
-
-// FIXME: Per https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/infer/at/struct.At.html#method.normalize
-// this function can be removed once the `normalize` method does not panic when normalization does
-// not succeed
-/// Checks if `Ty` is normalizable. This function is useful
-/// to avoid crashes on `layout_of`.
-pub fn is_normalizable<'tcx>(cx: &LateContext<'tcx>, param_env: ParamEnv<'tcx>, ty: Ty<'tcx>) -> bool {
-    is_normalizable_helper(cx, param_env, ty, &mut FxHashMap::default())
-}
-
-fn is_normalizable_helper<'tcx>(
-    cx: &LateContext<'tcx>,
-    param_env: ParamEnv<'tcx>,
-    ty: Ty<'tcx>,
-    cache: &mut FxHashMap<Ty<'tcx>, bool>,
-) -> bool {
-    if let Some(&cached_result) = cache.get(&ty) {
-        return cached_result;
-    }
-    // prevent recursive loops, false-negative is better than endless loop leading to stack overflow
-    cache.insert(ty, false);
-    let infcx = cx.tcx.infer_ctxt().build();
-    let cause = ObligationCause::dummy();
-    let result = if infcx.at(&cause, param_env).query_normalize(ty).is_ok() {
-        match ty.kind() {
-            ty::Adt(def, args) => def.variants().iter().all(|variant| {
-                variant
-                    .fields
-                    .iter()
-                    .all(|field| is_normalizable_helper(cx, param_env, field.ty(cx.tcx, args), cache))
-            }),
-            _ => ty.walk().all(|generic_arg| match generic_arg.unpack() {
-                GenericArgKind::Type(inner_ty) if inner_ty != ty => {
-                    is_normalizable_helper(cx, param_env, inner_ty, cache)
-                },
-                _ => true, // if inner_ty == ty, we've already checked it
-            }),
-        }
-    } else {
-        false
-    };
-    cache.insert(ty, result);
-    result
 }
 
 /// Returns `true` if the given type is a non aggregate primitive (a `bool` or `char`, any
@@ -977,11 +933,12 @@ pub fn adt_and_variant_of_res<'tcx>(cx: &LateContext<'tcx>, res: Res) -> Option<
 
 /// Comes up with an "at least" guesstimate for the type's size, not taking into
 /// account the layout of type parameters.
+///
+/// This function will ICE if called with an improper `ParamEnv`. This can happen
+/// when linting in when item, but the type is retrieved from a different item
+/// without instantiating the generic arguments. It can also happen when linting a
+/// type alias as those do not have a `ParamEnv`.
 pub fn approx_ty_size<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> u64 {
-    use rustc_middle::ty::layout::LayoutOf;
-    if !is_normalizable(cx, cx.param_env, ty) {
-        return 0;
-    }
     match (cx.layout_of(ty).map(|layout| layout.size.bytes()), ty.kind()) {
         (Ok(size), _) => size,
         (Err(_), ty::Tuple(list)) => list.iter().map(|t| approx_ty_size(cx, t)).sum(),
@@ -1338,5 +1295,93 @@ pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) ->
             .map(|f| f.ty(tcx, args)),
         ty::Tuple(args) => name.as_str().parse::<usize>().ok().and_then(|i| args.get(i).copied()),
         _ => None,
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum Sizedness {
+    /// The type is uninhabited. (e.g. `!`)
+    Uninhabited,
+    /// The type is zero-sized.
+    Zero,
+    /// The type has some other size or an unknown size.
+    Other,
+}
+impl Sizedness {
+    pub fn is_zero(self) -> bool {
+        matches!(self, Self::Zero)
+    }
+
+    pub fn is_uninhabited(self) -> bool {
+        matches!(self, Self::Uninhabited)
+    }
+}
+
+/// Calculates the sizedness of a type.
+pub fn sizedness_of<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>, ty: Ty<'tcx>) -> Sizedness {
+    fn is_zst<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>, ty: Ty<'tcx>) -> bool {
+        match *ty.kind() {
+            ty::FnDef(..) | ty::Never => true,
+            ty::Tuple(tys) => tys.iter().all(|ty| is_zst(tcx, param_env, ty)),
+            // Zero length arrays are always zero-sized, even for uninhabited types.
+            ty::Array(_, len) if len.try_eval_target_usize(tcx, param_env).is_some_and(|x| x == 0) => true,
+            ty::Array(ty, _) | ty::Pat(ty, _) => is_zst(tcx, param_env, ty),
+            ty::Adt(adt, args) => {
+                let mut iter = adt.variants().iter().filter(|v| {
+                    !v.fields
+                        .iter()
+                        .any(|f| f.ty(tcx, args).is_privately_uninhabited(tcx, param_env))
+                });
+                let is_zst = iter.next().map_or(true, |v| {
+                    v.fields.iter().all(|f| is_zst(tcx, param_env, f.ty(tcx, args)))
+                });
+                is_zst && iter.next().is_none()
+            },
+            ty::Closure(_, args) => args
+                .as_closure()
+                .upvar_tys()
+                .iter()
+                .all(|ty| is_zst(tcx, param_env, ty)),
+            ty::CoroutineWitness(_, args) => args
+                .iter()
+                .filter_map(GenericArg::as_type)
+                .all(|ty| is_zst(tcx, param_env, ty)),
+            ty::Alias(..) => {
+                if let Ok(normalized) = tcx.try_normalize_erasing_regions(param_env, ty)
+                    && normalized != ty
+                {
+                    is_zst(tcx, param_env, normalized)
+                } else {
+                    false
+                }
+            },
+            ty::Bool
+            | ty::Char
+            | ty::Int(_)
+            | ty::Uint(_)
+            | ty::Float(_)
+            | ty::RawPtr(..)
+            | ty::Ref(..)
+            | ty::FnPtr(..)
+            | ty::Param(_)
+            | ty::Bound(..)
+            | ty::Placeholder(_)
+            | ty::Infer(_)
+            | ty::Error(_)
+            | ty::Dynamic(..)
+            | ty::Slice(..)
+            | ty::Str
+            | ty::Foreign(_)
+            | ty::Coroutine(..)
+            | ty::CoroutineClosure(..) => false,
+        }
+    }
+
+    if ty.is_privately_uninhabited(tcx, param_env) {
+        Sizedness::Uninhabited
+    } else if is_zst(tcx, param_env, ty) {
+        Sizedness::Zero
+    } else {
+        Sizedness::Other
     }
 }
