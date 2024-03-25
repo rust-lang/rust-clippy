@@ -1043,7 +1043,7 @@
     "id": "collapsible_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 696
+      "line": 695
     },
     "group": "style",
     "level": "warn",
@@ -3204,7 +3204,7 @@
     "id": "infallible_destructuring_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 396
+      "line": 395
     },
     "group": "style",
     "level": "warn",
@@ -4317,7 +4317,7 @@
     "id": "manual_filter",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 943
+      "line": 942
     },
     "group": "complexity",
     "level": "warn",
@@ -4512,7 +4512,7 @@
     "id": "manual_map",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 915
+      "line": 914
     },
     "group": "style",
     "level": "warn",
@@ -4767,7 +4767,7 @@
     "id": "manual_unwrap_or",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 723
+      "line": 722
     },
     "group": "complexity",
     "level": "warn",
@@ -4937,7 +4937,7 @@
     "id": "match_as_ref",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 255
+      "line": 254
     },
     "group": "complexity",
     "level": "warn",
@@ -4952,7 +4952,7 @@
     "id": "match_bool",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 179
+      "line": 178
     },
     "group": "pedantic",
     "level": "allow",
@@ -4967,7 +4967,7 @@
     "id": "match_like_matches_macro",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 567
+      "line": 566
     },
     "group": "style",
     "level": "warn",
@@ -4982,7 +4982,7 @@
     "id": "match_on_vec_items",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 759
+      "line": 758
     },
     "group": "pedantic",
     "level": "allow",
@@ -4997,7 +4997,7 @@
     "id": "match_overlapping_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 202
+      "line": 201
     },
     "group": "style",
     "level": "warn",
@@ -5012,7 +5012,7 @@
     "id": "match_ref_pats",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 144
+      "line": 143
     },
     "group": "style",
     "level": "warn",
@@ -5045,7 +5045,7 @@
     "id": "match_same_arms",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 615
+      "line": 614
     },
     "group": "pedantic",
     "level": "allow",
@@ -5060,7 +5060,7 @@
     "id": "match_single_binding",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 430
+      "line": 429
     },
     "group": "complexity",
     "level": "warn",
@@ -5075,7 +5075,7 @@
     "id": "match_str_case_mismatch",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 790
+      "line": 789
     },
     "group": "correctness",
     "level": "deny",
@@ -5090,7 +5090,7 @@
     "id": "match_wild_err_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 225
+      "line": 224
     },
     "group": "pedantic",
     "level": "allow",
@@ -5105,7 +5105,7 @@
     "id": "match_wildcard_for_single_variants",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 329
+      "line": 328
     },
     "group": "pedantic",
     "level": "allow",
@@ -6104,7 +6104,7 @@
     "id": "needless_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 658
+      "line": 657
     },
     "group": "complexity",
     "level": "warn",
@@ -7724,7 +7724,7 @@
     "id": "redundant_guards",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 973
+      "line": 972
     },
     "group": "complexity",
     "level": "warn",
@@ -7769,7 +7769,7 @@
     "id": "redundant_pattern_matching",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 528
+      "line": 527
     },
     "group": "style",
     "level": "warn",
@@ -7982,7 +7982,7 @@
     "id": "rest_pat_in_fully_bound_structs",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 464
+      "line": 463
     },
     "group": "restriction",
     "level": "allow",
@@ -8417,7 +8417,7 @@
     "id": "significant_drop_in_scrutinee",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 856
+      "line": 855
     },
     "group": "nursery",
     "level": "allow",
@@ -8555,7 +8555,7 @@
     "id": "single_match",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 69
+      "line": 68
     },
     "group": "style",
     "level": "warn",
@@ -8570,7 +8570,7 @@
     "id": "single_match_else",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 111
+      "line": 110
     },
     "group": "pedantic",
     "level": "allow",
@@ -9575,7 +9575,7 @@
     "id": "try_err",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 891
+      "line": 890
     },
     "group": "restriction",
     "level": "allow",
@@ -10905,7 +10905,7 @@
     "id": "wildcard_enum_match_arm",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 291
+      "line": 290
     },
     "group": "restriction",
     "level": "allow",
@@ -10935,7 +10935,7 @@
     "id": "wildcard_in_or_patterns",
     "id_span": {
       "path": "src/matches/mod.rs",
-      "line": 360
+      "line": 359
     },
     "group": "complexity",
     "level": "warn",
