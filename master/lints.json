@@ -437,7 +437,7 @@
     "id": "bool_comparison",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 76
+      "line": 77
     },
     "group": "complexity",
     "level": "warn",
@@ -5906,7 +5906,7 @@
     "id": "needless_bool",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 51
+      "line": 52
     },
     "group": "complexity",
     "level": "warn",
@@ -5921,7 +5921,7 @@
     "id": "needless_bool_assign",
     "id_span": {
       "path": "src/needless_bool.rs",
-      "line": 109
+      "line": 110
     },
     "group": "complexity",
     "level": "warn",
