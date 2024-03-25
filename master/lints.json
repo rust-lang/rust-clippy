@@ -9669,7 +9669,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks that there isn't an infinite recursion in trait\nimplementations.\n\n### Why is this bad?\nThis is a hard to find infinite recursion that will crash any code.\nusing it.\n\n### Example\n```rust\nenum Foo {\n    A,\n    B,\n}\n\nimpl PartialEq for Foo {\n    fn eq(&self, other: &Self) -> bool {\n        self == other // bad!\n    }\n}\n```\nUse instead:\n\nIn such cases, either use `#[derive(PartialEq)]` or don't implement it.",
+    "docs": "\n### What it does\nChecks that there isn't an infinite recursion in trait\nimplementations.\n\n### Why is this bad?\nThis is a hard to find infinite recursion that will crash any code\nusing it.\n\n### Example\n```rust\nenum Foo {\n    A,\n    B,\n}\n\nimpl PartialEq for Foo {\n    fn eq(&self, other: &Self) -> bool {\n        self == other // bad!\n    }\n}\n```\nUse instead:\n\nIn such cases, either use `#[derive(PartialEq)]` or don't implement it.",
     "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
