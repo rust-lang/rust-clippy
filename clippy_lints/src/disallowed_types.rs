@@ -1,3 +1,4 @@
+use crate::rustc_lint::LintContext;
 use clippy_config::types::DisallowedPath;
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_data_structures::fx::FxHashMap;
@@ -5,6 +6,7 @@ use rustc_hir::def::Res;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Item, ItemKind, PolyTraitRef, PrimTy, Ty, TyKind, UseKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::lint::in_external_macro;
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 
@@ -66,6 +68,11 @@ impl DisallowedTypes {
     }
 
     fn check_res_emit(&self, cx: &LateContext<'_>, res: &Res, span: Span) {
+        if in_external_macro(cx.sess(), span) {
+            // We should ignore macro from a foreign crate.
+            return;
+        }
+
         match res {
             Res::Def(_, did) => {
                 if let Some(&index) = self.def_ids.get(did) {
