@@ -1,0 +1,12 @@
+error: This `HashMap` has a hash collision and will lose data
+  --> tests/ui/hash_collision.rs:5:19
+   |
+LL |     let example = HashMap::from([(5, 1), (5, 2)]);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: Consider using a different keys for all items
+   = note: `-D clippy::hash-collision` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::hash_collision)]`
+
+error: aborting due to 1 previous error
+
