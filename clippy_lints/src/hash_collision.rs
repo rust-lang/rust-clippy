@@ -10,8 +10,10 @@ declare_clippy_lint! {
     /// ### What it does
     /// When two items are inserted into a `HashMap` with the same key,
     /// the second item will overwrite the first item.
+    /// 
     /// ### Why is this bad?
     /// This can lead to data loss.
+    /// 
     /// ### Example
     /// ```no_run
     /// # use std::collections::HashMap;
@@ -20,7 +22,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.79.0"]
     pub HASH_COLLISION,
     suspicious,
-    "default lint description"
+    "`HashMap` with two identical keys loses data"
 }
 
 declare_lint_pass!(HashCollision => [HASH_COLLISION]);
