@@ -1,7 +1,9 @@
-use clippy_utils::{diagnostics::span_lint_and_note, last_path_segment, ty::is_type_diagnostic_item};
+use clippy_utils::diagnostics::span_lint_and_note;
+use clippy_utils::last_path_segment;
+use clippy_utils::ty::is_type_diagnostic_item;
+use rustc_hir::ExprKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
-use rustc_hir::ExprKind;
 use rustc_span::symbol::sym;
 
 declare_clippy_lint! {
@@ -30,10 +32,10 @@ impl<'tcx> LateLintPass<'tcx> for HashCollision {
                 cx,
                 HASH_COLLISION,
                 expr.span,
-                "This `HashMap` has a hash collision and will lose data",
+                "this `HashMap` has a hash collision and will lose data",
                 None,
-                "Consider using a different keys for all items",
-            )
+                "consider using a different keys for all items",
+            );
         }
     }
 }
@@ -42,7 +44,7 @@ impl<'tcx> LateLintPass<'tcx> for HashCollision {
 // TODO: Maybe other types of hash maps should be checked as well?
 fn has_hash_collision(cx: &LateContext<'_>, expr: &rustc_hir::Expr<'_>) -> bool {
     // If the expression is a call to `HashMap::from`, check if the keys are the same
-    if let ExprKind::Call(func, args) = &expr.kind 
+    if let ExprKind::Call(func, args) = &expr.kind
         // First check for HashMap::from
         && let ty = cx.typeck_results().expr_ty(expr)
         && is_type_diagnostic_item(cx, ty, sym::HashMap)
@@ -52,19 +54,19 @@ fn has_hash_collision(cx: &LateContext<'_>, expr: &rustc_hir::Expr<'_>) -> bool 
         && args.len() == 1
         // which should be an array
         && let ExprKind::Array(args) = &args[0].kind
-        // Then check the keys
-        {
-            // Put all keys in a vector
-            let mut literals = Vec::new();
-            
-            for arg in args.iter() { // 
-                if let ExprKind::Tup(args) = &arg.kind 
-                && args.len() > 0
+    // Then check the keys
+    {
+        // Put all keys in a vector
+        let mut literals = Vec::new();
+
+        for arg in *args {
+            //
+            if let ExprKind::Tup(args) = &arg.kind
+                && !args.is_empty()
                 && let ExprKind::Lit(lit) = args[0].kind
-                {
-                    literals.push(lit.node.clone());
-                }
-                
+            {
+                literals.push(lit.node.clone());
+            }
         }
         // Debug: it gets here, but doesn't trigger the lint
 
