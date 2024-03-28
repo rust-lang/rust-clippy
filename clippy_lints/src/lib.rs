@@ -121,6 +121,7 @@ mod disallowed_types;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
+mod duplicate_map_keys;
 mod duplicate_mod;
 mod else_if_without_else;
 mod empty_drop;
@@ -153,7 +154,6 @@ mod from_raw_with_void_ptr;
 mod from_str_radix_10;
 mod functions;
 mod future_not_send;
-mod hash_collision;
 mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
@@ -1130,7 +1130,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
     store.register_late_pass(|_| Box::new(integer_division_remainder_used::IntegerDivisionRemainderUsed));
-    store.register_late_pass(|_| Box::new(hash_collision::HashCollision));
+    store.register_late_pass(|_| Box::new(duplicate_map_keys::DuplicateMapKeys));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

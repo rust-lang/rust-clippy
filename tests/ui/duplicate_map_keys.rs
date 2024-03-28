@@ -1,4 +1,4 @@
-#![warn(clippy::hash_collision)]
+#![warn(clippy::duplicate_map_keys)]
 use std::collections::HashMap;
 
 fn main() {

@@ -20,19 +20,19 @@ declare_clippy_lint! {
     /// let example = HashMap::from([(5, 1), (5, 2)]);
     /// ```
     #[clippy::version = "1.79.0"]
-    pub HASH_COLLISION,
+    pub DUPLICATE_MAP_KEYS,
     suspicious,
     "`HashMap` with two identical keys loses data"
 }
 
-declare_lint_pass!(HashCollision => [HASH_COLLISION]);
+declare_lint_pass!(DuplicateMapKeys => [DUPLICATE_MAP_KEYS]);
 
-impl<'tcx> LateLintPass<'tcx> for HashCollision {
+impl<'tcx> LateLintPass<'tcx> for DuplicateMapKeys {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
         if has_hash_collision(cx, expr) {
             span_lint_and_note(
                 cx,
-                HASH_COLLISION,
+                DUPLICATE_MAP_KEYS,
                 expr.span,
                 "this `HashMap` has a hash collision and will lose data",
                 None,
