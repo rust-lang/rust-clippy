@@ -121,6 +121,7 @@ mod disallowed_types;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
+mod duplicate_map_keys;
 mod duplicate_mod;
 mod else_if_without_else;
 mod empty_drop;
@@ -1129,6 +1130,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
     store.register_late_pass(|_| Box::new(integer_division_remainder_used::IntegerDivisionRemainderUsed));
+    store.register_late_pass(|_| Box::new(duplicate_map_keys::DuplicateMapKeys));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
