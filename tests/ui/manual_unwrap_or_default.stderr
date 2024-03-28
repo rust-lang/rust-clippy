@@ -1,8 +1,7 @@
 error: match can be simplified with `.unwrap_or_default()`
-  --> tests/ui/manual_unwrap_or_default.rs:6:5
+  --> tests/ui/manual_unwrap_or_default.rs:7:5
    |
 LL | /     match x {
-LL | |
 LL | |         Some(v) => v,
 LL | |         None => Vec::default(),
 LL | |     };
@@ -12,40 +11,36 @@ LL | |     };
    = help: to override `-D warnings` add `#[allow(clippy::manual_unwrap_or_default)]`
 
 error: match can be simplified with `.unwrap_or_default()`
-  --> tests/ui/manual_unwrap_or_default.rs:13:5
+  --> tests/ui/manual_unwrap_or_default.rs:14:5
    |
 LL | /     match x {
-LL | |
 LL | |         Some(v) => v,
 LL | |         _ => Vec::default(),
 LL | |     };
    | |_____^ help: replace it with: `x.unwrap_or_default()`
 
 error: match can be simplified with `.unwrap_or_default()`
-  --> tests/ui/manual_unwrap_or_default.rs:20:5
+  --> tests/ui/manual_unwrap_or_default.rs:21:5
    |
 LL | /     match x {
-LL | |
 LL | |         Some(v) => v,
 LL | |         None => String::new(),
 LL | |     };
    | |_____^ help: replace it with: `x.unwrap_or_default()`
 
 error: match can be simplified with `.unwrap_or_default()`
-  --> tests/ui/manual_unwrap_or_default.rs:27:5
+  --> tests/ui/manual_unwrap_or_default.rs:28:5
    |
 LL | /     match x {
-LL | |
 LL | |         None => Vec::default(),
 LL | |         Some(v) => v,
 LL | |     };
    | |_____^ help: replace it with: `x.unwrap_or_default()`
 
 error: if let can be simplified with `.unwrap_or_default()`
-  --> tests/ui/manual_unwrap_or_default.rs:34:5
+  --> tests/ui/manual_unwrap_or_default.rs:35:5
    |
 LL | /     if let Some(v) = x {
-LL | |
 LL | |         v
 LL | |     } else {
 LL | |         Vec::default()
@@ -62,5 +57,30 @@ LL | |             _ => 0,
 LL | |         },
    | |_________^ help: replace it with: `(*b).unwrap_or_default()`
 
-error: aborting due to 6 previous errors
+error: this pattern reimplements `Option::unwrap_or`
+  --> tests/ui/manual_unwrap_or_default.rs:84:27
+   |
+LL |       let match_middle_cm = match 1u32.checked_div(0) {
+   |  ___________________________^
+LL | |         Some(v) => v,
+LL | |         // Important
+LL | |         None => 0
+LL | |     };
+   | |_____^ help: replace with: `1u32.checked_div(0).unwrap_or(0)`
+   |
+   = note: `-D clippy::manual-unwrap-or` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_unwrap_or)]`
+
+error: this pattern reimplements `Option::unwrap_or`
+  --> tests/ui/manual_unwrap_or_default.rs:89:31
+   |
+LL |       let match_middle_doc_cm = match 1u32.checked_div(0) {
+   |  _______________________________^
+LL | |         /// Important
+LL | |         Some(v) => v,
+LL | |         None => 0
+LL | |     };
+   | |_____^ help: replace with: `1u32.checked_div(0).unwrap_or(0)`
+
+error: aborting due to 8 previous errors
 

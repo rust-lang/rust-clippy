@@ -2,14 +2,14 @@ use clippy_utils::sugg::Sugg;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, LangItem, MatchSource, Pat, PatKind, QPath};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{in_constant, is_default_equivalent};
+use clippy_utils::{in_constant, is_default_equivalent, peel_blocks_with_stmt, span_contains_comment};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -112,6 +112,7 @@ fn handle_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
     // We don't want conditions on the arms to simplify things.
     if arm1.guard.is_none()
         && arm2.guard.is_none()
+        && !span_contains_comment(cx.sess().source_map(), expr.span)
         // We check that the returned type implements the `Default` trait.
         && let match_ty = cx.typeck_results().expr_ty(expr)
         && let Some(default_trait_id) = cx.tcx.get_diagnostic_item(sym::Default)
@@ -119,11 +120,11 @@ fn handle_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
         // We now get the bodies for both the `Some` and `None` arms.
         && let Some(((body_some, binding_id), body_none)) = get_some_and_none_bodies(cx, arm1, arm2)
         // We check that the `Some(x) => x` doesn't do anything apart "returning" the value in `Some`.
-        && let ExprKind::Path(QPath::Resolved(_, path)) = body_some.peel_blocks().kind
+        && let ExprKind::Path(QPath::Resolved(_, path)) = peel_blocks_with_stmt(body_some).kind
         && let Res::Local(local_id) = path.res
         && local_id == binding_id
         // We now check the `None` arm is calling a method equivalent to `Default::default`.
-        && let body_none = body_none.peel_blocks()
+        && let body_none = peel_blocks_with_stmt(body_none)
         && is_default_equivalent(cx, body_none)
         && let Some(receiver) = Sugg::hir_opt(cx, match_expr).map(Sugg::maybe_par)
     {
@@ -144,17 +145,18 @@ fn handle_if_let<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
     if let ExprKind::If(cond, if_block, Some(else_expr)) = expr.kind
         && let ExprKind::Let(let_) = cond.kind
         && let ExprKind::Block(_, _) = else_expr.kind
+        && !span_contains_comment(cx.sess().source_map(), expr.span)
         // We check that the returned type implements the `Default` trait.
         && let match_ty = cx.typeck_results().expr_ty(expr)
         && let Some(default_trait_id) = cx.tcx.get_diagnostic_item(sym::Default)
         && implements_trait(cx, match_ty, default_trait_id, &[])
         && let Some(binding_id) = get_some(cx, let_.pat)
         // We check that the `Some(x) => x` doesn't do anything apart "returning" the value in `Some`.
-        && let ExprKind::Path(QPath::Resolved(_, path)) = if_block.peel_blocks().kind
+        && let ExprKind::Path(QPath::Resolved(_, path)) = peel_blocks_with_stmt(if_block).kind
         && let Res::Local(local_id) = path.res
         && local_id == binding_id
         // We now check the `None` arm is calling a method equivalent to `Default::default`.
-        && let body_else = else_expr.peel_blocks()
+        && let body_else = peel_blocks_with_stmt(else_expr)
         && is_default_equivalent(cx, body_else)
         && let Some(if_let_expr_snippet) = snippet_opt(cx, let_.init.span)
     {
