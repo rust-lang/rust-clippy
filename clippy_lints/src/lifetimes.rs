@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
+use clippy_utils::source::snippet;
 use clippy_utils::trait_ref_of_method;
 use itertools::Itertools;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
@@ -18,6 +19,7 @@ use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::hir::map::Map;
 use rustc_middle::hir::nested_filter as middle_nested_filter;
 use rustc_middle::lint::in_external_macro;
+use rustc_middle::query::Key;
 use rustc_session::declare_lint_pass;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::{kw, Ident, Symbol};
@@ -208,7 +210,7 @@ fn check_fn_inner<'tcx>(
                 .map(|&lt| cx.tcx.def_span(lt))
                 .chain(usages.iter().filter_map(|usage| {
                     if let LifetimeName::Param(def_id) = usage.res
-                        && elidable_lts.contains(&def_id)
+                        // && elidable_lts.contains(&def_id)
                     {
                         return Some(usage.ident.span);
                     }
@@ -225,7 +227,7 @@ fn check_fn_inner<'tcx>(
                 };
 
                 if let Some(suggestions) = elision_suggestions(cx, generics, &elidable_lts, &usages) {
-                    diag.multipart_suggestion("elide the lifetimes", suggestions, Applicability::MachineApplicable);
+                    // diag.multipart_suggestion("elide the lifetimes", suggestions, Applicability::MachineApplicable);
                 }
             },
         );
@@ -346,7 +348,6 @@ fn could_use_elision<'tcx>(
 
     // check named LTs
     let allowed_lts = allowed_lts_from(named_generics);
-
     // these will collect all the lifetimes for references in arg/return types
     let mut input_visitor = RefVisitor::new(cx);
     let mut output_visitor = RefVisitor::new(cx);
@@ -369,6 +370,10 @@ fn could_use_elision<'tcx>(
 
     let input_lts = input_visitor.lts;
     let output_lts = output_visitor.lts;
+    let output_lts: Vec<Lifetime> = output_lts
+        .into_iter()
+        .unique_by(|lt| lt.hir_id.default_span(cx.tcx))
+        .collect();
 
     if let Some(trait_sig) = trait_sig {
         if explicit_self_type(cx, func, trait_sig.first().copied()) {
@@ -393,10 +398,12 @@ fn could_use_elision<'tcx>(
         }
     }
 
+    let allowed_lts: FxHashSet<Symbol> = allowed_lts.iter().map(|id| cx.tcx.item_name(id.to_def_id())).collect();
+
     // check for lifetimes from higher scopes
     for lt in input_lts.iter().chain(output_lts.iter()) {
         if let Some(id) = named_lifetime(lt)
-            && !allowed_lts.contains(&id)
+            && !allowed_lts.contains(&cx.tcx.item_name(id.to_def_id()))
         {
             return None;
         }
@@ -404,7 +411,6 @@ fn could_use_elision<'tcx>(
 
     // check for higher-ranked trait bounds
     if !input_visitor.nested_elision_site_lts.is_empty() || !output_visitor.nested_elision_site_lts.is_empty() {
-        let allowed_lts: FxHashSet<_> = allowed_lts.iter().map(|id| cx.tcx.item_name(id.to_def_id())).collect();
         for lt in input_visitor.nested_elision_site_lts {
             if allowed_lts.contains(&lt.ident.name) {
                 return None;
@@ -532,9 +538,7 @@ impl<'a, 'tcx> Visitor<'tcx> for RefVisitor<'a, 'tcx> {
             TyKind::OpaqueDef(item, bounds, _) => {
                 let map = self.cx.tcx.hir();
                 let item = map.item(item);
-                let len = self.lts.len();
                 walk_item(self, item);
-                self.lts.truncate(len);
                 self.lts.extend(bounds.iter().filter_map(|bound| match bound {
                     GenericArg::Lifetime(&l) => Some(l),
                     _ => None,
