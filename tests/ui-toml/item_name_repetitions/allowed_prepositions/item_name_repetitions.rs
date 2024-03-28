@@ -5,10 +5,10 @@ mod foo {
     // #12544 - shouldn't warn if the only part aside from the the module name is a preposition.
     // In this test, prepositions are configured to be ["bar"].
 
-    // this line shouldn't produce a warning:
+    // this line should produce a warning:
     pub fn to_foo() {}
 
-    // but this line should
+    // but this line shouldn't
     pub fn bar_foo() {}
 }
 
