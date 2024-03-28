@@ -1,0 +1,86 @@
+error: this arithmetic operation will overflow
+  --> tests/ui/manual_arithmetic_check-2.rs:13:40
+   |
+LL |     let result = if a > b { 0 } else { a - b };
+   |                                        ^^^^^ attempt to compute `12_u32 - 13_u32`, which would overflow
+   |
+   = note: `#[deny(arithmetic_overflow)]` on by default
+
+error: this arithmetic operation will overflow
+  --> tests/ui/manual_arithmetic_check-2.rs:15:40
+   |
+LL |     let result = if b < a { 0 } else { a - b };
+   |                                        ^^^^^ attempt to compute `12_u32 - 13_u32`, which would overflow
+
+error: inverted arithmetic check before subtraction
+  --> tests/ui/manual_arithmetic_check-2.rs:8:23
+   |
+LL |     let result = if a > b { b - a } else { 0 };
+   |                       ^     ----- help: try replacing it with: `a - b`
+   |
+note: you check that `a` is bigger than `b`
+  --> tests/ui/manual_arithmetic_check-2.rs:8:23
+   |
+LL |     let result = if a > b { b - a } else { 0 };
+   |                       ^
+note: but then you subtract `a` from `b`
+  --> tests/ui/manual_arithmetic_check-2.rs:8:29
+   |
+LL |     let result = if a > b { b - a } else { 0 };
+   |                             ^^^^^
+   = note: `-D clippy::implicit-saturating-sub` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::implicit_saturating_sub)]`
+
+error: inverted arithmetic check before subtraction
+  --> tests/ui/manual_arithmetic_check-2.rs:10:23
+   |
+LL |     let result = if b < a { b - a } else { 0 };
+   |                       ^     ----- help: try replacing it with: `a - b`
+   |
+note: you check that `a` is bigger than `b`
+  --> tests/ui/manual_arithmetic_check-2.rs:10:23
+   |
+LL |     let result = if b < a { b - a } else { 0 };
+   |                       ^
+note: but then you subtract `a` from `b`
+  --> tests/ui/manual_arithmetic_check-2.rs:10:29
+   |
+LL |     let result = if b < a { b - a } else { 0 };
+   |                             ^^^^^
+
+error: inverted arithmetic check before subtraction
+  --> tests/ui/manual_arithmetic_check-2.rs:13:23
+   |
+LL |     let result = if a > b { 0 } else { a - b };
+   |                       ^                ----- help: try replacing it with: `b - a`
+   |
+note: you check that `b` is bigger than `a`
+  --> tests/ui/manual_arithmetic_check-2.rs:13:23
+   |
+LL |     let result = if a > b { 0 } else { a - b };
+   |                       ^
+note: but then you subtract `b` from `a`
+  --> tests/ui/manual_arithmetic_check-2.rs:13:40
+   |
+LL |     let result = if a > b { 0 } else { a - b };
+   |                                        ^^^^^
+
+error: inverted arithmetic check before subtraction
+  --> tests/ui/manual_arithmetic_check-2.rs:15:23
+   |
+LL |     let result = if b < a { 0 } else { a - b };
+   |                       ^                ----- help: try replacing it with: `b - a`
+   |
+note: you check that `b` is bigger than `a`
+  --> tests/ui/manual_arithmetic_check-2.rs:15:23
+   |
+LL |     let result = if b < a { 0 } else { a - b };
+   |                       ^
+note: but then you subtract `b` from `a`
+  --> tests/ui/manual_arithmetic_check-2.rs:15:40
+   |
+LL |     let result = if b < a { 0 } else { a - b };
+   |                                        ^^^^^
+
+error: aborting due to 6 previous errors
+
