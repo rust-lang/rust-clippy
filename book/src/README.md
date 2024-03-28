@@ -29,6 +29,18 @@ More to come, please [file an
 issue](https://github.com/rust-lang/rust-clippy/issues) if you have ideas!
 
 The [lint list](https://rust-lang.github.io/rust-clippy/master/index.html) also
-contains "restriction lints", which are for things which are usually not
-considered "bad", but may be useful to turn on in specific cases. These should
-be used very selectively, if at all.
+contains "restriction lints". The `restriction` category should, *emphatically*,
+not be enabled as a whole. The contained lints may lint against perfectly
+reasonable code, may not have an alternative suggestion, and may contradict any
+other lints (including other categories). Lints should be considered on a
+case-by-case basis before enabling.
+
+Some use cases for `restriction` lints include:
+- Strict coding styles (e.g. [`clippy::else_if_without_else`]).
+- Additional restrictions on CI (e.g. [`clippy::todo`]).
+- Preventing panicking in certain functions (e.g. [`clippy::unwrap_used`]).
+- Running a lint only on a subset of code (e.g. `#[forbid(clippy::float_arithmetic)]` on a module).
+
+[`clippy::else_if_without_else`]: https://rust-lang.github.io/rust-clippy/master/index.html#else_if_without_else
+[`clippy::todo`]: https://rust-lang.github.io/rust-clippy/master/index.html#todo
+[`clippy::unwrap_used`]: https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_used
