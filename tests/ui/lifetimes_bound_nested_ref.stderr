@@ -1,68 +1,77 @@
-error: missing lifetime bound declaration: 'lftb: 'lfta
-  --> tests/ui/lifetimes_bound_nested_ref.rs:7:29
+error: missing lifetimes bound declaration: 'lftb: 'lfta
+  --> tests/ui/lifetimes_bound_nested_ref.rs:7:37
    |
 LL | pub fn lifetime_translator_1<'lfta, 'lftb, T>(val_a: &'lfta &'lftb T, _val_b: &'lftb T) -> &'lfta T {
-   |                             ^^^^^^^^^^^^^^^^^
+   |                                     ^^^^^ help: try: `'lftb: 'lfta`
    |
-   = note: `-D clippy::implicit-lifetimes-bound-nested-ref` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::implicit_lifetimes_bound_nested_ref)]`
+   = note: `-D clippy::explicit-lifetimes-bound` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::explicit_lifetimes_bound)]`
 
-error: declared lifetime bound is implied: 'lftb: 'lfta
-  --> tests/ui/lifetimes_bound_nested_ref.rs:12:29
+error: declared lifetimes bound is implied: 'lftb: 'lfta
+  --> tests/ui/lifetimes_bound_nested_ref.rs:12:42
    |
 LL | pub fn lifetime_translator_2<'lfta, 'lftb: 'lfta, T>(val_a: &'lfta &'lftb T, _val_b: &'lftb T) -> &'lfta T {
-   |                             ^^^^^^^^^^^^^^^^^^^^^^^^
+   |                                          ^^^^^^^
    |
-   = note: `-D clippy::explicit-lifetimes-bound-nested-ref` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::explicit_lifetimes_bound_nested_ref)]`
+   = help: consider removing this lifetimes bound
+   = note: `-D clippy::implicit-lifetimes-bound` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::implicit_lifetimes_bound)]`
 
-error: missing lifetime bound declaration: 'a: 'b
-  --> tests/ui/lifetimes_bound_nested_ref.rs:32:5
+error: missing lifetimes bound declaration: 'a: 'b
+  --> tests/ui/lifetimes_bound_nested_ref.rs:32:6
    |
 LL | impl<'a, 'b> Subtrait<'a, 'b, &'b &'a ()> for MyStruct {}
-   |     ^^^^^^^^
+   |      ^^ help: try: `'a: 'b`
 
-error: declared lifetime bound is implied: 'a: 'b
-  --> tests/ui/lifetimes_bound_nested_ref.rs:37:5
+error: declared lifetimes bound is implied: 'a: 'b
+  --> tests/ui/lifetimes_bound_nested_ref.rs:37:8
    |
 LL | impl<'a: 'b, 'b> Subtrait2<'a, 'b, &'b &'a ()> for MyStruct {}
-   |     ^^^^^^^^^^^^
+   |        ^^^^
+   |
+   = help: consider removing this lifetimes bound
 
-error: missing lifetime bound declaration: 'a: 'b
-  --> tests/ui/lifetimes_bound_nested_ref.rs:53:5
+error: missing lifetimes bound declaration: 'a: 'b
+  --> tests/ui/lifetimes_bound_nested_ref.rs:53:6
    |
 LL | impl<'a, 'b> Extend1<'a, 'b> for <&'b &'a () as Trait1>::Type1 {
-   |     ^^^^^^^^
+   |      ^^ help: try: `'a: 'b`
 
-error: declared lifetime bound is implied: 'a: 'b
-  --> tests/ui/lifetimes_bound_nested_ref.rs:72:5
+error: declared lifetimes bound is implied: 'a: 'b
+  --> tests/ui/lifetimes_bound_nested_ref.rs:72:8
    |
 LL | impl<'a: 'b, 'b> Extend2<'a, 'b> for <&'b &'a () as Trait2>::Type2 {
-   |     ^^^^^^^^^^^^
+   |        ^^^^
+   |
+   = help: consider removing this lifetimes bound
 
-error: missing lifetime bound declaration: 'b: 'a
-  --> tests/ui/lifetimes_bound_nested_ref.rs:80:27
+error: missing lifetimes bound declaration: 'b: 'a
+  --> tests/ui/lifetimes_bound_nested_ref.rs:80:32
    |
 LL | unsafe fn deinit_slice_mut<'a, 'b, T>(s: &'a mut &'b mut [T]) -> &'a mut &'b mut [MaybeUninit<T>] {
-   |                           ^^^^^^^^^^^
+   |                                ^^ help: try: `'b: 'a`
 
-error: declared lifetime bound is implied: 'b: 'a
-  --> tests/ui/lifetimes_bound_nested_ref.rs:87:28
+error: declared lifetimes bound is implied: 'b: 'a
+  --> tests/ui/lifetimes_bound_nested_ref.rs:87:35
    |
 LL | unsafe fn deinit_slice_mut2<'a, 'b: 'a, T>(s: &'a mut &'b mut [T]) -> &'a mut &'b mut [MaybeUninit<T>] {
-   |                            ^^^^^^^^^^^^^^^
+   |                                   ^^^^
+   |
+   = help: consider removing this lifetimes bound
 
-error: missing lifetime bound declaration: 'a: 'b
-  --> tests/ui/lifetimes_bound_nested_ref.rs:102:20
+error: missing lifetimes bound declaration: 'a: 'b
+  --> tests/ui/lifetimes_bound_nested_ref.rs:102:21
    |
 LL | fn test_unnamed_ref<'a, 'b>(w1: &'b mut &mut Thing1<'a>, w2: &mut Thing2<'b>) -> &'a u8 {
-   |                    ^^^^^^^^
+   |                     ^^ help: try: `'a: 'b`
 
-error: declared lifetime bound is implied: 'a: 'b
-  --> tests/ui/lifetimes_bound_nested_ref.rs:107:21
+error: declared lifetimes bound is implied: 'a: 'b
+  --> tests/ui/lifetimes_bound_nested_ref.rs:107:24
    |
 LL | fn test_unnamed_ref2<'a: 'b, 'b>(w1: &'b mut &mut Thing1<'a>, w2: &mut Thing2<'b>) {
-   |                     ^^^^^^^^^^^^
+   |                        ^^^^
+   |
+   = help: consider removing this lifetimes bound
 
 error: aborting due to 10 previous errors
 
