@@ -1,0 +1,110 @@
+name: Lintcheck
+
+on: pull_request
+
+env:
+  RUST_BACKTRACE: 1
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  base:
+    runs-on: ubuntu-latest
+
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+
+    steps:
+    - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      with:
+        github_token: "${{ secrets.github_token }}"
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Checkout merge base
+      run: git checkout ${{ github.event.pull_request.base.sha }}
+
+    - name: Checkout current lintcheck
+      run: |
+        rm -rf lintcheck
+        git checkout ${{ github.sha }} -- lintcheck
+
+    - name: Create cache key
+      id: key
+      run: echo "key=lintcheck-base-${{ hashfiles('lintcheck/**') }}-${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+
+    - name: Cache results
+      id: cache
+      uses: actions/cache@v3
+      with:
+        path: lintcheck-logs/base.json
+        key: ${{ steps.key.outputs.key }}
+
+    - name: Run lintcheck
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: cargo lintcheck --json
+
+    - name: Rename JSON file
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: mv lintcheck-logs/lintcheck_crates_logs.json lintcheck-logs/base.json
+
+  head:
+    runs-on: ubuntu-latest
+
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+
+    steps:
+    - uses: rust-lang/simpleinfra/github-actions/cancel-outdated-builds@master
+      with:
+        github_token: "${{ secrets.github_token }}"
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Create cache key
+      id: key
+      run: echo "key=lintcheck-head-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+    - name: Cache results
+      id: cache
+      uses: actions/cache@v3
+      with:
+        path: lintcheck-logs/head.json
+        key: ${{ steps.key.outputs.key }}
+
+    - name: Run lintcheck
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: cargo lintcheck --json
+
+    - name: Rename JSON file
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: mv lintcheck-logs/lintcheck_crates_logs.json lintcheck-logs/head.json
+
+  diff:
+    runs-on: ubuntu-latest
+
+    needs: [base, head]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Restore base JSON
+      uses: actions/cache/restore@v3
+      with:
+        key: ${{ needs.base.outputs.key }}
+        path: lintcheck-logs/base.json
+        fail-on-cache-miss: true
+
+    - name: Restore head JSON
+      uses: actions/cache/restore@v3
+      with:
+        key: ${{ needs.head.outputs.key }}
+        path: lintcheck-logs/head.json
+        fail-on-cache-miss: true
+
+    - name: Diff results
+      run: cargo lintcheck diff lintcheck-logs/base.json lintcheck-logs/head.json >> $GITHUB_STEP_SUMMARY

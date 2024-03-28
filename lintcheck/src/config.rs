@@ -1,8 +1,9 @@
-use clap::Parser;
+use clap::{Parser, Subcommand, ValueEnum};
 use std::num::NonZeroUsize;
 use std::path::PathBuf;
 
-#[derive(Clone, Debug, Parser)]
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Parser, Clone, Debug)]
 pub(crate) struct LintcheckConfig {
     /// Number of threads to use (default: all unless --fix or --recursive)
     #[clap(
@@ -37,15 +38,52 @@ pub(crate) struct LintcheckConfig {
     pub lint_filter: Vec<String>,
     /// Change the reports table to use markdown links
     #[clap(long)]
-    pub markdown: bool,
+    markdown: bool,
+    /// Output the diagnostics as JSON
+    #[clap(long, conflicts_with("markdown"))]
+    json: bool,
+    #[clap(skip = OutputFormat::Text)]
+    pub format: OutputFormat,
     /// Run clippy on the dependencies of crates specified in crates-toml
     #[clap(long, conflicts_with("max_jobs"))]
     pub recursive: bool,
+    #[command(subcommand)]
+    pub subcommand: Option<Commands>,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub(crate) enum Commands {
+    Diff { old: PathBuf, new: PathBuf },
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum OutputFormat {
+    Text,
+    Markdown,
+    Json,
+}
+
+impl OutputFormat {
+    fn file_extension(self) -> &'static str {
+        match self {
+            OutputFormat::Text => "txt",
+            OutputFormat::Markdown => "md",
+            OutputFormat::Json => "json",
+        }
+    }
 }
 
 impl LintcheckConfig {
     pub fn new() -> Self {
         let mut config = LintcheckConfig::parse();
+
+        config.format = if config.markdown {
+            OutputFormat::Markdown
+        } else if config.json {
+            OutputFormat::Json
+        } else {
+            OutputFormat::Text
+        };
 
         // for the path where we save the lint results, get the filename without extension (so for
         // wasd.toml, use "wasd"...)
@@ -53,7 +91,7 @@ impl LintcheckConfig {
         config.lintcheck_results_path = PathBuf::from(format!(
             "lintcheck-logs/{}_logs.{}",
             filename.display(),
-            if config.markdown { "md" } else { "txt" }
+            config.format.file_extension(),
         ));
 
         // look at the --threads arg, if 0 is passed, use the threads count
