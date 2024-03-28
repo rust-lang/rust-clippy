@@ -71,7 +71,6 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
         .current_dir(&cwd)
         .env("CARGO_INCREMENTAL", "0")
         .env("CARGO_TARGET_DIR", &target_dir)
-        .arg("clippy")
         .args(["-p", "subcrate"])
         .arg("--no-deps")
         .arg("--")
@@ -91,7 +90,6 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
             .current_dir(&cwd)
             .env("CARGO_INCREMENTAL", "0")
             .env("CARGO_TARGET_DIR", &target_dir)
-            .arg("clippy")
             .args(["-p", "subcrate"])
             .arg("--")
             .arg("-Cdebuginfo=0") // disable debuginfo to generate less data in the target dir
@@ -118,7 +116,6 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
             .current_dir(&cwd)
             .env("CARGO_INCREMENTAL", "0")
             .env("CARGO_TARGET_DIR", &target_dir)
-            .arg("clippy")
             .args(["-p", "subcrate"])
             .arg("--")
             .arg("-Cdebuginfo=0") // disable debuginfo to generate less data in the target dir
