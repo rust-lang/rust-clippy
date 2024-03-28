@@ -1,0 +1,92 @@
+error: stacked `if` found
+  --> tests/ui/stacked_ifs.rs:29:8
+   |
+LL |       if if a % 2 == 0 {
+   |  ________^
+LL | |
+LL | |         a - 1
+LL | |     } else {
+LL | |         a + 1
+LL | |     } == b
+   | |_____^
+   |
+   = help: avoid using an `if` expression as a condition for another `if` expression
+   = note: `-D clippy::stacked-ifs` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::stacked_ifs)]`
+
+error: stacked `if` found
+  --> tests/ui/stacked_ifs.rs:39:8
+   |
+LL |       if if a % 2 == 0 {
+   |  ________^
+LL | |
+LL | |         a - 1
+LL | |     } else {
+LL | |         a + 1
+LL | |     } == b
+   | |_____^
+   |
+   = help: avoid using an `if` expression as a condition for another `if` expression
+
+error: stacked `if` found
+  --> tests/ui/stacked_ifs.rs:51:13
+   |
+LL |       if b == if a % 2 == 0 {
+   |  _____________^
+LL | |
+LL | |         a - 1
+LL | |     } else {
+LL | |         a + 1
+LL | |     } {
+   | |_____^
+   |
+   = help: avoid using an `if` expression as a condition for another `if` expression
+
+error: stacked `if` found
+  --> tests/ui/stacked_ifs.rs:66:8
+   |
+LL |       if if if a == b {
+   |  ________^
+LL | |
+LL | |
+LL | |         b == c
+...  |
+LL | |         c == d
+LL | |     } {
+   | |_____^
+   |
+   = help: avoid using an `if` expression as a condition for another `if` expression
+
+error: stacked `if` found
+  --> tests/ui/stacked_ifs.rs:66:11
+   |
+LL |       if if if a == b {
+   |  ___________^
+LL | |
+LL | |
+LL | |         b == c
+LL | |     } else {
+LL | |         a == c
+LL | |     } {
+   | |_____^
+   |
+   = help: avoid using an `if` expression as a condition for another `if` expression
+
+error: stacked `if` found
+  --> tests/ui/stacked_ifs.rs:85:8
+   |
+LL |     if if a { b } else { true } {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: avoid using an `if` expression as a condition for another `if` expression
+
+error: stacked `if` found
+  --> tests/ui/stacked_ifs.rs:92:8
+   |
+LL |     if if let Some(num) = x { num } else { 0 } == 0 {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: avoid using an `if` expression as a condition for another `if` expression
+
+error: aborting due to 7 previous errors
+
