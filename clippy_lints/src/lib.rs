@@ -104,6 +104,7 @@ mod copies;
 mod copy_iterator;
 mod crate_in_macro_def;
 mod create_dir;
+mod danger_not_accepted;
 mod dbg_macro;
 mod default;
 mod default_constructed_unit_structs;
@@ -1108,6 +1109,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(manual_hash_one::ManualHashOne::new(msrv())));
     store.register_late_pass(|_| Box::new(iter_without_into_iter::IterWithoutIntoIter));
+    store.register_late_pass(|_| Box::<danger_not_accepted::DangerNotAccepted>::default());
     store.register_late_pass(|_| Box::new(iter_over_hash_type::IterOverHashType));
     store.register_late_pass(|_| Box::new(impl_hash_with_borrow_str_and_bytes::ImplHashWithBorrowStrBytes));
     store.register_late_pass(|_| Box::new(repeat_vec_with_capacity::RepeatVecWithCapacity));

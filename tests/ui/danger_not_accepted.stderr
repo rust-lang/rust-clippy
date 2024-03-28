@@ -1,0 +1,346 @@
+error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock)]`
+  --> $DIR/danger_not_accepted.rs:5:5
+   |
+LL |     waz::woo();
+   |     ^^^^^^^^
+   |
+note: danger `may_deadlock` declared here with the justification `this entire module is just really messed up`
+  --> $DIR/danger_not_accepted.rs:36:21
+   |
+LL | #[clippy::dangerous(may_deadlock = "this entire module is just really messed up")]
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::danger-not-accepted` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::danger_not_accepted)]`
+
+error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock, not_a_virus::may_delete_system)]`
+  --> $DIR/danger_not_accepted.rs:10:5
+   |
+LL |     Maz.faz();
+   |     ^^^^^^^^^
+   |
+note: danger `not_a_virus::may_delete_system` declared here with the justification `calling this has a very strong chance of just deleting your computer`
+  --> $DIR/danger_not_accepted.rs:45:13
+   |
+LL | /             not_a_virus::may_delete_system = "calling this has a very strong chance of just deleting your computer"
+LL | |         )]
+   | |________^
+note: danger `may_deadlock` declared here with the justification `this entire module is just really messed up`
+  --> $DIR/danger_not_accepted.rs:36:21
+   |
+LL | #[clippy::dangerous(may_deadlock = "this entire module is just really messed up")]
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(not_a_virus::may_delete_system)]`
+  --> $DIR/danger_not_accepted.rs:13:5
+   |
+LL |     Maz.faz();
+   |     ^^^^^^^^^
+   |
+note: danger `not_a_virus::may_delete_system` declared here with the justification `calling this has a very strong chance of just deleting your computer`
+  --> $DIR/danger_not_accepted.rs:45:13
+   |
+LL | /             not_a_virus::may_delete_system = "calling this has a very strong chance of just deleting your computer"
+LL | |         )]
+   | |________^
+
+error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(not_a_virus::may_delete_system)]`
+  --> $DIR/danger_not_accepted.rs:18:5
+   |
+LL |     Maz.faz2();
+   |     ^^^^^^^^^^
+   |
+note: danger `not_a_virus::may_delete_system` declared here with the justification `this is a justification`
+  --> $DIR/danger_not_accepted.rs:56:25
+   |
+LL |     #[clippy::dangerous(not_a_virus::may_delete_system = "this is a justification")]
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(not_a_virus::may_delete_system)]`
+  --> $DIR/danger_not_accepted.rs:21:5
+   |
+LL |     Maz.faz2();
+   |     ^^^^^^^^^^
+   |
+note: danger `not_a_virus::may_delete_system` declared here with the justification `this is a justification`
+  --> $DIR/danger_not_accepted.rs:56:25
+   |
+LL |     #[clippy::dangerous(not_a_virus::may_delete_system = "this is a justification")]
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: called a function marked with `#[clippy::dangerous(...)]` without blessing the calling module with `#![clippy::accept_danger(may_deadlock)]`
+  --> $DIR/danger_not_accepted.rs:26:5
+   |
+LL |     waz::woo2();
+   |     ^^^^^^^^^
+   |
+note: danger `may_deadlock` declared here with the justification `your program may deadlock in calling this function`
+  --> $DIR/danger_not_accepted.rs:40:25
+   |
+LL |     #[clippy::dangerous(may_deadlock = "your program may deadlock in calling this function")]
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: danger `may_deadlock` declared here with the justification `this entire module is just really messed up`
+  --> $DIR/danger_not_accepted.rs:36:21
+   |
+LL | #[clippy::dangerous(may_deadlock = "this entire module is just really messed up")]
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected `)`, `,`, `::` while parsing the dangers list
+  --> $DIR/danger_not_accepted.rs:64:36
+   |
+LL | #[clippy::accept_danger(hehe::haha = "sjdfkljf",)]
+   |                                    ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:62:25
+   |
+LL | #[clippy::dangerous(whee, woo,)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:62:25
+   |
+LL | #[clippy::dangerous(whee, woo,)]
+   |                         ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:62:30
+   |
+LL | #[clippy::dangerous(whee, woo,)]
+   |                              ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:63:25
+   |
+LL | #[clippy::dangerous(whee, sdjfkl::woo, reason = "sdfhsdf",)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:63:25
+   |
+LL | #[clippy::dangerous(whee, sdjfkl::woo, reason = "sdfhsdf",)]
+   |                         ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:63:38
+   |
+LL | #[clippy::dangerous(whee, sdjfkl::woo, reason = "sdfhsdf",)]
+   |                                      ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:63:40
+   |
+LL | #[clippy::dangerous(whee, sdjfkl::woo, reason = "sdfhsdf",)]
+   |                                        ^^^^^^^
+
+error: `clippy` is a reserved danger prefix
+  --> $DIR/danger_not_accepted.rs:80:25
+   |
+LL | #[clippy::accept_danger(clippy:: = "" ::, ::)]
+   |                         ^^^^^^
+
+error: expected <identifier>, `)`, `reason` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:80:43
+   |
+LL | #[clippy::accept_danger(clippy:: = "" ::, ::)]
+   |                                           ^^
+
+error: `clippy` is a reserved danger prefix
+  --> $DIR/danger_not_accepted.rs:81:25
+   |
+LL | #[clippy::accept_danger(clippy::boo = "")]
+   |                         ^^^^^^
+
+error: expected a delimited attribute with a list of danger identifiers
+  --> $DIR/danger_not_accepted.rs:68:1
+   |
+LL | #[clippy::dangerous{}]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected a delimited attribute with a list of danger identifiers
+  --> $DIR/danger_not_accepted.rs:69:1
+   |
+LL | #[clippy::dangerous[]]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected <identifier>, `)` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:70:21
+   |
+LL | #[clippy::dangerous(,)]
+   |                     ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:71:25
+   |
+LL | #[clippy::dangerous(whee, reason)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:71:25
+   |
+LL | #[clippy::dangerous(whee, reason)]
+   |                         ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:71:27
+   |
+LL | #[clippy::dangerous(whee, reason)]
+   |                           ^^^^^^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:72:25
+   |
+LL | #[clippy::dangerous(whee, reason, abc)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:72:25
+   |
+LL | #[clippy::dangerous(whee, reason, abc)]
+   |                         ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:72:27
+   |
+LL | #[clippy::dangerous(whee, reason, abc)]
+   |                           ^^^^^^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:72:38
+   |
+LL | #[clippy::dangerous(whee, reason, abc)]
+   |                                      ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:73:25
+   |
+LL | #[clippy::dangerous(whee, reason =)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:73:25
+   |
+LL | #[clippy::dangerous(whee, reason =)]
+   |                         ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:73:27
+   |
+LL | #[clippy::dangerous(whee, reason =)]
+   |                           ^^^^^^^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:74:25
+   |
+LL | #[clippy::dangerous(whee, reason =, weh)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:74:25
+   |
+LL | #[clippy::dangerous(whee, reason =, weh)]
+   |                         ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:74:27
+   |
+LL | #[clippy::dangerous(whee, reason =, weh)]
+   |                           ^^^^^^^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:74:40
+   |
+LL | #[clippy::dangerous(whee, reason =, weh)]
+   |                                        ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:75:25
+   |
+LL | #[clippy::dangerous(whee, reason = "", weh)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:75:25
+   |
+LL | #[clippy::dangerous(whee, reason = "", weh)]
+   |                         ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:75:27
+   |
+LL | #[clippy::dangerous(whee, reason = "", weh)]
+   |                           ^^^^^^^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:75:43
+   |
+LL | #[clippy::dangerous(whee, reason = "", weh)]
+   |                                           ^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:76:25
+   |
+LL | #[clippy::dangerous(whee, reason = "" weh)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:76:25
+   |
+LL | #[clippy::dangerous(whee, reason = "" weh)]
+   |                         ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:76:27
+   |
+LL | #[clippy::dangerous(whee, reason = "" weh)]
+   |                           ^^^^^^^
+
+error: expected `::`, `=` while parsing the danger's reason string in the dangers list
+  --> $DIR/danger_not_accepted.rs:77:25
+   |
+LL | #[clippy::dangerous(whee, reason = 4)]
+   |                         ^
+
+error: expected <identifier>, `)`, `::`, `=` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:77:25
+   |
+LL | #[clippy::dangerous(whee, reason = 4)]
+   |                         ^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:77:27
+   |
+LL | #[clippy::dangerous(whee, reason = 4)]
+   |                           ^^^^^^^
+
+error: expected <identifier>, `)` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:78:21
+   |
+LL | #[clippy::dangerous(unsafe::bar,, ehe = "dhf", bar::unsafe == "hehe")]
+   |                     ^^^^^^
+
+error: expected <identifier>, `)` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:78:33
+   |
+LL | #[clippy::dangerous(unsafe::bar,, ehe = "dhf", bar::unsafe == "hehe")]
+   |                                 ^
+
+error: expected <identifier> while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:78:53
+   |
+LL | #[clippy::dangerous(unsafe::bar,, ehe = "dhf", bar::unsafe == "hehe")]
+   |                                                     ^^^^^^
+
+error: expected <identifier>, `)` while parsing a path in the dangers list
+  --> $DIR/danger_not_accepted.rs:79:21
+   |
+LL | #[clippy::dangerous(crate::bar, reason)]
+   |                     ^^^^^
+
+error: `reason` cannot be the name of a danger
+  --> $DIR/danger_not_accepted.rs:79:33
+   |
+LL | #[clippy::dangerous(crate::bar, reason)]
+   |                                 ^^^^^^
+
+error: aborting due to 49 previous errors
+
