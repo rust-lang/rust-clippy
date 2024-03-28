@@ -343,6 +343,7 @@ mod to_string_trait_impl;
 mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
+mod trivial_default_constructed_types;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
@@ -1095,6 +1096,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             absolute_paths_allowed_crates: absolute_paths_allowed_crates.clone(),
         })
     });
+    store.register_late_pass(|_| Box::new(trivial_default_constructed_types::TrivialDefaultConstructedTypes));
     store.register_late_pass(|_| Box::new(redundant_locals::RedundantLocals));
     store.register_late_pass(|_| Box::new(ignored_unit_patterns::IgnoredUnitPatterns));
     store.register_late_pass(|_| Box::<reserve_after_initialization::ReserveAfterInitialization>::default());
