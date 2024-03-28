@@ -122,6 +122,7 @@ mod doc;
 mod double_parens;
 mod drop_forget_ref;
 mod duplicate_mod;
+mod duration_to_float_precision_loss;
 mod else_if_without_else;
 mod empty_drop;
 mod empty_enum;
@@ -1129,6 +1130,11 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
     store.register_late_pass(|_| Box::new(integer_division_remainder_used::IntegerDivisionRemainderUsed));
+    store.register_late_pass(move |_| {
+        Box::new(duration_to_float_precision_loss::DurationToFloatPrecisionLoss::new(
+            msrv(),
+        ))
+    });
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
