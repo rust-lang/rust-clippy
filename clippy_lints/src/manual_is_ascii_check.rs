@@ -1,13 +1,15 @@
 use clippy_config::msrvs::{self, Msrv};
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::root_macro_call;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{higher, in_constant};
+use clippy_utils::{higher, in_constant, path_to_local, peel_ref_operators};
 use rustc_ast::ast::RangeLimits;
-use rustc_ast::LitKind::{Byte, Char};
+use rustc_ast::LitKind::{self, Byte, Char};
+use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
-use rustc_hir::{BorrowKind, Expr, ExprKind, PatKind, RangeEnd};
+use rustc_hir::{BodyId, Closure, Expr, ExprKind, FnDecl, HirId, PatKind, RangeEnd, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty;
 use rustc_session::impl_lint_pass;
 use rustc_span::def_id::DefId;
 use rustc_span::{sym, Span};
@@ -59,12 +61,16 @@ impl_lint_pass!(ManualIsAsciiCheck => [MANUAL_IS_ASCII_CHECK]);
 
 pub struct ManualIsAsciiCheck {
     msrv: Msrv,
+    closure_params: FxHashMap<HirId, Span>,
 }
 
 impl ManualIsAsciiCheck {
     #[must_use]
     pub fn new(msrv: Msrv) -> Self {
-        Self { msrv }
+        Self {
+            msrv,
+            closure_params: FxHashMap::default(),
+        }
     }
 }
 
@@ -97,12 +103,16 @@ impl<'tcx> LateLintPass<'tcx> for ManualIsAsciiCheck {
             return;
         }
 
+        if let ExprKind::Closure(Closure { fn_decl, body, .. }) = expr.kind {
+            collect_params_with_inferred_ty(cx, *body, fn_decl, &mut self.closure_params);
+        }
+
         if let Some(macro_call) = root_macro_call(expr.span)
             && is_matches_macro(cx, macro_call.def_id)
         {
             if let ExprKind::Match(recv, [arm, ..], _) = expr.kind {
                 let range = check_pat(&arm.pat.kind);
-                check_is_ascii(cx, macro_call.span, recv, &range);
+                check_is_ascii(cx, macro_call.span, recv, &range, None);
             }
         } else if let ExprKind::MethodCall(path, receiver, [arg], ..) = expr.kind
             && path.ident.name == sym!(contains)
@@ -112,19 +122,61 @@ impl<'tcx> LateLintPass<'tcx> for ManualIsAsciiCheck {
                 limits: RangeLimits::Closed,
             }) = higher::Range::hir(receiver)
         {
-            let range = check_range(start, end);
-            if let ExprKind::AddrOf(BorrowKind::Ref, _, e) = arg.kind {
-                check_is_ascii(cx, expr.span, e, &range);
-            } else {
-                check_is_ascii(cx, expr.span, arg, &range);
+            let arg_ty = cx.typeck_results().expr_ty(arg).peel_refs();
+            if matches!(arg_ty.kind(), ty::Param(_)) {
+                return;
             }
+
+            let arg = peel_ref_operators(cx, arg);
+            let ty_sugg = get_ty_sugg(arg, &self.closure_params, start);
+            let range = check_range(start, end);
+            check_is_ascii(cx, expr.span, peel_ref_operators(cx, arg), &range, ty_sugg);
         }
+    }
+
+    fn check_mod(&mut self, _: &LateContext<'tcx>, _: &'tcx rustc_hir::Mod<'tcx>, _: HirId) {
+        self.closure_params = FxHashMap::default();
     }
 
     extract_msrv_attr!(LateContext);
 }
 
-fn check_is_ascii(cx: &LateContext<'_>, span: Span, recv: &Expr<'_>, range: &CharRange) {
+fn get_ty_sugg(arg: &Expr<'_>, map: &FxHashMap<HirId, Span>, range_expr: &Expr<'_>) -> Option<(Span, &'static str)> {
+    let ExprKind::Lit(lit) = range_expr.kind else {
+        return None;
+    };
+    let sugg_ty_span = path_to_local(arg).and_then(|id| map.get(&id)).copied()?;
+    let sugg_ty_str = match lit.node {
+        LitKind::Char(_) => "char",
+        LitKind::Byte(_) => "u8",
+        _ => return None,
+    };
+
+    Some((sugg_ty_span, sugg_ty_str))
+}
+
+/// Collect closure params' `HirId` and `Span` pairs into a map,
+/// if they have implicit (inferred) `ty`.
+fn collect_params_with_inferred_ty(
+    cx: &LateContext<'_>,
+    body_id: BodyId,
+    fn_decl: &FnDecl<'_>,
+    map: &mut FxHashMap<HirId, Span>,
+) {
+    let params = cx.tcx.hir().body(body_id).params.iter();
+    let fn_decl_input_tys = fn_decl.inputs.iter();
+    for (id, span) in params.zip(fn_decl_input_tys).filter_map(|(param, ty)| {
+        if let TyKind::Infer = ty.kind {
+            Some((param.pat.hir_id, param.span))
+        } else {
+            None
+        }
+    }) {
+        map.insert(id, span);
+    }
+}
+
+fn check_is_ascii(cx: &LateContext<'_>, span: Span, recv: &Expr<'_>, range: &CharRange, ty_sugg: Option<(Span, &str)>) {
     if let Some(sugg) = match range {
         CharRange::UpperChar => Some("is_ascii_uppercase"),
         CharRange::LowerChar => Some("is_ascii_lowercase"),
@@ -137,14 +189,22 @@ fn check_is_ascii(cx: &LateContext<'_>, span: Span, recv: &Expr<'_>, range: &Cha
         let mut app = Applicability::MachineApplicable;
         let recv = Sugg::hir_with_context(cx, recv, span.ctxt(), default_snip, &mut app).maybe_par();
 
-        span_lint_and_sugg(
+        span_lint_and_then(
             cx,
             MANUAL_IS_ASCII_CHECK,
             span,
             "manual check for common ascii range",
-            "try",
-            format!("{recv}.{sugg}()"),
-            app,
+            |diag| {
+                diag.span_suggestion(span, "try", format!("{recv}.{sugg}()"), app);
+                if let Some((ty_span, ty_str)) = ty_sugg {
+                    diag.span_suggestion(
+                        ty_span,
+                        "also make sure to label the correct type",
+                        format!("{recv}: {ty_str}"),
+                        app,
+                    );
+                }
+            },
         );
     }
 }
