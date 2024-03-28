@@ -39,6 +39,7 @@ const DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
 ];
 const DEFAULT_DISALLOWED_NAMES: &[&str] = &["foo", "baz", "quux"];
 const DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS: &[&str] = &["i", "j", "x", "y", "z", "w", "n"];
+const DEFAULT_ALLOWED_PREPOSITIONS: &[&str] = &["to", "as", "into", "from"];
 
 /// Conf with parse errors
 #[derive(Default)]
@@ -589,6 +590,24 @@ define_Conf! {
     /// 2. Paths with any segment that containing the word 'prelude'
     /// are already allowed by default.
     (allowed_wildcard_imports: FxHashSet<String> = FxHashSet::default()),
+    /// Lint: MODULE_NAME_REPETITIONS.
+    ///
+    /// List of prepositions to consider when determining whether an item's name ends with the
+    /// module's name. If the rest of an item's name is a preposition (e.g. item `ToFoo` or `to_foo`
+    /// in module `foo`), don't emit a warning.
+    ///
+    /// #### Example
+    ///
+    /// ```toml
+    /// allowed-prepositions = [ "to", "from" ]
+    /// ```
+    ///
+    /// #### Noteworthy
+    ///
+    /// - Default prepositions are: `to`, `as`, `into` and `from`.
+    /// - Use `".."` as part of the list to indicate that the configured values should be appended to the
+    /// default configuration of Clippy. By default, any configuration will replace the default value.
+    (allowed_prepositions: Vec<String> = DEFAULT_ALLOWED_PREPOSITIONS.iter().map(ToString::to_string).collect()),
 }
 
 /// Search for the configuration file.
@@ -649,6 +668,7 @@ fn deserialize(file: &SourceFile) -> TryConf {
         Ok(mut conf) => {
             extend_vec_if_indicator_present(&mut conf.conf.doc_valid_idents, DEFAULT_DOC_VALID_IDENTS);
             extend_vec_if_indicator_present(&mut conf.conf.disallowed_names, DEFAULT_DISALLOWED_NAMES);
+            extend_vec_if_indicator_present(&mut conf.conf.allowed_prepositions, DEFAULT_ALLOWED_PREPOSITIONS);
             // TODO: THIS SHOULD BE TESTED, this comment will be gone soon
             if conf.conf.allowed_idents_below_min_chars.contains("..") {
                 conf.conf
