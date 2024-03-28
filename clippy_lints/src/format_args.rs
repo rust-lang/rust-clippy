@@ -170,14 +170,16 @@ impl_lint_pass!(FormatArgs => [
 pub struct FormatArgs {
     msrv: Msrv,
     ignore_mixed: bool,
+    include_custom: bool,
 }
 
 impl FormatArgs {
     #[must_use]
-    pub fn new(msrv: Msrv, allow_mixed_uninlined_format_args: bool) -> Self {
+    pub fn new(msrv: Msrv, allow_mixed_uninlined_format_args: bool, include_custom_format_macros: bool) -> Self {
         Self {
             msrv,
             ignore_mixed: allow_mixed_uninlined_format_args,
+            include_custom: include_custom_format_macros,
         }
     }
 }
@@ -185,7 +187,7 @@ impl FormatArgs {
 impl<'tcx> LateLintPass<'tcx> for FormatArgs {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let Some(macro_call) = root_macro_call_first_node(cx, expr)
-            && is_format_macro(cx, macro_call.def_id)
+            && (self.include_custom || is_format_macro(cx, macro_call.def_id))
             && let Some(format_args) = find_format_args(cx, expr, macro_call.expn)
         {
             let linter = FormatArgsExpr {

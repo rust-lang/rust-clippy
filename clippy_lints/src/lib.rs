@@ -559,6 +559,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         excessive_nesting_threshold,
         future_size_threshold,
         ref ignore_interior_mutability,
+        include_custom_format_macros,
         large_error_threshold,
         literal_representation_threshold,
         matches_for_let_else,
@@ -830,7 +831,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(mut_key::MutableKeyType::new(ignore_interior_mutability.clone())));
     store.register_early_pass(|| Box::new(reference::DerefAddrOf));
     store.register_early_pass(|| Box::new(double_parens::DoubleParens));
-    store.register_late_pass(|_| Box::new(format_impl::FormatImpl::new()));
+    store.register_late_pass(move |_| Box::new(format_impl::FormatImpl::new(include_custom_format_macros)));
     store.register_early_pass(|| Box::new(unsafe_removed_from_name::UnsafeNameRemoval));
     store.register_early_pass(|| Box::new(else_if_without_else::ElseIfWithoutElse));
     store.register_early_pass(|| Box::new(int_plus_one::IntPlusOne));
@@ -955,8 +956,13 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             accept_comment_above_attributes,
         ))
     });
-    store
-        .register_late_pass(move |_| Box::new(format_args::FormatArgs::new(msrv(), allow_mixed_uninlined_format_args)));
+    store.register_late_pass(move |_| {
+        Box::new(format_args::FormatArgs::new(
+            msrv(),
+            allow_mixed_uninlined_format_args,
+            include_custom_format_macros,
+        ))
+    });
     store.register_late_pass(|_| Box::new(trailing_empty_array::TrailingEmptyArray));
     store.register_early_pass(|| Box::new(octal_escapes::OctalEscapes));
     store.register_late_pass(|_| Box::new(needless_late_init::NeedlessLateInit));

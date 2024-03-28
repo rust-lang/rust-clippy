@@ -589,6 +589,11 @@ define_Conf! {
     /// 2. Paths with any segment that containing the word 'prelude'
     /// are already allowed by default.
     (allowed_wildcard_imports: FxHashSet<String> = FxHashSet::default()),
+    /// Lint: FORMAT_IN_FORMAT_ARGS, RECURSIVE_FORMAT_IMPL, TO_STRING_IN_FORMAT_ARGS, UNINLINED_FORMAT_ARGS, UNUSED_FORMAT_SPECS.
+    ///
+    /// Recognize all macros that internally use `format_args!` and similar macros
+    /// as format macros, instead of just the ones in the standard library.
+    (include_custom_format_macros: bool = false),
 }
 
 /// Search for the configuration file.
