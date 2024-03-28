@@ -158,7 +158,7 @@ impl ItemNameRepetitions {
         struct_threshold: u64,
         avoid_breaking_exported_api: bool,
         allow_private_module_inception: bool,
-        allowed_prepositions: &FxHashSet<String>,
+        allowed_prepositions: &[String],
     ) -> Self {
         Self {
             modules: Vec::new(),

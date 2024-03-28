@@ -604,9 +604,10 @@ define_Conf! {
     ///
     /// #### Noteworthy
     ///
-    /// Default prepositions are: [ "to", "as", "into", "from" ].
-    (allowed_prepositions: FxHashSet<String> =
-        DEFAULT_ALLOWED_PREPOSITIONS.iter().map(ToString::to_string).collect()),
+    /// - Default prepositions are: `to`, `as`, `into` and `from`.
+    /// - Use `".."` as part of the list to indicate that the configured values should be appended to the
+    /// default configuration of Clippy. By default, any configuration will replace the default value.
+    (allowed_prepositions: Vec<String> = DEFAULT_ALLOWED_PREPOSITIONS.iter().map(ToString::to_string).collect()),
 }
 
 /// Search for the configuration file.
@@ -667,6 +668,7 @@ fn deserialize(file: &SourceFile) -> TryConf {
         Ok(mut conf) => {
             extend_vec_if_indicator_present(&mut conf.conf.doc_valid_idents, DEFAULT_DOC_VALID_IDENTS);
             extend_vec_if_indicator_present(&mut conf.conf.disallowed_names, DEFAULT_DISALLOWED_NAMES);
+            extend_vec_if_indicator_present(&mut conf.conf.allowed_prepositions, DEFAULT_ALLOWED_PREPOSITIONS);
             // TODO: THIS SHOULD BE TESTED, this comment will be gone soon
             if conf.conf.allowed_idents_below_min_chars.contains("..") {
                 conf.conf
