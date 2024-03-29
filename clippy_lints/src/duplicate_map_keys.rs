@@ -1,6 +1,6 @@
-use clippy_utils::{diagnostics::span_lint_and_note, SpanlessEq};
-use clippy_utils::last_path_segment;
+use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::ty::is_type_diagnostic_item;
+use clippy_utils::{last_path_segment, SpanlessEq};
 use rustc_hir::ExprKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
@@ -29,7 +29,7 @@ declare_lint_pass!(DuplicateMapKeys => [DUPLICATE_MAP_KEYS]);
 
 impl<'tcx> LateLintPass<'tcx> for DuplicateMapKeys {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
-        if has_hash_collision(cx, expr).is_some_and( |v| !v.is_empty()) {
+        if has_hash_collision(cx, expr).is_some_and(|v| !v.is_empty()) {
             span_lint_and_note(
                 cx,
                 DUPLICATE_MAP_KEYS,
@@ -44,7 +44,10 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMapKeys {
 
 // TODO: Also check for different sources of hash collisions
 // TODO: Maybe other types of hash maps should be checked as well?
-fn has_hash_collision<'a>(cx: &LateContext<'_>, expr: &'a rustc_hir::Expr<'_>) -> Option<Vec<(rustc_hir::Expr<'a>, rustc_hir::Expr<'a>)>> {
+fn has_hash_collision<'a>(
+    cx: &LateContext<'_>,
+    expr: &'a rustc_hir::Expr<'_>,
+) -> Option<Vec<(rustc_hir::Expr<'a>, rustc_hir::Expr<'a>)>> {
     // If the expression is a call to `HashMap::from`, check if the keys are the same
     if let ExprKind::Call(func, args) = &expr.kind
         // First check for HashMap::from
@@ -65,7 +68,7 @@ fn has_hash_collision<'a>(cx: &LateContext<'_>, expr: &'a rustc_hir::Expr<'_>) -
             //
             if let ExprKind::Tup(args) = &arg.kind
                 && !args.is_empty()
-                // && let ExprKind::Lit(lit) = args[0].kind
+            // && let ExprKind::Lit(lit) = args[0].kind
             {
                 keys.push(args[0]);
             }

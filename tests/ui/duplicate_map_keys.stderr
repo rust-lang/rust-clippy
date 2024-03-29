@@ -1,12 +1,28 @@
-error: this `HashMap` has a hash collision and will lose data
-  --> tests/ui/duplicate_map_keys.rs:5:19
+error: this `HashMap` uses one key for multiple items and will lose data
+  --> tests/ui/duplicate_map_keys.rs:7:13
    |
-LL |     let example = HashMap::from([(5, 1), (5, 2)]);
-   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     let _ = HashMap::from([(5, 1), (5, 2)]); // expect lint
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: consider using a different keys for all items
    = note: `-D clippy::duplicate-map-keys` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::duplicate_map_keys)]`
 
-error: aborting due to 1 previous error
+error: this `HashMap` uses one key for multiple items and will lose data
+  --> tests/ui/duplicate_map_keys.rs:8:13
+   |
+LL |     let _ = HashMap::from([((), 1), ((), 2)]); // expect lint
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: consider using a different keys for all items
+
+error: this `HashMap` uses one key for multiple items and will lose data
+  --> tests/ui/duplicate_map_keys.rs:9:13
+   |
+LL |     let _ = HashMap::from([("a", 1), ("a", 2)]); // expect lint
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: consider using a different keys for all items
+
+error: aborting due to 3 previous errors
 
