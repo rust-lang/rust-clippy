@@ -22,7 +22,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.79.0"]
     pub DUPLICATE_MAP_KEYS,
     suspicious,
-    "`HashMap` with two identical keys loses data"
+    "`HashMap` with duplicate keys loses data"
 }
 
 declare_lint_pass!(DuplicateMapKeys => [DUPLICATE_MAP_KEYS]);
@@ -34,7 +34,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMapKeys {
                 cx,
                 DUPLICATE_MAP_KEYS,
                 expr.span,
-                "this `HashMap` has a hash collision and will lose data",
+                "this `HashMap` uses one key for multiple items and will lose data",
                 None,
                 "consider using a different keys for all items",
             );
