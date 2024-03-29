@@ -4302,11 +4302,11 @@
     "id": "manual_clamp",
     "id_span": {
       "path": "src/manual_clamp.rs",
-      "line": 82
+      "line": 89
     },
-    "group": "nursery",
-    "level": "allow",
-    "docs": "\n### What it does\nIdentifies good opportunities for a clamp function from std or core, and suggests using it.\n\n### Why is this bad?\nclamp is much shorter, easier to read, and doesn't use any control flow.\n\n### Known issue(s)\nIf the clamped variable is NaN this suggestion will cause the code to propagate NaN\nrather than returning either `max` or `min`.\n\n`clamp` functions will panic if `max < min`, `max.is_nan()`, or `min.is_nan()`.\nSome may consider panicking in these situations to be desirable, but it also may\nintroduce panicking where there wasn't any before.\n\nSee also [the discussion in the\nPR](https://github.com/rust-lang/rust-clippy/pull/9484#issuecomment-1278922613).\n\n### Examples\n```rust\nif input > max {\n    max\n} else if input < min {\n    min\n} else {\n    input\n}\n```\n\n```rust\ninput.max(min).min(max)\n```\n\n```rust\nmatch input {\n    x if x > max => max,\n    x if x < min => min,\n    x => x,\n}\n```\n\n```rust\nlet mut x = input;\nif x < min { x = min; }\nif x > max { x = max; }\n```\nUse instead:\n```rust\ninput.clamp(min, max)\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
+    "group": "complexity",
+    "level": "warn",
+    "docs": "\n### What it does\nIdentifies good opportunities for a clamp function from std or core, and suggests using it.\n\n### Why is this bad?\nclamp is much shorter, easier to read, and doesn't use any control flow.\n\n### Limitations\n\nThis lint will only trigger if max and min are known at compile time, and max is\ngreater than min.\n\n### Known issue(s)\nIf the clamped variable is NaN this suggestion will cause the code to propagate NaN\nrather than returning either `max` or `min`.\n\n`clamp` functions will panic if `max < min`, `max.is_nan()`, or `min.is_nan()`.\nSome may consider panicking in these situations to be desirable, but it also may\nintroduce panicking where there wasn't any before.\n\nSee also [the discussion in the\nPR](https://github.com/rust-lang/rust-clippy/pull/9484#issuecomment-1278922613).\n\n### Examples\n```rust\nif input > max {\n    max\n} else if input < min {\n    min\n} else {\n    input\n}\n```\n\n```rust\ninput.max(min).min(max)\n```\n\n```rust\nmatch input {\n    x if x > max => max,\n    x if x < min => min,\n    x => x,\n}\n```\n\n```rust\nlet mut x = input;\nif x < min { x = min; }\nif x > max { x = max; }\n```\nUse instead:\n```rust\ninput.clamp(min, max)\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
