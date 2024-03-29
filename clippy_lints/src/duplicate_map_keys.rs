@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_note;
+use clippy_utils::{diagnostics::span_lint_and_note, SpanlessEq};
 use clippy_utils::last_path_segment;
 use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_hir::ExprKind;
@@ -29,7 +29,7 @@ declare_lint_pass!(DuplicateMapKeys => [DUPLICATE_MAP_KEYS]);
 
 impl<'tcx> LateLintPass<'tcx> for DuplicateMapKeys {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
-        if has_hash_collision(cx, expr) {
+        if has_hash_collision(cx, expr).is_some_and( |v| !v.is_empty()) {
             span_lint_and_note(
                 cx,
                 DUPLICATE_MAP_KEYS,
@@ -44,7 +44,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateMapKeys {
 
 // TODO: Also check for different sources of hash collisions
 // TODO: Maybe other types of hash maps should be checked as well?
-fn has_hash_collision(cx: &LateContext<'_>, expr: &rustc_hir::Expr<'_>) -> bool {
+fn has_hash_collision<'a>(cx: &LateContext<'_>, expr: &'a rustc_hir::Expr<'_>) -> Option<Vec<(rustc_hir::Expr<'a>, rustc_hir::Expr<'a>)>> {
     // If the expression is a call to `HashMap::from`, check if the keys are the same
     if let ExprKind::Call(func, args) = &expr.kind
         // First check for HashMap::from
@@ -59,33 +59,29 @@ fn has_hash_collision(cx: &LateContext<'_>, expr: &rustc_hir::Expr<'_>) -> bool 
     // Then check the keys
     {
         // Put all keys in a vector
-        let mut literals = Vec::new();
+        let mut keys = Vec::new();
 
         for arg in *args {
             //
             if let ExprKind::Tup(args) = &arg.kind
                 && !args.is_empty()
-                && let ExprKind::Lit(lit) = args[0].kind
+                // && let ExprKind::Lit(lit) = args[0].kind
             {
-                literals.push(lit.node.clone());
+                keys.push(args[0]);
             }
         }
-        // Debug: it gets here, but doesn't trigger the lint
 
         // Check if there are any duplicate keys
-        let mut duplicate = false;
-        for i in 0..literals.len() {
-            for j in i + 1..literals.len() {
-                if literals[i] == literals[j] {
-                    duplicate = true;
-                    break;
+        let mut duplicate = Vec::new();
+        let mut spannless_eq = SpanlessEq::new(cx);
+        for i in 0..keys.len() {
+            for j in i + 1..keys.len() {
+                if spannless_eq.eq_expr(&keys[i], &keys[j]) {
+                    duplicate.push((keys[i], keys[j]));
                 }
             }
-            if duplicate {
-                break;
-            }
         }
-        return duplicate;
+        return Some(duplicate);
     }
-    false
+    None
 }
