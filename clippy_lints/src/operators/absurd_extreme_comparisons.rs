@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;

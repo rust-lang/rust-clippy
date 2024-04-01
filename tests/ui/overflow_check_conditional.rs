@@ -1,5 +1,5 @@
 #![warn(clippy::overflow_check_conditional)]
-#![allow(clippy::needless_if)]
+#![allow(clippy::needless_if, clippy::compressable_if)]
 
 fn test(a: u32, b: u32, c: u32) {
     if a + b < a {}

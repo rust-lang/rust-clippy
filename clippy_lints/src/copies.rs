@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_then};
 use clippy_utils::source::{first_line_of_span, indent_of, reindent_multiline, snippet, snippet_opt};
 use clippy_utils::ty::{is_interior_mut_ty, needs_ordered_drop};

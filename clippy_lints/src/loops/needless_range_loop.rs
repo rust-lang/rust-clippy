@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use super::NEEDLESS_RANGE_LOOP;
 use clippy_utils::diagnostics::{multispan_sugg, span_lint_and_then};
 use clippy_utils::source::snippet;

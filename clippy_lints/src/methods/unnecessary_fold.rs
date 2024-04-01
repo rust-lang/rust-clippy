@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{is_trait_method, path_to_local_id, peel_blocks, strip_pat_refs};

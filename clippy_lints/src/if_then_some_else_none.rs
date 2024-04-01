@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;

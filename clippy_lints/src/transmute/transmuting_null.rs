@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::{is_integer_literal, is_path_diagnostic_item};

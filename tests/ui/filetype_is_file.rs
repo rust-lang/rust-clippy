@@ -1,4 +1,4 @@
-#![allow(clippy::needless_if)]
+#![allow(clippy::needless_if, clippy::compressable_if)]
 #![warn(clippy::filetype_is_file)]
 
 fn main() -> std::io::Result<()> {

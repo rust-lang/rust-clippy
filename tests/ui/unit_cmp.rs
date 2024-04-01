@@ -3,7 +3,8 @@
     clippy::no_effect,
     clippy::unnecessary_operation,
     clippy::derive_partial_eq_without_eq,
-    clippy::needless_if
+    clippy::needless_if,
+    clippy::compressable_if
 )]
 
 #[derive(PartialEq)]

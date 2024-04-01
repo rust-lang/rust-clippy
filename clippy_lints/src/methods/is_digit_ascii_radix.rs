@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 //! Lint for `c.is_digit(10)`
 
 use super::IS_DIGIT_ASCII_RADIX;

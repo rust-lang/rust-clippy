@@ -6,7 +6,8 @@
     clippy::needless_if,
     clippy::match_like_matches_macro,
     clippy::equatable_if_let,
-    clippy::if_same_then_else
+    clippy::if_same_then_else,
+    clippy::compressable_if
 )]
 #![feature(let_chains, if_let_guard)]
 

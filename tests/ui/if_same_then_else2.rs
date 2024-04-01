@@ -8,7 +8,8 @@
     clippy::needless_if,
     clippy::needless_return,
     clippy::single_element_loop,
-    clippy::branches_sharing_code
+    clippy::branches_sharing_code,
+    clippy::compressable_if
 )]
 
 fn if_same_then_else2() -> Result<&'static str, ()> {

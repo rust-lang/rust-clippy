@@ -5,7 +5,8 @@
     clippy::match_ref_pats,
     clippy::upper_case_acronyms,
     clippy::needless_if,
-    clippy::manual_range_patterns
+    clippy::manual_range_patterns,
+    clippy::compressable_if
 )]
 #![allow(unreachable_patterns, irrefutable_let_patterns, unused)]
 

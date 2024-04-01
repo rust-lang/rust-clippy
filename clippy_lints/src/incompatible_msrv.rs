@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_config::msrvs::Msrv;
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_in_test_function;

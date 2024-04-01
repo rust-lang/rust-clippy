@@ -4,7 +4,8 @@
     clippy::if_same_then_else,
     clippy::equatable_if_let,
     clippy::needless_if,
-    clippy::needless_else
+    clippy::needless_else,
+    clippy::compressable_if
 )]
 use std::task::Poll::{Pending, Ready};
 

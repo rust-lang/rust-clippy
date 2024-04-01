@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![allow(dead_code, clippy::compressable_if)]
 #![warn(clippy::comparison_chain)]
 
 fn a() {}

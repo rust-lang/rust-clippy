@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::{is_res_lang_ctor, is_trait_method, match_trait_method, paths, peel_blocks};

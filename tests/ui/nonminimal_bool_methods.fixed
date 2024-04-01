@@ -1,6 +1,11 @@
 //@compile-flags: -Zdeduplicate-diagnostics=yes
 
-#![allow(unused, clippy::diverging_sub_expression, clippy::needless_if)]
+#![allow(
+    unused,
+    clippy::diverging_sub_expression,
+    clippy::needless_if,
+    clippy::compressable_if
+)]
 #![warn(clippy::nonminimal_bool)]
 
 fn methods_with_negation() {

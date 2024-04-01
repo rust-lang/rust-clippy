@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use super::ARITHMETIC_SIDE_EFFECTS;
 use clippy_utils::consts::{constant, constant_simple, Constant};
 use clippy_utils::diagnostics::span_lint;

@@ -7,7 +7,8 @@
     clippy::comparison_chain,
     clippy::if_same_then_else,
     clippy::ifs_same_cond,
-    clippy::uninlined_format_args
+    clippy::uninlined_format_args,
+    clippy::compressable_if
 )]
 
 use std::marker::ConstParamTy;

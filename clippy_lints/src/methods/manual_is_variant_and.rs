@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_config::msrvs::{Msrv, OPTION_RESULT_IS_VARIANT_AND};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet;

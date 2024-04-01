@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{fn_def_id, is_from_proc_macro, is_lint_allowed};
 use hir::intravisit::{walk_expr, Visitor};

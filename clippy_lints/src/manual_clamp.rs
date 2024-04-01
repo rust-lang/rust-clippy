@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};

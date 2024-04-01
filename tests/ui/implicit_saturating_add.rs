@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused, clippy::compressable_if)]
 #![warn(clippy::implicit_saturating_add)]
 
 fn main() {

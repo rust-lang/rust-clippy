@@ -5,7 +5,8 @@
     clippy::if_same_then_else,
     clippy::let_unit_value,
     clippy::needless_if,
-    clippy::needless_else
+    clippy::needless_else,
+    clippy::compressable_if
 )]
 
 extern crate proc_macro_suspicious_else_formatting;

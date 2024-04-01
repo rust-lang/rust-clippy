@@ -4,7 +4,8 @@
     unused,
     clippy::needless_if,
     clippy::len_without_is_empty,
-    clippy::const_is_empty
+    clippy::const_is_empty,
+    clippy::compressable_if
 )]
 
 extern crate core;

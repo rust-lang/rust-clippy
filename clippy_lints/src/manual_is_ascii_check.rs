@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::root_macro_call;

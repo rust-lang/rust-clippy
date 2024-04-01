@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 //! Lints concerned with the grouping of digits with underscores in integral or
 //! floating-point literal expressions.
 

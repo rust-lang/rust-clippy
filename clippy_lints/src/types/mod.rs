@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 mod borrowed_box;
 mod box_collection;
 mod linked_list;

@@ -5,7 +5,8 @@
     clippy::double_parens,
     clippy::eq_op,
     clippy::print_literal,
-    clippy::uninlined_format_args
+    clippy::uninlined_format_args,
+    clippy::compressable_if
 )]
 
 use std::io::{stdout, Write};

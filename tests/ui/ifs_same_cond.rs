@@ -3,7 +3,8 @@
     clippy::if_same_then_else,
     clippy::comparison_chain,
     clippy::needless_if,
-    clippy::needless_else
+    clippy::needless_else,
+    clippy::compressable_if
 )] // all empty blocks
 
 fn ifs_same_cond() {

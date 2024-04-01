@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::{expr_or_init, fn_def_id_with_node_args, path_def_id};
 use rustc_ast::BinOpKind;

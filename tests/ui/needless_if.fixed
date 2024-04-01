@@ -11,7 +11,8 @@
     clippy::short_circuit_statement,
     clippy::unnecessary_operation,
     clippy::redundant_pattern_matching,
-    unused
+    unused,
+    clippy::compressable_if
 )]
 #![warn(clippy::needless_if)]
 

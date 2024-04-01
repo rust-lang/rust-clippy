@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::source::snippet;
 use clippy_utils::visitors::is_local_used;

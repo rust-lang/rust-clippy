@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use crate::map_unit_fn::OPTION_MAP_UNIT_FN;
 use crate::matches::MATCH_AS_REF;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};

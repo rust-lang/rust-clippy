@@ -1,5 +1,5 @@
 #![warn(clippy::needless_bitwise_bool)]
-#![allow(clippy::const_is_empty)]
+#![allow(clippy::const_is_empty, clippy::compressable_if)]
 
 fn returns_bool() -> bool {
     true

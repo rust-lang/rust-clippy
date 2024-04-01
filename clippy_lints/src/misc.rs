@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::source::{snippet, snippet_with_context};
 use clippy_utils::sugg::Sugg;

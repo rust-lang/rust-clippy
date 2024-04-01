@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint;
 use rustc_ast::ast;
 use rustc_hir as hir;

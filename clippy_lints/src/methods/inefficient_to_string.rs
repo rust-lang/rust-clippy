@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_type_lang_item, walk_ptrs_ty_depth};

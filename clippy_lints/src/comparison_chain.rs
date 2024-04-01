@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{if_sequence, in_constant, is_else_clause, SpanlessEq};

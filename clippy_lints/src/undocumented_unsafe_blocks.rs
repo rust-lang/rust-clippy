@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use std::ops::ControlFlow;
 
 use clippy_utils::diagnostics::span_lint_and_help;

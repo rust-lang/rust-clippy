@@ -1,0 +1,44 @@
+error: these if blocks have the same content and no side effects
+  --> tests/ui/compressable_if.rs:16:5
+   |
+LL |     if test == 1 {}
+   |     ^^^^^^^^^^^^^^^
+LL |     if test == 3 {}
+   |     ^^^^^^^^^^^^^^^
+   |
+   = help: consider merging them into a single if block with a combined condition
+   = note: `-D clippy::compressable-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::compressable_if)]`
+help: merge these if blocks
+   |
+LL ~     if test == 1 || test == 3 {} 
+LL ~     
+   |
+
+error: these if blocks have the same content and no side effects
+  --> tests/ui/compressable_if.rs:6:5
+   |
+LL | /     if test == 1 {
+LL | |         println!("odd");
+LL | |     }
+   | |_____^
+...
+LL | /     if test == 3 {
+LL | |         println!("odd");
+LL | |     }
+   | |_____^
+   |
+   = help: consider merging them into a single if block with a combined condition
+help: merge these if blocks
+   |
+LL ~     if test == 1 || test == 3 {
+LL +         println!("odd");
+LL +     } 
+LL |     if test == 2 {
+LL |         println!("even");
+LL |     }
+LL ~     
+   |
+
+error: aborting due to 2 previous errors
+

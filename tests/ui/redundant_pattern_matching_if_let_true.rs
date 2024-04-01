@@ -1,5 +1,10 @@
 #![warn(clippy::redundant_pattern_matching)]
-#![allow(clippy::needless_if, clippy::no_effect, clippy::nonminimal_bool)]
+#![allow(
+    clippy::needless_if,
+    clippy::no_effect,
+    clippy::nonminimal_bool,
+    clippy::compressable_if
+)]
 
 macro_rules! condition {
     () => {

@@ -1,5 +1,5 @@
 //@aux-build:proc_macros.rs
-#![allow(irrefutable_let_patterns, unused)]
+#![allow(irrefutable_let_patterns, unused, clippy::compressable_if)]
 #![warn(clippy::redundant_at_rest_pattern)]
 
 #[macro_use]

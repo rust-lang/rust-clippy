@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_eq_args, root_macro_call_first_node};
 use clippy_utils::sugg::Sugg;

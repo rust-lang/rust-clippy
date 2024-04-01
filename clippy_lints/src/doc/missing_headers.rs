@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
 use clippy_utils::ty::{implements_trait, is_type_diagnostic_item};
 use clippy_utils::{is_doc_hidden, return_ty};

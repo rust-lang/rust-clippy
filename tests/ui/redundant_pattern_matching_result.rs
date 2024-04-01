@@ -7,7 +7,8 @@
     clippy::needless_bool,
     clippy::needless_if,
     clippy::uninlined_format_args,
-    clippy::unnecessary_wraps
+    clippy::unnecessary_wraps,
+    clippy::compressable_if
 )]
 
 fn main() {

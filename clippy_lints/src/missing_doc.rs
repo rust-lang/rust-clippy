@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 // Note: More specifically this lint is largely inspired (aka copied) from
 // *rustc*'s
 // [`missing_doc`].

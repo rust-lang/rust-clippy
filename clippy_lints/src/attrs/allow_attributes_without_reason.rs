@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use super::{Attribute, ALLOW_ATTRIBUTES_WITHOUT_REASON};
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::is_from_proc_macro;

@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::approx_ty_size;
 use rustc_errors::Applicability;

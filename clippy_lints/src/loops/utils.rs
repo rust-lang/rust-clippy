@@ -1,3 +1,4 @@
+#![allow(clippy::compressable_if)]
 use clippy_utils::ty::{has_iter_method, implements_trait};
 use clippy_utils::{get_parent_expr, is_integer_const, path_to_local, path_to_local_id, sugg};
 use rustc_ast::ast::{LitIntType, LitKind};

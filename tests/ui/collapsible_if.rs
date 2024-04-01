@@ -4,7 +4,8 @@
     clippy::needless_if,
     clippy::nonminimal_bool,
     clippy::eq_op,
-    clippy::redundant_pattern_matching
+    clippy::redundant_pattern_matching,
+    clippy::compressable_if
 )]
 
 #[rustfmt::skip]

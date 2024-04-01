@@ -4,7 +4,8 @@
     irrefutable_let_patterns,
     non_shorthand_field_patterns,
     clippy::needless_borrow,
-    clippy::needless_if
+    clippy::needless_if,
+    clippy::compressable_if
 )]
 
 fn main() {}

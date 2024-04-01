@@ -4,7 +4,12 @@
 
 #![warn(clippy::manual_assert)]
 #![allow(dead_code, unused_doc_comments)]
-#![allow(clippy::nonminimal_bool, clippy::uninlined_format_args, clippy::useless_vec)]
+#![allow(
+    clippy::nonminimal_bool,
+    clippy::uninlined_format_args,
+    clippy::useless_vec,
+    clippy::compressable_if
+)]
 
 macro_rules! one {
     () => {
