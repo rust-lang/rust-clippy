@@ -6,6 +6,7 @@ mod deprecated_cfg_attr;
 mod deprecated_semver;
 mod duplicated_attributes;
 mod empty_line_after;
+mod forbid;
 mod inline_always;
 mod maybe_misused_cfg;
 mod mismatched_target_os;
@@ -526,6 +527,47 @@ declare_clippy_lint! {
     "duplicated attribute"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for items annotated with `#[forbid(...)]`.
+    ///
+    /// ### Why is this bad?
+    /// Banning certain coding practices outright might be harmful,
+    /// since there might very well be reasonable exceptions.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #![forbid(panic)]
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// #![deny(panic)]
+    /// ```
+    #[clippy::version = "1.79.0"]
+    pub FORBID,
+    restriction,
+    "usage of `forbid(...)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for items annotated with `#[forbid(clippy::forbid)]`.
+    ///
+    /// ### Why is this bad?
+    /// Prohibiting others from banning anything is hypocritical.
+    /// Additionally, there might be valid reasons to ban certain coding practices in certain projects.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #![forbid(clippy::forbid)]
+    /// ```
+    #[clippy::version = "1.79.0"]
+    pub HYPOCRISY,
+    suspicious,
+    "usage of `forbid(clippy::forbid)`"
+}
+
 declare_lint_pass!(Attributes => [
     ALLOW_ATTRIBUTES_WITHOUT_REASON,
     INLINE_ALWAYS,
@@ -607,6 +649,8 @@ impl_lint_pass!(EarlyAttributes => [
     DEPRECATED_CLIPPY_CFG_ATTR,
     UNNECESSARY_CLIPPY_CFG,
     DUPLICATED_ATTRIBUTES,
+    FORBID,
+    HYPOCRISY,
 ]);
 
 impl EarlyLintPass for EarlyAttributes {
@@ -625,6 +669,7 @@ impl EarlyLintPass for EarlyAttributes {
         mismatched_target_os::check(cx, attr);
         non_minimal_cfg::check(cx, attr);
         maybe_misused_cfg::check(cx, attr);
+        forbid::check(cx, attr);
     }
 
     extract_msrv_attr!(EarlyContext);
