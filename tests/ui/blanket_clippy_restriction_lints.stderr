@@ -4,6 +4,7 @@ error: you have used the `forbid` attribute
 LL | #![forbid(clippy::restriction)]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
+   = help: consider using `deny` instead
 note: the lint level is defined here
   --> tests/ui/blanket_clippy_restriction_lints.rs:10:11
    |

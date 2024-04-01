@@ -1,6 +1,6 @@
 use super::utils::extract_clippy_lint;
 use super::{FORBID, HYPOCRISY};
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
 use rustc_ast::Attribute;
 use rustc_lint::EarlyContext;
 use rustc_span::sym;
@@ -30,6 +30,13 @@ pub(super) fn check(cx: &EarlyContext<'_>, attr: &Attribute) {
             "you have declared `#[forbid(clippy::forbid)]`, which is hypocritical",
         );
     } else {
-        span_lint(cx, FORBID, attr.span, "you have used the `forbid` attribute");
+        span_lint_and_help(
+            cx,
+            FORBID,
+            attr.span,
+            "you have used the `forbid` attribute",
+            None,
+            "consider using `deny` instead",
+        );
     }
 }
