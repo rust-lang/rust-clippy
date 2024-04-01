@@ -545,11 +545,11 @@
     "id": "box_default",
     "id_span": {
       "path": "src/box_default.rs",
-      "line": 36
+      "line": 31
     },
-    "group": "perf",
+    "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nchecks for `Box::new(T::default())`, which is better written as\n`Box::<T>::default()`.\n\n### Why is this bad?\nFirst, it's more complex, involving two calls instead of one.\nSecond, `Box::default()` can be faster\n[in certain cases](https://nnethercote.github.io/perf-book/standard-library-types.html#box).\n\n### Example\n```rust\nlet x: Box<String> = Box::new(Default::default());\n```\nUse instead:\n```rust\nlet x: Box<String> = Box::default();\n```",
+    "docs": "\n### What it does\nchecks for `Box::new(Default::default())`, which can be written as\n`Box::default()`.\n\n### Why is this bad?\n`Box::default()` is equivalent and more concise.\n\n### Example\n```rust\nlet x: Box<String> = Box::new(Default::default());\n```\nUse instead:\n```rust\nlet x: Box<String> = Box::default();\n```",
     "version": "1.66.0",
     "applicability": {
       "is_multi_part_suggestion": false,
