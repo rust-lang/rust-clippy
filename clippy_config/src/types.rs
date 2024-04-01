@@ -32,6 +32,33 @@ impl DisallowedPath {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum SuggestedPath {
+    Simple(String),
+    WithSuggestion { path: String, suggestion: Option<String> },
+}
+
+impl SuggestedPath {
+    pub fn path(&self) -> &str {
+        let (Self::Simple(path) | Self::WithSuggestion { path, .. }) = self;
+
+        path
+    }
+
+    pub fn from_path_str<S: ToString>(path: &S) -> Self {
+        Self::Simple(path.to_string())
+    }
+
+    pub fn suggestion(&self) -> Option<&str> {
+        if let Self::WithSuggestion { suggestion, .. } = self {
+            suggestion.as_deref()
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum MatchLintBehaviour {
     AllTypes,
@@ -125,6 +152,7 @@ unimplemented_serialize! {
     DisallowedPath,
     Rename,
     MacroMatcher,
+    SuggestedPath,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]

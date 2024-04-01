@@ -547,7 +547,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         avoid_breaking_exported_api,
         ref await_holding_invalid_types,
         ref blocking_ops,
-        ref blocking_ops_with_suggestions,
         cargo_ignore_publish,
         cognitive_complexity_threshold,
         ref disallowed_macros,
@@ -1137,7 +1136,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| {
         Box::new(unnecessary_blocking_ops::UnnecessaryBlockingOps::new(
             blocking_ops.clone(),
-            blocking_ops_with_suggestions.clone(),
         ))
     });
     // add lints here, do not remove this comment, it's used in `new_lint`

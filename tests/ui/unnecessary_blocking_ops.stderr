@@ -1,5 +1,5 @@
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:15:5
+  --> tests/ui/unnecessary_blocking_ops.rs:14:5
    |
 LL |     sleep(Duration::from_secs(1));
    |     ^^^^^
@@ -8,52 +8,58 @@ LL |     sleep(Duration::from_secs(1));
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_blocking_ops)]`
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:17:5
+  --> tests/ui/unnecessary_blocking_ops.rs:16:5
    |
 LL |     fs::remove_dir("").unwrap();
    |     ^^^^^^^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:19:5
+  --> tests/ui/unnecessary_blocking_ops.rs:18:5
    |
 LL |     fs::copy("", "_").unwrap();
    |     ^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:21:13
+  --> tests/ui/unnecessary_blocking_ops.rs:20:13
    |
 LL |     let _ = fs::canonicalize("");
    |             ^^^^^^^^^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:25:9
+  --> tests/ui/unnecessary_blocking_ops.rs:24:9
    |
 LL |         fs::write("", "").unwrap();
    |         ^^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:32:5
+  --> tests/ui/unnecessary_blocking_ops.rs:31:5
    |
 LL |     io::copy(&mut r, &mut w).unwrap();
    |     ^^^^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:51:9
+  --> tests/ui/unnecessary_blocking_ops.rs:50:9
    |
 LL |         sleep(Duration::from_secs(self.0 as _));
    |         ^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:59:22
+  --> tests/ui/unnecessary_blocking_ops.rs:58:22
    |
 LL |     let _ = async || sleep(Duration::from_secs(1));
    |                      ^^^^^
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:64:9
+  --> tests/ui/unnecessary_blocking_ops.rs:63:9
    |
 LL |         sleep(Duration::from_secs(1));
    |         ^^^^^
 
-error: aborting due to 9 previous errors
+error: blocking function call detected in an async body
+  --> tests/ui/unnecessary_blocking_ops.rs:75:33
+   |
+LL |     std::thread::spawn(async || sleep(Duration::from_secs(1)));
+   |                                 ^^^^^
+
+error: aborting due to 10 previous errors
 
