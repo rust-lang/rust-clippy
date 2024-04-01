@@ -17,6 +17,7 @@ declare_clippy_lint! {
     /// This make the code more complex and harder to read.
     /// ### Example
     /// ```no_run
+    /// let a = 1;
     /// if a == 1 {
     ///    println!("odd");
     /// }
@@ -26,6 +27,7 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
+    /// let a = 1;
     /// if a == 1 || a == 3 {
     ///   println!("odd");
     /// }
