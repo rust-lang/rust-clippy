@@ -1,5 +1,7 @@
 use crate::msrvs::Msrv;
-use crate::types::{DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename};
+use crate::types::{
+    DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SuggestedPath,
+};
 use crate::ClippyConfiguration;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -44,6 +46,31 @@ const DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS: &[&str] = &["i", "j", "x", "y", "z
 const DEFAULT_ALLOWED_PREFIXES: &[&str] = &["to", "as", "into", "from", "try_into", "try_from"];
 const DEFAULT_ALLOWED_TRAITS_WITH_RENAMED_PARAMS: &[&str] =
     &["core::convert::From", "core::convert::TryFrom", "core::str::FromStr"];
+const DEFAULT_BLOCKING_OP_PATHS: &[&str] = &[
+    "std::thread::sleep",
+    // Filesystem functions
+    "std::fs::try_exists",
+    "std::fs::canonicalize",
+    "std::fs::copy",
+    "std::fs::create_dir",
+    "std::fs::create_dir_all",
+    "std::fs::hard_link",
+    "std::fs::metadata",
+    "std::fs::read",
+    "std::fs::read_dir",
+    "std::fs::read_link",
+    "std::fs::read_to_string",
+    "std::fs::remove_dir",
+    "std::fs::remove_dir_all",
+    "std::fs::remove_file",
+    "std::fs::rename",
+    "std::fs::set_permissions",
+    "std::fs::symlink_metadata",
+    "std::fs::write",
+    // IO functions
+    "std::io::copy",
+    "std::io::read_to_string",
+];
 
 /// Conf with parse errors
 #[derive(Default)]
@@ -644,24 +671,22 @@ define_Conf! {
     (warn_unsafe_macro_metavars_in_private_macros: bool = false),
     /// Lint: UNNECESSARY_BLOCKING_OPS.
     ///
-    /// List of additional blocking function paths to check.
+    /// List of additional blocking function paths to check, with optional suggestions for each path.
     ///
     /// #### Example
     ///
     /// ```toml
-    /// blocking-ops = ["my_crate::some_blocking_fn"]
+    /// blocking-ops = [ "my_crate::blocking_foo" ]
     /// ```
-    (blocking_ops: Vec<String> = <_>::default()),
-    /// Lint: UNNECESSARY_BLOCKING_OPS.
     ///
-    /// List of additional blocking function paths to check, with replacement suggestion function paths.
-    ///
-    /// #### Example
+    /// Or, if you are sure that some functions can be replaced by a suggested one:
     ///
     /// ```toml
-    /// blocking-ops-with-suggestions = [["my_crate::some_blocking_fn" , "my_crate::use_this_instead"]]
+    /// blocking-ops = [
+    ///     { path = "my_crate::blocking_foo", suggestion = "my_crate::async::async_foo" }
+    /// ]
     /// ```
-    (blocking_ops_with_suggestions: Vec<[String; 2]> = <_>::default()),
+    (blocking_ops: Vec<SuggestedPath> = DEFAULT_BLOCKING_OP_PATHS.iter().map(SuggestedPath::from_path_str).collect()),
 }
 
 /// Search for the configuration file.

@@ -1,4 +1,3 @@
-#![feature(async_fn_in_trait)]
 #![feature(async_closure)]
 #![allow(incomplete_features)]
 #![warn(clippy::unnecessary_blocking_ops)]
@@ -68,6 +67,13 @@ fn closures() {
         sleep(Duration::from_secs(1)); // don't lint, not async
         do_something();
     };
+}
+
+fn thread_spawn() {
+    std::thread::spawn(|| sleep(Duration::from_secs(1)));
+    std::thread::spawn(async || {});
+    std::thread::spawn(async || sleep(Duration::from_secs(1)));
+    //~^ ERROR: blocking function call detected in an async body
 }
 
 fn main() {}

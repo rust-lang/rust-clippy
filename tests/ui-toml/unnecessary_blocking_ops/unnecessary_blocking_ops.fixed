@@ -15,15 +15,15 @@ mod blocking_mod {
 }
 
 pub async fn async_fn() {
-    sleep(Duration::from_secs(1));
+    crate::async_mod::sleep(Duration::from_secs(1)).await;
     //~^ ERROR: blocking function call detected in an async body
-    blocking_mod::sleep(Duration::from_secs(1));
+    crate::async_mod::sleep(Duration::from_secs(1)).await;
     //~^ ERROR: blocking function call detected in an async body
     let mut r: &[u8] = b"hello";
     let mut w: Vec<u8> = vec![];
-    io::copy(&mut r, &mut w).unwrap();
+    tokio::io::copy(&mut r, &mut w).await.unwrap();
     //~^ ERROR: blocking function call detected in an async body
-    let _cont = io::read_to_string(io::stdin()).unwrap();
+    let _cont = crate::async_mod::read_to_string(io::stdin()).await.unwrap();
     //~^ ERROR: blocking function call detected in an async body
     fs::create_dir("").unwrap(); // Don't lint, config overrided
 }

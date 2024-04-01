@@ -1,8 +1,6 @@
-blocking-ops = ["unnecessary_blocking_ops::blocking_mod::sleep"]
-blocking-ops-with-suggestions = [
-    ["std::fs::remove_dir", "tokio::fs::remove_dir"],
-    ["std::fs::copy", "tokio::fs::copy"],
-    ["std::io::copy", "tokio::io::copy"],
-    ["std::io::read_to_string", "unnecessary_blocking_ops::async_mod::read_to_string"],
-    ["std::thread::sleep", "unnecessary_blocking_ops::async_mod::sleep"],
+blocking-ops = [
+    { path = "unnecessary_blocking_ops::blocking_mod::sleep", suggestion = "crate::async_mod::sleep" },
+    { path = "std::io::copy", suggestion = "tokio::io::copy" },
+    { path = "std::io::read_to_string", suggestion = "crate::async_mod::read_to_string" },
+    { path = "std::thread::sleep", suggestion = "crate::async_mod::sleep" },
 ]

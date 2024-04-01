@@ -1,32 +1,24 @@
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:19:5
+  --> tests/ui-toml/unnecessary_blocking_ops/unnecessary_blocking_ops.rs:18:5
    |
 LL |     sleep(Duration::from_secs(1));
    |     ^^^^^------------------------
    |     |
-   |     help: try using its async counterpart: `unnecessary_blocking_ops::async_mod::sleep(Duration::from_secs(1)).await`
+   |     help: try using its async counterpart: `crate::async_mod::sleep(Duration::from_secs(1)).await`
    |
    = note: `-D clippy::unnecessary-blocking-ops` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_blocking_ops)]`
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:21:5
+  --> tests/ui-toml/unnecessary_blocking_ops/unnecessary_blocking_ops.rs:20:5
    |
-LL |     fs::remove_dir("").unwrap();
-   |     ^^^^^^^^^^^^^^----
+LL |     blocking_mod::sleep(Duration::from_secs(1));
+   |     ^^^^^^^^^^^^^^^^^^^------------------------
    |     |
-   |     help: try using its async counterpart: `tokio::fs::remove_dir("").await`
+   |     help: try using its async counterpart: `crate::async_mod::sleep(Duration::from_secs(1)).await`
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:23:5
-   |
-LL |     fs::copy("", "_").unwrap();
-   |     ^^^^^^^^---------
-   |     |
-   |     help: try using its async counterpart: `tokio::fs::copy("", "_").await`
-
-error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:27:5
+  --> tests/ui-toml/unnecessary_blocking_ops/unnecessary_blocking_ops.rs:24:5
    |
 LL |     io::copy(&mut r, &mut w).unwrap();
    |     ^^^^^^^^----------------
@@ -34,18 +26,12 @@ LL |     io::copy(&mut r, &mut w).unwrap();
    |     help: try using its async counterpart: `tokio::io::copy(&mut r, &mut w).await`
 
 error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:29:17
+  --> tests/ui-toml/unnecessary_blocking_ops/unnecessary_blocking_ops.rs:26:17
    |
 LL |     let _cont = io::read_to_string(io::stdin()).unwrap();
    |                 ^^^^^^^^^^^^^^^^^^-------------
    |                 |
-   |                 help: try using its async counterpart: `unnecessary_blocking_ops::async_mod::read_to_string(io::stdin()).await`
+   |                 help: try using its async counterpart: `crate::async_mod::read_to_string(io::stdin()).await`
 
-error: blocking function call detected in an async body
-  --> $DIR/unnecessary_blocking_ops.rs:31:5
-   |
-LL |     fs::create_dir("").unwrap();
-   |     ^^^^^^^^^^^^^^
-
-error: aborting due to 6 previous errors
+error: aborting due to 4 previous errors
 
