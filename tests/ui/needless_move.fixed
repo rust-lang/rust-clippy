@@ -396,7 +396,7 @@ fn main() {
     // below are a few tests from rustc's testsuite that use move closures,
     // which might uncover edge cases
 
-    // rust/$DIR/closures/2229_closure_analysis/migrations/no_migrations.rs
+    // rust/tests/ui/closures/2229_closure_analysis/migrations/no_migrations.rs
 
     fn _no_migrations() {
         // Set of test cases that don't need migrations
@@ -480,7 +480,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/closures/2229_closure_analysis/run_pass/issue-88476.rs
+    // rust/tests/ui/closures/2229_closure_analysis/run_pass/issue-88476.rs
 
     fn _issue_88476() {
         use std::rc::Rc;
@@ -529,7 +529,7 @@ fn main() {
         fn main() {}
     }
 
-    // rust/$DIR/closures/2229_closure_analysis/preserve_field_drop_order2.rs
+    // rust/tests/ui/closures/2229_closure_analysis/preserve_field_drop_order2.rs
 
     fn _preserve_field_drop_order2() {
         #[derive(Debug)]
@@ -601,7 +601,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/closures/issue-72408-nested-closures-exponential.rs
+    // rust/tests/ui/closures/issue-72408-nested-closures-exponential.rs
 
     fn _issue_72408_nested_closures_exponential() {
 
@@ -669,7 +669,7 @@ fn main() {
         */
     }
 
-    // rust/$DIR/closures/issue-97607.rs
+    // rust/tests/ui/closures/issue-97607.rs
 
     fn _issue_97607() {
         #[allow(unused)]
@@ -685,7 +685,7 @@ fn main() {
         fn main() {}
     }
 
-    // rust/$DIR/closures/once-move-out-on-heap.rs
+    // rust/tests/ui/closures/once-move-out-on-heap.rs
 
     fn _once_move_out_on_heap() {
         // Testing guarantees provided by once functions.
@@ -705,7 +705,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/closures/supertrait-hint-references-assoc-ty.rs
+    // rust/tests/ui/closures/supertrait-hint-references-assoc-ty.rs
 
     fn _supertrait_hint_references_assoc_ty() {
         pub trait Fn0: Fn(i32) -> Self::Out {
@@ -725,7 +725,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/issue-18652.rs
+    // rust/tests/ui/unboxed-closures/issue-18652.rs
 
     fn _issue_18652() {
         // Tests multiple free variables being passed by value into an unboxed
@@ -739,7 +739,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-all-traits.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-all-traits.rs
 
     fn _unboxed_closures_all_traits() {
         fn a<F: Fn(isize, isize) -> isize>(f: F) -> isize {
@@ -762,7 +762,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-boxed.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-boxed.rs
 
     fn _unboxed_closures_boxed() {
         use std::ops::FnMut;
@@ -779,7 +779,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-call-sugar-object-autoderef.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-call-sugar-object-autoderef.rs
 
     fn _unboxed_closures_call_sugar_object_autoderef() {
         // Test that the call operator autoderefs when calling to an object type.
@@ -798,7 +798,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-call-sugar-object.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-call-sugar-object.rs
 
     fn _unboxed_closures_call_sugar_object() {
         use std::ops::FnMut;
@@ -815,7 +815,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-counter-not-moved.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-counter-not-moved.rs
 
     fn _unboxed_closures_counter_not_moved() {
         // Test that we mutate a counter on the stack only when we expect to.
@@ -849,7 +849,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-drop.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-drop.rs
 
     fn _unboxed_closures_drop() {
         #![allow(path_statements)]
@@ -985,7 +985,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-infer-fnmut-move.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-infer-fnmut-move.rs
 
     fn _unboxed_closures_infer_fnmut_move() {
         // Test that we are able to infer a suitable kind for this `move`
@@ -1008,7 +1008,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-infer-fnonce-move.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-infer-fnonce-move.rs
 
     fn _unboxed_closures_infer_fnonce_move() {
         // Test that we are able to infer a suitable kind for this `move`
@@ -1037,7 +1037,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-monomorphization.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-monomorphization.rs
 
     fn _unboxed_closures_monomorphization() {
         // Test that unboxed closures in contexts with free type parameters
@@ -1067,7 +1067,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-move-mutable.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-move-mutable.rs
 
     fn _unboxed_closures_move_mutable() {
         // pretty-expanded FIXME #23616
@@ -1104,7 +1104,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/unboxed-closures/unboxed-closures-single-word-env.rs
+    // rust/tests/ui/unboxed-closures/unboxed-closures-single-word-env.rs
 
     fn _unboxed_closures_single_word_env() {
         // Ensures that single-word environments work right in unboxed closures.
@@ -1130,7 +1130,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/functions-closures/clone-closure.rs
+    // rust/tests/ui/functions-closures/clone-closure.rs
 
     fn _clone_closure() {
         // Check that closures implement `Clone`.
@@ -1152,7 +1152,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/functions-closures/closure-bounds-can-capture-chan.rs
+    // rust/tests/ui/functions-closures/closure-bounds-can-capture-chan.rs
 
     fn _closure_bounds_can_capture_chan() {
         // pretty-expanded FIXME #23616
@@ -1172,7 +1172,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/functions-closures/nullable-pointer-opt-closures.rs
+    // rust/tests/ui/functions-closures/nullable-pointer-opt-closures.rs
 
     fn _nullable_pointer_opt_closures() {
         use std::mem;
@@ -1209,7 +1209,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/moves/moves-based-on-type-capture-clause.rs
+    // rust/tests/ui/moves/moves-based-on-type-capture-clause.rs
 
     fn _moves_based_on_type_capture_clause() {
         #![allow(unused_must_use)]
@@ -1226,7 +1226,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/borrowck/borrow-raw-address-of-mutability-ok.rs
+    // rust/tests/ui/borrowck/borrow-raw-address-of-mutability-ok.rs
 
     fn _borrow_raw_address_of_mutability_ok() {
         fn mutable_address_of() {
@@ -1273,7 +1273,7 @@ fn main() {
         fn main() {}
     }
 
-    // rust/$DIR/borrowck/kindck-implicit-close-over-mut-var.rs
+    // rust/tests/ui/borrowck/kindck-implicit-close-over-mut-var.rs
 
     fn _kindck_implicit_close_over_mut_var() {
         #![allow(unused_must_use)]
@@ -1325,7 +1325,7 @@ fn main() {
         pub fn main() {}
     }
 
-    // rust/$DIR/async-await/track-caller/panic-track-caller.rs
+    // rust/tests/ui/async-await/track-caller/panic-track-caller.rs
 
     fn _panic_track_caller() {
         // needs-unwind
@@ -1457,7 +1457,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/async-await/deep-futures-are-freeze.rs
+    // rust/tests/ui/async-await/deep-futures-are-freeze.rs
 
     fn _deep_futures_are_freeze() {
         // no-prefer-dynamic
@@ -1638,7 +1638,7 @@ fn main() {
         async fn boom(f: &mut ()) {}
     }
 
-    // rust/$DIR/async-await/generics-and-bounds.rs
+    // rust/tests/ui/async-await/generics-and-bounds.rs
 
     fn _generics_and_bounds() {
         use std::future::Future;
@@ -1727,7 +1727,7 @@ fn main() {
         }
     }
 
-    // rust/$DIR/async-await/issue-105501.rs
+    // rust/tests/ui/async-await/issue-105501.rs
 
     fn _issue_105501() {
         // This is a regression test for https://github.com/rust-lang/rust/issues/105501.

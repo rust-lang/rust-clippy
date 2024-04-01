@@ -1,89 +1,89 @@
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:72:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:72:33
    |
 LL |     let closure = assert_static(move || {});
    |                                 -----^^^^^
    |                                 |
-   |                                 help: remove the `move`
+   |                                 help: remove the `move` keyword
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
    = note: `-D clippy::needless-move` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_move)]`
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:73:29
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:73:29
    |
 LL |     let fut = assert_static(async move {});
    |                             ^^^^^^-----^^
    |                                   |
-   |                                   help: remove the `move`
+   |                                   help: remove the `move` keyword
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:77:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:77:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:123:29
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:123:29
    |
 LL |       let fut = assert_static(async move {
-   |                               ^     ----- help: remove the `move`
+   |                               ^     ----- help: remove the `move` keyword
    |  _____________________________|
    | |
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:160:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:160:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         with_ref(&a);
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:174:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:174:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         with_ref_mut(&mut a);
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:189:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:189:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         with_ref(&a);
 LL | |         with_owned(b);
@@ -91,86 +91,86 @@ LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:208:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:208:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:246:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:246:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         with_owned(a.non_copy);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:318:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:318:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         a = NonCopy;
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:325:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:325:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         a.copy = Copy;
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:332:33
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:332:33
    |
 LL |       let closure = assert_static(move || {
    |                                   ^----
    |                                   |
-   |  _________________________________help: remove the `move`
+   |  _________________________________help: remove the `move` keyword
    | |
 LL | |         a.non_copy = NonCopy;
 LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:371:29
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:371:29
    |
 LL |       let fut = assert_static(async move {
-   |                               ^     ----- help: remove the `move`
+   |                               ^     ----- help: remove the `move` keyword
    |  _____________________________|
    | |
 LL | |         a = NonCopy;
@@ -178,13 +178,13 @@ LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:378:29
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:378:29
    |
 LL |       let fut = assert_static(async move {
-   |                               ^     ----- help: remove the `move`
+   |                               ^     ----- help: remove the `move` keyword
    |  _____________________________|
    | |
 LL | |         a.copy = Copy;
@@ -192,13 +192,13 @@ LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:385:29
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:385:29
    |
 LL |       let fut = assert_static(async move {
-   |                               ^     ----- help: remove the `move`
+   |                               ^     ----- help: remove the `move` keyword
    |  _____________________________|
    | |
 LL | |         a.non_copy = NonCopy;
@@ -206,89 +206,89 @@ LL | |         with_owned(a);
 LL | |     });
    | |_____^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:701:17
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:701:17
    |
 LL |               foo(move || {
    |                   ^----
    |                   |
-   |  _________________help: remove the `move`
+   |  _________________help: remove the `move` keyword
    | |
 LL | |                 assert!(*x);
 LL | |                 drop(x);
 LL | |             });
    | |_____________^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:722:27
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:722:27
    |
 LL |               closure_typer(move |x| {
    |                             ^----
    |                             |
-   |  ___________________________help: remove the `move`
+   |  ___________________________help: remove the `move` keyword
    | |
 LL | |                 let _: i64 = x.into();
 LL | |             });
    | |_____________^
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:896:19
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:896:19
    |
 LL |                 a(move |a: isize, b| a + b);
    |                   -----^^^^^^^^^^^^^^^^^^^
    |                   |
-   |                   help: remove the `move`
+   |                   help: remove the `move` keyword
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:925:19
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:925:19
    |
 LL |                 b(move |a: isize, b| a + b);
    |                   -----^^^^^^^^^^^^^^^^^^^
    |                   |
-   |                   help: remove the `move`
+   |                   help: remove the `move` keyword
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:954:19
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:954:19
    |
 LL |                 c(move |a: isize, b| a + b);
    |                   -----^^^^^^^^^^^^^^^^^^^
    |                   |
-   |                   help: remove the `move`
+   |                   help: remove the `move` keyword
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:960:19
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:960:19
    |
 LL |                   c(move |a: isize, b| {
    |                     ^----
    |                     |
-   |  ___________________help: remove the `move`
+   |  ___________________help: remove the `move` keyword
    | |
 LL | |                     z;
 LL | |                     a + b
 LL | |                 });
    | |_________________^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:971:19
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:971:19
    |
 LL |                   c(move |a: isize, b| {
    |                     ^----
    |                     |
-   |  ___________________help: remove the `move`
+   |  ___________________help: remove the `move` keyword
    | |
 LL | |                     z;
 LL | |                     zz;
@@ -296,50 +296,50 @@ LL | |                     a + b
 LL | |                 });
    | |_________________^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:1032:28
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:1032:28
    |
 LL |                 let tick = move || mem::drop(drop_me);
    |                            -----^^^^^^^^^^^^^^^^^^^^^
    |                            |
-   |                            help: remove the `move`
+   |                            help: remove the `move` keyword
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:1468:19
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:1468:19
    |
 LL |             spawn(move || main0())
    |                   -----^^^^^^^^^^
    |                   |
-   |                   help: remove the `move`
+   |                   help: remove the `move` keyword
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:1691:13
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:1691:13
    |
 LL |             async move {}
    |             ^^^^^^-----^^
    |                   |
-   |                   help: remove the `move`
+   |                   help: remove the `move` keyword
    |
-   = note: there were no captured variables, so the `move` is unnecessary
+   = note: there are no captured variables, so the `move` keyword is unnecessary
 
-error: you seem to use `move`, but the `move` is unnecessary
-  --> $DIR/needless_move.rs:1754:21
+error: this closure does not need to capture by value
+  --> tests/ui/needless_move.rs:1754:21
    |
 LL |               is_send(async move {
-   |                       ^     ----- help: remove the `move`
+   |                       ^     ----- help: remove the `move` keyword
    |  _____________________|
    | |
 LL | |                 let _: Option<()> = fut.await;
 LL | |             });
    | |_____________^
    |
-   = note: there were consumed variables, but no borrowed variables, so the `move` is unnecessary
+   = note: there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary
 
 error: aborting due to 26 previous errors
 

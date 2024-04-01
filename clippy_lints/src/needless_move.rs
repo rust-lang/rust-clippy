@@ -33,9 +33,9 @@
 //! try to infer the actual min capture kind needed.
 
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::sugg::DiagnosticExt;
+use clippy_utils::sugg::DiagExt;
 use rustc_errors::Applicability;
-use rustc_hir::{CaptureBy, Closure, Expr, ExprKind, HirId};
+use rustc_hir::{CaptureBy, Expr, ExprKind, HirId};
 use rustc_hir_typeck::expr_use_visitor as euv;
 use rustc_infer::infer::TyCtxtInferExt;
 use rustc_lint::{LateContext, LateLintPass};
@@ -46,7 +46,7 @@ use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for closures and `async` blocks where the `move` is not necessary.
+    /// Checks for closures and `async` blocks where capturing by value (the `move` keyword) is unnecessary.
     /// E.g. all the values are captured by value into the closure / `async` block.
     ///
     /// ### Why is this bad?
@@ -96,8 +96,16 @@ declare_clippy_lint! {
 
 declare_lint_pass!(NeedlessMove => [NEEDLESS_MOVE]);
 
-impl NeedlessMove {
-    fn check_closure<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, closure: &'tcx Closure<'tcx>) {
+impl<'tcx> LateLintPass<'tcx> for NeedlessMove {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
+        if expr.span.from_expansion() {
+            return;
+        }
+
+        let ExprKind::Closure(closure) = &expr.kind else {
+            return;
+        };
+
         let CaptureBy::Value { move_kw } = closure.capture_clause else {
             return;
         };
@@ -140,9 +148,9 @@ impl NeedlessMove {
         }
 
         let note_msg = match lint_result {
-            LintResult::NothingCaptured => "there were no captured variables, so the `move` is unnecessary",
+            LintResult::NothingCaptured => "there are no captured variables, so the `move` keyword is unnecessary",
             LintResult::Consumed => {
-                "there were consumed variables, but no borrowed variables, so the `move` is unnecessary"
+                "there are consumed variables, but no borrowed variables, so the `move` keyword is unnecessary"
             },
             LintResult::NeedMove => {
                 // there was a value which would be borrowed if it weren't for the move keyword,
@@ -155,24 +163,17 @@ impl NeedlessMove {
             cx,
             NEEDLESS_MOVE,
             expr.span,
-            "you seem to use `move`, but the `move` is unnecessary",
+            "this closure does not need to capture by value",
             |diag| {
-                diag.suggest_remove_item(cx, move_kw, "remove the `move`", Applicability::MachineApplicable);
+                diag.suggest_remove_item(
+                    cx,
+                    move_kw,
+                    "remove the `move` keyword",
+                    Applicability::MachineApplicable,
+                );
                 diag.note(note_msg);
             },
         );
-    }
-}
-
-impl<'tcx> LateLintPass<'tcx> for NeedlessMove {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        if expr.span.from_expansion() {
-            return;
-        }
-
-        if let ExprKind::Closure(closure) = &expr.kind {
-            Self::check_closure(cx, expr, closure);
-        }
     }
 }
 
