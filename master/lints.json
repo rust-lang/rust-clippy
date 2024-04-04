@@ -1418,7 +1418,7 @@
     "id": "derive_ord_xor_partial_ord",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 97
+      "line": 96
     },
     "group": "correctness",
     "level": "deny",
@@ -1433,7 +1433,7 @@
     "id": "derive_partial_eq_without_eq",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 190
+      "line": 189
     },
     "group": "nursery",
     "level": "allow",
@@ -1448,7 +1448,7 @@
     "id": "derived_hash_with_manual_eq",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 46
+      "line": 45
     },
     "group": "correctness",
     "level": "deny",
@@ -2124,7 +2124,7 @@
     "id": "expl_impl_clone_on_copy",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 124
+      "line": 123
     },
     "group": "pedantic",
     "level": "allow",
@@ -7061,7 +7061,7 @@
     "id": "pattern_type_mismatch",
     "id_span": {
       "path": "src/pattern_type_mismatch.rs",
-      "line": 76
+      "line": 78
     },
     "group": "restriction",
     "level": "allow",
@@ -7361,7 +7361,7 @@
     "id": "question_mark",
     "id_span": {
       "path": "src/question_mark.rs",
-      "line": 45
+      "line": 46
     },
     "group": "style",
     "level": "warn",
@@ -10295,7 +10295,7 @@
     "id": "unsafe_derive_deserialize",
     "id_span": {
       "path": "src/derive.rs",
-      "line": 158
+      "line": 157
     },
     "group": "pedantic",
     "level": "allow",
