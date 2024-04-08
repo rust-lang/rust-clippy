@@ -4797,7 +4797,7 @@
     "id": "manual_unwrap_or_default",
     "id_span": {
       "path": "src/manual_unwrap_or_default.rs",
-      "line": 46
+      "line": 47
     },
     "group": "suspicious",
     "level": "warn",
