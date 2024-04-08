@@ -30,6 +30,9 @@ declare_clippy_lint! {
     /// Be careful if the function is publicly reexported as it would break compatibility with
     /// users of this function.
     ///
+    /// By default, `&mut self` is ignored. If you want it to be taken into account, set the
+    /// `check_self_items` clippy setting to `true`.
+    ///
     /// ### Why is this bad?
     /// Less `mut` means less fights with the borrow checker. It can also lead to more
     /// opportunities for parallelization.
@@ -57,14 +60,16 @@ pub struct NeedlessPassByRefMut<'tcx> {
     avoid_breaking_exported_api: bool,
     used_fn_def_ids: FxHashSet<LocalDefId>,
     fn_def_ids_to_maybe_unused_mut: FxIndexMap<LocalDefId, Vec<rustc_hir::Ty<'tcx>>>,
+    check_self_items: bool,
 }
 
 impl NeedlessPassByRefMut<'_> {
-    pub fn new(avoid_breaking_exported_api: bool) -> Self {
+    pub fn new(avoid_breaking_exported_api: bool, check_self_items: bool) -> Self {
         Self {
             avoid_breaking_exported_api,
             used_fn_def_ids: FxHashSet::default(),
             fn_def_ids_to_maybe_unused_mut: FxIndexMap::default(),
+            check_self_items,
         }
     }
 }
@@ -76,13 +81,14 @@ fn should_skip<'tcx>(
     input: rustc_hir::Ty<'tcx>,
     ty: Ty<'_>,
     arg: &rustc_hir::Param<'_>,
+    check_self_items: bool,
 ) -> bool {
     // We check if this a `&mut`. `ref_mutability` returns `None` if it's not a reference.
     if !matches!(ty.ref_mutability(), Some(Mutability::Mut)) {
         return true;
     }
 
-    if is_self(arg) {
+    if !check_self_items && is_self(arg) {
         return true;
     }
 
@@ -172,13 +178,15 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByRefMut<'tcx> {
         let fn_sig = cx.tcx.fn_sig(fn_def_id).instantiate_identity();
         let fn_sig = cx.tcx.liberate_late_bound_regions(fn_def_id.to_def_id(), fn_sig);
 
+        let check_self_items = self.check_self_items;
+
         // If there are no `&mut` argument, no need to go any further.
         let mut it = decl
             .inputs
             .iter()
             .zip(fn_sig.inputs())
             .zip(body.params)
-            .filter(|((&input, &ty), arg)| !should_skip(cx, input, ty, arg))
+            .filter(|((&input, &ty), arg)| !should_skip(cx, input, ty, arg, check_self_items))
             .peekable();
         if it.peek().is_none() {
             return;

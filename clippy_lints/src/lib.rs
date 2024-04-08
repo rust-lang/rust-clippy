@@ -597,6 +597,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
 
         blacklisted_names: _,
         cyclomatic_complexity_threshold: _,
+        check_self_items,
     } = *conf;
     let msrv = || msrv.clone();
 
@@ -1070,6 +1071,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| {
         Box::new(needless_pass_by_ref_mut::NeedlessPassByRefMut::new(
             avoid_breaking_exported_api,
+            check_self_items,
         ))
     });
     store.register_late_pass(|_| Box::new(non_canonical_impls::NonCanonicalImpls));

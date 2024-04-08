@@ -589,6 +589,10 @@ define_Conf! {
     /// 2. Paths with any segment that containing the word 'prelude'
     /// are already allowed by default.
     (allowed_wildcard_imports: FxHashSet<String> = FxHashSet::default()),
+    /// Lint: NEEDLESS_PASS_BY_REF_MUT.
+    ///
+    /// Lint on `self`.
+    (check_self_items: bool = false),
 }
 
 /// Search for the configuration file.
