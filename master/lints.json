@@ -1118,7 +1118,7 @@
     "id": "const_is_empty",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4082
+      "line": 4081
     },
     "group": "suspicious",
     "level": "warn",
@@ -4302,7 +4302,7 @@
     "id": "manual_c_str_literals",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4027
+      "line": 4026
     },
     "group": "pedantic",
     "level": "allow",
@@ -6728,7 +6728,7 @@
     "id": "option_as_ref_cloned",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3968
+      "line": 3967
     },
     "group": "pedantic",
     "level": "allow",
@@ -8720,11 +8720,11 @@
     "id": "str_split_at_newline",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3943
+      "line": 3942
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\n\nChecks for usages of `str.trim().split(\"\\n\")` and `str.trim().split(\"\\r\\n\")`.\n\n### Why is this bad?\n\nHard-coding the line endings makes the code less compatible. `str.lines` should be used instead.\n\n### Example\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".trim().split('\\n');\n```\nUse instead:\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".lines();\n```\n\n### Known Problems\n\nThis lint cannot detect if the split is intentionally restricted to a single type of newline (`\"\\n\"` or\n`\"\\r\\n\"`), for example during the parsing of a specific file format in which precisely one newline type is\nvalid.\n```rust",
+    "docs": "\n### What it does\n\nChecks for usages of `str.trim().split(\"\\n\")` and `str.trim().split(\"\\r\\n\")`.\n\n### Why is this bad?\n\nHard-coding the line endings makes the code less compatible. `str.lines` should be used instead.\n\n### Example\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".trim().split('\\n');\n```\nUse instead:\n```rust\n\"some\\ntext\\nwith\\nnewlines\\n\".lines();\n```\n\n### Known Problems\n\nThis lint cannot detect if the split is intentionally restricted to a single type of newline (`\"\\n\"` or\n`\"\\r\\n\"`), for example during the parsing of a specific file format in which precisely one newline type is\nvalid.",
     "version": "1.77.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9965,7 +9965,7 @@
     "id": "unnecessary_get_then_check",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 4056
+      "line": 4055
     },
     "group": "suspicious",
     "level": "warn",
@@ -10085,7 +10085,7 @@
     "id": "unnecessary_result_map_or_else",
     "id_span": {
       "path": "src/methods/mod.rs",
-      "line": 3993
+      "line": 3992
     },
     "group": "suspicious",
     "level": "warn",
