@@ -354,6 +354,7 @@ mod uninit_vec;
 mod unit_return_expecting_ord;
 mod unit_types;
 mod unnamed_address;
+mod unnecessary_blocking_ops;
 mod unnecessary_box_returns;
 mod unnecessary_map_on_constructor;
 mod unnecessary_owned_empty_strings;
@@ -545,6 +546,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         array_size_threshold,
         avoid_breaking_exported_api,
         ref await_holding_invalid_types,
+        ref blocking_ops,
         cargo_ignore_publish,
         cognitive_complexity_threshold,
         ref disallowed_macros,
@@ -1131,6 +1133,11 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
     store.register_late_pass(|_| Box::new(integer_division_remainder_used::IntegerDivisionRemainderUsed));
+    store.register_late_pass(move |_| {
+        Box::new(unnecessary_blocking_ops::UnnecessaryBlockingOps::new(
+            blocking_ops.clone(),
+        ))
+    });
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

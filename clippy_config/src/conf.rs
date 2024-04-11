@@ -1,5 +1,7 @@
 use crate::msrvs::Msrv;
-use crate::types::{DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename};
+use crate::types::{
+    DisallowedPath, MacroMatcher, MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SuggestedPath,
+};
 use crate::ClippyConfiguration;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
@@ -39,6 +41,31 @@ const DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
 ];
 const DEFAULT_DISALLOWED_NAMES: &[&str] = &["foo", "baz", "quux"];
 const DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS: &[&str] = &["i", "j", "x", "y", "z", "w", "n"];
+const DEFAULT_BLOCKING_OP_PATHS: &[&str] = &[
+    "std::thread::sleep",
+    // Filesystem functions
+    "std::fs::try_exists",
+    "std::fs::canonicalize",
+    "std::fs::copy",
+    "std::fs::create_dir",
+    "std::fs::create_dir_all",
+    "std::fs::hard_link",
+    "std::fs::metadata",
+    "std::fs::read",
+    "std::fs::read_dir",
+    "std::fs::read_link",
+    "std::fs::read_to_string",
+    "std::fs::remove_dir",
+    "std::fs::remove_dir_all",
+    "std::fs::remove_file",
+    "std::fs::rename",
+    "std::fs::set_permissions",
+    "std::fs::symlink_metadata",
+    "std::fs::write",
+    // IO functions
+    "std::io::copy",
+    "std::io::read_to_string",
+];
 
 /// Conf with parse errors
 #[derive(Default)]
@@ -589,6 +616,24 @@ define_Conf! {
     /// 2. Paths with any segment that containing the word 'prelude'
     /// are already allowed by default.
     (allowed_wildcard_imports: FxHashSet<String> = FxHashSet::default()),
+    /// Lint: UNNECESSARY_BLOCKING_OPS.
+    ///
+    /// List of additional blocking function paths to check, with optional suggestions for each path.
+    ///
+    /// #### Example
+    ///
+    /// ```toml
+    /// blocking-ops = [ "my_crate::blocking_foo" ]
+    /// ```
+    ///
+    /// Or, if you are sure that some functions can be replaced by a suggested one:
+    ///
+    /// ```toml
+    /// blocking-ops = [
+    ///     { path = "my_crate::blocking_foo", suggestion = "my_crate::async::async_foo" }
+    /// ]
+    /// ```
+    (blocking_ops: Vec<SuggestedPath> = DEFAULT_BLOCKING_OP_PATHS.iter().map(SuggestedPath::from_path_str).collect()),
 }
 
 /// Search for the configuration file.

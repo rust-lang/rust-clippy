@@ -1,0 +1,6 @@
+blocking-ops = [
+    { path = "unnecessary_blocking_ops::blocking_mod::sleep", suggestion = "crate::async_mod::sleep" },
+    { path = "std::io::copy", suggestion = "tokio::io::copy" },
+    { path = "std::io::read_to_string", suggestion = "crate::async_mod::read_to_string" },
+    { path = "std::thread::sleep", suggestion = "crate::async_mod::sleep" },
+]
