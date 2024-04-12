@@ -1925,7 +1925,7 @@
     "id": "enum_variant_names",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 46
+      "line": 47
     },
     "group": "style",
     "level": "warn",
@@ -5603,7 +5603,7 @@
     "id": "module_inception",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 104
+      "line": 105
     },
     "group": "style",
     "level": "warn",
@@ -5618,11 +5618,11 @@
     "id": "module_name_repetitions",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 73
+      "line": 74
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nDetects type names that are prefixed or suffixed by the\ncontaining module's name.\n\n### Why is this bad?\nIt requires the user to type the module name twice.\n\n### Example\n```rust\nmod cake {\n    struct BlackForestCake;\n}\n```\n\nUse instead:\n```rust\nmod cake {\n    struct BlackForest;\n}\n```\n### Past names\n\n* `stutter`\n\n",
+    "docs": "\n### What it does\nDetects type names that are prefixed or suffixed by the\ncontaining module's name.\n\n### Why is this bad?\nIt requires the user to type the module name twice.\n\n### Example\n```rust\nmod cake {\n    struct BlackForestCake;\n}\n```\n\nUse instead:\n```rust\nmod cake {\n    struct BlackForest;\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `allowed-prefixes`: List of prefixes to allow when determining whether an item's name ends with the module's name.\n   If the rest of an item's name is an allowed prefix (e.g. item `ToFoo` or `to_foo` in module `foo`),\n   then don't emit a warning.\n\n   #### Example\n\n```toml\n   allowed-prefixes = [ \"to\", \"from\" ]\n   ```\n\n   #### Noteworthy\n\n   - By default, the following prefixes are allowed: `to`, `as`, `into`, `from`, `try_into` and `try_from`\n   - PascalCase variant is included automatically for each snake_case variant (e.g. if `try_into` is included,\n     `TryInto` will also be included)\n   - Use `\"..\"` as part of the list to indicate that the configured values should be appended to the\n   default configuration of Clippy. By default, any configuration will replace the default value (default: `[\"to\", \"as\", \"into\", \"from\", \"try_into\", \"try_from\"]`)\n### Past names\n\n* `stutter`\n\n",
     "version": "1.33.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8900,7 +8900,7 @@
     "id": "struct_field_names",
     "id_span": {
       "path": "src/item_name_repetitions.rs",
-      "line": 139
+      "line": 140
     },
     "group": "pedantic",
     "level": "allow",
