@@ -2,7 +2,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, LangItem, MatchSource, Pat, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_middle::ty::GenericArgKind;
+use rustc_middle::ty::{self, GenericArgKind};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
@@ -148,6 +148,42 @@ fn handle<'tcx>(cx: &LateContext<'tcx>, if_let_or_match: IfLetOrMatch<'tcx>, exp
         && is_default_equivalent(cx, body_none)
         && let Some(receiver) = Sugg::hir_opt(cx, condition).map(Sugg::maybe_par)
     {
+        // We check if the expression is not a None variant
+        if let Some(none_def_id) = cx.tcx.lang_items().option_none_variant() {
+            if let ExprKind::Path(QPath::Resolved(_, path)) = &condition.kind {
+                if let Some(def_id) = path.res.opt_def_id() {
+                    if cx.tcx.parent(def_id) == none_def_id {
+                        return span_lint_and_sugg(
+                            cx,
+                            MANUAL_UNWRAP_OR_DEFAULT,
+                            expr.span,
+                            format!("{expr_name} can be simplified with `.unwrap_or_default()`"),
+                            "replace it with",
+                            format!("{receiver}::</* Type */>.unwrap_or_default()"),
+                            Applicability::HasPlaceholders,
+                        );
+                    }
+                }
+            }
+        }
+
+        // We check if the expression is not a method or function with a unspecified return type
+        if let ExprKind::MethodCall(_, expr, _, _) = &condition.kind {
+            if let ty::Adt(_, substs) = cx.typeck_results().expr_ty(expr).kind() {
+                if let Some(ok_type) = substs.first() {
+                    return span_lint_and_sugg(
+                        cx,
+                        MANUAL_UNWRAP_OR_DEFAULT,
+                        expr.span,
+                        format!("{expr_name} can be simplified with `.unwrap_or_default()`"),
+                        format!("explicit the type {ok_type} and replace your expression with"),
+                        format!("{receiver}.unwrap_or_default()"),
+                        Applicability::Unspecified,
+                    );
+                }
+            }
+        }
+
         // Machine applicable only if there are no comments present
         let applicability = if span_contains_comment(cx.sess().source_map(), expr.span) {
             Applicability::MaybeIncorrect
