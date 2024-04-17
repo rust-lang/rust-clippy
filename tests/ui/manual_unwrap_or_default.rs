@@ -132,3 +132,19 @@ fn issue_12928() {
     let y = if let Some(Y(a, _)) = x { a } else { 0 };
     let y = if let Some(Y(a, ..)) = x { a } else { 0 };
 }
+
+//@no-rustfix
+fn issue_12670() {
+    // no auto: type not found
+    #[allow(clippy::match_result_ok)]
+    let _ = if let Some(x) = "1".parse().ok() {
+        x
+    } else {
+        i32::default()
+    };
+    let _ = if let Some(x) = None { x } else { i32::default() };
+    // auto fix with unwrap_or_default
+    let a: Option<i32> = None;
+    let _ = if let Some(x) = a { x } else { i32::default() };
+    let _ = if let Some(x) = Some(99) { x } else { i32::default() };
+}
