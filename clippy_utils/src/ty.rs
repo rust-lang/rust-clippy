@@ -5,7 +5,7 @@
 use core::ops::ControlFlow;
 use itertools::Itertools;
 use rustc_ast::ast::Mutability;
-use rustc_data_structures::fx::{FxHashMap, FxHashSet};
+use rustc_data_structures::fx::FxHashSet;
 use rustc_hir as hir;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::def_id::DefId;
@@ -16,7 +16,7 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::mir::ConstValue;
 use rustc_middle::traits::EvaluationResult;
-use rustc_middle::ty::layout::ValidityRequirement;
+use rustc_middle::ty::layout::{LayoutOf, ValidityRequirement};
 use rustc_middle::ty::{
     self, AdtDef, AliasTy, AssocKind, Binder, BoundRegion, FnSig, GenericArg, GenericArgKind, GenericArgsRef,
     GenericParamDefKind, IntTy, List, ParamEnv, Region, RegionKind, ToPredicate, TraitRef, Ty, TyCtxt,
@@ -363,50 +363,6 @@ pub fn is_must_use_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
         },
         _ => false,
     }
-}
-
-// FIXME: Per https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/infer/at/struct.At.html#method.normalize
-// this function can be removed once the `normalize` method does not panic when normalization does
-// not succeed
-/// Checks if `Ty` is normalizable. This function is useful
-/// to avoid crashes on `layout_of`.
-pub fn is_normalizable<'tcx>(cx: &LateContext<'tcx>, param_env: ParamEnv<'tcx>, ty: Ty<'tcx>) -> bool {
-    is_normalizable_helper(cx, param_env, ty, &mut FxHashMap::default())
-}
-
-fn is_normalizable_helper<'tcx>(
-    cx: &LateContext<'tcx>,
-    param_env: ParamEnv<'tcx>,
-    ty: Ty<'tcx>,
-    cache: &mut FxHashMap<Ty<'tcx>, bool>,
-) -> bool {
-    if let Some(&cached_result) = cache.get(&ty) {
-        return cached_result;
-    }
-    // prevent recursive loops, false-negative is better than endless loop leading to stack overflow
-    cache.insert(ty, false);
-    let infcx = cx.tcx.infer_ctxt().build();
-    let cause = ObligationCause::dummy();
-    let result = if infcx.at(&cause, param_env).query_normalize(ty).is_ok() {
-        match ty.kind() {
-            ty::Adt(def, args) => def.variants().iter().all(|variant| {
-                variant
-                    .fields
-                    .iter()
-                    .all(|field| is_normalizable_helper(cx, param_env, field.ty(cx.tcx, args), cache))
-            }),
-            _ => ty.walk().all(|generic_arg| match generic_arg.unpack() {
-                GenericArgKind::Type(inner_ty) if inner_ty != ty => {
-                    is_normalizable_helper(cx, param_env, inner_ty, cache)
-                },
-                _ => true, // if inner_ty == ty, we've already checked it
-            }),
-        }
-    } else {
-        false
-    };
-    cache.insert(ty, result);
-    result
 }
 
 /// Returns `true` if the given type is a non aggregate primitive (a `bool` or `char`, any
@@ -1017,10 +973,6 @@ pub fn adt_and_variant_of_res<'tcx>(cx: &LateContext<'tcx>, res: Res) -> Option<
 /// Comes up with an "at least" guesstimate for the type's size, not taking into
 /// account the layout of type parameters.
 pub fn approx_ty_size<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> u64 {
-    use rustc_middle::ty::layout::LayoutOf;
-    if !is_normalizable(cx, cx.param_env, ty) {
-        return 0;
-    }
     match (cx.layout_of(ty).map(|layout| layout.size.bytes()), ty.kind()) {
         (Ok(size), _) => size,
         (Err(_), ty::Tuple(list)) => list.iter().map(|t| approx_ty_size(cx, t)).sum(),
@@ -1293,4 +1245,114 @@ pub fn normalize_with_regions<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>
 /// Checks if the type is `core::mem::ManuallyDrop<_>`
 pub fn is_manually_drop(ty: Ty<'_>) -> bool {
     ty.ty_adt_def().map_or(false, AdtDef::is_manually_drop)
+}
+
+#[derive(Clone, Copy)]
+pub enum Sizedness {
+    /// The type is uninhabited. (e.g. `!`)
+    Uninhabited,
+    /// The type is zero-sized.
+    Zero,
+    /// The type has some other size or an unknown size.
+    Other,
+}
+impl Sizedness {
+    pub fn is_zero(self) -> bool {
+        matches!(self, Self::Zero)
+    }
+
+    pub fn is_uninhabited(self) -> bool {
+        matches!(self, Self::Uninhabited)
+    }
+}
+
+/// Calculates the sizedness of a type.
+pub fn sizedness_of<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>, ty: Ty<'tcx>) -> Sizedness {
+    fn for_list<'tcx>(
+        tcx: TyCtxt<'tcx>,
+        param_env: ParamEnv<'tcx>,
+        tys: impl IntoIterator<Item = Ty<'tcx>>,
+    ) -> Sizedness {
+        let mut res = Sizedness::Zero;
+        for ty in tys {
+            match sizedness_of(tcx, param_env, ty) {
+                Sizedness::Uninhabited => return Sizedness::Uninhabited,
+                Sizedness::Other => res = Sizedness::Other,
+                Sizedness::Zero => {},
+            }
+        }
+        res
+    }
+
+    match *ty.kind() {
+        ty::FnDef(..) => Sizedness::Zero,
+        ty::Tuple(tys) => for_list(tcx, param_env, tys),
+        ty::Array(_, len) if len.try_eval_target_usize(tcx, param_env).is_some_and(|x| x == 0) => Sizedness::Zero,
+        ty::Array(ty, _) => sizedness_of(tcx, param_env, ty),
+        ty::Adt(adt, args) => {
+            let mut iter = adt
+                .variants()
+                .iter()
+                .map(|v| for_list(tcx, param_env, v.fields.iter().map(|f| f.ty(tcx, args))))
+                .filter(|x| !x.is_uninhabited());
+            match iter.next() {
+                None => Sizedness::Uninhabited,
+                Some(Sizedness::Other) => Sizedness::Other,
+                Some(_) => {
+                    if iter.next().is_some() {
+                        Sizedness::Other
+                    } else {
+                        Sizedness::Zero
+                    }
+                },
+            }
+        },
+        ty::Closure(_, args) => for_list(tcx, param_env, args.as_closure().upvar_tys().iter()),
+        ty::Coroutine(_, args) => {
+            if for_list(tcx, param_env, args.as_coroutine().upvar_tys().iter()).is_uninhabited() {
+                Sizedness::Uninhabited
+            } else {
+                Sizedness::Other
+            }
+        },
+        ty::CoroutineClosure(_, args) => {
+            if for_list(tcx, param_env, args.as_coroutine_closure().upvar_tys().iter()).is_uninhabited() {
+                Sizedness::Uninhabited
+            } else {
+                Sizedness::Other
+            }
+        },
+        ty::CoroutineWitness(_, args) => for_list(tcx, param_env, args.iter().filter_map(GenericArg::as_type)),
+        ty::Alias(..) => {
+            if let Ok(normalized) = tcx
+                .infer_ctxt()
+                .build()
+                .at(&ObligationCause::dummy(), param_env)
+                .query_normalize(ty)
+                && normalized.value != ty
+            {
+                sizedness_of(tcx, param_env, normalized.value)
+            } else {
+                Sizedness::Other
+            }
+        },
+        ty::Never => Sizedness::Uninhabited,
+        ty::Bool
+        | ty::Char
+        | ty::Int(_)
+        | ty::Uint(_)
+        | ty::Float(_)
+        | ty::RawPtr(..)
+        | ty::Ref(..)
+        | ty::FnPtr(..)
+        | ty::Param(_)
+        | ty::Bound(..)
+        | ty::Placeholder(_)
+        | ty::Infer(_)
+        | ty::Error(_)
+        | ty::Dynamic(..)
+        | ty::Slice(..)
+        | ty::Str
+        | ty::Foreign(_) => Sizedness::Other,
+    }
 }
