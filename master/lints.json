@@ -3129,7 +3129,7 @@
     "id": "index_refutable_slice",
     "id_span": {
       "path": "src/index_refutable_slice.rs",
-      "line": 49
+      "line": 50
     },
     "group": "pedantic",
     "level": "allow",
@@ -8735,7 +8735,7 @@
     "id": "str_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 386
+      "line": 383
     },
     "group": "restriction",
     "level": "allow",
@@ -8855,7 +8855,7 @@
     "id": "string_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 434
+      "line": 431
     },
     "group": "restriction",
     "level": "allow",
@@ -9545,7 +9545,7 @@
     "id": "trim_split_whitespace",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 476
+      "line": 473
     },
     "group": "style",
     "level": "warn",
@@ -10651,7 +10651,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for the use of bindings with a single leading\nunderscore.\n\n### Why is this bad?\nA single leading underscore is usually used to indicate\nthat a binding will not be used. Using such a binding breaks this\nexpectation.\n\n### Known problems\nThe lint does not work properly with desugaring and\nmacro, it has been allowed in the mean time.\n\n### Example\n```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\n                // underscore. We should rename `_x` to `x`\n```",
+    "docs": "\n### What it does\nChecks for the use of bindings with a single leading\nunderscore.\n\n### Why is this bad?\nA single leading underscore is usually used to indicate\nthat a binding will not be used. Using such a binding breaks this\nexpectation.\n\n### Known problems\nThe lint does not work properly with desugaring and\nmacro, it has been allowed in the meantime.\n\n### Example\n```rust\nlet _x = 0;\nlet y = _x + 1; // Here we are using `_x`, even though it has a leading\n                // underscore. We should rename `_x` to `x`\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
