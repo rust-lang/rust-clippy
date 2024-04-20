@@ -7,7 +7,7 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
     Arm, Block, Body, Expr, FieldDef, FnDecl, ForeignItem, GenericParam, Generics, HirId, ImplItem, Item, ItemKind,
-    Local, Mod, Pat, Path, PathSegment, PolyTraitRef, Stmt, TraitItem, Ty, UseKind, Variant, VariantData,
+    LetStmt, Mod, Pat, Path, PathSegment, PolyTraitRef, Stmt, TraitItem, Ty, UseKind, Variant, VariantData,
 };
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
@@ -209,8 +209,8 @@ impl StdReexports {
                         cx,
                         lint,
                         first_segment_ident_span,
-                        &format!("used import from `{used_mod}` instead of `{replace_with}`"),
-                        &format!("consider importing the item from `{replace_with}`"),
+                        format!("used import from `{used_mod}` instead of `{replace_with}`"),
+                        format!("consider importing the item from `{replace_with}`"),
                         replace_with.to_string(),
                         Applicability::MachineApplicable,
                     );
@@ -229,7 +229,7 @@ impl StdReexports {
                             lint,
                             member.hir_id,
                             member.inner,
-                            &format!("used import from `{used_mod}` instead of `{replace_with}`"),
+                            format!("used import from `{used_mod}` instead of `{replace_with}`"),
                             |diag| {
                                 diag.help(format!("consider importing the item from `{replace_with}`"));
                             },
@@ -301,8 +301,8 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
                         cx,
                         lint,
                         first_segment.ident.span,
-                        &format!("used import from `{used_mod}` instead of `{replace_with}`"),
-                        &format!("consider importing the item from `{replace_with}`"),
+                        format!("used import from `{used_mod}` instead of `{replace_with}`"),
+                        format!("consider importing the item from `{replace_with}`"),
                         replace_with.to_string(),
                         Applicability::MachineApplicable,
                     );
@@ -347,7 +347,7 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
     }
 
     #[inline]
-    fn check_local(&mut self, cx: &LateContext<'tcx>, local: &'tcx Local<'tcx>) {
+    fn check_local(&mut self, cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {
         self.suggest_for_open_use_item_if_after(cx, local.span);
     }
 
