@@ -61,6 +61,7 @@ error: the loop variable `i` is only used to index `vec2`
 LL |     for i in 0..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec2.iter().count()` is less than `vec.len()`
 help: consider using an iterator
    |
 LL |     for <item> in vec2.iter().take(vec.len()) {
@@ -72,6 +73,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `5`
 help: consider using an iterator
    |
 LL |     for <item> in vec.iter().skip(5) {
@@ -83,6 +85,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..MAX_LEN {
    |              ^^^^^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `MAX_LEN`
 help: consider using an iterator
    |
 LL |     for <item> in vec.iter().take(MAX_LEN) {
@@ -94,6 +97,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 0..=MAX_LEN {
    |              ^^^^^^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `MAX_LEN + 1`
 help: consider using an iterator
    |
 LL |     for <item> in vec.iter().take(MAX_LEN + 1) {
@@ -105,6 +109,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..10 {
    |              ^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `5` or `10`
 help: consider using an iterator
    |
 LL |     for <item> in vec.iter().take(10).skip(5) {
@@ -116,6 +121,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in 5..=10 {
    |              ^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `5` or `10 + 1`
 help: consider using an iterator
    |
 LL |     for <item> in vec.iter().take(10 + 1).skip(5) {
@@ -127,6 +133,7 @@ error: the loop variable `i` is used to index `vec`
 LL |     for i in 5..vec.len() {
    |              ^^^^^^^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `5`
 help: consider using an iterator and enumerate()
    |
 LL |     for (i, <item>) in vec.iter().enumerate().skip(5) {
@@ -138,6 +145,7 @@ error: the loop variable `i` is used to index `vec`
 LL |     for i in 5..10 {
    |              ^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `5` or `10`
 help: consider using an iterator and enumerate()
    |
 LL |     for (i, <item>) in vec.iter().enumerate().take(10).skip(5) {
