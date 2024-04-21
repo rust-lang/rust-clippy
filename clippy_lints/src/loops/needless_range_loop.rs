@@ -91,7 +91,7 @@ pub(super) fn check<'tcx>(
                 };
 
                 let (start_val, end_val, array_len) =
-                    try_get_start_end_and_array_len_vals(cx, start, end, limits, indexed_ty);
+                    try_get_start_end_and_array_len_vals(cx, start, *end, limits, indexed_ty);
                 let mut sugg_take_val = None;
                 let mut end_is_start_plus_val = false;
 
@@ -182,13 +182,11 @@ pub(super) fn check<'tcx>(
                                 diag,
                                 indexed,
                                 end_is_start_plus_val,
-                                start_val,
-                                end_val,
-                                array_len,
+                                (start_val, end_val, array_len),
                                 sugg_skip_val,
                                 sugg_take_val,
                                 end_snippet,
-                            )
+                            );
                         },
                     );
                 } else {
@@ -213,13 +211,11 @@ pub(super) fn check<'tcx>(
                                 diag,
                                 indexed,
                                 end_is_start_plus_val,
-                                start_val,
-                                end_val,
-                                array_len,
+                                (start_val, end_val, array_len),
                                 sugg_skip_val,
                                 sugg_take_val,
                                 end_snippet,
-                            )
+                            );
                         },
                     );
                 }
@@ -232,9 +228,7 @@ fn note_suggestion_might_skip_iteration(
     diag: &mut rustc_errors::Diag<'_, ()>,
     indexed: Symbol,
     end_is_start_plus_val: bool,
-    start_val: Option<u128>,
-    end_val: Option<u128>,
-    array_len: Option<u128>,
+    (start_val, end_val, array_len): (Option<u128>, Option<u128>, Option<u128>),
     sugg_skip_val: Option<Cow<'_, str>>,
     sugg_take_val: Option<Cow<'_, str>>,
     end_snippet: Option<Cow<'_, str>>,
@@ -263,7 +257,7 @@ fn note_suggestion_might_skip_iteration(
     if let Some(sugg_skip_val) = sugg_skip_val
         && (start_val.is_none() || array_len.is_none())
     {
-        bounds.push(sugg_skip_val)
+        bounds.push(sugg_skip_val);
     }
 
     // Case where the loop have the form `for _ in /* .. */..(=)a {}`
@@ -271,18 +265,18 @@ fn note_suggestion_might_skip_iteration(
         && !end_is_start_plus_val
         && (end_val.is_none() || array_len.is_none())
     {
-        bounds.push(sugg_take_val)
+        bounds.push(sugg_take_val);
     }
 
     // Case where the loop have the form `for _ in /* .. */.. {}`
     if end_snippet.is_none() {
-        bounds.push(Cow::Owned(format!("{}::MAX", sym::usize)))
+        bounds.push(Cow::Owned(format!("{}::MAX", sym::usize)));
     }
 
     // Case where the loop have the form `for _ in a..(=)a+b {}`
     if end_is_start_plus_val && (end_val.is_none() || array_len.is_none()) {
         // Here `end_snippet` is `Some(a+b)`
-        bounds.push(end_snippet.unwrap())
+        bounds.push(end_snippet.unwrap());
     }
 
     if !bounds.is_empty() {
@@ -316,30 +310,27 @@ fn is_len_call(expr: &Expr<'_>, var: Symbol) -> bool {
 fn try_get_start_end_and_array_len_vals<'tcx>(
     cx: &LateContext<'tcx>,
     start: &Expr<'_>,
-    end: &Option<&Expr<'_>>,
+    end: Option<&Expr<'_>>,
     limits: ast::RangeLimits,
     indexed_ty: Ty<'tcx>,
 ) -> (Option<u128>, Option<u128>, Option<u128>) {
-    fn full_int_to_u128(full_int: FullInt) -> u128 {
-        match full_int {
-            FullInt::U(u) => u,
-            FullInt::S(s) => s as u128,
-        }
+    fn full_int_to_u128(full_int: FullInt) -> Option<u128> {
+        if let FullInt::U(u) = full_int { Some(u) } else { None }
     }
 
-    let start_val = constant_full_int(cx, cx.typeck_results(), start).map(full_int_to_u128);
+    let start_val = constant_full_int(cx, cx.typeck_results(), start).and_then(full_int_to_u128);
 
     let array_len = if let ty::Array(_, arr_len_const) = indexed_ty.kind() {
         arr_len_const
             .try_eval_target_usize(cx.tcx, cx.param_env)
-            .map(|array_len| array_len.into())
+            .map(|array_len| array_len as u128)
     } else {
         None
     };
 
     let end_val = end.as_ref().and_then(|end| {
         constant_full_int(cx, cx.typeck_results(), end)
-            .map(full_int_to_u128)
+            .and_then(full_int_to_u128)
             .map(|end_val| match limits {
                 ast::RangeLimits::Closed => end_val + 1,
                 ast::RangeLimits::HalfOpen => end_val,
