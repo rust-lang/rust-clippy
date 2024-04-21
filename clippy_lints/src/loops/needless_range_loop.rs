@@ -1,4 +1,5 @@
 use super::NEEDLESS_RANGE_LOOP;
+use clippy_utils::consts::{constant_full_int, FullInt};
 use clippy_utils::diagnostics::{multispan_sugg, span_lint_and_then};
 use clippy_utils::source::snippet;
 use clippy_utils::ty::has_iter_method;
@@ -13,6 +14,7 @@ use rustc_lint::LateContext;
 use rustc_middle::middle::region;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::{sym, Symbol};
+use std::borrow::Cow;
 use std::{iter, mem};
 
 /// Checks for looping over a range and then indexing a sequence with it.
@@ -75,6 +77,7 @@ pub(super) fn check<'tcx>(
                     return;
                 }
 
+                let mut sugg_skip_val = None;
                 let starts_at_zero = is_integer_const(cx, start, 0);
 
                 let skip = if starts_at_zero {
@@ -82,9 +85,14 @@ pub(super) fn check<'tcx>(
                 } else if visitor.indexed_mut.contains(&indexed) && contains_name(indexed, start, cx) {
                     return;
                 } else {
-                    format!(".skip({})", snippet(cx, start.span, ".."))
+                    let skip_val = snippet(cx, start.span, "..");
+                    sugg_skip_val = Some(skip_val);
+                    format!(".skip({})", sugg_skip_val.as_ref().unwrap())
                 };
 
+                let (start_val, end_val, array_len) =
+                    try_get_start_end_and_array_len_vals(cx, start, end, limits, indexed_ty);
+                let mut sugg_take_val = None;
                 let mut end_is_start_plus_val = false;
 
                 let take = if let Some(end) = *end {
@@ -105,20 +113,26 @@ pub(super) fn check<'tcx>(
                         }
                     }
 
-                    if is_len_call(end, indexed) || is_end_eq_array_len(cx, end, limits, indexed_ty) {
+                    let is_end_ge_array_len = if let (Some(end), Some(array_len)) = (end_val, array_len) {
+                        end >= array_len
+                    } else {
+                        false
+                    };
+                    if is_len_call(end, indexed) || is_end_ge_array_len {
                         String::new()
                     } else if visitor.indexed_mut.contains(&indexed) && contains_name(indexed, take_expr, cx) {
                         return;
                     } else {
-                        match limits {
+                        let take_val = match limits {
                             ast::RangeLimits::Closed => {
                                 let take_expr = sugg::Sugg::hir(cx, take_expr, "<count>");
-                                format!(".take({})", take_expr + sugg::ONE)
+                                Cow::Owned((take_expr + sugg::ONE).to_string())
                             },
-                            ast::RangeLimits::HalfOpen => {
-                                format!(".take({})", snippet(cx, take_expr.span, ".."))
-                            },
-                        }
+                            ast::RangeLimits::HalfOpen => snippet(cx, take_expr.span, ".."),
+                        };
+
+                        sugg_take_val = Some(take_val);
+                        format!(".take({})", sugg_take_val.as_ref().unwrap())
                     }
                 } else {
                     String::new()
@@ -138,6 +152,14 @@ pub(super) fn check<'tcx>(
                     mem::swap(&mut method_1, &mut method_2);
                 }
 
+                let end_snippet = end.map(|end| {
+                    if matches!(limits, ast::RangeLimits::Closed) {
+                        snippet(cx, end.span, "..") + " + 1"
+                    } else {
+                        snippet(cx, end.span, "..")
+                    }
+                });
+
                 if visitor.nonindex {
                     span_lint_and_then(
                         cx,
@@ -156,6 +178,17 @@ pub(super) fn check<'tcx>(
                                     ),
                                 ],
                             );
+                            note_suggestion_might_skip_iteration(
+                                diag,
+                                indexed,
+                                end_is_start_plus_val,
+                                start_val,
+                                end_val,
+                                array_len,
+                                sugg_skip_val,
+                                sugg_take_val,
+                                end_snippet,
+                            )
                         },
                     );
                 } else {
@@ -176,11 +209,92 @@ pub(super) fn check<'tcx>(
                                 "consider using an iterator",
                                 vec![(pat.span, "<item>".to_string()), (arg.span, repl)],
                             );
+                            note_suggestion_might_skip_iteration(
+                                diag,
+                                indexed,
+                                end_is_start_plus_val,
+                                start_val,
+                                end_val,
+                                array_len,
+                                sugg_skip_val,
+                                sugg_take_val,
+                                end_snippet,
+                            )
                         },
                     );
                 }
             }
         }
+    }
+}
+
+fn note_suggestion_might_skip_iteration(
+    diag: &mut rustc_errors::Diag<'_, ()>,
+    indexed: Symbol,
+    end_is_start_plus_val: bool,
+    start_val: Option<u128>,
+    end_val: Option<u128>,
+    array_len: Option<u128>,
+    sugg_skip_val: Option<Cow<'_, str>>,
+    sugg_take_val: Option<Cow<'_, str>>,
+    end_snippet: Option<Cow<'_, str>>,
+) {
+    // If the array length is known, we can check if the suggestion will skip iterations
+    if let Some(array_len) = array_len {
+        if let Some(start_val) = start_val {
+            if start_val >= array_len {
+                diag.note(format!(
+                    "suggestion will skip iterations because `{indexed}` is of length {array_len} which is less than {start_val}",
+                ));
+            }
+        }
+        if let Some(end_val) = end_val {
+            if end_val > array_len {
+                diag.note(format!(
+                    "suggestion will skip iterations because `{indexed}` is of length {array_len} which is less than {end_val}",
+                ));
+            }
+        }
+    }
+
+    let mut bounds = Vec::new();
+
+    // Case where the loop have the form `for _ in a../* .. */ {}`
+    if let Some(sugg_skip_val) = sugg_skip_val
+        && (start_val.is_none() || array_len.is_none())
+    {
+        bounds.push(sugg_skip_val)
+    }
+
+    // Case where the loop have the form `for _ in /* .. */..(=)a {}`
+    if let Some(sugg_take_val) = sugg_take_val
+        && !end_is_start_plus_val
+        && (end_val.is_none() || array_len.is_none())
+    {
+        bounds.push(sugg_take_val)
+    }
+
+    // Case where the loop have the form `for _ in /* .. */.. {}`
+    if end_snippet.is_none() {
+        bounds.push(Cow::Owned(format!("{}::MAX", sym::usize)))
+    }
+
+    // Case where the loop have the form `for _ in a..(=)a+b {}`
+    if end_is_start_plus_val && (end_val.is_none() || array_len.is_none()) {
+        // Here `end_snippet` is `Some(a+b)`
+        bounds.push(end_snippet.unwrap())
+    }
+
+    if !bounds.is_empty() {
+        let bounds = bounds
+            .iter()
+            .map(|bound| format!("`{bound}`"))
+            .intersperse(" or ".to_owned())
+            .collect::<String>();
+
+        diag.note(format!(
+            "suggestion might skip expected iterations if `{indexed}.iter().count()` is less than {bounds}"
+        ));
     }
 }
 
@@ -197,24 +311,42 @@ fn is_len_call(expr: &Expr<'_>, var: Symbol) -> bool {
     false
 }
 
-fn is_end_eq_array_len<'tcx>(
+/// Get the start, end and array length values from the range loop if they are constant.
+/// `(start_val, end_val, array_len)`
+fn try_get_start_end_and_array_len_vals<'tcx>(
     cx: &LateContext<'tcx>,
-    end: &Expr<'_>,
+    start: &Expr<'_>,
+    end: &Option<&Expr<'_>>,
     limits: ast::RangeLimits,
     indexed_ty: Ty<'tcx>,
-) -> bool {
-    if let ExprKind::Lit(lit) = end.kind
-        && let ast::LitKind::Int(end_int, _) = lit.node
-        && let ty::Array(_, arr_len_const) = indexed_ty.kind()
-        && let Some(arr_len) = arr_len_const.try_eval_target_usize(cx.tcx, cx.param_env)
-    {
-        return match limits {
-            ast::RangeLimits::Closed => end_int.get() + 1 >= arr_len.into(),
-            ast::RangeLimits::HalfOpen => end_int.get() >= arr_len.into(),
-        };
+) -> (Option<u128>, Option<u128>, Option<u128>) {
+    fn full_int_to_u128(full_int: FullInt) -> u128 {
+        match full_int {
+            FullInt::U(u) => u,
+            FullInt::S(s) => s as u128,
+        }
     }
 
-    false
+    let start_val = constant_full_int(cx, cx.typeck_results(), start).map(full_int_to_u128);
+
+    let array_len = if let ty::Array(_, arr_len_const) = indexed_ty.kind() {
+        arr_len_const
+            .try_eval_target_usize(cx.tcx, cx.param_env)
+            .map(|array_len| array_len.into())
+    } else {
+        None
+    };
+
+    let end_val = end.as_ref().and_then(|end| {
+        constant_full_int(cx, cx.typeck_results(), end)
+            .map(full_int_to_u128)
+            .map(|end_val| match limits {
+                ast::RangeLimits::Closed => end_val + 1,
+                ast::RangeLimits::HalfOpen => end_val,
+            })
+    });
+
+    (start_val, end_val, array_len)
 }
 
 struct VarVisitor<'a, 'tcx> {
