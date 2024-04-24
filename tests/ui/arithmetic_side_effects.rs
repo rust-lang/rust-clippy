@@ -521,6 +521,19 @@ pub fn issue_11393() {
     example_rem(x, maybe_zero);
 }
 
+pub fn issue_11266_literal<const N: usize>() {
+    let _ = N + 1;
+    let _ = 1 + N;
+    let _ = N + N;
+}
+
+pub fn issue_11266_runtime<const N: usize>() {
+    fn runtime_number() -> usize {
+        1
+    }
+    let _ = N + runtime_number();
+}
+
 pub fn issue_12318() {
     use core::ops::{AddAssign, DivAssign, MulAssign, RemAssign, SubAssign};
     let mut one: i32 = 1;

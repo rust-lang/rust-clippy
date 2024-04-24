@@ -132,6 +132,16 @@ impl ArithmeticSideEffects {
         false
     }
 
+    /// For example, `fn foo<const N: usize>() -> i32 { N + 1 }`.
+    fn is_const_param(expr: &hir::Expr<'_>) -> bool {
+        if let hir::ExprKind::Path(hir::QPath::Resolved(None, path)) = expr.kind
+            && let hir::def::Res::Def(hir::def::DefKind::ConstParam, _) = path.res
+        {
+            return true;
+        }
+        false
+    }
+
     // For example, 8i32 or &i64::MAX.
     fn is_integral(ty: Ty<'_>) -> bool {
         ty.peel_refs().is_integral()
@@ -233,24 +243,34 @@ impl ArithmeticSideEffects {
                 Self::literal_integer(cx, actual_lhs),
                 Self::literal_integer(cx, actual_rhs),
             ) {
-                (None, None) => false,
-                (None, Some(n)) => match (&op, n) {
-                    // Division and module are always valid if applied to non-zero integers
-                    (hir::BinOpKind::Div | hir::BinOpKind::Rem, local_n) if local_n != 0 => true,
-                    // Adding or subtracting zeros is always a no-op
-                    (hir::BinOpKind::Add | hir::BinOpKind::Sub, 0)
-                    // Multiplication by 1 or 0 will never overflow
-                    | (hir::BinOpKind::Mul, 0 | 1)
-                    => true,
-                    _ => false,
+                (None, None) => Self::is_const_param(lhs) && Self::is_const_param(rhs),
+                (None, Some(n)) => {
+                    if Self::is_const_param(lhs) {
+                        return;
+                    }
+                    match (&op, n) {
+                        // Division and module are always valid if applied to non-zero integers
+                        (hir::BinOpKind::Div | hir::BinOpKind::Rem, local_n) if local_n != 0 => true,
+                        // Adding or subtracting zeros is always a no-op
+                        (hir::BinOpKind::Add | hir::BinOpKind::Sub, 0)
+                        // Multiplication by 1 or 0 will never overflow
+                        | (hir::BinOpKind::Mul, 0 | 1)
+                        => true,
+                        _ => false,
+                    }
                 },
-                (Some(n), None) => match (&op, n) {
-                    // Adding or subtracting zeros is always a no-op
-                    (hir::BinOpKind::Add | hir::BinOpKind::Sub, 0)
-                    // Multiplication by 1 or 0 will never overflow
-                    | (hir::BinOpKind::Mul, 0 | 1)
-                    => true,
-                    _ => false,
+                (Some(n), None) => {
+                    if Self::is_const_param(rhs) {
+                        return;
+                    }
+                    match (&op, n) {
+                        // Adding or subtracting zeros is always a no-op
+                        (hir::BinOpKind::Add | hir::BinOpKind::Sub, 0)
+                        // Multiplication by 1 or 0 will never overflow
+                        | (hir::BinOpKind::Mul, 0 | 1)
+                        => true,
+                        _ => false,
+                    }
                 },
                 (Some(_), Some(_)) => {
                     matches!((lhs_ref_counter, rhs_ref_counter), (0, 0))
