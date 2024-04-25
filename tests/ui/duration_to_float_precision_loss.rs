@@ -35,6 +35,11 @@ fn main() {
     let float_micros = DURATION.as_nanos() as f64 / 1_000.0;
 
     let float_millis = DURATION.as_nanos() as f64 / 1_000_000.0;
+
+    {
+        let dur = &&DURATION;
+        let float_millis = dur.as_millis() as f64 / 1_000.0;
+    }
 }
 
 #[clippy::msrv = "1.37"]

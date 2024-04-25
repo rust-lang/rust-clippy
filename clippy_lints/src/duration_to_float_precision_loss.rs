@@ -1,6 +1,7 @@
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::is_from_proc_macro;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::is_type_diagnostic_item;
 use rustc_errors::Applicability;
@@ -8,6 +9,7 @@ use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::{self, FloatTy};
+use rustc_session::impl_lint_pass;
 use rustc_span::{sym, Span};
 
 declare_clippy_lint! {
@@ -16,12 +18,12 @@ declare_clippy_lint! {
     /// precision is lost.
     ///
     /// ### Why is this bad?
-    /// This can be bad if the user wanted to retain the full precision of the duration.
+    /// Retaining the full precision of a duration is usually desired.
     ///
     /// ### Example
     /// ```no_run
     /// # use std::time::Duration;
-    /// # let duration = Duration::from_nanos(1234500000);
+    /// let duration = Duration::from_nanos(1234500000);
     /// let _ = duration.as_millis() as f64;
     /// ```
     ///
@@ -29,7 +31,7 @@ declare_clippy_lint! {
     ///
     /// ```no_run
     /// # use std::time::Duration;
-    /// # let duration = Duration::from_nanos(1234500000);
+    /// let duration = Duration::from_nanos(1234500000);
     /// let _ = duration.as_secs_f64() * 1000.0;
     /// ```
     ///
@@ -37,7 +39,7 @@ declare_clippy_lint! {
     ///
     /// ```no_run
     /// # use std::time::Duration;
-    /// # let duration = Duration::from_nanos(1234500000);
+    /// let duration = Duration::from_nanos(1234500000);
     /// let _ = duration.as_millis() as f64 / 1000.0;
     /// ```
     ///
@@ -45,21 +47,21 @@ declare_clippy_lint! {
     ///
     /// ```no_run
     /// # use std::time::Duration;
-    /// # let duration = Duration::from_nanos(1234500000);
+    /// let duration = Duration::from_nanos(1234500000);
     /// let _ = duration.as_secs_f64();
     /// ```
-    #[clippy::version = "1.78.0"]
+    #[clippy::version = "1.79.0"]
     pub DURATION_TO_FLOAT_PRECISION_LOSS,
-    nursery,
+    style,
     "conversion from duration to float that cause loss of precision"
 }
 
 /// This struct implements the logic needed to apply the lint
 #[derive(Debug)]
 pub struct DurationToFloatPrecisionLoss {
-    // This vector is used to prevent applying the lint to a sub-expression
+    /// This vector is used to prevent applying the lint to a sub-expression
     lint_applications: Vec<Span>,
-    // `as_secs_f64` isn't applicable until 1.38.0
+    /// `as_secs_f64` isn't applicable until 1.38.0
     msrv: Msrv,
 }
 
@@ -84,7 +86,7 @@ impl DurationToFloatPrecisionLoss {
     }
 }
 
-rustc_session::impl_lint_pass!(DurationToFloatPrecisionLoss => [DURATION_TO_FLOAT_PRECISION_LOSS]);
+impl_lint_pass!(DurationToFloatPrecisionLoss => [DURATION_TO_FLOAT_PRECISION_LOSS]);
 
 impl<'tcx> LateLintPass<'tcx> for DurationToFloatPrecisionLoss {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
@@ -211,7 +213,9 @@ fn check_cast<'tcx>(
     expr: &'tcx Expr<'_>,
     duration_expr: &'tcx Expr<'_>,
 ) -> Option<LintApplicableSite> {
-    if let ExprKind::MethodCall(method_path, method_receiver_expr, [], _) = duration_expr.kind {
+    if let ExprKind::MethodCall(method_path, method_receiver_expr, [], _) = duration_expr.kind
+        && !is_from_proc_macro(cx, expr)
+    {
         let method_receiver_ty = cx.typeck_results().expr_ty(method_receiver_expr);
         if is_type_diagnostic_item(cx, method_receiver_ty.peel_refs(), sym::Duration) {
             let cast_expr_ty = cx.typeck_results().expr_ty(expr);

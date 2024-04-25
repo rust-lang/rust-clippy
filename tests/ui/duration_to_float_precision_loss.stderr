@@ -50,10 +50,16 @@ LL |     let float_micros = DURATION.as_micros() as f64;
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64() * 1e6`
 
 error: calling `as_secs_f64()` is more precise than this calculation
-  --> tests/ui/duration_to_float_precision_loss.rs:47:22
+  --> tests/ui/duration_to_float_precision_loss.rs:41:28
+   |
+LL |         let float_millis = dur.as_millis() as f64 / 1_000.0;
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `dur.as_secs_f64()`
+
+error: calling `as_secs_f64()` is more precise than this calculation
+  --> tests/ui/duration_to_float_precision_loss.rs:52:22
    |
 LL |     let float_secs = DURATION.as_secs() as f64; // should trigger lint because MSRV is satisfied
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `DURATION.as_secs_f64()`
 
-error: aborting due to 9 previous errors
+error: aborting due to 10 previous errors
 
