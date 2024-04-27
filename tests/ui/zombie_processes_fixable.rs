@@ -17,5 +17,5 @@ fn not_main() {
 }
 
 fn spawn_proc() -> Child {
-    todo!()
+    Command::new("").spawn().unwrap()
 }

@@ -1,8 +1,16 @@
 #![warn(clippy::zombie_processes)]
+#![feature(lint_reasons)]
+#![allow(clippy::if_same_then_else, clippy::ifs_same_cond)]
 
 use std::process::{Child, Command};
 
 fn main() {
+    {
+        // Check that #[expect] works
+        #[expect(clippy::zombie_processes)]
+        let mut x = Command::new("").spawn().unwrap();
+    }
+
     {
         let mut x = Command::new("").spawn().unwrap();
         //~^ ERROR: spawned process is never `wait()`ed on
@@ -70,6 +78,59 @@ fn main() {
             // Calling `exit()` after leaving a while loop should still be linted.
             std::process::exit(0);
         }
+    }
+
+    {
+        let mut x = { Command::new("").spawn().unwrap() };
+        x.wait().unwrap();
+    }
+
+    {
+        struct S {
+            c: Child,
+        }
+
+        let mut s = S {
+            c: Command::new("").spawn().unwrap(),
+        };
+        s.c.wait().unwrap();
+    }
+
+    {
+        let mut x = Command::new("").spawn().unwrap();
+        //~^ ERROR: spawned process is never `wait()`ed on
+        if true {
+            return;
+        }
+        x.wait().unwrap();
+    }
+
+    {
+        let mut x = Command::new("").spawn().unwrap();
+        //~^ ERROR: spawned process is never `wait()`ed on
+        if true {
+            x.wait().unwrap();
+        }
+    }
+
+    {
+        let mut x = Command::new("").spawn().unwrap();
+        if true {
+            x.wait().unwrap();
+        } else if true {
+            x.wait().unwrap();
+        } else {
+            x.wait().unwrap();
+        }
+    }
+
+    {
+        let mut x = Command::new("").spawn().unwrap();
+        if true {
+            x.wait().unwrap();
+            return;
+        }
+        x.wait().unwrap();
     }
 
     // Checking that it won't lint if spawn is the last statement of a main function.
