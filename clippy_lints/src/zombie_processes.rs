@@ -1,14 +1,14 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::visitors::for_each_local_use_after_expr;
-use clippy_utils::{fn_def_id, get_enclosing_block, match_any_def_paths, match_def_path, paths};
+use clippy_utils::{fn_def_id, get_enclosing_block, match_any_def_paths, match_def_path, path_to_local_id, paths};
 use rustc_ast::Mutability;
 use rustc_errors::Applicability;
-use rustc_hir::intravisit::{walk_expr, Visitor};
-use rustc_hir::{Expr, ExprKind, HirId, Local, Node, PatKind, Stmt, StmtKind};
+use rustc_hir::intravisit::{walk_block, walk_expr, walk_local, Visitor};
+use rustc_hir::{Expr, ExprKind, HirId, LetStmt, Node, PatKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 use std::ops::ControlFlow;
+use ControlFlow::{Break, Continue};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -48,52 +48,21 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
             && match_def_path(cx, child_adt.did(), &paths::CHILD)
         {
             match cx.tcx.parent_hir_node(expr.hir_id) {
-                Node::Local(local) if let PatKind::Binding(_, local_id, ..) = local.pat.kind => {
-                    // If the `Child` is assigned to a variable, we want to check if the code never calls `.wait()`
-                    // on the variable, and lint if not.
-                    // This is difficult to do because expressions can be arbitrarily complex
-                    // and the variable can "escape" in various ways, e.g. you can take a `&mut` to the variable
-                    // and call `.wait()` through that, or pass it to another function...
-                    // So instead we do the inverse, checking if all uses are either:
-                    // - a field access (`child.{stderr,stdin,stdout}`)
-                    // - calling `id` or `kill`
-                    // - no use at all (e.g. `let _x = child;`)
-                    // - taking a shared reference (`&`), `wait()` can't go through that
-                    // None of these are sufficient to prevent zombie processes
-                    // Doing it like this means more FNs, but FNs are better than FPs.
-                    let has_no_wait = for_each_local_use_after_expr(cx, local_id, expr.hir_id, |expr| {
-                        match cx.tcx.parent_hir_node(expr.hir_id) {
-                            Node::Stmt(Stmt {
-                                kind: StmtKind::Semi(_),
-                                ..
-                            }) => ControlFlow::Continue(()),
-                            Node::Expr(expr) if let ExprKind::Field(..) = expr.kind => ControlFlow::Continue(()),
-                            Node::Expr(expr) if let ExprKind::AddrOf(_, Mutability::Not, _) = expr.kind => {
-                                ControlFlow::Continue(())
-                            },
-                            Node::Expr(expr)
-                                if let Some(fn_did) = fn_def_id(cx, expr)
-                                    && match_any_def_paths(cx, fn_did, &[&paths::CHILD_ID, &paths::CHILD_KILL])
-                                        .is_some() =>
-                            {
-                                ControlFlow::Continue(())
-                            },
-
-                            // Conservatively assume that all other kinds of nodes call `.wait()` somehow.
-                            _ => ControlFlow::Break(()),
-                        }
-                    })
-                    .is_continue();
+                Node::LetStmt(local)
+                    if let PatKind::Binding(_, local_id, ..) = local.pat.kind
+                        && let Some(enclosing_block) = get_enclosing_block(cx, expr.hir_id) =>
+                {
+                    let mut vis = WaitFinder::WalkUpTo(cx, local_id);
 
                     // If it does have a `wait()` call, we're done. Don't lint.
-                    if !has_no_wait {
+                    if let Break(BreakReason::WaitFound) = walk_block(&mut vis, enclosing_block) {
                         return;
                     }
 
                     // Don't emit a suggestion since the binding is used later
                     check(cx, expr, local.hir_id, false);
                 },
-                Node::Local(&Local { pat, hir_id, .. }) if let PatKind::Wild = pat.kind => {
+                Node::LetStmt(&LetStmt { pat, hir_id, .. }) if let PatKind::Wild = pat.kind => {
                     // `let _ = child;`, also dropped immediately without `wait()`ing
                     check(cx, expr, hir_id, true);
                 },
@@ -108,6 +77,132 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
                 _ => {},
             }
         }
+    }
+}
+
+enum BreakReason {
+    WaitFound,
+    EarlyReturn,
+}
+
+/// A visitor responsible for finding a `wait()` call on a local variable.
+///
+/// Conditional `wait()` calls are assumed to not call wait:
+/// ```ignore
+/// let mut c = Command::new("").spawn().unwrap();
+/// if true {
+///     c.wait();
+/// }
+/// ```
+///
+/// Note that this visitor does NOT explicitly look for `wait()` calls directly, but rather does the
+/// inverse -- checking if all uses of the local are either:
+/// - a field access (`child.{stderr,stdin,stdout}`)
+/// - calling `id` or `kill`
+/// - no use at all (e.g. `let _x = child;`)
+/// - taking a shared reference (`&`), `wait()` can't go through that
+/// None of these are sufficient to prevent zombie processes.
+/// Doing it like this means more FNs, but FNs are better than FPs.
+///
+/// `return` expressions, conditional or not, short-circuit the visitor because
+/// if a `wait()` call hadn't been found at that point, it might never reach one at a later point:
+/// ```ignore
+/// let mut c = Command::new("").spawn().unwrap();
+/// if true {
+///     return; // Break(BreakReason::EarlyReturn)
+/// }
+/// c.wait(); // this might not be reachable
+/// ```
+enum WaitFinder<'a, 'tcx> {
+    WalkUpTo(&'a LateContext<'tcx>, HirId),
+    Found(&'a LateContext<'tcx>, HirId),
+}
+
+impl<'a, 'tcx> Visitor<'tcx> for WaitFinder<'a, 'tcx> {
+    type Result = ControlFlow<BreakReason>;
+
+    fn visit_local(&mut self, l: &'tcx LetStmt<'tcx>) -> Self::Result {
+        if let Self::WalkUpTo(cx, local_id) = *self
+            && let PatKind::Binding(_, pat_id, ..) = l.pat.kind
+            && local_id == pat_id
+        {
+            *self = Self::Found(cx, local_id);
+        }
+
+        walk_local(self, l)
+    }
+
+    fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) -> Self::Result {
+        let Self::Found(cx, local_id) = *self else {
+            return walk_expr(self, ex);
+        };
+
+        if path_to_local_id(ex, local_id) {
+            match cx.tcx.parent_hir_node(ex.hir_id) {
+                Node::Stmt(Stmt {
+                    kind: StmtKind::Semi(_),
+                    ..
+                }) => {},
+                Node::Expr(expr) if let ExprKind::Field(..) = expr.kind => {},
+                Node::Expr(expr) if let ExprKind::AddrOf(_, Mutability::Not, _) = expr.kind => {},
+                Node::Expr(expr)
+                    if let Some(fn_did) = fn_def_id(cx, expr)
+                        && match_any_def_paths(cx, fn_did, &[&paths::CHILD_ID, &paths::CHILD_KILL]).is_some() => {},
+
+                // Conservatively assume that all other kinds of nodes call `.wait()` somehow.
+                _ => return Break(BreakReason::WaitFound),
+            }
+        } else {
+            match ex.kind {
+                ExprKind::Ret(..) => return Break(BreakReason::EarlyReturn),
+                ExprKind::If(cond, then, None) => {
+                    walk_expr(self, cond)?;
+
+                    // A `wait()` call in an if expression with no else is not enough:
+                    //
+                    // let c = spawn();
+                    // if true {
+                    //   c.wait();
+                    // }
+                    //
+                    // This might not call wait(). However, early returns are propagated,
+                    // because they might lead to a later wait() not being called.
+                    if let Break(BreakReason::EarlyReturn) = walk_expr(self, then) {
+                        return Break(BreakReason::EarlyReturn);
+                    }
+
+                    return Continue(());
+                },
+
+                ExprKind::If(cond, then, Some(else_)) => {
+                    walk_expr(self, cond)?;
+
+                    #[expect(clippy::unnested_or_patterns)]
+                    match (walk_expr(self, then), walk_expr(self, else_)) {
+                        (Continue(()), Continue(()))
+
+                        // `wait()` in one branch but nothing in the other does not count
+                        | (Continue(()), Break(BreakReason::WaitFound))
+                        | (Break(BreakReason::WaitFound), Continue(())) => {},
+
+                        // `wait()` in both branches is ok
+                        (Break(BreakReason::WaitFound), Break(BreakReason::WaitFound)) => {
+                            return Break(BreakReason::WaitFound);
+                        },
+
+                        // Propagate early returns in either branch
+                        (Break(BreakReason::EarlyReturn), _) | (_, Break(BreakReason::EarlyReturn)) => {
+                            return Break(BreakReason::EarlyReturn);
+                        },
+                    }
+
+                    return Continue(());
+                },
+                _ => {},
+            }
+        }
+
+        walk_expr(self, ex)
     }
 }
 
@@ -126,12 +221,10 @@ fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: Hi
 
     let mut vis = ExitPointFinder {
         cx,
-        state: ExitPointState::LookingForSpawnExpr(spawn_expr.hir_id),
+        state: ExitPointState::WalkUpTo(spawn_expr.hir_id),
     };
-    vis.visit_block(block);
-
-    // Visitor found an unconditional `exit()` call, so don't lint.
-    if let ExitPointState::ExitFound = vis.state {
+    if let Break(ExitCallFound) = vis.visit_block(block) {
+        // Visitor found an unconditional `exit()` call, so don't lint.
         return;
     }
 
@@ -194,7 +287,7 @@ fn is_exit_expression(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 #[derive(Debug)]
 enum ExitPointState {
     /// Still walking up to the expression that initiated the visitor.
-    LookingForSpawnExpr(HirId),
+    WalkUpTo(HirId),
     /// We're inside of a control flow construct (e.g. `if`, `match`, `loop`)
     /// Within this, we shouldn't accept any `exit()` calls in here, but we can leave all of these
     /// constructs later and still continue looking for an `exit()` call afterwards. Example:
@@ -221,8 +314,6 @@ enum ExitPointState {
     InControlFlow { depth: u32 },
     /// No exit call found yet, but looking for one.
     NoExit,
-    /// Found an expression that exits the process.
-    ExitFound,
 }
 
 fn expr_enters_control_flow(expr: &Expr<'_>) -> bool {
@@ -234,31 +325,37 @@ struct ExitPointFinder<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
 }
 
+struct ExitCallFound;
+
 impl<'a, 'tcx> Visitor<'tcx> for ExitPointFinder<'a, 'tcx> {
-    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
+    type Result = ControlFlow<ExitCallFound>;
+
+    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) -> Self::Result {
         match self.state {
-            ExitPointState::LookingForSpawnExpr(id) if expr.hir_id == id => {
+            ExitPointState::WalkUpTo(id) if expr.hir_id == id => {
                 self.state = ExitPointState::NoExit;
-                walk_expr(self, expr);
+                walk_expr(self, expr)
             },
             ExitPointState::NoExit if expr_enters_control_flow(expr) => {
                 self.state = ExitPointState::InControlFlow { depth: 1 };
-                walk_expr(self, expr);
+                walk_expr(self, expr)?;
                 if let ExitPointState::InControlFlow { .. } = self.state {
                     self.state = ExitPointState::NoExit;
                 }
+                Continue(())
             },
-            ExitPointState::NoExit if is_exit_expression(self.cx, expr) => self.state = ExitPointState::ExitFound,
+            ExitPointState::NoExit if is_exit_expression(self.cx, expr) => Break(ExitCallFound),
             ExitPointState::InControlFlow { ref mut depth } if expr_enters_control_flow(expr) => {
                 *depth += 1;
-                walk_expr(self, expr);
+                walk_expr(self, expr)?;
                 match self.state {
                     ExitPointState::InControlFlow { depth: 1 } => self.state = ExitPointState::NoExit,
                     ExitPointState::InControlFlow { ref mut depth } => *depth -= 1,
                     _ => {},
                 }
+                Continue(())
             },
-            _ => {},
+            _ => Continue(()),
         }
     }
 }
