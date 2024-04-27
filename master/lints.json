@@ -3957,7 +3957,7 @@
     "id": "large_stack_arrays",
     "id_span": {
       "path": "src/large_stack_arrays.rs",
-      "line": 21
+      "line": 24
     },
     "group": "pedantic",
     "level": "allow",
@@ -4257,7 +4257,7 @@
     "id": "manual_assert",
     "id_span": {
       "path": "src/manual_assert.rs",
-      "line": 31
+      "line": 30
     },
     "group": "pedantic",
     "level": "allow",
@@ -4437,7 +4437,7 @@
     "id": "manual_is_ascii_check",
     "id_span": {
       "path": "src/manual_is_ascii_check.rs",
-      "line": 54
+      "line": 53
     },
     "group": "style",
     "level": "warn",
