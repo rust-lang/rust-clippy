@@ -1037,7 +1037,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                 return;
             }
             if matches!(source, MatchSource::Normal | MatchSource::ForLoopDesugar) {
-                significant_drop_in_scrutinee::check(cx, expr, ex, arms, source);
+                significant_drop_in_scrutinee::check_match(cx, expr, ex, arms, source);
             }
 
             collapsible_match::check_match(cx, arms, &self.msrv);
@@ -1084,6 +1084,7 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
             }
         } else if let Some(if_let) = higher::IfLet::hir(cx, expr) {
             collapsible_match::check_if_let(cx, if_let.let_pat, if_let.if_then, if_let.if_else, &self.msrv);
+            significant_drop_in_scrutinee::check_if_let(cx, expr, if_let.let_expr, if_let.if_then, if_let.if_else);
             if !from_expansion {
                 if let Some(else_expr) = if_let.if_else {
                     if self.msrv.meets(msrvs::MATCHES_MACRO) {
@@ -1118,8 +1119,13 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
                 );
                 needless_match::check_if_let(cx, expr, &if_let);
             }
-        } else if !from_expansion {
-            redundant_pattern_match::check(cx, expr);
+        } else {
+            if let Some(while_let) = higher::WhileLet::hir(expr) {
+                significant_drop_in_scrutinee::check_while_let(cx, expr, while_let.let_expr, while_let.if_then);
+            }
+            if !from_expansion {
+                redundant_pattern_match::check(cx, expr);
+            }
         }
     }
 
