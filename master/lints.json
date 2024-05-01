@@ -4437,7 +4437,7 @@
     "id": "manual_is_ascii_check",
     "id_span": {
       "path": "src/manual_is_ascii_check.rs",
-      "line": 53
+      "line": 54
     },
     "group": "style",
     "level": "warn",
