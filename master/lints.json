@@ -6059,11 +6059,11 @@
     "id": "needless_for_each",
     "id_span": {
       "path": "src/needless_for_each.rs",
-      "line": 39
+      "line": 49
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `for_each` that would be more simply written as a\n`for` loop.\n\n### Why is this bad?\n`for_each` may be used after applying iterator transformers like\n`filter` for better readability and performance. It may also be used to fit a simple\noperation on one line.\nBut when none of these apply, a simple `for` loop is more idiomatic.\n\n### Example\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| {\n    println!(\"{}\", elem);\n})\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\nfor elem in v.iter() {\n    println!(\"{}\", elem);\n}\n```",
+    "docs": "\n### What it does\nChecks for usage of `for_each` that would be more simply written as a\n`for` loop.\n\n### Why is this bad?\n`for_each` may be used after applying iterator transformers like\n`filter` for better readability and performance. It may also be used to fit a simple\noperation on one line.\nBut when none of these apply, a simple `for` loop is more idiomatic.\n\n### Example\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| {\n    println!(\"{}\", elem);\n})\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\nfor elem in v.iter() {\n    println!(\"{}\", elem);\n}\n```\n\n### Known Problems\nWhen doing things such as:\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| unsafe {\n    libc::printf(c\"%d\\n\".as_ptr(), elem);\n});\n```\nThis lint will not trigger.",
     "version": "1.53.0",
     "applicability": {
       "is_multi_part_suggestion": false,
