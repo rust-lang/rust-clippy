@@ -269,7 +269,7 @@
     "group": "perf",
     "level": "warn",
     "docs": "\n### What it does\nChecks for code like `foo = bar.clone();`\n\n### Why is this bad?\nCustom `Clone::clone_from()` or `ToOwned::clone_into` implementations allow the objects\nto share resources and therefore avoid allocations.\n\n### Example\n```rust\nstruct Thing;\n\nimpl Clone for Thing {\n    fn clone(&self) -> Self { todo!() }\n    fn clone_from(&mut self, other: &Self) { todo!() }\n}\n\npub fn assign_to_ref(a: &mut Thing, b: Thing) {\n    *a = b.clone();\n}\n```\nUse instead:\n```rust\nstruct Thing;\nimpl Clone for Thing {\n    fn clone(&self) -> Self { todo!() }\n    fn clone_from(&mut self, other: &Self) { todo!() }\n}\n\npub fn assign_to_ref(a: &mut Thing, b: Thing) {\n    a.clone_from(&b);\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
-    "version": "1.77.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unspecified"
@@ -4187,7 +4187,7 @@
     "group": "correctness",
     "level": "deny",
     "docs": "\n### What it does\nChecks for lint groups with the same priority as lints in the `Cargo.toml`\n[`[lints]` table](https://doc.rust-lang.org/cargo/reference/manifest.html#the-lints-section).\n\nThis lint will be removed once [cargo#12918](https://github.com/rust-lang/cargo/issues/12918)\nis resolved.\n\n### Why is this bad?\nThe order of lints in the `[lints]` is ignored, to have a lint override a group the\n`priority` field needs to be used, otherwise the sort order is undefined.\n\n### Known problems\nDoes not check lints inherited using `lints.workspace = true`\n\n### Example\n```toml\n# Passed as `--allow=clippy::similar_names --warn=clippy::pedantic`\n# which results in `similar_names` being `warn`\n[lints.clippy]\npedantic = \"warn\"\nsimilar_names = \"allow\"\n```\nUse instead:\n```toml\n# Passed as `--warn=clippy::pedantic --allow=clippy::similar_names`\n# which results in `similar_names` being `allow`\n[lints.clippy]\npedantic = { level = \"warn\", priority = -1 }\nsimilar_names = \"allow\"\n```",
-    "version": "1.76.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MaybeIncorrect"
@@ -4307,7 +4307,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for the manual creation of C strings (a string with a `NUL` byte at the end), either\nthrough one of the `CStr` constructor functions, or more plainly by calling `.as_ptr()`\non a (byte) string literal with a hardcoded `\\0` byte at the end.\n\n### Why is this bad?\nThis can be written more concisely using `c\"str\"` literals and is also less error-prone,\nbecause the compiler checks for interior `NUL` bytes and the terminating `NUL` byte is inserted automatically.\n\n### Example\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(CStr::from_bytes_with_nul(b\"Hello\\0\").unwrap());\nunsafe { libc::puts(\"World\\0\".as_ptr().cast()) }\n```\nUse instead:\n```rust\nfn needs_cstr(_: &CStr) {}\n\nneeds_cstr(c\"Hello\");\nunsafe { libc::puts(c\"World\".as_ptr()) }\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
-    "version": "1.76.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -5686,7 +5686,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nCheck if a generic is defined both in the bound predicate and in the `where` clause.\n\n### Why is this bad?\nIt can be confusing for developers when seeing bounds for a generic in multiple places.\n\n### Example\n```rust\nfn ty<F: std::fmt::Debug>(a: F)\nwhere\n    F: Sized,\n{}\n```\nUse instead:\n```rust\nfn ty<F>(a: F)\nwhere\n    F: Sized + std::fmt::Debug,\n{}\n```",
-    "version": "1.77.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -7867,7 +7867,7 @@
     "group": "pedantic",
     "level": "allow",
     "docs": "\n### What it does\nChecks for casts of references to pointer using `as`\nand suggests `std::ptr::from_ref` and `std::ptr::from_mut` instead.\n\n### Why is this bad?\nUsing `as` casts may result in silently changing mutability or type.\n\n### Example\n```rust\nlet a_ref = &1;\nlet a_ptr = a_ref as *const _;\n```\nUse instead:\n```rust\nlet a_ref = &1;\nlet a_ptr = std::ptr::from_ref(a_ref);\n```",
-    "version": "1.77.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
@@ -9250,7 +9250,7 @@
     "group": "style",
     "level": "warn",
     "docs": "\n### What it does\nChecks for direct implementations of `ToString`.\n### Why is this bad?\nThis trait is automatically implemented for any type which implements the `Display` trait.\nAs such, `ToString` shouldn’t be implemented directly: `Display` should be implemented instead,\nand you get the `ToString` implementation for free.\n### Example\n```rust\nstruct Point {\n  x: usize,\n  y: usize,\n}\n\nimpl ToString for Point {\n  fn to_string(&self) -> String {\n    format!(\"({}, {})\", self.x, self.y)\n  }\n}\n```\nUse instead:\n```rust\nstruct Point {\n  x: usize,\n  y: usize,\n}\n\nimpl std::fmt::Display for Point {\n  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {\n    write!(f, \"({}, {})\", self.x, self.y)\n  }\n}\n```",
-    "version": "1.77.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
@@ -10090,7 +10090,7 @@
     "group": "suspicious",
     "level": "warn",
     "docs": "\n### What it does\nChecks for usage of `.map_or_else()` \"map closure\" for `Result` type.\n\n### Why is this bad?\nThis can be written more concisely by using `unwrap_or_else()`.\n\n### Example\n```rust\nlet x: Result<u32, ()> = Ok(0);\nlet y = x.map_or_else(|err| handle_error(err), |n| n);\n```\nUse instead:\n```rust\nlet x: Result<u32, ()> = Ok(0);\nlet y = x.unwrap_or_else(|err| handle_error(err));\n```",
-    "version": "1.77.0",
+    "version": "1.78.0",
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "MachineApplicable"
