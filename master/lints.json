@@ -965,7 +965,7 @@
     "id": "cmp_null",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 94
+      "line": 93
     },
     "group": "style",
     "level": "warn",
@@ -3444,7 +3444,7 @@
     "id": "invalid_null_ptr_usage",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 150
+      "line": 149
     },
     "group": "correctness",
     "level": "deny",
@@ -5771,7 +5771,7 @@
     "id": "mut_from_ref",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 127
+      "line": 126
     },
     "group": "correctness",
     "level": "deny",
@@ -6089,7 +6089,7 @@
     "id": "needless_late_init",
     "id_span": {
       "path": "src/needless_late_init.rs",
-      "line": 60
+      "line": 59
     },
     "group": "style",
     "level": "warn",
@@ -7211,7 +7211,7 @@
     "id": "ptr_arg",
     "id_span": {
       "path": "src/ptr.rs",
-      "line": 64
+      "line": 63
     },
     "group": "style",
     "level": "warn",
@@ -10785,7 +10785,7 @@
     "id": "vec_init_then_push",
     "id_span": {
       "path": "src/vec_init_then_push.rs",
-      "line": 44
+      "line": 42
     },
     "group": "perf",
     "level": "warn",
