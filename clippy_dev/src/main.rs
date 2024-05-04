@@ -3,7 +3,7 @@
 #![warn(rust_2018_idioms, unused_lifetimes)]
 
 use clap::{Args, Parser, Subcommand};
-use clippy_dev::{dogfood, fmt, lint, new_lint, serve, setup, sync, update_lints, utils};
+use clippy_dev::{dogfood, fmt, lint, new_lint, release, serve, setup, sync, update_lints, utils};
 use std::convert::Infallible;
 
 fn main() {
@@ -83,6 +83,10 @@ fn main() {
                 branch,
                 force,
             } => sync::rustc_push(repo_path, &user, &branch, force),
+        },
+        DevCommand::Release(ReleaseCommand { subcommand }) => match subcommand {
+            ReleaseSubcommand::BumpVersion => release::bump_version(),
+            ReleaseSubcommand::Commit { repo_path, branch } => release::rustc_clippy_commit(repo_path, branch),
         },
     }
 }
@@ -236,6 +240,8 @@ enum DevCommand {
     },
     /// Sync between the rust repo and the Clippy repo
     Sync(SyncCommand),
+    /// Manage Clippy releases
+    Release(ReleaseCommand),
 }
 
 #[derive(Args)]
@@ -328,5 +334,25 @@ enum SyncSubcommand {
         #[arg(long, short)]
         /// Force push changes
         force: bool,
+    },
+}
+
+#[derive(Args)]
+struct ReleaseCommand {
+    #[command(subcommand)]
+    subcommand: ReleaseSubcommand,
+}
+
+#[derive(Subcommand)]
+enum ReleaseSubcommand {
+    #[command(name = "bump_version")]
+    /// Bump the version in the Cargo.toml files
+    BumpVersion,
+    /// Print the Clippy commit in the rustc repo for the specified branch
+    Commit {
+        /// The path to a rustc repo to look for the commit
+        repo_path: String,
+        /// For which branch to print the commit
+        branch: release::Branch,
     },
 }
