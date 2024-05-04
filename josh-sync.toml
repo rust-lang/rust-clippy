@@ -1,0 +1,6 @@
+org = "rust-lang"
+repo = "rust-clippy"
+filter = ":~(history=\"keep-trivial-merges,no-splice\")[:rev(<=d81818092783258083cd7be22e3a92a4f432a545:prefix=src/tools/clippy,<=3998414476ccc019997fef35dfd532d9b3e5e1dc:SQUASH)]:/src/tools/clippy"
+filter-version = 2
+pull-mode = "Nightly"
+post-pull = [ { cmd = [ "cargo dev sync update_nightly" ], commit-message = "Bump nightly version in clippy_utils/README.md" } ]
