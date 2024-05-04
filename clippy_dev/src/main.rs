@@ -87,7 +87,13 @@ fn main() {
         ),
         DevCommand::Deprecate { name, reason } => deprecate_lint::deprecate(clippy.version, &name, &reason),
         DevCommand::Sync(SyncCommand { subcommand }) => match subcommand {
-            SyncSubcommand::UpdateNightly => sync::update_nightly(),
+            SyncSubcommand::Pull => sync::rustc_pull(),
+            SyncSubcommand::Push {
+                repo_path,
+                user,
+                branch,
+                force,
+            } => sync::rustc_push(repo_path, &user, &branch, force),
         },
         DevCommand::Release(ReleaseCommand { subcommand }) => match subcommand {
             ReleaseSubcommand::BumpVersion => release::bump_version(clippy.version),
@@ -329,9 +335,24 @@ struct SyncCommand {
 
 #[derive(Subcommand)]
 enum SyncSubcommand {
-    #[command(name = "update_nightly")]
-    /// Update nightly version in `rust-toolchain.toml` and `clippy_utils`
-    UpdateNightly,
+    /// Pull changes from rustc and update the toolchain
+    Pull,
+    /// Push changes to rustc
+    Push {
+        /// The path to a rustc repo that will be used for pushing changes
+        repo_path: String,
+        #[arg(long)]
+        /// The GitHub username to use for pushing changes
+        user: String,
+        #[arg(long, short, default_value = "clippy-subtree-update")]
+        /// The branch to push to
+        ///
+        /// This is mostly for experimentation and usually the default should be used.
+        branch: String,
+        #[arg(long, short)]
+        /// Force push changes
+        force: bool,
+    },
 }
 
 #[derive(Args)]

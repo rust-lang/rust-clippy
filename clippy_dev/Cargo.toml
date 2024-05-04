@@ -7,10 +7,12 @@ edition = "2024"
 [dependencies]
 chrono = { version = "0.4.38", default-features = false, features = ["clock"] }
 clap = { version = "4.4", features = ["derive"] }
+directories = "5"
 indoc = "1.0"
 itertools = "0.12"
 opener = "0.7"
 walkdir = "2.3"
+xshell = "0.2"
 
 [package.metadata.rust-analyzer]
 # This package uses #[feature(rustc_private)]
