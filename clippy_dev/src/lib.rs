@@ -21,5 +21,6 @@ pub mod lint;
 pub mod new_lint;
 pub mod serve;
 pub mod setup;
+pub mod sync;
 pub mod update_lints;
 pub mod utils;

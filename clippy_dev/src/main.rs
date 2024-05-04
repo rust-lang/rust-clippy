@@ -3,7 +3,7 @@
 #![warn(rust_2018_idioms, unused_lifetimes)]
 
 use clap::{Args, Parser, Subcommand};
-use clippy_dev::{dogfood, fmt, lint, new_lint, serve, setup, update_lints, utils};
+use clippy_dev::{dogfood, fmt, lint, new_lint, serve, setup, sync, update_lints, utils};
 use std::convert::Infallible;
 
 fn main() {
@@ -75,6 +75,15 @@ fn main() {
             uplift,
         } => update_lints::rename(&old_name, new_name.as_ref().unwrap_or(&old_name), uplift),
         DevCommand::Deprecate { name, reason } => update_lints::deprecate(&name, reason.as_deref()),
+        DevCommand::Sync(SyncCommand { subcommand }) => match subcommand {
+            SyncSubcommand::Pull => sync::rustc_pull(),
+            SyncSubcommand::Push {
+                repo_path,
+                user,
+                branch,
+                force,
+            } => sync::rustc_push(repo_path, &user, &branch, force),
+        },
     }
 }
 
@@ -225,6 +234,8 @@ enum DevCommand {
         /// The reason for deprecation
         reason: Option<String>,
     },
+    /// Sync between the rust repo and the Clippy repo
+    Sync(SyncCommand),
 }
 
 #[derive(Args)]
@@ -290,4 +301,32 @@ enum RemoveSubcommand {
     GitHook,
     /// Remove the tasks added with 'cargo dev setup vscode-tasks'
     VscodeTasks,
+}
+
+#[derive(Args)]
+struct SyncCommand {
+    #[command(subcommand)]
+    subcommand: SyncSubcommand,
+}
+
+#[derive(Subcommand)]
+enum SyncSubcommand {
+    /// Pull changes from rustc and update the toolchain
+    Pull,
+    /// Push changes to rustc
+    Push {
+        /// The path to a rustc repo that will be used for pushing changes
+        repo_path: String,
+        #[arg(long)]
+        /// The GitHub username to use for pushing changes
+        user: String,
+        #[arg(long, short, default_value = "clippy-subtree-update")]
+        /// The branch to push to
+        ///
+        /// This is mostly for experimentation and usually the default should be used.
+        branch: String,
+        #[arg(long, short)]
+        /// Force push changes
+        force: bool,
+    },
 }
