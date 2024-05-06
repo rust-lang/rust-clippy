@@ -871,7 +871,7 @@ declare_clippy_lint! {
     /// ```no_run
     /// fn foo(fail: bool) -> Result<i32, String> {
     ///     if fail {
-    ///       Err("failed")?;
+    ///       Err("failed".into())?;
     ///     }
     ///     Ok(0)
     /// }
