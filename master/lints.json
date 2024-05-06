@@ -63,7 +63,7 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 320
+      "line": 330
     },
     "group": "restriction",
     "level": "allow",
@@ -387,7 +387,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 227
+      "line": 237
     },
     "group": "suspicious",
     "level": "warn",
@@ -1328,7 +1328,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 258
+      "line": 268
     },
     "group": "complexity",
     "level": "warn",
@@ -1343,7 +1343,7 @@
     "id": "deprecated_clippy_cfg_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 437
+      "line": 447
     },
     "group": "suspicious",
     "level": "warn",
@@ -1358,7 +1358,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 116
+      "line": 126
     },
     "group": "correctness",
     "level": "deny",
@@ -1715,7 +1715,7 @@
     "id": "duplicated_attributes",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 524
+      "line": 534
     },
     "group": "suspicious",
     "level": "warn",
@@ -1835,7 +1835,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 204
+      "line": 214
     },
     "group": "nursery",
     "level": "allow",
@@ -1850,7 +1850,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 158
+      "line": 168
     },
     "group": "nursery",
     "level": "allow",
@@ -5150,7 +5150,7 @@
     "id": "maybe_misused_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 411
+      "line": 421
     },
     "group": "suspicious",
     "level": "warn",
@@ -5270,7 +5270,7 @@
     "id": "mismatched_target_os",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 291
+      "line": 301
     },
     "group": "correctness",
     "level": "deny",
@@ -5540,7 +5540,7 @@
     "id": "mixed_attributes_style",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 498
+      "line": 508
     },
     "group": "style",
     "level": "warn",
@@ -6548,7 +6548,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 379
+      "line": 389
     },
     "group": "style",
     "level": "warn",
@@ -8417,7 +8417,7 @@
     "id": "should_panic_without_expect",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 355
+      "line": 365
     },
     "group": "pedantic",
     "level": "allow",
@@ -9890,7 +9890,7 @@
     "id": "unnecessary_clippy_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 461
+      "line": 471
     },
     "group": "suspicious",
     "level": "warn",
@@ -10677,11 +10677,11 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 95
+      "line": 105
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for `extern crate` and `use` items annotated with\nlint attributes.\n\nThis lint permits lint attributes for lints emitted on the items themself.\nFor `use` items these lints are:\n* deprecated\n* unreachable_pub\n* unused_imports\n* clippy::enum_glob_use\n* clippy::macro_use_imports\n* clippy::wildcard_imports\n\nFor `extern crate` items these lints are:\n* `unused_imports` on items with `#[macro_use]`\n\n### Why is this bad?\nLint attributes have no effect on crate imports. Most\nlikely a `!` was forgotten.\n\n### Example\n```rust\n#[deny(dead_code)]\nextern crate foo;\n#[forbid(dead_code)]\nuse foo::bar;\n```\n\nUse instead:\n```rust\n#[allow(unused_imports)]\nuse foo::baz;\n#[allow(unused_imports)]\n#[macro_use]\nextern crate baz;\n```",
+    "docs": "\n### What it does\nChecks for `extern crate` and `use` items annotated with\nlint attributes.\n\nThis lint permits lint attributes for lints emitted on the items themself.\nFor `use` items these lints are:\n* ambiguous_glob_reexports\n* dead_code\n* deprecated\n* hidden_glob_reexports\n* unreachable_pub\n* unused\n* unused_braces\n* unused_import_braces\n* clippy::disallowed_types\n* clippy::enum_glob_use\n* clippy::macro_use_imports\n* clippy::module_name_repetitions\n* clippy::redundant_pub_crate\n* clippy::single_component_path_imports\n* clippy::unsafe_removed_from_name\n* clippy::wildcard_imports\n\nFor `extern crate` items these lints are:\n* `unused_imports` on items with `#[macro_use]`\n\n### Why is this bad?\nLint attributes have no effect on crate imports. Most\nlikely a `!` was forgotten.\n\n### Example\n```rust\n#[deny(dead_code)]\nextern crate foo;\n#[forbid(dead_code)]\nuse foo::bar;\n```\n\nUse instead:\n```rust\n#[allow(unused_imports)]\nuse foo::baz;\n#[allow(unused_imports)]\n#[macro_use]\nextern crate baz;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
