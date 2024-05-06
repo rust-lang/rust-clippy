@@ -141,11 +141,10 @@ impl<'tcx> LateLintPass<'tcx> for FloatLiteral {
 #[must_use]
 fn max_digits(fty: FloatTy) -> u32 {
     match fty {
-        // FIXME(f16_f128): replace the magic numbers once `{f16,f128}::DIGITS` are available
-        FloatTy::F16 => 3,
+        FloatTy::F16 => f16::DIGITS,
         FloatTy::F32 => f32::DIGITS,
         FloatTy::F64 => f64::DIGITS,
-        FloatTy::F128 => 33,
+        FloatTy::F128 => f128::DIGITS,
     }
 }
 
