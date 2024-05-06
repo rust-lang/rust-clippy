@@ -3,7 +3,8 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::ty::is_copy;
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::{for_each_expr, Descend};
-use clippy_utils::{is_res_lang_ctor, is_trait_method, path_res, path_to_local_id};
+use clippy_utils::{is_res_lang_ctor, is_trait_method, path_res, path_to_local_id, MaybePath};
+use rustc_middle::query::Key;
 use core::ops::ControlFlow;
 use rustc_hir as hir;
 use rustc_hir::LangItem::{OptionNone, OptionSome};
@@ -17,7 +18,6 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>, a
     if !is_trait_method(cx, expr, sym::Iterator) {
         return;
     }
-
     if let hir::ExprKind::Closure(&hir::Closure { body, .. }) = arg.kind {
         let body = cx.tcx.hir().body(body);
         let arg_id = body.params[0].pat.hir_id;
@@ -36,9 +36,22 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>, a
                 ControlFlow::Continue(Descend::Yes)
             }
         });
-
         let in_ty = cx.typeck_results().node_type(body.params[0].hir_id);
         let sugg = if !found_filtering {
+            // Check if the closure is .filter_map(|x| Some(x))
+            if name == "filter_map" && let hir::ExprKind::Call(expr, args) = body.value.kind {
+                if is_res_lang_ctor(cx, path_res(cx, expr), OptionSome) && arg_id.ty_def_id()  == args[0].hir_id().ty_def_id(){
+                    if let hir::ExprKind::Path(_) = args[0].kind {
+                        span_lint(
+                            cx,
+                            UNNECESSARY_FILTER_MAP,
+                            arg.span,
+                            &format!("{name} is unnecessary")
+                        )
+                    }
+                    
+                }
+            }
             if name == "filter_map" { "map" } else { "map(..).next()" }
         } else if !found_mapping && !mutates_arg && (!clone_or_copy_needed || is_copy(cx, in_ty)) {
             match cx.typeck_results().expr_ty(body.value).kind() {
