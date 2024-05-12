@@ -4239,6 +4239,21 @@
     }
   },
   {
+    "id": "macro_metavars_in_unsafe",
+    "id_span": {
+      "path": "src/macro_metavars_in_unsafe.rs",
+      "line": 81
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nLooks for macros that expand metavariables in an unsafe block.\n\n### Why is this bad?\nThis hides an unsafe block and allows the user of the macro to write unsafe code without an explicit\nunsafe block at callsite, making it possible to perform unsafe operations in seemingly safe code.\n\nThe macro should be restructured so that these metavariables are referenced outside of unsafe blocks\nand that the usual unsafety checks apply to the macro argument.\n\nThis is usually done by binding it to a variable outside of the unsafe block\nand then using that variable inside of the block as shown in the example, or by referencing it a second time\nin a safe context, e.g. `if false { $expr }`.\n\n### Known limitations\nDue to how macros are represented in the compiler at the time Clippy runs its lints,\nit's not possible to look for metavariables in macro definitions directly.\n\nInstead, this lint looks at expansions of macros.\nThis leads to false negatives for macros that are never actually invoked.\n\nBy default, this lint is rather conservative and will only emit warnings on publicly-exported\nmacros from the same crate, because oftentimes private internal macros are one-off macros where\nthis lint would just be noise (e.g. macros that generate `impl` blocks).\nThe default behavior should help with preventing a high number of such false positives,\nhowever it can be configured to also emit warnings in private macros if desired.\n\n### Example\n```rust\n/// Gets the first element of a slice\nmacro_rules! first {\n    ($slice:expr) => {\n        unsafe {\n            let slice = $slice; // ⚠️ expansion inside of `unsafe {}`\n\n            assert!(!slice.is_empty());\n            // SAFETY: slice is checked to have at least one element\n            slice.first().unwrap_unchecked()\n        }\n    }\n}\n\nassert_eq!(*first!(&[1i32]), 1);\n\n// This will compile as a consequence (note the lack of `unsafe {}`)\nassert_eq!(*first!(std::hint::unreachable_unchecked() as &[i32]), 1);\n```\nUse instead:\n```compile_fail\nmacro_rules! first {\n    ($slice:expr) => {{\n        let slice = $slice; // ✅ outside of `unsafe {}`\n        unsafe {\n            assert!(!slice.is_empty());\n            // SAFETY: slice is checked to have at least one element\n            slice.first().unwrap_unchecked()\n        }\n    }}\n}\n\nassert_eq!(*first!(&[1]), 1);\n\n// This won't compile:\nassert_eq!(*first!(std::hint::unreachable_unchecked() as &[i32]), 1);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `warn-unsafe-macro-metavars-in-private-macros`: Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros. (default: `false`)",
+    "version": "1.80.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "macro_use_imports",
     "id_span": {
       "path": "src/macro_use.rs",
