@@ -1625,7 +1625,7 @@
     "id": "double_must_use",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 161
+      "line": 163
     },
     "group": "style",
     "level": "warn",
@@ -2964,7 +2964,7 @@
     "id": "impl_trait_in_params",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 357
+      "line": 359
     },
     "group": "restriction",
     "level": "allow",
@@ -5315,7 +5315,7 @@
     "id": "misnamed_getters",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 331
+      "line": 333
     },
     "group": "suspicious",
     "level": "warn",
@@ -5756,7 +5756,7 @@
     "id": "must_use_candidate",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 191
+      "line": 193
     },
     "group": "pedantic",
     "level": "allow",
@@ -5771,7 +5771,7 @@
     "id": "must_use_unit",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 137
+      "line": 139
     },
     "group": "style",
     "level": "warn",
@@ -6653,7 +6653,7 @@
     "id": "not_unsafe_ptr_arg_deref",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 117
+      "line": 119
     },
     "group": "correctness",
     "level": "deny",
@@ -7949,6 +7949,21 @@
     }
   },
   {
+    "id": "renamed_function_params",
+    "id_span": {
+      "path": "src/functions/mod.rs",
+      "line": 394
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nLints when the name of function parameters from trait impl is\ndifferent than its default implementation.\n\n### Why is this bad?\nUsing the default name for parameters of a trait method is often\nmore desirable for consistency's sake.\n\n### Example\n```rust\nstruct A(u32);\n\nimpl PartialEq for A {\n    fn eq(&self, b: &Self) -> bool {\n        self.0 == b.0\n    }\n}\n```\nUse instead:\n```rust\nstruct A(u32);\n\nimpl PartialEq for A {\n    fn eq(&self, other: &Self) -> bool {\n        self.0 == other.0\n    }\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `allow-renamed-params-for`: List of trait paths to ignore when checking renamed function parameters.\n\n   #### Example\n\n```toml\n   allow-renamed-params-for = [ \"std::convert::From\" ]\n   ```\n\n   #### Noteworthy\n\n   - By default, the following traits are ignored: `From`, `TryFrom`, `FromStr`\n   - `\"..\"` can be used as part of the list to indicate that the configured values should be appended to the\n   default configuration of Clippy. By default, any configuration will replace the default value. (default: `[\"core::convert::From\", \"core::convert::TryFrom\", \"core::str::FromStr\"]`)",
+    "version": "1.74.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unspecified"
+    }
+  },
+  {
     "id": "repeat_once",
     "id_span": {
       "path": "src/methods/mod.rs",
@@ -8042,7 +8057,7 @@
     "id": "result_large_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 289
+      "line": 291
     },
     "group": "perf",
     "level": "warn",
@@ -8087,7 +8102,7 @@
     "id": "result_unit_err",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 241
+      "line": 243
     },
     "group": "style",
     "level": "warn",
@@ -9290,7 +9305,7 @@
     "id": "too_many_arguments",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 33
+      "line": 35
     },
     "group": "complexity",
     "level": "warn",
@@ -9305,7 +9320,7 @@
     "id": "too_many_lines",
     "id_span": {
       "path": "src/functions/mod.rs",
-      "line": 57
+      "line": 59
     },
     "group": "pedantic",
     "level": "allow",
