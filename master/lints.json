@@ -266,8 +266,8 @@
       "path": "src/assigning_clones.rs",
       "line": 50
     },
-    "group": "perf",
-    "level": "warn",
+    "group": "pedantic",
+    "level": "allow",
     "docs": "\n### What it does\nChecks for code like `foo = bar.clone();`\n\n### Why is this bad?\nCustom `Clone::clone_from()` or `ToOwned::clone_into` implementations allow the objects\nto share resources and therefore avoid allocations.\n\n### Example\n```rust\nstruct Thing;\n\nimpl Clone for Thing {\n    fn clone(&self) -> Self { todo!() }\n    fn clone_from(&mut self, other: &Self) { todo!() }\n}\n\npub fn assign_to_ref(a: &mut Thing, b: Thing) {\n    *a = b.clone();\n}\n```\nUse instead:\n```rust\nstruct Thing;\n\nimpl Clone for Thing {\n    fn clone(&self) -> Self { todo!() }\n    fn clone_from(&mut self, other: &Self) { todo!() }\n}\n\npub fn assign_to_ref(a: &mut Thing, b: Thing) {\n    a.clone_from(&b);\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.78.0",
     "applicability": {
