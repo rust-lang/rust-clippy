@@ -6014,7 +6014,7 @@
     "id": "needless_borrows_for_generic_args",
     "id_span": {
       "path": "src/needless_borrows_for_generic_args.rs",
-      "line": 54
+      "line": 53
     },
     "group": "style",
     "level": "warn",
