@@ -6971,11 +6971,11 @@
     "id": "panic",
     "id_span": {
       "path": "src/panic_unimplemented.rs",
-      "line": 19
+      "line": 25
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `panic!`.\n\n### Why is this bad?\n`panic!` will stop the execution of the executable.\n\n### Example\n```rust\npanic!(\"even with a good reason\");\n```",
+    "docs": "\n### What it does\nChecks for usage of `panic!`.\n\n### Why is this bad?\n`panic!` will stop the execution of the executable.\n\n### Example\n```rust\npanic!(\"even with a good reason\");\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `allow-panic-in-tests`: Whether `panic` should be allowed in test functions or `#[cfg(test)]` (default: `false`)",
     "version": "1.40.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -9305,7 +9305,7 @@
     "id": "todo",
     "id_span": {
       "path": "src/panic_unimplemented.rs",
-      "line": 58
+      "line": 64
     },
     "group": "restriction",
     "level": "allow",
@@ -9770,7 +9770,7 @@
     "id": "unimplemented",
     "id_span": {
       "path": "src/panic_unimplemented.rs",
-      "line": 36
+      "line": 42
     },
     "group": "restriction",
     "level": "allow",
@@ -10310,7 +10310,7 @@
     "id": "unreachable",
     "id_span": {
       "path": "src/panic_unimplemented.rs",
-      "line": 75
+      "line": 81
     },
     "group": "restriction",
     "level": "allow",
