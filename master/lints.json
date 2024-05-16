@@ -560,7 +560,7 @@
     "id": "boxed_local",
     "id_span": {
       "path": "src/escape.rs",
-      "line": 40
+      "line": 39
     },
     "group": "perf",
     "level": "warn",
@@ -2754,7 +2754,7 @@
     "id": "future_not_send",
     "id_span": {
       "path": "src/future_not_send.rs",
-      "line": 45
+      "line": 46
     },
     "group": "nursery",
     "level": "allow",
@@ -4287,7 +4287,7 @@
     "id": "manual_assert",
     "id_span": {
       "path": "src/manual_assert.rs",
-      "line": 30
+      "line": 29
     },
     "group": "pedantic",
     "level": "allow",
@@ -6209,7 +6209,7 @@
     "id": "needless_pass_by_ref_mut",
     "id_span": {
       "path": "src/needless_pass_by_ref_mut.rs",
-      "line": 50
+      "line": 49
     },
     "group": "nursery",
     "level": "allow",
@@ -6224,7 +6224,7 @@
     "id": "needless_pass_by_value",
     "id_span": {
       "path": "src/needless_pass_by_value.rs",
-      "line": 57
+      "line": 56
     },
     "group": "pedantic",
     "level": "allow",
@@ -7001,7 +7001,7 @@
     "id": "panicking_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 72
+      "line": 71
     },
     "group": "correctness",
     "level": "deny",
@@ -7679,7 +7679,7 @@
     "id": "redundant_closure_call",
     "id_span": {
       "path": "src/redundant_closure_call.rs",
-      "line": 38
+      "line": 37
     },
     "group": "complexity",
     "level": "warn",
@@ -8297,7 +8297,7 @@
     "id": "semicolon_if_nothing_returned",
     "id_span": {
       "path": "src/semicolon_if_nothing_returned.rs",
-      "line": 32
+      "line": 31
     },
     "group": "pedantic",
     "level": "allow",
@@ -9474,7 +9474,7 @@
     },
     "group": "complexity",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for transmutes from integers to `NonZero*` types, and suggests their `new_unchecked`\nmethod instead.\n\n### Why is this bad?\nTransmutes work on any types and thus might cause unsoundness when those types change\nelsewhere. `new_unchecked` only works for the appropriate types instead.\n\n### Example\n```rust\nlet _non_zero: NonZeroU32 = unsafe { std::mem::transmute(123) };\n```\nUse instead:\n```rust\nlet _non_zero = unsafe { NonZeroU32::new_unchecked(123) };\n```",
+    "docs": "\n### What it does\nChecks for transmutes from `T` to `NonZero<T>`, and suggests the `new_unchecked`\nmethod instead.\n\n### Why is this bad?\nTransmutes work on any types and thus might cause unsoundness when those types change\nelsewhere. `new_unchecked` only works for the appropriate types instead.\n\n### Example\n```rust\nlet _: NonZero<u32> = unsafe { std::mem::transmute(123) };\n```\nUse instead:\n```rust\nlet _: NonZero<u32> = unsafe { NonZero::new_unchecked(123) };\n```",
     "version": "1.69.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -10235,7 +10235,7 @@
     "id": "unnecessary_unwrap",
     "id_span": {
       "path": "src/unwrap.rs",
-      "line": 45
+      "line": 44
     },
     "group": "complexity",
     "level": "warn",
