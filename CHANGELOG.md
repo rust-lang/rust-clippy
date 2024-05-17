@@ -5453,6 +5453,7 @@ Released 2018-09-13
 [`explicit_deref_methods`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_deref_methods
 [`explicit_into_iter_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_into_iter_loop
 [`explicit_iter_loop`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_iter_loop
+[`explicit_lifetimes_bound_nested_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_lifetimes_bound_nested_ref
 [`explicit_write`]: https://rust-lang.github.io/rust-clippy/master/index.html#explicit_write
 [`extend_from_slice`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_from_slice
 [`extend_with_drain`]: https://rust-lang.github.io/rust-clippy/master/index.html#extend_with_drain
@@ -5514,6 +5515,7 @@ Released 2018-09-13
 [`impl_trait_in_params`]: https://rust-lang.github.io/rust-clippy/master/index.html#impl_trait_in_params
 [`implicit_clone`]: https://rust-lang.github.io/rust-clippy/master/index.html#implicit_clone
 [`implicit_hasher`]: https://rust-lang.github.io/rust-clippy/master/index.html#implicit_hasher
+[`implicit_lifetimes_bound_nested_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#implicit_lifetimes_bound_nested_ref
 [`implicit_return`]: https://rust-lang.github.io/rust-clippy/master/index.html#implicit_return
 [`implicit_saturating_add`]: https://rust-lang.github.io/rust-clippy/master/index.html#implicit_saturating_add
 [`implicit_saturating_sub`]: https://rust-lang.github.io/rust-clippy/master/index.html#implicit_saturating_sub

@@ -1,0 +1,64 @@
+error: declared lifetimes bound: 'lftb: 'lfta is redundant, but do not remove it
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:7:42
+   |
+LL | pub fn lifetime_translator_1<'lfta, 'lftb: 'lfta, T>(val_a: &'lfta &'lftb T, _val_b: &'lftb T) -> &'lfta T {
+   |                                          ^^^^^^^
+   |
+note: this lifetimes bound is implied here:
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:7:62
+   |
+LL | pub fn lifetime_translator_1<'lfta, 'lftb: 'lfta, T>(val_a: &'lfta &'lftb T, _val_b: &'lftb T) -> &'lfta T {
+   |                                                              ^^^^^^^^^^^^
+   = note: `-D clippy::implicit-lifetimes-bound` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::implicit_lifetimes_bound)]`
+
+error: declared lifetimes bound: 'a: 'b is redundant, but do not remove it
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:27:8
+   |
+LL | impl<'a: 'b, 'b> Subtrait<'a, 'b, &'b &'a ()> for MyStruct {}
+   |        ^^^^
+   |
+note: this lifetimes bound is implied here:
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:27:36
+   |
+LL | impl<'a: 'b, 'b> Subtrait<'a, 'b, &'b &'a ()> for MyStruct {}
+   |                                    ^^^^^^
+
+error: declared lifetimes bound: 'a: 'b is redundant, but do not remove it
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:43:8
+   |
+LL | impl<'a: 'b, 'b> Extend1<'a, 'b> for <&'b &'a () as Trait1>::Type1 {
+   |        ^^^^
+   |
+note: this lifetimes bound is implied here:
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:43:40
+   |
+LL | impl<'a: 'b, 'b> Extend1<'a, 'b> for <&'b &'a () as Trait1>::Type1 {
+   |                                        ^^^^^^
+
+error: declared lifetimes bound: 'b: 'a is redundant, but do not remove it
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:51:34
+   |
+LL | unsafe fn deinit_slice_mut<'a, 'b: 'a, T>(s: &'a mut &'b mut [T]) -> &'a mut &'b mut [MaybeUninit<T>] {
+   |                                  ^^^^
+   |
+note: this lifetimes bound is implied here:
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:51:47
+   |
+LL | unsafe fn deinit_slice_mut<'a, 'b: 'a, T>(s: &'a mut &'b mut [T]) -> &'a mut &'b mut [MaybeUninit<T>] {
+   |                                               ^^^^^^^^^^
+
+error: declared lifetimes bound: 'a: 'b is redundant, but do not remove it
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:66:23
+   |
+LL | fn test_unnamed_ref<'a: 'b, 'b>(w1: &'b mut &mut Thing1<'a>, w2: &mut Thing2<'b>) -> &'a u8 {
+   |                       ^^^^
+   |
+note: this lifetimes bound is implied here:
+  --> tests/ui/lifetimes_bound_nested_ref_impl.rs:66:38
+   |
+LL | fn test_unnamed_ref<'a: 'b, 'b>(w1: &'b mut &mut Thing1<'a>, w2: &mut Thing2<'b>) -> &'a u8 {
+   |                                      ^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
+

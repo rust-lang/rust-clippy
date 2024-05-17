@@ -195,6 +195,7 @@ mod let_if_seq;
 mod let_underscore;
 mod let_with_type_underscore;
 mod lifetimes;
+mod lifetimes_bound_nested_ref;
 mod lines_filter_map_ok;
 mod literal_representation;
 mod loops;
@@ -936,6 +937,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(assigning_clones::AssigningClones::new(conf)));
     store.register_late_pass(|_| Box::new(zero_repeat_side_effects::ZeroRepeatSideEffects));
     store.register_late_pass(|_| Box::new(manual_unwrap_or_default::ManualUnwrapOrDefault));
+    store.register_early_pass(|| Box::new(lifetimes_bound_nested_ref::LifetimesBoundNestedRef));
     store.register_late_pass(|_| Box::new(integer_division_remainder_used::IntegerDivisionRemainderUsed));
     store.register_late_pass(move |_| Box::new(macro_metavars_in_unsafe::ExprMetavarsInUnsafe::new(conf)));
     store.register_late_pass(move |_| Box::new(string_patterns::StringPatterns::new(conf)));
