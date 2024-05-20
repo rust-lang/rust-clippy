@@ -144,11 +144,8 @@ pub(crate) trait BindInsteadOfMap {
                 let closure_body = cx.tcx.hir().body(body);
                 let closure_expr = peel_blocks(closure_body.value);
 
-                if Self::lint_closure_autofixable(cx, expr, recv, closure_expr, fn_decl_span) {
-                    true
-                } else {
-                    Self::lint_closure(cx, expr, closure_expr)
-                }
+                Self::lint_closure_autofixable(cx, expr, recv, closure_expr, fn_decl_span)
+                    || Self::lint_closure(cx, expr, closure_expr)
             },
             // `_.and_then(Some)` case, which is no-op.
             hir::ExprKind::Path(QPath::Resolved(_, path)) if Self::is_variant(cx, path.res) => {

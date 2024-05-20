@@ -471,7 +471,7 @@ fn should_not_trigger_lint_for_if_in_scrutinee() {
     match if i > 1 {
         mutex.lock().unwrap().s.len() > 1
     } else {
-        false
+        i < 1
     } {
         true => {
             mutex.lock().unwrap().s.len();

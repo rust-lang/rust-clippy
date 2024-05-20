@@ -1,0 +1,17 @@
+error: this `if`-then-`else` expression can be simplified with `&&`
+  --> tests/ui/manual_and.rs:9:13
+   |
+LL |     let _ = if a { b } else { false };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `a && b`
+   |
+   = note: `-D clippy::manual-and` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_and)]`
+
+error: this `if`-then-`else` expression can be simplified with `&&`
+  --> tests/ui/manual_and.rs:12:13
+   |
+LL |     let _ = if a && c { b } else { false };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `a && c && b`
+
+error: aborting due to 2 previous errors
+

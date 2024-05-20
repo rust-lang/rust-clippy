@@ -70,8 +70,9 @@ pub fn get_attr<'a>(
             return false;
         };
         let attr_segments = &attr.path.segments;
-        if attr_segments.len() == 2 && attr_segments[0].ident.name == sym::clippy {
-            BUILTIN_ATTRIBUTES
+        attr_segments.len() == 2
+            && attr_segments[0].ident.name == sym::clippy
+            && BUILTIN_ATTRIBUTES
                 .iter()
                 .find_map(|&(builtin_name, ref deprecation_status)| {
                     if attr_segments[1].ident.name.as_str() == builtin_name {
@@ -112,9 +113,6 @@ pub fn get_attr<'a>(
                         }
                     },
                 )
-        } else {
-            false
-        }
     })
 }
 
