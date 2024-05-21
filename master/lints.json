@@ -1880,7 +1880,7 @@
     "id": "empty_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 273
+      "line": 274
     },
     "group": "suspicious",
     "level": "warn",
@@ -2169,7 +2169,7 @@
     "id": "explicit_counter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 239
+      "line": 240
     },
     "group": "complexity",
     "level": "warn",
@@ -2199,7 +2199,7 @@
     "id": "explicit_into_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 150
+      "line": 151
     },
     "group": "pedantic",
     "level": "allow",
@@ -2214,7 +2214,7 @@
     "id": "explicit_iter_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 121
+      "line": 122
     },
     "group": "pedantic",
     "level": "allow",
@@ -2604,7 +2604,7 @@
     "id": "for_kv_map",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 329
+      "line": 330
     },
     "group": "style",
     "level": "warn",
@@ -3249,7 +3249,7 @@
     "id": "infinite_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 676
+      "line": 710
     },
     "group": "restriction",
     "level": "allow",
@@ -3642,7 +3642,7 @@
     "id": "iter_next_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 174
+      "line": 175
     },
     "group": "correctness",
     "level": "deny",
@@ -4392,7 +4392,7 @@
     "id": "manual_find",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 577
+      "line": 611
     },
     "group": "complexity",
     "level": "warn",
@@ -4422,7 +4422,7 @@
     "id": "manual_flatten",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 510
+      "line": 544
     },
     "group": "complexity",
     "level": "warn",
@@ -4572,7 +4572,7 @@
     "id": "manual_memcpy",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 56
+      "line": 57
     },
     "group": "perf",
     "level": "warn",
@@ -4842,7 +4842,7 @@
     "id": "manual_while_let_some",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 634
+      "line": 668
     },
     "group": "style",
     "level": "warn",
@@ -5510,7 +5510,7 @@
     "id": "missing_spin_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 546
+      "line": 580
     },
     "group": "perf",
     "level": "warn",
@@ -5846,7 +5846,7 @@
     "id": "mut_range_bound",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 387
+      "line": 388
     },
     "group": "suspicious",
     "level": "warn",
@@ -6269,7 +6269,7 @@
     "id": "needless_range_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 87
+      "line": 88
     },
     "group": "style",
     "level": "warn",
@@ -6419,7 +6419,7 @@
     "id": "never_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 351
+      "line": 352
     },
     "group": "correctness",
     "level": "deny",
@@ -8177,7 +8177,7 @@
     "id": "same_item_push",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 450
+      "line": 484
     },
     "group": "style",
     "level": "warn",
@@ -8600,7 +8600,7 @@
     "id": "single_element_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 478
+      "line": 512
     },
     "group": "complexity",
     "level": "warn",
@@ -10475,7 +10475,7 @@
     "id": "unused_enumerate_index",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 604
+      "line": 638
     },
     "group": "style",
     "level": "warn",
@@ -10902,10 +10902,25 @@
     }
   },
   {
+    "id": "while_float",
+    "id_span": {
+      "path": "src/loops/mod.rs",
+      "line": 448
+    },
+    "group": "nursery",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for while loops comparing floating point values.\n\n### Why is this bad?\nIf you increment floating point values, errors can compound,\nso, use integers instead if possible.\n\n### Known problems\nThe lint will catch all while loops comparing floating point\nvalues without regarding the increment.\n\n### Example\n```rust\nlet mut x = 0.0;\nwhile x < 42.0 {\n    x += 1.0;\n}\n```\n\nUse instead:\n```rust\nlet mut x = 0;\nwhile x < 42 {\n    x += 1;\n}\n```",
+    "version": "1.80.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "while_immutable_condition",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 414
+      "line": 415
     },
     "group": "correctness",
     "level": "deny",
@@ -10920,7 +10935,7 @@
     "id": "while_let_loop",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 207
+      "line": 208
     },
     "group": "complexity",
     "level": "warn",
@@ -10935,7 +10950,7 @@
     "id": "while_let_on_iterator",
     "id_span": {
       "path": "src/loops/mod.rs",
-      "line": 300
+      "line": 301
     },
     "group": "style",
     "level": "warn",
