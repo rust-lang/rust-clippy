@@ -270,13 +270,49 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for attributes that allow lints without a reason.
+    /// Checks for cfg attributes having operating systems used in target family position.
     ///
-    /// (This requires the `lint_reasons` feature)
+    /// ### Why is this bad?
+    /// The configuration option will not be recognised and the related item will not be included
+    /// by the conditional compilation engine.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #[cfg(linux)]
+    /// fn conditional() { }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # mod hidden {
+    /// #[cfg(target_os = "linux")]
+    /// fn conditional() { }
+    /// # }
+    ///
+    /// // or
+    ///
+    /// #[cfg(unix)]
+    /// fn conditional() { }
+    /// ```
+    /// Check the [Rust Reference](https://doc.rust-lang.org/reference/conditional-compilation.html#target_os) for more details.
+    #[clippy::version = "1.45.0"]
+    pub MISMATCHED_TARGET_OS,
+    correctness,
+    "usage of `cfg(operating_system)` instead of `cfg(target_os = \"operating_system\")`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for attributes that allow lints without specifying the reason
+    /// they should be allowed.
+    ///
+    /// (This requires the `lint_reasons` feature.)
     ///
     /// ### Why restrict this?
-    /// Justifying each `allow` helps readers understand the reasoning,
-    /// and may allow removing `allow` attributes if their purpose is obsolete.
+    /// There should always be a specific reason to allow a lint. This reason
+    /// should be documented using the `reason` parameter, so that readers can
+    /// understand why the `allow` is required, or remove it if it's no
+    /// longer needed.
     ///
     /// ### Example
     /// ```no_run
