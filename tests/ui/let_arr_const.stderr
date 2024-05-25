@@ -1,0 +1,17 @@
+error: immediately dereferencing a reference
+  --> tests/ui/let_arr_const.rs:13:23
+   |
+LL |         let _repeat = *&[0; 64];
+   |                       ^^^^^^^^^ help: try: `[0; 64]`
+   |
+   = note: `-D clippy::deref-addrof` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::deref_addrof)]`
+
+error: immediately dereferencing a reference
+  --> tests/ui/let_arr_const.rs:14:20
+   |
+LL |         let _arr = *&[0, 1, 2, 3, 4];
+   |                    ^^^^^^^^^^^^^^^^^ help: try: `[0, 1, 2, 3, 4]`
+
+error: aborting due to 2 previous errors
+
