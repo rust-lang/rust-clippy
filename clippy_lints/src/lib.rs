@@ -187,6 +187,7 @@ mod large_stack_arrays;
 mod large_stack_frames;
 mod legacy_numeric_constants;
 mod len_zero;
+mod let_arr_const;
 mod let_if_seq;
 mod let_underscore;
 mod let_with_type_underscore;
@@ -1165,6 +1166,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             ..Default::default()
         })
     });
+    store.register_late_pass(|_| Box::new(let_arr_const::LetArrConst));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
