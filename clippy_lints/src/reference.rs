@@ -48,6 +48,8 @@ impl EarlyLintPass for DerefAddrOf {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, e: &Expr) {
         if let ExprKind::Unary(UnOp::Deref, ref deref_target) = e.kind
             && let ExprKind::AddrOf(_, ref mutability, ref addrof_target) = without_parens(deref_target).kind
+            // NOTE(tesuji): without it, this lints conflicts with `let-arr-const` lint.
+            && !matches!(addrof_target.kind, ExprKind::Array(_) | ExprKind::Repeat(..))
             && deref_target.span.eq_ctxt(e.span)
             && !addrof_target.span.from_expansion()
         {
