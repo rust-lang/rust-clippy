@@ -12,9 +12,14 @@ pub mod issue_rust_73825 {
     pub fn do_not() {
         let _repeat = *&[0; 64];
         let _arr = *&[0, 1, 2, 3, 4];
+
+        let (x, y) = (1, 2);
+        let _arr = [x, y];
+        let _arr = [42u8; 16];
         let _arr = mac_gen_arr!();
         let _arr = gen_array();
         let _arr = gen_array_non_copy();
+        let _arr = [gen_array_no_const(), gen_array_no_const()];
         {
             let mut arr = [0; 32];
             arr[1] = 42;
@@ -30,6 +35,10 @@ pub mod issue_rust_73825 {
         }
     }
 
+    fn gen_array_no_const() -> [u32; 42] {
+        unimplemented!()
+    }
+
     const fn gen_array() -> [u32; 42] {
         unimplemented!()
     }
@@ -41,7 +50,9 @@ pub mod issue_rust_73825 {
     pub fn do_it() {
         // Copy type
         let _repeat: [i32; 64] = [0; 64];
+        let _repeat = [42u8; 17];
         let _arr = [0, 1, 3, 5, 7, 8];
+        let _arr = [gen_array(), gen_array()];
         // Non Copy type
         {
             let _repeat_const = [const { String::new() }; 32];
