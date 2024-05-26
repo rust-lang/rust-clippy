@@ -440,11 +440,10 @@ fn span_of_first_expr_in_block(block: &ast::Block) -> Option<Span> {
 
 #[cfg(test)]
 mod test {
-    use super::erode_from_back;
 
     #[test]
     #[rustfmt::skip]
-    fn test_erode_from_back() {
+    fn erode_from_back() {
         let input = "\
 {
     let x = 5;
@@ -456,19 +455,19 @@ mod test {
     let x = 5;
     let y = format!(\"{}\", 42);";
 
-        let got = erode_from_back(input);
+        let got = super::erode_from_back(input);
         assert_eq!(expected, got);
     }
 
     #[test]
     #[rustfmt::skip]
-    fn test_erode_from_back_no_brace() {
+    fn erode_from_back_no_brace() {
         let input = "\
 let x = 5;
 let y = something();
 ";
         let expected = input;
-        let got = erode_from_back(input);
+        let got = super::erode_from_back(input);
         assert_eq!(expected, got);
     }
 }

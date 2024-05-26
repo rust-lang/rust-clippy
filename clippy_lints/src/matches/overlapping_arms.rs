@@ -148,39 +148,44 @@ where
     None
 }
 
-#[test]
-fn test_overlapping() {
-    use rustc_span::DUMMY_SP;
+#[cfg(test)]
+mod test {
+    use super::{EndBound, SpannedRange};
 
-    let sp = |s, e| SpannedRange {
-        span: DUMMY_SP,
-        node: (s, e),
-    };
+    #[test]
+    fn overlapping() {
+        use rustc_span::DUMMY_SP;
 
-    assert_eq!(None, overlapping::<u8>(&[]));
-    assert_eq!(None, overlapping(&[sp(1, EndBound::Included(4))]));
-    assert_eq!(
-        None,
-        overlapping(&[sp(1, EndBound::Included(4)), sp(5, EndBound::Included(6))])
-    );
-    assert_eq!(
-        None,
-        overlapping(&[
-            sp(1, EndBound::Included(4)),
-            sp(5, EndBound::Included(6)),
-            sp(10, EndBound::Included(11))
-        ],)
-    );
-    assert_eq!(
-        Some((&sp(1, EndBound::Included(4)), &sp(3, EndBound::Included(6)))),
-        overlapping(&[sp(1, EndBound::Included(4)), sp(3, EndBound::Included(6))])
-    );
-    assert_eq!(
-        Some((&sp(5, EndBound::Included(6)), &sp(6, EndBound::Included(11)))),
-        overlapping(&[
-            sp(1, EndBound::Included(4)),
-            sp(5, EndBound::Included(6)),
-            sp(6, EndBound::Included(11))
-        ],)
-    );
+        let sp = |s, e| SpannedRange {
+            span: DUMMY_SP,
+            node: (s, e),
+        };
+
+        assert_eq!(None, super::overlapping::<u8>(&[]));
+        assert_eq!(None, super::overlapping(&[sp(1, EndBound::Included(4))]));
+        assert_eq!(
+            None,
+            super::overlapping(&[sp(1, EndBound::Included(4)), sp(5, EndBound::Included(6))])
+        );
+        assert_eq!(
+            None,
+            super::overlapping(&[
+                sp(1, EndBound::Included(4)),
+                sp(5, EndBound::Included(6)),
+                sp(10, EndBound::Included(11))
+            ],)
+        );
+        assert_eq!(
+            Some((&sp(1, EndBound::Included(4)), &sp(3, EndBound::Included(6)))),
+            super::overlapping(&[sp(1, EndBound::Included(4)), sp(3, EndBound::Included(6))])
+        );
+        assert_eq!(
+            Some((&sp(5, EndBound::Included(6)), &sp(6, EndBound::Included(11)))),
+            super::overlapping(&[
+                sp(1, EndBound::Included(4)),
+                sp(5, EndBound::Included(6)),
+                sp(6, EndBound::Included(11))
+            ],)
+        );
+    }
 }

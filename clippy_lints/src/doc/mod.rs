@@ -223,7 +223,7 @@ declare_clippy_lint! {
     /// ///     assert_eq!(1_u8, 1);
     /// /// }
     /// /// ```
-    /// fn test_attr_in_doctest() {
+    /// fn attr_in_doctest() {
     ///     unimplemented!();
     /// }
     /// ```

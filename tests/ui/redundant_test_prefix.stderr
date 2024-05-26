@@ -1,0 +1,14 @@
+error: this test is prefixed redundantly with `test`
+  --> tests/ui/redundant_test_prefix.rs:8:5
+   |
+LL | /     fn test_redundant_name() {
+LL | |         //
+LL | |     }
+   | |_____^
+   |
+   = help: consider removing the redundant `test` prefix from the test name
+   = note: `-D clippy::redundant-test-prefix` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_test_prefix)]`
+
+error: aborting due to 1 previous error
+

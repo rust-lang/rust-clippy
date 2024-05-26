@@ -505,7 +505,7 @@ mod test {
     use super::{reindent_multiline, without_block_comments};
 
     #[test]
-    fn test_reindent_multiline_single_line() {
+    fn reindent_multiline_single_line() {
         assert_eq!("", reindent_multiline("".into(), false, None));
         assert_eq!("...", reindent_multiline("...".into(), false, None));
         assert_eq!("...", reindent_multiline("    ...".into(), false, None));
@@ -515,7 +515,7 @@ mod test {
 
     #[test]
     #[rustfmt::skip]
-    fn test_reindent_multiline_block() {
+    fn reindent_multiline_block() {
         assert_eq!("\
     if x {
         y
@@ -540,7 +540,7 @@ mod test {
 
     #[test]
     #[rustfmt::skip]
-    fn test_reindent_multiline_empty_line() {
+    fn reindent_multiline_empty_line() {
         assert_eq!("\
     if x {
         y
@@ -557,7 +557,7 @@ mod test {
 
     #[test]
     #[rustfmt::skip]
-    fn test_reindent_multiline_lines_deeper() {
+    fn reindent_multiline_lines_deeper() {
         assert_eq!("\
         if x {
             y
@@ -572,7 +572,7 @@ mod test {
     }
 
     #[test]
-    fn test_without_block_comments_lines_without_block_comments() {
+    fn without_block_comments_lines_without_block_comments() {
         let result = without_block_comments(vec!["/*", "", "*/"]);
         println!("result: {result:?}");
         assert!(result.is_empty());

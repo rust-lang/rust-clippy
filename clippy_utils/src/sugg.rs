@@ -1097,22 +1097,22 @@ mod test {
     fn not_op() {
         use AssocOp::{Add, Equal, Greater, GreaterEqual, LAnd, LOr, Less, LessEqual, NotEqual};
 
-        fn test_not(op: AssocOp, correct: &str) {
+        fn not(op: AssocOp, correct: &str) {
             let sugg = Sugg::BinOp(op, "x".into(), "y".into());
             assert_eq!((!sugg).to_string(), correct);
         }
 
         // Invert the comparison operator.
-        test_not(Equal, "x != y");
-        test_not(NotEqual, "x == y");
-        test_not(Less, "x >= y");
-        test_not(LessEqual, "x > y");
-        test_not(Greater, "x <= y");
-        test_not(GreaterEqual, "x < y");
+        not(Equal, "x != y");
+        not(NotEqual, "x == y");
+        not(Less, "x >= y");
+        not(LessEqual, "x > y");
+        not(Greater, "x <= y");
+        not(GreaterEqual, "x < y");
 
         // Other operators are inverted like !(..).
-        test_not(Add, "!(x + y)");
-        test_not(LAnd, "!(x && y)");
-        test_not(LOr, "!(x || y)");
+        not(Add, "!(x + y)");
+        not(LAnd, "!(x && y)");
+        not(LOr, "!(x || y)");
     }
 }

@@ -581,7 +581,7 @@ fn setup_mod_file(path: &Path, lint: &LintData<'_>) -> io::Result<&'static str> 
 }
 
 #[test]
-fn test_camel_case() {
+fn camel_case() {
     let s = "a_lint";
     let s2 = to_camel_case(s);
     assert_eq!(s2, "ALint");

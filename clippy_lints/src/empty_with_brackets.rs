@@ -144,23 +144,22 @@ fn has_no_fields(cx: &EarlyContext<'_>, var_data: &VariantData, braces_span: Spa
 
 #[cfg(test)]
 mod unit_test {
-    use super::*;
 
     #[test]
-    fn test_has_no_ident_token() {
+    fn has_no_ident_token() {
         let input = "{ field: u8 }";
-        assert!(!has_no_ident_token(input));
+        assert!(!super::has_no_ident_token(input));
 
         let input = "(u8, String);";
-        assert!(!has_no_ident_token(input));
+        assert!(!super::has_no_ident_token(input));
 
         let input = " {
                 // test = 5
         }
         ";
-        assert!(has_no_ident_token(input));
+        assert!(super::has_no_ident_token(input));
 
         let input = " ();";
-        assert!(has_no_ident_token(input));
+        assert!(super::has_no_ident_token(input));
     }
 }
