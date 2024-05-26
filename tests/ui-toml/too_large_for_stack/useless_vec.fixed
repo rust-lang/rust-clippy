@@ -1,4 +1,5 @@
 #![warn(clippy::useless_vec)]
+#![allow(clippy::let_arr_const)]
 
 fn main() {
     let x = [0u8; 500];

@@ -1,5 +1,5 @@
 #![warn(clippy::all, clippy::pedantic)]
-#![allow(unused)]
+#![allow(unused, clippy::let_arr_const)]
 
 fn main() {
     let a = ["1", "lol", "3", "NaN", "5"];

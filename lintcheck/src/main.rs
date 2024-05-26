@@ -855,7 +855,7 @@ fn clippy_project_root() -> &'static Path {
 
 #[test]
 fn lintcheck_test() {
-    let args = [
+    let args = *&[
         "run",
         "--target-dir",
         "lintcheck/target",

@@ -1,5 +1,5 @@
 //@aux-build:proc_macros.rs
-#![allow(clippy::no_effect, clippy::useless_vec, unused)]
+#![allow(clippy::no_effect, clippy::useless_vec, clippy::let_arr_const, unused)]
 #![warn(clippy::tuple_array_conversions)]
 
 #[macro_use]

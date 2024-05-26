@@ -42,7 +42,7 @@ fn main() {
         b.push_back(4);
     }
 
-    let values = [(0, 'a'), (1, 'b'), (2, 'c'), (3, 'd')];
+    let values = *&[(0, 'a'), (1, 'b'), (2, 'c'), (3, 'd')];
     let bm = BTreeMap::from_iter(values.iter().cloned());
     let mut bar = BTreeMap::from_iter(bm.range(0..2));
     bar.insert(&4, &'e');

@@ -1,4 +1,4 @@
-#![allow(clippy::explicit_counter_loop)]
+#![allow(clippy::explicit_counter_loop, clippy::let_arr_const)]
 
 fn main() {
     let v = vec![1, 2, 3];

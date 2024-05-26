@@ -2,7 +2,8 @@
 #![allow(
     clippy::unnecessary_to_owned,
     clippy::unnecessary_literal_unwrap,
-    clippy::needless_borrow
+    clippy::needless_borrow,
+    clippy::let_arr_const
 )]
 
 use core::ops::Deref;

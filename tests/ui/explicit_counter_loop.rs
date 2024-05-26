@@ -1,5 +1,5 @@
 #![warn(clippy::explicit_counter_loop)]
-#![allow(clippy::uninlined_format_args, clippy::useless_vec)]
+#![allow(clippy::uninlined_format_args, clippy::useless_vec, clippy::let_arr_const)]
 //@no-rustfix
 fn main() {
     let mut vec = vec![1, 2, 3, 4];

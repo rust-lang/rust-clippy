@@ -1,4 +1,5 @@
 #![warn(clippy::reversed_empty_ranges)]
+#![allow(clippy::let_arr_const)]
 
 const ANSWER: i32 = 42;
 const SOME_NUM: usize = 3;

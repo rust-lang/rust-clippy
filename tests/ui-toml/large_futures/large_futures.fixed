@@ -1,4 +1,5 @@
 #![warn(clippy::large_futures)]
+#![allow(clippy::let_arr_const)]
 
 fn main() {}
 

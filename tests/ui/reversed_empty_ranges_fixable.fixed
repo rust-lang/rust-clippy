@@ -1,5 +1,5 @@
 #![warn(clippy::reversed_empty_ranges)]
-#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::uninlined_format_args, clippy::let_arr_const)]
 
 const ANSWER: i32 = 42;
 

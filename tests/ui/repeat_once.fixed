@@ -1,5 +1,5 @@
 #![warn(clippy::repeat_once)]
-#[allow(unused, clippy::redundant_clone)]
+#[allow(unused, clippy::redundant_clone, clippy::let_arr_const)]
 fn main() {
     const N: usize = 1;
     let s = "str";

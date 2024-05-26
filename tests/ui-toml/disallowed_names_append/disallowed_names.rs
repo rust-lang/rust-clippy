@@ -1,4 +1,5 @@
-#[warn(clippy::disallowed_names)]
+#![warn(clippy::disallowed_names)]
+#![allow(clippy::let_arr_const)]
 
 fn main() {
     // `foo` is part of the default configuration

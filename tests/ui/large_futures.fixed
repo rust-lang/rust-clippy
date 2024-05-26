@@ -1,5 +1,5 @@
 #![warn(clippy::large_futures)]
-#![allow(clippy::never_loop)]
+#![allow(clippy::never_loop, clippy::let_arr_const)]
 #![allow(clippy::future_not_send)]
 #![allow(clippy::manual_async_fn)]
 

@@ -6,7 +6,8 @@
     clippy::no_effect,
     clippy::uninlined_format_args,
     clippy::unnecessary_operation,
-    clippy::needless_pass_by_ref_mut
+    clippy::needless_pass_by_ref_mut,
+    clippy::let_arr_const
 )]
 
 extern crate proc_macros;

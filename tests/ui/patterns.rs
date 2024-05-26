@@ -1,7 +1,7 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::all)]
 #![allow(unused)]
-#![allow(clippy::uninlined_format_args)]
+#![allow(clippy::uninlined_format_args, clippy::let_arr_const)]
 
 #[macro_use]
 extern crate proc_macros;

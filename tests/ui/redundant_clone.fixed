@@ -5,7 +5,8 @@
     clippy::drop_non_drop,
     clippy::implicit_clone,
     clippy::uninlined_format_args,
-    clippy::unnecessary_literal_unwrap
+    clippy::unnecessary_literal_unwrap,
+    clippy::let_arr_const
 )]
 
 use std::ffi::OsString;

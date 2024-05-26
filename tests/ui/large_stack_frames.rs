@@ -1,6 +1,6 @@
 //@ normalize-stderr-test: "\b10000(08|16|32)\b" -> "100$$PTR"
 //@ normalize-stderr-test: "\b2500(060|120)\b" -> "250$$PTR"
-#![allow(unused, incomplete_features)]
+#![allow(unused, incomplete_features, clippy::let_arr_const)]
 #![warn(clippy::large_stack_frames)]
 #![feature(unsized_locals)]
 

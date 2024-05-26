@@ -7,7 +7,8 @@
     clippy::redundant_closure_call,
     clippy::single_range_in_vec_init,
     clippy::uninlined_format_args,
-    clippy::useless_vec
+    clippy::useless_vec,
+    clippy::let_arr_const
 )]
 
 fn base() {

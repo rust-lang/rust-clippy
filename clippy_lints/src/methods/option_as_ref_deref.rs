@@ -20,6 +20,16 @@ pub(super) fn check(
     is_mut: bool,
     msrv: &Msrv,
 ) {
+    static DEREF_ALIASES: [&[&str]; 7] = [
+        &paths::CSTRING_AS_C_STR,
+        &paths::OS_STRING_AS_OS_STR,
+        &paths::PATH_BUF_AS_PATH,
+        &paths::STRING_AS_STR,
+        &paths::STRING_AS_MUT_STR,
+        &paths::VEC_AS_SLICE,
+        &paths::VEC_AS_MUT_SLICE,
+    ];
+
     if !msrv.meets(msrvs::OPTION_AS_DEREF) {
         return;
     }
@@ -31,16 +41,6 @@ pub(super) fn check(
         return;
     }
 
-    let deref_aliases: [&[&str]; 7] = [
-        &paths::CSTRING_AS_C_STR,
-        &paths::OS_STRING_AS_OS_STR,
-        &paths::PATH_BUF_AS_PATH,
-        &paths::STRING_AS_STR,
-        &paths::STRING_AS_MUT_STR,
-        &paths::VEC_AS_SLICE,
-        &paths::VEC_AS_MUT_SLICE,
-    ];
-
     let is_deref = match map_arg.kind {
         hir::ExprKind::Path(ref expr_qpath) => {
             cx.qpath_res(expr_qpath, map_arg.hir_id)
@@ -48,7 +48,7 @@ pub(super) fn check(
                 .map_or(false, |fun_def_id| {
                     cx.tcx.is_diagnostic_item(sym::deref_method, fun_def_id)
                         || cx.tcx.is_diagnostic_item(sym::deref_mut_method, fun_def_id)
-                        || deref_aliases.iter().any(|path| match_def_path(cx, fun_def_id, path))
+                        || DEREF_ALIASES.iter().any(|path| match_def_path(cx, fun_def_id, path))
                 })
         },
         hir::ExprKind::Closure(&hir::Closure { body, .. }) => {
@@ -69,7 +69,7 @@ pub(super) fn check(
                         let method_did = cx.typeck_results().type_dependent_def_id(closure_expr.hir_id).unwrap();
                         cx.tcx.is_diagnostic_item(sym::deref_method, method_did)
                             || cx.tcx.is_diagnostic_item(sym::deref_mut_method, method_did)
-                            || deref_aliases.iter().any(|path| match_def_path(cx, method_did, path))
+                            || DEREF_ALIASES.iter().any(|path| match_def_path(cx, method_did, path))
                     } else {
                         false
                     }

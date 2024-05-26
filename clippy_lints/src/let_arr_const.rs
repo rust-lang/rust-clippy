@@ -94,10 +94,9 @@ impl<'tcx> LateLintPass<'tcx> for LetArrConst {
             if let ExprKind::Array(items @ [ref expr, ..]) = init.kind
                 && let ty = cx.typeck_results().expr_ty(expr)
                 && implements_trait(cx, ty, copy_id, &[])
+                && items.iter().all(|expr| is_const_evaluatable(cx, expr))
             {
-                if items.iter().all(|expr| is_const_evaluatable(cx, expr)) {
-                    should = true;
-                }
+                should = true;
             }
 
             if should {
