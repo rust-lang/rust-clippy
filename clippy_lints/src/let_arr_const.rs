@@ -32,7 +32,7 @@ declare_clippy_lint! {
     /// ```
     ///
     /// Use instead:
-    /// ```no_run
+    /// ```rust,ignore
     /// let a: [u32; N] = *&[1, 3, 5, ...];
     /// // or
     /// static A: [u32; N] = [1, 3, 5, ...];
