@@ -172,6 +172,7 @@ mod inline_fn_without_body;
 mod instant_subtraction;
 mod int_plus_one;
 mod integer_division_remainder_used;
+mod invalid_build_cfg;
 mod invalid_upcast_comparisons;
 mod item_name_repetitions;
 mod items_after_statements;
@@ -399,6 +400,7 @@ pub fn register_pre_expansion_lints(store: &mut rustc_lint::LintStore, conf: &'s
     let msrv = || conf.msrv.clone();
 
     store.register_pre_expansion_pass(move || Box::new(attrs::EarlyAttributes { msrv: msrv() }));
+    store.register_pre_expansion_pass(|| Box::new(invalid_build_cfg::InvalidBuildCfg));
 }
 
 #[derive(Default)]
