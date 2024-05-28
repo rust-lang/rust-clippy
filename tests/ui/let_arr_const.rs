@@ -3,6 +3,7 @@
 
 // <https://github.com/rust-lang/rust/issues/73825>.
 pub mod issue_rust_73825 {
+    use std::mem::{ManuallyDrop, MaybeUninit};
     macro_rules! mac_gen_arr {
         () => {
             [0u32; 64]
@@ -33,6 +34,14 @@ pub mod issue_rust_73825 {
             let mut arr = [const { String::new() }; 32];
             arr[1] = "a".to_owned();
         }
+        let _repeat: [i32; 64] = [0; 64];
+        let _repeat = [42u8; 17];
+
+        type T = MaybeUninit<u64>;
+        let _array = [T::new(42), T::new(3), T::new(42), T::new(42)];
+
+        type U = ManuallyDrop<u64>;
+        let _array = [U::new(42), U::new(3), U::new(42), U::new(42)];
     }
 
     fn gen_array_no_const() -> [u32; 42] {
@@ -49,8 +58,6 @@ pub mod issue_rust_73825 {
 
     pub fn do_it() {
         // Copy type
-        let _repeat: [i32; 64] = [0; 64];
-        let _repeat = [42u8; 17];
         let _arr = [0, 1, 3, 5, 7, 8];
         let _arr = [gen_array(), gen_array()];
         // Non Copy type
