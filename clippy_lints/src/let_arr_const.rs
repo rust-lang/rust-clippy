@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::visitors::is_const_evaluatable;
@@ -74,47 +74,31 @@ impl<'tcx> LateLintPass<'tcx> for LetArrConst {
                 return;
             };
 
-            let generic_msg = "using `static` to push the array to read-only section of program";
-            let report_static = || {
-                span_lint_and_help(
-                    cx,
-                    LET_ARR_CONST,
-                    local.span,
-                    "declaring a read-only array on the stack",
-                    None,
-                    generic_msg,
-                );
+            // if init is [<Copy type>; N]
+            if let ExprKind::Repeat(..) = init.kind {
+                // `init` optimized as the same code.
+                return;
+            }
+
+            // if init is [1, 2, 3, ...]
+            let ExprKind::Array(items @ [ref expr, ..]) = init.kind else {
+                return;
             };
 
-            let mut should = false;
-            // if init is [<Copy type>; 42]
-            if let ExprKind::Repeat(value, _length) = init.kind {
-                let ty = cx.typeck_results().expr_ty(value);
-                if !implements_trait(cx, ty, copy_id, &[]) {
-                    report_static();
-                    return;
-                }
-                should = true;
-            }
-            // if init is [1, 2, 3, 4]
-            if let ExprKind::Array(items @ [ref expr, ..]) = init.kind
-                && let ty = cx.typeck_results().expr_ty(expr)
-                && implements_trait(cx, ty, copy_id, &[])
-                && items.iter().all(|expr| is_const_evaluatable(cx, expr))
-            {
-                should = true;
-            }
+            let ty = cx.typeck_results().expr_ty(expr);
 
-            if should {
+            if implements_trait(cx, ty, copy_id, &[]) && items.iter().all(|expr| is_const_evaluatable(cx, expr)) {
+                let msg = "using `static` to push the array to read-only section of program or try";
                 let snippet = snippet_with_applicability(cx, init.span, "_", &mut applicability);
-                let msg = format!("{generic_msg} or try: `*&{snippet}`");
-                span_lint_and_help(
+                let sugg = format!("*&{snippet}");
+                span_lint_and_sugg(
                     cx,
                     LET_ARR_CONST,
                     init.span,
                     "declaring a read-only array on the stack",
-                    None,
                     msg,
+                    sugg,
+                    applicability,
                 );
             }
         }

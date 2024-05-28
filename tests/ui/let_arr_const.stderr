@@ -1,52 +1,48 @@
 error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:52:34
+  --> tests/ui/let_arr_const.rs:41:22
    |
-LL |         let _repeat: [i32; 64] = [0; 64];
-   |                                  ^^^^^^^
+LL |         let _array = [T::new(42), T::new(3), T::new(42), T::new(42)];
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: using `static` to push the array to read-only section of program or try: `*&[0; 64]`
    = note: `-D clippy::let-arr-const` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::let_arr_const)]`
+help: using `static` to push the array to read-only section of program or try
+   |
+LL |         let _array = *&[T::new(42), T::new(3), T::new(42), T::new(42)];
+   |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:53:23
+  --> tests/ui/let_arr_const.rs:44:22
    |
-LL |         let _repeat = [42u8; 17];
-   |                       ^^^^^^^^^^
+LL |         let _array = [U::new(42), U::new(3), U::new(42), U::new(42)];
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: using `static` to push the array to read-only section of program or try: `*&[42u8; 17]`
+help: using `static` to push the array to read-only section of program or try
+   |
+LL |         let _array = *&[U::new(42), U::new(3), U::new(42), U::new(42)];
+   |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:54:20
+  --> tests/ui/let_arr_const.rs:61:20
    |
 LL |         let _arr = [0, 1, 3, 5, 7, 8];
    |                    ^^^^^^^^^^^^^^^^^^
    |
-   = help: using `static` to push the array to read-only section of program or try: `*&[0, 1, 3, 5, 7, 8]`
+help: using `static` to push the array to read-only section of program or try
+   |
+LL |         let _arr = *&[0, 1, 3, 5, 7, 8];
+   |                    ~~~~~~~~~~~~~~~~~~~~
 
 error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:55:20
+  --> tests/ui/let_arr_const.rs:62:20
    |
 LL |         let _arr = [gen_array(), gen_array()];
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: using `static` to push the array to read-only section of program or try: `*&[gen_array(), gen_array()]`
+help: using `static` to push the array to read-only section of program or try
+   |
+LL |         let _arr = *&[gen_array(), gen_array()];
+   |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:58:13
-   |
-LL |             let _repeat_const = [const { String::new() }; 32];
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = help: using `static` to push the array to read-only section of program
-
-error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:60:13
-   |
-LL |             let _repeat = [EMPTY; 32];
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = help: using `static` to push the array to read-only section of program
-
-error: aborting due to 6 previous errors
+error: aborting due to 4 previous errors
 
