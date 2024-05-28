@@ -13,23 +13,29 @@ declare_clippy_lint! {
     /// Checks for defining of read-only arrays on stack.
     ///
     /// ### Why is this bad?
-    /// A read-only array should be declared as a `static` item or used tricks
-    /// to made it into `.rodata` section of the compiled file.
+    /// `let array` puts array on the stack. As as intended, the compiler will
+    /// initialize the array directly on the stack, which might make the
+    /// generated binary bigger and slower.
+    ///
+    /// A read-only array should be defined as a `static` item or used a trick
+    /// to made it into `.rodata` section of the compiled program. The use of
+    /// the trick (`*&<array literal>`) will make rustc static-promote the
+    /// array literal. Which means that the array now lives in the read-only
+    /// section of the generated binary. The downside of the trick is that
+    /// it is non-ergonomic and may not be very clear to readers of the code.
     ///
     /// ### Known problems
-    /// `let array` puts array on the stack which might make the generated binary file
-    /// bigger and slower.
     ///
     /// ### Example
-    /// ```no_run
-    /// let a = [0; 64];
+    /// ```rust,ignore
+    /// let a: [u32; N] = [1, 3, 5, ...];
     /// ```
     ///
     /// Use instead:
     /// ```no_run
-    /// let a = *&[0; 64];
+    /// let a: [u32; N] = *&[1, 3, 5, ...];
     /// // or
-    /// static A: [u32; 64] = [0; 64];
+    /// static A: [u32; N] = [1, 3, 5, ...];
     /// ```
     #[clippy::version = "1.80.0"]
     pub LET_ARR_CONST,
