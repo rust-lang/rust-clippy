@@ -38,10 +38,10 @@ pub mod issue_rust_73825 {
         let _repeat = [42u8; 17];
 
         type T = MaybeUninit<u64>;
-        let _array = *&[T::new(42), T::new(3), T::new(42), T::new(42)];
+        let _array = [T::new(42), T::new(3), T::new(42), T::new(42)];
 
         type U = ManuallyDrop<u64>;
-        let _array = *&[U::new(42), U::new(3), U::new(42), U::new(42)];
+        let _array = [U::new(42), U::new(3), U::new(42), U::new(42)];
     }
 
     fn gen_array_no_const() -> [u32; 42] {

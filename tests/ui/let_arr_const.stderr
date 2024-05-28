@@ -1,33 +1,11 @@
 error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:41:22
-   |
-LL |         let _array = [T::new(42), T::new(3), T::new(42), T::new(42)];
-   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = note: `-D clippy::let-arr-const` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::let_arr_const)]`
-help: using `static` to push the array to read-only section of program or try
-   |
-LL |         let _array = *&[T::new(42), T::new(3), T::new(42), T::new(42)];
-   |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-error: declaring a read-only array on the stack
-  --> tests/ui/let_arr_const.rs:44:22
-   |
-LL |         let _array = [U::new(42), U::new(3), U::new(42), U::new(42)];
-   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: using `static` to push the array to read-only section of program or try
-   |
-LL |         let _array = *&[U::new(42), U::new(3), U::new(42), U::new(42)];
-   |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-error: declaring a read-only array on the stack
   --> tests/ui/let_arr_const.rs:61:20
    |
 LL |         let _arr = [0, 1, 3, 5, 7, 8];
    |                    ^^^^^^^^^^^^^^^^^^
    |
+   = note: `-D clippy::let-arr-const` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::let_arr_const)]`
 help: using `static` to push the array to read-only section of program or try
    |
 LL |         let _arr = *&[0, 1, 3, 5, 7, 8];
@@ -44,5 +22,5 @@ help: using `static` to push the array to read-only section of program or try
 LL |         let _arr = *&[gen_array(), gen_array()];
    |                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-error: aborting due to 4 previous errors
+error: aborting due to 2 previous errors
 

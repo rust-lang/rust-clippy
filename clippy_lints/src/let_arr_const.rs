@@ -1,8 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::ty::implements_trait;
+use clippy_utils::ty::{implements_trait, is_type_lang_item};
 use clippy_utils::visitors::is_const_evaluatable;
-use hir::{BindingMode, ExprKind, PatKind, Stmt, StmtKind};
+use hir::{BindingMode, ExprKind, LangItem, PatKind, Stmt, StmtKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass};
@@ -86,6 +86,10 @@ impl<'tcx> LateLintPass<'tcx> for LetArrConst {
             };
 
             let ty = cx.typeck_results().expr_ty(expr);
+            // skip MaybeUnint and ManuallyDrop types
+            if is_type_lang_item(cx, ty, LangItem::MaybeUninit) || is_type_lang_item(cx, ty, LangItem::ManuallyDrop) {
+                return;
+            }
 
             if implements_trait(cx, ty, copy_id, &[]) && items.iter().all(|expr| is_const_evaluatable(cx, expr)) {
                 let msg = "using `static` to push the array to read-only section of program or try";
