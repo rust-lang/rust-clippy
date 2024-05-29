@@ -104,4 +104,12 @@ fn main() {
         drop(&mut a);
         let b = a[0];
     }
+
+    // dont lint if we have a mutable reference, even if the mutable reference occurs after what we are
+    // linting against
+    let mut a: &[i32] = &[1];
+    if !a.is_empty() {
+        let b = a[0];
+        drop(&mut a);
+    }
 }

@@ -106,7 +106,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualStrip {
                     cx,
                     MANUAL_STRIP,
                     *first_stripping,
-                    &format!("stripping a {kind_word} manually"),
+                    format!("stripping a {kind_word} manually"),
                     |diag| {
                         diag.span_note(test_span, format!("the {kind_word} was tested here"));
                         multispan_sugg(
