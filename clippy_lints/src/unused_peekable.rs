@@ -8,6 +8,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter::OnlyBodies;
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -113,16 +114,13 @@ impl<'a, 'tcx> PeekableVisitor<'a, 'tcx> {
 
 impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
     type NestedFilter = OnlyBodies;
+    type Result = ControlFlow<()>;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.cx.tcx.hir()
     }
 
-    fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) {
-        if self.found_peek_call {
-            return;
-        }
-
+    fn visit_expr(&mut self, ex: &'tcx Expr<'tcx>) -> ControlFlow<()> {
         if path_to_local_id(ex, self.expected_hir_id) {
             for (_, node) in self.cx.tcx.hir().parent_iter(ex.hir_id) {
                 match node {
@@ -137,14 +135,15 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                                     && func_did == into_iter_did
                                 {
                                     // Probably a for loop desugar, stop searching
-                                    return;
+                                    return ControlFlow::Continue(());
                                 }
 
                                 if args.iter().any(|arg| arg_is_mut_peekable(self.cx, arg)) {
                                     self.found_peek_call = true;
+                                    return ControlFlow::Break(());
                                 }
 
-                                return;
+                                return ControlFlow::Continue(());
                             },
                             // Catch anything taking a Peekable mutably
                             ExprKind::MethodCall(
@@ -163,7 +162,7 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                                     && arg_is_mut_peekable(self.cx, self_arg)
                                 {
                                     self.found_peek_call = true;
-                                    return;
+                                    return ControlFlow::Break(());
                                 }
 
                                 // foo.some_method() excluding Iterator methods
@@ -171,7 +170,7 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                                     && !is_trait_method(self.cx, expr, sym::Iterator)
                                 {
                                     self.found_peek_call = true;
-                                    return;
+                                    return ControlFlow::Break(());
                                 }
 
                                 // foo.by_ref(), keep checking for `peek`
@@ -179,41 +178,46 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                                     continue;
                                 }
 
-                                return;
+                                return ControlFlow::Continue(());
                             },
                             ExprKind::AddrOf(_, Mutability::Mut, _) | ExprKind::Unary(..) | ExprKind::DropTemps(_) => {
                             },
-                            ExprKind::AddrOf(_, Mutability::Not, _) => return,
+                            ExprKind::AddrOf(_, Mutability::Not, _) => return ControlFlow::Continue(()),
                             _ => {
                                 self.found_peek_call = true;
-                                return;
+                                return ControlFlow::Break(());
                             },
                         }
                     },
                     Node::LetStmt(LetStmt { init: Some(init), .. }) => {
                         if arg_is_mut_peekable(self.cx, init) {
                             self.found_peek_call = true;
+                            return ControlFlow::Break(());
                         }
 
-                        return;
+                        return ControlFlow::Continue(());
                     },
                     Node::Stmt(stmt) => {
                         match stmt.kind {
-                            StmtKind::Let(_) | StmtKind::Item(_) => self.found_peek_call = true,
+                            StmtKind::Let(_) | StmtKind::Item(_) => {
+                                self.found_peek_call = true;
+                                return ControlFlow::Break(());
+                            },
                             StmtKind::Expr(_) | StmtKind::Semi(_) => {},
                         }
 
-                        return;
+                        return ControlFlow::Continue(());
                     },
                     Node::Block(_) | Node::ExprField(_) => {},
                     _ => {
-                        return;
+                        return ControlFlow::Continue(());
                     },
                 }
             }
         }
 
         walk_expr(self, ex);
+        ControlFlow::Continue(())
     }
 }
 

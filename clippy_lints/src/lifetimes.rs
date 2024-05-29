@@ -22,6 +22,7 @@ use rustc_session::declare_lint_pass;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::{kw, Ident, Symbol};
 use rustc_span::Span;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -699,10 +700,13 @@ struct BodyLifetimeChecker {
 }
 
 impl<'tcx> Visitor<'tcx> for BodyLifetimeChecker {
+    type Result = ControlFlow<()>;
     // for lifetimes as parameters of generics
-    fn visit_lifetime(&mut self, lifetime: &'tcx Lifetime) {
+    fn visit_lifetime(&mut self, lifetime: &'tcx Lifetime) -> ControlFlow<()> {
         if !lifetime.is_anonymous() && lifetime.ident.name != kw::StaticLifetime {
             self.lifetimes_used_in_body = true;
+            return ControlFlow::Break(());
         }
+        ControlFlow::Continue(())
     }
 }

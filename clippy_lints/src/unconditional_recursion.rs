@@ -16,6 +16,7 @@ use rustc_session::impl_lint_pass;
 use rustc_span::symbol::{kw, Ident};
 use rustc_span::{sym, Span};
 use rustc_trait_selection::traits::error_reporting::suggestions::ReturnsVisitor;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -285,15 +286,13 @@ where
     'tcx: 'a,
 {
     type NestedFilter = nested_filter::OnlyBodies;
+    type Result = ControlFlow<()>;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.map
     }
 
-    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
-        if self.found_default_call {
-            return;
-        }
+    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) -> ControlFlow<()> {
         walk_expr(self, expr);
 
         if let ExprKind::Call(f, _) = expr.kind
@@ -305,7 +304,9 @@ where
         {
             self.found_default_call = true;
             span_error(self.cx, self.method_span, expr);
+            return ControlFlow::Break(());
         }
+        ControlFlow::Continue(())
     }
 }
 

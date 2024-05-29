@@ -7,6 +7,7 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -90,12 +91,14 @@ pub struct OppVisitor<'a, 'tcx> {
 }
 
 impl<'tcx> Visitor<'tcx> for OppVisitor<'_, 'tcx> {
-    fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
+    type Result = ControlFlow<()>;
+    fn visit_expr(&mut self, expr: &'tcx Expr<'_>) -> ControlFlow<()> {
         if let Some(mutex) = is_mutex_lock_call(self.cx, expr) {
             self.found_mutex = Some(mutex);
-            return;
+            return ControlFlow::Break(());
         }
         visit::walk_expr(self, expr);
+        ControlFlow::Continue(())
     }
 }
 
@@ -106,12 +109,14 @@ pub struct ArmVisitor<'a, 'tcx> {
 }
 
 impl<'tcx> Visitor<'tcx> for ArmVisitor<'_, 'tcx> {
-    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
+    type Result = ControlFlow<()>;
+    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) -> ControlFlow<()> {
         if let Some(mutex) = is_mutex_lock_call(self.cx, expr) {
             self.found_mutex = Some(mutex);
-            return;
+            return ControlFlow::Break(());
         }
         visit::walk_expr(self, expr);
+        ControlFlow::Continue(())
     }
 }
 

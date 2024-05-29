@@ -14,6 +14,7 @@ use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty;
 use rustc_session::declare_lint_pass;
 use rustc_span::ExpnKind;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -54,12 +55,14 @@ impl ReturnVisitor {
 }
 
 impl<'tcx> Visitor<'tcx> for ReturnVisitor {
-    fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
+    type Result = ControlFlow<()>;
+    fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) -> ControlFlow<()> {
         if let ExprKind::Ret(_) | ExprKind::Match(.., hir::MatchSource::TryDesugar(_)) = ex.kind {
             self.found_return = true;
-        } else {
-            hir_visit::walk_expr(self, ex);
+            return ControlFlow::Break(());
         }
+        hir_visit::walk_expr(self, ex);
+        ControlFlow::Continue(())
     }
 }
 
