@@ -6542,7 +6542,7 @@
     "id": "non_canonical_clone_impl",
     "id_span": {
       "path": "src/non_canonical_impls.rs",
-      "line": 49
+      "line": 50
     },
     "group": "suspicious",
     "level": "warn",
@@ -6560,7 +6560,7 @@
     "id": "non_canonical_partial_ord_impl",
     "id_span": {
       "path": "src/non_canonical_impls.rs",
-      "line": 106
+      "line": 107
     },
     "group": "suspicious",
     "level": "warn",
