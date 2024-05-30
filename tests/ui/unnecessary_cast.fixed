@@ -228,3 +228,15 @@ mod fixable {
         { *x }.pow(2)
     }
 }
+
+fn issue_12860() {
+    struct Foo<'a>(&'a [u8]);
+
+    fn foo<'a, 'b>(x: &'a Foo<'a>) -> &'b Foo<'b> {
+        unsafe { &*(x as *const Foo<'a> as *const Foo<'b>) }
+    }
+
+    fn bar<'a, 'b>(x: *const Foo<'a>) -> &'b Foo<'b> {
+        unsafe { &*(x as *const Foo<'b>) }
+    }
+}

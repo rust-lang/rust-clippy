@@ -2,11 +2,11 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::source::snippet_opt;
 use clippy_utils::visitors::{for_each_expr, Visitable};
-use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias, path_to_local};
+use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, is_ty_alias, path_to_local, SpanlessEq};
 use rustc_ast::{LitFloatType, LitIntType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{Expr, ExprKind, Lit, Node, Path, QPath, TyKind, UnOp};
+use rustc_hir::{self as hir, Expr, ExprKind, Lit, Node, Path, QPath, TyKind, UnOp};
 use rustc_lint::{LateContext, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::{self, FloatTy, InferTy, Ty};
@@ -27,7 +27,7 @@ pub(super) fn check<'tcx>(
     if let ty::RawPtr(..) = cast_from.kind()
         // check both mutability and type are the same
         && cast_from.kind() == cast_to.kind()
-        && let ExprKind::Cast(_, cast_to_hir) = expr.kind
+        && let ExprKind::Cast(cast_from_expr, cast_to_hir) = expr.kind
         // Ignore casts to e.g. type aliases and infer types
         // - p as pointer_alias
         // - p as _
@@ -39,6 +39,25 @@ pub(super) fn check<'tcx>(
             // - p as *const std::os::raw::c_char (cfg dependant)
             TyKind::Path(qpath) => {
                 if is_ty_alias(&qpath) || is_hir_ty_cfg_dependant(cx, to_pointee.ty) {
+                    return false;
+                }
+
+                if let Some(cast_from_hir_ty) = get_expr_hir_ty(cx, cast_from_expr)
+                    && let TyKind::Ptr(from_pointee) = cast_from_hir_ty.kind
+                    && let TyKind::Path(QPath::Resolved(
+                        _,
+                        Path {
+                            segments: from_ty_seg, ..
+                        },
+                    )) = from_pointee.ty.kind
+                    && let QPath::Resolved(
+                        _,
+                        Path {
+                            segments: to_ty_seg, ..
+                        },
+                    ) = qpath
+                    && !SpanlessEq::new(cx).eq_path_segments(from_ty_seg, to_ty_seg)
+                {
                     return false;
                 }
             },
@@ -299,4 +318,31 @@ fn is_cast_from_ty_alias<'tcx>(cx: &LateContext<'tcx>, expr: impl Visitable<'tcx
 
 fn snippet_eq_ty(snippet: &str, ty: Ty<'_>) -> bool {
     snippet.trim() == ty.to_string() || snippet.trim().contains(&format!("::{ty}"))
+}
+
+fn get_expr_hir_ty<'hir>(cx: &LateContext<'hir>, expr: &Expr<'hir>) -> Option<&'hir hir::Ty<'hir>> {
+    match expr.kind {
+        ExprKind::AddrOf(_, _, inner) => get_expr_hir_ty(cx, inner),
+        ExprKind::Block(hir::Block { expr: Some(inner), .. }, _) => get_expr_hir_ty(cx, inner),
+        ExprKind::Cast(_, ty) => Some(ty),
+        ExprKind::Call(_caller, _) => {
+            // TODO: handle function call
+            // println!("calling: {caller:#?}");
+            None
+        },
+        ExprKind::MethodCall(_path, ..) => {
+            // TODO: handle method call
+            // println!("calling: {path:#?}");
+            None
+        },
+        ExprKind::Path(_) if let Some(local_id) = path_to_local(expr) => match cx.tcx.parent_hir_node(local_id) {
+            Node::Param(param) => {
+                let parent_of_param = cx.tcx.parent_hir_node(param.hir_id);
+                let fn_decl = parent_of_param.fn_decl()?;
+                fn_decl.inputs.iter().find(|ty| ty.span == param.ty_span)
+            },
+            _ => None,
+        },
+        _ => None,
+    }
 }
