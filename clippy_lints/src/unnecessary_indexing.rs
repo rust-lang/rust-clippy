@@ -5,11 +5,12 @@ use clippy_utils::source::snippet;
 use clippy_utils::ty::is_type_diagnostic_item;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{eq_expr_value, path_to_local, path_to_local_id};
-use rustc_ast::{BorrowKind, LitKind, Mutability};
+use rustc_ast::{LitKind, Mutability};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, LetStmt, Node, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
+use rustc_middle::ty::{self};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
@@ -53,19 +54,16 @@ impl LateLintPass<'_> for UnnecessaryIndexing {
             && let ExprKind::MethodCall(method, conditional_receiver, _, _) = unary_inner.kind
             && method.ident.as_str() == "is_empty"
             && let typeck_results = cx.typeck_results()
-            // do not lint on mutable auto borrows (https://github.com/rust-lang/rust-clippy/pull/12464#discussion_r1600352696)
-            && let adjustments = typeck_results.expr_adjustments(conditional_receiver)
-            && !adjustments.iter().any(|adjustment| {
-                matches!(adjustment.kind, Adjust::Borrow(AutoBorrow::Ref(_, AutoBorrowMutability::Mut {
-                    allow_two_phase_borrow: _
-                })))
-            })
-            // do not lint if receiver is a mutable reference
-            && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, _) = conditional_receiver.kind
-            && let expr_ty = typeck_results.expr_ty(conditional_receiver).peel_refs()
-            && (expr_ty.is_slice() || expr_ty.is_array() || is_type_diagnostic_item(cx, expr_ty, sym::Vec))
+            && let expr_ty = typeck_results.expr_ty(conditional_receiver)
+            && let peeled = expr_ty.peel_refs()
+            && (peeled.is_slice() || peeled.is_array() || is_type_diagnostic_item(cx, peeled, sym::Vec))
             && let ExprKind::Block(block, _) = if_expr.then.kind
         {
+            // do not lint if conditional receiver is mutable reference
+            if let ty::Ref(_, _, Mutability::Mut) = expr_ty.kind() {
+                return;
+            }
+
             let result = process_indexing(cx, block, conditional_receiver);
 
             if let Some(r) = result
@@ -178,6 +176,8 @@ fn process_indexing<'a>(
     // if res == Some(()), then mutation occurred
     // & therefore we should not lint on this
     let res = for_each_expr(block.stmts, |x| {
+        let adjustments = cx.typeck_results().expr_adjustments(x);
+
         if let ExprKind::Index(receiver, index, _) = x.kind
             && let ExprKind::Lit(lit) = index.kind
             && let LitKind::Int(val, _) = lit.node
@@ -195,6 +195,14 @@ fn process_indexing<'a>(
             } else {
                 extra_exprs.push(x);
             };
+        } else if adjustments.iter().any(|adjustment| {
+            matches!(
+                adjustment.kind,
+                Adjust::Borrow(AutoBorrow::Ref(_, AutoBorrowMutability::Mut { .. }))
+            )
+        }) {
+            // do not lint on mutable auto borrows (https://github.com/rust-lang/rust-clippy/pull/12464#discussion_r1600352696)
+            return ControlFlow::Break(());
         } else if let ExprKind::AddrOf(_, Mutability::Mut, val) = x.kind
             && eq_expr_value(cx, conditional_receiver, val)
         {

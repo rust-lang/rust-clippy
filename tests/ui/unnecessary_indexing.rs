@@ -112,4 +112,20 @@ fn main() {
         let b = a[0];
         drop(&mut a);
     }
+
+    // dont lint on mutable auto borrow
+    let mut a = vec![1, 2, 3];
+    if !a.is_empty() {
+        a.push(1);
+        let b = a[0];
+        b;
+    }
+
+    // do not lint if conditional receiver is mutable reference
+    let a = &mut vec![1, 2, 3];
+    if !a.is_empty() {
+        let b = a[0];
+        a;
+        b;
+    }
 }
