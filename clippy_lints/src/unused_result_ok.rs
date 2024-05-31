@@ -10,7 +10,7 @@ use rustc_span::sym;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for `Result::ok();` when the result is not captured.
+    /// Checks for calls to `Result::ok()` without using the returned `Option`.
     ///
     /// ### Why is this bad?
     /// Using `Result::ok()` may look like the result is checked like `unwrap` or `expect` would do
@@ -35,14 +35,14 @@ declare_lint_pass!(UnusedResultOk => [UNUSED_RESULT_OK]);
 
 impl LateLintPass<'_> for UnusedResultOk {
     fn check_stmt(&mut self, cx: &LateContext<'_>, stmt: &Stmt<'_>) {
-        if let StmtKind::Semi(expr) = stmt.kind &&
-            let ExprKind::MethodCall(ok_path, recv, [], ..) = expr.kind //check is expr.ok() has type Result<T,E>.ok(, _)
+        if let StmtKind::Semi(expr) = stmt.kind
+            && let ExprKind::MethodCall(ok_path, recv, [], ..) = expr.kind //check is expr.ok() has type Result<T,E>.ok(, _)
             && ok_path.ident.as_str() == "ok"
             && is_type_diagnostic_item(cx, cx.typeck_results().expr_ty(recv), sym::Result)
             && !in_external_macro(cx.sess(), stmt.span)
         {
             let ctxt = expr.span.ctxt();
-            let mut applicability = Applicability::MachineApplicable;
+            let mut applicability = Applicability::MaybeIncorrect;
             let snippet = snippet_with_context(cx, recv.span, ctxt, "", &mut applicability).0;
             let sugg = format!("let _ = {snippet}");
             span_lint_and_sugg(
