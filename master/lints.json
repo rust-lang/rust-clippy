@@ -3159,7 +3159,7 @@
     "id": "indexing_slicing",
     "id_span": {
       "path": "src/indexing_slicing.rs",
-      "line": 81
+      "line": 83
     },
     "group": "restriction",
     "level": "allow",
@@ -3444,7 +3444,7 @@
     "id": "into_iter_without_iter",
     "id_span": {
       "path": "src/iter_without_into_iter.rs",
-      "line": 106
+      "line": 105
     },
     "group": "pedantic",
     "level": "allow",
@@ -3837,7 +3837,7 @@
     "id": "iter_without_into_iter",
     "id_span": {
       "path": "src/iter_without_into_iter.rs",
-      "line": 54
+      "line": 53
     },
     "group": "pedantic",
     "level": "allow",
@@ -6923,7 +6923,7 @@
     "id": "out_of_bounds_indexing",
     "id_span": {
       "path": "src/indexing_slicing.rs",
-      "line": 37
+      "line": 39
     },
     "group": "correctness",
     "level": "deny",
