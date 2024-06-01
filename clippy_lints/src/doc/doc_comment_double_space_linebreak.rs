@@ -42,7 +42,7 @@ fn collect_doc_replacements(attrs: &[Attribute]) -> Vec<(Span, String)> {
                 };
 
                 let len = comment.len();
-                let new_comment = format!("{pre}{} \\", comment[..len - 2].to_owned());
+                let new_comment = format!("{pre}{}\\", &comment[..len - 2]);
                 Some((attr.span, new_comment))
             } else {
                 None
