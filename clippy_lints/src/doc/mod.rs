@@ -435,9 +435,9 @@ declare_clippy_lint! {
     /// is clearer in this regard.
     ///
     /// ### Example
-    /// The two dots in this example represent a double space.
+    /// The two replacement dots in this example represent a double space.
     /// ```no_run
-    /// /// This command takes two numbers as inputs and..
+    /// /// This command takes two numbers as inputs and··
     /// /// adds them together, and then returns the result.
     /// fn add(l: i32, r: i32) -> i32 {
     ///     l + r
