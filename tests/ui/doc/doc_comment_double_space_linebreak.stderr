@@ -2,7 +2,7 @@ error: doc comments should use a back-slash (\) instead of a double space to ind
   --> tests/ui/doc/doc_comment_double_space_linebreak.rs:7:1
    |
 LL | //! Should warn on double space linebreaks  
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace this double space with a back-slash: `//! Should warn on double space linebreaks \`
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace this double space with a back-slash: `//! Should warn on double space linebreaks\`
    |
    = note: `-D clippy::doc-comment-double-space-linebreak` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::doc_comment_double_space_linebreak)]`
@@ -16,8 +16,8 @@ LL | | /// as a line-break, even when there are multiple
    |
 help: replace this double space with a back-slash
    |
-LL + /// Should warn when doc comment uses double space \
-LL + /// as a line-break, even when there are multiple \
+LL + /// Should warn when doc comment uses double space\
+LL + /// as a line-break, even when there are multiple\
    |
 
 error: aborting due to 2 previous errors
