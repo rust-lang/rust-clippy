@@ -381,11 +381,8 @@ fn could_use_elision<'tcx>(
             return None;
         }
 
-        let mut checker = BodyLifetimeChecker {
-            lifetimes_used_in_body: false,
-        };
-        checker.visit_expr(body.value);
-        if checker.lifetimes_used_in_body {
+        let mut checker = BodyLifetimeChecker;
+        if checker.visit_expr(body.value).is_break() {
             return None;
         }
     }
@@ -695,16 +692,13 @@ fn report_extra_impl_lifetimes<'tcx>(cx: &LateContext<'tcx>, impl_: &'tcx Impl<'
     }
 }
 
-struct BodyLifetimeChecker {
-    lifetimes_used_in_body: bool,
-}
+struct BodyLifetimeChecker;
 
 impl<'tcx> Visitor<'tcx> for BodyLifetimeChecker {
     type Result = ControlFlow<()>;
     // for lifetimes as parameters of generics
     fn visit_lifetime(&mut self, lifetime: &'tcx Lifetime) -> ControlFlow<()> {
         if !lifetime.is_anonymous() && lifetime.ident.name != kw::StaticLifetime {
-            self.lifetimes_used_in_body = true;
             return ControlFlow::Break(());
         }
         ControlFlow::Continue(())

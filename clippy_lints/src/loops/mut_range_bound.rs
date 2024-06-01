@@ -145,7 +145,6 @@ impl<'tcx> Visitor<'tcx> for BreakAfterExprVisitor {
 
             return ControlFlow::Break(());
         }
-        intravisit::walk_expr(self, expr);
-        ControlFlow::Continue(())
+        intravisit::walk_expr(self, expr)
     }
 }

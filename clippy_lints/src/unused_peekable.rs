@@ -216,8 +216,7 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
             }
         }
 
-        walk_expr(self, ex);
-        ControlFlow::Continue(())
+        walk_expr(self, ex)
     }
 }
 

@@ -61,8 +61,7 @@ impl<'tcx> Visitor<'tcx> for ReturnVisitor {
             self.found_return = true;
             return ControlFlow::Break(());
         }
-        hir_visit::walk_expr(self, ex);
-        ControlFlow::Continue(())
+        hir_visit::walk_expr(self, ex)
     }
 }
 

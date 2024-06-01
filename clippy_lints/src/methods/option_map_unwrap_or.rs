@@ -55,7 +55,6 @@ pub(super) fn check<'tcx>(
             let mut reference_visitor = ReferenceVisitor {
                 cx,
                 identifiers: unwrap_visitor.identifiers,
-                found_reference: false,
                 unwrap_or_span: unwrap_arg.span,
             };
 
@@ -63,9 +62,9 @@ pub(super) fn check<'tcx>(
             let body = map.body_owned_by(map.enclosing_body_owner(expr.hir_id));
             reference_visitor.visit_body(body);
 
-            if reference_visitor.found_reference {
+            if reference_visitor.visit_body(body);.is_break() {
                 return;
-            }
+            };
         }
 
         if !unwrap_arg.span.eq_ctxt(map_span) {
@@ -152,7 +151,6 @@ impl<'a, 'tcx> Visitor<'tcx> for UnwrapVisitor<'a, 'tcx> {
 struct ReferenceVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     identifiers: FxHashSet<HirId>,
-    found_reference: bool,
     unwrap_or_span: Span,
 }
 
@@ -171,11 +169,9 @@ impl<'a, 'tcx> Visitor<'tcx> for ReferenceVisitor<'a, 'tcx> {
             && let PatKind::Binding(_, local_id, ..) = pat.kind
             && self.identifiers.contains(&local_id)
         {
-            self.found_reference = true;
             return ControlFlow::Break(());
         }
-        rustc_hir::intravisit::walk_expr(self, expr);
-        ControlFlow::Continue(())
+        rustc_hir::intravisit::walk_expr(self, expr)
     }
 
     fn nested_visit_map(&mut self) -> Self::Map {
