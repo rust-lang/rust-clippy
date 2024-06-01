@@ -427,7 +427,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Double spaces, when used as doc comment linebreaks, can be difficult to see, and may
-    /// accidentally be removed during automatic fofmatting or manual refactoring. The use of a back-slash (\)
+    /// accidentally be removed during automatic formatting or manual refactoring. The use of a back-slash (\)
     /// is clearer in this regard.
     ///
     /// ### Example
