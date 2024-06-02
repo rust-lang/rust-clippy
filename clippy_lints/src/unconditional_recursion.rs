@@ -293,7 +293,7 @@ where
     }
 
     fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) -> ControlFlow<()> {
-        walk_expr(self, expr);
+        walk_expr(self, expr)?;
 
         if let ExprKind::Call(f, _) = expr.kind
             && let ExprKind::Path(qpath) = f.kind
