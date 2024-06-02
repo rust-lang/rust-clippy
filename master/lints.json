@@ -8788,7 +8788,7 @@
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
-      "applicability": "Unresolved"
+      "applicability": "MachineApplicable"
     }
   },
   {
@@ -8900,7 +8900,7 @@
     "id": "string_to_string",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 436
+      "line": 440
     },
     "group": "restriction",
     "level": "allow",
@@ -9590,7 +9590,7 @@
     "id": "trim_split_whitespace",
     "id_span": {
       "path": "src/strings.rs",
-      "line": 482
+      "line": 486
     },
     "group": "style",
     "level": "warn",
