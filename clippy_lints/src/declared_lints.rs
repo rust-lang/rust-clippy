@@ -749,6 +749,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::visibility::PUB_WITH_SHORTHAND_INFO,
     crate::wildcard_imports::ENUM_GLOB_USE_INFO,
     crate::wildcard_imports::WILDCARD_IMPORTS_INFO,
+    crate::wildcard_let::WILDCARD_LET_INFO,
     crate::write::PRINTLN_EMPTY_STRING_INFO,
     crate::write::PRINT_LITERAL_INFO,
     crate::write::PRINT_STDERR_INFO,
