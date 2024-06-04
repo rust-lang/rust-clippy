@@ -50,7 +50,7 @@ declare_clippy_lint! {
     /// let duration = Duration::from_nanos(1234500000);
     /// let _ = duration.as_secs_f64();
     /// ```
-    #[clippy::version = "1.79.0"]
+    #[clippy::version = "1.80.0"]
     pub DURATION_TO_FLOAT_PRECISION_LOSS,
     style,
     "conversion from duration to float that cause loss of precision"
