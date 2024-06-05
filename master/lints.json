@@ -6176,6 +6176,21 @@
     }
   },
   {
+    "id": "needless_maybe_sized",
+    "id_span": {
+      "path": "src/needless_maybe_sized.rs",
+      "line": 30
+    },
+    "group": "suspicious",
+    "level": "warn",
+    "docs": "\n### What it does\nLints `?Sized` bounds applied to type parameters that cannot be unsized\n\n### Why is this bad?\nThe `?Sized` bound is misleading because it cannot be satisfied by an\nunsized type\n\n### Example\n```rust\n// `T` cannot be unsized because `Clone` requires it to be `Sized`\nfn f<T: Clone + ?Sized>(t: &T) {}\n```\nUse instead:\n```rust\nfn f<T: Clone>(t: &T) {}\n\n// or choose alternative bounds for `T` so that it can be unsized\n```",
+    "version": "1.79.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "needless_option_as_deref",
     "id_span": {
       "path": "src/methods/mod.rs",
