@@ -1,3 +1,4 @@
+//@no-rustfix
 #![allow(dead_code)]
 
 fn main() {
@@ -21,6 +22,8 @@ fn main() {
     //~^ ERROR: this `.filter_map` can be written more simply using `.map`
 
     let _ = (0..4).filter_map(i32::checked_abs);
+
+    let _ = vec![Some(10), None].into_iter().filter_map(|x| Some(x));
 }
 
 fn filter_map_none_changes_item_type() -> impl Iterator<Item = bool> {
