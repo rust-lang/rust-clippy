@@ -320,28 +320,31 @@ fn snippet_eq_ty(snippet: &str, ty: Ty<'_>) -> bool {
     snippet.trim() == ty.to_string() || snippet.trim().contains(&format!("::{ty}"))
 }
 
+/// Try to get the [`hir::Ty`] of an expr, return `None` if it can't be determained.
 fn get_expr_hir_ty<'hir>(cx: &LateContext<'hir>, expr: &Expr<'hir>) -> Option<&'hir hir::Ty<'hir>> {
     match expr.kind {
         ExprKind::AddrOf(_, _, inner) => get_expr_hir_ty(cx, inner),
         ExprKind::Block(hir::Block { expr: Some(inner), .. }, _) => get_expr_hir_ty(cx, inner),
         ExprKind::Cast(_, ty) => Some(ty),
-        ExprKind::Call(_caller, _) => {
-            // TODO: handle function call
-            // println!("calling: {caller:#?}");
-            None
-        },
-        ExprKind::MethodCall(_path, ..) => {
-            // TODO: handle method call
-            // println!("calling: {path:#?}");
-            None
-        },
         ExprKind::Path(_) if let Some(local_id) = path_to_local(expr) => match cx.tcx.parent_hir_node(local_id) {
             Node::Param(param) => {
                 let parent_of_param = cx.tcx.parent_hir_node(param.hir_id);
                 let fn_decl = parent_of_param.fn_decl()?;
                 fn_decl.inputs.iter().find(|ty| ty.span == param.ty_span)
             },
+            Node::LetStmt(hir::LetStmt { ty, init, .. }) => {
+                ty.or_else(|| init.and_then(|init_expr| get_expr_hir_ty(cx, init_expr)))
+            },
             _ => None,
+        },
+        ExprKind::MethodCall(hir::PathSegment { hir_id, .. }, ..) | ExprKind::Call(Expr { hir_id, .. }, ..) => {
+            cx.tcx.hir().fn_decl_by_hir_id(*hir_id).and_then(|fn_decl| {
+                if let hir::FnRetTy::Return(ty) = fn_decl.output {
+                    Some(ty)
+                } else {
+                    None
+                }
+            })
         },
         _ => None,
     }
