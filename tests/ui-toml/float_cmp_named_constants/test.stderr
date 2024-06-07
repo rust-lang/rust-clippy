@@ -1,5 +1,5 @@
 error: strict comparison of `f32` or `f64`
-  --> tests/ui-toml/float_cmp_named_constants/test.rs:9:21
+  --> tests/ui-toml/float_cmp_named_constants/test.rs:10:21
    |
 LL |             let _ = x == C;
    |                     ^^^^^^ help: consider comparing them within some margin of error: `(x - C).abs() < error_margin`

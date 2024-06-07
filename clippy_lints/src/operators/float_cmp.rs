@@ -2,9 +2,10 @@ use clippy_utils::consts::{constant, Constant};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::visitors::{for_each_expr_without_closures, is_const_evaluatable};
-use clippy_utils::{get_item_name, is_expr_named_const, peel_hir_expr_while, SpanlessEq};
+use clippy_utils::{get_item_name, is_expr_named_const, path_res, peel_hir_expr_while, SpanlessEq};
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
+use rustc_hir::def::Res;
 use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, Safety, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty, TypeFlags, TypeVisitableExt};
@@ -32,6 +33,10 @@ pub(crate) fn check<'tcx>(
         && !(matches!(left_reduced.kind, ExprKind::Lit(_)) && matches!(right_reduced.kind, ExprKind::Lit(_)))
         // Allow comparing the results of signum()
         && !(is_signum(cx, left_reduced) && is_signum(cx, right_reduced))
+        && match (path_res(cx, left_reduced), path_res(cx, right_reduced)) {
+            (Res::Err, _) | (_, Res::Err) => true,
+            (left, right) => left != right,
+        }
     {
         let left_c = constant(cx, cx.typeck_results(), left_reduced);
         let is_left_const = left_c.is_some();
@@ -51,7 +56,9 @@ pub(crate) fn check<'tcx>(
             return;
         }
 
-        if config.ignore_named_constants && (is_expr_named_const(cx, left_reduced) || is_expr_named_const(cx, right_reduced)) {
+        if config.ignore_named_constants
+            && (is_expr_named_const(cx, left_reduced) || is_expr_named_const(cx, right_reduced))
+        {
             return;
         }
 
@@ -64,7 +71,7 @@ pub(crate) fn check<'tcx>(
 
         if let Some(name) = get_item_name(cx, expr) {
             let name = name.as_str();
-            if name == "eq" || name == "ne" || name == "is_nan" || name.starts_with("eq_") || name.ends_with("_eq") {
+            if name == "eq" || name == "ne" || name.starts_with("eq_") || name.ends_with("_eq") {
                 return;
             }
         }

@@ -1,5 +1,5 @@
 error: strict comparison of `f32` or `f64`
-  --> tests/ui-toml/float_cmp_change_detection/test.rs:25:21
+  --> tests/ui-toml/float_cmp_change_detection/test.rs:26:21
    |
 LL |             let _ = x + 1.0 == x;
    |                     ^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(x + 1.0 - x).abs() < error_margin`
@@ -11,7 +11,7 @@ LL | #![deny(clippy::float_cmp)]
    |         ^^^^^^^^^^^^^^^^^
 
 error: strict comparison of `f32` or `f64`
-  --> tests/ui-toml/float_cmp_change_detection/test.rs:26:21
+  --> tests/ui-toml/float_cmp_change_detection/test.rs:27:21
    |
 LL |             let _ = x == x + 1.0;
    |                     ^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(x - (x + 1.0)).abs() < error_margin`
