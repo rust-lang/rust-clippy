@@ -3,7 +3,7 @@
 // FIXME(f16_f128): const casting is not yet supported for these types. Add when available.
 
 #![warn(clippy::float_cmp)]
-#![allow(clippy::op_ref)]
+#![allow(clippy::op_ref, clippy::eq_op)]
 
 fn main() {
     {
@@ -339,5 +339,17 @@ fn main() {
         let mut x = 1.0;
         let mut f = |y: f32| -> f32 { core::mem::replace(&mut x, y) };
         let _ = f(1.0) == f(1.0) + 1.0; //~ float_cmp
+    }
+
+    // Self comparisons
+    {
+        fn _f(x: f32) {
+            let _ = x == x;
+            let _ = x != x;
+            let _ = x == -x;
+            let _ = -x == x;
+            let _ = x as f64 == x as f64;
+            let _ = &&x == &&x;
+        }
     }
 }
