@@ -1,0 +1,15 @@
+error: wildcard let
+  --> tests/ui/wildcard_let.rs:4:6
+   |
+LL |     let _ = 1;
+   |         ^
+   |
+   = help: remove this binding or handle the value
+note: the lint level is defined here
+  --> tests/ui/wildcard_let.rs:1:11
+   |
+LL | #![forbid(clippy::wildcard_let)]
+   |           ^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+
