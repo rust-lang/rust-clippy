@@ -10,6 +10,7 @@ declare_clippy_lint! {
     ///
     /// this may be used by crates that with to force `#[must_use]`
     /// values to actually used, along with `#[forbid(unused_must_use)]`.
+    #[clippy::version = "1.80.0"]
     pub WILDCARD_LET,
     restriction,
     "wildcard let"
