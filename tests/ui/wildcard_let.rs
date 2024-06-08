@@ -1,5 +1,5 @@
 #![forbid(clippy::wildcard_let)]
 
 fn main() {
-	let _ = 1;
+    let _ = 1;
 }

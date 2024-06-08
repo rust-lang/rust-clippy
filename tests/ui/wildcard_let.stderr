@@ -1,5 +1,5 @@
 error: wildcard let
-  --> tests/ui/wildcard_let.rs:4:6
+  --> tests/ui/wildcard_let.rs:4:9
    |
 LL |     let _ = 1;
    |         ^

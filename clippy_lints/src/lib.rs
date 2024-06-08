@@ -1166,7 +1166,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             ..Default::default()
         })
     });
-	store.register_early_pass(|| Box::new(wildcard_let::WildcardLet{}));
+    store.register_early_pass(|| Box::new(wildcard_let::WildcardLet {}));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
