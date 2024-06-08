@@ -52,5 +52,11 @@ error: calling `TupleStructDerivedDefault::default()` is more clear than this ex
 LL |     let s17: TupleStructDerivedDefault = Default::default();
    |                                          ^^^^^^^^^^^^^^^^^^ help: try: `TupleStructDerivedDefault::default()`
 
-error: aborting due to 8 previous errors
+error: calling `data::Data::default()` is more clear than this expression
+  --> tests/ui/default_trait_access.rs:58:32
+   |
+LL |     let _s22: data::Data<u8> = Default::default();
+   |                                ^^^^^^^^^^^^^^^^^^ help: try: `data::Data::default()`
+
+error: aborting due to 9 previous errors
 
