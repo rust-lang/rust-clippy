@@ -1,0 +1,12 @@
+error: declaration of static mut
+  --> tests/ui/static_mut.rs:3:1
+   |
+LL | static mut NUMBER: u8 = 3;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove the `mut` and use a type with interior mutibability that implements `Sync`, such as `std::sync::Mutex`
+   = note: `-D clippy::static-mut` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::static_mut)]`
+
+error: aborting due to 1 previous error
+

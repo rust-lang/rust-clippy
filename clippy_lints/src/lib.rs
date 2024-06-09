@@ -325,6 +325,7 @@ mod single_range_in_vec_init;
 mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
+mod static_mut;
 mod std_instead_of_core;
 mod string_patterns;
 mod strings;
@@ -1169,6 +1170,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         })
     });
     store.register_late_pass(|_| Box::new(string_patterns::StringPatterns));
+    store.register_early_pass(|| Box::new(static_mut::StaticMut));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
