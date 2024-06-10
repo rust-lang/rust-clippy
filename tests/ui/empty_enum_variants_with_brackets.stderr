@@ -1,92 +1,97 @@
 error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:7:17
+  --> tests/ui/empty_enum_variants_with_brackets.rs:14:8
    |
-LL |     EmptyBraces {},
-   |                 ^^
+LL |     V2 {},
+   |        ^^
    |
-   = note: `-D clippy::empty-enum-variants-with-brackets` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::empty_enum_variants_with_brackets)]`
+note: the lint level is defined here
+  --> tests/ui/empty_enum_variants_with_brackets.rs:3:9
+   |
+LL | #![deny(clippy::empty_enum_variants_with_brackets)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: remove the brackets
 
 error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:15:17
+  --> tests/ui/empty_enum_variants_with_brackets.rs:22:15
    |
-LL |     EmptyBraces {},
-   |                 ^^
-   |
-   = help: remove the brackets
-
-error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:17:21
-   |
-LL |     EmptyParentheses(),
-   |                     ^^
+LL |             V1(),
+   |               ^^
    |
    = help: remove the parenthesis
 
 error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:28:16
+  --> tests/ui/empty_enum_variants_with_brackets.rs:28:15
    |
-LL |         Unknown(),
+LL |             V1(),
+   |               ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:46:16
+   |
+LL |             V1 {},
    |                ^^
    |
-   = help: remove the parenthesis
+   = help: remove the brackets
 
 error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:47:16
+  --> tests/ui/empty_enum_variants_with_brackets.rs:50:16
    |
-LL |         Unknown(),
+LL |             V1 {},
    |                ^^
    |
-   = help: remove the parenthesis
+   = help: remove the brackets
 
 error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:53:20
+  --> tests/ui/empty_enum_variants_with_brackets.rs:93:15
    |
-LL |         Parentheses(),
-   |                    ^^
-   |
-   = help: remove the parenthesis
-
-error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:76:20
-   |
-LL |         Parentheses(),
-   |                    ^^
+LL |             V3(),
+   |               ^^
    |
    = help: remove the parenthesis
 
 error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:95:13
+  --> tests/ui/empty_enum_variants_with_brackets.rs:94:16
    |
-LL |     Variant3(),
-   |             ^^
-   |
-   = help: remove the parenthesis
-
-error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:107:10
-   |
-LL |         V(),
-   |          ^^
-   |
-   = help: remove the parenthesis
-
-error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:119:10
-   |
-LL |         V(),
-   |          ^^
-   |
-   = help: remove the parenthesis
-
-error: non-unit variant contains no fields
-  --> tests/ui/empty_enum_variants_with_brackets.rs:127:11
-   |
-LL |         U {},
-   |           ^^
+LL |             V4 {},
+   |                ^^
    |
    = help: remove the brackets
+
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:112:19
+   |
+LL |                 V1(),
+   |                   ^^
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: remove the parenthesis
+
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:113:20
+   |
+LL |                 V2 {},
+   |                    ^^
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: remove the brackets
+
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:125:16
+   |
+LL |             V3 {},
+   |                ^^
+   |
+   = help: remove the brackets
+
+error: non-unit variant contains no fields
+  --> tests/ui/empty_enum_variants_with_brackets.rs:128:15
+   |
+LL |             V1(),
+   |               ^^
+   |
+   = help: remove the parenthesis
 
 error: aborting due to 11 previous errors
 
