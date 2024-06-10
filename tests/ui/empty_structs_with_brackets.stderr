@@ -1,28 +1,153 @@
 error: non-unit struct contains no fields
-  --> tests/ui/empty_structs_with_brackets.rs:3:26
+  --> tests/ui/empty_structs_with_brackets.rs:11:17
    |
-LL | pub struct MyEmptyStruct {} // should trigger lint
-   |                          ^^
+LL | pub struct Pub2 {}
+   |                 ^^
    |
-   = note: `-D clippy::empty-structs-with-brackets` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::empty_structs_with_brackets)]`
+note: the lint level is defined here
+  --> tests/ui/empty_structs_with_brackets.rs:2:9
+   |
+LL | #![deny(clippy::empty_structs_with_brackets)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: remove the brackets
 
 error: non-unit struct contains no fields
-  --> tests/ui/empty_structs_with_brackets.rs:5:26
+  --> tests/ui/empty_structs_with_brackets.rs:13:17
    |
-LL | struct MyEmptyTupleStruct(); // should trigger lint
-   |                          ^^
+LL | pub struct Pub3 {}
+   |                 ^^
+   |
+   = help: remove the brackets
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:19:18
+   |
+LL |         struct S1();
+   |                  ^^
    |
    = help: remove the parenthesis
 
 error: non-unit struct contains no fields
-  --> tests/ui/empty_structs_with_brackets.rs:39:32
+  --> tests/ui/empty_structs_with_brackets.rs:21:18
    |
-LL |     struct Foo<const N: usize> {}
-   |                                ^^
+LL |         struct S3();
+   |                  ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:33:19
+   |
+LL |         struct S1 {}
+   |                   ^^
    |
    = help: remove the brackets
 
-error: aborting due to 3 previous errors
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:37:19
+   |
+LL |         struct S3 {}
+   |                   ^^
+   |
+   = help: remove the brackets
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:57:18
+   |
+LL |         struct S1()
+   |                  ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:61:34
+   |
+LL |         struct S2<const N: usize>();
+   |                                  ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:63:34
+   |
+LL |         struct S3<const N: usize>()
+   |                                  ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:70:25
+   |
+LL |             u32: Sized, {}
+   |                         ^^
+   |
+   = help: remove the brackets
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:72:35
+   |
+LL |         struct S5<const N: usize> {}
+   |                                   ^^
+   |
+   = help: remove the brackets
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:76:25
+   |
+LL |             u32: Sized, {}
+   |                         ^^
+   |
+   = help: remove the brackets
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:94:18
+   |
+LL |         struct S3();
+   |                  ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:95:19
+   |
+LL |         struct S4 {}
+   |                   ^^
+   |
+   = help: remove the brackets
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:111:22
+   |
+LL |             struct S1();
+   |                      ^^
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:112:23
+   |
+LL |             struct S2 {}
+   |                       ^^
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = help: remove the brackets
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:124:18
+   |
+LL |         struct S3();
+   |                  ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:125:19
+   |
+LL |         struct S4 {}
+   |                   ^^
+   |
+   = help: remove the brackets
+
+error: aborting due to 18 previous errors
 
