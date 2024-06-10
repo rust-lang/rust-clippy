@@ -1,28 +1,95 @@
-error: found empty brackets on struct declaration
-  --> tests/ui/empty_structs_with_brackets.rs:4:25
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:8:26
    |
-LL | pub struct MyEmptyStruct {} // should trigger lint
-   |                         ^^^
+LL | pub struct MyEmptyStruct {}
+   |                          ^^
    |
-   = note: `-D clippy::empty-structs-with-brackets` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::empty_structs_with_brackets)]`
-   = help: remove the brackets
+note: the lint level is defined here
+  --> tests/ui/empty_structs_with_brackets.rs:2:9
+   |
+LL | #![deny(clippy::empty_structs_with_brackets)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: remove the braces
 
-error: found empty brackets on struct declaration
-  --> tests/ui/empty_structs_with_brackets.rs:6:26
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:12:23
    |
-LL | struct MyEmptyTupleStruct(); // should trigger lint
-   |                          ^^^
+LL | struct WithWhitespace {  }
+   |                       ^^^^
    |
-   = help: remove the brackets
+   = help: remove the braces
 
-error: found empty brackets on struct declaration
-  --> tests/ui/empty_structs_with_brackets.rs:40:31
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:69:31
    |
-LL |     struct Foo<const N: usize> {}
-   |                               ^^^
+LL |     struct S1<const N: usize> {}
+   |                               ^^
    |
-   = help: remove the brackets
+   = help: remove the braces
 
-error: aborting due to 3 previous errors
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:70:49
+   |
+LL |     struct S2<const N: usize> where usize: Copy {}
+   |                                                 ^^
+   |
+   = help: remove the braces
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:71:21
+   |
+LL |     struct S3 where {}
+   |                     ^^
+   |
+   = help: remove the braces
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:9:26
+   |
+LL | struct MyEmptyTupleStruct();
+   |                          ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:51:14
+   |
+LL |     struct S2();
+   |              ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:57:14
+   |
+LL |     struct S3();
+   |              ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:72:30
+   |
+LL |     struct S4<const N: usize>();
+   |                              ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:73:30
+   |
+LL |     struct S5<const N: usize>() where usize: Copy;
+   |                              ^^
+   |
+   = help: remove the parenthesis
+
+error: non-unit struct contains no fields
+  --> tests/ui/empty_structs_with_brackets.rs:74:14
+   |
+LL |     struct S6() where usize: Copy;
+   |              ^^
+   |
+   = help: remove the parenthesis
+
+error: aborting due to 11 previous errors
 

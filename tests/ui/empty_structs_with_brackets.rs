@@ -1,48 +1,75 @@
-#![warn(clippy::empty_structs_with_brackets)]
+//@aux-build:proc_macros.rs
+#![deny(clippy::empty_structs_with_brackets)]
 #![allow(dead_code)]
 
-pub struct MyEmptyStruct {} // should trigger lint
-//~^ empty_structs_with_brackets
-struct MyEmptyTupleStruct(); // should trigger lint
-//~^ empty_structs_with_brackets
+extern crate proc_macros;
+use proc_macros::{external, with_span};
 
-// should not trigger lint
+pub struct MyEmptyStruct {} //~ empty_structs_with_brackets
+struct MyEmptyTupleStruct(); //~ empty_structs_with_brackets
+
+#[rustfmt::skip]
+struct WithWhitespace {  } //~ empty_structs_with_brackets
+
+struct WithComment {
+    // Some long explanation here
+}
+
 struct MyCfgStruct {
     #[cfg(feature = "thisisneverenabled")]
     field: u8,
 }
 
-// should not trigger lint
 struct MyCfgTupleStruct(#[cfg(feature = "thisisneverenabled")] u8);
 
-// should not trigger lint
 struct MyStruct {
     field: u8,
 }
-struct MyTupleStruct(usize, String); // should not trigger lint
-struct MySingleTupleStruct(usize); // should not trigger lint
-struct MyUnitLikeStruct; // should not trigger lint
+struct MyTupleStruct(usize, String);
+struct MySingleTupleStruct(usize);
+struct MyUnitLikeStruct;
 
-macro_rules! empty_struct {
-    ($s:ident) => {
-        struct $s {}
-    };
+external! {
+    struct External {}
 }
 
-empty_struct!(FromMacro);
+with_span! {
+    span
+    struct ProcMacro {}
+}
+
+macro_rules! m {
+    ($($name:ident: $ty:ty),*) => {
+        struct Macro { $($name: $ty),* }
+    }
+}
+m! {}
+
+mod used {
+    // Check if the constructor is passed as an argument.
+    struct S1();
+    struct S2(); //~ empty_structs_with_brackets
+    fn f1(x: i32) -> Option<S1> {
+        (x == 1).then(S1)
+    }
+
+    // Check that call sites are fixed.
+    struct S3(); //~ empty_structs_with_brackets
+    struct S4();
+    fn f2() {
+        let _ = S3();
+        let _ = S4;
+    }
+}
 
 fn main() {}
 
+#[rustfmt::skip]
 mod issue15349 {
-    trait Bar<T> {}
-    impl<T> Bar<T> for [u8; 7] {}
-
-    struct Foo<const N: usize> {}
-    //~^ empty_structs_with_brackets
-    impl<const N: usize> Foo<N>
-    where
-        [u8; N]: Bar<[(); N]>,
-    {
-        fn foo() {}
-    }
+    struct S1<const N: usize> {} //~ empty_structs_with_brackets
+    struct S2<const N: usize> where usize: Copy {} //~ empty_structs_with_brackets
+    struct S3 where {} //~ empty_structs_with_brackets
+    struct S4<const N: usize>(); //~ empty_structs_with_brackets
+    struct S5<const N: usize>() where usize: Copy; //~ empty_structs_with_brackets
+    struct S6() where usize: Copy; //~ empty_structs_with_brackets
 }
