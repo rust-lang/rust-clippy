@@ -316,6 +316,7 @@ mod self_named_constructors;
 mod semicolon_block;
 mod semicolon_if_nothing_returned;
 mod serde_api;
+mod set_contains_or_insert;
 mod shadow;
 mod significant_drop_tightening;
 mod single_call_fn;
@@ -1167,6 +1168,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             ..Default::default()
         })
     });
+    store.register_late_pass(|_| Box::new(set_contains_or_insert::HashsetInsertAfterContains));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
