@@ -1042,7 +1042,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_contents() {
+    fn parse_contents() {
         static CONTENTS: &str = r#"
             declare_clippy_lint! {
                 #[clippy::version = "Hello Clippy!"]
@@ -1060,7 +1060,7 @@ mod tests {
             }
         "#;
         let mut result = Vec::new();
-        parse_contents(CONTENTS, "module_name", &mut result);
+        super::parse_contents(CONTENTS, "module_name", &mut result);
         for r in &mut result {
             r.declaration_range = Range::default();
         }
@@ -1085,7 +1085,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_deprecated_contents() {
+    fn parse_deprecated_contents() {
         static DEPRECATED_CONTENTS: &str = r#"
             /// some doc comment
             declare_deprecated_lint! {
@@ -1096,7 +1096,7 @@ mod tests {
         "#;
 
         let mut result = Vec::new();
-        parse_deprecated_contents(DEPRECATED_CONTENTS, &mut result);
+        super::parse_deprecated_contents(DEPRECATED_CONTENTS, &mut result);
         for r in &mut result {
             r.declaration_range = Range::default();
         }
@@ -1110,7 +1110,7 @@ mod tests {
     }
 
     #[test]
-    fn test_usable_lints() {
+    fn usable_lints() {
         let lints = vec![
             Lint::new(
                 "should_assert_eq2",
@@ -1145,7 +1145,7 @@ mod tests {
     }
 
     #[test]
-    fn test_by_lint_group() {
+    fn by_lint_group() {
         let lints = vec![
             Lint::new("should_assert_eq", "group1", "\"abc\"", "module_name", Range::default()),
             Lint::new(
@@ -1179,7 +1179,7 @@ mod tests {
     }
 
     #[test]
-    fn test_gen_deprecated() {
+    fn gen_deprecated() {
         let lints = vec![
             DeprecatedLint::new(
                 "should_assert_eq",
@@ -1205,6 +1205,6 @@ mod tests {
             .join("\n")
             + "\n";
 
-        assert_eq!(expected, gen_deprecated(&lints));
+        assert_eq!(expected, super::gen_deprecated(&lints));
     }
 }

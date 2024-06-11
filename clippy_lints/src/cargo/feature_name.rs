@@ -80,7 +80,7 @@ fn lint(cx: &LateContext<'_>, feature: &str, substring: &str, is_prefix: bool) {
 }
 
 #[test]
-fn test_prefixes_sorted() {
+fn prefixes_sorted() {
     let mut sorted_prefixes = PREFIXES;
     sorted_prefixes.sort_unstable();
     assert_eq!(PREFIXES, sorted_prefixes);
