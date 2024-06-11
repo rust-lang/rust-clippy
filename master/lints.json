@@ -5405,7 +5405,7 @@
     "id": "missing_const_for_fn",
     "id_span": {
       "path": "src/missing_const_for_fn.rs",
-      "line": 69
+      "line": 68
     },
     "group": "nursery",
     "level": "allow",
