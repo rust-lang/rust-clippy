@@ -91,6 +91,7 @@ mod borrow_deref_ref;
 mod box_default;
 mod cargo;
 mod casts;
+mod cfg_not_test;
 mod checked_conversions;
 mod cognitive_complexity;
 mod collapsible_if;
@@ -1169,6 +1170,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         })
     });
     store.register_late_pass(move |_| Box::new(string_patterns::StringPatterns::new(msrv())));
+    store.register_early_pass(|| Box::new(cfg_not_test::CfgNotTest));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
