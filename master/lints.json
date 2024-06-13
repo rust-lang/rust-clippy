@@ -4302,7 +4302,7 @@
     "id": "manual_async_fn",
     "id_span": {
       "path": "src/manual_async_fn.rs",
-      "line": 33
+      "line": 32
     },
     "group": "style",
     "level": "warn",
