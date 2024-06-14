@@ -1,24 +1,24 @@
 name: Clippy Test
 
 on:
-  push:
-    # Ignore bors branches, since they are covered by `clippy_bors.yml`
-    branches-ignore:
-      - auto
-      - try
-    # Don't run Clippy tests, when only text files were modified
-    paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
+  # push:
+  #   # Ignore bors branches, since they are covered by `clippy_bors.yml`
+  #   branches-ignore:
+  #     - auto
+  #     - try
+  #   # Don't run Clippy tests, when only text files were modified
+  #   paths-ignore:
+  #   - 'COPYRIGHT'
+  #   - 'LICENSE-*'
+  #   - '**.md'
+  #   - '**.txt'
   pull_request:
-    # Don't run Clippy tests, when only text files were modified
-    paths-ignore:
-    - 'COPYRIGHT'
-    - 'LICENSE-*'
-    - '**.md'
-    - '**.txt'
+    # # Don't run Clippy tests, when only text files were modified
+    # paths-ignore:
+    # - 'COPYRIGHT'
+    # - 'LICENSE-*'
+    # - '**.md'
+    # - '**.txt'
 
 env:
   RUST_BACKTRACE: 1
@@ -38,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - run: echo '${{ toJSON(github) }}'
+
     # Setup
     - name: Checkout
       uses: actions/checkout@v4
