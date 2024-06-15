@@ -48,11 +48,11 @@
     "id": "allow_attributes",
     "id_span": {
       "path": "src/allow_attributes.rs",
-      "line": 46
+      "line": 45
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThe expect attribute is still unstable and requires the `lint_reasons`\non nightly. It can be enabled by adding `#![feature(lint_reasons)]` to\nthe crate root.\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why restrict this?\n`#[allow]` attributes can linger after their reason for existence is gone.\n`#[expect]` attributes suppress the lint emission, but emit a warning if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered, which may indicate the attribute can be removed.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#![feature(lint_reasons)]\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```",
+    "docs": "\n### What it does\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\n`#[expect]`. (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThe expect attribute is still unstable and requires the `lint_reasons` feature\non nightly. It can be enabled by adding `#![feature(lint_reasons)]` to\nthe crate root.\n\nThis lint only warns on outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why restrict this?\nThe `#[allow]` attribute does not warn when the expected lint is no longer triggered,\nwhereas `#[expect]` calls attention to this fact. This can be a useful reminder to\nremove attributes that are no longer needed.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#![feature(lint_reasons)]\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -63,11 +63,11 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 295
+      "line": 296
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for attributes that allow lints without a reason.\n\n(This requires the `lint_reasons` feature)\n\n### Why restrict this?\nJustifying each `allow` helps readers understand the reasoning,\nand may allow removing `allow` attributes if their purpose is obsolete.\n\n### Example\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint)]\n```\n\nUse instead:\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint, reason = \"False positive rust-lang/rust-clippy#1002020\")]\n```",
+    "docs": "\n### What it does\nChecks for attributes that allow lints without specifying the reason\nthey should be allowed. (This requires the `lint_reasons` feature.)\n\n### Why restrict this?\nThere should always be a specific reason to allow a lint. This reason\nshould be documented using the `reason` parameter, so that readers can\nunderstand why the `allow` is required, or remove it if it's no\nlonger needed.\n\n### Example\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint)]\n```\n\nUse instead:\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint, reason = \"False positive rust-lang/rust-clippy#1002020\")]\n```",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -130,7 +130,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does.\nThis lint warns when you use `Arc` with a type that does not implement `Send` or `Sync`.\n\n### Why is this bad?\n`Arc<T>` is a thread-safe `Rc<T>` and guarantees that updates to the reference counter\nuse atomic operations. To send an `Arc<T>` across thread boundaries and\nshare ownership between multiple threads, `T` must be [both `Send` and `Sync`](https://doc.rust-lang.org/std/sync/struct.Arc.html#thread-safety),\nso either `T` should be made `Send + Sync` or an `Rc` should be used instead of an `Arc`\n\n### Example\n```rust\n\nfn main() {\n    // This is fine, as `i32` implements `Send` and `Sync`.\n    let a = Arc::new(42);\n\n    // `RefCell` is `!Sync`, so either the `Arc` should be replaced with an `Rc`\n    // or the `RefCell` replaced with something like a `RwLock`\n    let b = Arc::new(RefCell::new(42));\n}\n```",
+    "docs": "\n### What it does.\nThis lint warns when you use `Arc` with a type that does not implement `Send` or `Sync`.\n\n### Why is this bad?\n`Arc<T>` is a thread-safe `Rc<T>` and guarantees that updates to the reference counter\nuse atomic operations. To send an `Arc<T>` across thread boundaries and\nshare ownership between multiple threads, `T` must be [both `Send` and `Sync`](https://doc.rust-lang.org/std/sync/struct.Arc.html#thread-safety),\nso either `T` should be made `Send + Sync` or an `Rc` should be used instead of an `Arc`.\n\n### Example\n```rust\n\nfn main() {\n    // This is fine, as `i32` implements `Send` and `Sync`.\n    let a = Arc::new(42);\n\n    // `RefCell` is `!Sync`, so either the `Arc` should be replaced with an `Rc`\n    // or the `RefCell` replaced with something like a `RwLock`\n    let b = Arc::new(RefCell::new(42));\n}\n```",
     "version": "1.72.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -1343,7 +1343,7 @@
     "id": "deprecated_clippy_cfg_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 380
+      "line": 381
     },
     "group": "suspicious",
     "level": "warn",
@@ -1730,7 +1730,7 @@
     "id": "duplicated_attributes",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 467
+      "line": 468
     },
     "group": "suspicious",
     "level": "warn",
@@ -5585,7 +5585,7 @@
     "id": "mixed_attributes_style",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 441
+      "line": 442
     },
     "group": "style",
     "level": "warn",
@@ -5865,7 +5865,7 @@
     },
     "group": "suspicious",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for loops which have a range bound that is a mutable variable\n\n### Why is this bad?\nOne might think that modifying the mutable variable changes the loop bounds\n\n### Known problems\nFalse positive when mutation is followed by a `break`, but the `break` is not immediately\nafter the mutation:\n\n```rust\nlet mut x = 5;\nfor _ in 0..x {\n    x += 1; // x is a range bound that is mutated\n    ..; // some other expression\n    break; // leaves the loop, so mutation is not an issue\n}\n```\n\nFalse positive on nested loops ([#6072](https://github.com/rust-lang/rust-clippy/issues/6072))\n\n### Example\n```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{}\", i); // prints numbers from 0 to 42, not 0 to 21\n}\n```",
+    "docs": "\n### What it does\nChecks for loops with a range bound that is a mutable variable.\n\n### Why is this bad?\nOne might think that modifying the mutable variable changes the loop bounds. It doesn't.\n\n### Known problems\nFalse positive when mutation is followed by a `break`, but the `break` is not immediately\nafter the mutation:\n\n```rust\nlet mut x = 5;\nfor _ in 0..x {\n    x += 1; // x is a range bound that is mutated\n    ..; // some other expression\n    break; // leaves the loop, so mutation is not an issue\n}\n```\n\nFalse positive on nested loops ([#6072](https://github.com/rust-lang/rust-clippy/issues/6072))\n\n### Example\n```rust\nlet mut foo = 42;\nfor i in 0..foo {\n    foo -= 1;\n    println!(\"{i}\"); // prints numbers from 0 to 41, not 0 to 21\n}\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6123,7 +6123,7 @@
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of `for_each` that would be more simply written as a\n`for` loop.\n\n### Why is this bad?\n`for_each` may be used after applying iterator transformers like\n`filter` for better readability and performance. It may also be used to fit a simple\noperation on one line.\nBut when none of these apply, a simple `for` loop is more idiomatic.\n\n### Example\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| {\n    println!(\"{}\", elem);\n})\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\nfor elem in v.iter() {\n    println!(\"{}\", elem);\n}\n```\n\n### Known Problems\nWhen doing things such as:\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| unsafe {\n    libc::printf(c\"%d\\n\".as_ptr(), elem);\n});\n```\nThis lint will not trigger.",
+    "docs": "\n### What it does\nChecks for usage of `for_each` that would be more simply written as a\n`for` loop.\n\n### Why is this bad?\n`for_each` may be used after applying iterator transformers like\n`filter` for better readability and performance. It may also be used to fit a simple\noperation on one line.\nBut when none of these apply, a simple `for` loop is more idiomatic.\n\n### Example\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| {\n    println!(\"{elem}\");\n})\n```\nUse instead:\n```rust\nlet v = vec![0, 1, 2];\nfor elem in &v {\n    println!(\"{elem}\");\n}\n```\n\n### Known Problems\nWhen doing things such as:\n```rust\nlet v = vec![0, 1, 2];\nv.iter().for_each(|elem| unsafe {\n    libc::printf(c\"%d\\n\".as_ptr(), elem);\n});\n```\nThis lint will not trigger.",
     "version": "1.53.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -6623,7 +6623,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 354
+      "line": 355
     },
     "group": "style",
     "level": "warn",
@@ -8507,7 +8507,7 @@
     "id": "should_panic_without_expect",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 330
+      "line": 331
     },
     "group": "pedantic",
     "level": "allow",
@@ -9980,7 +9980,7 @@
     "id": "unnecessary_clippy_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 404
+      "line": 405
     },
     "group": "suspicious",
     "level": "warn",
