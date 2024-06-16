@@ -71,15 +71,22 @@ impl<'tcx> LateLintPass<'tcx> for UnusedPeekable {
                     return;
                 }
 
+                let mut found_peek_call = false;
+
                 for stmt in &block.stmts[idx..] {
-                    vis.visit_stmt(stmt);
+                    if vis.visit_stmt(stmt).is_break() {
+                        found_peek_call = true;
+                        break;
+                    }
                 }
 
-                if let Some(expr) = block.expr {
-                    vis.visit_expr(expr);
+                if !found_peek_call && let Some(expr) = block.expr {
+                    if vis.visit_expr(expr).is_break() {
+                        found_peek_call = true
+                    }
                 }
 
-                if !vis.found_peek_call {
+                if !found_peek_call {
                     span_lint_hir_and_then(
                         cx,
                         UNUSED_PEEKABLE,
@@ -99,16 +106,11 @@ impl<'tcx> LateLintPass<'tcx> for UnusedPeekable {
 struct PeekableVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     expected_hir_id: HirId,
-    found_peek_call: bool,
 }
 
 impl<'a, 'tcx> PeekableVisitor<'a, 'tcx> {
     fn new(cx: &'a LateContext<'tcx>, expected_hir_id: HirId) -> Self {
-        Self {
-            cx,
-            expected_hir_id,
-            found_peek_call: false,
-        }
+        Self { cx, expected_hir_id }
     }
 }
 
@@ -139,7 +141,6 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                                 }
 
                                 if args.iter().any(|arg| arg_is_mut_peekable(self.cx, arg)) {
-                                    self.found_peek_call = true;
                                     return ControlFlow::Break(());
                                 }
 
@@ -161,7 +162,6 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                                 if matches!(method_name, "peek" | "peek_mut" | "next_if" | "next_if_eq")
                                     && arg_is_mut_peekable(self.cx, self_arg)
                                 {
-                                    self.found_peek_call = true;
                                     return ControlFlow::Break(());
                                 }
 
@@ -169,7 +169,6 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                                 if remaining_args.iter().any(|arg| arg_is_mut_peekable(self.cx, arg))
                                     && !is_trait_method(self.cx, expr, sym::Iterator)
                                 {
-                                    self.found_peek_call = true;
                                     return ControlFlow::Break(());
                                 }
 
@@ -184,14 +183,12 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                             },
                             ExprKind::AddrOf(_, Mutability::Not, _) => return ControlFlow::Continue(()),
                             _ => {
-                                self.found_peek_call = true;
                                 return ControlFlow::Break(());
                             },
                         }
                     },
                     Node::LetStmt(LetStmt { init: Some(init), .. }) => {
                         if arg_is_mut_peekable(self.cx, init) {
-                            self.found_peek_call = true;
                             return ControlFlow::Break(());
                         }
 
@@ -200,7 +197,6 @@ impl<'tcx> Visitor<'tcx> for PeekableVisitor<'_, 'tcx> {
                     Node::Stmt(stmt) => {
                         match stmt.kind {
                             StmtKind::Let(_) | StmtKind::Item(_) => {
-                                self.found_peek_call = true;
                                 return ControlFlow::Break(());
                             },
                             StmtKind::Expr(_) | StmtKind::Semi(_) => {},

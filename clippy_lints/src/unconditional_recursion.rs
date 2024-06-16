@@ -277,7 +277,6 @@ struct CheckCalls<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     map: Map<'tcx>,
     implemented_ty_id: DefId,
-    found_default_call: bool,
     method_span: Span,
 }
 
@@ -302,7 +301,6 @@ where
             && let Some(trait_def_id) = self.cx.tcx.trait_of_item(method_def_id)
             && self.cx.tcx.is_diagnostic_item(sym::Default, trait_def_id)
         {
-            self.found_default_call = true;
             span_error(self.cx, self.method_span, expr);
             return ControlFlow::Break(());
         }
@@ -384,7 +382,6 @@ impl UnconditionalRecursion {
                 cx,
                 map: cx.tcx.hir(),
                 implemented_ty_id,
-                found_default_call: false,
                 method_span,
             };
             walk_body(&mut c, body);
