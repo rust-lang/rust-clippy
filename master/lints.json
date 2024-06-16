@@ -4632,11 +4632,11 @@
     "id": "manual_pattern_char_comparison",
     "id_span": {
       "path": "src/string_patterns.rs",
-      "line": 35
+      "line": 36
     },
     "group": "style",
     "level": "warn",
-    "docs": "\n### What it does\nChecks for manual `char` comparison in string patterns\n\n### Why is this bad?\nThis can be written more concisely using a `char` or an array of `char`.\nThis is more readable and more optimized when comparing to only one `char`.\n\n### Example\n```rust\n\"Hello World!\".trim_end_matches(|c| c == '.' || c == ',' || c == '!' || c == '?');\n```\nUse instead:\n```rust\n\"Hello World!\".trim_end_matches(['.', ',', '!', '?']);\n```",
+    "docs": "\n### What it does\nChecks for manual `char` comparison in string patterns\n\n### Why is this bad?\nThis can be written more concisely using a `char` or an array of `char`.\nThis is more readable and more optimized when comparing to only one `char`.\n\n### Example\n```rust\n\"Hello World!\".trim_end_matches(|c| c == '.' || c == ',' || c == '!' || c == '?');\n```\nUse instead:\n```rust\n\"Hello World!\".trim_end_matches(['.', ',', '!', '?']);\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.80.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -8615,7 +8615,7 @@
     "id": "single_char_pattern",
     "id_span": {
       "path": "src/string_patterns.rs",
-      "line": 67
+      "line": 68
     },
     "group": "pedantic",
     "level": "allow",
