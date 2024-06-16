@@ -2331,6 +2331,21 @@
     }
   },
   {
+    "id": "field_scoped_visibility_modifiers",
+    "id_span": {
+      "path": "src/field_scoped_visibility_modifiers.rs",
+      "line": 45
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of scoped visibility modifiers, like `pub(crate)`, on fields. These\nmake a field visible within a scope between public and private.\n\n### Why restrict this?\nScoped visibility modifiers cause a field to be accessible within some scope between\npublic and private, potentially within an entire crate. This allows for fields to be\nnon-private while upholding internal invariants, but can be a code smell. Scoped visibility\nrequires checking a greater area, potentially an entire crate, to verify that an invariant\nis upheld, and global analysis requires a lot of effort.\n\n### Example\n```rust\npub mod public_module {\n    struct MyStruct {\n        pub(crate) first_field: bool,\n        pub(super) second_field: bool\n    }\n}\n```\nUse instead:\n```rust\npub mod public_module {\n    struct MyStruct {\n        first_field: bool,\n        second_field: bool\n    }\n    impl MyStruct {\n        pub(crate) fn get_first_field(&self) -> bool {\n            self.first_field\n        }\n        pub(super) fn get_second_field(&self) -> bool {\n            self.second_field\n        }\n    }\n}\n```",
+    "version": "1.78.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "filetype_is_file",
     "id_span": {
       "path": "src/methods/mod.rs",
