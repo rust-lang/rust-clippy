@@ -3,40 +3,19 @@
 
 fn main() {
     let x: Option<Vec<String>> = None;
-    match x {
-        //~^ ERROR: match can be simplified with `.unwrap_or_default()`
-        Some(v) => v,
-        None => Vec::default(),
-    };
+    x.unwrap_or_default();
 
     let x: Option<Vec<String>> = None;
-    match x {
-        //~^ ERROR: match can be simplified with `.unwrap_or_default()`
-        Some(v) => v,
-        _ => Vec::default(),
-    };
+    x.unwrap_or_default();
 
     let x: Option<String> = None;
-    match x {
-        //~^ ERROR: match can be simplified with `.unwrap_or_default()`
-        Some(v) => v,
-        None => String::new(),
-    };
+    x.unwrap_or_default();
 
     let x: Option<Vec<String>> = None;
-    match x {
-        //~^ ERROR: match can be simplified with `.unwrap_or_default()`
-        None => Vec::default(),
-        Some(v) => v,
-    };
+    x.unwrap_or_default();
 
     let x: Option<Vec<String>> = None;
-    if let Some(v) = x {
-        //~^ ERROR: if let can be simplified with `.unwrap_or_default()`
-        v
-    } else {
-        Vec::default()
-    };
+    x.unwrap_or_default();
 
     // Issue #12564
     // No error as &Vec<_> doesn't implement std::default::Default
@@ -53,10 +32,7 @@ fn main() {
 unsafe fn no_deref_ptr(a: Option<i32>, b: *const Option<i32>) -> i32 {
     match a {
         // `*b` being correct depends on `a == Some(_)`
-        Some(_) => match *b {
-            Some(v) => v,
-            _ => 0,
-        },
+        Some(_) => (*b).unwrap_or_default(),
         _ => 0,
     }
 }
@@ -99,6 +75,6 @@ fn issue_12569() {
 
 fn issue_12670() {
     let a: Option<i32> = None;
-    let _ = if let Some(x) = a { x } else { i32::default() };
-    let _ = if let Some(x) = Some(99) { x } else { i32::default() };
+    let _ = a.unwrap_or_default();
+    let _ = Some(99).unwrap_or_default();
 }
