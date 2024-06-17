@@ -1,9 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_opt;
-use rustc_ast::ast::{Item, ItemKind, Variant, VariantData};
 use rustc_errors::Applicability;
+use rustc_hir::{Item, ItemKind, Variant, VariantData};
 use rustc_lexer::TokenKind;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
@@ -72,8 +72,8 @@ declare_clippy_lint! {
 
 declare_lint_pass!(EmptyWithBrackets => [EMPTY_STRUCTS_WITH_BRACKETS, EMPTY_ENUM_VARIANTS_WITH_BRACKETS]);
 
-impl EarlyLintPass for EmptyWithBrackets {
-    fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
+impl LateLintPass<'_> for EmptyWithBrackets {
+    fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
         let span_after_ident = item.span.with_lo(item.ident.span.hi());
 
         if let ItemKind::Struct(var_data, _) = &item.kind
@@ -97,7 +97,12 @@ impl EarlyLintPass for EmptyWithBrackets {
         }
     }
 
-    fn check_variant(&mut self, cx: &EarlyContext<'_>, variant: &Variant) {
+    fn check_variant(&mut self, cx: &LateContext<'_>, variant: &Variant<'_>) {
+        // Don't lint pub enums
+        if cx.effective_visibilities.is_reachable(variant.def_id) {
+            return;
+        }
+
         let span_after_ident = variant.span.with_lo(variant.ident.span.hi());
 
         if has_brackets(&variant.data) && has_no_fields(cx, &variant.data, span_after_ident) {
@@ -123,11 +128,11 @@ fn has_no_ident_token(braces_span_str: &str) -> bool {
     !rustc_lexer::tokenize(braces_span_str).any(|t| t.kind == TokenKind::Ident)
 }
 
-fn has_brackets(var_data: &VariantData) -> bool {
-    !matches!(var_data, VariantData::Unit(_))
+fn has_brackets(var_data: &VariantData<'_>) -> bool {
+    !matches!(var_data, VariantData::Unit(..))
 }
 
-fn has_no_fields(cx: &EarlyContext<'_>, var_data: &VariantData, braces_span: Span) -> bool {
+fn has_no_fields(cx: &LateContext<'_>, var_data: &VariantData<'_>, braces_span: Span) -> bool {
     if !var_data.fields().is_empty() {
         return false;
     }
