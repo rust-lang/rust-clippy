@@ -363,6 +363,7 @@ impl RetOtherSelf<T> {
     }
 }
 
+#[allow(dependency_on_unit_never_type_fallback)]
 mod issue7344 {
     struct RetImplTraitSelf<T>(T);
 
