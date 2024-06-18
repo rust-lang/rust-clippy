@@ -87,7 +87,7 @@ LL | |         }
    | |_________^
 
 error: methods called `new` usually return `Self`
-  --> tests/ui/new_ret_no_self.rs:380:9
+  --> tests/ui/new_ret_no_self.rs:381:9
    |
 LL | /         fn new(t: T) -> impl Into<i32> {
 LL | |
@@ -96,7 +96,7 @@ LL | |         }
    | |_________^
 
 error: methods called `new` usually return `Self`
-  --> tests/ui/new_ret_no_self.rs:402:9
+  --> tests/ui/new_ret_no_self.rs:403:9
    |
 LL | /         fn new(t: T) -> impl Trait2<(), i32> {
 LL | |
