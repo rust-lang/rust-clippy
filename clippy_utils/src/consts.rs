@@ -3,6 +3,8 @@
 use crate::source::{get_source_text, walk_span_to_context};
 use crate::{clip, is_direct_expn_of, sext, unsext};
 
+use rustc_apfloat::ieee::{Half, Quad};
+use rustc_apfloat::Float;
 use rustc_ast::ast::{self, LitFloatType, LitKind};
 use rustc_data_structures::sync::Lrc;
 use rustc_hir::def::{DefKind, Res};
@@ -33,10 +35,14 @@ pub enum Constant<'tcx> {
     Char(char),
     /// An integer's bit representation.
     Int(u128),
+    /// An `f16`.
+    F16(f16),
     /// An `f32`.
     F32(f32),
     /// An `f64`.
     F64(f64),
+    /// An `f128`.
+    F128(f128),
     /// `true` or `false`.
     Bool(bool),
     /// An array of constants.
@@ -161,10 +167,16 @@ impl<'tcx> Hash for Constant<'tcx> {
             Self::Int(i) => {
                 i.hash(state);
             },
+            Self::F16(f) => {
+                f64::from(f).to_bits().hash(state);
+            },
             Self::F32(f) => {
                 f64::from(f).to_bits().hash(state);
             },
             Self::F64(f) => {
+                f.to_bits().hash(state);
+            },
+            Self::F128(f) => {
                 f.to_bits().hash(state);
             },
             Self::Bool(b) => {
@@ -268,6 +280,16 @@ impl<'tcx> Constant<'tcx> {
         }
         self
     }
+
+    fn parse_f16(s: &str) -> Self {
+        let f: Half = s.parse().unwrap();
+        Self::F16(f16::from_bits(f.to_bits().try_into().unwrap()))
+    }
+
+    fn parse_f128(s: &str) -> Self {
+        let f: Quad = s.parse().unwrap();
+        Self::F128(f128::from_bits(f.to_bits()))
+    }
 }
 
 /// Parses a `LitKind` to a `Constant`.
@@ -279,16 +301,17 @@ pub fn lit_to_mir_constant<'tcx>(lit: &LitKind, ty: Option<Ty<'tcx>>) -> Constan
         LitKind::Char(c) => Constant::Char(c),
         LitKind::Int(n, _) => Constant::Int(n.get()),
         LitKind::Float(ref is, LitFloatType::Suffixed(fty)) => match fty {
-            ast::FloatTy::F16 => unimplemented!("f16_f128"),
+            // FIXME(f16_f128): just use `parse()` directly when available for `f16`/`f128`
+            ast::FloatTy::F16 => Constant::parse_f16(is.as_str()),
             ast::FloatTy::F32 => Constant::F32(is.as_str().parse().unwrap()),
             ast::FloatTy::F64 => Constant::F64(is.as_str().parse().unwrap()),
-            ast::FloatTy::F128 => unimplemented!("f16_f128"),
+            ast::FloatTy::F128 => Constant::parse_f128(is.as_str()),
         },
         LitKind::Float(ref is, LitFloatType::Unsuffixed) => match ty.expect("type of float is known").kind() {
-            ty::Float(FloatTy::F16) => unimplemented!("f16_f128"),
+            ty::Float(FloatTy::F16) => Constant::parse_f16(is.as_str()),
             ty::Float(FloatTy::F32) => Constant::F32(is.as_str().parse().unwrap()),
             ty::Float(FloatTy::F64) => Constant::F64(is.as_str().parse().unwrap()),
-            ty::Float(FloatTy::F128) => unimplemented!("f16_f128"),
+            ty::Float(FloatTy::F128) => Constant::parse_f128(is.as_str()),
             _ => bug!(),
         },
         LitKind::Bool(b) => Constant::Bool(b),
@@ -835,10 +858,10 @@ pub fn mir_to_const<'tcx>(lcx: &LateContext<'tcx>, result: mir::Const<'tcx>) -> 
                 let range = alloc_range(offset + size * idx, size);
                 let val = alloc.read_scalar(&lcx.tcx, range, /* read_provenance */ false).ok()?;
                 res.push(match flt {
-                    FloatTy::F16 => unimplemented!("f16_f128"),
+                    FloatTy::F16 => Constant::F16(f16::from_bits(val.to_u16().ok()?)),
                     FloatTy::F32 => Constant::F32(f32::from_bits(val.to_u32().ok()?)),
                     FloatTy::F64 => Constant::F64(f64::from_bits(val.to_u64().ok()?)),
-                    FloatTy::F128 => unimplemented!("f16_f128"),
+                    FloatTy::F128 => Constant::F128(f128::from_bits(val.to_u128().ok()?)),
                 });
             }
             Some(Constant::Vec(res))
