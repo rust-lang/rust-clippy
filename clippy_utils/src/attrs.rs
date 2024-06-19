@@ -42,6 +42,12 @@ impl EmissionState {
     }
 }
 
+impl Default for EmissionState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 lazy_static! {
     pub static ref GLOBAL_EMISSION_STATE: EmissionState = EmissionState::new();
 }
@@ -127,7 +133,9 @@ pub fn get_attr<'a>(
                         false
                     },
                     |deprecation_status| {
-                        if !GLOBAL_EMISSION_STATE.has_emitted(&attr_name) {
+                        if GLOBAL_EMISSION_STATE.has_emitted(&attr_name) {
+                            false
+                        } else {
                             let mut diag = sess
                                 .dcx()
                                 .struct_span_err(attr_segments[1].ident.span, "usage of deprecated attribute");
@@ -158,8 +166,6 @@ pub fn get_attr<'a>(
                                     attr_segments[1].ident.name.as_str() == name
                                 },
                             }
-                        } else {
-                            false
                         }
                     },
                 )
