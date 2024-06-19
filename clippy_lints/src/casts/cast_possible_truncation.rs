@@ -6,9 +6,10 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{get_discriminant_value, is_isize_or_usize};
 use rustc_errors::{Applicability, Diag, SuggestionStyle};
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, FloatTy, Ty};
+use rustc_span::symbol::sym;
 use rustc_span::Span;
 use rustc_target::abi::IntegerType;
 
@@ -80,6 +81,20 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
             }
         },
         ExprKind::Path(ref _qpath) => get_constant_bits(cx, expr).unwrap_or(nbits),
+        // mem::size_of::<T>();
+        ExprKind::Call(func, []) => {
+            if let ExprKind::Path(ref func_qpath) = func.kind
+                && let Some(def_id) = cx.qpath_res(func_qpath, func.hir_id).opt_def_id()
+                && cx.tcx.is_diagnostic_item(sym::mem_size_of, def_id)
+                && let Some(ty) = cx.typeck_results().node_args(func.hir_id).types().next()
+                && let Ok(layout) = cx.tcx.layout_of(cx.param_env.and(ty))
+            {
+                let size: u64 = layout.layout.size().bytes();
+                (64 - size.leading_zeros()).into()
+            } else {
+                nbits
+            }
+        },
         _ => nbits,
     }
 }

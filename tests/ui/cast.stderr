@@ -731,17 +731,5 @@ help: ... or use `try_from` and handle the error accordingly
 LL |     u8::try_from(255 % 999999u64);
    |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-error: casting `usize` to `u32` may truncate the value on targets with 64-bit wide pointers
-  --> tests/ui/cast.rs:509:5
-   |
-LL |     core::mem::size_of::<String>() as u32;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
-help: ... or use `try_from` and handle the error accordingly
-   |
-LL |     u32::try_from(core::mem::size_of::<String>());
-   |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-error: aborting due to 93 previous errors
+error: aborting due to 92 previous errors
 
