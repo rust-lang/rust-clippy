@@ -9,6 +9,8 @@ clippy_config = { path = "../clippy_config" }
 arrayvec = { version = "0.7", default-features = false }
 itertools = "0.12"
 rustc-semver = "1.1"
+rustc-hash = "1.1"
+lazy_static = "1.4"
 
 [features]
 deny-warnings = ["clippy_config/deny-warnings"]

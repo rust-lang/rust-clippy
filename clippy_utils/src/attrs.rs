@@ -6,9 +6,47 @@ use rustc_middle::ty::{AdtDef, TyCtxt};
 use rustc_session::Session;
 use rustc_span::{sym, Span};
 use std::str::FromStr;
+use lazy_static::lazy_static;
+use rustc_hash::FxHashSet;
+use std::sync::RwLock;
+
+use std::io::{self, Write};
+
 
 use crate::source::snippet_opt;
 use crate::tokenize_with_text;
+
+
+pub struct EmissionState {
+    emitted: RwLock<FxHashSet<String>>,
+}
+
+impl EmissionState {
+    pub fn new() -> Self {
+        Self {
+            emitted: RwLock::new(FxHashSet::default()),
+        }
+    }
+
+    pub fn has_emitted(&self, attr_name: &str) -> bool {
+        let emitted = self.emitted.read().unwrap();
+        emitted.contains(attr_name)
+    }
+
+    pub fn set_emitted(&self, attr_name: &str) {
+        let mut emitted = self.emitted.write().unwrap();
+        emitted.insert(attr_name.to_string());
+    }
+
+    pub fn reset(&self) {
+        let mut emitted = self.emitted.write().unwrap();
+        emitted.clear();
+    }
+}
+
+lazy_static! {
+    pub static ref GLOBAL_EMISSION_STATE: EmissionState = EmissionState::new();
+}
 
 /// Deprecation status of attributes known by Clippy.
 pub enum DeprecationStatus {
@@ -58,6 +96,8 @@ impl LimitStack {
     }
 }
 
+
+
 pub fn get_attr<'a>(
     sess: &'a Session,
     attrs: &'a [ast::Attribute],
@@ -69,8 +109,15 @@ pub fn get_attr<'a>(
         } else {
             return false;
         };
+
+
         let attr_segments = &attr.path.segments;
-        if attr_segments.len() == 2 && attr_segments[0].ident.name == sym::clippy {
+        
+
+        if attr_segments.len() == 2 && attr_segments[0].ident.name == sym::clippy { 
+            let attr_name = attr_segments[1].ident.name.as_str().to_string();
+        
+
             BUILTIN_ATTRIBUTES
                 .iter()
                 .find_map(|&(builtin_name, ref deprecation_status)| {
@@ -82,36 +129,51 @@ pub fn get_attr<'a>(
                 })
                 .map_or_else(
                     || {
+                        
                         sess.dcx()
                             .span_err(attr_segments[1].ident.span, "usage of unknown attribute");
                         false
                     },
                     |deprecation_status| {
-                        let mut diag = sess
-                            .dcx()
-                            .struct_span_err(attr_segments[1].ident.span, "usage of deprecated attribute");
-                        match *deprecation_status {
-                            DeprecationStatus::Deprecated => {
-                                diag.emit();
-                                false
-                            },
-                            DeprecationStatus::Replaced(new_name) => {
-                                diag.span_suggestion(
-                                    attr_segments[1].ident.span,
-                                    "consider using",
-                                    new_name,
-                                    Applicability::MachineApplicable,
-                                );
-                                diag.emit();
-                                false
-                            },
-                            DeprecationStatus::None => {
-                                diag.cancel();
-                                attr_segments[1].ident.name.as_str() == name
-                            },
+
+                        if !GLOBAL_EMISSION_STATE.has_emitted(&attr_name) {
+                            let mut diag = sess
+                                .dcx()
+                                .struct_span_err(attr_segments[1].ident.span, "usage of deprecated attribute");
+                        
+                            match *deprecation_status {
+                                DeprecationStatus::Deprecated => {
+                                    GLOBAL_EMISSION_STATE.set_emitted(&attr_name);
+                                    diag.emit();
+                                    
+                                    io::stderr().flush().unwrap(); // Flush stderr
+                                    false
+                                },
+                                DeprecationStatus::Replaced(new_name) => {
+                                    GLOBAL_EMISSION_STATE.set_emitted(&attr_name);
+                                    diag.span_suggestion(
+                                        attr_segments[1].ident.span,
+                                        "consider using",
+                                        new_name,
+                                        Applicability::MachineApplicable,
+                                    );
+                                    diag.emit();
+                                    
+                                    io::stderr().flush().unwrap(); // Flush stderr
+                                    false
+                                },
+                                DeprecationStatus::None => {
+                                    diag.cancel();
+                                    attr_segments[1].ident.name.as_str() == name
+                                },
+                            }
+                        } else {
+                            false
                         }
                     },
-                )
+                    
+                ) 
+                   
         } else {
             false
         }
