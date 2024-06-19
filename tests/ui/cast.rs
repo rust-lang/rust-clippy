@@ -501,3 +501,7 @@ fn issue12721() {
     (255 % 999999u64) as u8;
     //~^ ERROR: casting `u64` to `u8` may truncate the value
 }
+
+pub fn issue_7486() -> u8 {
+    (2u16 % 256) as u8
+}
