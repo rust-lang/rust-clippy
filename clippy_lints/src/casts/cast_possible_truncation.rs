@@ -79,6 +79,7 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
                 nbits
             }
         },
+        ExprKind::Path(ref _qpath) => get_constant_bits(cx, expr).unwrap_or(nbits),
         _ => nbits,
     }
 }
@@ -104,7 +105,7 @@ pub(super) fn check(
             let (should_lint, suffix) = match (is_isize_or_usize(cast_from), is_isize_or_usize(cast_to)) {
                 (true, true) | (false, false) => (to_nbits < from_nbits, ""),
                 (true, false) => (
-                    to_nbits <= 32,
+                    to_nbits < from_nbits && to_nbits <= 32,
                     if to_nbits == 32 {
                         " on targets with 64-bit wide pointers"
                     } else {
