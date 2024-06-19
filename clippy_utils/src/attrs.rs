@@ -1,21 +1,19 @@
+use lazy_static::lazy_static;
 use rustc_ast::{ast, attr};
 use rustc_errors::Applicability;
+use rustc_hash::FxHashSet;
 use rustc_lexer::TokenKind;
 use rustc_lint::LateContext;
 use rustc_middle::ty::{AdtDef, TyCtxt};
 use rustc_session::Session;
 use rustc_span::{sym, Span};
 use std::str::FromStr;
-use lazy_static::lazy_static;
-use rustc_hash::FxHashSet;
 use std::sync::RwLock;
 
 use std::io::{self, Write};
 
-
 use crate::source::snippet_opt;
 use crate::tokenize_with_text;
-
 
 pub struct EmissionState {
     emitted: RwLock<FxHashSet<String>>,
@@ -96,8 +94,6 @@ impl LimitStack {
     }
 }
 
-
-
 pub fn get_attr<'a>(
     sess: &'a Session,
     attrs: &'a [ast::Attribute],
@@ -110,13 +106,10 @@ pub fn get_attr<'a>(
             return false;
         };
 
-
         let attr_segments = &attr.path.segments;
-        
 
-        if attr_segments.len() == 2 && attr_segments[0].ident.name == sym::clippy { 
+        if attr_segments.len() == 2 && attr_segments[0].ident.name == sym::clippy {
             let attr_name = attr_segments[1].ident.name.as_str().to_string();
-        
 
             BUILTIN_ATTRIBUTES
                 .iter()
@@ -129,23 +122,21 @@ pub fn get_attr<'a>(
                 })
                 .map_or_else(
                     || {
-                        
                         sess.dcx()
                             .span_err(attr_segments[1].ident.span, "usage of unknown attribute");
                         false
                     },
                     |deprecation_status| {
-
                         if !GLOBAL_EMISSION_STATE.has_emitted(&attr_name) {
                             let mut diag = sess
                                 .dcx()
                                 .struct_span_err(attr_segments[1].ident.span, "usage of deprecated attribute");
-                        
+
                             match *deprecation_status {
                                 DeprecationStatus::Deprecated => {
                                     GLOBAL_EMISSION_STATE.set_emitted(&attr_name);
                                     diag.emit();
-                                    
+
                                     io::stderr().flush().unwrap(); // Flush stderr
                                     false
                                 },
@@ -158,7 +149,7 @@ pub fn get_attr<'a>(
                                         Applicability::MachineApplicable,
                                     );
                                     diag.emit();
-                                    
+
                                     io::stderr().flush().unwrap(); // Flush stderr
                                     false
                                 },
@@ -171,9 +162,7 @@ pub fn get_attr<'a>(
                             false
                         }
                     },
-                    
-                ) 
-                   
+                )
         } else {
             false
         }
