@@ -509,4 +509,5 @@ pub fn issue_7486() -> u8 {
 pub fn issue_9613() {
     const CHUNK: usize = 64;
     CHUNK as u32;
+    core::mem::size_of::<String>() as u32;
 }
