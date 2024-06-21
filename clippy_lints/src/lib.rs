@@ -227,6 +227,7 @@ mod mismatching_type_param_order;
 mod missing_assert_message;
 mod missing_asserts_for_indexing;
 mod missing_const_for_fn;
+mod missing_const_for_tl_init;
 mod missing_doc;
 mod missing_enforced_import_rename;
 mod missing_fields_in_debug;
@@ -335,7 +336,6 @@ mod swap_ptr_to_ref;
 mod tabs_in_doc_comments;
 mod temporary_assignment;
 mod tests_outside_test_module;
-mod thread_local_initializer_can_be_made_const;
 mod to_digit_is_some;
 mod to_string_trait_impl;
 mod trailing_empty_array;
@@ -1150,7 +1150,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         })
     });
     store.register_late_pass(move |_| {
-        Box::new(thread_local_initializer_can_be_made_const::ThreadLocalInitializerCanBeMadeConst::new(msrv()))
+        Box::new(missing_const_for_tl_init::ThreadLocalInitializerCanBeMadeConst::new(msrv()))
     });
     store.register_late_pass(move |_| Box::new(incompatible_msrv::IncompatibleMsrv::new(msrv())));
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));

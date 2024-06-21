@@ -5526,6 +5526,7 @@ Released 2018-09-13
 [`missing_assert_message`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_assert_message
 [`missing_asserts_for_indexing`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_asserts_for_indexing
 [`missing_const_for_fn`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_fn
+[`missing_const_for_tl_init`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_const_for_tl_init
 [`missing_docs_in_private_items`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_docs_in_private_items
 [`missing_enforced_import_renames`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_enforced_import_renames
 [`missing_errors_doc`]: https://rust-lang.github.io/rust-clippy/master/index.html#missing_errors_doc
