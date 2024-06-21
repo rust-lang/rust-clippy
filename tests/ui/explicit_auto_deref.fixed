@@ -345,3 +345,25 @@ fn main() {
         let _ = &mut ({ *x.u }).x;
     }
 }
+
+mod issue_12969 {
+    use std::ops::Deref;
+
+    struct Wrapper<T>(T);
+
+    impl<T> Deref for Wrapper<T> {
+        type Target = T;
+
+        fn deref(&self) -> &T {
+            &self.0
+        }
+    }
+
+    fn foo(_bar: &str) {}
+
+    fn bar() {
+        let wrapped_bar = Wrapper("");
+
+        foo(wrapped_bar);
+    }
+}
