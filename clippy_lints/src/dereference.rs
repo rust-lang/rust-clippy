@@ -1046,6 +1046,16 @@ fn report<'tcx>(
 
             let ty = typeck.expr_ty(expr);
 
+            // `&&[T; N]` cannot coerce to `&[T]`
+            if let ty::Ref(_, dest_ty, _) = data.adjusted_ty.kind()
+                && dest_ty.is_slice()
+                && let ty::Ref(_, ty, _) = ty.kind()
+                && let ty::Ref(_, ty, _) = ty.kind()
+                && ty.is_array()
+            {
+                return;
+            }
+
             let (prefix, precedence) = match mutability {
                 Some(mutability) if !ty.is_ref() => {
                     let prefix = match mutability {
