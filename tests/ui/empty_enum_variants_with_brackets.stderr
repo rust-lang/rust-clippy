@@ -16,5 +16,13 @@ LL |     EmptyParentheses(),
    |
    = help: remove the brackets
 
-error: aborting due to 2 previous errors
+error: enum variant has empty brackets
+  --> tests/ui/empty_enum_variants_with_brackets.rs:25:12
+   |
+LL |     Unknown(),
+   |            ^^
+   |
+   = help: remove the brackets
+
+error: aborting due to 3 previous errors
 

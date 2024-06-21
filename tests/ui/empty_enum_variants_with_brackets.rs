@@ -17,6 +17,18 @@ enum TestEnum {
     AnotherEnum,                       // No error
 }
 
+enum EvenOdd {
+    // Used as a function
+    Even(),
+    Odd(),
+    // Not used as a function
+    Unknown(), //~ ERROR: enum variant has empty brackets
+}
+
+fn even_odd(x: i32) -> EvenOdd {
+    (x % 2 == 0).then(EvenOdd::Even).unwrap_or_else(EvenOdd::Odd)
+}
+
 enum TestEnumWithFeatures {
     NonEmptyBraces {
         #[cfg(feature = "thisisneverenabled")]

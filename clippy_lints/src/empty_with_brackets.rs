@@ -1,10 +1,15 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_opt;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
-use rustc_hir::{Item, ItemKind, Variant, VariantData};
+use rustc_hir::def::CtorOf;
+use rustc_hir::def::DefKind::Ctor;
+use rustc_hir::def::Res::Def;
+use rustc_hir::def_id::DefId;
+use rustc_hir::{Expr, ExprKind, Item, ItemKind, Path, QPath, Variant, VariantData};
 use rustc_lexer::TokenKind;
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -70,7 +75,13 @@ declare_clippy_lint! {
     "finds enum variants with empty brackets"
 }
 
-declare_lint_pass!(EmptyWithBrackets => [EMPTY_STRUCTS_WITH_BRACKETS, EMPTY_ENUM_VARIANTS_WITH_BRACKETS]);
+#[derive(Default)]
+pub struct EmptyWithBrackets {
+    empty_tuple_enum_variants: FxHashSet<(DefId, Span)>,
+    enum_variants_used_as_functions: FxHashSet<DefId>,
+}
+
+impl_lint_pass!(EmptyWithBrackets => [EMPTY_STRUCTS_WITH_BRACKETS, EMPTY_ENUM_VARIANTS_WITH_BRACKETS]);
 
 impl LateLintPass<'_> for EmptyWithBrackets {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
@@ -105,19 +116,53 @@ impl LateLintPass<'_> for EmptyWithBrackets {
 
         let span_after_ident = variant.span.with_lo(variant.ident.span.hi());
 
-        if has_brackets(&variant.data) && has_no_fields(cx, &variant.data, span_after_ident) {
+        if has_no_fields(cx, &variant.data, span_after_ident) {
+            match variant.data {
+                VariantData::Struct { .. } => {
+                    span_lint_and_then(
+                        cx,
+                        EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
+                        span_after_ident,
+                        "enum variant has empty brackets",
+                        |diagnostic| {
+                            diagnostic.span_suggestion_hidden(
+                                span_after_ident,
+                                "remove the brackets",
+                                "",
+                                Applicability::MaybeIncorrect,
+                            );
+                        },
+                    );
+                },
+                VariantData::Tuple(..) => {
+                    if let Some(x) = variant.data.ctor_def_id() {
+                        self.empty_tuple_enum_variants.insert((x.to_def_id(), span_after_ident));
+                    }
+                },
+                VariantData::Unit(..) => {},
+            }
+        }
+    }
+
+    fn check_expr(&mut self, _cx: &LateContext<'_>, expr: &Expr<'_>) {
+        if let Some(def_id) = check_expr_for_enum_as_function(expr) {
+            self.enum_variants_used_as_functions.insert(def_id);
+        }
+    }
+
+    fn check_crate_post(&mut self, cx: &LateContext<'_>) {
+        for &(_, span) in self
+            .empty_tuple_enum_variants
+            .iter()
+            .filter(|(variant, _)| !self.enum_variants_used_as_functions.contains(variant))
+        {
             span_lint_and_then(
                 cx,
                 EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
-                span_after_ident,
+                span,
                 "enum variant has empty brackets",
                 |diagnostic| {
-                    diagnostic.span_suggestion_hidden(
-                        span_after_ident,
-                        "remove the brackets",
-                        "",
-                        Applicability::MaybeIncorrect,
-                    );
+                    diagnostic.span_suggestion_hidden(span, "remove the brackets", "", Applicability::MaybeIncorrect);
                 },
             );
         }
@@ -145,6 +190,20 @@ fn has_no_fields(cx: &LateContext<'_>, var_data: &VariantData<'_>, braces_span: 
     };
 
     has_no_ident_token(braces_span_str.as_ref())
+}
+
+fn check_expr_for_enum_as_function(expr: &Expr<'_>) -> Option<DefId> {
+    let ExprKind::Path(QPath::Resolved(
+        _,
+        Path {
+            res: Def(Ctor(CtorOf::Variant, _), def_id),
+            ..
+        },
+    )) = expr.kind
+    else {
+        return None;
+    };
+    Some(*def_id)
 }
 
 #[cfg(test)]
