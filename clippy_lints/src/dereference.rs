@@ -1044,16 +1044,18 @@ fn report<'tcx>(
                 return;
             }
 
-            let (prefix, precedence) = if let Some(mutability) = mutability
-                && !typeck.expr_ty(expr).is_ref()
-            {
-                let prefix = match mutability {
-                    Mutability::Not => "&",
-                    Mutability::Mut => "&mut ",
-                };
-                (prefix, PREC_PREFIX)
-            } else {
-                ("", 0)
+            let ty = typeck.expr_ty(expr);
+
+            let (prefix, precedence) = match mutability {
+                Some(mutability) if !ty.is_ref() => {
+                    let prefix = match mutability {
+                        Mutability::Not => "&",
+                        Mutability::Mut => "&mut ",
+                    };
+                    (prefix, PREC_PREFIX)
+                },
+                None if !ty.is_ref() && data.adjusted_ty.is_ref() => ("&", 0),
+                _ => ("", 0),
             };
             span_lint_hir_and_then(
                 cx,

@@ -364,7 +364,7 @@ mod issue_12969 {
     fn bar() {
         let wrapped_bar = Wrapper("");
 
-        foo(wrapped_bar);
+        foo(&wrapped_bar);
     }
 }
 
