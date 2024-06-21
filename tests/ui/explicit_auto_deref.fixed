@@ -367,3 +367,13 @@ mod issue_12969 {
         foo(wrapped_bar);
     }
 }
+
+mod issue_9841 {
+    fn takes_array_ref<T, const N: usize>(array: &&[T; N]) {
+        takes_slice(array)
+    }
+
+    fn takes_slice<T>(slice: &[T]) {
+        todo!()
+    }
+}
