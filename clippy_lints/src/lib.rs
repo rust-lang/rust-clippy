@@ -1149,9 +1149,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             behavior: pub_underscore_fields_behavior,
         })
     });
-    store.register_late_pass(move |_| {
-        Box::new(missing_const_for_tl_init::ThreadLocalInitializerCanBeMadeConst::new(msrv()))
-    });
+    store.register_late_pass(move |_| Box::new(missing_const_for_tl_init::MissingConstForTlInit::new(msrv())));
     store.register_late_pass(move |_| Box::new(incompatible_msrv::IncompatibleMsrv::new(msrv())));
     store.register_late_pass(|_| Box::new(to_string_trait_impl::ToStringTraitImpl));
     store.register_early_pass(|| Box::new(multiple_bound_locations::MultipleBoundLocations));

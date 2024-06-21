@@ -44,18 +44,18 @@ declare_clippy_lint! {
     "suggest using `const` in `thread_local!` macro"
 }
 
-pub struct ThreadLocalInitializerCanBeMadeConst {
+pub struct MissingConstForTlInit {
     msrv: Msrv,
 }
 
-impl ThreadLocalInitializerCanBeMadeConst {
+impl MissingConstForTlInit {
     #[must_use]
     pub fn new(msrv: Msrv) -> Self {
         Self { msrv }
     }
 }
 
-impl_lint_pass!(ThreadLocalInitializerCanBeMadeConst => [MISSING_CONST_FOR_TL_INIT]);
+impl_lint_pass!(MissingConstForTlInit => [MISSING_CONST_FOR_TL_INIT]);
 
 #[inline]
 fn is_thread_local_initializer(
@@ -102,7 +102,7 @@ fn initializer_can_be_made_const(cx: &LateContext<'_>, defid: rustc_span::def_id
     false
 }
 
-impl<'tcx> LateLintPass<'tcx> for ThreadLocalInitializerCanBeMadeConst {
+impl<'tcx> LateLintPass<'tcx> for MissingConstForTlInit {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
