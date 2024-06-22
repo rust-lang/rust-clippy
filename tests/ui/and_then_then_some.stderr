@@ -1,0 +1,13 @@
+error: use of `and_then` + `then_some` is equivelent to `filter`
+  --> tests/ui/and_then_then_some.rs:6:14
+   |
+LL |       let _y = x.clone().and_then(|v| v.starts_with('f')
+   |  ______________^
+LL | |         .then_some(v));
+   | |______________________^ help: use `Option::filter` instead: `x.clone().filter(|v| v.starts_with('f'))`
+   |
+   = note: `-D clippy::and-then-then-some` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::and_then_then_some)]`
+
+error: aborting due to 1 previous error
+

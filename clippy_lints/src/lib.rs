@@ -73,6 +73,7 @@ mod renamed_lints;
 // begin lints modules, do not remove this comment, it’s used in `update_lints`
 mod absolute_paths;
 mod almost_complete_range;
+mod and_then_then_some;
 mod approx_const;
 mod arc_with_non_send_sync;
 mod as_conversions;
@@ -1178,6 +1179,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(set_contains_or_insert::HashsetInsertAfterContains));
     store.register_early_pass(|| Box::new(byte_char_slices::ByteCharSlice));
     store.register_early_pass(|| Box::new(cfg_not_test::CfgNotTest));
+    store.register_late_pass(|_| Box::new(and_then_then_some::AndThenThenSome));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
