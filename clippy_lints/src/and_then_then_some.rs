@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{fn_def_id, match_def_path};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::*;
+use rustc_hir::{Block, Closure, Expr, ExprKind, FnDecl, HirId, Node, Pat, Path, QPath, Ty};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -19,12 +19,12 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-	/// let x = Some("foo".to_string());
-	/// let _y = x.clone().and_then(|v| v.starts_with('f').then_some(v));
+    /// let x = Some("foo".to_string());
+    /// let _y = x.clone().and_then(|v| v.starts_with('f').then_some(v));
     /// ```
     /// Use instead:
     /// ```no_run
-	/// let x = Some("foo".to_string());
+    /// let x = Some("foo".to_string());
     /// let _y = x.clone().filter(|v| v.starts_with('f'));
     /// ```
     #[clippy::version = "1.81.0"]
@@ -40,9 +40,7 @@ declare_lint_pass!(AndThenThenSome => [AND_THEN_THEN_SOME]);
 impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         match expr.kind {
-            ExprKind::MethodCall(_, selfarg, [arg], _) |
-			ExprKind::Call(_, [selfarg, arg])
-			=> {
+            ExprKind::MethodCall(_, selfarg, [arg], _) | ExprKind::Call(_, [selfarg, arg]) => {
                 // TODO: check if type of reciever is diagnostic item Option?
                 if is_and_then(cx, expr) {
                     if let Some((closure_args, predicate)) = then_some_closure_arg(cx, arg) {
@@ -91,8 +89,7 @@ fn peel_closure_body<'tcx>(
             },
             _,
         ) => peel_closure_body(cx, wrapped_expr, closure_arg_id),
-        ExprKind::MethodCall(_, pred, [arg], _) |
-		ExprKind::Call(_, [pred, arg]) => {
+        ExprKind::MethodCall(_, pred, [arg], _) | ExprKind::Call(_, [pred, arg]) => {
             if is_then_some(cx, expr) && is_local_defined_at(cx, arg, closure_arg_id) {
                 Some(pred)
             } else {
