@@ -47,19 +47,19 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 				// TODO: check if type of reciever is diagnostic item Option.
 				//let tckr = cx.typeck_results();
 				//let def_id = tckr.type_dependent_def_id(expr.hir_id).unwrap();
-				//dbg!(method_name, selfarg, arg);
+				//(method_name, selfarg, arg);
 				if is_and_then(cx, expr)
 				{
-					if let Some((closure_args, predicate)) = dbg!(then_some_closure_arg(cx, arg)) {
-						//dbg!(predicate);
+					if let Some((closure_args, predicate)) = (then_some_closure_arg(cx, arg)) {
+						//(predicate);
 						show_sugg(cx, expr.span, selfarg, closure_args, predicate);
 					}
 				}
 			}
 			ExprKind::Call(_func, [ selfarg, arg ]) => {
-				if dbg!(is_and_then(cx, expr)) {
-					if let Some((closure_args, predicate)) = dbg!(then_some_closure_arg(cx, arg)) {
-						//dbg!(predicate);
+				if (is_and_then(cx, expr)) {
+					if let Some((closure_args, predicate)) = (then_some_closure_arg(cx, arg)) {
+						//(predicate);
 						show_sugg(cx, expr.span, selfarg, closure_args, predicate);
 					}
 				}
@@ -74,16 +74,16 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>)
 							  -> Option<(Span, &'tcx Expr<'tcx>)>
 {
-	dbg!(expr);
+	(expr);
 	match expr.kind {
 		ExprKind::Closure(Closure{
 			fn_decl: FnDecl{ inputs: [ Ty{ hir_id: arg_id, ..} ], .. },
 			body,
 			..
 		}) => {
-			if let Node::Expr(expr) = dbg!(cx.tcx.hir_node(body.hir_id)) {
-				//dbg!(arg_id);
-				if let Some(body) = dbg!(peel_closure_body(cx, expr, *arg_id)) {
+			if let Node::Expr(expr) = (cx.tcx.hir_node(body.hir_id)) {
+				//(arg_id);
+				if let Some(body) = (peel_closure_body(cx, expr, *arg_id)) {
 					Some((cx.tcx.hir().span(*arg_id), body))
 				} else {
 					None
@@ -114,26 +114,20 @@ fn peel_closure_body<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, closu
 			}
 		}
 		ExprKind::Call(func, [ pred, arg ]) => {
-			//dbg!(func, fn_def_id(cx, expr));
-			//todo!();
-			if dbg!(is_then_some(cx, expr)) && dbg!(is_local_defined_at(cx, arg, closure_arg_id)) {
-				//todo!("it worked!!");
+			if (is_then_some(cx, expr)) && (is_local_defined_at(cx, arg, closure_arg_id)) {
 				Some(pred)
 				
 			} else {
-				//todo!("nope");
 				None
 			}
 		}
 		_ => {
-			eprintln!("cannot peel {expr:#?}");
 			None
 		}
 	}
 }
 
 fn is_local_defined_at<'tcx>(cx: &LateContext<'tcx>, local: &Expr<'_>, arg_hid: HirId) -> bool {
-	dbg!(local);
 	match local.kind {
 		ExprKind::Path(QPath::Resolved(_, Path{ res: Res::Local(local_hid), .. })) => {
 			// FIXME: this is the best way i could find to compare if
@@ -141,8 +135,8 @@ fn is_local_defined_at<'tcx>(cx: &LateContext<'tcx>, local: &Expr<'_>, arg_hid: 
 			//
 			// it breaks if the closure argument has an explicitly declared type,
 			// since the spans only align for TyKind::Infer
-			if let Node::Pat(Pat{ span: local_span, .. }) = dbg!(cx.tcx.hir_node(*local_hid)) &&
-				let Node::Ty(Ty{ span: arg_span, .. }) = dbg!(cx.tcx.hir_node(arg_hid)) &&
+			if let Node::Pat(Pat{ span: local_span, .. }) = (cx.tcx.hir_node(*local_hid)) &&
+				let Node::Ty(Ty{ span: arg_span, .. }) = (cx.tcx.hir_node(arg_hid)) &&
 				local_span == arg_span
 			{
 				true
@@ -170,19 +164,19 @@ fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args:
 
 fn is_then_some(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 	if let Some(def_id) = fn_def_id(cx, expr) {
-		dbg!(match_def_path(
-			cx, dbg!(def_id),
+		(match_def_path(
+			cx, (def_id),
 			&["core", "bool", "<impl bool>", "then_some"]))
 	} else {
-		dbg!(expr);
+		(expr);
 		false
 	}
 }
 
 fn is_and_then(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 	if let Some(def_id) = fn_def_id(cx, expr) {
-		dbg!(match_def_path(
-			cx, dbg!(def_id),
+		(match_def_path(
+			cx, (def_id),
 			&["core", "option", "Option", "and_then"]))
 	} else {
 		false
