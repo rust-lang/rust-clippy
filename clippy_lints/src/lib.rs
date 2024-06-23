@@ -202,6 +202,7 @@ mod manual_assert;
 mod manual_async_fn;
 mod manual_bits;
 mod manual_clamp;
+mod manual_div_ceil;
 mod manual_float_methods;
 mod manual_hash_one;
 mod manual_is_ascii_check;
@@ -1171,6 +1172,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(string_patterns::StringPatterns::new(msrv())));
     store.register_early_pass(|| Box::new(field_scoped_visibility_modifiers::FieldScopedVisibilityModifiers));
+    store.register_late_pass(|_| Box::new(manual_div_ceil::ManualDivCeil));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

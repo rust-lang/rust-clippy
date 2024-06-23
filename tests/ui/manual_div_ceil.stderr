@@ -1,0 +1,23 @@
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:9:13
+   |
+LL |     let _ = (x + (y - 1)) / y;
+   |             ^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(y)`
+   |
+   = note: `-D clippy::manual-div-ceil` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_div_ceil)]`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:10:13
+   |
+LL |     let _ = ((y - 1) + x) / y;
+   |             ^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(y)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:11:13
+   |
+LL |     let _ = (x + y - 1) / y;
+   |             ^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(y)`
+
+error: aborting due to 3 previous errors
+
