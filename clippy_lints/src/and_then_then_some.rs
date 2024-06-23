@@ -42,14 +42,13 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 	fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
 		match expr.kind {
 			ExprKind::MethodCall(method_name, selfarg, [ arg ], span) => {
-				dbg!(expr);
+				//(expr);
 				//let option_id = cx.tcx.get_diagnostic_item(sym::Option);
 				// TODO: check if type of reciever is diagnostic item Option.
-				let tckr = cx.typeck_results();
-				let def_id = tckr.type_dependent_def_id(expr.hir_id).unwrap();
+				//let tckr = cx.typeck_results();
+				//let def_id = tckr.type_dependent_def_id(expr.hir_id).unwrap();
 				//dbg!(method_name, selfarg, arg);
-				if dbg!(match_def_path(cx, dbg!(def_id),
-								  &["core", "option", "Option", "and_then"]))
+				if is_and_then(cx, expr)
 				{
 					if let Some((closure_args, predicate)) = dbg!(then_some_closure_arg(cx, arg)) {
 						//dbg!(predicate);
@@ -108,7 +107,7 @@ fn peel_closure_body<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, closu
 		ExprKind::Call(func, [ pred, arg ]) => {
 			//dbg!(func, fn_def_id(cx, expr));
 			//todo!();
-			if is_then_some(cx, func) && dbg!(is_local_defined_at(cx, arg, closure_arg_id)) {
+			if dbg!(is_then_some(cx, expr)) && dbg!(is_local_defined_at(cx, arg, closure_arg_id)) {
 				//todo!("it worked!!");
 				Some(pred)
 				
@@ -155,22 +154,21 @@ fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args:
 
 fn is_then_some(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 	if let Some(def_id) = fn_def_id(cx, expr) {
-		match_def_path(
+		dbg!(match_def_path(
 			cx, dbg!(def_id),
-			&["core", "bool", "<impl bool>", "then_some"])
+			&["core", "bool", "<impl bool>", "then_some"]))
 	} else {
-		//todo!("not type dependent");
+		dbg!(expr);
 		false
 	}
 }
 
 fn is_and_then(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 	if let Some(def_id) = fn_def_id(cx, expr) {
-		match_def_path(
+		dbg!(match_def_path(
 			cx, dbg!(def_id),
-			&["core", "option", "Option", "and_then"])
+			&["core", "option", "Option", "and_then"]))
 	} else {
-		//todo!("not type dependent");
 		false
 	}
 }
