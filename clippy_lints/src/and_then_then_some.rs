@@ -42,15 +42,16 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 	fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
 		match expr.kind {
 			ExprKind::MethodCall(method_name, selfarg, [ arg ], span) => {
+				dbg!(expr);
 				//let option_id = cx.tcx.get_diagnostic_item(sym::Option);
 				// TODO: check if type of reciever is diagnostic item Option.
 				let tckr = cx.typeck_results();
 				let def_id = tckr.type_dependent_def_id(expr.hir_id).unwrap();
 				//dbg!(method_name, selfarg, arg);
-				if match_def_path(cx, def_id,
-								  &["core", "option", "Option", "and_then"])
+				if dbg!(match_def_path(cx, dbg!(def_id),
+								  &["core", "option", "Option", "and_then"]))
 				{
-					if let Some((closure_args, predicate)) = then_some_closure_arg(cx, arg) {
+					if let Some((closure_args, predicate)) = dbg!(then_some_closure_arg(cx, arg)) {
 						//dbg!(predicate);
 						show_sugg(cx, expr.span, selfarg, closure_args, predicate);
 					}
@@ -104,7 +105,7 @@ fn peel_closure_body<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, closu
 				None
 			}
 		}
-		ExprKind::Call(func /*@ Expr{ kind: ExprKind::Path(QPath::Resolved(_, Path{ res: Res::Local(local_hid), ..})), ..},*/, [ pred, arg ]) => {
+		ExprKind::Call(func, [ pred, arg ]) => {
 			//dbg!(func, fn_def_id(cx, expr));
 			//todo!();
 			if is_then_some(cx, func) && dbg!(is_local_defined_at(cx, arg, closure_arg_id)) {
@@ -163,3 +164,13 @@ fn is_then_some(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 	}
 }
 
+fn is_and_then(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+	if let Some(def_id) = fn_def_id(cx, expr) {
+		match_def_path(
+			cx, dbg!(def_id),
+			&["core", "option", "Option", "and_then"])
+	} else {
+		//todo!("not type dependent");
+		false
+	}
+}
