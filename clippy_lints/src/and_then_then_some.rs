@@ -1,6 +1,3 @@
-// noise reduction, remove before committing!
-#![allow(unused_variables)]
-
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{fn_def_id, match_def_path};
@@ -22,16 +19,18 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// // example code where clippy issues a warning
+	/// let x = Some("foo".to_string());
+	/// let _y = x.clone().and_then(|v| v.starts_with('f').then_some(v));
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // example code which does not raise clippy warning
+	/// let x = Some("foo".to_string());
+    /// let _y = x.clone().filter(|v| v.starts_with('f'));
     /// ```
     #[clippy::version = "1.81.0"]
     pub AND_THEN_THEN_SOME,
     nursery,
-    "default lint description"
+    "detects usage of and_then and then_some that can be replaced by filter"
 }
 
 // note: `Option::filter` is older than `bool::then_some`,
@@ -41,28 +40,16 @@ declare_lint_pass!(AndThenThenSome => [AND_THEN_THEN_SOME]);
 impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         match expr.kind {
-            ExprKind::MethodCall(method_name, selfarg, [arg], _span) => {
-                //let option_id = cx.tcx.get_diagnostic_item(sym::Option);
-                // TODO: check if type of reciever is diagnostic item Option.
-                //let tckr = cx.typeck_results();
-                //let def_id = tckr.type_dependent_def_id(expr.hir_id).unwrap();
-                //(method_name, selfarg, arg);
+            ExprKind::MethodCall(_, selfarg, [arg], _) |
+			ExprKind::Call(_, [selfarg, arg])
+			=> {
+                // TODO: check if type of reciever is diagnostic item Option?
                 if is_and_then(cx, expr) {
                     if let Some((closure_args, predicate)) = then_some_closure_arg(cx, arg) {
-                        //(predicate);
                         show_sugg(cx, expr.span, selfarg, closure_args, predicate);
                     }
                 }
             },
-            ExprKind::Call(_func, [selfarg, arg]) => {
-                if is_and_then(cx, expr) {
-                    if let Some((closure_args, predicate)) = then_some_closure_arg(cx, arg) {
-                        //(predicate);
-                        show_sugg(cx, expr.span, selfarg, closure_args, predicate);
-                    }
-                }
-            },
-            // TODO: check for call as associated function
             _ => {},
         }
     }
@@ -80,7 +67,6 @@ fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Opt
             ..
         }) => {
             if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id) {
-                //(arg_id);
                 (peel_closure_body(cx, expr, *arg_id)).map(|body| (cx.tcx.hir().span(*arg_id), body))
             } else {
                 None
@@ -105,16 +91,9 @@ fn peel_closure_body<'tcx>(
             },
             _,
         ) => peel_closure_body(cx, wrapped_expr, closure_arg_id),
-        ExprKind::MethodCall(_path, selfarg, [arg], _span) => {
+        ExprKind::MethodCall(_, pred, [arg], _) |
+		ExprKind::Call(_, [pred, arg]) => {
             if is_then_some(cx, expr) && is_local_defined_at(cx, arg, closure_arg_id) {
-                // the argument to then_some is the same as that given to the closure
-                Some(selfarg)
-            } else {
-                None
-            }
-        },
-        ExprKind::Call(func, [pred, arg]) => {
-            if (is_then_some(cx, expr)) && (is_local_defined_at(cx, arg, closure_arg_id)) {
                 Some(pred)
             } else {
                 None
