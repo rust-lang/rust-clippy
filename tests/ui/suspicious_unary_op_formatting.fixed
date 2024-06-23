@@ -10,11 +10,11 @@ fn main() {
         let x = 42;
         let y = &42;
 
-        let _ = x -- 30; //~ suspicious_unary_op_formatting
-        let _ = x ** y; //~ suspicious_unary_op_formatting
-        let _ = x +! 30; //~ suspicious_unary_op_formatting
-        let _ = x <<* y; //~ suspicious_unary_op_formatting
-        let _ = x ==! 30; //~ suspicious_unary_op_formatting
+        let _ = x - -30; //~ suspicious_unary_op_formatting
+        let _ = x * *y; //~ suspicious_unary_op_formatting
+        let _ = x + !30; //~ suspicious_unary_op_formatting
+        let _ = x << *y; //~ suspicious_unary_op_formatting
+        let _ = x == !30; //~ suspicious_unary_op_formatting
 
         let _ = x+-30;
         let _ = x +-30;
@@ -34,12 +34,12 @@ fn main() {
 
     inline! {
         let x = 42;
-        let _ = x &- 30; //~ suspicious_unary_op_formatting
-        let _ = x |- $30; //~ suspicious_unary_op_formatting
+        let _ = x & -30; //~ suspicious_unary_op_formatting
+        let _ = x | -$30; //~ suspicious_unary_op_formatting
     }
 
     inline! {
-        let _ = $x >- $30; //~ suspicious_unary_op_formatting
+        let _ = $x > -$30; //~ suspicious_unary_op_formatting
     }
 
     {

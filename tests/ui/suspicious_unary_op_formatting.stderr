@@ -1,36 +1,78 @@
-error: by not having a space between `>` and `-` it looks like `>-` is a single operator
-  --> tests/ui/suspicious_unary_op_formatting.rs:9:9
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:13:19
    |
-LL |     if a >- 30 {}
-   |         ^^^^
+LL |         let _ = x -- 30;
+   |                   ^^-
+   |                   |
+   |                   help: add a space between: `- -`
    |
-   = help: put a space between `>` and `-` and remove the space after `-`
-   = note: `-D clippy::suspicious-unary-op-formatting` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::suspicious_unary_op_formatting)]`
+note: the lint level is defined here
+  --> tests/ui/suspicious_unary_op_formatting.rs:2:9
+   |
+LL | #![deny(clippy::suspicious_unary_op_formatting)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: by not having a space between `>=` and `-` it looks like `>=-` is a single operator
-  --> tests/ui/suspicious_unary_op_formatting.rs:11:9
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:14:19
    |
-LL |     if a >=- 30 {}
-   |         ^^^^^
-   |
-   = help: put a space between `>=` and `-` and remove the space after `-`
+LL |         let _ = x ** y;
+   |                   ^^-
+   |                   |
+   |                   help: add a space between: `* *`
 
-error: by not having a space between `&&` and `!` it looks like `&&!` is a single operator
-  --> tests/ui/suspicious_unary_op_formatting.rs:17:9
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:15:19
    |
-LL |     if b &&! c {}
-   |         ^^^^^
-   |
-   = help: put a space between `&&` and `!` and remove the space after `!`
+LL |         let _ = x +! 30;
+   |                   ^^-
+   |                   |
+   |                   help: add a space between: `+ !`
 
-error: by not having a space between `>` and `-` it looks like `>-` is a single operator
-  --> tests/ui/suspicious_unary_op_formatting.rs:20:9
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:16:19
    |
-LL |     if a >-   30 {}
-   |         ^^^^^^
-   |
-   = help: put a space between `>` and `-` and remove the space after `-`
+LL |         let _ = x <<* y;
+   |                   ^^^-
+   |                   |
+   |                   help: add a space between: `<< *`
 
-error: aborting due to 4 previous errors
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:17:19
+   |
+LL |         let _ = x ==! 30;
+   |                   ^^^-
+   |                   |
+   |                   help: add a space between: `== !`
+
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:37:19
+   |
+LL |         let _ = x &- 30;
+   |                   ^^-
+   |                   |
+   |                   help: add a space between: `& -`
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:38:19
+   |
+LL |         let _ = x |- $30;
+   |                   ^^-
+   |                   |
+   |                   help: add a space between: `| -`
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this formatting makes the binary and unary operators look like a single operator
+  --> tests/ui/suspicious_unary_op_formatting.rs:42:20
+   |
+LL |         let _ = $x >- $30;
+   |                    ^^-
+   |                    |
+   |                    help: add a space between: `> -`
+   |
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 8 previous errors
 
