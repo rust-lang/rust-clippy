@@ -510,6 +510,40 @@ impl<'sm> SourceFileRange<'sm> {
         self
     }
 
+    /// Sets the current range to the range between the current range and the given range.
+    /// Does nothing and returns `None` if the ranges overlap.
+    ///
+    /// With debug assertions enabled this will assert that the given range:
+    /// * Is within the same file as the current range.
+    /// * Lies on a UTF-8 boundary.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
+    pub fn set_range_between_other(&mut self, other: impl SpanLike) -> Option<&mut Self> {
+        fn f<'a, 'sm>(
+            self_: &'a mut SourceFileRange<'sm>,
+            other: Range<BytePos>,
+        ) -> Option<&'a mut SourceFileRange<'sm>> {
+            let file = self_.file();
+            let other = other.into_range();
+            let other: Range<RelativeBytePos> = RelativeBytePos(other.start.0.wrapping_sub(file.start_pos.0))
+                ..RelativeBytePos(other.end.0.wrapping_sub(file.start_pos.0));
+            dbg_check_range(self_, other.clone());
+            if self_.range.end.0.cast_signed() < other.start.0.cast_signed() {
+                self_.range.start = self_.range.end;
+                self_.range.end = other.start;
+                Some(self_)
+            } else if self_.range.start.0.cast_signed() > other.end.0.cast_signed() {
+                self_.range.end = self_.range.start;
+                self_.range.start = other.end;
+                Some(self_)
+            } else {
+                None
+            }
+        }
+        f(self, other.into_range())
+    }
+
     /// Sets the start of this range to the given source map position if it's at or before
     /// the current range.
     ///
