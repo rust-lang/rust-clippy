@@ -1,11 +1,14 @@
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note};
-use clippy_utils::is_span_if;
-use clippy_utils::source::snippet_opt;
-use rustc_ast::ast::{BinOpKind, Block, Expr, ExprKind, StmtKind};
+use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_then};
+use clippy_utils::source::{walk_span_to_context, IntoSpan, SpanRangeExt};
+use clippy_utils::{is_span_if, tokenize_with_text};
+use core::mem;
+use rustc_ast::{BinOp, BinOpKind, Block, Expr, ExprKind, MethodCall, StmtKind};
+use rustc_errors::Applicability;
+use rustc_lexer::TokenKind;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_session::declare_lint_pass;
-use rustc_span::Span;
+use rustc_span::{BytePos, Pos, Span, SyntaxContext};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -122,123 +125,187 @@ declare_lint_pass!(Formatting => [
 
 impl EarlyLintPass for Formatting {
     fn check_block(&mut self, cx: &EarlyContext<'_>, block: &Block) {
-        for w in block.stmts.windows(2) {
-            if let (StmtKind::Expr(first), StmtKind::Expr(second) | StmtKind::Semi(second)) = (&w[0].kind, &w[1].kind) {
-                check_missing_else(cx, first, second);
+        let ctxt = block.span.ctxt();
+        for [s1, s2] in block.stmts.array_windows::<2>() {
+            if let (StmtKind::Expr(first), StmtKind::Expr(second) | StmtKind::Semi(second)) = (&s1.kind, &s2.kind) {
+                check_missing_else(cx, ctxt, first, second);
             }
         }
     }
 
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
-        check_assign(cx, expr);
-        check_unop(cx, expr);
-        check_else(cx, expr);
-        check_array(cx, expr);
-    }
-}
-
-/// Implementation of the `SUSPICIOUS_ASSIGNMENT_FORMATTING` lint.
-fn check_assign(cx: &EarlyContext<'_>, expr: &Expr) {
-    if let ExprKind::Assign(ref lhs, ref rhs, _) = expr.kind {
-        if !lhs.span.from_expansion() && !rhs.span.from_expansion() {
-            let eq_span = lhs.span.between(rhs.span);
-            if let ExprKind::Unary(op, ref sub_rhs) = rhs.kind {
-                if let Some(eq_snippet) = snippet_opt(cx, eq_span) {
-                    let op = op.as_str();
-                    let eqop_span = lhs.span.between(sub_rhs.span);
-                    if eq_snippet.ends_with('=') {
-                        span_lint_and_note(
-                            cx,
-                            SUSPICIOUS_ASSIGNMENT_FORMATTING,
-                            eqop_span,
-                            format!(
-                                "this looks like you are trying to use `.. {op}= ..`, but you \
-                                 really are doing `.. = ({op} ..)`"
-                            ),
-                            None,
-                            format!("to remove this lint, use either `{op}=` or `= {op}`"),
-                        );
-                    }
+        match expr.kind {
+            ExprKind::If(_, ref then, Some(ref else_)) => check_else(cx, expr, then, else_),
+            ExprKind::Assign(_, ref rhs, sp) => check_assign(cx, expr, rhs, sp),
+            ExprKind::Binary(ref bin_op, _, ref rhs) => check_un_op(cx, expr, bin_op, rhs),
+            ExprKind::Array(ref args)
+            | ExprKind::Tup(ref args)
+            | ExprKind::Call(_, ref args)
+            | ExprKind::MethodCall(box MethodCall { ref args, .. }) => {
+                let ctxt = expr.span.ctxt();
+                for e in args {
+                    check_missing_comma(cx, ctxt, e);
                 }
-            }
+            },
+            ExprKind::Paren(ref child) => check_missing_comma(cx, expr.span.ctxt(), child),
+            _ => {},
         }
     }
 }
 
-/// Implementation of the `SUSPICIOUS_UNARY_OP_FORMATTING` lint.
-fn check_unop(cx: &EarlyContext<'_>, expr: &Expr) {
-    if let ExprKind::Binary(ref binop, ref lhs, ref rhs) = expr.kind
-        && !lhs.span.from_expansion() && !rhs.span.from_expansion()
-        // span between BinOp LHS and RHS
-        && let binop_span = lhs.span.between(rhs.span)
-        // if RHS is an UnOp
-        && let ExprKind::Unary(op, ref un_rhs) = rhs.kind
-        // from UnOp operator to UnOp operand
-        && let unop_operand_span = rhs.span.until(un_rhs.span)
-        && let Some(binop_snippet) = snippet_opt(cx, binop_span)
-        && let Some(unop_operand_snippet) = snippet_opt(cx, unop_operand_span)
-        && let binop_str = binop.node.as_str()
-        // no space after BinOp operator and space after UnOp operator
-        && binop_snippet.ends_with(binop_str) && unop_operand_snippet.ends_with(' ')
+/// Implementation of the `SUSPICIOUS_ASSIGNMENT_FORMATTING` lint.
+fn check_assign(cx: &EarlyContext<'_>, assign: &Expr, rhs: &Expr, op_sp: Span) {
+    if let ExprKind::Unary(op, _) = rhs.kind
+        && let assign_data = assign.span.data()
+        && rhs.span.ctxt() == assign_data.ctxt
+        && let op_data = op_sp.data()
+        && op_data.ctxt == assign_data.ctxt
+        && (op_data.lo..assign_data.hi).check_source_text(cx, |src| {
+            if let Some(src) = src.strip_prefix('=')
+                && let Some(src) = src.strip_prefix(op.as_str())
+            {
+                src.starts_with(|c: char| c.is_whitespace())
+            } else {
+                false
+            }
+        })
+        && !in_external_macro(cx.sess(), assign.span)
     {
-        let unop_str = op.as_str();
-        let eqop_span = lhs.span.between(un_rhs.span);
-        span_lint_and_help(
+        let lint_range = op_data.lo..op_data.lo + BytePos(2);
+        let lint_sp = lint_range.clone().with_ctxt(assign_data.ctxt);
+        span_lint_and_then(
+            cx,
+            SUSPICIOUS_ASSIGNMENT_FORMATTING,
+            lint_sp,
+            "this looks similar to a compound assignment operator",
+            |diag| {
+                let op = op.as_str();
+                diag.span_suggestion(
+                    lint_sp,
+                    "reverse the characters",
+                    format!("{op}="),
+                    Applicability::MaybeIncorrect,
+                )
+                .span_suggestion(
+                    lint_range.with_trailing_whitespace(cx).with_ctxt(assign_data.ctxt),
+                    "separate the characters",
+                    format!("= {op}"),
+                    Applicability::MaybeIncorrect,
+                );
+            },
+        );
+    }
+}
+
+/// Implementation of the `SUSPICIOUS_UNARY_OP_FORMATTING` lint.
+fn check_un_op(cx: &EarlyContext<'_>, bin_expr: &Expr, bin_op: &BinOp, rhs: &Expr) {
+    if let ExprKind::Unary(un_op, _) = rhs.kind
+        && let ctxt = bin_expr.span.ctxt()
+        && let bin_op_data = bin_op.span.data()
+        && bin_op_data.ctxt == ctxt
+        && let rhs_data = rhs.span.data()
+        && rhs_data.ctxt == ctxt
+        && let bin_op_str = bin_op.node.as_str()
+        && let un_op_str = un_op.as_str()
+        && (bin_op_data.lo..rhs_data.hi).check_source_text(cx, |src| {
+            if let Some(src) = src.strip_prefix(bin_op_str)
+                && let Some(src) = src.strip_prefix(un_op_str)
+            {
+                src.starts_with(|c: char| c.is_whitespace())
+            } else {
+                false
+            }
+        })
+        && !in_external_macro(cx.sess(), bin_expr.span)
+    {
+        let range = bin_op_data.lo
+            ..bin_op_data.lo + BytePos::from_usize(bin_op_str.len()) + BytePos::from_usize(un_op_str.len());
+        span_lint_and_then(
             cx,
             SUSPICIOUS_UNARY_OP_FORMATTING,
-            eqop_span,
-            format!(
-                "by not having a space between `{binop_str}` and `{unop_str}` it looks like \
-                 `{binop_str}{unop_str}` is a single operator"
-            ),
-            None,
-            format!("put a space between `{binop_str}` and `{unop_str}` and remove the space after `{unop_str}`"),
+            range.clone().with_ctxt(ctxt),
+            "this formatting makes the binary and unary operators look like a single operator",
+            |diag| {
+                diag.span_suggestion(
+                    range.with_trailing_whitespace(cx).with_ctxt(ctxt),
+                    "add a space between",
+                    format!("{bin_op_str} {un_op_str}"),
+                    if ctxt.is_root() {
+                        Applicability::MachineApplicable
+                    } else {
+                        Applicability::MaybeIncorrect
+                    },
+                );
+            },
         );
     }
 }
 
 /// Implementation of the `SUSPICIOUS_ELSE_FORMATTING` lint for weird `else`.
-fn check_else(cx: &EarlyContext<'_>, expr: &Expr) {
-    if let ExprKind::If(_, then, Some(else_)) = &expr.kind
-        && (is_block(else_) || is_if(else_))
-        && !then.span.from_expansion() && !else_.span.from_expansion()
+fn check_else(cx: &EarlyContext<'_>, expr: &Expr, then: &Block, else_: &Expr) {
+    let ctxt = expr.span.ctxt();
+    if then.span.ctxt() == ctxt
+        && else_.span.ctxt() == ctxt
+        && let is_block = matches!(else_.kind, ExprKind::Block(..))
+        && let else_range = (then.span.hi()..else_.span.lo())
+        && else_range.clone().with_source_text(cx, |src| {
+            // Check for any of the following:
+            // * A blank line between the end of the previous block and the `else`.
+            // * A blank line between the `else` and the start of it's block.
+            // * A block comment preceding the `else`, `if` or block if it's the first thing on the line.
+            // * The `else` and `if` are on separate lines unless separated by multiple lines with every
+            //   intervening line containing only block comments. This is due to rustfmt splitting
+            //   `else/*comment*/if` into three lines.
+            // * The `else` and it's block are on separate lines unless every intervening line containing only
+            //   block comments. There must be one such line unless the `else` and the preceding block are on
+            //   separate lines.
+            let mut tokens = tokenize_with_text(src);
+            let mut lf_count = 0;
+            let mut skip_lf = false;
+            loop {
+                match tokens.next() {
+                    Some((TokenKind::Whitespace, text)) => match text.bytes().filter(|&c| c == b'\n').count() {
+                        0 => {},
+                        x => lf_count += x - usize::from(mem::replace(&mut skip_lf, false)),
+                    },
+                    Some((TokenKind::LineComment { .. }, _)) => skip_lf = lf_count != 0,
+                    Some((TokenKind::BlockComment { .. }, text)) => {
+                        if lf_count == 0 {
+                            lf_count = usize::from(text.contains('\n'));
+                        }
+                        skip_lf = lf_count != 0;
+                    },
+                    Some((TokenKind::Ident, "else")) if skip_lf || lf_count > 1 => return true,
+                    Some((TokenKind::Ident, "else")) => break,
+                    _ => return false,
+                }
+            }
+            let mut allow_lf = is_block && lf_count != 0;
+            skip_lf = false;
+            lf_count = 0;
+            for (kind, text) in tokens {
+                match kind {
+                    TokenKind::Whitespace => match text.bytes().filter(|&c| c == b'\n').count() {
+                        0 => {},
+                        x => lf_count += x - usize::from(mem::replace(&mut skip_lf, false)),
+                    },
+                    TokenKind::BlockComment { .. } => {
+                        skip_lf = lf_count != 0;
+                        allow_lf |= skip_lf;
+                    },
+                    TokenKind::LineComment { .. } => return true,
+                    _ => return false,
+                }
+            }
+            skip_lf || lf_count > usize::from(allow_lf)
+        }) == Some(true)
         && !in_external_macro(cx.sess(), expr.span)
-
-        // workaround for rust-lang/rust#43081
-        && expr.span.lo().0 != 0 && expr.span.hi().0 != 0
-
-        // this will be a span from the closing ‘}’ of the “then” block (excluding) to
-        // the “if” of the “else if” block (excluding)
-        && let else_span = then.span.between(else_.span)
-
-        // the snippet should look like " else \n    " with maybe comments anywhere
-        // it’s bad when there is a ‘\n’ after the “else”
-        && let Some(else_snippet) = snippet_opt(cx, else_span)
-        && let Some((pre_else, post_else)) = else_snippet.split_once("else")
-        && !else_snippet.contains('/')
-        && let Some((_, post_else_post_eol)) = post_else.split_once('\n')
     {
-        // Allow allman style braces `} \n else \n {`
-        if is_block(else_)
-            && let Some((_, pre_else_post_eol)) = pre_else.split_once('\n')
-            // Exactly one eol before and after the else
-            && !pre_else_post_eol.contains('\n')
-            && !post_else_post_eol.contains('\n')
-        {
-            return;
-        }
-
-        // Don't warn if the only thing inside post_else_post_eol is a comment block.
-        let trimmed_post_else_post_eol = post_else_post_eol.trim();
-        if trimmed_post_else_post_eol.starts_with("/*") && trimmed_post_else_post_eol.ends_with("*/") {
-            return;
-        }
-
-        let else_desc = if is_if(else_) { "if" } else { "{..}" };
+        let else_desc = if is_block { "{..}" } else { "if" };
         span_lint_and_note(
             cx,
             SUSPICIOUS_ELSE_FORMATTING,
-            else_span,
+            else_range.with_ctxt(ctxt),
             format!("this is an `else {else_desc}` but the formatting might hide it"),
             None,
             format!(
@@ -249,78 +316,83 @@ fn check_else(cx: &EarlyContext<'_>, expr: &Expr) {
     }
 }
 
-#[must_use]
-fn has_unary_equivalent(bin_op: BinOpKind) -> bool {
-    // &, *, -
-    bin_op == BinOpKind::And || bin_op == BinOpKind::Mul || bin_op == BinOpKind::Sub
-}
-
-fn indentation(cx: &EarlyContext<'_>, span: Span) -> usize {
-    cx.sess().source_map().lookup_char_pos(span.lo()).col.0
-}
-
-/// Implementation of the `POSSIBLE_MISSING_COMMA` lint for array
-fn check_array(cx: &EarlyContext<'_>, expr: &Expr) {
-    if let ExprKind::Array(ref array) = expr.kind {
-        for element in array {
-            if let ExprKind::Binary(ref op, ref lhs, _) = element.kind
-                && has_unary_equivalent(op.node)
-                && lhs.span.eq_ctxt(op.span)
-                && let space_span = lhs.span.between(op.span)
-                && let Some(space_snippet) = snippet_opt(cx, space_span)
-                && let lint_span = lhs.span.with_lo(lhs.span.hi())
-                && space_snippet.contains('\n')
-                && indentation(cx, op.span) <= indentation(cx, lhs.span)
-            {
-                span_lint_and_note(
-                    cx,
-                    POSSIBLE_MISSING_COMMA,
-                    lint_span,
-                    "possibly missing a comma here",
-                    None,
-                    "to remove this lint, add a comma or write the expr in a single line",
-                );
-            }
+fn check_missing_comma(cx: &EarlyContext<'_>, ctxt: SyntaxContext, e: &Expr) {
+    if let ExprKind::Binary(op, lhs, rhs) = &e.kind
+        && e.span.ctxt() == ctxt
+    {
+        if matches!(
+            op.node,
+            BinOpKind::And | BinOpKind::Mul | BinOpKind::Sub | BinOpKind::BitAnd
+        ) && let op_data = op.span.data()
+            && op_data.ctxt == ctxt
+            && (op_data.lo..e.span.hi()).with_source_text_and_range(cx, |src, range| {
+                if let Some(src) = src.get(..range.end)
+                    && let Some((pre, src)) = src.split_at_checked(range.start)
+                    && let Some(stripped) = src.strip_prefix(op.node.as_str())
+                {
+                    stripped.starts_with(|c: char| !c.is_whitespace() && c != '/')
+                        && pre.ends_with(|c: char| c.is_whitespace())
+                } else {
+                    false
+                }
+            }) == Some(true)
+            && let Some(lhs_sp) = walk_span_to_context(lhs.span, ctxt)
+            && !in_external_macro(cx.sess(), e.span)
+        {
+            span_lint_and_then(
+                cx,
+                POSSIBLE_MISSING_COMMA,
+                op.span,
+                "the is formatted like a unary operator, but it's parsed as a binary operator",
+                |diag| {
+                    diag.span_suggestion(
+                        lhs_sp.shrink_to_hi(),
+                        "add a comma before",
+                        ",",
+                        Applicability::MaybeIncorrect,
+                    )
+                    .span_suggestion(
+                        Span::new(op_data.hi, op_data.hi, ctxt, None),
+                        "add a space after",
+                        " ",
+                        Applicability::MaybeIncorrect,
+                    );
+                },
+            );
         }
+        check_missing_comma(cx, ctxt, lhs);
+        check_missing_comma(cx, ctxt, rhs);
     }
 }
 
-fn check_missing_else(cx: &EarlyContext<'_>, first: &Expr, second: &Expr) {
-    if !first.span.from_expansion() && !second.span.from_expansion()
-        && matches!(first.kind, ExprKind::If(..))
-        && (is_block(second) || is_if(second))
-
-        // Proc-macros can give weird spans. Make sure this is actually an `if`.
+fn check_missing_else(cx: &EarlyContext<'_>, ctxt: SyntaxContext, first: &Expr, second: &Expr) {
+    if matches!(first.kind, ExprKind::If(..))
+        && matches!(second.kind, ExprKind::If(..) | ExprKind::Block(..))
+        && first.span.ctxt() == ctxt
+        && second.span.ctxt() == ctxt
         && is_span_if(cx, first.span)
-
-        // If there is a line break between the two expressions, don't lint.
-        // If there is a non-whitespace character, this span came from a proc-macro.
-        && let else_span = first.span.between(second.span)
-        && let Some(else_snippet) = snippet_opt(cx, else_span)
-        && !else_snippet.chars().any(|c| c == '\n' || !c.is_whitespace())
+        && let else_range = (first.span.hi()..second.span.lo())
+        && else_range.clone().with_source_text(cx, |src| {
+            // Only lint when the end of the first expression and the start of the
+            // second are on the same line without anything in between.
+            src.chars().all(|c| c != '\n' && c.is_whitespace())
+        }) == Some(true)
     {
-        let (looks_like, next_thing) = if is_if(second) {
-            ("an `else if`", "the second `if`")
-        } else {
-            ("an `else {..}`", "the next block")
-        };
-
-        span_lint_and_note(
+        let sp = else_range.with_ctxt(first.span.ctxt());
+        span_lint_and_then(
             cx,
             SUSPICIOUS_ELSE_FORMATTING,
-            else_span,
-            format!("this looks like {looks_like} but the `else` is missing"),
-            None,
-            format!("to remove this lint, add the missing `else` or add a new line before {next_thing}",),
+            sp,
+            "this is formatted as though there should be an `else`",
+            |diag| {
+                diag.span_suggestion(sp, "add an `else`", " else ", Applicability::MaybeIncorrect)
+                    .span_suggestion(
+                        sp,
+                        "add a line break",
+                        first.span.with_line_indent(cx, |indent| format!("\n{indent}")),
+                        Applicability::MaybeIncorrect,
+                    );
+            },
         );
     }
-}
-
-fn is_block(expr: &Expr) -> bool {
-    matches!(expr.kind, ExprKind::Block(..))
-}
-
-/// Check if the expression is an `if` or `if let`
-fn is_if(expr: &Expr) -> bool {
-    matches!(expr.kind, ExprKind::If(..))
 }
