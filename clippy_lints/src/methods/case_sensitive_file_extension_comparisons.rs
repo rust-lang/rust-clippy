@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::source::{SpanRangeExt, indent_of, reindent_multiline};
+use clippy_utils::source::{SpanExt, indent_of, reindent_multiline};
 use clippy_utils::sym;
 use clippy_utils::ty::is_type_lang_item;
 use rustc_ast::ast::LitKind;
