@@ -1,0 +1,97 @@
+error: this is an `else {..}` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:20:6
+   |
+LL |       } else
+   |  ______^
+LL | |     {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `{..}`
+note: the lint level is defined here
+  --> tests/ui/formatting/suspicious_else_formatting.rs:2:9
+   |
+LL | #![deny(clippy::suspicious_else_formatting)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: this is an `else if` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:33:6
+   |
+LL |       } else
+   |  ______^
+LL | |     if foo() {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `if`
+
+error: this is an `else if` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:39:6
+   |
+LL |       }
+   |  ______^
+LL | |     else
+LL | |     if foo() {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `if`
+
+error: this is an `else {..}` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:56:6
+   |
+LL |       }
+   |  ______^
+LL | |
+LL | |     else
+LL | |     {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `{..}`
+
+error: this is an `else {..}` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:65:6
+   |
+LL |       }
+   |  ______^
+LL | |     else
+LL | |
+LL | |     {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `{..}`
+
+error: this is an `else {..}` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:139:6
+   |
+LL |       } /* comment */ else
+   |  ______^
+LL | |
+LL | |     {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `{..}`
+
+error: this is an `else {..}` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:148:6
+   |
+LL |       }
+   |  ______^
+LL | |     // comment
+LL | |     else
+...  |
+LL | |     {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `{..}`
+
+error: this is an `else {..}` but the formatting might hide it
+  --> tests/ui/formatting/suspicious_else_formatting.rs:161:6
+   |
+LL |       } /*
+   |  ______^
+LL | |        * some comment */ else
+LL | |     {
+   | |____^
+   |
+   = note: to remove this lint, remove the `else` or remove the new line between `else` and `{..}`
+
+error: aborting due to 8 previous errors
+
