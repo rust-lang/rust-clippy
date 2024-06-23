@@ -14,7 +14,7 @@ declare_clippy_lint! {
     /// be replaced with `Option::filter`.
     ///
     /// ### Why is this bad?
-    /// Needless complexity, uses recent and uncommon stdlib funtions instead of
+    /// Needless complexity, uses recent and uncommon stdlib functions instead of
     /// one older function.
     ///
     /// ### Example
