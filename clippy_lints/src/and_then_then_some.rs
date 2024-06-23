@@ -41,7 +41,7 @@ declare_lint_pass!(AndThenThenSome => [AND_THEN_THEN_SOME]);
 impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 	fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
 		match expr.kind {
-			ExprKind::MethodCall(method_name, selfarg, [ arg ], span) => {
+			ExprKind::MethodCall(method_name, selfarg, [ arg ], _span) => {
 				//(expr);
 				//let option_id = cx.tcx.get_diagnostic_item(sym::Option);
 				// TODO: check if type of reciever is diagnostic item Option.
@@ -50,6 +50,14 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 				//dbg!(method_name, selfarg, arg);
 				if is_and_then(cx, expr)
 				{
+					if let Some((closure_args, predicate)) = dbg!(then_some_closure_arg(cx, arg)) {
+						//dbg!(predicate);
+						show_sugg(cx, expr.span, selfarg, closure_args, predicate);
+					}
+				}
+			}
+			ExprKind::Call(_func, [ selfarg, arg ]) => {
+				if dbg!(is_and_then(cx, expr)) {
 					if let Some((closure_args, predicate)) = dbg!(then_some_closure_arg(cx, arg)) {
 						//dbg!(predicate);
 						show_sugg(cx, expr.span, selfarg, closure_args, predicate);
@@ -66,15 +74,16 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>)
 							  -> Option<(Span, &'tcx Expr<'tcx>)>
 {
+	dbg!(expr);
 	match expr.kind {
 		ExprKind::Closure(Closure{
 			fn_decl: FnDecl{ inputs: [ Ty{ hir_id: arg_id, ..} ], .. },
 			body,
 			..
 		}) => {
-			if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id) {
+			if let Node::Expr(expr) = dbg!(cx.tcx.hir_node(body.hir_id)) {
 				//dbg!(arg_id);
-				if let Some(body) = peel_closure_body(cx, expr, *arg_id) {
+				if let Some(body) = dbg!(peel_closure_body(cx, expr, *arg_id)) {
 					Some((cx.tcx.hir().span(*arg_id), body))
 				} else {
 					None
@@ -89,11 +98,11 @@ fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>)
 
 fn peel_closure_body<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, closure_arg_id: HirId) -> Option<&'tcx Expr<'tcx>> {
 
-	//dbg!(cx.tcx.hir_node(closure_arg_id));
 	match expr.kind {
-		ExprKind::Block(_block, _) =>
-		// recurse somehow, maybe lift { x; y.a() } into { x; y }.a()
-			todo!(),
+		// it would be nice if we could lift { x; y.a() } into { x; y }.a()
+		ExprKind::Block(Block{ stmts: [], expr: Some(wrapped_expr), ..}, _) => {
+			peel_closure_body(cx, wrapped_expr, closure_arg_id)
+		}
 		ExprKind::MethodCall(_path, selfarg, [ arg ], _span) => {
 			if is_then_some(cx, expr) &&
 				is_local_defined_at(cx, arg, closure_arg_id)
@@ -116,17 +125,24 @@ fn peel_closure_body<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, closu
 				None
 			}
 		}
-		_ => None,
+		_ => {
+			eprintln!("cannot peel {expr:#?}");
+			None
+		}
 	}
 }
 
 fn is_local_defined_at<'tcx>(cx: &LateContext<'tcx>, local: &Expr<'_>, arg_hid: HirId) -> bool {
-	//dbg!(local);
+	dbg!(local);
 	match local.kind {
 		ExprKind::Path(QPath::Resolved(_, Path{ res: Res::Local(local_hid), .. })) => {
-			// XXX" this is the best way i could find to compare if a local refers to a specific closure argument.
-			if let Node::Pat(Pat{ span: local_span, .. }) = cx.tcx.hir_node(*local_hid) &&
-				let Node::Ty(Ty{ span: arg_span, .. }) = cx.tcx.hir_node(arg_hid) &&
+			// FIXME: this is the best way i could find to compare if
+			// a local refers to a specific closure argument.
+			//
+			// it breaks if the closure argument has an explicitly declared type,
+			// since the spans only align for TyKind::Infer
+			if let Node::Pat(Pat{ span: local_span, .. }) = dbg!(cx.tcx.hir_node(*local_hid)) &&
+				let Node::Ty(Ty{ span: arg_span, .. }) = dbg!(cx.tcx.hir_node(arg_hid)) &&
 				local_span == arg_span
 			{
 				true
