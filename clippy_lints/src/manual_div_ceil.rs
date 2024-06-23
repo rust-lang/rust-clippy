@@ -25,6 +25,7 @@ declare_clippy_lint! {
     /// ```
     /// Use instead:
     /// ```no_run
+    /// #![feature(int_roundings)]
     /// let x: i32 = 7;
     /// let y: i32 = 4;
     /// let div = x.div_ceil(y);
