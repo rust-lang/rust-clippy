@@ -1346,6 +1346,10 @@ pub trait StrExt {
     where
         P: Pattern,
         for<'a> P::Searcher<'a>: ReverseSearcher<'a>;
+
+    /// Splits a string into a prefix and everything proceeding it. Returns `None` if the string
+    /// doesn't start with the prefix.
+    fn split_multipart_prefix(&self, pats: impl IntoIterator<Item: Pattern>) -> Option<[&Self; 2]>;
 }
 impl StrExt for str {
     fn find_bounded_inclusive(&self, pat: impl Pattern) -> Option<&Self> {
@@ -1386,6 +1390,16 @@ impl StrExt for str {
         for<'a> P::Searcher<'a>: ReverseSearcher<'a>,
     {
         self.strip_suffix(pat).map(|rest| [rest, &self[rest.len()..]])
+    }
+
+    /// Splits a string into a prefix and everything proceeding it. Returns `None` if the string
+    /// doesn't start with the prefix.
+    fn split_multipart_prefix(&self, pats: impl IntoIterator<Item: Pattern>) -> Option<[&Self; 2]> {
+        let mut s = self;
+        for pat in pats {
+            s = s.strip_prefix(pat)?;
+        }
+        Some([&self[..self.len() - s.len()], s])
     }
 }
 
