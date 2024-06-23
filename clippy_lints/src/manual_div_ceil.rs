@@ -20,7 +20,7 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// let x: i32 = 7;
-    /// ley y: i32 = 4;
+    /// let y: i32 = 4;
     /// let div = (x + (y - 1)) / y;
     /// ```
     /// Use instead:
