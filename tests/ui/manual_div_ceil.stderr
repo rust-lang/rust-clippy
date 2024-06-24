@@ -19,5 +19,11 @@ error: manually reimplementing `div_ceil`
 LL |     let _ = (x + y - 1) / y;
    |             ^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(y)`
 
-error: aborting due to 3 previous errors
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:13:13
+   |
+LL |     let _ = (7_i32 + (4 - 1)) / 4;
+   |             ^^^^^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `7_i32.div_ceil(4)`
+
+error: aborting due to 4 previous errors
 

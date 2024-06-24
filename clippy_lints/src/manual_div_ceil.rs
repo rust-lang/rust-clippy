@@ -4,7 +4,7 @@ use clippy_utils::SpanlessEq;
 use rustc_ast::{BinOpKind, LitKind};
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, QPath};
+use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self};
 use rustc_session::declare_lint_pass;
@@ -53,7 +53,7 @@ impl LateLintPass<'_> for ManualDivCeil {
                 && let ExprKind::Binary(sub_op, sub_lhs, sub_rhs) = add_rhs.kind
                 && sub_op.node == BinOpKind::Sub
                 && check_literal(sub_rhs)
-                && check_eq_path_segment(cx, sub_lhs, div_rhs)
+                && check_eq_expr(cx, sub_lhs, div_rhs)
             {
                 build_suggestion(cx, expr, add_lhs, div_rhs, &mut applicability);
                 return;
@@ -65,7 +65,7 @@ impl LateLintPass<'_> for ManualDivCeil {
                 && let ExprKind::Binary(sub_op, sub_lhs, sub_rhs) = add_lhs.kind
                 && sub_op.node == BinOpKind::Sub
                 && check_literal(sub_rhs)
-                && check_eq_path_segment(cx, sub_lhs, div_rhs)
+                && check_eq_expr(cx, sub_lhs, div_rhs)
             {
                 build_suggestion(cx, expr, add_rhs, div_rhs, &mut applicability);
                 return;
@@ -77,7 +77,7 @@ impl LateLintPass<'_> for ManualDivCeil {
                 && let ExprKind::Binary(add_op, add_lhs, add_rhs) = sub_lhs.kind
                 && add_op.node == BinOpKind::Add
                 && check_literal(sub_rhs)
-                && check_eq_path_segment(cx, add_rhs, div_rhs)
+                && check_eq_expr(cx, add_rhs, div_rhs)
             {
                 build_suggestion(cx, expr, add_lhs, div_rhs, &mut applicability);
             }
@@ -99,14 +99,8 @@ fn check_literal(expr: &Expr<'_>) -> bool {
     false
 }
 
-fn check_eq_path_segment(cx: &LateContext<'_>, lhs: &Expr<'_>, rhs: &Expr<'_>) -> bool {
-    if let ExprKind::Path(QPath::Resolved(_, lhs_path)) = lhs.kind
-        && let ExprKind::Path(QPath::Resolved(_, rhs_path)) = rhs.kind
-        && SpanlessEq::new(cx).eq_path_segment(&lhs_path.segments[0], &rhs_path.segments[0])
-    {
-        return true;
-    }
-    false
+fn check_eq_expr(cx: &LateContext<'_>, lhs: &Expr<'_>, rhs: &Expr<'_>) -> bool {
+    SpanlessEq::new(cx).eq_expr(lhs, rhs)
 }
 
 fn build_suggestion(
