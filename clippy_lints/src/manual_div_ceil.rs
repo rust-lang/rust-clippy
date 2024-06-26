@@ -99,6 +99,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
             }
         }
     }
+
+    extract_msrv_attr!(LateContext);
 }
 
 fn check_int_ty(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
