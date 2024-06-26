@@ -10,7 +10,6 @@ use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, LetStmt, Node, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
-use rustc_middle::ty::{self};
 use rustc_session::declare_lint_pass;
 use rustc_span::sym;
 
@@ -53,20 +52,14 @@ impl LateLintPass<'_> for UnnecessaryIndexing {
             // check for call of is_empty
             && let ExprKind::MethodCall(method, conditional_receiver, _, _) = unary_inner.kind
             && method.ident.as_str() == "is_empty"
-            && let typeck_results = cx.typeck_results()
-            && let expr_ty = typeck_results.expr_ty(conditional_receiver)
+            && let expr_ty = cx.typeck_results().expr_ty(conditional_receiver)
             && let peeled = expr_ty.peel_refs()
             && (peeled.is_slice() || peeled.is_array() || is_type_diagnostic_item(cx, peeled, sym::Vec))
             && let ExprKind::Block(block, _) = if_expr.then.kind
-        {
             // do not lint if conditional receiver is mutable reference
-            if let ty::Ref(_, _, Mutability::Mut) = expr_ty.kind() {
-                return;
-            }
-
-            let result = process_indexing(cx, block, conditional_receiver);
-
-            if let Some(r) = result
+            && expr_ty.ref_mutability() != Some(Mutability::Mut)
+        {
+            if let Some(r) = process_indexing(cx, block, conditional_receiver)
                 && let Some(receiver) = r.index_receiver
             {
                 span_lint_and_then(
@@ -87,23 +80,26 @@ impl LateLintPass<'_> for UnnecessaryIndexing {
                                 Applicability::Unspecified,
                             );
                             diag.span_suggestion(first_local.span, "remove this line", "", Applicability::Unspecified);
-                            if !r.extra_locals.is_empty() {
+                            if !r.extra_exprs.is_empty() {
                                 let extra_local_suggestions = r
-                                    .extra_locals
+                                    .extra_exprs
                                     .iter()
-                                    .map(|x| {
-                                        (
-                                            x.init.unwrap().span,
-                                            snippet(cx, first_local.pat.span, "..").to_string(),
-                                        )
+                                    .filter_map(|x| {
+                                        if let ExprKind::Let(l) = x.kind {
+                                            Some((l.init.span, snippet(cx, first_local.pat.span, "..").to_string()))
+                                        } else {
+                                            None
+                                        }
                                     })
                                     .collect::<Vec<_>>();
 
-                                diag.multipart_suggestion(
-                                    "initialize this variable to be the `Some` variant (may need dereferencing)",
-                                    extra_local_suggestions,
-                                    Applicability::Unspecified,
-                                );
+                                if !extra_local_suggestions.is_empty() {
+                                    diag.multipart_suggestion(
+                                        "initialize this variable to be the `Some` variant (may need dereferencing)",
+                                        extra_local_suggestions,
+                                        Applicability::Unspecified,
+                                    );
+                                }
                             }
                             if !r.extra_exprs.is_empty() {
                                 let index_accesses = r
@@ -140,20 +136,17 @@ impl LateLintPass<'_> for UnnecessaryIndexing {
 
 struct IndexCheckResult<'a> {
     // the receiver for the index operation
-    pub index_receiver: Option<&'a Expr<'a>>,
+    index_receiver: Option<&'a Expr<'a>>,
     // first local in the block - used as pattern for `Some(pat)`
-    pub first_local: Option<&'a LetStmt<'a>>,
-    // any other locals to be aware of, these are set to the value of `pat`
-    pub extra_locals: Vec<&'a LetStmt<'a>>,
+    first_local: Option<&'a LetStmt<'a>>,
     // any other index expressions to replace with `pat` (or "element" if no local exists)
-    pub extra_exprs: Vec<&'a Expr<'a>>,
+    extra_exprs: Vec<&'a Expr<'a>>,
 }
 impl<'a> IndexCheckResult<'a> {
     pub fn new() -> Self {
         IndexCheckResult {
             index_receiver: None,
             first_local: None,
-            extra_locals: vec![],
             extra_exprs: vec![],
         }
     }
@@ -170,7 +163,6 @@ fn process_indexing<'a>(
 
     let mut index_receiver: Option<&Expr<'_>> = None;
     let mut first_local: Option<&LetStmt<'_>> = None;
-    let mut extra_locals: Vec<&LetStmt<'_>> = vec![];
     let mut extra_exprs: Vec<&Expr<'_>> = vec![];
 
     // if res == Some(()), then mutation occurred
@@ -190,7 +182,7 @@ fn process_indexing<'a>(
                 if first_local.is_none() {
                     first_local = Some(local);
                 } else {
-                    extra_locals.push(local);
+                    extra_exprs.push(x);
                 };
             } else {
                 extra_exprs.push(x);
@@ -214,7 +206,6 @@ fn process_indexing<'a>(
 
     if res.is_none() {
         result.extra_exprs = extra_exprs;
-        result.extra_locals = extra_locals;
         result.first_local = first_local;
         result.index_receiver = index_receiver;
         Some(result)

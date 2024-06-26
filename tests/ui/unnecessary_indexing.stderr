@@ -131,14 +131,11 @@ help: remove this line
 LL -         let b = a[0];
 LL +         
    |
-help: initialize this variable to be the `Some` variant (may need dereferencing)
-   |
-LL |         let c = b;
-   |                 ~
 help: set this index to be the `Some` variant (may need dereferencing)
    |
-LL |         drop(b);
-   |              ~
+LL ~         let c = b;
+LL ~         drop(b);
+   |
 
 error: condition can be simplified with if..let syntax
   --> tests/ui/unnecessary_indexing.rs:75:5
