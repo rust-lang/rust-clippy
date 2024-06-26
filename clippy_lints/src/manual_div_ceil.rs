@@ -1,3 +1,4 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::SpanlessEq;
@@ -7,7 +8,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self};
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -36,10 +37,25 @@ declare_clippy_lint! {
     "manually reimplementing `div_ceil`"
 }
 
-declare_lint_pass!(ManualDivCeil => [MANUAL_DIV_CEIL]);
+pub struct ManualDivCeil {
+    msrv: Msrv,
+}
 
-impl LateLintPass<'_> for ManualDivCeil {
-    fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {
+impl ManualDivCeil {
+    #[must_use]
+    pub fn new(msrv: Msrv) -> Self {
+        Self { msrv }
+    }
+}
+
+impl_lint_pass!(ManualDivCeil => [MANUAL_DIV_CEIL]);
+
+impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'_>) {
+        if !self.msrv.meets(msrvs::MANUAL_DIV_CEIL) {
+            return;
+        }
+
         let mut applicability = Applicability::MachineApplicable;
 
         if let ExprKind::Binary(div_op, div_lhs, div_rhs) = expr.kind
