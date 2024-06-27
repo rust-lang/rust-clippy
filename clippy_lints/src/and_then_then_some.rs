@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{fn_def_id, match_def_path};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::{Block, Closure, Expr, ExprKind, FnDecl, HirId, Node, Pat, Path, QPath, Ty, Param, Body};
+use rustc_hir::{Block, Body, Closure, Expr, ExprKind, FnDecl, HirId, Node, Param, Pat, Path, QPath, Ty};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -65,11 +65,19 @@ fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Opt
             body,
             ..
         }) => {
-            if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id) &&
-				let Body{ params: [ Param{ hir_id: arg_id, pat: Pat{ span, .. }, .. } ], .. } =
-				cx.tcx.hir().body(*body)
-			{
-				
+            if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id)
+                && let Body {
+                    params:
+                        [
+                            Param {
+                                hir_id: arg_id,
+                                pat: Pat { span, .. },
+                                ..
+                            },
+                        ],
+                    ..
+                } = cx.tcx.hir().body(*body)
+            {
                 (peel_closure_body(cx, expr, *arg_id)).map(|body| (*span, body))
             } else {
                 None
@@ -85,10 +93,12 @@ fn peel_closure_body<'tcx>(
     closure_arg_id: HirId,
 ) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
-		ExprKind::Ret(Some(wrapped_expr)) =>
-		// duplicated blocks because 2023 reference statements are awkward.
-		// "&" peels multiple layers of indirection instead of just one like we want.
-			peel_closure_body(cx, wrapped_expr, closure_arg_id),
+        ExprKind::Ret(Some(wrapped_expr)) =>
+        // duplicated blocks because 2023 reference statements are awkward.
+        // "&" peels multiple layers of indirection instead of just one like we want.
+        {
+            peel_closure_body(cx, wrapped_expr, closure_arg_id)
+        },
         // it would be nice if we could lift { x; y.a() } into { x; y }.a()
         ExprKind::Block(
             Block {
@@ -110,13 +120,14 @@ fn peel_closure_body<'tcx>(
 }
 
 fn get_pat_hid(node: Node<'_>) -> Option<HirId> {
-	match node {
-		Node::Param(Param{ pat: Pat { hir_id, .. }, .. }) |
-		Node::Pat(Pat{ hir_id, .. }) => Some(*hir_id),
-		_ => {
-			None
-		},
-	}
+    match node {
+        Node::Param(Param {
+            pat: Pat { hir_id, .. },
+            ..
+        })
+        | Node::Pat(Pat { hir_id, .. }) => Some(*hir_id),
+        _ => None,
+    }
 }
 
 fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -> bool {
@@ -128,9 +139,8 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
                 ..
             },
         )) => {
-			let local_pat_id = get_pat_hid(cx.tcx.hir_node(*local_hid));
-			local_pat_id.is_some() &&
-				local_pat_id == get_pat_hid(cx.tcx.hir_node(arg_hid))
+            let local_pat_id = get_pat_hid(cx.tcx.hir_node(*local_hid));
+            local_pat_id.is_some() && local_pat_id == get_pat_hid(cx.tcx.hir_node(arg_hid))
         },
         // is not local at all, so definitly isn't a local defined at the given position
         _ => false,
@@ -139,10 +149,10 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
 
 fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args: Span, predicate: &Expr<'_>) {
     let mut appl = Applicability::MachineApplicable;
-	// FIXME: this relies on deref coertion, which won't work correctly if the predicate involves something
-	// other than a method call.  this is because `and_then` takes an argument by
-	// value, while `filter` takes an argument by reference.
-	
+    // FIXME: this relies on deref coertion, which won't work correctly if the predicate involves
+    // something other than a method call.  this is because `and_then` takes an argument by
+    // value, while `filter` takes an argument by reference.
+
     let sugg = format!(
         "{}.filter(|{}| {})",
         snippet_with_applicability(cx, selfarg.span, "<OPTION>", &mut appl),
