@@ -47,12 +47,12 @@
   {
     "id": "allow_attributes",
     "id_span": {
-      "path": "src/allow_attributes.rs",
-      "line": 45
+      "path": "src/attrs/mod.rs",
+      "line": 325
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\n`#[expect]`. (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThe expect attribute is still unstable and requires the `lint_reasons` feature\non nightly. It can be enabled by adding `#![feature(lint_reasons)]` to\nthe crate root.\n\nThis lint only warns on outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why restrict this?\nThe `#[allow]` attribute does not warn when the expected lint is no longer triggered,\nwhereas `#[expect]` calls attention to this fact. This can be a useful reminder to\nremove attributes that are no longer needed.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#![feature(lint_reasons)]\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```",
+    "docs": "\n### What it does\nChecks for usage of the `#[allow]` attribute and suggests replacing it with\nthe `#[expect]` (See [RFC 2383](https://rust-lang.github.io/rfcs/2383-lint-reasons.html))\n\nThis lint only warns outer attributes (`#[allow]`), as inner attributes\n(`#![allow]`) are usually used to enable or disable lints on a global scale.\n\n### Why is this bad?\n`#[expect]` attributes suppress the lint emission, but emit a warning, if\nthe expectation is unfulfilled. This can be useful to be notified when the\nlint is no longer triggered.\n\n### Example\n```rust\n#[allow(unused_mut)]\nfn foo() -> usize {\n   let mut a = Vec::new();\n   a.len()\n}\n```\nUse instead:\n```rust\n#[expect(unused_mut)]\nfn foo() -> usize {\n    let mut a = Vec::new();\n    a.len()\n}\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.70.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -63,11 +63,11 @@
     "id": "allow_attributes_without_reason",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 296
+      "line": 290
     },
     "group": "restriction",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for attributes that allow lints without specifying the reason\nthey should be allowed. (This requires the `lint_reasons` feature.)\n\n### Why restrict this?\nThere should always be a specific reason to allow a lint. This reason\nshould be documented using the `reason` parameter, so that readers can\nunderstand why the `allow` is required, or remove it if it's no\nlonger needed.\n\n### Example\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint)]\n```\n\nUse instead:\n```rust\n#![feature(lint_reasons)]\n\n#![allow(clippy::some_lint, reason = \"False positive rust-lang/rust-clippy#1002020\")]\n```",
+    "docs": "\n### What it does\nChecks for attributes that allow lints without a reason.\n\n### Why restrict this?\nJustifying each `allow` helps readers understand the reasoning,\nand may allow removing `allow` attributes if their purpose is obsolete.\n\n### Example\n```rust\n#![allow(clippy::some_lint)]\n```\n\nUse instead:\n```rust\n#![allow(clippy::some_lint, reason = \"False positive rust-lang/rust-clippy#1002020\")]\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `msrv`: The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`",
     "version": "1.61.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -387,7 +387,7 @@
     "id": "blanket_clippy_restriction_lints",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 235
+      "line": 236
     },
     "group": "suspicious",
     "level": "warn",
@@ -1328,7 +1328,7 @@
     "id": "deprecated_cfg_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 266
+      "line": 267
     },
     "group": "complexity",
     "level": "warn",
@@ -1343,7 +1343,7 @@
     "id": "deprecated_clippy_cfg_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 381
+      "line": 410
     },
     "group": "suspicious",
     "level": "warn",
@@ -1358,7 +1358,7 @@
     "id": "deprecated_semver",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 124
+      "line": 125
     },
     "group": "correctness",
     "level": "deny",
@@ -1730,7 +1730,7 @@
     "id": "duplicated_attributes",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 468
+      "line": 497
     },
     "group": "suspicious",
     "level": "warn",
@@ -1850,7 +1850,7 @@
     "id": "empty_line_after_doc_comments",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 212
+      "line": 213
     },
     "group": "nursery",
     "level": "allow",
@@ -1865,7 +1865,7 @@
     "id": "empty_line_after_outer_attr",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 166
+      "line": 167
     },
     "group": "nursery",
     "level": "allow",
@@ -3324,7 +3324,7 @@
     "id": "inline_always",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 50
+      "line": 51
     },
     "group": "pedantic",
     "level": "allow",
@@ -5615,7 +5615,7 @@
     "id": "mixed_attributes_style",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 442
+      "line": 471
     },
     "group": "style",
     "level": "warn",
@@ -6653,7 +6653,7 @@
     "id": "non_minimal_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 355
+      "line": 384
     },
     "group": "style",
     "level": "warn",
@@ -8537,7 +8537,7 @@
     "id": "should_panic_without_expect",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 331
+      "line": 360
     },
     "group": "pedantic",
     "level": "allow",
@@ -10010,7 +10010,7 @@
     "id": "unnecessary_clippy_cfg",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 405
+      "line": 434
     },
     "group": "suspicious",
     "level": "warn",
@@ -10812,7 +10812,7 @@
     "id": "useless_attribute",
     "id_span": {
       "path": "src/attrs/mod.rs",
-      "line": 103
+      "line": 104
     },
     "group": "correctness",
     "level": "deny",
