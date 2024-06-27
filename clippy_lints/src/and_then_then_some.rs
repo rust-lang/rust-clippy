@@ -66,11 +66,11 @@ fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Opt
             ..
         }) => {
             if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id) &&
-				let Body{ params: [ Param{ hir_id: arg_id, .. } ], .. } =
+				let Body{ params: [ Param{ hir_id: arg_id, pat: Pat{ span, .. }, .. } ], .. } =
 				cx.tcx.hir().body(*body)
 			{
 				
-                (peel_closure_body(cx, expr, *arg_id)).map(|body| (cx.tcx.hir().span(*arg_id), body))
+                (peel_closure_body(cx, expr, *arg_id)).map(|body| (*span, body))
             } else {
                 None
             }
@@ -135,8 +135,10 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
 
 fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args: Span, predicate: &Expr<'_>) {
     let mut appl = Applicability::MachineApplicable;
+	// FIXME: this relies on deref coertion, which won't work correctly if the predicate involves something
+	// other than a method call.
     let sugg = format!(
-        "{}.filter(|&{}| {})",
+        "{}.filter(|{}| {})",
         snippet_with_applicability(cx, selfarg.span, "<OPTION>", &mut appl),
         snippet_with_applicability(cx, closure_args, "<ARGS>", &mut appl),
         snippet_with_applicability(cx, predicate.span, "<PREDICATE>", &mut appl)

@@ -17,7 +17,7 @@ error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
   --> tests/ui/and_then_then_some.rs:9:14
    |
 LL |     let _w = Option::and_then(x, |v: String| bool::then_some(v.starts_with('f'), v));
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.filter(|v: String| v.starts_with('f'))`
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.filter(|v| v.starts_with('f'))`
 
 error: aborting due to 3 previous errors
 
