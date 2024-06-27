@@ -8,7 +8,7 @@ LL | //! Should warn on double space linebreaks
    = help: to override `-D warnings` add `#[allow(clippy::doc_comment_double_space_linebreak)]`
 
 error: doc comments should use a back-slash (\) instead of a double space to indicate a linebreak
-  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:34:1
+  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:35:1
    |
 LL | / /// Should warn when doc comment uses double space  
 LL | | /// as a line-break, even when there are multiple  
@@ -20,5 +20,22 @@ LL + /// Should warn when doc comment uses double space\
 LL + /// as a line-break, even when there are multiple\
    |
 
-error: aborting due to 2 previous errors
+error: doc comments should use a back-slash (\) instead of a double space to indicate a linebreak
+  --> tests/ui/doc/doc_comment_double_space_linebreak.rs:44:1
+   |
+LL | / /// 🌹 are 🟥  
+LL | | /// 🌷 are 🟦  
+LL | | /// 📎 is 😎  
+LL | | /// and so are 🫵  
+   | |___________________^
+   |
+help: replace this double space with a back-slash
+   |
+LL ~ /// 🌹 are 🟥\
+LL ~ /// 🌷 are 🟦\
+LL ~ /// 📎 is 😎\
+LL ~ /// and so are 🫵\
+   |
+
+error: aborting due to 3 previous errors
 

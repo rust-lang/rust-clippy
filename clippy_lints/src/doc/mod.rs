@@ -442,7 +442,7 @@ declare_clippy_lint! {
     /// fn add(l: i32, r: i32) -> i32 {
     ///     l + r
     /// }
-    /// ``````
+    /// ```
     ///
     /// Use instead:
     /// ```no_run
@@ -454,7 +454,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.80.0"]
     pub DOC_COMMENT_DOUBLE_SPACE_LINEBREAK,
-    restriction,
+    pedantic,
     "double-space used for doc comment linebreak instead of `\\`"
 }
 
