@@ -602,6 +602,9 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         allow_comparison_to_zero,
         ref allowed_prefixes,
         ref allow_renamed_params_for,
+        float_cmp_ignore_named_constants,
+        float_cmp_ignore_constant_comparisons,
+        float_cmp_ignore_change_detection,
 
         blacklisted_names: _,
         cyclomatic_complexity_threshold: _,
@@ -1027,6 +1030,9 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         Box::new(operators::Operators::new(
             verbose_bit_mask_threshold,
             allow_comparison_to_zero,
+            float_cmp_ignore_named_constants,
+            float_cmp_ignore_constant_comparisons,
+            float_cmp_ignore_change_detection,
         ))
     });
     store.register_late_pass(|_| Box::<std_instead_of_core::StdReexports>::default());

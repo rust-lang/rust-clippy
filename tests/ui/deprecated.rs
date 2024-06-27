@@ -20,5 +20,6 @@
 #![warn(clippy::wrong_pub_self_convention)]
 #![warn(clippy::maybe_misused_cfg)]
 #![warn(clippy::mismatched_target_os)]
+#![warn(clippy::float_cmp_const)]
 
 fn main() {}
