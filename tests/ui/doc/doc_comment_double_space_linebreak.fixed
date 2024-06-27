@@ -18,8 +18,9 @@ fn single_line_split() {}
 
 // note: cargo fmt can remove double spaces from normal and block comments
 // Should not warn on normal comments  
-// with double spaces at the end of a line
+// with double spaces at the end of a line  
 
+#[doc = "This is a doc attribute, which should not be linted"]
 fn normal_comment() {
     /*
        Should not warn on block comments
@@ -39,5 +40,22 @@ fn double_space_doc_comment() {}
 /// Should not warn when back-slash is used \
 /// as a line-break
 fn back_slash_doc_comment() {}
+
+/// 🌹 are 🟥\
+/// 🌷 are 🟦\
+/// 📎 is 😎\
+/// and so are 🫵\
+/// (hopefully no formatting weirdness linting this)
+fn multi_byte_chars_tada() {}
+
+macro_rules! macro_that_makes_function {
+   () => {
+      /// Shouldn't lint on this!  
+      /// (hopefully)
+      fn my_macro_created_function() {}
+   }
+}
+
+macro_that_makes_function!();
 
 fn main() {}

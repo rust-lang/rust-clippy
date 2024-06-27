@@ -32,6 +32,7 @@ fn collect_doc_replacements(attrs: &[Attribute]) -> Vec<(Span, String)> {
         .iter()
         .filter_map(|attr| {
             if let AttrKind::DocComment(com_kind, sym) = attr.kind
+                && !attr.span.from_expansion()
                 && com_kind == CommentKind::Line
                 && let comment = sym.as_str()
                 && comment.ends_with("  ")
