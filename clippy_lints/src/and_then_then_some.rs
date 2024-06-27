@@ -53,7 +53,7 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
     }
 }
 
-// `|v| X.then_some(v)` -> Some((span"|v|", X))
+// This function returns the span of the closure arguments and the receiver of `then_some` (usually `bool`) if the expression passed is a closure whose single expression is a call to `then_some`.
 fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Option<(Span, &'tcx Expr<'tcx>)> {
     match expr.kind {
         ExprKind::Closure(Closure {
