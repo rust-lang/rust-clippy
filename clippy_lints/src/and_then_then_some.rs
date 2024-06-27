@@ -40,7 +40,7 @@ declare_lint_pass!(AndThenThenSome => [AND_THEN_THEN_SOME]);
 impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         match expr.kind {
-            ExprKind::MethodCall(_, selfarg, [arg], _) | ExprKind::Call(_, [selfarg, arg]) => {
+            ExprKind::MethodCall(_, recv_or_self, [arg], _) | ExprKind::Call(_, [recv_or_self, arg]) => {
                 // TODO: check if type of reciever is diagnostic item Option?
                 if is_and_then(cx, expr) {
                     if let Some((closure_args, predicate)) = then_some_closure_arg(cx, arg) {
