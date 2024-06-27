@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{fn_def_id, match_def_path};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::{Block, Body, Closure, Expr, ExprKind, FnDecl, HirId, Node, Param, Pat, Path, QPath, Ty};
+use rustc_hir::{Block, Body, Closure, Expr, ExprKind, HirId, Node, Param, Pat, Path, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
