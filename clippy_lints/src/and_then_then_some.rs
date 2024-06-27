@@ -85,6 +85,10 @@ fn peel_closure_body<'tcx>(
     closure_arg_id: HirId,
 ) -> Option<&'tcx Expr<'tcx>> {
     match expr.kind {
+		ExprKind::Ret(Some(wrapped_expr)) =>
+		// duplicated blocks because 2023 reference statements are awkward.
+		// "&" peels multiple layers of indirection instead of just one like we want.
+			peel_closure_body(cx, wrapped_expr, closure_arg_id),
         // it would be nice if we could lift { x; y.a() } into { x; y }.a()
         ExprKind::Block(
             Block {
@@ -136,7 +140,9 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
 fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args: Span, predicate: &Expr<'_>) {
     let mut appl = Applicability::MachineApplicable;
 	// FIXME: this relies on deref coertion, which won't work correctly if the predicate involves something
-	// other than a method call.
+	// other than a method call.  this is because `and_then` takes an argument by
+	// value, while `filter` takes an argument by reference.
+	
     let sugg = format!(
         "{}.filter(|{}| {})",
         snippet_with_applicability(cx, selfarg.span, "<OPTION>", &mut appl),

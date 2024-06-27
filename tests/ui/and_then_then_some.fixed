@@ -6,5 +6,7 @@ fn main() {
     let _y = x.clone().filter(|v| v.starts_with('f'));
 
     let _z = x.clone().filter(|v| v.starts_with('f'));
-    let _w = x.filter(|v| v.starts_with('f'));
+    let _w = x.clone().filter(|v| v.starts_with('f'));
+	#[allow(clippy::needless_return)]
+	let _v = x.clone().filter(|v| v.starts_with('g'));
 }

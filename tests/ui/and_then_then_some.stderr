@@ -16,8 +16,14 @@ LL |     let _z = x.clone().and_then(|v| bool::then_some(v.starts_with('f'), v))
 error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
   --> tests/ui/and_then_then_some.rs:9:14
    |
-LL |     let _w = Option::and_then(x, |v: String| bool::then_some(v.starts_with('f'), v));
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.filter(|v| v.starts_with('f'))`
+LL |     let _w = Option::and_then(x.clone(), |v: String| bool::then_some(v.starts_with('f'), v));
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.clone().filter(|v| v.starts_with('f'))`
 
-error: aborting due to 3 previous errors
+error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
+  --> tests/ui/and_then_then_some.rs:11:11
+   |
+LL |     let _v = x.clone().and_then(|v| return v.starts_with('g').then_some(v));
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.clone().filter(|v| v.starts_with('g'))`
+
+error: aborting due to 4 previous errors
 
