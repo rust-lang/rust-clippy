@@ -143,15 +143,6 @@ struct IndexCheckResult<'a> {
     // any other index expressions to replace with `pat` (or "element" if no local exists)
     extra_exprs: Vec<&'a Expr<'a>>,
 }
-impl<'a> IndexCheckResult<'a> {
-    pub fn new() -> Self {
-        IndexCheckResult {
-            index_receiver: None,
-            first_local: None,
-            extra_exprs: vec![],
-        }
-    }
-}
 
 /// Checks the block for any indexing of the conditional receiver. Returns `None` if the block
 /// contains code that invalidates the lint, e.g., the receiver is accessed via a mutable reference.
