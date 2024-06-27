@@ -30,7 +30,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.81.0"]
     pub AND_THEN_THEN_SOME,
     nursery,
-    "detects usage of and_then and then_some that can be replaced by filter"
+    "detects usage of `and_then` and `then_some` that can be replaced by `filter`"
 }
 
 // note: `Option::filter` is older than `bool::then_some`,
