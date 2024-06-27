@@ -140,7 +140,7 @@ fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args:
         cx,
         AND_THEN_THEN_SOME,
         span,
-        "use of `and_then` + `then_some` is equivelent to `filter`",
+        "use of `Option::and_then` and `bool::then_some` is equivelent to `filter`",
         "use `Option::filter` instead",
         sugg,
         appl,
