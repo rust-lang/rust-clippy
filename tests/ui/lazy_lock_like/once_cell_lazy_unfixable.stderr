@@ -1,0 +1,37 @@
+error: this type has been superceded by `std::sync::LazyLock`
+  --> tests/ui/lazy_lock_like/once_cell_lazy_unfixable.rs:11:18
+   |
+LL | static LAZY_FOO: Lazy<String> = Lazy::new(|| "foo".to_uppercase());
+   |                  ^^^^
+   |
+   = note: `-D clippy::once-cell-lazy` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::once_cell_lazy)]`
+help: use `std::sync::LazyLock` instead
+   |
+LL | static LAZY_FOO: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| "foo".to_uppercase());
+   |                  ~~~~~~~~~~~~~~~~~~~           ~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: this type has been superceded by `std::sync::LazyLock`
+  --> tests/ui/lazy_lock_like/once_cell_lazy_unfixable.rs:13:18
+   |
+LL | static LAZY_BAR: Lazy<String> = Lazy::new(|| "bar".to_uppercase());
+   |                  ^^^^
+   |
+help: use `std::sync::LazyLock` instead
+   |
+LL | static LAZY_BAR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| "bar".to_uppercase());
+   |                  ~~~~~~~~~~~~~~~~~~~           ~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: this type has been superceded by `std::sync::LazyLock`
+  --> tests/ui/lazy_lock_like/once_cell_lazy_unfixable.rs:15:22
+   |
+LL | static mut LAZY_BAZ: Lazy<String> = Lazy::new(|| "baz".to_uppercase());
+   |                      ^^^^
+   |
+help: use `std::sync::LazyLock` instead
+   |
+LL | static mut LAZY_BAZ: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| "baz".to_uppercase());
+   |                      ~~~~~~~~~~~~~~~~~~~           ~~~~~~~~~~~~~~~~~~~~~~~~
+
+error: aborting due to 3 previous errors
+

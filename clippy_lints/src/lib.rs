@@ -186,6 +186,7 @@ mod large_futures;
 mod large_include_file;
 mod large_stack_arrays;
 mod large_stack_frames;
+mod lazy_lock_like;
 mod legacy_numeric_constants;
 mod len_zero;
 mod let_if_seq;
@@ -1171,6 +1172,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     });
     store.register_late_pass(move |_| Box::new(string_patterns::StringPatterns::new(msrv())));
     store.register_early_pass(|| Box::new(field_scoped_visibility_modifiers::FieldScopedVisibilityModifiers));
+    store.register_late_pass(move |_| Box::new(lazy_lock_like::OnceCellLazy::new(msrv())));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 
