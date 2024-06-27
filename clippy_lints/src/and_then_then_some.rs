@@ -44,7 +44,7 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
                 // TODO: check if type of reciever is diagnostic item Option?
                 if is_and_then(cx, expr) {
                     if let Some((closure_args, predicate)) = then_some_closure_arg(cx, arg) {
-                        show_sugg(cx, expr.span, selfarg, closure_args, predicate);
+                        show_sugg(cx, expr.span, recv_or_self, closure_args, predicate);
                     }
                 }
             },
