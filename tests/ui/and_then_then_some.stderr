@@ -1,4 +1,4 @@
-error: use of `and_then` + `then_some` is equivelent to `filter`
+error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
   --> tests/ui/and_then_then_some.rs:6:14
    |
 LL |     let _y = x.clone().and_then(|v| v.starts_with('f').then_some(v));
@@ -7,17 +7,17 @@ LL |     let _y = x.clone().and_then(|v| v.starts_with('f').then_some(v));
    = note: `-D clippy::and-then-then-some` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::and_then_then_some)]`
 
-error: use of `and_then` + `then_some` is equivelent to `filter`
+error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
   --> tests/ui/and_then_then_some.rs:8:14
    |
 LL |     let _z = x.clone().and_then(|v| bool::then_some(v.starts_with('f'), v));
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.clone().filter(|v| v.starts_with('f'))`
 
-error: use of `and_then` + `then_some` is equivelent to `filter`
+error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
   --> tests/ui/and_then_then_some.rs:9:14
    |
-LL |     let _w = Option::and_then(x, |v| bool::then_some(v.starts_with('f'), v));
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.filter(|v| v.starts_with('f'))`
+LL |     let _w = Option::and_then(x, |v: String| bool::then_some(v.starts_with('f'), v));
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `x.filter(|v: String| v.starts_with('f'))`
 
 error: aborting due to 3 previous errors
 

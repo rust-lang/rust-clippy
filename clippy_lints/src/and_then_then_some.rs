@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{fn_def_id, match_def_path};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
-use rustc_hir::{Block, Closure, Expr, ExprKind, FnDecl, HirId, Node, Pat, Path, QPath, Ty};
+use rustc_hir::{Block, Closure, Expr, ExprKind, FnDecl, HirId, Node, Pat, Path, QPath, Ty, Param, Body};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
@@ -58,14 +58,18 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
 fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Option<(Span, &'tcx Expr<'tcx>)> {
     match expr.kind {
         ExprKind::Closure(Closure {
-            fn_decl: FnDecl {
+            /*fn_decl: FnDecl {
                 inputs: [Ty { hir_id: arg_id, .. }],
                 ..
-            },
+            },*/
             body,
             ..
         }) => {
-            if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id) {
+            if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id) &&
+				let Body{ params: [ Param{ hir_id: arg_id, .. } ], .. } =
+				cx.tcx.hir().body(*body)
+			{
+				
                 (peel_closure_body(cx, expr, *arg_id)).map(|body| (cx.tcx.hir().span(*arg_id), body))
             } else {
                 None
@@ -101,6 +105,16 @@ fn peel_closure_body<'tcx>(
     }
 }
 
+fn get_pat_hid(node: Node<'_>) -> Option<HirId> {
+	match node {
+		Node::Param(Param{ pat: Pat { hir_id, .. }, .. }) |
+		Node::Pat(Pat{ hir_id, .. }) => Some(*hir_id),
+		_ => {
+			None
+		},
+	}
+}
+
 fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -> bool {
     match local.kind {
         ExprKind::Path(QPath::Resolved(
@@ -110,19 +124,9 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
                 ..
             },
         )) => {
-            // FIXME: this is the best way i could find to compare if
-            // a local refers to a specific closure argument.
-            //
-            // it breaks if the closure argument has an explicitly declared type,
-            // since the spans only align for TyKind::Infer
-            if let Node::Pat(Pat { span: local_span, .. }) = (cx.tcx.hir_node(*local_hid))
-                && let Node::Ty(Ty { span: arg_span, .. }) = (cx.tcx.hir_node(arg_hid))
-                && local_span == arg_span
-            {
-                true
-            } else {
-                false
-            }
+			let local_pat_id = get_pat_hid(cx.tcx.hir_node(*local_hid));
+			local_pat_id.is_some() &&
+				local_pat_id == get_pat_hid(cx.tcx.hir_node(arg_hid))
         },
         // is not local at all, so definitly isn't a local defined at the given position
         _ => false,
@@ -132,7 +136,7 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
 fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args: Span, predicate: &Expr<'_>) {
     let mut appl = Applicability::MachineApplicable;
     let sugg = format!(
-        "{}.filter(|{}| {})",
+        "{}.filter(|&{}| {})",
         snippet_with_applicability(cx, selfarg.span, "<OPTION>", &mut appl),
         snippet_with_applicability(cx, closure_args, "<ARGS>", &mut appl),
         snippet_with_applicability(cx, predicate.span, "<PREDICATE>", &mut appl)

@@ -6,5 +6,5 @@ fn main() {
     let _y = x.clone().filter(|v| v.starts_with('f'));
 
     let _z = x.clone().filter(|v| v.starts_with('f'));
-    let _w = x.filter(|v| v.starts_with('f'));
+    let _w = x.filter(|v: String| v.starts_with('f'));
 }
