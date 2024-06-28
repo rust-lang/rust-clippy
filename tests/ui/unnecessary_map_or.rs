@@ -1,8 +1,12 @@
+//@aux-build:proc_macros.rs
 #![warn(clippy::unnecessary_map_or)]
 #![allow(clippy::no_effect)]
 #![allow(clippy::eq_op)]
-#[allow(clippy::unnecessary_lazy_evaluations)]
+#![allow(clippy::unnecessary_lazy_evaluations)]
 #[clippy::msrv = "1.70.0"]
+#[macro_use]
+extern crate proc_macros;
+
 fn main() {
     // should trigger
     let _ = Some(5).map_or(false, |n| n == 5);
@@ -36,6 +40,14 @@ fn main() {
     let _ = x!().map_or(false, |n| n == vec![1][0]);
 
     msrv_1_69();
+
+    external! {
+        let _ = Some(5).map_or(false, |n| n == 5);
+    }
+
+    with_span! {
+        let _ = Some(5).map_or(false, |n| n == 5);
+    }
 }
 
 #[clippy::msrv = "1.69.0"]
