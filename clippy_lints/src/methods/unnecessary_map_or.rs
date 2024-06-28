@@ -124,7 +124,7 @@ pub(super) fn check<'a>(
         cx,
         UNNECESSARY_MAP_OR,
         expr.span,
-        format!("this `map_or` is redundant"),
+        "this `map_or` is redundant",
         format!("use {method} instead"),
         sugg,
         Applicability::MachineApplicable,
