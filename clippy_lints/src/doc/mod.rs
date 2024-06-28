@@ -769,7 +769,12 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
             TaskListMarker(_) | Code(_) | Rule => (),
             FootnoteReference(text) | Text(text) => {
                 paragraph_range.end = range.end;
-                ticks_unbalanced |= text.contains('`') && !in_code;
+                let range_ = range.clone();
+                ticks_unbalanced |= text.contains('`')
+                    && !in_code
+                    && doc[range.clone()].bytes().enumerate().any(|(i, c)| {
+                        c == b'`' && (range_.start + i == 0 || doc.as_bytes().get(range_.start + i - 1) != Some(&b'\\'))
+                    });
                 if Some(&text) == in_link.as_ref() || ticks_unbalanced {
                     // Probably a link of the form `<http://example.com>`
                     // Which are represented as a link to "http://example.com" with
