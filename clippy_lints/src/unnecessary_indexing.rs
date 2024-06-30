@@ -75,53 +75,65 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryIndexing {
                             if_expr.cond.span,
                             "consider using if..let syntax (variable may need to be dereferenced)",
                             format!(
-                                "let Some({}) = {}.first()",
+                                "let Some({}{}) = {}.first()",
+                                // if we arent borrowing anything then we can pass a reference here for correctness
+                                if r.extra_exprs_borrow.is_empty() { "&" } else { "" },
                                 snippet(cx, first_local.pat.span, ".."),
                                 snippet(cx, receiver.span, "..")
                             ),
                             Applicability::Unspecified,
                         );
                         diag.span_suggestion(first_local.span, "remove this line", "", Applicability::Unspecified);
-                        if !r.extra_exprs.is_empty() {
-                            let extra_local_suggestions = r
-                                .extra_exprs
+                        if !r.extra_exprs_borrow.is_empty() {
+                            let mut index_accesses = r
+                                .extra_exprs_borrow
                                 .iter()
-                                .filter_map(|x| {
-                                    if let ExprKind::Let(l) = x.kind {
-                                        Some((l.init.span, snippet(cx, first_local.pat.span, "..").to_string()))
-                                    } else {
-                                        None
-                                    }
-                                })
+                                .map(|x| (x.span, snippet(cx, first_local.pat.span, "..").to_string()))
                                 .collect::<Vec<_>>();
 
-                            if !extra_local_suggestions.is_empty() {
-                                diag.multipart_suggestion(
-                                    "initialize this variable to be the `Some` variant (may need dereferencing)",
-                                    extra_local_suggestions,
-                                    Applicability::Unspecified,
-                                );
-                            }
-                        }
-                        if !r.extra_exprs.is_empty() {
+                            index_accesses.extend(
+                                r.extra_exprs_copy
+                                    .iter()
+                                    .map(|x| (x.span, snippet(cx, first_local.pat.span, "..").to_string())),
+                            );
+
+                            diag.multipart_suggestion(
+                                "set this indexing to be the `Some` variant (may need dereferencing)",
+                                index_accesses,
+                                Applicability::Unspecified,
+                            );
+                        } else if !r.extra_exprs_copy.is_empty() {
                             let index_accesses = r
-                                .extra_exprs
+                                .extra_exprs_copy
                                 .iter()
                                 .map(|x| (x.span, snippet(cx, first_local.pat.span, "..").to_string()))
                                 .collect::<Vec<_>>();
 
                             diag.multipart_suggestion(
-                                "set this index to be the `Some` variant (may need dereferencing)",
+                                "set this indexing to be the `Some` variant",
                                 index_accesses,
                                 Applicability::Unspecified,
                             );
                         }
+                    } else if r.extra_exprs_borrow.is_empty() {
+                        let mut index_accesses = vec![(
+                            if_expr.cond.span,
+                            format!("let Some(&element) = {}.first()", snippet(cx, receiver.span, "..")),
+                        )];
+                        index_accesses.extend(r.extra_exprs_copy.iter().map(|x| (x.span, "element".to_owned())));
+
+                        diag.multipart_suggestion(
+                            "consider using if..let syntax",
+                            index_accesses,
+                            Applicability::Unspecified,
+                        );
                     } else {
                         let mut index_accesses = vec![(
                             if_expr.cond.span,
                             format!("let Some(element) = {}.first()", snippet(cx, receiver.span, "..")),
                         )];
-                        index_accesses.extend(r.extra_exprs.iter().map(|x| (x.span, "element".to_owned())));
+                        index_accesses.extend(r.extra_exprs_borrow.iter().map(|x| (x.span, "element".to_owned())));
+                        index_accesses.extend(r.extra_exprs_copy.iter().map(|x| (x.span, "element".to_owned())));
 
                         diag.multipart_suggestion(
                             "consider using if..let syntax (variable may need to be dereferenced)",
@@ -141,7 +153,10 @@ struct IndexCheckResult<'a> {
     // first local in the block - used as pattern for `Some(pat)`
     first_local: Option<&'a LetStmt<'a>>,
     // any other index expressions to replace with `pat` (or "element" if no local exists)
-    extra_exprs: Vec<&'a Expr<'a>>,
+    extra_exprs_borrow: Vec<&'a Expr<'a>>,
+    // copied extra index expressions: if we only have these and no borrows we can provide a correct suggestion of `let
+    // Some(&a) = ...`
+    extra_exprs_copy: Vec<&'a Expr<'a>>,
 }
 
 /// Checks the block for any indexing of the conditional receiver. Returns `None` if the block
@@ -153,13 +168,13 @@ fn process_indexing<'a>(
 ) -> Option<IndexCheckResult<'a>> {
     let mut index_receiver: Option<&Expr<'_>> = None;
     let mut first_local: Option<&LetStmt<'_>> = None;
-    let mut extra_exprs: Vec<&Expr<'_>> = vec![];
+    let mut extra_exprs_borrow: Vec<&Expr<'_>> = vec![];
+    let mut extra_exprs_copy: Vec<&Expr<'_>> = vec![];
 
     // if res == Some(()), then mutation occurred
     // & therefore we should not lint on this
     let res = for_each_expr(cx, block.stmts, |x| {
         let adjustments = cx.typeck_results().expr_adjustments(x);
-
         if let ExprKind::Index(receiver, index, _) = x.kind
             && let ExprKind::Lit(lit) = index.kind
             && let LitKind::Int(val, _) = lit.node
@@ -170,11 +185,16 @@ fn process_indexing<'a>(
             if let Node::LetStmt(local) = cx.tcx.parent_hir_node(x.hir_id) {
                 if first_local.is_none() {
                     first_local = Some(local);
-                } else {
-                    extra_exprs.push(x);
+                    return ControlFlow::Continue::<()>(());
                 };
+            }
+
+            if let Node::Expr(x) = cx.tcx.parent_hir_node(x.hir_id)
+                && let ExprKind::AddrOf(_, _, _) = x.kind
+            {
+                extra_exprs_borrow.push(x);
             } else {
-                extra_exprs.push(x);
+                extra_exprs_copy.push(x);
             };
         } else if adjustments.iter().any(|adjustment| {
             matches!(
@@ -194,6 +214,7 @@ fn process_indexing<'a>(
     res.is_none().then_some(IndexCheckResult {
         index_receiver,
         first_local,
-        extra_exprs,
+        extra_exprs_borrow,
+        extra_exprs_copy,
     })
 }

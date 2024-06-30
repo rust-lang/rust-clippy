@@ -8,9 +8,9 @@ LL | |     }
    |
    = note: `-D clippy::unnecessary-indexing` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_indexing)]`
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using if..let syntax
    |
-LL ~     if let Some(element) = a.first() {
+LL ~     if let Some(&element) = a.first() {
 LL ~         let b = c(element);
    |
 
@@ -22,9 +22,9 @@ LL | |         let b = Struct::a(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using if..let syntax
    |
-LL ~     if let Some(element) = a.first() {
+LL ~     if let Some(&element) = a.first() {
 LL ~         let b = Struct::a(element);
    |
 
@@ -36,9 +36,9 @@ LL | |         let b = c(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using if..let syntax
    |
-LL ~     if let Some(element) = a.first() {
+LL ~     if let Some(&element) = a.first() {
 LL ~         let b = c(element);
    |
 
@@ -50,9 +50,9 @@ LL | |         let b = Struct::a(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using if..let syntax
    |
-LL ~     if let Some(element) = a.first() {
+LL ~     if let Some(&element) = a.first() {
 LL ~         let b = Struct::a(element);
    |
 
@@ -66,8 +66,8 @@ LL | |     }
    |
 help: consider using if..let syntax (variable may need to be dereferenced)
    |
-LL |     if let Some(b) = a.first() {
-   |        ~~~~~~~~~~~~~~~~~~~~~~~
+LL |     if let Some(&b) = a.first() {
+   |        ~~~~~~~~~~~~~~~~~~~~~~~~
 help: remove this line
    |
 LL -         let b = a[0];
@@ -84,8 +84,8 @@ LL | |     }
    |
 help: consider using if..let syntax (variable may need to be dereferenced)
    |
-LL |     if let Some(b) = a.first() {
-   |        ~~~~~~~~~~~~~~~~~~~~~~~
+LL |     if let Some(&b) = a.first() {
+   |        ~~~~~~~~~~~~~~~~~~~~~~~~
 help: remove this line
    |
 LL -         let b = a[0];
@@ -103,8 +103,8 @@ LL | |     }
    |
 help: consider using if..let syntax (variable may need to be dereferenced)
    |
-LL |     if let Some(b) = a.first() {
-   |        ~~~~~~~~~~~~~~~~~~~~~~~
+LL |     if let Some(&b) = a.first() {
+   |        ~~~~~~~~~~~~~~~~~~~~~~~~
 help: remove this line
    |
 LL -         let b = a[0];
@@ -116,7 +116,7 @@ error: condition can be simplified with if..let syntax
    |
 LL | /     if !a.is_empty() {
 LL | |         dbg!(a);
-LL | |         let b = a[0];
+LL | |         let b = &a[0];
 LL | |         let c = a[0];
 LL | |         drop(a[0]);
 LL | |     }
@@ -124,17 +124,18 @@ LL | |     }
    |
 help: consider using if..let syntax (variable may need to be dereferenced)
    |
-LL |     if let Some(b) = a.first() {
+LL |     if let Some(c) = a.first() {
    |        ~~~~~~~~~~~~~~~~~~~~~~~
 help: remove this line
    |
-LL -         let b = a[0];
+LL -         let c = a[0];
 LL +         
    |
-help: set this index to be the `Some` variant (may need dereferencing)
+help: set this indexing to be the `Some` variant (may need dereferencing)
    |
-LL ~         let c = b;
-LL ~         drop(b);
+LL ~         let b = c;
+LL |         let c = a[0];
+LL ~         drop(c);
    |
 
 error: condition can be simplified with if..let syntax
@@ -147,9 +148,9 @@ LL | |         drop(a[0]);
 LL | |     }
    | |_____^
    |
-help: consider using if..let syntax (variable may need to be dereferenced)
+help: consider using if..let syntax
    |
-LL ~     if let Some(element) = a.first() {
+LL ~     if let Some(&element) = a.first() {
 LL |         dbg!(a);
 LL ~         drop(element);
 LL ~         drop(element);

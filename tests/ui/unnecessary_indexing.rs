@@ -65,7 +65,7 @@ fn main() {
     let a: &[i32] = &[1];
     if !a.is_empty() {
         dbg!(a);
-        let b = a[0];
+        let b = &a[0];
         let c = a[0];
         drop(a[0]);
     }
