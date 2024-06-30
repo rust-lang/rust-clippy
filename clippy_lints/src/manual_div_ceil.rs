@@ -10,6 +10,7 @@ use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self};
 use rustc_session::impl_lint_pass;
+use rustc_span::symbol::Symbol;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -60,8 +61,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
         let mut applicability = Applicability::MachineApplicable;
 
         if let ExprKind::Binary(div_op, div_lhs, div_rhs) = expr.kind
-            && check_int_ty(cx, div_lhs)
-            && check_int_ty(cx, div_rhs)
+            && check_int_ty_and_feature(cx, div_lhs)
+            && check_int_ty_and_feature(cx, div_rhs)
             && div_op.node == BinOpKind::Div
         {
             // (x + (y - 1)) / y
@@ -104,9 +105,18 @@ impl<'tcx> LateLintPass<'tcx> for ManualDivCeil {
     extract_msrv_attr!(LateContext);
 }
 
-fn check_int_ty(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+fn check_int_ty_and_feature(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     let expr_ty = cx.typeck_results().expr_ty(expr);
-    matches!(expr_ty.peel_refs().kind(), ty::Int(_) | ty::Uint(_))
+    match expr_ty.peel_refs().kind() {
+        ty::Uint(_) => true,
+        ty::Int(_) => cx
+            .tcx
+            .features()
+            .declared_features
+            .contains(&Symbol::intern("int_roundings")),
+
+        _ => false,
+    }
 }
 
 fn check_literal(expr: &Expr<'_>) -> bool {

@@ -1,25 +1,30 @@
 #![warn(clippy::manual_div_ceil)]
-#![feature(int_roundings)]
 
 fn main() {
-    let x = 7_i32;
-    let y = 4_i32;
-    let z_u: u32 = 11;
+    let x = 7_u32;
+    let y = 4_u32;
+    let z = 11_u32;
 
     // Lint.
     let _ = (x + (y - 1)) / y;
     let _ = ((y - 1) + x) / y;
     let _ = (x + y - 1) / y;
 
-    let _ = (7_i32 + (4 - 1)) / 4;
-
-    let _ = (z_u as i32 + (y - 1)) / y;
-    let _ = (7_u32 as i32 + (y - 1)) / y;
+    let _ = (7_u32 + (4 - 1)) / 4;
+    let _ = (7_i32 as u32 + (4 - 1)) / 4;
 
     // No lint.
     let _ = (x + (y - 2)) / y;
     let _ = (x + (y + 1)) / y;
 
-    let z = 3_i32;
     let _ = (x + (y - 1)) / z;
+
+    let x_i = 7_i32;
+    let y_i = 4_i32;
+    let z_i = 11_i32;
+
+    // No lint because `int_roundings` feature is not enabled.
+    let _ = (z as i32 + (y_i - 1)) / y_i;
+    let _ = (7_u32 as i32 + (y_i - 1)) / y_i;
+    let _ = (7_u32 as i32 + (4 - 1)) / 4;
 }
