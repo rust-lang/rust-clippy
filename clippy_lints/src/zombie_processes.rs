@@ -263,7 +263,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: Hi
 fn is_last_node_in_main(cx: &LateContext<'_>, id: HirId) -> bool {
     let hir = cx.tcx.hir();
     let body_owner = hir.enclosing_body_owner(id);
-    let enclosing_body = hir.body(hir.body_owned_by(body_owner));
+    let enclosing_body = hir.body_owned_by(body_owner);
 
     if let Some((main_def_id, _)) = cx.tcx.entry_fn(())
         && main_def_id == body_owner.to_def_id()

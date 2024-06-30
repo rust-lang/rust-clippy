@@ -19,3 +19,7 @@ fn not_main() {
 fn spawn_proc() -> Child {
     Command::new("").spawn().unwrap()
 }
+
+fn spawn_proc_2() -> Child {
+    return Command::new("").spawn().unwrap();
+}

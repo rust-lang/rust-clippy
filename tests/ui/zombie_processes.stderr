@@ -1,5 +1,5 @@
 error: spawned process is never `wait()`ed on
-  --> tests/ui/zombie_processes.rs:15:21
+  --> tests/ui/zombie_processes.rs:14:21
    |
 LL |         let mut x = Command::new("").spawn().unwrap();
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -11,7 +11,7 @@ LL |         let mut x = Command::new("").spawn().unwrap();
    = help: to override `-D warnings` add `#[allow(clippy::zombie_processes)]`
 
 error: spawned process is never `wait()`ed on
-  --> tests/ui/zombie_processes.rs:42:21
+  --> tests/ui/zombie_processes.rs:41:21
    |
 LL |         let mut x = Command::new("").spawn().unwrap();
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -21,7 +21,7 @@ LL |         let mut x = Command::new("").spawn().unwrap();
    = note: see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
 
 error: spawned process is never `wait()`ed on
-  --> tests/ui/zombie_processes.rs:67:21
+  --> tests/ui/zombie_processes.rs:66:21
    |
 LL |         let mut x = Command::new("").spawn().unwrap();
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ LL |         let mut x = Command::new("").spawn().unwrap();
    = note: see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
 
 error: spawned process is never `wait()`ed on
-  --> tests/ui/zombie_processes.rs:74:21
+  --> tests/ui/zombie_processes.rs:73:21
    |
 LL |         let mut x = Command::new("").spawn().unwrap();
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -41,7 +41,7 @@ LL |         let mut x = Command::new("").spawn().unwrap();
    = note: see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
 
 error: spawned process is never `wait()`ed on
-  --> tests/ui/zombie_processes.rs:100:21
+  --> tests/ui/zombie_processes.rs:99:21
    |
 LL |         let mut x = Command::new("").spawn().unwrap();
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -51,7 +51,7 @@ LL |         let mut x = Command::new("").spawn().unwrap();
    = note: see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning
 
 error: spawned process is never `wait()`ed on
-  --> tests/ui/zombie_processes.rs:109:21
+  --> tests/ui/zombie_processes.rs:108:21
    |
 LL |         let mut x = Command::new("").spawn().unwrap();
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,5 +1,4 @@
 #![warn(clippy::zombie_processes)]
-#![feature(lint_reasons)]
 #![allow(clippy::if_same_then_else, clippy::ifs_same_cond)]
 
 use std::process::{Child, Command};
