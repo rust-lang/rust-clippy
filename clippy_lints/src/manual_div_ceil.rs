@@ -1,6 +1,7 @@
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::sugg::Sugg;
 use clippy_utils::SpanlessEq;
 use rustc_ast::{BinOpKind, LitKind};
 use rustc_data_structures::packed::Pu128;
@@ -128,10 +129,10 @@ fn build_suggestion(
     rhs: &Expr<'_>,
     applicability: &mut Applicability,
 ) {
-    let dividend_snippet = snippet_with_applicability(cx, lhs.span.source_callsite(), "..", applicability);
+    let dividend_sugg = Sugg::hir_with_applicability(cx, lhs, "..", applicability).maybe_par();
     let divisor_snippet = snippet_with_applicability(cx, rhs.span.source_callsite(), "..", applicability);
 
-    let sugg = format!("{dividend_snippet}.div_ceil({divisor_snippet})");
+    let sugg = format!("{dividend_sugg}.div_ceil({divisor_snippet})");
 
     span_lint_and_sugg(
         cx,
