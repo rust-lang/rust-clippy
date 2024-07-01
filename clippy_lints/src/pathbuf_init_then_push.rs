@@ -151,8 +151,7 @@ impl<'tcx> LateLintPass<'tcx> for PathbufThenPush<'tcx> {
     }
 
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if self.searcher.is_none()
-            && let ExprKind::Assign(left, right, _) = expr.kind
+        if let ExprKind::Assign(left, right, _) = expr.kind
             && let ExprKind::Path(QPath::Resolved(None, path)) = left.kind
             && let [name] = &path.segments
             && let Res::Local(id) = path.res
