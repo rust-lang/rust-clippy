@@ -185,7 +185,7 @@ impl<'tcx> LateLintPass<'tcx> for PathbufThenPush<'tcx> {
         }
     }
 
-    fn check_block_post(&mut self, cx: &LateContext<'tcx>, _: &'tcx Block<'tcx>) {
+    fn check_block_post(&mut self, _: &LateContext<'tcx>, _: &'tcx Block<'tcx>) {
         self.searcher = None;
     }
 }
