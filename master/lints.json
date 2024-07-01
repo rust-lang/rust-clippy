@@ -4734,6 +4734,21 @@
     }
   },
   {
+    "id": "manual_rotate",
+    "id_span": {
+      "path": "src/manual_rotate.rs",
+      "line": 37
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\n\nIt detects manual bit rotations that could be rewritten using standard\nfunctions `rotate_left` or `rotate_right`.\n\n### Why is this bad?\n\nCalling the function better conveys the intent.\n\n### Known issues\n\nCurrently, the lint only catches shifts by constant amount.\n\n### Example\n```rust\nlet x = 12345678_u32;\nlet _ = (x >> 8) | (x << 24);\n```\nUse instead:\n```rust\nlet x = 12345678_u32;\nlet _ = x.rotate_right(8);\n```",
+    "version": "1.81.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    }
+  },
+  {
     "id": "manual_saturating_arithmetic",
     "id_span": {
       "path": "src/methods/mod.rs",
