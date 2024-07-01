@@ -16,10 +16,13 @@ declare_clippy_lint! {
     /// Checks for calls to `push` immediately after creating a new `PathBuf`.
     ///
     /// ### Why is this bad?
-    /// The `.join()` is easier to read than multiple `push` calls.
+    /// Multiple `.join()` calls are usually easier to read than multiple `.push`
+    /// calls across multiple statements. It might also be possible to use
+    /// `PathBuf::from` instead.
     ///
     /// ### Known problems
-    /// `.join()` introduces an implicit `clone()`
+    /// `.join()` introduces an implicit `clone()`. `PathBuf::from` can alternativly be
+    /// used when the `PathBuf` is newly constructed. This will avoild the implicit clone.
     ///
     /// ### Example
     /// ```rust
