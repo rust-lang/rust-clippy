@@ -204,7 +204,7 @@
     "id": "assertions_on_constants",
     "id_span": {
       "path": "src/assertions_on_constants.rs",
-      "line": 25
+      "line": 26
     },
     "group": "style",
     "level": "warn",
@@ -6557,7 +6557,7 @@
     "id": "no_effect",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 32
+      "line": 34
     },
     "group": "complexity",
     "level": "warn",
@@ -6587,7 +6587,7 @@
     "id": "no_effect_underscore_binding",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 51
+      "line": 53
     },
     "group": "pedantic",
     "level": "allow",
@@ -10205,7 +10205,7 @@
     "id": "unnecessary_operation",
     "id_span": {
       "path": "src/no_effect.rs",
-      "line": 70
+      "line": 72
     },
     "group": "complexity",
     "level": "warn",
