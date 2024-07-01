@@ -980,7 +980,7 @@
     "id": "cmp_owned",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 551
+      "line": 565
     },
     "group": "perf",
     "level": "warn",
@@ -1610,7 +1610,7 @@
     "id": "double_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 297
+      "line": 311
     },
     "group": "complexity",
     "level": "warn",
@@ -1745,7 +1745,7 @@
     "id": "duration_subsec",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 366
+      "line": 380
     },
     "group": "complexity",
     "level": "warn",
@@ -1955,7 +1955,7 @@
     "id": "eq_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 398
+      "line": 412
     },
     "group": "correctness",
     "level": "deny",
@@ -1985,7 +1985,7 @@
     "id": "erasing_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 444
+      "line": 458
     },
     "group": "correctness",
     "level": "deny",
@@ -2499,7 +2499,7 @@
     "id": "float_cmp",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 588
+      "line": 602
     },
     "group": "pedantic",
     "level": "allow",
@@ -2514,7 +2514,7 @@
     "id": "float_cmp_const",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 623
+      "line": 637
     },
     "group": "restriction",
     "level": "allow",
@@ -2529,7 +2529,7 @@
     "id": "float_equality_without_abs",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 477
+      "line": 491
     },
     "group": "suspicious",
     "level": "warn",
@@ -2844,7 +2844,7 @@
     "id": "identity_op",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 496
+      "line": 510
     },
     "group": "complexity",
     "level": "warn",
@@ -3084,7 +3084,7 @@
     "id": "impossible_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 316
+      "line": 330
     },
     "group": "correctness",
     "level": "deny",
@@ -3189,11 +3189,11 @@
     "id": "ineffective_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 246
+      "line": 253
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for bit masks in comparisons which can be removed\nwithout changing the outcome. The basic structure can be seen in the\nfollowing table:\n\n|Comparison| Bit Op   |Example     |equals |\n|----------|----------|------------|-------|\n|`>` / `<=`|`\\|` / `^`|`x \\| 2 > 3`|`x > 3`|\n|`<` / `>=`|`\\|` / `^`|`x ^ 1 < 4` |`x < 4`|\n\n### Why is this bad?\nNot equally evil as [`bad_bit_mask`](#bad_bit_mask),\nbut still a bit misleading, because the bit mask is ineffective.\n\n### Known problems\nFalse negatives: This lint will only match instances\nwhere we have figured out the math (which is for a power-of-two compared\nvalue). This means things like `x | 1 >= 7` (which would be better written\nas `x >= 6`) will not be reported (but bit masks like this are fairly\nuncommon).\n\n### Example\n```rust\nif (x | 1 > 3) {  }\n```",
+    "docs": "\n### What it does\nChecks for bit masks in comparisons which can be removed\nwithout changing the outcome. The basic structure can be seen in the\nfollowing table:\n\n|Comparison| Bit Op   |Example     |equals |\n|----------|----------|------------|-------|\n|`>` / `<=`|`\\|` / `^`|`x \\| 2 > 3`|`x > 3`|\n|`<` / `>=`|`\\|` / `^`|`x ^ 1 < 4` |`x < 4`|\n\n### Why is this bad?\nNot equally evil as [`bad_bit_mask`](#bad_bit_mask),\nbut still a bit misleading, because the bit mask is ineffective.\n\n### Known problems\nFalse negatives: This lint will only match instances\nwhere we have figured out the math (which is for a power-of-two compared\nvalue). This means things like `x | 1 >= 7` (which would be better written\nas `x >= 6`) will not be reported (but bit masks like this are fairly\nuncommon).\n\n### Example\n```rust\nif (x | 1 > 3) {  }\n```\n\nUse instead:\n\n```rust\nif (x >= 2) {  }\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
@@ -3414,7 +3414,7 @@
     "id": "integer_division",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 522
+      "line": 536
     },
     "group": "restriction",
     "level": "allow",
@@ -5726,7 +5726,7 @@
     "id": "modulo_arithmetic",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 669
+      "line": 683
     },
     "group": "restriction",
     "level": "allow",
@@ -5741,7 +5741,7 @@
     "id": "modulo_one",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 647
+      "line": 661
     },
     "group": "correctness",
     "level": "deny",
@@ -5996,7 +5996,7 @@
     "id": "needless_bitwise_bool",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 698
+      "line": 712
     },
     "group": "pedantic",
     "level": "allow",
@@ -6833,7 +6833,7 @@
     "id": "op_ref",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 422
+      "line": 436
     },
     "group": "style",
     "level": "warn",
@@ -7376,7 +7376,7 @@
     "id": "ptr_eq",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 727
+      "line": 741
     },
     "group": "style",
     "level": "warn",
@@ -7799,7 +7799,7 @@
     "id": "redundant_comparisons",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 336
+      "line": 350
     },
     "group": "correctness",
     "level": "deny",
@@ -8342,7 +8342,7 @@
     "id": "self_assignment",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 766
+      "line": 780
     },
     "group": "correctness",
     "level": "deny",
@@ -10965,11 +10965,11 @@
     "id": "verbose_bit_mask",
     "id_span": {
       "path": "src/operators/mod.rs",
-      "line": 269
+      "line": 283
     },
     "group": "pedantic",
     "level": "allow",
-    "docs": "\n### What it does\nChecks for bit masks that can be replaced by a call\nto `trailing_zeros`\n\n### Why is this bad?\n`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`\n\n### Known problems\nllvm generates better code for `x & 15 == 0` on x86\n\n### Example\n```rust\nif x & 0b1111 == 0 { }\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `verbose-bit-mask-threshold`: The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros' (default: `1`)",
+    "docs": "\n### What it does\nChecks for bit masks that can be replaced by a call\nto `trailing_zeros`\n\n### Why is this bad?\n`x.trailing_zeros() > 4` is much clearer than `x & 15\n== 0`\n\n### Known problems\nllvm generates better code for `x & 15 == 0` on x86\n\n### Example\n```rust\nif x & 0b1111 == 0 { }\n```\n\nUse instead:\n\n```rust\nif x.trailing_zeros() > 4 { }\n```\n\n### Configuration\nThis lint has the following configuration variables:\n\n- `verbose-bit-mask-threshold`: The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros' (default: `1`)",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
