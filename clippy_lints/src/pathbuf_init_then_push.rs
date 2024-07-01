@@ -60,7 +60,7 @@ struct PathbufPushSearcher<'tcx> {
 
 impl<'tcx> PathbufPushSearcher<'tcx> {
     /// Try to generate a suggestion with `PathBuf::from`.
-    /// Returns `None` if the suggestion would be invalid. 
+    /// Returns `None` if the suggestion would be invalid.
     fn gen_pathbuf_from(&self, cx: &LateContext<'_>) -> Option<String> {
         if let ExprKind::Call(iter_expr, []) = &self.init_val.kind
             && let ExprKind::Path(QPath::TypeRelative(ty, segment)) = &iter_expr.kind
