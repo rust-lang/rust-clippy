@@ -1,5 +1,5 @@
 error: an array of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:26:5
+  --> tests/ui/single_range_in_vec_init.rs:30:5
    |
 LL |     [0..200];
    |     ^^^^^^^^
@@ -16,7 +16,7 @@ LL |     [0; 200];
    |      ~~~~~~
 
 error: a `Vec` of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:27:5
+  --> tests/ui/single_range_in_vec_init.rs:31:5
    |
 LL |     vec![0..200];
    |     ^^^^^^^^^^^^
@@ -31,7 +31,7 @@ LL |     vec![0; 200];
    |          ~~~~~~
 
 error: an array of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:28:5
+  --> tests/ui/single_range_in_vec_init.rs:32:5
    |
 LL |     [0u8..200];
    |     ^^^^^^^^^^
@@ -46,7 +46,7 @@ LL |     [0u8; 200];
    |      ~~~~~~~~
 
 error: an array of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:29:5
+  --> tests/ui/single_range_in_vec_init.rs:33:5
    |
 LL |     [0usize..200];
    |     ^^^^^^^^^^^^^
@@ -61,7 +61,7 @@ LL |     [0usize; 200];
    |      ~~~~~~~~~~~
 
 error: an array of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:30:5
+  --> tests/ui/single_range_in_vec_init.rs:34:5
    |
 LL |     [0..200usize];
    |     ^^^^^^^^^^^^^
@@ -76,7 +76,7 @@ LL |     [0; 200usize];
    |      ~~~~~~~~~~~
 
 error: a `Vec` of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:31:5
+  --> tests/ui/single_range_in_vec_init.rs:35:5
    |
 LL |     vec![0u8..200];
    |     ^^^^^^^^^^^^^^
@@ -91,7 +91,7 @@ LL |     vec![0u8; 200];
    |          ~~~~~~~~
 
 error: a `Vec` of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:32:5
+  --> tests/ui/single_range_in_vec_init.rs:36:5
    |
 LL |     vec![0usize..200];
    |     ^^^^^^^^^^^^^^^^^
@@ -106,7 +106,7 @@ LL |     vec![0usize; 200];
    |          ~~~~~~~~~~~
 
 error: a `Vec` of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:33:5
+  --> tests/ui/single_range_in_vec_init.rs:37:5
    |
 LL |     vec![0..200usize];
    |     ^^^^^^^^^^^^^^^^^
@@ -121,7 +121,7 @@ LL |     vec![0; 200usize];
    |          ~~~~~~~~~~~
 
 error: an array of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:35:5
+  --> tests/ui/single_range_in_vec_init.rs:39:5
    |
 LL |     [0..200isize];
    |     ^^^^^^^^^^^^^
@@ -132,7 +132,7 @@ LL |     (0..200isize).collect::<std::vec::Vec<isize>>();
    |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error: a `Vec` of `Range` that is only one element
-  --> tests/ui/single_range_in_vec_init.rs:36:5
+  --> tests/ui/single_range_in_vec_init.rs:40:5
    |
 LL |     vec![0..200isize];
    |     ^^^^^^^^^^^^^^^^^
@@ -142,5 +142,24 @@ help: if you wanted a `Vec` that contains the entire range, try
 LL |     (0..200isize).collect::<std::vec::Vec<isize>>();
    |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-error: aborting due to 10 previous errors
+error: a `Vec` of `Range` that is only one element
+  --> tests/ui/single_range_in_vec_init.rs:42:13
+   |
+LL |     let x = vec![0..200];
+   |             ^^^^^^^^^^^^
+   |
+help: if you wanted a `Vec` that contains the entire range, try
+   |
+LL |     let x = (0..200).collect::<std::vec::Vec<i32>>();
+   |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+help: if you wanted a `Vec` of len 200, try
+   |
+LL |     let x = vec![0; 200];
+   |                  ~~~~~~
+help: if this is intended, give it type annotations
+   |
+LL |     let x: std::vec::Vec<std::ops::Range<i32>> = vec![0..200];
+   |          +++++++++++++++++++++++++++++++++++++
+
+error: aborting due to 11 previous errors
 
