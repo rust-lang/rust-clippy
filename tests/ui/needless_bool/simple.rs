@@ -5,7 +5,8 @@
     clippy::no_effect,
     clippy::if_same_then_else,
     clippy::needless_return,
-    clippy::branches_sharing_code
+    clippy::branches_sharing_code,
+    clippy::manual_and
 )]
 
 fn main() {
@@ -25,7 +26,7 @@ fn main() {
         x
     } else {
         false
-    }; // would also be questionable, but we don't catch this yet
+    };
     bool_ret(x);
     bool_ret2(x);
 }

@@ -207,16 +207,13 @@ fn ty_allowed_with_raw_pointer_heuristic<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'t
             .all(|ty| ty_allowed_with_raw_pointer_heuristic(cx, ty, send_trait)),
         ty::Array(ty, _) | ty::Slice(ty) => ty_allowed_with_raw_pointer_heuristic(cx, *ty, send_trait),
         ty::Adt(_, args) => {
-            if contains_pointer_like(cx, ty) {
+            contains_pointer_like(cx, ty)
                 // descends only if ADT contains any raw pointers
-                args.iter().all(|generic_arg| match generic_arg.unpack() {
+                && args.iter().all(|generic_arg| match generic_arg.unpack() {
                     GenericArgKind::Type(ty) => ty_allowed_with_raw_pointer_heuristic(cx, ty, send_trait),
                     // Lifetimes and const generics are not solid part of ADT and ignored
                     GenericArgKind::Lifetime(_) | GenericArgKind::Const(_) => true,
                 })
-            } else {
-                false
-            }
         },
         // Raw pointers are `!Send` but allowed by the heuristic
         ty::RawPtr(_, _) => true,
