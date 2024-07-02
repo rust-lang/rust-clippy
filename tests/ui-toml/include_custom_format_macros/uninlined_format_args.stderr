@@ -1,0 +1,40 @@
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/include_custom_format_macros/uninlined_format_args.rs:73:5
+   |
+LL |     println!("val='{}'", local_i32);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::uninlined-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::uninlined_format_args)]`
+help: change this to
+   |
+LL -     println!("val='{}'", local_i32);
+LL +     println!("val='{local_i32}'");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/include_custom_format_macros/uninlined_format_args.rs:77:5
+   |
+LL |     my_good_macro!("{}", local_i32);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     my_good_macro!("{}", local_i32);
+LL +     my_good_macro!("{local_i32}");
+   |
+
+error: variables can be used directly in the `format!` string
+  --> tests/ui-toml/include_custom_format_macros/uninlined_format_args.rs:78:5
+   |
+LL |     my_good_macro!("{}", local_i32,);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: change this to
+   |
+LL -     my_good_macro!("{}", local_i32,);
+LL +     my_good_macro!("{local_i32}",);
+   |
+
+error: aborting due to 3 previous errors
+

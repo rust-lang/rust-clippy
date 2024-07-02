@@ -642,6 +642,11 @@ define_Conf! {
     ///
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     (warn_unsafe_macro_metavars_in_private_macros: bool = false),
+    /// Lint: FORMAT_IN_FORMAT_ARGS, RECURSIVE_FORMAT_IMPL, TO_STRING_IN_FORMAT_ARGS, UNINLINED_FORMAT_ARGS, UNUSED_FORMAT_SPECS.
+    ///
+    /// Recognize all macros that internally use `format_args!` and similar macros
+    /// as format macros, instead of just the ones in the standard library.
+    (include_custom_format_macros: bool = false),
 }
 
 /// Search for the configuration file.

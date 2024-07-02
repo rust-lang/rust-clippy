@@ -567,6 +567,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
         excessive_nesting_threshold,
         future_size_threshold,
         ref ignore_interior_mutability,
+        include_custom_format_macros,
         large_error_threshold,
         literal_representation_threshold,
         matches_for_let_else,
@@ -855,7 +856,12 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_early_pass(|| Box::new(reference::DerefAddrOf));
     store.register_early_pass(|| Box::new(double_parens::DoubleParens));
     let format_args = format_args_storage.clone();
-    store.register_late_pass(move |_| Box::new(format_impl::FormatImpl::new(format_args.clone())));
+    store.register_late_pass(move |_| {
+        Box::new(format_impl::FormatImpl::new(
+            format_args.clone(),
+            include_custom_format_macros,
+        ))
+    });
     store.register_early_pass(|| Box::new(unsafe_removed_from_name::UnsafeNameRemoval));
     store.register_early_pass(|| Box::new(else_if_without_else::ElseIfWithoutElse));
     store.register_early_pass(|| Box::new(int_plus_one::IntPlusOne));
@@ -987,6 +993,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
             format_args.clone(),
             msrv(),
             allow_mixed_uninlined_format_args,
+            include_custom_format_macros,
         ))
     });
     store.register_late_pass(|_| Box::new(trailing_empty_array::TrailingEmptyArray));
