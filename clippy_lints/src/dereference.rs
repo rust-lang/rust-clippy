@@ -175,6 +175,7 @@ struct StateData<'tcx> {
     adjusted_ty: Ty<'tcx>,
 }
 
+#[derive(Debug)]
 struct DerefedBorrow {
     count: usize,
     msg: &'static str,
@@ -182,6 +183,7 @@ struct DerefedBorrow {
     for_field_access: Option<Symbol>,
 }
 
+#[derive(Debug)]
 enum State {
     // Any number of deref method calls.
     DerefMethod {
@@ -744,7 +746,7 @@ fn in_postfix_position<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> boo
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 enum TyCoercionStability {
     Deref,
     Reborrow,
@@ -1042,16 +1044,28 @@ fn report<'tcx>(
                 return;
             }
 
-            let (prefix, precedence) = if let Some(mutability) = mutability
-                && !typeck.expr_ty(expr).is_ref()
+            let ty = typeck.expr_ty(expr);
+
+            // `&&[T; N]` cannot coerce to `&[T]`
+            if let ty::Ref(_, dest_ty, _) = data.adjusted_ty.kind()
+                && dest_ty.is_slice()
+                && let ty::Ref(_, ty, _) = ty.kind()
+                && let ty::Ref(_, ty, _) = ty.kind()
+                && ty.is_array()
             {
-                let prefix = match mutability {
-                    Mutability::Not => "&",
-                    Mutability::Mut => "&mut ",
-                };
-                (prefix, PREC_PREFIX)
-            } else {
-                ("", 0)
+                return;
+            }
+
+            let (prefix, precedence) = match mutability {
+                Some(mutability) if !ty.is_ref() => {
+                    let prefix = match mutability {
+                        Mutability::Not => "&",
+                        Mutability::Mut => "&mut ",
+                    };
+                    (prefix, PREC_PREFIX)
+                },
+                None if !ty.is_ref() && data.adjusted_ty.is_ref() => ("&", 0),
+                _ => ("", 0),
             };
             span_lint_hir_and_then(
                 cx,
