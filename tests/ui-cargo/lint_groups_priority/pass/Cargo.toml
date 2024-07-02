@@ -13,5 +13,6 @@ unsafe_code = "warn"
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 style = { level = "warn", priority = 1 }
+too_long_first_doc_paragraph = "allow"
 similar_names = "allow"
 dbg_macro = { level = "warn", priority = 2 }
