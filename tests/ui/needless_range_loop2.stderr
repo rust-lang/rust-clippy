@@ -4,6 +4,7 @@ error: the loop variable `i` is only used to index `ns`
 LL |     for i in 3..10 {
    |              ^^^^^
    |
+   = note: suggestion might skip expected iterations if `ns.iter().count()` is less than `3` or `10`
    = note: `-D clippy::needless-range-loop` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
 help: consider using an iterator
@@ -39,6 +40,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in x..x + 4 {
    |              ^^^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `x` or `x + 4`
 help: consider using an iterator
    |
 LL |     for <item> in vec.iter_mut().skip(x).take(4) {
@@ -50,6 +52,7 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in x..=x + 4 {
    |              ^^^^^^^^^
    |
+   = note: suggestion might skip expected iterations if `vec.iter().count()` is less than `x` or `x + 4 + 1`
 help: consider using an iterator
    |
 LL |     for <item> in vec.iter_mut().skip(x).take(4 + 1) {
