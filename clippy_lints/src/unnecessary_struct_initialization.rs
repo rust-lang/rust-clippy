@@ -63,11 +63,11 @@ impl LateLintPass<'_> for UnnecessaryStruct {
                 // all fields match, no base given
                 path.span
             },
-            (Some(path), Some(base)) if base_is_suitable(cx, expr, base) && path_matches_base(path, base) => {
+            (Some(path), Some(base)) if base_is_suitable(cx, expr, fields, base) && path_matches_base(path, base) => {
                 // all fields match, has base: ensure that the path of the base matches
                 base.span
             },
-            (None, Some(base)) if fields.is_empty() && base_is_suitable(cx, expr, base) => {
+            (None, Some(base)) if fields.is_empty() && base_is_suitable(cx, expr, fields, base) => {
                 // just the base, no explicit fields
                 base.span
             },
@@ -86,8 +86,8 @@ impl LateLintPass<'_> for UnnecessaryStruct {
     }
 }
 
-fn base_is_suitable(cx: &LateContext<'_>, expr: &Expr<'_>, base: &Expr<'_>) -> bool {
-    if !check_references(cx, expr, base) {
+fn base_is_suitable(cx: &LateContext<'_>, expr: &Expr<'_>, expr_fields: &[ExprField<'_>], base: &Expr<'_>) -> bool {
+    if !check_references(cx, expr, expr_fields, base) {
         return false;
     }
 
@@ -147,7 +147,7 @@ fn same_path_in_all_fields<'tcx>(
     }
 
     if let Some((src_expr, src_path)) = found
-        && check_references(cx, expr, src_expr)
+        && check_references(cx, expr, fields, src_expr)
     {
         Some(src_path)
     } else {
@@ -165,14 +165,25 @@ fn is_mutable(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     }
 }
 
-fn check_references(cx: &LateContext<'_>, expr_a: &Expr<'_>, expr_b: &Expr<'_>) -> bool {
+fn check_references(
+    cx: &LateContext<'_>,
+    expr_a: &Expr<'_>,
+    expr_a_fields: &[ExprField<'_>],
+    expr_b: &Expr<'_>,
+) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr_a)
         && let parent_ty = cx.typeck_results().expr_ty_adjusted(parent)
         && parent_ty.is_any_ptr()
     {
-        if is_copy(cx, cx.typeck_results().expr_ty(expr_a)) && path_to_local(expr_b).is_some() {
-            // When the type implements `Copy`, a reference to the new struct works on the
-            // copy. Using the original would borrow it.
+        if expr_a_fields.iter().any(|f| {
+            let ExprKind::Field(expr_f, _) = f.expr.kind else {
+                return false;
+            };
+            is_copy(cx, cx.typeck_results().expr_ty(expr_f))
+        }) && path_to_local(expr_b).is_some()
+        {
+            // When any of the fields of the struct implements `Copy`, a reference to
+            // the new struct works on the copy. Using the original would borrow it.
             return false;
         }
 
