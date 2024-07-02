@@ -28,6 +28,7 @@ use rustc_span::{sym, Span};
 use std::ops::Range;
 use url::Url;
 
+mod doc_comment_double_space_linebreak;
 mod link_with_quotes;
 mod markdown;
 mod missing_headers;
@@ -420,6 +421,39 @@ declare_clippy_lint! {
     "require every line of a paragraph to be indented and marked"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    /// Detects doc comment linebreaks that use double spaces to separate lines, instead of back-slash (\).
+    ///
+    /// ### Why is this bad?
+    /// Double spaces, when used as doc comment linebreaks, can be difficult to see, and may
+    /// accidentally be removed during automatic formatting or manual refactoring. The use of a back-slash (\)
+    /// is clearer in this regard.
+    ///
+    /// ### Example
+    /// The two replacement dots in this example represent a double space.
+    /// ```no_run
+    /// /// This command takes two numbers as inputs and··
+    /// /// adds them together, and then returns the result.
+    /// fn add(l: i32, r: i32) -> i32 {
+    ///     l + r
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// /// This command takes two numbers as inputs and \
+    /// /// adds them together, and then returns the result.
+    /// fn add(l: i32, r: i32) -> i32 {
+    ///     l + r
+    /// }
+    /// ```
+    #[clippy::version = "1.80.0"]
+    pub DOC_COMMENT_DOUBLE_SPACE_LINEBREAK,
+    pedantic,
+    "double-space used for doc comment linebreak instead of `\\`"
+}
+
 #[derive(Clone)]
 pub struct Documentation {
     valid_idents: FxHashSet<String>,
@@ -447,6 +481,7 @@ impl_lint_pass!(Documentation => [
     SUSPICIOUS_DOC_COMMENTS,
     EMPTY_DOCS,
     DOC_LAZY_CONTINUATION,
+    DOC_COMMENT_DOUBLE_SPACE_LINEBREAK
 ]);
 
 impl<'tcx> LateLintPass<'tcx> for Documentation {
@@ -569,6 +604,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
     }
 
     suspicious_doc_comments::check(cx, attrs);
+    doc_comment_double_space_linebreak::check(cx, attrs);
 
     let (fragments, _) = attrs_to_doc_fragments(
         attrs.iter().filter_map(|attr| {
