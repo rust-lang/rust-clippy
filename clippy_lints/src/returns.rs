@@ -14,7 +14,7 @@ use rustc_hir::{
     Block, Body, Expr, ExprKind, FnDecl, HirId, ItemKind, LangItem, MatchSource, Node, OwnerNode, PatKind, QPath, Stmt,
     StmtKind,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, Level, LintContext};
 use rustc_middle::lint::in_external_macro;
 use rustc_middle::ty::adjustment::Adjust;
 use rustc_middle::ty::{self, GenericArgKind, Ty};
@@ -377,11 +377,25 @@ fn check_final_expr<'tcx>(
                 }
             };
 
-            if !cx.tcx.hir().attrs(expr.hir_id).is_empty() {
-                return;
-            }
             let borrows = inner.map_or(false, |inner| last_statement_borrows(cx, inner));
             if borrows {
+                return;
+            }
+            if ret_span.from_expansion() {
+                return;
+            }
+
+            // Returns may be used to turn an expression into a statement in rustc's AST.
+            // This allows the addition of attributes, like `#[allow]` (See: clippy#9361)
+            // However, this interacts very weirdly with `#[expect(clippy::needless_return)]`
+            // as adding that attribute will suppress the lint and then not fulfill the
+            // expectation. We'll therefore just manually mark the expectation.
+            match cx.tcx.lint_level_at_node(NEEDLESS_RETURN, expr.hir_id).0 {
+                Level::Allow => return,
+                Level::Expect(expectation) | Level::ForceWarn(Some(expectation)) => cx.fulfill_expectation(expectation),
+                _ => {},
+            }
+            if !cx.tcx.hir().attrs(expr.hir_id).is_empty() {
                 return;
             }
 
@@ -415,10 +429,6 @@ fn emit_return_lint(
     replacement: &RetReplacement<'_>,
     at: HirId,
 ) {
-    if ret_span.from_expansion() {
-        return;
-    }
-
     span_lint_hir_and_then(
         cx,
         NEEDLESS_RETURN,
