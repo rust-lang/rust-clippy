@@ -1,5 +1,7 @@
+//@aux-build:proc_macro_attr.rs
 #![warn(clippy::disallowed_types)]
 
+extern crate proc_macro_attr;
 extern crate quote;
 extern crate syn;
 
@@ -39,6 +41,10 @@ fn main() {
     let _ = syn::Ident::new("", todo!());
     let _ = HashMap;
     let _: usize = 64_usize;
+
+    // Lint should not report usage of std::collections::HashMap inside a foreign macro
+    #[proc_macro_attr::use_std_hash_map]
+    fn _foo() {}
 }
 
 mod useless_attribute {

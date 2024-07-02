@@ -1,3 +1,4 @@
+use crate::rustc_lint::LintContext;
 use clippy_config::types::DisallowedPath;
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_data_structures::fx::FxHashMap;
@@ -5,6 +6,7 @@ use rustc_hir::def::Res;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Item, ItemKind, PolyTraitRef, PrimTy, Ty, TyKind, UseKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::lint::in_external_macro;
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 
@@ -52,14 +54,16 @@ declare_clippy_lint! {
 #[derive(Clone, Debug)]
 pub struct DisallowedTypes {
     conf_disallowed: Vec<DisallowedPath>,
+    conf_lint_external_macros: bool,
     def_ids: FxHashMap<DefId, usize>,
     prim_tys: FxHashMap<PrimTy, usize>,
 }
 
 impl DisallowedTypes {
-    pub fn new(conf_disallowed: Vec<DisallowedPath>) -> Self {
+    pub fn new(conf_disallowed: Vec<DisallowedPath>, conf_lint_external_macros: bool) -> Self {
         Self {
             conf_disallowed,
+            conf_lint_external_macros,
             def_ids: FxHashMap::default(),
             prim_tys: FxHashMap::default(),
         }
@@ -105,6 +109,12 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedTypes {
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
         if let ItemKind::Use(path, UseKind::Single) = &item.kind {
+            if !self.conf_lint_external_macros
+                && (in_external_macro(cx.sess(), item.span) || clippy_utils::is_from_proc_macro(cx, item))
+            {
+                return;
+            }
+
             for res in &path.res {
                 self.check_res_emit(cx, res, item.span);
             }
@@ -113,11 +123,21 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedTypes {
 
     fn check_ty(&mut self, cx: &LateContext<'tcx>, ty: &'tcx Ty<'tcx>) {
         if let TyKind::Path(path) = &ty.kind {
+            if !self.conf_lint_external_macros
+                && (in_external_macro(cx.sess(), ty.span) || clippy_utils::is_from_proc_macro(cx, ty))
+            {
+                return;
+            }
+
             self.check_res_emit(cx, &cx.qpath_res(path, ty.hir_id), ty.span);
         }
     }
 
     fn check_poly_trait_ref(&mut self, cx: &LateContext<'tcx>, poly: &'tcx PolyTraitRef<'tcx>) {
+        if !self.conf_lint_external_macros && in_external_macro(cx.sess(), poly.span) {
+            return;
+        }
+
         self.check_res_emit(cx, &poly.trait_ref.path.res, poly.trait_ref.path.span);
     }
 }

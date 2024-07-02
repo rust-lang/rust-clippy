@@ -13,3 +13,4 @@ disallowed-types = [
     # can use an inline table but omit reason
     { path = "std::net::TcpListener" },
 ]
+lint-disallowed-types-in-external-macros = false
