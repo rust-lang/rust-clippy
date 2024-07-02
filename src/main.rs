@@ -1,4 +1,5 @@
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
+#![feature(let_chains)]
 // warn on lints, that are included in `rust-lang/rust`s bootstrap
 #![warn(rust_2018_idioms, unused_lifetimes)]
 
@@ -43,7 +44,23 @@ pub fn main() {
         return;
     }
 
-    if let Err(code) = process(env::args().skip(2)) {
+    // if we run "cargo clippy" (as cargo subcommand), we have to strip "cargo clippy" (first 2 args)
+    // but if we are run via "..../target/debug/cargo-clippy", only ommit the first arg, the second one
+    // might be a normal cmdline arg already (which we don't want to ommit)
+    let args = if let Some(first_arg) = env::args().next()
+        && (first_arg.ends_with("cargo-clippy") || first_arg.ends_with("cargo-clippy.exe"))
+    {
+        // turn this of during the migration
+        // env::args().skip(1)
+        eprintln!(
+            "WARNING: potentially breaking change: 'cargo-clippy arg1 arg2...' will no longer ignore 'arg1' after edition=2024"
+        );
+        env::args().skip(2)
+    } else {
+        env::args().skip(2)
+    };
+
+    if let Err(code) = process(args) {
         process::exit(code);
     }
 }
@@ -215,5 +232,15 @@ mod tests {
         let args = "cargo clippy".split_whitespace().map(ToString::to_string);
         let cmd = ClippyCmd::new(args);
         assert_eq!("check", cmd.cargo_subcommand);
+    }
+
+    #[test]
+    fn dont_skip_arg() {
+        let args = "target/debug/cargo-clippy --fix"
+            .split_whitespace()
+            .map(ToString::to_string);
+        let cmd = ClippyCmd::new(args);
+        assert_eq!("fix", cmd.cargo_subcommand);
+        assert!(!cmd.args.iter().any(|arg| arg.ends_with("unstable-options")));
     }
 }
