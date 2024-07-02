@@ -501,3 +501,18 @@ fn issue12721() {
     (255 % 999999u64) as u8;
     //~^ ERROR: casting `u64` to `u8` may truncate the value
 }
+
+pub fn issue_7486() -> u8 {
+    (2u16 % 256) as u8
+}
+
+pub fn issue_9613() {
+    const CHUNK: usize = 64;
+    CHUNK as u32;
+    u64::MIN as u32;
+    //~^ ERROR: casting `u64` to `u32` may truncate the value
+    struct Foo(usize, u32);
+    core::mem::size_of::<Foo>() as u32;
+    core::mem::size_of::<String>() as u32;
+    //~^ ERROR: casting `usize` to `u32` may truncate
+}

@@ -6,9 +6,10 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{get_discriminant_value, is_isize_or_usize};
 use rustc_errors::{Applicability, Diag, SuggestionStyle};
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, FloatTy, Ty};
+use rustc_span::symbol::sym;
 use rustc_span::Span;
 use rustc_target::abi::IntegerType;
 
@@ -40,8 +41,8 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
                     get_constant_bits(cx, right).map_or(0, |b| b.saturating_sub(1))
                 })
             },
-            BinOpKind::Rem => get_constant_bits(cx, right)
-                .unwrap_or(u64::MAX)
+            BinOpKind::Rem => constant_int(cx, right)
+                .map_or(u64::MAX, |c| c.next_power_of_two().trailing_zeros().into())
                 .min(apply_reductions(cx, nbits, left, signed)),
             BinOpKind::BitAnd => get_constant_bits(cx, right)
                 .unwrap_or(u64::MAX)
@@ -79,6 +80,35 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
                 nbits
             }
         },
+        ExprKind::Path(QPath::Resolved(
+            None,
+            rustc_hir::Path {
+                res: Res::Def(DefKind::Const | DefKind::AssocConst, def_id),
+                ..
+            },
+        ))
+        // NOTE(@Jarcho): A constant from another crate might not have the same value
+        // for all versions of the crate. This isn't a problem for constants in the
+        // current crate since a crate can't compile against multiple versions of itself.
+        if def_id.is_local() => {
+            // `constant()` already checks if a const item is based on `cfg!`.
+            get_constant_bits(cx, expr).unwrap_or(nbits)
+        },
+        // mem::size_of::<T>();
+        ExprKind::Call(func, []) => {
+            if let ExprKind::Path(ref func_qpath) = func.kind
+                && let Some(def_id) = cx.qpath_res(func_qpath, func.hir_id).opt_def_id()
+                && cx.tcx.is_diagnostic_item(sym::mem_size_of, def_id)
+                && let Some(ty) = cx.typeck_results().node_args(func.hir_id).types().next()
+                && is_valid_sizeof(ty)
+                && let Ok(layout) = cx.tcx.layout_of(cx.param_env.and(ty))
+            {
+                let size: u64 = layout.layout.size().bytes();
+                (64 - size.leading_zeros()).into()
+            } else {
+                nbits
+            }
+        },
         _ => nbits,
     }
 }
@@ -104,7 +134,7 @@ pub(super) fn check(
             let (should_lint, suffix) = match (is_isize_or_usize(cast_from), is_isize_or_usize(cast_to)) {
                 (true, true) | (false, false) => (to_nbits < from_nbits, ""),
                 (true, false) => (
-                    to_nbits <= 32,
+                    to_nbits < from_nbits && to_nbits <= 32,
                     if to_nbits == 32 {
                         " on targets with 64-bit wide pointers"
                     } else {
@@ -198,4 +228,21 @@ fn offer_suggestion(
         // always show the suggestion in a separate line
         SuggestionStyle::ShowAlways,
     );
+}
+
+// FIXME(@tesuji): May extend this to a validator functions to include:
+// * some ABI-guaranteed STD types,
+// * some non-local crate types suggested in [PR-12962][1].
+// [1]: https://github.com/rust-lang/rust-clippy/pull/12962#discussion_r1661500351
+fn is_valid_sizeof(ty: Ty<'_>) -> bool {
+    if ty.is_primitive_ty() || ty.is_any_ptr() || ty.is_box() || ty.is_slice() {
+        return true;
+    }
+    if let ty::Adt(def, ..) = ty.kind()
+        && def.did().is_local()
+    {
+        true
+    } else {
+        false
+    }
 }
