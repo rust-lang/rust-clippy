@@ -1,6 +1,6 @@
-//@aux-build:proc_macro_suspicious_else_formatting.rs
-
-#![warn(clippy::suspicious_else_formatting)]
+//@no-rustfix
+//@aux-build:proc_macros.rs
+#![deny(clippy::suspicious_else_formatting)]
 #![allow(
     clippy::if_same_then_else,
     clippy::let_unit_value,
@@ -8,8 +8,7 @@
     clippy::needless_else
 )]
 
-extern crate proc_macro_suspicious_else_formatting;
-use proc_macro_suspicious_else_formatting::DeriveBadSpan;
+use proc_macros::{external, with_span};
 
 fn foo() -> bool {
     true
@@ -17,18 +16,20 @@ fn foo() -> bool {
 
 #[rustfmt::skip]
 fn main() {
-    // weird `else` formatting:
+    //~vv suspicious_else_formatting
     if foo() {
     } {
     }
 
+    //~vv suspicious_else_formatting
     if foo() {
     } if foo() {
     }
 
-    let _ = { // if as the last expression
+    let _ = {
         let _ = 0;
 
+        //~vv suspicious_else_formatting
         if foo() {
         } if foo() {
         }
@@ -36,7 +37,8 @@ fn main() {
         }
     };
 
-    let _ = { // if in the middle of a block
+    let _ = {
+        //~vv suspicious_else_formatting
         if foo() {
         } if foo() {
         }
@@ -46,6 +48,7 @@ fn main() {
         let _ = 0;
     };
 
+    //~vv suspicious_else_formatting
     if foo() {
     } else
     {
@@ -58,15 +61,17 @@ fn main() {
     {
     }
 
+    //~vv suspicious_else_formatting
     if foo() {
     } else
-    if foo() { // the span of the above error should continue here
+    if foo() {
     }
 
+    //~vv suspicious_else_formatting
     if foo() {
     }
     else
-    if foo() { // the span of the above error should continue here
+    if foo() {
     }
 
     // those are ok:
@@ -89,7 +94,7 @@ fn main() {
     if foo() {
     }
 
-    // Almost Allman style braces. Lint these.
+    //~vv suspicious_else_formatting
     if foo() {
     }
 
@@ -98,6 +103,7 @@ fn main() {
 
     }
 
+    //~vv suspicious_else_formatting
     if foo() {
     }
     else
@@ -148,8 +154,56 @@ fn main() {
         println!("false");
     }
 
-}
+    with_span! {
+        span
+        if true {
+            let _ = 0;
+        } else
 
-// #7650 - Don't lint. Proc-macro using bad spans for `if` expressions.
-#[derive(DeriveBadSpan)]
-struct _Foo(u32, u32);
+        {
+            let _ = 1;
+        }
+    }
+
+
+    external! {
+        if true {
+            let _ = 0;
+        } else
+
+        {
+            let _ = 1;
+        }
+    }
+
+    //~vvv suspicious_else_formatting
+    if true {
+        let _ = 0;
+    } /* comment */ else
+
+    {
+        let _ = 1;
+    }
+
+    //~vvv suspicious_else_formatting
+    if true {
+        let _ = 0;
+    }
+    // comment
+    else
+
+
+    {
+        let _ = 1;
+    }
+
+
+    //~vvv suspicious_else_formatting
+    if true {
+        let _ = 0;
+    } /*
+       * some comment */ else
+    {
+        let _ = 1;
+    }
+}
