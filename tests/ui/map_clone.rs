@@ -156,3 +156,57 @@ fn main() {
         let _z = y.map(RcWeak::clone);
     }
 }
+
+// Ensures that it doesn't suggest `cloned` on `Arc` types.
+fn issue_12612() {
+    use std::sync::Arc;
+
+    struct S2(Arc<String>);
+    struct S1(Option<S2>);
+
+    impl S1 {
+        fn v2(&self) -> Option<Arc<String>> {
+            self.v1().map(|v1| Arc::clone(&v1.0))
+        }
+
+        fn v3(&self) -> Option<Arc<String>> {
+            self.v1().map(|v1| {
+                let x = &v1.0;
+                Arc::clone(x)
+            })
+        }
+
+        fn v1(&self) -> Option<&S2> {
+            match &self.0 {
+                None => None,
+                Some(v) => Some(v),
+            }
+        }
+    }
+
+    struct D2(String);
+    struct D1(Option<D2>);
+
+    impl D1 {
+        fn v2(&self) -> Option<String> {
+            self.v1().map(|v1| String::clone(&v1.0))
+        }
+
+        fn v3(&self) -> Option<String> {
+            self.v1().map(|v1| {
+                let x = &v1.0;
+                String::clone(x)
+            })
+        }
+
+        fn v1(&self) -> Option<&D2> {
+            match &self.0 {
+                None => None,
+                Some(v) => Some(v),
+            }
+        }
+    }
+
+    let x = Some(Arc::new(String::new()));
+    let y = x.map(|a| Arc::clone(&a));
+}
