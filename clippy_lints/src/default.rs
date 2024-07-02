@@ -8,7 +8,7 @@ use rustc_hir::def::Res;
 use rustc_hir::{Block, Expr, ExprKind, PatKind, QPath, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_middle::ty::print::with_forced_trimmed_paths;
+use rustc_middle::ty::print::{with_forced_trimmed_paths, with_no_trimmed_paths};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::{Ident, Symbol};
 use rustc_span::{sym, Span};
@@ -95,7 +95,13 @@ impl<'tcx> LateLintPass<'tcx> for Default {
             && let ty::Adt(def, ..) = expr_ty.kind()
             && !is_from_proc_macro(cx, expr)
         {
-            let replacement = with_forced_trimmed_paths!(format!("{}::default()", cx.tcx.def_path_str(def.did())));
+            // Replace "std::string::String" with "String", but keep "data::Data::default()" as-is
+            // to avoid suggesting possibly incorrect code.
+            let replacement = if cx.tcx.def_path_str(def.did()).starts_with("std::") {
+                with_forced_trimmed_paths!(format!("{}::default()", cx.tcx.def_path_str(def.did())))
+            } else {
+                with_no_trimmed_paths!(format!("{}::default()", cx.tcx.def_path_str(def.did())))
+            };
             span_lint_and_sugg(
                 cx,
                 DEFAULT_TRAIT_ACCESS,
