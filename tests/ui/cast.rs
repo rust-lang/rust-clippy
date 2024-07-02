@@ -509,5 +509,7 @@ pub fn issue_7486() -> u8 {
 pub fn issue_9613() {
     const CHUNK: usize = 64;
     CHUNK as u32;
+    u64::MIN as u32;
+    //~^ ERROR: casting `u64` to `u32` may truncate the value
     core::mem::size_of::<String>() as u32;
 }

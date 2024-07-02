@@ -80,7 +80,20 @@ fn apply_reductions(cx: &LateContext<'_>, nbits: u64, expr: &Expr<'_>, signed: b
                 nbits
             }
         },
-        ExprKind::Path(ref _qpath) => get_constant_bits(cx, expr).unwrap_or(nbits),
+        ExprKind::Path(QPath::Resolved(
+            None,
+            rustc_hir::Path {
+                res: Res::Def(DefKind::Const | DefKind::AssocConst, def_id),
+                ..
+            },
+        ))
+        // NOTE(@Jarcho): A constant from another crate might not have the same value
+        // for all versions of the crate. This isn't a problem for constants in the
+        // current crate since a crate can't compile against multiple versions of itself.
+        if def_id.is_local() => {
+            // `constant()` already checks if a const item is based on `cfg!`.
+            get_constant_bits(cx, expr).unwrap_or(nbits)
+        },
         // mem::size_of::<T>();
         ExprKind::Call(func, []) => {
             if let ExprKind::Path(ref func_qpath) = func.kind
