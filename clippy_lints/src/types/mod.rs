@@ -190,6 +190,37 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of [`&Option<T>`](https://doc.rust-lang.org/std/option/index.html) anywhere in the code.
+    ///
+    /// ### Why is this bad?
+    /// An `&Option<T>` parameter prevents calling the function if the caller holds a different type, e.g. `Result<T, E>`.
+    /// Using `Option<&T>` generalizes the function, e.g. allowing to pass `res.ok().as_ref()`
+    /// Returning `&Option<T>` needlessly exposes implementation details and has no advantage over `Option<&T>`.
+    ///
+    /// ### Example
+    /// ```rust,compile_fail
+    /// fn foo(bar: &Option<i32>) -> &Option<i32> { bar }
+    /// fn call_foo(bar: &Result<i32, ()>) {
+    ///     foo(bar.ok()); // does not work
+    /// }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```rust
+    /// fn foo(bar: Option<&i32>) -> Option<&i32> { bar }
+    /// fn call_foo(bar: &Result<i32, ()>) {
+    ///     foo(bar.ok().as_ref()); // works!
+    /// }
+    /// ```
+    #[clippy::version = "1.74.0"]
+    pub BORROWED_OPTION,
+    complexity,
+    "`&Option<T>` instead of `Option<&T>`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for usage of redundant allocations anywhere in the code.
     ///
     /// ### Why is this bad?
@@ -309,7 +340,7 @@ pub struct Types {
     avoid_breaking_exported_api: bool,
 }
 
-impl_lint_pass!(Types => [BOX_COLLECTION, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX, REDUNDANT_ALLOCATION, RC_BUFFER, RC_MUTEX, TYPE_COMPLEXITY]);
+impl_lint_pass!(Types => [BOX_COLLECTION, VEC_BOX, OPTION_OPTION, LINKEDLIST, BORROWED_BOX, BORROWED_OPTION, REDUNDANT_ALLOCATION, RC_BUFFER, RC_MUTEX, TYPE_COMPLEXITY]);
 
 impl<'tcx> LateLintPass<'tcx> for Types {
     fn check_fn(
