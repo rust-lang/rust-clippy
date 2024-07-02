@@ -45,7 +45,7 @@ pub fn is_copy<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
 pub fn has_debug_impl<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     cx.tcx
         .get_diagnostic_item(sym::Debug)
-        .map_or(false, |debug| implements_trait(cx, ty, debug, &[]))
+        .is_some_and(|debug| implements_trait(cx, ty, debug, &[]))
 }
 
 /// Checks whether a type can be partially moved.
@@ -508,7 +508,7 @@ pub fn needs_ordered_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
             .tcx
             .lang_items()
             .drop_trait()
-            .map_or(false, |id| implements_trait(cx, ty, id, &[]))
+            .is_some_and(|id| implements_trait(cx, ty, id, &[]))
         {
             // This type doesn't implement drop, so no side effects here.
             // Check if any component type has any.
@@ -749,8 +749,8 @@ pub fn ty_sig<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<ExprFnSig<'t
                 {
                     let output = bounds
                         .projection_bounds()
-                        .find(|p| lang_items.fn_once_output().map_or(false, |id| id == p.item_def_id()))
-                        .map(|p| p.map_bound(|p| p.term.expect_type()));
+                        .find(|p| lang_items.fn_once_output().is_some_and(|id| id == p.item_def_id()))
+                        .map(|p| p.map_bound(|p| p.term.as_type().unwrap()));
                     Some(ExprFnSig::Trait(bound.map_bound(|b| b.args.type_at(0)), output, None))
                 },
                 _ => None,
@@ -784,7 +784,7 @@ fn sig_from_bounds<'tcx>(
                     && p.self_ty() == ty =>
             {
                 let i = pred.kind().rebind(p.trait_ref.args.type_at(1));
-                if inputs.map_or(false, |inputs| i != inputs) {
+                if inputs.is_some_and(|inputs| i != inputs) {
                     // Multiple different fn trait impls. Is this even allowed?
                     return None;
                 }
@@ -825,7 +825,7 @@ fn sig_for_projection<'tcx>(cx: &LateContext<'tcx>, ty: AliasTy<'tcx>) -> Option
             {
                 let i = pred.kind().rebind(p.trait_ref.args.type_at(1));
 
-                if inputs.map_or(false, |inputs| inputs != i) {
+                if inputs.is_some_and(|inputs| inputs != i) {
                     // Multiple different fn trait impls. Is this even allowed?
                     return None;
                 }
@@ -1221,9 +1221,7 @@ impl<'tcx> InteriorMut<'tcx> {
             ty::RawPtr(inner_ty, _) if !self.ignore_pointers => self.is_interior_mut_ty(cx, inner_ty),
             ty::Ref(_, inner_ty, _) | ty::Slice(inner_ty) => self.is_interior_mut_ty(cx, inner_ty),
             ty::Array(inner_ty, size) => {
-                size.try_eval_target_usize(cx.tcx, cx.param_env)
-                    .map_or(true, |u| u != 0)
-                    && self.is_interior_mut_ty(cx, inner_ty)
+                size.try_eval_target_usize(cx.tcx, cx.param_env) != Some(0) && self.is_interior_mut_ty(cx, inner_ty)
             },
             ty::Tuple(fields) => fields.iter().any(|ty| self.is_interior_mut_ty(cx, ty)),
             ty::Adt(def, _) if def.is_unsafe_cell() => true,
@@ -1258,6 +1256,48 @@ impl<'tcx> InteriorMut<'tcx> {
 
         self.tys.insert(ty, Some(interior_mut));
         interior_mut
+    }
+}
+
+/// Check if given type has inner mutability such as [`std::cell::Cell`] or [`std::cell::RefCell`]
+/// etc.
+pub fn is_interior_mut_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    match *ty.kind() {
+        ty::Ref(_, inner_ty, mutbl) => mutbl == Mutability::Mut || is_interior_mut_ty(cx, inner_ty),
+        ty::Slice(inner_ty) => is_interior_mut_ty(cx, inner_ty),
+        ty::Array(inner_ty, size) => {
+            size.try_eval_target_usize(cx.tcx, cx.param_env) != Some(0) && is_interior_mut_ty(cx, inner_ty)
+        },
+        ty::Tuple(fields) => fields.iter().any(|ty| is_interior_mut_ty(cx, ty)),
+        ty::Adt(def, args) => {
+            // Special case for collections in `std` who's impl of `Hash` or `Ord` delegates to
+            // that of their type parameters.  Note: we don't include `HashSet` and `HashMap`
+            // because they have no impl for `Hash` or `Ord`.
+            let def_id = def.did();
+            let is_std_collection = [
+                sym::Option,
+                sym::Result,
+                sym::LinkedList,
+                sym::Vec,
+                sym::VecDeque,
+                sym::BTreeMap,
+                sym::BTreeSet,
+                sym::Rc,
+                sym::Arc,
+            ]
+            .iter()
+            .any(|diag_item| cx.tcx.is_diagnostic_item(*diag_item, def_id));
+            let is_box = Some(def_id) == cx.tcx.lang_items().owned_box();
+            if is_std_collection || is_box {
+                // The type is mutable if any of its type parameters are
+                args.types().any(|ty| is_interior_mut_ty(cx, ty))
+            } else {
+                !ty.has_escaping_bound_vars()
+                    && cx.tcx.layout_of(cx.param_env.and(ty)).is_ok()
+                    && !ty.is_freeze(cx.tcx, cx.param_env)
+            }
+        },
+        _ => false,
     }
 }
 
@@ -1311,7 +1351,7 @@ pub fn normalize_with_regions<'tcx>(tcx: TyCtxt<'tcx>, param_env: ParamEnv<'tcx>
 
 /// Checks if the type is `core::mem::ManuallyDrop<_>`
 pub fn is_manually_drop(ty: Ty<'_>) -> bool {
-    ty.ty_adt_def().map_or(false, AdtDef::is_manually_drop)
+    ty.ty_adt_def().is_some_and(AdtDef::is_manually_drop)
 }
 
 /// Returns the deref chain of a type, starting with the type itself.
