@@ -379,8 +379,8 @@ fn is_normalizable_helper<'tcx>(
     cache.insert(ty, false);
     let infcx = cx.tcx.infer_ctxt().build();
     let cause = ObligationCause::dummy();
-    let result = if infcx.at(&cause, param_env).query_normalize(ty).is_ok() {
-        match ty.kind() {
+    let result = infcx.at(&cause, param_env).query_normalize(ty).is_ok()
+        && match ty.kind() {
             ty::Adt(def, args) => def.variants().iter().all(|variant| {
                 variant
                     .fields
@@ -393,10 +393,7 @@ fn is_normalizable_helper<'tcx>(
                 },
                 _ => true, // if inner_ty == ty, we've already checked it
             }),
-        }
-    } else {
-        false
-    };
+        };
     cache.insert(ty, result);
     result
 }

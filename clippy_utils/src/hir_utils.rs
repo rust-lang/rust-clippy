@@ -484,12 +484,9 @@ impl HirEqInterExpr<'_, '_, '_> {
     }
 
     fn eq_path_parameters(&mut self, left: &GenericArgs<'_>, right: &GenericArgs<'_>) -> bool {
-        if left.parenthesized == right.parenthesized {
-            over(left.args, right.args, |l, r| self.eq_generic_arg(l, r)) // FIXME(flip1995): may not work
-                && over(left.constraints, right.constraints, |l, r| self.eq_assoc_type_binding(l, r))
-        } else {
-            false
-        }
+        left.parenthesized == right.parenthesized
+            && over(left.args, right.args, |l, r| self.eq_generic_arg(l, r)) // FIXME(flip1995): may not work
+            && over(left.constraints, right.constraints, |l, r| self.eq_assoc_type_binding(l, r))
     }
 
     pub fn eq_path_segments(&mut self, left: &[PathSegment<'_>], right: &[PathSegment<'_>]) -> bool {

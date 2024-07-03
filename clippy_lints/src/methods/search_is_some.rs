@@ -110,11 +110,8 @@ pub(super) fn check<'tcx>(
     else if search_method == "find" {
         let is_string_or_str_slice = |e| {
             let self_ty = cx.typeck_results().expr_ty(e).peel_refs();
-            if is_type_lang_item(cx, self_ty, hir::LangItem::String) {
-                true
-            } else {
-                self_ty.is_str()
-            }
+
+            is_type_lang_item(cx, self_ty, hir::LangItem::String) || self_ty.is_str()
         };
         if is_string_or_str_slice(search_recv) && is_string_or_str_slice(search_arg) {
             let msg = format!("called `{option_check_method}()` after calling `find()` on a string");

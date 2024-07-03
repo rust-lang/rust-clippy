@@ -1,0 +1,23 @@
+error: this `if`-then-`else` expression can be simplified with `||`
+  --> tests/ui/manual_or.rs:9:13
+   |
+LL |     let _ = if a { true } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `a || b`
+   |
+   = note: `-D clippy::manual-or` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_or)]`
+
+error: this `if`-then-`else` expression can be simplified with `||`
+  --> tests/ui/manual_or.rs:19:13
+   |
+LL |     let _ = if a { true } else { !b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `a || !b`
+
+error: this `if`-then-`else` expression can be simplified with `||`
+  --> tests/ui/manual_or.rs:22:13
+   |
+LL |     let _ = if !a { true } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `!a || b`
+
+error: aborting due to 3 previous errors
+
