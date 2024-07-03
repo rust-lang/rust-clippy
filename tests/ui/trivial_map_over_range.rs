@@ -1,0 +1,32 @@
+#![allow(unused, clippy::redundant_closure)]
+#![warn(clippy::trivial_map_over_range)]
+
+fn do_something() -> usize {
+    todo!()
+}
+
+fn do_something_interesting(x: usize, y: usize) -> usize {
+    todo!()
+}
+
+fn main() {
+    // These should be raised
+    (0..10).map(|_| do_something());
+    (3..10).map(|_| do_something());
+    (0..10).map(|_| 3);
+    (0..10).map(|_| {
+        let x = 3;
+        x + 2
+    });
+    (0..10).map(|_| do_something()).collect::<Vec<_>>();
+    let upper = 4;
+    (0..upper).map(|_| do_something());
+    let upper_fn = || 4;
+    (0..upper_fn()).map(|_| do_something());
+    // These should not be raised
+    (0..=10).map(|_| do_something()); // Inclusive bounds not yet handled
+    (0..10).map(|x| do_something()); // We do not detect unused parameters
+    (0..10).map(|x| do_something()).collect::<Vec<_>>(); // We do not detect unused parameters
+    (0..10).map(|x| do_something_interesting(x, 4)); // Actual map over range
+    "Foobar".chars().map(|_| do_something()); // Not a map over range
+}
