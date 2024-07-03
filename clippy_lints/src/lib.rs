@@ -346,6 +346,7 @@ mod to_string_trait_impl;
 mod trailing_empty_array;
 mod trait_bounds;
 mod transmute;
+mod trivial_map_over_range;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
@@ -1174,6 +1175,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| Box::new(string_patterns::StringPatterns::new(msrv())));
     store.register_early_pass(|| Box::new(field_scoped_visibility_modifiers::FieldScopedVisibilityModifiers));
     store.register_late_pass(|_| Box::new(set_contains_or_insert::HashsetInsertAfterContains));
+    store.register_late_pass(|_| Box::new(trivial_map_over_range::TrivialMapOverRange));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
 

@@ -1,3 +1,4 @@
+#![allow(clippy::trivial_map_over_range)]
 #![warn(clippy::repeat_vec_with_capacity)]
 
 fn main() {

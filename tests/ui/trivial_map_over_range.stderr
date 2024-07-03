@@ -1,0 +1,58 @@
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/trivial_map_over_range.rs:14:5
+   |
+LL |     (0..10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
+   |
+   = note: `-D clippy::trivial-map-over-range` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::trivial_map_over_range)]`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/trivial_map_over_range.rs:15:5
+   |
+LL |     (3..10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(7)`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/trivial_map_over_range.rs:16:5
+   |
+LL |     (0..10).map(|_| 3);
+   |     ^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| 3).take(10)`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/trivial_map_over_range.rs:17:5
+   |
+LL | /     (0..10).map(|_| {
+LL | |         let x = 3;
+LL | |         x + 2
+LL | |     });
+   | |______^
+   |
+help: use
+   |
+LL ~     std::iter::repeat_with(|| {
+LL +         let x = 3;
+LL +         x + 2
+LL ~     }).take(10);
+   |
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/trivial_map_over_range.rs:21:5
+   |
+LL |     (0..10).map(|_| do_something()).collect::<Vec<_>>();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/trivial_map_over_range.rs:23:5
+   |
+LL |     (0..upper).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper)`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/trivial_map_over_range.rs:25:5
+   |
+LL |     (0..upper_fn()).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn())`
+
+error: aborting due to 7 previous errors
+
