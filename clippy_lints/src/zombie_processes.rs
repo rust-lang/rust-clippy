@@ -60,19 +60,18 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
                     }
 
                     // Don't emit a suggestion since the binding is used later
-                    check(cx, expr, local.hir_id, false);
+                    check(cx, expr, false);
                 },
-                Node::LetStmt(&LetStmt { pat, hir_id, .. }) if let PatKind::Wild = pat.kind => {
+                Node::LetStmt(&LetStmt { pat, .. }) if let PatKind::Wild = pat.kind => {
                     // `let _ = child;`, also dropped immediately without `wait()`ing
-                    check(cx, expr, hir_id, true);
+                    check(cx, expr, true);
                 },
                 Node::Stmt(&Stmt {
                     kind: StmtKind::Semi(_),
-                    hir_id,
                     ..
                 }) => {
                     // Immediately dropped. E.g. `std::process::Command::new("echo").spawn().unwrap();`
-                    check(cx, expr, hir_id, true);
+                    check(cx, expr, true);
                 },
                 _ => {},
             }
@@ -101,6 +100,7 @@ enum BreakReason {
 /// - calling `id` or `kill`
 /// - no use at all (e.g. `let _x = child;`)
 /// - taking a shared reference (`&`), `wait()` can't go through that
+///
 /// None of these are sufficient to prevent zombie processes.
 /// Doing it like this means more FNs, but FNs are better than FPs.
 ///
@@ -212,9 +212,8 @@ impl<'a, 'tcx> Visitor<'tcx> for WaitFinder<'a, 'tcx> {
 /// such as checking that the binding is not used in certain ways, which isn't necessary for
 /// `let _ = <expr that spawns child>;`.
 ///
-/// This checks if the program doesn't unconditionally exit after the spawn expression and that it
-/// isn't the last statement of the program.
-fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: HirId, emit_suggestion: bool) {
+/// This checks if the program doesn't unconditionally exit after the spawn expression.
+fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, emit_suggestion: bool) {
     let Some(block) = get_enclosing_block(cx, spawn_expr.hir_id) else {
         return;
     };
@@ -225,12 +224,6 @@ fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: Hi
     };
     if let Break(ExitCallFound) = vis.visit_block(block) {
         // Visitor found an unconditional `exit()` call, so don't lint.
-        return;
-    }
-
-    // This might be the last effective node of the program (main function).
-    // There's no need to lint in that case either, as this is basically equivalent to calling `exit()`
-    if is_last_node_in_main(cx, node_id) {
         return;
     }
 
@@ -255,26 +248,6 @@ fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, node_id: Hi
                 .note("see https://doc.rust-lang.org/stable/std/process/struct.Child.html#warning");
         },
     );
-}
-
-/// The hir id id may either correspond to a `Local` or `Stmt`, depending on how we got here.
-/// This function gets the enclosing function, checks if it's `main` and if so,
-/// check if the last statement modulo blocks is the given id.
-fn is_last_node_in_main(cx: &LateContext<'_>, id: HirId) -> bool {
-    let hir = cx.tcx.hir();
-    let body_owner = hir.enclosing_body_owner(id);
-    let enclosing_body = hir.body_owned_by(body_owner);
-
-    if let Some((main_def_id, _)) = cx.tcx.entry_fn(())
-        && main_def_id == body_owner.to_def_id()
-        && let ExprKind::Block(block, _) = &enclosing_body.value.peel_blocks().kind
-        && let [.., stmt] = block.stmts
-    {
-        matches!(stmt.kind, StmtKind::Let(local) if local.hir_id == id)
-            || matches!(stmt.kind, StmtKind::Semi(..) if stmt.hir_id == id)
-    } else {
-        false
-    }
 }
 
 /// Checks if the given expression exits the process.

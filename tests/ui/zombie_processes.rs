@@ -131,15 +131,6 @@ fn main() {
         }
         x.wait().unwrap();
     }
-
-    // Checking that it won't lint if spawn is the last statement of a main function.
-    // IMPORTANT: this case must always be at the very end so it always tests the right thing.
-    // Don't move this.
-    {
-        {
-            Command::new("").spawn().unwrap();
-        }
-    }
 }
 
 fn process_child(c: Child) {
