@@ -8459,6 +8459,21 @@
     }
   },
   {
+    "id": "set_contains_or_insert",
+    "id_span": {
+      "path": "src/set_contains_or_insert.rs",
+      "line": 46
+    },
+    "group": "nursery",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of `contains` to see if a value is not\npresent on `HashSet` followed by a `insert`.\n\n### Why is this bad?\nUsing just `insert` and checking the returned `bool` is more efficient.\n\n### Known problems\nIn case the value that wants to be inserted is borrowed and also expensive or impossible\nto clone. In such a scenario, the developer might want to check with `contains` before inserting,\nto avoid the clone. In this case, it will report a false positive.\n\n### Example\n```rust\nuse std::collections::HashSet;\nlet mut set = HashSet::new();\nlet value = 5;\nif !set.contains(&value) {\n    set.insert(value);\n    println!(\"inserted {value:?}\");\n}\n```\nUse instead:\n```rust\nuse std::collections::HashSet;\nlet mut set = HashSet::new();\nlet value = 5;\nif set.insert(&value) {\n    println!(\"inserted {value:?}\");\n}\n```",
+    "version": "1.80.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "shadow_reuse",
     "id_span": {
       "path": "src/shadow.rs",
