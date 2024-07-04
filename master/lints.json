@@ -602,6 +602,21 @@
     }
   },
   {
+    "id": "byte_char_slices",
+    "id_span": {
+      "path": "src/byte_char_slices.rs",
+      "line": 26
+    },
+    "group": "style",
+    "level": "warn",
+    "docs": "\n### What it does\nChecks for hard to read slices of byte characters, that could be more easily expressed as a\nbyte string.\n\n### Why is this bad?\n\nPotentially makes the string harder to read.\n\n### Example\n```rust\n&[b'H', b'e', b'l', b'l', b'o'];\n```\nUse instead:\n```rust\nb\"Hello\"\n```",
+    "version": "1.68.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MaybeIncorrect"
+    }
+  },
+  {
     "id": "bytes_count_to_len",
     "id_span": {
       "path": "src/methods/mod.rs",
