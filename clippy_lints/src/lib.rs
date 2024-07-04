@@ -389,6 +389,7 @@ use clippy_config::{get_configuration_metadata, Conf};
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::{Lint, LintId};
+use rustc_span::Symbol;
 use std::collections::BTreeMap;
 
 /// Register all pre expansion lints
@@ -1128,7 +1129,10 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(move |_| {
         Box::new(absolute_paths::AbsolutePaths {
             absolute_paths_max_segments,
-            absolute_paths_allowed_crates: absolute_paths_allowed_crates.clone(),
+            absolute_paths_allowed_crates: absolute_paths_allowed_crates
+                .iter()
+                .map(|x| Symbol::intern(x))
+                .collect(),
         })
     });
     store.register_late_pass(|_| Box::new(redundant_locals::RedundantLocals));
