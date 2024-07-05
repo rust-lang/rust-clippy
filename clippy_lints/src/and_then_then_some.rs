@@ -215,7 +215,7 @@ fn is_and_then(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 
 /// checks that `expr` contains no references to `var` outside of autoref method calls.
 fn contains_only_autoref_of<'tcx>(cx: &LateContext<'tcx>, var: HirId, expr: &'tcx Expr<'tcx>) -> bool {
-    use std::ops::ControlFlow::*;
+    use std::ops::ControlFlow::{Break, Continue};
     for_each_expr(cx, expr, |subexpr| {
         if is_local_defined_at(cx, subexpr, var) {
             match cx.tcx.hir().parent_iter(subexpr.hir_id).next() {
