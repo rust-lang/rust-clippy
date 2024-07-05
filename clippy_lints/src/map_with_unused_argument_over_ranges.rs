@@ -10,7 +10,8 @@ use rustc_session::declare_lint_pass;
 declare_clippy_lint! {
     /// ### What it does
     ///
-    /// Lint to prevent trivial `map`s over ranges when one could use `take`.
+    /// Checks for `Iterator::map` over ranges without using the parameter which
+    /// could be more clearly expressed using `std::iter::repeat_with(...).take(...)`.
     ///
     /// ### Why is this bad?
     ///
@@ -27,14 +28,14 @@ declare_clippy_lint! {
     /// let f : Vec<_> = std::iter::repeat_with(|| { 3 + 1 }).take(10).collect();
     /// ```
     #[clippy::version = "1.81.0"]
-    pub TRIVIAL_MAP_OVER_RANGE,
+    pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     style,
     "map of a trivial closure (not dependent on parameter) over a range"
 }
 
-declare_lint_pass!(TrivialMapOverRange => [TRIVIAL_MAP_OVER_RANGE]);
+declare_lint_pass!(MapWithUnusedArgumentOverRanges => [MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES]);
 
-impl LateLintPass<'_> for TrivialMapOverRange {
+impl LateLintPass<'_> for MapWithUnusedArgumentOverRanges {
     fn check_expr(&mut self, cx: &LateContext<'_>, ex: &Expr<'_>) {
         if let ExprKind::MethodCall(path, receiver, [map_arg_expr], _call_span) = ex.kind
             && path.ident.name == rustc_span::sym::map
@@ -56,7 +57,7 @@ impl LateLintPass<'_> for TrivialMapOverRange {
                     .replacen("|_|", "||", 1);
                 span_lint_and_sugg(
                     cx,
-                    TRIVIAL_MAP_OVER_RANGE,
+                    MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
                     ex.span,
                     "map of a trivial closure (not dependent on parameter) over a range",
                     "use",
@@ -70,7 +71,7 @@ impl LateLintPass<'_> for TrivialMapOverRange {
                     .replacen("|_|", "||", 1);
                 span_lint_and_sugg(
                     cx,
-                    TRIVIAL_MAP_OVER_RANGE,
+                    MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
                     ex.span,
                     "map of a trivial closure (not dependent on parameter) over a range",
                     "use",
