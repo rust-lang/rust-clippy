@@ -1,10 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
-use clippy_utils::{fn_def_id, match_def_path};
+use clippy_utils::{fn_def_id, is_from_proc_macro, match_def_path};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Block, Body, Closure, Expr, ExprKind, HirId, Node, Param, Pat, Path, QPath};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::lint::in_external_macro;
 use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
@@ -39,11 +40,18 @@ declare_lint_pass!(AndThenThenSome => [AND_THEN_THEN_SOME]);
 
 impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
+        if in_external_macro(cx.tcx.sess, expr.span) {
+            return;
+        }
         match expr.kind {
             ExprKind::MethodCall(_, recv_or_self, [arg], _) | ExprKind::Call(_, [recv_or_self, arg]) => {
                 // TODO: check if type of reciever is diagnostic item Option?
                 if is_and_then(cx, expr) {
                     if let Some((closure_args, predicate)) = then_some_closure_arg(cx, arg) {
+                        // this check is expensive, so we do it last.
+                        if is_from_proc_macro(cx, expr) {
+                            return;
+                        }
                         show_sugg(cx, expr.span, recv_or_self, closure_args, predicate);
                     }
                 }
