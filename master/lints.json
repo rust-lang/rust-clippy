@@ -857,6 +857,21 @@
     }
   },
   {
+    "id": "cfg_not_test",
+    "id_span": {
+      "path": "src/cfg_not_test.rs",
+      "line": 26
+    },
+    "group": "restriction",
+    "level": "allow",
+    "docs": "\n### What it does\nChecks for usage of `cfg` that excludes code from `test` builds. (i.e., `#{cfg(not(test))]`)\n\n### Why is this bad?\nThis may give the false impression that a codebase has 100% coverage, yet actually has untested code.\nEnabling this also guards against excessive mockery as well, which is an anti-pattern.\n\n### Example\n```rust\n#[cfg(not(test))]\nimportant_check(); // I'm not actually tested, but not including me will falsely increase coverage!\n```\nUse instead:\n```rust\nimportant_check();\n```",
+    "version": "1.73.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "Unresolved"
+    }
+  },
+  {
     "id": "char_lit_as_u8",
     "id_span": {
       "path": "src/casts/mod.rs",
