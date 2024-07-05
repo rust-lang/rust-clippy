@@ -37,3 +37,13 @@ fn main() {
     (0..10).map(|x| do_something_interesting(x, 4)); // Actual map over range
     "Foobar".chars().map(|_| do_something()); // Not a map over range
 }
+
+#[clippy::msrv = "1.27"]
+fn msrv_1_27() {
+    (0..10).map(|_| do_something());
+}
+
+#[clippy::msrv = "1.28"]
+fn msrv_1_28() {
+    (0..10).map(|_| do_something());
+}

@@ -58,6 +58,7 @@ msrv_aliases! {
     1,17,0 { FIELD_INIT_SHORTHAND, STATIC_IN_CONST, EXPECT_ERR }
     1,16,0 { STR_REPEAT }
     1,15,0 { MAYBE_BOUND_IN_WHERE }
+    1,28,0 { REPEAT_WITH }
 }
 
 /// Tracks the current MSRV from `clippy.toml`, `Cargo.toml` or set via `#[clippy::msrv]`
