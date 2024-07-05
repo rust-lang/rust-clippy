@@ -5492,6 +5492,24 @@
     }
   },
   {
+    "id": "missing_const_for_thread_local",
+    "id_span": {
+      "path": "src/missing_const_for_thread_local.rs",
+      "line": 42
+    },
+    "group": "perf",
+    "level": "warn",
+    "docs": "\n### What it does\nSuggests to use `const` in `thread_local!` macro if possible.\n### Why is this bad?\n\nThe `thread_local!` macro wraps static declarations and makes them thread-local.\nIt supports using a `const` keyword that may be used for declarations that can\nbe evaluated as a constant expression. This can enable a more efficient thread\nlocal implementation that can avoid lazy initialization. For types that do not\nneed to be dropped, this can enable an even more efficient implementation that\ndoes not need to track any additional state.\n\nhttps://doc.rust-lang.org/std/macro.thread_local.html\n\n### Example\n```rust\n// example code where clippy issues a warning\nthread_local! {\n    static BUF: String = String::new();\n}\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nthread_local! {\n    static BUF: String = const { String::new() };\n}\n```\n### Past names\n\n* `thread_local_initializer_can_be_made_const`\n\n",
+    "version": "1.77.0",
+    "applicability": {
+      "is_multi_part_suggestion": false,
+      "applicability": "MachineApplicable"
+    },
+    "former_ids": [
+      "thread_local_initializer_can_be_made_const"
+    ]
+  },
+  {
     "id": "missing_docs_in_private_items",
     "id_span": {
       "path": "src/missing_doc.rs",
@@ -9374,21 +9392,6 @@
     "applicability": {
       "is_multi_part_suggestion": false,
       "applicability": "Unresolved"
-    }
-  },
-  {
-    "id": "thread_local_initializer_can_be_made_const",
-    "id_span": {
-      "path": "src/thread_local_initializer_can_be_made_const.rs",
-      "line": 42
-    },
-    "group": "perf",
-    "level": "warn",
-    "docs": "\n### What it does\nSuggests to use `const` in `thread_local!` macro if possible.\n### Why is this bad?\n\nThe `thread_local!` macro wraps static declarations and makes them thread-local.\nIt supports using a `const` keyword that may be used for declarations that can\nbe evaluated as a constant expression. This can enable a more efficient thread\nlocal implementation that can avoid lazy initialization. For types that do not\nneed to be dropped, this can enable an even more efficient implementation that\ndoes not need to track any additional state.\n\nhttps://doc.rust-lang.org/std/macro.thread_local.html\n\n### Example\n```rust\n// example code where clippy issues a warning\nthread_local! {\n    static BUF: String = String::new();\n}\n```\nUse instead:\n```rust\n// example code which does not raise clippy warning\nthread_local! {\n    static BUF: String = const { String::new() };\n}\n```",
-    "version": "1.77.0",
-    "applicability": {
-      "is_multi_part_suggestion": false,
-      "applicability": "MachineApplicable"
     }
   },
   {
