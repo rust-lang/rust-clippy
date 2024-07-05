@@ -12,6 +12,7 @@ fn do_something_interesting(x: usize, y: usize) -> usize {
 fn main() {
     // These should be raised
     (0..10).map(|_| do_something());
+    (0..=10).map(|_| do_something());
     (3..10).map(|_| do_something());
     (0..10).map(|_| 3);
     (0..10).map(|_| {
@@ -23,8 +24,14 @@ fn main() {
     (0..upper).map(|_| do_something());
     let upper_fn = || 4;
     (0..upper_fn()).map(|_| do_something());
+    (0..=upper_fn()).map(|_| do_something());
     // These should not be raised
-    (0..=10).map(|_| do_something()); // Inclusive bounds not yet handled
+    let lower = 2;
+    let lower_fn = || 2;
+    (2..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
+    (lower..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
+    (lower_fn()..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
+    (lower_fn()..=upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (0..10).map(|x| do_something()); // We do not detect unused parameters
     (0..10).map(|x| do_something()).collect::<Vec<_>>(); // We do not detect unused parameters
     (0..10).map(|x| do_something_interesting(x, 4)); // Actual map over range
