@@ -66,5 +66,11 @@ error: map of a trivial closure (not dependent on parameter) over a range
 LL |     (0..=upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() + 1)`
 
-error: aborting due to 9 previous errors
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:49:5
+   |
+LL |     (0..10).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
+
+error: aborting due to 10 previous errors
 

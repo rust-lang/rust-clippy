@@ -1,3 +1,4 @@
+use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
 use clippy_utils::source::snippet_with_applicability;
@@ -7,7 +8,7 @@ use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{Body, Closure, Expr, ExprKind, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -35,10 +36,24 @@ declare_clippy_lint! {
     "map of a trivial closure (not dependent on parameter) over a range"
 }
 
-declare_lint_pass!(MapWithUnusedArgumentOverRanges => [MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES]);
+pub struct MapWithUnusedArgumentOverRanges {
+    msrv: Msrv,
+}
+
+impl MapWithUnusedArgumentOverRanges {
+    #[must_use]
+    pub fn new(msrv: Msrv) -> Self {
+        Self { msrv }
+    }
+}
+
+impl_lint_pass!(MapWithUnusedArgumentOverRanges => [MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES]);
 
 impl LateLintPass<'_> for MapWithUnusedArgumentOverRanges {
     fn check_expr(&mut self, cx: &LateContext<'_>, ex: &Expr<'_>) {
+        if !self.msrv.meets(msrvs::REPEAT_WITH) {
+            return;
+        }
         if let ExprKind::MethodCall(path, receiver, [map_arg_expr], _call_span) = ex.kind
             && path.ident.name == rustc_span::sym::map
             && let Some(higher::Range {
@@ -93,4 +108,5 @@ impl LateLintPass<'_> for MapWithUnusedArgumentOverRanges {
             }
         }
     }
+    extract_msrv_attr!(LateContext);
 }
