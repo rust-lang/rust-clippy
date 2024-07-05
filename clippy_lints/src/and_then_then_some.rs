@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::snippet_with_applicability;
+use clippy_utils::ty::is_copy;
+use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{fn_def_id, is_from_proc_macro, match_def_path};
-use clippy_utils::{visitors::for_each_expr, ty::is_copy};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Block, Body, Closure, Expr, ExprKind, HirId, Node, Param, Pat, Path, QPath};
@@ -47,27 +48,32 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
         match expr.kind {
             ExprKind::MethodCall(_, recv_or_self, [arg], _) | ExprKind::Call(_, [recv_or_self, arg]) => {
                 // we could check if type of reciever is diagnostic item Option,
-				// but we don't technically need to, since we're checking the path.
+                // but we don't technically need to, since we're checking the path.
                 if is_and_then(cx, expr) {
                     if let Some((closure_arg_span, closure_arg_hid, predicate)) = then_some_closure_arg(cx, arg) {
-						let add_ref_pattern;
-						// check if `closure_arg_hid` implements Copy,
-						// if so, show suggestion but with `&` added to the
-						// argument pattern.
-						if is_copy(cx, cx.typeck_results().node_type(closure_arg_hid)) {
-							add_ref_pattern = true;
-						} else if contains_only_autoref_of(
-							cx, closure_arg_hid, predicate)
-						{
-							add_ref_pattern = false;
-						} else {
-							return;
-						}
+                        let add_ref_pattern;
+                        // check if `closure_arg_hid` implements Copy,
+                        // if so, show suggestion but with `&` added to the
+                        // argument pattern.
+                        if is_copy(cx, cx.typeck_results().node_type(closure_arg_hid)) {
+                            add_ref_pattern = true;
+                        } else if contains_only_autoref_of(cx, closure_arg_hid, predicate) {
+                            add_ref_pattern = false;
+                        } else {
+                            return;
+                        }
                         // this check is expensive, so we do it last.
                         if is_from_proc_macro(cx, expr) {
                             return;
                         }
-                        show_sugg(cx, expr.span, recv_or_self, closure_arg_span, predicate, add_ref_pattern);
+                        show_sugg(
+                            cx,
+                            expr.span,
+                            recv_or_self,
+                            closure_arg_span,
+                            predicate,
+                            add_ref_pattern,
+                        );
                     }
                 }
             },
@@ -76,14 +82,12 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
     }
 }
 
-// This function returns the span and hir id of the closure arguments and the receiver of `then_some` (usually
-// `bool`) if the expression passed is a closure whose single expression is a call to `then_some`.
+// This function returns the span and hir id of the closure arguments and the receiver of
+// `then_some` (usually `bool`) if the expression passed is a closure whose single expression is a
+// call to `then_some`.
 fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Option<(Span, HirId, &'tcx Expr<'tcx>)> {
     match expr.kind {
-        ExprKind::Closure(Closure {
-            body,
-            ..
-        }) => {
+        ExprKind::Closure(Closure { body, .. }) => {
             if let Node::Expr(expr) = cx.tcx.hir_node(body.hir_id)
                 && let Body {
                     params:
@@ -97,8 +101,7 @@ fn then_some_closure_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Opt
                     ..
                 } = cx.tcx.hir().body(*body)
             {
-                (peel_closure_body(cx, expr, *arg_id))
-					.map(|body| (*span, *arg_id, body))
+                (peel_closure_body(cx, expr, *arg_id)).map(|body| (*span, *arg_id, body))
             } else {
                 None
             }
@@ -167,9 +170,16 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
     }
 }
 
-fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args: Span, predicate: &Expr<'_>, add_ref_pattern: bool) {
+fn show_sugg(
+    cx: &LateContext<'_>,
+    span: Span,
+    selfarg: &Expr<'_>,
+    closure_args: Span,
+    predicate: &Expr<'_>,
+    add_ref_pattern: bool,
+) {
     let mut appl = Applicability::MachineApplicable;
-	let prefix = if add_ref_pattern { "&" } else { "" };
+    let prefix = if add_ref_pattern { "&" } else { "" };
     let sugg = format!(
         "{}.filter(|{prefix}{}| {})",
         snippet_with_applicability(cx, selfarg.span, "<OPTION>", &mut appl),
@@ -204,26 +214,29 @@ fn is_and_then(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 }
 
 /// checks that `expr` contains no references to `var` outside of autoref method calls.
-fn contains_only_autoref_of<'tcx>(
-	cx: &LateContext<'tcx>,
-	var: HirId,
-	expr: &'tcx Expr<'tcx>,
-) -> bool {
-	use std::ops::ControlFlow::*;
-	for_each_expr(cx, expr, |subexpr| {
-		if is_local_defined_at(cx, subexpr, var) {
-			match cx.tcx.hir().parent_iter(subexpr.hir_id).next() {
-				Some((_hir_id, Node::Expr(Expr{ kind: ExprKind::MethodCall(_, _, _, _), .. }))) => {
-					// TODO: check if type of method reciver has one more level
-					// of indirection than `var`
-					return Continue(());
-				}
-				non_method_call => {
-					dbg!(non_method_call);
-				}
-			}
-			return Break(());
-		}
-		Continue(())
-	}).is_none()
+fn contains_only_autoref_of<'tcx>(cx: &LateContext<'tcx>, var: HirId, expr: &'tcx Expr<'tcx>) -> bool {
+    use std::ops::ControlFlow::*;
+    for_each_expr(cx, expr, |subexpr| {
+        if is_local_defined_at(cx, subexpr, var) {
+            match cx.tcx.hir().parent_iter(subexpr.hir_id).next() {
+                Some((
+                    _hir_id,
+                    Node::Expr(Expr {
+                        kind: ExprKind::MethodCall(_, _, _, _),
+                        ..
+                    }),
+                )) => {
+                    // TODO: check if type of method reciver has one more level
+                    // of indirection than `var`
+                    return Continue(());
+                },
+                non_method_call => {
+                    dbg!(non_method_call);
+                },
+            }
+            return Break(());
+        }
+        Continue(())
+    })
+    .is_none()
 }
