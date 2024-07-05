@@ -1,9 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::higher;
 use clippy_utils::source::snippet_with_applicability;
+use rustc_ast::ast::RangeLimits;
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
-use rustc_hir::{Body, Closure, Expr, ExprKind, LangItem, PatKind, QPath};
+use rustc_hir::{Body, Closure, Expr, ExprKind, PatKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::declare_lint_pass;
 
@@ -39,19 +41,25 @@ impl LateLintPass<'_> for MapWithUnusedArgumentOverRanges {
     fn check_expr(&mut self, cx: &LateContext<'_>, ex: &Expr<'_>) {
         if let ExprKind::MethodCall(path, receiver, [map_arg_expr], _call_span) = ex.kind
             && path.ident.name == rustc_span::sym::map
-            && let ExprKind::Struct(qpath, fields, _) = receiver.kind
-            && matches!(qpath, QPath::LangItem(LangItem::Range, _))
-            && fields.len() == 2
+            && let Some(higher::Range {
+                start: Some(start),
+                end: Some(end),
+                limits,
+            }) = higher::Range::hir(receiver)
             && let ExprKind::Closure(Closure { body, .. }) = map_arg_expr.kind
             && let Body { params: [param], .. } = cx.tcx.hir().body(*body)
             && matches!(param.pat.kind, PatKind::Wild)
-            && let ExprKind::Lit(lit) = fields[0].expr.kind
+            && let ExprKind::Lit(lit) = start.kind
             && let LitKind::Int(Pu128(lower_bound), _) = lit.node
         {
-            if let ExprKind::Lit(lit) = fields[1].expr.kind
+            if let ExprKind::Lit(lit) = end.kind
                 && let LitKind::Int(Pu128(upper_bound), _) = lit.node
             {
-                let count = upper_bound - lower_bound;
+                let count = if limits == RangeLimits::Closed {
+                    upper_bound - lower_bound + 1
+                } else {
+                    upper_bound - lower_bound
+                };
                 let mut applicability = Applicability::MaybeIncorrect;
                 let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
                     .replacen("|_|", "||", 1);
@@ -66,7 +74,11 @@ impl LateLintPass<'_> for MapWithUnusedArgumentOverRanges {
                 );
             } else if lower_bound == 0 {
                 let mut applicability = Applicability::MaybeIncorrect;
-                let count = snippet_with_applicability(cx, fields[1].expr.span, "...", &mut applicability);
+                let count = if limits == RangeLimits::Closed {
+                    snippet_with_applicability(cx, end.span, "...", &mut applicability) + " + 1"
+                } else {
+                    snippet_with_applicability(cx, end.span, "...", &mut applicability)
+                };
                 let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
                     .replacen("|_|", "||", 1);
                 span_lint_and_sugg(

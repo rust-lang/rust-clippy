@@ -12,6 +12,7 @@ fn do_something_interesting(x: usize, y: usize) -> usize {
 fn main() {
     // These should be raised
     std::iter::repeat_with(|| do_something()).take(10);
+    std::iter::repeat_with(|| do_something()).take(11);
     std::iter::repeat_with(|| do_something()).take(7);
     std::iter::repeat_with(|| 3).take(10);
     std::iter::repeat_with(|| {
@@ -23,8 +24,14 @@ fn main() {
     std::iter::repeat_with(|| do_something()).take(upper);
     let upper_fn = || 4;
     std::iter::repeat_with(|| do_something()).take(upper_fn());
+    std::iter::repeat_with(|| do_something()).take(upper_fn() + 1);
     // These should not be raised
-    (0..=10).map(|_| do_something()); // Inclusive bounds not yet handled
+    let lower = 2;
+    let lower_fn = || 2;
+    (2..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
+    (lower..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
+    (lower_fn()..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
+    (lower_fn()..=upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (0..10).map(|x| do_something()); // We do not detect unused parameters
     (0..10).map(|x| do_something()).collect::<Vec<_>>(); // We do not detect unused parameters
     (0..10).map(|x| do_something_interesting(x, 4)); // Actual map over range
