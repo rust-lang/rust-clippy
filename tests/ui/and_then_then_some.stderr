@@ -31,5 +31,11 @@ error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
 LL |     let _a1 = a.clone().and_then(|v| true.then_some(v));
    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `a.clone().filter(|v| true)`
 
-error: aborting due to 5 previous errors
+error: use of `Option::and_then` and `bool::then_some` is equivelent to `filter`
+  --> tests/ui/and_then_then_some.rs:17:10
+   |
+LL |     let _ = Some(true).and_then(|v| v.then_some(v));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `Option::filter` instead: `Some(true).filter(|&v| v)`
+
+error: aborting due to 6 previous errors
 

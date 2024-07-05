@@ -14,4 +14,5 @@ fn main() {
 	let a = Some(NonCopy);
 	// non-copy value, but it doesn't appear in the predicate.
 	let _a1 = a.clone().and_then(|v| true.then_some(v));
+	let _ = Some(true).and_then(|v| v.then_some(v));
 }
