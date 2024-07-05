@@ -14,7 +14,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     ///
-    /// It expreses the intent more clearly to `take` the correct number of times
+    /// It expresses the intent more clearly to `take` the correct number of times
     /// from a generating function than to apply a closure to each number in a
     /// range only to discard them.
     ///
