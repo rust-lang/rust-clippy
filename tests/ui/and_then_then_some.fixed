@@ -9,4 +9,9 @@ fn main() {
     let _w = x.clone().filter(|v| v.starts_with('f'));
     #[allow(clippy::needless_return)]
     let _v = x.clone().filter(|v| v.starts_with('g'));
+	#[derive(Clone)]
+	struct NonCopy;
+	let a = Some(NonCopy);
+	// non-copy value, but it doesn't appear in the predicate.
+	let _a1 = a.clone().filter(|v| true);
 }

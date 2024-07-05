@@ -49,21 +49,25 @@ impl<'tcx> LateLintPass<'tcx> for AndThenThenSome {
                 // we could check if type of reciever is diagnostic item Option,
 				// but we don't technically need to, since we're checking the path.
                 if is_and_then(cx, expr) {
-                    if let Some((closure_arg_hid, closure_arg_span, predicate)) = then_some_closure_arg(cx, arg) {
-						if !contains_only_autoref_of(
-							cx, closure_arg_hid, predicate, false)
+                    if let Some((closure_arg_span, closure_arg_hid, predicate)) = then_some_closure_arg(cx, arg) {
+						let add_ref_pattern;
+						// check if `closure_arg_hid` implements Copy,
+						// if so, show suggestion but with `&` added to the
+						// argument pattern.
+						if is_copy(cx, cx.typeck_results().node_type(closure_arg_hid)) {
+							add_ref_pattern = true;
+						} else if contains_only_autoref_of(
+							cx, closure_arg_hid, predicate)
 						{
-							// TODO: check if `closure_arg_hid` implements Copy,
-							// if so, show suggestion but with `&` added to the
-							// argument pattern.
-							//cx.typeck_results().expr_ty(
+							add_ref_pattern = false;
+						} else {
 							return;
 						}
                         // this check is expensive, so we do it last.
                         if is_from_proc_macro(cx, expr) {
                             return;
                         }
-                        show_sugg(cx, expr.span, recv_or_self, closure_arg_span, predicate);
+                        show_sugg(cx, expr.span, recv_or_self, closure_arg_span, predicate, add_ref_pattern);
                     }
                 }
             },
@@ -163,14 +167,11 @@ fn is_local_defined_at(cx: &LateContext<'_>, local: &Expr<'_>, arg_hid: HirId) -
     }
 }
 
-fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args: Span, predicate: &Expr<'_>) {
+fn show_sugg(cx: &LateContext<'_>, span: Span, selfarg: &Expr<'_>, closure_args: Span, predicate: &Expr<'_>, add_ref_pattern: bool) {
     let mut appl = Applicability::MachineApplicable;
-    // FIXME: this relies on deref coertion, which won't work correctly if the predicate involves
-    // something other than a method call.  this is because `and_then` takes an argument by
-    // value, while `filter` takes an argument by reference.
-
+	let prefix = if add_ref_pattern { "&" } else { "" };
     let sugg = format!(
-        "{}.filter(|{}| {})",
+        "{}.filter(|{prefix}{}| {})",
         snippet_with_applicability(cx, selfarg.span, "<OPTION>", &mut appl),
         snippet_with_applicability(cx, closure_args, "<ARGS>", &mut appl),
         snippet_with_applicability(cx, predicate.span, "<PREDICATE>", &mut appl)
@@ -203,17 +204,16 @@ fn is_and_then(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
 }
 
 /// checks that `expr` contains no references to `var` outside of autoref method calls.
-fn contains_only_autoref_of(
-	cx: &LateContext<'_>,
+fn contains_only_autoref_of<'tcx>(
+	cx: &LateContext<'tcx>,
 	var: HirId,
-	expr: &Expr<'_>,
-	in_autoref_call: bool,
+	expr: &'tcx Expr<'tcx>,
 ) -> bool {
 	use std::ops::ControlFlow::*;
 	for_each_expr(cx, expr, |subexpr| {
 		if is_local_defined_at(cx, subexpr, var) {
-			match cx.tcx.hir.parent_iter(subexpr.hir_id).next() {
-				Some(ExprKind::MethodCall(_, _, _, _)) => {
+			match cx.tcx.hir().parent_iter(subexpr.hir_id).next() {
+				Some((_hir_id, Node::Expr(Expr{ kind: ExprKind::MethodCall(_, _, _, _), .. }))) => {
 					// TODO: check if type of method reciver has one more level
 					// of indirection than `var`
 					return Continue(());
@@ -225,5 +225,5 @@ fn contains_only_autoref_of(
 			return Break(());
 		}
 		Continue(())
-	}).is_some()
+	}).is_none()
 }
