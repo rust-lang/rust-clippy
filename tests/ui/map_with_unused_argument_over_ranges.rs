@@ -1,5 +1,5 @@
 #![allow(unused, clippy::redundant_closure)]
-#![warn(clippy::trivial_map_over_range)]
+#![warn(clippy::map_with_unused_argument_over_ranges)]
 
 fn do_something() -> usize {
     todo!()
@@ -11,18 +11,18 @@ fn do_something_interesting(x: usize, y: usize) -> usize {
 
 fn main() {
     // These should be raised
-    std::iter::repeat_with(|| do_something()).take(10);
-    std::iter::repeat_with(|| do_something()).take(7);
-    std::iter::repeat_with(|| 3).take(10);
-    std::iter::repeat_with(|| {
+    (0..10).map(|_| do_something());
+    (3..10).map(|_| do_something());
+    (0..10).map(|_| 3);
+    (0..10).map(|_| {
         let x = 3;
         x + 2
-    }).take(10);
-    std::iter::repeat_with(|| do_something()).take(10).collect::<Vec<_>>();
+    });
+    (0..10).map(|_| do_something()).collect::<Vec<_>>();
     let upper = 4;
-    std::iter::repeat_with(|| do_something()).take(upper);
+    (0..upper).map(|_| do_something());
     let upper_fn = || 4;
-    std::iter::repeat_with(|| do_something()).take(upper_fn());
+    (0..upper_fn()).map(|_| do_something());
     // These should not be raised
     (0..=10).map(|_| do_something()); // Inclusive bounds not yet handled
     (0..10).map(|x| do_something()); // We do not detect unused parameters
