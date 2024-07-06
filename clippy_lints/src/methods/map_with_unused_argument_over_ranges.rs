@@ -1,3 +1,4 @@
+use crate::methods::MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES;
 use clippy_config::msrvs::{self, Msrv};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::higher;
@@ -7,47 +8,7 @@ use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{Body, Closure, Expr, ExprKind, PatKind};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::impl_lint_pass;
-
-declare_clippy_lint! {
-    /// ### What it does
-    ///
-    /// Checks for `Iterator::map` over ranges without using the parameter which
-    /// could be more clearly expressed using `std::iter::repeat_with(...).take(...)`.
-    ///
-    /// ### Why is this bad?
-    ///
-    /// It expresses the intent more clearly to `take` the correct number of times
-    /// from a generating function than to apply a closure to each number in a
-    /// range only to discard them.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// let random_numbers : Vec<_> = (0..10).map(|_| { 3 + 1 }).collect();
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// let f : Vec<_> = std::iter::repeat_with(|| { 3 + 1 }).take(10).collect();
-    /// ```
-    #[clippy::version = "1.81.0"]
-    pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
-    style,
-    "map of a trivial closure (not dependent on parameter) over a range"
-}
-
-pub struct MapWithUnusedArgumentOverRanges {
-    msrv: Msrv,
-}
-
-impl MapWithUnusedArgumentOverRanges {
-    #[must_use]
-    pub fn new(msrv: Msrv) -> Self {
-        Self { msrv }
-    }
-}
-
-impl_lint_pass!(MapWithUnusedArgumentOverRanges => [MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES]);
+use rustc_lint::LateContext;
 
 fn extract_count_with_applicability(
     cx: &LateContext<'_>,
@@ -90,21 +51,22 @@ fn extract_count_with_applicability(
     None
 }
 
-pub(super) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, recv: &Expr<'_>, arg: &Expr<'_>, msrv: &Msrv) {
+pub(super) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, receiver: &Expr<'_>, arg: &Expr<'_>, msrv: &Msrv) {
     if !msrv.meets(msrvs::REPEAT_WITH) {
         return;
     }
     let mut applicability = Applicability::MaybeIncorrect;
-    if let ExprKind::MethodCall(path, receiver, [map_arg_expr], _call_span) = ex.kind
-        && path.ident.name == rustc_span::sym::map
-        && let Some(range) = higher::Range::hir(receiver)
-        && let ExprKind::Closure(Closure { body, .. }) = map_arg_expr.kind
+    if let Some(range) = higher::Range::hir(receiver)
+        && let ExprKind::Closure(Closure { body, .. }) = arg.kind
         && let Body { params: [param], .. } = cx.tcx.hir().body(*body)
+        // TODO: We should also look for a named, but unused parameter here
         && matches!(param.pat.kind, PatKind::Wild)
         && let Some(count) = extract_count_with_applicability(cx, range, &mut applicability)
     {
-        let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
-            .replacen("|_|", "||", 1);
+        // TODO: Check if we can switch_to_eager_eval here and do away with `repeat_with` and instad use
+        // `repeat`
+        let snippet =
+            snippet_with_applicability(cx, arg.span, "|| { ... }", &mut applicability).replacen("|_|", "||", 1);
         span_lint_and_sugg(
             cx,
             MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
