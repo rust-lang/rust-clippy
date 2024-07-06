@@ -79,17 +79,6 @@ LL |     (2..=upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() + 3)`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:14:9
-   |
-LL |         (0..10).map(|_| do_something());
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
-...
-LL |     gen!();
-   |     ------ in this macro invocation
-   |
-   = note: this error originates in the macro `gen` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: map of a trivial closure (not dependent on parameter) over a range
   --> tests/ui/map_with_unused_argument_over_ranges.rs:41:5
    |
 LL |     (2..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
@@ -101,5 +90,5 @@ error: map of a trivial closure (not dependent on parameter) over a range
 LL |     (0..10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
 
-error: aborting due to 14 previous errors
+error: aborting due to 13 previous errors
 
