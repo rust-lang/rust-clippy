@@ -218,7 +218,6 @@ mod manual_string_new;
 mod manual_strip;
 mod manual_unwrap_or_default;
 mod map_unit_fn;
-mod map_with_unused_argument_over_ranges;
 mod match_result_ok;
 mod matches;
 mod mem_replace;
@@ -934,9 +933,5 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(set_contains_or_insert::SetContainsOrInsert));
     store.register_early_pass(|| Box::new(byte_char_slices::ByteCharSlice));
     store.register_early_pass(|| Box::new(cfg_not_test::CfgNotTest));
-    store.register_late_pass(|_| Box::new(map_with_unused_argument_over_ranges::MapWithUnusedArgumentOverRanges));
-    store.register_late_pass(move |_| {
-        Box::new(map_with_unused_argument_over_ranges::MapWithUnusedArgumentOverRanges::new(msrv()))
-    });
     // add lints here, do not remove this comment, it's used in `new_lint`
 }

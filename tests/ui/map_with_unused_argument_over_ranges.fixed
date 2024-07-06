@@ -11,7 +11,7 @@ fn do_something_interesting(x: usize, y: usize) -> usize {
 
 macro_rules! gen {
     () => {
-        std::iter::repeat_with(|| do_something()).take(10);
+        (0..10).map(|_| do_something());
     };
 }
 

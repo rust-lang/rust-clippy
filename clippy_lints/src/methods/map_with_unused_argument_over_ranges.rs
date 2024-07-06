@@ -90,32 +90,29 @@ fn extract_count_with_applicability(
     None
 }
 
-impl LateLintPass<'_> for MapWithUnusedArgumentOverRanges {
-    fn check_expr(&mut self, cx: &LateContext<'_>, ex: &Expr<'_>) {
-        if !self.msrv.meets(msrvs::REPEAT_WITH) {
-            return;
-        }
-        let mut applicability = Applicability::MaybeIncorrect;
-        if let ExprKind::MethodCall(path, receiver, [map_arg_expr], _call_span) = ex.kind
-            && path.ident.name == rustc_span::sym::map
-            && let Some(range) = higher::Range::hir(receiver)
-            && let ExprKind::Closure(Closure { body, .. }) = map_arg_expr.kind
-            && let Body { params: [param], .. } = cx.tcx.hir().body(*body)
-            && matches!(param.pat.kind, PatKind::Wild)
-            && let Some(count) = extract_count_with_applicability(cx, range, &mut applicability)
-        {
-            let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
-                .replacen("|_|", "||", 1);
-            span_lint_and_sugg(
-                cx,
-                MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
-                ex.span,
-                "map of a trivial closure (not dependent on parameter) over a range",
-                "use",
-                format!("std::iter::repeat_with({snippet}).take({count})"),
-                applicability,
-            );
-        }
+pub(super) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, recv: &Expr<'_>, arg: &Expr<'_>, msrv: &Msrv) {
+    if !msrv.meets(msrvs::REPEAT_WITH) {
+        return;
     }
-    extract_msrv_attr!(LateContext);
+    let mut applicability = Applicability::MaybeIncorrect;
+    if let ExprKind::MethodCall(path, receiver, [map_arg_expr], _call_span) = ex.kind
+        && path.ident.name == rustc_span::sym::map
+        && let Some(range) = higher::Range::hir(receiver)
+        && let ExprKind::Closure(Closure { body, .. }) = map_arg_expr.kind
+        && let Body { params: [param], .. } = cx.tcx.hir().body(*body)
+        && matches!(param.pat.kind, PatKind::Wild)
+        && let Some(count) = extract_count_with_applicability(cx, range, &mut applicability)
+    {
+        let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
+            .replacen("|_|", "||", 1);
+        span_lint_and_sugg(
+            cx,
+            MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+            ex.span,
+            "map of a trivial closure (not dependent on parameter) over a range",
+            "use",
+            format!("std::iter::repeat_with({snippet}).take({count})"),
+            applicability,
+        );
+    }
 }
