@@ -18,7 +18,7 @@ fn extract_count_with_applicability(
     let start = range.start?;
     let end = range.end?;
     // TODO: This doens't handle if either the start or end are negative literals, or if the start is
-    // not a literal In the first case, we need to be careful about how we handle computing the
+    // not a literal. In the first case, we need to be careful about how we handle computing the
     // count to avoid overflows. In the second, we may need to add parenthesis to make the
     // suggestion correct.
     if let ExprKind::Lit(lit) = start.kind
@@ -41,10 +41,14 @@ fn extract_count_with_applicability(
                 } else {
                     return Some(end_snippet);
                 };
-            } else if range.limits == RangeLimits::Closed {
-                return Some(format!("{} + {}", end_snippet, lower_bound + 1));
+            }
+            if range.limits == RangeLimits::Closed {
+                if lower_bound > 0 {
+                    return Some(format!("{end_snippet} - {}", lower_bound - 1));
+                }
+                return Some(format!("{end_snippet} + 1"));
             } else {
-                return Some(format!("{} + {}", end_snippet, lower_bound));
+                return Some(format!("{end_snippet} - {lower_bound}"));
             };
         }
     }
@@ -71,7 +75,7 @@ pub(super) fn check(cx: &LateContext<'_>, ex: &Expr<'_>, receiver: &Expr<'_>, ar
             cx,
             MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
             ex.span,
-            "map of a trivial closure (not dependent on parameter) over a range",
+            "map of a closure that does not depend on its parameter over a range",
             "use",
             format!("std::iter::repeat_with({snippet}).take({count})"),
             applicability,

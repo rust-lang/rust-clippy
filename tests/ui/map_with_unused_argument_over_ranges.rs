@@ -20,6 +20,7 @@ fn main() {
     (0..10).map(|_| do_something());
     (0..=10).map(|_| do_something());
     (3..10).map(|_| do_something());
+    (3..=10).map(|_| do_something());
     (0..10).map(|_| 3);
     (0..10).map(|_| {
         let x = 3;
@@ -38,7 +39,6 @@ fn main() {
     gen!();
     let lower = 2;
     let lower_fn = || 2;
-    (2..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (lower..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (lower_fn()..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
     (lower_fn()..=upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
