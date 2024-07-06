@@ -27,30 +27,24 @@ fn extract_count_with_applicability(
         if let ExprKind::Lit(lit) = end.kind
             && let LitKind::Int(Pu128(upper_bound), _) = lit.node
         {
-            let count = if range.limits == RangeLimits::Closed {
-                upper_bound - lower_bound + 1
-            } else {
-                upper_bound - lower_bound
-            };
-            return Some(format!("{count}"));
-        } else {
-            let end_snippet = snippet_with_applicability(cx, end.span, "...", applicability).into_owned();
-            if lower_bound == 0 {
-                if range.limits == RangeLimits::Closed {
-                    return Some(format!("{end_snippet} + 1"));
-                } else {
-                    return Some(end_snippet);
-                };
-            }
+            // Here we can explicitly calculate the number of iterations
+            let mut count = upper_bound - lower_bound;
             if range.limits == RangeLimits::Closed {
-                if lower_bound > 0 {
-                    return Some(format!("{end_snippet} - {}", lower_bound - 1));
-                }
-                return Some(format!("{end_snippet} + 1"));
-            } else {
-                return Some(format!("{end_snippet} - {lower_bound}"));
-            };
+                count += 1;
+            }
+            return Some(format!("{count}"));
         }
+        let end_snippet = snippet_with_applicability(cx, end.span, "...", applicability).into_owned();
+        if lower_bound == 0 {
+            if range.limits == RangeLimits::Closed {
+                return Some(format!("{end_snippet} + 1"));
+            }
+            return Some(end_snippet);
+        }
+        if range.limits == RangeLimits::Closed {
+            return Some(format!("{end_snippet} - {}", lower_bound - 1));
+        }
+        return Some(format!("{end_snippet} - {lower_bound}"));
     }
     None
 }
