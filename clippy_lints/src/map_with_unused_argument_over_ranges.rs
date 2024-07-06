@@ -49,63 +49,72 @@ impl MapWithUnusedArgumentOverRanges {
 
 impl_lint_pass!(MapWithUnusedArgumentOverRanges => [MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES]);
 
+fn extract_count_with_applicability(
+    cx: &LateContext<'_>,
+    range: higher::Range<'_>,
+    applicability: &mut Applicability,
+) -> Option<String> {
+    let start = range.start?;
+    let end = range.end?;
+    // TODO: This doens't handle if either the start or end are negative literals, or if the start is
+    // not a literal In the first case, we need to be careful about how we handle computing the
+    // count to avoid overflows. In the second, we may need to add parenthesis to make the
+    // suggestion correct.
+    if let ExprKind::Lit(lit) = start.kind
+        && let LitKind::Int(Pu128(lower_bound), _) = lit.node
+    {
+        if let ExprKind::Lit(lit) = end.kind
+            && let LitKind::Int(Pu128(upper_bound), _) = lit.node
+        {
+            let count = if range.limits == RangeLimits::Closed {
+                upper_bound - lower_bound + 1
+            } else {
+                upper_bound - lower_bound
+            };
+            return Some(format!("{count}"));
+        } else {
+            let end_snippet = snippet_with_applicability(cx, end.span, "...", applicability).into_owned();
+            if lower_bound == 0 {
+                if range.limits == RangeLimits::Closed {
+                    return Some(format!("{end_snippet} + 1"));
+                } else {
+                    return Some(end_snippet);
+                };
+            } else if range.limits == RangeLimits::Closed {
+                return Some(format!("{} + {}", end_snippet, lower_bound + 1));
+            } else {
+                return Some(format!("{} + {}", end_snippet, lower_bound));
+            };
+        }
+    }
+    None
+}
+
 impl LateLintPass<'_> for MapWithUnusedArgumentOverRanges {
     fn check_expr(&mut self, cx: &LateContext<'_>, ex: &Expr<'_>) {
         if !self.msrv.meets(msrvs::REPEAT_WITH) {
             return;
         }
+        let mut applicability = Applicability::MaybeIncorrect;
         if let ExprKind::MethodCall(path, receiver, [map_arg_expr], _call_span) = ex.kind
             && path.ident.name == rustc_span::sym::map
-            && let Some(higher::Range {
-                start: Some(start),
-                end: Some(end),
-                limits,
-            }) = higher::Range::hir(receiver)
+            && let Some(range) = higher::Range::hir(receiver)
             && let ExprKind::Closure(Closure { body, .. }) = map_arg_expr.kind
             && let Body { params: [param], .. } = cx.tcx.hir().body(*body)
             && matches!(param.pat.kind, PatKind::Wild)
-            && let ExprKind::Lit(lit) = start.kind
-            && let LitKind::Int(Pu128(lower_bound), _) = lit.node
+            && let Some(count) = extract_count_with_applicability(cx, range, &mut applicability)
         {
-            if let ExprKind::Lit(lit) = end.kind
-                && let LitKind::Int(Pu128(upper_bound), _) = lit.node
-            {
-                let count = if limits == RangeLimits::Closed {
-                    upper_bound - lower_bound + 1
-                } else {
-                    upper_bound - lower_bound
-                };
-                let mut applicability = Applicability::MaybeIncorrect;
-                let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
-                    .replacen("|_|", "||", 1);
-                span_lint_and_sugg(
-                    cx,
-                    MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
-                    ex.span,
-                    "map of a trivial closure (not dependent on parameter) over a range",
-                    "use",
-                    format!("std::iter::repeat_with({snippet}).take({count})"),
-                    applicability,
-                );
-            } else if lower_bound == 0 {
-                let mut applicability = Applicability::MaybeIncorrect;
-                let count = if limits == RangeLimits::Closed {
-                    snippet_with_applicability(cx, end.span, "...", &mut applicability) + " + 1"
-                } else {
-                    snippet_with_applicability(cx, end.span, "...", &mut applicability)
-                };
-                let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
-                    .replacen("|_|", "||", 1);
-                span_lint_and_sugg(
-                    cx,
-                    MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
-                    ex.span,
-                    "map of a trivial closure (not dependent on parameter) over a range",
-                    "use",
-                    format!("std::iter::repeat_with({snippet}).take({count})"),
-                    applicability,
-                );
-            }
+            let snippet = snippet_with_applicability(cx, map_arg_expr.span, "|| { ... }", &mut applicability)
+                .replacen("|_|", "||", 1);
+            span_lint_and_sugg(
+                cx,
+                MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+                ex.span,
+                "map of a trivial closure (not dependent on parameter) over a range",
+                "use",
+                format!("std::iter::repeat_with({snippet}).take({count})"),
+                applicability,
+            );
         }
     }
     extract_msrv_attr!(LateContext);

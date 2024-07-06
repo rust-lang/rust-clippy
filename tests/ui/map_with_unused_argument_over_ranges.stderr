@@ -1,5 +1,5 @@
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:14:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:20:5
    |
 LL |     (0..10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
@@ -8,25 +8,25 @@ LL |     (0..10).map(|_| do_something());
    = help: to override `-D warnings` add `#[allow(clippy::map_with_unused_argument_over_ranges)]`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:15:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:21:5
    |
 LL |     (0..=10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(11)`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:16:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:22:5
    |
 LL |     (3..10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(7)`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:17:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:23:5
    |
 LL |     (0..10).map(|_| 3);
    |     ^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| 3).take(10)`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:18:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:24:5
    |
 LL | /     (0..10).map(|_| {
 LL | |         let x = 3;
@@ -43,34 +43,63 @@ LL ~     }).take(10);
    |
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:22:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:28:5
    |
 LL |     (0..10).map(|_| do_something()).collect::<Vec<_>>();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:24:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:30:5
    |
 LL |     (0..upper).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper)`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:26:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:32:5
    |
 LL |     (0..upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn())`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:27:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:33:5
    |
 LL |     (0..=upper_fn()).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() + 1)`
 
 error: map of a trivial closure (not dependent on parameter) over a range
-  --> tests/ui/map_with_unused_argument_over_ranges.rs:49:5
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:34:5
+   |
+LL |     (2..upper_fn()).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() + 2)`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:35:5
+   |
+LL |     (2..=upper_fn()).map(|_| do_something());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() + 3)`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:14:9
+   |
+LL |         (0..10).map(|_| do_something());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
+...
+LL |     gen!();
+   |     ------ in this macro invocation
+   |
+   = note: this error originates in the macro `gen` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:41:5
+   |
+LL |     (2..upper_fn()).map(|_| do_something()); // Ranges not starting at zero not yet handled
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(upper_fn() + 2)`
+
+error: map of a trivial closure (not dependent on parameter) over a range
+  --> tests/ui/map_with_unused_argument_over_ranges.rs:58:5
    |
 LL |     (0..10).map(|_| do_something());
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `std::iter::repeat_with(|| do_something()).take(10)`
 
-error: aborting due to 10 previous errors
+error: aborting due to 14 previous errors
 
