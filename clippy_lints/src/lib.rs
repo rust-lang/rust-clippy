@@ -1016,6 +1016,7 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_early_pass(|| Box::new(pub_use::PubUse));
     store.register_late_pass(|_| Box::new(format_push_string::FormatPushString));
     store.register_late_pass(move |_| Box::new(large_include_file::LargeIncludeFile::new(max_include_file_size)));
+    store.register_late_pass(|_| Box::new(strings::SplitWithSpace));
     store.register_late_pass(|_| Box::new(strings::TrimSplitWhitespace));
     store.register_late_pass(|_| Box::new(rc_clone_in_vec_init::RcCloneInVecInit));
     store.register_early_pass(|| Box::<duplicate_mod::DuplicateMod>::default());

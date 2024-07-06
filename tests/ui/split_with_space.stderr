@@ -1,0 +1,20 @@
+error: found call to `str::split` that uses the ASCII space character as an argument
+  --> tests/ui/split_with_space.rs:9:50
+   |
+LL |     for substr in some_space_delimtetered_string.split(' ') {
+   |                                                  ^ help: replace the use of `str::split` with `str::split_whitespace`
+   |
+note: the lint level is defined here
+  --> tests/ui/split_with_space.rs:4:8
+   |
+LL | #[deny(clippy::split_with_space)]
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: found call to `str::split` that uses the ASCII space character as an argument
+  --> tests/ui/split_with_space.rs:13:50
+   |
+LL |     for substr in some_space_delimtetered_string.split(" ") {
+   |                                                  ^ help: replace the use of `str::split` with `str::split_whitespace`
+
+error: aborting due to 2 previous errors
+

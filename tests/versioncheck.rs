@@ -1,6 +1,6 @@
 #![cfg_attr(feature = "deny-warnings", deny(warnings))]
 #![warn(rust_2018_idioms, unused_lifetimes)]
-#![allow(clippy::single_match_else)]
+#![allow(clippy::single_match_else, clippy::split_with_space)]
 
 use std::fs;
 

@@ -665,6 +665,7 @@ pub(crate) static LINTS: &[&crate::LintInfo] = &[
     crate::std_instead_of_core::STD_INSTEAD_OF_CORE_INFO,
     crate::string_patterns::MANUAL_PATTERN_CHAR_COMPARISON_INFO,
     crate::string_patterns::SINGLE_CHAR_PATTERN_INFO,
+    crate::strings::SPLIT_WITH_SPACE_INFO,
     crate::strings::STRING_ADD_INFO,
     crate::strings::STRING_ADD_ASSIGN_INFO,
     crate::strings::STRING_FROM_UTF8_AS_BYTES_INFO,
