@@ -5793,7 +5793,7 @@
     },
     "group": "correctness",
     "level": "deny",
-    "docs": "\n### What it does\nChecks for getting the remainder of a division by one or minus\none.\n\n### Why is this bad?\nThe result for a divisor of one can only ever be zero; for\nminus one it can cause panic/overflow (if the left operand is the minimal value of\nthe respective integer type) or results in zero. No one will write such code\ndeliberately, unless trying to win an Underhanded Rust Contest. Even for that\ncontest, it's probably a bad idea. Use something more underhanded.\n\n### Example\n```rust\nlet a = x % 1;\nlet a = x % -1;\n```",
+    "docs": "\n### What it does\nChecks for getting the remainder of integer division by one or minus\none.\n\n### Why is this bad?\nThe result for a divisor of one can only ever be zero; for\nminus one it can cause panic/overflow (if the left operand is the minimal value of\nthe respective integer type) or results in zero. No one will write such code\ndeliberately, unless trying to win an Underhanded Rust Contest. Even for that\ncontest, it's probably a bad idea. Use something more underhanded.\n\n### Example\n```rust\nlet a = x % 1;\nlet a = x % -1;\n```",
     "version": "pre 1.29.0",
     "applicability": {
       "is_multi_part_suggestion": false,
