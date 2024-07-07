@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_then};
-use clippy_utils::source::{first_line_of_span, indent_of, reindent_multiline, snippet, snippet_opt};
+use clippy_utils::source::{first_line_of_span, indent_of, reindent_multiline, snippet, IntoSpan, SpanRangeExt};
 use clippy_utils::ty::{needs_ordered_drop, InteriorMut};
-use clippy_utils::visitors::for_each_expr;
+use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{
     capture_local_usage, eq_expr_value, find_binding_init, get_enclosing_block, hash_expr, hash_stmt, if_sequence,
     is_else_clause, is_lint_allowed, path_to_local, search_same, ContainsName, HirEqInterExpr, SpanlessEq,
@@ -14,7 +14,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 use rustc_span::hygiene::walk_chain;
 use rustc_span::source_map::SourceMap;
-use rustc_span::{BytePos, Span, Symbol};
+use rustc_span::{Span, Symbol};
 use std::borrow::Cow;
 
 declare_clippy_lint! {
@@ -266,12 +266,12 @@ fn lint_branches_sharing_code<'tcx>(
 
         let span = span.with_hi(last_block.span.hi());
         // Improve formatting if the inner block has indention (i.e. normal Rust formatting)
-        let test_span = Span::new(span.lo() - BytePos(4), span.lo(), span.ctxt(), span.parent());
-        let span = if snippet_opt(cx, test_span).map_or(false, |snip| snip == "    ") {
-            span.with_lo(test_span.lo())
-        } else {
-            span
-        };
+        let span = span
+            .map_range(cx, |src, range| {
+                (range.start > 4 && src.get(range.start - 4..range.start)? == "    ")
+                    .then_some(range.start - 4..range.end)
+            })
+            .map_or(span, |range| range.with_ctxt(span.ctxt()));
         (span, suggestion.to_string())
     });
 
@@ -362,7 +362,7 @@ fn eq_binding_names(s: &Stmt<'_>, names: &[(HirId, Symbol)]) -> bool {
 
 /// Checks if the statement modifies or moves any of the given locals.
 fn modifies_any_local<'tcx>(cx: &LateContext<'tcx>, s: &'tcx Stmt<'_>, locals: &HirIdSet) -> bool {
-    for_each_expr(s, |e| {
+    for_each_expr_without_closures(s, |e| {
         if let Some(id) = path_to_local(e)
             && locals.contains(&id)
             && !capture_local_usage(cx, e).is_imm_ref()
@@ -413,7 +413,7 @@ fn scan_block_for_eq<'tcx>(
 
     let mut cond_locals = HirIdSet::default();
     for &cond in conds {
-        let _: Option<!> = for_each_expr(cond, |e| {
+        let _: Option<!> = for_each_expr_without_closures(cond, |e| {
             if let Some(id) = path_to_local(e) {
                 cond_locals.insert(id);
             }

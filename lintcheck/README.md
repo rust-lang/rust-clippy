@@ -1,6 +1,6 @@
 ## `cargo lintcheck`
 
-Runs clippy on a fixed set of crates read from
+Runs Clippy on a fixed set of crates read from
 `lintcheck/lintcheck_crates.toml` and saves logs of the lint warnings into the
 repo.  We can then check the diff and spot new or disappearing warnings.
 
@@ -26,11 +26,11 @@ the repo root.
 The results will then be saved to `lintcheck-logs/custom_logs.toml`.
 
 The `custom.toml` file may be built using <https://crates.io> recently most
-downloaded crates by using the `popular-crates` binary from the `lintcheck`
-directory. For example, to retrieve the 100 recently most downloaded crates:
+downloaded crates by using `cargo lintcheck popular`. For example, to retrieve
+the 200 recently most downloaded crates:
 
 ```
-cargo run --release --bin popular-crates -- -n 100 custom.toml
+cargo lintcheck popular -n 200 custom.toml
 ```
 
 
@@ -84,7 +84,7 @@ This lets us spot bad suggestions or false positives automatically in some cases
 
 > Note: Fix mode implies `--all-targets`, so it can fix as much code as it can.
 
-Please note that the target dir should be cleaned afterwards since clippy will modify
+Please note that the target dir should be cleaned afterwards since Clippy will modify
 the downloaded sources which can lead to unexpected results when running lintcheck again afterwards.
 
 ### Recursive mode

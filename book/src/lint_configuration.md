@@ -348,6 +348,7 @@ Suppress lints whenever the suggested change would cause breakage for other crat
 * [`enum_variant_names`](https://rust-lang.github.io/rust-clippy/master/index.html#enum_variant_names)
 * [`large_types_passed_by_value`](https://rust-lang.github.io/rust-clippy/master/index.html#large_types_passed_by_value)
 * [`linkedlist`](https://rust-lang.github.io/rust-clippy/master/index.html#linkedlist)
+* [`needless_pass_by_ref_mut`](https://rust-lang.github.io/rust-clippy/master/index.html#needless_pass_by_ref_mut)
 * [`option_option`](https://rust-lang.github.io/rust-clippy/master/index.html#option_option)
 * [`rc_buffer`](https://rust-lang.github.io/rust-clippy/master/index.html#rc_buffer)
 * [`rc_mutex`](https://rust-lang.github.io/rust-clippy/master/index.html#rc_mutex)
@@ -454,7 +455,7 @@ default configuration of Clippy. By default, any configuration will replace the 
 * `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
 * `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
 
-**Default Value:** `["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "DirectX", "ECMAScript", "GPLv2", "GPLv3", "GitHub", "GitLab", "IPv4", "IPv6", "ClojureScript", "CoffeeScript", "JavaScript", "PureScript", "TypeScript", "WebAssembly", "NaN", "NaNs", "OAuth", "GraphQL", "OCaml", "OpenDNS", "OpenGL", "OpenMP", "OpenSSH", "OpenSSL", "OpenStreetMap", "OpenTelemetry", "WebGL", "WebGL2", "WebGPU", "TensorFlow", "TrueType", "iOS", "macOS", "FreeBSD", "TeX", "LaTeX", "BibTeX", "BibLaTeX", "MinGW", "CamelCase"]`
+**Default Value:** `["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "DevOps", "DirectX", "ECMAScript", "GPLv2", "GPLv3", "GitHub", "GitLab", "IPv4", "IPv6", "ClojureScript", "CoffeeScript", "JavaScript", "PureScript", "TypeScript", "WebAssembly", "NaN", "NaNs", "OAuth", "GraphQL", "OCaml", "OpenDNS", "OpenGL", "OpenMP", "OpenSSH", "OpenSSL", "OpenStreetMap", "OpenTelemetry", "WebGL", "WebGL2", "WebGPU", "WebP", "OpenExr", "YCbCr", "sRGB", "TensorFlow", "TrueType", "iOS", "macOS", "FreeBSD", "TeX", "LaTeX", "BibTeX", "BibLaTeX", "MinGW", "CamelCase"]`
 
 ---
 **Affected lints:**
@@ -669,6 +670,8 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 
 ---
 **Affected lints:**
+* [`allow_attributes`](https://rust-lang.github.io/rust-clippy/master/index.html#allow_attributes)
+* [`allow_attributes_without_reason`](https://rust-lang.github.io/rust-clippy/master/index.html#allow_attributes_without_reason)
 * [`almost_complete_range`](https://rust-lang.github.io/rust-clippy/master/index.html#almost_complete_range)
 * [`approx_constant`](https://rust-lang.github.io/rust-clippy/master/index.html#approx_constant)
 * [`assigning_clones`](https://rust-lang.github.io/rust-clippy/master/index.html#assigning_clones)
@@ -693,6 +696,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`manual_is_ascii_check`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_is_ascii_check)
 * [`manual_let_else`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_let_else)
 * [`manual_non_exhaustive`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_non_exhaustive)
+* [`manual_pattern_char_comparison`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_pattern_char_comparison)
 * [`manual_range_contains`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_range_contains)
 * [`manual_rem_euclid`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_rem_euclid)
 * [`manual_retain`](https://rust-lang.github.io/rust-clippy/master/index.html#manual_retain)

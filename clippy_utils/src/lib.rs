@@ -1,9 +1,10 @@
 #![feature(array_chunks)]
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
+#![feature(f128)]
+#![feature(f16)]
 #![feature(if_let_guard)]
 #![feature(let_chains)]
-#![feature(lint_reasons)]
 #![feature(never_type)]
 #![feature(rustc_private)]
 #![feature(assert_matches)]
@@ -100,10 +101,10 @@ use rustc_hir::hir_id::{HirIdMap, HirIdSet};
 use rustc_hir::intravisit::{walk_expr, FnKind, Visitor};
 use rustc_hir::LangItem::{OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_hir::{
-    self as hir, def, Arm, ArrayLen, BindingMode, Block, BlockCheckMode, Body, ByRef, Closure, Destination, Expr,
-    ExprField, ExprKind, FnDecl, FnRetTy, GenericArgs, HirId, Impl, ImplItem, ImplItemKind, ImplItemRef, Item,
-    ItemKind, LangItem, LetStmt, MatchSource, Mutability, Node, OwnerId, Param, Pat, PatKind, Path, PathSegment,
-    PrimTy, QPath, Stmt, StmtKind, TraitItem, TraitItemKind, TraitItemRef, TraitRef, TyKind, UnOp,
+    self as hir, def, Arm, ArrayLen, BindingMode, Block, BlockCheckMode, Body, ByRef, Closure, ConstContext,
+    Destination, Expr, ExprField, ExprKind, FnDecl, FnRetTy, GenericArgs, HirId, Impl, ImplItem, ImplItemKind,
+    ImplItemRef, Item, ItemKind, LangItem, LetStmt, MatchSource, Mutability, Node, OwnerId, Param, Pat, PatKind, Path,
+    PathSegment, PrimTy, QPath, Stmt, StmtKind, TraitItem, TraitItemKind, TraitItemRef, TraitRef, TyKind, UnOp,
 };
 use rustc_lexer::{tokenize, TokenKind};
 use rustc_lint::{LateContext, Level, Lint, LintContext};
@@ -126,7 +127,7 @@ use visitors::Visitable;
 use crate::consts::{constant, mir_to_const, Constant};
 use crate::higher::Range;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
-use crate::visitors::for_each_expr;
+use crate::visitors::for_each_expr_without_closures;
 
 use rustc_middle::hir::nested_filter;
 
@@ -208,7 +209,10 @@ pub fn local_is_initialized(cx: &LateContext<'_>, local: HirId) -> bool {
     false
 }
 
-/// Returns `true` if the given `NodeId` is inside a constant context
+/// Returns `true` if the given `HirId` is inside a constant context.
+///
+/// This is the same as `is_inside_always_const_context`, but also includes
+/// `const fn`.
 ///
 /// # Example
 ///
@@ -219,6 +223,24 @@ pub fn local_is_initialized(cx: &LateContext<'_>, local: HirId) -> bool {
 /// ```
 pub fn in_constant(cx: &LateContext<'_>, id: HirId) -> bool {
     cx.tcx.hir().is_inside_const_context(id)
+}
+
+/// Returns `true` if the given `HirId` is inside an always constant context.
+///
+/// This context includes:
+///  * const/static items
+///  * const blocks (or inline consts)
+///  * associated constants
+pub fn is_inside_always_const_context(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
+    use ConstContext::{Const, ConstFn, Static};
+    let hir = tcx.hir();
+    let Some(ctx) = hir.body_const_context(hir.enclosing_body_owner(hir_id)) else {
+        return false;
+    };
+    match ctx {
+        ConstFn => false,
+        Static(_) | Const { inline: _ } => true,
+    }
 }
 
 /// Checks if a `Res` refers to a constructor of a `LangItem`
@@ -319,6 +341,15 @@ pub fn match_trait_method(cx: &LateContext<'_>, expr: &Expr<'_>, path: &[&str]) 
         .type_dependent_def_id(expr.hir_id)
         .and_then(|defid| cx.tcx.trait_of_item(defid))
         .map_or(false, |trt_id| match_def_path(cx, trt_id, path))
+}
+
+/// Checks if the given method call expression calls an inherent method.
+pub fn is_inherent_method_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    if let Some(method_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) {
+        cx.tcx.trait_of_item(method_id).is_none()
+    } else {
+        false
+    }
 }
 
 /// Checks if a method is defined in an impl of a diagnostic item
@@ -647,7 +678,7 @@ fn item_children_by_name(tcx: TyCtxt<'_>, def_id: DefId, name: Symbol) -> Vec<Re
 /// This function is expensive and should be used sparingly.
 pub fn def_path_res(cx: &LateContext<'_>, path: &[&str]) -> Vec<Res> {
     fn find_crates(tcx: TyCtxt<'_>, name: Symbol) -> impl Iterator<Item = DefId> + '_ {
-        tcx.crates_including_speculative(())
+        tcx.crates(())
             .iter()
             .copied()
             .filter(move |&num| tcx.crate_name(num) == name)
@@ -1313,7 +1344,7 @@ pub fn contains_name<'tcx>(name: Symbol, expr: &'tcx Expr<'_>, cx: &LateContext<
 
 /// Returns `true` if `expr` contains a return expression
 pub fn contains_return<'tcx>(expr: impl Visitable<'tcx>) -> bool {
-    for_each_expr(expr, |e| {
+    for_each_expr_without_closures(expr, |e| {
         if matches!(e.kind, ExprKind::Ret(..)) {
             ControlFlow::Break(())
         } else {
@@ -1534,7 +1565,7 @@ pub fn is_range_full(cx: &LateContext<'_>, expr: &Expr<'_>, container_path: Opti
             if let rustc_ty::Adt(_, subst) = ty.kind()
                 && let bnd_ty = subst.type_at(0)
                 && let Some(min_val) = bnd_ty.numeric_min_val(cx.tcx)
-                && let Some(min_const) = mir_to_const(cx, Const::from_ty_const(min_val, cx.tcx))
+                && let Some(min_const) = mir_to_const(cx, Const::from_ty_const(min_val, bnd_ty, cx.tcx))
                 && let Some(start_const) = constant(cx, cx.typeck_results(), start)
             {
                 start_const == min_const
@@ -1547,7 +1578,7 @@ pub fn is_range_full(cx: &LateContext<'_>, expr: &Expr<'_>, container_path: Opti
                 if let rustc_ty::Adt(_, subst) = ty.kind()
                     && let bnd_ty = subst.type_at(0)
                     && let Some(max_val) = bnd_ty.numeric_max_val(cx.tcx)
-                    && let Some(max_const) = mir_to_const(cx, Const::from_ty_const(max_val, cx.tcx))
+                    && let Some(max_const) = mir_to_const(cx, Const::from_ty_const(max_val, bnd_ty, cx.tcx))
                     && let Some(end_const) = constant(cx, cx.typeck_results(), end)
                 {
                     end_const == max_const
@@ -2461,6 +2492,17 @@ pub fn peel_hir_ty_refs<'a>(mut ty: &'a hir::Ty<'a>) -> (&'a hir::Ty<'a>, usize)
     }
 }
 
+/// Peels off all references on the type. Returns the underlying type and the number of references
+/// removed.
+pub fn peel_middle_ty_refs(mut ty: Ty<'_>) -> (Ty<'_>, usize) {
+    let mut count = 0;
+    while let rustc_ty::Ref(_, dest_ty, _) = ty.kind() {
+        ty = *dest_ty;
+        count += 1;
+    }
+    (ty, count)
+}
+
 /// Removes `AddrOf` operators (`&`) or deref operators (`*`), but only if a reference type is
 /// dereferenced. An overloaded deref such as `Vec` to slice would not be removed.
 pub fn peel_ref_operators<'hir>(cx: &LateContext<'_>, mut expr: &'hir Expr<'hir>) -> &'hir Expr<'hir> {
@@ -2583,16 +2625,6 @@ pub fn inherits_cfg(tcx: TyCtxt<'_>, def_id: LocalDefId) -> bool {
             .any(|attr| attr.has_name(sym::cfg))
 }
 
-/// Checks whether item either has `test` attribute applied, or
-/// is a module with `test` in its name.
-///
-/// Note: Add `//@compile-flags: --test` to UI tests with a `#[test]` function
-pub fn is_test_module_or_function(tcx: TyCtxt<'_>, item: &Item<'_>) -> bool {
-    is_in_test_function(tcx, item.hir_id())
-        || matches!(item.kind, ItemKind::Mod(..))
-            && item.ident.name.as_str().split('_').any(|a| a == "test" || a == "tests")
-}
-
 /// Walks up the HIR tree from the given expression in an attempt to find where the value is
 /// consumed.
 ///
@@ -2655,13 +2687,80 @@ pub enum DefinedTy<'tcx> {
 /// The context an expressions value is used in.
 pub struct ExprUseCtxt<'tcx> {
     /// The parent node which consumes the value.
-    pub node: ExprUseNode<'tcx>,
+    pub node: Node<'tcx>,
+    /// The child id of the node the value came from.
+    pub child_id: HirId,
     /// Any adjustments applied to the type.
     pub adjustments: &'tcx [Adjustment<'tcx>],
-    /// Whether or not the type must unify with another code path.
+    /// Whether the type must unify with another code path.
     pub is_ty_unified: bool,
-    /// Whether or not the value will be moved before it's used.
+    /// Whether the value will be moved before it's used.
     pub moved_before_use: bool,
+    /// Whether the use site has the same `SyntaxContext` as the value.
+    pub same_ctxt: bool,
+}
+impl<'tcx> ExprUseCtxt<'tcx> {
+    pub fn use_node(&self, cx: &LateContext<'tcx>) -> ExprUseNode<'tcx> {
+        match self.node {
+            Node::LetStmt(l) => ExprUseNode::LetStmt(l),
+            Node::ExprField(field) => ExprUseNode::Field(field),
+
+            Node::Item(&Item {
+                kind: ItemKind::Static(..) | ItemKind::Const(..),
+                owner_id,
+                ..
+            })
+            | Node::TraitItem(&TraitItem {
+                kind: TraitItemKind::Const(..),
+                owner_id,
+                ..
+            })
+            | Node::ImplItem(&ImplItem {
+                kind: ImplItemKind::Const(..),
+                owner_id,
+                ..
+            }) => ExprUseNode::ConstStatic(owner_id),
+
+            Node::Item(&Item {
+                kind: ItemKind::Fn(..),
+                owner_id,
+                ..
+            })
+            | Node::TraitItem(&TraitItem {
+                kind: TraitItemKind::Fn(..),
+                owner_id,
+                ..
+            })
+            | Node::ImplItem(&ImplItem {
+                kind: ImplItemKind::Fn(..),
+                owner_id,
+                ..
+            }) => ExprUseNode::Return(owner_id),
+
+            Node::Expr(use_expr) => match use_expr.kind {
+                ExprKind::Ret(_) => ExprUseNode::Return(OwnerId {
+                    def_id: cx.tcx.hir().body_owner_def_id(cx.enclosing_body.unwrap()),
+                }),
+
+                ExprKind::Closure(closure) => ExprUseNode::Return(OwnerId { def_id: closure.def_id }),
+                ExprKind::Call(func, args) => match args.iter().position(|arg| arg.hir_id == self.child_id) {
+                    Some(i) => ExprUseNode::FnArg(func, i),
+                    None => ExprUseNode::Callee,
+                },
+                ExprKind::MethodCall(name, _, args, _) => ExprUseNode::MethodArg(
+                    use_expr.hir_id,
+                    name.args,
+                    args.iter()
+                        .position(|arg| arg.hir_id == self.child_id)
+                        .map_or(0, |i| i + 1),
+                ),
+                ExprKind::Field(_, name) => ExprUseNode::FieldAccess(name),
+                ExprKind::AddrOf(kind, mutbl, _) => ExprUseNode::AddrOf(kind, mutbl),
+                _ => ExprUseNode::Other,
+            },
+            _ => ExprUseNode::Other,
+        }
+    }
 }
 
 /// The node which consumes a value.
@@ -2682,7 +2781,8 @@ pub enum ExprUseNode<'tcx> {
     Callee,
     /// Access of a field.
     FieldAccess(Ident),
-    Expr,
+    /// Borrow expression.
+    AddrOf(ast::BorrowKind, Mutability),
     Other,
 }
 impl<'tcx> ExprUseNode<'tcx> {
@@ -2759,26 +2859,25 @@ impl<'tcx> ExprUseNode<'tcx> {
                 let sig = cx.tcx.fn_sig(id).skip_binder();
                 Some(DefinedTy::Mir(cx.tcx.param_env(id).and(sig.input(i))))
             },
-            Self::LetStmt(_) | Self::FieldAccess(..) | Self::Callee | Self::Expr | Self::Other => None,
+            Self::LetStmt(_) | Self::FieldAccess(..) | Self::Callee | Self::Other | Self::AddrOf(..) => None,
         }
     }
 }
 
 /// Gets the context an expression's value is used in.
-pub fn expr_use_ctxt<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> Option<ExprUseCtxt<'tcx>> {
+pub fn expr_use_ctxt<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> ExprUseCtxt<'tcx> {
     let mut adjustments = [].as_slice();
     let mut is_ty_unified = false;
     let mut moved_before_use = false;
+    let mut same_ctxt = true;
     let ctxt = e.span.ctxt();
-    walk_to_expr_usage(cx, e, &mut |parent_id, parent, child_id| {
+    let node = walk_to_expr_usage(cx, e, &mut |parent_id, parent, child_id| -> ControlFlow<!> {
         if adjustments.is_empty()
             && let Node::Expr(e) = cx.tcx.hir_node(child_id)
         {
             adjustments = cx.typeck_results().expr_adjustments(e);
         }
-        if cx.tcx.hir().span(parent_id).ctxt() != ctxt {
-            return ControlFlow::Break(());
-        }
+        same_ctxt &= cx.tcx.hir().span(parent_id).ctxt() == ctxt;
         if let Node::Expr(e) = parent {
             match e.kind {
                 ExprKind::If(e, _, _) | ExprKind::Match(e, _, _) if e.hir_id != child_id => {
@@ -2794,71 +2893,26 @@ pub fn expr_use_ctxt<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> Optio
             }
         }
         ControlFlow::Continue(())
-    })?
-    .continue_value()
-    .map(|(use_node, child_id)| {
-        let node = match use_node {
-            Node::LetStmt(l) => ExprUseNode::LetStmt(l),
-            Node::ExprField(field) => ExprUseNode::Field(field),
-
-            Node::Item(&Item {
-                kind: ItemKind::Static(..) | ItemKind::Const(..),
-                owner_id,
-                ..
-            })
-            | Node::TraitItem(&TraitItem {
-                kind: TraitItemKind::Const(..),
-                owner_id,
-                ..
-            })
-            | Node::ImplItem(&ImplItem {
-                kind: ImplItemKind::Const(..),
-                owner_id,
-                ..
-            }) => ExprUseNode::ConstStatic(owner_id),
-
-            Node::Item(&Item {
-                kind: ItemKind::Fn(..),
-                owner_id,
-                ..
-            })
-            | Node::TraitItem(&TraitItem {
-                kind: TraitItemKind::Fn(..),
-                owner_id,
-                ..
-            })
-            | Node::ImplItem(&ImplItem {
-                kind: ImplItemKind::Fn(..),
-                owner_id,
-                ..
-            }) => ExprUseNode::Return(owner_id),
-
-            Node::Expr(use_expr) => match use_expr.kind {
-                ExprKind::Ret(_) => ExprUseNode::Return(OwnerId {
-                    def_id: cx.tcx.hir().body_owner_def_id(cx.enclosing_body.unwrap()),
-                }),
-                ExprKind::Closure(closure) => ExprUseNode::Return(OwnerId { def_id: closure.def_id }),
-                ExprKind::Call(func, args) => match args.iter().position(|arg| arg.hir_id == child_id) {
-                    Some(i) => ExprUseNode::FnArg(func, i),
-                    None => ExprUseNode::Callee,
-                },
-                ExprKind::MethodCall(name, _, args, _) => ExprUseNode::MethodArg(
-                    use_expr.hir_id,
-                    name.args,
-                    args.iter().position(|arg| arg.hir_id == child_id).map_or(0, |i| i + 1),
-                ),
-                ExprKind::Field(child, name) if child.hir_id == e.hir_id => ExprUseNode::FieldAccess(name),
-                _ => ExprUseNode::Expr,
-            },
-            _ => ExprUseNode::Other,
-        };
-        ExprUseCtxt {
+    });
+    match node {
+        Some(ControlFlow::Continue((node, child_id))) => ExprUseCtxt {
             node,
+            child_id,
             adjustments,
             is_ty_unified,
             moved_before_use,
-        }
-    })
+            same_ctxt,
+        },
+        Some(ControlFlow::Break(_)) => unreachable!("type of node is ControlFlow<!>"),
+        None => ExprUseCtxt {
+            node: Node::Crate(cx.tcx.hir().root_module()),
+            child_id: HirId::INVALID,
+            adjustments: &[],
+            is_ty_unified: true,
+            moved_before_use: true,
+            same_ctxt: false,
+        },
+    }
 }
 
 /// Tokenizes the input while keeping the text associated with each token.
@@ -3391,4 +3445,15 @@ pub fn binary_expr_needs_parentheses(expr: &Expr<'_>) -> bool {
     }
 
     contains_block(expr, false)
+}
+
+/// Returns true if the specified expression is in a receiver position.
+pub fn is_receiver_of_method_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    if let Some(parent_expr) = get_parent_expr(cx, expr)
+        && let ExprKind::MethodCall(_, receiver, ..) = parent_expr.kind
+        && receiver.hir_id == expr.hir_id
+    {
+        return true;
+    }
+    false
 }

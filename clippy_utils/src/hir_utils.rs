@@ -1,15 +1,15 @@
 use crate::consts::constant_simple;
 use crate::macros::macro_backtrace;
-use crate::source::{get_source_text, snippet_opt, walk_span_to_context, SpanRange};
+use crate::source::{snippet_opt, walk_span_to_context, SpanRange, SpanRangeExt};
 use crate::tokenize_with_text;
 use rustc_ast::ast::InlineAsmTemplatePiece;
 use rustc_data_structures::fx::FxHasher;
 use rustc_hir::def::Res;
 use rustc_hir::MatchSource::TryDesugar;
 use rustc_hir::{
-    ArrayLen, BinOpKind, BindingMode, Block, BodyId, Closure, Expr, ExprField, ExprKind, FnRetTy, GenericArg,
-    GenericArgs, HirId, HirIdMap, InlineAsmOperand, LetExpr, Lifetime, LifetimeName, Pat, PatField, PatKind, Path,
-    PathSegment, PrimTy, QPath, Stmt, StmtKind, Ty, TyKind, TypeBinding,
+    ArrayLen, AssocItemConstraint, BinOpKind, BindingMode, Block, BodyId, Closure, Expr, ExprField, ExprKind, FnRetTy,
+    GenericArg, GenericArgs, HirId, HirIdMap, InlineAsmOperand, LetExpr, Lifetime, LifetimeName, Pat, PatField,
+    PatKind, Path, PathSegment, PrimTy, QPath, Stmt, StmtKind, Ty, TyKind,
 };
 use rustc_lexer::{tokenize, TokenKind};
 use rustc_lint::LateContext;
@@ -295,7 +295,7 @@ impl HirEqInterExpr<'_, '_, '_> {
                 self.eq_expr(lx, rx) && self.eq_ty(lt, rt)
             },
             (&ExprKind::Closure(_l), &ExprKind::Closure(_r)) => false,
-            (&ExprKind::ConstBlock(lb), &ExprKind::ConstBlock(rb)) => self.eq_expr(lb, rb),
+            (&ExprKind::ConstBlock(lb), &ExprKind::ConstBlock(rb)) => self.eq_body(lb.body, rb.body),
             (&ExprKind::Continue(li), &ExprKind::Continue(ri)) => {
                 both(&li.label, &ri.label, |l, r| l.ident.name == r.ident.name)
             },
@@ -486,7 +486,7 @@ impl HirEqInterExpr<'_, '_, '_> {
     fn eq_path_parameters(&mut self, left: &GenericArgs<'_>, right: &GenericArgs<'_>) -> bool {
         if left.parenthesized == right.parenthesized {
             over(left.args, right.args, |l, r| self.eq_generic_arg(l, r)) // FIXME(flip1995): may not work
-                && over(left.bindings, right.bindings, |l, r| self.eq_type_binding(l, r))
+                && over(left.constraints, right.constraints, |l, r| self.eq_assoc_type_binding(l, r))
         } else {
             false
         }
@@ -518,8 +518,12 @@ impl HirEqInterExpr<'_, '_, '_> {
         }
     }
 
-    fn eq_type_binding(&mut self, left: &TypeBinding<'_>, right: &TypeBinding<'_>) -> bool {
-        left.ident.name == right.ident.name && self.eq_ty(left.ty(), right.ty())
+    fn eq_assoc_type_binding(&mut self, left: &AssocItemConstraint<'_>, right: &AssocItemConstraint<'_>) -> bool {
+        left.ident.name == right.ident.name
+            && self.eq_ty(
+                left.ty().expect("expected assoc type binding"),
+                right.ty().expect("expected assoc type binding"),
+            )
     }
 
     fn check_ctxt(&mut self, left: SyntaxContext, right: SyntaxContext) -> bool {
@@ -769,8 +773,8 @@ impl<'a, 'tcx> SpanlessHash<'a, 'tcx> {
                 // closures inherit TypeckResults
                 self.hash_expr(self.cx.tcx.hir().body(body).value);
             },
-            ExprKind::ConstBlock(l_id) => {
-                self.hash_expr(l_id);
+            ExprKind::ConstBlock(ref l_id) => {
+                self.hash_body(l_id.body);
             },
             ExprKind::DropTemps(e) | ExprKind::Yield(e, _) => {
                 self.hash_expr(e);
@@ -1169,9 +1173,9 @@ fn eq_span_tokens(
     pred: impl Fn(TokenKind) -> bool,
 ) -> bool {
     fn f(cx: &LateContext<'_>, left: Range<BytePos>, right: Range<BytePos>, pred: impl Fn(TokenKind) -> bool) -> bool {
-        if let Some(lsrc) = get_source_text(cx, left)
+        if let Some(lsrc) = left.get_source_text(cx)
             && let Some(lsrc) = lsrc.as_str()
-            && let Some(rsrc) = get_source_text(cx, right)
+            && let Some(rsrc) = right.get_source_text(cx)
             && let Some(rsrc) = rsrc.as_str()
         {
             let pred = |t: &(_, _)| pred(t.0);

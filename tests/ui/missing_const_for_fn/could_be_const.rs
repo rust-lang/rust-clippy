@@ -140,4 +140,49 @@ mod msrv {
         let bar = Bar { val: 1 };
         let _ = unsafe { bar.val };
     }
+
+    #[clippy::msrv = "1.62"]
+    mod with_extern {
+        extern "C" fn c() {}
+        //~^ ERROR: this could be a `const fn`
+
+        #[rustfmt::skip]
+        extern fn implicit_c() {}
+        //~^ ERROR: this could be a `const fn`
+
+        // any item functions in extern block won't trigger this lint
+        extern "C" {
+            fn c_in_block();
+        }
+    }
+}
+
+mod issue12677 {
+    pub struct Wrapper {
+        pub strings: Vec<String>,
+    }
+
+    impl Wrapper {
+        #[must_use]
+        pub fn new(strings: Vec<String>) -> Self {
+            Self { strings }
+        }
+
+        #[must_use]
+        pub fn empty() -> Self {
+            Self { strings: Vec::new() }
+        }
+    }
+
+    pub struct Other {
+        pub text: String,
+        pub vec: Vec<String>,
+    }
+
+    impl Other {
+        pub fn new(text: String) -> Self {
+            let vec = Vec::new();
+            Self { text, vec }
+        }
+    }
 }

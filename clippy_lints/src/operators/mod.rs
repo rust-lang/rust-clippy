@@ -242,6 +242,13 @@ declare_clippy_lint! {
     /// # let x = 1;
     /// if (x | 1 > 3) {  }
     /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// # let x = 1;
+    /// if (x >= 2) {  }
+    /// ```
     #[clippy::version = "pre 1.29.0"]
     pub INEFFECTIVE_BIT_MASK,
     correctness,
@@ -264,6 +271,13 @@ declare_clippy_lint! {
     /// ```no_run
     /// # let x = 1;
     /// if x & 0b1111 == 0 { }
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// # let x: i32 = 1;
+    /// if x.trailing_zeros() > 4 { }
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub VERBOSE_BIT_MASK,
@@ -868,11 +882,11 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
         self.arithmetic_context.expr_post(e.hir_id);
     }
 
-    fn check_body(&mut self, cx: &LateContext<'tcx>, b: &'tcx Body<'_>) {
+    fn check_body(&mut self, cx: &LateContext<'tcx>, b: &Body<'_>) {
         self.arithmetic_context.enter_body(cx, b);
     }
 
-    fn check_body_post(&mut self, cx: &LateContext<'tcx>, b: &'tcx Body<'_>) {
+    fn check_body_post(&mut self, cx: &LateContext<'tcx>, b: &Body<'_>) {
         self.arithmetic_context.body_post(cx, b);
     }
 }

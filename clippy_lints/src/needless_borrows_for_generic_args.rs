@@ -80,11 +80,13 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if matches!(expr.kind, ExprKind::AddrOf(..))
             && !expr.span.from_expansion()
-            && let Some(use_cx) = expr_use_ctxt(cx, expr)
+            && let use_cx = expr_use_ctxt(cx, expr)
+            && use_cx.same_ctxt
             && !use_cx.is_ty_unified
-            && let Some(DefinedTy::Mir(ty)) = use_cx.node.defined_ty(cx)
+            && let use_node = use_cx.use_node(cx)
+            && let Some(DefinedTy::Mir(ty)) = use_node.defined_ty(cx)
             && let ty::Param(ty) = *ty.value.skip_binder().kind()
-            && let Some((hir_id, fn_id, i)) = match use_cx.node {
+            && let Some((hir_id, fn_id, i)) = match use_node {
                 ExprUseNode::MethodArg(_, _, 0) => None,
                 ExprUseNode::MethodArg(hir_id, None, i) => cx
                     .typeck_results()
@@ -129,7 +131,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
         }
     }
 
-    fn check_body_post(&mut self, cx: &LateContext<'tcx>, body: &'tcx Body<'_>) {
+    fn check_body_post(&mut self, cx: &LateContext<'tcx>, body: &Body<'_>) {
         if self.possible_borrowers.last().map_or(false, |&(local_def_id, _)| {
             local_def_id == cx.tcx.hir().body_owner_def_id(body.id())
         }) {
@@ -267,7 +269,7 @@ fn needless_borrow_count<'tcx>(
                 return false;
             }
 
-            let predicate = EarlyBinder::bind(predicate).instantiate(cx.tcx, &args_with_referent_ty);
+            let predicate = EarlyBinder::bind(predicate).instantiate(cx.tcx, &args_with_referent_ty[..]);
             let obligation = Obligation::new(cx.tcx, ObligationCause::dummy(), cx.param_env, predicate);
             let infcx = cx.tcx.infer_ctxt().build();
             infcx.predicate_must_hold_modulo_regions(&obligation)
@@ -311,7 +313,7 @@ fn is_mixed_projection_predicate<'tcx>(
 ) -> bool {
     let generics = cx.tcx.generics_of(callee_def_id);
     // The predicate requires the projected type to equal a type parameter from the parent context.
-    if let Some(term_ty) = projection_predicate.term.ty()
+    if let Some(term_ty) = projection_predicate.term.as_type()
         && let ty::Param(term_param_ty) = term_ty.kind()
         && (term_param_ty.index as usize) < generics.parent_count
     {
@@ -370,7 +372,7 @@ fn replace_types<'tcx>(
         if replaced.insert(param_ty.index) {
             for projection_predicate in projection_predicates {
                 if projection_predicate.projection_term.self_ty() == param_ty.to_ty(cx.tcx)
-                    && let Some(term_ty) = projection_predicate.term.ty()
+                    && let Some(term_ty) = projection_predicate.term.as_type()
                     && let ty::Param(term_param_ty) = term_ty.kind()
                 {
                     let projection = projection_predicate

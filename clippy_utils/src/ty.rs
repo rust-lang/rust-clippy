@@ -23,7 +23,7 @@ use rustc_middle::ty::{
 };
 use rustc_span::symbol::Ident;
 use rustc_span::{sym, Span, Symbol, DUMMY_SP};
-use rustc_target::abi::{Size, VariantIdx};
+use rustc_target::abi::VariantIdx;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::normalize::QueryNormalizeExt;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
@@ -292,7 +292,7 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
     let trait_ref = TraitRef::new(
         tcx,
         trait_id,
-        Some(GenericArg::from(ty)).into_iter().chain(args).chain(effect_arg),
+        [GenericArg::from(ty)].into_iter().chain(args).chain(effect_arg),
     );
 
     debug_assert_matches!(
@@ -750,7 +750,7 @@ pub fn ty_sig<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<ExprFnSig<'t
                     let output = bounds
                         .projection_bounds()
                         .find(|p| lang_items.fn_once_output().map_or(false, |id| id == p.item_def_id()))
-                        .map(|p| p.map_bound(|p| p.term.ty().unwrap()));
+                        .map(|p| p.map_bound(|p| p.term.expect_type()));
                     Some(ExprFnSig::Trait(bound.map_bound(|b| b.args.type_at(0)), output, None))
                 },
                 _ => None,
@@ -798,7 +798,7 @@ fn sig_from_bounds<'tcx>(
                     // Multiple different fn trait impls. Is this even allowed?
                     return None;
                 }
-                output = Some(pred.kind().rebind(p.term.ty().unwrap()));
+                output = Some(pred.kind().rebind(p.term.expect_type()));
             },
             _ => (),
         }
@@ -836,7 +836,7 @@ fn sig_for_projection<'tcx>(cx: &LateContext<'tcx>, ty: AliasTy<'tcx>) -> Option
                     // Multiple different fn trait impls. Is this even allowed?
                     return None;
                 }
-                output = pred.kind().rebind(p.term.ty()).transpose();
+                output = pred.kind().rebind(p.term.as_type()).transpose();
             },
             _ => (),
         }
@@ -861,26 +861,11 @@ impl core::ops::Add<u32> for EnumValue {
 }
 
 /// Attempts to read the given constant as though it were an enum value.
-#[expect(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
 pub fn read_explicit_enum_value(tcx: TyCtxt<'_>, id: DefId) -> Option<EnumValue> {
     if let Ok(ConstValue::Scalar(Scalar::Int(value))) = tcx.const_eval_poly(id) {
         match tcx.type_of(id).instantiate_identity().kind() {
-            ty::Int(_) => Some(EnumValue::Signed(match value.size().bytes() {
-                1 => i128::from(value.assert_bits(Size::from_bytes(1)) as u8 as i8),
-                2 => i128::from(value.assert_bits(Size::from_bytes(2)) as u16 as i16),
-                4 => i128::from(value.assert_bits(Size::from_bytes(4)) as u32 as i32),
-                8 => i128::from(value.assert_bits(Size::from_bytes(8)) as u64 as i64),
-                16 => value.assert_bits(Size::from_bytes(16)) as i128,
-                _ => return None,
-            })),
-            ty::Uint(_) => Some(EnumValue::Unsigned(match value.size().bytes() {
-                1 => value.assert_bits(Size::from_bytes(1)),
-                2 => value.assert_bits(Size::from_bytes(2)),
-                4 => value.assert_bits(Size::from_bytes(4)),
-                8 => value.assert_bits(Size::from_bytes(8)),
-                16 => value.assert_bits(Size::from_bytes(16)),
-                _ => return None,
-            })),
+            ty::Int(_) => Some(EnumValue::Signed(value.to_int(value.size()))),
+            ty::Uint(_) => Some(EnumValue::Unsigned(value.to_uint(value.size()))),
             _ => None,
         }
     } else {
@@ -1141,7 +1126,7 @@ pub fn make_projection<'tcx>(
         #[cfg(debug_assertions)]
         assert_generic_args_match(tcx, assoc_item.def_id, args);
 
-        Some(AliasTy::new(tcx, assoc_item.def_id, args))
+        Some(AliasTy::new_from_args(tcx, assoc_item.def_id, args))
     }
     helper(
         tcx,
@@ -1180,7 +1165,7 @@ pub fn make_normalized_projection<'tcx>(
             );
             return None;
         }
-        match tcx.try_normalize_erasing_regions(param_env, Ty::new_projection(tcx, ty.def_id, ty.args)) {
+        match tcx.try_normalize_erasing_regions(param_env, Ty::new_projection_from_args(tcx, ty.def_id, ty.args)) {
             Ok(ty) => Some(ty),
             Err(e) => {
                 debug_assert!(false, "failed to normalize type `{ty}`: {e:#?}");
@@ -1304,7 +1289,7 @@ pub fn make_normalized_projection_with_regions<'tcx>(
             .infer_ctxt()
             .build()
             .at(&cause, param_env)
-            .query_normalize(Ty::new_projection(tcx, ty.def_id, ty.args))
+            .query_normalize(Ty::new_projection_from_args(tcx, ty.def_id, ty.args))
         {
             Ok(ty) => Some(ty.value),
             Err(e) => {
@@ -1347,20 +1332,28 @@ pub fn deref_chain<'cx, 'tcx>(cx: &'cx LateContext<'tcx>, ty: Ty<'tcx>) -> impl 
 /// If you need this, you should wrap this call in `clippy_utils::ty::deref_chain().any(...)`.
 pub fn get_adt_inherent_method<'a>(cx: &'a LateContext<'_>, ty: Ty<'_>, method_name: Symbol) -> Option<&'a AssocItem> {
     if let Some(ty_did) = ty.ty_adt_def().map(AdtDef::did) {
-        cx.tcx
-            .inherent_impls(ty_did)
-            .into_iter()
-            .flatten()
-            .map(|&did| {
-                cx.tcx
-                    .associated_items(did)
-                    .filter_by_name_unhygienic(method_name)
-                    .next()
-                    .filter(|item| item.kind == AssocKind::Fn)
-            })
-            .next()
-            .flatten()
+        cx.tcx.inherent_impls(ty_did).into_iter().flatten().find_map(|&did| {
+            cx.tcx
+                .associated_items(did)
+                .filter_by_name_unhygienic(method_name)
+                .next()
+                .filter(|item| item.kind == AssocKind::Fn)
+        })
     } else {
         None
+    }
+}
+
+/// Get's the type of a field by name.
+pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) -> Option<Ty<'tcx>> {
+    match *ty.kind() {
+        ty::Adt(def, args) if def.is_union() || def.is_struct() => def
+            .non_enum_variant()
+            .fields
+            .iter()
+            .find(|f| f.name == name)
+            .map(|f| f.ty(tcx, args)),
+        ty::Tuple(args) => name.as_str().parse::<usize>().ok().and_then(|i| args.get(i).copied()),
+        _ => None,
     }
 }
