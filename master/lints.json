@@ -78,7 +78,7 @@
     "id": "almost_complete_range",
     "id_span": {
       "path": "src/almost_complete_range.rs",
-      "line": 28
+      "line": 27
     },
     "group": "suspicious",
     "level": "warn",
