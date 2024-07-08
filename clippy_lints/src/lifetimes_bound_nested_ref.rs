@@ -499,7 +499,7 @@ impl ImpliedBoundsLinter {
                     IMPLICIT_LIFETIMES_BOUND,
                     decl_span,
                     format!(
-                        // only remove the these lifetime bounds after the compiler is fixed
+                        // only remove these lifetime bounds after the compiler is fixed
                         "declared lifetimes bound: {} is redundant, but do not remove it",
                         declared_bound.as_bound_declaration(),
                     ),
