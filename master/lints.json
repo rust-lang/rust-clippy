@@ -3339,7 +3339,7 @@
     "id": "init_numbered_fields",
     "id_span": {
       "path": "src/init_numbered_fields.rs",
-      "line": 38
+      "line": 37
     },
     "group": "style",
     "level": "warn",
