@@ -452,7 +452,7 @@
     "id": "bool_to_int_with_if",
     "id_span": {
       "path": "src/bool_to_int_with_if.rs",
-      "line": 43
+      "line": 41
     },
     "group": "pedantic",
     "level": "allow",
