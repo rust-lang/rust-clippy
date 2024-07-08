@@ -376,7 +376,7 @@ impl ImpliedBoundsLinter {
                     // dyn, not needed to detect reported issues
                     self.collect_nested_ref_bounds_gbs(generic_bounds, opt_outlived_lft_ident);
                 },
-                TK::ImplTrait(_node_id, generic_bounds, _opt_capturing_args_and_span) => {
+                TK::ImplTrait(_node_id, generic_bounds) => {
                     // impl, not needed to detect reported issues
                     self.collect_nested_ref_bounds_gbs(generic_bounds, opt_outlived_lft_ident);
                 },
@@ -433,8 +433,11 @@ impl ImpliedBoundsLinter {
                     }
                 },
                 GB::Outlives(_lifetime) => {
-                    // CHECKME: what is the meaning of GenericBound::Outlives ?
+                    // CHECKME: is this a nested reference bound that can be collected ?
                 },
+                GB::Use(_precise_capturing_args, _span) => {
+                    // CHECKME: how to treat the lifetime in a PreciseCapturingArg ?
+                }
             }
         }
     }
