@@ -264,7 +264,7 @@
     "id": "assigning_clones",
     "id_span": {
       "path": "src/assigning_clones.rs",
-      "line": 52
+      "line": 50
     },
     "group": "pedantic",
     "level": "allow",
