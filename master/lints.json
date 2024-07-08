@@ -3399,7 +3399,7 @@
     "id": "inline_fn_without_body",
     "id_span": {
       "path": "src/inline_fn_without_body.rs",
-      "line": 28
+      "line": 27
     },
     "group": "correctness",
     "level": "deny",
@@ -4002,7 +4002,7 @@
     "id": "large_include_file",
     "id_span": {
       "path": "src/large_include_file.rs",
-      "line": 35
+      "line": 34
     },
     "group": "restriction",
     "level": "allow",
