@@ -1,14 +1,19 @@
-error: use of a disallowed macro `serde::Serialize`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:22:14
    |
 LL |     #[derive(Serialize)]
    |              ^^^^^^^^^
    |
    = note: no serializing
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:5:14
+   |
+LL |     { path = "serde::Serialize", reason = "no serializing" },
+   |              ^^^^^^^^^^^^^^^^^^
    = note: `-D clippy::disallowed-macros` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::disallowed_macros)]`
 
-error: use of a disallowed macro `macros::attr`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:42:1
    |
 LL | / macros::attr! {
@@ -16,86 +21,152 @@ LL | |
 LL | |     struct S;
 LL | | }
    | |_^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:12:5
+   |
+LL |     "macros::attr",
+   |     ^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `proc_macros::Derive`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:62:10
    |
 LL | #[derive(Derive)]
    |          ^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:13:5
+   |
+LL |     "proc_macros::Derive",
+   |     ^^^^^^^^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `std::println`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:13:5
    |
 LL |     println!("one");
    |     ^^^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:2:5
+   |
+LL |     "std::println",
+   |     ^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `std::println`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:15:5
    |
 LL |     println!("two");
    |     ^^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `std::cfg`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:17:5
    |
 LL |     cfg!(unix);
    |     ^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:4:14
+   |
+LL |     { path = "std::cfg" },
+   |              ^^^^^^^^^^
 
-error: use of a disallowed macro `std::vec`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:19:5
    |
 LL |     vec![1, 2, 3];
    |     ^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:3:5
+   |
+LL |     "std::vec",
+   |     ^^^^^^^^^^
 
-error: use of a disallowed macro `macros::expr`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:26:13
    |
 LL |     let _ = macros::expr!();
    |             ^^^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:6:5
+   |
+LL |     "macros::expr",
+   |     ^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::stmt`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:28:5
    |
 LL |     macros::stmt!();
    |     ^^^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:7:5
+   |
+LL |     "macros::stmt",
+   |     ^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::pat`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:30:9
    |
 LL |     let macros::pat!() = 1;
    |         ^^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:9:5
+   |
+LL |     "macros::pat",
+   |     ^^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::ty`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:32:12
    |
 LL |     let _: macros::ty!() = "";
    |            ^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:8:5
+   |
+LL |     "macros::ty",
+   |     ^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::item`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:34:5
    |
 LL |     macros::item!();
    |     ^^^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:10:5
+   |
+LL |     "macros::item",
+   |     ^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::binop`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:36:13
    |
 LL |     let _ = macros::binop!(1);
    |             ^^^^^^^^^^^^^^^^^
+   |
+note: disallowed due to config
+  --> $DIR/tests/ui-toml/disallowed_macros/clippy.toml:11:5
+   |
+LL |     "macros::binop",
+   |     ^^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::item`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:48:5
    |
 LL |     macros::item!();
    |     ^^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::item`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:53:5
    |
 LL |     macros::item!();
    |     ^^^^^^^^^^^^^^^
 
-error: use of a disallowed macro `macros::item`
+error: use of a disallowed macro
   --> tests/ui-toml/disallowed_macros/disallowed_macros.rs:58:5
    |
 LL |     macros::item!();

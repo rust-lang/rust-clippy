@@ -171,7 +171,7 @@ note: should be placed before `c`
 LL |     fn c();
    |        ^
 
-error: incorrect ordering of trait items (defined order: [Const, Type, Fn])
+error: incorrect ordering of trait items
   --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:139:5
    |
 LL |     const A: bool;
@@ -207,7 +207,7 @@ note: should be placed before `c`
 LL |     fn c() {}
    |        ^
 
-error: incorrect ordering of impl items (defined order: [Const, Type, Fn])
+error: incorrect ordering of impl items
   --> tests/ui-toml/arbitrary_source_item_ordering/ordering_mixed.rs:173:5
    |
 LL |     const A: bool = false;

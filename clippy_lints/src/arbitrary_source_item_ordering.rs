@@ -1,16 +1,18 @@
 use clippy_config::Conf;
 use clippy_config::types::{
-    SourceItemOrderingCategory, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
+    SourceItemOrdering, SourceItemOrderingModuleItemGroupings, SourceItemOrderingModuleItemKind,
     SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
     SourceItemOrderingWithinModuleItemGroupings,
 };
 use clippy_utils::diagnostics::span_lint_and_note;
 use clippy_utils::is_cfg_test;
+use core::cmp::Ordering;
 use rustc_hir::{
     AssocItemKind, FieldDef, HirId, ImplItemRef, IsAuto, Item, ItemKind, Mod, QPath, TraitItemRef, TyKind, Variant,
     VariantData,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
@@ -158,52 +160,52 @@ declare_clippy_lint! {
 
 impl_lint_pass!(ArbitrarySourceItemOrdering => [ARBITRARY_SOURCE_ITEM_ORDERING]);
 
-#[derive(Debug)]
-#[allow(clippy::struct_excessive_bools)] // Bools are cached feature flags.
 pub struct ArbitrarySourceItemOrdering {
+    enabled_orderings: SourceItemOrdering,
     assoc_types_order: SourceItemOrderingTraitAssocItemKinds,
-    enable_ordering_for_enum: bool,
-    enable_ordering_for_impl: bool,
-    enable_ordering_for_module: bool,
-    enable_ordering_for_struct: bool,
-    enable_ordering_for_trait: bool,
     module_item_order_groupings: SourceItemOrderingModuleItemGroupings,
-    module_items_ordered_within_groupings: SourceItemOrderingWithinModuleItemGroupings,
 }
 
 impl ArbitrarySourceItemOrdering {
-    pub fn new(conf: &'static Conf) -> Self {
-        #[allow(clippy::enum_glob_use)] // Very local glob use for legibility.
-        use SourceItemOrderingCategory::*;
+    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
+        let mut module_item_order_groupings = conf.module_item_order_groupings.clone();
+        match &conf.module_items_ordered_within_groupings {
+            SourceItemOrderingWithinModuleItemGroupings::All => {
+                module_item_order_groupings.enable_intra_group_sort();
+                module_item_order_groupings.intra_group_sort[SourceItemOrderingModuleItemKind::Use as usize] = false;
+            },
+            SourceItemOrderingWithinModuleItemGroupings::Custom(groups) => {
+                for group in groups {
+                    module_item_order_groupings.enable_group(tcx, group.span, &group.node);
+                    if module_item_order_groupings.get_intra_group_sort(SourceItemOrderingModuleItemKind::Use) {
+                        tcx.dcx().span_warn(group.span, "`use` items cannot be sorted");
+                    }
+                }
+            },
+            SourceItemOrderingWithinModuleItemGroupings::None => {},
+        }
+
         Self {
+            enabled_orderings: conf.source_item_ordering,
             assoc_types_order: conf.trait_assoc_item_kinds_order.clone(),
-            enable_ordering_for_enum: conf.source_item_ordering.contains(&Enum),
-            enable_ordering_for_impl: conf.source_item_ordering.contains(&Impl),
-            enable_ordering_for_module: conf.source_item_ordering.contains(&Module),
-            enable_ordering_for_struct: conf.source_item_ordering.contains(&Struct),
-            enable_ordering_for_trait: conf.source_item_ordering.contains(&Trait),
-            module_item_order_groupings: conf.module_item_order_groupings.clone(),
-            module_items_ordered_within_groupings: conf.module_items_ordered_within_groupings.clone(),
+            module_item_order_groupings,
         }
     }
 
     /// Produces a linting warning for incorrectly ordered impl items.
-    fn lint_impl_item<T: LintContext>(&self, cx: &T, item: &ImplItemRef, before_item: &ImplItemRef) {
+    fn lint_impl_item(cx: &LateContext<'_>, item: &ImplItemRef, before_item: &ImplItemRef) {
         span_lint_and_note(
             cx,
             ARBITRARY_SOURCE_ITEM_ORDERING,
             item.span,
-            format!(
-                "incorrect ordering of impl items (defined order: {:?})",
-                self.assoc_types_order
-            ),
+            "incorrect ordering of impl items",
             Some(before_item.span),
             format!("should be placed before `{}`", before_item.ident.as_str(),),
         );
     }
 
     /// Produces a linting warning for incorrectly ordered item members.
-    fn lint_member_name<T: LintContext>(cx: &T, ident: &rustc_span::Ident, before_ident: &rustc_span::Ident) {
+    fn lint_member_name(cx: &LateContext<'_>, ident: &rustc_span::Ident, before_ident: &rustc_span::Ident) {
         span_lint_and_note(
             cx,
             ARBITRARY_SOURCE_ITEM_ORDERING,
@@ -214,7 +216,7 @@ impl ArbitrarySourceItemOrdering {
         );
     }
 
-    fn lint_member_item<T: LintContext>(cx: &T, item: &Item<'_>, before_item: &Item<'_>, msg: &'static str) {
+    fn lint_member_item(cx: &LateContext<'_>, item: &Item<'_>, before_item: &Item<'_>, msg: &'static str) {
         let span = if let Some(ident) = item.kind.ident() {
             ident.span
         } else {
@@ -239,15 +241,12 @@ impl ArbitrarySourceItemOrdering {
     }
 
     /// Produces a linting warning for incorrectly ordered trait items.
-    fn lint_trait_item<T: LintContext>(&self, cx: &T, item: &TraitItemRef, before_item: &TraitItemRef) {
+    fn lint_trait_item(cx: &LateContext<'_>, item: &TraitItemRef, before_item: &TraitItemRef) {
         span_lint_and_note(
             cx,
             ARBITRARY_SOURCE_ITEM_ORDERING,
             item.span,
-            format!(
-                "incorrect ordering of trait items (defined order: {:?})",
-                self.assoc_types_order
-            ),
+            "incorrect ordering of trait items",
             Some(before_item.span),
             format!("should be placed before `{}`", before_item.ident.as_str(),),
         );
@@ -257,10 +256,10 @@ impl ArbitrarySourceItemOrdering {
 impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
         match &item.kind {
-            ItemKind::Enum(_, enum_def, _generics) if self.enable_ordering_for_enum => {
+            ItemKind::Enum(_, enum_def, _generics) if self.enabled_orderings.check_enum => {
                 let mut cur_v: Option<&Variant<'_>> = None;
                 for variant in enum_def.variants {
-                    if variant.span.in_external_macro(cx.sess().source_map()) {
+                    if variant.span.in_external_macro(cx.tcx.sess.source_map()) {
                         continue;
                     }
 
@@ -273,10 +272,12 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                     cur_v = Some(variant);
                 }
             },
-            ItemKind::Struct(_, VariantData::Struct { fields, .. }, _generics) if self.enable_ordering_for_struct => {
+            ItemKind::Struct(_, VariantData::Struct { fields, .. }, _generics)
+                if self.enabled_orderings.check_struct =>
+            {
                 let mut cur_f: Option<&FieldDef<'_>> = None;
                 for field in *fields {
-                    if field.span.in_external_macro(cx.sess().source_map()) {
+                    if field.span.in_external_macro(cx.tcx.sess.source_map()) {
                         continue;
                     }
 
@@ -290,48 +291,48 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 }
             },
             ItemKind::Trait(is_auto, _safety, _ident, _generics, _generic_bounds, item_ref)
-                if self.enable_ordering_for_trait && *is_auto == IsAuto::No =>
+                if self.enabled_orderings.check_trait && *is_auto == IsAuto::No =>
             {
                 let mut cur_t: Option<&TraitItemRef> = None;
 
                 for item in *item_ref {
-                    if item.span.in_external_macro(cx.sess().source_map()) {
+                    if item.span.in_external_macro(cx.tcx.sess.source_map()) {
                         continue;
                     }
 
                     if let Some(cur_t) = cur_t {
                         let cur_t_kind = convert_assoc_item_kind(cur_t.kind);
-                        let cur_t_kind_index = self.assoc_types_order.index_of(&cur_t_kind);
+                        let cur_t_kind_index = self.assoc_types_order.get_order(cur_t_kind);
                         let item_kind = convert_assoc_item_kind(item.kind);
-                        let item_kind_index = self.assoc_types_order.index_of(&item_kind);
+                        let item_kind_index = self.assoc_types_order.get_order(item_kind);
 
                         if cur_t_kind == item_kind && cur_t.ident.name.as_str() > item.ident.name.as_str() {
                             Self::lint_member_name(cx, &item.ident, &cur_t.ident);
                         } else if cur_t_kind_index > item_kind_index {
-                            self.lint_trait_item(cx, item, cur_t);
+                            Self::lint_trait_item(cx, item, cur_t);
                         }
                     }
                     cur_t = Some(item);
                 }
             },
-            ItemKind::Impl(trait_impl) if self.enable_ordering_for_impl => {
+            ItemKind::Impl(trait_impl) if self.enabled_orderings.check_impl => {
                 let mut cur_t: Option<&ImplItemRef> = None;
 
                 for item in trait_impl.items {
-                    if item.span.in_external_macro(cx.sess().source_map()) {
+                    if item.span.in_external_macro(cx.tcx.sess.source_map()) {
                         continue;
                     }
 
                     if let Some(cur_t) = cur_t {
                         let cur_t_kind = convert_assoc_item_kind(cur_t.kind);
-                        let cur_t_kind_index = self.assoc_types_order.index_of(&cur_t_kind);
+                        let cur_t_kind_index = self.assoc_types_order.get_order(cur_t_kind);
                         let item_kind = convert_assoc_item_kind(item.kind);
-                        let item_kind_index = self.assoc_types_order.index_of(&item_kind);
+                        let item_kind_index = self.assoc_types_order.get_order(item_kind);
 
                         if cur_t_kind == item_kind && cur_t.ident.name.as_str() > item.ident.name.as_str() {
                             Self::lint_member_name(cx, &item.ident, &cur_t.ident);
                         } else if cur_t_kind_index > item_kind_index {
-                            self.lint_impl_item(cx, item, cur_t);
+                            Self::lint_impl_item(cx, item, cur_t);
                         }
                     }
                     cur_t = Some(item);
@@ -344,12 +345,12 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
     fn check_mod(&mut self, cx: &LateContext<'tcx>, module: &'tcx Mod<'tcx>, _: HirId) {
         struct CurItem<'a> {
             item: &'a Item<'a>,
-            order: usize,
+            order: u8,
             name: Option<String>,
         }
         let mut cur_t: Option<CurItem<'_>> = None;
 
-        if !self.enable_ordering_for_module {
+        if !self.enabled_orderings.check_mod {
             return;
         }
 
@@ -366,7 +367,7 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                 continue;
             }
 
-            if item.span.in_external_macro(cx.sess().source_map()) {
+            if item.span.in_external_macro(cx.tcx.sess.source_map()) {
                 continue;
             }
 
@@ -393,14 +394,9 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
             }
 
             let item_kind = convert_module_item_kind(&item.kind);
-            let grouping_name = self.module_item_order_groupings.grouping_name_of(&item_kind);
-            let module_level_order = self
-                .module_item_order_groupings
-                .module_level_order_of(&item_kind)
-                .unwrap_or_default();
+            let module_level_order = self.module_item_order_groupings.get_order(item_kind);
 
             if let Some(cur_t) = cur_t.as_ref() {
-                use std::cmp::Ordering; // Better legibility.
                 match module_level_order.cmp(&cur_t.order) {
                     Ordering::Less => {
                         Self::lint_member_item(
@@ -410,13 +406,9 @@ impl<'tcx> LateLintPass<'tcx> for ArbitrarySourceItemOrdering {
                             "incorrect ordering of items (module item groupings specify another order)",
                         );
                     },
-                    Ordering::Equal if item_kind == SourceItemOrderingModuleItemKind::Use => {
-                        // Skip ordering use statements, as these should be ordered by rustfmt.
-                    },
                     Ordering::Equal
-                        if (grouping_name.is_some_and(|grouping_name| {
-                            self.module_items_ordered_within_groupings.ordered_within(grouping_name)
-                        }) && cur_t.name > get_item_name(item)) =>
+                        if self.module_item_order_groupings.get_intra_group_sort(item_kind)
+                            && cur_t.name > get_item_name(item) =>
                     {
                         Self::lint_member_item(
                             cx,

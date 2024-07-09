@@ -53,9 +53,7 @@ pub struct UnnestedOrPatterns {
 
 impl UnnestedOrPatterns {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: MsrvStack::new(conf.msrv),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 

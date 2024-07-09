@@ -1,7 +1,8 @@
 use clippy_config::Conf;
-use clippy_config::types::{DisallowedPath, create_disallowed_map};
+use clippy_config::types::{DisallowedRemappablePath, create_disallowed_map};
+use clippy_utils::def_path_res;
 use clippy_utils::diagnostics::span_lint_and_then;
-use rustc_hir::def::{CtorKind, DefKind, Res};
+use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
@@ -58,7 +59,7 @@ declare_clippy_lint! {
 }
 
 pub struct DisallowedMethods {
-    disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
+    disallowed: DefIdMap<&'static DisallowedRemappablePath>,
 }
 
 impl DisallowedMethods {
@@ -66,12 +67,13 @@ impl DisallowedMethods {
         let (disallowed, _) = create_disallowed_map(
             tcx,
             &conf.disallowed_methods,
-            |def_kind| {
-                matches!(
-                    def_kind,
-                    DefKind::Fn | DefKind::Ctor(_, CtorKind::Fn) | DefKind::AssocFn
-                )
-            },
+            def_path_res,
+            &[
+                DefKind::Fn,
+                DefKind::Ctor(CtorOf::Struct, CtorKind::Fn),
+                DefKind::Ctor(CtorOf::Variant, CtorKind::Fn),
+                DefKind::AssocFn,
+            ],
             "function",
             false,
         );
@@ -90,14 +92,10 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedMethods {
             },
             _ => return,
         };
-        if let Some(&(path, disallowed_path)) = self.disallowed.get(&id) {
-            span_lint_and_then(
-                cx,
-                DISALLOWED_METHODS,
-                span,
-                format!("use of a disallowed method `{path}`"),
-                disallowed_path.diag_amendment(span),
-            );
+        if let Some(disallowed_path) = self.disallowed.get(&id) {
+            span_lint_and_then(cx, DISALLOWED_METHODS, span, "use of a disallowed method", |diag| {
+                disallowed_path.add_diagnostic(span, diag);
+            });
         }
     }
 }
