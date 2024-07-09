@@ -210,7 +210,7 @@ impl BoundLftPair {
         }
     }
 
-    fn as_bound_declaration(&self) -> String {
+    fn to_bound_declaration(&self) -> String {
         format!("{}: {}", self.long_lft_sym, self.outlived_lft_sym)
     }
 }
@@ -457,7 +457,7 @@ impl ImpliedBoundsLinter {
 
         for (implied_bound, (outlived_lft_span, long_lft_span)) in &self.implied_bounds_spans {
             if !self.declared_bounds_spans.contains_key(implied_bound) {
-                let declaration = implied_bound.as_bound_declaration();
+                let declaration = implied_bound.to_bound_declaration();
                 let msg_missing = format!("missing lifetimes bound declaration: {declaration}");
                 if let Some(long_lft_decl_span) = self.declared_lifetimes_spans.get(&implied_bound.long_lft_sym) {
                     let nested_ref_span = spans_merge(*outlived_lft_span, *long_lft_span);
@@ -488,7 +488,7 @@ impl ImpliedBoundsLinter {
                     format!(
                         // only remove these lifetime bounds after the compiler is fixed
                         "declared lifetimes bound: {} is redundant, but do not remove it",
-                        declared_bound.as_bound_declaration(),
+                        declared_bound.to_bound_declaration(),
                     ),
                     Some(nested_ref_span),
                     bound_implied_here_note,
