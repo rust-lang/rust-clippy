@@ -19,7 +19,6 @@
 /// There is also a reverse lint that suggest to remove lifetime bounds
 /// that are implied by nested references. This reverse lint is intended to be used only
 /// when the compiler has been fixed to handle these lifetime bounds correctly.
-use std::cmp::Ordering;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 
@@ -197,7 +196,7 @@ impl EarlyLintPass for LifetimesBoundNestedRef {
 
 /// A lifetime bound between a pair of lifetime symbols,
 /// e.g. 'long: 'outlived.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)] // use lexicographic ordering
 struct BoundLftPair {
     long_lft_sym: Symbol,
     outlived_lft_sym: Symbol,
@@ -213,30 +212,6 @@ impl BoundLftPair {
 
     fn as_bound_declaration(&self) -> String {
         format!("{}: {}", self.long_lft_sym, self.outlived_lft_sym)
-    }
-}
-
-impl PartialEq for BoundLftPair {
-    fn eq(&self, other: &Self) -> bool {
-        self.long_lft_sym.eq(&other.long_lft_sym) && self.outlived_lft_sym.eq(&other.outlived_lft_sym)
-    }
-}
-
-impl Eq for BoundLftPair {}
-
-impl PartialOrd for BoundLftPair {
-    fn partial_cmp(&self, other: &BoundLftPair) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for BoundLftPair {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match self.long_lft_sym.cmp(&other.long_lft_sym) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => self.outlived_lft_sym.cmp(&other.outlived_lft_sym),
-        }
     }
 }
 
