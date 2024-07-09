@@ -148,7 +148,10 @@ impl_lint_pass!(LifetimesBoundNestedRef => [
 ]);
 
 impl EarlyLintPass for LifetimesBoundNestedRef {
-    /// For issue 25860
+    /// For issue 25860: from function arguments and return values,
+    /// get declared lifetimes and declared lifetime bounds,
+    /// and compare these with lifetime bounds implied by nested references
+    /// in the function signature.
     fn check_fn(&mut self, early_context: &EarlyContext<'_>, fn_kind: FnKind<'_>, _fn_span: Span, _node_id: NodeId) {
         let FnKind::Fn(_fn_ctxt, _ident, fn_sig, _visibility, generics, _opt_block) = fn_kind else {
             return;
@@ -167,7 +170,11 @@ impl EarlyLintPass for LifetimesBoundNestedRef {
         linter.report_lints(early_context);
     }
 
-    /// For issues 84591 and 100051
+    /// For issues 84591 and 100051:
+    /// Ignore the supertrait in issue 84591, just check the trait implementation declaration.
+    /// For issue 100051, check the trait implementation declaration, and also check the projection
+    /// impl ... for ... . For these, get declared lifetimes and declared lifetime bounds,
+    /// and compare these with lifetime bounds implied by nested references.
     fn check_item_post(&mut self, early_context: &EarlyContext<'_>, item: &Item) {
         let ItemKind::Impl(box_impl) = &item.kind else {
             return;
@@ -188,6 +195,8 @@ impl EarlyLintPass for LifetimesBoundNestedRef {
     }
 }
 
+/// A lifetime bound between a pair of lifetime symbols,
+/// e.g. 'long: 'outlived.
 #[derive(Debug)]
 struct BoundLftPair {
     long_lft_sym: Symbol,
@@ -433,11 +442,11 @@ impl ImpliedBoundsLinter {
                     }
                 },
                 GB::Outlives(_lifetime) => {
-                    // CHECKME: is this a nested reference bound that can be collected ?
+                    // CHECKME: should this coincide with already collected declared bounds?
                 },
                 GB::Use(_precise_capturing_args, _span) => {
                     // CHECKME: how to treat the lifetime in a PreciseCapturingArg ?
-                }
+                },
             }
         }
     }
